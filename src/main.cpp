@@ -311,7 +311,8 @@ void setVariable(string name, double value)
     setLastValue(dtos(value));
 }
 
-void createVariable(string name, string value) {
+void createVariable(string name, string value)
+{
     Variable newVariable(name, value);
 
     if (executedTemplate || executedMethod || executedTry)
@@ -323,9 +324,9 @@ void createVariable(string name, string value) {
     setLastValue(value);
 }
 
-///	Creates a double type variable
-void createVariable(string name, double value) {
-	Variable newVariable(name, value);
+void createVariable(string name, double value)
+{
+    Variable newVariable(name, value);
 
     if (executedTemplate || executedMethod || executedTry)
         newVariable.collect();
@@ -333,6 +334,7 @@ void createVariable(string name, double value) {
         newVariable.dontCollect();
 
     variables.push_back(newVariable);
+
     setLastValue(dtos(value));
 }
 
@@ -764,15 +766,15 @@ string cleanString(string st)
             else if (st[i] == 'n' && st[i - 1] == '\\') // if end new-line
                 cleaned.push_back('\n');
             else if (st[i] == '\\' && st[i + 1] == 't') // if begin tab
-                doNothing();
+                cout << "";
             else if (st[i] == 't' && st[i - 1] == '\\') // if end tab
                 cleaned.push_back('\t');
             else if (st[i] == '\\' && st[i + 1] == ';') // if begin semi-colon
-                doNothing();
+                cout << "";
             else if (st[i] == ';' && st[i - 1] == '\\') // if end semi-colon
                 cleaned.push_back(';');
             else if (st[i] == '\\' && st[i + 1] == '\'') // if begin apost
-                doNothing();
+                cout << "";
             else if (st[i] == '\'' && st[i - 1] == '\\') // if end apost
                 cleaned.push_back('\'');
             else if (st[i] == '\\' && st[i + 1] == '{') // if begin symbol
@@ -882,7 +884,7 @@ void clearVariables()
 
 void displayVersion()
 {
-	cout << "\r\nnoctis v0.0.0 by <scstauf@gmail.com>\r\n" << endl;
+	cout << "\r\nUnorthodox Scripting Language (v0.0.0.1) by <scstauf@gmail.com>\r\n" << endl;
 }
 
 void error(string e, bool quit)
@@ -943,7 +945,7 @@ List getDirectoryList(string before, bool filesOnly)
                     tmp = meat + "/" + string(pe->d_name);
                 else
                     tmp = meat + "\\" + string(pe->d_name);
-					
+
 				if (filesOnly) {
 					if (fileExists(tmp)) {
 						newList.add(tmp);
@@ -1239,7 +1241,7 @@ vector<Constant> removeConstant(vector<Constant> v, string target)
 
 void help(string app)
 {
-	cout << "\r\nnoctis by <scstauf@gmail.com>" << endl << endl
+	cout << "\r\nUnorthodox Scripting language (v0.0.0.1) by <scstauf@gmail.com>" << endl << endl
 		<< "usage:\t" << app << "\t\t\t// start the shell" << endl
 		<< "\t" << app << " {args}\t\t// ditto, with parameters" << endl
 		<< "\t" << app << " {script}\t\t// interpret a script" << endl
@@ -1275,8 +1277,7 @@ bool notStandardZeroSpace(string arg)
 		arg != "parser" &&
 		arg != "private" &&
 		arg != "public" &&
-        arg != "try" &&
-		arg != "pass")
+        arg != "try")
 		return (true);
 
 	return (false);
@@ -1321,8 +1322,6 @@ bool notStandardOneSpace(string arg)
 		arg != "call_method" &&
 		arg != "object" &&
 		arg != "out" &&
-		arg != "print" &&
-		arg != "println" &&
 		arg != "prompt" &&
 		arg != "remember" &&
 		arg != "remove" &&
@@ -1556,7 +1555,7 @@ void loadScript(string script)
 
 			if (s.length() > 0) {
 				if (s[0] == '\r' || s[0] == '\n')
-					doNothing();
+					cout << "";
 				else if (s[0] == '\t') {
 					s.erase(remove(s.begin(), s.end(), '\t'), s.end());
                     char * c = new char[s.size() + 1];
@@ -1599,11 +1598,11 @@ void loop(bool skip)
 
 		if (customPrompt) {
             if (promptStyle == "bash")
-                cout << getUser() << "@" << getMachine() << "(" << cwd() << ")" << "$ ";
+                 cout << getUser() << "@" << getMachine() << "(" << cwd() << ")" << "$ ";
             else if (promptStyle == "empty")
-				doNothing();
+                 cout << "";
             else
-				cout << getPrompt();
+                 cout << getPrompt();
         } else
             cout << "> ";
 
@@ -1665,30 +1664,25 @@ void forLoop(Method m)
 
                             builder = subtractString(builder, "{");
 
-				            if (builder == m.getSymbolString()) {
+				            if (builder == m.getSymbolString())
 				                cleaned.append(m.getList().at(i));
-							}
 
                             builder.clear();
-				        } 
-						else {
+				        } else
                             builder.push_back(m.at(z)[a]);
-						}
 				    }
 
-					if (m.at(z)[a] == '$') {
+					if (m.at(z)[a] == '$')
                         almostBuild = true;
-					}
 
                     if (!almostBuild && !buildSymbol) {
-                        if (ended) {
+                        if (ended)
                             ended = false;
-                        } else {
+                        else
                             cleaned.push_back(m.at(z)[a]);
-						}
                     }
 				}
-				
+
                 parse(cleaned);
 			}
 
@@ -2695,54 +2689,42 @@ double getStack(string argTwo)
 
 bool commented, multiLineComment;
 
-int sysExec(string s, vector<string> command)
+void sysExec(string s, vector<string> command)
 {
-//    string _cleaned;
-//	_cleaned = cleanString(s);
-    for (int i = 0; i < (int)methods.size(); i++) {
-        if (command.at(0) == methods.at(i).name()) {
-            if ((int)command.size() - 1 == (int)methods.at(i).getMethodVariables().size()) {
+    for (int i = 0; i < (int)methods.size(); i++)
+        if (command.at(0) == methods.at(i).name())
+            if ((int)command.size() - 1 == (int)methods.at(i).getMethodVariables().size())
 				// work
-			}
-		}
-	}
-	return system(cleanString(s).c_str());
+
+    system(cleanString(s).c_str());
 }
 
-/**
-	The heart of it all. Parse a string and send for interpretation.
-**/
-void parse(string s) {
-	vector<string> command; // a tokenized command container
-	int length = s.length(), //	length of the line
-		count = 0, // command token counter
-		size = 0; // final size of tokenized command container
-	bool quoted = false, // flag: parsing string literals
-		broken = false, // flag: end of a command
-		uncomment = false, // flag: end a command
-		parenthesis = false; // flag: parsing contents within parentheses
-	char prevChar = 'a'; // previous character in string
+void parse(string s)
+{
+    currentLine = s;
 
-	StringContainer stringContainer; // contains separate commands
-	string bigString(""); // a string to build upon
+    if (logging)
+        app(logFile, s + "\r\n");
 
-    currentLine = s; // store a copy of the current line
-    if (logging) app(logFile, s + "\r\n"); // if logging a session, log the line
+	int length = s.length(), count = 0, size = 0;
+	vector<string> command;
+	bool quoted = false, broken = false, uncomment = false, parenthesis = false;
 
-	command.push_back(""); // push back an empty string to begin.
-	// iterate each char in the initial string
+	StringContainer stringContainer;
+	string bigString("");
+
+	command.push_back("");
+
+	char prevChar = 'a';
+
 	for (int i = 0; i < length; i++) {
 		switch (s[i]) {
 			case ' ':
-				/**
-					we can push a space onto the string if:
-						parsing a string literal AND not within parentheses AND not in comment mode
-				**/
 				if (quoted && !parenthesis) {
 					if (!commented)
 						command.at(count).push_back(' ');
 				} else if (parenthesis && !quoted)
-                    doNothing();
+                    cout << "";
                 else if (parenthesis && quoted) {
                     if (!commented)
                         command.at(count).push_back(' ');
@@ -2807,7 +2789,7 @@ void parse(string s) {
 			case '#':
                 if (quoted || parenthesis)
 					command.at(count).push_back('#');
-                else if (prevChar == '#' && multiLineComment == false) {
+                else if (prevChar == '#'  && multiLineComment == false) {
                     multiLineComment = true;
                     commented = true;
                     uncomment = false;
@@ -2867,12 +2849,10 @@ void parse(string s) {
         command.pop_back();
 
     size = (int)command.size();
-	
+
 	if (!commented) {
     	if (!broken) {
     		for (int i = 0; i < size; i++) {
-				// handle arguments
-				// args[0], args[1], ..., args[n-1]
     			if (contains(command.at(i), "args") && command.at(i) != "args.size") {
     				vector<string> params = getBracketRange(command.at(i));
 
@@ -2891,7 +2871,7 @@ void parse(string s) {
 
             if (inSwitchDef) {
                 if (s == "{")
-                    doNothing();
+                    cout << "";
                 else if (startsWith(s, "case"))
                     mainSwitchDef.addCase(command.at(1));
                 else if (s == "default")
@@ -2953,7 +2933,7 @@ void parse(string s) {
 
                     if (inParamMethodDef) {
                         if (s == "{")
-							doNothing();
+                            cout << "";
                         else if (s == "end" || s == "}") {
                             if (inMethodWhileDef) {
                                 inMethodWhileDef = false;
@@ -3021,7 +3001,7 @@ void parse(string s) {
                         }
                     } else {
                         if (s == "{")
-                            doNothing();
+                            cout << "";
         				else if (s == "end" || s == "}") {
         				    if (inMethodWhileDef) {
         				        inMethodWhileDef = false;
@@ -3123,7 +3103,7 @@ void parse(string s) {
     			} else {
     			    if (inWhileDef) {
     			        if (s == "{")
-                            doNothing();
+                            cout << "";
     			        else if (command.at(0) == "end" || command.at(0) == "}") {
     			            inWhileDef = false;
 
@@ -3285,7 +3265,7 @@ void parse(string s) {
                             numOfFOR = 0;
     					} else {
     					    if (s == "{")
-                                doNothing();
+                                cout << "";
                             else
                                 forLoops.at(forLoops.size() - 1).add(s);
     					}
@@ -3331,8 +3311,6 @@ void parse(string s) {
     										    say(getMachine());
                                             else if (after == "init_dir" || after == "initial_directory")
                                                 say(initDir);
-											else if (after == "now")
-												say(timeNow());
     										else
     											say(getEnvironmentVariable(after));
     									} else if (variableExists(before)) {
@@ -3384,9 +3362,8 @@ void parse(string s) {
     					} else if (size == 2) {
     						if (notStandardOneSpace(command.at(0)))
     							sysExec(s, command);
-    						else {
+    						else
     							oneSpace(command.at(0), command.at(1), s, command);
-							}
     					} else if (size == 3) {
     						if (notStandardTwoSpace(command.at(1))) {
     							if (command.at(0) == "append")
@@ -3427,7 +3404,7 @@ void parse(string s) {
                             } else
                                 sysExec(s, command);
                         } else
-							sysExec(s, command);
+    						sysExec(s, command);
     				}
     			}
     		}
@@ -3495,10 +3472,8 @@ void parse(string s) {
     }
 }
 
-/**
-	Give a new name to anything.
-**/
-void redefine(string target, string name) {
+void redefine(string target, string name)
+{
 	if (variableExists(target)) {
         if (fileExists(variables.at(variableAt(target)).getString()) || directoryExists(variables.at(variableAt(target)).getString())) {
             string old_name(variables.at(variableAt(target)).getString()), new_name("");
@@ -3571,7 +3546,8 @@ void redefine(string target, string name) {
 		error("invalid_operation:target_undefined:" + target, false);
 }
 
-void setup() {
+void setup()
+{
 	numOfBadMethods = 0,
     numOfBadObjects = 0,
     numOfBadVars = 0,
@@ -3779,10 +3755,7 @@ void setSubString(string argOne, string argTwo, string beforeBracket)
 
 void zeroSpace(string argZero, string s, vector<string> command)
 {
-	if (argZero == "pass") {
-		return;
-	}
-    else if (argZero == "caught") {
+    if (argZero == "caught") {
         string to_remove = "remove ";
         to_remove.append(errorVarName);
 
@@ -3873,7 +3846,7 @@ void oneSpace(string argZero, string argOne, string s, vector<string> command)
 	string before(beforeDot(argOne)), after(afterDot(argOne));
 
     if (contains(argOne, "self.")) {
-        //cout << "replacing \"" << argOne << " with \"" << currentMethodObject << "..." << endl << endl;
+        cout << "replacing \"" << argOne << " with \"" << currentMethodObject << "..." << endl << endl;
         argOne = replace(argOne, "self", currentMethodObject);
     }
 
@@ -4172,44 +4145,25 @@ void oneSpace(string argZero, string argOne, string s, vector<string> command)
                 parse(lines.at(i));
         } else
 			error("bad_load:" + argOne, true);
-	} else if (argZero == "say" || argZero == "stdout" || argZero == "out" || argZero == "print" || argZero == "println") {
-		string text(argOne);
-		bool is_say = (argZero == "say");
-		bool is_print = (argZero == "print" || argZero == "println");
-		// if parameter is variable, get it's value
+	} else if (argZero == "say") {
 		if (variableExists(argOne)) {
-		    // set the value 
-			if (!zeroDots(argOne)) {
+		    if (!zeroDots(argOne)) {
 		        if (objects.at(objectAt(beforeDot(argOne))).getVariable(afterDot(argOne)).getString() != null)
-		            text = (objects.at(objectAt(beforeDot(argOne))).getVariable(afterDot(argOne)).getString());
+		            say(objects.at(objectAt(beforeDot(argOne))).getVariable(afterDot(argOne)).getString());
 		        else if (objects.at(objectAt(beforeDot(argOne))).getVariable(afterDot(argOne)).getNumber() != nullNum)
-                    text = (dtos(objects.at(objectAt(beforeDot(argOne))).getVariable(afterDot(argOne)).getNumber()));
+                    say(dtos(objects.at(objectAt(beforeDot(argOne))).getVariable(afterDot(argOne)).getNumber()));
                 else
-                    text = ("is_null:" + argOne, false);
+                    error("is_null:" + argOne, false);
 		    } else {
                 if (variables.at(variableAt(argOne)).getString() != null)
-                    text = (variables.at(variableAt(argOne)).getString());
+                    say(variables.at(variableAt(argOne)).getString());
                 else if (variables.at(variableAt(argOne)).getNumber() != nullNum)
-                    text = (dtos(variables.at(variableAt(argOne)).getNumber()));
+                    say(dtos(variables.at(variableAt(argOne)).getNumber()));
                 else
-                    text = ("is_null:" + argOne, false);
+                    error("is_null:" + argOne, false);
 		    }
-		}
-		
-		if (is_say) {
-			say(text);
-		}
-		else if (is_print) {
-			if (argZero == "println") {
-				cout << text << endl;
-			}
-			else {
-				cout << text;
-			}
-		}
-		else {
-			__stdout(text);
-		}
+		} else
+			say(argOne);
 	} else if (argZero == "cd" || argZero == "chdir") {
 		if (variableExists(argOne)) {
 			if (variables.at(variableAt(argOne)).getString() != null) {
@@ -4279,6 +4233,16 @@ void oneSpace(string argZero, string argOne, string s, vector<string> command)
 			} else
 				error("read_fail:" + initDir, false);
 		}
+	} else if (argZero == "stdout" || argZero == "out") {
+		if (variableExists(argOne)) {
+			if (variables.at(variableAt(argOne)).getNumber() != nullNum)
+				__stdout(dtos(variables.at(variableAt(argOne)).getNumber()));
+			else if (variables.at(variableAt(argOne)).getString() != null)
+				__stdout(variables.at(variableAt(argOne)).getString());
+			else
+				error("is_null:" + argOne, false);
+		} else
+			__stdout(argOne);
 	} else if (argZero == "is_method?" || argZero == "method?") {
 		if (before.length() != 0 && after.length() != 0) {
 			if (objects.at(objectAt(before)).methodExists(after))
@@ -5125,12 +5089,6 @@ double getNumberValue(string argOne, string op, string argTwo)
     return (returnValue);
 }
 
-/**
-
-@s = "This is a string."
-@n = 3.14 # and that's a number.
-
-**/
 void twoSpace(string argZero, string argOne, string argTwo, string s, vector<string> command)
 {
     string last_val = "";
