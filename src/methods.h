@@ -11,6 +11,8 @@
  * Copyright 2013
  */
 
+void doNothing() { }
+ 
 string  afterUS(string s),
         afterBrackets(string s),
         afterDot(string s),
@@ -220,28 +222,21 @@ string cwd()
 	return (getcwd(tmp, PATH_MAX) ? string(tmp) : string(""));
 }
 
-bool contains(string s1, string s2)
-{
-	if (s1.find(s2) != string::npos)
-		return (true);
-
-	return (false);
+bool contains(string s1, string s2) {
+	return s1.find(s2) != string::npos;
 }
 
-bool containsTilde(string s)
-{
+bool containsTilde(string s) {
 	int l = s.length();
 
 	if (s == "~")
-		return (true);
-	else {
-		for (int i = 0; i < l; i++) {
+		return true;
+	else
+		for (int i = 0; i < l; i++)
 			if (s[i] == '~')
-				return (true);
-		}
-	}
+				return true;
 
-	return (false);
+	return false;
 }
 
 bool directoryExists(string p)
@@ -284,11 +279,11 @@ void app(string p, string a)
 			else if (a[i] == 'n' && a[i - 1] == '\\')
 				cleaned.push_back('\n');
             else if (a[i] == '\\' && a[i + 1] == 't')
-				cout << "";
+				doNothing();
 			else if (a[i] == 't' && a[i - 1] == '\\')
 				cleaned.push_back('\t');
 			else if (a[i] == '\\' && a[i + 1] == '\'')
-			    cout << "";
+			    doNothing();
             else if (a[i] == '\'' && a[i - 1] == '\\')
                 cleaned.push_back('\"');
 			else
@@ -375,13 +370,12 @@ vector<string> getBracketRange(string s)
             } else if (s[i] == ']')
                 start_push = false;
             else if (s[i] == ' ')
-                cout << "";
+                doNothing();
             else
                 new_name.push_back(s[i]);
-        } else {
+        } else
             if (s[i] == '[')
                 start_push = true;
-        }
     }
 
     params.push_back(new_name);
@@ -389,8 +383,7 @@ vector<string> getBracketRange(string s)
     return (params);
 }
 
-vector<string> getRange(string s)
-{
+vector<string> getRange(string s) {
     vector<string> params;
 
     int sl = s.length();
@@ -410,13 +403,12 @@ vector<string> getRange(string s)
             } else if (s[i] == ')')
                 start_push = false;
             else if (s[i] == ' ')
-                cout << "";
+                doNothing();
             else
                 new_name.push_back(s[i]);
-        } else {
+        } else
             if (s[i] == '(')
                 start_push = true;
-        }
     }
 
     params.push_back(new_name);
@@ -424,8 +416,7 @@ vector<string> getRange(string s)
     return (params);
 }
 
-string beforeParams(string s)
-{
+string beforeParams(string s) {
     int sl = s.length();
     bool stop_push = false;
     string new_str("");
@@ -442,8 +433,7 @@ string beforeParams(string s)
 }
 
 
-string beforeBrackets(string s)
-{
+string beforeBrackets(string s) {
     int sl = s.length();
     bool stop_push = false;
     string new_str("");
@@ -459,8 +449,7 @@ string beforeBrackets(string s)
     return (new_str);
 }
 
-string afterBrackets(string s)
-{
+string afterBrackets(string s) {
 	string var("");
 	int sl = s.length();
 	bool start_push = false;
@@ -468,10 +457,9 @@ string afterBrackets(string s)
 	for (int i = 0; i < sl; i++) {
 		if (start_push)
 			var.push_back(s[i]);
-		else {
+		else
 			if (s[i] == '[')
 				start_push = true;
-		}
 	}
 
 	s = subtractChar(s, "]");
@@ -479,8 +467,7 @@ string afterBrackets(string s)
 	return (var);
 }
 
-string afterDot(string s)
-{
+string afterDot(string s) {
 	string var("");
 	int sl = s.length();
 	bool start_push = false;
