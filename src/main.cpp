@@ -12,7 +12,7 @@
  */
 
 #ifdef _WIN32
-	#include <windows.h>
+#include <windows.h>
 #endif
 
 #include <iostream>
@@ -31,7 +31,7 @@
 #include <cfloat>
 
 #ifdef __linux__
-	#include <unistd.h>
+#include <unistd.h>
 #endif
 
 using namespace std;
@@ -160,9 +160,9 @@ Variable    getVariable(string s);
 List        getDirectoryList(string before, bool filesOnly);
 
 int methodAt(string s),
-	objectAt(string s),
-	variableAt(string s),
-	listAt(string s),
+    objectAt(string s),
+    variableAt(string s),
+    listAt(string s),
     moduleAt(string s),
     constAt(string s),
     scriptAt(string s);
@@ -223,18 +223,18 @@ void __fwrite(string file, string contents);
 bool is(string s, string si),
      isScript(string path),
      isString(string v_Name),
-	 methodExists(string s),
-	 objectExists(string s),
-	 variableExists(string s),
-	 listExists(string s),
+     methodExists(string s),
+     objectExists(string s),
+     variableExists(string s),
+     listExists(string s),
      moduleExists(string s),
      noLists(),
-	 noMethods(),
-  	 noObjects(),
-	 noVariables(),
-	 notStandardZeroSpace(string s),
-	 notStandardOneSpace(string argOne),
-	 notStandardTwoSpace(string argOne);
+     noMethods(),
+     noObjects(),
+     noVariables(),
+     notStandardZeroSpace(string s),
+     notStandardOneSpace(string argOne),
+     notStandardTwoSpace(string argOne);
 
 double  getBytes(string path),
         getKBytes(string path),
@@ -247,13 +247,11 @@ bool isStringStack(string argTwo);
 bool stackReady(string argTwo);
 string getStringStack(string argTwo);
 
-void setLastValue(string s)
-{
+void setLastValue(string s) {
     lastValue = s;
 }
 
-void setList(string argOne, string argTwo, vector<string> params)
-{
+void setList(string argOne, string argTwo, vector<string> params) {
     if (methodExists(beforeParams(argTwo))) {
         executeTemplate(getMethod(beforeParams(argTwo)), params);
 
@@ -289,14 +287,12 @@ void setList(string argOne, string argTwo, vector<string> params)
     }
 }
 
-void setVariable(string name, string value)
-{
+void setVariable(string name, string value) {
     variables.at(variableAt(name)).setVariable(value);
     setLastValue(value);
 }
 
-void setVariable(string name, double value)
-{
+void setVariable(string name, double value) {
     if (variables.at(variableAt(name)).getString() != null)
         variables.at(variableAt(name)).setVariable(dtos(value));
     else if (variables.at(variableAt(name)).getNumber() != nullNum)
@@ -325,7 +321,7 @@ void createVariable(string name, string value) {
 
 ///	Creates a double type variable
 void createVariable(string name, double value) {
-	Variable newVariable(name, value);
+    Variable newVariable(name, value);
 
     if (executedTemplate || executedMethod || executedTry)
         newVariable.collect();
@@ -336,8 +332,7 @@ void createVariable(string name, double value) {
     setLastValue(dtos(value));
 }
 
-void replaceElement(string before, string after, string replacement)
-{
+void replaceElement(string before, string after, string replacement) {
     vector<string> newList;
 
     for (int i = 0; i < (int)lists.at(listAt(before)).size(); i++) {
@@ -355,8 +350,7 @@ void replaceElement(string before, string after, string replacement)
     newList.clear();
 }
 
-std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems)
-{
+std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
     std::stringstream ss(s);
     std::string item;
 
@@ -368,87 +362,84 @@ std::vector<std::string> &split(const std::string &s, char delim, std::vector<st
 }
 
 
-std::vector<std::string> split(const std::string &s, char delim)
-{
+std::vector<std::string> split(const std::string &s, char delim) {
     std::vector<std::string> elems;
 
     return split(s, delim, elems);
 }
 
-void appendText(string argOne, string argTwo, bool newLine)
-{
-	if (variableExists(argOne)) {
-		if (variables.at(variableAt(argOne)).getString() != null) {
-			if (fileExists(variables.at(variableAt(argOne)).getString())) {
-				if (variableExists(argTwo)) {
-					if (variables.at(variableAt(argTwo)).getString() != null) {
-						if (newLine)
-							app(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argTwo)).getString() + "\r\n");
-						else
-							app(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argTwo)).getString());
-					} else if (variables.at(variableAt(argTwo)).getNumber() != nullNum) {
-						if (newLine)
-							app(variables.at(variableAt(argOne)).getString(), dtos(variables.at(variableAt(argTwo)).getNumber()) + "\r\n");
-						else
-							app(variables.at(variableAt(argOne)).getString(), dtos(variables.at(variableAt(argTwo)).getNumber()));
-					} else
-						error("is_null:" + argTwo, false);
-				} else {
-					if (newLine)
-						app(variables.at(variableAt(argOne)).getString(), argTwo + "\r\n");
-					else
-						app(variables.at(variableAt(argOne)).getString(), argTwo);
-				}
-			} else
-				error("read_fail:" + variables.at(variableAt(argOne)).getString(), false);
-		} else
-			error("conversion_error:" + argOne, false);
-	} else {
-		if (variableExists(argTwo)) {
-			if (variables.at(variableAt(argTwo)).getString() != null) {
-				if (fileExists(argOne)) {
-					if (newLine)
-						app(argOne, variables.at(variableAt(argTwo)).getString() + "\r\n");
-					else
-						app(argOne, variables.at(variableAt(argTwo)).getString());
-				} else
-					error("read_fail:" + variables.at(variableAt(argTwo)).getString(), false);
-			} else
-				error("conversion_error:" + argTwo, false);
-		} else {
-			if (fileExists(argOne)) {
-				if (newLine)
-					app(argOne, argTwo + "\r\n");
-				else
-					app(argOne, argTwo);
-			} else
-				error("read_fail:" + argOne, false);
-		}
-	}
+void appendText(string argOne, string argTwo, bool newLine) {
+    if (variableExists(argOne)) {
+        if (variables.at(variableAt(argOne)).getString() != null) {
+            if (fileExists(variables.at(variableAt(argOne)).getString())) {
+                if (variableExists(argTwo)) {
+                    if (variables.at(variableAt(argTwo)).getString() != null) {
+                        if (newLine)
+                            app(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argTwo)).getString() + "\r\n");
+                        else
+                            app(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argTwo)).getString());
+                    } else if (variables.at(variableAt(argTwo)).getNumber() != nullNum) {
+                        if (newLine)
+                            app(variables.at(variableAt(argOne)).getString(), dtos(variables.at(variableAt(argTwo)).getNumber()) + "\r\n");
+                        else
+                            app(variables.at(variableAt(argOne)).getString(), dtos(variables.at(variableAt(argTwo)).getNumber()));
+                    } else
+                        error("is_null:" + argTwo, false);
+                } else {
+                    if (newLine)
+                        app(variables.at(variableAt(argOne)).getString(), argTwo + "\r\n");
+                    else
+                        app(variables.at(variableAt(argOne)).getString(), argTwo);
+                }
+            } else
+                error("read_fail:" + variables.at(variableAt(argOne)).getString(), false);
+        } else
+            error("conversion_error:" + argOne, false);
+    } else {
+        if (variableExists(argTwo)) {
+            if (variables.at(variableAt(argTwo)).getString() != null) {
+                if (fileExists(argOne)) {
+                    if (newLine)
+                        app(argOne, variables.at(variableAt(argTwo)).getString() + "\r\n");
+                    else
+                        app(argOne, variables.at(variableAt(argTwo)).getString());
+                } else
+                    error("read_fail:" + variables.at(variableAt(argTwo)).getString(), false);
+            } else
+                error("conversion_error:" + argTwo, false);
+        } else {
+            if (fileExists(argOne)) {
+                if (newLine)
+                    app(argOne, argTwo + "\r\n");
+                else
+                    app(argOne, argTwo);
+            } else
+                error("read_fail:" + argOne, false);
+        }
+    }
 }
 
-void __fwrite(string argOne, string argTwo)
-{
-	if (variableExists(argOne)) {
-		if (variables.at(variableAt(argOne)).getString() != null) {
-			if (fileExists(variables.at(variableAt(argOne)).getString())) {
-				if (variableExists(argTwo)) {
-					if (variables.at(variableAt(argTwo)).getString() != null) {
-						app(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argTwo)).getString() + "\r\n");
-						lastValue = "0";
-					} else if (variables.at(variableAt(argTwo)).getNumber() != nullNum) {
-						app(variables.at(variableAt(argOne)).getString(), dtos(variables.at(variableAt(argTwo)).getNumber()) + "\r\n");
-						lastValue = "0";
-					} else {
-						error("is_null:" + argTwo, false);
-						lastValue = "-1";
-					}
-				} else {
-					app(variables.at(variableAt(argOne)).getString(), argTwo + "\r\n");
-					lastValue = "0";
-				}
-			} else {
-			    touch(variables.at(variableAt(argOne)).getString());
+void __fwrite(string argOne, string argTwo) {
+    if (variableExists(argOne)) {
+        if (variables.at(variableAt(argOne)).getString() != null) {
+            if (fileExists(variables.at(variableAt(argOne)).getString())) {
+                if (variableExists(argTwo)) {
+                    if (variables.at(variableAt(argTwo)).getString() != null) {
+                        app(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argTwo)).getString() + "\r\n");
+                        lastValue = "0";
+                    } else if (variables.at(variableAt(argTwo)).getNumber() != nullNum) {
+                        app(variables.at(variableAt(argOne)).getString(), dtos(variables.at(variableAt(argTwo)).getNumber()) + "\r\n");
+                        lastValue = "0";
+                    } else {
+                        error("is_null:" + argTwo, false);
+                        lastValue = "-1";
+                    }
+                } else {
+                    app(variables.at(variableAt(argOne)).getString(), argTwo + "\r\n");
+                    lastValue = "0";
+                }
+            } else {
+                touch(variables.at(variableAt(argOne)).getString());
 
                 if (variables.at(variableAt(argTwo)).getString() != null) {
                     app(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argTwo)).getString() + "\r\n");
@@ -461,75 +452,74 @@ void __fwrite(string argOne, string argTwo)
                     lastValue = "-1";
                 }
 
-			    lastValue = "1";
-			}
-		} else {
-			error("conversion_error:" + argOne, false);
-			lastValue = "-1";
-		}
-	} else {
-		if (variableExists(argTwo)) {
-			if (variables.at(variableAt(argTwo)).getString() != null) {
-				if (fileExists(argOne)) {
-					app(argOne, variables.at(variableAt(argTwo)).getString() + "\r\n");
-					lastValue = "0";
-				} else {
-				    touch(variables.at(variableAt(argTwo)).getString());
-					app(argOne, variables.at(variableAt(argTwo)).getString() + "\r\n");
-				    lastValue = "1";
-				}
-			} else {
-				error("conversion_error:" + argTwo, false);
-				lastValue = "-1";
-			}
-		} else {
-			if (fileExists(argOne)) {
-				app(argOne, argTwo + "\r\n");
-				lastValue = "0";
-			} else {
-			    touch(argOne);
-			    app(argOne, argTwo + "\r\n");
-			    lastValue = "1";
-			}
-		}
-	}
+                lastValue = "1";
+            }
+        } else {
+            error("conversion_error:" + argOne, false);
+            lastValue = "-1";
+        }
+    } else {
+        if (variableExists(argTwo)) {
+            if (variables.at(variableAt(argTwo)).getString() != null) {
+                if (fileExists(argOne)) {
+                    app(argOne, variables.at(variableAt(argTwo)).getString() + "\r\n");
+                    lastValue = "0";
+                } else {
+                    touch(variables.at(variableAt(argTwo)).getString());
+                    app(argOne, variables.at(variableAt(argTwo)).getString() + "\r\n");
+                    lastValue = "1";
+                }
+            } else {
+                error("conversion_error:" + argTwo, false);
+                lastValue = "-1";
+            }
+        } else {
+            if (fileExists(argOne)) {
+                app(argOne, argTwo + "\r\n");
+                lastValue = "0";
+            } else {
+                touch(argOne);
+                app(argOne, argTwo + "\r\n");
+                lastValue = "1";
+            }
+        }
+    }
 }
 
-string getPrompt()
-{
+string getPrompt() {
     string new_style("");
     int length = promptStyle.length();
     char prevChar = 'a';
 
     for (int i = 0; i < length; i++) {
         switch (promptStyle[i]) {
-            case 'u':
-                if (prevChar == '\\')
-                    new_style.append(getUser());
-                else
-                    new_style.push_back('u');
-                break;
+        case 'u':
+            if (prevChar == '\\')
+                new_style.append(getUser());
+            else
+                new_style.push_back('u');
+            break;
 
-            case 'm':
-                if (prevChar == '\\')
-                    new_style.append(getMachine());
-                else
-                    new_style.push_back('m');
-                break;
+        case 'm':
+            if (prevChar == '\\')
+                new_style.append(getMachine());
+            else
+                new_style.push_back('m');
+            break;
 
-            case 'w':
-                if (prevChar == '\\')
-                    new_style.append(cwd());
-                else
-                    new_style.push_back('w');
-                break;
+        case 'w':
+            if (prevChar == '\\')
+                new_style.append(cwd());
+            else
+                new_style.push_back('w');
+            break;
 
-            case '\\':
-                break;
+        case '\\':
+            break;
 
-            default:
-                new_style.push_back(promptStyle[i]);
-                break;
+        default:
+            new_style.push_back(promptStyle[i]);
+            break;
         }
 
         prevChar = promptStyle[i];
@@ -538,102 +528,100 @@ string getPrompt()
     return (new_style);
 }
 
-void cd(string p)
-{
-	if (containsTilde(p)) {
-		string cleaned("");
-		int l = p.length();
+void cd(string p) {
+    if (containsTilde(p)) {
+        string cleaned("");
+        int l = p.length();
 
-		for (int i = 0; i < l; i++) {
-			if (p[i] == '~') {
+        for (int i = 0; i < l; i++) {
+            if (p[i] == '~') {
                 if (guessedOS == "UNIXMacorLINUX")
-				   cleaned.append(getEnvironmentVariable("HOME"));
+                    cleaned.append(getEnvironmentVariable("HOME"));
                 else if (guessedOS == "Win2000NTorXP")
-                   cleaned.append(getEnvironmentVariable("HOMEPATH"));
+                    cleaned.append(getEnvironmentVariable("HOMEPATH"));
                 else if (guessedOS == "Win7orVista")
-                   cleaned.append(getEnvironmentVariable("HOMEPATH"));
+                    cleaned.append(getEnvironmentVariable("HOMEPATH"));
                 else if (guessedOS == "UnknownWindowsOS")
-                   cleaned.append(getEnvironmentVariable("HOME"));
+                    cleaned.append(getEnvironmentVariable("HOME"));
                 else
-                   error("undefined_os", false);
-			} else
-				cleaned.push_back(p[i]);
-		}
+                    error("undefined_os", false);
+            } else
+                cleaned.push_back(p[i]);
+        }
 
-		if (directoryExists(cleaned))
-			cd(cleaned);
-		else
-			error("read_fail:" + p, false);
-	} else {
-		if (p == "~") {
-		    if (guessedOS == "UNIXMacorLINUX" || guessedOS == "UnknownWindowsOS")
+        if (directoryExists(cleaned))
+            cd(cleaned);
+        else
+            error("read_fail:" + p, false);
+    } else {
+        if (p == "~") {
+            if (guessedOS == "UNIXMacorLINUX" || guessedOS == "UnknownWindowsOS")
                 cd(getEnvironmentVariable("HOME"));
             else
                 cd(getEnvironmentVariable("HOMEPATH"));
-		} else if (p == "init_dir" || p == "initial_directory")
-			cd(initDir);
-		else {
-			if (chdir(p.c_str()) != 0)
-				error("read_fail:" + p, false);
-		}
-	}
+        } else if (p == "init_dir" || p == "initial_directory")
+            cd(initDir);
+        else {
+            if (chdir(p.c_str()) != 0)
+                error("read_fail:" + p, false);
+        }
+    }
 }
 
-string cleanString(string st)
-{
-	string cleaned(""), builder("");
-	int l = st.length();
-	bool buildSymbol = false;
+string cleanString(string st) {
+    string cleaned(""), builder("");
+    int l = st.length();
+    bool buildSymbol = false;
 
-	for (int i = 0; i < l; i++) {
-	    if (buildSymbol) {
+    for (int i = 0; i < l; i++) {
+        if (buildSymbol) {
             if (st[i] == '}') {
-	            builder = subtractChar(builder, "{");
+                builder = subtractChar(builder, "{");
 
-	            if (variableExists(builder) && zeroDots(builder)) {
-	                if (variables.at(variableAt(builder)).getString() != null)
+                if (variableExists(builder) && zeroDots(builder)) {
+                    if (variables.at(variableAt(builder)).getString() != null)
                         cleaned.append(variables.at(variableAt(builder)).getString());
                     else if (variables.at(variableAt(builder)).getNumber() != nullNum)
                         cleaned.append(dtos(variables.at(variableAt(builder)).getNumber()));
                     else
                         cleaned.append("null");
-	            } else if (methodExists(builder)) {
-	                parse(builder);
+                } else if (methodExists(builder)) {
+                    parse(builder);
 
-	                cleaned.append(lastValue);
-	            } else if (containsParams(builder)) {
-	                if (stackReady(builder)) {
-	                    if (isStringStack(builder))
-	                        cleaned.append(getStringStack(builder));
-	                    else
+                    cleaned.append(lastValue);
+                } else if (containsParams(builder)) {
+                    if (stackReady(builder)) {
+                        if (isStringStack(builder))
+                            cleaned.append(getStringStack(builder));
+                        else
                             cleaned.append(dtos(getStack(builder)));
-	                } else if (!zeroDots(builder)) {
-	                    string before(beforeDot(builder)), after(afterDot(builder));
+                    } else if (!zeroDots(builder)) {
+                        string before(beforeDot(builder)), after(afterDot(builder));
 
-	                    if (objectExists(before)) {
-	                        if (objects.at(objectAt(before)).methodExists(beforeParams(after))) {
-	                            executeTemplate(objects.at(objectAt(before)).getMethod(beforeParams(after)), getParams(after));
+                        if (objectExists(before)) {
+                            if (objects.at(objectAt(before)).methodExists(beforeParams(after))) {
+                                executeTemplate(objects.at(objectAt(before)).getMethod(beforeParams(after)), getParams(after));
 
-	                            cleaned.append(lastValue);
-	                        } else
+                                cleaned.append(lastValue);
+                            } else
                                 error("invalid_operation:method_undefined:" + before + "." + beforeParams(after), false);
-	                    } else
+                        } else
                             error("invalid_operation:object_undefined:" + before, false);
-	                } else if (methodExists(beforeParams(builder))) {
-	                    executeTemplate(methods.at(methodAt(beforeParams(builder))), getParams(builder));
+                    } else if (methodExists(beforeParams(builder))) {
+                        executeTemplate(methods.at(methodAt(beforeParams(builder))), getParams(builder));
 
-	                    cleaned.append(lastValue);
-	                } else
+                        cleaned.append(lastValue);
+                    } else
                         cleaned.append("null");
-	            } else if (containsBrackets(builder)) {
-	                string _beforeBrackets(beforeBrackets(builder)), afterBrackets(builder);
+                } else if (containsBrackets(builder)) {
+                    string _beforeBrackets(beforeBrackets(builder)), afterBrackets(builder);
                     string rangeBegin(""), rangeEnd(""), _build("");
 
                     vector<string> listRange = getBracketRange(afterBrackets);
 
-	                if (variableExists(_beforeBrackets)) {
-	                    if (variables.at(variableAt(_beforeBrackets)).getString() != null) {
-	                        string tempString(variables.at(variableAt(_beforeBrackets)).getString());
+                    if (variableExists(_beforeBrackets)) {
+                        if (variables.at(variableAt(_beforeBrackets)).getString() != null) {
+                            string tempString(variables.at(variableAt(_beforeBrackets)).getString());
 
                             if (listRange.size() == 2) {
                                 rangeBegin = listRange.at(0), rangeEnd = listRange.at(1);
@@ -730,7 +718,7 @@ string cleanString(string st)
                             error("invalid_operation:invalid_range:" + afterBrackets, false);
                     } else
                         cleaned.append("null");
-	            } else if (!zeroDots(builder)) {
+                } else if (!zeroDots(builder)) {
                     string before(beforeDot(builder)), after(afterDot(builder));
 
                     if (objectExists(before)) {
@@ -782,111 +770,97 @@ string cleanString(string st)
         }
     }
 
-	return (cleaned);
+    return (cleaned);
 }
 
-void __stdout(string st)
-{
+void __stdout(string st) {
     if (captureParse)
         parsedOutput.append(cleanString(st));
     else
         cout << cleanString(st);
 
-	if (logging)
+    if (logging)
         app(logFile, "[stdout]:" + st + "\r\n");
 }
 
-void say(string st)
-{
-	if (guessedOS == "UNIXMacorLINUX")
-		__stdout(cleanString(st) + "\n");
-	else
-		__stdout(cleanString(st) + "\r\n");
+void say(string st) {
+    if (guessedOS == "UNIXMacorLINUX")
+        __stdout(cleanString(st) + "\n");
+    else
+        __stdout(cleanString(st) + "\r\n");
 }
 
-void clearAll()
-{
-	clearMethods();
-	clearObjects();
-	clearVariables();
-	clearLists();
-	clearArgs();
-	clearIf();
-	clearFor();
-	clearWhile();
-	clearConstants();
+void clearAll() {
+    clearMethods();
+    clearObjects();
+    clearVariables();
+    clearLists();
+    clearArgs();
+    clearIf();
+    clearFor();
+    clearWhile();
+    clearConstants();
 }
 
-void clearConstants()
-{
+void clearConstants() {
     constants.clear();
 }
 
-void clearArgs()
-{
-	args.clear();
+void clearArgs() {
+    args.clear();
 }
 
-void clearFor()
-{
-	forLoops.clear();
+void clearFor() {
+    forLoops.clear();
 }
 
-void clearWhile()
-{
-	whileLoops.clear();
+void clearWhile() {
+    whileLoops.clear();
 }
 
-void clearIf()
-{
-	ifStatements.clear();
+void clearIf() {
+    ifStatements.clear();
 }
 
-void clearLists()
-{
-	lists.clear();
+void clearLists() {
+    lists.clear();
 }
 
-void clearMethods()
-{
+void clearMethods() {
     vector<Method> indestructibleMethods;
 
-	for (int i = 0; i < (int)methods.size(); i++)
-	    if (methods.at(i).indestructible())
+    for (int i = 0; i < (int)methods.size(); i++)
+        if (methods.at(i).indestructible())
             indestructibleMethods.push_back(methods.at(i));
 
-	methods.clear();
+    methods.clear();
 
-	for (int i = 0; i < (int)indestructibleMethods.size(); i++)
-	    methods.push_back(indestructibleMethods[i]);
+    for (int i = 0; i < (int)indestructibleMethods.size(); i++)
+        methods.push_back(indestructibleMethods[i]);
 }
 
-void clearObjects()
-{
-	objects.clear();
+void clearObjects() {
+    objects.clear();
 }
 
-void clearVariables()
-{
+void clearVariables() {
     vector<Variable> indestructibleVariables;
 
-	for (int i = 0; i < (int)variables.size(); i++)
-	    if (variables.at(i).indestructible())
+    for (int i = 0; i < (int)variables.size(); i++)
+        if (variables.at(i).indestructible())
             indestructibleVariables.push_back(variables.at(i));
 
-	variables.clear();
+    variables.clear();
 
-	for (int i = 0; i < (int)indestructibleVariables.size(); i++)
-	    variables.push_back(indestructibleVariables[i]);
+    for (int i = 0; i < (int)indestructibleVariables.size(); i++)
+        variables.push_back(indestructibleVariables[i]);
 }
 
-void displayVersion()
-{
-	cout << "\r\nnoctis v0.0.0 by <scstauf@gmail.com>\r\n" << endl;
+void displayVersion() {
+    cout << "\r\nnoctis v0.0.0 by <scstauf@gmail.com>\r\n" << endl;
 }
 
-void error(string e, bool quit)
-{
+void error(string e, bool quit) {
     if (executedTry) {
         skipToCatch = true;
         lastError = e + "(" + currentLine + ")";
@@ -897,19 +871,18 @@ void error(string e, bool quit)
             cerr << "#!=" << lineNum << ":" << e << "(" << currentLine << ")" << endl;
     }
 
-	if (logging)
+    if (logging)
         app(logFile, "#!=" + itos(lineNum) + ":" + e + "(" + currentLine + ")\r\n");
 
-	if (!negligent) {
-		if (quit) {
-			clearAll();
-			exit(0);
-		}
-	}
+    if (!negligent) {
+        if (quit) {
+            clearAll();
+            exit(0);
+        }
+    }
 }
 
-string getParsedOutput(string cmd)
-{
+string getParsedOutput(string cmd) {
     captureParse = true;
     parse(cmd);
     string ret = parsedOutput;
@@ -919,103 +892,97 @@ string getParsedOutput(string cmd)
     return (ret);
 }
 
-List getDirectoryList(string before, bool filesOnly)
-{
-	List newList;
-	int i = 1;
+List getDirectoryList(string before, bool filesOnly) {
+    List newList;
+    int i = 1;
 
-	DIR *pd;
-	struct dirent *pe;
+    DIR *pd;
+    struct dirent *pe;
 
-	string meat = variables.at(variableAt(before)).getString();
+    string meat = variables.at(variableAt(before)).getString();
 
-	if ((pd = opendir(meat.c_str())) == NULL)
-		inForDef = false;
-	else {
-		while ((pe = readdir(pd)) != NULL) {
-			if (string(pe->d_name) != "." && string(pe->d_name) != "..") {
-				string tmp("");
+    if ((pd = opendir(meat.c_str())) == NULL)
+        inForDef = false;
+    else {
+        while ((pe = readdir(pd)) != NULL) {
+            if (string(pe->d_name) != "." && string(pe->d_name) != "..") {
+                string tmp("");
 
-				if (meat == "/")
-					meat = "";
+                if (meat == "/")
+                    meat = "";
 
                 if (guessedOS == "UNIXMacorLINUX")
                     tmp = meat + "/" + string(pe->d_name);
                 else
                     tmp = meat + "\\" + string(pe->d_name);
-					
-				if (filesOnly) {
-					if (fileExists(tmp)) {
-						newList.add(tmp);
-						i++;
-					}
-				} else {
-					if (directoryExists(tmp)) {
-						newList.add(tmp);
-						i++;
-					}
-				}
-			}
-		}
-	}
 
-	closedir(pd);
+                if (filesOnly) {
+                    if (fileExists(tmp)) {
+                        newList.add(tmp);
+                        i++;
+                    }
+                } else {
+                    if (directoryExists(tmp)) {
+                        newList.add(tmp);
+                        i++;
+                    }
+                }
+            }
+        }
+    }
 
-	return (newList);
+    closedir(pd);
+
+    return (newList);
 }
 
-Method getMethod(string s)
-{
-	Method bad_meth("[bad_meth#" + itos(numOfBadMethods) + "]");
+Method getMethod(string s) {
+    Method bad_meth("[bad_meth#" + itos(numOfBadMethods) + "]");
 
-	if (methodExists(s))
-		for (int i = 0; i < (int)methods.size(); i++)
-			if (methods.at(i).name() == s)
-				return (methods.at(i));
+    if (methodExists(s))
+        for (int i = 0; i < (int)methods.size(); i++)
+            if (methods.at(i).name() == s)
+                return (methods.at(i));
 
-	numOfBadMethods++;
-	return (bad_meth);
+    numOfBadMethods++;
+    return (bad_meth);
 }
 
-Object getObject(string s)
-{
-	Object bad_obj("[bad_obj#" + itos(numOfBadObjects) + "]");
+Object getObject(string s) {
+    Object bad_obj("[bad_obj#" + itos(numOfBadObjects) + "]");
 
-	if (objectExists(s))
-		for (int i = 0; i < (int)objects.size(); i++)
-			if (objects.at(i).name() == s)
-				return (objects.at(i));
+    if (objectExists(s))
+        for (int i = 0; i < (int)objects.size(); i++)
+            if (objects.at(i).name() == s)
+                return (objects.at(i));
 
-	numOfBadObjects++;
+    numOfBadObjects++;
 
-	return (bad_obj);
+    return (bad_obj);
 }
 
-Variable getVariable(string s)
-{
-	Variable bad_var("[bad_var#" + itos(numOfBadVars) + "]");
+Variable getVariable(string s) {
+    Variable bad_var("[bad_var#" + itos(numOfBadVars) + "]");
 
-	if (variableExists(s))
-		for (int i = 0; i < (int)variables.size(); i++)
-			if (variables.at(i).name() == s)
-				return (variables.at(i));
+    if (variableExists(s))
+        for (int i = 0; i < (int)variables.size(); i++)
+            if (variables.at(i).name() == s)
+                return (variables.at(i));
 
-	numOfBadVars++;
+    numOfBadVars++;
 
-	return (bad_var);
+    return (bad_var);
 }
 
-bool listExists(string s)
-{
-	for (int i = 0; i < (int)lists.size(); i++)
-		if (lists.at(i).name() == s)
-			return (true);
+bool listExists(string s) {
+    for (int i = 0; i < (int)lists.size(); i++)
+        if (lists.at(i).name() == s)
+            return (true);
 
-	return (false);
+    return (false);
 }
 
-bool methodExists(string s)
-{
+bool methodExists(string s) {
     if (!zeroDots(s)) {
         if (objectExists(beforeDot(s))) {
             if (objects.at(objectAt(beforeDot(s))).methodExists(afterDot(s)))
@@ -1028,20 +995,18 @@ bool methodExists(string s)
             if (methods.at(i).name() == s)
                 return (true);
 
-	return (false);
+    return (false);
 }
 
-bool objectExists(string s)
-{
-	for (int i = 0; i < (int)objects.size(); i++)
-		if (objects.at(i).name() == s)
-			return (true);
+bool objectExists(string s) {
+    for (int i = 0; i < (int)objects.size(); i++)
+        if (objects.at(i).name() == s)
+            return (true);
 
-	return (false);
+    return (false);
 }
 
-bool variableExists(string s)
-{
+bool variableExists(string s) {
     if (!zeroDots(s)) {
         string before(beforeDot(s)), after(afterDot(s));
 
@@ -1057,61 +1022,54 @@ bool variableExists(string s)
             if (variables.at(i).name() == s)
                 return (true);
 
-	return (false);
+    return (false);
 }
 
-bool moduleExists(string s)
-{
-	for (int i = 0; i < (int)modules.size(); i++)
-		if (modules.at(i).name() == s)
-			return (true);
+bool moduleExists(string s) {
+    for (int i = 0; i < (int)modules.size(); i++)
+        if (modules.at(i).name() == s)
+            return (true);
 
-	return (false);
+    return (false);
 }
 
-bool constantExists(string s)
-{
-	for (int i = 0; i < (int)constants.size(); i++)
-		if (constants.at(i).name() == s)
-			return (true);
+bool constantExists(string s) {
+    for (int i = 0; i < (int)constants.size(); i++)
+        if (constants.at(i).name() == s)
+            return (true);
 
-	return (false);
+    return (false);
 }
 
-bool noLists()
-{
-	if (lists.empty())
-		return (true);
+bool noLists() {
+    if (lists.empty())
+        return (true);
 
-	return (false);
+    return (false);
 }
 
-bool noMethods()
-{
-	if (methods.empty())
-		return (true);
+bool noMethods() {
+    if (methods.empty())
+        return (true);
 
-	return (false);
+    return (false);
 }
 
-bool noObjects()
-{
-	if (objects.empty())
-		return (true);
+bool noObjects() {
+    if (objects.empty())
+        return (true);
 
-	return (false);
+    return (false);
 }
 
-bool noVariables()
-{
-	if (variables.empty())
-		return (true);
+bool noVariables() {
+    if (variables.empty())
+        return (true);
 
-	return (false);
+    return (false);
 }
 
-bool notObjectMethod(string s)
-{
+bool notObjectMethod(string s) {
     if (zeroDots(s))
         return (true);
     else {
@@ -1126,393 +1084,368 @@ bool notObjectMethod(string s)
     return (true);
 }
 
-void __true()
-{
+void __true() {
     __stdout("true");
-	setLastValue("true");
+    setLastValue("true");
 }
 
-void __false()
-{
-	__stdout("false");
-	setLastValue("false");
+void __false() {
+    __stdout("false");
+    setLastValue("false");
 }
 
-void saveVariable(string variableName)
-{
-	Crypt c;
+void saveVariable(string variableName) {
+    Crypt c;
 
-	if (!fileExists(savedVars)) {
-		if (!directoryExists(savedVarsPath))
-			md(savedVarsPath);
+    if (!fileExists(savedVars)) {
+        if (!directoryExists(savedVarsPath))
+            md(savedVarsPath);
 
-		touch(savedVars);
-		app(savedVars, c.e(variableName));
-	} else {
-		string line, bigStr("");
-		ifstream file(savedVars.c_str());
+        touch(savedVars);
+        app(savedVars, c.e(variableName));
+    } else {
+        string line, bigStr("");
+        ifstream file(savedVars.c_str());
 
-		if (file.is_open()) {
-			int i = 0;
+        if (file.is_open()) {
+            int i = 0;
 
-			while (!file.eof()) {
-				i++;
-				getline(file, line);
-				bigStr.append(line);
-			}
+            while (!file.eof()) {
+                i++;
+                getline(file, line);
+                bigStr.append(line);
+            }
 
-			bigStr = c.d(bigStr);
-			rm(savedVars);
-			touch(savedVars);
-			app(savedVars, c.e(bigStr + "#" + variableName));
-			file.close();
-		} else
-			error("read_fail:" + savedVars, false);
-	}
+            bigStr = c.d(bigStr);
+            rm(savedVars);
+            touch(savedVars);
+            app(savedVars, c.e(bigStr + "#" + variableName));
+            file.close();
+        } else
+            error("read_fail:" + savedVars, false);
+    }
 }
 
-vector<Method> removeMethod(vector<Method> v, string target)
-{
-	vector<Method> cleanedVector;
+vector<Method> removeMethod(vector<Method> v, string target) {
+    vector<Method> cleanedVector;
 
-	for (int i = 0; i < (int)v.size(); i++)
-		if (v.at(i).name() != target)
-			cleanedVector.push_back(v.at(i));
+    for (int i = 0; i < (int)v.size(); i++)
+        if (v.at(i).name() != target)
+            cleanedVector.push_back(v.at(i));
 
-	return (cleanedVector);
+    return (cleanedVector);
 }
 
-vector<Object> removeObject(vector<Object> v, string target)
-{
-	vector<Object> cleanedVector;
+vector<Object> removeObject(vector<Object> v, string target) {
+    vector<Object> cleanedVector;
 
-	for (int i = 0; i < (int)v.size(); i++)
-		if (v.at(i).name() != target)
-			cleanedVector.push_back(v.at(i));
+    for (int i = 0; i < (int)v.size(); i++)
+        if (v.at(i).name() != target)
+            cleanedVector.push_back(v.at(i));
 
-	return (cleanedVector);
+    return (cleanedVector);
 }
 
-vector<Variable> removeVariable(vector<Variable> v, string target)
-{
-	vector<Variable> cleanedVector;
+vector<Variable> removeVariable(vector<Variable> v, string target) {
+    vector<Variable> cleanedVector;
 
-	for (int i = 0; i < (int)v.size(); i++)
-		if (v.at(i).name() != target)
-			cleanedVector.push_back(v.at(i));
+    for (int i = 0; i < (int)v.size(); i++)
+        if (v.at(i).name() != target)
+            cleanedVector.push_back(v.at(i));
 
-	return (cleanedVector);
+    return (cleanedVector);
 }
 
-vector<List> removeList(vector<List> v, string target)
-{
-	vector<List> cleanedVector;
+vector<List> removeList(vector<List> v, string target) {
+    vector<List> cleanedVector;
 
-	for (int i = 0; i < (int)v.size(); i++)
-		if (v.at(i).name() != target)
-			cleanedVector.push_back(v.at(i));
+    for (int i = 0; i < (int)v.size(); i++)
+        if (v.at(i).name() != target)
+            cleanedVector.push_back(v.at(i));
 
-	return (cleanedVector);
+    return (cleanedVector);
 }
 
-vector<Module> removeModule(vector<Module> v, string target)
-{
-	vector<Module> cleanedVector;
+vector<Module> removeModule(vector<Module> v, string target) {
+    vector<Module> cleanedVector;
 
-	for (int i = 0; i < (int)v.size(); i++)
-		if (v.at(i).name() != target)
-			cleanedVector.push_back(v.at(i));
+    for (int i = 0; i < (int)v.size(); i++)
+        if (v.at(i).name() != target)
+            cleanedVector.push_back(v.at(i));
 
-	return (cleanedVector);
+    return (cleanedVector);
 }
 
-vector<Constant> removeConstant(vector<Constant> v, string target)
-{
-	vector<Constant> cleanedVector;
+vector<Constant> removeConstant(vector<Constant> v, string target) {
+    vector<Constant> cleanedVector;
 
-	for (int i = 0; i < (int)v.size(); i++)
-		if (v.at(i).name() != target)
-			cleanedVector.push_back(v.at(i));
+    for (int i = 0; i < (int)v.size(); i++)
+        if (v.at(i).name() != target)
+            cleanedVector.push_back(v.at(i));
 
-	return (cleanedVector);
+    return (cleanedVector);
 }
 
-void help(string app)
-{
-	cout << "\r\nnoctis by <scstauf@gmail.com>" << endl << endl
-		<< "usage:\t" << app << "\t\t\t// start the shell" << endl
-		<< "\t" << app << " {args}\t\t// ditto, with parameters" << endl
-		<< "\t" << app << " {script}\t\t// interpret a script" << endl
-		<< "\t" << app << " {script} {args}\t// ditto, with parameters" << endl
-		<< "\t" << app << " -n, --negligent\t// do not terminate on parse errors" << endl
-		<< "\t" << app << " -sl, --skipload\t// start the shell, with fresh memory" << endl
-		<< "\t" << app << " -l, --log {path}\t// create a shell log" << endl
-		<< "\t" << app << " -u, --uninstall\t// remove $HOME/.savedVarsPath" << endl
-		<< "\t" << app << " -v, --version\t// display current version" << endl
-		<< "\t" << app << " -p, --parse\t// parse a command" << endl
-		<< "\t" << app << " -h, --help\t// display this message" << endl << endl;
+void help(string app) {
+    cout << "\r\nnoctis by <scstauf@gmail.com>" << endl << endl
+         << "usage:\t" << app << "\t\t\t// start the shell" << endl
+         << "\t" << app << " {args}\t\t// ditto, with parameters" << endl
+         << "\t" << app << " {script}\t\t// interpret a script" << endl
+         << "\t" << app << " {script} {args}\t// ditto, with parameters" << endl
+         << "\t" << app << " -n, --negligent\t// do not terminate on parse errors" << endl
+         << "\t" << app << " -sl, --skipload\t// start the shell, with fresh memory" << endl
+         << "\t" << app << " -l, --log {path}\t// create a shell log" << endl
+         << "\t" << app << " -u, --uninstall\t// remove $HOME/.savedVarsPath" << endl
+         << "\t" << app << " -v, --version\t// display current version" << endl
+         << "\t" << app << " -p, --parse\t// parse a command" << endl
+         << "\t" << app << " -h, --help\t// display this message" << endl << endl;
 }
 
-bool notStandardZeroSpace(string arg)
-{
-	if (arg != "caught" &&
-        arg != "clear_all!" &&
-		arg != "clear_lists!" &&
-		arg != "clear_methods!" &&
-		arg != "clear_objects!" &&
-		arg != "clear_variables!" &&
-		arg != "clear_constants!" &&
-		arg != "exit" &&
-		arg != "else" &&
-		arg != "failif" &&
-		arg != "help" &&
-        arg != "leave!" && arg != "break" &&
-		arg != "no_methods?" &&
-		arg != "no_objects?" &&
-		arg != "no_variables?" &&
-		arg != "end" &&
-		arg != "}" &&
-		arg != "parser" &&
-		arg != "private" &&
-		arg != "public" &&
-        arg != "try" &&
-		arg != "pass")
-		return (true);
+bool notStandardZeroSpace(string arg) {
+    if (arg != "caught" &&
+            arg != "clear_all!" &&
+            arg != "clear_lists!" &&
+            arg != "clear_methods!" &&
+            arg != "clear_objects!" &&
+            arg != "clear_variables!" &&
+            arg != "clear_constants!" &&
+            arg != "exit" &&
+            arg != "else" &&
+            arg != "failif" &&
+            arg != "help" &&
+            arg != "leave!" && arg != "break" &&
+            arg != "no_methods?" &&
+            arg != "no_objects?" &&
+            arg != "no_variables?" &&
+            arg != "end" &&
+            arg != "}" &&
+            arg != "parser" &&
+            arg != "private" &&
+            arg != "public" &&
+            arg != "try" &&
+            arg != "pass")
+        return (true);
 
-	return (false);
+    return (false);
 }
 
-bool notStandardOneSpace(string arg)
-{
-	if (arg != "!" &&
-		arg != "?" &&
-		arg != "__begin__" &&
-		arg != "cd" && arg != "chdir" &&
-		arg != "collect?" && arg!= "garbage?" &&
-		arg != "decrypt" &&
-		arg != "delay" &&
-		arg != "encrypt" &&
-		arg != "err" &&
-		arg != "error" &&
-		arg != "for" &&
-		arg != "forget" &&
-		arg != "globalize" &&
-		arg != "goto" &&
-		arg != "help" &&
-		arg != "lose" &&
-		arg != "init_dir" && arg != "intial_directory" &&
-		arg != "is_method?" && arg != "method?" &&
-		arg != "is_object?" && arg != "object?" &&
-		arg != "is_variable?" && arg != "variable?" && arg != "var?" &&
-		arg != "is_list?" && arg != "list?" &&
-		arg != "is_directory?" && arg != "dir?" && arg != "directory?" &&
-		arg != "is_file?" && arg != "file?" &&
-		arg != "is_number?" && arg != "number?" &&
-		arg != "is_string?" && arg != "string?" &&
-		arg != "lowercase?" && arg != "lower?" && arg != "is_lowercase?" &&
-		arg != "uppercase?" && arg != "upper?" && arg != "is_uppercase?" &&
-		arg != "list" &&
-		arg != "load" &&
-		arg != "lock" &&
-		arg != "unlock" &&
-		arg != "loop" &&
-		arg != "method" &&
-		arg != "[method]" &&
-		arg != "call_method" &&
-		arg != "object" &&
-		arg != "out" &&
-		arg != "print" &&
-		arg != "println" &&
-		arg != "prompt" &&
-		arg != "remember" &&
-		arg != "remove" &&
-		arg != "return" &&
-		arg != "save" &&
-		arg != "say" &&
-		arg != "see" &&
-		arg != "see_string" &&
-		arg != "see_number" &&
-		arg != "stdout" &&
-		arg != "switch" &&
-		arg != "template" &&
-		arg != "fpush" &&
-		arg != "fpop" &&
-		arg != "dpush" &&
-		arg != "dpop")
-		return (true);
+bool notStandardOneSpace(string arg) {
+    if (arg != "!" &&
+            arg != "?" &&
+            arg != "__begin__" &&
+            arg != "cd" && arg != "chdir" &&
+            arg != "collect?" && arg!= "garbage?" &&
+            arg != "decrypt" &&
+            arg != "delay" &&
+            arg != "encrypt" &&
+            arg != "err" &&
+            arg != "error" &&
+            arg != "for" &&
+            arg != "forget" &&
+            arg != "globalize" &&
+            arg != "goto" &&
+            arg != "help" &&
+            arg != "lose" &&
+            arg != "init_dir" && arg != "intial_directory" &&
+            arg != "is_method?" && arg != "method?" &&
+            arg != "is_object?" && arg != "object?" &&
+            arg != "is_variable?" && arg != "variable?" && arg != "var?" &&
+            arg != "is_list?" && arg != "list?" &&
+            arg != "is_directory?" && arg != "dir?" && arg != "directory?" &&
+            arg != "is_file?" && arg != "file?" &&
+            arg != "is_number?" && arg != "number?" &&
+            arg != "is_string?" && arg != "string?" &&
+            arg != "lowercase?" && arg != "lower?" && arg != "is_lowercase?" &&
+            arg != "uppercase?" && arg != "upper?" && arg != "is_uppercase?" &&
+            arg != "list" &&
+            arg != "load" &&
+            arg != "lock" &&
+            arg != "unlock" &&
+            arg != "loop" &&
+            arg != "method" &&
+            arg != "[method]" &&
+            arg != "call_method" &&
+            arg != "object" &&
+            arg != "out" &&
+            arg != "print" &&
+            arg != "println" &&
+            arg != "prompt" &&
+            arg != "remember" &&
+            arg != "remove" &&
+            arg != "return" &&
+            arg != "save" &&
+            arg != "say" &&
+            arg != "see" &&
+            arg != "see_string" &&
+            arg != "see_number" &&
+            arg != "stdout" &&
+            arg != "switch" &&
+            arg != "template" &&
+            arg != "fpush" &&
+            arg != "fpop" &&
+            arg != "dpush" &&
+            arg != "dpop")
+        return (true);
 
-	return (false);
+    return (false);
 }
 
-bool notStandardTwoSpace(string arg)
-{
-	if (arg != "=" &&
-        arg != "+=" &&
-        arg != "-=" &&
-        arg != "*=" &&
-        arg != "%=" &&
-        arg != "/=" &&
-        arg != "**=" &&
-        arg != "+" &&
-        arg != "-" &&
-        arg != "*" &&
-        arg != "**" &&
-        arg != "/" &&
-        arg != "%" &&
-    	arg != "++=" &&
-    	arg != "--=" &&
-    	arg != "?" &&
-        arg != "!")
-		return (true);
+bool notStandardTwoSpace(string arg) {
+    if (arg != "=" &&
+            arg != "+=" &&
+            arg != "-=" &&
+            arg != "*=" &&
+            arg != "%=" &&
+            arg != "/=" &&
+            arg != "**=" &&
+            arg != "+" &&
+            arg != "-" &&
+            arg != "*" &&
+            arg != "**" &&
+            arg != "/" &&
+            arg != "%" &&
+            arg != "++=" &&
+            arg != "--=" &&
+            arg != "?" &&
+            arg != "!")
+        return (true);
 
-	return (false);
+    return (false);
 }
 
-int methodAt(string s)
-{
-	for (int i = 0; i < (int)methods.size(); i++) {
-		if (methods.at(i).name() == s)
-			return (i);
-	}
+int methodAt(string s) {
+    for (int i = 0; i < (int)methods.size(); i++) {
+        if (methods.at(i).name() == s)
+            return (i);
+    }
 
-	return (-1);
+    return (-1);
 }
 
-int objectAt(string s)
-{
-	for (int i = 0; i < (int)objects.size(); i++) {
-		if (objects.at(i).name() == s)
-			return (i);
-	}
+int objectAt(string s) {
+    for (int i = 0; i < (int)objects.size(); i++) {
+        if (objects.at(i).name() == s)
+            return (i);
+    }
 
-	return (-1);
+    return (-1);
 }
 
-int variableAt(string s)
-{
-	for (int i = 0; i < (int)variables.size(); i++) {
-		if (variables.at(i).name() == s)
-			return (i);
-	}
+int variableAt(string s) {
+    for (int i = 0; i < (int)variables.size(); i++) {
+        if (variables.at(i).name() == s)
+            return (i);
+    }
 
-	return (-1);
+    return (-1);
 }
 
-int listAt(string s)
-{
-	for (int i = 0; i < (int)lists.size(); i++) {
-		if (lists.at(i).name() == s)
-			return (i);
-	}
+int listAt(string s) {
+    for (int i = 0; i < (int)lists.size(); i++) {
+        if (lists.at(i).name() == s)
+            return (i);
+    }
 
-	return (-1);
+    return (-1);
 }
 
-int moduleAt(string s)
-{
-	for (int i = 0; i < (int)modules.size(); i++) {
-		if (modules.at(i).name() == s)
-			return (i);
-	}
+int moduleAt(string s) {
+    for (int i = 0; i < (int)modules.size(); i++) {
+        if (modules.at(i).name() == s)
+            return (i);
+    }
 
-	return (-1);
+    return (-1);
 }
 
-int scriptAt(string s)
-{
-	for (int i = 0; i < (int)scripts.size(); i++) {
-		if (scripts.at(i).name() == s)
-			return (i);
-	}
+int scriptAt(string s) {
+    for (int i = 0; i < (int)scripts.size(); i++) {
+        if (scripts.at(i).name() == s)
+            return (i);
+    }
 
-	return (-1);
+    return (-1);
 }
 
-int constAt(string s)
-{
-	for (int i = 0; i < (int)constants.size(); i++) {
-		if (constants.at(i).name() == s)
-			return (i);
-	}
+int constAt(string s) {
+    for (int i = 0; i < (int)constants.size(); i++) {
+        if (constants.at(i).name() == s)
+            return (i);
+    }
 
-	return (-1);
+    return (-1);
 }
 
-bool is(string s, string si)
-{
-	if (s == ("-" + si) || s == ("--" + si) || s == ("/" + si))
-		return (true);
+bool is(string s, string si) {
+    if (s == ("-" + si) || s == ("--" + si) || s == ("/" + si))
+        return (true);
 
-	return (false);
+    return (false);
 }
 
-bool isScript(string path)
-{
-	if (endsWith(path, ".us"))
-        	return (true);
+bool isScript(string path) {
+    if (endsWith(path, ".us"))
+        return (true);
 
-	return (false);
+    return (false);
 }
 
-void loadSavedVars(Crypt c, string &bigStr)
-{
-	string line("");
-	ifstream file(savedVars.c_str());
+void loadSavedVars(Crypt c, string &bigStr) {
+    string line("");
+    ifstream file(savedVars.c_str());
 
-	if (file.is_open()) {
-		while (!file.eof()) {
-			getline(file, line);
-			bigStr.append(line);
-		}
+    if (file.is_open()) {
+        while (!file.eof()) {
+            getline(file, line);
+            bigStr.append(line);
+        }
 
-		file.close();
+        file.close();
 
-		bigStr = c.d(bigStr);
+        bigStr = c.d(bigStr);
 
-		int bigStrLength = bigStr.length();
-		bool stop = false;
-		vector<string> varNames;
-		vector<string> varValues;
+        int bigStrLength = bigStr.length();
+        bool stop = false;
+        vector<string> varNames;
+        vector<string> varValues;
 
-		string varName(""), vval("");
-		varNames.push_back("");
-		varValues.push_back("");
+        string varName(""), vval("");
+        varNames.push_back("");
+        varValues.push_back("");
 
-		for (int i = 0; i < bigStrLength; i++) {
-			switch (bigStr[i]) {
-				case '&':
-					stop = true;
-				break;
+        for (int i = 0; i < bigStrLength; i++) {
+            switch (bigStr[i]) {
+            case '&':
+                stop = true;
+                break;
 
-				case '#':
-					stop = false;
-					varNames.push_back("");
-					varValues.push_back("");
-				break;
+            case '#':
+                stop = false;
+                varNames.push_back("");
+                varValues.push_back("");
+                break;
 
-				default:
-					if (!stop)
-						varNames.at((int)varNames.size() - 1).push_back(bigStr[i]);
-					else
-						varValues.at((int)varValues.size() - 1).push_back(bigStr[i]);
-				break;
-			}
-		}
+            default:
+                if (!stop)
+                    varNames.at((int)varNames.size() - 1).push_back(bigStr[i]);
+                else
+                    varValues.at((int)varValues.size() - 1).push_back(bigStr[i]);
+                break;
+            }
+        }
 
-		for (int i = 0; i < (int)varNames.size(); i++) {
-			Variable newVariable(varNames.at(i), varValues.at(i));
-			variables.push_back(newVariable);
-		}
+        for (int i = 0; i < (int)varNames.size(); i++) {
+            Variable newVariable(varNames.at(i), varValues.at(i));
+            variables.push_back(newVariable);
+        }
 
-		varNames.clear();
-		varValues.clear();
-	}
-	else
-		error("read_fail:" + savedVars, false);
+        varNames.clear();
+        varValues.clear();
+    } else
+        error("read_fail:" + savedVars, false);
 }
 
-void runScript()
-{
+void runScript() {
     for (int i = 0; i < scripts.at(scriptAt(currentScript)).size(); i++) {
         lineNum = i + 1;
 
@@ -1542,75 +1475,73 @@ void runScript()
     currentScript = prevScript;
 }
 
-void loadScript(string script)
-{
-	string s("");
-	ifstream f(script.c_str());
-	currentScript = script;
+void loadScript(string script) {
+    string s("");
+    ifstream f(script.c_str());
+    currentScript = script;
 
-	Script newScript(script);
+    Script newScript(script);
 
-	if (f.is_open()) {
-		while (!f.eof()) {
-			getline(f, s);
+    if (f.is_open()) {
+        while (!f.eof()) {
+            getline(f, s);
 
-			if (s.length() > 0) {
-				if (s[0] == '\r' || s[0] == '\n')
-					doNothing();
-				else if (s[0] == '\t') {
-					s.erase(remove(s.begin(), s.end(), '\t'), s.end());
+            if (s.length() > 0) {
+                if (s[0] == '\r' || s[0] == '\n')
+                    doNothing();
+                else if (s[0] == '\t') {
+                    s.erase(remove(s.begin(), s.end(), '\t'), s.end());
                     char * c = new char[s.size() + 1];
                     copy(s.begin(), s.end(), c);
                     c[s.size()] = '\0';
                     newScript.add(trim_leading_whitespace(c));
                     delete[] c;
-				} else {
+                } else {
                     char * c = new char[s.size() + 1];
                     copy(s.begin(), s.end(), c);
                     c[s.size()] = '\0';
                     newScript.add(trim_leading_whitespace(c));
                     delete[] c;
                 }
-			} else
+            } else
                 newScript.add("");
-		}
-	}
+        }
+    }
 
-	scripts.push_back(newScript);
+    scripts.push_back(newScript);
 
-	runScript();
+    runScript();
 }
 
-void loop(bool skip)
-{
-	string s("");
-	bool active = true;
+void loop(bool skip) {
+    string s("");
+    bool active = true;
 
-	if (!skip) {
-		Crypt c;
-		string bigStr("");
+    if (!skip) {
+        Crypt c;
+        string bigStr("");
 
-		if (fileExists(savedVars))
-			loadSavedVars(c, bigStr);
-	}
+        if (fileExists(savedVars))
+            loadSavedVars(c, bigStr);
+    }
 
-	while (active) {
-		s.clear();
+    while (active) {
+        s.clear();
 
-		if (customPrompt) {
+        if (customPrompt) {
             if (promptStyle == "bash")
                 cout << getUser() << "@" << getMachine() << "(" << cwd() << ")" << "$ ";
             else if (promptStyle == "empty")
-				doNothing();
+                doNothing();
             else
-				cout << getPrompt();
+                cout << getPrompt();
         } else
             cout << "> ";
 
         getline(cin, s, '\n');
 
-		if (s[0] == '\t')
-			s.erase(remove(s.begin(), s.end(), '\t'), s.end());
+        if (s[0] == '\t')
+            s.erase(remove(s.begin(), s.end(), '\t'), s.end());
 
         if (s == "exit") {
             if (!inObjectDef && !inMethodDef) {
@@ -1625,11 +1556,10 @@ void loop(bool skip)
             parse(trim_leading_whitespace(c));
             delete[] c;
         }
-	}
+    }
 }
 
-void whileLoop(Method m)
-{
+void whileLoop(Method m) {
     for (int i = 0; i < m.size(); i++) {
         if (m.at(i) == "leave!")
             leaving = true;
@@ -1638,91 +1568,89 @@ void whileLoop(Method m)
     }
 }
 
-void forLoop(Method m)
-{
+void forLoop(Method m) {
     loopSymbol = "$";
 
     if (m.isListLoop()) {
-	    int i = 0, stop = m.getList().size();
+        int i = 0, stop = m.getList().size();
 
-	    while (i < stop) {
-			for (int z = 0; z < m.size(); z++) {
-				string cleaned(""), builder("");
-				int len = m.at(z).length();
+        while (i < stop) {
+            for (int z = 0; z < m.size(); z++) {
+                string cleaned(""), builder("");
+                int len = m.at(z).length();
                 bool buildSymbol = false, almostBuild = false, ended = false;
 
-				for (int a = 0; a < len; a++) {
-				    if (almostBuild) {
-				        if (m.at(z)[a] == '{')
+                for (int a = 0; a < len; a++) {
+                    if (almostBuild) {
+                        if (m.at(z)[a] == '{')
                             buildSymbol = true;
-				    }
+                    }
 
-				    if (buildSymbol) {
-				        if (m.at(z)[a] == '}') {
-				            almostBuild = false,
-				            buildSymbol = false;
-				            ended = true;
+                    if (buildSymbol) {
+                        if (m.at(z)[a] == '}') {
+                            almostBuild = false,
+                            buildSymbol = false;
+                            ended = true;
 
                             builder = subtractString(builder, "{");
 
-				            if (builder == m.getSymbolString()) {
-				                cleaned.append(m.getList().at(i));
-							}
+                            if (builder == m.getSymbolString()) {
+                                cleaned.append(m.getList().at(i));
+                            }
 
                             builder.clear();
-				        } 
-						else {
+                        } else {
                             builder.push_back(m.at(z)[a]);
-						}
-				    }
+                        }
+                    }
 
-					if (m.at(z)[a] == '$') {
+                    if (m.at(z)[a] == '$') {
                         almostBuild = true;
-					}
+                    }
 
                     if (!almostBuild && !buildSymbol) {
                         if (ended) {
                             ended = false;
                         } else {
                             cleaned.push_back(m.at(z)[a]);
-						}
+                        }
                     }
-				}
-				
+                }
+
                 parse(cleaned);
-			}
+            }
 
             i++;
 
-			if (leaving == true) {
+            if (leaving == true) {
                 leaving = false;
-			    break;
+                break;
             }
-		}
-	} else {
-		if (m.isInfinite()) {
-			if (negligent) {
-				for (;;) {
-					for (int z = 0; z < m.size(); z++)
+        }
+    } else {
+        if (m.isInfinite()) {
+            if (negligent) {
+                for (;;) {
+                    for (int z = 0; z < m.size(); z++)
                         parse(m.at(z));
 
-    				if (leaving == true) {
+                    if (leaving == true) {
                         leaving = false;
-    				    break;
+                        break;
                     }
-				}
-			} else
-				error("infinite_loop", true);
-		} else if (m.start() < m.stop()) {
-		    int start = m.start(), stop = m.stop();
+                }
+            } else
+                error("infinite_loop", true);
+        } else if (m.start() < m.stop()) {
+            int start = m.start(), stop = m.stop();
 
-		    while (start <= stop) {
-				for (int z = 0; z < m.size(); z++) {
-					string cleanString(""), builder(""), tmp(m.at(z));
-					int l(tmp.length());
+            while (start <= stop) {
+                for (int z = 0; z < m.size(); z++) {
+                    string cleanString(""), builder(""), tmp(m.at(z));
+                    int l(tmp.length());
                     bool buildSymbol = false, almostBuild = false, ended = false;
 
-					for (int a = 0; a < l; a++) {
+                    for (int a = 0; a < l; a++) {
                         if (almostBuild) {
                             if (tmp[a] == '{')
                                 buildSymbol = true;
@@ -1753,28 +1681,28 @@ void forLoop(Method m)
                             else
                                 cleanString.push_back(tmp[a]);
                         }
-					}
+                    }
 
-					parse(cleanString);
-				}
+                    parse(cleanString);
+                }
 
                 start++;
 
-				if (leaving == true) {
+                if (leaving == true) {
                     leaving = false;
-				    break;
+                    break;
                 }
-			}
-		} else if (m.start() > m.stop()) {
-		    int start = m.start(), stop = m.stop();
+            }
+        } else if (m.start() > m.stop()) {
+            int start = m.start(), stop = m.stop();
 
-		    while (start >= stop) {
-				for (int z = 0; z < m.size(); z++) {
-					string cleaned(""), builder(""), tmp(m.at(z));
-					int l(tmp.length());
+            while (start >= stop) {
+                for (int z = 0; z < m.size(); z++) {
+                    string cleaned(""), builder(""), tmp(m.at(z));
+                    int l(tmp.length());
                     bool buildSymbol = false, almostBuild = false, ended = false;
 
-					for (int a = 0; a < l; a++) {
+                    for (int a = 0; a < l; a++) {
                         if (almostBuild) {
                             if (tmp[a] == '{')
                                 buildSymbol = true;
@@ -1805,29 +1733,28 @@ void forLoop(Method m)
                             else
                                 cleaned.push_back(tmp[a]);
                         }
-					}
+                    }
 
                     parse(cleaned);
-				}
-
-				start--;
-
-				if (leaving == true) {
-                    leaving = false;
-				    break;
                 }
-			}
-		} else
-			error("special_error(5)", false);
-	}
+
+                start--;
+
+                if (leaving == true) {
+                    leaving = false;
+                    break;
+                }
+            }
+        } else
+            error("special_error(5)", false);
+    }
 }
 
-void executeNest(Container n)
-{
-	nesting = false;
-	inIfDef = false;
+void executeNest(Container n) {
+    nesting = false;
+    inIfDef = false;
 
-	for (int i = 0; i < n.size(); i++) {
+    for (int i = 0; i < n.size(); i++) {
         if (failedNest == false)
             parse(n.at(i));
         else
@@ -1837,8 +1764,7 @@ void executeNest(Container n)
     inIfDef = true;
 }
 
-void collectGarbage()
-{
+void collectGarbage() {
     vector<string> garbageVars;
 
     for (int i = 0; i < (int)variables.size(); i++)
@@ -1868,8 +1794,7 @@ void collectGarbage()
         objects = removeObject(objects, garbageObjects.at(i));
 }
 
-void executeTemplate(Method m, vector<string> strings)
-{
+void executeTemplate(Method m, vector<string> strings) {
     vector<string> methodLines;
 
     executedTemplate = true;
@@ -1951,11 +1876,10 @@ void executeTemplate(Method m, vector<string> strings)
 
     executedTemplate = false, dontCollectMethodVars = false;
 
-	collectGarbage(); // if (!dontCollectMethodVars)
+    collectGarbage(); // if (!dontCollectMethodVars)
 }
 
-void executeMethod(Method m)
-{
+void executeMethod(Method m) {
     executedMethod = true;
     currentMethodObject = m.getObject();
 
@@ -2022,138 +1946,126 @@ void executeMethod(Method m)
         for (int i = 0; i < (int)methodLines.size(); i++)
             parse(methodLines.at(i));
     } else
-    	for (int i = 0; i < m.size(); i++)
-    		parse(m.at(i));
+        for (int i = 0; i < m.size(); i++)
+            parse(m.at(i));
 
     executedMethod = false;
 
-	collectGarbage();
+    collectGarbage();
 }
 
 bool suc_stat = false;
 
-bool success()
-{
+bool success() {
     return (suc_stat);
 }
 
-void failedFor()
-{
-	Method forMethod("[for#" + itos(numOfFOR) + "]");
-	forMethod.setFor(false);
-	inForDef = true;
-	forLoops.push_back(forMethod);
-	loopSymbol = "$";
-	suc_stat = false;
+void failedFor() {
+    Method forMethod("[for#" + itos(numOfFOR) + "]");
+    forMethod.setFor(false);
+    inForDef = true;
+    forLoops.push_back(forMethod);
+    loopSymbol = "$";
+    suc_stat = false;
 }
 
-void failedWhile()
-{
-	Method whileMethod("[while#" + itos(numOfWHILE) + "]");
-	whileMethod.setWhile(false);
-	inWhileDef = true;
-	whileLoops.push_back(whileMethod);
+void failedWhile() {
+    Method whileMethod("[while#" + itos(numOfWHILE) + "]");
+    whileMethod.setWhile(false);
+    inWhileDef = true;
+    whileLoops.push_back(whileMethod);
 }
 
-void successfullWhile(string v1, string op, string v2)
-{
-	Method whileMethod("[while#" + itos(numOfWHILE) + "]");
-	whileMethod.setWhile(true);
-	whileMethod.setWhileValues(v1, op, v2);
-	inWhileDef = true;
-	whileLoops.push_back(whileMethod);
-	numOfWHILE++;
+void successfullWhile(string v1, string op, string v2) {
+    Method whileMethod("[while#" + itos(numOfWHILE) + "]");
+    whileMethod.setWhile(true);
+    whileMethod.setWhileValues(v1, op, v2);
+    inWhileDef = true;
+    whileLoops.push_back(whileMethod);
+    numOfWHILE++;
 }
 
-void successfulFor(List list)
-{
-	Method forMethod("[for#" + itos(numOfFOR) + "]");
-	forMethod.setFor(true);
-	forMethod.setForList(list);
-	forMethod.setListLoop();
-	forMethod.setSymbol(loopSymbol);
-	inForDef = true;
-	forLoops.push_back(forMethod);
-	numOfFOR++;
-	suc_stat = true;
+void successfulFor(List list) {
+    Method forMethod("[for#" + itos(numOfFOR) + "]");
+    forMethod.setFor(true);
+    forMethod.setForList(list);
+    forMethod.setListLoop();
+    forMethod.setSymbol(loopSymbol);
+    inForDef = true;
+    forLoops.push_back(forMethod);
+    numOfFOR++;
+    suc_stat = true;
 }
 
-void successfulFor(double a, double b, string op)
-{
-	Method forMethod("[for#" + itos(numOfFOR) + "]");
-	forMethod.setFor(true);
-	forMethod.setSymbol(loopSymbol);
+void successfulFor(double a, double b, string op) {
+    Method forMethod("[for#" + itos(numOfFOR) + "]");
+    forMethod.setFor(true);
+    forMethod.setSymbol(loopSymbol);
 
-	if (op == "<=")
+    if (op == "<=")
         forMethod.setForValues((int)a, (int)b);
-	else if (op == ">=")
+    else if (op == ">=")
         forMethod.setForValues((int)a, (int)b);
     else if (op == "<")
         forMethod.setForValues((int)a, (int)b - 1);
     else if (op == ">")
         forMethod.setForValues((int)a, (int)b + 1);
 
-	inForDef = true;
-	forLoops.push_back(forMethod);
-	numOfFOR++;
-	suc_stat = true;
+    inForDef = true;
+    forLoops.push_back(forMethod);
+    numOfFOR++;
+    suc_stat = true;
 }
 
-void successfulFor()
-{
-	Method forMethod("[for#" + itos(numOfFOR) + "]");
-	forMethod.setFor(true);
-	forMethod.setInfinite();
-	inForDef = true;
-	forLoops.push_back(forMethod);
-	numOfFOR++;
-	suc_stat = true;
+void successfulFor() {
+    Method forMethod("[for#" + itos(numOfFOR) + "]");
+    forMethod.setFor(true);
+    forMethod.setInfinite();
+    inForDef = true;
+    forLoops.push_back(forMethod);
+    numOfFOR++;
+    suc_stat = true;
 }
 
-void failedIF()
-{
+void failedIF() {
     lastValue = "false";
 
-	if (!nesting) {
-		Method ifMethod("[failif]");
-		ifMethod.setBool(false);
-		inIfDef = true;
-		ifStatements.push_back(ifMethod);
-		failedIf = true;
-		failedNest = true;
-	}
-	else
+    if (!nesting) {
+        Method ifMethod("[failif]");
+        ifMethod.setBool(false);
+        inIfDef = true;
+        ifStatements.push_back(ifMethod);
+        failedIf = true;
+        failedNest = true;
+    } else
         failedNest = true;
 }
 
-void successfulIF()
-{
+void successfulIF() {
     lastValue = "true";
 
-	if (nesting) {
-		ifStatements.at((int)ifStatements.size() - 1).buildNest();
-		failedNest = false;
-	} else {
-		Method ifMethod("[if#" + itos(numOfIF) +"]");
-		ifMethod.setBool(true);
-		inIfDef = true;
-		ifStatements.push_back(ifMethod);
-		numOfIF++;
-		failedIf = false;
-		failedNest = false;
-	}
+    if (nesting) {
+        ifStatements.at((int)ifStatements.size() - 1).buildNest();
+        failedNest = false;
+    } else {
+        Method ifMethod("[if#" + itos(numOfIF) +"]");
+        ifMethod.setBool(true);
+        inIfDef = true;
+        ifStatements.push_back(ifMethod);
+        numOfIF++;
+        failedIf = false;
+        failedNest = false;
+    }
 }
 
-bool stackReady(string argTwo)
-{
+bool stackReady(string argTwo) {
     if (contains(argTwo, "+") || contains(argTwo, "-") || contains(argTwo, "*") || contains(argTwo, "/") || contains(argTwo, "%") || contains(argTwo, "^"))
         return (true);
 
     return (false);
 }
 
-bool isStringStack(string argTwo)
-{
+bool isStringStack(string argTwo) {
     string tempArgTwo = argTwo, temporaryBuild("");
     tempArgTwo = subtractChar(tempArgTwo, "(");
     tempArgTwo = subtractChar(tempArgTwo, ")");
@@ -2285,8 +2197,7 @@ bool isStringStack(string argTwo)
     return (false);
 }
 
-string getStringStack(string argTwo)
-{
+string getStringStack(string argTwo) {
     string tempArgTwo = argTwo, temporaryBuild("");
     tempArgTwo = subtractChar(tempArgTwo, "(");
     tempArgTwo = subtractChar(tempArgTwo, ")");
@@ -2414,9 +2325,9 @@ string getStringStack(string argTwo)
     }
 
     bool startOperating = false,
-        addNext = false,
-        subtractNext = false,
-        multiplyNext = false;
+         addNext = false,
+         subtractNext = false,
+         multiplyNext = false;
 
     for (int i = 0; i < (int)contents.size(); i++) {
         if (startOperating) {
@@ -2459,8 +2370,7 @@ string getStringStack(string argTwo)
     return (stackValue);
 }
 
-double getStack(string argTwo)
-{
+double getStack(string argTwo) {
     string tempArgTwo = argTwo, temporaryBuild("");
     tempArgTwo = subtractChar(tempArgTwo, "(");
     tempArgTwo = subtractChar(tempArgTwo, ")");
@@ -2527,7 +2437,8 @@ double getStack(string argTwo)
                 if (isNumeric(lastValue)) {
                     contents.push_back(lastValue);
                     temporaryBuild.clear();
-                } contents.push_back("-");
+                }
+                contents.push_back("-");
             } else {
                 contents.push_back(temporaryBuild);
                 temporaryBuild.clear();
@@ -2634,12 +2545,12 @@ double getStack(string argTwo)
     }
 
     bool startOperating = false,
-        addNext = false,
-        subtractNext = false,
-        multiplyNext = false,
-        divideNext = false,
-        moduloNext = false,
-        powerNext = false;
+         addNext = false,
+         subtractNext = false,
+         multiplyNext = false,
+         divideNext = false,
+         moduloNext = false,
+         powerNext = false;
 
     for (int i = 0; i < (int)contents.size(); i++) {
         if (startOperating) {
@@ -2695,186 +2606,185 @@ double getStack(string argTwo)
 
 bool commented, multiLineComment;
 
-int sysExec(string s, vector<string> command)
-{
+int sysExec(string s, vector<string> command) {
 //    string _cleaned;
 //	_cleaned = cleanString(s);
     for (int i = 0; i < (int)methods.size(); i++) {
         if (command.at(0) == methods.at(i).name()) {
             if ((int)command.size() - 1 == (int)methods.at(i).getMethodVariables().size()) {
-				// work
-			}
-		}
-	}
-	return system(cleanString(s).c_str());
+                // work
+            }
+        }
+    }
+    return system(cleanString(s).c_str());
 }
 
 /**
 	The heart of it all. Parse a string and send for interpretation.
 **/
 void parse(string s) {
-	vector<string> command; // a tokenized command container
-	int length = s.length(), //	length of the line
-		count = 0, // command token counter
-		size = 0; // final size of tokenized command container
-	bool quoted = false, // flag: parsing string literals
-		broken = false, // flag: end of a command
-		uncomment = false, // flag: end a command
-		parenthesis = false; // flag: parsing contents within parentheses
-	char prevChar = 'a'; // previous character in string
+    vector<string> command; // a tokenized command container
+    int length = s.length(), //	length of the line
+        count = 0, // command token counter
+        size = 0; // final size of tokenized command container
+    bool quoted = false, // flag: parsing string literals
+         broken = false, // flag: end of a command
+         uncomment = false, // flag: end a command
+         parenthesis = false; // flag: parsing contents within parentheses
+    char prevChar = 'a'; // previous character in string
 
-	StringContainer stringContainer; // contains separate commands
-	string bigString(""); // a string to build upon
+    StringContainer stringContainer; // contains separate commands
+    string bigString(""); // a string to build upon
 
     currentLine = s; // store a copy of the current line
     if (logging) app(logFile, s + "\r\n"); // if logging a session, log the line
 
-	command.push_back(""); // push back an empty string to begin.
-	// iterate each char in the initial string
-	for (int i = 0; i < length; i++) {
-		switch (s[i]) {
-			case ' ':
-				/**
-					we can push a space onto the string if:
-						parsing a string literal AND not within parentheses AND not in comment mode
-				**/
-				if (quoted && !parenthesis) {
-					if (!commented)
-						command.at(count).push_back(' ');
-				} else if (parenthesis && !quoted)
-                    doNothing();
-                else if (parenthesis && quoted) {
-                    if (!commented)
-                        command.at(count).push_back(' ');
-                } else {
-					if (!commented) {
-					    if (prevChar != ' ') {
-                            command.push_back("");
-                            count++;
-					    }
-					}
-				}
-
-				bigString.push_back(' ');
-                break;
-
-			case '\"':
-				if (!quoted)
-					quoted = true;
-				else
-					quoted = false;
-
-				bigString.push_back('\"');
-                break;
-
-			case '(':
-				if (!parenthesis)
-					parenthesis = true;
-
-                command.at(count).push_back('(');
-
-				bigString.push_back('(');
-                break;
-
-			case ')':
-				if (parenthesis)
-					parenthesis = false;
-
-                command.at(count).push_back(')');
-				bigString.push_back(')');
-                break;
-
-			case '\\':
-				if (quoted || parenthesis) {
-					if (!commented)
-						command.at(count).push_back('\\');
-				}
-
-				bigString.push_back('\\');
-                break;
-
-			case '\'':
-				if (quoted || parenthesis) {
-					if (prevChar == '\\')
-						command.at(count).append("\'");
-					else
-						command.at(count).append("\"");
-
-					bigString.push_back('\'');
-				}
-                break;
-
-			case '#':
-                if (quoted || parenthesis)
-					command.at(count).push_back('#');
-                else if (prevChar == '#' && multiLineComment == false) {
-                    multiLineComment = true;
-                    commented = true;
-                    uncomment = false;
-                } else if (prevChar == '#' && multiLineComment == true)
-                    uncomment = true;
-                else if (prevChar != '#' && multiLineComment == false) {
-                    commented = true;
-                    uncomment = true;
+    command.push_back(""); // push back an empty string to begin.
+    // iterate each char in the initial string
+    for (int i = 0; i < length; i++) {
+        switch (s[i]) {
+        case ' ':
+            /**
+            	we can push a space onto the string if:
+            		parsing a string literal AND not within parentheses AND not in comment mode
+            **/
+            if (quoted && !parenthesis) {
+                if (!commented)
+                    command.at(count).push_back(' ');
+            } else if (parenthesis && !quoted)
+                doNothing();
+            else if (parenthesis && quoted) {
+                if (!commented)
+                    command.at(count).push_back(' ');
+            } else {
+                if (!commented) {
+                    if (prevChar != ' ') {
+                        command.push_back("");
+                        count++;
+                    }
                 }
+            }
 
-				bigString.push_back('#');
-                break;
+            bigString.push_back(' ');
+            break;
 
-			case '~':
-				if (!commented) {
-					if (prevChar == '\\')
-						command.at(count).push_back('~');
-					else {
-					    if (guessedOS == "UNIXMacorLinux")
-                            command.at(count).append(getEnvironmentVariable("HOME"));
-                        else
-                            command.at(count).append(getEnvironmentVariable("HOMEPATH"));
-					}
-				}
-				bigString.push_back('~');
-                break;
+        case '\"':
+            if (!quoted)
+                quoted = true;
+            else
+                quoted = false;
 
-			case ';':
-				if (!quoted) {
-					if (!commented) {
-						broken = true;
-						stringContainer.add(bigString);
-						bigString = "";
-						count = 0;
-						command.clear();
-						command.push_back("");
-					}
-				} else {
-					bigString.push_back(';');
-					command.at(count).push_back(';');
-				}
-                break;
+            bigString.push_back('\"');
+            break;
 
-			default:
-				if (!commented)
-					command.at(count).push_back(s[i]);
-				bigString.push_back(s[i]);
-                break;
-		}
+        case '(':
+            if (!parenthesis)
+                parenthesis = true;
 
-		prevChar = s[i];
-	}
+            command.at(count).push_back('(');
 
-	size = (int)command.size();
+            bigString.push_back('(');
+            break;
+
+        case ')':
+            if (parenthesis)
+                parenthesis = false;
+
+            command.at(count).push_back(')');
+            bigString.push_back(')');
+            break;
+
+        case '\\':
+            if (quoted || parenthesis) {
+                if (!commented)
+                    command.at(count).push_back('\\');
+            }
+
+            bigString.push_back('\\');
+            break;
+
+        case '\'':
+            if (quoted || parenthesis) {
+                if (prevChar == '\\')
+                    command.at(count).append("\'");
+                else
+                    command.at(count).append("\"");
+
+                bigString.push_back('\'');
+            }
+            break;
+
+        case '#':
+            if (quoted || parenthesis)
+                command.at(count).push_back('#');
+            else if (prevChar == '#' && multiLineComment == false) {
+                multiLineComment = true;
+                commented = true;
+                uncomment = false;
+            } else if (prevChar == '#' && multiLineComment == true)
+                uncomment = true;
+            else if (prevChar != '#' && multiLineComment == false) {
+                commented = true;
+                uncomment = true;
+            }
+
+            bigString.push_back('#');
+            break;
+
+        case '~':
+            if (!commented) {
+                if (prevChar == '\\')
+                    command.at(count).push_back('~');
+                else {
+                    if (guessedOS == "UNIXMacorLinux")
+                        command.at(count).append(getEnvironmentVariable("HOME"));
+                    else
+                        command.at(count).append(getEnvironmentVariable("HOMEPATH"));
+                }
+            }
+            bigString.push_back('~');
+            break;
+
+        case ';':
+            if (!quoted) {
+                if (!commented) {
+                    broken = true;
+                    stringContainer.add(bigString);
+                    bigString = "";
+                    count = 0;
+                    command.clear();
+                    command.push_back("");
+                }
+            } else {
+                bigString.push_back(';');
+                command.at(count).push_back(';');
+            }
+            break;
+
+        default:
+            if (!commented)
+                command.at(count).push_back(s[i]);
+            bigString.push_back(s[i]);
+            break;
+        }
+
+        prevChar = s[i];
+    }
+
+    size = (int)command.size();
 
     if (command.at(size - 1) == "{" && size != 1)
         command.pop_back();
 
     size = (int)command.size();
-	
-	if (!commented) {
-    	if (!broken) {
-    		for (int i = 0; i < size; i++) {
-				// handle arguments
-				// args[0], args[1], ..., args[n-1]
-    			if (contains(command.at(i), "args") && command.at(i) != "args.size") {
-    				vector<string> params = getBracketRange(command.at(i));
+
+    if (!commented) {
+        if (!broken) {
+            for (int i = 0; i < size; i++) {
+                // handle arguments
+                // args[0], args[1], ..., args[n-1]
+                if (contains(command.at(i), "args") && command.at(i) != "args.size") {
+                    vector<string> params = getBracketRange(command.at(i));
 
                     if (isNumeric(params.at(0))) {
                         if ((int)args.size() - 1 >= stoi(params.at(0)) && stoi(params.at(0)) >= 0) {
@@ -2886,8 +2796,8 @@ void parse(string s) {
                             error("invalid_operation:index_out_of_bounds:" + command.at(i), false);
                     } else
                         error("invalid_operation:invalid_range:" + command.at(i), false);
-    			}
-    		}
+                }
+            }
 
             if (inSwitchDef) {
                 if (s == "{")
@@ -2928,24 +2838,24 @@ void parse(string s) {
                 } else
                     modules.at(moduleAt(currentModule)).add(s);
             } else if (inScriptDef) {
-    			if (s == "__end__") {
-    				scriptName = "";
-    				inScriptDef = false;
-    			} else
-    				app(scriptName, s + "\n");
-    		} else {
-    			if (skipToCatch) {
-    			    if (s == "catch")
+                if (s == "__end__") {
+                    scriptName = "";
+                    inScriptDef = false;
+                } else
+                    app(scriptName, s + "\n");
+            } else {
+                if (skipToCatch) {
+                    if (s == "catch")
                         skipToCatch = false;
-    			} else if (executedTry && s == "catch")
-    			    skipCatch = true;
-    			else if (executedTry && skipCatch) {
-    			    if (s == "caught") {
-    			        skipCatch = false;
-    			        parse("caught");
-    			    }
-    			} else if (inMethodDef) {
-    			    if (contains(s, "while"))
+                } else if (executedTry && s == "catch")
+                    skipCatch = true;
+                else if (executedTry && skipCatch) {
+                    if (s == "caught") {
+                        skipCatch = false;
+                        parse("caught");
+                    }
+                } else if (inMethodDef) {
+                    if (contains(s, "while"))
                         inMethodWhileDef = true;
 
                     if (contains(s, "switch"))
@@ -2953,7 +2863,7 @@ void parse(string s) {
 
                     if (inParamMethodDef) {
                         if (s == "{")
-							doNothing();
+                            doNothing();
                         else if (s == "end" || s == "}") {
                             if (inMethodWhileDef) {
                                 inMethodWhileDef = false;
@@ -3022,114 +2932,114 @@ void parse(string s) {
                     } else {
                         if (s == "{")
                             doNothing();
-        				else if (s == "end" || s == "}") {
-        				    if (inMethodWhileDef) {
-        				        inMethodWhileDef = false;
+                        else if (s == "end" || s == "}") {
+                            if (inMethodWhileDef) {
+                                inMethodWhileDef = false;
 
-        				        if (inObjectDef)
+                                if (inObjectDef)
                                     objects.at(objects.size() - 1).addToCurrentMethod(s);
-        				        else
+                                else
                                     methods.at(methods.size() - 1).add(s);
-        				    } else if (inMethodSwitchDef) {
-        				        inMethodSwitchDef = false;
+                            } else if (inMethodSwitchDef) {
+                                inMethodSwitchDef = false;
 
-        				        if (inObjectDef)
+                                if (inObjectDef)
                                     objects.at(objects.size() - 1).addToCurrentMethod(s);
-        				        else
+                                else
                                     methods.at(methods.size() - 1).add(s);
-        				    } else {
+                            } else {
                                 inMethodDef = false;
 
                                 if (inObjectDef) {
                                     inObjectMethodDef = false;
                                     objects.at(objects.size() - 1).setCurrentMethod("");
                                 }
-        				    }
-        				} else {
-        					if (inObjectDef) {
-        						objects.at(objects.size() - 1).addToCurrentMethod(s);
+                            }
+                        } else {
+                            if (inObjectDef) {
+                                objects.at(objects.size() - 1).addToCurrentMethod(s);
 
-        						if (inPublicDef)
+                                if (inPublicDef)
                                     objects.at(objects.size() - 1).setPublic();
                                 else if (inPrivateDef)
                                     objects.at(objects.size() - 1).setPrivate();
                                 else
                                     objects.at(objects.size() - 1).setPublic();
-        					} else {
-        						if (inObjectMethodDef) {
-        							objects.at(objects.size() - 1).addToCurrentMethod(s);
+                            } else {
+                                if (inObjectMethodDef) {
+                                    objects.at(objects.size() - 1).addToCurrentMethod(s);
 
-            						if (inPublicDef)
+                                    if (inPublicDef)
                                         objects.at(objects.size() - 1).setPublic();
                                     else if (inPrivateDef)
                                         objects.at(objects.size() - 1).setPrivate();
                                     else
                                         objects.at(objects.size() - 1).setPublic();
-        						} else
+                                } else
                                     methods.at(methods.size() - 1).add(s);
-        					}
-        				}
+                            }
+                        }
                     }
-    			} else if (inIfDef) {
-    				if (nesting) {
-    					if (command.at(0) == "endif")
-    						executeNest(ifStatements.at((int)ifStatements.size() - 1).getNest());
+                } else if (inIfDef) {
+                    if (nesting) {
+                        if (command.at(0) == "endif")
+                            executeNest(ifStatements.at((int)ifStatements.size() - 1).getNest());
                         else
-    						ifStatements.at((int)ifStatements.size() - 1).inNest(s);
-    				} else {
-    					if (command.at(0) == "if") {
-    						nesting = true;
+                            ifStatements.at((int)ifStatements.size() - 1).inNest(s);
+                    } else {
+                        if (command.at(0) == "if") {
+                            nesting = true;
 
-    						if (size == 4)
-    							threeSpace("if", command.at(1), command.at(2), command.at(3), s, command);
-    						else {
-    							failedIF();
-    							nesting = false;
-    						}
-    					} else if (command.at(0) == "endif") {
-    						inIfDef = false;
-    						executedIF = true;
+                            if (size == 4)
+                                threeSpace("if", command.at(1), command.at(2), command.at(3), s, command);
+                            else {
+                                failedIF();
+                                nesting = false;
+                            }
+                        } else if (command.at(0) == "endif") {
+                            inIfDef = false;
+                            executedIF = true;
 
-    						for (int i = 0; i < (int)ifStatements.size(); i++) {
-    							if (ifStatements.at(i).isIF()) {
-    								executeMethod(ifStatements.at(i));
+                            for (int i = 0; i < (int)ifStatements.size(); i++) {
+                                if (ifStatements.at(i).isIF()) {
+                                    executeMethod(ifStatements.at(i));
 
-    								if (failedIf == false)
+                                    if (failedIf == false)
                                         break;
                                 }
-    						}
+                            }
 
-    						executedIF = false;
+                            executedIF = false;
 
-    						ifStatements.clear();
+                            ifStatements.clear();
 
-    						numOfIF = 0;
-    						failedIf = false;
-    					} else if (command.at(0) == "elsif" || command.at(0) == "elif") {
-    						if (size == 4)
-    							threeSpace("if", command.at(1), command.at(2), command.at(3), s, command);
+                            numOfIF = 0;
+                            failedIf = false;
+                        } else if (command.at(0) == "elsif" || command.at(0) == "elif") {
+                            if (size == 4)
+                                threeSpace("if", command.at(1), command.at(2), command.at(3), s, command);
                             else
-    							failedIF();
-    					} else if (s == "else")
+                                failedIF();
+                        } else if (s == "else")
                             threeSpace("if", "true", "is", "true", "if true is true", command);
-    					else if (s == "failif") {
-    						if (failedIf == true)
-    							successfulIF();
-    						else
-    							failedIF();
-    					} else
-    						ifStatements.at((int)ifStatements.size() - 1).add(s);
-    				}
-    			} else {
-    			    if (inWhileDef) {
-    			        if (s == "{")
+                        else if (s == "failif") {
+                            if (failedIf == true)
+                                successfulIF();
+                            else
+                                failedIF();
+                        } else
+                            ifStatements.at((int)ifStatements.size() - 1).add(s);
+                    }
+                } else {
+                    if (inWhileDef) {
+                        if (s == "{")
                             doNothing();
-    			        else if (command.at(0) == "end" || command.at(0) == "}") {
-    			            inWhileDef = false;
+                        else if (command.at(0) == "end" || command.at(0) == "}") {
+                            inWhileDef = false;
 
-    			            string v1 = whileLoops.at(whileLoops.size() - 1).valueOne(),
-                                v2 = whileLoops.at(whileLoops.size() - 1).valueTwo(),
-                                op = whileLoops.at(whileLoops.size() - 1).logicOperator();
+                            string v1 = whileLoops.at(whileLoops.size() - 1).valueOne(),
+                                   v2 = whileLoops.at(whileLoops.size() - 1).valueTwo(),
+                                   op = whileLoops.at(whileLoops.size() - 1).logicOperator();
 
                             if (variableExists(v1) && variableExists(v2)) {
                                 if (op == "==" || op == "is") {
@@ -3155,8 +3065,7 @@ void parse(string s) {
 
                                     numOfWHILE = 0;
                                 } else if (op == ">") {
-                                    while (variables.at(variableAt(v1)).getNumber() > variables.at(variableAt(v2)).getNumber())
-                                    {
+                                    while (variables.at(variableAt(v1)).getNumber() > variables.at(variableAt(v2)).getNumber()) {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
                                         if (leaving)
@@ -3270,10 +3179,10 @@ void parse(string s) {
                                 }
                             } else
                                 error("special_error(8)", false);
-    			        } else
+                        } else
                             whileLoops.at(whileLoops.size() - 1).add(s);
-    			    } else if (inForDef) {
-    					if (command.at(0) == "next" || command.at(0) == "endfor") {
+                    } else if (inForDef) {
+                        if (command.at(0) == "next" || command.at(0) == "endfor") {
                             inForDef = false;
 
                             for (int i = 0; i < (int)forLoops.size(); i++)
@@ -3283,64 +3192,64 @@ void parse(string s) {
                             forLoops.clear();
 
                             numOfFOR = 0;
-    					} else {
-    					    if (s == "{")
+                        } else {
+                            if (s == "{")
                                 doNothing();
                             else
                                 forLoops.at(forLoops.size() - 1).add(s);
-    					}
-    				} else {
-    					if (size == 1) {
-    						if (notStandardZeroSpace(command.at(0))) {
-    							string before(beforeDot(s)), after(afterDot(s));
+                        }
+                    } else {
+                        if (size == 1) {
+                            if (notStandardZeroSpace(command.at(0))) {
+                                string before(beforeDot(s)), after(afterDot(s));
 
-    							if (before.length() != 0 && after.length() != 0) {
-    								if (objectExists(before) && after.length() != 0) {
-    								    if (containsParams(after)) {
+                                if (before.length() != 0 && after.length() != 0) {
+                                    if (objectExists(before) && after.length() != 0) {
+                                        if (containsParams(after)) {
                                             s = subtractChar(s, "\"");
 
                                             if (objects.at(objectAt(before)).methodExists(beforeParams(after)))
                                                 executeTemplate(objects.at(objectAt(before)).getMethod(beforeParams(after)), getParams(after));
                                             else
                                                 sysExec(s, command);
-    								    } else if (objects.at(objectAt(before)).methodExists(after))
-    										executeMethod(objects.at(objectAt(before)).getMethod(after));
-    									else if (objects.at(objectAt(before)).variableExists(after)) {
-    										if (objects.at(objectAt(before)).getVariable(after).getString() != null)
-    											say(objects.at(objectAt(before)).getVariable(after).getString());
-    										else if (objects.at(objectAt(before)).getVariable(after).getNumber() != nullNum)
-    											say(dtos(objects.at(objectAt(before)).getVariable(after).getNumber()));
-    										else
-    											error("is_null", false);
-    									} else if (after == "clear")
+                                        } else if (objects.at(objectAt(before)).methodExists(after))
+                                            executeMethod(objects.at(objectAt(before)).getMethod(after));
+                                        else if (objects.at(objectAt(before)).variableExists(after)) {
+                                            if (objects.at(objectAt(before)).getVariable(after).getString() != null)
+                                                say(objects.at(objectAt(before)).getVariable(after).getString());
+                                            else if (objects.at(objectAt(before)).getVariable(after).getNumber() != nullNum)
+                                                say(dtos(objects.at(objectAt(before)).getVariable(after).getNumber()));
+                                            else
+                                                error("is_null", false);
+                                        } else if (after == "clear")
                                             objects.at(objectAt(before)).clear();
-    									else
-    										error("undefined", false);
-    								} else {
-    								    // REFACTOR HERE
-    									if (before == "env") {
-    										if (after == "cwd")
-    											say(cwd());
-    										else if (after == "usl")
-    											say(uslBinary);
-    										else if (after == "os")
-    											say(guessedOS);
-    										else if (after == "user")
-    										    say(getUser());
-    										else if (after == "machine")
-    										    say(getMachine());
+                                        else
+                                            error("undefined", false);
+                                    } else {
+                                        // REFACTOR HERE
+                                        if (before == "env") {
+                                            if (after == "cwd")
+                                                say(cwd());
+                                            else if (after == "usl")
+                                                say(uslBinary);
+                                            else if (after == "os")
+                                                say(guessedOS);
+                                            else if (after == "user")
+                                                say(getUser());
+                                            else if (after == "machine")
+                                                say(getMachine());
                                             else if (after == "init_dir" || after == "initial_directory")
                                                 say(initDir);
-											else if (after == "now")
-												say(timeNow());
-    										else
-    											say(getEnvironmentVariable(after));
-    									} else if (variableExists(before)) {
-    									    if (after == "clear")
+                                            else if (after == "now")
+                                                say(timeNow());
+                                            else
+                                                say(getEnvironmentVariable(after));
+                                        } else if (variableExists(before)) {
+                                            if (after == "clear")
                                                 parse(before + " = null");
-    									} else if (listExists(before)) {
-    									    // REFACTOR HERE
-    									    if (after == "clear")
+                                        } else if (listExists(before)) {
+                                            // REFACTOR HERE
+                                            if (after == "clear")
                                                 lists.at(listAt(before)).clear();
                                             else if (after == "sort")
                                                 lists.at(listAt(before)).listSort();
@@ -3348,20 +3257,20 @@ void parse(string s) {
                                                 lists.at(listAt(before)).listReverse();
                                             else if (after == "revert")
                                                 lists.at(listAt(before)).listRevert();
-    									} else if (before == "self") {
+                                        } else if (before == "self") {
                                             if (executedMethod)
                                                 executeMethod(objects.at(objectAt(currentMethodObject)).getMethod(after));
                                         } else
-    										sysExec(s, command);
-    								}
-    							} else if (endsWith(s, "::")) {
+                                            sysExec(s, command);
+                                    }
+                                } else if (endsWith(s, "::")) {
                                     if (currentScript != "") {
                                         string newMark(s);
                                         newMark = subtractString(s, "::");
                                         scripts.at(scriptAt(currentScript)).addMark(newMark);
                                     }
                                 } else if (methodExists(s))
-    							    executeMethod(getMethod(s));
+                                    executeMethod(getMethod(s));
                                 else if (startsWith(s, "[") && endsWith(s, "]")) {
                                     string moduleName = s;
                                     moduleName = subtractString(moduleName, "[");
@@ -3377,26 +3286,26 @@ void parse(string s) {
                                     if (methodExists(beforeParams(s)))
                                         executeTemplate(getMethod(beforeParams(s)), getParams(s));
                                     else
-    								    sysExec(s, command);
+                                        sysExec(s, command);
                                 }
-    						} else
-    							zeroSpace(command.at(0), s, command);
-    					} else if (size == 2) {
-    						if (notStandardOneSpace(command.at(0)))
-    							sysExec(s, command);
-    						else {
-    							oneSpace(command.at(0), command.at(1), s, command);
-							}
-    					} else if (size == 3) {
-    						if (notStandardTwoSpace(command.at(1))) {
-    							if (command.at(0) == "append")
-    								appendText(command.at(1), command.at(2), false);
-    							else if (command.at(0) == "appendl")
-    								appendText(command.at(1), command.at(2), true);
+                            } else
+                                zeroSpace(command.at(0), s, command);
+                        } else if (size == 2) {
+                            if (notStandardOneSpace(command.at(0)))
+                                sysExec(s, command);
+                            else {
+                                oneSpace(command.at(0), command.at(1), s, command);
+                            }
+                        } else if (size == 3) {
+                            if (notStandardTwoSpace(command.at(1))) {
+                                if (command.at(0) == "append")
+                                    appendText(command.at(1), command.at(2), false);
+                                else if (command.at(0) == "appendl")
+                                    appendText(command.at(1), command.at(2), true);
                                 else if ((command.at(0) == "fwrite"))
                                     __fwrite(command.at(1), command.at(2));
-    							else if (command.at(0) == "redefine")
-    								redefine(command.at(1), command.at(2));
+                                else if (command.at(0) == "redefine")
+                                    redefine(command.at(1), command.at(2));
                                 else if (command.at(0) == "loop") {
                                     if (containsParams(command.at(2))) {
                                         loopSymbol = command.at(2);
@@ -3408,11 +3317,11 @@ void parse(string s) {
                                     } else
                                         sysExec(s, command);
                                 } else
-    								sysExec(s, command);
-    						} else
-    							twoSpace(command.at(0), command.at(1), command.at(2), s, command);
-    					} else if (size == 4)
-    						threeSpace(command.at(0), command.at(1), command.at(2), command.at(3), s, command);
+                                    sysExec(s, command);
+                            } else
+                                twoSpace(command.at(0), command.at(1), command.at(2), s, command);
+                        } else if (size == 4)
+                            threeSpace(command.at(0), command.at(1), command.at(2), command.at(3), s, command);
                         else if (size == 5) {
                             if (command.at(0) == "for") {
                                 if (containsParams(command.at(4))) {
@@ -3427,26 +3336,26 @@ void parse(string s) {
                             } else
                                 sysExec(s, command);
                         } else
-							sysExec(s, command);
-    				}
-    			}
-    		}
-    	} else {
-    		stringContainer.add(bigString);
+                            sysExec(s, command);
+                    }
+                }
+            }
+        } else {
+            stringContainer.add(bigString);
 
-    		for (int i = 0; i < (int)stringContainer.get().size(); i++)
-    			parse(stringContainer.at(i));
-    	}
+            for (int i = 0; i < (int)stringContainer.get().size(); i++)
+                parse(stringContainer.at(i));
+        }
     } else {
-   	    if (multiLineComment) {
+        if (multiLineComment) {
             if (uncomment) {
                 commented = false;
                 multiLineComment = false;
             }
-   	    } else {
-   	        if (uncomment) {
-   	            commented = false;
-   	            uncomment = false;
+        } else {
+            if (uncomment) {
+                commented = false;
+                uncomment = false;
 
                 if (!broken) {
                     string commentString("");
@@ -3490,8 +3399,8 @@ void parse(string s) {
                     for (int i = 0; i < (int)stringContainer.get().size(); i++)
                         parse(stringContainer.at(i));
                 }
-   	        }
-   	    }
+            }
+        }
     }
 }
 
@@ -3499,7 +3408,7 @@ void parse(string s) {
 	Give a new name to anything.
 **/
 void redefine(string target, string name) {
-	if (variableExists(target)) {
+    if (variableExists(target)) {
         if (fileExists(variables.at(variableAt(target)).getString()) || directoryExists(variables.at(variableAt(target)).getString())) {
             string old_name(variables.at(variableAt(target)).getString()), new_name("");
 
@@ -3542,37 +3451,37 @@ void redefine(string target, string name) {
                     error("invalid_operation:target_undefined:" + old_name, false);
             }
         } else {
-    		if (startsWith(name, "@")) {
-    			if (!variableExists(name))
-    				variables.at(variableAt(target)).setName(name);
-    			else
-    				error("invalid_operation:variable_defined:" + name, false);
-    		} else
-    			error("invalid_operation:invalid_variable_declaration:" + name, false);
+            if (startsWith(name, "@")) {
+                if (!variableExists(name))
+                    variables.at(variableAt(target)).setName(name);
+                else
+                    error("invalid_operation:variable_defined:" + name, false);
+            } else
+                error("invalid_operation:invalid_variable_declaration:" + name, false);
         }
-	} else if (listExists(target)) {
-		if (!listExists(name))
-			lists.at(listAt(target)).setName(name);
-		else
-			error("invalid_operation:list_undefined:" + name, false);
-	} else if (objectExists(target)) {
-		if (!objectExists(name))
-			objects.at(objectAt(target)).setName(name);
-		else
-			error("invalid_operation:object_undefined:" + name, false);
-	} else if (methodExists(target)) {
-		if (!methodExists(name))
-			methods.at(methodAt(target)).setName(name);
-		else
-			error("invalid_operation:method_undefined:" + name, false);
-	} else if (fileExists(target) || directoryExists(target))
+    } else if (listExists(target)) {
+        if (!listExists(name))
+            lists.at(listAt(target)).setName(name);
+        else
+            error("invalid_operation:list_undefined:" + name, false);
+    } else if (objectExists(target)) {
+        if (!objectExists(name))
+            objects.at(objectAt(target)).setName(name);
+        else
+            error("invalid_operation:object_undefined:" + name, false);
+    } else if (methodExists(target)) {
+        if (!methodExists(name))
+            methods.at(methodAt(target)).setName(name);
+        else
+            error("invalid_operation:method_undefined:" + name, false);
+    } else if (fileExists(target) || directoryExists(target))
         rename(target.c_str(), name.c_str());
-	else
-		error("invalid_operation:target_undefined:" + target, false);
+    else
+        error("invalid_operation:target_undefined:" + target, false);
 }
 
 void setup() {
-	numOfBadMethods = 0,
+    numOfBadMethods = 0,
     numOfBadObjects = 0,
     numOfBadVars = 0,
     lineNum = 0,
@@ -3581,7 +3490,7 @@ void setup() {
     numOfWHILE = 0,
     numOfParamVars = 0;
     captureParse = false,
-	commented = false,
+    commented = false,
     customPrompt = false,
     dontCollectMethodVars = false,
     failedIf = false,
@@ -3599,7 +3508,7 @@ void setup() {
     inScriptDef = false,
     executedTemplate = false,
     executedTry = false,
-	leaving = false,
+    leaving = false,
     inMethodDef = false,
     multiLineComment = false,
     negligent = false,
@@ -3630,28 +3539,27 @@ void setup() {
     currentLine = "",
     loopSymbol = "$";
 
-	null = "[null]";
+    null = "[null]";
 
-	argsLength = 0,
-	nullNum = -DBL_MAX;
+    argsLength = 0,
+    nullNum = -DBL_MAX;
 
-	if (contains(getEnvironmentVariable("HOMEPATH"), "Users")) {
-		guessedOS = "Win7orVista";
-		savedVarsPath = (getEnvironmentVariable("HOMEPATH") + "\\AppData") + "\\.savedVarsPath", savedVars = savedVarsPath + "\\.savedVars";
-	} else if (contains(getEnvironmentVariable("HOMEPATH"), "Documents")) {
-		guessedOS = "Win2000NTorXP";
-		savedVarsPath = getEnvironmentVariable("HOMEPATH") + "\\Application Data\\.savedVarsPath", savedVars = savedVarsPath + "\\.savedVars";
-	} else if (startsWith(getEnvironmentVariable("HOME"), "/")) {
-		guessedOS = "UNIXMacorLINUX";
-		savedVarsPath = getEnvironmentVariable("HOME") + "/.savedVarsPath", savedVars = savedVarsPath + "/.savedVars";
-	} else {
-	    guessedOS = "UnknownWindowsOS";
-		savedVarsPath = "\\.savedVarsPath", savedVars = savedVarsPath + "\\.savedVars";
-	}
+    if (contains(getEnvironmentVariable("HOMEPATH"), "Users")) {
+        guessedOS = "Win7orVista";
+        savedVarsPath = (getEnvironmentVariable("HOMEPATH") + "\\AppData") + "\\.savedVarsPath", savedVars = savedVarsPath + "\\.savedVars";
+    } else if (contains(getEnvironmentVariable("HOMEPATH"), "Documents")) {
+        guessedOS = "Win2000NTorXP";
+        savedVarsPath = getEnvironmentVariable("HOMEPATH") + "\\Application Data\\.savedVarsPath", savedVars = savedVarsPath + "\\.savedVars";
+    } else if (startsWith(getEnvironmentVariable("HOME"), "/")) {
+        guessedOS = "UNIXMacorLINUX";
+        savedVarsPath = getEnvironmentVariable("HOME") + "/.savedVarsPath", savedVars = savedVarsPath + "/.savedVars";
+    } else {
+        guessedOS = "UnknownWindowsOS";
+        savedVarsPath = "\\.savedVarsPath", savedVars = savedVarsPath + "\\.savedVars";
+    }
 }
 
-string getSubString(string argOne, string argTwo, string beforeBracket)
-{
+string getSubString(string argOne, string argTwo, string beforeBracket) {
     string returnValue("");
 
     if (isString(beforeBracket)) {
@@ -3711,8 +3619,7 @@ string getSubString(string argOne, string argTwo, string beforeBracket)
     return (returnValue);
 }
 
-void setSubString(string argOne, string argTwo, string beforeBracket)
-{
+void setSubString(string argOne, string argTwo, string beforeBracket) {
     if (variables.at(variableAt(beforeBracket)).getString() != null) {
         vector<string> listRange = getBracketRange(argTwo);
 
@@ -3777,12 +3684,10 @@ void setSubString(string argOne, string argTwo, string beforeBracket)
         error("invalid_operation:null_string:" + beforeBracket, false);
 }
 
-void zeroSpace(string argZero, string s, vector<string> command)
-{
-	if (argZero == "pass") {
-		return;
-	}
-    else if (argZero == "caught") {
+void zeroSpace(string argZero, string s, vector<string> command) {
+    if (argZero == "pass") {
+        return;
+    } else if (argZero == "caught") {
         string to_remove = "remove ";
         to_remove.append(errorVarName);
 
@@ -3793,84 +3698,82 @@ void zeroSpace(string argZero, string s, vector<string> command)
         lastError = "";
         errorVarName = "";
     } else if (argZero == "clear_methods!")
-		clearMethods();
-	else if (argZero == "clear_objects!")
-		clearObjects();
-	else if (argZero == "clear_variables!")
-		clearVariables();
-	else if (argZero == "clear_lists!")
-		clearLists();
-	else if (argZero == "clear_all!")
-		clearAll();
+        clearMethods();
+    else if (argZero == "clear_objects!")
+        clearObjects();
+    else if (argZero == "clear_variables!")
+        clearVariables();
+    else if (argZero == "clear_lists!")
+        clearLists();
+    else if (argZero == "clear_all!")
+        clearAll();
     else if (argZero == "clear_constants!")
         clearConstants();
-	else if (argZero == "help")
-		printUSLHelp();
-	else if (argZero == "exit") {
-		clearAll();
-		exit(0);
-	} else if (argZero == "break" || argZero == "leave!")
-	    leaving = true;
-	else if (argZero == "no_methods?") {
-		if (noMethods())
-			__true();
-		else
-			__false();
-	} else if (argZero == "no_objects?") {
-		if (noObjects())
-			__true();
-		else
-			__false();
-	} else if (argZero == "no_variables?") {
-		if (noVariables())
-			__true();
-		else
-			__false();
-	} else if (argZero == "no_lists?") {
-		if (noLists())
-			__true();
-		else
-			__false();
-	} else if (argZero == "end" || argZero == "}") {
-		inPrivateDef = false,
-		inPublicDef = false;
-		inObjectDef = false;
-		inObjectMethodDef = false;
-		currentObject = "";
+    else if (argZero == "help")
+        printUSLHelp();
+    else if (argZero == "exit") {
+        clearAll();
+        exit(0);
+    } else if (argZero == "break" || argZero == "leave!")
+        leaving = true;
+    else if (argZero == "no_methods?") {
+        if (noMethods())
+            __true();
+        else
+            __false();
+    } else if (argZero == "no_objects?") {
+        if (noObjects())
+            __true();
+        else
+            __false();
+    } else if (argZero == "no_variables?") {
+        if (noVariables())
+            __true();
+        else
+            __false();
+    } else if (argZero == "no_lists?") {
+        if (noLists())
+            __true();
+        else
+            __false();
+    } else if (argZero == "end" || argZero == "}") {
+        inPrivateDef = false,
+        inPublicDef = false;
+        inObjectDef = false;
+        inObjectMethodDef = false;
+        currentObject = "";
     } else if (argZero == "parser")
-		loop(false);
-	else if (argZero == "private") {
-	    inPrivateDef = true;
-	    inPublicDef = false;
+        loop(false);
+    else if (argZero == "private") {
+        inPrivateDef = true;
+        inPublicDef = false;
     } else if (argZero == "public") {
         inPrivateDef = false;
         inPublicDef = true;
     } else if (argZero == "try")
         executedTry = true;
-	else if (argZero == "failif") {
-		if (failedIf == true)
-			successfulIF();
-		else
-			failedIF();
-	} else
-		sysExec(s, command);
+    else if (argZero == "failif") {
+        if (failedIf == true)
+            successfulIF();
+        else
+            failedIF();
+    } else
+        sysExec(s, command);
 }
 
-string &replace(string &subj, string old, string neu)
-{
+string &replace(string &subj, string old, string neu) {
     size_t uiui = subj.find(old);
 
     if (uiui != string::npos) {
-       subj.erase(uiui, old.size());
-       subj.insert(uiui, neu);
+        subj.erase(uiui, old.size());
+        subj.insert(uiui, neu);
     }
 
     return subj;
 }
 
-void oneSpace(string argZero, string argOne, string s, vector<string> command)
-{
-	string before(beforeDot(argOne)), after(afterDot(argOne));
+void oneSpace(string argZero, string argOne, string s, vector<string> command) {
+    string before(beforeDot(argOne)), after(afterDot(argOne));
 
     if (contains(argOne, "self.")) {
         argOne = replace(argOne, "self", currentMethodObject);
@@ -3959,7 +3862,7 @@ void oneSpace(string argZero, string argOne, string s, vector<string> command)
         }
     } else if (argZero == "help")
         comprehensiveHelp(argOne);
-	else if (argZero == "prompt") {
+    else if (argZero == "prompt") {
         if (argOne == "bash") {
             customPrompt = true;
             promptStyle = "bash";
@@ -3976,29 +3879,29 @@ void oneSpace(string argZero, string argOne, string s, vector<string> command)
             promptStyle = argOne;
         }
     } else if (argZero == "err" || argZero == "error") {
-		if (variableExists(argOne)) {
-			if (variables.at(variableAt(argOne)).getString() != null)
-				cerr << variables.at(variableAt(argOne)).getString() << endl;
-			else if (variables.at(variableAt(argOne)).getNumber() != nullNum)
-				cerr << variables.at(variableAt(argOne)).getNumber() << endl;
-			else
-				error("is_null:" + argOne, false);
-		} else
-			cerr << argOne << endl;
- 	} else if (argZero == "delay") {
-		if (isNumeric(argOne))
-			delay(stoi(argOne));
-		else
-			error("conversion_error:" + argOne, false);
-	} else if (argZero == "loop")
-		threeSpace("for", "var", "in", argOne, "for var in " + argOne, command); // REFACTOR HERE
-	else if (argZero == "for" && argOne == "infinity")
-		successfulFor();
-	else if (argZero == "remove") {
-	    if (containsParams(argOne)) {
-	        vector<string> params = getParams(argOne);
+        if (variableExists(argOne)) {
+            if (variables.at(variableAt(argOne)).getString() != null)
+                cerr << variables.at(variableAt(argOne)).getString() << endl;
+            else if (variables.at(variableAt(argOne)).getNumber() != nullNum)
+                cerr << variables.at(variableAt(argOne)).getNumber() << endl;
+            else
+                error("is_null:" + argOne, false);
+        } else
+            cerr << argOne << endl;
+    } else if (argZero == "delay") {
+        if (isNumeric(argOne))
+            delay(stoi(argOne));
+        else
+            error("conversion_error:" + argOne, false);
+    } else if (argZero == "loop")
+        threeSpace("for", "var", "in", argOne, "for var in " + argOne, command); // REFACTOR HERE
+    else if (argZero == "for" && argOne == "infinity")
+        successfulFor();
+    else if (argZero == "remove") {
+        if (containsParams(argOne)) {
+            vector<string> params = getParams(argOne);
 
-	        for (int i = 0; i < (int)params.size(); i++) {
+            for (int i = 0; i < (int)params.size(); i++) {
                 if (variableExists(params.at(i)))
                     variables = removeVariable(variables, params.at(i));
                 else if (listExists(params.at(i)))
@@ -4009,44 +3912,44 @@ void oneSpace(string argZero, string argOne, string s, vector<string> command)
                     methods = removeMethod(methods, params.at(i));
                 else
                     error("invalid_operation:target_undefined:" + params.at(i), false);
-	        }
-	    } else if (variableExists(argOne))
-			variables = removeVariable(variables, argOne);
-		else if (listExists(argOne))
-			lists = removeList(lists, argOne);
-		else if (objectExists(argOne))
-			objects = removeObject(objects, argOne);
-		else if (methodExists(argOne))
-			methods = removeMethod(methods, argOne);
-		else
-			error("invalid_operation:target_undefined:" + argOne, false);
-	} else if (argZero == "see_string") {
-		if (variableExists(argOne))
-			__stdout(variables.at(variableAt(argOne)).getString());
-		else
-			error("invalid_operation:variable_undefined:" + argOne, false);
-	} else if (argZero == "see_number") {
-		if (variableExists(argOne))
-			__stdout(dtos(variables.at(variableAt(argOne)).getNumber()));
-		else
-			error("invalid_operation:variable_undefined:" + argOne, false);
-	} else if (argZero == "__begin__") {
-		if (variableExists(argOne)) {
-			if (variables.at(variableAt(argOne)).getString() != null) {
-				if (!fileExists(variables.at(variableAt(argOne)).getString())) {
-					touch(variables.at(variableAt(argOne)).getString());
-					inScriptDef = true;
-					scriptName = variables.at(variableAt(argOne)).getString();
-				} else
-					error("invalid_operation:file_defined:" + variables.at(variableAt(argOne)).getString(), false);
-			}
-		} else if (!fileExists(argOne)) {
-			touch(argOne);
-			inScriptDef = true;
-			scriptName = argOne;
-		} else
-			error("invalid_operation:file_defined:" + argOne, false);
-	} else if (argZero == "encrypt" || argZero == "decrypt") {
+            }
+        } else if (variableExists(argOne))
+            variables = removeVariable(variables, argOne);
+        else if (listExists(argOne))
+            lists = removeList(lists, argOne);
+        else if (objectExists(argOne))
+            objects = removeObject(objects, argOne);
+        else if (methodExists(argOne))
+            methods = removeMethod(methods, argOne);
+        else
+            error("invalid_operation:target_undefined:" + argOne, false);
+    } else if (argZero == "see_string") {
+        if (variableExists(argOne))
+            __stdout(variables.at(variableAt(argOne)).getString());
+        else
+            error("invalid_operation:variable_undefined:" + argOne, false);
+    } else if (argZero == "see_number") {
+        if (variableExists(argOne))
+            __stdout(dtos(variables.at(variableAt(argOne)).getNumber()));
+        else
+            error("invalid_operation:variable_undefined:" + argOne, false);
+    } else if (argZero == "__begin__") {
+        if (variableExists(argOne)) {
+            if (variables.at(variableAt(argOne)).getString() != null) {
+                if (!fileExists(variables.at(variableAt(argOne)).getString())) {
+                    touch(variables.at(variableAt(argOne)).getString());
+                    inScriptDef = true;
+                    scriptName = variables.at(variableAt(argOne)).getString();
+                } else
+                    error("invalid_operation:file_defined:" + variables.at(variableAt(argOne)).getString(), false);
+            }
+        } else if (!fileExists(argOne)) {
+            touch(argOne);
+            inScriptDef = true;
+            scriptName = argOne;
+        } else
+            error("invalid_operation:file_defined:" + argOne, false);
+    } else if (argZero == "encrypt" || argZero == "decrypt") {
         Crypt c;
 
         if (argZero == "encrypt") {
@@ -4066,7 +3969,7 @@ void oneSpace(string argZero, string argOne, string s, vector<string> command)
             } else
                 __stdout(c.d(argOne));
         }
-	} else if (argZero == "globalize") {
+    } else if (argZero == "globalize") {
         if (contains(argOne, ".") && methodExists(argOne) && !methodExists(afterDot(argOne))) {
             Method method(afterDot(argOne));
 
@@ -4078,468 +3981,465 @@ void oneSpace(string argZero, string argOne, string s, vector<string> command)
             methods.push_back(method);
         } else
             error("invalid_operation:object_method_undefined:" + argOne, false);
-	} else if (argZero == "remember" || argZero == "save") {
-		if (variableExists(argOne)) {
-			if (variables.at(variableAt(argOne)).getString() != null)
-				saveVariable(argOne + "&" + variables.at(variableAt(argOne)).getString());
-			else if (variables.at(variableAt(argOne)).getNumber() != nullNum)
-				saveVariable(argOne + "&" + dtos(variables.at(variableAt(argOne)).getNumber()));
-			else
-				error("is_null:" + argOne, false);
-		} else
-			error("invalid_operation:target_undefined:" + argOne, false);
-	} else if (argZero == "forget"  || argZero == "lose") {
-		if (fileExists(savedVars)) {
-			string line(""), bigStr("");
-			ifstream file(savedVars.c_str());
+    } else if (argZero == "remember" || argZero == "save") {
+        if (variableExists(argOne)) {
+            if (variables.at(variableAt(argOne)).getString() != null)
+                saveVariable(argOne + "&" + variables.at(variableAt(argOne)).getString());
+            else if (variables.at(variableAt(argOne)).getNumber() != nullNum)
+                saveVariable(argOne + "&" + dtos(variables.at(variableAt(argOne)).getNumber()));
+            else
+                error("is_null:" + argOne, false);
+        } else
+            error("invalid_operation:target_undefined:" + argOne, false);
+    } else if (argZero == "forget"  || argZero == "lose") {
+        if (fileExists(savedVars)) {
+            string line(""), bigStr("");
+            ifstream file(savedVars.c_str());
 // REFACTOR HERE
-			Crypt c;
+            Crypt c;
 
-			if (file.is_open()) {
-				while (!file.eof()) {
-					getline(file, line);
-					bigStr.append(line);
-				}
+            if (file.is_open()) {
+                while (!file.eof()) {
+                    getline(file, line);
+                    bigStr.append(line);
+                }
 
-				file.close();
+                file.close();
 
-				int bigStrLength = bigStr.length();
-				bool stop = false;
-				string varName(""), vval("");
-				bigStr = c.d(bigStr);
+                int bigStrLength = bigStr.length();
+                bool stop = false;
+                string varName(""), vval("");
+                bigStr = c.d(bigStr);
 
-				vector<string> varNames;
-				vector<string> varValues;
+                vector<string> varNames;
+                vector<string> varValues;
 
-				varNames.push_back("");
-				varValues.push_back("");
+                varNames.push_back("");
+                varValues.push_back("");
 
-				for (int i = 0; i < bigStrLength; i++) {
-					switch (bigStr[i]) {
-						case '&':
-							stop = true;
-						break;
+                for (int i = 0; i < bigStrLength; i++) {
+                    switch (bigStr[i]) {
+                    case '&':
+                        stop = true;
+                        break;
 
-						case '#':
-							stop = false;
-							varNames.push_back("");
-							varValues.push_back("");
-						break;
+                    case '#':
+                        stop = false;
+                        varNames.push_back("");
+                        varValues.push_back("");
+                        break;
 
-						default:
-							if (!stop)
-								varNames.at((int)varNames.size() - 1).push_back(bigStr[i]);
-							else
-								varValues.at((int)varValues.size() - 1).push_back(bigStr[i]);
-						break;
-					}
-				}
+                    default:
+                        if (!stop)
+                            varNames.at((int)varNames.size() - 1).push_back(bigStr[i]);
+                        else
+                            varValues.at((int)varValues.size() - 1).push_back(bigStr[i]);
+                        break;
+                    }
+                }
 
-				string new_saved("");
+                string new_saved("");
 
-				for (int i = 0; i < (int)varNames.size(); i++) {
-					if (varNames.at(i) != argOne) {
-						Variable newVariable(varNames.at(i), varValues.at(i));
-						variables.push_back(newVariable);
+                for (int i = 0; i < (int)varNames.size(); i++) {
+                    if (varNames.at(i) != argOne) {
+                        Variable newVariable(varNames.at(i), varValues.at(i));
+                        variables.push_back(newVariable);
 
-						if (i != (int)varNames.size() - 1)
-							new_saved.append(varNames.at(i) + "&" + varValues.at(i) + "#");
-						else
-							new_saved.append(varNames.at(i) + "&" + varValues.at(i));
-					}
-				}
+                        if (i != (int)varNames.size() - 1)
+                            new_saved.append(varNames.at(i) + "&" + varValues.at(i) + "#");
+                        else
+                            new_saved.append(varNames.at(i) + "&" + varValues.at(i));
+                    }
+                }
 
-				varNames.clear();
-				varValues.clear();
+                varNames.clear();
+                varValues.clear();
 
-				rm(savedVars);
-				touch(savedVars);
-				app(savedVars, c.e(new_saved));
-			}
-		}
-	} else if (argZero == "load") {
-		if (fileExists(argOne)) {
-			if (isScript(argOne)) {
-			    prevScript = currentScript;
-				loadScript(argOne);
+                rm(savedVars);
+                touch(savedVars);
+                app(savedVars, c.e(new_saved));
+            }
+        }
+    } else if (argZero == "load") {
+        if (fileExists(argOne)) {
+            if (isScript(argOne)) {
+                prevScript = currentScript;
+                loadScript(argOne);
             } else
-				error("bad_load:" + argOne, true);
-		} else if (moduleExists(argOne)) {
+                error("bad_load:" + argOne, true);
+        } else if (moduleExists(argOne)) {
             vector<string> lines = modules.at(moduleAt(argOne)).get();
 
             for (int i = 0; i < (int)lines.size(); i++)
                 parse(lines.at(i));
         } else
-			error("bad_load:" + argOne, true);
-	} else if (argZero == "say" || argZero == "stdout" || argZero == "out" || argZero == "print" || argZero == "println") {
-		string text(argOne);
-		bool is_say = (argZero == "say");
-		bool is_print = (argZero == "print" || argZero == "println");
-		// if parameter is variable, get it's value
-		if (variableExists(argOne)) {
-		    // set the value 
-			if (!zeroDots(argOne)) {
-		        if (objects.at(objectAt(beforeDot(argOne))).getVariable(afterDot(argOne)).getString() != null)
-		            text = (objects.at(objectAt(beforeDot(argOne))).getVariable(afterDot(argOne)).getString());
-		        else if (objects.at(objectAt(beforeDot(argOne))).getVariable(afterDot(argOne)).getNumber() != nullNum)
+            error("bad_load:" + argOne, true);
+    } else if (argZero == "say" || argZero == "stdout" || argZero == "out" || argZero == "print" || argZero == "println") {
+        string text(argOne);
+        bool is_say = (argZero == "say");
+        bool is_print = (argZero == "print" || argZero == "println");
+        // if parameter is variable, get it's value
+        if (variableExists(argOne)) {
+            // set the value
+            if (!zeroDots(argOne)) {
+                if (objects.at(objectAt(beforeDot(argOne))).getVariable(afterDot(argOne)).getString() != null)
+                    text = (objects.at(objectAt(beforeDot(argOne))).getVariable(afterDot(argOne)).getString());
+                else if (objects.at(objectAt(beforeDot(argOne))).getVariable(afterDot(argOne)).getNumber() != nullNum)
                     text = (dtos(objects.at(objectAt(beforeDot(argOne))).getVariable(afterDot(argOne)).getNumber()));
                 else
                     text = ("is_null:" + argOne, false);
-		    } else {
+            } else {
                 if (variables.at(variableAt(argOne)).getString() != null)
                     text = (variables.at(variableAt(argOne)).getString());
                 else if (variables.at(variableAt(argOne)).getNumber() != nullNum)
                     text = (dtos(variables.at(variableAt(argOne)).getNumber()));
                 else
                     text = ("is_null:" + argOne, false);
-		    }
-		}
-		
-		if (is_say) {
-			say(text);
-		}
-		else if (is_print) {
-			if (argZero == "println") {
-				cout << text << endl;
-			}
-			else {
-				cout << text;
-			}
-		}
-		else {
-			__stdout(text);
-		}
-	} else if (argZero == "cd" || argZero == "chdir") {
-		if (variableExists(argOne)) {
-			if (variables.at(variableAt(argOne)).getString() != null) {
-				if (directoryExists(variables.at(variableAt(argOne)).getString()))
-					cd(variables.at(variableAt(argOne)).getString());
-				else
-					error("read_fail:" + variables.at(variableAt(argOne)).getString(), false);
-			} else
-				error("invalid_operation:null_string:" + argOne, false);
-		} else {
-			if (argOne == "init_dir" || argOne == "initial_directory")
-				cd(initDir);
-			else if (directoryExists(argOne))
-				cd(argOne);
-			else
-				cd(argOne);
-		}
-	} else if (argZero == "list") {
-		if (listExists(argOne))
-			lists.at(listAt(argOne)).clear();
-		else {
-			List newList(argOne);
+            }
+        }
 
-			if (executedTemplate || executedMethod)
+        if (is_say) {
+            say(text);
+        } else if (is_print) {
+            if (argZero == "println") {
+                cout << text << endl;
+            } else {
+                cout << text;
+            }
+        } else {
+            __stdout(text);
+        }
+    } else if (argZero == "cd" || argZero == "chdir") {
+        if (variableExists(argOne)) {
+            if (variables.at(variableAt(argOne)).getString() != null) {
+                if (directoryExists(variables.at(variableAt(argOne)).getString()))
+                    cd(variables.at(variableAt(argOne)).getString());
+                else
+                    error("read_fail:" + variables.at(variableAt(argOne)).getString(), false);
+            } else
+                error("invalid_operation:null_string:" + argOne, false);
+        } else {
+            if (argOne == "init_dir" || argOne == "initial_directory")
+                cd(initDir);
+            else if (directoryExists(argOne))
+                cd(argOne);
+            else
+                cd(argOne);
+        }
+    } else if (argZero == "list") {
+        if (listExists(argOne))
+            lists.at(listAt(argOne)).clear();
+        else {
+            List newList(argOne);
+
+            if (executedTemplate || executedMethod)
                 newList.collect();
             else
                 newList.dontCollect();
 
-			lists.push_back(newList);
-		}
-	} else if (argZero == "!") {
-		if (variableExists(argOne)) {
-			if (variables.at(variableAt(argOne)).getString() != null)
-				parse(variables.at(variableAt(argOne)).getString().c_str());
-			else
-				error("is_null:" + argOne, false);
-		} else
-			parse(argOne.c_str());
-	} else if (argZero == "?") {
-		if (variableExists(argOne)) {
-			if (variables.at(variableAt(argOne)).getString() != null)
-                 sysExec(variables.at(variableAt(argOne)).getString(), command);
-			else
-				error("is_null:" + argOne, false);
-		} else
-			sysExec(argOne, command);
-	} else if (argZero == "init_dir" || argZero == "initial_directory") {
-		if (variableExists(argOne)) {
-			if (variables.at(variableAt(argOne)).getString() != null) {
-				if (directoryExists(variables.at(variableAt(argOne)).getString())) {
-					initDir = variables.at(variableAt(argOne)).getString();
-					cd(initDir);
-				} else
-					error("read_fail:" + initDir, false);
-			} else
-				error("invalid_operation:null_string:" + argOne, false);
-		} else {
-			if (directoryExists(argOne)) {
-			    if (argOne == ".")
+            lists.push_back(newList);
+        }
+    } else if (argZero == "!") {
+        if (variableExists(argOne)) {
+            if (variables.at(variableAt(argOne)).getString() != null)
+                parse(variables.at(variableAt(argOne)).getString().c_str());
+            else
+                error("is_null:" + argOne, false);
+        } else
+            parse(argOne.c_str());
+    } else if (argZero == "?") {
+        if (variableExists(argOne)) {
+            if (variables.at(variableAt(argOne)).getString() != null)
+                sysExec(variables.at(variableAt(argOne)).getString(), command);
+            else
+                error("is_null:" + argOne, false);
+        } else
+            sysExec(argOne, command);
+    } else if (argZero == "init_dir" || argZero == "initial_directory") {
+        if (variableExists(argOne)) {
+            if (variables.at(variableAt(argOne)).getString() != null) {
+                if (directoryExists(variables.at(variableAt(argOne)).getString())) {
+                    initDir = variables.at(variableAt(argOne)).getString();
+                    cd(initDir);
+                } else
+                    error("read_fail:" + initDir, false);
+            } else
+                error("invalid_operation:null_string:" + argOne, false);
+        } else {
+            if (directoryExists(argOne)) {
+                if (argOne == ".")
                     initDir = cwd();
                 else if (argOne == "..")
                     initDir = cwd() + "\\..";
                 else
                     initDir = argOne;
 
-				cd(initDir);
-			} else
-				error("read_fail:" + initDir, false);
-		}
-	} else if (argZero == "is_method?" || argZero == "method?") {
-		if (before.length() != 0 && after.length() != 0) {
-			if (objects.at(objectAt(before)).methodExists(after))
-				__true();
-			else
-				__false();
-		} else {
-			if (methodExists(argOne))
-				__true();
-			else
-				__false();
-		}
-	} else if (argZero == "is_object?" || argZero == "object?") {
-		if (objectExists(argOne))
-			__true();
-		else
-			__false();
-	} else if (argZero == "is_variable?" || argZero == "var?" || argZero == "variable?") {
-		if (before.length() != 0 && after.length() != 0) {
-			if (objects.at(objectAt(before)).variableExists(after))
-				__true();
-			else
-				__false();
-		} else {
-			if (variableExists(argOne))
-				__true();
-			else
-				__false();
-		}
-	} else if (argZero == "is_list?" || argZero == "list?") {
-		if (listExists(argOne))
-			__true();
-		else
-			__false();
-	} else if (argZero == "is_directory?" || argZero == "dir?" || argZero == "directory?") {
-		if (before.length() != 0 && after.length() != 0) {
-			if (objects.at(objectAt(before)).variableExists(after)) {
-				if (directoryExists(objects.at(objectAt(before)).getVariable(after).getString()))
-					__true();
-				else
-					__false();
-			} else
-				error("invalid_operation:target_undefined:" + argOne, false);
-		} else {
-			if (variableExists(argOne)) {
-				if (variables.at(variableAt(argOne)).getString() != null) {
-					if (directoryExists(variables.at(variableAt(argOne)).getString()))
-						__true();
-					else
-						__false();
-				} else
-					error("invalid_operation:null_string:" + argOne, false);
-			} else {
-				if (directoryExists(argOne))
-					__true();
-				else
-					__false();
-			}
-		}
-	} else if (argZero == "is_file?" || argZero == "file?") {
-		if (before.length() != 0 && after.length() != 0) {
-			if (objects.at(objectAt(before)).variableExists(after)) {
-				if (fileExists(objects.at(objectAt(before)).getVariable(after).getString()))
-					__true();
-				else
-					__false();
-			} else
-				error("invalid_operation:target_undefined:" + argOne, false);
-		} else {
-			if (variableExists(argOne)) {
-				if (variables.at(variableAt(argOne)).getString() != null) {
-					if (fileExists(variables.at(variableAt(argOne)).getString()))
-						__true();
-					else
-						__false();
-				} else
-					__false();
-			} else {
-				if (fileExists(argOne))
-					__true();
-				else
-					__false();
-			}
-		}
-	} else if (argZero == "collect?" || argZero == "garbage?") {
-	    if (variableExists(argOne)) {
-	        if (variables.at(variableAt(argOne)).garbage())
-	            __true();
-	        else
+                cd(initDir);
+            } else
+                error("read_fail:" + initDir, false);
+        }
+    } else if (argZero == "is_method?" || argZero == "method?") {
+        if (before.length() != 0 && after.length() != 0) {
+            if (objects.at(objectAt(before)).methodExists(after))
+                __true();
+            else
                 __false();
-	    } else
+        } else {
+            if (methodExists(argOne))
+                __true();
+            else
+                __false();
+        }
+    } else if (argZero == "is_object?" || argZero == "object?") {
+        if (objectExists(argOne))
+            __true();
+        else
+            __false();
+    } else if (argZero == "is_variable?" || argZero == "var?" || argZero == "variable?") {
+        if (before.length() != 0 && after.length() != 0) {
+            if (objects.at(objectAt(before)).variableExists(after))
+                __true();
+            else
+                __false();
+        } else {
+            if (variableExists(argOne))
+                __true();
+            else
+                __false();
+        }
+    } else if (argZero == "is_list?" || argZero == "list?") {
+        if (listExists(argOne))
+            __true();
+        else
+            __false();
+    } else if (argZero == "is_directory?" || argZero == "dir?" || argZero == "directory?") {
+        if (before.length() != 0 && after.length() != 0) {
+            if (objects.at(objectAt(before)).variableExists(after)) {
+                if (directoryExists(objects.at(objectAt(before)).getVariable(after).getString()))
+                    __true();
+                else
+                    __false();
+            } else
+                error("invalid_operation:target_undefined:" + argOne, false);
+        } else {
+            if (variableExists(argOne)) {
+                if (variables.at(variableAt(argOne)).getString() != null) {
+                    if (directoryExists(variables.at(variableAt(argOne)).getString()))
+                        __true();
+                    else
+                        __false();
+                } else
+                    error("invalid_operation:null_string:" + argOne, false);
+            } else {
+                if (directoryExists(argOne))
+                    __true();
+                else
+                    __false();
+            }
+        }
+    } else if (argZero == "is_file?" || argZero == "file?") {
+        if (before.length() != 0 && after.length() != 0) {
+            if (objects.at(objectAt(before)).variableExists(after)) {
+                if (fileExists(objects.at(objectAt(before)).getVariable(after).getString()))
+                    __true();
+                else
+                    __false();
+            } else
+                error("invalid_operation:target_undefined:" + argOne, false);
+        } else {
+            if (variableExists(argOne)) {
+                if (variables.at(variableAt(argOne)).getString() != null) {
+                    if (fileExists(variables.at(variableAt(argOne)).getString()))
+                        __true();
+                    else
+                        __false();
+                } else
+                    __false();
+            } else {
+                if (fileExists(argOne))
+                    __true();
+                else
+                    __false();
+            }
+        }
+    } else if (argZero == "collect?" || argZero == "garbage?") {
+        if (variableExists(argOne)) {
+            if (variables.at(variableAt(argOne)).garbage())
+                __true();
+            else
+                __false();
+        } else
             cout << "under construction..." << endl;
-	} else if (argZero == "is_number?" || argZero == "number?") {
-		if (before.length() != 0 && after.length() != 0) {
-			if (objects.at(objectAt(before)).variableExists(after)) {
-				if (objects.at(objectAt(before)).getVariable(after).getNumber() != nullNum)
-					__true();
-				else
-					__false();
-			} else
-				error("invalid_operation:target_undefined:" + argOne, false);
-		} else {
-			if (variableExists(argOne)) {
-				if (variables.at(variableAt(argOne)).getNumber() != nullNum)
-					__true();
-				else
-					__false();
-			} else {
-				if (isNumeric(argOne))
-					__true();
-				else
-					__false();
-			}
-		}
-	} else if (argZero == "is_string?" || argZero == "string?") {
-		if (before.length() != 0 && after.length() != 0) {
-			if (objects.at(objectAt(before)).variableExists(after)) {
-				if (objects.at(objectAt(before)).getVariable(after).getString() != null)
-					__true();
-				else
-					__false();
-			} else
-				error("invalid_operation:target_undefined:" + argOne, false);
-		} else {
-			if (variableExists(argOne)) {
-				if (variables.at(variableAt(argOne)).getString() != null)
-					__true();
-				else
-					__false();
-			} else {
-				if (isNumeric(argOne))
-					__false();
-				else
-					__true();
-			}
-		}
-	} else if (argZero == "is_uppercase?" || argZero == "upper?" || argZero == "uppercase?") {
-		if (before.length() != 0 && after.length() != 0) {
-			if (objects.at(objectAt(before)).variableExists(after)) {
-				if (isUpper(objects.at(objectAt(before)).getVariable(after).getString()))
-					__true();
-				else
-					__false();
-			} else
-				error("invalid_operation:target_undefined:" + argOne, false);
-		} else {
-			if (variableExists(argOne)) {
-				if (variables.at(variableAt(argOne)).getString() != null) {
+    } else if (argZero == "is_number?" || argZero == "number?") {
+        if (before.length() != 0 && after.length() != 0) {
+            if (objects.at(objectAt(before)).variableExists(after)) {
+                if (objects.at(objectAt(before)).getVariable(after).getNumber() != nullNum)
+                    __true();
+                else
+                    __false();
+            } else
+                error("invalid_operation:target_undefined:" + argOne, false);
+        } else {
+            if (variableExists(argOne)) {
+                if (variables.at(variableAt(argOne)).getNumber() != nullNum)
+                    __true();
+                else
+                    __false();
+            } else {
+                if (isNumeric(argOne))
+                    __true();
+                else
+                    __false();
+            }
+        }
+    } else if (argZero == "is_string?" || argZero == "string?") {
+        if (before.length() != 0 && after.length() != 0) {
+            if (objects.at(objectAt(before)).variableExists(after)) {
+                if (objects.at(objectAt(before)).getVariable(after).getString() != null)
+                    __true();
+                else
+                    __false();
+            } else
+                error("invalid_operation:target_undefined:" + argOne, false);
+        } else {
+            if (variableExists(argOne)) {
+                if (variables.at(variableAt(argOne)).getString() != null)
+                    __true();
+                else
+                    __false();
+            } else {
+                if (isNumeric(argOne))
+                    __false();
+                else
+                    __true();
+            }
+        }
+    } else if (argZero == "is_uppercase?" || argZero == "upper?" || argZero == "uppercase?") {
+        if (before.length() != 0 && after.length() != 0) {
+            if (objects.at(objectAt(before)).variableExists(after)) {
+                if (isUpper(objects.at(objectAt(before)).getVariable(after).getString()))
+                    __true();
+                else
+                    __false();
+            } else
+                error("invalid_operation:target_undefined:" + argOne, false);
+        } else {
+            if (variableExists(argOne)) {
+                if (variables.at(variableAt(argOne)).getString() != null) {
                     if (isUpper(variables.at(variableAt(argOne)).getString()))
-    					__true();
-				    else
-				        __false();
-				} else
-					__false();
-			} else {
-				if (isNumeric(argOne))
-					__false();
-				else {
+                        __true();
+                    else
+                        __false();
+                } else
+                    __false();
+            } else {
+                if (isNumeric(argOne))
+                    __false();
+                else {
                     if (isUpper(argOne))
-					    __true();
+                        __true();
                     else
                         __false();
                 }
-			}
-		}
-	} else if (argZero == "is_lowercase?" || argZero == "lower?" || argZero == "lowercase?") {
-		if (before.length() != 0 && after.length() != 0) {
-			if (objects.at(objectAt(before)).variableExists(after)) {
-				if (isLower(objects.at(objectAt(before)).getVariable(after).getString()))
-					__true();
-				else
-					__false();
-			} else
-				error("invalid_operation:target_undefined:" + argOne, false);
-		} else {
-			if (variableExists(argOne)) {
-				if (variables.at(variableAt(argOne)).getString() != null) {
+            }
+        }
+    } else if (argZero == "is_lowercase?" || argZero == "lower?" || argZero == "lowercase?") {
+        if (before.length() != 0 && after.length() != 0) {
+            if (objects.at(objectAt(before)).variableExists(after)) {
+                if (isLower(objects.at(objectAt(before)).getVariable(after).getString()))
+                    __true();
+                else
+                    __false();
+            } else
+                error("invalid_operation:target_undefined:" + argOne, false);
+        } else {
+            if (variableExists(argOne)) {
+                if (variables.at(variableAt(argOne)).getString() != null) {
                     if (isLower(variables.at(variableAt(argOne)).getString()))
-    					__true();
-				    else
-				        __false();
-				} else
-					__false();
-			} else {
-				if (isNumeric(argOne))
-					__false();
-				else {
+                        __true();
+                    else
+                        __false();
+                } else
+                    __false();
+            } else {
+                if (isNumeric(argOne))
+                    __false();
+                else {
                     if (isLower(argOne))
-					    __true();
+                        __true();
                     else
                         __false();
                 }
-			}
-		}
-	} else if (argZero == "see") {
-		if (before.length() != 0 && after.length() != 0) {
-			if (objectExists(before)) {
-				if (objects.at(objectAt(before)).methodExists(after)) {
-					for (int i = 0; i < objects.at(objectAt(before)).getMethod(after).size(); i++)
-						__stdout(objects.at(objectAt(before)).getMethod(after).at(i));
-				} else if (objects.at(objectAt(before)).variableExists(after)) {
-					if (objects.at(objectAt(before)).getVariable(after).getString() != null)
-						__stdout(objects.at(objectAt(before)).getVariable(after).getString());
-					else if (objects.at(objectAt(before)).getVariable(after).getNumber() != nullNum)
-						__stdout(dtos(objects.at(objectAt(before)).getVariable(after).getNumber()));
-					else
-						__stdout(null);
-				} else
-					error("invalid_operation:target_undefined:" + argOne, false);
-			} else
-				error("invalid_operation:object_undefined:" + before, false);
-		} else {
-			if (objectExists(argOne)) {
-				for (int i = 0; i < objects.at(objectAt(argOne)).methodSize(); i++)
-					__stdout(objects.at(objectAt(argOne)).getMethod(objects.at(objectAt(argOne)).getMethodName(i)).name());
-				for (int i = 0; i < objects.at(objectAt(argOne)).variableSize(); i++)
-					__stdout(objects.at(objectAt(argOne)).getVariable(objects.at(objectAt(argOne)).getVariableName(i)).name());
-			} else if (constantExists(argOne)) {
-			    if (constants.at(constAt(argOne)).isNumber())
+            }
+        }
+    } else if (argZero == "see") {
+        if (before.length() != 0 && after.length() != 0) {
+            if (objectExists(before)) {
+                if (objects.at(objectAt(before)).methodExists(after)) {
+                    for (int i = 0; i < objects.at(objectAt(before)).getMethod(after).size(); i++)
+                        __stdout(objects.at(objectAt(before)).getMethod(after).at(i));
+                } else if (objects.at(objectAt(before)).variableExists(after)) {
+                    if (objects.at(objectAt(before)).getVariable(after).getString() != null)
+                        __stdout(objects.at(objectAt(before)).getVariable(after).getString());
+                    else if (objects.at(objectAt(before)).getVariable(after).getNumber() != nullNum)
+                        __stdout(dtos(objects.at(objectAt(before)).getVariable(after).getNumber()));
+                    else
+                        __stdout(null);
+                } else
+                    error("invalid_operation:target_undefined:" + argOne, false);
+            } else
+                error("invalid_operation:object_undefined:" + before, false);
+        } else {
+            if (objectExists(argOne)) {
+                for (int i = 0; i < objects.at(objectAt(argOne)).methodSize(); i++)
+                    __stdout(objects.at(objectAt(argOne)).getMethod(objects.at(objectAt(argOne)).getMethodName(i)).name());
+                for (int i = 0; i < objects.at(objectAt(argOne)).variableSize(); i++)
+                    __stdout(objects.at(objectAt(argOne)).getVariable(objects.at(objectAt(argOne)).getVariableName(i)).name());
+            } else if (constantExists(argOne)) {
+                if (constants.at(constAt(argOne)).isNumber())
                     __stdout(dtos(constants.at(constAt(argOne)).getNumber()));
                 else if (constants.at(constAt(argOne)).isString())
                     __stdout(constants.at(constAt(argOne)).getString());
-			} else if (methodExists(argOne)) {
-				for (int i = 0; i < methods.at(methodAt(argOne)).size(); i++)
-					__stdout(methods.at(methodAt(argOne)).at(i));
-			} else if (variableExists(argOne)) {
-				if (variables.at(variableAt(argOne)).getString() != null)
-					__stdout(variables.at(variableAt(argOne)).getString());
-				else if (variables.at(variableAt(argOne)).getNumber() != nullNum)
-					__stdout(dtos(variables.at(variableAt(argOne)).getNumber()));
-			} else if (listExists(argOne)) {
-				for (int i = 0; i < lists.at(listAt(argOne)).size(); i++)
-					__stdout(lists.at(listAt(argOne)).at(i));
-			} else if (argOne == "variables") {
-				for (int i = 0; i < (int)variables.size(); i++) {
-					if (variables.at(i).getString() != null)
-						__stdout(variables.at(i).name() + ":\t" + variables.at(i).getString());
-					else if (variables.at(i).getNumber() != nullNum)
-						__stdout(variables.at(i).name() + ":\t" + dtos(variables.at(i).getNumber()));
-					else
-						__stdout(variables.at(i).name() + ":\tis_null");
-				}
-			} else if (argOne == "lists") {
-				for (int i = 0; i < (int)lists.size(); i++)
-					__stdout(lists.at(i).name());
-			} else if (argOne == "methods") {
-				for (int i = 0; i < (int)methods.size(); i++)
-					__stdout(methods.at(i).name());
-			} else if (argOne == "objects") {
-				for (int i = 0; i < (int)objects.size(); i++)
-					__stdout(objects.at(i).name());
-			} else if (argOne == "constants") {
+            } else if (methodExists(argOne)) {
+                for (int i = 0; i < methods.at(methodAt(argOne)).size(); i++)
+                    __stdout(methods.at(methodAt(argOne)).at(i));
+            } else if (variableExists(argOne)) {
+                if (variables.at(variableAt(argOne)).getString() != null)
+                    __stdout(variables.at(variableAt(argOne)).getString());
+                else if (variables.at(variableAt(argOne)).getNumber() != nullNum)
+                    __stdout(dtos(variables.at(variableAt(argOne)).getNumber()));
+            } else if (listExists(argOne)) {
+                for (int i = 0; i < lists.at(listAt(argOne)).size(); i++)
+                    __stdout(lists.at(listAt(argOne)).at(i));
+            } else if (argOne == "variables") {
+                for (int i = 0; i < (int)variables.size(); i++) {
+                    if (variables.at(i).getString() != null)
+                        __stdout(variables.at(i).name() + ":\t" + variables.at(i).getString());
+                    else if (variables.at(i).getNumber() != nullNum)
+                        __stdout(variables.at(i).name() + ":\t" + dtos(variables.at(i).getNumber()));
+                    else
+                        __stdout(variables.at(i).name() + ":\tis_null");
+                }
+            } else if (argOne == "lists") {
+                for (int i = 0; i < (int)lists.size(); i++)
+                    __stdout(lists.at(i).name());
+            } else if (argOne == "methods") {
+                for (int i = 0; i < (int)methods.size(); i++)
+                    __stdout(methods.at(i).name());
+            } else if (argOne == "objects") {
+                for (int i = 0; i < (int)objects.size(); i++)
+                    __stdout(objects.at(i).name());
+            } else if (argOne == "constants") {
                 for (int i = 0; i < (int)constants.size(); i++)
                     __stdout(constants.at(i).name());
             } else if (argOne == "os")
-			    __stdout(guessedOS);
-			else if (argOne == "last")
-			    __stdout(lastValue);
-			else
-				error("invalid_operation:target_undefined:" + argOne, false);
-		}
-	} else if (argZero == "template") {
+                __stdout(guessedOS);
+            else if (argOne == "last")
+                __stdout(lastValue);
+            else
+                error("invalid_operation:target_undefined:" + argOne, false);
+        }
+    } else if (argZero == "template") {
         if (methodExists(argOne))
             error("invalid_operation:method_defined:" + argOne, false);
         else {
@@ -4565,16 +4465,16 @@ void oneSpace(string argZero, string argOne, string s, vector<string> command)
         else if (methodExists(argOne))
             methods.at(methodAt(argOne)).setDestructible();
     } else if (argZero == "method" || argZero == "[method]") {
-	    bool indestructable = false;
+        bool indestructable = false;
 
         if (argZero == "[method]")
             indestructable = true;
 
-		if (inObjectDef) {
-			if (objects.at(objectAt(currentObject)).methodExists(argOne))
-				error("invalid_operation:method_defined:" + argOne, false);
-			else {
-			    if (containsParams(argOne)) {
+        if (inObjectDef) {
+            if (objects.at(objectAt(currentObject)).methodExists(argOne))
+                error("invalid_operation:method_defined:" + argOne, false);
+            else {
+                if (containsParams(argOne)) {
                     vector<string> params = getParams(argOne);
 
                     Method method(beforeParams(argOne));
@@ -4643,11 +4543,11 @@ void oneSpace(string argZero, string argOne, string s, vector<string> command)
                     inMethodDef = true;
                     inObjectMethodDef = true;
                 }
-			}
-		} else {
-			if (methodExists(argOne))
-				error("invalid_operation:method_defined:" + argOne, false);
-			else {
+            }
+        } else {
+            if (methodExists(argOne))
+                error("invalid_operation:method_defined:" + argOne, false);
+            else {
                 if (!zeroDots(argOne)) {
                     string before(beforeDot(argOne)), after(afterDot(argOne));
 
@@ -4718,141 +4618,136 @@ void oneSpace(string argZero, string argOne, string s, vector<string> command)
                     inMethodDef = true;
                     inParamMethodDef = true;
                 } else {
-    				Method method(argOne);
+                    Method method(argOne);
 
                     if (indestructable)
                         method.setIndestructible();
 
-    				methods.push_back(method);
-    				inMethodDef = true;
+                    methods.push_back(method);
+                    inMethodDef = true;
                 }
-			}
-		}
-	} else if (argZero == "call_method") {
-		if (inObjectDef) {
-			if (objects.at(objectAt(currentObject)).methodExists(argOne))
-				executeMethod(objects.at(objectAt(currentObject)).getMethod(argOne));
-			else
-				error("invalid_operation:method_undefined:" + argOne, false);
-		} else {
-			if (before.length() != 0 && after.length() != 0) {
-				if (objectExists(before)) {
-					if (objects.at(objectAt(before)).methodExists(after))
-						executeMethod(objects.at(objectAt(before)).getMethod(after));
-					else
-						error("invalid_operation:method_undefined:" + argOne, false);
-				} else
-					error("invalid_operation:object_undefined:" + before, true);
-			} else {
-				if (methodExists(argOne))
-					executeMethod(methods.at(methodAt(argOne)));
-				else
-					error("invalid_operation:method_undefined:" + argOne, true);
-			}
-		}
-	} else if (argZero == "object") {
-		if (objectExists(argOne)) {
-			inObjectDef = true;
-			currentObject = argOne;
-		} else {
-			Object object(argOne);
-			currentObject = argOne;
-			object.dontCollect();
-			objects.push_back(object);
-			inObjectDef = true;
-		}
-	} else if (argZero == "fpush") {
-		if (variableExists(argOne)) {
-			if (variables.at(variableAt(argOne)).getString() != null) {
-				if (!fileExists(variables.at(variableAt(argOne)).getString()))
-					touch(variables.at(variableAt(argOne)).getString());
-				else
-					error("invalid_operation:file_defined:" + variables.at(variableAt(argOne)).getString(), false);
-			} else
-				error("invalid_operation:null_string:" + argOne, false);
-		} else {
-			if (!fileExists(argOne))
-				touch(argOne);
-			else
-				error("invalid_operation:file_defined:" + argOne, false);
-		}
-	} else if (argZero == "fpop") {
-		if (variableExists(argOne)) {
-			if (variables.at(variableAt(argOne)).getString() != null) {
-				if (fileExists(variables.at(variableAt(argOne)).getString()))
-					rm(variables.at(variableAt(argOne)).getString());
-				else
-					error("invalid_operation:file_undefined:" + variables.at(variableAt(argOne)).getString(), false);
-			} else
-				error("invalid_operation:null_string:" + argOne, false);
-		} else {
-			if (fileExists(argOne))
-				rm(argOne);
-			else
-				error("invalid_operation:file_undefined:" + argOne, false);
-		}
-	} else if (argZero == "dpush") {
-		if (variableExists(argOne)) {
-			if (variables.at(variableAt(argOne)).getString() != null) {
-				if (!directoryExists(variables.at(variableAt(argOne)).getString()))
-					md(variables.at(variableAt(argOne)).getString());
-				else
-					error("invalid_operation:directory_defined:" + variables.at(variableAt(argOne)).getString(), false);
-			} else
-				error("invalid_operation:null_string:" + argOne, false);
-		} else {
-			if (!directoryExists(argOne))
-				md(argOne);
-			else
-				error("invalid_operation:directory_defined:" + argOne, false);
-		}
-	} else if (argZero == "dpop") {
-		if (variableExists(argOne)) {
-			if (variables.at(variableAt(argOne)).getString() != null) {
-				if (directoryExists(variables.at(variableAt(argOne)).getString()))
-					rd(variables.at(variableAt(argOne)).getString());
-				else
-					error("invalid_operation:directory_undefined:" + variables.at(variableAt(argOne)).getString(), false);
-			} else
-				error("invalid_operation:null_string:" + argOne, false);
-		} else {
-			if (directoryExists(argOne))
-				rd(argOne);
-			else
-				error("invalid_operation:directory_undefined:" + argOne, false);
-		}
-	} else
-		sysExec(s, command);
+            }
+        }
+    } else if (argZero == "call_method") {
+        if (inObjectDef) {
+            if (objects.at(objectAt(currentObject)).methodExists(argOne))
+                executeMethod(objects.at(objectAt(currentObject)).getMethod(argOne));
+            else
+                error("invalid_operation:method_undefined:" + argOne, false);
+        } else {
+            if (before.length() != 0 && after.length() != 0) {
+                if (objectExists(before)) {
+                    if (objects.at(objectAt(before)).methodExists(after))
+                        executeMethod(objects.at(objectAt(before)).getMethod(after));
+                    else
+                        error("invalid_operation:method_undefined:" + argOne, false);
+                } else
+                    error("invalid_operation:object_undefined:" + before, true);
+            } else {
+                if (methodExists(argOne))
+                    executeMethod(methods.at(methodAt(argOne)));
+                else
+                    error("invalid_operation:method_undefined:" + argOne, true);
+            }
+        }
+    } else if (argZero == "object") {
+        if (objectExists(argOne)) {
+            inObjectDef = true;
+            currentObject = argOne;
+        } else {
+            Object object(argOne);
+            currentObject = argOne;
+            object.dontCollect();
+            objects.push_back(object);
+            inObjectDef = true;
+        }
+    } else if (argZero == "fpush") {
+        if (variableExists(argOne)) {
+            if (variables.at(variableAt(argOne)).getString() != null) {
+                if (!fileExists(variables.at(variableAt(argOne)).getString()))
+                    touch(variables.at(variableAt(argOne)).getString());
+                else
+                    error("invalid_operation:file_defined:" + variables.at(variableAt(argOne)).getString(), false);
+            } else
+                error("invalid_operation:null_string:" + argOne, false);
+        } else {
+            if (!fileExists(argOne))
+                touch(argOne);
+            else
+                error("invalid_operation:file_defined:" + argOne, false);
+        }
+    } else if (argZero == "fpop") {
+        if (variableExists(argOne)) {
+            if (variables.at(variableAt(argOne)).getString() != null) {
+                if (fileExists(variables.at(variableAt(argOne)).getString()))
+                    rm(variables.at(variableAt(argOne)).getString());
+                else
+                    error("invalid_operation:file_undefined:" + variables.at(variableAt(argOne)).getString(), false);
+            } else
+                error("invalid_operation:null_string:" + argOne, false);
+        } else {
+            if (fileExists(argOne))
+                rm(argOne);
+            else
+                error("invalid_operation:file_undefined:" + argOne, false);
+        }
+    } else if (argZero == "dpush") {
+        if (variableExists(argOne)) {
+            if (variables.at(variableAt(argOne)).getString() != null) {
+                if (!directoryExists(variables.at(variableAt(argOne)).getString()))
+                    md(variables.at(variableAt(argOne)).getString());
+                else
+                    error("invalid_operation:directory_defined:" + variables.at(variableAt(argOne)).getString(), false);
+            } else
+                error("invalid_operation:null_string:" + argOne, false);
+        } else {
+            if (!directoryExists(argOne))
+                md(argOne);
+            else
+                error("invalid_operation:directory_defined:" + argOne, false);
+        }
+    } else if (argZero == "dpop") {
+        if (variableExists(argOne)) {
+            if (variables.at(variableAt(argOne)).getString() != null) {
+                if (directoryExists(variables.at(variableAt(argOne)).getString()))
+                    rd(variables.at(variableAt(argOne)).getString());
+                else
+                    error("invalid_operation:directory_undefined:" + variables.at(variableAt(argOne)).getString(), false);
+            } else
+                error("invalid_operation:null_string:" + argOne, false);
+        } else {
+            if (directoryExists(argOne))
+                rd(argOne);
+            else
+                error("invalid_operation:directory_undefined:" + argOne, false);
+        }
+    } else
+        sysExec(s, command);
 }
 
-bool isNumber(string v_Name)
-{
-     if (variables.at(variableAt(v_Name)).getNumber() != nullNum)
-         return (true);
+bool isNumber(string v_Name) {
+    if (variables.at(variableAt(v_Name)).getNumber() != nullNum)
+        return (true);
 
-     return (false);
+    return (false);
 }
 
-bool isString(string v_Name)
-{
-     if (variables.at(variableAt(v_Name)).getString() != null)
-         return (true);
+bool isString(string v_Name) {
+    if (variables.at(variableAt(v_Name)).getString() != null)
+        return (true);
 
-     return (false);
+    return (false);
 }
 
-double getNumber(string v_Name)
-{
-      return (variables.at(variableAt(v_Name)).getNumber());
+double getNumber(string v_Name) {
+    return (variables.at(variableAt(v_Name)).getNumber());
 }
 
-string getString(string v_Name)
-{
-      return (variables.at(variableAt(v_Name)).getString());
+string getString(string v_Name) {
+    return (variables.at(variableAt(v_Name)).getString());
 }
 
-bool secondIsNumber(string s)
-{
+bool secondIsNumber(string s) {
     if (variableExists(s)) {
         if (isNumber(s))
             return (true);
@@ -4867,8 +4762,7 @@ bool secondIsNumber(string s)
     return (false);
 }
 
-string getStringValue(string argOne, string op, string argTwo)
-{
+string getStringValue(string argOne, string op, string argTwo) {
     string firstValue(""), lastValue(""), returnValue("");
 
     if (variableExists(argOne)) {
@@ -5006,8 +4900,7 @@ string getStringValue(string argOne, string op, string argTwo)
     return (returnValue);
 }
 
-double getNumberValue(string argOne, string op, string argTwo)
-{
+double getNumberValue(string argOne, string op, string argTwo) {
     double firstValue = 0, _lastValue = 0, returnValue = 0;
 
     if (variableExists(argOne)) {
@@ -5130,8 +5023,7 @@ double getNumberValue(string argOne, string op, string argTwo)
 @n = 3.14 # and that's a number.
 
 **/
-void twoSpace(string argZero, string argOne, string argTwo, string s, vector<string> command)
-{
+void twoSpace(string argZero, string argOne, string argTwo, string s, vector<string> command) {
     string last_val = "";
 
     if (contains(argTwo, "self."))
@@ -5140,8 +5032,8 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
     if (contains(argZero, "self."))
         argZero = replace(argZero, "self", currentMethodObject);
 
-	if (variableExists(argZero)) {
-		if (objectExists(beforeDot(argZero)) || startsWith(argZero, "@")) {
+    if (variableExists(argZero)) {
+        if (objectExists(beforeDot(argZero)) || startsWith(argZero, "@")) {
             if (objectExists(beforeDot(argZero))) {
                 if (objects.at(objectAt(beforeDot(argZero))).getVariable(afterDot(argZero)).getString() != null) {
                     string tempObjectVariableName("@____" + beforeDot(argZero) + "___" + afterDot(argZero) + "__string_var");
@@ -5169,7 +5061,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                     variables = removeVariable(variables, afterDot(argZero));
                 }
             } else if (argOne == "=") {
-				string before(beforeDot(argTwo)), after(afterDot(argTwo));
+                string before(beforeDot(argTwo)), after(afterDot(argTwo));
 
                 if (containsBrackets(argTwo) && (variableExists(beforeBrackets(argTwo)) || listExists(beforeBrackets(argTwo)))) {
                     string beforeBracket(beforeBrackets(argTwo)), afterBracket(afterBrackets(argTwo));
@@ -5201,7 +5093,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                     else
                         error("invalid_operation:list_undefined:" + beforeBracket, false);
                 } else if (before.length() != 0 && after.length() != 0) {
-				    if (containsParams(argTwo)) {
+                    if (containsParams(argTwo)) {
                         if (beforeParams(argTwo) == "random") {
                             if (contains(argTwo, "..")) {
                                 vector<string> range = getRange(argTwo);
@@ -5314,34 +5206,34 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                             } else
                                 error("invalid_operation:invalid_sequence_separator:" + argTwo, false);
                         }
-				    } else if (listExists(before) && after == "size") {
-				        if (variables.at(variableAt(argZero)).getNumber() != nullNum)
+                    } else if (listExists(before) && after == "size") {
+                        if (variables.at(variableAt(argZero)).getNumber() != nullNum)
                             setVariable(argZero, stod(itos(lists.at(listAt(before)).size())));
                         else if (variables.at(variableAt(argZero)).getString() != null)
                             setVariable(argZero, itos(lists.at(listAt(before)).size()));
                         else
                             error("is_null:" + argZero, false);
-				    } else if (before == "self") {
+                    } else if (before == "self") {
                         if (objectExists(currentMethodObject))
                             twoSpace(argZero, argOne, (currentMethodObject + "." + after), (argZero + " " + argOne + " " + (currentMethodObject + "." + after)), command);
                         else
                             twoSpace(argZero, argOne, after, (argZero + " " + argOne + " " + after), command);
                     } else if (objectExists(before)) {
-						if (objects.at(objectAt(before)).variableExists(after)) {
-							if (objects.at(objectAt(before)).getVariable(after).getString() != null)
-								setVariable(argZero, objects.at(objectAt(before)).getVariable(after).getString());
+                        if (objects.at(objectAt(before)).variableExists(after)) {
+                            if (objects.at(objectAt(before)).getVariable(after).getString() != null)
+                                setVariable(argZero, objects.at(objectAt(before)).getVariable(after).getString());
                             else if (objects.at(objectAt(before)).getVariable(after).getNumber() != nullNum)
                                 setVariable(argZero, objects.at(objectAt(before)).getVariable(after).getNumber());
                             else
-								error("is_null:" + argTwo, false);
-						} else if (objects.at(objectAt(before)).methodExists(after) && !containsParams(after)) {
+                                error("is_null:" + argTwo, false);
+                        } else if (objects.at(objectAt(before)).methodExists(after) && !containsParams(after)) {
                             parse(argTwo);
 
                             if (variables.at(variableAt(argZero)).getString() != null)
                                 setVariable(argZero, lastValue);
                             else if (variables.at(variableAt(argZero)).getNumber() != nullNum)
                                 setVariable(argZero, stod(lastValue));
-						} else if (containsParams(after)) {
+                        } else if (containsParams(after)) {
                             if (objects.at(objectAt(before)).methodExists(beforeParams(after))) {
                                 executeTemplate(objects.at(objectAt(before)).getMethod(beforeParams(after)), getParams(after));
 
@@ -5362,18 +5254,18 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                                 }
                             } else
                                 sysExec(s, command);
-						} else
-							error("invalid_operation:variable_undefined:" + argTwo, false);
-					} else if (before == "env") {
-						if (after == "cwd")
-							setVariable(argZero, cwd());
+                        } else
+                            error("invalid_operation:variable_undefined:" + argTwo, false);
+                    } else if (before == "env") {
+                        if (after == "cwd")
+                            setVariable(argZero, cwd());
                         else if (after == "usl")
-							setVariable(argZero, uslBinary);
-						else if (after == "os")
+                            setVariable(argZero, uslBinary);
+                        else if (after == "os")
                             setVariable(argZero, guessedOS);
-						else if (after == "user")
+                        else if (after == "user")
                             setVariable(argZero, getUser());
-						else if (after == "machine")
+                        else if (after == "machine")
                             setVariable(argZero, getMachine());
                         else if (after == "init_dir" || after == "initial_directory")
                             setVariable(argZero, initDir);
@@ -5407,132 +5299,132 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                             setVariable(argZero, lastError);
                         else if (after == "last_value")
                             setVariable(argZero, lastValue);
-						else
+                        else
                             setVariable(argZero, getEnvironmentVariable(after));
-					} else if (after == "to_int") {
-					    if (variableExists(before)) {
-					        if (variables.at(variableAt(before)).getString() != null)
-					            setVariable(argZero, (int)variables.at(variableAt(before)).getString()[0]);
-					        else if (variables.at(variableAt(before)).getNumber() != nullNum)  {
+                    } else if (after == "to_int") {
+                        if (variableExists(before)) {
+                            if (variables.at(variableAt(before)).getString() != null)
+                                setVariable(argZero, (int)variables.at(variableAt(before)).getString()[0]);
+                            else if (variables.at(variableAt(before)).getNumber() != nullNum)  {
                                 int i = (int)variables.at(variableAt(before)).getNumber();
                                 setVariable(argZero, (double)i);
                             } else
                                 error("is_null:" + before, false);
-					    } else
+                        } else
                             error("invalid_operation:variable_undefined:" + before, false);
-					} else if (after == "to_double") {
-					    if (variableExists(before)) {
-					        if (variables.at(variableAt(before)).getString() != null)
-					            setVariable(argZero, (double)variables.at(variableAt(before)).getString()[0]);
-					        else if (variables.at(variableAt(before)).getNumber() != nullNum) {
+                    } else if (after == "to_double") {
+                        if (variableExists(before)) {
+                            if (variables.at(variableAt(before)).getString() != null)
+                                setVariable(argZero, (double)variables.at(variableAt(before)).getString()[0]);
+                            else if (variables.at(variableAt(before)).getNumber() != nullNum) {
                                 double i = variables.at(variableAt(before)).getNumber();
                                 setVariable(argZero, (double)i);
                             } else
                                 error("is_null:" + before, false);
-					    } else
+                        } else
                             error("invalid_operation:variable_undefined:" + before, false);
-					} else if (after == "to_string") {
-					    if (variableExists(before)) {
-					        if (variables.at(variableAt(before)).getNumber() != nullNum)
+                    } else if (after == "to_string") {
+                        if (variableExists(before)) {
+                            if (variables.at(variableAt(before)).getNumber() != nullNum)
                                 setVariable(argZero, dtos(variables.at(variableAt(before)).getNumber()));
                             else
                                 error("is_null:" + before, false);
-					    } else
+                        } else
                             error("invalid_operation:variable_undefined:" + before, false);
-					} else if (after == "to_number") {
-					    if (variableExists(before)) {
-					        if (variables.at(variableAt(before)).getString() != null)
+                    } else if (after == "to_number") {
+                        if (variableExists(before)) {
+                            if (variables.at(variableAt(before)).getString() != null)
                                 setVariable(argZero, stod(variables.at(variableAt(before)).getString()));
                             else
                                 error("is_null:" + before, false);
-					    } else
+                        } else
                             error("invalid_operation:variable_undefined:" + before, false);
-					} else if (before == "chomp") {
-						if (variableExists(after)) {
-							if (variables.at(variableAt(after)).getString() != null) {
-								string chomper("");
-								__stdout(cleanString(variables.at(variableAt(after)).getString()));
-								getline(cin, chomper, '\n');
+                    } else if (before == "chomp") {
+                        if (variableExists(after)) {
+                            if (variables.at(variableAt(after)).getString() != null) {
+                                string chomper("");
+                                __stdout(cleanString(variables.at(variableAt(after)).getString()));
+                                getline(cin, chomper, '\n');
 
-								if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
-									if (isNumeric(chomper))
-										setVariable(argZero, stod(chomper));
-                                    else
-										error("conversion_error:" + chomper, false);
-								} else if (variables.at(variableAt(argZero)).getString() != null)
-									setVariable(argZero, chomper);
-                                else
-									error("is_null:" + argZero, false);
-							} else {
-								string chomper("");
-								cout << "chomp: ";
-								getline(cin, chomper, '\n');
-
-								if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
-									if (isNumeric(chomper))
-										setVariable(argZero, stod(chomper));
-									else
-										error("conversion_error:" + chomper, false);
-								} else if (variables.at(variableAt(argZero)).getString() != null)
-                                    setVariable(argZero, chomper);
-								else
-									error("is_null:" + argZero, false);
-							}
-						} else {
-							string chomper("");
-							cout << cleanString(after);
-							getline(cin, chomper, '\n');
-
-							if (isNumeric(chomper))
-								setVariable(argZero, stod(chomper));
-							else
-							    setVariable(argZero, chomper);
-						}
-					} else if (before == "shomp") {
-						if (variableExists(after)) {
-							if (variables.at(variableAt(after)).getString() != null) {
-								string chomper("");
-								chomper = shomp(variables.at(variableAt(after)).getString());
-
-								if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
-									if (isNumeric(chomper))
+                                if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
+                                    if (isNumeric(chomper))
                                         setVariable(argZero, stod(chomper));
                                     else
-										error("conversion_error:" + chomper, false);
-								} else if (variables.at(variableAt(argZero)).getString() != null)
+                                        error("conversion_error:" + chomper, false);
+                                } else if (variables.at(variableAt(argZero)).getString() != null)
                                     setVariable(argZero, chomper);
                                 else
-									error("is_null:" + argZero, false);
+                                    error("is_null:" + argZero, false);
+                            } else {
+                                string chomper("");
+                                cout << "chomp: ";
+                                getline(cin, chomper, '\n');
 
-                                cout << endl;
-							} else {
-								string chomper("");
-								chomper = shomp("shomp: ");
-
-								if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
-									if (isNumeric(chomper))
+                                if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
+                                    if (isNumeric(chomper))
                                         setVariable(argZero, stod(chomper));
-									else
-										error("conversion_error:" + chomper, false);
-								} else if (variables.at(variableAt(argZero)).getString() != null)
+                                    else
+                                        error("conversion_error:" + chomper, false);
+                                } else if (variables.at(variableAt(argZero)).getString() != null)
                                     setVariable(argZero, chomper);
-								else
-									error("is_null:" + argZero, false);
+                                else
+                                    error("is_null:" + argZero, false);
+                            }
+                        } else {
+                            string chomper("");
+                            cout << cleanString(after);
+                            getline(cin, chomper, '\n');
+
+                            if (isNumeric(chomper))
+                                setVariable(argZero, stod(chomper));
+                            else
+                                setVariable(argZero, chomper);
+                        }
+                    } else if (before == "shomp") {
+                        if (variableExists(after)) {
+                            if (variables.at(variableAt(after)).getString() != null) {
+                                string chomper("");
+                                chomper = shomp(variables.at(variableAt(after)).getString());
+
+                                if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
+                                    if (isNumeric(chomper))
+                                        setVariable(argZero, stod(chomper));
+                                    else
+                                        error("conversion_error:" + chomper, false);
+                                } else if (variables.at(variableAt(argZero)).getString() != null)
+                                    setVariable(argZero, chomper);
+                                else
+                                    error("is_null:" + argZero, false);
 
                                 cout << endl;
-							}
-						} else {
-							string chomper("");
-							chomper = shomp(cleanString(after));
+                            } else {
+                                string chomper("");
+                                chomper = shomp("shomp: ");
 
-							if (isNumeric(chomper))
-								setVariable(argZero, stod(chomper));
-							else
-								setVariable(argZero, chomper);
+                                if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
+                                    if (isNumeric(chomper))
+                                        setVariable(argZero, stod(chomper));
+                                    else
+                                        error("conversion_error:" + chomper, false);
+                                } else if (variables.at(variableAt(argZero)).getString() != null)
+                                    setVariable(argZero, chomper);
+                                else
+                                    error("is_null:" + argZero, false);
+
+                                cout << endl;
+                            }
+                        } else {
+                            string chomper("");
+                            chomper = shomp(cleanString(after));
+
+                            if (isNumeric(chomper))
+                                setVariable(argZero, stod(chomper));
+                            else
+                                setVariable(argZero, chomper);
 
                             cout << endl;
-						}
-					} else if (after == "cos") {
+                        }
+                    } else if (after == "cos") {
                         if (variableExists(before)) {
                             if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
                                 if (variables.at(variableAt(before)).getNumber() != nullNum)
@@ -5793,19 +5685,19 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                             } else {
                                 if (fileExists(before)) {
                                     ifstream file(before.c_str());
-									string line(""), bigString("");
+                                    string line(""), bigString("");
 
-									if (file.is_open()) {
-										while (!file.eof()) {
-											getline(file, line);
-											bigString.append(line + "\r\n");
-										}
+                                    if (file.is_open()) {
+                                        while (!file.eof()) {
+                                            getline(file, line);
+                                            bigString.append(line + "\r\n");
+                                        }
 
-										file.close();
+                                        file.close();
 
                                         setVariable(argZero, bigString);
-									} else
-										error("read_fail:" + before, false);
+                                    } else
+                                        error("read_fail:" + before, false);
                                 } else
                                     error("read_fail:" + before, false);
                             }
@@ -5822,30 +5714,30 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                                 error("is_null:" + argZero, false);
                         }
                     } else if (after == "size") {
-						if (variableExists(before)) {
-							if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
-								if (variables.at(variableAt(before)).getString() != null)
+                        if (variableExists(before)) {
+                            if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
+                                if (variables.at(variableAt(before)).getString() != null)
                                     setVariable(argZero, (double)variables.at(variableAt(before)).getString().length());
                                 else
-									error("conversion_error:" + before, false);
-							} else
-								error("conversion_error:" + argZero, false);
-						} else {
-							if (variables.at(variableAt(argZero)).getNumber() != nullNum)
+                                    error("conversion_error:" + before, false);
+                            } else
+                                error("conversion_error:" + argZero, false);
+                        } else {
+                            if (variables.at(variableAt(argZero)).getNumber() != nullNum)
                                 setVariable(argZero, (double)before.length());
                             else
-								error("conversion_error:" + argZero, false);
-						}
-					} else if (after == "bytes") {
+                                error("conversion_error:" + argZero, false);
+                        }
+                    } else if (after == "bytes") {
                         if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
                             if (variableExists(before)) {
-                                 if (variables.at(variableAt(before)).getString() != null) {
-                                     if (fileExists(variables.at(variableAt(before)).getString()))
-                                         setVariable(argZero, getBytes(variables.at(variableAt(before)).getString()));
-                                     else
-                                         error("read_fail:" + variables.at(variableAt(before)).getString(), false);
-                                 } else
-                                     error("conversion_error:" + before, false);
+                                if (variables.at(variableAt(before)).getString() != null) {
+                                    if (fileExists(variables.at(variableAt(before)).getString()))
+                                        setVariable(argZero, getBytes(variables.at(variableAt(before)).getString()));
+                                    else
+                                        error("read_fail:" + variables.at(variableAt(before)).getString(), false);
+                                } else
+                                    error("conversion_error:" + before, false);
                             } else {
                                 if (fileExists(before))
                                     setVariable(argZero, getBytes(before));
@@ -5857,13 +5749,13 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                     } else if (after == "kbytes") {
                         if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
                             if (variableExists(before)) {
-                                 if (variables.at(variableAt(before)).getString() != null) {
-                                     if (fileExists(variables.at(variableAt(before)).getString()))
-                                         setVariable(argZero, getKBytes(variables.at(variableAt(before)).getString()));
-                                     else
-                                         error("read_fail:" + variables.at(variableAt(before)).getString(), false);
-                                 } else
-                                     error("conversion_error:" + before, false);
+                                if (variables.at(variableAt(before)).getString() != null) {
+                                    if (fileExists(variables.at(variableAt(before)).getString()))
+                                        setVariable(argZero, getKBytes(variables.at(variableAt(before)).getString()));
+                                    else
+                                        error("read_fail:" + variables.at(variableAt(before)).getString(), false);
+                                } else
+                                    error("conversion_error:" + before, false);
                             } else {
                                 if (fileExists(before))
                                     setVariable(argZero, getKBytes(before));
@@ -5875,13 +5767,13 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                     } else if (after == "mbytes") {
                         if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
                             if (variableExists(before)) {
-                                 if (variables.at(variableAt(before)).getString() != null) {
-                                     if (fileExists(variables.at(variableAt(before)).getString()))
-                                         setVariable(argZero, getMBytes(variables.at(variableAt(before)).getString()));
-                                     else
-                                         error("read_fail:" + variables.at(variableAt(before)).getString(), false);
-                                 } else
-                                     error("conversion_error:" + before, false);
+                                if (variables.at(variableAt(before)).getString() != null) {
+                                    if (fileExists(variables.at(variableAt(before)).getString()))
+                                        setVariable(argZero, getMBytes(variables.at(variableAt(before)).getString()));
+                                    else
+                                        error("read_fail:" + variables.at(variableAt(before)).getString(), false);
+                                } else
+                                    error("conversion_error:" + before, false);
                             } else {
                                 if (fileExists(before))
                                     setVariable(argZero, getMBytes(before));
@@ -5893,13 +5785,13 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                     } else if (after == "gbytes") {
                         if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
                             if (variableExists(before)) {
-                                 if (variables.at(variableAt(before)).getString() != null) {
-                                     if (fileExists(variables.at(variableAt(before)).getString()))
-                                         setVariable(argZero, getGBytes(variables.at(variableAt(before)).getString()));
-                                     else
-                                         error("read_fail:" + variables.at(variableAt(before)).getString(), false);
-                                 } else
-                                     error("conversion_error:" + before, false);
+                                if (variables.at(variableAt(before)).getString() != null) {
+                                    if (fileExists(variables.at(variableAt(before)).getString()))
+                                        setVariable(argZero, getGBytes(variables.at(variableAt(before)).getString()));
+                                    else
+                                        error("read_fail:" + variables.at(variableAt(before)).getString(), false);
+                                } else
+                                    error("conversion_error:" + before, false);
                             } else {
                                 if (fileExists(before))
                                     setVariable(argZero, getGBytes(before));
@@ -5911,13 +5803,13 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                     } else if (after == "tbytes") {
                         if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
                             if (variableExists(before)) {
-                                 if (variables.at(variableAt(before)).getString() != null) {
-                                     if (fileExists(variables.at(variableAt(before)).getString()))
-                                         setVariable(argZero, getTBytes(variables.at(variableAt(before)).getString()));
-                                     else
-                                         error("read_fail:" + variables.at(variableAt(before)).getString(), false);
-                                 } else
-                                     error("conversion_error:" + before, false);
+                                if (variables.at(variableAt(before)).getString() != null) {
+                                    if (fileExists(variables.at(variableAt(before)).getString()))
+                                        setVariable(argZero, getTBytes(variables.at(variableAt(before)).getString()));
+                                    else
+                                        error("read_fail:" + variables.at(variableAt(before)).getString(), false);
+                                } else
+                                    error("conversion_error:" + before, false);
                             } else {
                                 if (fileExists(before))
                                     setVariable(argZero, getTBytes(before));
@@ -5927,12 +5819,12 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                         } else
                             error("conversion_error:" + argZero, false);
                     } else {
-						if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
-							if (isNumeric(argTwo))
+                        if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
+                            if (isNumeric(argTwo))
                                 setVariable(argZero, stod(argTwo));
                             else
-								error("conversion_error:" + argZero, false);
-						} else if (variables.at(variableAt(argZero)).getString() != null)
+                                error("conversion_error:" + argZero, false);
+                        } else if (variables.at(variableAt(argZero)).getString() != null)
                             setVariable(argZero, argTwo);
                         else if (variables.at(variableAt(argZero)).waiting()) {
                             if (isNumeric(argTwo))
@@ -5940,9 +5832,9 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                             else
                                 setVariable(argZero, argTwo);
                         } else
-							error("is_null:" + argZero, false);
-					}
-				} else {
+                            error("is_null:" + argZero, false);
+                    }
+                } else {
                     if (variables.at(variableAt(argZero)).waiting()) {
                         if (isNumeric(argTwo))
                             setVariable(argZero, stod(argTwo));
@@ -5969,54 +5861,54 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                         } else
                             error("is_null:" + argZero, false);
                     } else if (methodExists(argTwo)) {
-                         parse(argTwo);
+                        parse(argTwo);
 
-                         if (variables.at(variableAt(argZero)).getString() != null)
-                             setVariable(argZero, lastValue);
-                         else if (variables.at(variableAt(argZero)).getNumber() != nullNum)
-                             setVariable(argZero, stod(lastValue));
+                        if (variables.at(variableAt(argZero)).getString() != null)
+                            setVariable(argZero, lastValue);
+                        else if (variables.at(variableAt(argZero)).getNumber() != nullNum)
+                            setVariable(argZero, stod(lastValue));
                     } else if (variableExists(argTwo)) {
-						if (variables.at(variableAt(argTwo)).getString() != null) {
-							if (variables.at(variableAt(argZero)).getString() != null)
+                        if (variables.at(variableAt(argTwo)).getString() != null) {
+                            if (variables.at(variableAt(argZero)).getString() != null)
                                 setVariable(argZero, variables.at(variableAt(argTwo)).getString());
                             else if (variables.at(variableAt(argZero)).getNumber() != nullNum)
                                 error("conversion_error:" + argTwo, false);
                             else
-								error("is_null:" + argZero, false);
-						} else if (variables.at(variableAt(argTwo)).getNumber() != nullNum) {
-							if (variables.at(variableAt(argZero)).getString() != null)
+                                error("is_null:" + argZero, false);
+                        } else if (variables.at(variableAt(argTwo)).getNumber() != nullNum) {
+                            if (variables.at(variableAt(argZero)).getString() != null)
                                 setVariable(argZero, dtos(variables.at(variableAt(argTwo)).getNumber()));
                             else if (variables.at(variableAt(argZero)).getNumber() != nullNum)
                                 setVariable(argZero, variables.at(variableAt(argTwo)).getNumber());
                             else
-								error("is_null:" + argZero, false);
-						} else
-							error("is_null:" + argTwo, false);
-					} else if (argTwo == "shomp" || argTwo == "chomp") {
-						if (argTwo == "shomp") {
-							string shomper("");
+                                error("is_null:" + argZero, false);
+                        } else
+                            error("is_null:" + argTwo, false);
+                    } else if (argTwo == "shomp" || argTwo == "chomp") {
+                        if (argTwo == "shomp") {
+                            string shomper("");
                             shomper = shomp("");
 
-							if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
-								if (isNumeric(shomper))
+                            if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
+                                if (isNumeric(shomper))
                                     setVariable(argZero, stod(shomper));
                                 else
-									error("conversion_error:" + shomper, false);
-							} else if (variables.at(variableAt(argZero)).getString() != null)
+                                    error("conversion_error:" + shomper, false);
+                            } else if (variables.at(variableAt(argZero)).getString() != null)
                                 setVariable(argZero, shomper);
                             else
                                 setVariable(argZero, shomper);
-						} else {
-							string chomper("");
-							cout << "chomp: ";
-							getline(cin, chomper, '\n');
+                        } else {
+                            string chomper("");
+                            cout << "chomp: ";
+                            getline(cin, chomper, '\n');
 
-							if (isNumeric(chomper))
-								createVariable(argZero, stod(chomper));
-							else
+                            if (isNumeric(chomper))
+                                createVariable(argZero, stod(chomper));
+                            else
                                 createVariable(argZero, chomper);
-						}
-					} else if (containsParams(argTwo)) {
+                        }
+                    } else if (containsParams(argTwo)) {
                         if (methodExists(beforeParams(argTwo))) {
                             executeTemplate(getMethod(beforeParams(argTwo)), getParams(argTwo));
 
@@ -6038,45 +5930,45 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                                 error("is_null:" + argZero, false);
                         }
                     } else {
-						if (isNumeric(argTwo)) {
-							if (variables.at(variableAt(argZero)).getNumber() != nullNum)
-								setVariable(argZero, stod(argTwo));
-							else if (variables.at(variableAt(argZero)).getString() != null)
-								setVariable(argZero, argTwo);
-						} else {
-							if (variables.at(variableAt(argZero)).getNumber() != nullNum)
-								error("conversion_error:" + argZero, false);
-							else if (variables.at(variableAt(argZero)).getString() != null)
-								setVariable(argZero, cleanString(argTwo));
-						}
-					}
-				}
-			} else if (argOne == "+=") {
-			    if (variableExists(argTwo)) {
-					if (variables.at(variableAt(argZero)).getString() != null) {
-						if (variables.at(variableAt(argTwo)).getString() != null)
-							setVariable(argZero, variables.at(variableAt(argZero)).getString() + variables.at(variableAt(argTwo)).getString());
-						else if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
-							setVariable(argZero, variables.at(variableAt(argZero)).getString() + dtos(variables.at(variableAt(argTwo)).getNumber()));
-						else
-							error("is_null:" + argTwo, false);
-					} else if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
-						if (variables.at(variableAt(argTwo)).getString() != null)
-							error("conversion_error:" + argTwo, false);
-						else if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
-							setVariable(argZero, variables.at(variableAt(argZero)).getNumber() + variables.at(variableAt(argTwo)).getNumber());
-						else
-							error("is_null:" + argTwo, false);
-					} else
-						error("is_null:" + argZero, false);
-				} else {
-				    if (containsParams(argTwo)) {
-				        if (isStringStack(argTwo)) {
-				            if (variables.at(variableAt(argZero)).getString() != null)
-				                setVariable(argZero, variables.at(variableAt(argZero)).getString() + getStringStack(argTwo));
+                        if (isNumeric(argTwo)) {
+                            if (variables.at(variableAt(argZero)).getNumber() != nullNum)
+                                setVariable(argZero, stod(argTwo));
+                            else if (variables.at(variableAt(argZero)).getString() != null)
+                                setVariable(argZero, argTwo);
+                        } else {
+                            if (variables.at(variableAt(argZero)).getNumber() != nullNum)
+                                error("conversion_error:" + argZero, false);
+                            else if (variables.at(variableAt(argZero)).getString() != null)
+                                setVariable(argZero, cleanString(argTwo));
+                        }
+                    }
+                }
+            } else if (argOne == "+=") {
+                if (variableExists(argTwo)) {
+                    if (variables.at(variableAt(argZero)).getString() != null) {
+                        if (variables.at(variableAt(argTwo)).getString() != null)
+                            setVariable(argZero, variables.at(variableAt(argZero)).getString() + variables.at(variableAt(argTwo)).getString());
+                        else if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
+                            setVariable(argZero, variables.at(variableAt(argZero)).getString() + dtos(variables.at(variableAt(argTwo)).getNumber()));
+                        else
+                            error("is_null:" + argTwo, false);
+                    } else if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
+                        if (variables.at(variableAt(argTwo)).getString() != null)
+                            error("conversion_error:" + argTwo, false);
+                        else if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
+                            setVariable(argZero, variables.at(variableAt(argZero)).getNumber() + variables.at(variableAt(argTwo)).getNumber());
+                        else
+                            error("is_null:" + argTwo, false);
+                    } else
+                        error("is_null:" + argZero, false);
+                } else {
+                    if (containsParams(argTwo)) {
+                        if (isStringStack(argTwo)) {
+                            if (variables.at(variableAt(argZero)).getString() != null)
+                                setVariable(argZero, variables.at(variableAt(argZero)).getString() + getStringStack(argTwo));
                             else
                                 error("conversion_error:" + argZero, false);
-				        } else if (stackReady(argTwo)) {
+                        } else if (stackReady(argTwo)) {
                             if (variables.at(variableAt(argZero)).getNumber() != nullNum)
                                 setVariable(argZero, variables.at(variableAt(argZero)).getNumber() + getStack(argTwo));
                         } else if (methodExists(beforeParams(argTwo))) {
@@ -6104,8 +5996,8 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                             } else
                                 error("is_null:" + argZero, false);
                         }
-				    } else if (methodExists(argTwo)) {
-				        parse(argTwo);
+                    } else if (methodExists(argTwo)) {
+                        parse(argTwo);
 
                         if (variables.at(variableAt(argZero)).getString() != null)
                             setVariable(argZero, variables.at(variableAt(argZero)).getString() + lastValue);
@@ -6116,51 +6008,51 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                                 error("conversion_error:" + argZero, false);
                         } else
                             error("is_null:" + argZero, false);
-				    } else if (isNumeric(argTwo)) {
-						if (variables.at(variableAt(argZero)).getString() != null)
+                    } else if (isNumeric(argTwo)) {
+                        if (variables.at(variableAt(argZero)).getString() != null)
                             setVariable(argZero, variables.at(variableAt(argZero)).getString() + argTwo);
                         else if (variables.at(variableAt(argZero)).getNumber() != nullNum)
                             setVariable(argZero, variables.at(variableAt(argZero)).getNumber() + stod(argTwo));
                         else
-							error("is_null:" + argZero, false);
-					} else {
-						if (variables.at(variableAt(argZero)).getString() != null)
+                            error("is_null:" + argZero, false);
+                    } else {
+                        if (variables.at(variableAt(argZero)).getString() != null)
                             setVariable(argZero, variables.at(variableAt(argZero)).getString() + cleanString(argTwo));
                         else if (variables.at(variableAt(argZero)).getNumber() != nullNum)
-							error("conversion_error:" + argZero, false);
-						else
-							error("is_null:" + argZero, false);
-					}
-				}
-			} else if (argOne == "-=") {
-				if (variableExists(argTwo)) {
-					if (variables.at(variableAt(argZero)).getString() != null) {
-						if (variables.at(variableAt(argTwo)).getString() != null) {
-							if (variables.at(variableAt(argTwo)).getString().length() == 1)
-								setVariable(argZero, subtractChar(variables.at(variableAt(argZero)).getString(), variables.at(variableAt(argTwo)).getString()));
+                            error("conversion_error:" + argZero, false);
+                        else
+                            error("is_null:" + argZero, false);
+                    }
+                }
+            } else if (argOne == "-=") {
+                if (variableExists(argTwo)) {
+                    if (variables.at(variableAt(argZero)).getString() != null) {
+                        if (variables.at(variableAt(argTwo)).getString() != null) {
+                            if (variables.at(variableAt(argTwo)).getString().length() == 1)
+                                setVariable(argZero, subtractChar(variables.at(variableAt(argZero)).getString(), variables.at(variableAt(argTwo)).getString()));
                             else
-								setVariable(argZero, subtractString(variables.at(variableAt(argZero)).getString(), variables.at(variableAt(argTwo)).getString()));
-						} else if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
-							setVariable(argZero, subtractString(variables.at(variableAt(argZero)).getString(), dtos(variables.at(variableAt(argTwo)).getNumber())));
-						else
-							error("is_null:" + argTwo, false);
-					} else if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
-						if (variables.at(variableAt(argTwo)).getString() != null)
-							error("conversion_error:" + argTwo, false);
-						else if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
-							setVariable(argZero, variables.at(variableAt(argZero)).getNumber() - variables.at(variableAt(argTwo)).getNumber());
-						else
-							error("is_null:" + argTwo, false);
-					} else
-						error("is_null:" + argZero, false);
-				} else {
-				    if (containsParams(argTwo)) {
-				        if (isStringStack(argTwo)) {
-				            if (variables.at(variableAt(argZero)).getString() != null)
-				                setVariable(argZero, subtractString(variables.at(variableAt(argZero)).getString(), getStringStack(argTwo)));
-				            else
+                                setVariable(argZero, subtractString(variables.at(variableAt(argZero)).getString(), variables.at(variableAt(argTwo)).getString()));
+                        } else if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
+                            setVariable(argZero, subtractString(variables.at(variableAt(argZero)).getString(), dtos(variables.at(variableAt(argTwo)).getNumber())));
+                        else
+                            error("is_null:" + argTwo, false);
+                    } else if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
+                        if (variables.at(variableAt(argTwo)).getString() != null)
+                            error("conversion_error:" + argTwo, false);
+                        else if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
+                            setVariable(argZero, variables.at(variableAt(argZero)).getNumber() - variables.at(variableAt(argTwo)).getNumber());
+                        else
+                            error("is_null:" + argTwo, false);
+                    } else
+                        error("is_null:" + argZero, false);
+                } else {
+                    if (containsParams(argTwo)) {
+                        if (isStringStack(argTwo)) {
+                            if (variables.at(variableAt(argZero)).getString() != null)
+                                setVariable(argZero, subtractString(variables.at(variableAt(argZero)).getString(), getStringStack(argTwo)));
+                            else
                                 error("conversion_error:" + argZero, false);
-				        } else if (stackReady(argTwo)) {
+                        } else if (stackReady(argTwo)) {
                             if (variables.at(variableAt(argZero)).getNumber() != nullNum)
                                 setVariable(argZero, variables.at(variableAt(argZero)).getNumber() - getStack(argTwo));
                         } else if (methodExists(beforeParams(argTwo))) {
@@ -6188,7 +6080,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                             } else
                                 error("is_null:" + argZero, false);
                         }
-				    } else if (methodExists(argTwo)) {
+                    } else if (methodExists(argTwo)) {
                         parse(argTwo);
 
                         if (variables.at(variableAt(argZero)).getString() != null)
@@ -6200,39 +6092,39 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                                 error("conversion_error:" + argZero, false);
                         } else
                             error("is_null:" + argZero, false);
-				    } else if (isNumeric(argTwo)) {
-						if (variables.at(variableAt(argZero)).getString() != null) {
-							if (argTwo.length() == 1)
-								setVariable(argZero, subtractChar(variables.at(variableAt(argZero)).getString(), argTwo));
+                    } else if (isNumeric(argTwo)) {
+                        if (variables.at(variableAt(argZero)).getString() != null) {
+                            if (argTwo.length() == 1)
+                                setVariable(argZero, subtractChar(variables.at(variableAt(argZero)).getString(), argTwo));
                             else
                                 setVariable(argZero, subtractString(variables.at(variableAt(argZero)).getString(), argTwo));
                         } else if (variables.at(variableAt(argZero)).getNumber() != nullNum)
                             setVariable(argZero, variables.at(variableAt(argZero)).getNumber() - stod(argTwo));
                         else
-							error("is_null:" + argZero, false);
-					} else {
-						if (variables.at(variableAt(argZero)).getString() != null) {
-							if (argTwo.length() == 1)
+                            error("is_null:" + argZero, false);
+                    } else {
+                        if (variables.at(variableAt(argZero)).getString() != null) {
+                            if (argTwo.length() == 1)
                                 setVariable(argZero, subtractChar(variables.at(variableAt(argZero)).getString(), argTwo));
                             else
                                 setVariable(argZero, subtractString(variables.at(variableAt(argZero)).getString(), cleanString(argTwo)));
                         } else if (variables.at(variableAt(argZero)).getNumber() != nullNum)
-							error("conversion_error:" + argZero, false);
-						else
-							error("is_null:" + argZero, false);
-					}
-				}
-			} else if (argOne == "*=") {
-				if (variableExists(argTwo)) {
-					if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
+                            error("conversion_error:" + argZero, false);
+                        else
+                            error("is_null:" + argZero, false);
+                    }
+                }
+            } else if (argOne == "*=") {
+                if (variableExists(argTwo)) {
+                    if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
                         setVariable(argZero, variables.at(variableAt(argZero)).getNumber() * variables.at(variableAt(argTwo)).getNumber());
                     else if (variables.at(variableAt(argTwo)).getString() != null)
-						error("conversion_error:" + argTwo, false);
-					else
-						error("is_null:" + argTwo, false);
-				} else {
-				    if (containsParams(argTwo)) {
-				        if (stackReady(argTwo)) {
+                        error("conversion_error:" + argTwo, false);
+                    else
+                        error("is_null:" + argTwo, false);
+                } else {
+                    if (containsParams(argTwo)) {
+                        if (stackReady(argTwo)) {
                             if (variables.at(variableAt(argZero)).getNumber() != nullNum)
                                 setVariable(argZero, variables.at(variableAt(argZero)).getNumber() * getStack(argTwo));
                         } else if (methodExists(beforeParams(argTwo))) {
@@ -6256,7 +6148,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                             } else
                                 error("invalid_operation:null_number:" + argZero, false);
                         }
-				    } else if (methodExists(argTwo)) {
+                    } else if (methodExists(argTwo)) {
                         parse(argTwo);
 
                         if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
@@ -6266,21 +6158,21 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                                 error("conversion_error:" + argZero, false);
                         } else
                             error("invalid_operation:null_number:" + argZero, false);
-				    } else if (isNumeric(argTwo)) {
-						if (variables.at(variableAt(argZero)).getNumber() != nullNum)
+                    } else if (isNumeric(argTwo)) {
+                        if (variables.at(variableAt(argZero)).getNumber() != nullNum)
                             setVariable(argZero, variables.at(variableAt(argZero)).getNumber() * stod(argTwo));
                     } else
-						setVariable(argZero, cleanString(argTwo));
-				}
-			} else if (argOne == "%=") {
-				if (variableExists(argTwo)) {
-					if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
+                        setVariable(argZero, cleanString(argTwo));
+                }
+            } else if (argOne == "%=") {
+                if (variableExists(argTwo)) {
+                    if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
                         setVariable(argZero, (int)variables.at(variableAt(argZero)).getNumber() % (int)variables.at(variableAt(argTwo)).getNumber());
                     else if (variables.at(variableAt(argTwo)).getString() != null)
-						error("conversion_error:" + argTwo, false);
-					else
-						error("is_null:" + argTwo, false);
-				} else if (methodExists(argTwo)) {
+                        error("conversion_error:" + argTwo, false);
+                    else
+                        error("is_null:" + argTwo, false);
+                } else if (methodExists(argTwo)) {
                     parse(argTwo);
 
                     if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
@@ -6290,24 +6182,24 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                             error("conversion_error:" + argZero, false);
                     } else
                         error("invalid_operation:null_number:" + argZero, false);
-				} else {
-					if (isNumeric(argTwo)) {
-						if (variables.at(variableAt(argZero)).getNumber() != nullNum)
+                } else {
+                    if (isNumeric(argTwo)) {
+                        if (variables.at(variableAt(argZero)).getNumber() != nullNum)
                             setVariable(argZero, (int)variables.at(variableAt(argZero)).getNumber() % (int)stod(argTwo));
                     } else
                         setVariable(argZero, cleanString(argTwo));
-				}
-			} else if (argOne == "**=") {
-				if (variableExists(argTwo)) {
-					if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
+                }
+            } else if (argOne == "**=") {
+                if (variableExists(argTwo)) {
+                    if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
                         setVariable(argZero, pow(variables.at(variableAt(argZero)).getNumber(), variables.at(variableAt(argTwo)).getNumber()));
                     else if (variables.at(variableAt(argTwo)).getString() != null)
-						error("conversion_error:" + argTwo, false);
-					else
-						error("is_null:" + argTwo, false);
-				} else {
-				    if (containsParams(argTwo)) {
-				        if (stackReady(argTwo)) {
+                        error("conversion_error:" + argTwo, false);
+                    else
+                        error("is_null:" + argTwo, false);
+                } else {
+                    if (containsParams(argTwo)) {
+                        if (stackReady(argTwo)) {
                             if (variables.at(variableAt(argZero)).getNumber() != nullNum)
                                 setVariable(argZero, pow(variables.at(variableAt(argZero)).getNumber(), (int)getStack(argTwo)));
                         } else if (methodExists(beforeParams(argTwo))) {
@@ -6331,7 +6223,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                             } else
                                 error("invalid_operation:null_number:" + argZero, false);
                         }
-				    } else if (methodExists(argTwo)) {
+                    } else if (methodExists(argTwo)) {
                         parse(argTwo);
 
                         if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
@@ -6341,23 +6233,23 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                                 error("conversion_error:" + argZero, false);
                         } else
                             error("invalid_operation:null_number:" + argZero, false);
-				    } else if (isNumeric(argTwo)) {
-						if (variables.at(variableAt(argZero)).getNumber() != nullNum)
+                    } else if (isNumeric(argTwo)) {
+                        if (variables.at(variableAt(argZero)).getNumber() != nullNum)
                             setVariable(argZero, pow(variables.at(variableAt(argZero)).getNumber(), stod(argTwo)));
                     } else
                         setVariable(argZero, cleanString(argTwo));
-				}
-			} else if (argOne == "/=") {
-				if (variableExists(argTwo)) {
-					if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
+                }
+            } else if (argOne == "/=") {
+                if (variableExists(argTwo)) {
+                    if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
                         setVariable(argZero, variables.at(variableAt(argZero)).getNumber() / variables.at(variableAt(argTwo)).getNumber());
                     else if (variables.at(variableAt(argTwo)).getString() != null)
-						error("conversion_error:" + argTwo, false);
-					else
-						error("is_null:" + argTwo, false);
-				} else {
-				    if (containsParams(argTwo)) {
-				        if (stackReady(argTwo)) {
+                        error("conversion_error:" + argTwo, false);
+                    else
+                        error("is_null:" + argTwo, false);
+                } else {
+                    if (containsParams(argTwo)) {
+                        if (stackReady(argTwo)) {
                             if (variables.at(variableAt(argZero)).getNumber() != nullNum)
                                 setVariable(argZero, variables.at(variableAt(argZero)).getNumber() / getStack(argTwo));
                         } else if (methodExists(beforeParams(argTwo))) {
@@ -6381,7 +6273,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                             } else
                                 error("invalid_operation:null_number:" + argZero, false);
                         }
-				    } else if (methodExists(argTwo)) {
+                    } else if (methodExists(argTwo)) {
                         parse(argTwo);
 
                         if (variables.at(variableAt(argZero)).getNumber() != nullNum) {
@@ -6391,119 +6283,119 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                                 error("conversion_error:" + argZero, false);
                         } else
                             error("invalid_operation:null_number:" + argZero, false);
-				    } else if (isNumeric(argTwo)) {
-						if (variables.at(variableAt(argZero)).getNumber() != nullNum)
+                    } else if (isNumeric(argTwo)) {
+                        if (variables.at(variableAt(argZero)).getNumber() != nullNum)
                             setVariable(argZero, variables.at(variableAt(argZero)).getNumber() / stod(argTwo));
-					} else
-					    setVariable(argZero, cleanString(argTwo));
+                    } else
+                        setVariable(argZero, cleanString(argTwo));
                 }
-			} else if (argOne == "++=") {
-				if (variableExists(argTwo)) {
-					if (variables.at(variableAt(argTwo)).getNumber() != nullNum) {
-						if (variables.at(variableAt(argZero)).getString() != null) {
-							int tempVarNumber((int)variables.at(variableAt(argTwo)).getNumber());
-							string tempVarString(variables.at(variableAt(argZero)).getString());
-							int len(tempVarString.length());
-							string cleaned("");
+            } else if (argOne == "++=") {
+                if (variableExists(argTwo)) {
+                    if (variables.at(variableAt(argTwo)).getNumber() != nullNum) {
+                        if (variables.at(variableAt(argZero)).getString() != null) {
+                            int tempVarNumber((int)variables.at(variableAt(argTwo)).getNumber());
+                            string tempVarString(variables.at(variableAt(argZero)).getString());
+                            int len(tempVarString.length());
+                            string cleaned("");
 
-							for (int i = 0; i < len; i++)
-								cleaned.push_back((char)(((int)tempVarString[i]) + tempVarNumber));
+                            for (int i = 0; i < len; i++)
+                                cleaned.push_back((char)(((int)tempVarString[i]) + tempVarNumber));
 
-							setVariable(argZero, cleaned);
-						} else
-							error("is_null:" + argZero, false);
-					} else
-						error("conversion_error:" + argTwo, false);
-				} else {
-					if (isNumeric(argTwo)) {
-						int tempVarNumber(stoi(argTwo));
-						string tempVarString(variables.at(variableAt(argZero)).getString());
+                            setVariable(argZero, cleaned);
+                        } else
+                            error("is_null:" + argZero, false);
+                    } else
+                        error("conversion_error:" + argTwo, false);
+                } else {
+                    if (isNumeric(argTwo)) {
+                        int tempVarNumber(stoi(argTwo));
+                        string tempVarString(variables.at(variableAt(argZero)).getString());
 
-						if (tempVarString != null) {
-							int len(tempVarString.length());
-							string cleaned("");
+                        if (tempVarString != null) {
+                            int len(tempVarString.length());
+                            string cleaned("");
 
-							for (int i = 0; i < len; i++)
-								cleaned.push_back((char)(((int)tempVarString[i]) + tempVarNumber));
+                            for (int i = 0; i < len; i++)
+                                cleaned.push_back((char)(((int)tempVarString[i]) + tempVarNumber));
 
-							setVariable(argZero, cleaned);
-						} else
-							error("is_null:" + tempVarString, false);
-					} else
-						error("conversion_error:" + argTwo, false);
-				}
-			} else if (argOne == "--=") {
-				if (variableExists(argTwo)) {
-					if (variables.at(variableAt(argTwo)).getNumber() != nullNum) {
-						if (variables.at(variableAt(argZero)).getString() != null) {
-							int tempVarNumber((int)variables.at(variableAt(argTwo)).getNumber());
-							string tempVarString(variables.at(variableAt(argZero)).getString());
-							int len(tempVarString.length());
-							string cleaned("");
+                            setVariable(argZero, cleaned);
+                        } else
+                            error("is_null:" + tempVarString, false);
+                    } else
+                        error("conversion_error:" + argTwo, false);
+                }
+            } else if (argOne == "--=") {
+                if (variableExists(argTwo)) {
+                    if (variables.at(variableAt(argTwo)).getNumber() != nullNum) {
+                        if (variables.at(variableAt(argZero)).getString() != null) {
+                            int tempVarNumber((int)variables.at(variableAt(argTwo)).getNumber());
+                            string tempVarString(variables.at(variableAt(argZero)).getString());
+                            int len(tempVarString.length());
+                            string cleaned("");
 
-							for (int i = 0; i < len; i++)
-								cleaned.push_back((char)(((int)tempVarString[i]) - tempVarNumber));
+                            for (int i = 0; i < len; i++)
+                                cleaned.push_back((char)(((int)tempVarString[i]) - tempVarNumber));
 
-							setVariable(argZero, cleaned);
-						} else
-							error("is_null:" + argZero, false);
-					} else
-						error("conversion_error:" + argTwo, false);
-				} else {
-					if (isNumeric(argTwo)) {
-						int tempVarNumber(stoi(argTwo));
-						string tempVarString(variables.at(variableAt(argZero)).getString());
+                            setVariable(argZero, cleaned);
+                        } else
+                            error("is_null:" + argZero, false);
+                    } else
+                        error("conversion_error:" + argTwo, false);
+                } else {
+                    if (isNumeric(argTwo)) {
+                        int tempVarNumber(stoi(argTwo));
+                        string tempVarString(variables.at(variableAt(argZero)).getString());
 
-						if (tempVarString != null) {
-							int len(tempVarString.length());
-							string cleaned("");
+                        if (tempVarString != null) {
+                            int len(tempVarString.length());
+                            string cleaned("");
 
-							for (int i = 0; i < len; i++)
-								cleaned.push_back((char)(((int)tempVarString[i]) - tempVarNumber));
+                            for (int i = 0; i < len; i++)
+                                cleaned.push_back((char)(((int)tempVarString[i]) - tempVarNumber));
 
-							setVariable(argZero, cleaned);
-						} else
-							error("is_null:" + tempVarString, false);
-					} else
-						error("conversion_error:" + argTwo, false);
-				}
-			} else if (argOne == "?") {
-				if (variableExists(argTwo)) {
-					if (variables.at(variableAt(argTwo)).getString() != null) {
-						if (variables.at(variableAt(argZero)).getString() != null)
-							setVariable(argZero, getStdout(variables.at(variableAt(argTwo)).getString().c_str()));
-						else
-							error("conversion_error:" + argZero, false);
-					} else
-						error("conversion_error:" + argTwo, false);
-				} else {
-					if (variables.at(variableAt(argZero)).getString() != null)
-						setVariable(argZero, getStdout(cleanString(argTwo).c_str()));
-					else
-						error("conversion_error:" + argZero, false);
-				}
-			} else if (argOne == "!") {
-				if (variableExists(argTwo)) {
-					if (variables.at(variableAt(argTwo)).getString() != null) {
-						if (variables.at(variableAt(argZero)).getString() != null)
-							setVariable(argZero, getParsedOutput(variables.at(variableAt(argTwo)).getString().c_str()));
-						else
-							error("conversion_error:" + argZero, false);
-					} else
-						error("conversion_error:" + argTwo, false);
-				} else {
-					if (variables.at(variableAt(argZero)).getString() != null)
-						setVariable(argZero, getParsedOutput(cleanString(argTwo).c_str()));
-					else
-						error("conversion_error:" + argZero, false);
-				}
-			} else
-				error("invalid_operator:" + argOne, false);
-		} else
-			error("special_error(4)", false);
-	} else if (listExists(argZero) || listExists(beforeBrackets(argZero))) {
-		string _b(beforeDot(argTwo)), _a(afterDot(argTwo)),
-            __b(beforeParams(argTwo));
+                            setVariable(argZero, cleaned);
+                        } else
+                            error("is_null:" + tempVarString, false);
+                    } else
+                        error("conversion_error:" + argTwo, false);
+                }
+            } else if (argOne == "?") {
+                if (variableExists(argTwo)) {
+                    if (variables.at(variableAt(argTwo)).getString() != null) {
+                        if (variables.at(variableAt(argZero)).getString() != null)
+                            setVariable(argZero, getStdout(variables.at(variableAt(argTwo)).getString().c_str()));
+                        else
+                            error("conversion_error:" + argZero, false);
+                    } else
+                        error("conversion_error:" + argTwo, false);
+                } else {
+                    if (variables.at(variableAt(argZero)).getString() != null)
+                        setVariable(argZero, getStdout(cleanString(argTwo).c_str()));
+                    else
+                        error("conversion_error:" + argZero, false);
+                }
+            } else if (argOne == "!") {
+                if (variableExists(argTwo)) {
+                    if (variables.at(variableAt(argTwo)).getString() != null) {
+                        if (variables.at(variableAt(argZero)).getString() != null)
+                            setVariable(argZero, getParsedOutput(variables.at(variableAt(argTwo)).getString().c_str()));
+                        else
+                            error("conversion_error:" + argZero, false);
+                    } else
+                        error("conversion_error:" + argTwo, false);
+                } else {
+                    if (variables.at(variableAt(argZero)).getString() != null)
+                        setVariable(argZero, getParsedOutput(cleanString(argTwo).c_str()));
+                    else
+                        error("conversion_error:" + argZero, false);
+                }
+            } else
+                error("invalid_operator:" + argOne, false);
+        } else
+            error("special_error(4)", false);
+    } else if (listExists(argZero) || listExists(beforeBrackets(argZero))) {
+        string _b(beforeDot(argTwo)), _a(afterDot(argTwo)),
+               __b(beforeParams(argTwo));
 
         if (containsBrackets(argZero)) {
             string after(afterBrackets(argZero)), before(beforeBrackets(argZero));
@@ -6596,7 +6488,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
             } else
                 error("invalid_operation:list_undefined:" + listName, false);
         } else if (variableExists(_b) && contains(_a, "split") && argOne == "=") {
-			if (variables.at(variableAt(_b)).getString() != null) {
+            if (variables.at(variableAt(_b)).getString() != null) {
                 vector<string> params = getParams(_a);
                 vector<string> elements;
 
@@ -6613,9 +6505,9 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
 
                 for (int i = 0; i < (int)elements.size(); i++)
                     lists.at(listAt(argZero)).add(elements.at(i));
-			} else
-				error("invalid_operation:null_string:" + _b, false);
-		} else if (containsParams(argTwo)) {
+            } else
+                error("invalid_operation:null_string:" + _b, false);
+        } else if (containsParams(argTwo)) {
             vector<string> params = getParams(argTwo);
 
             if (argOne == "=") {
@@ -6640,27 +6532,27 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 error("invalid_operator:" + argOne, false);
         } else if (variableExists(argTwo)) {
             if (argOne == "+=") {
-    			if (variables.at(variableAt(argTwo)).getString() != null)
-    				lists.at(listAt(argZero)).add(variables.at(variableAt(argTwo)).getString());
-    			else if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
-    				lists.at(listAt(argZero)).add(dtos(variables.at(variableAt(argTwo)).getNumber()));
-    			else
-    				error("conversion_error:" + argTwo, false);
+                if (variables.at(variableAt(argTwo)).getString() != null)
+                    lists.at(listAt(argZero)).add(variables.at(variableAt(argTwo)).getString());
+                else if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
+                    lists.at(listAt(argZero)).add(dtos(variables.at(variableAt(argTwo)).getNumber()));
+                else
+                    error("conversion_error:" + argTwo, false);
             } else if (argOne == "-=") {
-    			if (variables.at(variableAt(argTwo)).getString() != null)
-    				lists.at(listAt(argZero)).remove(variables.at(variableAt(argTwo)).getString());
-    			else if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
-    				lists.at(listAt(argZero)).remove(dtos(variables.at(variableAt(argTwo)).getNumber()));
-    			else
-    				error("conversion_error:" + argTwo, false);
+                if (variables.at(variableAt(argTwo)).getString() != null)
+                    lists.at(listAt(argZero)).remove(variables.at(variableAt(argTwo)).getString());
+                else if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
+                    lists.at(listAt(argZero)).remove(dtos(variables.at(variableAt(argTwo)).getNumber()));
+                else
+                    error("conversion_error:" + argTwo, false);
             } else
                 error("invalid_operator:" + argOne, false);
-		} else if (methodExists(argTwo)) {
-		    parse(argTwo);
+        } else if (methodExists(argTwo)) {
+            parse(argTwo);
 
-		    vector<string> _p = getParams(lastValue);
+            vector<string> _p = getParams(lastValue);
 
-		    if (argOne == "=") {
+            if (argOne == "=") {
                 lists.at(listAt(argZero)).clear();
 
                 for (int i = 0; i < (int)_p.size(); i++)
@@ -6670,23 +6562,23 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                     lists.at(listAt(argZero)).add(_p.at(i));
             } else
                 error("invalid_operator:" + argOne, false);
-		} else {
+        } else {
             if (argOne == "+=") {
-    			if (argTwo.length() != 0)
-    				lists.at(listAt(argZero)).add(argTwo);
-    			else
-    				error("is_empty:" + argTwo, false);
+                if (argTwo.length() != 0)
+                    lists.at(listAt(argZero)).add(argTwo);
+                else
+                    error("is_empty:" + argTwo, false);
             } else if (argOne == "-=") {
                 if (argTwo.length() != 0)
                     lists.at(listAt(argZero)).remove(argTwo);
                 else
                     error("is_empty:" + argTwo, false);
             }
-		}
-	} else {
-		if (startsWith(argZero, "@") && zeroDots(argZero)) {
-			if (argOne == "=") {
-				string before(beforeDot(argTwo)), after(afterDot(argTwo));
+        }
+    } else {
+        if (startsWith(argZero, "@") && zeroDots(argZero)) {
+            if (argOne == "=") {
+                string before(beforeDot(argTwo)), after(afterDot(argTwo));
 
                 if (containsBrackets(argTwo) && (variableExists(beforeBrackets(argTwo)) || listExists(beforeBrackets(argTwo)))) {
                     string beforeBracket(beforeBrackets(argTwo)), afterBracket(afterBrackets(argTwo));
@@ -6804,7 +6696,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                     } else
                         error("invalid_operation:null_string:" + before, false);
                 } else if (inObjectDef) {
-				    if (isNumeric(argTwo)) {
+                    if (isNumeric(argTwo)) {
                         Variable newVariable(argZero, stod(argTwo));
 
                         if (inPrivateDef)
@@ -6923,113 +6815,113 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                         if (isNumeric(lastValue))
                             createVariable(argZero, stod(lastValue));
                         else
-	                        createVariable(argZero, lastValue);
+                            createVariable(argZero, lastValue);
                     }
                 } else if (variableExists(argTwo)) {
-					if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
-						createVariable(argZero, variables.at(variableAt(argTwo)).getNumber());
-					else if (variables.at(variableAt(argTwo)).getString() != null)
-						createVariable(argZero, variables.at(variableAt(argTwo)).getString());
-					else
-						createVariable(argZero, null);
-				} else if (argTwo == "shomp" || argTwo == "chomp") {
-					if (argTwo == "shomp") {
-						string shomper("");
-						shomper = shomp("");
+                    if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
+                        createVariable(argZero, variables.at(variableAt(argTwo)).getNumber());
+                    else if (variables.at(variableAt(argTwo)).getString() != null)
+                        createVariable(argZero, variables.at(variableAt(argTwo)).getString());
+                    else
+                        createVariable(argZero, null);
+                } else if (argTwo == "shomp" || argTwo == "chomp") {
+                    if (argTwo == "shomp") {
+                        string shomper("");
+                        shomper = shomp("");
 
-						if (isNumeric(shomper))
-							createVariable(argZero, stod(shomper));
-						else
-							createVariable(argZero, shomper);
-					} else {
-						string chomper("");
-						cout << "chomp: ";
-						getline(cin, chomper, '\n');
+                        if (isNumeric(shomper))
+                            createVariable(argZero, stod(shomper));
+                        else
+                            createVariable(argZero, shomper);
+                    } else {
+                        string chomper("");
+                        cout << "chomp: ";
+                        getline(cin, chomper, '\n');
 
-						if (isNumeric(chomper))
-							createVariable(argZero, stod(chomper));
-						else
-							createVariable(argZero, chomper);
-					}
-				} else if (argTwo == "args.size")
-					createVariable(argZero, (double)argsLength);
-				else if (before == "chomp") {
-					if (variableExists(after)) {
-						if (variables.at(variableAt(after)).getString() != null) {
-							string chomper("");
-							cout << cleanString(variables.at(variableAt(after)).getString());
-							getline(cin, chomper, '\n');
+                        if (isNumeric(chomper))
+                            createVariable(argZero, stod(chomper));
+                        else
+                            createVariable(argZero, chomper);
+                    }
+                } else if (argTwo == "args.size")
+                    createVariable(argZero, (double)argsLength);
+                else if (before == "chomp") {
+                    if (variableExists(after)) {
+                        if (variables.at(variableAt(after)).getString() != null) {
+                            string chomper("");
+                            cout << cleanString(variables.at(variableAt(after)).getString());
+                            getline(cin, chomper, '\n');
 
-							if (isNumeric(chomper))
-								createVariable(argZero, stod(chomper));
-							else
-								createVariable(argZero, chomper);
-						} else {
-							string chomper("");
-							cout << "chomp: ";
-							getline(cin, chomper, '\n');
+                            if (isNumeric(chomper))
+                                createVariable(argZero, stod(chomper));
+                            else
+                                createVariable(argZero, chomper);
+                        } else {
+                            string chomper("");
+                            cout << "chomp: ";
+                            getline(cin, chomper, '\n');
 
-							if (isNumeric(chomper))
-								createVariable(argZero, stod(chomper));
-							else
-								createVariable(argZero, chomper);
-						}
-					} else {
-						string chomper("");
-						cout << cleanString(after);
-						getline(cin, chomper, '\n');
+                            if (isNumeric(chomper))
+                                createVariable(argZero, stod(chomper));
+                            else
+                                createVariable(argZero, chomper);
+                        }
+                    } else {
+                        string chomper("");
+                        cout << cleanString(after);
+                        getline(cin, chomper, '\n');
 
-						if (isNumeric(chomper))
-							createVariable(argZero, stod(chomper));
-						else
-							createVariable(argZero, chomper);
-					}
-				} else if (before == "shomp") {
-					if (variableExists(after)) {
-						if (variables.at(variableAt(after)).getString() != null) {
-							string chomper("");
-							chomper = shomp(variables.at(variableAt(after)).getString());
+                        if (isNumeric(chomper))
+                            createVariable(argZero, stod(chomper));
+                        else
+                            createVariable(argZero, chomper);
+                    }
+                } else if (before == "shomp") {
+                    if (variableExists(after)) {
+                        if (variables.at(variableAt(after)).getString() != null) {
+                            string chomper("");
+                            chomper = shomp(variables.at(variableAt(after)).getString());
 
-							if (isNumeric(chomper))
-								createVariable(argZero, stod(chomper));
-							else
-								createVariable(argZero, chomper);
+                            if (isNumeric(chomper))
+                                createVariable(argZero, stod(chomper));
+                            else
+                                createVariable(argZero, chomper);
 
                             cout << endl;
-						} else {
-							string chomper("");
+                        } else {
+                            string chomper("");
                             chomper = shomp("shomp: ");
 
-							if (isNumeric(chomper))
-								createVariable(argZero, stod(chomper));
-							else
-								createVariable(argZero, chomper);
+                            if (isNumeric(chomper))
+                                createVariable(argZero, stod(chomper));
+                            else
+                                createVariable(argZero, chomper);
 
                             cout << endl;
-						}
-					} else {
-						string chomper("");
-						chomper = shomp(cleanString(after));
+                        }
+                    } else {
+                        string chomper("");
+                        chomper = shomp(cleanString(after));
 
-						if (isNumeric(chomper))
-							createVariable(argZero, stod(chomper));
-						else
-							createVariable(argZero, chomper);
+                        if (isNumeric(chomper))
+                            createVariable(argZero, stod(chomper));
+                        else
+                            createVariable(argZero, chomper);
 
                         cout << endl;
-					}
-				} else if (after == "size") {
-					if (variableExists(before)) {
-						if (variables.at(variableAt(before)).getString() != null)
-							createVariable(argZero, (double)variables.at(variableAt(before)).getString().length());
-						else
-							error("conversion_error:" + before, false);
-					} else
-						createVariable(argZero, (double)before.length());
-				} else if (after == "sin") {
+                    }
+                } else if (after == "size") {
+                    if (variableExists(before)) {
+                        if (variables.at(variableAt(before)).getString() != null)
+                            createVariable(argZero, (double)variables.at(variableAt(before)).getString().length());
+                        else
+                            error("conversion_error:" + before, false);
+                    } else
+                        createVariable(argZero, (double)before.length());
+                } else if (after == "sin") {
                     if (variableExists(before)) {
                         if (variables.at(variableAt(before)).getNumber() != nullNum)
-                             createVariable(argZero, sin(variables.at(variableAt(before)).getNumber()));
+                            createVariable(argZero, sin(variables.at(variableAt(before)).getNumber()));
                         else
                             error("conversion_error:" + before, false);
                     } else
@@ -7037,7 +6929,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 } else if (after == "sinh") {
                     if (variableExists(before)) {
                         if (variables.at(variableAt(before)).getNumber() != nullNum)
-                             createVariable(argZero, sinh(variables.at(variableAt(before)).getNumber()));
+                            createVariable(argZero, sinh(variables.at(variableAt(before)).getNumber()));
                         else
                             error("conversion_error:" + before, false);
                     } else
@@ -7045,7 +6937,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 } else if (after == "asin") {
                     if (variableExists(before)) {
                         if (variables.at(variableAt(before)).getNumber() != nullNum)
-                             createVariable(argZero, asin(variables.at(variableAt(before)).getNumber()));
+                            createVariable(argZero, asin(variables.at(variableAt(before)).getNumber()));
                         else
                             error("conversion_error:" + before, false);
                     } else
@@ -7053,7 +6945,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 } else if (after == "tan") {
                     if (variableExists(before)) {
                         if (variables.at(variableAt(before)).getNumber() != nullNum)
-                             createVariable(argZero, tan(variables.at(variableAt(before)).getNumber()));
+                            createVariable(argZero, tan(variables.at(variableAt(before)).getNumber()));
                         else
                             error("conversion_error:" + before, false);
                     } else
@@ -7061,7 +6953,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 } else if (after == "tanh") {
                     if (variableExists(before)) {
                         if (variables.at(variableAt(before)).getNumber() != nullNum)
-                             createVariable(argZero, tanh(variables.at(variableAt(before)).getNumber()));
+                            createVariable(argZero, tanh(variables.at(variableAt(before)).getNumber()));
                         else
                             error("conversion_error:" + before, false);
                     } else
@@ -7069,7 +6961,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 } else if (after == "atan") {
                     if (variableExists(before)) {
                         if (variables.at(variableAt(before)).getNumber() != nullNum)
-                             createVariable(argZero, atan(variables.at(variableAt(before)).getNumber()));
+                            createVariable(argZero, atan(variables.at(variableAt(before)).getNumber()));
                         else
                             error("conversion_error:" + before, false);
                     } else
@@ -7077,7 +6969,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 } else if (after == "cos") {
                     if (variableExists(before)) {
                         if (variables.at(variableAt(before)).getNumber() != nullNum)
-                             createVariable(argZero, cos(variables.at(variableAt(before)).getNumber()));
+                            createVariable(argZero, cos(variables.at(variableAt(before)).getNumber()));
                         else
                             error("conversion_error:" + before, false);
                     } else
@@ -7085,7 +6977,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 } else if (after == "acos") {
                     if (variableExists(before)) {
                         if (variables.at(variableAt(before)).getNumber() != nullNum)
-                             createVariable(argZero, acos(variables.at(variableAt(before)).getNumber()));
+                            createVariable(argZero, acos(variables.at(variableAt(before)).getNumber()));
                         else
                             error("conversion_error:" + before, false);
                     } else
@@ -7093,7 +6985,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 } else if (after == "cosh") {
                     if (variableExists(before)) {
                         if (variables.at(variableAt(before)).getNumber() != nullNum)
-                             createVariable(argZero, cosh(variables.at(variableAt(before)).getNumber()));
+                            createVariable(argZero, cosh(variables.at(variableAt(before)).getNumber()));
                         else
                             error("conversion_error:" + before, false);
                     } else
@@ -7101,7 +6993,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 } else if (after == "log") {
                     if (variableExists(before)) {
                         if (variables.at(variableAt(before)).getNumber() != nullNum)
-                             createVariable(argZero, log(variables.at(variableAt(before)).getNumber()));
+                            createVariable(argZero, log(variables.at(variableAt(before)).getNumber()));
                         else
                             error("conversion_error:" + before, false);
                     } else
@@ -7109,7 +7001,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 } else if (after == "sqrt") {
                     if (variableExists(before)) {
                         if (variables.at(variableAt(before)).getNumber() != nullNum)
-                             createVariable(argZero, sqrt(variables.at(variableAt(before)).getNumber()));
+                            createVariable(argZero, sqrt(variables.at(variableAt(before)).getNumber()));
                         else
                             error("conversion_error:" + before, false);
                     } else
@@ -7117,7 +7009,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 } else if (after == "abs") {
                     if (variableExists(before)) {
                         if (variables.at(variableAt(before)).getNumber() != nullNum)
-                             createVariable(argZero, abs(variables.at(variableAt(before)).getNumber()));
+                            createVariable(argZero, abs(variables.at(variableAt(before)).getNumber()));
                         else
                             error("conversion_error:" + before, false);
                     } else
@@ -7125,7 +7017,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 } else if (after == "floor") {
                     if (variableExists(before)) {
                         if (variables.at(variableAt(before)).getNumber() != nullNum)
-                             createVariable(argZero, floor(variables.at(variableAt(before)).getNumber()));
+                            createVariable(argZero, floor(variables.at(variableAt(before)).getNumber()));
                         else
                             error("conversion_error:" + before, false);
                     } else
@@ -7133,7 +7025,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 } else if (after == "ceil") {
                     if (variableExists(before)) {
                         if (variables.at(variableAt(before)).getNumber() != nullNum)
-                             createVariable(argZero, ceil(variables.at(variableAt(before)).getNumber()));
+                            createVariable(argZero, ceil(variables.at(variableAt(before)).getNumber()));
                         else
                             error("conversion_error:" + before, false);
                     } else
@@ -7141,7 +7033,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 } else if (after == "exp") {
                     if (variableExists(before)) {
                         if (variables.at(variableAt(before)).getNumber() != nullNum)
-                             createVariable(argZero, exp(variables.at(variableAt(before)).getNumber()));
+                            createVariable(argZero, exp(variables.at(variableAt(before)).getNumber()));
                         else
                             error("conversion_error:" + before, false);
                     } else
@@ -7149,7 +7041,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 } else if (after == "to_upper") {
                     if (variableExists(before)) {
                         if (variables.at(variableAt(before)).getString() != null)
-                             createVariable(argZero, getUpper(variables.at(variableAt(before)).getString()));
+                            createVariable(argZero, getUpper(variables.at(variableAt(before)).getString()));
                         else
                             error("conversion_error:" + before, false);
                     } else
@@ -7157,7 +7049,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 } else if (after == "to_lower") {
                     if (variableExists(before)) {
                         if (variables.at(variableAt(before)).getString() != null)
-                             createVariable(argZero, getLower(variables.at(variableAt(before)).getString()));
+                            createVariable(argZero, getLower(variables.at(variableAt(before)).getString()));
                         else
                             error("conversion_error:" + before, false);
                     } else
@@ -7239,37 +7131,37 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                     }
                 } else if (before == "env") {
                     // REFACTOR HERE
-					if (after == "cwd")
-						createVariable(argZero, cwd());
-					else if (after == "usl")
-						createVariable(argZero, uslBinary);
-					else if (after == "os")
-						createVariable(argZero, guessedOS);
-					else if (after == "user")
+                    if (after == "cwd")
+                        createVariable(argZero, cwd());
+                    else if (after == "usl")
+                        createVariable(argZero, uslBinary);
+                    else if (after == "os")
+                        createVariable(argZero, guessedOS);
+                    else if (after == "user")
                         createVariable(argZero, getUser());
-					else if (after == "machine")
+                    else if (after == "machine")
                         createVariable(argZero, getMachine());
                     else if (after == "init_dir" || after == "initial_directory")
                         createVariable(argZero, initDir);
                     else if (after == "this_second")
-						createVariable(argZero, (double)secondNow());
-					else if (after == "this_minute")
-						createVariable(argZero, (double)minuteNow());
-					else if (after == "this_hour")
-						createVariable(argZero, (double)hourNow());
-					else if (after == "this_month")
+                        createVariable(argZero, (double)secondNow());
+                    else if (after == "this_minute")
+                        createVariable(argZero, (double)minuteNow());
+                    else if (after == "this_hour")
+                        createVariable(argZero, (double)hourNow());
+                    else if (after == "this_month")
                         createVariable(argZero, (double)monthNow());
-					else if (after == "this_year")
+                    else if (after == "this_year")
                         createVariable(argZero, (double)yearNow());
-					else if (after == "day_of_this_month")
+                    else if (after == "day_of_this_month")
                         createVariable(argZero, (double)dayOfTheMonth());
-					else if (after == "day_of_this_year")
+                    else if (after == "day_of_this_year")
                         createVariable(argZero, (double)dayOfTheYear());
-					else if (after == "day_of_this_week")
+                    else if (after == "day_of_this_week")
                         createVariable(argZero, dayOfTheWeek());
-					else if (after == "month_of_this_year")
+                    else if (after == "month_of_this_year")
                         createVariable(argZero, monthOfTheYear());
-					else if (after == "am_or_pm")
+                    else if (after == "am_or_pm")
                         createVariable(argZero, amOrPm());
                     else if (after == "last_error")
                         createVariable(argZero, lastError);
@@ -7281,59 +7173,59 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                         createVariable(argZero, "");
                     else if (after == "empty_number")
                         createVariable(argZero, 0);
-					else
-						createVariable(argZero, getEnvironmentVariable(after));
-				} else {
-					if (isNumeric(argTwo))
-						createVariable(argZero, stod(argTwo));
-					else
-						createVariable(argZero, cleanString(argTwo));
-				}
-			} else if (argOne == "+=") {
-				if (variableExists(argTwo)) {
-					if (variables.at(variableAt(argTwo)).getString() != null)
-						createVariable(argZero, variables.at(variableAt(argTwo)).getString());
-					else if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
-						createVariable(argZero, variables.at(variableAt(argTwo)).getNumber());
-					else
-						createVariable(argZero, null);
-				} else {
-					if (isNumeric(argTwo))
-						createVariable(argZero, stod(argTwo));
-					else
-						createVariable(argZero, cleanString(argTwo));
-				}
-			} else if (argOne == "-=") {
-				if (variableExists(argTwo)) {
-					if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
-						createVariable(argZero, 0 - variables.at(variableAt(argTwo)).getNumber());
-					else
-						createVariable(argZero, null);
-				} else {
-					if (is_num(argTwo))
-						createVariable(argZero, stod(argTwo));
-					else
-						createVariable(argZero, cleanString(argTwo));
-				}
-			} else if (argOne == "?") {
-				if (variableExists(argTwo)) {
-					if (variables.at(variableAt(argTwo)).getString() != null)
-						createVariable(argZero, getStdout(variables.at(variableAt(argTwo)).getString()));
-					else
-						error("conversion_error:" + argTwo, false);
-				} else
-					createVariable(argZero, getStdout(cleanString(argTwo)));
-			} else if (argOne == "!") {
-			    if (variableExists(argTwo)) {
-			        if (variables.at(variableAt(argTwo)).getString() != null)
+                    else
+                        createVariable(argZero, getEnvironmentVariable(after));
+                } else {
+                    if (isNumeric(argTwo))
+                        createVariable(argZero, stod(argTwo));
+                    else
+                        createVariable(argZero, cleanString(argTwo));
+                }
+            } else if (argOne == "+=") {
+                if (variableExists(argTwo)) {
+                    if (variables.at(variableAt(argTwo)).getString() != null)
+                        createVariable(argZero, variables.at(variableAt(argTwo)).getString());
+                    else if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
+                        createVariable(argZero, variables.at(variableAt(argTwo)).getNumber());
+                    else
+                        createVariable(argZero, null);
+                } else {
+                    if (isNumeric(argTwo))
+                        createVariable(argZero, stod(argTwo));
+                    else
+                        createVariable(argZero, cleanString(argTwo));
+                }
+            } else if (argOne == "-=") {
+                if (variableExists(argTwo)) {
+                    if (variables.at(variableAt(argTwo)).getNumber() != nullNum)
+                        createVariable(argZero, 0 - variables.at(variableAt(argTwo)).getNumber());
+                    else
+                        createVariable(argZero, null);
+                } else {
+                    if (is_num(argTwo))
+                        createVariable(argZero, stod(argTwo));
+                    else
+                        createVariable(argZero, cleanString(argTwo));
+                }
+            } else if (argOne == "?") {
+                if (variableExists(argTwo)) {
+                    if (variables.at(variableAt(argTwo)).getString() != null)
+                        createVariable(argZero, getStdout(variables.at(variableAt(argTwo)).getString()));
+                    else
+                        error("conversion_error:" + argTwo, false);
+                } else
+                    createVariable(argZero, getStdout(cleanString(argTwo)));
+            } else if (argOne == "!") {
+                if (variableExists(argTwo)) {
+                    if (variables.at(variableAt(argTwo)).getString() != null)
                         createVariable(argZero, getParsedOutput(variables.at(variableAt(argTwo)).getString()));
                     else
                         error("conversion_error:" + argTwo, false);
-			    } else
+                } else
                     createVariable(argZero, getParsedOutput(cleanString(argTwo)));
-			} else
-				error("invalid_operator:" + argTwo, false);
-		} else if (startsWith(argZero, "@") && !zeroDots(argTwo)) {
+            } else
+                error("invalid_operator:" + argTwo, false);
+        } else if (startsWith(argZero, "@") && !zeroDots(argTwo)) {
             string before = beforeDot(argTwo),
                    after = afterDot(argTwo);
 
@@ -7357,7 +7249,7 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
                 vector<Variable> objectVariables = objects.at(objectAt(argTwo)).getVariables();
 
                 for (int i = 0; i < (int)objectVariables.size(); i++)
-                        newObject.addVariable(objectVariables.at(i));
+                    newObject.addVariable(objectVariables.at(i));
 
                 if (executedMethod)
                     newObject.collect();
@@ -7387,92 +7279,90 @@ void twoSpace(string argZero, string argOne, string argTwo, string s, vector<str
             } else
                 error("invalid_operation:constant_defined:" + argZero, false);
         } else {
-			if (isNumeric(argZero) && isNumeric(argTwo)) {
-				if (argOne == "+") {
-					say(dtos(stod(argZero) + stod(argTwo)));
-					setLastValue(dtos(stod(argZero) + stod(argTwo)));
-				} else if (argOne == "-") {
-					say(dtos(stod(argZero) - stod(argTwo)));
-					setLastValue(dtos(stod(argZero) - stod(argTwo)));
-				} else if (argOne == "*") {
-					say(dtos(stod(argZero) * stod(argTwo)));
-					setLastValue(dtos(stod(argZero) * stod(argTwo)));
-				} else if (argOne == "/") {
-					say(dtos(stod(argZero) / stod(argTwo)));
-					setLastValue(dtos(stod(argZero) / stod(argTwo)));
-				} else if (argOne == "**") {
-					say(dtos(pow(stod(argZero), stod(argTwo))));
-					setLastValue(dtos(stod(argZero) * stod(argTwo)));
-				} else if (argOne == "%") {
-					if ((int)stod(argTwo) == 0)
-						error("segfault:" + s, false);
-					else {
+            if (isNumeric(argZero) && isNumeric(argTwo)) {
+                if (argOne == "+") {
+                    say(dtos(stod(argZero) + stod(argTwo)));
+                    setLastValue(dtos(stod(argZero) + stod(argTwo)));
+                } else if (argOne == "-") {
+                    say(dtos(stod(argZero) - stod(argTwo)));
+                    setLastValue(dtos(stod(argZero) - stod(argTwo)));
+                } else if (argOne == "*") {
+                    say(dtos(stod(argZero) * stod(argTwo)));
+                    setLastValue(dtos(stod(argZero) * stod(argTwo)));
+                } else if (argOne == "/") {
+                    say(dtos(stod(argZero) / stod(argTwo)));
+                    setLastValue(dtos(stod(argZero) / stod(argTwo)));
+                } else if (argOne == "**") {
+                    say(dtos(pow(stod(argZero), stod(argTwo))));
+                    setLastValue(dtos(stod(argZero) * stod(argTwo)));
+                } else if (argOne == "%") {
+                    if ((int)stod(argTwo) == 0)
+                        error("segfault:" + s, false);
+                    else {
                         say(dtos((int)stod(argZero) % (int)stod(argTwo)));
-						setLastValue(itos((int)stod(argZero) % (int)stod(argTwo)));
+                        setLastValue(itos((int)stod(argZero) % (int)stod(argTwo)));
                     }
-				} else
-					error("invalid_operator:" + argOne, false);
-			} else {
-				if (argOne == "+") {
-					say(cleanString(argZero) + cleanString(argTwo));
-					setLastValue(cleanString(argZero) + cleanString(argTwo));
-				} else if (argOne == "-") {
-					say(subtractString(cleanString(argZero), cleanString(argTwo)));
-					setLastValue(subtractString(cleanString(argZero), cleanString(argTwo)));
-				} else if (argOne == "*") {
-					if (!zeroNumbers(argTwo)) {
+                } else
+                    error("invalid_operator:" + argOne, false);
+            } else {
+                if (argOne == "+") {
+                    say(cleanString(argZero) + cleanString(argTwo));
+                    setLastValue(cleanString(argZero) + cleanString(argTwo));
+                } else if (argOne == "-") {
+                    say(subtractString(cleanString(argZero), cleanString(argTwo)));
+                    setLastValue(subtractString(cleanString(argZero), cleanString(argTwo)));
+                } else if (argOne == "*") {
+                    if (!zeroNumbers(argTwo)) {
                         string bigstr(cleanString(argZero));
-						for (int i = 1; i <= stoi(argTwo); i++) {
+                        for (int i = 1; i <= stoi(argTwo); i++) {
                             bigstr.append(argZero);
-							__stdout(argZero);
+                            __stdout(argZero);
                         }
 
                         setLastValue(bigstr);
-					} else
-						error("invalid_operation:" + s, false);
-				} else if (argOne == "/") {
-					say(subtractString(cleanString(argZero), cleanString(argTwo)));
-					setLastValue(subtractString(cleanString(argZero), cleanString(argTwo)));
-				}
-                else
-					error("invalid_operator:" + argOne, false);
-			}
-		}
-	}
+                    } else
+                        error("invalid_operation:" + s, false);
+                } else if (argOne == "/") {
+                    say(subtractString(cleanString(argZero), cleanString(argTwo)));
+                    setLastValue(subtractString(cleanString(argZero), cleanString(argTwo)));
+                } else
+                    error("invalid_operator:" + argOne, false);
+            }
+        }
+    }
 }
 
-void threeSpace(string argZero, string argOne, string argTwo, string argThree, string s, vector<string> command)
-{
-	if (argZero == "object") {
-		if (objectExists(argOne)) {
-			inObjectDef = true;
-			currentObject = argOne;
-		} else {
-			if (objectExists(argThree)) {
-				if (argTwo == "=") {
-					vector<Method> objectMethods = objects.at(objectAt(argThree)).getMethods();
-					Object newObject(argOne);
+void threeSpace(string argZero, string argOne, string argTwo, string argThree, string s, vector<string> command) {
+    if (argZero == "object") {
+        if (objectExists(argOne)) {
+            inObjectDef = true;
+            currentObject = argOne;
+        } else {
+            if (objectExists(argThree)) {
+                if (argTwo == "=") {
+                    vector<Method> objectMethods = objects.at(objectAt(argThree)).getMethods();
+                    Object newObject(argOne);
 
-					for (int i = 0; i < (int)objectMethods.size(); i++) {
+                    for (int i = 0; i < (int)objectMethods.size(); i++) {
                         if (objectMethods.at(i).isPublic())
                             newObject.addMethod(objectMethods.at(i));
                     }
 
-					objects.push_back(newObject);
-					currentObject = argOne;
-					inObjectDef = true;
+                    objects.push_back(newObject);
+                    currentObject = argOne;
+                    inObjectDef = true;
 
-					newObject.clear();
-					objectMethods.clear();
-				} else
-					error("invalid_operator:" + argTwo, false);
-			} else
-				error("invalid_operation:object_undefined:" + argThree, false);
-		}
-	} else if (argZero == "unless") {
+                    newObject.clear();
+                    objectMethods.clear();
+                } else
+                    error("invalid_operator:" + argTwo, false);
+            } else
+                error("invalid_operation:object_undefined:" + argThree, false);
+        }
+    } else if (argZero == "unless") {
         if (listExists(argThree)) {
-	        if (argTwo == "in") {
-	            string testString("[none]");
+            if (argTwo == "in") {
+                string testString("[none]");
 
                 if (variableExists(argOne)) {
                     if (variables.at(variableAt(argOne)).getString() != null)
@@ -7500,735 +7390,735 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                 } else
                     successfulIF();
             }
-	    } else if (variableExists(argOne) && variableExists(argThree)) {
-			if (variables.at(variableAt(argOne)).getString() != null && variables.at(variableAt(argThree)).getString() != null) {
-				if (argTwo == "==" || argTwo == "is") {
+        } else if (variableExists(argOne) && variableExists(argThree)) {
+            if (variables.at(variableAt(argOne)).getString() != null && variables.at(variableAt(argThree)).getString() != null) {
+                if (argTwo == "==" || argTwo == "is") {
                     if (variables.at(variableAt(argOne)).getString() == variables.at(variableAt(argThree)).getString())
-						failedIF();
+                        failedIF();
                     else
-						successfulIF();
-				} else if (argTwo == "!=" || argTwo == "not") {
-					if (variables.at(variableAt(argOne)).getString() != variables.at(variableAt(argThree)).getString())
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == ">") {
-					if (variables.at(variableAt(argOne)).getString().length() > variables.at(variableAt(argThree)).getString().length())
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == "<") {
-					if (variables.at(variableAt(argOne)).getString().length() < variables.at(variableAt(argThree)).getString().length())
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == "<=") {
-					if (variables.at(variableAt(argOne)).getString().length() <= variables.at(variableAt(argThree)).getString().length())
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == ">=") {
-					if (variables.at(variableAt(argOne)).getString().length() >= variables.at(variableAt(argThree)).getString().length())
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == "contains") {
-					if (contains(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argThree)).getString()))
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == "ends_with") {
-					if (endsWith(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argThree)).getString()))
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == "begins_with") {
-					if (startsWith(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argThree)).getString()))
-						failedIF();
-					else
-						successfulIF();
-				} else {
-					error("invalid_operator:" + argTwo, false);
-					successfulIF();
-				}
-			} else if (variables.at(variableAt(argOne)).getNumber() != nullNum && variables.at(variableAt(argThree)).getNumber() != nullNum) {
-				if (argTwo == "==" || argTwo == "is") {
-					if (variables.at(variableAt(argOne)).getNumber() == variables.at(variableAt(argThree)).getNumber())
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == "!=" || argTwo == "not") {
-					if (variables.at(variableAt(argOne)).getNumber() != variables.at(variableAt(argThree)).getNumber())
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == ">") {
-					if (variables.at(variableAt(argOne)).getNumber() > variables.at(variableAt(argThree)).getNumber())
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == ">=") {
-					if (variables.at(variableAt(argOne)).getNumber() >= variables.at(variableAt(argThree)).getNumber())
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == "<") {
-					if (variables.at(variableAt(argOne)).getNumber() < variables.at(variableAt(argThree)).getNumber())
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == "<=") {
-					if (variables.at(variableAt(argOne)).getNumber() <= variables.at(variableAt(argThree)).getNumber())
-						failedIF();
-					else
-						successfulIF();
-				} else {
-					error("invalid_operator:" + argTwo, false);
-					successfulIF();
-				}
-			} else {
-				error("conversion_error:" + s, false);
-				successfulIF();
-			}
-		} else if ((variableExists(argOne) && !variableExists(argThree)) && !methodExists(argThree) && notObjectMethod(argThree) && !containsParams(argThree)) {
-			if (variables.at(variableAt(argOne)).getNumber()!= nullNum) {
-			  	if (isNumeric(argThree)) {
-					if (argTwo == "==" || argTwo == "is") {
-						if (variables.at(variableAt(argOne)).getNumber() == stod(argThree))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "!=" || argTwo == "not") {
-						if (variables.at(variableAt(argOne)).getNumber() != stod(argThree))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == ">") {
-						if (variables.at(variableAt(argOne)).getNumber() > stod(argThree))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "<") {
-						if (variables.at(variableAt(argOne)).getNumber() < stod(argThree))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == ">=") {
-						if (variables.at(variableAt(argOne)).getNumber() >= stod(argThree))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "<=") {
-						if (variables.at(variableAt(argOne)).getNumber() <= stod(argThree))
-							failedIF();
-						else
-							successfulIF();
-					} else {
-						error("invalid_operator:" + argTwo, false);
-						successfulIF();
-					}
-				} else if (argThree == "number?") {
-				    if (argTwo == "==" || argTwo == "is")
-				        failedIF();
-				    else if (argTwo == "!=" || argTwo == "not")
+                        successfulIF();
+                } else if (argTwo == "!=" || argTwo == "not") {
+                    if (variables.at(variableAt(argOne)).getString() != variables.at(variableAt(argThree)).getString())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == ">") {
+                    if (variables.at(variableAt(argOne)).getString().length() > variables.at(variableAt(argThree)).getString().length())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == "<") {
+                    if (variables.at(variableAt(argOne)).getString().length() < variables.at(variableAt(argThree)).getString().length())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == "<=") {
+                    if (variables.at(variableAt(argOne)).getString().length() <= variables.at(variableAt(argThree)).getString().length())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == ">=") {
+                    if (variables.at(variableAt(argOne)).getString().length() >= variables.at(variableAt(argThree)).getString().length())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == "contains") {
+                    if (contains(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argThree)).getString()))
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == "ends_with") {
+                    if (endsWith(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argThree)).getString()))
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == "begins_with") {
+                    if (startsWith(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argThree)).getString()))
+                        failedIF();
+                    else
+                        successfulIF();
+                } else {
+                    error("invalid_operator:" + argTwo, false);
+                    successfulIF();
+                }
+            } else if (variables.at(variableAt(argOne)).getNumber() != nullNum && variables.at(variableAt(argThree)).getNumber() != nullNum) {
+                if (argTwo == "==" || argTwo == "is") {
+                    if (variables.at(variableAt(argOne)).getNumber() == variables.at(variableAt(argThree)).getNumber())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == "!=" || argTwo == "not") {
+                    if (variables.at(variableAt(argOne)).getNumber() != variables.at(variableAt(argThree)).getNumber())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == ">") {
+                    if (variables.at(variableAt(argOne)).getNumber() > variables.at(variableAt(argThree)).getNumber())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == ">=") {
+                    if (variables.at(variableAt(argOne)).getNumber() >= variables.at(variableAt(argThree)).getNumber())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == "<") {
+                    if (variables.at(variableAt(argOne)).getNumber() < variables.at(variableAt(argThree)).getNumber())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == "<=") {
+                    if (variables.at(variableAt(argOne)).getNumber() <= variables.at(variableAt(argThree)).getNumber())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else {
+                    error("invalid_operator:" + argTwo, false);
+                    successfulIF();
+                }
+            } else {
+                error("conversion_error:" + s, false);
+                successfulIF();
+            }
+        } else if ((variableExists(argOne) && !variableExists(argThree)) && !methodExists(argThree) && notObjectMethod(argThree) && !containsParams(argThree)) {
+            if (variables.at(variableAt(argOne)).getNumber()!= nullNum) {
+                if (isNumeric(argThree)) {
+                    if (argTwo == "==" || argTwo == "is") {
+                        if (variables.at(variableAt(argOne)).getNumber() == stod(argThree))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "!=" || argTwo == "not") {
+                        if (variables.at(variableAt(argOne)).getNumber() != stod(argThree))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == ">") {
+                        if (variables.at(variableAt(argOne)).getNumber() > stod(argThree))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "<") {
+                        if (variables.at(variableAt(argOne)).getNumber() < stod(argThree))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == ">=") {
+                        if (variables.at(variableAt(argOne)).getNumber() >= stod(argThree))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "<=") {
+                        if (variables.at(variableAt(argOne)).getNumber() <= stod(argThree))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else {
+                        error("invalid_operator:" + argTwo, false);
+                        successfulIF();
+                    }
+                } else if (argThree == "number?") {
+                    if (argTwo == "==" || argTwo == "is")
+                        failedIF();
+                    else if (argTwo == "!=" || argTwo == "not")
                         successfulIF();
                     else
                         error("invalid_operator:" + argTwo, false);
-				} else {
-					error("conversion_error:" + s, false);
-					successfulIF();
-				}
-			} else if (variables.at(variableAt(argOne)).getString() != null) {
-				if (argThree == "string?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (argTwo == "==" || argTwo == "is")
-							failedIF();
-						else if (argTwo == "!=" || argTwo == "not")
-							successfulIF();
-						else {
-							error("invalid_operator:" + argTwo, false);
-							successfulIF();
-						}
-					} else {
-						if (argTwo == "!")
-							failedIF();
-						else
-							successfulIF();
-					}
-				} else if (argThree == "number?") {
-					if (variables.at(variableAt(argOne)).getNumber() != nullNum) {
-						if (argTwo == "==" || argTwo == "is")
-							failedIF();
-						else if (argTwo == "!=" || argTwo == "not")
-							successfulIF();
-						else {
-							error("invalid_operator:" + argTwo, false);
-							successfulIF();
-						}
-					} else {
-						if (argTwo == "!=" || argTwo == "not")
-							failedIF();
-						else
-							successfulIF();
-					}
-				} else if (argThree == "upper?" || argThree == "uppercase?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (argTwo == "==" || argTwo == "is") {
+                } else {
+                    error("conversion_error:" + s, false);
+                    successfulIF();
+                }
+            } else if (variables.at(variableAt(argOne)).getString() != null) {
+                if (argThree == "string?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (argTwo == "==" || argTwo == "is")
+                            failedIF();
+                        else if (argTwo == "!=" || argTwo == "not")
+                            successfulIF();
+                        else {
+                            error("invalid_operator:" + argTwo, false);
+                            successfulIF();
+                        }
+                    } else {
+                        if (argTwo == "!")
+                            failedIF();
+                        else
+                            successfulIF();
+                    }
+                } else if (argThree == "number?") {
+                    if (variables.at(variableAt(argOne)).getNumber() != nullNum) {
+                        if (argTwo == "==" || argTwo == "is")
+                            failedIF();
+                        else if (argTwo == "!=" || argTwo == "not")
+                            successfulIF();
+                        else {
+                            error("invalid_operator:" + argTwo, false);
+                            successfulIF();
+                        }
+                    } else {
+                        if (argTwo == "!=" || argTwo == "not")
+                            failedIF();
+                        else
+                            successfulIF();
+                    }
+                } else if (argThree == "upper?" || argThree == "uppercase?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (argTwo == "==" || argTwo == "is") {
                             if (isUpper(variables.at(variableAt(argOne)).getString()))
-							    failedIF();
-		                    else
-		                        successfulIF();
-						} else if (argTwo == "!=" || argTwo == "not") {
+                                failedIF();
+                            else
+                                successfulIF();
+                        } else if (argTwo == "!=" || argTwo == "not") {
                             if (isUpper(variables.at(variableAt(argOne)).getString()))
-							    successfulIF();
-		                    else
-		                        failedIF();
-						} else {
-							error("invalid_operator:" + argTwo, false);
-							successfulIF();
-						}
-					} else {
-						if (argTwo == "!=" || argTwo == "not") {
+                                successfulIF();
+                            else
+                                failedIF();
+                        } else {
+                            error("invalid_operator:" + argTwo, false);
+                            successfulIF();
+                        }
+                    } else {
+                        if (argTwo == "!=" || argTwo == "not") {
                             if (isUpper(argTwo))
                                 successfulIF();
                             else
-							    failedIF();
-						} else
-							successfulIF();
-					}
-				} else if (argThree == "lower?" || argThree == "lowercase?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (argTwo == "==" || argTwo == "is") {
+                                failedIF();
+                        } else
+                            successfulIF();
+                    }
+                } else if (argThree == "lower?" || argThree == "lowercase?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (argTwo == "==" || argTwo == "is") {
                             if (isLower(variables.at(variableAt(argOne)).getString()))
-							    failedIF();
-		                    else
-		                        successfulIF();
-						} else if (argTwo == "!=" || argTwo == "not") {
+                                failedIF();
+                            else
+                                successfulIF();
+                        } else if (argTwo == "!=" || argTwo == "not") {
                             if (isLower(variables.at(variableAt(argOne)).getString()))
-							    successfulIF();
-		                    else
-		                        failedIF();
-						} else {
-							error("invalid_operator:" + argTwo, false);
-							successfulIF();
-						}
-					} else {
-						if (argTwo == "!=" || argTwo == "not") {
+                                successfulIF();
+                            else
+                                failedIF();
+                        } else {
+                            error("invalid_operator:" + argTwo, false);
+                            successfulIF();
+                        }
+                    } else {
+                        if (argTwo == "!=" || argTwo == "not") {
                             if (isLower(argTwo))
                                 successfulIF();
                             else
-							    failedIF();
-						} else
-							successfulIF();
-					}
-				} else if (argThree == "file?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (fileExists(variables.at(variableAt(argOne)).getString())) {
-							if (argTwo == "==" || argTwo == "is")
-								failedIF();
-							else if (argTwo == "!=" || argTwo == "not")
-								successfulIF();
-							else {
-								error("invalid_operator:" + argTwo, false);
-								successfulIF();
-							}
-						} else {
-							if (argTwo == "!=" || argTwo == "not")
-								failedIF();
-							else
-								successfulIF();
-						}
-					} else {
-						error("is_null:" + argOne, false);
-						successfulIF();
-					}
-				} else if (argThree == "dir?" || argThree == "directory?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (directoryExists(variables.at(variableAt(argOne)).getString())) {
-							if (argTwo == "==" || argTwo == "is")
-								failedIF();
-							else if (argTwo == "!=" || argTwo == "not")
-								successfulIF();
-							else {
-								error("invalid_operator:" + argTwo, false);
-								successfulIF();
-							}
-						} else {
-							if (argTwo == "!=" || argTwo == "not")
-								failedIF();
-							else
-								successfulIF();
-						}
-					} else {
-						error("is_null:" + argOne, false);
-						successfulIF();
-					}
-				} else {
-					if (argTwo == "==" || argTwo == "is") {
-						if (variables.at(variableAt(argOne)).getString() == argThree)
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "!=" || argTwo == "not") {
-						if (variables.at(variableAt(argOne)).getString() != argThree)
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == ">") {
-						if (variables.at(variableAt(argOne)).getString().length() > argThree.length())
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "<") {
-						if (variables.at(variableAt(argOne)).getString().length() < argThree.length())
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == ">=") {
-						if (variables.at(variableAt(argOne)).getString().length() >= argThree.length())
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "<=") {
-						if (variables.at(variableAt(argOne)).getString().length() <= argThree.length())
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "contains") {
-						if (contains(variables.at(variableAt(argOne)).getString(), argThree))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "ends_with") {
-						if (endsWith(variables.at(variableAt(argOne)).getString(), argThree))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "begins_with") {
-						if (startsWith(variables.at(variableAt(argOne)).getString(), argThree))
-							failedIF();
-						else
-							successfulIF();
-					} else {
-						error("invalid_operator:" + argTwo, false);
-						successfulIF();
-					}
-				}
-			} else {
+                                failedIF();
+                        } else
+                            successfulIF();
+                    }
+                } else if (argThree == "file?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (fileExists(variables.at(variableAt(argOne)).getString())) {
+                            if (argTwo == "==" || argTwo == "is")
+                                failedIF();
+                            else if (argTwo == "!=" || argTwo == "not")
+                                successfulIF();
+                            else {
+                                error("invalid_operator:" + argTwo, false);
+                                successfulIF();
+                            }
+                        } else {
+                            if (argTwo == "!=" || argTwo == "not")
+                                failedIF();
+                            else
+                                successfulIF();
+                        }
+                    } else {
+                        error("is_null:" + argOne, false);
+                        successfulIF();
+                    }
+                } else if (argThree == "dir?" || argThree == "directory?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (directoryExists(variables.at(variableAt(argOne)).getString())) {
+                            if (argTwo == "==" || argTwo == "is")
+                                failedIF();
+                            else if (argTwo == "!=" || argTwo == "not")
+                                successfulIF();
+                            else {
+                                error("invalid_operator:" + argTwo, false);
+                                successfulIF();
+                            }
+                        } else {
+                            if (argTwo == "!=" || argTwo == "not")
+                                failedIF();
+                            else
+                                successfulIF();
+                        }
+                    } else {
+                        error("is_null:" + argOne, false);
+                        successfulIF();
+                    }
+                } else {
+                    if (argTwo == "==" || argTwo == "is") {
+                        if (variables.at(variableAt(argOne)).getString() == argThree)
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "!=" || argTwo == "not") {
+                        if (variables.at(variableAt(argOne)).getString() != argThree)
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == ">") {
+                        if (variables.at(variableAt(argOne)).getString().length() > argThree.length())
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "<") {
+                        if (variables.at(variableAt(argOne)).getString().length() < argThree.length())
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == ">=") {
+                        if (variables.at(variableAt(argOne)).getString().length() >= argThree.length())
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "<=") {
+                        if (variables.at(variableAt(argOne)).getString().length() <= argThree.length())
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "contains") {
+                        if (contains(variables.at(variableAt(argOne)).getString(), argThree))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "ends_with") {
+                        if (endsWith(variables.at(variableAt(argOne)).getString(), argThree))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "begins_with") {
+                        if (startsWith(variables.at(variableAt(argOne)).getString(), argThree))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else {
+                        error("invalid_operator:" + argTwo, false);
+                        successfulIF();
+                    }
+                }
+            } else {
                 error("special_error(0)", false); // variable is neither string nor number
                 successfulIF();
-			}
-		} else if ((variableExists(argOne) && !variableExists(argThree)) && !methodExists(argThree) && notObjectMethod(argThree) && containsParams(argThree)) {
-		    string stackValue("");
+            }
+        } else if ((variableExists(argOne) && !variableExists(argThree)) && !methodExists(argThree) && notObjectMethod(argThree) && containsParams(argThree)) {
+            string stackValue("");
 
-		    if (isStringStack(argThree))
-		        stackValue = getStringStack(argThree);
-		    else if (stackReady(argThree))
+            if (isStringStack(argThree))
+                stackValue = getStringStack(argThree);
+            else if (stackReady(argThree))
                 stackValue = dtos(getStack(argThree));
             else
                 stackValue = argThree;
 
-			if (variables.at(variableAt(argOne)).getNumber()!= nullNum) {
-			  	if (isNumeric(stackValue)) {
-					if (argTwo == "==" || argTwo == "is") {
-						if (variables.at(variableAt(argOne)).getNumber() == stod(stackValue))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "!=" || argTwo == "not") {
-						if (variables.at(variableAt(argOne)).getNumber() != stod(stackValue))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == ">") {
-						if (variables.at(variableAt(argOne)).getNumber() > stod(stackValue))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "<") {
-						if (variables.at(variableAt(argOne)).getNumber() < stod(stackValue))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == ">=") {
-						if (variables.at(variableAt(argOne)).getNumber() >= stod(stackValue))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "<=") {
-						if (variables.at(variableAt(argOne)).getNumber() <= stod(stackValue))
-							failedIF();
-						else
-							successfulIF();
-					} else {
-						error("invalid_operator:" + argTwo, false);
-						successfulIF();
-					}
-				} else if (stackValue == "is_number?" || stackValue == "number?") {
-				    if (argTwo == "==" || argTwo == "is")
-				        failedIF();
-				    else if (argTwo == "!=" || argTwo == "not")
+            if (variables.at(variableAt(argOne)).getNumber()!= nullNum) {
+                if (isNumeric(stackValue)) {
+                    if (argTwo == "==" || argTwo == "is") {
+                        if (variables.at(variableAt(argOne)).getNumber() == stod(stackValue))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "!=" || argTwo == "not") {
+                        if (variables.at(variableAt(argOne)).getNumber() != stod(stackValue))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == ">") {
+                        if (variables.at(variableAt(argOne)).getNumber() > stod(stackValue))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "<") {
+                        if (variables.at(variableAt(argOne)).getNumber() < stod(stackValue))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == ">=") {
+                        if (variables.at(variableAt(argOne)).getNumber() >= stod(stackValue))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "<=") {
+                        if (variables.at(variableAt(argOne)).getNumber() <= stod(stackValue))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else {
+                        error("invalid_operator:" + argTwo, false);
+                        successfulIF();
+                    }
+                } else if (stackValue == "is_number?" || stackValue == "number?") {
+                    if (argTwo == "==" || argTwo == "is")
+                        failedIF();
+                    else if (argTwo == "!=" || argTwo == "not")
                         successfulIF();
                     else
                         error("invalid_operator:" + argTwo, false);
-				} else {
-					error("conversion_error:" + s, false);
-					successfulIF();
-				}
-			} else if (variables.at(variableAt(argOne)).getString() != null) {
-				if (stackValue == "is_string?" || stackValue == "string?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (argTwo == "==" || argTwo == "is")
-							failedIF();
-						else if (argTwo == "!=" || argTwo == "not")
-							successfulIF();
-						else {
-							error("invalid_operator:" + argTwo, false);
-							successfulIF();
-						}
-					} else {
-						if (argTwo == "!=" || argTwo == "not")
-							failedIF();
-						else
-							successfulIF();
-					}
-				} else if (stackValue == "is_number?" || stackValue == "number?") {
-					if (variables.at(variableAt(argOne)).getNumber() != nullNum) {
-						if (argTwo == "==" || argTwo == "is")
-							failedIF();
-						else if (argTwo == "!=" || argTwo == "not")
-							successfulIF();
-						else {
-							error("invalid_operator:" + argTwo, false);
-							successfulIF();
-						}
-					} else {
-						if (argTwo == "!=" || argTwo == "not")
-							failedIF();
-						else
-							successfulIF();
-					}
-				} else if (stackValue == "uppercase?" || stackValue == "upper?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (argTwo == "==" || argTwo == "is") {
+                } else {
+                    error("conversion_error:" + s, false);
+                    successfulIF();
+                }
+            } else if (variables.at(variableAt(argOne)).getString() != null) {
+                if (stackValue == "is_string?" || stackValue == "string?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (argTwo == "==" || argTwo == "is")
+                            failedIF();
+                        else if (argTwo == "!=" || argTwo == "not")
+                            successfulIF();
+                        else {
+                            error("invalid_operator:" + argTwo, false);
+                            successfulIF();
+                        }
+                    } else {
+                        if (argTwo == "!=" || argTwo == "not")
+                            failedIF();
+                        else
+                            successfulIF();
+                    }
+                } else if (stackValue == "is_number?" || stackValue == "number?") {
+                    if (variables.at(variableAt(argOne)).getNumber() != nullNum) {
+                        if (argTwo == "==" || argTwo == "is")
+                            failedIF();
+                        else if (argTwo == "!=" || argTwo == "not")
+                            successfulIF();
+                        else {
+                            error("invalid_operator:" + argTwo, false);
+                            successfulIF();
+                        }
+                    } else {
+                        if (argTwo == "!=" || argTwo == "not")
+                            failedIF();
+                        else
+                            successfulIF();
+                    }
+                } else if (stackValue == "uppercase?" || stackValue == "upper?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (argTwo == "==" || argTwo == "is") {
                             if (isUpper(variables.at(variableAt(argOne)).getString()))
-							    failedIF();
-		                    else
-		                        successfulIF();
-						} else if (argTwo == "!=" || argTwo == "not") {
+                                failedIF();
+                            else
+                                successfulIF();
+                        } else if (argTwo == "!=" || argTwo == "not") {
                             if (isUpper(variables.at(variableAt(argOne)).getString()))
-							    successfulIF();
-		                    else
-		                        failedIF();
-						} else {
-							error("invalid_operator:" + argTwo, false);
-							successfulIF();
-						}
-					} else {
-						if (argTwo == "!=" || argTwo == "not") {
+                                successfulIF();
+                            else
+                                failedIF();
+                        } else {
+                            error("invalid_operator:" + argTwo, false);
+                            successfulIF();
+                        }
+                    } else {
+                        if (argTwo == "!=" || argTwo == "not") {
                             if (isUpper(argTwo))
                                 successfulIF();
                             else
-							    failedIF();
-						} else
-							successfulIF();
-					}
-				} else if (stackValue == "lowercase?" || stackValue == "lower?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (argTwo == "==" || argTwo == "is") {
+                                failedIF();
+                        } else
+                            successfulIF();
+                    }
+                } else if (stackValue == "lowercase?" || stackValue == "lower?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (argTwo == "==" || argTwo == "is") {
                             if (isLower(variables.at(variableAt(argOne)).getString()))
-							    failedIF();
-		                    else
-		                        successfulIF();
-						} else if (argTwo == "!=" || argTwo == "not") {
+                                failedIF();
+                            else
+                                successfulIF();
+                        } else if (argTwo == "!=" || argTwo == "not") {
                             if (isLower(variables.at(variableAt(argOne)).getString()))
-							    successfulIF();
-		                    else
-		                        failedIF();
-						} else {
-							error("invalid_operator:" + argTwo, false);
-							successfulIF();
-						}
-					} else {
-						if (argTwo == "!=" || argTwo == "not") {
+                                successfulIF();
+                            else
+                                failedIF();
+                        } else {
+                            error("invalid_operator:" + argTwo, false);
+                            successfulIF();
+                        }
+                    } else {
+                        if (argTwo == "!=" || argTwo == "not") {
                             if (isLower(argTwo))
                                 successfulIF();
                             else
-							    failedIF();
-						} else
-							successfulIF();
-					}
-				} else if (stackValue == "file?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (fileExists(variables.at(variableAt(argOne)).getString())) {
-							if (argTwo == "==" || argTwo == "is")
-								failedIF();
-							else if (argTwo == "!=" || argTwo == "not")
-								successfulIF();
-							else {
-								error("invalid_operator:" + argTwo, false);
-								successfulIF();
-							}
-						} else {
-							if (argTwo == "!=" || argTwo == "not")
-								failedIF();
-							else
-								successfulIF();
-						}
-					} else {
-						error("is_null:" + argOne, false);
-						successfulIF();
-					}
-				} else if (stackValue == "dir?" || stackValue == "directory?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (directoryExists(variables.at(variableAt(argOne)).getString())) {
-							if (argTwo == "==" || argTwo == "is")
-								failedIF();
-							else if (argTwo == "!=" || argTwo == "not")
-								successfulIF();
-							else {
-								error("invalid_operator:" + argTwo, false);
-								successfulIF();
-							}
-						} else {
-							if (argTwo == "!=" || argTwo == "not")
-								failedIF();
-							else
-								successfulIF();
-						}
-					} else {
-						error("is_null:" + argOne, false);
-						successfulIF();
-					}
-				} else {
-					if (argTwo == "==" || argTwo == "is") {
-						if (variables.at(variableAt(argOne)).getString() == stackValue)
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "!=" || argTwo == "not") {
-						if (variables.at(variableAt(argOne)).getString() != stackValue)
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == ">") {
-						if (variables.at(variableAt(argOne)).getString().length() > stackValue.length())
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "<") {
-						if (variables.at(variableAt(argOne)).getString().length() < stackValue.length())
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == ">=") {
-						if (variables.at(variableAt(argOne)).getString().length() >= stackValue.length())
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "<=") {
-						if (variables.at(variableAt(argOne)).getString().length() <= stackValue.length())
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "contains") {
-						if (contains(variables.at(variableAt(argOne)).getString(), stackValue))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "ends_with") {
-						if (endsWith(variables.at(variableAt(argOne)).getString(), stackValue))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "begins_with") {
-						if (startsWith(variables.at(variableAt(argOne)).getString(), stackValue))
-							failedIF();
-						else
-							successfulIF();
-					} else {
-						error("invalid_operator:" + argTwo, false);
-						successfulIF();
-					}
-				}
-			} else {
-				error("special_error(0)", false); // variable is neither string nor number
-				successfulIF();
-			}
+                                failedIF();
+                        } else
+                            successfulIF();
+                    }
+                } else if (stackValue == "file?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (fileExists(variables.at(variableAt(argOne)).getString())) {
+                            if (argTwo == "==" || argTwo == "is")
+                                failedIF();
+                            else if (argTwo == "!=" || argTwo == "not")
+                                successfulIF();
+                            else {
+                                error("invalid_operator:" + argTwo, false);
+                                successfulIF();
+                            }
+                        } else {
+                            if (argTwo == "!=" || argTwo == "not")
+                                failedIF();
+                            else
+                                successfulIF();
+                        }
+                    } else {
+                        error("is_null:" + argOne, false);
+                        successfulIF();
+                    }
+                } else if (stackValue == "dir?" || stackValue == "directory?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (directoryExists(variables.at(variableAt(argOne)).getString())) {
+                            if (argTwo == "==" || argTwo == "is")
+                                failedIF();
+                            else if (argTwo == "!=" || argTwo == "not")
+                                successfulIF();
+                            else {
+                                error("invalid_operator:" + argTwo, false);
+                                successfulIF();
+                            }
+                        } else {
+                            if (argTwo == "!=" || argTwo == "not")
+                                failedIF();
+                            else
+                                successfulIF();
+                        }
+                    } else {
+                        error("is_null:" + argOne, false);
+                        successfulIF();
+                    }
+                } else {
+                    if (argTwo == "==" || argTwo == "is") {
+                        if (variables.at(variableAt(argOne)).getString() == stackValue)
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "!=" || argTwo == "not") {
+                        if (variables.at(variableAt(argOne)).getString() != stackValue)
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == ">") {
+                        if (variables.at(variableAt(argOne)).getString().length() > stackValue.length())
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "<") {
+                        if (variables.at(variableAt(argOne)).getString().length() < stackValue.length())
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == ">=") {
+                        if (variables.at(variableAt(argOne)).getString().length() >= stackValue.length())
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "<=") {
+                        if (variables.at(variableAt(argOne)).getString().length() <= stackValue.length())
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "contains") {
+                        if (contains(variables.at(variableAt(argOne)).getString(), stackValue))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "ends_with") {
+                        if (endsWith(variables.at(variableAt(argOne)).getString(), stackValue))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "begins_with") {
+                        if (startsWith(variables.at(variableAt(argOne)).getString(), stackValue))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else {
+                        error("invalid_operator:" + argTwo, false);
+                        successfulIF();
+                    }
+                }
+            } else {
+                error("special_error(0)", false); // variable is neither string nor number
+                successfulIF();
+            }
         } else if ((!variableExists(argOne) && variableExists(argThree)) && !methodExists(argOne) && notObjectMethod(argOne) && !containsParams(argOne)) {
-			if (variables.at(variableAt(argThree)).getNumber() != nullNum) {
-				if (isNumeric(argOne)) {
-					if (argTwo == "==" || argTwo == "is") {
-						if (variables.at(variableAt(argThree)).getNumber() == stod(argOne))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "!=" || argTwo == "not") {
-						if (variables.at(variableAt(argThree)).getNumber() != stod(argOne))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == ">") {
-						if (variables.at(variableAt(argThree)).getNumber() > stod(argOne))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "<") {
-						if (variables.at(variableAt(argThree)).getNumber() < stod(argOne))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == ">=") {
-						if (variables.at(variableAt(argThree)).getNumber() >= stod(argOne))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "<=") {
-						if (variables.at(variableAt(argThree)).getNumber() <= stod(argOne))
-							failedIF();
-						else
-							successfulIF();
-					} else {
-						error("invalid_operator:" + argTwo, false);
-						successfulIF();
-					}
-				} else {
-					error("conversion_error:" + s, false);
-					successfulIF();
-				}
-			} else if (variables.at(variableAt(argThree)).getString() != null) {
-				if (argTwo == "==" || argTwo == "is") {
-					if (variables.at(variableAt(argThree)).getString() == argOne)
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == "!=" || argTwo == "not") {
-					if (variables.at(variableAt(argThree)).getString() != argOne)
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == ">") {
-					if (variables.at(variableAt(argThree)).getString().length() > argOne.length())
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == "<") {
-					if (variables.at(variableAt(argThree)).getString().length() < argOne.length())
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == ">=") {
-					if (variables.at(variableAt(argThree)).getString().length() >= argOne.length())
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == "<=") {
-					if (variables.at(variableAt(argThree)).getString().length() <= argOne.length())
-						failedIF();
-					else
-						successfulIF();
-				} else {
-					error("invalid_operator:" + argTwo, false);
-					successfulIF();
-				}
-			} else {
-				error("special_error(1)", false); // variable is neither string nor number
-				successfulIF();
-			}
-		} else if ((!variableExists(argOne) && variableExists(argThree)) && !methodExists(argOne) && notObjectMethod(argOne) && containsParams(argOne)) {
-		    string stackValue("");
+            if (variables.at(variableAt(argThree)).getNumber() != nullNum) {
+                if (isNumeric(argOne)) {
+                    if (argTwo == "==" || argTwo == "is") {
+                        if (variables.at(variableAt(argThree)).getNumber() == stod(argOne))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "!=" || argTwo == "not") {
+                        if (variables.at(variableAt(argThree)).getNumber() != stod(argOne))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == ">") {
+                        if (variables.at(variableAt(argThree)).getNumber() > stod(argOne))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "<") {
+                        if (variables.at(variableAt(argThree)).getNumber() < stod(argOne))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == ">=") {
+                        if (variables.at(variableAt(argThree)).getNumber() >= stod(argOne))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "<=") {
+                        if (variables.at(variableAt(argThree)).getNumber() <= stod(argOne))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else {
+                        error("invalid_operator:" + argTwo, false);
+                        successfulIF();
+                    }
+                } else {
+                    error("conversion_error:" + s, false);
+                    successfulIF();
+                }
+            } else if (variables.at(variableAt(argThree)).getString() != null) {
+                if (argTwo == "==" || argTwo == "is") {
+                    if (variables.at(variableAt(argThree)).getString() == argOne)
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == "!=" || argTwo == "not") {
+                    if (variables.at(variableAt(argThree)).getString() != argOne)
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == ">") {
+                    if (variables.at(variableAt(argThree)).getString().length() > argOne.length())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == "<") {
+                    if (variables.at(variableAt(argThree)).getString().length() < argOne.length())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == ">=") {
+                    if (variables.at(variableAt(argThree)).getString().length() >= argOne.length())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == "<=") {
+                    if (variables.at(variableAt(argThree)).getString().length() <= argOne.length())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else {
+                    error("invalid_operator:" + argTwo, false);
+                    successfulIF();
+                }
+            } else {
+                error("special_error(1)", false); // variable is neither string nor number
+                successfulIF();
+            }
+        } else if ((!variableExists(argOne) && variableExists(argThree)) && !methodExists(argOne) && notObjectMethod(argOne) && containsParams(argOne)) {
+            string stackValue("");
 
-		    if (isStringStack(argOne))
+            if (isStringStack(argOne))
                 stackValue = getStringStack(argOne);
             else if (stackReady(argOne))
                 stackValue = dtos(getStack(argOne));
             else
                 stackValue = argOne;
 
-			if (variables.at(variableAt(argThree)).getNumber() != nullNum) {
-				if (isNumeric(stackValue)) {
-					if (argTwo == "==" || argTwo == "is") {
-						if (variables.at(variableAt(argThree)).getNumber() == stod(stackValue))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "!=" || argTwo == "not") {
-						if (variables.at(variableAt(argThree)).getNumber() != stod(stackValue))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == ">") {
-						if (variables.at(variableAt(argThree)).getNumber() > stod(stackValue))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "<") {
-						if (variables.at(variableAt(argThree)).getNumber() < stod(stackValue))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == ">=") {
-						if (variables.at(variableAt(argThree)).getNumber() >= stod(stackValue))
-							failedIF();
-						else
-							successfulIF();
-					} else if (argTwo == "<=") {
-						if (variables.at(variableAt(argThree)).getNumber() <= stod(stackValue))
-							failedIF();
-						else
-							successfulIF();
-					} else {
-						error("invalid_operator:" + argTwo, false);
-						successfulIF();
-					}
-				} else {
-					error("conversion_error:" + s, false);
-					successfulIF();
-				}
-			} else if (variables.at(variableAt(argThree)).getString() != null) {
-				if (argTwo == "==" || argTwo == "is") {
-					if (variables.at(variableAt(argThree)).getString() == stackValue)
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == "!=" || argTwo == "not") {
-					if (variables.at(variableAt(argThree)).getString() != stackValue)
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == ">") {
-					if (variables.at(variableAt(argThree)).getString().length() > stackValue.length())
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == "<") {
-					if (variables.at(variableAt(argThree)).getString().length() < stackValue.length())
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == ">=") {
-					if (variables.at(variableAt(argThree)).getString().length() >= stackValue.length())
-						failedIF();
-					else
-						successfulIF();
-				} else if (argTwo == "<=") {
-					if (variables.at(variableAt(argThree)).getString().length() <= stackValue.length())
-						failedIF();
-					else
-						successfulIF();
-				} else {
-					error("invalid_operator:" + argTwo, false);
-					successfulIF();
-				}
-			} else {
-				error("special_error(1)", false); // variable is neither string nor number
-				successfulIF();
-			}
-		} else if (containsParams(argOne) || containsParams(argThree)) {
-		    if (containsParams(argOne) && containsParams(argThree)) {
-		        if (!zeroDots(argOne) && !zeroDots(argThree)) {
+            if (variables.at(variableAt(argThree)).getNumber() != nullNum) {
+                if (isNumeric(stackValue)) {
+                    if (argTwo == "==" || argTwo == "is") {
+                        if (variables.at(variableAt(argThree)).getNumber() == stod(stackValue))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "!=" || argTwo == "not") {
+                        if (variables.at(variableAt(argThree)).getNumber() != stod(stackValue))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == ">") {
+                        if (variables.at(variableAt(argThree)).getNumber() > stod(stackValue))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "<") {
+                        if (variables.at(variableAt(argThree)).getNumber() < stod(stackValue))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == ">=") {
+                        if (variables.at(variableAt(argThree)).getNumber() >= stod(stackValue))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else if (argTwo == "<=") {
+                        if (variables.at(variableAt(argThree)).getNumber() <= stod(stackValue))
+                            failedIF();
+                        else
+                            successfulIF();
+                    } else {
+                        error("invalid_operator:" + argTwo, false);
+                        successfulIF();
+                    }
+                } else {
+                    error("conversion_error:" + s, false);
+                    successfulIF();
+                }
+            } else if (variables.at(variableAt(argThree)).getString() != null) {
+                if (argTwo == "==" || argTwo == "is") {
+                    if (variables.at(variableAt(argThree)).getString() == stackValue)
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == "!=" || argTwo == "not") {
+                    if (variables.at(variableAt(argThree)).getString() != stackValue)
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == ">") {
+                    if (variables.at(variableAt(argThree)).getString().length() > stackValue.length())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == "<") {
+                    if (variables.at(variableAt(argThree)).getString().length() < stackValue.length())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == ">=") {
+                    if (variables.at(variableAt(argThree)).getString().length() >= stackValue.length())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else if (argTwo == "<=") {
+                    if (variables.at(variableAt(argThree)).getString().length() <= stackValue.length())
+                        failedIF();
+                    else
+                        successfulIF();
+                } else {
+                    error("invalid_operator:" + argTwo, false);
+                    successfulIF();
+                }
+            } else {
+                error("special_error(1)", false); // variable is neither string nor number
+                successfulIF();
+            }
+        } else if (containsParams(argOne) || containsParams(argThree)) {
+            if (containsParams(argOne) && containsParams(argThree)) {
+                if (!zeroDots(argOne) && !zeroDots(argThree)) {
                     string argOnebefore(beforeDot(argOne)), argOneafter(afterDot(argOne)),
-                        argThreebefore(beforeDot(argThree)), argThreeafter(afterDot(argThree));
+                           argThreebefore(beforeDot(argThree)), argThreeafter(afterDot(argThree));
 
                     string argOneResult(""), argThreeResult("");
 
@@ -8303,8 +8193,8 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
 
                         successfulIF();
                     }
-		        } else if (!zeroDots(argOne) && zeroDots(argThree)) {
-		            string argOnebefore(beforeDot(argOne)), argOneafter(afterDot(argOne));
+                } else if (!zeroDots(argOne) && zeroDots(argThree)) {
+                    string argOnebefore(beforeDot(argOne)), argOneafter(afterDot(argOne));
 
                     string argOneResult(""), argThreeResult("");
 
@@ -8374,7 +8264,7 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                         error("invalid_operation:object_undefined:" + argOnebefore, false);
                         successfulIF();
                     }
-		        } else if (zeroDots(argOne) && !zeroDots(argThree)) {
+                } else if (zeroDots(argOne) && !zeroDots(argThree)) {
                     string argThreebefore(beforeDot(argThree)), argThreeafter(afterDot(argThree));
 
                     string argOneResult(""), argThreeResult("");
@@ -8445,8 +8335,8 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                         error("invalid_operation:object_undefined:" + argThreebefore, false);
                         successfulIF();
                     }
-		        } else if (zeroDots(argOne) && zeroDots(argThree)) {
-		            string argOneResult(""), argThreeResult("");
+                } else if (zeroDots(argOne) && zeroDots(argThree)) {
+                    string argOneResult(""), argThreeResult("");
 
                     if (methodExists(beforeParams(argOne)))
                         executeTemplate(methods.at(methodAt(beforeParams(argOne))), getParams(argOne));
@@ -8509,16 +8399,16 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                             successfulIF();
                         }
                     }
-		        } else {
-		            error("special_error(9)", false);
+                } else {
+                    error("special_error(9)", false);
                     successfulIF();
-		        }
-		    } else if (containsParams(argOne) && !containsParams(argThree)) {
-		        string argOneResult(""), argThreeResult("");
+                }
+            } else if (containsParams(argOne) && !containsParams(argThree)) {
+                string argOneResult(""), argThreeResult("");
 
-		        bool pass = true;
+                bool pass = true;
 
-		        if (zeroDots(argOne)) {
+                if (zeroDots(argOne)) {
                     if (methodExists(beforeParams(argOne))) {
                         executeTemplate(methods.at(methodAt(beforeParams(argOne))), getParams(argOne));
 
@@ -8598,10 +8488,10 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                         error("invalid_operation:method_undefined:" + beforeParams(argOne), false);
                         successfulIF();
                     }
-		        } else {
-		            string argOnebefore(beforeDot(argOne)), argOneafter(afterDot(argOne));
+                } else {
+                    string argOnebefore(beforeDot(argOne)), argOneafter(afterDot(argOne));
 
-		            if (objectExists(argOnebefore)) {
+                    if (objectExists(argOnebefore)) {
                         if (objects.at(objectAt(argOnebefore)).methodExists(beforeParams(argOneafter)))
                             executeTemplate(objects.at(objectAt(argOnebefore)).getMethod(beforeParams(argOneafter)), getParams(argOneafter));
 
@@ -8677,17 +8567,17 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                                 }
                             }
                         }
-		            } else {
-		                error("invalid_operation:object_undefined:" + argOnebefore, false);
-		                successfulIF();
-		            }
-		        }
-		    } else if (!containsParams(argOne) && containsParams(argThree)) {
-		        string argOneResult(""), argThreeResult("");
+                    } else {
+                        error("invalid_operation:object_undefined:" + argOnebefore, false);
+                        successfulIF();
+                    }
+                }
+            } else if (!containsParams(argOne) && containsParams(argThree)) {
+                string argOneResult(""), argThreeResult("");
 
-		        bool pass = true;
+                bool pass = true;
 
-		        if (zeroDots(argThree)) {
+                if (zeroDots(argThree)) {
                     if (methodExists(beforeParams(argThree))) {
                         executeTemplate(methods.at(methodAt(beforeParams(argThree))), getParams(argThree));
 
@@ -8766,10 +8656,10 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                         error("invalid_operation:method_undefined:" + beforeParams(argThree), false);
                         successfulIF();
                     }
-		        } else {
-		            string argThreebefore(beforeDot(argThree)), argThreeafter(afterDot(argThree));
+                } else {
+                    string argThreebefore(beforeDot(argThree)), argThreeafter(afterDot(argThree));
 
-		            if (objectExists(argThreebefore)) {
+                    if (objectExists(argThreebefore)) {
                         if (objects.at(objectAt(argThreebefore)).methodExists(beforeParams(argThreeafter)))
                             executeTemplate(objects.at(objectAt(argThreebefore)).getMethod(beforeParams(argThreeafter)), getParams(argThreeafter));
 
@@ -8842,20 +8732,20 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                                 successfulIF();
                             }
                         }
-		            } else {
-		                error("invalid_operation:object_undefined:" + argThreebefore, false);
-		                successfulIF();
-		            }
-		        }
-		    }
-		} else if ((methodExists(argOne) && argThree != "method?")|| methodExists(argThree)) {
-		    string argOneResult(""), argThreeResult("");
+                    } else {
+                        error("invalid_operation:object_undefined:" + argThreebefore, false);
+                        successfulIF();
+                    }
+                }
+            }
+        } else if ((methodExists(argOne) && argThree != "method?")|| methodExists(argThree)) {
+            string argOneResult(""), argThreeResult("");
 
-		    if (methodExists(argOne)) {
-		        parse(argOne);
-		        argOneResult = lastValue;
-		    } else if (variableExists(argOne)) {
-		        if (variables.at(variableAt(argOne)).getString() != null)
+            if (methodExists(argOne)) {
+                parse(argOne);
+                argOneResult = lastValue;
+            } else if (variableExists(argOne)) {
+                if (variables.at(variableAt(argOne)).getString() != null)
                     argOneResult = variables.at(variableAt(argOne)).getString();
                 else if (variables.at(variableAt(argOne)).getNumber() != nullNum)
                     argOneResult = dtos(variables.at(variableAt(argOne)).getNumber());
@@ -8863,14 +8753,14 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                     error("is_null:" + argOne, false);
                     successfulIF();
                 }
-		    } else
+            } else
                 argOneResult = argOne;
 
-		    if (methodExists(argThree)) {
-		        parse(argThree);
-		        argThreeResult = lastValue;
-		    } else if (variableExists(argThree)) {
-		        if (variables.at(variableAt(argThree)).getString() != null)
+            if (methodExists(argThree)) {
+                parse(argThree);
+                argThreeResult = lastValue;
+            } else if (variableExists(argThree)) {
+                if (variables.at(variableAt(argThree)).getString() != null)
                     argThreeResult = variables.at(variableAt(argThree)).getString();
                 else if (variables.at(variableAt(argThree)).getNumber() != nullNum)
                     argThreeResult = dtos(variables.at(variableAt(argThree)).getNumber());
@@ -8878,61 +8768,61 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                     error("is_null:" + argThree, false);
                     successfulIF();
                 }
-		    } else
+            } else
                 argThreeResult = argThree;
 
-		    if (isNumeric(argOneResult) && isNumeric(argThreeResult)) {
-		        if (argTwo == "==" || argTwo == "is") {
-		            if (stod(argOneResult) == stod(argThreeResult))
+            if (isNumeric(argOneResult) && isNumeric(argThreeResult)) {
+                if (argTwo == "==" || argTwo == "is") {
+                    if (stod(argOneResult) == stod(argThreeResult))
                         failedIF();
                     else
                         successfulIF();
-		        } else if (argTwo == "!=" || argTwo == "not") {
-		            if (stod(argOneResult) != stod(argThreeResult))
+                } else if (argTwo == "!=" || argTwo == "not") {
+                    if (stod(argOneResult) != stod(argThreeResult))
                         failedIF();
                     else
                         successfulIF();
-		        } else if (argTwo == "<") {
-		            if (stod(argOneResult) < stod(argThreeResult))
+                } else if (argTwo == "<") {
+                    if (stod(argOneResult) < stod(argThreeResult))
                         failedIF();
                     else
                         successfulIF();
-		        } else if (argTwo == ">") {
-		            if (stod(argOneResult) > stod(argThreeResult))
+                } else if (argTwo == ">") {
+                    if (stod(argOneResult) > stod(argThreeResult))
                         failedIF();
                     else
                         successfulIF();
-		        } else if (argTwo == "<=") {
-		            if (stod(argOneResult) <= stod(argThreeResult))
+                } else if (argTwo == "<=") {
+                    if (stod(argOneResult) <= stod(argThreeResult))
                         failedIF();
                     else
                         successfulIF();
-		        } else if (argTwo == ">=") {
-		            if (stod(argOneResult) >= stod(argThreeResult))
+                } else if (argTwo == ">=") {
+                    if (stod(argOneResult) >= stod(argThreeResult))
                         failedIF();
                     else
                         successfulIF();
-		        } else {
-		            error("invalid_operator:" + argTwo, false);
-		            successfulIF();
-		        }
-		    } else {
-		        if (argTwo == "==" || argTwo == "is") {
-		            if (argOneResult == argThreeResult)
+                } else {
+                    error("invalid_operator:" + argTwo, false);
+                    successfulIF();
+                }
+            } else {
+                if (argTwo == "==" || argTwo == "is") {
+                    if (argOneResult == argThreeResult)
                         failedIF();
                     else
                         successfulIF();
-		        } else if (argTwo == "!=" || argTwo == "not") {
-		            if (argOneResult != argThreeResult)
+                } else if (argTwo == "!=" || argTwo == "not") {
+                    if (argOneResult != argThreeResult)
                         failedIF();
                     else
                         successfulIF();
-		        } else {
-		            error("invalid_operator:" + argTwo, false);
-		            successfulIF();
-		        }
-		    }
-		} else {
+                } else {
+                    error("invalid_operator:" + argTwo, false);
+                    successfulIF();
+                }
+            }
+        } else {
             if (argThree == "object?") {
                 if (objectExists(argOne)) {
                     if (argTwo == "==" || argTwo == "is")
@@ -9014,83 +8904,83 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                     }
                 }
             } else if (argTwo == "==" || argTwo == "is") {
-				if (argOne == argThree)
-					failedIF();
-				else
-					successfulIF();
-			} else if (argTwo == "!=" || argTwo == "not") {
-				if (argOne != argThree)
-					failedIF();
-				else
-					successfulIF();
-			} else if (argTwo == ">") {
-				if (isNumeric(argOne) && isNumeric(argThree)) {
-					if (stod(argOne) > stod(argThree))
-						failedIF();
-					else
-						successfulIF();
-				} else {
-					if (argOne.length() > argThree.length())
-						failedIF();
-					else
-						successfulIF();
-				}
-			} else if (argTwo == "<") {
-				if (isNumeric(argOne) && isNumeric(argThree)) {
-					if (stod(argOne) < stod(argThree))
-						failedIF();
-					else
-						successfulIF();
-				} else {
-					if (argOne.length() < argThree.length())
-						failedIF();
-					else
-						successfulIF();
-				}
-			} else if (argTwo == ">=") {
-				if (isNumeric(argOne) && isNumeric(argThree)) {
-					if (stod(argOne) >= stod(argThree))
-						failedIF();
-					else
-						successfulIF();
-				} else {
-				    error("invalid_operator:>=", false);
-				    successfulIF();
-				}
-			} else if (argTwo == "<=") {
-				if (isNumeric(argOne) && isNumeric(argThree)) {
-					if (stod(argOne) <= stod(argThree))
-						failedIF();
-					else
-						successfulIF();
-				} else {
-					error("invalid_operator:<=", false);
+                if (argOne == argThree)
+                    failedIF();
+                else
+                    successfulIF();
+            } else if (argTwo == "!=" || argTwo == "not") {
+                if (argOne != argThree)
+                    failedIF();
+                else
+                    successfulIF();
+            } else if (argTwo == ">") {
+                if (isNumeric(argOne) && isNumeric(argThree)) {
+                    if (stod(argOne) > stod(argThree))
+                        failedIF();
+                    else
+                        successfulIF();
+                } else {
+                    if (argOne.length() > argThree.length())
+                        failedIF();
+                    else
+                        successfulIF();
+                }
+            } else if (argTwo == "<") {
+                if (isNumeric(argOne) && isNumeric(argThree)) {
+                    if (stod(argOne) < stod(argThree))
+                        failedIF();
+                    else
+                        successfulIF();
+                } else {
+                    if (argOne.length() < argThree.length())
+                        failedIF();
+                    else
+                        successfulIF();
+                }
+            } else if (argTwo == ">=") {
+                if (isNumeric(argOne) && isNumeric(argThree)) {
+                    if (stod(argOne) >= stod(argThree))
+                        failedIF();
+                    else
+                        successfulIF();
+                } else {
+                    error("invalid_operator:>=", false);
+                    successfulIF();
+                }
+            } else if (argTwo == "<=") {
+                if (isNumeric(argOne) && isNumeric(argThree)) {
+                    if (stod(argOne) <= stod(argThree))
+                        failedIF();
+                    else
+                        successfulIF();
+                } else {
+                    error("invalid_operator:<=", false);
                     failedIF();
                 }
-			} else if (argTwo == "begins_with") {
-				if (startsWith(argOne, argThree))
-					failedIF();
-				else
-					successfulIF();
-			} else if (argTwo == "ends_with") {
-				if (endsWith(argOne, argThree))
-					failedIF();
-				else
-					successfulIF();
-			} else if (argTwo == "contains") {
-				if (contains(argOne, argThree))
-					failedIF();
-				else
-					successfulIF();
-			} else {
-				error("invalid_operator:" + argTwo, false);
-				successfulIF();
-			}
-		}
-	} else if (argZero == "if") {
-	    if (listExists(argThree)) {
-	        if (argTwo == "in") {
-	            string testString("[none]");
+            } else if (argTwo == "begins_with") {
+                if (startsWith(argOne, argThree))
+                    failedIF();
+                else
+                    successfulIF();
+            } else if (argTwo == "ends_with") {
+                if (endsWith(argOne, argThree))
+                    failedIF();
+                else
+                    successfulIF();
+            } else if (argTwo == "contains") {
+                if (contains(argOne, argThree))
+                    failedIF();
+                else
+                    successfulIF();
+            } else {
+                error("invalid_operator:" + argTwo, false);
+                successfulIF();
+            }
+        }
+    } else if (argZero == "if") {
+        if (listExists(argThree)) {
+            if (argTwo == "in") {
+                string testString("[none]");
 
                 if (variableExists(argOne)) {
                     if (variables.at(variableAt(argOne)).getString() != null)
@@ -9118,9 +9008,9 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                 } else
                     failedIF();
             }
-	    } else if (listExists(argOne) && argThree != "list?") {
+        } else if (listExists(argOne) && argThree != "list?") {
             if (argTwo == "contains") {
-	            string testString("[none]");
+                string testString("[none]");
 
                 if (variableExists(argThree)) {
                     if (variables.at(variableAt(argThree)).getString() != null)
@@ -9148,736 +9038,735 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                 } else
                     failedIF();
             }
-	    } else if (variableExists(argOne) && variableExists(argThree)) {
-			if (variables.at(variableAt(argOne)).getString() != null && variables.at(variableAt(argThree)).getString() != null) {
-				if (argTwo == "==" || argTwo == "is") {
+        } else if (variableExists(argOne) && variableExists(argThree)) {
+            if (variables.at(variableAt(argOne)).getString() != null && variables.at(variableAt(argThree)).getString() != null) {
+                if (argTwo == "==" || argTwo == "is") {
                     if (variables.at(variableAt(argOne)).getString() == variables.at(variableAt(argThree)).getString())
-						successfulIF();
+                        successfulIF();
                     else
-						failedIF();
-				} else if (argTwo == "!=" || argTwo == "not") {
-					if (variables.at(variableAt(argOne)).getString() != variables.at(variableAt(argThree)).getString())
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == ">") {
-					if (variables.at(variableAt(argOne)).getString().length() > variables.at(variableAt(argThree)).getString().length())
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == "<") {
-					if (variables.at(variableAt(argOne)).getString().length() < variables.at(variableAt(argThree)).getString().length())
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == "<=") {
-					if (variables.at(variableAt(argOne)).getString().length() <= variables.at(variableAt(argThree)).getString().length())
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == ">=") {
-					if (variables.at(variableAt(argOne)).getString().length() >= variables.at(variableAt(argThree)).getString().length())
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == "contains") {
-					if (contains(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argThree)).getString()))
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == "ends_with") {
-					if (endsWith(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argThree)).getString()))
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == "begins_with") {
-					if (startsWith(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argThree)).getString()))
-						successfulIF();
-					else
-						failedIF();
-				} else {
-					error("invalid_operator:" + argTwo, false);
-					failedIF();
-				}
-			} else if (variables.at(variableAt(argOne)).getNumber() != nullNum && variables.at(variableAt(argThree)).getNumber() != nullNum) {
-				if (argTwo == "==" || argTwo == "is") {
-					if (variables.at(variableAt(argOne)).getNumber() == variables.at(variableAt(argThree)).getNumber())
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == "!=" || argTwo == "not") {
-					if (variables.at(variableAt(argOne)).getNumber() != variables.at(variableAt(argThree)).getNumber())
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == ">") {
-					if (variables.at(variableAt(argOne)).getNumber() > variables.at(variableAt(argThree)).getNumber())
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == ">=") {
-					if (variables.at(variableAt(argOne)).getNumber() >= variables.at(variableAt(argThree)).getNumber())
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == "<") {
-					if (variables.at(variableAt(argOne)).getNumber() < variables.at(variableAt(argThree)).getNumber())
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == "<=") {
-					if (variables.at(variableAt(argOne)).getNumber() <= variables.at(variableAt(argThree)).getNumber())
-						successfulIF();
-					else
-						failedIF();
-				} else {
-					error("invalid_operator:" + argTwo, false);
-					failedIF();
-				}
-			} else {
-				error("conversion_error:" + s, false);
-				failedIF();
-			}
-		} else if ((variableExists(argOne) && !variableExists(argThree)) && !methodExists(argThree) && notObjectMethod(argThree) && !containsParams(argThree)) {
-			if (variables.at(variableAt(argOne)).getNumber()!= nullNum) {
-			  	if (isNumeric(argThree)) {
-					if (argTwo == "==" || argTwo == "is") {
-						if (variables.at(variableAt(argOne)).getNumber() == stod(argThree))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "!=" || argTwo == "not") {
-						if (variables.at(variableAt(argOne)).getNumber() != stod(argThree))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == ">") {
-						if (variables.at(variableAt(argOne)).getNumber() > stod(argThree))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "<") {
-						if (variables.at(variableAt(argOne)).getNumber() < stod(argThree))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == ">=") {
-						if (variables.at(variableAt(argOne)).getNumber() >= stod(argThree))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "<=") {
-						if (variables.at(variableAt(argOne)).getNumber() <= stod(argThree))
-							successfulIF();
-						else
-							failedIF();
-					} else {
-						error("invalid_operator:" + argTwo, false);
-						failedIF();
-					}
-				} else if (argThree == "number?") {
-				    if (argTwo == "==" || argTwo == "is")
-				        successfulIF();
-				    else if (argTwo == "!=" || argTwo == "not")
+                        failedIF();
+                } else if (argTwo == "!=" || argTwo == "not") {
+                    if (variables.at(variableAt(argOne)).getString() != variables.at(variableAt(argThree)).getString())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == ">") {
+                    if (variables.at(variableAt(argOne)).getString().length() > variables.at(variableAt(argThree)).getString().length())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == "<") {
+                    if (variables.at(variableAt(argOne)).getString().length() < variables.at(variableAt(argThree)).getString().length())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == "<=") {
+                    if (variables.at(variableAt(argOne)).getString().length() <= variables.at(variableAt(argThree)).getString().length())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == ">=") {
+                    if (variables.at(variableAt(argOne)).getString().length() >= variables.at(variableAt(argThree)).getString().length())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == "contains") {
+                    if (contains(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argThree)).getString()))
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == "ends_with") {
+                    if (endsWith(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argThree)).getString()))
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == "begins_with") {
+                    if (startsWith(variables.at(variableAt(argOne)).getString(), variables.at(variableAt(argThree)).getString()))
+                        successfulIF();
+                    else
+                        failedIF();
+                } else {
+                    error("invalid_operator:" + argTwo, false);
+                    failedIF();
+                }
+            } else if (variables.at(variableAt(argOne)).getNumber() != nullNum && variables.at(variableAt(argThree)).getNumber() != nullNum) {
+                if (argTwo == "==" || argTwo == "is") {
+                    if (variables.at(variableAt(argOne)).getNumber() == variables.at(variableAt(argThree)).getNumber())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == "!=" || argTwo == "not") {
+                    if (variables.at(variableAt(argOne)).getNumber() != variables.at(variableAt(argThree)).getNumber())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == ">") {
+                    if (variables.at(variableAt(argOne)).getNumber() > variables.at(variableAt(argThree)).getNumber())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == ">=") {
+                    if (variables.at(variableAt(argOne)).getNumber() >= variables.at(variableAt(argThree)).getNumber())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == "<") {
+                    if (variables.at(variableAt(argOne)).getNumber() < variables.at(variableAt(argThree)).getNumber())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == "<=") {
+                    if (variables.at(variableAt(argOne)).getNumber() <= variables.at(variableAt(argThree)).getNumber())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else {
+                    error("invalid_operator:" + argTwo, false);
+                    failedIF();
+                }
+            } else {
+                error("conversion_error:" + s, false);
+                failedIF();
+            }
+        } else if ((variableExists(argOne) && !variableExists(argThree)) && !methodExists(argThree) && notObjectMethod(argThree) && !containsParams(argThree)) {
+            if (variables.at(variableAt(argOne)).getNumber()!= nullNum) {
+                if (isNumeric(argThree)) {
+                    if (argTwo == "==" || argTwo == "is") {
+                        if (variables.at(variableAt(argOne)).getNumber() == stod(argThree))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "!=" || argTwo == "not") {
+                        if (variables.at(variableAt(argOne)).getNumber() != stod(argThree))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == ">") {
+                        if (variables.at(variableAt(argOne)).getNumber() > stod(argThree))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "<") {
+                        if (variables.at(variableAt(argOne)).getNumber() < stod(argThree))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == ">=") {
+                        if (variables.at(variableAt(argOne)).getNumber() >= stod(argThree))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "<=") {
+                        if (variables.at(variableAt(argOne)).getNumber() <= stod(argThree))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else {
+                        error("invalid_operator:" + argTwo, false);
+                        failedIF();
+                    }
+                } else if (argThree == "number?") {
+                    if (argTwo == "==" || argTwo == "is")
+                        successfulIF();
+                    else if (argTwo == "!=" || argTwo == "not")
                         failedIF();
                     else
                         error("invalid_operator:" + argTwo, false);
-				} else {
-					error("conversion_error:" + s, false);
-					failedIF();
-				}
-			} else if (variables.at(variableAt(argOne)).getString() != null) {
-				if (argThree == "string?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (argTwo == "==" || argTwo == "is")
-							successfulIF();
-						else if (argTwo == "!=" || argTwo == "not")
-							failedIF();
-						else {
-							error("invalid_operator:" + argTwo, false);
-							failedIF();
-						}
-					} else {
-						if (argTwo == "!=")
-							successfulIF();
-						else
-							failedIF();
-					}
-				} else if (argThree == "number?") {
-					if (variables.at(variableAt(argOne)).getNumber() != nullNum) {
-						if (argTwo == "==" || argTwo == "is")
-							successfulIF();
-						else if (argTwo == "!=" || argTwo == "not")
-							failedIF();
-						else {
-							error("invalid_operator:" + argTwo, false);
-							failedIF();
-						}
-					} else {
-						if (argTwo == "!=")
-							successfulIF();
-						else
-							failedIF();
-					}
-				} else if (argThree == "upper?" || argThree == "uppercase?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (argTwo == "==" || argTwo == "is") {
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedIF();
+                }
+            } else if (variables.at(variableAt(argOne)).getString() != null) {
+                if (argThree == "string?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (argTwo == "==" || argTwo == "is")
+                            successfulIF();
+                        else if (argTwo == "!=" || argTwo == "not")
+                            failedIF();
+                        else {
+                            error("invalid_operator:" + argTwo, false);
+                            failedIF();
+                        }
+                    } else {
+                        if (argTwo == "!=")
+                            successfulIF();
+                        else
+                            failedIF();
+                    }
+                } else if (argThree == "number?") {
+                    if (variables.at(variableAt(argOne)).getNumber() != nullNum) {
+                        if (argTwo == "==" || argTwo == "is")
+                            successfulIF();
+                        else if (argTwo == "!=" || argTwo == "not")
+                            failedIF();
+                        else {
+                            error("invalid_operator:" + argTwo, false);
+                            failedIF();
+                        }
+                    } else {
+                        if (argTwo == "!=")
+                            successfulIF();
+                        else
+                            failedIF();
+                    }
+                } else if (argThree == "upper?" || argThree == "uppercase?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (argTwo == "==" || argTwo == "is") {
                             if (isUpper(variables.at(variableAt(argOne)).getString()))
-							    successfulIF();
-		                    else
-		                        failedIF();
-						} else if (argTwo == "!=" || argTwo == "not") {
+                                successfulIF();
+                            else
+                                failedIF();
+                        } else if (argTwo == "!=" || argTwo == "not") {
                             if (isUpper(variables.at(variableAt(argOne)).getString()))
-							    failedIF();
-		                    else
-		                        successfulIF();
-						} else {
-							error("invalid_operator:" + argTwo, false);
-							failedIF();
-						}
-					} else {
-						if (argTwo == "!=") {
+                                failedIF();
+                            else
+                                successfulIF();
+                        } else {
+                            error("invalid_operator:" + argTwo, false);
+                            failedIF();
+                        }
+                    } else {
+                        if (argTwo == "!=") {
                             if (isUpper(argTwo))
                                 failedIF();
                             else
-							    successfulIF();
-						} else
-							failedIF();
-					}
-				} else if (argThree == "lower?" || argThree == "lowercase?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (argTwo == "==" || argTwo == "is") {
+                                successfulIF();
+                        } else
+                            failedIF();
+                    }
+                } else if (argThree == "lower?" || argThree == "lowercase?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (argTwo == "==" || argTwo == "is") {
                             if (isLower(variables.at(variableAt(argOne)).getString()))
-							    successfulIF();
-		                    else
-		                        failedIF();
-						} else if (argTwo == "!=" || argTwo == "not") {
+                                successfulIF();
+                            else
+                                failedIF();
+                        } else if (argTwo == "!=" || argTwo == "not") {
                             if (isLower(variables.at(variableAt(argOne)).getString()))
-							    failedIF();
-		                    else
-		                        successfulIF();
-						} else {
-							error("invalid_operator:" + argTwo, false);
-							failedIF();
-						}
-					} else {
-						if (argTwo == "!=") {
+                                failedIF();
+                            else
+                                successfulIF();
+                        } else {
+                            error("invalid_operator:" + argTwo, false);
+                            failedIF();
+                        }
+                    } else {
+                        if (argTwo == "!=") {
                             if (isLower(argTwo))
                                 failedIF();
                             else
-							    successfulIF();
-						} else
-							failedIF();
-					}
-				} else if (argThree == "file?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (fileExists(variables.at(variableAt(argOne)).getString())) {
-							if (argTwo == "==" || argTwo == "is")
-								successfulIF();
-							else if (argTwo == "!=" || argTwo == "not")
-								failedIF();
-							else {
-								error("invalid_operator:" + argTwo, false);
-								failedIF();
-							}
-						} else {
-							if (argTwo == "!=")
-								successfulIF();
-							else
-								failedIF();
-						}
-					} else {
-						error("is_null:" + argOne, false);
-						failedIF();
-					}
-				} else if (argThree == "dir?" || argThree == "directory?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (directoryExists(variables.at(variableAt(argOne)).getString())) {
-							if (argTwo == "==" || argTwo == "is")
-								successfulIF();
-							else if (argTwo == "!=" || argTwo == "not")
-								failedIF();
-							else {
-								error("invalid_operator:" + argTwo, false);
-								failedIF();
-							}
-						} else {
-							if (argTwo == "!=")
-								successfulIF();
-							else
-								failedIF();
-						}
-					} else {
-						error("is_null:" + argOne, false);
-						failedIF();
-					}
-				} else {
-					if (argTwo == "==" || argTwo == "is") {
-						if (variables.at(variableAt(argOne)).getString() == argThree)
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "!=" || argTwo == "not") {
-						if (variables.at(variableAt(argOne)).getString() != argThree)
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == ">") {
-						if (variables.at(variableAt(argOne)).getString().length() > argThree.length())
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "<") {
-						if (variables.at(variableAt(argOne)).getString().length() < argThree.length())
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == ">=") {
-						if (variables.at(variableAt(argOne)).getString().length() >= argThree.length())
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "<=") {
-						if (variables.at(variableAt(argOne)).getString().length() <= argThree.length())
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "contains") {
-						if (contains(variables.at(variableAt(argOne)).getString(), argThree))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "ends_with") {
-						if (endsWith(variables.at(variableAt(argOne)).getString(), argThree))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "begins_with") {
-						if (startsWith(variables.at(variableAt(argOne)).getString(), argThree))
-							successfulIF();
-						else
-							failedIF();
-					} else {
-						error("invalid_operator:" + argTwo, false);
-						failedIF();
-					}
-				}
-			} else {
+                                successfulIF();
+                        } else
+                            failedIF();
+                    }
+                } else if (argThree == "file?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (fileExists(variables.at(variableAt(argOne)).getString())) {
+                            if (argTwo == "==" || argTwo == "is")
+                                successfulIF();
+                            else if (argTwo == "!=" || argTwo == "not")
+                                failedIF();
+                            else {
+                                error("invalid_operator:" + argTwo, false);
+                                failedIF();
+                            }
+                        } else {
+                            if (argTwo == "!=")
+                                successfulIF();
+                            else
+                                failedIF();
+                        }
+                    } else {
+                        error("is_null:" + argOne, false);
+                        failedIF();
+                    }
+                } else if (argThree == "dir?" || argThree == "directory?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (directoryExists(variables.at(variableAt(argOne)).getString())) {
+                            if (argTwo == "==" || argTwo == "is")
+                                successfulIF();
+                            else if (argTwo == "!=" || argTwo == "not")
+                                failedIF();
+                            else {
+                                error("invalid_operator:" + argTwo, false);
+                                failedIF();
+                            }
+                        } else {
+                            if (argTwo == "!=")
+                                successfulIF();
+                            else
+                                failedIF();
+                        }
+                    } else {
+                        error("is_null:" + argOne, false);
+                        failedIF();
+                    }
+                } else {
+                    if (argTwo == "==" || argTwo == "is") {
+                        if (variables.at(variableAt(argOne)).getString() == argThree)
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "!=" || argTwo == "not") {
+                        if (variables.at(variableAt(argOne)).getString() != argThree)
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == ">") {
+                        if (variables.at(variableAt(argOne)).getString().length() > argThree.length())
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "<") {
+                        if (variables.at(variableAt(argOne)).getString().length() < argThree.length())
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == ">=") {
+                        if (variables.at(variableAt(argOne)).getString().length() >= argThree.length())
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "<=") {
+                        if (variables.at(variableAt(argOne)).getString().length() <= argThree.length())
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "contains") {
+                        if (contains(variables.at(variableAt(argOne)).getString(), argThree))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "ends_with") {
+                        if (endsWith(variables.at(variableAt(argOne)).getString(), argThree))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "begins_with") {
+                        if (startsWith(variables.at(variableAt(argOne)).getString(), argThree))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else {
+                        error("invalid_operator:" + argTwo, false);
+                        failedIF();
+                    }
+                }
+            } else {
                 error("special_error(0)", false); // variable is neither string nor number
                 failedIF();
-			}
-		} else if ((variableExists(argOne) && !variableExists(argThree)) && !methodExists(argThree) && notObjectMethod(argThree) && containsParams(argThree)) {
-		    string stackValue("");
+            }
+        } else if ((variableExists(argOne) && !variableExists(argThree)) && !methodExists(argThree) && notObjectMethod(argThree) && containsParams(argThree)) {
+            string stackValue("");
 
-		    if (isStringStack(argThree))
-		        stackValue = getStringStack(argThree);
-		    else if (stackReady(argThree))
+            if (isStringStack(argThree))
+                stackValue = getStringStack(argThree);
+            else if (stackReady(argThree))
                 stackValue = dtos(getStack(argThree));
             else
                 stackValue = argThree;
 
-			if (variables.at(variableAt(argOne)).getNumber()!= nullNum) {
-			  	if (isNumeric(stackValue)) {
-					if (argTwo == "==" || argTwo == "is") {
-						if (variables.at(variableAt(argOne)).getNumber() == stod(stackValue))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "!=" || argTwo == "not") {
-						if (variables.at(variableAt(argOne)).getNumber() != stod(stackValue))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == ">") {
-						if (variables.at(variableAt(argOne)).getNumber() > stod(stackValue))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "<") {
-						if (variables.at(variableAt(argOne)).getNumber() < stod(stackValue))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == ">=") {
-						if (variables.at(variableAt(argOne)).getNumber() >= stod(stackValue))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "<=") {
-						if (variables.at(variableAt(argOne)).getNumber() <= stod(stackValue))
-							successfulIF();
-						else
-							failedIF();
-					} else {
-						error("invalid_operator:" + argTwo, false);
-						failedIF();
-					}
-				} else if (stackValue == "number?") {
-				    if (argTwo == "==" || argTwo == "is")
-				        successfulIF();
-				    else if (argTwo == "!=" || argTwo == "not")
+            if (variables.at(variableAt(argOne)).getNumber()!= nullNum) {
+                if (isNumeric(stackValue)) {
+                    if (argTwo == "==" || argTwo == "is") {
+                        if (variables.at(variableAt(argOne)).getNumber() == stod(stackValue))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "!=" || argTwo == "not") {
+                        if (variables.at(variableAt(argOne)).getNumber() != stod(stackValue))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == ">") {
+                        if (variables.at(variableAt(argOne)).getNumber() > stod(stackValue))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "<") {
+                        if (variables.at(variableAt(argOne)).getNumber() < stod(stackValue))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == ">=") {
+                        if (variables.at(variableAt(argOne)).getNumber() >= stod(stackValue))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "<=") {
+                        if (variables.at(variableAt(argOne)).getNumber() <= stod(stackValue))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else {
+                        error("invalid_operator:" + argTwo, false);
+                        failedIF();
+                    }
+                } else if (stackValue == "number?") {
+                    if (argTwo == "==" || argTwo == "is")
+                        successfulIF();
+                    else if (argTwo == "!=" || argTwo == "not")
                         failedIF();
                     else
                         error("invalid_operator:" + argTwo, false);
-				} else {
-					error("conversion_error:" + s, false);
-					failedIF();
-				}
-			} else if (variables.at(variableAt(argOne)).getString() != null) {
-				if (stackValue == "string?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (argTwo == "==" || argTwo == "is")
-							successfulIF();
-						else if (argTwo == "!=" || argTwo == "not")
-							failedIF();
-						else {
-							error("invalid_operator:" + argTwo, false);
-							failedIF();
-						}
-					} else {
-						if (argTwo == "!=")
-							successfulIF();
-						else
-							failedIF();
-					}
-				} else if (stackValue == "number?") {
-					if (variables.at(variableAt(argOne)).getNumber() != nullNum) {
-						if (argTwo == "==" || argTwo == "is")
-							successfulIF();
-						else if (argTwo == "!=" || argTwo == "not")
-							failedIF();
-						else {
-							error("invalid_operator:" + argTwo, false);
-							failedIF();
-						}
-					} else {
-						if (argTwo == "!=")
-							successfulIF();
-						else
-							failedIF();
-					}
-				} else if (stackValue == "upper?" || stackValue == "uppercase?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (argTwo == "==" || argTwo == "is") {
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedIF();
+                }
+            } else if (variables.at(variableAt(argOne)).getString() != null) {
+                if (stackValue == "string?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (argTwo == "==" || argTwo == "is")
+                            successfulIF();
+                        else if (argTwo == "!=" || argTwo == "not")
+                            failedIF();
+                        else {
+                            error("invalid_operator:" + argTwo, false);
+                            failedIF();
+                        }
+                    } else {
+                        if (argTwo == "!=")
+                            successfulIF();
+                        else
+                            failedIF();
+                    }
+                } else if (stackValue == "number?") {
+                    if (variables.at(variableAt(argOne)).getNumber() != nullNum) {
+                        if (argTwo == "==" || argTwo == "is")
+                            successfulIF();
+                        else if (argTwo == "!=" || argTwo == "not")
+                            failedIF();
+                        else {
+                            error("invalid_operator:" + argTwo, false);
+                            failedIF();
+                        }
+                    } else {
+                        if (argTwo == "!=")
+                            successfulIF();
+                        else
+                            failedIF();
+                    }
+                } else if (stackValue == "upper?" || stackValue == "uppercase?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (argTwo == "==" || argTwo == "is") {
                             if (isUpper(variables.at(variableAt(argOne)).getString()))
-							    successfulIF();
-		                    else
-		                        failedIF();
-						} else if (argTwo == "!=" || argTwo == "not") {
+                                successfulIF();
+                            else
+                                failedIF();
+                        } else if (argTwo == "!=" || argTwo == "not") {
                             if (isUpper(variables.at(variableAt(argOne)).getString()))
-							    failedIF();
-		                    else
-		                        successfulIF();
-						} else {
-							error("invalid_operator:" + argTwo, false);
-							failedIF();
-						}
-					} else {
-						if (argTwo == "!=") {
+                                failedIF();
+                            else
+                                successfulIF();
+                        } else {
+                            error("invalid_operator:" + argTwo, false);
+                            failedIF();
+                        }
+                    } else {
+                        if (argTwo == "!=") {
                             if (isUpper(argTwo))
                                 failedIF();
                             else
-							    successfulIF();
-						} else
-							failedIF();
-					}
-				} else if (stackValue == "lower?" || stackValue == "lowercase?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (argTwo == "==" || argTwo == "is") {
+                                successfulIF();
+                        } else
+                            failedIF();
+                    }
+                } else if (stackValue == "lower?" || stackValue == "lowercase?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (argTwo == "==" || argTwo == "is") {
                             if (isLower(variables.at(variableAt(argOne)).getString()))
-							    successfulIF();
-		                    else
-		                        failedIF();
-						} else if (argTwo == "!=" || argTwo == "not") {
+                                successfulIF();
+                            else
+                                failedIF();
+                        } else if (argTwo == "!=" || argTwo == "not") {
                             if (isLower(variables.at(variableAt(argOne)).getString()))
-							    failedIF();
-		                    else
-		                        successfulIF();
-						} else {
-							error("invalid_operator:" + argTwo, false);
-							failedIF();
-						}
-					} else {
-						if (argTwo == "!=") {
+                                failedIF();
+                            else
+                                successfulIF();
+                        } else {
+                            error("invalid_operator:" + argTwo, false);
+                            failedIF();
+                        }
+                    } else {
+                        if (argTwo == "!=") {
                             if (isLower(argTwo))
                                 failedIF();
                             else
-							    successfulIF();
-						} else
-							failedIF();
-					}
-				} else if (stackValue == "file?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (fileExists(variables.at(variableAt(argOne)).getString())) {
-							if (argTwo == "==" || argTwo == "is")
-								successfulIF();
-							else if (argTwo == "!=" || argTwo == "not")
-								failedIF();
-							else {
-								error("invalid_operator:" + argTwo, false);
-								failedIF();
-							}
-						} else {
-							if (argTwo == "!=")
-								successfulIF();
-							else
-								failedIF();
-						}
-					} else {
-						error("is_null:" + argOne, false);
-						failedIF();
-					}
-				} else if (stackValue == "dir?" || stackValue == "directory?") {
-					if (variables.at(variableAt(argOne)).getString() != null) {
-						if (directoryExists(variables.at(variableAt(argOne)).getString())) {
-							if (argTwo == "==" || argTwo == "is")
-								successfulIF();
-							else if (argTwo == "!=" || argTwo == "not")
-								failedIF();
-							else {
-								error("invalid_operator:" + argTwo, false);
-								failedIF();
-							}
-						} else {
-							if (argTwo == "!=")
-								successfulIF();
-							else
-								failedIF();
-						}
-					} else {
-						error("is_null:" + argOne, false);
-						failedIF();
-					}
-				} else {
-					if (argTwo == "==" || argTwo == "is") {
-						if (variables.at(variableAt(argOne)).getString() == stackValue)
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "!=" || argTwo == "not") {
-						if (variables.at(variableAt(argOne)).getString() != stackValue)
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == ">") {
-						if (variables.at(variableAt(argOne)).getString().length() > stackValue.length())
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "<") {
-						if (variables.at(variableAt(argOne)).getString().length() < stackValue.length())
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == ">=") {
-						if (variables.at(variableAt(argOne)).getString().length() >= stackValue.length())
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "<=") {
-						if (variables.at(variableAt(argOne)).getString().length() <= stackValue.length())
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "contains") {
-						if (contains(variables.at(variableAt(argOne)).getString(), stackValue))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "ends_with") {
-						if (endsWith(variables.at(variableAt(argOne)).getString(), stackValue))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "begins_with") {
-						if (startsWith(variables.at(variableAt(argOne)).getString(), stackValue))
-							successfulIF();
-						else
-							failedIF();
-					} else {
-						error("invalid_operator:" + argTwo, false);
-						failedIF();
-					}
-				}
-			} else {
-				error("special_error(0)", false); // variable is neither string nor number
-				failedIF();
-			}
+                                successfulIF();
+                        } else
+                            failedIF();
+                    }
+                } else if (stackValue == "file?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (fileExists(variables.at(variableAt(argOne)).getString())) {
+                            if (argTwo == "==" || argTwo == "is")
+                                successfulIF();
+                            else if (argTwo == "!=" || argTwo == "not")
+                                failedIF();
+                            else {
+                                error("invalid_operator:" + argTwo, false);
+                                failedIF();
+                            }
+                        } else {
+                            if (argTwo == "!=")
+                                successfulIF();
+                            else
+                                failedIF();
+                        }
+                    } else {
+                        error("is_null:" + argOne, false);
+                        failedIF();
+                    }
+                } else if (stackValue == "dir?" || stackValue == "directory?") {
+                    if (variables.at(variableAt(argOne)).getString() != null) {
+                        if (directoryExists(variables.at(variableAt(argOne)).getString())) {
+                            if (argTwo == "==" || argTwo == "is")
+                                successfulIF();
+                            else if (argTwo == "!=" || argTwo == "not")
+                                failedIF();
+                            else {
+                                error("invalid_operator:" + argTwo, false);
+                                failedIF();
+                            }
+                        } else {
+                            if (argTwo == "!=")
+                                successfulIF();
+                            else
+                                failedIF();
+                        }
+                    } else {
+                        error("is_null:" + argOne, false);
+                        failedIF();
+                    }
+                } else {
+                    if (argTwo == "==" || argTwo == "is") {
+                        if (variables.at(variableAt(argOne)).getString() == stackValue)
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "!=" || argTwo == "not") {
+                        if (variables.at(variableAt(argOne)).getString() != stackValue)
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == ">") {
+                        if (variables.at(variableAt(argOne)).getString().length() > stackValue.length())
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "<") {
+                        if (variables.at(variableAt(argOne)).getString().length() < stackValue.length())
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == ">=") {
+                        if (variables.at(variableAt(argOne)).getString().length() >= stackValue.length())
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "<=") {
+                        if (variables.at(variableAt(argOne)).getString().length() <= stackValue.length())
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "contains") {
+                        if (contains(variables.at(variableAt(argOne)).getString(), stackValue))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "ends_with") {
+                        if (endsWith(variables.at(variableAt(argOne)).getString(), stackValue))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "begins_with") {
+                        if (startsWith(variables.at(variableAt(argOne)).getString(), stackValue))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else {
+                        error("invalid_operator:" + argTwo, false);
+                        failedIF();
+                    }
+                }
+            } else {
+                error("special_error(0)", false); // variable is neither string nor number
+                failedIF();
+            }
         } else if ((!variableExists(argOne) && variableExists(argThree)) && !methodExists(argOne) && notObjectMethod(argOne) && !containsParams(argOne)) {
-			if (variables.at(variableAt(argThree)).getNumber() != nullNum) {
-				if (isNumeric(argOne)) {
-					if (argTwo == "==" || argTwo == "is") {
-						if (variables.at(variableAt(argThree)).getNumber() == stod(argOne))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "!=" || argTwo == "not") {
-						if (variables.at(variableAt(argThree)).getNumber() != stod(argOne))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == ">") {
-						if (variables.at(variableAt(argThree)).getNumber() > stod(argOne))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "<") {
-						if (variables.at(variableAt(argThree)).getNumber() < stod(argOne))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == ">=") {
-						if (variables.at(variableAt(argThree)).getNumber() >= stod(argOne))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "<=") {
-						if (variables.at(variableAt(argThree)).getNumber() <= stod(argOne))
-							successfulIF();
-						else
-							failedIF();
-					} else {
-						error("invalid_operator:" + argTwo, false);
-						failedIF();
-					}
-				} else {
-					error("conversion_error:" + s, false);
-					failedIF();
-				}
-			} else if (variables.at(variableAt(argThree)).getString() != null) {
-				if (argTwo == "==" || argTwo == "is") {
-					if (variables.at(variableAt(argThree)).getString() == argOne)
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == "!=" || argTwo == "not") {
-					if (variables.at(variableAt(argThree)).getString() != argOne)
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == ">") {
-					if (variables.at(variableAt(argThree)).getString().length() > argOne.length())
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == "<") {
-					if (variables.at(variableAt(argThree)).getString().length() < argOne.length())
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == ">=") {
-					if (variables.at(variableAt(argThree)).getString().length() >= argOne.length())
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == "<=") {
-					if (variables.at(variableAt(argThree)).getString().length() <= argOne.length())
-						successfulIF();
-					else
-						failedIF();
-				} else {
-					error("invalid_operator:" + argTwo, false);
-					failedIF();
-				}
-			} else {
-				error("special_error(1)", false); // variable is neither string nor number
-				failedIF();
-			}
-		} else if ((!variableExists(argOne) && variableExists(argThree)) && !methodExists(argOne) && notObjectMethod(argOne) && containsParams(argOne)) {
-		    string stackValue("");
+            if (variables.at(variableAt(argThree)).getNumber() != nullNum) {
+                if (isNumeric(argOne)) {
+                    if (argTwo == "==" || argTwo == "is") {
+                        if (variables.at(variableAt(argThree)).getNumber() == stod(argOne))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "!=" || argTwo == "not") {
+                        if (variables.at(variableAt(argThree)).getNumber() != stod(argOne))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == ">") {
+                        if (variables.at(variableAt(argThree)).getNumber() > stod(argOne))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "<") {
+                        if (variables.at(variableAt(argThree)).getNumber() < stod(argOne))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == ">=") {
+                        if (variables.at(variableAt(argThree)).getNumber() >= stod(argOne))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "<=") {
+                        if (variables.at(variableAt(argThree)).getNumber() <= stod(argOne))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else {
+                        error("invalid_operator:" + argTwo, false);
+                        failedIF();
+                    }
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedIF();
+                }
+            } else if (variables.at(variableAt(argThree)).getString() != null) {
+                if (argTwo == "==" || argTwo == "is") {
+                    if (variables.at(variableAt(argThree)).getString() == argOne)
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == "!=" || argTwo == "not") {
+                    if (variables.at(variableAt(argThree)).getString() != argOne)
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == ">") {
+                    if (variables.at(variableAt(argThree)).getString().length() > argOne.length())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == "<") {
+                    if (variables.at(variableAt(argThree)).getString().length() < argOne.length())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == ">=") {
+                    if (variables.at(variableAt(argThree)).getString().length() >= argOne.length())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == "<=") {
+                    if (variables.at(variableAt(argThree)).getString().length() <= argOne.length())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else {
+                    error("invalid_operator:" + argTwo, false);
+                    failedIF();
+                }
+            } else {
+                error("special_error(1)", false); // variable is neither string nor number
+                failedIF();
+            }
+        } else if ((!variableExists(argOne) && variableExists(argThree)) && !methodExists(argOne) && notObjectMethod(argOne) && containsParams(argOne)) {
+            string stackValue("");
 
-		    if (isStringStack(argOne))
+            if (isStringStack(argOne))
                 stackValue = getStringStack(argOne);
             else if (stackReady(argOne))
                 stackValue = dtos(getStack(argOne));
             else
                 stackValue = argOne;
 
-			if (variables.at(variableAt(argThree)).getNumber() != nullNum) {
-				if (isNumeric(stackValue)) {
-					if (argTwo == "==" || argTwo == "is") {
-						if (variables.at(variableAt(argThree)).getNumber() == stod(stackValue))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "!=" || argTwo == "not") {
-						if (variables.at(variableAt(argThree)).getNumber() != stod(stackValue))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == ">") {
-						if (variables.at(variableAt(argThree)).getNumber() > stod(stackValue))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "<") {
-						if (variables.at(variableAt(argThree)).getNumber() < stod(stackValue))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == ">=") {
-						if (variables.at(variableAt(argThree)).getNumber() >= stod(stackValue))
-							successfulIF();
-						else
-							failedIF();
-					} else if (argTwo == "<=") {
-						if (variables.at(variableAt(argThree)).getNumber() <= stod(stackValue))
-							successfulIF();
-						else
-							failedIF();
-					} else {
-						error("invalid_operator:" + argTwo, false);
-						failedIF();
-					}
-				} else {
-					error("conversion_error:" + s, false);
-					failedIF();
-				}
-			} else if (variables.at(variableAt(argThree)).getString() != null) {
-				if (argTwo == "==" || argTwo == "is") {
-					if (variables.at(variableAt(argThree)).getString() == stackValue)
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == "!=" || argTwo == "not") {
-					if (variables.at(variableAt(argThree)).getString() != stackValue)
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == ">") {
-					if (variables.at(variableAt(argThree)).getString().length() > stackValue.length())
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == "<") {
-					if (variables.at(variableAt(argThree)).getString().length() < stackValue.length())
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == ">=") {
-					if (variables.at(variableAt(argThree)).getString().length() >= stackValue.length())
-						successfulIF();
-					else
-						failedIF();
-				} else if (argTwo == "<=") {
-					if (variables.at(variableAt(argThree)).getString().length() <= stackValue.length())
-						successfulIF();
-					else
-						failedIF();
-				} else {
-					error("invalid_operator:" + argTwo, false);
-					failedIF();
-				}
-			} else {
-				error("special_error(1)", false); // variable is neither string nor number
-				failedIF();
-			}
-		}
-		else if (containsParams(argOne) || containsParams(argThree)) {
-		    if (containsParams(argOne) && containsParams(argThree)) {
-		        if (!zeroDots(argOne) && !zeroDots(argThree)) {
+            if (variables.at(variableAt(argThree)).getNumber() != nullNum) {
+                if (isNumeric(stackValue)) {
+                    if (argTwo == "==" || argTwo == "is") {
+                        if (variables.at(variableAt(argThree)).getNumber() == stod(stackValue))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "!=" || argTwo == "not") {
+                        if (variables.at(variableAt(argThree)).getNumber() != stod(stackValue))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == ">") {
+                        if (variables.at(variableAt(argThree)).getNumber() > stod(stackValue))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "<") {
+                        if (variables.at(variableAt(argThree)).getNumber() < stod(stackValue))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == ">=") {
+                        if (variables.at(variableAt(argThree)).getNumber() >= stod(stackValue))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else if (argTwo == "<=") {
+                        if (variables.at(variableAt(argThree)).getNumber() <= stod(stackValue))
+                            successfulIF();
+                        else
+                            failedIF();
+                    } else {
+                        error("invalid_operator:" + argTwo, false);
+                        failedIF();
+                    }
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedIF();
+                }
+            } else if (variables.at(variableAt(argThree)).getString() != null) {
+                if (argTwo == "==" || argTwo == "is") {
+                    if (variables.at(variableAt(argThree)).getString() == stackValue)
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == "!=" || argTwo == "not") {
+                    if (variables.at(variableAt(argThree)).getString() != stackValue)
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == ">") {
+                    if (variables.at(variableAt(argThree)).getString().length() > stackValue.length())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == "<") {
+                    if (variables.at(variableAt(argThree)).getString().length() < stackValue.length())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == ">=") {
+                    if (variables.at(variableAt(argThree)).getString().length() >= stackValue.length())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else if (argTwo == "<=") {
+                    if (variables.at(variableAt(argThree)).getString().length() <= stackValue.length())
+                        successfulIF();
+                    else
+                        failedIF();
+                } else {
+                    error("invalid_operator:" + argTwo, false);
+                    failedIF();
+                }
+            } else {
+                error("special_error(1)", false); // variable is neither string nor number
+                failedIF();
+            }
+        } else if (containsParams(argOne) || containsParams(argThree)) {
+            if (containsParams(argOne) && containsParams(argThree)) {
+                if (!zeroDots(argOne) && !zeroDots(argThree)) {
                     string argOnebefore(beforeDot(argOne)), argOneafter(afterDot(argOne)),
-                        argThreebefore(beforeDot(argThree)), argThreeafter(afterDot(argThree));
+                           argThreebefore(beforeDot(argThree)), argThreeafter(afterDot(argThree));
 
                     string argOneResult(""), argThreeResult("");
 
@@ -9952,8 +9841,8 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
 
                         failedIF();
                     }
-		        } else if (!zeroDots(argOne) && zeroDots(argThree)) {
-		            string argOnebefore(beforeDot(argOne)), argOneafter(afterDot(argOne));
+                } else if (!zeroDots(argOne) && zeroDots(argThree)) {
+                    string argOnebefore(beforeDot(argOne)), argOneafter(afterDot(argOne));
 
                     string argOneResult(""), argThreeResult("");
 
@@ -10023,7 +9912,7 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                         error("invalid_operation:object_undefined:" + argOnebefore, false);
                         failedIF();
                     }
-		        } else if (zeroDots(argOne) && !zeroDots(argThree)) {
+                } else if (zeroDots(argOne) && !zeroDots(argThree)) {
                     string argThreebefore(beforeDot(argThree)), argThreeafter(afterDot(argThree));
 
                     string argOneResult(""), argThreeResult("");
@@ -10094,8 +9983,8 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                         error("invalid_operation:object_undefined:" + argThreebefore, false);
                         failedIF();
                     }
-		        } else if (zeroDots(argOne) && zeroDots(argThree)) {
-		            string argOneResult(""), argThreeResult("");
+                } else if (zeroDots(argOne) && zeroDots(argThree)) {
+                    string argOneResult(""), argThreeResult("");
 
                     if (methodExists(beforeParams(argOne)))
                         executeTemplate(methods.at(methodAt(beforeParams(argOne))), getParams(argOne));
@@ -10158,16 +10047,16 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                             failedIF();
                         }
                     }
-		        } else {
-		            error("special_error(9)", false);
+                } else {
+                    error("special_error(9)", false);
                     failedIF();
-		        }
-		    } else if (containsParams(argOne) && !containsParams(argThree)) {
-		        string argOneResult(""), argThreeResult("");
+                }
+            } else if (containsParams(argOne) && !containsParams(argThree)) {
+                string argOneResult(""), argThreeResult("");
 
-		        bool pass = true;
+                bool pass = true;
 
-		        if (zeroDots(argOne)) {
+                if (zeroDots(argOne)) {
                     if (methodExists(beforeParams(argOne))) {
                         executeTemplate(methods.at(methodAt(beforeParams(argOne))), getParams(argOne));
 
@@ -10324,10 +10213,10 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                         error("invalid_operation:method_undefined:" + beforeParams(argOne), false);
                         failedIF();
                     }
-		        } else {
-		            string argOnebefore(beforeDot(argOne)), argOneafter(afterDot(argOne));
+                } else {
+                    string argOnebefore(beforeDot(argOne)), argOneafter(afterDot(argOne));
 
-		            if (objectExists(argOnebefore)) {
+                    if (objectExists(argOnebefore)) {
                         if (objects.at(objectAt(argOnebefore)).methodExists(beforeParams(argOneafter)))
                             executeTemplate(objects.at(objectAt(argOnebefore)).getMethod(beforeParams(argOneafter)), getParams(argOneafter));
 
@@ -10403,17 +10292,17 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                                 }
                             }
                         }
-		            } else {
-		                error("invalid_operation:object_undefined:" + argOnebefore, false);
-		                failedIF();
-		            }
-		        }
-		    } else if (!containsParams(argOne) && containsParams(argThree)) {
-		        string argOneResult(""), argThreeResult("");
+                    } else {
+                        error("invalid_operation:object_undefined:" + argOnebefore, false);
+                        failedIF();
+                    }
+                }
+            } else if (!containsParams(argOne) && containsParams(argThree)) {
+                string argOneResult(""), argThreeResult("");
 
-		        bool pass = true;
+                bool pass = true;
 
-		        if (zeroDots(argThree)) {
+                if (zeroDots(argThree)) {
                     if (methodExists(beforeParams(argThree))) {
                         executeTemplate(methods.at(methodAt(beforeParams(argThree))), getParams(argThree));
 
@@ -10492,10 +10381,10 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                         error("invalid_operation:method_undefined:" + beforeParams(argThree), false);
                         failedIF();
                     }
-		        } else {
-		            string argThreebefore(beforeDot(argThree)), argThreeafter(afterDot(argThree));
+                } else {
+                    string argThreebefore(beforeDot(argThree)), argThreeafter(afterDot(argThree));
 
-		            if (objectExists(argThreebefore)) {
+                    if (objectExists(argThreebefore)) {
                         if (objects.at(objectAt(argThreebefore)).methodExists(beforeParams(argThreeafter)))
                             executeTemplate(objects.at(objectAt(argThreebefore)).getMethod(beforeParams(argThreeafter)), getParams(argThreeafter));
 
@@ -10568,20 +10457,20 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                                 failedIF();
                             }
                         }
-		            } else {
-		                error("invalid_operation:object_undefined:" + argThreebefore, false);
-		                failedIF();
-		            }
-		        }
-		    }
-		} else if ((methodExists(argOne) && argThree != "method?") || methodExists(argThree)) {
-		    string argOneResult(""), argThreeResult("");
+                    } else {
+                        error("invalid_operation:object_undefined:" + argThreebefore, false);
+                        failedIF();
+                    }
+                }
+            }
+        } else if ((methodExists(argOne) && argThree != "method?") || methodExists(argThree)) {
+            string argOneResult(""), argThreeResult("");
 
-		    if (methodExists(argOne)) {
-		        parse(argOne);
-		        argOneResult = lastValue;
-		    } else if (variableExists(argOne)) {
-		        if (variables.at(variableAt(argOne)).getString() != null)
+            if (methodExists(argOne)) {
+                parse(argOne);
+                argOneResult = lastValue;
+            } else if (variableExists(argOne)) {
+                if (variables.at(variableAt(argOne)).getString() != null)
                     argOneResult = variables.at(variableAt(argOne)).getString();
                 else if (variables.at(variableAt(argOne)).getNumber() != nullNum)
                     argOneResult = dtos(variables.at(variableAt(argOne)).getNumber());
@@ -10589,14 +10478,14 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                     error("is_null:" + argOne, false);
                     failedIF();
                 }
-		    } else
+            } else
                 argOneResult = argOne;
 
-		    if (methodExists(argThree)) {
-		        parse(argThree);
-		        argThreeResult = lastValue;
-		    } else if (variableExists(argThree)) {
-		        if (variables.at(variableAt(argThree)).getString() != null)
+            if (methodExists(argThree)) {
+                parse(argThree);
+                argThreeResult = lastValue;
+            } else if (variableExists(argThree)) {
+                if (variables.at(variableAt(argThree)).getString() != null)
                     argThreeResult = variables.at(variableAt(argThree)).getString();
                 else if (variables.at(variableAt(argThree)).getNumber() != nullNum)
                     argThreeResult = dtos(variables.at(variableAt(argThree)).getNumber());
@@ -10604,61 +10493,61 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                     error("is_null:" + argThree, false);
                     failedIF();
                 }
-		    } else
+            } else
                 argThreeResult = argThree;
 
-		    if (isNumeric(argOneResult) && isNumeric(argThreeResult)) {
-		        if (argTwo == "==" || argTwo == "is") {
-		            if (stod(argOneResult) == stod(argThreeResult))
+            if (isNumeric(argOneResult) && isNumeric(argThreeResult)) {
+                if (argTwo == "==" || argTwo == "is") {
+                    if (stod(argOneResult) == stod(argThreeResult))
                         successfulIF();
                     else
                         failedIF();
-		        } else if (argTwo == "!=" || argTwo == "not") {
-		            if (stod(argOneResult) != stod(argThreeResult))
+                } else if (argTwo == "!=" || argTwo == "not") {
+                    if (stod(argOneResult) != stod(argThreeResult))
                         successfulIF();
                     else
                         failedIF();
-		        } else if (argTwo == "<") {
-		            if (stod(argOneResult) < stod(argThreeResult))
+                } else if (argTwo == "<") {
+                    if (stod(argOneResult) < stod(argThreeResult))
                         successfulIF();
                     else
                         failedIF();
-		        } else if (argTwo == ">") {
-		            if (stod(argOneResult) > stod(argThreeResult))
+                } else if (argTwo == ">") {
+                    if (stod(argOneResult) > stod(argThreeResult))
                         successfulIF();
                     else
                         failedIF();
-		        } else if (argTwo == "<=") {
-		            if (stod(argOneResult) <= stod(argThreeResult))
+                } else if (argTwo == "<=") {
+                    if (stod(argOneResult) <= stod(argThreeResult))
                         successfulIF();
                     else
                         failedIF();
-		        } else if (argTwo == ">=") {
-		            if (stod(argOneResult) >= stod(argThreeResult))
+                } else if (argTwo == ">=") {
+                    if (stod(argOneResult) >= stod(argThreeResult))
                         successfulIF();
                     else
                         failedIF();
-		        } else {
-		            error("invalid_operator:" + argTwo, false);
-		            failedIF();
-		        }
-		    } else {
-		        if (argTwo == "==" || argTwo == "is") {
-		            if (argOneResult == argThreeResult)
+                } else {
+                    error("invalid_operator:" + argTwo, false);
+                    failedIF();
+                }
+            } else {
+                if (argTwo == "==" || argTwo == "is") {
+                    if (argOneResult == argThreeResult)
                         successfulIF();
                     else
                         failedIF();
-		        } else if (argTwo == "!=" || argTwo == "not") {
-		            if (argOneResult != argThreeResult)
+                } else if (argTwo == "!=" || argTwo == "not") {
+                    if (argOneResult != argThreeResult)
                         successfulIF();
                     else
                         failedIF();
-		        } else {
-		            error("invalid_operator:" + argTwo, false);
-		            failedIF();
-		        }
-		    }
-		} else {
+                } else {
+                    error("invalid_operator:" + argTwo, false);
+                    failedIF();
+                }
+            }
+        } else {
             if (argThree == "object?") {
                 if (objectExists(argOne)) {
                     if (argTwo == "==" || argTwo == "is")
@@ -10679,8 +10568,7 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                         failedIF();
                     }
                 }
-            }
-            else if (argThree == "var?" || argThree == "variable?") {
+            } else if (argThree == "var?" || argThree == "variable?") {
                 if (variableExists(argOne)) {
                     if (argTwo == "==" || argTwo == "is")
                         successfulIF();
@@ -10741,272 +10629,272 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                     }
                 }
             } else if (argTwo == "==" || argTwo == "is") {
-				if (argOne == argThree)
-					successfulIF();
-				else
-					failedIF();
-			} else if (argTwo == "!=" || argTwo == "not") {
-				if (argOne != argThree)
-					successfulIF();
-				else
-					failedIF();
-			} else if (argTwo == ">") {
-				if (isNumeric(argOne) && isNumeric(argThree)) {
-					if (stod(argOne) > stod(argThree))
-						successfulIF();
-					else
-						failedIF();
-				} else {
-					if (argOne.length() > argThree.length())
-						successfulIF();
-					else
-						failedIF();
-				}
-			} else if (argTwo == "<") {
-				if (isNumeric(argOne) && isNumeric(argThree)) {
-					if (stod(argOne) < stod(argThree))
-						successfulIF();
-					else
-						failedIF();
-				} else {
-					if (argOne.length() < argThree.length())
-						successfulIF();
-					else
-						failedIF();
-				}
-			} else if (argTwo == ">=") {
-				if (isNumeric(argOne) && isNumeric(argThree)) {
-					if (stod(argOne) >= stod(argThree))
-						successfulIF();
-					else
-						failedIF();
-				} else {
-				    error("invalid_operator:>=", false);
-				    failedIF();
-				}
-			} else if (argTwo == "<=") {
-				if (isNumeric(argOne) && isNumeric(argThree)) {
-					if (stod(argOne) <= stod(argThree))
-						successfulIF();
-					else
-						failedIF();
-				} else {
-					error("invalid_operator:<=", false);
+                if (argOne == argThree)
+                    successfulIF();
+                else
                     failedIF();
-				}
-			} else if (argTwo == "begins_with") {
-				if (startsWith(argOne, argThree))
-					successfulIF();
-				else
-					failedIF();
-			} else if (argTwo == "ends_with") {
-				if (endsWith(argOne, argThree))
-					successfulIF();
-				else
-					failedIF();
-			} else if (argTwo == "contains") {
-				if (contains(argOne, argThree))
-					successfulIF();
-				else
-					failedIF();
-			} else {
-				error("invalid_operator:" + argTwo, false);
-				failedIF();
-			}
-		}
-	} else if (argZero == "for") {
-		if (argTwo == "<") {
-			if (variableExists(argOne) && variableExists(argThree)) {
-				if (variables.at(variableAt(argOne)).getNumber() != nullNum && variables.at(variableAt(argThree)).getNumber() != nullNum) {
-					if (variables.at(variableAt(argOne)).getNumber() < variables.at(variableAt(argThree)).getNumber())
-						successfulFor(variables.at(variableAt(argOne)).getNumber(), variables.at(variableAt(argThree)).getNumber(), "<");
-					else
-						failedFor();
-				} else {
-					error("conversion_error:" + s, false);
-					failedFor();
-				}
-			} else if (variableExists(argOne) && !variableExists(argThree)) {
-				if (variables.at(variableAt(argOne)).getNumber() != nullNum && isNumeric(argThree)) {
-					if (variables.at(variableAt(argOne)).getNumber() < stod(argThree))
-						successfulFor(variables.at(variableAt(argOne)).getNumber(), stod(argThree), "<");
-					else
-						failedFor();
-				} else {
-					error("conversion_error:" + s, false);
-					failedFor();
-				}
-			} else if (!variableExists(argOne) && variableExists(argThree)) {
-				if (isNumeric(argOne) && variables.at(variableAt(argThree)).getNumber() != nullNum) {
-					if (stod(argOne) < variables.at(variableAt(argThree)).getNumber())
-						successfulFor(stod(argOne), variables.at(variableAt(argThree)).getNumber(), "<");
-					else
-						failedFor();
-				} else {
-					error("conversion_error:" + s, false);
-					failedFor();
-				}
-			} else if (!variableExists(argOne) && !variableExists(argThree)) {
-				if (isNumeric(argOne) && isNumeric(argThree)) {
-					if (stod(argOne) < stod(argThree))
-						successfulFor(stod(argOne), stod(argThree), "<");
-					else
-						failedFor();
-				} else {
-					error("conversion_error:" + s, false);
-					failedFor();
-				}
-			} else {
-				error("special_error(2)", false); // impossible operation
-				failedFor();
-			}
-		} else if (argTwo == ">") {
-			if (variableExists(argOne) && variableExists(argThree)) {
-				if (variables.at(variableAt(argOne)).getNumber() != nullNum && variables.at(variableAt(argThree)).getNumber() != nullNum) {
-					if (variables.at(variableAt(argOne)).getNumber() > variables.at(variableAt(argThree)).getNumber())
-						successfulFor(variables.at(variableAt(argOne)).getNumber(), variables.at(variableAt(argThree)).getNumber(), ">");
-					else
-						failedFor();
-				} else {
-					error("conversion_error:" + s, false);
-					failedFor();
-				}
-			} else if (variableExists(argOne) && !variableExists(argThree)) {
-				if (variables.at(variableAt(argOne)).getNumber() != nullNum && isNumeric(argThree)) {
-					if (variables.at(variableAt(argOne)).getNumber() > stod(argThree))
-						successfulFor(variables.at(variableAt(argOne)).getNumber(), stod(argThree), ">");
-					else
-						failedFor();
-				} else {
-					error("conversion_error:" + s, false);
-					failedFor();
-				}
-			} else if (!variableExists(argOne) && variableExists(argThree)) {
-				if (isNumeric(argOne) && variables.at(variableAt(argThree)).getNumber() != nullNum) {
-					if (stod(argOne) > variables.at(variableAt(argThree)).getNumber())
-						successfulFor(stod(argOne), variables.at(variableAt(argThree)).getNumber(), ">");
-					else
-						failedFor();
-				} else {
-					error("conversion_error:" + s, false);
-					failedFor();
-				}
-			} else if (!variableExists(argOne) && !variableExists(argThree)) {
-				if (isNumeric(argOne) && isNumeric(argThree)) {
-					if (stod(argOne) > stod(argThree))
-						successfulFor(stod(argOne), stod(argThree), ">");
-					else
-						failedFor();
-				} else {
-					error("conversion_error:" + s, false);
-					failedFor();
-				}
-			} else {
-				error("special_error(3)", false); // impossible operation
-				failedFor();
-			}
-		} else if (argTwo == "<=") {
-			if (variableExists(argOne) && variableExists(argThree)) {
-				if (variables.at(variableAt(argOne)).getNumber() != nullNum && variables.at(variableAt(argThree)).getNumber() != nullNum) {
-					if (variables.at(variableAt(argOne)).getNumber() <= variables.at(variableAt(argThree)).getNumber())
-						successfulFor(variables.at(variableAt(argOne)).getNumber(), variables.at(variableAt(argThree)).getNumber(), "<=");
-					else
-						failedFor();
-				} else {
-					error("conversion_error:" + s, false);
-					failedFor();
-				}
-			} else if (variableExists(argOne) && !variableExists(argThree)) {
-				if (variables.at(variableAt(argOne)).getNumber() != nullNum && isNumeric(argThree)) {
-					if (variables.at(variableAt(argOne)).getNumber() <= stod(argThree))
-						successfulFor(variables.at(variableAt(argOne)).getNumber(), stod(argThree), "<=");
-					else
-						failedFor();
-				} else {
-					error("conversion_error:" + s, false);
-					failedFor();
-				}
-			} else if (!variableExists(argOne) && variableExists(argThree)) {
-				if (isNumeric(argOne) && variables.at(variableAt(argThree)).getNumber() != nullNum) {
-					if (stod(argOne) <= variables.at(variableAt(argThree)).getNumber())
-						successfulFor(stod(argOne), variables.at(variableAt(argThree)).getNumber(), "<=");
-					else
-						failedFor();
-				} else {
-					error("conversion_error:" + s, false);
-					failedFor();
-				}
-			} else if (!variableExists(argOne) && !variableExists(argThree)) {
-				if (isNumeric(argOne) && isNumeric(argThree)) {
-					if (stod(argOne) <= stod(argThree))
-						successfulFor(stod(argOne), stod(argThree), "<=");
-					else
-						failedFor();
-				} else {
-					error("conversion_error:" + s, false);
-					failedFor();
-				}
-			} else {
-				error("special_error(2)", false); // impossible operation
-				failedFor();
-			}
-		} else if (argTwo == ">=") {
-			if (variableExists(argOne) && variableExists(argThree)) {
-				if (variables.at(variableAt(argOne)).getNumber() != nullNum && variables.at(variableAt(argThree)).getNumber() != nullNum) {
-					if (variables.at(variableAt(argOne)).getNumber() >= variables.at(variableAt(argThree)).getNumber())
-						successfulFor(variables.at(variableAt(argOne)).getNumber(), variables.at(variableAt(argThree)).getNumber(), ">=");
-					else
-						failedFor();
-				} else {
-					error("conversion_error:" + s, false);
-					failedFor();
-				}
-			} else if (variableExists(argOne) && !variableExists(argThree)) {
-				if (variables.at(variableAt(argOne)).getNumber() != nullNum && isNumeric(argThree)) {
-					if (variables.at(variableAt(argOne)).getNumber() >= stod(argThree))
-						successfulFor(variables.at(variableAt(argOne)).getNumber(), stod(argThree), ">=");
-					else
-						failedFor();
-				} else {
-					error("conversion_error:" + s, false);
-					failedFor();
-				}
-			} else if (!variableExists(argOne) && variableExists(argThree)) {
-				if (isNumeric(argOne) && variables.at(variableAt(argThree)).getNumber() != nullNum) {
-					if (stod(argOne) >= variables.at(variableAt(argThree)).getNumber())
-						successfulFor(stod(argOne), variables.at(variableAt(argThree)).getNumber(), ">=");
-					else
-						failedFor();
-				} else {
-					error("conversion_error:" + s, false);
-					failedFor();
-				}
-			} else if (!variableExists(argOne) && !variableExists(argThree)) {
-				if (isNumeric(argOne) && isNumeric(argThree)) {
-					if (stod(argOne) >= stod(argThree))
-						successfulFor(stod(argOne), stod(argThree), ">=");
-					else
-						failedFor();
-				} else {
-					error("conversion_error:" + s, false);
-					failedFor();
-				}
-			} else {
-				error("special_error(3)", false); // impossible operation
-				failedFor();
-			}
-		} else if (argTwo == "in") {
-			if (argOne == "var") {
-				string before(beforeDot(argThree)), after(afterDot(argThree));
+            } else if (argTwo == "!=" || argTwo == "not") {
+                if (argOne != argThree)
+                    successfulIF();
+                else
+                    failedIF();
+            } else if (argTwo == ">") {
+                if (isNumeric(argOne) && isNumeric(argThree)) {
+                    if (stod(argOne) > stod(argThree))
+                        successfulIF();
+                    else
+                        failedIF();
+                } else {
+                    if (argOne.length() > argThree.length())
+                        successfulIF();
+                    else
+                        failedIF();
+                }
+            } else if (argTwo == "<") {
+                if (isNumeric(argOne) && isNumeric(argThree)) {
+                    if (stod(argOne) < stod(argThree))
+                        successfulIF();
+                    else
+                        failedIF();
+                } else {
+                    if (argOne.length() < argThree.length())
+                        successfulIF();
+                    else
+                        failedIF();
+                }
+            } else if (argTwo == ">=") {
+                if (isNumeric(argOne) && isNumeric(argThree)) {
+                    if (stod(argOne) >= stod(argThree))
+                        successfulIF();
+                    else
+                        failedIF();
+                } else {
+                    error("invalid_operator:>=", false);
+                    failedIF();
+                }
+            } else if (argTwo == "<=") {
+                if (isNumeric(argOne) && isNumeric(argThree)) {
+                    if (stod(argOne) <= stod(argThree))
+                        successfulIF();
+                    else
+                        failedIF();
+                } else {
+                    error("invalid_operator:<=", false);
+                    failedIF();
+                }
+            } else if (argTwo == "begins_with") {
+                if (startsWith(argOne, argThree))
+                    successfulIF();
+                else
+                    failedIF();
+            } else if (argTwo == "ends_with") {
+                if (endsWith(argOne, argThree))
+                    successfulIF();
+                else
+                    failedIF();
+            } else if (argTwo == "contains") {
+                if (contains(argOne, argThree))
+                    successfulIF();
+                else
+                    failedIF();
+            } else {
+                error("invalid_operator:" + argTwo, false);
+                failedIF();
+            }
+        }
+    } else if (argZero == "for") {
+        if (argTwo == "<") {
+            if (variableExists(argOne) && variableExists(argThree)) {
+                if (variables.at(variableAt(argOne)).getNumber() != nullNum && variables.at(variableAt(argThree)).getNumber() != nullNum) {
+                    if (variables.at(variableAt(argOne)).getNumber() < variables.at(variableAt(argThree)).getNumber())
+                        successfulFor(variables.at(variableAt(argOne)).getNumber(), variables.at(variableAt(argThree)).getNumber(), "<");
+                    else
+                        failedFor();
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedFor();
+                }
+            } else if (variableExists(argOne) && !variableExists(argThree)) {
+                if (variables.at(variableAt(argOne)).getNumber() != nullNum && isNumeric(argThree)) {
+                    if (variables.at(variableAt(argOne)).getNumber() < stod(argThree))
+                        successfulFor(variables.at(variableAt(argOne)).getNumber(), stod(argThree), "<");
+                    else
+                        failedFor();
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedFor();
+                }
+            } else if (!variableExists(argOne) && variableExists(argThree)) {
+                if (isNumeric(argOne) && variables.at(variableAt(argThree)).getNumber() != nullNum) {
+                    if (stod(argOne) < variables.at(variableAt(argThree)).getNumber())
+                        successfulFor(stod(argOne), variables.at(variableAt(argThree)).getNumber(), "<");
+                    else
+                        failedFor();
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedFor();
+                }
+            } else if (!variableExists(argOne) && !variableExists(argThree)) {
+                if (isNumeric(argOne) && isNumeric(argThree)) {
+                    if (stod(argOne) < stod(argThree))
+                        successfulFor(stod(argOne), stod(argThree), "<");
+                    else
+                        failedFor();
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedFor();
+                }
+            } else {
+                error("special_error(2)", false); // impossible operation
+                failedFor();
+            }
+        } else if (argTwo == ">") {
+            if (variableExists(argOne) && variableExists(argThree)) {
+                if (variables.at(variableAt(argOne)).getNumber() != nullNum && variables.at(variableAt(argThree)).getNumber() != nullNum) {
+                    if (variables.at(variableAt(argOne)).getNumber() > variables.at(variableAt(argThree)).getNumber())
+                        successfulFor(variables.at(variableAt(argOne)).getNumber(), variables.at(variableAt(argThree)).getNumber(), ">");
+                    else
+                        failedFor();
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedFor();
+                }
+            } else if (variableExists(argOne) && !variableExists(argThree)) {
+                if (variables.at(variableAt(argOne)).getNumber() != nullNum && isNumeric(argThree)) {
+                    if (variables.at(variableAt(argOne)).getNumber() > stod(argThree))
+                        successfulFor(variables.at(variableAt(argOne)).getNumber(), stod(argThree), ">");
+                    else
+                        failedFor();
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedFor();
+                }
+            } else if (!variableExists(argOne) && variableExists(argThree)) {
+                if (isNumeric(argOne) && variables.at(variableAt(argThree)).getNumber() != nullNum) {
+                    if (stod(argOne) > variables.at(variableAt(argThree)).getNumber())
+                        successfulFor(stod(argOne), variables.at(variableAt(argThree)).getNumber(), ">");
+                    else
+                        failedFor();
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedFor();
+                }
+            } else if (!variableExists(argOne) && !variableExists(argThree)) {
+                if (isNumeric(argOne) && isNumeric(argThree)) {
+                    if (stod(argOne) > stod(argThree))
+                        successfulFor(stod(argOne), stod(argThree), ">");
+                    else
+                        failedFor();
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedFor();
+                }
+            } else {
+                error("special_error(3)", false); // impossible operation
+                failedFor();
+            }
+        } else if (argTwo == "<=") {
+            if (variableExists(argOne) && variableExists(argThree)) {
+                if (variables.at(variableAt(argOne)).getNumber() != nullNum && variables.at(variableAt(argThree)).getNumber() != nullNum) {
+                    if (variables.at(variableAt(argOne)).getNumber() <= variables.at(variableAt(argThree)).getNumber())
+                        successfulFor(variables.at(variableAt(argOne)).getNumber(), variables.at(variableAt(argThree)).getNumber(), "<=");
+                    else
+                        failedFor();
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedFor();
+                }
+            } else if (variableExists(argOne) && !variableExists(argThree)) {
+                if (variables.at(variableAt(argOne)).getNumber() != nullNum && isNumeric(argThree)) {
+                    if (variables.at(variableAt(argOne)).getNumber() <= stod(argThree))
+                        successfulFor(variables.at(variableAt(argOne)).getNumber(), stod(argThree), "<=");
+                    else
+                        failedFor();
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedFor();
+                }
+            } else if (!variableExists(argOne) && variableExists(argThree)) {
+                if (isNumeric(argOne) && variables.at(variableAt(argThree)).getNumber() != nullNum) {
+                    if (stod(argOne) <= variables.at(variableAt(argThree)).getNumber())
+                        successfulFor(stod(argOne), variables.at(variableAt(argThree)).getNumber(), "<=");
+                    else
+                        failedFor();
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedFor();
+                }
+            } else if (!variableExists(argOne) && !variableExists(argThree)) {
+                if (isNumeric(argOne) && isNumeric(argThree)) {
+                    if (stod(argOne) <= stod(argThree))
+                        successfulFor(stod(argOne), stod(argThree), "<=");
+                    else
+                        failedFor();
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedFor();
+                }
+            } else {
+                error("special_error(2)", false); // impossible operation
+                failedFor();
+            }
+        } else if (argTwo == ">=") {
+            if (variableExists(argOne) && variableExists(argThree)) {
+                if (variables.at(variableAt(argOne)).getNumber() != nullNum && variables.at(variableAt(argThree)).getNumber() != nullNum) {
+                    if (variables.at(variableAt(argOne)).getNumber() >= variables.at(variableAt(argThree)).getNumber())
+                        successfulFor(variables.at(variableAt(argOne)).getNumber(), variables.at(variableAt(argThree)).getNumber(), ">=");
+                    else
+                        failedFor();
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedFor();
+                }
+            } else if (variableExists(argOne) && !variableExists(argThree)) {
+                if (variables.at(variableAt(argOne)).getNumber() != nullNum && isNumeric(argThree)) {
+                    if (variables.at(variableAt(argOne)).getNumber() >= stod(argThree))
+                        successfulFor(variables.at(variableAt(argOne)).getNumber(), stod(argThree), ">=");
+                    else
+                        failedFor();
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedFor();
+                }
+            } else if (!variableExists(argOne) && variableExists(argThree)) {
+                if (isNumeric(argOne) && variables.at(variableAt(argThree)).getNumber() != nullNum) {
+                    if (stod(argOne) >= variables.at(variableAt(argThree)).getNumber())
+                        successfulFor(stod(argOne), variables.at(variableAt(argThree)).getNumber(), ">=");
+                    else
+                        failedFor();
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedFor();
+                }
+            } else if (!variableExists(argOne) && !variableExists(argThree)) {
+                if (isNumeric(argOne) && isNumeric(argThree)) {
+                    if (stod(argOne) >= stod(argThree))
+                        successfulFor(stod(argOne), stod(argThree), ">=");
+                    else
+                        failedFor();
+                } else {
+                    error("conversion_error:" + s, false);
+                    failedFor();
+                }
+            } else {
+                error("special_error(3)", false); // impossible operation
+                failedFor();
+            }
+        } else if (argTwo == "in") {
+            if (argOne == "var") {
+                string before(beforeDot(argThree)), after(afterDot(argThree));
 
-				if (before == "args" && after == "size") {
-					List newList;
+                if (before == "args" && after == "size") {
+                    List newList;
 
-					for (int i = 0; i < (int)args.size(); i++)
-						newList.add(args.at(i));
+                    for (int i = 0; i < (int)args.size(); i++)
+                        newList.add(args.at(i));
 
-					successfulFor(newList);
-				} else if (objectExists(before) && (after == "get_methods" || after == "methods")) {
+                    successfulFor(newList);
+                } else if (objectExists(before) && (after == "get_methods" || after == "methods")) {
                     List newList;
 
                     vector<Method> objMethods = objects.at(objectAt(before)).getMethods();
@@ -11015,7 +10903,7 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                         newList.add(objMethods.at(i).name());
 
                     successfulFor(newList);
-				} else if (objectExists(before) && (after == "get_variables" || after == "variables")) {
+                } else if (objectExists(before) && (after == "get_variables" || after == "variables")) {
                     List newList;
 
                     vector<Variable> objVars = objects.at(objectAt(before)).getVariables();
@@ -11024,82 +10912,82 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                         newList.add(objVars.at(i).name());
 
                     successfulFor(newList);
-				} else if (variableExists(before) && (after == "size" || after == "length")) {
-					if (variables.at(variableAt(before)).getString() != null) {
-						List newList;
-						string tempVarStr = variables.at(variableAt(before)).getString();
-						int len = tempVarStr.length();
+                } else if (variableExists(before) && (after == "size" || after == "length")) {
+                    if (variables.at(variableAt(before)).getString() != null) {
+                        List newList;
+                        string tempVarStr = variables.at(variableAt(before)).getString();
+                        int len = tempVarStr.length();
 
-						for (int i = 0; i < len; i++) {
-							string tempStr("");
-							tempStr.push_back(tempVarStr[i]);
-							newList.add(tempStr);
-						}
+                        for (int i = 0; i < len; i++) {
+                            string tempStr("");
+                            tempStr.push_back(tempVarStr[i]);
+                            newList.add(tempStr);
+                        }
 
-						successfulFor(newList);
-					}
-				} else {
-					if (before.length() != 0 && after.length() != 0) {
-						if (variableExists(before)) {
-							if (after == "read_dirs" || after == "directories") {
-								if (directoryExists(variables.at(variableAt(before)).getString()))
-									successfulFor(getDirectoryList(before, false));
-								else {
-									error("read_fail:" + variables.at(variableAt(before)).getString(), false);
-									failedFor();
-								}
-							} else if (after == "read_files" || after == "files") {
-								if (directoryExists(variables.at(variableAt(before)).getString()))
-									successfulFor(getDirectoryList(before, true));
-								else {
-									error("read_fail:" + variables.at(variableAt(before)).getString(), false);
-									failedFor();
-								}
-							} else if (after == "read") {
-								if (fileExists(variables.at(variableAt(before)).getString())) {
-									List newList;
+                        successfulFor(newList);
+                    }
+                } else {
+                    if (before.length() != 0 && after.length() != 0) {
+                        if (variableExists(before)) {
+                            if (after == "read_dirs" || after == "directories") {
+                                if (directoryExists(variables.at(variableAt(before)).getString()))
+                                    successfulFor(getDirectoryList(before, false));
+                                else {
+                                    error("read_fail:" + variables.at(variableAt(before)).getString(), false);
+                                    failedFor();
+                                }
+                            } else if (after == "read_files" || after == "files") {
+                                if (directoryExists(variables.at(variableAt(before)).getString()))
+                                    successfulFor(getDirectoryList(before, true));
+                                else {
+                                    error("read_fail:" + variables.at(variableAt(before)).getString(), false);
+                                    failedFor();
+                                }
+                            } else if (after == "read") {
+                                if (fileExists(variables.at(variableAt(before)).getString())) {
+                                    List newList;
 
-									ifstream file(variables.at(variableAt(before)).getString().c_str());
-									string line("");
+                                    ifstream file(variables.at(variableAt(before)).getString().c_str());
+                                    string line("");
 
-									if (file.is_open()) {
-										while (!file.eof()) {
-											getline(file, line);
-											newList.add(line);
-										}
+                                    if (file.is_open()) {
+                                        while (!file.eof()) {
+                                            getline(file, line);
+                                            newList.add(line);
+                                        }
 
-										file.close();
+                                        file.close();
 
-										successfulFor(newList);
-									} else {
-										error("read_fail:" + variables.at(variableAt(before)).getString(), false);
-										failedFor();
-									}
-								}
-							} else {
-								error("invalid_operation:method_undefined:" + after, false);
-								failedFor();
-							}
-						} else {
-							error("invalid_operation:variable_undefined:" + before, false);
-							failedFor();
-						}
-					} else {
-						if (listExists(argThree))
-							successfulFor(lists.at(listAt(argThree)));
-						else {
-							error("invalid_operation:list_undefined:" + argThree, false);
-							failedFor();
-						}
-					}
-				}
-			} else if (containsParams(argThree)) {
-			    vector<string> rangeSpecifiers;
+                                        successfulFor(newList);
+                                    } else {
+                                        error("read_fail:" + variables.at(variableAt(before)).getString(), false);
+                                        failedFor();
+                                    }
+                                }
+                            } else {
+                                error("invalid_operation:method_undefined:" + after, false);
+                                failedFor();
+                            }
+                        } else {
+                            error("invalid_operation:variable_undefined:" + before, false);
+                            failedFor();
+                        }
+                    } else {
+                        if (listExists(argThree))
+                            successfulFor(lists.at(listAt(argThree)));
+                        else {
+                            error("invalid_operation:list_undefined:" + argThree, false);
+                            failedFor();
+                        }
+                    }
+                }
+            } else if (containsParams(argThree)) {
+                vector<string> rangeSpecifiers;
 
-			    rangeSpecifiers = getRange(argThree);
+                rangeSpecifiers = getRange(argThree);
 
-			    if (rangeSpecifiers.size() == 2) {
-			        string firstRangeSpecifier(rangeSpecifiers.at(0)), lastRangeSpecifier(rangeSpecifiers.at(1));
+                if (rangeSpecifiers.size() == 2) {
+                    string firstRangeSpecifier(rangeSpecifiers.at(0)), lastRangeSpecifier(rangeSpecifiers.at(1));
 
                     if (variableExists(firstRangeSpecifier)) {
                         if (variables.at(variableAt(firstRangeSpecifier)).getNumber() != nullNum)
@@ -11115,28 +11003,28 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                             failedFor();
                     }
 
-			        if (isNumeric(firstRangeSpecifier) && isNumeric(lastRangeSpecifier)) {
-			            loopSymbol = argOne;
+                    if (isNumeric(firstRangeSpecifier) && isNumeric(lastRangeSpecifier)) {
+                        loopSymbol = argOne;
 
-			            int ifrs = stoi(firstRangeSpecifier), ilrs(stoi(lastRangeSpecifier));
+                        int ifrs = stoi(firstRangeSpecifier), ilrs(stoi(lastRangeSpecifier));
 
-			            if (ifrs < ilrs)
-			                successfulFor(stod(firstRangeSpecifier), stod(lastRangeSpecifier), "<=");
-			            else if (ifrs > ilrs)
+                        if (ifrs < ilrs)
+                            successfulFor(stod(firstRangeSpecifier), stod(lastRangeSpecifier), "<=");
+                        else if (ifrs > ilrs)
                             successfulFor(stod(firstRangeSpecifier), stod(lastRangeSpecifier), ">=");
                         else
                             failedFor();
-			        } else
+                    } else
                         failedFor();
-			    }
-			} else if (containsBrackets(argThree)) {
-			    string before(beforeBrackets(argThree));
+                }
+            } else if (containsBrackets(argThree)) {
+                string before(beforeBrackets(argThree));
 
-			    if (variableExists(before)) {
-			        if (variables.at(variableAt(before)).getString() != null) {
-			            string tempVarString(variables.at(variableAt(before)).getString());
+                if (variableExists(before)) {
+                    if (variables.at(variableAt(before)).getString() != null) {
+                        string tempVarString(variables.at(variableAt(before)).getString());
 
-			            vector<string> range = getBracketRange(argThree);
+                        vector<string> range = getBracketRange(argThree);
 
                         if (range.size() == 2) {
                             string rangeBegin(range.at(0)), rangeEnd(range.at(1));
@@ -11185,58 +11073,58 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
                                 error("invalid_operation:invalid_range:" + rangeBegin + ".." + rangeEnd, false);
                         } else
                             error("invalid_operation:invalid_range:" + argThree, false);
-			        } else {
+                    } else {
                         error("invalid_operation:null_string:" + before, false);
                         failedFor();
-			        }
-			    }
-			} else if (listExists(argThree)) {
-			    loopSymbol = argOne;
+                    }
+                }
+            } else if (listExists(argThree)) {
+                loopSymbol = argOne;
 
-				successfulFor(lists.at(listAt(argThree)));
-			} else if (!zeroDots(argThree)) {
-			    string _b(beforeDot(argThree)), _a(afterDot(argThree));
+                successfulFor(lists.at(listAt(argThree)));
+            } else if (!zeroDots(argThree)) {
+                string _b(beforeDot(argThree)), _a(afterDot(argThree));
 
-				if (_b == "args" && _a == "size") {
-					List newList;
-
-                    loopSymbol = argOne;
-
-					for (int i = 0; i < (int)args.size(); i++)
-						newList.add(args.at(i));
-
-					successfulFor(newList);
-				} else if (_b == "env" && (_a == "get_members" || _a == "members")) {
-				    List newList;
-
-				    newList.add("cwd");
-				    newList.add("usl");
-				    newList.add("os");
-				    newList.add("user");
-				    newList.add("machine");
-				    newList.add("init_dir");
-				    newList.add("initial_directory");
-				    newList.add("am_or_pm");
-				    newList.add("now");
-				    newList.add("day_of_this_week");
-				    newList.add("day_of_this_month");
-				    newList.add("day_of_this_year");
-				    newList.add("month_of_this_year");
-				    newList.add("this_second");
-				    newList.add("this_minute");
-				    newList.add("this_hour");
-				    newList.add("this_month");
-				    newList.add("this_year");
-				    newList.add("empty_string");
-				    newList.add("empty_number");
-				    newList.add("last_error");
-				    newList.add("last_value");
-				    newList.add("get_members");
-				    newList.add("members");
+                if (_b == "args" && _a == "size") {
+                    List newList;
 
                     loopSymbol = argOne;
-				    successfulFor(newList);
-				} else if (objectExists(_b) && (_a == "get_methods" || _a == "methods")) {
+
+                    for (int i = 0; i < (int)args.size(); i++)
+                        newList.add(args.at(i));
+
+                    successfulFor(newList);
+                } else if (_b == "env" && (_a == "get_members" || _a == "members")) {
+                    List newList;
+
+                    newList.add("cwd");
+                    newList.add("usl");
+                    newList.add("os");
+                    newList.add("user");
+                    newList.add("machine");
+                    newList.add("init_dir");
+                    newList.add("initial_directory");
+                    newList.add("am_or_pm");
+                    newList.add("now");
+                    newList.add("day_of_this_week");
+                    newList.add("day_of_this_month");
+                    newList.add("day_of_this_year");
+                    newList.add("month_of_this_year");
+                    newList.add("this_second");
+                    newList.add("this_minute");
+                    newList.add("this_hour");
+                    newList.add("this_month");
+                    newList.add("this_year");
+                    newList.add("empty_string");
+                    newList.add("empty_number");
+                    newList.add("last_error");
+                    newList.add("last_value");
+                    newList.add("get_members");
+                    newList.add("members");
+
+                    loopSymbol = argOne;
+                    successfulFor(newList);
+                } else if (objectExists(_b) && (_a == "get_methods" || _a == "methods")) {
                     List newList;
 
                     vector<Method> objMethods = objects.at(objectAt(_b)).getMethods();
@@ -11246,7 +11134,7 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
 
                     loopSymbol = argOne;
                     successfulFor(newList);
-				} else if (objectExists(_b) && (_a == "get_variables" || _a == "variables")) {
+                } else if (objectExists(_b) && (_a == "get_variables" || _a == "variables")) {
                     List newList;
 
                     vector<Variable> objVars = objects.at(objectAt(_b)).getVariables();
@@ -11256,176 +11144,171 @@ void threeSpace(string argZero, string argOne, string argTwo, string argThree, s
 
                     loopSymbol = argOne;
                     successfulFor(newList);
-				} else if (variableExists(_b) && (_a == "size" || _a == "length")) {
-					if (variables.at(variableAt(_b)).getString() != null) {
+                } else if (variableExists(_b) && (_a == "size" || _a == "length")) {
+                    if (variables.at(variableAt(_b)).getString() != null) {
                         loopSymbol = argOne;
-						List newList;
-						string _t = variables.at(variableAt(_b)).getString();
-						int _l = _t.length();
+                        List newList;
+                        string _t = variables.at(variableAt(_b)).getString();
+                        int _l = _t.length();
 
-						for (int i = 0; i < _l; i++) {
-							string tmpStr("");
-							tmpStr.push_back(_t[i]);
-							newList.add(tmpStr);
-						}
+                        for (int i = 0; i < _l; i++) {
+                            string tmpStr("");
+                            tmpStr.push_back(_t[i]);
+                            newList.add(tmpStr);
+                        }
 
-						successfulFor(newList);
-					}
-				} else {
-					if (_b.length() != 0 && _a.length() != 0) {
-						if (variableExists(_b)) {
-							if (_a == "read_dirs" || _a == "directories") {
-								if (directoryExists(variables.at(variableAt(_b)).getString())) {
+                        successfulFor(newList);
+                    }
+                } else {
+                    if (_b.length() != 0 && _a.length() != 0) {
+                        if (variableExists(_b)) {
+                            if (_a == "read_dirs" || _a == "directories") {
+                                if (directoryExists(variables.at(variableAt(_b)).getString())) {
                                     loopSymbol = argOne;
-									successfulFor(getDirectoryList(_b, false));
-								} else {
-									error("read_fail:" + variables.at(variableAt(_b)).getString(), false);
-									failedFor();
-								}
-							} else if (_a == "read_files" || _a == "files") {
-								if (directoryExists(variables.at(variableAt(_b)).getString())) {
+                                    successfulFor(getDirectoryList(_b, false));
+                                } else {
+                                    error("read_fail:" + variables.at(variableAt(_b)).getString(), false);
+                                    failedFor();
+                                }
+                            } else if (_a == "read_files" || _a == "files") {
+                                if (directoryExists(variables.at(variableAt(_b)).getString())) {
                                     loopSymbol = argOne;
-									successfulFor(getDirectoryList(_b, true));
-								} else {
-									error("read_fail:" + variables.at(variableAt(_b)).getString(), false);
-									failedFor();
-								}
-							} else if (_a == "read") {
-								if (fileExists(variables.at(variableAt(_b)).getString())) {
-									List newList;
+                                    successfulFor(getDirectoryList(_b, true));
+                                } else {
+                                    error("read_fail:" + variables.at(variableAt(_b)).getString(), false);
+                                    failedFor();
+                                }
+                            } else if (_a == "read") {
+                                if (fileExists(variables.at(variableAt(_b)).getString())) {
+                                    List newList;
 
-									ifstream file(variables.at(variableAt(_b)).getString().c_str());
-									string line("");
+                                    ifstream file(variables.at(variableAt(_b)).getString().c_str());
+                                    string line("");
 
-									if (file.is_open()) {
-										while (!file.eof()) {
-											getline(file, line);
-											newList.add(line);
-										}
+                                    if (file.is_open()) {
+                                        while (!file.eof()) {
+                                            getline(file, line);
+                                            newList.add(line);
+                                        }
 
-										file.close();
+                                        file.close();
 
                                         loopSymbol = argOne;
-										successfulFor(newList);
-									} else {
-										error("read_fail:" + variables.at(variableAt(_b)).getString(), false);
-										failedFor();
-									}
-								}
-							} else {
-								error("invalid_operation:method_undefined:" + _a, false);
-								failedFor();
-							}
-						} else {
-							error("invalid_operation:variable_undefined:" + _b, false);
-							failedFor();
-						}
-					}
-				}
-			} else {
-				error("invalid_operation:" + s, false);
-				failedFor();
-			}
-		} else {
-			error("invalid_operation:" + s, false);
-			failedFor();
-		}
-	} else if (argZero == "while") {
-	    if (variableExists(argOne) && variableExists(argThree)) {
-	        if (variables.at(variableAt(argOne)).getNumber() != nullNum && variables.at(variableAt(argThree)).getNumber() != nullNum) {
-	            if (argTwo == "<" || argTwo == "<=" || argTwo == ">=" || argTwo == ">" || argTwo == "==" || argTwo == "!=")
+                                        successfulFor(newList);
+                                    } else {
+                                        error("read_fail:" + variables.at(variableAt(_b)).getString(), false);
+                                        failedFor();
+                                    }
+                                }
+                            } else {
+                                error("invalid_operation:method_undefined:" + _a, false);
+                                failedFor();
+                            }
+                        } else {
+                            error("invalid_operation:variable_undefined:" + _b, false);
+                            failedFor();
+                        }
+                    }
+                }
+            } else {
+                error("invalid_operation:" + s, false);
+                failedFor();
+            }
+        } else {
+            error("invalid_operation:" + s, false);
+            failedFor();
+        }
+    } else if (argZero == "while") {
+        if (variableExists(argOne) && variableExists(argThree)) {
+            if (variables.at(variableAt(argOne)).getNumber() != nullNum && variables.at(variableAt(argThree)).getNumber() != nullNum) {
+                if (argTwo == "<" || argTwo == "<=" || argTwo == ">=" || argTwo == ">" || argTwo == "==" || argTwo == "!=")
                     successfullWhile(argOne, argTwo, argThree);
                 else {
                     error("invalid_operation:" + s, false);
                     failedWhile();
                 }
-	        } else {
-	            error("conversion_error:null_number:" + argOne + argTwo + argThree, false);
-	            failedWhile();
-	        }
-	    } else if (isNumeric(argThree) && variableExists(argOne)) {
-	        if (variables.at(variableAt(argOne)).getNumber() != nullNum) {
-	            if (argTwo == "<" || argTwo == "<=" || argTwo == ">=" || argTwo == ">" || argTwo == "==" || argTwo == "!=")
+            } else {
+                error("conversion_error:null_number:" + argOne + argTwo + argThree, false);
+                failedWhile();
+            }
+        } else if (isNumeric(argThree) && variableExists(argOne)) {
+            if (variables.at(variableAt(argOne)).getNumber() != nullNum) {
+                if (argTwo == "<" || argTwo == "<=" || argTwo == ">=" || argTwo == ">" || argTwo == "==" || argTwo == "!=")
                     successfullWhile(argOne, argTwo, argThree);
                 else {
                     error("invalid_operation:" + s, false);
                     failedWhile();
                 }
-	        } else {
-	            error("conversion_error:null_number:" + argOne + argTwo + argThree, false);
-	            failedWhile();
-	        }
-	    } else if (isNumeric(argOne) && isNumeric(argThree)) {
-	        if (argTwo == "<" || argTwo == "<=" || argTwo == ">=" || argTwo == ">" || argTwo == "==" || argTwo == "!=")
+            } else {
+                error("conversion_error:null_number:" + argOne + argTwo + argThree, false);
+                failedWhile();
+            }
+        } else if (isNumeric(argOne) && isNumeric(argThree)) {
+            if (argTwo == "<" || argTwo == "<=" || argTwo == ">=" || argTwo == ">" || argTwo == "==" || argTwo == "!=")
                 successfullWhile(argOne, argTwo, argThree);
             else {
                 error("invalid_operation:" + s, false);
                 failedWhile();
             }
-	    } else {
-	        error("invalid_operation:" + s, false);
-	        failedWhile();
-	    }
-	} else
-		sysExec(s, command);
+        } else {
+            error("invalid_operation:" + s, false);
+            failedWhile();
+        }
+    } else
+        sysExec(s, command);
 }
 
-int secondNow()
-{
-	time_t currently;
+int secondNow() {
+    time_t currently;
 
-	time(&currently);
+    time(&currently);
 
-	struct tm * t = localtime(&currently);
+    struct tm * t = localtime(&currently);
 
-	return (t->tm_sec + 1);
+    return (t->tm_sec + 1);
 }
 
-int minuteNow()
-{
-	time_t currently;
+int minuteNow() {
+    time_t currently;
 
-	time(&currently);
+    time(&currently);
 
-	struct tm * t = localtime(&currently);
+    struct tm * t = localtime(&currently);
 
-	return (t->tm_min);
+    return (t->tm_min);
 }
 
-int hourNow()
-{
-	time_t currently;
+int hourNow() {
+    time_t currently;
 
-	time(&currently);
+    time(&currently);
 
-	struct tm * t = localtime(&currently);
+    struct tm * t = localtime(&currently);
 
-	if (t->tm_hour <= 11) {
-		if (t->tm_hour == 0)
-			return (12);
-		else
-			return (t->tm_hour);
-	}
+    if (t->tm_hour <= 11) {
+        if (t->tm_hour == 0)
+            return (12);
+        else
+            return (t->tm_hour);
+    }
 
-	return (t->tm_hour - 12);
+    return (t->tm_hour - 12);
 }
 
-string amOrPm()
-{
-	time_t currently;
+string amOrPm() {
+    time_t currently;
 
-	time(&currently);
+    time(&currently);
 
-	struct tm * t = localtime(&currently);
+    struct tm * t = localtime(&currently);
 
-	if (t->tm_hour > 11)
-		return ("PM");
+    if (t->tm_hour > 11)
+        return ("PM");
 
-	return ("AM");
+    return ("AM");
 }
 
-string timeNow()
-{
+string timeNow() {
     string now("");
 
     now = itos(monthNow()) + "/" + itos(dayOfTheMonth()) + "/" + itos(yearNow()) + " ";
@@ -11454,190 +11337,179 @@ string timeNow()
     return (now);
 }
 
-int monthNow()
-{
-	time_t currently;
+int monthNow() {
+    time_t currently;
 
-	time(&currently);
+    time(&currently);
 
-	struct tm * t = localtime(&currently);
+    struct tm * t = localtime(&currently);
 
-	return (t->tm_mon + 1);
+    return (t->tm_mon + 1);
 }
 
-int yearNow()
-{
-	time_t currently;
+int yearNow() {
+    time_t currently;
 
-	time(&currently);
+    time(&currently);
 
-	struct tm * t = localtime(&currently);
+    struct tm * t = localtime(&currently);
 
-	return (t->tm_year + 1900);
+    return (t->tm_year + 1900);
 }
 
-int dayOfTheMonth()
-{
-	time_t currently;
+int dayOfTheMonth() {
+    time_t currently;
 
-	time(&currently);
+    time(&currently);
 
-	struct tm * t = localtime(&currently);
+    struct tm * t = localtime(&currently);
 
-	return (t->tm_mday);
+    return (t->tm_mday);
 }
 
-int dayOfTheYear()
-{
-	time_t currently;
+int dayOfTheYear() {
+    time_t currently;
 
-	time(&currently);
+    time(&currently);
 
-	struct tm * t = localtime(&currently);
+    struct tm * t = localtime(&currently);
 
-	return (t->tm_yday + 2);
+    return (t->tm_yday + 2);
 }
 
-string dayOfTheWeek()
-{
-	time_t currently;
+string dayOfTheWeek() {
+    time_t currently;
 
-	time(&currently);
+    time(&currently);
 
-	struct tm * t = localtime(&currently);
+    struct tm * t = localtime(&currently);
 
-	string day("");
+    string day("");
 
-	switch (t->tm_wday) {
-        case 0:
-			day = "Sunday";
-            break;
-		case 1:
-			day = "Monday";
-            break;
-		case 2:
-			day = "Tuesday";
-            break;
-		case 3:
-			day = "Wednesday";
-            break;
-		case 4:
-			day = "Thursday";
-            break;
-		case 5:
-			day = "Friday";
-            break;
-		case 6:
-			day = "Saturday";
-            break;
-		default:
-			cout << "defaulted: " << t->tm_mday << endl;
-            break;
-	}
+    switch (t->tm_wday) {
+    case 0:
+        day = "Sunday";
+        break;
+    case 1:
+        day = "Monday";
+        break;
+    case 2:
+        day = "Tuesday";
+        break;
+    case 3:
+        day = "Wednesday";
+        break;
+    case 4:
+        day = "Thursday";
+        break;
+    case 5:
+        day = "Friday";
+        break;
+    case 6:
+        day = "Saturday";
+        break;
+    default:
+        cout << "defaulted: " << t->tm_mday << endl;
+        break;
+    }
 
-	return (day);
+    return (day);
 }
 
-string monthOfTheYear()
-{
-	time_t currently;
+string monthOfTheYear() {
+    time_t currently;
 
-	time(&currently);
+    time(&currently);
 
-	struct tm * t = localtime(&currently);
+    struct tm * t = localtime(&currently);
 
-	string month("");
+    string month("");
 
-	switch (t->tm_mon) {
-		case 0:
-			month = "January";
-            break;
-		case 1:
-			month = "February";
-            break;
-		case 2:
-			month = "March";
-            break;
-		case 3:
-			month = "April";
-            break;
-		case 4:
-			month = "May";
-            break;
-		case 5:
-			month = "June";
-            break;
-		case 6:
-			month = "July";
-            break;
-		case 7:
-			month = "August";
-            break;
-		case 8:
-			month = "September";
-            break;
-		case 9:
-			month = "October";
-            break;
-		case 10:
-			month = "November";
-            break;
-		case 11:
-			month = "December";
-            break;
-		default:
-			month = "Unknown";
-            break;
-	}
+    switch (t->tm_mon) {
+    case 0:
+        month = "January";
+        break;
+    case 1:
+        month = "February";
+        break;
+    case 2:
+        month = "March";
+        break;
+    case 3:
+        month = "April";
+        break;
+    case 4:
+        month = "May";
+        break;
+    case 5:
+        month = "June";
+        break;
+    case 6:
+        month = "July";
+        break;
+    case 7:
+        month = "August";
+        break;
+    case 8:
+        month = "September";
+        break;
+    case 9:
+        month = "October";
+        break;
+    case 10:
+        month = "November";
+        break;
+    case 11:
+        month = "December";
+        break;
+    default:
+        month = "Unknown";
+        break;
+    }
 
-	return (month);
+    return (month);
 }
 
-void delay(int seconds)
-{
-	clock_t ct;
-	ct = clock() + seconds * CLOCKS_PER_SEC;
+void delay(int seconds) {
+    clock_t ct;
+    ct = clock() + seconds * CLOCKS_PER_SEC;
 
-	while(clock() < ct) {}
+    while(clock() < ct) {}
 }
 
-double random(double min, double max)
-{
-	double r = (double)rand() / (double)RAND_MAX;
+double random(double min, double max) {
+    double r = (double)rand() / (double)RAND_MAX;
 
-	return (min + (r * (max - min)));
+    return (min + (r * (max - min)));
 }
 
-string random(string start, string sc)
-{
-	string s("");
-	char c;
-	c = (rand() % get_alpha_num(sc[0])) + start[0];
-	s.push_back(c);
+string random(string start, string sc) {
+    string s("");
+    char c;
+    c = (rand() % get_alpha_num(sc[0])) + start[0];
+    s.push_back(c);
 
-	return (s);
+    return (s);
 }
 
-void uninstall()
-{
-	if (directoryExists(savedVarsPath)) {
-		if (fileExists(savedVars))
-			rm(savedVars);
-		else
-			cerr << "...no remembered variables" << endl;
+void uninstall() {
+    if (directoryExists(savedVarsPath)) {
+        if (fileExists(savedVars))
+            rm(savedVars);
+        else
+            cerr << "...no remembered variables" << endl;
 
-		rd(savedVarsPath);
+        rd(savedVarsPath);
 
-		if (!directoryExists(savedVarsPath) && !fileExists(savedVars))
-			cout << "...removed successfully" << endl;
-		else
-			cerr << "...failed to remove" << endl;
-	} else
-		cerr << "...found nothing to remove" << endl;
+        if (!directoryExists(savedVarsPath) && !fileExists(savedVars))
+            cout << "...removed successfully" << endl;
+        else
+            cerr << "...failed to remove" << endl;
+    } else
+        cerr << "...found nothing to remove" << endl;
 }
 
-double getBytes(string path)
-{
+double getBytes(string path) {
     int bytes;
 
     ifstream file(path.c_str());
@@ -11661,30 +11533,25 @@ double getBytes(string path)
     return (bytes);
 }
 
-double getKBytes(string path)
-{
+double getKBytes(string path) {
     return (getBytes(path) / 1024.0);
 }
 
-double getMBytes(string path)
-{
+double getMBytes(string path) {
     return (getBytes(path) / 1048576.0);
 }
 
-double getGBytes(string path)
-{
+double getGBytes(string path) {
     return (getBytes(path) / 1073741824.0);
 }
 
-double getTBytes(string path)
-{
+double getTBytes(string path) {
     return (getBytes(path) / 1099511627776.0);
 }
 
 #ifdef __linux__
 
-string shomp(string text)
-{
+string shomp(string text) {
     char * s = getpass(cleanString(text).c_str());
 
     return (s);
@@ -11692,8 +11559,7 @@ string shomp(string text)
 
 #elif defined _WIN32 || defined _WIN64
 
-string shomp(string text)
-{
+string shomp(string text) {
     HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
     DWORD mode = 0;
     GetConsoleMode(hStdin, &mode);
@@ -11711,91 +11577,90 @@ string shomp(string text)
 
 #endif
 
-int main(int c, char ** v)
-{
-	string app = v[0];
-	setup();
-	uslBinary = app;
-	initDir = cwd();
-	logging = false;
+int main(int c, char ** v) {
+    string app = v[0];
+    setup();
+    uslBinary = app;
+    initDir = cwd();
+    logging = false;
 
-	#ifdef _WIN32
-	SetConsoleTitle("USL");
-	#endif
+#ifdef _WIN32
+    SetConsoleTitle("USL");
+#endif
 
     srand((unsigned int)time(NULL));
 
-	if (c == 1) {
-		currentScript = app;
-		args.push_back(app);
-		argsLength = (int)args.size();
-		loop(false);
-	} else if (c == 2) {
-		string opt = v[1];
+    if (c == 1) {
+        currentScript = app;
+        args.push_back(app);
+        argsLength = (int)args.size();
+        loop(false);
+    } else if (c == 2) {
+        string opt = v[1];
 
-		if (isScript(opt)) {
-		    currentScript = opt;
-			args.push_back(opt);
-			argsLength = (int)args.size();
-			loadScript(opt);
-		} else if (is(opt, "h") || is(opt, "help"))
-			help(app);
-		else if (is(opt, "u") || is(opt, "uninstall"))
-			uninstall();
-		else if (is(opt, "sl") || is(opt, "skipload")) {
-			currentScript = app;
-			args.push_back(opt);
-			argsLength = (int)args.size();
-			loop(true);
-		} else if (is(opt, "n") || is(opt, "negligent")) {
-			negligent = true;
-			currentScript = app;
-			args.push_back(opt);
-			argsLength = (int)args.size();
-			loop(true);
-		} else if (is(opt, "v") || is(opt, "version"))
-			displayVersion();
-		else {
-			currentScript = app;
-			args.push_back(opt);
-			argsLength = (int)args.size();
-			loop(false);
-		}
-	} else if (c == 3) {
-		string opt = v[1], script = v[2];
+        if (isScript(opt)) {
+            currentScript = opt;
+            args.push_back(opt);
+            argsLength = (int)args.size();
+            loadScript(opt);
+        } else if (is(opt, "h") || is(opt, "help"))
+            help(app);
+        else if (is(opt, "u") || is(opt, "uninstall"))
+            uninstall();
+        else if (is(opt, "sl") || is(opt, "skipload")) {
+            currentScript = app;
+            args.push_back(opt);
+            argsLength = (int)args.size();
+            loop(true);
+        } else if (is(opt, "n") || is(opt, "negligent")) {
+            negligent = true;
+            currentScript = app;
+            args.push_back(opt);
+            argsLength = (int)args.size();
+            loop(true);
+        } else if (is(opt, "v") || is(opt, "version"))
+            displayVersion();
+        else {
+            currentScript = app;
+            args.push_back(opt);
+            argsLength = (int)args.size();
+            loop(false);
+        }
+    } else if (c == 3) {
+        string opt = v[1], script = v[2];
 
-		if (is(opt, "sl") || is(opt, "skipload")) {
-			currentScript = app;
+        if (is(opt, "sl") || is(opt, "skipload")) {
+            currentScript = app;
 
-			if (isScript(script)) {
-				currentScript = script;
-				args.push_back(opt);
-				args.push_back(script);
-				argsLength = (int)args.size();
-				loadScript(script);
-			} else {
-				args.push_back(opt);
-				args.push_back(script);
-				argsLength = (int)args.size();
-				loop(true);
-			}
-		} else if (is(opt, "n") || is(opt, "negligent")) {
-			if (isScript(script)) {
-				negligent = true;
-				currentScript = script;
-				args.push_back(opt);
-				args.push_back(script);
-				argsLength = (int)args.size();
-				loadScript(script);
-			} else {
-				negligent = true;
-				currentScript = app;
-				args.push_back(opt);
-				args.push_back(script);
-				argsLength = (int)args.size();
-				loop(true);
-			}
-		} else if (is(opt, "l") || is(opt, "log")) {
+            if (isScript(script)) {
+                currentScript = script;
+                args.push_back(opt);
+                args.push_back(script);
+                argsLength = (int)args.size();
+                loadScript(script);
+            } else {
+                args.push_back(opt);
+                args.push_back(script);
+                argsLength = (int)args.size();
+                loop(true);
+            }
+        } else if (is(opt, "n") || is(opt, "negligent")) {
+            if (isScript(script)) {
+                negligent = true;
+                currentScript = script;
+                args.push_back(opt);
+                args.push_back(script);
+                argsLength = (int)args.size();
+                loadScript(script);
+            } else {
+                negligent = true;
+                currentScript = app;
+                args.push_back(opt);
+                args.push_back(script);
+                argsLength = (int)args.size();
+                loop(true);
+            }
+        } else if (is(opt, "l") || is(opt, "log")) {
             logFile = script;
 
             if (fileExists(logFile)) {
@@ -11818,47 +11683,47 @@ int main(int c, char ** v)
 
             parse(stringBuilder);
         } else {
-			if (isScript(opt)) {
-				currentScript = opt;
-				args.push_back(opt);
-				args.push_back(script);
-				argsLength = (int)args.size();
-				loadScript(opt);
-			} else {
-				currentScript = app;
-				args.push_back(opt);
-				args.push_back(script);
-				argsLength = (int)args.size();
-				loop(false);
-			}
-		}
-	} else if (c > 3) {
-		string opt = v[1];
+            if (isScript(opt)) {
+                currentScript = opt;
+                args.push_back(opt);
+                args.push_back(script);
+                argsLength = (int)args.size();
+                loadScript(opt);
+            } else {
+                currentScript = app;
+                args.push_back(opt);
+                args.push_back(script);
+                argsLength = (int)args.size();
+                loop(false);
+            }
+        }
+    } else if (c > 3) {
+        string opt = v[1];
 
-		if (isScript(opt)) {
-			for (int i = 2; i < c; i++) {
-				string tmpStr = v[i];
-				args.push_back(tmpStr);
-			}
+        if (isScript(opt)) {
+            for (int i = 2; i < c; i++) {
+                string tmpStr = v[i];
+                args.push_back(tmpStr);
+            }
 
-			argsLength = (int)args.size();
+            argsLength = (int)args.size();
 
-			loadScript(opt);
-		} else {
-			for (int i = 1; i < c; i++) {
-				string tmpStr = v[i];
-				args.push_back(tmpStr);
-			}
+            loadScript(opt);
+        } else {
+            for (int i = 1; i < c; i++) {
+                string tmpStr = v[i];
+                args.push_back(tmpStr);
+            }
 
-			argsLength = (int)args.size();
+            argsLength = (int)args.size();
 
-			currentScript = app;
-			loop(false);
-		}
-	} else
-		help(app);
+            currentScript = app;
+            loop(false);
+        }
+    } else
+        help(app);
 
-	clearAll();
+    clearAll();
 
-	return (0);
+    return (0);
 }

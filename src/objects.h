@@ -24,112 +24,96 @@ class Script;
 class Switch;
 
 class Constant {
-private:
+  private:
     string stringValue, constantName;
     double numericValue;
     bool isNumber_, isString_;
 
-public:
-    Constant(string name, string val)
-    {
+  public:
+    Constant(string name, string val) {
         constantName = name,
         stringValue = val;
         isString_ = true,
         isNumber_ = false;
     }
 
-    Constant(string name, double val)
-    {
+    Constant(string name, double val) {
         constantName = name,
         numericValue = val;
         isNumber_ = true,
         isString_ = false;
     }
 
-    bool isNumber()
-    {
+    bool isNumber() {
         return (isNumber_);
     }
 
-    bool isString()
-    {
+    bool isString() {
         return (isString_);
     }
 
-    string getString()
-    {
+    string getString() {
         return (stringValue);
     }
 
-    double getNumber()
-    {
+    double getNumber() {
         return (numericValue);
     }
 
-    string name()
-    {
+    string name() {
         return (constantName);
     }
 };
 
 class Script {
-private:
+  private:
     vector<string> lines;
     vector<string> marks;
     string scriptName;
 
-public:
+  public:
     Script() {}
 
-    Script(string name)
-    {
+    Script(string name) {
         scriptName = name;
     }
 
-    ~Script()
-    {
+    ~Script() {
         clear();
     }
 
-    void clear()
-    {
+    void clear() {
         lines.clear();
         marks.clear();
     }
 
-    void add(string line)
-    {
+    void add(string line) {
         lines.push_back(line);
     }
 
-    void addMark(string mark)
-    {
+    void addMark(string mark) {
         marks.push_back(mark);
     }
 
-    vector<string> get()
-    {
+    vector<string> get() {
         return (lines);
     }
 
-    string at(int index)
-    {
+    string at(int index) {
         if (index < (int)lines.size())
             return (lines.at(index));
 
         return ("[no_line]");
     }
 
-    string markAt(int index)
-    {
+    string markAt(int index) {
         if (index < (int)marks.size())
             return (marks.at(index));
 
         return ("[no_line]");
     }
 
-    bool markExists(string mark)
-    {
+    bool markExists(string mark) {
         for (int i = 0; i < (int)marks.size(); i++) {
             if (marks.at(i) == mark)
                 return (true);
@@ -138,103 +122,87 @@ public:
         return (false);
     }
 
-    int markSize()
-    {
+    int markSize() {
         return ((int)marks.size());
     }
 
-    int size()
-    {
+    int size() {
         return (get().size());
     }
 
-    string name()
-    {
+    string name() {
         return (scriptName);
     }
 };
 
 class Module {
-private:
+  private:
     vector<string>  lines;
     string          moduleName;
 
-public:
+  public:
     Module() {}
 
-    Module(string name)
-    {
+    Module(string name) {
         moduleName = name;
     }
 
-    ~Module()
-    {
+    ~Module() {
         clear();
     }
 
-    void clear()
-    {
+    void clear() {
         lines.clear();
     }
 
-    void add(string line)
-    {
+    void add(string line) {
         lines.push_back(line);
     }
 
-    vector<string> get()
-    {
+    vector<string> get() {
         return (lines);
     }
 
-    string at(int index)
-    {
+    string at(int index) {
         if (index < (int)lines.size())
             return (lines.at(index));
 
         return ("[no_line]");
     }
 
-    int size()
-    {
+    int size() {
         return (get().size());
     }
 
-    string name()
-    {
+    string name() {
         return (moduleName);
     }
 };
 
 class StringContainer {
-private:
+  private:
     vector<string> strings;
 
-public:
+  public:
     StringContainer() {}
 
-    ~StringContainer()
-    {
+    ~StringContainer() {
         clear();
     }
 
-    void clear()
-    {
+    void clear() {
         strings.clear();
     }
 
-    void add(string line)
-    {
+    void add(string line) {
         strings.push_back(line);
     }
 
-    vector<string> get()
-    {
+    vector<string> get() {
         return (strings);
     }
 
-    string at(int index)
-    {
+    string at(int index) {
         if (index < (int)strings.size())
             return (strings.at(index));
 
@@ -243,23 +211,20 @@ public:
 };
 
 class Crypt {
-public:
+  public:
     Crypt() {}
     ~Crypt() {}
 
-    string d(string o)
-    {
+    string d(string o) {
         return (decrypt(o));
     }
 
-    string e(string o)
-    {
+    string e(string o) {
         return (encrypt(o));
     }
 
-private:
-    string decrypt(string o)
-    {
+  private:
+    string decrypt(string o) {
         int l = o.length(), s = 7;
         string ax("");
 
@@ -282,8 +247,7 @@ private:
         return (ax);
     }
 
-    string encrypt(string o)
-    {
+    string encrypt(string o) {
         int l = o.length(), s = 7;
         string ax("");
 
@@ -308,7 +272,7 @@ private:
 };
 
 class Variable {
-private:
+  private:
     double  numericValue;
     string  stringValue,
             variableName;
@@ -319,89 +283,73 @@ private:
             isIndestructible,
             waitToAssign;
 
-    void setAll(double numValue, string strValue)
-    {
+    void setAll(double numValue, string strValue) {
         setVariable(numValue);
         setVariable(strValue);
         collectable = false;
     }
 
-public:
-    Variable()
-    {
+  public:
+    Variable() {
         setAll(-DBL_MAX, "[null]");
     }
 
-    Variable(string name)
-    {
+    Variable(string name) {
         initialize(name);
         setAll(-DBL_MAX, "[null]");
     }
 
-    Variable(string name, string value)
-    {
+    Variable(string name, string value) {
         initialize(name);
 
-        if (value == "null")
-        {
+        if (value == "null") {
             setAll(-DBL_MAX, "[null]");
             waitToAssign = true;
-        }
-        else
+        } else
             setAll(-DBL_MAX, value);
     }
 
-    Variable(string name, double value)
-    {
+    Variable(string name, double value) {
         initialize(name);
         setAll(value, "[null]");
     }
 
     ~Variable() { }
 
-    void collect()
-    {
+    void collect() {
         collectable = true;
     }
 
-    void dontCollect()
-    {
+    void dontCollect() {
         collectable = false;
     }
 
-    bool garbage()
-    {
+    bool garbage() {
         return (collectable);
     }
 
-    void clear()
-    {
+    void clear() {
         setAll(0, "");
     }
 
-    void setNull()
-    {
+    void setNull() {
         setAll(-DBL_MAX, "[null]");
         waitToAssign = true;
     }
 
-    void setName(string name)
-    {
+    void setName(string name) {
         variableName = name;
     }
 
-    bool waiting()
-    {
+    bool waiting() {
         return (waitToAssign);
     }
 
-    void stopWait()
-    {
+    void stopWait() {
         waitToAssign = false;
     }
 
-    void setVariable(double value)
-    {
+    void setVariable(double value) {
         if (waiting()) {
             numericValue = value;
             stringValue = "[null]";
@@ -412,8 +360,7 @@ public:
         }
     }
 
-    void setVariable(string value)
-    {
+    void setVariable(string value) {
         if (waiting()) {
             stringValue = value;
             numericValue = -DBL_MAX;
@@ -423,168 +370,140 @@ public:
     }
 
 
-    void setPrivate()
-    {
+    void setPrivate() {
         isPrivate_ = true;
         isPublic_ = false;
     }
 
-    void setPublic()
-    {
+    void setPublic() {
         isPublic_ = true;
         isPrivate_ = false;
     }
 
-    bool isPublic()
-    {
+    bool isPublic() {
         return (isPublic_);
     }
 
-    bool isPrivate()
-    {
+    bool isPrivate() {
         return (isPrivate_);
     }
 
-    double getNumber()
-    {
+    double getNumber() {
         return (numericValue);
     }
 
-    string getString()
-    {
+    string getString() {
         return (stringValue);
     }
 
-    void initialize(string name)
-    {
+    void initialize(string name) {
         variableName = name;
         collectable = false,
         isIndestructible = false,
         waitToAssign = false;
     }
 
-    void setIndestructible()
-    {
+    void setIndestructible() {
         isIndestructible = true;
     }
 
-    void setDestructible()
-    {
+    void setDestructible() {
         isIndestructible = false;
     }
 
-    bool indestructible()
-    {
+    bool indestructible() {
         return (isIndestructible);
     }
 
-    bool isNullString()
-    {
+    bool isNullString() {
         if (getString() == "[null]" && getNumber() == -DBL_MAX)
             return (true);
 
         return (false);
     }
-    bool isNull()
-    {
+    bool isNull() {
         if (getNumber() == -DBL_MAX && getString() == "[null]")
             return (true);
 
         return (false);
     }
 
-    string name()
-    {
+    string name() {
         return (variableName);
     }
 };
 
 class Container {
-private:
+  private:
     vector<string>  lines;
     string          containerName,
                     value;
     bool            isNestedIF;
 
-public:
+  public:
     Container() {}
 
-    Container(string name)
-    {
+    Container(string name) {
         initialize(name);
     }
 
-    ~Container()
-    {
+    ~Container() {
         clear();
     }
 
-    void setName(string name)
-    {
+    void setName(string name) {
         containerName = name;
     }
 
-    void add(string line)
-    {
+    void add(string line) {
         lines.push_back(line);
     }
 
-    void setValue(string val)
-    {
+    void setValue(string val) {
         value = val;
     }
 
-    string getCase()
-    {
+    string getCase() {
         return (value);
     }
 
-    string at(int index)
-    {
+    string at(int index) {
         if (index < (int)lines.size())
             return (lines.at(index));
 
         return ("#!=no_line");
     }
 
-    void clear()
-    {
+    void clear() {
         lines.clear();
     }
 
-    vector<string> getLines()
-    {
+    vector<string> getLines() {
         return (lines);
     }
 
-    void initialize(string name)
-    {
+    void initialize(string name) {
         containerName = name;
         isNestedIF = false;
     }
 
-    string name()
-    {
+    string name() {
         return (containerName);
     }
 
-    int size()
-    {
+    int size() {
         return ((int)lines.size());
     }
 
-    bool isIF()
-    {
+    bool isIF() {
         return (isNestedIF);
     }
 
-    void setBool(bool b)
-    {
+    void setBool(bool b) {
         isNestedIF = b;
     }
 
-    bool isBad()
-    {
+    bool isBad() {
         if (startsWith(name(), "[bad_nest"))
             return (true);
 
@@ -593,32 +512,28 @@ public:
 };
 
 class Switch {
-private:
+  private:
     vector<Container>   cases;
     Container           defaultCase;
     int                 count;
 
-public:
-    Switch()
-    {
+  public:
+    Switch() {
         count = 0;
     }
 
-    ~Switch()
-    {
+    ~Switch() {
         cases.clear();
         defaultCase.clear();
     }
 
-    void clear()
-    {
+    void clear() {
         cases.clear();
         defaultCase.clear();
         count = 0;
     }
 
-    Container rightCase(string value)
-    {
+    Container rightCase(string value) {
         for (int i = 0; i < (int)cases.size(); i++) {
             if (cases.at(i).getCase() == value)
                 return(cases.at(i));
@@ -627,90 +542,76 @@ public:
         return (defaultCase);
     }
 
-    void addCase(string value)
-    {
+    void addCase(string value) {
         Container newCase("[case#" + itos(count) + "]");
         newCase.setValue(value);
         cases.push_back(newCase);
         count++;
     }
 
-    void addToCase(string line)
-    {
+    void addToCase(string line) {
         cases.at(count - 1).add(line);
     }
 
-    void addToDefault(string line)
-    {
+    void addToDefault(string line) {
         defaultCase.add(line);
     }
 };
 
 class List {
-private:
+  private:
     vector<string>  contents;
     vector<string>  reversion;
     string          listName;
     bool            collectable;
 
-public:
+  public:
     List() {}
 
-    List(string name)
-    {
+    List(string name) {
         collectable = false;
         listName = name;
     }
 
-    ~List()
-    {
+    ~List() {
         clear();
     }
 
-    void collect()
-    {
+    void collect() {
         collectable = true;
     }
 
-    void dontCollect()
-    {
+    void dontCollect() {
         collectable = false;
     }
 
-    bool garbage()
-    {
+    bool garbage() {
         return (collectable);
     }
 
-    void setName(string s)
-    {
+    void setName(string s) {
         listName = s;
     }
 
-    void listSort()
-    {
+    void listSort() {
         reversion = contents;
         sort(contents.begin(), contents.end());
     }
 
-    void listReverse()
-    {
+    void listReverse() {
         reversion = contents;
         reverse(contents.begin(), contents.end());
     }
 
-    void listRevert()
-    {
+    void listRevert() {
         contents = reversion;
     }
 
-    void add(string line)
-    {
+    void add(string line) {
         contents.push_back(line);
     }
 
-    void remove(string line)
-    {
+    void remove(string line) {
         vector<string> newContents;
 
         for (int i = 0; i < size(); i++) {
@@ -723,32 +624,28 @@ public:
         contents = newContents;
     }
 
-    void clear()
-    {
+    void clear() {
         contents.clear();
     }
 
-    string at(int index)
-    {
+    string at(int index) {
         if (index < (int)contents.size())
             return (contents.at(index));
 
         return ("#!=no_line");
     }
 
-    string name()
-    {
+    string name() {
         return (listName);
     }
 
-    int size()
-    {
+    int size() {
         return ((int)contents.size());
     }
 };
 
 class Method {
-private:
+  private:
     vector<Variable>    methodVariables;
     vector<string>      lines;
 
@@ -779,180 +676,149 @@ private:
 
     char                defaultSymbol;
 
-public:
+  public:
     Method() {}
 
-    Method(string name)
-    {
+    Method(string name) {
         initialize(name);
     }
 
-    Method(string name, bool isTemplate)
-    {
+    Method(string name, bool isTemplate) {
         initialize(name);
         isTemplate_ = isTemplate;
     }
 
-    ~Method()
-    {
+    ~Method() {
         clear();
     }
 
-    void setObject(string name)
-    {
+    void setObject(string name) {
         objectName = name;
     }
 
-    void setIndestructible()
-    {
+    void setIndestructible() {
         isIndestructible = true;
     }
 
-    bool indestructible()
-    {
+    bool indestructible() {
         return (isIndestructible);
     }
 
-    void setDestructible()
-    {
+    void setDestructible() {
         isIndestructible = false;
     }
 
-    string getObject()
-    {
+    string getObject() {
         return (objectName);
     }
 
     /**
      * symbol is the variable containing the current iteration value.
      */
-    void setSymbol(string symbol)
-    {
+    void setSymbol(string symbol) {
         symbolString = symbol;
     }
 
     /**
      * symbol is the variable containing the current iteration value.
      */
-    void setDefaultSymbol(string symbol)
-    {
+    void setDefaultSymbol(string symbol) {
         defaultSymbol = symbol[0];
     }
 
-    string getSymbolString()
-    {
+    string getSymbolString() {
         return (symbolString);
     }
 
-    char getDefaultSymbol()
-    {
+    char getDefaultSymbol() {
         return (defaultSymbol);
     }
 
-    void setPrivate()
-    {
+    void setPrivate() {
         isPrivate_ = true;
         isPublic_ = false;
     }
 
-    void setPublic()
-    {
+    void setPublic() {
         isPublic_ = true;
         isPrivate_ = false;
     }
 
-    bool isPublic()
-    {
+    bool isPublic() {
         return (isPublic_);
     }
 
-    bool isPrivate()
-    {
+    bool isPrivate() {
         return (isPrivate_);
     }
 
-    bool isTemplate()
-    {
+    bool isTemplate() {
         return (isTemplate_);
     }
 
-    vector<Variable> getMethodVariables()
-    {
+    vector<Variable> getMethodVariables() {
         return (methodVariables);
     }
 
-    void setName(string name)
-    {
+    void setName(string name) {
         methodName = name;
     }
 
-    void add(string line)
-    {
+    void add(string line) {
         lines.push_back(line);
     }
 
-    void addMethodVariable(string value, string variableName)
-    {
+    void addMethodVariable(string value, string variableName) {
         Variable newVariable(variableName, value);
         methodVariables.push_back(newVariable);
     }
 
-    void addMethodVariable(double value, string variableName)
-    {
+    void addMethodVariable(double value, string variableName) {
         Variable newVariable(variableName, value);
         methodVariables.push_back(newVariable);
     }
 
-    void addMethodVariable(Variable variable)
-    {
+    void addMethodVariable(Variable variable) {
         methodVariables.push_back(variable);
     }
 
-    string at(int index)
-    {
+    string at(int index) {
         if (index < (int)lines.size())
             return (lines.at(index));
 
         return ("#!=no_line");
     }
 
-    void buildNest()
-    {
+    void buildNest() {
         Container newNest(methodName + "<nest>");
         nest = newNest;
     }
 
-    Container getNest()
-    {
+    Container getNest() {
         return (nest);
     }
 
-    void inNest(string line)
-    {
+    void inNest(string line) {
         nest.add(line);
     }
 
-    string nestAt(int index)
-    {
+    string nestAt(int index) {
         if (index < nest.size())
             return (nest.at(index));
         else
             return ("nothing!!!");
     }
 
-    void clear()
-    {
+    void clear() {
         lines.clear();
         methodVariables.clear();
     }
 
-    vector<string> getLines()
-    {
+    vector<string> getLines() {
         return (lines);
     }
 
-    void initialize(string name)
-    {
+    void initialize(string name) {
         defaultSymbol = '$';
         logicOperatorValue = "",
         methodName = name,
@@ -974,135 +840,111 @@ public:
         templateObjects = 0;
     }
 
-    bool isBad()
-    {
+    bool isBad() {
         if (startsWith(name(), "[bad_meth"))
             return (true);
 
         return (false);
     }
 
-    string name()
-    {
+    string name() {
         return (methodName);
     }
 
-    void setTemplateSize(int size)
-    {
+    void setTemplateSize(int size) {
         templateObjects = size;
     }
 
-    int getTemplateSize()
-    {
+    int getTemplateSize() {
         return (templateObjects);
     }
 
-    int size()
-    {
+    int size() {
         return ((int)lines.size());
     }
 
-    bool isIF()
-    {
+    bool isIF() {
         return (isIF_);
     }
 
-    bool isForLoop()
-    {
+    bool isForLoop() {
         return (isForLoop_);
     }
 
-    bool isWhileLoop()
-    {
+    bool isWhileLoop() {
         return (isWhileLoop_);
     }
 
-    bool isInfinite()
-    {
+    bool isInfinite() {
         return (isInfinite_);
     }
 
-    int start()
-    {
+    int start() {
         return (startValue);
     }
 
-    int stop()
-    {
+    int stop() {
         return (stopValue);
     }
 
-    string valueOne()
-    {
+    string valueOne() {
         return (valueOne_);
     }
 
-    string valueTwo()
-    {
+    string valueTwo() {
         return (valueTwo_);
     }
 
-    string logicOperator()
-    {
+    string logicOperator() {
         return (logicOperatorValue);
     }
 
-    void setInfinite()
-    {
+    void setInfinite() {
         isInfinite_ = true;
     }
 
-    void setBool(bool b)
-    {
+    void setBool(bool b) {
         isIF_ = b;
     }
 
-    void setFor(bool b)
-    {
+    void setFor(bool b) {
         isForLoop_ = b;
     }
 
-    void setWhile(bool b)
-    {
+    void setWhile(bool b) {
         isWhileLoop_ = b;
     }
 
-    void setWhileValues(string v1, string op, string v2)
-    {
+    void setWhileValues(string v1, string op, string v2) {
         valueOne_ = v1,
         logicOperatorValue = op,
         valueTwo_ = v2;
     }
 
-    void setForValues(int a, int b)
-    {
+    void setForValues(int a, int b) {
         startValue = a,
         stopValue = b;
     }
 
-    void setForList(List l)
-    {
+    void setForList(List l) {
         list = l;
     }
 
-    bool isListLoop()
-    {
+    bool isListLoop() {
         return (isListLoop_);
     }
 
-    void setListLoop()
-    {
+    void setListLoop() {
         isListLoop_ = true;
     }
 
-    List getList()
-    {
+    List getList() {
         return (list);
     }
 };
 
 class Object {
-private:
+  private:
     vector<Method>      methods;
     vector<Variable>    variables;
 
@@ -1114,82 +956,68 @@ private:
 
     bool                collectable;
 
-public:
+  public:
     Object() { }
 
-    Object(string name)
-    {
+    Object(string name) {
         initialize(name);
         currentMethod = "";
     }
 
-    ~Object()
-    {
+    ~Object() {
         clear();
     }
 
-    void setName(string name)
-    {
+    void setName(string name) {
         objectName = name;
     }
 
-    void collect()
-    {
+    void collect() {
         collectable = true;
     }
 
-    void dontCollect()
-    {
+    void dontCollect() {
         collectable = false;
     }
 
-    bool garbage()
-    {
+    bool garbage() {
         return (collectable);
     }
 
-    Method getCurrentMethod()
-    {
+    Method getCurrentMethod() {
         return (getMethod(currentMethod));
     }
 
-    void setCurrentMethod(string methodName)
-    {
+    void setCurrentMethod(string methodName) {
         currentMethod = methodName;
     }
 
-    void setPublic()
-    {
+    void setPublic() {
         if (methodExists(currentMethod))
             methods.at(methodAt(currentMethod)).setPublic();
     }
 
-    void setPrivate()
-    {
+    void setPrivate() {
         if (methodExists(currentMethod))
             methods.at(methodAt(currentMethod)).setPrivate();
     }
 
-    void addToCurrentMethod(string line)
-    {
+    void addToCurrentMethod(string line) {
         if (methodExists(currentMethod))
             methods.at(methodAt(currentMethod)).add(line);
         else
             cout << "#!=add_to_currentMethod:undefined" << endl;
     }
 
-    int methodSize()
-    {
+    int methodSize() {
         return ((int)methods.size());
     }
 
-    int variableSize()
-    {
+    int variableSize() {
         return ((int)variables.size());
     }
 
-    int methodAt(string methodName)
-    {
+    int methodAt(string methodName) {
         for (int i = 0; i < methodSize(); i++) {
             if (methods.at(i).name() == methodName)
                 return (i);
@@ -1198,8 +1026,7 @@ public:
         return (-1);
     }
 
-    int variableAt(string variableName)
-    {
+    int variableAt(string variableName) {
         for (int i = 0; i < variableSize(); i++) {
             if (variables.at(i).name() == variableName)
                 return (i);
@@ -1208,60 +1035,51 @@ public:
         return (-1);
     }
 
-    string getMethodName(int index)
-    {
+    string getMethodName(int index) {
         if (index < (int)methods.size())
             return (methods.at(index).name());
 
         return ("[undefined]");
     }
 
-    string getVariableName(int index)
-    {
+    string getVariableName(int index) {
         if (index < (int)variables.size())
             return (variables.at(index).name());
 
         return ("[undefined]");
     }
 
-    void addMethod(Method method)
-    {
+    void addMethod(Method method) {
         if (!method.isBad())
             methods.push_back(method);
     }
 
-    void addVariable(Variable variable)
-    {
+    void addVariable(Variable variable) {
         if (!variable.isNull())
             variables.push_back(variable);
     }
 
-    void clear()
-    {
+    void clear() {
         clearMethods();
         clearVariables();
     }
 
-    void clearMethods()
-    {
+    void clearMethods() {
         methods.clear();
     }
 
-    void clearVariables()
-    {
+    void clearVariables() {
         variables.clear();
     }
 
-    bool isBad()
-    {
+    bool isBad() {
         if (startsWith(name(), "[bad_meth"))
             return (true);
 
         return (false);
     }
 
-    void removeVariable(string variableName)
-    {
+    void removeVariable(string variableName) {
         vector<Variable> oldVariables = getVariables();
 
         clearVariables();
@@ -1271,8 +1089,7 @@ public:
                 variables.push_back(oldVariables.at(i));
     }
 
-    Method getMethod(string methodName)
-    {
+    Method getMethod(string methodName) {
         Method badMethod("[bad_meth#" + itos(badMethods) + "]");
 
         for (int i = 0; i < (int)methods.size(); i++)
@@ -1284,13 +1101,11 @@ public:
         return (badMethod);
     }
 
-    vector<Method> getMethods()
-    {
+    vector<Method> getMethods() {
         return (methods);
     }
 
-    Variable getVariable(string variableName)
-    {
+    Variable getVariable(string variableName) {
         Variable badVariable("[bad_var#" + itos(badVariables) + "]", "[null]");
 
         for (int i = 0; i < (int)variables.size(); i++)
@@ -1302,21 +1117,18 @@ public:
         return (badVariable);
     }
 
-    vector<Variable> getVariables()
-    {
+    vector<Variable> getVariables() {
         return (variables);
     }
 
-    void initialize(string name)
-    {
+    void initialize(string name) {
         badMethods = 0,
         badVariables = 0;
         currentMethod = "",
         objectName = name;
     }
 
-    bool methodExists(string methodName)
-    {
+    bool methodExists(string methodName) {
         for (int i = 0; i < (int)methods.size(); i++)
             if (methods.at(i).name() == methodName)
                 return (true);
@@ -1324,13 +1136,11 @@ public:
         return (false);
     }
 
-    string name()
-    {
+    string name() {
         return (objectName);
     }
 
-    bool variableExists(string variableName)
-    {
+    bool variableExists(string variableName) {
         for (int i = 0; i < (int)variables.size(); i++)
             if (variables.at(i).name() == variableName)
                 return (true);
