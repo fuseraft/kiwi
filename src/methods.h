@@ -1,15 +1,8 @@
 /**
- * Project:		Unorthodox Scripting Language (USL)
- * Version:		0.0.0.1
+ * 	noctis: a hybrid-typed, object-oriented, interpreted, programmable command line shell.
  *
- * Filename:	methods.h
- *
- * Author:		Scott Christopher Stauffer
- * Email:		scstauf@gmail.com
- * Date:		Friday, August 23, 2013
- *
- * Copyright 2013
- */
+ *		scstauf@gmail.com 
+ **/
 
 void doNothing() { }
 
@@ -1648,13 +1641,13 @@ void comprehensiveHelp(string keyword)
         p("");
         p("\tcd /Windows/System32\r\n");
     }
-    else if (keyword == "chomp")
+    else if (keyword == "readline")
     {
-        p("The \"chomp\" keyword:\tbegins a loud stdin stream.");
+        p("The \"readline\" keyword:\tbegins a loud stdin stream.");
         p("");
         p("Example:");
         p("");
-        p("\t@fullname = \"chomp.Enter your fullname:\"\r\n");
+        p("\t@fullname = \"readline.Enter your fullname:\"\r\n");
     }
     else if (keyword == "delay")
     {
@@ -1808,13 +1801,13 @@ void comprehensiveHelp(string keyword)
         p("\t@words = \"This is a sentence.\"");
         p("\tsay \"This sentence is ended with a newline.\\nSentence: \\{@words}\"\r\n");
     }
-    else if (keyword == "shomp")
+    else if (keyword == "password")
     {
-        p("The \"shomp\" keyword:\tbegins a silent stdin stream.");
+        p("The \"password\" keyword:\tbegins a silent stdin stream.");
         p("");
         p("Example:");
         p("");
-        p("\t@passwd = \"shomp.Enter your password:\"\r\n");
+        p("\t@passwd = \"password.Enter your password:\"\r\n");
     }
     else if (keyword == "stdout")
     {
@@ -2196,7 +2189,7 @@ void printUSLHelp()
     p("\targs[{n}]\t\t(parameter access)");
     p("\targs.size\t\t(parameter count)");
     p("\tcd\t\t\t(specialized \"chdir\")");
-    p("\tchomp.{v|s}\t\t(loudly receive input)");
+    p("\treadline.{v|s}\t\t(loudly receive input)");
     p("\tdelay {n}\t\t(pause script flow in seconds)");
     p("\tdpush {v|s}\t\t(create a directory)");
     p("\tdpop {v|s}\t\t(delete a directory)");
@@ -2218,7 +2211,7 @@ void printUSLHelp()
     p("\tremove {all}\t\t(remove an USL object from memory)");
     p("\treturn {v|s}\t\t(set return value of a method)");
     p("\tsay {v|s}\t\t(print a string with a newline)");
-    p("\tshomp\t\t\t(quietly receive input)");
+    p("\tpassword\t\t\t(quietly receive input)");
     p("\tstdout {v|s}\t\t(print a string)");
     p("\tunlock {v|m}\t\t(make method or variable destructible)");
     p("");

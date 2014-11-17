@@ -1,15 +1,8 @@
 /**
- * Project:		Unorthodox Scripting Language (USL)
- * Version:		0.0.0.1
+ * 	noctis: a hybrid-typed, object-oriented, interpreted, programmable command line shell.
  *
- * Filename:	main.cpp
- *
- * Author:		Scott Christopher Stauffer
- * Email:		scstauf@gmail.com
- * Date:		Friday, August 23, 2013
- *
- * Copyright 2013
- */
+ *		scstauf@gmail.com 
+ **/
 
 #ifdef _WIN32
 #include <windows.h>
@@ -13987,7 +13980,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     List newList;
 
                     newList.add("cwd");
-                    newList.add("usl");
+                    newList.add("noctis");
                     newList.add("os?");
                     newList.add("user");
                     newList.add("machine");
@@ -14692,7 +14685,7 @@ void InternalGetEnv(string arg0, string after, int mode)
     {
         sValue = cwd();
     }
-    else if (after == "usl")
+    else if (after == "noctis")
     {
         sValue = __Noctis;
     }
