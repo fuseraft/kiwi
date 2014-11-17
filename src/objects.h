@@ -1,15 +1,8 @@
 /**
- * Project:		Unorthodox Scripting Language (USL)
- * Version:		0.0.0.1
+ * 	noctis: a hybrid-typed, object-oriented, interpreted, programmable command line shell.
  *
- * Filename:	objects.h
- *
- * Author:		Scott Christopher Stauffer
- * Email:		scstauf@gmail.com
- * Date:		Monday, August 23, 2013
- *
- * Copyright 2013
- */
+ *		scstauf@gmail.com 
+ **/
 
 class StringContainer;
 class Method;
