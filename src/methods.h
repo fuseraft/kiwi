@@ -66,23 +66,27 @@ vector<string> getBracketRange(string s);
 // Evan Teran @ stackoverflow.com
 // trim from both ends
 // trim from start
-static inline std::string &ltrim(std::string &s) {
+static inline std::string &ltrim(std::string &s)
+{
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
     return s;
 }
 // trim from end
-static inline std::string &rtrim(std::string &s) {
+static inline std::string &rtrim(std::string &s)
+{
     s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
     return s;
 }
-static inline std::string &trim(std::string &s) {
+static inline std::string &trim(std::string &s)
+{
     return ltrim(rtrim(s));
 }
 // EO Evan Teran
 
 // From indiv @ stackoverflow
 // http://stackoverflow.com/users/19719/indiv
-string trim_leading_whitespace(char *str) {
+string trim_leading_whitespace(char *str)
+{
     size_t len = 0;
     char *frontp = str - 1;
     char *endp = NULL;
@@ -115,7 +119,8 @@ string trim_leading_whitespace(char *str) {
      * string buffer now.
      */
     endp = str;
-    if( frontp != str ) {
+    if( frontp != str )
+    {
         while( *frontp ) *endp++ = *frontp++;
         *endp = '\0';
     }
@@ -126,7 +131,8 @@ string trim_leading_whitespace(char *str) {
 }
 // EO indiv
 
-string getStdout(string cmd) {
+string getStdout(string cmd)
+{
     string data;
     FILE *stream;
     char buffer[MAX_BUFFER];
@@ -139,8 +145,10 @@ string getStdout(string cmd) {
     return trim(data);
 }
 
-bool isUpper(string in) {
-    for (int i = 0; i < (int)in.length(); i++) {
+bool isUpper(string in)
+{
+    for (int i = 0; i < (int)in.length(); i++)
+    {
         char c = in[i];
 
         if (!isupper(c))
@@ -150,11 +158,14 @@ bool isUpper(string in) {
     return (true);
 }
 
-bool isUpperConstant(string in) {
-    for (int i = 0; i < (int)in.length(); i++) {
+bool isUpperConstant(string in)
+{
+    for (int i = 0; i < (int)in.length(); i++)
+    {
         char c = in[i];
 
-        if (!isupper(c)) {
+        if (!isupper(c))
+        {
             if (c != '_')
                 return (false);
         }
@@ -163,8 +174,10 @@ bool isUpperConstant(string in) {
     return (true);
 }
 
-bool isLower(string in) {
-    for (int i = 0; i < (int)in.length(); i++) {
+bool isLower(string in)
+{
+    for (int i = 0; i < (int)in.length(); i++)
+    {
         char c = in[i];
 
         if (!islower(c))
@@ -174,9 +187,11 @@ bool isLower(string in) {
     return (true);
 }
 
-string getUpper(string in) {
+string getUpper(string in)
+{
     string builder("");
-    for (int i = 0; i < (int)in.length(); i++) {
+    for (int i = 0; i < (int)in.length(); i++)
+    {
         char c = in[i];
         builder.push_back(toupper(c));
     }
@@ -184,9 +199,11 @@ string getUpper(string in) {
     return (builder);
 }
 
-string getLower(string in) {
+string getLower(string in)
+{
     string builder("");
-    for (int i = 0; i < (int)in.length(); i++) {
+    for (int i = 0; i < (int)in.length(); i++)
+    {
         char c = in[i];
         builder.push_back(tolower(c));
     }
@@ -194,9 +211,11 @@ string getLower(string in) {
     return (builder);
 }
 
-int dot_count(string s) {
+int dot_count(string s)
+{
     int l = s.length(), c = 0;
-    for (int i = 0; i < l; i++) {
+    for (int i = 0; i < l; i++)
+    {
         if (s[i] == '.')
             c++;
     }
@@ -208,17 +227,20 @@ int dot_count(string s) {
 const int PATH_MAX = 1024;
 #endif
 
-string cwd() {
+string cwd()
+{
     char tmp[PATH_MAX];
 
     return (getcwd(tmp, PATH_MAX) ? string(tmp) : string(""));
 }
 
-bool contains(string s1, string s2) {
+bool contains(string s1, string s2)
+{
     return s1.find(s2) != string::npos;
 }
 
-bool containsTilde(string s) {
+bool containsTilde(string s)
+{
     int l = s.length();
 
     if (s == "~")
@@ -231,20 +253,25 @@ bool containsTilde(string s) {
     return false;
 }
 
-bool directoryExists(string p) {
+bool directoryExists(string p)
+{
     DIR *pd;
     if ((pd = opendir(p.c_str())) == NULL)
         return (false);
-    else {
+    else
+    {
         closedir(pd);
         return (true);
     }
 }
 
-bool fileExists(string p) {
-    if (!directoryExists(p)) {
+bool fileExists(string p)
+{
+    if (!directoryExists(p))
+    {
         ifstream f(p.c_str());
-        if (f.is_open()) {
+        if (f.is_open())
+        {
             f.close();
             return (true);
         }
@@ -253,16 +280,19 @@ bool fileExists(string p) {
     return (false);
 }
 
-void app(string p, string a) {
+void app(string p, string a)
+{
     ofstream f(p.c_str(), ios::out|ios::app);
 
     if (!f.is_open())
         cout << ("#!=read_fail") << endl;
-    else {
+    else
+    {
         string cleaned("");
         int l = a.length();
 
-        for (int i = 0; i < l; i++) {
+        for (int i = 0; i < l; i++)
+        {
             if (a[i] == '\\' && a[i + 1] == 'n')
                 cleaned.push_back('\r');
             else if (a[i] == 'n' && a[i - 1] == '\\')
@@ -284,10 +314,12 @@ void app(string p, string a) {
     }
 }
 
-bool containsParams(string s) {
+bool containsParams(string s)
+{
     int sl = s.length();
 
-    for (int i = 0; i < sl; i++) {
+    for (int i = 0; i < sl; i++)
+    {
         if (s[i] == '(')
             return (true);
     }
@@ -295,10 +327,12 @@ bool containsParams(string s) {
     return (false);
 }
 
-bool containsBrackets(string s) {
+bool containsBrackets(string s)
+{
     int sl = s.length();
 
-    for (int i = 0; i < sl; i++) {
+    for (int i = 0; i < sl; i++)
+    {
         if (s[i] == '[')
             return (true);
     }
@@ -307,7 +341,8 @@ bool containsBrackets(string s) {
 }
 
 
-vector<string> getParams(string s) {
+vector<string> getParams(string s)
+{
     vector<string> params;
 
     int sl = s.length();
@@ -315,16 +350,22 @@ vector<string> getParams(string s) {
 
     string new_name("");
 
-    for (int i = 0; i < sl; i++) {
-        if (start_push) {
-            if (s[i] == ',') {
+    for (int i = 0; i < sl; i++)
+    {
+        if (start_push)
+        {
+            if (s[i] == ',')
+            {
                 params.push_back(new_name);
                 new_name.clear();
-            } else if (s[i] == ')')
+            }
+            else if (s[i] == ')')
                 start_push = false;
             else
                 new_name.push_back(s[i]);
-        } else {
+        }
+        else
+        {
             if (s[i] == '(')
                 start_push = true;
         }
@@ -335,7 +376,8 @@ vector<string> getParams(string s) {
     return (params);
 }
 
-vector<string> getBracketRange(string s) {
+vector<string> getBracketRange(string s)
+{
     vector<string> params;
 
     int sl = s.length();
@@ -343,22 +385,28 @@ vector<string> getBracketRange(string s) {
 
     string new_name("");
 
-    for (int i = 0; i < sl; i++) {
-        if (start_push) {
-            if (s[i] == '.') {
+    for (int i = 0; i < sl; i++)
+    {
+        if (start_push)
+        {
+            if (s[i] == '.')
+            {
                 if (!almost_push)
                     almost_push = true;
-                else {
+                else
+                {
                     params.push_back(new_name);
                     new_name.clear();
                 }
-            } else if (s[i] == ']')
+            }
+            else if (s[i] == ']')
                 start_push = false;
             else if (s[i] == ' ')
                 doNothing();
             else
                 new_name.push_back(s[i]);
-        } else if (s[i] == '[')
+        }
+        else if (s[i] == '[')
             start_push = true;
     }
 
@@ -367,7 +415,8 @@ vector<string> getBracketRange(string s) {
     return (params);
 }
 
-vector<string> getRange(string s) {
+vector<string> getRange(string s)
+{
     vector<string> params;
 
     int sl = s.length();
@@ -375,22 +424,28 @@ vector<string> getRange(string s) {
 
     string new_name("");
 
-    for (int i = 0; i < sl; i++) {
-        if (start_push) {
-            if (s[i] == '.') {
+    for (int i = 0; i < sl; i++)
+    {
+        if (start_push)
+        {
+            if (s[i] == '.')
+            {
                 if (!almost_push)
                     almost_push = true;
-                else {
+                else
+                {
                     params.push_back(new_name);
                     new_name.clear();
                 }
-            } else if (s[i] == ')')
+            }
+            else if (s[i] == ')')
                 start_push = false;
             else if (s[i] == ' ')
                 doNothing();
             else
                 new_name.push_back(s[i]);
-        } else if (s[i] == '(')
+        }
+        else if (s[i] == '(')
             start_push = true;
     }
 
@@ -399,12 +454,14 @@ vector<string> getRange(string s) {
     return (params);
 }
 
-string beforeParams(string s) {
+string beforeParams(string s)
+{
     int sl = s.length();
     bool stop_push = false;
     string new_str("");
 
-    for (int i = 0; i < sl; i++) {
+    for (int i = 0; i < sl; i++)
+    {
         if (s[i] == '(')
             stop_push = true;
 
@@ -416,12 +473,14 @@ string beforeParams(string s) {
 }
 
 
-string beforeBrackets(string s) {
+string beforeBrackets(string s)
+{
     int sl = s.length();
     bool stop_push = false;
     string new_str("");
 
-    for (int i = 0; i < sl; i++) {
+    for (int i = 0; i < sl; i++)
+    {
         if (s[i] == '[')
             stop_push = true;
 
@@ -432,12 +491,14 @@ string beforeBrackets(string s) {
     return (new_str);
 }
 
-string afterBrackets(string s) {
+string afterBrackets(string s)
+{
     string var("");
     int sl = s.length();
     bool start_push = false;
 
-    for (int i = 0; i < sl; i++) {
+    for (int i = 0; i < sl; i++)
+    {
         if (start_push)
             var.push_back(s[i]);
         else if (s[i] == '[')
@@ -449,15 +510,18 @@ string afterBrackets(string s) {
     return (var);
 }
 
-string afterDot(string s) {
+string afterDot(string s)
+{
     string var("");
     int sl = s.length();
     bool start_push = false;
 
-    for (int i = 0; i < sl; i++) {
+    for (int i = 0; i < sl; i++)
+    {
         if (start_push)
             var.push_back(s[i]);
-        else {
+        else
+        {
             if (s[i] == '.')
                 start_push = true;
         }
@@ -466,13 +530,16 @@ string afterDot(string s) {
     return (var);
 }
 
-string beforeDot(string s) {
+string beforeDot(string s)
+{
     string var("");
     int sl = s.length();
     bool start_push = true;
 
-    for (int i = 0; i < sl; i++) {
-        if (start_push) {
+    for (int i = 0; i < sl; i++)
+    {
+        if (start_push)
+        {
             if (s[i] == '.')
                 start_push = false;
             else
@@ -483,15 +550,18 @@ string beforeDot(string s) {
     return (var);
 }
 
-string afterUS(string s) {
+string afterUS(string s)
+{
     string var("");
     int sl = s.length();
     bool start_push = false;
 
-    for (int i = 0; i < sl; i++) {
+    for (int i = 0; i < sl; i++)
+    {
         if (start_push)
             var.push_back(s[i]);
-        else {
+        else
+        {
             if (s[i] == '_')
                 start_push = true;
         }
@@ -500,13 +570,16 @@ string afterUS(string s) {
     return (var);
 }
 
-string beforeUS(string s) {
+string beforeUS(string s)
+{
     string var("");
     int sl = s.length();
     bool start_push = true;
 
-    for (int i = 0; i < sl; i++) {
-        if (start_push) {
+    for (int i = 0; i < sl; i++)
+    {
+        if (start_push)
+        {
             if (s[i] == '_')
                 start_push = false;
             else
@@ -517,11 +590,13 @@ string beforeUS(string s) {
     return (var);
 }
 
-string subtractChar(string s1, string s2) {
+string subtractChar(string s1, string s2)
+{
     string r("");
     int len = s1.length();
 
-    for (int i = 0; i < len; i++) {
+    for (int i = 0; i < len; i++)
+    {
         if (s1[i] != s2[0])
             r.push_back(s1[i]);
     }
@@ -529,10 +604,12 @@ string subtractChar(string s1, string s2) {
     return (r);
 }
 
-bool isAlpha(string s) {
+bool isAlpha(string s)
+{
     int l = s.length();
 
-    for (int i = 0; i < l; i++) {
+    for (int i = 0; i < l; i++)
+    {
         if (!isalpha(s[i]))
             return (false);
     }
@@ -540,13 +617,16 @@ bool isAlpha(string s) {
     return (true);
 }
 
-bool oneDot(string s) {
+bool oneDot(string s)
+{
     bool found = false;
 
     int l = s.length();
 
-    for (int i = 0; i < l; i++) {
-        if (s[i] == '.') {
+    for (int i = 0; i < l; i++)
+    {
+        if (s[i] == '.')
+        {
             if (found)
                 return (false);
             else
@@ -557,13 +637,15 @@ bool oneDot(string s) {
     return (true);
 }
 
-bool endsWith(string fullString, string ending) {
+bool endsWith(string fullString, string ending)
+{
     unsigned int lastMatchPos = fullString.rfind(ending);
     bool isEnding = lastMatchPos != std::string::npos;
 
     int el = ending.length(), fl = fullString.length();
 
-    for (int i = lastMatchPos + el; (i < fl) && isEnding; i++) {
+    for (int i = lastMatchPos + el; (i < fl) && isEnding; i++)
+    {
         if ((fullString[i] != '\n') && (fullString[i] != '\r'))
             isEnding = false;
     }
@@ -571,27 +653,33 @@ bool endsWith(string fullString, string ending) {
     return (isEnding);
 }
 
-bool startsWith(string s1, string s2) {
-    if (s1.length() > s2.length()) {
+bool startsWith(string s1, string s2)
+{
+    if (s1.length() > s2.length())
+    {
         int s2l = s2.length();
 
-        for (int i = 0; i < s2l; i++) {
+        for (int i = 0; i < s2l; i++)
+        {
             if (s1[i] != s2[i])
                 return (false);
         }
 
         return (true);
-    } else
+    }
+    else
         return (false);
 
     return (false);
 }
 
-bool zeroDots(string s) {
+bool zeroDots(string s)
+{
     bool none = true;
     int l = s.length();
 
-    for (int i = 0; i < l; i++) {
+    for (int i = 0; i < l; i++)
+    {
         if (s[i] == '.')
             none = false;
     }
@@ -599,11 +687,14 @@ bool zeroDots(string s) {
     return (none);
 }
 
-bool zeroNumbers(string s) {
+bool zeroNumbers(string s)
+{
     int l = s.length();
 
-    for (int i = 0; i < l; i++) {
-        switch (s[i]) {
+    for (int i = 0; i < l; i++)
+    {
+        switch (s[i])
+        {
         case '0':
         case '1':
         case '2':
@@ -625,18 +716,21 @@ bool zeroNumbers(string s) {
     return (false);
 }
 
-string subtractString(string s1, string s2) {
+string subtractString(string s1, string s2)
+{
     string bs("");
 
     int l1(s1.length()), l2(s2.length());
 
-    for (int k = 0; k < l1; k++) {
+    for (int k = 0; k < l1; k++)
+    {
         string tmp("");
 
         for (int z = k; z < l2 + k; z++)
             tmp.push_back(s1[z]);
 
-        if (tmp == s2) {
+        if (tmp == s2)
+        {
             for (int q = 0; q < k; q++)
                 bs.push_back(s1[q]);
             for (int y = k + l2; y < l1; y++)
@@ -648,8 +742,10 @@ string subtractString(string s1, string s2) {
 }
 
 // STRINTEGER TESTS
-bool is_num_char(char c, bool &hFound, bool &pFound) {
-    switch (c) {
+bool is_num_char(char c, bool &hFound, bool &pFound)
+{
+    switch (c)
+    {
     case '-':
         if (hFound)
             return (false);
@@ -682,24 +778,30 @@ bool is_num_char(char c, bool &hFound, bool &pFound) {
 
     return (false);
 }
-bool is_num(string s) {
+bool is_num(string s)
+{
     int l = s.length();
-    for (int i = 0; i < l; i++)  {
+    for (int i = 0; i < l; i++)
+    {
         if (!isdigit(s[i]))
             return (false);
     }
     return (true);
 }
-bool isNumeric(string s) {
+bool isNumeric(string s)
+{
     int l = s.length();
     bool pFound = false, hFound = false;
 
-    for (int i = 0; i < l; i++) {
-        switch (s[i]) {
+    for (int i = 0; i < l; i++)
+    {
+        switch (s[i])
+        {
         case '.':
             if (i == 0)
                 return (false);
-            else {
+            else
+            {
                 if (!pFound)
                     pFound = true;
                 else
@@ -710,7 +812,8 @@ bool isNumeric(string s) {
         case '-':
             if (i != 0)
                 return (false);
-            else {
+            else
+            {
                 if (!hFound)
                     hFound = true;
                 else
@@ -739,8 +842,10 @@ bool isNumeric(string s) {
     return (true);
 }
 
-bool invalid_var_id(string s) {
-    if (s.length() > 1) {
+bool invalid_var_id(string s)
+{
+    if (s.length() > 1)
+    {
         string c("");
         c.push_back(s[1]);
 
@@ -756,37 +861,43 @@ bool invalid_var_id(string s) {
 
 // NUMBER > STRING & VICE-VERSA
 
-int stoi(string s) {
+int stoi(string s)
+{
     stringstream ss(s);
     int i;
     ss >> i;
     return (i);
 }
 
-string itos(int i) {
+string itos(int i)
+{
     stringstream ss;
     ss << i;
     return (ss.str());
 }
 
-double stod(string s) {
+double stod(string s)
+{
     stringstream ss(s);
     double i;
     ss >> i;
     return (i);
 }
 
-string dtos(double i) {
+string dtos(double i)
+{
     stringstream ss;
     ss << i;
     return (ss.str());
 }
 
-int get_ascii_num(char c) {
+int get_ascii_num(char c)
+{
     return ((int)c);
 }
 
-int get_alpha_num(char c) {
+int get_alpha_num(char c)
+{
     if (tolower(c) == 'a')
         return (1);
     else if (tolower(c) == 'b')
@@ -845,7 +956,8 @@ int get_alpha_num(char c) {
 
 // ENVIRONMENTAL
 
-string getEnvironmentVariable(string s) {
+string getEnvironmentVariable(string s)
+{
     char * cString;
     cString = getenv(s.c_str());
 
@@ -855,176 +967,244 @@ string getEnvironmentVariable(string s) {
         return ("[not_available]");
 }
 
-void p(string s) {
+void p(string s)
+{
     cout << s << endl;
 }
 
-void comprehensiveHelp(string keyword) {
+void comprehensiveHelp(string keyword)
+{
     // regular operators
-    if (keyword == "+=") {
+    if (keyword == "+=")
+    {
         p("The \"+=\" operator:\tincrements a numeric value,\r\n\t\t\tappends to a string value,\r\n\t\t\tappends an item to a list.");
         p("");
         p("Example:\r\n\r\n\t@str = \"string of words...\"\r\n\t@str += \" and another...\"");
         p("\r\n\t@num = 65535\r\n\t@num += 6.5535");
         p("\r\n\tlist @array\r\n\t@array += @str\r\n\t@array += @num\r\n");
-    } else if (keyword == "-=") {
+    }
+    else if (keyword == "-=")
+    {
         p("The \"-=\" operator:\tdecrements a numeric value,\r\n\t\t\tsubtracts a string value,\r\n\t\t\tsubtracts an item from a list.");
         p("");
         p("Example:\r\n\r\n\t@str = \"string of words...\"\r\n\t@str -= \" of words...\"");
         p("\r\n\t@num = (65535-6.5535)");
         p("\r\n\tlist @array\r\n\t@array += @str\r\n\t@array += @num\r\n\t@array += @str\r\n\t@array -= @str\r\n");
-    } else if (keyword == "*=") {
+    }
+    else if (keyword == "*=")
+    {
         p("The \"*=\" operator:\tmultiplies a numeric value.");
         p("");
         p("Example:\r\n\r\n\t@num = 65535\r\n\t@num *= 6.5535\r\n");
-    } else if (keyword == "**=") {
+    }
+    else if (keyword == "**=")
+    {
         p("The \"**=\" operator:\tassigns a power of a value.");
         p("");
         p("Example:\r\n\r\n\t@num = 2.56\r\n\t@num **= 5\r\n");
-    } else if (keyword == "/=") {
+    }
+    else if (keyword == "/=")
+    {
         p("The \"/=\" operator:\tdivides a numeric value.");
         p("");
         p("Example:\r\n\r\n\t@num = 65535\r\n\t@num /= 6.5535\r\n");
-    } else if (keyword == "+") {
+    }
+    else if (keyword == "+")
+    {
         p("The \"+\" operator:\tadds numeric values,\r\n\t\t\tconcatenates strings.");
         p("");
         p("Example:\r\n\r\n\t65535 + 65\r\n\t\"Hello, \" + \"World!\"");
         p("\r\n\t@addition = (256+254)\r\n");
-    } else if (keyword == "-") {
+    }
+    else if (keyword == "-")
+    {
         p("The \"-\" operator:\tsubtracts numeric values,\r\n\t\t\tsubtracts strings.");
         p("");
         p("Example:\r\n\r\n\t65535 - 65\r\n\t\"Hello, \" - \"o, \"");
         p("\r\n\t@subtraction = (256-254)\r\n");
-    } else if (keyword == "*") {
+    }
+    else if (keyword == "*")
+    {
         p("The \"*\" operator:\tmultiplies numeric values,\r\n\t\t\tmultiplies strings.");
         p("");
         p("Example:\r\n\r\n\t65535 * 65\r\n\t\"Hello, World! \" * 3");
         p("\r\n\t@multiplication = (256*4)\r\n");
-    } else if (keyword == "**") {
+    }
+    else if (keyword == "**")
+    {
         p("The \"**\" operator:\tmultiplies the power of a value.");
         p("");
         p("Example:\r\n\r\n\t2.56 ** 2\r\n");
-    } else if (keyword == "/") {
+    }
+    else if (keyword == "/")
+    {
         p("The \"/\" operator:\tdivides numeric values.");
         p("");
         p("Example:\r\n\r\n\t65535 / 65");
         p("\r\n\t@division = (256/4)\r\n");
-    } else if (keyword == "%") {
+    }
+    else if (keyword == "%")
+    {
         p("The \"%\" operator:\tcomputes the remainder of two numeric values.");
         p("");
         p("Example:\r\n\r\n\t11 % 3");
         p("\r\n\t@divisible_by_four = (256%4)\r\n");
-    } else if (keyword == "^") {
+    }
+    else if (keyword == "^")
+    {
         p("The \"^\" operator:\tcomputes the power of a value.");
         p("");
         p("Example:\r\n\t@four_squared = (4^2)\r\n");
-    } else if (keyword == "<") {
+    }
+    else if (keyword == "<")
+    {
         p("The \"<\" operator:\ttests if a value is less than another,\r\n\t\t\tsets an incremental loop.");
         p("");
         p("Example:\r\n\r\n\tif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif");
         p("\r\n\tfor 1 < 5 (i)\r\n\t\tsay \"Iteration: ${i}\"\r\n\tendfor\r\n");
-    } else if (keyword == "<=") {
+    }
+    else if (keyword == "<=")
+    {
         p("The \"<=\" operator:\ttests if a value is less than or equal to another.");
         p("");
         p("Example:\r\n\r\n\tif 1 <= 2\r\n\t\tsay \"One is less than or equal to two.\"\r\n\tendif");
         p("\r\n\tfor 1 <= 5 (i)\r\n\t\tsay \"Iteration: ${i}\"\r\n\tendfor\r\n");
-    } else if (keyword == ">") {
+    }
+    else if (keyword == ">")
+    {
         p("The \">\" operator:\ttests if a value is greater than another,\r\n\t\t\tsets a decremental loop.");
         p("");
         p("Example:\r\n\r\n\tif 2 > 1\r\n\t\tsay \"Two is greater than one.\"\r\n\tendif");
         p("\r\n\tfor 10 > 1 (i)\r\n\t\tout \"${i}, \"\r\n\tendfor\r\n\tsay \"blast off!\"\r\n");
-    } else if (keyword == ">=") {
+    }
+    else if (keyword == ">=")
+    {
         p("The \">=\" operator:\ttests if a value is greater than or equal to another.");
         p("");
         p("Example:\r\n\r\n\tif 2 >= 1\r\n\t\tsay \"Two is greater than or equal to one.\"\r\n\tendif");
         p("\r\n\tfor 5 >= 1 (i)\r\n\t\tsay \"Iteration: ${i}\"\r\n\tendfor\r\n");
-    } else if (keyword == "=") {
+    }
+    else if (keyword == "=")
+    {
         p("The \"<\" operator:\tinitializes variables,\r\n\t\t\tdenotes inheritance.");
         p("");
         p("Example:");
         p("\r\n\t@var = \"A value.\"\r\n\r\n\tobject o\r\n\t\tmethod m\r\n\t\t\tsay \"Hello, World!\"\r\n\t\tend\r\n\tend");
         p("\r\n\tobject oo = o;end\r\n");
-    } else if (keyword == "==") {
+    }
+    else if (keyword == "==")
+    {
         p("The \"<\" operator:\ttests if two values are equal.");
         p("");
         p("Example:\r\n\r\n\tif 1 == 1\r\n\t\tsay \"One is equal to one.\"\r\n\tendif");
         p("\r\n");
-    } else if (keyword == "!") {
+    }
+    else if (keyword == "!")
+    {
         p("The \"!\" operator:\tdirectly parses an argument.");
         p("");
         p("Example:");
         p("\r\n\t! \"method m;say \'Hello, World!\';end;m;remove m\"\r\n");
-    } else if (keyword == "!=") {
+    }
+    else if (keyword == "!=")
+    {
         p("The \"!\" operator:\ttests if two values are unequal.");
         p("");
         p("Example:\r\n\r\n\tif 1 != 2\r\n\t\tsay \"One is unequal to two.\"\r\n\tendif\r\n");
     }
     // special operators
-    else if (keyword == "begins_with") {
+    else if (keyword == "begins_with")
+    {
         p("The \"begins_with\" operator:\ttests if a string begins with another.");
         p("");
         p("Example:\r\n\r\n\tif \"Hello, World!\" begins_with \"Hello\"\r\n\t\tsay \"\'Hello, World!\' begins with \'Hello\'.\"\r\n\tendif");
         p("");
-    } else if (keyword == "contains") {
+    }
+    else if (keyword == "contains")
+    {
         p("The \"contains\" operator:\ttests if a string contains another.");
         p("");
         p("Example:\r\n\r\n\tif \"Hello, World!\" contains \" \"\r\n\t\tsay \"\'Hello, World!\' contains \' \'.\"\r\n\tendif");
         p("");
-    } else if (keyword == "ends_with") {
+    }
+    else if (keyword == "ends_with")
+    {
         p("The \"ends_with\" operator:\ttests if a string ends with another.");
         p("");
         p("Example:\r\n\r\n\tif \"Hello, World!\" ends_with \"World!\"\r\n\t\tsay \"\'Hello, World!\' ends with \'World!\'.\"\r\n\tendif");
         p("");
-    } else if (keyword == "++=") {
+    }
+    else if (keyword == "++=")
+    {
         p("The \"++=\" operator:\tincrements the ascii value of every character in a string.");
         p("");
         p("Example:\r\n\r\n\t@var = \"Dinosaur\"\r\n\t@var ++= 2\r\n");
         p("");
-    } else if (keyword == "--=") {
+    }
+    else if (keyword == "--=")
+    {
         p("The \"--=\" operator:\tdecrements the ascii value of every character in a string.");
         p("");
         p("Example:\r\n\r\n\t@var = \"Fkpqucwt\"\r\n\t@var --= 2\r\n");
         p("");
-    } else if (keyword == "if") {
+    }
+    else if (keyword == "if")
+    {
         p("The \"if\" statement:\texecutes a block if a condition is true.");
         p("");
         p("Example:\r\n\r\n\tif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif\r\n");
-    } else if (keyword == "unless") {
+    }
+    else if (keyword == "unless")
+    {
         p("The \"unless\" statement:\texecutes a block if a condition is false.");
         p("");
         p("Example:\r\n\r\n\tunless 1 > 2\r\n\t\tsay \"One is not less than two.\"\r\n\tendif\r\n");
-    } else if (keyword == "orif") {
+    }
+    else if (keyword == "orif")
+    {
         p("The \"orif\" statement:\texecutes a block if a condition is true and previous statements failed.");
         p("");
         p("Example:\r\n\r\n\tif 1 > 2\r\n\t\tsay \"Failed statement.\"");
         p("\torif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif\r\n");
-    } else if (keyword == "elif") {
+    }
+    else if (keyword == "elif")
+    {
         p("The \"elif\" statement:\texecutes a block if a condition is true and previous statements failed.");
         p("");
         p("Example:\r\n\r\n\tif 1 > 2\r\n\t\tsay \"Failed statement.\"");
         p("\telif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif\r\n");
-    } else if (keyword == "elsif") {
+    }
+    else if (keyword == "elsif")
+    {
         p("The \"elsif\" statement:\texecutes a block if a condition is true and previous statements failed.");
         p("");
         p("Example:\r\n\r\n\tif 1 > 2\r\n\t\tsay \"Failed statement.\"");
         p("\telsif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif\r\n");
-    } else if (keyword == "else") {
+    }
+    else if (keyword == "else")
+    {
         p("The \"orif\" statement:\texecutes a block if a condition is true and previous statements failed.");
         p("");
         p("Example:\r\n\r\n\tif 1 > 2\r\n\t\tsay \"Failed statement.\"");
         p("\torif 1 < 0\r\n\t\tsay \"Failed statement.\"");
         p("\telse\r\n\t\tsay \"Neither statement passed.\"\r\n\tendif\r\n");
-    } else if (keyword == "failif") {
+    }
+    else if (keyword == "failif")
+    {
         p("The \"orif\" statement:\texecutes a block if a condition is true and previous statements failed.");
         p("");
         p("Example:\r\n\r\n\tif 1 > 2\r\n\t\tsay \"Failed statement.\"");
         p("\torif 1 < 0\r\n\t\tsay \"Failed statement.\"");
         p("\tfailif\r\n\t\tsay \"Neither statement passed.\"\r\n\tendif\r\n");
-    } else if (keyword == "endif") {
+    }
+    else if (keyword == "endif")
+    {
         p("The \"endif\" statement:\tends all conditional statements.");
         p("");
         p("Example:\r\n\r\n\tif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif\r\n");
-    } else if (keyword == "for") {
+    }
+    else if (keyword == "for")
+    {
         p("The \"for\" loop:\titerates by numerical setting.");
         p("");
         p("Example:\r\n\r\n\tfor infinity\r\n\t\tsay \"This will repeat infinitely\"\r\n\tendfor");
@@ -1033,7 +1213,9 @@ void comprehensiveHelp(string keyword) {
         p("\r\n\tfor 1 < 5 (example)\r\n\t\tsay \"Current Iteration: ${example}\"\r\n\tendfor");
         p("\r\n\tfor i in my_list\r\n\t\tsay \"Current Element: ${i}\"\r\n\tendfor");
         p("\r\n\tfor i in (1..10)\r\n\t\tsay \"Current Iteration: ${i}\"\r\n\tendfor\r\n");
-    } else if (keyword == "loop") {
+    }
+    else if (keyword == "loop")
+    {
         p("The \"loop\" loop:\titerates by enumerated setting.");
         p("");
         p("Example:\r\n\r\n\tlist @array;@array += \"abc\";@array += \"cba\"\r\n\tloop @array (i)\r\n\t\tsay \"${i}\"\r\n\tendfor");
@@ -1041,71 +1223,105 @@ void comprehensiveHelp(string keyword) {
         p("\r\n\t@dir = env.cwd\r\n\tloop @dir.read_dirs (d)\r\n\t\tsay \"${d}\"\r\n\tendfor");
         p("\r\n\t@file = \"example.txt\"\r\n\tloop @file.read (line)\r\n\t\tsay \"${line}\"\r\n\tendfor");
         p("\r\n\tloop @file.read (line)\r\n\t\tsay \"${line}\"\r\n\tendfor\r\n");
-    } else if (keyword == "leave!") {
+    }
+    else if (keyword == "leave!")
+    {
         p("The \"leave!\" keyword:\tbreaks an iteration.");
         p("");
         p("Example:\r\n\r\n\tfor 1 < 5 (i)\r\n\t\tif \"${i}\" = 3\r\n\t\t\tleave!\r\n\t\tendif\r\n\tendfor\r\n");
-    } else if (keyword == "endfor") {
+    }
+    else if (keyword == "endfor")
+    {
         p("The \"for\" loop:\titerates by numerical setting.");
         p("");
         p("Example:\r\n\r\n\tfor 1 < 5\r\n\t\tsay \"This will repeat 5 times\"\r\n\tendfor\r\n");
     }
     // Special Methods and Symbols
     // Memory Management
-    else if (keyword == "clear_all!") {
+    else if (keyword == "clear_all!")
+    {
         p("The \"clear_all!\" command:\tremoves all USL objects from memory.");
         p("");
-    } else if (keyword == "clear_lists!") {
+    }
+    else if (keyword == "clear_lists!")
+    {
         p("The \"clear_lists!\" command:\tremoves all lists from memory.");
         p("");
-    } else if (keyword == "clear_meths!") {
+    }
+    else if (keyword == "clear_meths!")
+    {
         p("The \"clear_meths!\" command:\tremoves all methods from memory.");
         p("");
-    } else if (keyword == "clear_objs!") {
+    }
+    else if (keyword == "clear_objs!")
+    {
         p("The \"clear_objs!\" command:\tremoves all objects from memory.");
         p("");
-    } else if (keyword == "clear_vars!") {
+    }
+    else if (keyword == "clear_vars!")
+    {
         p("The \"clear_vars!\" command:\tremoves all variables from memory.");
         p("");
     }
     // Debug USL Objects
-    else if (keyword == "is_list?") {
+    else if (keyword == "is_list?")
+    {
         p("The \"is_list?\" command:\ttests if a list exists.");
         p("");
         p("Example:\r\n\r\n\tlist @array\r\n\tis_list? @array\r\n");
-    } else if (keyword == "is_method?") {
+    }
+    else if (keyword == "is_method?")
+    {
         p("The \"is_method?\" command:\ttests if a method exists.");
         p("");
         p("Example:\r\n\r\n\tmethod m;end\r\n\tis_method? m\r\n");
-    } else if (keyword == "is_object?") {
+    }
+    else if (keyword == "is_object?")
+    {
         p("The \"is_object?\" command:\ttests if an object exists.");
         p("");
         p("Example:\r\n\r\n\tobject o;end\r\n\tis_object? o\r\n");
-    } else if (keyword == "is_variable?") {
+    }
+    else if (keyword == "is_variable?")
+    {
         p("The \"is_variable?\" command:\ttests if a variable exists.");
         p("");
         p("Example:\r\n\r\n\t@var = \"value\"\r\n\tis_variable? @var\r\n");
-    } else if (keyword == "is_string?") {
+    }
+    else if (keyword == "is_string?")
+    {
         p("The \"is_string?\" command:\ttests if a variable is a string.");
         p("");
         p("Example:\r\n\r\n\t@var = \"value\"\r\n\tis_string? @var\r\n");
-    } else if (keyword == "is_number?") {
+    }
+    else if (keyword == "is_number?")
+    {
         p("The \"is_number?\" command:\ttests if a variable is a number.");
         p("");
         p("Example:\r\n\r\n\t@var = 65535\r\n\tis_number? @var\r\n");
-    } else if (keyword == "no_lists?") {
+    }
+    else if (keyword == "no_lists?")
+    {
         p("The \"no_lists?\" command:\ttests the existence of list definitions.");
         p("");
-    } else if (keyword == "no_methods?") {
+    }
+    else if (keyword == "no_methods?")
+    {
         p("The \"no_methods?\" command:\ttests the existence of method definitions.");
         p("");
-    } else if (keyword == "no_objects?") {
+    }
+    else if (keyword == "no_objects?")
+    {
         p("The \"no_objects?\" command:\ttests the existence of object definitions.");
         p("");
-    } else if (keyword == "no_variables?") {
+    }
+    else if (keyword == "no_variables?")
+    {
         p("The \"no_variables?\" command:\ttests the existence of variable definitions.");
         p("");
-    } else if (keyword == "see") {
+    }
+    else if (keyword == "see")
+    {
         p("The \"see\" command:\tdisplays USL object definitions,\r\n\t\t\tdisplays defined USL objects.");
         p("");
         p("Example:");
@@ -1125,13 +1341,16 @@ void comprehensiveHelp(string keyword) {
         p("\tsee @v\r\n");
     }
     // File/Directory Existence
-    else if (keyword == "is_dir?") {
+    else if (keyword == "is_dir?")
+    {
         p("The \"is_dir?\" command:\ttests if a string or variable is a directory.");
         p("");
         p("Example:");
         p("");
         p("\t@cwd = env.cwd\r\n\tif @cwd = is_dir?\r\n\t\tsay \"The directory exists.\"\r\n\tendif\r\n");
-    } else if (keyword == "is_file?") {
+    }
+    else if (keyword == "is_file?")
+    {
         p("The \"is_file?\" command:\ttests if a string or variable is a file.");
         p("");
         p("Example:");
@@ -1139,25 +1358,32 @@ void comprehensiveHelp(string keyword) {
         p("\t@file = \"/Windows/System32/cmd.exe\"\r\n\tif @file = is_file?\r\n\t\tsay \"The file exists.\"\r\n\tendif\r\n");
     }
     // Defining Memory
-    else if (keyword == "__begin__") {
+    else if (keyword == "__begin__")
+    {
         p("The \"__begin__\" command:\tbegins a script definition.");
         p("");
         p("Example:");
         p("");
         p("\t__begin__ \"script.us\"\r\n\tsay \"Hello, World!\"\r\n\t__end__\r\n");
-    } else if (keyword == "__end__") {
+    }
+    else if (keyword == "__end__")
+    {
         p("The \"__end__\" command:\tends a script definition.");
         p("");
         p("Example:");
         p("");
         p("\t__begin__ \"script.us\"\r\n\tsay \"Hello, World!\"\r\n\t__end__\r\n");
-    } else if (keyword == "list") {
+    }
+    else if (keyword == "list")
+    {
         p("The \"list\" keyword:\tdeclares a list definition.");
         p("");
         p("Example:");
         p("");
         p("\tlist @array\r\n\t@array += \"first element\"\r\n\t@array += \"last element\"\r\n");
-    } else if (keyword == "[method]") {
+    }
+    else if (keyword == "[method]")
+    {
         p("The \"[method]\" keyword:\tdeclares an indestructible method definition.");
         p("");
         p("The only way to remove an indestructible method is to use the \"remove\" command.");
@@ -1166,25 +1392,33 @@ void comprehensiveHelp(string keyword) {
         p("Example:");
         p("");
         p("\t[method] indestructible_Method\r\n\t\tsay \"Hello. I am indestructible.\"\r\n\tend\r\n");
-    } else if (keyword == "method") {
+    }
+    else if (keyword == "method")
+    {
         p("The \"method\" keyword:\tdeclares a method definition.");
         p("");
         p("Example:");
         p("");
         p("\tmethod m\r\n\t\tsay \"Hello, World!\"\r\n\tend\r\n");
-    } else if (keyword == "template") {
+    }
+    else if (keyword == "template")
+    {
         p("The \"template\" keyword:\tdeclares a template definition.");
         p("");
         p("Example:");
         p("");
         p("\ttemplate \"foo(b, a, r)\"\r\n\t\t@var = $0\r\n\t\t@var -= $1\r\n\t\t@var += $2\r\n\t\tsay @var\r\n\tend\r\n");
-    } else if (keyword == "object") {
+    }
+    else if (keyword == "object")
+    {
         p("The \"object\" keyword:\tdeclares an object definition.");
         p("");
         p("Example:");
         p("");
         p("\tobject o\r\n\t\tmethod m\r\n\t\t\tsay \"Hello, World!\"\r\n\t\tend\r\n\tend\r\n");
-    } else if (keyword == "lock") {
+    }
+    else if (keyword == "lock")
+    {
         p("The \"lock\" keyword:\tdeclares a method or variable as \"indestructible.\"");
         p("\r\nUse the \"remove\" command to remove an indestructible method or variable.");
         p("\r\nTo make a method or variable destructible, use the \"unlock\" command.");
@@ -1192,26 +1426,34 @@ void comprehensiveHelp(string keyword) {
         p("Example:");
         p("");
         p("\tmethod indestructible_method\r\n\t\tsay \"I will be indestructible.\"\r\n\tend\r\n\r\n\tlock indestructible_method\r\n");
-    } else if (keyword == "unlock") {
+    }
+    else if (keyword == "unlock")
+    {
         p("The \"unlock\" keyword:\tdeclares a method or variable as \"destructible.\"");
         p("\r\nTo make a method or variable indestructible, use the \"lock\" command.");
         p("");
         p("Example:");
         p("");
         p("\t[method] indestructible_method\r\n\t\tsay \"I will be indestructible.\"\r\n\tend\r\n\r\n\tunlock indestructible_method\r\n");
-    } else if (keyword == "public") {
+    }
+    else if (keyword == "public")
+    {
         p("The \"public\" keyword:\tdeclares a public object definition.");
         p("");
         p("Example:");
         p("");
         p("\tobject o\r\n\t\tpublic\r\n\t\t\tmethod m\r\n\t\t\t\tsay \"Hello, World!\"\r\n\t\t\tend\r\n\tend\r\n");
-    } else if (keyword == "private") {
+    }
+    else if (keyword == "private")
+    {
         p("The \"private\" keyword:\tdeclares a private object definition.");
         p("");
         p("Example:");
         p("");
         p("\tobject o\r\n\t\tprivate\r\n\t\t\tmethod m\r\n\t\t\t\tsay \"Hello, World!\"\r\n\t\t\tend\r\n\tend\r\n");
-    } else if (keyword == "@") {
+    }
+    else if (keyword == "@")
+    {
         p("The \"@\" symbol:\tdenotes a variable declaration.");
         p("");
         p("Example:");
@@ -1219,61 +1461,80 @@ void comprehensiveHelp(string keyword) {
         p("\t@var = \"Hello, World!\"\r\n");
     }
     // Time
-    else if (keyword == "am_or_pm") {
+    else if (keyword == "am_or_pm")
+    {
         p("The \"am_or_pm\" initializer:\tsets a variable to before noon or after.");
         p("");
         p("Example:");
         p("");
         p("\t@am_or_pm = am_or_pm\r\n");
-    } else if (keyword == "day_of_this_week") {
+    }
+    else if (keyword == "day_of_this_week")
+    {
         p("The \"day_of_this_week\" initializer:\tsets a variable to the day of this week.");
         p("");
         p("Example:");
         p("");
         p("\t@day_of_this_week = day_of_this_week\r\n");
-    } else if (keyword == "day_of_this_month") {
+    }
+    else if (keyword == "day_of_this_month")
+    {
         p("The \"day_of_this_month\" initializer:\tsets a variable to the day of this month.");
         p("");
         p("Example:");
         p("");
         p("\t@day_of_this_month = day_of_this_month\r\n");
-    } else if (keyword == "day_of_this_year") {
+    }
+    else if (keyword == "day_of_this_year")
+    {
         p("The \"day_of_this_year\" initializer:\tsets a variable to the day of this year.");
         p("");
         p("Example:");
         p("");
         p("\t@day_of_this_year = day_of_this_year\r\n");
-    } else if (keyword == "month_of_this_year") {
+    }
+    else if (keyword == "month_of_this_year")
+    {
         p("The \"month_of_this_year\" initializer:\tsets a variable to the month of this year.");
         p("");
         p("Example:");
         p("");
         p("\t@month_of_this_year = month_of_this_year\r\n");
-    } else if (keyword == "this_second") {
+    }
+    else if (keyword == "this_second")
+    {
         p("The \"this_second\" initializer:\tsets a variable to the current second.");
         p("");
         p("Example:");
         p("");
         p("\t@this_second = this_second\r\n");
-    } else if (keyword == "this_minute") {
+    }
+    else if (keyword == "this_minute")
+    {
         p("The \"this_minute\" initializer:\tsets a variable to the current minute.");
         p("");
         p("Example:");
         p("");
         p("\t@this_minute = this_minute\r\n");
-    } else if (keyword == "this_hour") {
+    }
+    else if (keyword == "this_hour")
+    {
         p("The \"this_hour\" initializer:\tsets a variable to the current hour.");
         p("");
         p("Example:");
         p("");
         p("\t@this_hour = this_hour\r\n");
-    } else if (keyword == "this_month") {
+    }
+    else if (keyword == "this_month")
+    {
         p("The \"this_month\" initializer:\tsets a variable to the current month.");
         p("");
         p("Example:");
         p("");
         p("\t@this_month = this_month\r\n");
-    } else if (keyword == "this_year") {
+    }
+    else if (keyword == "this_year")
+    {
         p("The \"this_year\" initializer:\tsets a variable to the current year.");
         p("");
         p("Example:");
@@ -1281,43 +1542,56 @@ void comprehensiveHelp(string keyword) {
         p("\t@this_year = this_year\r\n");
     }
     // Extras
-    else if (keyword == "\\\'") {
+    else if (keyword == "\\\'")
+    {
         p("The \"\\\'\" symbol:\tis parsed as an apostrophe mark.");
         p("");
         p("Example:");
         p("");
         p("\tsay \"\\\'Hello, World!\\\'\"\r\n");
-    } else if (keyword == "\'") {
+    }
+    else if (keyword == "\'")
+    {
         p("The \"\'\" symbol:\tis parsed as a quotation mark.");
         p("");
         p("Example:");
         p("");
         p("\tsay \"\'Hello, World!\'\"\r\n");
-    } else if (keyword == "\\t") {
+    }
+    else if (keyword == "\\t")
+    {
         p("The \"\\t\" symbol:\tis parsed as a tab sequence.");
         p("");
         p("Example:");
         p("");
         p("\tsay \"\\tHello, World!\"\r\n");
-    } else if (keyword == "\\n") {
+    }
+    else if (keyword == "\\n")
+    {
         p("The \"\\n\" symbol:\tis parsed as a CRLF sequence.");
         p("");
         p("Example:");
         p("");
         p("\tsay \"\\nHello, World!\\n\"\r\n");
-    } else if (keyword == "#") {
+    }
+    else if (keyword == "#")
+    {
         p("The \"#\" symbol:\tdenotes a comment.");
         p("");
         p("Example:");
         p("");
         p("\t# This is a comment\r\n");
-    } else if (keyword == "##") {
+    }
+    else if (keyword == "##")
+    {
         p("The \"##\" symbol:\tdenotes multiline commentation.");
         p("");
         p("Example:");
         p("");
         p("\t##\r\n\tThis is a multiline comment\r\n\t##\r\n");
-    } else if (keyword == "?") {
+    }
+    else if (keyword == "?")
+    {
         p("The \"?\" symbol:\texecutes an external command,");
         p("\t\t\tinitializes a variable with the stdout of an external command.");
         p("");
@@ -1325,67 +1599,89 @@ void comprehensiveHelp(string keyword) {
         p("");
         p("\t? cmd");
         p("\t@stdout ? \"ping example.com\"\r\n");
-    } else if (keyword == ";") {
+    }
+    else if (keyword == ";")
+    {
         p("The \";\" symbol:\tseparates code lines.");
         p("");
         p("Example:");
         p("");
         p("\tmethod m;say \"Hello, World!\";end;m;remove m\r\n");
-    } else if (keyword == "append") {
+    }
+    else if (keyword == "append")
+    {
         p("The \"append\" command:\tappends text to a file.");
         p("");
         p("Example:");
         p("");
         p("\tappend \"example.txt\" \"This is some text.\"\r\n");
-    } else if (keyword == "appendl") {
+    }
+    else if (keyword == "appendl")
+    {
         p("The \"appendl\" command:\tappends a newline of text to a file.");
         p("");
         p("Example:");
         p("");
         p("\tappendl \"example.txt\" \"This is some text.\"\r\n");
-    } else if (keyword == "args") {
+    }
+    else if (keyword == "args")
+    {
         p("The \"args\" keyword:\tgets the parameters of a loaded script.");
         p("");
         p("Example:");
         p("");
         p("\t@script = args[0]\r\n");
-    } else if (keyword == "args.size") {
+    }
+    else if (keyword == "args.size")
+    {
         p("The \"args.size\" keyword:\tgets the parameter count of a loaded script.");
         p("");
         p("Example:");
         p("");
         p("\t@argc = args.size\r\n");
-    } else if (keyword == "cd") {
+    }
+    else if (keyword == "cd")
+    {
         p("The \"cd\" keyword:\tchanges the current directory.");
         p("");
         p("Example:");
         p("");
         p("\tcd /Windows/System32\r\n");
-    } else if (keyword == "chomp") {
+    }
+    else if (keyword == "chomp")
+    {
         p("The \"chomp\" keyword:\tbegins a loud stdin stream.");
         p("");
         p("Example:");
         p("");
         p("\t@fullname = \"chomp.Enter your fullname:\"\r\n");
-    } else if (keyword == "delay") {
+    }
+    else if (keyword == "delay")
+    {
         p("The \"delay\" command:\tdelays program flow for a set number of seconds.");
         p("");
         p("Example:");
         p("");
         p("\tsay \"Delaying for 5 seconds...\"\r\n\tdelay 5\r\n");
-    } else if (keyword == "dpush") {
+    }
+    else if (keyword == "dpush")
+    {
         p("The \"dpush\" command:\tcreates a directory.");
         p("");
         p("Example:");
         p("");
         p("\tdpush \"directory name\"\r\n");
-    } else if (keyword == "dpop") {
+    }
+    else if (keyword == "dpop")
+    {
         p("The \"dpop\" command:\tremoves a directory.");
         p("");
         p("Example:");
         p("");
         p("\tdpop \"directory name\"\r\n");
-    } else if (keyword == "env") {
+    }
+    else if (keyword == "env")
+    {
         p("The \"env\" keyword:\tgets the value of an environmental variable.");
         p("");
         p("Example:");
@@ -1400,31 +1696,41 @@ void comprehensiveHelp(string keyword) {
         p("\t@windir = env.windir");
         p("\t@prompt = env.prompt");
         p("\t@sysdrive = env.systemdrive\r\n");
-    } else if (keyword == "error") {
+    }
+    else if (keyword == "error")
+    {
         p("The \"error\" command:\tprints to the stderr stream.");
         p("");
         p("Example:");
         p("");
         p("\terror \"An error occurred.\"\r\n");
-    } else if (keyword == "forget") {
+    }
+    else if (keyword == "forget")
+    {
         p("The \"forget\" command:\tforgets a stored variable definition.");
         p("");
         p("Example:");
         p("");
         p("\tforget @var\r\n");
-    } else if (keyword == "fpush") {
+    }
+    else if (keyword == "fpush")
+    {
         p("The \"fpush\" command:\tcreates a file.");
         p("");
         p("Example:");
         p("");
         p("\tfpush \"file name\"\r\n");
-    } else if (keyword == "fpop") {
+    }
+    else if (keyword == "fpop")
+    {
         p("The \"fpop\" command:\tremoves a file.");
         p("");
         p("Example:");
         p("");
         p("\tfpop \"file name\"\r\n");
-    } else if (keyword == "in_dir") {
+    }
+    else if (keyword == "in_dir")
+    {
         p("The \"in_dir\" keyword:\tgets/sets the USL initial directory.");
         p("");
         p("Example:");
@@ -1432,16 +1738,22 @@ void comprehensiveHelp(string keyword) {
         p("\tin_dir /Windows/System32");
         p("\tcd \"/Program Files\"");
         p("\tcd in_dir\r\n");
-    } else if (keyword == "load") {
+    }
+    else if (keyword == "load")
+    {
         p("The \"load\" command:\tincludes and executes a script.");
         p("");
         p("Example:");
         p("");
         p("\tload \"script name.us\"\r\n");
-    } else if (keyword == "parser") {
+    }
+    else if (keyword == "parser")
+    {
         p("The \"parser\" command:\tbegins a separate USL session.");
         p("");
-    } else if (keyword == "prompt") {
+    }
+    else if (keyword == "prompt")
+    {
         p("The \"prompt\" command:\tsets the USL shell prompt.");
         p("");
         p("Example:");
@@ -1451,47 +1763,61 @@ void comprehensiveHelp(string keyword) {
         p("\tprompt \"[\\u@\\m(\\w)]$ \"");
         p("\tprompt !");
         p("\tprompt !\r\n");
-    } else if (keyword == "random") {
+    }
+    else if (keyword == "random")
+    {
         p("The \"random\" keyword:\tgets a random character or number.");
         p("");
         p("Example:");
         p("");
         p("\t@rand_num = random.1_12345");
         p("\t@rand_char = random.a_z\r\n");
-    } else if (keyword == "redefine") {
+    }
+    else if (keyword == "redefine")
+    {
         p("The \"redefine\" command:\trenames a USL object name.");
         p("");
         p("Example:");
         p("");
         p("\tobject o;method m;say \"Hello, World!\";end;end");
         p("\tredefine o oo\r\n\too.m\r\n");
-    } else if (keyword == "remember") {
+    }
+    else if (keyword == "remember")
+    {
         p("The \"remember\" command:\tstores a variable definition for future usage.");
         p("");
         p("Example:");
         p("");
         p("\t@var = \"a value\"\r\n\tremember @var\r\n");
-    } else if (keyword == "remove") {
+    }
+    else if (keyword == "remove")
+    {
         p("The \"remove\" command:\tremoves a USL object definition from memory.");
         p("");
         p("Example:");
         p("");
         p("\tobject o;method m;say \"Hello, World!\";end;end");
         p("\tremove o\r\n");
-    } else if (keyword == "say") {
+    }
+    else if (keyword == "say")
+    {
         p("The \"say\" command:\tprints a newline of text to the stdout stream.");
         p("");
         p("Example:");
         p("");
         p("\t@words = \"This is a sentence.\"");
         p("\tsay \"This sentence is ended with a newline.\\nSentence: \\{@words}\"\r\n");
-    } else if (keyword == "shomp") {
+    }
+    else if (keyword == "shomp")
+    {
         p("The \"shomp\" keyword:\tbegins a silent stdin stream.");
         p("");
         p("Example:");
         p("");
         p("\t@passwd = \"shomp.Enter your password:\"\r\n");
-    } else if (keyword == "stdout") {
+    }
+    else if (keyword == "stdout")
+    {
         p("The \"stdout\" command:\tprints text to the stdout stream.");
         p("");
         p("Example:");
@@ -1499,42 +1825,53 @@ void comprehensiveHelp(string keyword) {
         p("\tstdout \"This sentence is not ended with a newline.\"\r\n");
     }
     // Newly added
-    else if (keyword == "bytes") {
+    else if (keyword == "bytes")
+    {
         p("The \"bytes\" keyword:\tgets the size of a file in bytes.");
         p("");
         p("Example:");
         p("");
         p("\t@file = env.usl");
         p("\t@size = @file.bytes\r\n");
-    } else if (keyword == "kbytes") {
+    }
+    else if (keyword == "kbytes")
+    {
         p("The \"kbytes\" keyword:\tgets the size of a file in kilobytes.");
         p("");
         p("Example:");
         p("");
         p("\t@file = env.usl");
         p("\t@size = @file.kbytes\r\n");
-    } else if (keyword == "mbytes") {
+    }
+    else if (keyword == "mbytes")
+    {
         p("The \"mbytes\" keyword:\tgets the size of a file in megabytes.");
         p("");
         p("Example:");
         p("");
         p("\t@file = env.usl");
         p("\t@size = @file.mbytes\r\n");
-    } else if (keyword == "gbytes") {
+    }
+    else if (keyword == "gbytes")
+    {
         p("The \"gbytes\" keyword:\tgets the size of a file in gigabytes.");
         p("");
         p("Example:");
         p("");
         p("\t@file = env.usl");
         p("\t@size = @file.gbytes\r\n");
-    } else if (keyword == "tbytes") {
+    }
+    else if (keyword == "tbytes")
+    {
         p("The \"tbytes\" keyword:\tgets the size of a file in terabytes.");
         p("");
         p("Example:");
         p("");
         p("\t@file = env.usl");
         p("\t@size = @file.tbytes\r\n");
-    } else if (keyword == "try") {
+    }
+    else if (keyword == "try")
+    {
         p("The \"try\" keyword:\ttries to execute a block of code.");
         p("");
         p("Example:");
@@ -1544,7 +1881,9 @@ void comprehensiveHelp(string keyword) {
         p("\tcatch");
         p("\t\tsay \"An error occurred.\"");
         p("\tcaught\r\n");
-    } else if (keyword == "catch") {
+    }
+    else if (keyword == "catch")
+    {
         p("The \"catch\" keyword:\texecutes a block of code if an error occurred in the \"try\" block.");
         p("");
         p("Example:");
@@ -1555,7 +1894,9 @@ void comprehensiveHelp(string keyword) {
         p("\tcatch");
         p("\t\tsay \"An error occurred.\"");
         p("\tcaught\r\n");
-    } else if (keyword == "caught") {
+    }
+    else if (keyword == "caught")
+    {
         p("The \"caught\" keyword:\tends a \"try\" block.");
         p("");
         p("Example:");
@@ -1565,7 +1906,9 @@ void comprehensiveHelp(string keyword) {
         p("\tcatch");
         p("\t\tsay \"An error occurred.\"");
         p("\tcaught\r\n");
-    } else if (keyword == "last_error") {
+    }
+    else if (keyword == "last_error")
+    {
         p("The \"last_error\" symbol:\tcontains the error message of a failed \"try\" block.");
         p("");
         p("A variable created in the catch code will be removed.");
@@ -1580,7 +1923,9 @@ void comprehensiveHelp(string keyword) {
         p("\t\tout \"Error occurred: \"");
         p("\t\tsay @e");
         p("\tcaught\r\n");
-    } else if (keyword == "while") {
+    }
+    else if (keyword == "while")
+    {
         p("The \"while\" keyword:\tdeclares a while loop.");
         p("");
         p("Example:");
@@ -1592,7 +1937,9 @@ void comprehensiveHelp(string keyword) {
         p("\t\tsay @c");
         p("\t\t@a += 1");
         p("\tend\r\n");
-    } else if (keyword == "end") {
+    }
+    else if (keyword == "end")
+    {
         p("The \"end\" keyword:\tends a while loop.\r\n\t\t\tends a switch statement.\r\n\t\t\tends a method, object, or template.");
         p("");
         p("Example:");
@@ -1613,7 +1960,9 @@ void comprehensiveHelp(string keyword) {
         p("\t\tdefault");
         p("\t\t\tsay \"No matches found.\"");
         p("\tend\r\n");
-    } else if (keyword == "switch") {
+    }
+    else if (keyword == "switch")
+    {
         p("The \"switch\" keyword:\tbegins a switch statement.");
         p("");
         p("Example:");
@@ -1631,7 +1980,9 @@ void comprehensiveHelp(string keyword) {
         p("\tend");
         p("");
         p("m\r\n");
-    } else if (keyword == "case") {
+    }
+    else if (keyword == "case")
+    {
         p("The \"case\" keyword:\tprovides a test value for a switch statement.");
         p("");
         p("Example:");
@@ -1649,7 +2000,9 @@ void comprehensiveHelp(string keyword) {
         p("\tend");
         p("");
         p("m\r\n");
-    } else if (keyword == "default") {
+    }
+    else if (keyword == "default")
+    {
         p("The \"default\" keyword:\tbegins a code block if no match is found when switching.");
         p("");
         p("Example:");
@@ -1667,7 +2020,9 @@ void comprehensiveHelp(string keyword) {
         p("\tend");
         p("");
         p("m\r\n");
-    } else if (keyword == "return") {
+    }
+    else if (keyword == "return")
+    {
         p("The \"return\" keyword:\tsets the value to be returned by a method.");
         p("");
         p("Any variable returned will be removed from memory.");
@@ -1685,7 +2040,9 @@ void comprehensiveHelp(string keyword) {
         p("");
         p("\t@pi = pi");
         p("\t@value = m\r\n");
-    } else if (keyword == "fwrite") {
+    }
+    else if (keyword == "fwrite")
+    {
         p("The \"fwrite\" command:\tcreates a file if it does not already exist and appends text to it.");
         p("");
         p("If the file exists and has been written to, fwrite returns 0.");
@@ -1701,14 +2058,17 @@ void comprehensiveHelp(string keyword) {
         p("\t@contents = \"This is a string of text that will be written to a file.\"");
         p("\t@ret_val = fwrite(\"some file.txt\",@contents)");
         p("");
-    } else {
+    }
+    else
+    {
         p("The keyword, symbol, or command could not be found.");
         p("");
         p("Please use the \"help\" command to see a list of keywords, symbols, and commands.");
     }
 }
 
-void printUSLHelp() {
+void printUSLHelp()
+{
     p("[Parameter Key]");
     p("\t{s}\t\t(string)");
     p("\t{n}\t\t(number)");
@@ -1892,22 +2252,26 @@ void printUSLHelp() {
 
 #ifdef __linux__
 
-void md(string p) {
+void md(string p)
+{
     if (mkdir(p.c_str(), S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH) != 0)
         cout << ("..could not create directory: " + p) << endl;
 }
 
-void rd(string p) {
+void rd(string p)
+{
     if (rmdir(p.c_str()) != 0)
         cout << ("..could not remove directory: " + p) << endl;
 }
 
-void rm(string p) {
+void rm(string p)
+{
     if (remove(p.c_str()) != 0)
         cout << ("..could not remove file: " + p) << endl;
 }
 
-void touch(string p) {
+void touch(string p)
+{
     ofstream f(p.c_str(), ios::out);
 
     if (f.is_open())
@@ -1916,7 +2280,8 @@ void touch(string p) {
         cout << ("..could not create file: " + p) << endl;
 }
 
-string getUser() {
+string getUser()
+{
     char * pUser;
     pUser = getenv("USER");
 
@@ -1927,7 +2292,8 @@ string getUser() {
 
 const int MAXHOSTNAMELEN = 1024;
 
-string getMachine() {
+string getMachine()
+{
     char name[MAXHOSTNAMELEN];
     size_t namelen = MAXHOSTNAMELEN;
 
@@ -1939,22 +2305,26 @@ string getMachine() {
 
 #elif defined _WIN32 || defined _WIN64
 
-void md(string p) {
+void md(string p)
+{
     if (mkdir(p.c_str()) != 0)
         cout << ("..could not create directory: " + p) << endl;
 }
 
-void rd(string p) {
+void rd(string p)
+{
     if (rmdir(p.c_str()) != 0)
         cout << ("..could not remove directory: " + p) << endl;
 }
 
-void rm(string p) {
+void rm(string p)
+{
     if (remove(p.c_str()) != 0)
         cout << ("..could not remove file: " + p) << endl;
 }
 
-void touch(string p) {
+void touch(string p)
+{
     ofstream f(p.c_str(), ios::out);
 
     if (f.is_open())
@@ -1963,7 +2333,8 @@ void touch(string p) {
         cout << ("..could not create file: " + p) << endl;
 }
 
-string getUser() {
+string getUser()
+{
     char lpszUsername[255];
     DWORD dUsername = sizeof(lpszUsername);
 
@@ -1973,7 +2344,8 @@ string getUser() {
     return ("#!=no_user");
 }
 
-string getMachine() {
+string getMachine()
+{
     char lpszComputer[255];
     DWORD dComputer = sizeof(lpszComputer);
 
