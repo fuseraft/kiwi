@@ -1,4 +1,4 @@
-usl
+noctis
 ===
 
-Unorthodox Scripting Language
+hybrid-typed, object-oriented, interpreted
