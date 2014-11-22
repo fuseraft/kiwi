@@ -42,12 +42,11 @@ bool    contains(string s1, string s2),
 
 void    app(string p, string a),
         cd(string p),
-        p(string s),
         printUSLHelp(),
         md(string p),
         rm(string p),
         rd(string p),
-        touch(string p);
+        createFile(string p);
 
 int     stoi(string s);
 string  itos(int i);
@@ -960,1287 +959,1281 @@ string getEnvironmentVariable(string s)
         return ("[not_available]");
 }
 
-void p(string s)
-{
-    cout << s << endl;
-}
-
 void comprehensiveHelp(string keyword)
 {
     // regular operators
     if (keyword == "+=")
     {
-        p("The \"+=\" operator:\tincrements a numeric value,\r\n\t\t\tappends to a string value,\r\n\t\t\tappends an item to a list.");
-        p("");
-        p("Example:\r\n\r\n\t@str = \"string of words...\"\r\n\t@str += \" and another...\"");
-        p("\r\n\t@num = 65535\r\n\t@num += 6.5535");
-        p("\r\n\tlist @array\r\n\t@array += @str\r\n\t@array += @num\r\n");
+        cout << "The \"+=\" operator:\tincrements a numeric value,\r\n\t\t\tappends to a string value,\r\n\t\t\tappends an item to a list." << endl
+             << endl
+             << "Example:\r\n\r\n\t@str = \"string of words...\"\r\n\t@str += \" and another...\"" << endl
+             << "\r\n\t@num = 65535\r\n\t@num += 6.5535" << endl
+             << "\r\n\tlist @array\r\n\t@array += @str\r\n\t@array += @num\r\n" << endl;
     }
     else if (keyword == "-=")
     {
-        p("The \"-=\" operator:\tdecrements a numeric value,\r\n\t\t\tsubtracts a string value,\r\n\t\t\tsubtracts an item from a list.");
-        p("");
-        p("Example:\r\n\r\n\t@str = \"string of words...\"\r\n\t@str -= \" of words...\"");
-        p("\r\n\t@num = (65535-6.5535)");
-        p("\r\n\tlist @array\r\n\t@array += @str\r\n\t@array += @num\r\n\t@array += @str\r\n\t@array -= @str\r\n");
+        cout << "The \"-=\" operator:\tdecrements a numeric value,\r\n\t\t\tsubtracts a string value,\r\n\t\t\tsubtracts an item from a list." << endl
+             << endl
+             << "Example:\r\n\r\n\t@str = \"string of words...\"\r\n\t@str -= \" of words...\"" << endl
+             << "\r\n\t@num = (65535-6.5535)" << endl
+             << "\r\n\tlist @array\r\n\t@array += @str\r\n\t@array += @num\r\n\t@array += @str\r\n\t@array -= @str\r\n" << endl;
     }
     else if (keyword == "*=")
     {
-        p("The \"*=\" operator:\tmultiplies a numeric value.");
-        p("");
-        p("Example:\r\n\r\n\t@num = 65535\r\n\t@num *= 6.5535\r\n");
+        cout << "The \"*=\" operator:\tmultiplies a numeric value." << endl
+             << endl
+             << "Example:\r\n\r\n\t@num = 65535\r\n\t@num *= 6.5535\r\n" << endl;
     }
     else if (keyword == "**=")
     {
-        p("The \"**=\" operator:\tassigns a power of a value.");
-        p("");
-        p("Example:\r\n\r\n\t@num = 2.56\r\n\t@num **= 5\r\n");
+        cout << "The \"**=\" operator:\tassigns a power of a value." << endl
+             << endl
+             << "Example:\r\n\r\n\t@num = 2.56\r\n\t@num **= 5\r\n" << endl;
     }
     else if (keyword == "/=")
     {
-        p("The \"/=\" operator:\tdivides a numeric value.");
-        p("");
-        p("Example:\r\n\r\n\t@num = 65535\r\n\t@num /= 6.5535\r\n");
+        cout << "The \"/=\" operator:\tdivides a numeric value." << endl
+             << endl
+             << "Example:\r\n\r\n\t@num = 65535\r\n\t@num /= 6.5535\r\n" << endl;
     }
     else if (keyword == "+")
     {
-        p("The \"+\" operator:\tadds numeric values,\r\n\t\t\tconcatenates strings.");
-        p("");
-        p("Example:\r\n\r\n\t65535 + 65\r\n\t\"Hello, \" + \"World!\"");
-        p("\r\n\t@addition = (256+254)\r\n");
+        cout << "The \"+\" operator:\tadds numeric values,\r\n\t\t\tconcatenates strings." << endl
+             << endl
+             << "Example:\r\n\r\n\t65535 + 65\r\n\t\"Hello, \" + \"World!\"" << endl
+             << "\r\n\t@addition = (256+254)\r\n" << endl;
     }
     else if (keyword == "-")
     {
-        p("The \"-\" operator:\tsubtracts numeric values,\r\n\t\t\tsubtracts strings.");
-        p("");
-        p("Example:\r\n\r\n\t65535 - 65\r\n\t\"Hello, \" - \"o, \"");
-        p("\r\n\t@subtraction = (256-254)\r\n");
+        cout << "The \"-\" operator:\tsubtracts numeric values,\r\n\t\t\tsubtracts strings." << endl
+             << endl
+             << "Example:\r\n\r\n\t65535 - 65\r\n\t\"Hello, \" - \"o, \"" << endl
+             << "\r\n\t@subtraction = (256-254)\r\n" << endl;
     }
     else if (keyword == "*")
     {
-        p("The \"*\" operator:\tmultiplies numeric values,\r\n\t\t\tmultiplies strings.");
-        p("");
-        p("Example:\r\n\r\n\t65535 * 65\r\n\t\"Hello, World! \" * 3");
-        p("\r\n\t@multiplication = (256*4)\r\n");
+        cout << "The \"*\" operator:\tmultiplies numeric values,\r\n\t\t\tmultiplies strings." << endl
+             << endl
+             << "Example:\r\n\r\n\t65535 * 65\r\n\t\"Hello, World! \" * 3" << endl
+             << "\r\n\t@multiplication = (256*4)\r\n" << endl;
     }
     else if (keyword == "**")
     {
-        p("The \"**\" operator:\tmultiplies the power of a value.");
-        p("");
-        p("Example:\r\n\r\n\t2.56 ** 2\r\n");
+        cout << "The \"**\" operator:\tmultiplies the power of a value." << endl
+             << endl
+             << "Example:\r\n\r\n\t2.56 ** 2\r\n" << endl;
     }
     else if (keyword == "/")
     {
-        p("The \"/\" operator:\tdivides numeric values.");
-        p("");
-        p("Example:\r\n\r\n\t65535 / 65");
-        p("\r\n\t@division = (256/4)\r\n");
+        cout << "The \"/\" operator:\tdivides numeric values." << endl
+             << endl
+             << "Example:\r\n\r\n\t65535 / 65" << endl
+             << "\r\n\t@division = (256/4)\r\n" << endl;
     }
     else if (keyword == "%")
     {
-        p("The \"%\" operator:\tcomputes the remainder of two numeric values.");
-        p("");
-        p("Example:\r\n\r\n\t11 % 3");
-        p("\r\n\t@divisible_by_four = (256%4)\r\n");
+        cout << "The \"%\" operator:\tcomputes the remainder of two numeric values." << endl
+             << endl
+             << "Example:\r\n\r\n\t11 % 3" << endl
+             << "\r\n\t@divisible_by_four = (256%4)\r\n" << endl;
     }
     else if (keyword == "^")
     {
-        p("The \"^\" operator:\tcomputes the power of a value.");
-        p("");
-        p("Example:\r\n\t@four_squared = (4^2)\r\n");
+        cout << "The \"^\" operator:\tcomputes the power of a value." << endl
+             << endl
+             << "Example:\r\n\t@four_squared = (4^2)\r\n" << endl;
     }
     else if (keyword == "<")
     {
-        p("The \"<\" operator:\ttests if a value is less than another,\r\n\t\t\tsets an incremental loop.");
-        p("");
-        p("Example:\r\n\r\n\tif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif");
-        p("\r\n\tfor 1 < 5 (i)\r\n\t\tsay \"Iteration: ${i}\"\r\n\tendfor\r\n");
+        cout << "The \"<\" operator:\ttests if a value is less than another,\r\n\t\t\tsets an incremental loop." << endl
+             << endl
+             << "Example:\r\n\r\n\tif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif" << endl
+             << "\r\n\tfor 1 < 5 (i)\r\n\t\tsay \"Iteration: ${i}\"\r\n\tendfor\r\n" << endl;
     }
     else if (keyword == "<=")
     {
-        p("The \"<=\" operator:\ttests if a value is less than or equal to another.");
-        p("");
-        p("Example:\r\n\r\n\tif 1 <= 2\r\n\t\tsay \"One is less than or equal to two.\"\r\n\tendif");
-        p("\r\n\tfor 1 <= 5 (i)\r\n\t\tsay \"Iteration: ${i}\"\r\n\tendfor\r\n");
+        cout << "The \"<=\" operator:\ttests if a value is less than or equal to another." << endl
+             << endl
+             << "Example:\r\n\r\n\tif 1 <= 2\r\n\t\tsay \"One is less than or equal to two.\"\r\n\tendif" << endl
+             << "\r\n\tfor 1 <= 5 (i)\r\n\t\tsay \"Iteration: ${i}\"\r\n\tendfor\r\n" << endl;
     }
     else if (keyword == ">")
     {
-        p("The \">\" operator:\ttests if a value is greater than another,\r\n\t\t\tsets a decremental loop.");
-        p("");
-        p("Example:\r\n\r\n\tif 2 > 1\r\n\t\tsay \"Two is greater than one.\"\r\n\tendif");
-        p("\r\n\tfor 10 > 1 (i)\r\n\t\tout \"${i}, \"\r\n\tendfor\r\n\tsay \"blast off!\"\r\n");
+        cout << "The \">\" operator:\ttests if a value is greater than another,\r\n\t\t\tsets a decremental loop." << endl
+             << endl
+             << "Example:\r\n\r\n\tif 2 > 1\r\n\t\tsay \"Two is greater than one.\"\r\n\tendif" << endl
+             << "\r\n\tfor 10 > 1 (i)\r\n\t\tout \"${i}, \"\r\n\tendfor\r\n\tsay \"blast off!\"\r\n" << endl;
     }
     else if (keyword == ">=")
     {
-        p("The \">=\" operator:\ttests if a value is greater than or equal to another.");
-        p("");
-        p("Example:\r\n\r\n\tif 2 >= 1\r\n\t\tsay \"Two is greater than or equal to one.\"\r\n\tendif");
-        p("\r\n\tfor 5 >= 1 (i)\r\n\t\tsay \"Iteration: ${i}\"\r\n\tendfor\r\n");
+        cout << "The \">=\" operator:\ttests if a value is greater than or equal to another." << endl
+             << endl
+             << "Example:\r\n\r\n\tif 2 >= 1\r\n\t\tsay \"Two is greater than or equal to one.\"\r\n\tendif" << endl
+             << "\r\n\tfor 5 >= 1 (i)\r\n\t\tsay \"Iteration: ${i}\"\r\n\tendfor\r\n" << endl;
     }
     else if (keyword == "=")
     {
-        p("The \"<\" operator:\tinitializes variables,\r\n\t\t\tdenotes inheritance.");
-        p("");
-        p("Example:");
-        p("\r\n\t@var = \"A value.\"\r\n\r\n\tobject o\r\n\t\tmethod m\r\n\t\t\tsay \"Hello, World!\"\r\n\t\tend\r\n\tend");
-        p("\r\n\tobject oo = o;end\r\n");
+        cout << "The \"<\" operator:\tinitializes variables,\r\n\t\t\tdenotes inheritance." << endl
+             << endl
+             << "Example:" << endl
+             << "\r\n\t@var = \"A value.\"\r\n\r\n\tobject o\r\n\t\tmethod m\r\n\t\t\tsay \"Hello, World!\"\r\n\t\tend\r\n\tend" << endl
+             << "\r\n\tobject oo = o;end\r\n" << endl;
     }
     else if (keyword == "==")
     {
-        p("The \"<\" operator:\ttests if two values are equal.");
-        p("");
-        p("Example:\r\n\r\n\tif 1 == 1\r\n\t\tsay \"One is equal to one.\"\r\n\tendif");
-        p("\r\n");
+        cout << "The \"<\" operator:\ttests if two values are equal." << endl
+             << endl
+             << "Example:\r\n\r\n\tif 1 == 1\r\n\t\tsay \"One is equal to one.\"\r\n\tendif" << endl
+             << "\r\n" << endl;
     }
     else if (keyword == "!")
     {
-        p("The \"!\" operator:\tdirectly parses an argument.");
-        p("");
-        p("Example:");
-        p("\r\n\t! \"method m;say \'Hello, World!\';end;m;remove m\"\r\n");
+        cout << "The \"!\" operator:\tdirectly parses an argument." << endl
+             << endl
+             << "Example:" << endl
+             << "\r\n\t! \"method m;say \'Hello, World!\';end;m;remove m\"\r\n" << endl;
     }
     else if (keyword == "!=")
     {
-        p("The \"!\" operator:\ttests if two values are unequal.");
-        p("");
-        p("Example:\r\n\r\n\tif 1 != 2\r\n\t\tsay \"One is unequal to two.\"\r\n\tendif\r\n");
+        cout << "The \"!\" operator:\ttests if two values are unequal." << endl
+             << endl
+             << "Example:\r\n\r\n\tif 1 != 2\r\n\t\tsay \"One is unequal to two.\"\r\n\tendif\r\n" << endl;
     }
     // special operators
     else if (keyword == "begins_with")
     {
-        p("The \"begins_with\" operator:\ttests if a string begins with another.");
-        p("");
-        p("Example:\r\n\r\n\tif \"Hello, World!\" begins_with \"Hello\"\r\n\t\tsay \"\'Hello, World!\' begins with \'Hello\'.\"\r\n\tendif");
-        p("");
+        cout << "The \"begins_with\" operator:\ttests if a string begins with another." << endl
+             << endl
+             << "Example:\r\n\r\n\tif \"Hello, World!\" begins_with \"Hello\"\r\n\t\tsay \"\'Hello, World!\' begins with \'Hello\'.\"\r\n\tendif" << endl
+             << endl;
     }
     else if (keyword == "contains")
     {
-        p("The \"contains\" operator:\ttests if a string contains another.");
-        p("");
-        p("Example:\r\n\r\n\tif \"Hello, World!\" contains \" \"\r\n\t\tsay \"\'Hello, World!\' contains \' \'.\"\r\n\tendif");
-        p("");
+        cout << "The \"contains\" operator:\ttests if a string contains another." << endl
+             << endl
+             << "Example:\r\n\r\n\tif \"Hello, World!\" contains \" \"\r\n\t\tsay \"\'Hello, World!\' contains \' \'.\"\r\n\tendif" << endl
+             << endl;
     }
     else if (keyword == "ends_with")
     {
-        p("The \"ends_with\" operator:\ttests if a string ends with another.");
-        p("");
-        p("Example:\r\n\r\n\tif \"Hello, World!\" ends_with \"World!\"\r\n\t\tsay \"\'Hello, World!\' ends with \'World!\'.\"\r\n\tendif");
-        p("");
+        cout << "The \"ends_with\" operator:\ttests if a string ends with another." << endl
+             << endl
+             << "Example:\r\n\r\n\tif \"Hello, World!\" ends_with \"World!\"\r\n\t\tsay \"\'Hello, World!\' ends with \'World!\'.\"\r\n\tendif" << endl
+             << endl;
     }
     else if (keyword == "++=")
     {
-        p("The \"++=\" operator:\tincrements the ascii value of every character in a string.");
-        p("");
-        p("Example:\r\n\r\n\t@var = \"Dinosaur\"\r\n\t@var ++= 2\r\n");
-        p("");
+        cout << "The \"++=\" operator:\tincrements the ascii value of every character in a string." << endl
+             << endl
+             << "Example:\r\n\r\n\t@var = \"Dinosaur\"\r\n\t@var ++= 2\r\n" << endl
+             << endl;
     }
     else if (keyword == "--=")
     {
-        p("The \"--=\" operator:\tdecrements the ascii value of every character in a string.");
-        p("");
-        p("Example:\r\n\r\n\t@var = \"Fkpqucwt\"\r\n\t@var --= 2\r\n");
-        p("");
+        cout << "The \"--=\" operator:\tdecrements the ascii value of every character in a string." << endl
+             << endl
+             << "Example:\r\n\r\n\t@var = \"Fkpqucwt\"\r\n\t@var --= 2\r\n" << endl
+             << endl;
     }
     else if (keyword == "if")
     {
-        p("The \"if\" statement:\texecutes a block if a condition is true.");
-        p("");
-        p("Example:\r\n\r\n\tif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif\r\n");
+        cout << "The \"if\" statement:\texecutes a block if a condition is true." << endl
+             << endl
+             << "Example:\r\n\r\n\tif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif\r\n" << endl;
     }
     else if (keyword == "unless")
     {
-        p("The \"unless\" statement:\texecutes a block if a condition is false.");
-        p("");
-        p("Example:\r\n\r\n\tunless 1 > 2\r\n\t\tsay \"One is not less than two.\"\r\n\tendif\r\n");
+        cout << "The \"unless\" statement:\texecutes a block if a condition is false." << endl
+             << endl
+             << "Example:\r\n\r\n\tunless 1 > 2\r\n\t\tsay \"One is not less than two.\"\r\n\tendif\r\n" << endl;
     }
     else if (keyword == "orif")
     {
-        p("The \"orif\" statement:\texecutes a block if a condition is true and previous statements failed.");
-        p("");
-        p("Example:\r\n\r\n\tif 1 > 2\r\n\t\tsay \"Failed statement.\"");
-        p("\torif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif\r\n");
+        cout << "The \"orif\" statement:\texecutes a block if a condition is true and previous statements failed." << endl
+             << endl
+             << "Example:\r\n\r\n\tif 1 > 2\r\n\t\tsay \"Failed statement.\"" << endl
+             << "\torif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif\r\n" << endl;
     }
     else if (keyword == "elif")
     {
-        p("The \"elif\" statement:\texecutes a block if a condition is true and previous statements failed.");
-        p("");
-        p("Example:\r\n\r\n\tif 1 > 2\r\n\t\tsay \"Failed statement.\"");
-        p("\telif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif\r\n");
+        cout << "The \"elif\" statement:\texecutes a block if a condition is true and previous statements failed." << endl
+             << endl
+             << "Example:\r\n\r\n\tif 1 > 2\r\n\t\tsay \"Failed statement.\"" << endl
+             << "\telif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif\r\n" << endl;
     }
     else if (keyword == "elsif")
     {
-        p("The \"elsif\" statement:\texecutes a block if a condition is true and previous statements failed.");
-        p("");
-        p("Example:\r\n\r\n\tif 1 > 2\r\n\t\tsay \"Failed statement.\"");
-        p("\telsif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif\r\n");
+        cout << "The \"elsif\" statement:\texecutes a block if a condition is true and previous statements failed." << endl
+             << endl
+             << "Example:\r\n\r\n\tif 1 > 2\r\n\t\tsay \"Failed statement.\"" << endl
+             << "\telsif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif\r\n" << endl;
     }
     else if (keyword == "else")
     {
-        p("The \"orif\" statement:\texecutes a block if a condition is true and previous statements failed.");
-        p("");
-        p("Example:\r\n\r\n\tif 1 > 2\r\n\t\tsay \"Failed statement.\"");
-        p("\torif 1 < 0\r\n\t\tsay \"Failed statement.\"");
-        p("\telse\r\n\t\tsay \"Neither statement passed.\"\r\n\tendif\r\n");
+        cout << "The \"orif\" statement:\texecutes a block if a condition is true and previous statements failed." << endl
+             << endl
+             << "Example:\r\n\r\n\tif 1 > 2\r\n\t\tsay \"Failed statement.\"" << endl
+             << "\torif 1 < 0\r\n\t\tsay \"Failed statement.\"" << endl
+             << "\telse\r\n\t\tsay \"Neither statement passed.\"\r\n\tendif\r\n" << endl;
     }
     else if (keyword == "failif")
     {
-        p("The \"orif\" statement:\texecutes a block if a condition is true and previous statements failed.");
-        p("");
-        p("Example:\r\n\r\n\tif 1 > 2\r\n\t\tsay \"Failed statement.\"");
-        p("\torif 1 < 0\r\n\t\tsay \"Failed statement.\"");
-        p("\tfailif\r\n\t\tsay \"Neither statement passed.\"\r\n\tendif\r\n");
+        cout << "The \"orif\" statement:\texecutes a block if a condition is true and previous statements failed." << endl
+             << endl
+             << "Example:\r\n\r\n\tif 1 > 2\r\n\t\tsay \"Failed statement.\"" << endl
+             << "\torif 1 < 0\r\n\t\tsay \"Failed statement.\"" << endl
+             << "\tfailif\r\n\t\tsay \"Neither statement passed.\"\r\n\tendif\r\n" << endl;
     }
     else if (keyword == "endif")
     {
-        p("The \"endif\" statement:\tends all conditional statements.");
-        p("");
-        p("Example:\r\n\r\n\tif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif\r\n");
+        cout << "The \"endif\" statement:\tends all conditional statements." << endl
+             << endl
+             << "Example:\r\n\r\n\tif 1 < 2\r\n\t\tsay \"One is less than two.\"\r\n\tendif\r\n" << endl;
     }
     else if (keyword == "for")
     {
-        p("The \"for\" loop:\titerates by numerical setting.");
-        p("");
-        p("Example:\r\n\r\n\tfor infinity\r\n\t\tsay \"This will repeat infinitely\"\r\n\tendfor");
-        p("\r\n\tfor 1 < 5\r\n\t\tsay \"This will repeat 5 times\"\r\n\tendfor");
-        p("\r\n\tfor 5 > 1\r\n\t\tsay \"This will repeat 5 times\"\r\n\tendfor");
-        p("\r\n\tfor 1 < 5 (example)\r\n\t\tsay \"Current Iteration: ${example}\"\r\n\tendfor");
-        p("\r\n\tfor i in my_list\r\n\t\tsay \"Current Element: ${i}\"\r\n\tendfor");
-        p("\r\n\tfor i in (1..10)\r\n\t\tsay \"Current Iteration: ${i}\"\r\n\tendfor\r\n");
+        cout << "The \"for\" loop:\titerates by numerical setting." << endl
+             << endl
+             << "Example:\r\n\r\n\tfor infinity\r\n\t\tsay \"This will repeat infinitely\"\r\n\tendfor" << endl
+             << "\r\n\tfor 1 < 5\r\n\t\tsay \"This will repeat 5 times\"\r\n\tendfor" << endl
+             << "\r\n\tfor 5 > 1\r\n\t\tsay \"This will repeat 5 times\"\r\n\tendfor" << endl
+             << "\r\n\tfor 1 < 5 (example)\r\n\t\tsay \"Current Iteration: ${example}\"\r\n\tendfor" << endl
+             << "\r\n\tfor i in my_list\r\n\t\tsay \"Current Element: ${i}\"\r\n\tendfor" << endl
+             << "\r\n\tfor i in (1..10)\r\n\t\tsay \"Current Iteration: ${i}\"\r\n\tendfor\r\n" << endl;
     }
     else if (keyword == "loop")
     {
-        p("The \"loop\" loop:\titerates by enumerated setting.");
-        p("");
-        p("Example:\r\n\r\n\tlist @array;@array += \"abc\";@array += \"cba\"\r\n\tloop @array (i)\r\n\t\tsay \"${i}\"\r\n\tendfor");
-        p("\r\n\t@dir = env.cwd\r\n\tloop @dir.read_files (f)\r\n\t\tsay \"${f}\"\r\n\tendfor");
-        p("\r\n\t@dir = env.cwd\r\n\tloop @dir.read_dirs (d)\r\n\t\tsay \"${d}\"\r\n\tendfor");
-        p("\r\n\t@file = \"example.txt\"\r\n\tloop @file.read (line)\r\n\t\tsay \"${line}\"\r\n\tendfor");
-        p("\r\n\tloop @file.read (line)\r\n\t\tsay \"${line}\"\r\n\tendfor\r\n");
+        cout << "The \"loop\" loop:\titerates by enumerated setting." << endl
+             << endl
+             << "Example:\r\n\r\n\tlist @array;@array += \"abc\";@array += \"cba\"\r\n\tloop @array (i)\r\n\t\tsay \"${i}\"\r\n\tendfor" << endl
+             << "\r\n\t@dir = env.cwd\r\n\tloop @dir.read_files (f)\r\n\t\tsay \"${f}\"\r\n\tendfor" << endl
+             << "\r\n\t@dir = env.cwd\r\n\tloop @dir.read_dirs (d)\r\n\t\tsay \"${d}\"\r\n\tendfor" << endl
+             << "\r\n\t@file = \"example.txt\"\r\n\tloop @file.read (line)\r\n\t\tsay \"${line}\"\r\n\tendfor" << endl
+             << "\r\n\tloop @file.read (line)\r\n\t\tsay \"${line}\"\r\n\tendfor\r\n" << endl;
     }
     else if (keyword == "leave!")
     {
-        p("The \"leave!\" keyword:\tbreaks an iteration.");
-        p("");
-        p("Example:\r\n\r\n\tfor 1 < 5 (i)\r\n\t\tif \"${i}\" = 3\r\n\t\t\tleave!\r\n\t\tendif\r\n\tendfor\r\n");
+        cout << "The \"leave!\" keyword:\tbreaks an iteration." << endl
+             << endl
+             << "Example:\r\n\r\n\tfor 1 < 5 (i)\r\n\t\tif \"${i}\" = 3\r\n\t\t\tleave!\r\n\t\tendif\r\n\tendfor\r\n" << endl;
     }
     else if (keyword == "endfor")
     {
-        p("The \"for\" loop:\titerates by numerical setting.");
-        p("");
-        p("Example:\r\n\r\n\tfor 1 < 5\r\n\t\tsay \"This will repeat 5 times\"\r\n\tendfor\r\n");
+        cout << "The \"for\" loop:\titerates by numerical setting." << endl
+             << endl
+             << "Example:\r\n\r\n\tfor 1 < 5\r\n\t\tsay \"This will repeat 5 times\"\r\n\tendfor\r\n" << endl;
     }
     // Special Methods and Symbols
     // Memory Management
     else if (keyword == "clear_all!")
     {
-        p("The \"clear_all!\" command:\tremoves all USL objects from memory.");
-        p("");
+        cout << "The \"clear_all!\" command:\tremoves all USL objects from memory." << endl
+             << endl;
     }
     else if (keyword == "clear_lists!")
     {
-        p("The \"clear_lists!\" command:\tremoves all lists from memory.");
-        p("");
+        cout << "The \"clear_lists!\" command:\tremoves all lists from memory." << endl
+             << endl;
     }
     else if (keyword == "clear_meths!")
     {
-        p("The \"clear_meths!\" command:\tremoves all methods from memory.");
-        p("");
+        cout << "The \"clear_meths!\" command:\tremoves all methods from memory." << endl
+             << endl;
     }
     else if (keyword == "clear_objs!")
     {
-        p("The \"clear_objs!\" command:\tremoves all objects from memory.");
-        p("");
+        cout << "The \"clear_objs!\" command:\tremoves all objects from memory." << endl
+             << endl;
     }
     else if (keyword == "clear_vars!")
     {
-        p("The \"clear_vars!\" command:\tremoves all variables from memory.");
-        p("");
+        cout << "The \"clear_vars!\" command:\tremoves all variables from memory." << endl
+             << endl;
     }
     // Debug USL Objects
     else if (keyword == "is_list?")
     {
-        p("The \"is_list?\" command:\ttests if a list exists.");
-        p("");
-        p("Example:\r\n\r\n\tlist @array\r\n\tis_list? @array\r\n");
+        cout << "The \"is_list?\" command:\ttests if a list exists." << endl
+             << endl
+             << "Example:\r\n\r\n\tlist @array\r\n\tis_list? @array\r\n" << endl;
     }
     else if (keyword == "is_method?")
     {
-        p("The \"is_method?\" command:\ttests if a method exists.");
-        p("");
-        p("Example:\r\n\r\n\tmethod m;end\r\n\tis_method? m\r\n");
+        cout << "The \"is_method?\" command:\ttests if a method exists." << endl
+             << endl
+             << "Example:\r\n\r\n\tmethod m;end\r\n\tis_method? m\r\n" << endl;
     }
     else if (keyword == "is_object?")
     {
-        p("The \"is_object?\" command:\ttests if an object exists.");
-        p("");
-        p("Example:\r\n\r\n\tobject o;end\r\n\tis_object? o\r\n");
+        cout << "The \"is_object?\" command:\ttests if an object exists." << endl
+             << endl
+             << "Example:\r\n\r\n\tobject o;end\r\n\tis_object? o\r\n" << endl;
     }
     else if (keyword == "is_variable?")
     {
-        p("The \"is_variable?\" command:\ttests if a variable exists.");
-        p("");
-        p("Example:\r\n\r\n\t@var = \"value\"\r\n\tis_variable? @var\r\n");
+        cout << "The \"is_variable?\" command:\ttests if a variable exists." << endl
+             << endl
+             << "Example:\r\n\r\n\t@var = \"value\"\r\n\tis_variable? @var\r\n" << endl;
     }
     else if (keyword == "is_string?")
     {
-        p("The \"is_string?\" command:\ttests if a variable is a string.");
-        p("");
-        p("Example:\r\n\r\n\t@var = \"value\"\r\n\tis_string? @var\r\n");
+        cout << "The \"is_string?\" command:\ttests if a variable is a string." << endl
+             << endl
+             << "Example:\r\n\r\n\t@var = \"value\"\r\n\tis_string? @var\r\n" << endl;
     }
     else if (keyword == "is_number?")
     {
-        p("The \"is_number?\" command:\ttests if a variable is a number.");
-        p("");
-        p("Example:\r\n\r\n\t@var = 65535\r\n\tis_number? @var\r\n");
+        cout << "The \"is_number?\" command:\ttests if a variable is a number." << endl
+             << endl
+             << "Example:\r\n\r\n\t@var = 65535\r\n\tis_number? @var\r\n" << endl;
     }
     else if (keyword == "no_lists?")
     {
-        p("The \"no_lists?\" command:\ttests the existence of list definitions.");
-        p("");
+        cout << "The \"no_lists?\" command:\ttests the existence of list definitions." << endl
+             << endl;
     }
     else if (keyword == "no_methods?")
     {
-        p("The \"no_methods?\" command:\ttests the existence of method definitions.");
-        p("");
+        cout << "The \"no_methods?\" command:\ttests the existence of method definitions." << endl
+             << endl;
     }
     else if (keyword == "no_objects?")
     {
-        p("The \"no_objects?\" command:\ttests the existence of object definitions.");
-        p("");
+        cout << "The \"no_objects?\" command:\ttests the existence of object definitions." << endl
+             << endl;
     }
     else if (keyword == "no_variables?")
     {
-        p("The \"no_variables?\" command:\ttests the existence of variable definitions.");
-        p("");
+        cout << "The \"no_variables?\" command:\ttests the existence of variable definitions." << endl
+             << endl;
     }
     else if (keyword == "see")
     {
-        p("The \"see\" command:\tdisplays USL object definitions,\r\n\t\t\tdisplays defined USL objects.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tsee lists");
-        p("\tsee methods");
-        p("\tsee objects");
-        p("\tsee variables");
-        p("");
-        p("\tobject o;end");
-        p("\tsee o\r\n");
-        p("\tmethod m;end");
-        p("\tsee m\r\n");
-        p("\tlist @l");
-        p("\tsee l\r\n");
-        p("\t@v = \"value\"");
-        p("\tsee @v\r\n");
+        cout << "The \"see\" command:\tdisplays USL object definitions,\r\n\t\t\tdisplays defined USL objects." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tsee lists" << endl
+             << "\tsee methods" << endl
+             << "\tsee objects" << endl
+             << "\tsee variables" << endl
+             << endl
+             << "\tobject o;end" << endl
+             << "\tsee o\r\n" << endl
+             << "\tmethod m;end" << endl
+             << "\tsee m\r\n" << endl
+             << "\tlist @l" << endl
+             << "\tsee l\r\n" << endl
+             << "\t@v = \"value\"" << endl
+             << "\tsee @v\r\n" << endl;
     }
     // File/Directory Existence
     else if (keyword == "is_dir?")
     {
-        p("The \"is_dir?\" command:\ttests if a string or variable is a directory.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@cwd = env.cwd\r\n\tif @cwd = is_dir?\r\n\t\tsay \"The directory exists.\"\r\n\tendif\r\n");
+        cout << "The \"is_dir?\" command:\ttests if a string or variable is a directory." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@cwd = env.cwd\r\n\tif @cwd = is_dir?\r\n\t\tsay \"The directory exists.\"\r\n\tendif\r\n" << endl;
     }
     else if (keyword == "is_file?")
     {
-        p("The \"is_file?\" command:\ttests if a string or variable is a file.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@file = \"/Windows/System32/cmd.exe\"\r\n\tif @file = is_file?\r\n\t\tsay \"The file exists.\"\r\n\tendif\r\n");
+        cout << "The \"is_file?\" command:\ttests if a string or variable is a file." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@file = \"/Windows/System32/cmd.exe\"\r\n\tif @file = is_file?\r\n\t\tsay \"The file exists.\"\r\n\tendif\r\n" << endl;
     }
     // Defining Memory
     else if (keyword == "__begin__")
     {
-        p("The \"__begin__\" command:\tbegins a script definition.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t__begin__ \"script.us\"\r\n\tsay \"Hello, World!\"\r\n\t__end__\r\n");
+        cout << "The \"__begin__\" command:\tbegins a script definition." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t__begin__ \"script.us\"\r\n\tsay \"Hello, World!\"\r\n\t__end__\r\n" << endl;
     }
     else if (keyword == "__end__")
     {
-        p("The \"__end__\" command:\tends a script definition.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t__begin__ \"script.us\"\r\n\tsay \"Hello, World!\"\r\n\t__end__\r\n");
+        cout << "The \"__end__\" command:\tends a script definition." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t__begin__ \"script.us\"\r\n\tsay \"Hello, World!\"\r\n\t__end__\r\n" << endl;
     }
     else if (keyword == "list")
     {
-        p("The \"list\" keyword:\tdeclares a list definition.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tlist @array\r\n\t@array += \"first element\"\r\n\t@array += \"last element\"\r\n");
+        cout << "The \"list\" keyword:\tdeclares a list definition." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tlist @array\r\n\t@array += \"first element\"\r\n\t@array += \"last element\"\r\n" << endl;
     }
     else if (keyword == "[method]")
     {
-        p("The \"[method]\" keyword:\tdeclares an indestructible method definition.");
-        p("");
-        p("The only way to remove an indestructible method is to use the \"remove\" command.");
-        p("\r\nTo make a method destructible, use the \"unlock\" command.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t[method] indestructible_Method\r\n\t\tsay \"Hello. I am indestructible.\"\r\n\tend\r\n");
+        cout << "The \"[method]\" keyword:\tdeclares an indestructible method definition." << endl
+             << endl
+             << "The only way to remove an indestructible method is to use the \"remove\" command." << endl
+             << "\r\nTo make a method destructible, use the \"unlock\" command." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t[method] indestructible_Method\r\n\t\tsay \"Hello. I am indestructible.\"\r\n\tend\r\n" << endl;
     }
     else if (keyword == "method")
     {
-        p("The \"method\" keyword:\tdeclares a method definition.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tmethod m\r\n\t\tsay \"Hello, World!\"\r\n\tend\r\n");
+        cout << "The \"method\" keyword:\tdeclares a method definition." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tmethod m\r\n\t\tsay \"Hello, World!\"\r\n\tend\r\n" << endl;
     }
     else if (keyword == "template")
     {
-        p("The \"template\" keyword:\tdeclares a template definition.");
-        p("");
-        p("Example:");
-        p("");
-        p("\ttemplate \"foo(b, a, r)\"\r\n\t\t@var = $0\r\n\t\t@var -= $1\r\n\t\t@var += $2\r\n\t\tsay @var\r\n\tend\r\n");
+        cout << "The \"template\" keyword:\tdeclares a template definition." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\ttemplate \"foo(b, a, r)\"\r\n\t\t@var = $0\r\n\t\t@var -= $1\r\n\t\t@var += $2\r\n\t\tsay @var\r\n\tend\r\n" << endl;
     }
     else if (keyword == "object")
     {
-        p("The \"object\" keyword:\tdeclares an object definition.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tobject o\r\n\t\tmethod m\r\n\t\t\tsay \"Hello, World!\"\r\n\t\tend\r\n\tend\r\n");
+        cout << "The \"object\" keyword:\tdeclares an object definition." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tobject o\r\n\t\tmethod m\r\n\t\t\tsay \"Hello, World!\"\r\n\t\tend\r\n\tend\r\n" << endl;
     }
     else if (keyword == "lock")
     {
-        p("The \"lock\" keyword:\tdeclares a method or variable as \"indestructible.\"");
-        p("\r\nUse the \"remove\" command to remove an indestructible method or variable.");
-        p("\r\nTo make a method or variable destructible, use the \"unlock\" command.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tmethod indestructible_method\r\n\t\tsay \"I will be indestructible.\"\r\n\tend\r\n\r\n\tlock indestructible_method\r\n");
+        cout << "The \"lock\" keyword:\tdeclares a method or variable as \"indestructible.\"" << endl
+             << "\r\nUse the \"remove\" command to remove an indestructible method or variable." << endl
+             << "\r\nTo make a method or variable destructible, use the \"unlock\" command." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tmethod indestructible_method\r\n\t\tsay \"I will be indestructible.\"\r\n\tend\r\n\r\n\tlock indestructible_method\r\n" << endl;
     }
     else if (keyword == "unlock")
     {
-        p("The \"unlock\" keyword:\tdeclares a method or variable as \"destructible.\"");
-        p("\r\nTo make a method or variable indestructible, use the \"lock\" command.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t[method] indestructible_method\r\n\t\tsay \"I will be indestructible.\"\r\n\tend\r\n\r\n\tunlock indestructible_method\r\n");
+        cout << "The \"unlock\" keyword:\tdeclares a method or variable as \"destructible.\"" << endl
+             << "\r\nTo make a method or variable indestructible, use the \"lock\" command." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t[method] indestructible_method\r\n\t\tsay \"I will be indestructible.\"\r\n\tend\r\n\r\n\tunlock indestructible_method\r\n" << endl;
     }
     else if (keyword == "public")
     {
-        p("The \"public\" keyword:\tdeclares a public object definition.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tobject o\r\n\t\tpublic\r\n\t\t\tmethod m\r\n\t\t\t\tsay \"Hello, World!\"\r\n\t\t\tend\r\n\tend\r\n");
+        cout << "The \"public\" keyword:\tdeclares a public object definition." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tobject o\r\n\t\tpublic\r\n\t\t\tmethod m\r\n\t\t\t\tsay \"Hello, World!\"\r\n\t\t\tend\r\n\tend\r\n" << endl;
     }
     else if (keyword == "private")
     {
-        p("The \"private\" keyword:\tdeclares a private object definition.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tobject o\r\n\t\tprivate\r\n\t\t\tmethod m\r\n\t\t\t\tsay \"Hello, World!\"\r\n\t\t\tend\r\n\tend\r\n");
+        cout << "The \"private\" keyword:\tdeclares a private object definition." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tobject o\r\n\t\tprivate\r\n\t\t\tmethod m\r\n\t\t\t\tsay \"Hello, World!\"\r\n\t\t\tend\r\n\tend\r\n" << endl;
     }
     else if (keyword == "@")
     {
-        p("The \"@\" symbol:\tdenotes a variable declaration.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@var = \"Hello, World!\"\r\n");
+        cout << "The \"@\" symbol:\tdenotes a variable declaration." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@var = \"Hello, World!\"\r\n" << endl;
     }
     // Time
     else if (keyword == "am_or_pm")
     {
-        p("The \"am_or_pm\" initializer:\tsets a variable to before noon or after.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@am_or_pm = am_or_pm\r\n");
+        cout << "The \"am_or_pm\" initializer:\tsets a variable to before noon or after." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@am_or_pm = am_or_pm\r\n" << endl;
     }
     else if (keyword == "day_of_this_week")
     {
-        p("The \"day_of_this_week\" initializer:\tsets a variable to the day of this week.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@day_of_this_week = day_of_this_week\r\n");
+        cout << "The \"day_of_this_week\" initializer:\tsets a variable to the day of this week." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@day_of_this_week = day_of_this_week\r\n" << endl;
     }
     else if (keyword == "day_of_this_month")
     {
-        p("The \"day_of_this_month\" initializer:\tsets a variable to the day of this month.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@day_of_this_month = day_of_this_month\r\n");
+        cout << "The \"day_of_this_month\" initializer:\tsets a variable to the day of this month." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@day_of_this_month = day_of_this_month\r\n" << endl;
     }
     else if (keyword == "day_of_this_year")
     {
-        p("The \"day_of_this_year\" initializer:\tsets a variable to the day of this year.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@day_of_this_year = day_of_this_year\r\n");
+        cout << "The \"day_of_this_year\" initializer:\tsets a variable to the day of this year." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@day_of_this_year = day_of_this_year\r\n" << endl;
     }
     else if (keyword == "month_of_this_year")
     {
-        p("The \"month_of_this_year\" initializer:\tsets a variable to the month of this year.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@month_of_this_year = month_of_this_year\r\n");
+        cout << "The \"month_of_this_year\" initializer:\tsets a variable to the month of this year." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@month_of_this_year = month_of_this_year\r\n" << endl;
     }
     else if (keyword == "this_second")
     {
-        p("The \"this_second\" initializer:\tsets a variable to the current second.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@this_second = this_second\r\n");
+        cout << "The \"this_second\" initializer:\tsets a variable to the current second." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@this_second = this_second\r\n" << endl;
     }
     else if (keyword == "this_minute")
     {
-        p("The \"this_minute\" initializer:\tsets a variable to the current minute.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@this_minute = this_minute\r\n");
+        cout << "The \"this_minute\" initializer:\tsets a variable to the current minute." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@this_minute = this_minute\r\n" << endl;
     }
     else if (keyword == "this_hour")
     {
-        p("The \"this_hour\" initializer:\tsets a variable to the current hour.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@this_hour = this_hour\r\n");
+        cout << "The \"this_hour\" initializer:\tsets a variable to the current hour." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@this_hour = this_hour\r\n" << endl;
     }
     else if (keyword == "this_month")
     {
-        p("The \"this_month\" initializer:\tsets a variable to the current month.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@this_month = this_month\r\n");
+        cout << "The \"this_month\" initializer:\tsets a variable to the current month." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@this_month = this_month\r\n" << endl;
     }
     else if (keyword == "this_year")
     {
-        p("The \"this_year\" initializer:\tsets a variable to the current year.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@this_year = this_year\r\n");
+        cout << "The \"this_year\" initializer:\tsets a variable to the current year." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@this_year = this_year\r\n" << endl;
     }
     // Extras
     else if (keyword == "\\\'")
     {
-        p("The \"\\\'\" symbol:\tis parsed as an apostrophe mark.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tsay \"\\\'Hello, World!\\\'\"\r\n");
+        cout << "The \"\\\'\" symbol:\tis parsed as an apostrophe mark." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tsay \"\\\'Hello, World!\\\'\"\r\n" << endl;
     }
     else if (keyword == "\'")
     {
-        p("The \"\'\" symbol:\tis parsed as a quotation mark.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tsay \"\'Hello, World!\'\"\r\n");
+        cout << "The \"\'\" symbol:\tis parsed as a quotation mark." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tsay \"\'Hello, World!\'\"\r\n" << endl;
     }
     else if (keyword == "\\t")
     {
-        p("The \"\\t\" symbol:\tis parsed as a tab sequence.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tsay \"\\tHello, World!\"\r\n");
+        cout << "The \"\\t\" symbol:\tis parsed as a tab sequence." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tsay \"\\tHello, World!\"\r\n" << endl;
     }
     else if (keyword == "\\n")
     {
-        p("The \"\\n\" symbol:\tis parsed as a CRLF sequence.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tsay \"\\nHello, World!\\n\"\r\n");
+        cout << "The \"\\n\" symbol:\tis parsed as a CRLF sequence." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tsay \"\\nHello, World!\\n\"\r\n" << endl;
     }
     else if (keyword == "#")
     {
-        p("The \"#\" symbol:\tdenotes a comment.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t# This is a comment\r\n");
+        cout << "The \"#\" symbol:\tdenotes a comment." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t# This is a comment\r\n" << endl;
     }
     else if (keyword == "##")
     {
-        p("The \"##\" symbol:\tdenotes multiline commentation.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t##\r\n\tThis is a multiline comment\r\n\t##\r\n");
+        cout << "The \"##\" symbol:\tdenotes multiline commentation." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t##\r\n\tThis is a multiline comment\r\n\t##\r\n" << endl;
     }
     else if (keyword == "?")
     {
-        p("The \"?\" symbol:\texecutes an external command,");
-        p("\t\t\tinitializes a variable with the stdout of an external command.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t? cmd");
-        p("\t@stdout ? \"ping example.com\"\r\n");
+        cout << "The \"?\" symbol:\texecutes an external command," << endl
+             << "\t\t\tinitializes a variable with the stdout of an external command." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t? cmd" << endl
+             << "\t@stdout ? \"ping example.com\"\r\n" << endl;
     }
     else if (keyword == ";")
     {
-        p("The \";\" symbol:\tseparates code lines.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tmethod m;say \"Hello, World!\";end;m;remove m\r\n");
+        cout << "The \";\" symbol:\tseparates code lines." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tmethod m;say \"Hello, World!\";end;m;remove m\r\n" << endl;
     }
     else if (keyword == "append")
     {
-        p("The \"append\" command:\tappends text to a file.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tappend \"example.txt\" \"This is some text.\"\r\n");
+        cout << "The \"append\" command:\tappends text to a file." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tappend \"example.txt\" \"This is some text.\"\r\n" << endl;
     }
     else if (keyword == "appendl")
     {
-        p("The \"appendl\" command:\tappends a newline of text to a file.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tappendl \"example.txt\" \"This is some text.\"\r\n");
+        cout << "The \"appendl\" command:\tappends a newline of text to a file." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tappendl \"example.txt\" \"This is some text.\"\r\n" << endl;
     }
     else if (keyword == "args")
     {
-        p("The \"args\" keyword:\tgets the parameters of a loaded script.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@script = args[0]\r\n");
+        cout << "The \"args\" keyword:\tgets the parameters of a loaded script." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@script = args[0]\r\n" << endl;
     }
     else if (keyword == "args.size")
     {
-        p("The \"args.size\" keyword:\tgets the parameter count of a loaded script.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@argc = args.size\r\n");
+        cout << "The \"args.size\" keyword:\tgets the parameter count of a loaded script." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@argc = args.size\r\n" << endl;
     }
     else if (keyword == "cd")
     {
-        p("The \"cd\" keyword:\tchanges the current directory.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tcd /Windows/System32\r\n");
+        cout << "The \"cd\" keyword:\tchanges the current directory." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tcd /Windows/System32\r\n" << endl;
     }
     else if (keyword == "readline")
     {
-        p("The \"readline\" keyword:\tbegins a loud stdin stream.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@fullname = \"readline.Enter your fullname:\"\r\n");
+        cout << "The \"readline\" keyword:\tbegins a loud stdin stream." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@fullname = \"readline.Enter your fullname:\"\r\n" << endl;
     }
     else if (keyword == "delay")
     {
-        p("The \"delay\" command:\tdelays program flow for a set number of seconds.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tsay \"Delaying for 5 seconds...\"\r\n\tdelay 5\r\n");
+        cout << "The \"delay\" command:\tdelays program flow for a set number of seconds." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tsay \"Delaying for 5 seconds...\"\r\n\tdelay 5\r\n" << endl;
     }
     else if (keyword == "dpush")
     {
-        p("The \"dpush\" command:\tcreates a directory.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tdpush \"directory name\"\r\n");
+        cout << "The \"dpush\" command:\tcreates a directory." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tdpush \"directory name\"\r\n" << endl;
     }
     else if (keyword == "dpop")
     {
-        p("The \"dpop\" command:\tremoves a directory.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tdpop \"directory name\"\r\n");
+        cout << "The \"dpop\" command:\tremoves a directory." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tdpop \"directory name\"\r\n" << endl;
     }
     else if (keyword == "env")
     {
-        p("The \"env\" keyword:\tgets the value of an environmental variable.");
-        p("");
-        p("Example:");
-        p("");
-        p("# USL Specific");
-        p("\t@cwd = env.cwd");
-        p("\t@usl = env.usl");
-        p("\t@user = env.user");
-        p("\t@machine = env.machine");
-        p("\t@os = env.os");
-        p("# OS Specific");
-        p("\t@windir = env.windir");
-        p("\t@prompt = env.prompt");
-        p("\t@sysdrive = env.systemdrive\r\n");
+        cout << "The \"env\" keyword:\tgets the value of an environmental variable." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "# USL Specific" << endl
+             << "\t@cwd = env.cwd" << endl
+             << "\t@usl = env.usl" << endl
+             << "\t@user = env.user" << endl
+             << "\t@machine = env.machine" << endl
+             << "\t@os = env.os" << endl
+             << "# OS Specific" << endl
+             << "\t@windir = env.windir" << endl
+             << "\t@prompt = env.prompt" << endl
+             << "\t@sysdrive = env.systemdrive\r\n" << endl;
     }
     else if (keyword == "error")
     {
-        p("The \"error\" command:\tprints to the stderr stream.");
-        p("");
-        p("Example:");
-        p("");
-        p("\terror \"An error occurred.\"\r\n");
+        cout << "The \"error\" command:\tprints to the stderr stream." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\terror \"An error occurred.\"\r\n" << endl;
     }
     else if (keyword == "forget")
     {
-        p("The \"forget\" command:\tforgets a stored variable definition.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tforget @var\r\n");
+        cout << "The \"forget\" command:\tforgets a stored variable definition." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tforget @var\r\n" << endl;
     }
     else if (keyword == "fpush")
     {
-        p("The \"fpush\" command:\tcreates a file.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tfpush \"file name\"\r\n");
+        cout << "The \"fpush\" command:\tcreates a file." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tfpush \"file name\"\r\n" << endl;
     }
     else if (keyword == "fpop")
     {
-        p("The \"fpop\" command:\tremoves a file.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tfpop \"file name\"\r\n");
+        cout << "The \"fpop\" command:\tremoves a file." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tfpop \"file name\"\r\n" << endl;
     }
     else if (keyword == "in_dir")
     {
-        p("The \"in_dir\" keyword:\tgets/sets the USL initial directory.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tin_dir /Windows/System32");
-        p("\tcd \"/Program Files\"");
-        p("\tcd in_dir\r\n");
+        cout << "The \"in_dir\" keyword:\tgets/sets the USL initial directory." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tin_dir /Windows/System32" << endl
+             << "\tcd \"/Program Files\"" << endl
+             << "\tcd in_dir\r\n" << endl;
     }
     else if (keyword == "load")
     {
-        p("The \"load\" command:\tincludes and executes a script.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tload \"script name.us\"\r\n");
+        cout << "The \"load\" command:\tincludes and executes a script." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tload \"script name.us\"\r\n" << endl;
     }
     else if (keyword == "parser")
     {
-        p("The \"parser\" command:\tbegins a separate USL session.");
-        p("");
+        cout << "The \"parser\" command:\tbegins a separate USL session." << endl
+             << endl;
     }
     else if (keyword == "prompt")
     {
-        p("The \"prompt\" command:\tsets the USL shell prompt.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tprompt bash");
-        p("\tprompt !");
-        p("\tprompt \"[\\u@\\m(\\w)]$ \"");
-        p("\tprompt !");
-        p("\tprompt !\r\n");
+        cout << "The \"prompt\" command:\tsets the USL shell prompt." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tprompt bash" << endl
+             << "\tprompt !" << endl
+             << "\tprompt \"[\\u@\\m(\\w)]$ \"" << endl
+             << "\tprompt !" << endl
+             << "\tprompt !\r\n" << endl;
     }
     else if (keyword == "random")
     {
-        p("The \"random\" keyword:\tgets a random character or number.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@rand_num = random.1_12345");
-        p("\t@rand_char = random.a_z\r\n");
+        cout << "The \"random\" keyword:\tgets a random character or number." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@rand_num = random.1_12345" << endl
+             << "\t@rand_char = random.a_z\r\n" << endl;
     }
     else if (keyword == "redefine")
     {
-        p("The \"redefine\" command:\trenames a USL object name.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tobject o;method m;say \"Hello, World!\";end;end");
-        p("\tredefine o oo\r\n\too.m\r\n");
+        cout << "The \"redefine\" command:\trenames a USL object name." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tobject o;method m;say \"Hello, World!\";end;end" << endl
+             << "\tredefine o oo\r\n\too.m\r\n" << endl;
     }
     else if (keyword == "remember")
     {
-        p("The \"remember\" command:\tstores a variable definition for future usage.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@var = \"a value\"\r\n\tremember @var\r\n");
+        cout << "The \"remember\" command:\tstores a variable definition for future usage." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@var = \"a value\"\r\n\tremember @var\r\n" << endl;
     }
     else if (keyword == "remove")
     {
-        p("The \"remove\" command:\tremoves a USL object definition from memory.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tobject o;method m;say \"Hello, World!\";end;end");
-        p("\tremove o\r\n");
+        cout << "The \"remove\" command:\tremoves a USL object definition from memory." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tobject o;method m;say \"Hello, World!\";end;end" << endl
+             << "\tremove o\r\n" << endl;
     }
     else if (keyword == "say")
     {
-        p("The \"say\" command:\tprints a newline of text to the stdout stream.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@words = \"This is a sentence.\"");
-        p("\tsay \"This sentence is ended with a newline.\\nSentence: \\{@words}\"\r\n");
+        cout << "The \"say\" command:\tprints a newline of text to the stdout stream." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@words = \"This is a sentence.\"" << endl
+             << "\tsay \"This sentence is ended with a newline.\\nSentence: \\{@words}\"\r\n" << endl;
     }
     else if (keyword == "password")
     {
-        p("The \"password\" keyword:\tbegins a silent stdin stream.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@passwd = \"password.Enter your password:\"\r\n");
+        cout << "The \"password\" keyword:\tbegins a silent stdin stream." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@passwd = \"password.Enter your password:\"\r\n" << endl;
     }
     else if (keyword == "stdout")
     {
-        p("The \"stdout\" command:\tprints text to the stdout stream.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tstdout \"This sentence is not ended with a newline.\"\r\n");
+        cout << "The \"stdout\" command:\tprints text to the stdout stream." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tstdout \"This sentence is not ended with a newline.\"\r\n" << endl;
     }
     // Newly added
     else if (keyword == "bytes")
     {
-        p("The \"bytes\" keyword:\tgets the size of a file in bytes.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@file = env.usl");
-        p("\t@size = @file.bytes\r\n");
+        cout << "The \"bytes\" keyword:\tgets the size of a file in bytes." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@file = env.usl" << endl
+             << "\t@size = @file.bytes\r\n" << endl;
     }
     else if (keyword == "kbytes")
     {
-        p("The \"kbytes\" keyword:\tgets the size of a file in kilobytes.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@file = env.usl");
-        p("\t@size = @file.kbytes\r\n");
+        cout << "The \"kbytes\" keyword:\tgets the size of a file in kilobytes." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@file = env.usl" << endl
+             << "\t@size = @file.kbytes\r\n" << endl;
     }
     else if (keyword == "mbytes")
     {
-        p("The \"mbytes\" keyword:\tgets the size of a file in megabytes.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@file = env.usl");
-        p("\t@size = @file.mbytes\r\n");
+        cout << "The \"mbytes\" keyword:\tgets the size of a file in megabytes." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@file = env.usl" << endl
+             << "\t@size = @file.mbytes\r\n" << endl;
     }
     else if (keyword == "gbytes")
     {
-        p("The \"gbytes\" keyword:\tgets the size of a file in gigabytes.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@file = env.usl");
-        p("\t@size = @file.gbytes\r\n");
+        cout << "The \"gbytes\" keyword:\tgets the size of a file in gigabytes." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@file = env.usl" << endl
+             << "\t@size = @file.gbytes\r\n" << endl;
     }
     else if (keyword == "tbytes")
     {
-        p("The \"tbytes\" keyword:\tgets the size of a file in terabytes.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@file = env.usl");
-        p("\t@size = @file.tbytes\r\n");
+        cout << "The \"tbytes\" keyword:\tgets the size of a file in terabytes." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@file = env.usl" << endl
+             << "\t@size = @file.tbytes\r\n" << endl;
     }
     else if (keyword == "try")
     {
-        p("The \"try\" keyword:\ttries to execute a block of code.");
-        p("");
-        p("Example:");
-        p("");
-        p("\ttry");
-        p("\t\t@num = 123.456");
-        p("\tcatch");
-        p("\t\tsay \"An error occurred.\"");
-        p("\tcaught\r\n");
+        cout << "The \"try\" keyword:\ttries to execute a block of code." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\ttry" << endl
+             << "\t\t@num = 123.456" << endl
+             << "\tcatch" << endl
+             << "\t\tsay \"An error occurred.\"" << endl
+             << "\tcaught\r\n" << endl;
     }
     else if (keyword == "catch")
     {
-        p("The \"catch\" keyword:\texecutes a block of code if an error occurred in the \"try\" block.");
-        p("");
-        p("Example:");
-        p("");
-        p("\ttry");
-        p("\t\t@num = 123.456");
-        p("\t\t@num = abcdef");
-        p("\tcatch");
-        p("\t\tsay \"An error occurred.\"");
-        p("\tcaught\r\n");
+        cout << "The \"catch\" keyword:\texecutes a block of code if an error occurred in the \"try\" block." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\ttry" << endl
+             << "\t\t@num = 123.456" << endl
+             << "\t\t@num = abcdef" << endl
+             << "\tcatch" << endl
+             << "\t\tsay \"An error occurred.\"" << endl
+             << "\tcaught\r\n" << endl;
     }
     else if (keyword == "caught")
     {
-        p("The \"caught\" keyword:\tends a \"try\" block.");
-        p("");
-        p("Example:");
-        p("");
-        p("\ttry");
-        p("\t\t@num = 123.456");
-        p("\tcatch");
-        p("\t\tsay \"An error occurred.\"");
-        p("\tcaught\r\n");
+        cout << "The \"caught\" keyword:\tends a \"try\" block." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\ttry" << endl
+             << "\t\t@num = 123.456" << endl
+             << "\tcatch" << endl
+             << "\t\tsay \"An error occurred.\"" << endl
+             << "\tcaught\r\n" << endl;
     }
     else if (keyword == "last_error")
     {
-        p("The \"last_error\" symbol:\tcontains the error message of a failed \"try\" block.");
-        p("");
-        p("A variable created in the catch code will be removed.");
-        p("");
-        p("Example:");
-        p("");
-        p("\ttry");
-        p("\t\t@num = 123.456");
-        p("\t\t@num = abcdef");
-        p("\tcatch");
-        p("\t\t@e = last_error");
-        p("\t\tout \"Error occurred: \"");
-        p("\t\tsay @e");
-        p("\tcaught\r\n");
+        cout << "The \"last_error\" symbol:\tcontains the error message of a failed \"try\" block." << endl
+             << endl
+             << "A variable created in the catch code will be removed." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\ttry" << endl
+             << "\t\t@num = 123.456" << endl
+             << "\t\t@num = abcdef" << endl
+             << "\tcatch" << endl
+             << "\t\t@e = last_error" << endl
+             << "\t\tout \"Error occurred: \"" << endl
+             << "\t\tsay @e" << endl
+             << "\tcaught\r\n" << endl;
     }
     else if (keyword == "while")
     {
-        p("The \"while\" keyword:\tdeclares a while loop.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@a = 1");
-        p("\t@b = 10");
-        p("\twhile @a <= @b");
-        p("\t\t@c += 1");
-        p("\t\tsay @c");
-        p("\t\t@a += 1");
-        p("\tend\r\n");
+        cout << "The \"while\" keyword:\tdeclares a while loop." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@a = 1" << endl
+             << "\t@b = 10" << endl
+             << "\twhile @a <= @b" << endl
+             << "\t\t@c += 1" << endl
+             << "\t\tsay @c" << endl
+             << "\t\t@a += 1" << endl
+             << "\tend\r\n" << endl;
     }
     else if (keyword == "end")
     {
-        p("The \"end\" keyword:\tends a while loop.\r\n\t\t\tends a switch statement.\r\n\t\t\tends a method, object, or template.");
-        p("");
-        p("Example:");
-        p("");
-        p("\t@a = 1");
-        p("\t@b = 10");
-        p("\twhile @a <= @b");
-        p("\t\t@c += 1");
-        p("\t\tsay @c");
-        p("\t\t@a += 1");
-        p("\tend");
-        p("");
-        p("\tswitch @a");
-        p("\t\tcase 12");
-        p("\t\t\tsay \"Not quite 11.\"");
-        p("\t\tcase 11");
-        p("\t\t\tsay \"Match found!\"");
-        p("\t\tdefault");
-        p("\t\t\tsay \"No matches found.\"");
-        p("\tend\r\n");
+        cout << "The \"end\" keyword:\tends a while loop.\r\n\t\t\tends a switch statement.\r\n\t\t\tends a method, object, or template." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\t@a = 1" << endl
+             << "\t@b = 10" << endl
+             << "\twhile @a <= @b" << endl
+             << "\t\t@c += 1" << endl
+             << "\t\tsay @c" << endl
+             << "\t\t@a += 1" << endl
+             << "\tend" << endl
+             << endl
+             << "\tswitch @a" << endl
+             << "\t\tcase 12" << endl
+             << "\t\t\tsay \"Not quite 11.\"" << endl
+             << "\t\tcase 11" << endl
+             << "\t\t\tsay \"Match found!\"" << endl
+             << "\t\tdefault" << endl
+             << "\t\t\tsay \"No matches found.\"" << endl
+             << "\tend\r\n" << endl;
     }
     else if (keyword == "switch")
     {
-        p("The \"switch\" keyword:\tbegins a switch statement.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tmethod m");
-        p("\t\t@a = \"This is a string.\"");
-        p("\t\tswitch @a");
-        p("\t\t\tcase \"This\"");
-        p("\t\t\t\tsay \"Not quite...\"");
-        p("\t\t\tcase \"This is a string.\"");
-        p("\t\t\t\tsay \"Matched!\"");
-        p("\t\t\tdefault");
-        p("\t\t\t\tsay \"No match found...\"");
-        p("\t\tend");
-        p("\tend");
-        p("");
-        p("m\r\n");
+        cout << "The \"switch\" keyword:\tbegins a switch statement." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tmethod m" << endl
+             << "\t\t@a = \"This is a string.\"" << endl
+             << "\t\tswitch @a" << endl
+             << "\t\t\tcase \"This\"" << endl
+             << "\t\t\t\tsay \"Not quite...\"" << endl
+             << "\t\t\tcase \"This is a string.\"" << endl
+             << "\t\t\t\tsay \"Matched!\"" << endl
+             << "\t\t\tdefault" << endl
+             << "\t\t\t\tsay \"No match found...\"" << endl
+             << "\t\tend" << endl
+             << "\tend" << endl
+             << endl
+             << "m\r\n" << endl;
     }
     else if (keyword == "case")
     {
-        p("The \"case\" keyword:\tprovides a test value for a switch statement.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tmethod m");
-        p("\t\t@a = \"This is a string.\"");
-        p("\t\tswitch @a");
-        p("\t\t\tcase \"This\"");
-        p("\t\t\t\tsay \"Not quite...\"");
-        p("\t\t\tcase \"This is a string.\"");
-        p("\t\t\t\tsay \"Matched!\"");
-        p("\t\t\tdefault");
-        p("\t\t\t\tsay \"No match found...\"");
-        p("\t\tend");
-        p("\tend");
-        p("");
-        p("m\r\n");
+        cout << "The \"case\" keyword:\tprovides a test value for a switch statement." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tmethod m" << endl
+             << "\t\t@a = \"This is a string.\"" << endl
+             << "\t\tswitch @a" << endl
+             << "\t\t\tcase \"This\"" << endl
+             << "\t\t\t\tsay \"Not quite...\"" << endl
+             << "\t\t\tcase \"This is a string.\"" << endl
+             << "\t\t\t\tsay \"Matched!\"" << endl
+             << "\t\t\tdefault" << endl
+             << "\t\t\t\tsay \"No match found...\"" << endl
+             << "\t\tend" << endl
+             << "\tend" << endl
+             << endl
+             << "m\r\n" << endl;
     }
     else if (keyword == "default")
     {
-        p("The \"default\" keyword:\tbegins a code block if no match is found when switching.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tmethod m");
-        p("\t\t@a = \"This is a string.\"");
-        p("\t\tswitch @a");
-        p("\t\t\tcase \"This\"");
-        p("\t\t\t\tsay \"Not quite...\"");
-        p("\t\t\tcase 3.14");
-        p("\t\t\t\tsay \"Matched!\"");
-        p("\t\t\tdefault");
-        p("\t\t\t\tsay \"No match found...\"");
-        p("\t\tend");
-        p("\tend");
-        p("");
-        p("m\r\n");
+        cout << "The \"default\" keyword:\tbegins a code block if no match is found when switching." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tmethod m" << endl
+             << "\t\t@a = \"This is a string.\"" << endl
+             << "\t\tswitch @a" << endl
+             << "\t\t\tcase \"This\"" << endl
+             << "\t\t\t\tsay \"Not quite...\"" << endl
+             << "\t\t\tcase 3.14" << endl
+             << "\t\t\t\tsay \"Matched!\"" << endl
+             << "\t\t\tdefault" << endl
+             << "\t\t\t\tsay \"No match found...\"" << endl
+             << "\t\tend" << endl
+             << "\tend" << endl
+             << endl
+             << "m\r\n" << endl;
     }
     else if (keyword == "return")
     {
-        p("The \"return\" keyword:\tsets the value to be returned by a method.");
-        p("");
-        p("Any variable returned will be removed from memory.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tmethod m");
-        p("\t\treturn \"Return Value\"");
-        p("\tend");
-        p("");
-        p("\tmethod pi");
-        p("\t\t@ret_val = 3.14");
-        p("\t\treturn @ret_val");
-        p("\tend");
-        p("");
-        p("\t@pi = pi");
-        p("\t@value = m\r\n");
+        cout << "The \"return\" keyword:\tsets the value to be returned by a method." << endl
+             << endl
+             << "Any variable returned will be removed from memory." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tmethod m" << endl
+             << "\t\treturn \"Return Value\"" << endl
+             << "\tend" << endl
+             << endl
+             << "\tmethod pi" << endl
+             << "\t\t@ret_val = 3.14" << endl
+             << "\t\treturn @ret_val" << endl
+             << "\tend" << endl
+             << endl
+             << "\t@pi = pi" << endl
+             << "\t@value = m\r\n" << endl;
     }
     else if (keyword == "fwrite")
     {
-        p("The \"fwrite\" command:\tcreates a file if it does not already exist and appends text to it.");
-        p("");
-        p("If the file exists and has been written to, fwrite returns 0.");
-        p("If the file is created and has been written to, fwrite returns 1.");
-        p("If the file could not be created, fwrite returns -1.");
-        p("");
-        p("Example:");
-        p("");
-        p("\tmethod fwrite(file,contents)");
-        p("\t\tfwrite $0 $1");
-        p("\tend");
-        p("");
-        p("\t@contents = \"This is a string of text that will be written to a file.\"");
-        p("\t@ret_val = fwrite(\"some file.txt\",@contents)");
-        p("");
+        cout << "The \"fwrite\" command:\tcreates a file if it does not already exist and appends text to it." << endl
+             << endl
+             << "If the file exists and has been written to, fwrite returns 0." << endl
+             << "If the file is created and has been written to, fwrite returns 1." << endl
+             << "If the file could not be created, fwrite returns -1." << endl
+             << endl
+             << "Example:" << endl
+             << endl
+             << "\tmethod fwrite(file,contents)" << endl
+             << "\t\tfwrite $0 $1" << endl
+             << "\tend" << endl
+             << endl
+             << "\t@contents = \"This is a string of text that will be written to a file.\"" << endl
+             << "\t@ret_val = fwrite(\"some file.txt\",@contents)" << endl
+             << endl;
     }
     else
     {
-        p("The keyword, symbol, or command could not be found.");
-        p("");
-        p("Please use the \"help\" command to see a list of keywords, symbols, and commands.");
+        cout << "The keyword, symbol, or command could not be found." << endl
+             << endl
+             << "Please use the \"help\" command to see a list of keywords, symbols, and commands." << endl;
     }
 }
 
-void printUSLHelp()
-{
-    p("[Parameter Key]");
-    p("\t{s}\t\t(string)");
-    p("\t{n}\t\t(number)");
-    p("\t{v}\t\t(variable)");
-    p("\t{m}\t\t(method)");
-    p("\t{o}\t\t(object)");
-    p("\t{l}\t\t(list)");
-    p("\t{all}\t\t(any USL object)");
-    p("\t{expression}\t(logical expression)");
-    p("");
-    p("[Keywords and Symbols]");
-    p("- Operators:");
-    p("\t[Regular]");
-    p("\t+=\t\t(increment || append string)");
-    p("\t-=\t\t(decrement || remove string)");
-    p("\t*=\t\t(multiply->increment || multiply string)");
-    p("\t/=\t\t(divide->decrement)");
-    p("\t**=\t\t(exponent)");
-    p("\t+\t\t(addition)");
-    p("\t-\t\t(subtraction)");
-    p("\t*\t\t(multiplication)");
-    p("\t/\t\t(division)");
-    p("\t%\t\t(modulus)");
-    p("\t**\t\t(exponent)");
-    p("\t<\t\t(less than)");
-    p("\t>\t\t(greater than)");
-    p("\t<=\t\t(less than or equal to)");
-    p("\t>=\t\t(greater than or equal to)");
-    p("\t=\t\t(initializer)");
-    p("\t==\t\t(equal)");
-    p("\t!=\t\t(not equal)\r\n");
-    p("\t[Special]");
-    p("\tbegins_with\t(used in if expressions)");
-    p("\tcontains\t(used in if expressions)");
-    p("\tends_with\t(used in if expressions)");
-    p("\t++=\t\t(increment ascii value)");
-    p("\t--=\t\t(decrement ascii value)");
-    p("");
-    p("- Conditionals:");
-    p("\tunless {expression}\t(unless statement)");
-    p("\tif {expression}\t\t(if statement)");
-    p("\torif {expression}\t(else if statement)");
-    p("\telse\t\t\t(else statement)");
-    p("\tfailif\t\t\t(if failure occurred)");
-    p("\tendif\t\t\t(end if statement)");
-    p("\tswitch {v}\t\t(switch statement)");
-    p("\tcase {n|s}\t\t(switch case)");
-    p("\tdefault\t\t\t(default case)");
-    p("\tend\t\t\t(end switch statement)");
-    p("\ttry\t\t\t(begin try statement)");
-    p("\tcatch\t\t\t(begin catch code)");
-    p("\tcaught\t\t\t(end try statement)");
-    p("");
-    p("\tfor infinity\t\t(infinite loop)");
-    p("\tfor {n} < {n}\t\t(incremental loop)");
-    p("\tfor {n} > {n}\t\t(decremental loop)");
-    p("\twhile {v} {op} {n|v}\t(while loop)");
-    p("\tloop {l}\t\t(list loop)");
-    p("\tloop {v}.read\t\t(read lines in a file)");
-    p("\tloop {v}.read_files\t(read files in a directory)");
-    p("\tloop {v}.read_dirs\t(read directories in a directory)");
-    p("\tleave!\t\t\t(break loop flow)");
-    p("\tendfor\t\t\t(end for loop)");
-    p("\tend\t\t\t(end while loop)");
-    p("");
-    p("- Special Methods and Symbols:");
-    p("\t[Memory Management]");
-    p("\tclear_all!\t\t(clear everything in memory)");
-    p("\tclear_lists!\t\t(clear all lists in memory)");
-    p("\tclear_methods!\t\t(clear all methods in memory)");
-    p("\tclear_objects!\t\t(clear all objects in memory)");
-    p("\tclear_variables!\t(clear all variables in memory)");
-    p("\tclear_constants!\t(clear all constants in memory)");
-    p("");
-    p("\t[Debug USL Objects, Variables, and Methods]");
-    p("\tis_list? {l}\t\t(is list defined?)");
-    p("\tis_method? {m}\t\t(is method defined?)");
-    p("\tis_object? {o}\t\t(is object defined?)");
-    p("\tis_variable? {v}\t(is variable defined?)");
-    p("\tis_number? {v}\t\t(is variable a number?)");
-    p("\tis_string? {v}\t\t(is variable a string?)");
-    p("\tno_lists?\t\t(do no lists exist?)");
-    p("\tno_methods?\t\t(do no methods exist?)");
-    p("\tno_objects?\t\t(do no objects exist?)");
-    p("\tno_variables?\t\t(do no variables exist?)");
-    p("\tsee {all}\t\t(see definition of declaration)");
-    p("\tsee {option}\t\t(lists/methods/objects/variables)");
-    p("");
-    p("\t[File/Directory Existence]");
-    p("\tis_dir? {v|s}\t\t(is variable/string a directory?)");
-    p("\tis_file? {v|s}\t\t(is variable/string a file?)");
-    p("");
-    p("\t[File Size]");
-    p("\t{v}.bytes\t\t(gets size of a file in bytes)");
-    p("\t{v}.kbytes\t\t(gets size of a file in kilobytes)");
-    p("\t{v}.mbytes\t\t(gets size of a file in megabytes)");
-    p("\t{v}.gbytes\t\t(gets size of a file in gigabytes)");
-    p("\t{v}.tbytes\t\t(gets size of a file in terabytes)");
-    p("");
-    p("\t[Defining Memory]");
-    p("\t__begin__ {v|s}\t\t(define a script)");
-    p("\t__end__\t\t\t(end script definition)");
-    p("\tlist {l}\t\t(define a list)");
-    p("\t[method] {m}\t\t(define an indestructible method)");
-    p("\tmethod {m}\t\t(define a method)");
-    p("\ttemplate {m}\t\t(define a template method)");
-    p("\tobject {o}\t\t(define an object)");
-    p("\tpublic\t\t\t(begin defining public members)");
-    p("\tprivate\t\t\t(begin defining private members)");
-    p("\tend\t\t\t(end method/object/template definition)");
-    p("\t@\t\t\t(variables begin with '@')");
-    p("");
-    p("\t[Extras]");
-    p("\t\\'\t\t\t(parsed as apostrophe mark)");
-    p("\t'\t\t\t(parsed as quotation mark)");
-    p("\t\\t\t\t\t(tab sequence)");
-    p("\t\\n\t\t\t(carriage-return & line-feed)");
-    p("\t#\t\t\t(denote commentation)");
-    p("\t##\t\t\t(begin/end multiline commentation)");
-    p("\t!\t\t\t(parse a string directly || initializer)");
-    p("\t?\t\t\t(execute an external command || initializer)");
-    p("\t;\t\t\t(line separator)");
-    p("\tappend\t\t\t(append text to a file)");
-    p("\tappendl\t\t\t(append a line to a file)");
-    p("\targs[{n}]\t\t(parameter access)");
-    p("\targs.size\t\t(parameter count)");
-    p("\tcd\t\t\t(specialized \"chdir\")");
-    p("\treadline.{v|s}\t\t(loudly receive input)");
-    p("\tdelay {n}\t\t(pause script flow in seconds)");
-    p("\tdpush {v|s}\t\t(create a directory)");
-    p("\tdpop {v|s}\t\t(delete a directory)");
-    p("\tenv.{s}\t\t\t(get environment variable)");
-    p("\terror {v|s}\t\t(standard error stream)");
-    p("\tforget {v}\t\t(forget variable definition)");
-    p("\tfpush {v|s}\t\t(create a file)");
-    p("\tfpop {v|s}\t\t(delete a file)");
-    p("\tfwrite\t\t\t(use \"help fwrite\")");
-    p("\thelp {keyword}\t\t(comprehensive help)");
-    p("\tin_dir\t\t\t(USL Initial Directory)");
-    p("\tload {us}\t\t(include and execute script definitions)");
-    p("\tlock {v|m}\t\t(make method or variable indestructible)");
-    p("\tparser\t\t\t(begin parsing input)");
-    p("\tprompt {s}\t\t(customize prompt)");
-    p("\trandom.{n|s}_{n|s}\t(random number or character)");
-    p("\tredefine {all} {s}\t(rename an USL object)");
-    p("\tremember {v}\t\t(store a variable definition)");
-    p("\tremove {all}\t\t(remove an USL object from memory)");
-    p("\treturn {v|s}\t\t(set return value of a method)");
-    p("\tsay {v|s}\t\t(print a string with a newline)");
-    p("\tpassword\t\t\t(quietly receive input)");
-    p("\tstdout {v|s}\t\t(print a string)");
-    p("\tunlock {v|m}\t\t(make method or variable destructible)");
-    p("");
-    p("- Environment Variables:");
-    p("\t[Time]");
-    p("\tam_or_pm\t\t(before noon or after noon)");
-    p("\tday_of_this_week\t(this day of this week: Sunday-Saturday)");
-    p("\tday_of_this_month\t(this day of this month: 1-31)");
-    p("\tday_of_this_year\t(this day of this year: 1-365)");
-    p("\tmonth_of_this_year\t(this month of this year: January-December)");
-    p("\tthis_second\t\t(this second of this minute: 1-60)");
-    p("\tthis_minute\t\t(this minute of this hour: 1-60)");
-    p("\tthis_hour\t\t(this hour of this day: 1-24)");
-    p("\tthis_month\t\t(this month of this year: 1-12)");
-    p("\tthis_year\t\t(this year)");
-    p("\tnow\t\t\t(the current time)");
-    p("");
-    p("\t[USL Specific]");
-    p("\tcwd\t\t\t(current working directory)");
-    p("\tin_dir\t\t\t(initial directory of shell)");
-    p("\tusl\t\t\t(executable location of current shell)");
-    p("\tos\t\t\t(guessed operating system)");
-    p("\tuser\t\t\t(current user name)");
-    p("\tmachine\t\t\t(current machine name)");
-    p("\tempty_string\t\t(get an empty string)");
-    p("\tempty_number\t\t(get an empty number)");
-    p("\tlast_error\t\t(get last error)");
-    p("\tlast_value\t\t(get last return value)");
-    p("");
+void printUSLHelp() {
+    cout << "[Parameter Key]" << endl
+		<< "\t{s}\t\t(string)" << endl
+		<< "\t{n}\t\t(number)" << endl
+		<< "\t{v}\t\t(variable)" << endl
+		<< "\t{m}\t\t(method)" << endl
+		<< "\t{o}\t\t(object)" << endl
+		<< "\t{l}\t\t(list)" << endl
+		<< "\t{all}\t\t(any USL object)" << endl
+		<< "\t{expression}\t(logical expression)" << endl
+		<< endl
+		<< "[Keywords and Symbols]" << endl
+		<< "- Operators:" << endl
+		<< "\t[Regular]" << endl
+		<< "\t+=\t\t(increment || append string)" << endl
+		<< "\t-=\t\t(decrement || remove string)" << endl
+		<< "\t*=\t\t(multiply->increment || multiply string)" << endl
+		<< "\t/=\t\t(divide->decrement)" << endl
+		<< "\t**=\t\t(exponent)" << endl
+		<< "\t+\t\t(addition)" << endl
+		<< "\t-\t\t(subtraction)" << endl
+		<< "\t*\t\t(multiplication)" << endl
+		<< "\t/\t\t(division)" << endl
+		<< "\t%\t\t(modulus)" << endl
+		<< "\t**\t\t(exponent)" << endl
+		<< "\t<\t\t(less than)" << endl
+		<< "\t>\t\t(greater than)" << endl
+		<< "\t<=\t\t(less than or equal to)" << endl
+		<< "\t>=\t\t(greater than or equal to)" << endl
+		<< "\t=\t\t(initializer)" << endl
+		<< "\t==\t\t(equal)" << endl
+		<< "\t!=\t\t(not equal)\r\n" << endl
+		<< "\t[Special]" << endl
+		<< "\tbegins_with\t(used in if expressions)" << endl
+		<< "\tcontains\t(used in if expressions)" << endl
+		<< "\tends_with\t(used in if expressions)" << endl
+		<< "\t++=\t\t(increment ascii value)" << endl
+		<< "\t--=\t\t(decrement ascii value)" << endl
+		<< endl
+		<< "- Conditionals:" << endl
+		<< "\tunless {expression}\t(unless statement)" << endl
+		<< "\tif {expression}\t\t(if statement)" << endl
+		<< "\torif {expression}\t(else if statement)" << endl
+		<< "\telse\t\t\t(else statement)" << endl
+		<< "\tfailif\t\t\t(if failure occurred)" << endl
+		<< "\tendif\t\t\t(end if statement)" << endl
+		<< "\tswitch {v}\t\t(switch statement)" << endl
+		<< "\tcase {n|s}\t\t(switch case)" << endl
+		<< "\tdefault\t\t\t(default case)" << endl
+		<< "\tend\t\t\t(end switch statement)" << endl
+		<< "\ttry\t\t\t(begin try statement)" << endl
+		<< "\tcatch\t\t\t(begin catch code)" << endl
+		<< "\tcaught\t\t\t(end try statement)" << endl
+		<< endl
+		<< "\tfor infinity\t\t(infinite loop)" << endl
+		<< "\tfor {n} < {n}\t\t(incremental loop)" << endl
+		<< "\tfor {n} > {n}\t\t(decremental loop)" << endl
+		<< "\twhile {v} {op} {n|v}\t(while loop)" << endl
+		<< "\tloop {l}\t\t(list loop)" << endl
+		<< "\tloop {v}.read\t\t(read lines in a file)" << endl
+		<< "\tloop {v}.read_files\t(read files in a directory)" << endl
+		<< "\tloop {v}.read_dirs\t(read directories in a directory)" << endl
+		<< "\tleave!\t\t\t(break loop flow)" << endl
+		<< "\tendfor\t\t\t(end for loop)" << endl
+		<< "\tend\t\t\t(end while loop)" << endl
+		<< endl
+		<< "- Special Methods and Symbols:" << endl
+		<< "\t[Memory Management]" << endl
+		<< "\tclear_all!\t\t(clear everything in memory)" << endl
+		<< "\tclear_lists!\t\t(clear all lists in memory)" << endl
+		<< "\tclear_methods!\t\t(clear all methods in memory)" << endl
+		<< "\tclear_objects!\t\t(clear all objects in memory)" << endl
+		<< "\tclear_variables!\t(clear all variables in memory)" << endl
+		<< "\tclear_constants!\t(clear all constants in memory)" << endl
+		<< endl
+		<< "\t[Debug USL Objects, Variables, and Methods]" << endl
+		<< "\tis_list? {l}\t\t(is list defined?)" << endl
+		<< "\tis_method? {m}\t\t(is method defined?)" << endl
+		<< "\tis_object? {o}\t\t(is object defined?)" << endl
+		<< "\tis_variable? {v}\t(is variable defined?)" << endl
+		<< "\tis_number? {v}\t\t(is variable a number?)" << endl
+		<< "\tis_string? {v}\t\t(is variable a string?)" << endl
+		<< "\tno_lists?\t\t(do no lists exist?)" << endl
+		<< "\tno_methods?\t\t(do no methods exist?)" << endl
+		<< "\tno_objects?\t\t(do no objects exist?)" << endl
+		<< "\tno_variables?\t\t(do no variables exist?)" << endl
+		<< "\tsee {all}\t\t(see definition of declaration)" << endl
+		<< "\tsee {option}\t\t(lists/methods/objects/variables)" << endl
+		<< endl
+		<< "\t[File/Directory Existence]" << endl
+		<< "\tis_dir? {v|s}\t\t(is variable/string a directory?)" << endl
+		<< "\tis_file? {v|s}\t\t(is variable/string a file?)" << endl
+		<< endl
+		<< "\t[File Size]" << endl
+		<< "\t{v}.bytes\t\t(gets size of a file in bytes)" << endl
+		<< "\t{v}.kbytes\t\t(gets size of a file in kilobytes)" << endl
+		<< "\t{v}.mbytes\t\t(gets size of a file in megabytes)" << endl
+		<< "\t{v}.gbytes\t\t(gets size of a file in gigabytes)" << endl
+		<< "\t{v}.tbytes\t\t(gets size of a file in terabytes)" << endl
+		<< endl
+		<< "\t[Defining Memory]" << endl
+		<< "\t__begin__ {v|s}\t\t(define a script)" << endl
+		<< "\t__end__\t\t\t(end script definition)" << endl
+		<< "\tlist {l}\t\t(define a list)" << endl
+		<< "\t[method] {m}\t\t(define an indestructible method)" << endl
+		<< "\tmethod {m}\t\t(define a method)" << endl
+		<< "\ttemplate {m}\t\t(define a template method)" << endl
+		<< "\tobject {o}\t\t(define an object)" << endl
+		<< "\tpublic\t\t\t(begin defining public members)" << endl
+		<< "\tprivate\t\t\t(begin defining private members)" << endl
+		<< "\tend\t\t\t(end method/object/template definition)" << endl
+		<< "\t@\t\t\t(variables begin with '@')" << endl
+		<< endl
+		<< "\t[Extras]" << endl
+		<< "\t\\'\t\t\t(parsed as apostrophe mark)" << endl
+		<< "\t'\t\t\t(parsed as quotation mark)" << endl
+		<< "\t\\t\t\t\t(tab sequence)" << endl
+		<< "\t\\n\t\t\t(carriage-return & line-feed)" << endl
+		<< "\t#\t\t\t(denote commentation)" << endl
+		<< "\t##\t\t\t(begin/end multiline commentation)" << endl
+		<< "\t!\t\t\t(parse a string directly || initializer)" << endl
+		<< "\t?\t\t\t(execute an external command || initializer)" << endl
+		<< "\t;\t\t\t(line separator)" << endl
+		<< "\tappend\t\t\t(append text to a file)" << endl
+		<< "\tappendl\t\t\t(append a line to a file)" << endl
+		<< "\targs[{n}]\t\t(parameter access)" << endl
+		<< "\targs.size\t\t(parameter count)" << endl
+		<< "\tcd\t\t\t(specialized \"chdir\")" << endl
+		<< "\treadline.{v|s}\t\t(loudly receive input)" << endl
+		<< "\tdelay {n}\t\t(pause script flow in seconds)" << endl
+		<< "\tdpush {v|s}\t\t(create a directory)" << endl
+		<< "\tdpop {v|s}\t\t(delete a directory)" << endl
+		<< "\tenv.{s}\t\t\t(get environment variable)" << endl
+		<< "\terror {v|s}\t\t(standard error stream)" << endl
+		<< "\tforget {v}\t\t(forget variable definition)" << endl
+		<< "\tfpush {v|s}\t\t(create a file)" << endl
+		<< "\tfpop {v|s}\t\t(delete a file)" << endl
+		<< "\tfwrite\t\t\t(use \"help fwrite\")" << endl
+		<< "\thelp {keyword}\t\t(comprehensive help)" << endl
+		<< "\tin_dir\t\t\t(USL Initial Directory)" << endl
+		<< "\tload {us}\t\t(include and execute script definitions)" << endl
+		<< "\tlock {v|m}\t\t(make method or variable indestructible)" << endl
+		<< "\tparser\t\t\t(begin parsing input)" << endl
+		<< "\tprompt {s}\t\t(customize prompt)" << endl
+		<< "\trandom.{n|s}_{n|s}\t(random number or character)" << endl
+		<< "\tredefine {all} {s}\t(rename an USL object)" << endl
+		<< "\tremember {v}\t\t(store a variable definition)" << endl
+		<< "\tremove {all}\t\t(remove an USL object from memory)" << endl
+		<< "\treturn {v|s}\t\t(set return value of a method)" << endl
+		<< "\tsay {v|s}\t\t(print a string with a newline)" << endl
+		<< "\tpassword\t\t\t(quietly receive input)" << endl
+		<< "\tstdout {v|s}\t\t(print a string)" << endl
+		<< "\tunlock {v|m}\t\t(make method or variable destructible)" << endl
+		<< endl
+		<< "- Environment Variables:" << endl
+		<< "\t[Time]" << endl
+		<< "\tam_or_pm\t\t(before noon or after noon)" << endl
+		<< "\tday_of_this_week\t(this day of this week: Sunday-Saturday)" << endl
+		<< "\tday_of_this_month\t(this day of this month: 1-31)" << endl
+		<< "\tday_of_this_year\t(this day of this year: 1-365)" << endl
+		<< "\tmonth_of_this_year\t(this month of this year: January-December)" << endl
+		<< "\tthis_second\t\t(this second of this minute: 1-60)" << endl
+		<< "\tthis_minute\t\t(this minute of this hour: 1-60)" << endl
+		<< "\tthis_hour\t\t(this hour of this day: 1-24)" << endl
+		<< "\tthis_month\t\t(this month of this year: 1-12)" << endl
+		<< "\tthis_year\t\t(this year)" << endl
+		<< "\tnow\t\t\t(the current time)" << endl
+		<< endl
+		<< "\t[USL Specific]" << endl
+		<< "\tcwd\t\t\t(current working directory)" << endl
+		<< "\tin_dir\t\t\t(initial directory of shell)" << endl
+		<< "\tnoctis\t\t\t(executable location of current shell)" << endl
+		<< "\tos\t\t\t(guessed operating system)" << endl
+		<< "\tuser\t\t\t(current user name)" << endl
+		<< "\tmachine\t\t\t(current machine name)" << endl
+		<< "\tempty_string\t\t(get an empty string)" << endl
+		<< "\tempty_number\t\t(get an empty number)" << endl
+		<< "\tlast_error\t\t(get last error)" << endl
+		<< "\tlast_value\t\t(get last return value)" << endl 
+		<< endl;
 }
 
 #ifdef __linux__
@@ -2263,7 +2256,7 @@ void rm(string p)
         cout << ("..could not remove file: " + p) << endl;
 }
 
-void touch(string p)
+void createFile(string p)
 {
     ofstream f(p.c_str(), ios::out);
 
@@ -2316,7 +2309,7 @@ void rm(string p)
         cout << ("..could not remove file: " + p) << endl;
 }
 
-void touch(string p)
+void createFile(string p)
 {
     ofstream f(p.c_str(), ios::out);
 
@@ -2349,3 +2342,38 @@ string getMachine()
 }
 
 #endif
+
+// experimental code
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

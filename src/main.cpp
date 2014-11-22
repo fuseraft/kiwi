@@ -152,7 +152,7 @@ bool    __Breaking,
         __FailedNest,
         __GoToLabel,
         __InDefaultCase,
-        __Logging,
+        // __Logging,
         __Negligence,
         __Returning,
         __SkipCatchBlock,
@@ -201,7 +201,7 @@ void    cd(string p),
         redefine(string target, string name),
         replaceElement(string before, string after, string replacement),
         saveVariable(string var),
-        say(string st),
+        writeline(string st),
         setLastValue(string s),
         setup(),
         setVariable(string name, string value),
@@ -214,7 +214,7 @@ void    cd(string p),
         executeTemplate(Method m, vector<string> vs),
         uninstall(),
         whileLoop(Method m),
-        __stdout(string st),
+        write(string st),
         __true(),
         __false();
 
@@ -507,7 +507,7 @@ void __fwrite(string arg1, string arg2)
             }
             else
             {
-                touch(variables.at(indexOfVariable(arg1)).getString());
+                createFile(variables.at(indexOfVariable(arg1)).getString());
 
                 if (isString(arg2))
                 {
@@ -547,7 +547,7 @@ void __fwrite(string arg1, string arg2)
                 }
                 else
                 {
-                    touch(variables.at(indexOfVariable(arg2)).getString());
+                    createFile(variables.at(indexOfVariable(arg2)).getString());
                     app(arg1, variables.at(indexOfVariable(arg2)).getString() + "\r\n");
                     __LastValue = "1";
                 }
@@ -567,7 +567,7 @@ void __fwrite(string arg1, string arg2)
             }
             else
             {
-                touch(arg1);
+                createFile(arg1);
                 app(arg1, arg2 + "\r\n");
                 __LastValue = "1";
             }
@@ -922,23 +922,23 @@ string cleanString(string st)
         else
         {
             // REFACTOR HERE
-            if (st[i] == '\\' && st[i + 1] == 'n') // if begin new-line
+            if (st[i] == '\\' && st[i + 1] == 'n') // begin new-line
                 cleaned.push_back('\r');
-            else if (st[i] == 'n' && st[i - 1] == '\\') // if end new-line
+            else if (st[i] == 'n' && st[i - 1] == '\\') // end new-line
                 cleaned.push_back('\n');
-            else if (st[i] == '\\' && st[i + 1] == 't') // if begin tab
+            else if (st[i] == '\\' && st[i + 1] == 't') // begin tab
                 doNothing();
-            else if (st[i] == 't' && st[i - 1] == '\\') // if end tab
+            else if (st[i] == 't' && st[i - 1] == '\\') // end tab
                 cleaned.push_back('\t');
-            else if (st[i] == '\\' && st[i + 1] == ';') // if begin semi-colon
+            else if (st[i] == '\\' && st[i + 1] == ';') // begin semi-colon
                 doNothing();
-            else if (st[i] == ';' && st[i - 1] == '\\') // if end semi-colon
+            else if (st[i] == ';' && st[i - 1] == '\\') // end semi-colon
                 cleaned.push_back(';');
-            else if (st[i] == '\\' && st[i + 1] == '\'') // if begin apost
+            else if (st[i] == '\\' && st[i + 1] == '\'') // begin apostrophe
                 doNothing();
-            else if (st[i] == '\'' && st[i - 1] == '\\') // if end apost
+            else if (st[i] == '\'' && st[i - 1] == '\\') // end apostrophe
                 cleaned.push_back('\'');
-            else if (st[i] == '\\' && st[i + 1] == '{') // if begin symbol
+            else if (st[i] == '\\' && st[i + 1] == '{') // begin symbol
                 buildSymbol = true;
             else
                 cleaned.push_back(st[i]);
@@ -948,24 +948,21 @@ string cleanString(string st)
     return (cleaned);
 }
 
-void __stdout(string st)
+void write(string st)
 {
     if (__CaptureParse)
         __ParsedOutput.append(cleanString(st));
     else
         cout << cleanString(st);
 
-    if (__Logging)
-        app(__LogFile, "[stdout]:" + st + "\r\n");
+    // if (__Logging)
+        // app(__LogFile, "[stdout]:" + st + "\r\n");
 }
 
-void say(string st)
+void writeline(string st)
 {
     setLastValue(st);
-    if (__GuessedOS == "UNIXMacorLINUX")
-        __stdout(cleanString(st) + "\n");
-    else
-        __stdout(cleanString(st) + "\r\n");
+    write(cleanString(st) + __GuessedOS == "UNIXMacorLINUX" ? "\n" : "\r\n");
 }
 
 void clearAll()
@@ -1064,8 +1061,8 @@ void error(string e, bool quit)
             cerr << "#!=" << __CurrentLineNumber << ":" << e << "(" << __CurrentLine << ")" << endl;
     }
 
-    if (__Logging)
-        app(__LogFile, "#!=" + itos(__CurrentLineNumber) + ":" + e + "(" + __CurrentLine + ")\r\n");
+    // if (__Logging)
+        // app(__LogFile, "#!=" + itos(__CurrentLineNumber) + ":" + e + "(" + __CurrentLine + ")\r\n");
 
     if (!__Negligence)
     {
@@ -1313,13 +1310,11 @@ bool notObjectMethod(string s)
 
 void __true()
 {
-    __stdout("true");
     setLastValue("true");
 }
 
 void __false()
 {
-    __stdout("false");
     setLastValue("false");
 }
 
@@ -1332,7 +1327,7 @@ void saveVariable(string variableName)
         if (!directoryExists(__SavedVarsPath))
             md(__SavedVarsPath);
 
-        touch(__SavedVars);
+        createFile(__SavedVars);
         app(__SavedVars, c.e(variableName));
     }
     else
@@ -1353,7 +1348,7 @@ void saveVariable(string variableName)
 
             bigStr = c.d(bigStr);
             rm(__SavedVars);
-            touch(__SavedVars);
+            createFile(__SavedVars);
             app(__SavedVars, c.e(bigStr + "#" + variableName));
             file.close();
         }
@@ -1432,18 +1427,20 @@ void help(string app)
 {
     cout << "\r\nnoctis by <scstauf@gmail.com>" << endl << endl
          << "usage:\t" << app << "\t\t\t// start the shell" << endl
-         << "\t" << app << " {args}\t\t// ditto, with parameters" << endl
+         << "\t" << app << " {args}\t\t// start the shell, with parameters" << endl
          << "\t" << app << " {script}\t\t// interpret a script" << endl
-         << "\t" << app << " {script} {args}\t// ditto, with parameters" << endl
-         << "\t" << app << " -n, --__Negligence\t// do not terminate on parse errors" << endl
-         << "\t" << app << " -sl, --skipload\t// start the shell, with fresh memory" << endl
-         << "\t" << app << " -l, --log {path}\t// create a shell log" << endl
-         << "\t" << app << " -u, --uninstall\t// remove $HOME/.__SavedVarsPath" << endl
+         << "\t" << app << " {script} {args}\t// interpret a script, with parameters" << endl
+         << "\t" << app << " -n, --negligence\t// do not terminate on parse errors" << endl
+         << "\t" << app << " -sl, --skipload\t// start the shell, skip loading saved vars" << endl
+         << "\t" << app << " -l, --log {path}\t// log activity" << endl
+         << "\t" << app << " -u, --uninstall\t// remove $HOME/.savedVarsPath" << endl
          << "\t" << app << " -v, --version\t// display current version" << endl
-         << "\t" << app << " -p, --parse\t// parse a command" << endl
-         << "\t" << app << " -h, --help\t// display this message" << endl << endl;
+         << "\t" << app << " -p, --parse\t\t// parse a command" << endl
+         << "\t" << app << " -h, --help\t\t// display this message" << endl << endl;
 }
 
+// TODO:
+//		how can I clean up these stupidly long if-statements?
 bool notStandardZeroSpace(string arg)
 {
     if (arg != "caught" &&
@@ -1638,18 +1635,12 @@ int indexOfConstant(string s)
 
 bool is(string s, string si)
 {
-    if (s == ("-" + si) || s == ("--" + si) || s == ("/" + si))
-        return (true);
-
-    return (false);
+    return (s == ("-" + si) || s == ("--" + si) || s == ("/" + si));
 }
 
 bool isScript(string path)
 {
-    if (endsWith(path, ".us"))
-        return (true);
-
-    return (false);
+    return endsWith(path, ".ns");
 }
 
 void loadSavedVars(Crypt c, string &bigStr)
@@ -2639,41 +2630,59 @@ string getStringStack(string arg2)
 
     vector<string> vars;
     vector<string> contents;
+	
+	bool quoted = false;
 
     for (int i = 0; i < (int)tempArgTwo.length(); i++)
     {
-        if (tempArgTwo[i] == ' ')
+		if (tempArgTwo[i] == '\"')
+		{
+			quoted = !quoted;
+			if (!quoted) 
+			{
+                contents.push_back(temporaryBuild);
+                temporaryBuild.clear();
+			}
+		}
+        else if (tempArgTwo[i] == ' ')
         {
-            if (temporaryBuild.length() != 0)
-            {
-                if (variableExists(temporaryBuild))
-                {
-                    if (isNumber(temporaryBuild))
-                    {
-                        vars.push_back(temporaryBuild);
-                        contents.push_back(dtos(variables.at(indexOfVariable(temporaryBuild)).getNumber()));
-                        temporaryBuild.clear();
-                    }
-                    else if (isString(temporaryBuild))
-                    {
-                        vars.push_back(temporaryBuild);
-                        contents.push_back(variables.at(indexOfVariable(temporaryBuild)).getString());
-                        temporaryBuild.clear();
-                    }
-                }
-                else if (methodExists(temporaryBuild))
-                {
-                    parse(temporaryBuild);
+			if (quoted)
+			{
+				temporaryBuild.push_back(' ');
+			}
+			else
+			{
+				if (temporaryBuild.length() != 0)
+				{
+					if (variableExists(temporaryBuild))
+					{
+						if (isNumber(temporaryBuild))
+						{
+							vars.push_back(temporaryBuild);
+							contents.push_back(dtos(variables.at(indexOfVariable(temporaryBuild)).getNumber()));
+							temporaryBuild.clear();
+						}
+						else if (isString(temporaryBuild))
+						{
+							vars.push_back(temporaryBuild);
+							contents.push_back(variables.at(indexOfVariable(temporaryBuild)).getString());
+							temporaryBuild.clear();
+						}
+					}
+					else if (methodExists(temporaryBuild))
+					{
+						parse(temporaryBuild);
 
-                    contents.push_back(__LastValue);
-                    temporaryBuild.clear();
-                }
-                else
-                {
-                    contents.push_back(temporaryBuild);
-                    temporaryBuild.clear();
-                }
-            }
+						contents.push_back(__LastValue);
+						temporaryBuild.clear();
+					}
+					else
+					{
+						contents.push_back(temporaryBuild);
+						temporaryBuild.clear();
+					}
+				}
+			}
         }
         else if (tempArgTwo[i] == '+')
         {
@@ -2804,12 +2813,12 @@ string getStringStack(string arg2)
         contents.push_back(temporaryBuild);
         temporaryBuild.clear();
     }
-
+	
     bool startOperating = false,
          addNext = false,
          subtractNext = false,
          multiplyNext = false;
-
+		 
     for (int i = 0; i < (int)contents.size(); i++)
     {
         if (startOperating)
@@ -3221,7 +3230,7 @@ void parse(string s)
     string bigString(""); // a string to build upon
 
     __CurrentLine = s; // store a copy of the current line
-    if (__Logging) app(__LogFile, s + "\r\n"); // if __Logging a session, log the line
+    // if (__Logging) app(__LogFile, s + "\r\n"); // if __Logging a session, log the line
 
     command.push_back(""); // push back an empty string to begin.
     // iterate each char in the initial string
@@ -3230,44 +3239,36 @@ void parse(string s)
         switch (s[i])
         {
         case ' ':
-            /**
-            	we can push a space onto the string if:
-            		parsing a string literal AND not within parentheses AND not in comment mode
-            **/
-            if (quoted && !parenthesis)
-            {
-                if (!__IsCommented)
-                    command.at(count).push_back(' ');
-            }
-            else if (parenthesis && !quoted)
-                doNothing();
-            else if (parenthesis && quoted)
-            {
-                if (!__IsCommented)
-                    command.at(count).push_back(' ');
-            }
-            else
-            {
-                if (!__IsCommented)
-                {
-                    if (prevChar != ' ')
-                    {
-                        command.push_back("");
-                        count++;
-                    }
-                }
-            }
+            if (!__IsCommented)
+			{
+				if ((!parenthesis && quoted) || (parenthesis && quoted))
+				{
+					command.at(count).push_back(' ');
+				}
+				else if (parenthesis && !quoted)
+				{
+					doNothing();
+				}
+				else
+				{
+					if (prevChar != ' ')
+					{
+						command.push_back("");
+						count++;
+					}
+				}
+			}
 
             bigString.push_back(' ');
             break;
 
         case '\"':
-            if (!quoted)
-                quoted = true;
-            else
-                quoted = false;
-
-            bigString.push_back('\"');
+			quoted = !quoted;
+			if (parenthesis) 
+			{
+				command.at(count).push_back('\"');
+			}
+			bigString.push_back('\"');
             break;
 
         case '(':
@@ -3375,6 +3376,10 @@ void parse(string s)
         prevChar = s[i];
     }
 
+	// for (unsigned int x = 0; x < command.size(); x++) {
+		// cout << x << ":\t__ " << command.at(x) << " __" << endl;
+	// }
+	
     size = (int)command.size();
 
     if (command.at(size - 1) == "{" && size != 1)
@@ -3955,9 +3960,9 @@ void parse(string s)
                                         else if (objects.at(indexOfObject(before)).variableExists(after))
                                         {
                                             if (objects.at(indexOfObject(before)).getVariable(after).getString() != __Null)
-                                                say(objects.at(indexOfObject(before)).getVariable(after).getString());
+                                                writeline(objects.at(indexOfObject(before)).getVariable(after).getString());
                                             else if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != __NullNum)
-                                                say(dtos(objects.at(indexOfObject(before)).getVariable(after).getNumber()));
+                                                writeline(dtos(objects.at(indexOfObject(before)).getVariable(after).getNumber()));
                                             else
                                                 error("is_null", false);
                                         }
@@ -4768,14 +4773,14 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     else if (arg0 == "see_string")
     {
         if (variableExists(arg1))
-            __stdout(variables.at(indexOfVariable(arg1)).getString());
+            write(variables.at(indexOfVariable(arg1)).getString());
         else
             error("invalid_operation:variable_undefined:" + arg1, false);
     }
     else if (arg0 == "see_number")
     {
         if (variableExists(arg1))
-            __stdout(dtos(variables.at(indexOfVariable(arg1)).getNumber()));
+            write(dtos(variables.at(indexOfVariable(arg1)).getNumber()));
         else
             error("invalid_operation:variable_undefined:" + arg1, false);
     }
@@ -4787,7 +4792,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             {
                 if (!fileExists(variables.at(indexOfVariable(arg1)).getString()))
                 {
-                    touch(variables.at(indexOfVariable(arg1)).getString());
+                    createFile(variables.at(indexOfVariable(arg1)).getString());
                     __DefiningScript = true;
                     __CurrentScriptName = variables.at(indexOfVariable(arg1)).getString();
                 }
@@ -4797,7 +4802,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         }
         else if (!fileExists(arg1))
         {
-            touch(arg1);
+            createFile(arg1);
             __DefiningScript = true;
             __CurrentScriptName = arg1;
         }
@@ -5282,7 +5287,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             if (isString(arg1))
             {
                 if (!fileExists(variables.at(indexOfVariable(arg1)).getString()))
-                    touch(variables.at(indexOfVariable(arg1)).getString());
+                    createFile(variables.at(indexOfVariable(arg1)).getString());
                 else
                     error("invalid_operation:file_defined:" + variables.at(indexOfVariable(arg1)).getString(), false);
             }
@@ -5292,7 +5297,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         else
         {
             if (!fileExists(arg1))
-                touch(arg1);
+                createFile(arg1);
             else
                 error("invalid_operation:file_defined:" + arg1, false);
         }
@@ -6013,7 +6018,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             if (isString(after))
                             {
                                 string line("");
-                                __stdout(cleanString(variables.at(indexOfVariable(after)).getString()));
+                                write(cleanString(variables.at(indexOfVariable(after)).getString()));
                                 getline(cin, line, '\n');
 
                                 if (isNumber(arg0))
@@ -8653,21 +8658,21 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
             if (isNumeric(arg0) && isNumeric(arg2))
             {
                 if (arg1 == "+")
-                    say(dtos(stod(arg0) + stod(arg2)));
+                    writeline(dtos(stod(arg0) + stod(arg2)));
                 else if (arg1 == "-")
-                    say(dtos(stod(arg0) - stod(arg2)));
+                    writeline(dtos(stod(arg0) - stod(arg2)));
                 else if (arg1 == "*")
-                    say(dtos(stod(arg0) * stod(arg2)));
+                    writeline(dtos(stod(arg0) * stod(arg2)));
                 else if (arg1 == "/")
-                    say(dtos(stod(arg0) / stod(arg2)));
+                    writeline(dtos(stod(arg0) / stod(arg2)));
                 else if (arg1 == "**")
-                    say(dtos(pow(stod(arg0), stod(arg2))));
+                    writeline(dtos(pow(stod(arg0), stod(arg2))));
                 else if (arg1 == "%")
                 {
                     if ((int)stod(arg2) == 0)
                         error("segfault:" + s, false);
                     else
-                        say(dtos((int)stod(arg0) % (int)stod(arg2)));
+                        writeline(dtos((int)stod(arg0) % (int)stod(arg2)));
                 }
                 else
                     error("invalid_operator:" + arg1, false);
@@ -8675,9 +8680,9 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
             else
             {
                 if (arg1 == "+")
-                    say(arg0 + arg2);
+                    writeline(arg0 + arg2);
                 else if (arg1 == "-")
-                    say(subtractString(arg0, arg2));
+                    writeline(subtractString(arg0, arg2));
                 else if (arg1 == "*")
                 {
                     if (!zeroNumbers(arg2))
@@ -8686,7 +8691,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         for (int i = 1; i <= stoi(arg2); i++)
                         {
                             bigstr.append(arg0);
-                            __stdout(arg0);
+                            write(arg0);
                         }
 
                         setLastValue(bigstr);
@@ -8695,7 +8700,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         error("invalid_operation:" + s, false);
                 }
                 else if (arg1 == "/")
-                    say(subtractString(arg0, arg2));
+                    writeline(subtractString(arg0, arg2));
                 else
                     error("invalid_operator:" + arg1, false);
             }
@@ -14199,7 +14204,7 @@ void InternalEncryptDecrypt(string arg0, string arg1)
 {
     Crypt c;
     string text = variableExists(arg1) ? (isString(arg1) ? getVariable(arg1).getString() : dtos(getVariable(arg1).getNumber())) : arg1;
-    __stdout(arg0 == "encrypt" ? c.e(text) : c.d(text));
+    write(arg0 == "encrypt" ? c.e(text) : c.d(text));
 }
 
 void InternalInspect(string arg0, string arg1, string before, string after)
@@ -14211,16 +14216,16 @@ void InternalInspect(string arg0, string arg1, string before, string after)
             if (objects.at(indexOfObject(before)).methodExists(after))
             {
                 for (int i = 0; i < objects.at(indexOfObject(before)).getMethod(after).size(); i++)
-                    __stdout(objects.at(indexOfObject(before)).getMethod(after).at(i));
+                    write(objects.at(indexOfObject(before)).getMethod(after).at(i));
             }
             else if (objects.at(indexOfObject(before)).variableExists(after))
             {
                 if (objects.at(indexOfObject(before)).getVariable(after).getString() != __Null)
-                    __stdout(objects.at(indexOfObject(before)).getVariable(after).getString());
+                    write(objects.at(indexOfObject(before)).getVariable(after).getString());
                 else if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != __NullNum)
-                    __stdout(dtos(objects.at(indexOfObject(before)).getVariable(after).getNumber()));
+                    write(dtos(objects.at(indexOfObject(before)).getVariable(after).getNumber()));
                 else
-                    __stdout(__Null);
+                    write(__Null);
             }
             else
                 error("invalid_operation:target_undefined:" + arg1, false);
@@ -14233,70 +14238,70 @@ void InternalInspect(string arg0, string arg1, string before, string after)
         if (objectExists(arg1))
         {
             for (int i = 0; i < objects.at(indexOfObject(arg1)).methodSize(); i++)
-                __stdout(objects.at(indexOfObject(arg1)).getMethod(objects.at(indexOfObject(arg1)).getMethodName(i)).name());
+                write(objects.at(indexOfObject(arg1)).getMethod(objects.at(indexOfObject(arg1)).getMethodName(i)).name());
             for (int i = 0; i < objects.at(indexOfObject(arg1)).variableSize(); i++)
-                __stdout(objects.at(indexOfObject(arg1)).getVariable(objects.at(indexOfObject(arg1)).getVariableName(i)).name());
+                write(objects.at(indexOfObject(arg1)).getVariable(objects.at(indexOfObject(arg1)).getVariableName(i)).name());
         }
         else if (constantExists(arg1))
         {
             if (constants.at(indexOfConstant(arg1)).ConstNumber())
-                __stdout(dtos(constants.at(indexOfConstant(arg1)).getNumber()));
+                write(dtos(constants.at(indexOfConstant(arg1)).getNumber()));
             else if (constants.at(indexOfConstant(arg1)).ConstString())
-                __stdout(constants.at(indexOfConstant(arg1)).getString());
+                write(constants.at(indexOfConstant(arg1)).getString());
         }
         else if (methodExists(arg1))
         {
             for (int i = 0; i < methods.at(indexOfMethod(arg1)).size(); i++)
-                __stdout(methods.at(indexOfMethod(arg1)).at(i));
+                write(methods.at(indexOfMethod(arg1)).at(i));
         }
         else if (variableExists(arg1))
         {
             if (isString(arg1))
-                __stdout(variables.at(indexOfVariable(arg1)).getString());
+                write(variables.at(indexOfVariable(arg1)).getString());
             else if (isNumber(arg1))
-                __stdout(dtos(variables.at(indexOfVariable(arg1)).getNumber()));
+                write(dtos(variables.at(indexOfVariable(arg1)).getNumber()));
         }
         else if (listExists(arg1))
         {
             for (int i = 0; i < lists.at(indexOfList(arg1)).size(); i++)
-                __stdout(lists.at(indexOfList(arg1)).at(i));
+                write(lists.at(indexOfList(arg1)).at(i));
         }
         else if (arg1 == "variables")
         {
             for (int i = 0; i < (int)variables.size(); i++)
             {
                 if (variables.at(i).getString() != __Null)
-                    __stdout(variables.at(i).name() + ":\t" + variables.at(i).getString());
+                    write(variables.at(i).name() + ":\t" + variables.at(i).getString());
                 else if (variables.at(i).getNumber() != __NullNum)
-                    __stdout(variables.at(i).name() + ":\t" + dtos(variables.at(i).getNumber()));
+                    write(variables.at(i).name() + ":\t" + dtos(variables.at(i).getNumber()));
                 else
-                    __stdout(variables.at(i).name() + ":\tis_null");
+                    write(variables.at(i).name() + ":\tis_null");
             }
         }
         else if (arg1 == "lists")
         {
             for (int i = 0; i < (int)lists.size(); i++)
-                __stdout(lists.at(i).name());
+                write(lists.at(i).name());
         }
         else if (arg1 == "methods")
         {
             for (int i = 0; i < (int)methods.size(); i++)
-                __stdout(methods.at(i).name());
+                write(methods.at(i).name());
         }
         else if (arg1 == "objects")
         {
             for (int i = 0; i < (int)objects.size(); i++)
-                __stdout(objects.at(i).name());
+                write(objects.at(i).name());
         }
         else if (arg1 == "constants")
         {
             for (int i = 0; i < (int)constants.size(); i++)
-                __stdout(constants.at(i).name());
+                write(constants.at(i).name());
         }
         else if (arg1 == "os?")
-            __stdout(__GuessedOS);
+            write(__GuessedOS);
         else if (arg1 == "last")
-            __stdout(__LastValue);
+            write(__LastValue);
         else
             error("invalid_operation:target_undefined:" + arg1, false);
     }
@@ -14664,7 +14669,7 @@ void InternalForget(string arg0, string arg1)
             varValues.clear();
 
             rm(__SavedVars);
-            touch(__SavedVars);
+            createFile(__SavedVars);
             app(__SavedVars, c.e(new_saved));
         }
     }
@@ -14805,11 +14810,11 @@ void InternalGetEnv(string arg0, string after, int mode)
     case 3:
         if (sValue != defaultValue)
         {
-            say(sValue);
+            writeline(sValue);
         }
         else
         {
-            say(dtos(dValue));
+            writeline(dtos(dValue));
         }
     }
 }
@@ -14845,7 +14850,7 @@ void InternalOutput(string arg0, string arg1)
 
     if (is_say)
     {
-        say(text);
+        writeline(text);
     }
     else if (is_print)
     {
@@ -14860,7 +14865,7 @@ void InternalOutput(string arg0, string arg1)
     }
     else
     {
-        __stdout(text);
+        write(text);
     }
 }
 
@@ -15321,22 +15326,22 @@ string getSilentOutput(string text)
 
 int main(int c, char ** v)
 {
-    string app = v[0];
+    string noctis = v[0];
     setup();
-    __Noctis = app;
+    __Noctis = noctis;
     __InitialDirectory = cwd();
-    __Logging = false;
+    // __Logging = false;
 
 #ifdef _WIN32
-    SetConsoleTitle("USL");
+    SetConsoleTitle("noctis");
 #endif
 
     srand((unsigned int)time(NULL));
 
     if (c == 1)
     {
-        __CurrentScript = app;
-        args.push_back(app);
+        __CurrentScript = noctis;
+        args.push_back(noctis);
         __ArgumentCount = (int)args.size();
         loop(false);
     }
@@ -15352,20 +15357,20 @@ int main(int c, char ** v)
             loadScript(opt);
         }
         else if (is(opt, "h") || is(opt, "help"))
-            help(app);
+            help(noctis);
         else if (is(opt, "u") || is(opt, "uninstall"))
             uninstall();
         else if (is(opt, "sl") || is(opt, "skipload"))
         {
-            __CurrentScript = app;
+            __CurrentScript = noctis;
             args.push_back(opt);
             __ArgumentCount = (int)args.size();
             loop(true);
         }
-        else if (is(opt, "n") || is(opt, "__Negligence"))
+        else if (is(opt, "n") || is(opt, "negligence"))
         {
             __Negligence = true;
-            __CurrentScript = app;
+            __CurrentScript = noctis;
             args.push_back(opt);
             __ArgumentCount = (int)args.size();
             loop(true);
@@ -15374,7 +15379,7 @@ int main(int c, char ** v)
             displayVersion();
         else
         {
-            __CurrentScript = app;
+            __CurrentScript = noctis;
             args.push_back(opt);
             __ArgumentCount = (int)args.size();
             loop(false);
@@ -15386,7 +15391,7 @@ int main(int c, char ** v)
 
         if (is(opt, "sl") || is(opt, "skipload"))
         {
-            __CurrentScript = app;
+            __CurrentScript = noctis;
 
             if (isScript(script))
             {
@@ -15404,42 +15409,33 @@ int main(int c, char ** v)
                 loop(true);
             }
         }
-        else if (is(opt, "n") || is(opt, "__Negligence"))
+        else if (is(opt, "n") || is(opt, "negligence"))
         {
+			__Negligence = true;
+			args.push_back(opt);
+			args.push_back(script);
+			__ArgumentCount = (int)args.size();
             if (isScript(script))
             {
-                __Negligence = true;
                 __CurrentScript = script;
-                args.push_back(opt);
-                args.push_back(script);
-                __ArgumentCount = (int)args.size();
                 loadScript(script);
             }
             else
             {
-                __Negligence = true;
-                __CurrentScript = app;
-                args.push_back(opt);
-                args.push_back(script);
-                __ArgumentCount = (int)args.size();
+                __CurrentScript = noctis;
                 loop(true);
             }
         }
         else if (is(opt, "l") || is(opt, "log"))
         {
             __LogFile = script;
-
-            if (fileExists(__LogFile))
+			// __Logging = true;
+            
+            if (!fileExists(__LogFile))
             {
-                __Logging = true;
-                loop(false);
+				createFile(__LogFile);
             }
-            else
-            {
-                touch(__LogFile);
-                __Logging = true;
-                loop(false);
-            }
+			loop(false);
         }
         else if (is(opt, "p") || is(opt, "parse"))
         {
@@ -15467,7 +15463,7 @@ int main(int c, char ** v)
             }
             else
             {
-                __CurrentScript = app;
+                __CurrentScript = noctis;
                 args.push_back(opt);
                 args.push_back(script);
                 __ArgumentCount = (int)args.size();
@@ -15501,12 +15497,12 @@ int main(int c, char ** v)
 
             __ArgumentCount = (int)args.size();
 
-            __CurrentScript = app;
+            __CurrentScript = noctis;
             loop(false);
         }
     }
     else
-        help(app);
+        help(noctis);
 
     clearAll();
 
