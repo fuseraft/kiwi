@@ -1,7 +1,7 @@
 /**
  * 	noctis: a hybrid-typed, object-oriented, interpreted, programmable command line shell.
  *
- *		scstauf@gmail.com 
+ *		scstauf@gmail.com
  **/
 
 class StringContainer;

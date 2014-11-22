@@ -1,7 +1,7 @@
 /**
  * 	noctis: a hybrid-typed, object-oriented, interpreted, programmable command line shell.
  *
- *		scstauf@gmail.com 
+ *		scstauf@gmail.com
  **/
 
 void doNothing() { }
@@ -890,73 +890,7 @@ int get_ascii_num(char c)
 
 int get_alpha_num(char c)
 {
-    if (tolower(c) == 'a')
-        return (1);
-    else if (tolower(c) == 'b')
-        return (2);
-    else if (tolower(c) == 'c')
-        return (3);
-    else if (tolower(c) == 'd')
-        return (4);
-    else if (tolower(c) == 'e')
-        return (5);
-    else if (tolower(c) == 'f')
-        return (6);
-    else if (tolower(c) == 'g')
-        return (7);
-    else if (tolower(c) == 'h')
-        return (8);
-    else if (tolower(c) == 'i')
-        return (9);
-    else if (tolower(c) == 'j')
-        return (10);
-    else if (tolower(c) == 'k')
-        return (11);
-    else if (tolower(c) == 'l')
-        return (12);
-    else if (tolower(c) == 'm')
-        return (13);
-    else if (tolower(c) == 'n')
-        return (14);
-    else if (tolower(c) == 'o')
-        return (15);
-    else if (tolower(c) == 'p')
-        return (16);
-    else if (tolower(c) == 'q')
-        return (17);
-    else if (tolower(c) == 'r')
-        return (18);
-    else if (tolower(c) == 's')
-        return (19);
-    else if (tolower(c) == 't')
-        return (20);
-    else if (tolower(c) == 'u')
-        return (21);
-    else if (tolower(c) == 'v')
-        return (22);
-    else if (tolower(c) == 'w')
-        return (23);
-    else if (tolower(c) == 'x')
-        return (24);
-    else if (tolower(c) == 'y')
-        return (25);
-    else if (tolower(c) == 'z')
-        return (26);
-    else
-        return (0);
-}
-
-// ENVIRONMENTAL
-
-string getEnvironmentVariable(string s)
-{
-    char * cString;
-    cString = getenv(s.c_str());
-
-    if (cString != NULL)
-        return (string(cString));
-    else
-        return ("[not_available]");
+    return tolower(c) - 'a' + 1;
 }
 
 void comprehensiveHelp(string keyword)
@@ -2054,186 +1988,200 @@ void comprehensiveHelp(string keyword)
     }
 }
 
-void printUSLHelp() {
+void printUSLHelp()
+{
     cout << "[Parameter Key]" << endl
-		<< "\t{s}\t\t(string)" << endl
-		<< "\t{n}\t\t(number)" << endl
-		<< "\t{v}\t\t(variable)" << endl
-		<< "\t{m}\t\t(method)" << endl
-		<< "\t{o}\t\t(object)" << endl
-		<< "\t{l}\t\t(list)" << endl
-		<< "\t{all}\t\t(any USL object)" << endl
-		<< "\t{expression}\t(logical expression)" << endl
-		<< endl
-		<< "[Keywords and Symbols]" << endl
-		<< "- Operators:" << endl
-		<< "\t[Regular]" << endl
-		<< "\t+=\t\t(increment || append string)" << endl
-		<< "\t-=\t\t(decrement || remove string)" << endl
-		<< "\t*=\t\t(multiply->increment || multiply string)" << endl
-		<< "\t/=\t\t(divide->decrement)" << endl
-		<< "\t**=\t\t(exponent)" << endl
-		<< "\t+\t\t(addition)" << endl
-		<< "\t-\t\t(subtraction)" << endl
-		<< "\t*\t\t(multiplication)" << endl
-		<< "\t/\t\t(division)" << endl
-		<< "\t%\t\t(modulus)" << endl
-		<< "\t**\t\t(exponent)" << endl
-		<< "\t<\t\t(less than)" << endl
-		<< "\t>\t\t(greater than)" << endl
-		<< "\t<=\t\t(less than or equal to)" << endl
-		<< "\t>=\t\t(greater than or equal to)" << endl
-		<< "\t=\t\t(initializer)" << endl
-		<< "\t==\t\t(equal)" << endl
-		<< "\t!=\t\t(not equal)\r\n" << endl
-		<< "\t[Special]" << endl
-		<< "\tbegins_with\t(used in if expressions)" << endl
-		<< "\tcontains\t(used in if expressions)" << endl
-		<< "\tends_with\t(used in if expressions)" << endl
-		<< "\t++=\t\t(increment ascii value)" << endl
-		<< "\t--=\t\t(decrement ascii value)" << endl
-		<< endl
-		<< "- Conditionals:" << endl
-		<< "\tunless {expression}\t(unless statement)" << endl
-		<< "\tif {expression}\t\t(if statement)" << endl
-		<< "\torif {expression}\t(else if statement)" << endl
-		<< "\telse\t\t\t(else statement)" << endl
-		<< "\tfailif\t\t\t(if failure occurred)" << endl
-		<< "\tendif\t\t\t(end if statement)" << endl
-		<< "\tswitch {v}\t\t(switch statement)" << endl
-		<< "\tcase {n|s}\t\t(switch case)" << endl
-		<< "\tdefault\t\t\t(default case)" << endl
-		<< "\tend\t\t\t(end switch statement)" << endl
-		<< "\ttry\t\t\t(begin try statement)" << endl
-		<< "\tcatch\t\t\t(begin catch code)" << endl
-		<< "\tcaught\t\t\t(end try statement)" << endl
-		<< endl
-		<< "\tfor infinity\t\t(infinite loop)" << endl
-		<< "\tfor {n} < {n}\t\t(incremental loop)" << endl
-		<< "\tfor {n} > {n}\t\t(decremental loop)" << endl
-		<< "\twhile {v} {op} {n|v}\t(while loop)" << endl
-		<< "\tloop {l}\t\t(list loop)" << endl
-		<< "\tloop {v}.read\t\t(read lines in a file)" << endl
-		<< "\tloop {v}.read_files\t(read files in a directory)" << endl
-		<< "\tloop {v}.read_dirs\t(read directories in a directory)" << endl
-		<< "\tleave!\t\t\t(break loop flow)" << endl
-		<< "\tendfor\t\t\t(end for loop)" << endl
-		<< "\tend\t\t\t(end while loop)" << endl
-		<< endl
-		<< "- Special Methods and Symbols:" << endl
-		<< "\t[Memory Management]" << endl
-		<< "\tclear_all!\t\t(clear everything in memory)" << endl
-		<< "\tclear_lists!\t\t(clear all lists in memory)" << endl
-		<< "\tclear_methods!\t\t(clear all methods in memory)" << endl
-		<< "\tclear_objects!\t\t(clear all objects in memory)" << endl
-		<< "\tclear_variables!\t(clear all variables in memory)" << endl
-		<< "\tclear_constants!\t(clear all constants in memory)" << endl
-		<< endl
-		<< "\t[Debug USL Objects, Variables, and Methods]" << endl
-		<< "\tis_list? {l}\t\t(is list defined?)" << endl
-		<< "\tis_method? {m}\t\t(is method defined?)" << endl
-		<< "\tis_object? {o}\t\t(is object defined?)" << endl
-		<< "\tis_variable? {v}\t(is variable defined?)" << endl
-		<< "\tis_number? {v}\t\t(is variable a number?)" << endl
-		<< "\tis_string? {v}\t\t(is variable a string?)" << endl
-		<< "\tno_lists?\t\t(do no lists exist?)" << endl
-		<< "\tno_methods?\t\t(do no methods exist?)" << endl
-		<< "\tno_objects?\t\t(do no objects exist?)" << endl
-		<< "\tno_variables?\t\t(do no variables exist?)" << endl
-		<< "\tsee {all}\t\t(see definition of declaration)" << endl
-		<< "\tsee {option}\t\t(lists/methods/objects/variables)" << endl
-		<< endl
-		<< "\t[File/Directory Existence]" << endl
-		<< "\tis_dir? {v|s}\t\t(is variable/string a directory?)" << endl
-		<< "\tis_file? {v|s}\t\t(is variable/string a file?)" << endl
-		<< endl
-		<< "\t[File Size]" << endl
-		<< "\t{v}.bytes\t\t(gets size of a file in bytes)" << endl
-		<< "\t{v}.kbytes\t\t(gets size of a file in kilobytes)" << endl
-		<< "\t{v}.mbytes\t\t(gets size of a file in megabytes)" << endl
-		<< "\t{v}.gbytes\t\t(gets size of a file in gigabytes)" << endl
-		<< "\t{v}.tbytes\t\t(gets size of a file in terabytes)" << endl
-		<< endl
-		<< "\t[Defining Memory]" << endl
-		<< "\t__begin__ {v|s}\t\t(define a script)" << endl
-		<< "\t__end__\t\t\t(end script definition)" << endl
-		<< "\tlist {l}\t\t(define a list)" << endl
-		<< "\t[method] {m}\t\t(define an indestructible method)" << endl
-		<< "\tmethod {m}\t\t(define a method)" << endl
-		<< "\ttemplate {m}\t\t(define a template method)" << endl
-		<< "\tobject {o}\t\t(define an object)" << endl
-		<< "\tpublic\t\t\t(begin defining public members)" << endl
-		<< "\tprivate\t\t\t(begin defining private members)" << endl
-		<< "\tend\t\t\t(end method/object/template definition)" << endl
-		<< "\t@\t\t\t(variables begin with '@')" << endl
-		<< endl
-		<< "\t[Extras]" << endl
-		<< "\t\\'\t\t\t(parsed as apostrophe mark)" << endl
-		<< "\t'\t\t\t(parsed as quotation mark)" << endl
-		<< "\t\\t\t\t\t(tab sequence)" << endl
-		<< "\t\\n\t\t\t(carriage-return & line-feed)" << endl
-		<< "\t#\t\t\t(denote commentation)" << endl
-		<< "\t##\t\t\t(begin/end multiline commentation)" << endl
-		<< "\t!\t\t\t(parse a string directly || initializer)" << endl
-		<< "\t?\t\t\t(execute an external command || initializer)" << endl
-		<< "\t;\t\t\t(line separator)" << endl
-		<< "\tappend\t\t\t(append text to a file)" << endl
-		<< "\tappendl\t\t\t(append a line to a file)" << endl
-		<< "\targs[{n}]\t\t(parameter access)" << endl
-		<< "\targs.size\t\t(parameter count)" << endl
-		<< "\tcd\t\t\t(specialized \"chdir\")" << endl
-		<< "\treadline.{v|s}\t\t(loudly receive input)" << endl
-		<< "\tdelay {n}\t\t(pause script flow in seconds)" << endl
-		<< "\tdpush {v|s}\t\t(create a directory)" << endl
-		<< "\tdpop {v|s}\t\t(delete a directory)" << endl
-		<< "\tenv.{s}\t\t\t(get environment variable)" << endl
-		<< "\terror {v|s}\t\t(standard error stream)" << endl
-		<< "\tforget {v}\t\t(forget variable definition)" << endl
-		<< "\tfpush {v|s}\t\t(create a file)" << endl
-		<< "\tfpop {v|s}\t\t(delete a file)" << endl
-		<< "\tfwrite\t\t\t(use \"help fwrite\")" << endl
-		<< "\thelp {keyword}\t\t(comprehensive help)" << endl
-		<< "\tin_dir\t\t\t(USL Initial Directory)" << endl
-		<< "\tload {us}\t\t(include and execute script definitions)" << endl
-		<< "\tlock {v|m}\t\t(make method or variable indestructible)" << endl
-		<< "\tparser\t\t\t(begin parsing input)" << endl
-		<< "\tprompt {s}\t\t(customize prompt)" << endl
-		<< "\trandom.{n|s}_{n|s}\t(random number or character)" << endl
-		<< "\tredefine {all} {s}\t(rename an USL object)" << endl
-		<< "\tremember {v}\t\t(store a variable definition)" << endl
-		<< "\tremove {all}\t\t(remove an USL object from memory)" << endl
-		<< "\treturn {v|s}\t\t(set return value of a method)" << endl
-		<< "\tsay {v|s}\t\t(print a string with a newline)" << endl
-		<< "\tpassword\t\t\t(quietly receive input)" << endl
-		<< "\tstdout {v|s}\t\t(print a string)" << endl
-		<< "\tunlock {v|m}\t\t(make method or variable destructible)" << endl
-		<< endl
-		<< "- Environment Variables:" << endl
-		<< "\t[Time]" << endl
-		<< "\tam_or_pm\t\t(before noon or after noon)" << endl
-		<< "\tday_of_this_week\t(this day of this week: Sunday-Saturday)" << endl
-		<< "\tday_of_this_month\t(this day of this month: 1-31)" << endl
-		<< "\tday_of_this_year\t(this day of this year: 1-365)" << endl
-		<< "\tmonth_of_this_year\t(this month of this year: January-December)" << endl
-		<< "\tthis_second\t\t(this second of this minute: 1-60)" << endl
-		<< "\tthis_minute\t\t(this minute of this hour: 1-60)" << endl
-		<< "\tthis_hour\t\t(this hour of this day: 1-24)" << endl
-		<< "\tthis_month\t\t(this month of this year: 1-12)" << endl
-		<< "\tthis_year\t\t(this year)" << endl
-		<< "\tnow\t\t\t(the current time)" << endl
-		<< endl
-		<< "\t[USL Specific]" << endl
-		<< "\tcwd\t\t\t(current working directory)" << endl
-		<< "\tin_dir\t\t\t(initial directory of shell)" << endl
-		<< "\tnoctis\t\t\t(executable location of current shell)" << endl
-		<< "\tos\t\t\t(guessed operating system)" << endl
-		<< "\tuser\t\t\t(current user name)" << endl
-		<< "\tmachine\t\t\t(current machine name)" << endl
-		<< "\tempty_string\t\t(get an empty string)" << endl
-		<< "\tempty_number\t\t(get an empty number)" << endl
-		<< "\tlast_error\t\t(get last error)" << endl
-		<< "\tlast_value\t\t(get last return value)" << endl 
-		<< endl;
+         << "\t{s}\t\t(string)" << endl
+         << "\t{n}\t\t(number)" << endl
+         << "\t{v}\t\t(variable)" << endl
+         << "\t{m}\t\t(method)" << endl
+         << "\t{o}\t\t(object)" << endl
+         << "\t{l}\t\t(list)" << endl
+         << "\t{all}\t\t(any USL object)" << endl
+         << "\t{expression}\t(logical expression)" << endl
+         << endl
+         << "[Keywords and Symbols]" << endl
+         << "- Operators:" << endl
+         << "\t[Regular]" << endl
+         << "\t+=\t\t(increment || append string)" << endl
+         << "\t-=\t\t(decrement || remove string)" << endl
+         << "\t*=\t\t(multiply->increment || multiply string)" << endl
+         << "\t/=\t\t(divide->decrement)" << endl
+         << "\t**=\t\t(exponent)" << endl
+         << "\t+\t\t(addition)" << endl
+         << "\t-\t\t(subtraction)" << endl
+         << "\t*\t\t(multiplication)" << endl
+         << "\t/\t\t(division)" << endl
+         << "\t%\t\t(modulus)" << endl
+         << "\t**\t\t(exponent)" << endl
+         << "\t<\t\t(less than)" << endl
+         << "\t>\t\t(greater than)" << endl
+         << "\t<=\t\t(less than or equal to)" << endl
+         << "\t>=\t\t(greater than or equal to)" << endl
+         << "\t=\t\t(initializer)" << endl
+         << "\t==\t\t(equal)" << endl
+         << "\t!=\t\t(not equal)\r\n" << endl
+         << "\t[Special]" << endl
+         << "\tbegins_with\t(used in if expressions)" << endl
+         << "\tcontains\t(used in if expressions)" << endl
+         << "\tends_with\t(used in if expressions)" << endl
+         << "\t++=\t\t(increment ascii value)" << endl
+         << "\t--=\t\t(decrement ascii value)" << endl
+         << endl
+         << "- Conditionals:" << endl
+         << "\tunless {expression}\t(unless statement)" << endl
+         << "\tif {expression}\t\t(if statement)" << endl
+         << "\torif {expression}\t(else if statement)" << endl
+         << "\telse\t\t\t(else statement)" << endl
+         << "\tfailif\t\t\t(if failure occurred)" << endl
+         << "\tendif\t\t\t(end if statement)" << endl
+         << "\tswitch {v}\t\t(switch statement)" << endl
+         << "\tcase {n|s}\t\t(switch case)" << endl
+         << "\tdefault\t\t\t(default case)" << endl
+         << "\tend\t\t\t(end switch statement)" << endl
+         << "\ttry\t\t\t(begin try statement)" << endl
+         << "\tcatch\t\t\t(begin catch code)" << endl
+         << "\tcaught\t\t\t(end try statement)" << endl
+         << endl
+         << "\tfor infinity\t\t(infinite loop)" << endl
+         << "\tfor {n} < {n}\t\t(incremental loop)" << endl
+         << "\tfor {n} > {n}\t\t(decremental loop)" << endl
+         << "\twhile {v} {op} {n|v}\t(while loop)" << endl
+         << "\tloop {l}\t\t(list loop)" << endl
+         << "\tloop {v}.read\t\t(read lines in a file)" << endl
+         << "\tloop {v}.read_files\t(read files in a directory)" << endl
+         << "\tloop {v}.read_dirs\t(read directories in a directory)" << endl
+         << "\tleave!\t\t\t(break loop flow)" << endl
+         << "\tendfor\t\t\t(end for loop)" << endl
+         << "\tend\t\t\t(end while loop)" << endl
+         << endl
+         << "- Special Methods and Symbols:" << endl
+         << "\t[Memory Management]" << endl
+         << "\tclear_all!\t\t(clear everything in memory)" << endl
+         << "\tclear_lists!\t\t(clear all lists in memory)" << endl
+         << "\tclear_methods!\t\t(clear all methods in memory)" << endl
+         << "\tclear_objects!\t\t(clear all objects in memory)" << endl
+         << "\tclear_variables!\t(clear all variables in memory)" << endl
+         << "\tclear_constants!\t(clear all constants in memory)" << endl
+         << endl
+         << "\t[Debug USL Objects, Variables, and Methods]" << endl
+         << "\tis_list? {l}\t\t(is list defined?)" << endl
+         << "\tis_method? {m}\t\t(is method defined?)" << endl
+         << "\tis_object? {o}\t\t(is object defined?)" << endl
+         << "\tis_variable? {v}\t(is variable defined?)" << endl
+         << "\tis_number? {v}\t\t(is variable a number?)" << endl
+         << "\tis_string? {v}\t\t(is variable a string?)" << endl
+         << "\tno_lists?\t\t(do no lists exist?)" << endl
+         << "\tno_methods?\t\t(do no methods exist?)" << endl
+         << "\tno_objects?\t\t(do no objects exist?)" << endl
+         << "\tno_variables?\t\t(do no variables exist?)" << endl
+         << "\tsee {all}\t\t(see definition of declaration)" << endl
+         << "\tsee {option}\t\t(lists/methods/objects/variables)" << endl
+         << endl
+         << "\t[File/Directory Existence]" << endl
+         << "\tis_dir? {v|s}\t\t(is variable/string a directory?)" << endl
+         << "\tis_file? {v|s}\t\t(is variable/string a file?)" << endl
+         << endl
+         << "\t[File Size]" << endl
+         << "\t{v}.bytes\t\t(gets size of a file in bytes)" << endl
+         << "\t{v}.kbytes\t\t(gets size of a file in kilobytes)" << endl
+         << "\t{v}.mbytes\t\t(gets size of a file in megabytes)" << endl
+         << "\t{v}.gbytes\t\t(gets size of a file in gigabytes)" << endl
+         << "\t{v}.tbytes\t\t(gets size of a file in terabytes)" << endl
+         << endl
+         << "\t[Defining Memory]" << endl
+         << "\t__begin__ {v|s}\t\t(define a script)" << endl
+         << "\t__end__\t\t\t(end script definition)" << endl
+         << "\tlist {l}\t\t(define a list)" << endl
+         << "\t[method] {m}\t\t(define an indestructible method)" << endl
+         << "\tmethod {m}\t\t(define a method)" << endl
+         << "\ttemplate {m}\t\t(define a template method)" << endl
+         << "\tobject {o}\t\t(define an object)" << endl
+         << "\tpublic\t\t\t(begin defining public members)" << endl
+         << "\tprivate\t\t\t(begin defining private members)" << endl
+         << "\tend\t\t\t(end method/object/template definition)" << endl
+         << "\t@\t\t\t(variables begin with '@')" << endl
+         << endl
+         << "\t[Extras]" << endl
+         << "\t\\'\t\t\t(parsed as apostrophe mark)" << endl
+         << "\t'\t\t\t(parsed as quotation mark)" << endl
+         << "\t\\t\t\t\t(tab sequence)" << endl
+         << "\t\\n\t\t\t(carriage-return & line-feed)" << endl
+         << "\t#\t\t\t(denote commentation)" << endl
+         << "\t##\t\t\t(begin/end multiline commentation)" << endl
+         << "\t!\t\t\t(parse a string directly || initializer)" << endl
+         << "\t?\t\t\t(execute an external command || initializer)" << endl
+         << "\t;\t\t\t(line separator)" << endl
+         << "\tappend\t\t\t(append text to a file)" << endl
+         << "\tappendl\t\t\t(append a line to a file)" << endl
+         << "\targs[{n}]\t\t(parameter access)" << endl
+         << "\targs.size\t\t(parameter count)" << endl
+         << "\tcd\t\t\t(specialized \"chdir\")" << endl
+         << "\treadline.{v|s}\t\t(loudly receive input)" << endl
+         << "\tdelay {n}\t\t(pause script flow in seconds)" << endl
+         << "\tdpush {v|s}\t\t(create a directory)" << endl
+         << "\tdpop {v|s}\t\t(delete a directory)" << endl
+         << "\tenv.{s}\t\t\t(get environment variable)" << endl
+         << "\terror {v|s}\t\t(standard error stream)" << endl
+         << "\tforget {v}\t\t(forget variable definition)" << endl
+         << "\tfpush {v|s}\t\t(create a file)" << endl
+         << "\tfpop {v|s}\t\t(delete a file)" << endl
+         << "\tfwrite\t\t\t(use \"help fwrite\")" << endl
+         << "\thelp {keyword}\t\t(comprehensive help)" << endl
+         << "\tin_dir\t\t\t(USL Initial Directory)" << endl
+         << "\tload {us}\t\t(include and execute script definitions)" << endl
+         << "\tlock {v|m}\t\t(make method or variable indestructible)" << endl
+         << "\tparser\t\t\t(begin parsing input)" << endl
+         << "\tprompt {s}\t\t(customize prompt)" << endl
+         << "\trandom.{n|s}_{n|s}\t(random number or character)" << endl
+         << "\tredefine {all} {s}\t(rename an USL object)" << endl
+         << "\tremember {v}\t\t(store a variable definition)" << endl
+         << "\tremove {all}\t\t(remove an USL object from memory)" << endl
+         << "\treturn {v|s}\t\t(set return value of a method)" << endl
+         << "\tsay {v|s}\t\t(print a string with a newline)" << endl
+         << "\tpassword\t\t\t(quietly receive input)" << endl
+         << "\tstdout {v|s}\t\t(print a string)" << endl
+         << "\tunlock {v|m}\t\t(make method or variable destructible)" << endl
+         << endl
+         << "- Environment Variables:" << endl
+         << "\t[Time]" << endl
+         << "\tam_or_pm\t\t(before noon or after noon)" << endl
+         << "\tday_of_this_week\t(this day of this week: Sunday-Saturday)" << endl
+         << "\tday_of_this_month\t(this day of this month: 1-31)" << endl
+         << "\tday_of_this_year\t(this day of this year: 1-365)" << endl
+         << "\tmonth_of_this_year\t(this month of this year: January-December)" << endl
+         << "\tthis_second\t\t(this second of this minute: 1-60)" << endl
+         << "\tthis_minute\t\t(this minute of this hour: 1-60)" << endl
+         << "\tthis_hour\t\t(this hour of this day: 1-24)" << endl
+         << "\tthis_month\t\t(this month of this year: 1-12)" << endl
+         << "\tthis_year\t\t(this year)" << endl
+         << "\tnow\t\t\t(the current time)" << endl
+         << endl
+         << "\t[USL Specific]" << endl
+         << "\tcwd\t\t\t(current working directory)" << endl
+         << "\tin_dir\t\t\t(initial directory of shell)" << endl
+         << "\tnoctis\t\t\t(executable location of current shell)" << endl
+         << "\tos\t\t\t(guessed operating system)" << endl
+         << "\tuser\t\t\t(current user name)" << endl
+         << "\tmachine\t\t\t(current machine name)" << endl
+         << "\tempty_string\t\t(get an empty string)" << endl
+         << "\tempty_number\t\t(get an empty number)" << endl
+         << "\tlast_error\t\t(get last error)" << endl
+         << "\tlast_value\t\t(get last return value)" << endl
+         << endl;
+}
+
+// ENVIRONMENTAL
+
+string getEnvironmentVariable(string s)
+{
+    char * cString;
+    cString = getenv(s.c_str());
+
+    if (cString != NULL)
+        return (string(cString));
+    else
+        return ("[not_available]");
 }
 
 #ifdef __linux__

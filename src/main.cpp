@@ -1,7 +1,7 @@
 /**
  * 	noctis: a hybrid-typed, object-oriented, interpreted, programmable command line shell.
  *
- *		scstauf@gmail.com 
+ *		scstauf@gmail.com
  **/
 
 #ifdef _WIN32
@@ -114,7 +114,7 @@ string	__CurrentLine,
         __DefaultLoopSymbol,
         __Null,
         cleanString(string st),
-		getGuessedOS(string os),
+        getGuessedOS(string os),
         getParsedOutput(string cmd),
         getSilentOutput(string text);
 
@@ -127,7 +127,7 @@ int __ArgumentCount,
     __ForLoopCount,
     __ParamVarCount,
     __WhileLoopCount,
-	__GuessedOS;
+    __GuessedOS;
 
 double __NullNum;
 
@@ -265,7 +265,7 @@ string getErrorString(int errorType);
 const int IS_NULL =	0;
 const int BAD_LOAD = 1;
 const int CONV_ERR = 2;
-const int INFINITE_LOOP = 3;	
+const int INFINITE_LOOP = 3;
 const int INVALID_OP = 4;
 const int DIR_EXISTS = 5;
 const int DIR_NOT_FOUND = 6;
@@ -672,22 +672,22 @@ void cd(string p)
         {
             if (p[i] == '~')
             {
-				switch (__GuessedOS)
-				{
-					case OS_NIX:
-						cleaned.append(getEnvironmentVariable("HOME"));
-						break;
-					case OS_WIN32:
-					case OS_WIN64:
-						cleaned.append(getEnvironmentVariable("HOMEPATH"));
-						break;
-					case OS_UNKNOWN:
-						cleaned.append(getEnvironmentVariable("HOME"));
-						break;
-					default:
-						error(UNDEFINED_OS, "", false);
-						break;
-				}
+                switch (__GuessedOS)
+                {
+                case OS_NIX:
+                    cleaned.append(getEnvironmentVariable("HOME"));
+                    break;
+                case OS_WIN32:
+                case OS_WIN64:
+                    cleaned.append(getEnvironmentVariable("HOMEPATH"));
+                    break;
+                case OS_UNKNOWN:
+                    cleaned.append(getEnvironmentVariable("HOME"));
+                    break;
+                default:
+                    error(UNDEFINED_OS, "", false);
+                    break;
+                }
             }
             else
                 cleaned.push_back(p[i]);
@@ -1008,7 +1008,7 @@ void write(string st)
 void writeline(string st)
 {
     write(st);
-	cout << (__GuessedOS == OS_NIX ? "\n" : "\r\n");
+    cout << (__GuessedOS == OS_NIX ? "\n" : "\r\n");
 }
 
 void clearAll()
@@ -1094,59 +1094,122 @@ void displayVersion()
 
 string getErrorString(int errorType)
 {
-	string errorString("");
+    string errorString("");
 
-	switch (errorType)
-	{
-		case IS_NULL: errorString.append("is null"); break;
-		case BAD_LOAD: errorString.append("bad load"); break;
-		case CONV_ERR: errorString.append("conversion error"); break;
-		case INFINITE_LOOP: errorString.append("infinite loop");
-		case INVALID_OP: errorString.append("invalid operation"); break;
-		case DIR_EXISTS: errorString.append("directory already exists"); break;
-		case DIR_NOT_FOUND: errorString.append("directory does not exist"); break;
-		case FILE_EXISTS: errorString.append("file already exists"); break;
-		case FILE_NOT_FOUND: errorString.append("file does not exist"); break;
-		case OUT_OF_BOUNDS: errorString.append("index out of bounds"); break;
-		case INVALID_RANGE_SEP: errorString.append("invalid range separator"); break;
-		case INVALID_SEQ: errorString.append("invalid sequence"); break;
-		case INVALID_SEQ_SEP: errorString.append("invalid sequence separator"); break;
-		case INVALID_VAR_DECL: errorString.append("invalid variable declaration"); break;
-		case LIST_UNDEFINED: errorString.append("list undefined"); break;
-		case METHOD_DEFINED: errorString.append("method defined"); break;
-		case METHOD_UNDEFINED: errorString.append("method undefined"); break;
-		case NULL_NUMBER: errorString.append("null number"); break;
-		case NULL_STRING: errorString.append("null string"); break;
-		case OBJ_METHOD_UNDEFINED: errorString.append("object method undefined"); break;
-		case OBJ_UNDEFINED: errorString.append("object undefined"); break;
-		case OBJ_VAR_UNDEFINED: errorString.append("object variable undefined"); break;
-		case VAR_DEFINED: errorString.append("variable defined"); break;
-		case VAR_UNDEFINED: errorString.append("variable undefined"); break;
-		case TARGET_UNDEFINED: errorString.append("target undefined"); break;
-		case CONST_UNDEFINED: errorString.append("constant defined"); break;
-		case INVALID_OPERATOR: errorString.append("invalid operator"); break;
-		case IS_EMPTY: errorString.append("is empty"); break;
-		case READ_FAIL: errorString.append("read failure"); break;
-		case DIVIDED_BY_ZERO: errorString.append("cannot divide by zero"); break;
-		case UNDEFINED: errorString.append("undefined"); break;
-		case UNDEFINED_OS: errorString.append("undefined_os"); break;
-	}
-	
-	return errorString;
+    switch (errorType)
+    {
+    case IS_NULL:
+        errorString.append("is null");
+        break;
+    case BAD_LOAD:
+        errorString.append("bad load");
+        break;
+    case CONV_ERR:
+        errorString.append("conversion error");
+        break;
+    case INFINITE_LOOP:
+        errorString.append("infinite loop");
+    case INVALID_OP:
+        errorString.append("invalid operation");
+        break;
+    case DIR_EXISTS:
+        errorString.append("directory already exists");
+        break;
+    case DIR_NOT_FOUND:
+        errorString.append("directory does not exist");
+        break;
+    case FILE_EXISTS:
+        errorString.append("file already exists");
+        break;
+    case FILE_NOT_FOUND:
+        errorString.append("file does not exist");
+        break;
+    case OUT_OF_BOUNDS:
+        errorString.append("index out of bounds");
+        break;
+    case INVALID_RANGE_SEP:
+        errorString.append("invalid range separator");
+        break;
+    case INVALID_SEQ:
+        errorString.append("invalid sequence");
+        break;
+    case INVALID_SEQ_SEP:
+        errorString.append("invalid sequence separator");
+        break;
+    case INVALID_VAR_DECL:
+        errorString.append("invalid variable declaration");
+        break;
+    case LIST_UNDEFINED:
+        errorString.append("list undefined");
+        break;
+    case METHOD_DEFINED:
+        errorString.append("method defined");
+        break;
+    case METHOD_UNDEFINED:
+        errorString.append("method undefined");
+        break;
+    case NULL_NUMBER:
+        errorString.append("null number");
+        break;
+    case NULL_STRING:
+        errorString.append("null string");
+        break;
+    case OBJ_METHOD_UNDEFINED:
+        errorString.append("object method undefined");
+        break;
+    case OBJ_UNDEFINED:
+        errorString.append("object undefined");
+        break;
+    case OBJ_VAR_UNDEFINED:
+        errorString.append("object variable undefined");
+        break;
+    case VAR_DEFINED:
+        errorString.append("variable defined");
+        break;
+    case VAR_UNDEFINED:
+        errorString.append("variable undefined");
+        break;
+    case TARGET_UNDEFINED:
+        errorString.append("target undefined");
+        break;
+    case CONST_UNDEFINED:
+        errorString.append("constant defined");
+        break;
+    case INVALID_OPERATOR:
+        errorString.append("invalid operator");
+        break;
+    case IS_EMPTY:
+        errorString.append("is empty");
+        break;
+    case READ_FAIL:
+        errorString.append("read failure");
+        break;
+    case DIVIDED_BY_ZERO:
+        errorString.append("cannot divide by zero");
+        break;
+    case UNDEFINED:
+        errorString.append("undefined");
+        break;
+    case UNDEFINED_OS:
+        errorString.append("undefined_os");
+        break;
+    }
+
+    return errorString;
 }
 
 void error(int errorType, string errorInfo, bool quit)
 {
-	string completeError("##\n# error:\t");
-	completeError.append(getErrorString(errorType));
-	completeError.append(":\t");
-	completeError.append(errorInfo);
-	completeError.append("\n# line ");
-	completeError.append(itos(__CurrentLineNumber));
-	completeError.append(":\t");
-	completeError.append(__CurrentLine);
-	completeError.append("\n##\n");
-	
+    string completeError("##\n# error:\t");
+    completeError.append(getErrorString(errorType));
+    completeError.append(":\t");
+    completeError.append(errorInfo);
+    completeError.append("\n# line ");
+    completeError.append(itos(__CurrentLineNumber));
+    completeError.append(":\t");
+    completeError.append(__CurrentLine);
+    completeError.append("\n##\n");
+
     if (__ExecutedTryBlock)
     {
         __RaiseCatchBlock = true;
@@ -1172,25 +1235,25 @@ void error(int errorType, string errorInfo, bool quit)
 
 string getGuessedOS()
 {
-	string guessedOS("");
-	
-	switch (__GuessedOS) 
-	{
-		case OS_NIX:
-			guessedOS = "OS_NIX";
-			break;
-		case OS_WIN32:
-			guessedOS = "OS_WIN32";
-			break;
-		case OS_WIN64:
-			guessedOS = "OS_WIN64";
-			break;
-		case OS_UNKNOWN:
-			guessedOS = "OS_UNKNOWN";
-			break;
-	}
-	
-	return guessedOS;
+    string guessedOS("");
+
+    switch (__GuessedOS)
+    {
+    case OS_NIX:
+        guessedOS = "OS_NIX";
+        break;
+    case OS_WIN32:
+        guessedOS = "OS_WIN32";
+        break;
+    case OS_WIN64:
+        guessedOS = "OS_WIN64";
+        break;
+    case OS_UNKNOWN:
+        guessedOS = "OS_UNKNOWN";
+        break;
+    }
+
+    return guessedOS;
 }
 
 string getParsedOutput(string cmd)
@@ -1562,117 +1625,35 @@ void help(string app)
 //		how can I clean up these stupidly long if-statements?
 bool notStandardZeroSpace(string arg)
 {
-    if (arg != "caught" &&
-            arg != "clear_all!" &&
-            arg != "clear_lists!" &&
-            arg != "clear_methods!" &&
-            arg != "clear_objects!" &&
-            arg != "clear_variables!" &&
-            arg != "clear_constants!" &&
-            arg != "exit" &&
-            arg != "else" &&
-            arg != "failif" &&
-            arg != "help" &&
-            arg != "leave!" && arg != "break" &&
-            arg != "no_methods?" &&
-            arg != "no_objects?" &&
-            arg != "no_variables?" &&
-            arg != "end" &&
-            arg != "}" &&
-            arg != "parser" &&
-            arg != "private" &&
-            arg != "public" &&
-            arg != "try" &&
-            arg != "pass")
-        return (true);
+    const char * standardZeroSpaceWords =
+        "};break;caught;clear_all!;clear_constants!clear_lists!;clear_methods!;"
+        "clear_objects!;clear_variables!;else;end;exit;failif;help;leave!;"
+        "no_methods?;no_objects?;no_variables?;parser;pass;private;public;try";
 
-    return (false);
+    return !contains(standardZeroSpaceWords, arg);
 }
 
 bool notStandardOneSpace(string arg)
 {
-    if (arg != "!" &&
-            arg != "?" &&
-            arg != "__begin__" &&
-            arg != "cd" && arg != "chdir" &&
-            arg != "collect?" && arg!= "garbage?" &&
-            arg != "decrypt" &&
-            arg != "delay" &&
-            arg != "encrypt" &&
-            arg != "err" &&
-            arg != "error" &&
-            arg != "for" &&
-            arg != "forget" &&
-            arg != "globalize" &&
-            arg != "goto" &&
-            arg != "help" &&
-            arg != "lose" &&
-            arg != "init_dir" && arg != "intial_directory" &&
-            arg != "is_method?" && arg != "method?" &&
-            arg != "is_object?" && arg != "object?" &&
-            arg != "is_variable?" && arg != "variable?" && arg != "var?" &&
-            arg != "is_list?" && arg != "list?" &&
-            arg != "is_directory?" && arg != "dir?" && arg != "directory?" &&
-            arg != "is_file?" && arg != "file?" &&
-            arg != "is_number?" && arg != "number?" &&
-            arg != "is_string?" && arg != "string?" &&
-            arg != "lowercase?" && arg != "lower?" && arg != "is_lowercase?" &&
-            arg != "uppercase?" && arg != "upper?" && arg != "is_uppercase?" &&
-            arg != "list" &&
-            arg != "load" &&
-            arg != "lock" &&
-            arg != "unlock" &&
-            arg != "loop" &&
-            arg != "method" &&
-            arg != "[method]" &&
-            arg != "call_method" &&
-            arg != "object" &&
-            arg != "out" &&
-            arg != "print" &&
-            arg != "println" &&
-            arg != "prompt" &&
-            arg != "remember" &&
-            arg != "remove" &&
-            arg != "return" &&
-            arg != "save" &&
-            arg != "say" &&
-            arg != "see" &&
-            arg != "see_string" &&
-            arg != "see_number" &&
-            arg != "stdout" &&
-            arg != "switch" &&
-            arg != "template" &&
-            arg != "fpush" &&
-            arg != "fpop" &&
-            arg != "dpush" &&
-            arg != "dpop")
-        return (true);
+    const char * standardOneSpaceWords =
+        "!;?;__begin__;call_method;cd;chdir;collect?;"
+        "decrypt;delay;dir?;directory?;dpush;dpop;"
+        "encrypt;err;error;file?;for;forget;fpush;fpop;"
+        "garbage?;globalize;goto;help;init_dir;intial_directory;"
+        "is_directory?;is_file?;is_list?;is_lowercase?;is_method?;"
+        "is_number?;is_object?;is_string?;is_uppercase?;is_variable?;"
+        "list;list?;load;lock;loop;lose;lower?;lowercase?;"
+        "method;method?;[method];number?;object;object?;out;"
+        "print;println;prompt;remember;remove;return;"
+        "save;say;see;see_string;see_number;stdout;string?;switch;"
+        "template;unlock;upper?;uppercase?;var?;variable?;";
 
-    return (false);
+    return !contains(standardOneSpaceWords, arg);
 }
 
 bool notStandardTwoSpace(string arg)
 {
-    if (arg != "=" &&
-            arg != "+=" &&
-            arg != "-=" &&
-            arg != "*=" &&
-            arg != "%=" &&
-            arg != "/=" &&
-            arg != "**=" &&
-            arg != "+" &&
-            arg != "-" &&
-            arg != "*" &&
-            arg != "**" &&
-            arg != "/" &&
-            arg != "%" &&
-            arg != "++=" &&
-            arg != "--=" &&
-            arg != "?" &&
-            arg != "!")
-        return (true);
-
-    return (false);
+    return !contains("=;+=;-=;*=;%=;/=;**=;+;-;*;**;/;%;++=;--=;?;!", arg);
 }
 
 int indexOfMethod(string s)
@@ -2747,59 +2728,59 @@ string getStringStack(string arg2)
 
     vector<string> vars;
     vector<string> contents;
-	
-	bool quoted = false;
+
+    bool quoted = false;
 
     for (int i = 0; i < (int)tempArgTwo.length(); i++)
     {
-		if (tempArgTwo[i] == '\"')
-		{
-			quoted = !quoted;
-			if (!quoted) 
-			{
+        if (tempArgTwo[i] == '\"')
+        {
+            quoted = !quoted;
+            if (!quoted)
+            {
                 contents.push_back(temporaryBuild);
                 temporaryBuild.clear();
-			}
-		}
+            }
+        }
         else if (tempArgTwo[i] == ' ')
         {
-			if (quoted)
-			{
-				temporaryBuild.push_back(' ');
-			}
-			else
-			{
-				if (temporaryBuild.length() != 0)
-				{
-					if (variableExists(temporaryBuild))
-					{
-						if (isNumber(temporaryBuild))
-						{
-							vars.push_back(temporaryBuild);
-							contents.push_back(dtos(variables.at(indexOfVariable(temporaryBuild)).getNumber()));
-							temporaryBuild.clear();
-						}
-						else if (isString(temporaryBuild))
-						{
-							vars.push_back(temporaryBuild);
-							contents.push_back(variables.at(indexOfVariable(temporaryBuild)).getString());
-							temporaryBuild.clear();
-						}
-					}
-					else if (methodExists(temporaryBuild))
-					{
-						parse(temporaryBuild);
+            if (quoted)
+            {
+                temporaryBuild.push_back(' ');
+            }
+            else
+            {
+                if (temporaryBuild.length() != 0)
+                {
+                    if (variableExists(temporaryBuild))
+                    {
+                        if (isNumber(temporaryBuild))
+                        {
+                            vars.push_back(temporaryBuild);
+                            contents.push_back(dtos(variables.at(indexOfVariable(temporaryBuild)).getNumber()));
+                            temporaryBuild.clear();
+                        }
+                        else if (isString(temporaryBuild))
+                        {
+                            vars.push_back(temporaryBuild);
+                            contents.push_back(variables.at(indexOfVariable(temporaryBuild)).getString());
+                            temporaryBuild.clear();
+                        }
+                    }
+                    else if (methodExists(temporaryBuild))
+                    {
+                        parse(temporaryBuild);
 
-						contents.push_back(__LastValue);
-						temporaryBuild.clear();
-					}
-					else
-					{
-						contents.push_back(temporaryBuild);
-						temporaryBuild.clear();
-					}
-				}
-			}
+                        contents.push_back(__LastValue);
+                        temporaryBuild.clear();
+                    }
+                    else
+                    {
+                        contents.push_back(temporaryBuild);
+                        temporaryBuild.clear();
+                    }
+                }
+            }
         }
         else if (tempArgTwo[i] == '+')
         {
@@ -2930,12 +2911,12 @@ string getStringStack(string arg2)
         contents.push_back(temporaryBuild);
         temporaryBuild.clear();
     }
-	
+
     bool startOperating = false,
          addNext = false,
          subtractNext = false,
          multiplyNext = false;
-		 
+
     for (int i = 0; i < (int)contents.size(); i++)
     {
         if (startOperating)
@@ -3357,35 +3338,35 @@ void parse(string s)
         {
         case ' ':
             if (!__IsCommented)
-			{
-				if ((!parenthesis && quoted) || (parenthesis && quoted))
-				{
-					command.at(count).push_back(' ');
-				}
-				else if (parenthesis && !quoted)
-				{
-					doNothing();
-				}
-				else
-				{
-					if (prevChar != ' ')
-					{
-						command.push_back("");
-						count++;
-					}
-				}
-			}
+            {
+                if ((!parenthesis && quoted) || (parenthesis && quoted))
+                {
+                    command.at(count).push_back(' ');
+                }
+                else if (parenthesis && !quoted)
+                {
+                    doNothing();
+                }
+                else
+                {
+                    if (prevChar != ' ')
+                    {
+                        command.push_back("");
+                        count++;
+                    }
+                }
+            }
 
             bigString.push_back(' ');
             break;
 
         case '\"':
-			quoted = !quoted;
-			if (parenthesis) 
-			{
-				command.at(count).push_back('\"');
-			}
-			bigString.push_back('\"');
+            quoted = !quoted;
+            if (parenthesis)
+            {
+                command.at(count).push_back('\"');
+            }
+            bigString.push_back('\"');
             break;
 
         case '(':
@@ -3493,10 +3474,10 @@ void parse(string s)
         prevChar = s[i];
     }
 
-	// for (unsigned int x = 0; x < command.size(); x++) {
-		// cout << x << ":\t__ " << command.at(x) << " __" << endl;
-	// }
-	
+    // for (unsigned int x = 0; x < command.size(); x++) {
+    // cout << x << ":\t__ " << command.at(x) << " __" << endl;
+    // }
+
     size = (int)command.size();
 
     if (command.at(size - 1) == "{" && size != 1)
@@ -4462,10 +4443,10 @@ void setup()
 
     __ArgumentCount = 0,
     __NullNum = -DBL_MAX;
-	
+
     if (contains(getEnvironmentVariable("HOMEPATH"), "Users"))
     {
-        __GuessedOS = OS_WIN64; 
+        __GuessedOS = OS_WIN64;
         __SavedVarsPath = (getEnvironmentVariable("HOMEPATH") + "\\AppData") + "\\.__SavedVarsPath", __SavedVars = __SavedVarsPath + "\\.__SavedVars";
     }
     else if (contains(getEnvironmentVariable("HOMEPATH"), "Documents"))
@@ -5803,8 +5784,8 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
 
     if (variableExists(arg0))
     {
-		string tmpObjName = beforeDot(arg0), tmpVarName = afterDot(arg0);
-		bool tmpObjExists = objectExists(tmpObjName);
+        string tmpObjName = beforeDot(arg0), tmpVarName = afterDot(arg0);
+        bool tmpObjExists = objectExists(tmpObjName);
         if (tmpObjExists || startsWith(arg0, "@"))
         {
             if (tmpObjExists)
@@ -6989,637 +6970,637 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
             }
             else
             {
-				if (arg1 == "+=")
-				{
-					if (variableExists(arg2))
-					{
-						if (isString(arg0))
-						{
-							if (isString(arg2))
-								setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + variables.at(indexOfVariable(arg2)).getString());
-							else if (isNumber(arg2))
-								setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + dtos(variables.at(indexOfVariable(arg2)).getNumber()));
-							else
-								error(IS_NULL, arg2, false);
-						}
-						else if (isNumber(arg0))
-						{
-							if (isString(arg2))
-								error(CONV_ERR, arg2, false);
-							else if (isNumber(arg2))
-								setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + variables.at(indexOfVariable(arg2)).getNumber());
-							else
-								error(IS_NULL, arg2, false);
-						}
-						else
-							error(IS_NULL, arg0, false);
-					}
-					else
-					{
-						if (containsParams(arg2))
-						{
-							if (isStringStack(arg2))
-							{
-								if (isString(arg0))
-									setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + getStringStack(arg2));
-								else
-									error(CONV_ERR, arg0, false);
-							}
-							else if (stackReady(arg2))
-							{
-								if (isNumber(arg0))
-									setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + getStack(arg2));
-							}
-							else if (methodExists(beforeParams(arg2)))
-							{
-								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                if (arg1 == "+=")
+                {
+                    if (variableExists(arg2))
+                    {
+                        if (isString(arg0))
+                        {
+                            if (isString(arg2))
+                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + variables.at(indexOfVariable(arg2)).getString());
+                            else if (isNumber(arg2))
+                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + dtos(variables.at(indexOfVariable(arg2)).getNumber()));
+                            else
+                                error(IS_NULL, arg2, false);
+                        }
+                        else if (isNumber(arg0))
+                        {
+                            if (isString(arg2))
+                                error(CONV_ERR, arg2, false);
+                            else if (isNumber(arg2))
+                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + variables.at(indexOfVariable(arg2)).getNumber());
+                            else
+                                error(IS_NULL, arg2, false);
+                        }
+                        else
+                            error(IS_NULL, arg0, false);
+                    }
+                    else
+                    {
+                        if (containsParams(arg2))
+                        {
+                            if (isStringStack(arg2))
+                            {
+                                if (isString(arg0))
+                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + getStringStack(arg2));
+                                else
+                                    error(CONV_ERR, arg0, false);
+                            }
+                            else if (stackReady(arg2))
+                            {
+                                if (isNumber(arg0))
+                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + getStack(arg2));
+                            }
+                            else if (methodExists(beforeParams(arg2)))
+                            {
+                                executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
 
-								if (isString(arg0))
-									setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + __LastValue);
-								else if (isNumber(arg0))
-								{
-									if (isNumeric(__LastValue))
-										setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(__LastValue));
-									else
-										error(CONV_ERR, arg0, false);
-								}
-								else
-									error(IS_NULL, arg0, false);
-							}
-							else if (objectExists(beforeDot(arg2)))
-							{
-								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                                if (isString(arg0))
+                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + __LastValue);
+                                else if (isNumber(arg0))
+                                {
+                                    if (isNumeric(__LastValue))
+                                        setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(__LastValue));
+                                    else
+                                        error(CONV_ERR, arg0, false);
+                                }
+                                else
+                                    error(IS_NULL, arg0, false);
+                            }
+                            else if (objectExists(beforeDot(arg2)))
+                            {
+                                executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
 
-								if (isString(arg0))
-									setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + __LastValue);
-								else if (isNumber(arg0))
-								{
-									if (isNumeric(__LastValue))
-										setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(__LastValue));
-									else
-										error(CONV_ERR, arg0, false);
-								}
-								else
-									error(IS_NULL, arg0, false);
-							}
-						}
-						else if (methodExists(arg2))
-						{
-							parse(arg2);
+                                if (isString(arg0))
+                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + __LastValue);
+                                else if (isNumber(arg0))
+                                {
+                                    if (isNumeric(__LastValue))
+                                        setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(__LastValue));
+                                    else
+                                        error(CONV_ERR, arg0, false);
+                                }
+                                else
+                                    error(IS_NULL, arg0, false);
+                            }
+                        }
+                        else if (methodExists(arg2))
+                        {
+                            parse(arg2);
 
-							if (isString(arg0))
-								setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + __LastValue);
-							else if (isNumber(arg0))
-							{
-								if (isNumeric(__LastValue))
-									setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(__LastValue));
-								else
-									error(CONV_ERR, arg0, false);
-							}
-							else
-								error(IS_NULL, arg0, false);
-						}
-						else if (isNumeric(arg2))
-						{
-							if (isString(arg0))
-								setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + arg2);
-							else if (isNumber(arg0))
-								setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(arg2));
-							else
-								error(IS_NULL, arg0, false);
-						}
-						else
-						{
-							if (isString(arg0))
-								setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + cleanString(arg2));
-							else if (isNumber(arg0))
-								error(CONV_ERR, arg0, false);
-							else
-								error(IS_NULL, arg0, false);
-						}
-					}
-				}
-				else if (arg1 == "-=")
-				{
-					if (variableExists(arg2))
-					{
-						if (isString(arg0))
-						{
-							if (isString(arg2))
-							{
-								if (variables.at(indexOfVariable(arg2)).getString().length() == 1)
-									setVariable(arg0, subtractChar(variables.at(indexOfVariable(arg0)).getString(), variables.at(indexOfVariable(arg2)).getString()));
-								else
-									setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), variables.at(indexOfVariable(arg2)).getString()));
-							}
-							else if (isNumber(arg2))
-								setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), dtos(variables.at(indexOfVariable(arg2)).getNumber())));
-							else
-								error(IS_NULL, arg2, false);
-						}
-						else if (isNumber(arg0))
-						{
-							if (isString(arg2))
-								error(CONV_ERR, arg2, false);
-							else if (isNumber(arg2))
-								setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - variables.at(indexOfVariable(arg2)).getNumber());
-							else
-								error(IS_NULL, arg2, false);
-						}
-						else
-							error(IS_NULL, arg0, false);
-					}
-					else
-					{
-						if (containsParams(arg2))
-						{
-							if (isStringStack(arg2))
-							{
-								if (isString(arg0))
-									setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), getStringStack(arg2)));
-								else
-									error(CONV_ERR, arg0, false);
-							}
-							else if (stackReady(arg2))
-							{
-								if (isNumber(arg0))
-									setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - getStack(arg2));
-							}
-							else if (methodExists(beforeParams(arg2)))
-							{
-								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                            if (isString(arg0))
+                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + __LastValue);
+                            else if (isNumber(arg0))
+                            {
+                                if (isNumeric(__LastValue))
+                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(__LastValue));
+                                else
+                                    error(CONV_ERR, arg0, false);
+                            }
+                            else
+                                error(IS_NULL, arg0, false);
+                        }
+                        else if (isNumeric(arg2))
+                        {
+                            if (isString(arg0))
+                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + arg2);
+                            else if (isNumber(arg0))
+                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(arg2));
+                            else
+                                error(IS_NULL, arg0, false);
+                        }
+                        else
+                        {
+                            if (isString(arg0))
+                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + cleanString(arg2));
+                            else if (isNumber(arg0))
+                                error(CONV_ERR, arg0, false);
+                            else
+                                error(IS_NULL, arg0, false);
+                        }
+                    }
+                }
+                else if (arg1 == "-=")
+                {
+                    if (variableExists(arg2))
+                    {
+                        if (isString(arg0))
+                        {
+                            if (isString(arg2))
+                            {
+                                if (variables.at(indexOfVariable(arg2)).getString().length() == 1)
+                                    setVariable(arg0, subtractChar(variables.at(indexOfVariable(arg0)).getString(), variables.at(indexOfVariable(arg2)).getString()));
+                                else
+                                    setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), variables.at(indexOfVariable(arg2)).getString()));
+                            }
+                            else if (isNumber(arg2))
+                                setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), dtos(variables.at(indexOfVariable(arg2)).getNumber())));
+                            else
+                                error(IS_NULL, arg2, false);
+                        }
+                        else if (isNumber(arg0))
+                        {
+                            if (isString(arg2))
+                                error(CONV_ERR, arg2, false);
+                            else if (isNumber(arg2))
+                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - variables.at(indexOfVariable(arg2)).getNumber());
+                            else
+                                error(IS_NULL, arg2, false);
+                        }
+                        else
+                            error(IS_NULL, arg0, false);
+                    }
+                    else
+                    {
+                        if (containsParams(arg2))
+                        {
+                            if (isStringStack(arg2))
+                            {
+                                if (isString(arg0))
+                                    setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), getStringStack(arg2)));
+                                else
+                                    error(CONV_ERR, arg0, false);
+                            }
+                            else if (stackReady(arg2))
+                            {
+                                if (isNumber(arg0))
+                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - getStack(arg2));
+                            }
+                            else if (methodExists(beforeParams(arg2)))
+                            {
+                                executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
 
-								if (isString(arg0))
-									setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), __LastValue));
-								else if (isNumber(arg0))
-								{
-									if (isNumeric(__LastValue))
-										setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(__LastValue));
-									else
-										error(CONV_ERR, arg0, false);
-								}
-								else
-									error(IS_NULL, arg0, false);
-							}
-							else if (objectExists(beforeDot(arg2)))
-							{
-								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                                if (isString(arg0))
+                                    setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), __LastValue));
+                                else if (isNumber(arg0))
+                                {
+                                    if (isNumeric(__LastValue))
+                                        setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(__LastValue));
+                                    else
+                                        error(CONV_ERR, arg0, false);
+                                }
+                                else
+                                    error(IS_NULL, arg0, false);
+                            }
+                            else if (objectExists(beforeDot(arg2)))
+                            {
+                                executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
 
-								if (isString(arg0))
-									setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), __LastValue));
-								else if (isNumber(arg0))
-								{
-									if (isNumeric(__LastValue))
-										setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(__LastValue));
-									else
-										error(CONV_ERR, arg0, false);
-								}
-								else
-									error(IS_NULL, arg0, false);
-							}
-						}
-						else if (methodExists(arg2))
-						{
-							parse(arg2);
+                                if (isString(arg0))
+                                    setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), __LastValue));
+                                else if (isNumber(arg0))
+                                {
+                                    if (isNumeric(__LastValue))
+                                        setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(__LastValue));
+                                    else
+                                        error(CONV_ERR, arg0, false);
+                                }
+                                else
+                                    error(IS_NULL, arg0, false);
+                            }
+                        }
+                        else if (methodExists(arg2))
+                        {
+                            parse(arg2);
 
-							if (isString(arg0))
-								setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), __LastValue));
-							else if (isNumber(arg0))
-							{
-								if (isNumeric(__LastValue))
-									setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(__LastValue));
-								else
-									error(CONV_ERR, arg0, false);
-							}
-							else
-								error(IS_NULL, arg0, false);
-						}
-						else if (isNumeric(arg2))
-						{
-							if (isString(arg0))
-							{
-								if (arg2.length() == 1)
-									setVariable(arg0, subtractChar(variables.at(indexOfVariable(arg0)).getString(), arg2));
-								else
-									setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), arg2));
-							}
-							else if (isNumber(arg0))
-								setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(arg2));
-							else
-								error(IS_NULL, arg0, false);
-						}
-						else
-						{
-							if (isString(arg0))
-							{
-								if (arg2.length() == 1)
-									setVariable(arg0, subtractChar(variables.at(indexOfVariable(arg0)).getString(), arg2));
-								else
-									setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), cleanString(arg2)));
-							}
-							else if (isNumber(arg0))
-								error(CONV_ERR, arg0, false);
-							else
-								error(IS_NULL, arg0, false);
-						}
-					}
-				}
-				else if (arg1 == "*=")
-				{
-					if (variableExists(arg2))
-					{
-						if (isNumber(arg2))
-							setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * variables.at(indexOfVariable(arg2)).getNumber());
-						else if (isString(arg2))
-							error(CONV_ERR, arg2, false);
-						else
-							error(IS_NULL, arg2, false);
-					}
-					else
-					{
-						if (containsParams(arg2))
-						{
-							if (stackReady(arg2))
-							{
-								if (isNumber(arg0))
-									setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * getStack(arg2));
-							}
-							else if (methodExists(beforeParams(arg2)))
-							{
-								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                            if (isString(arg0))
+                                setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), __LastValue));
+                            else if (isNumber(arg0))
+                            {
+                                if (isNumeric(__LastValue))
+                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(__LastValue));
+                                else
+                                    error(CONV_ERR, arg0, false);
+                            }
+                            else
+                                error(IS_NULL, arg0, false);
+                        }
+                        else if (isNumeric(arg2))
+                        {
+                            if (isString(arg0))
+                            {
+                                if (arg2.length() == 1)
+                                    setVariable(arg0, subtractChar(variables.at(indexOfVariable(arg0)).getString(), arg2));
+                                else
+                                    setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), arg2));
+                            }
+                            else if (isNumber(arg0))
+                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(arg2));
+                            else
+                                error(IS_NULL, arg0, false);
+                        }
+                        else
+                        {
+                            if (isString(arg0))
+                            {
+                                if (arg2.length() == 1)
+                                    setVariable(arg0, subtractChar(variables.at(indexOfVariable(arg0)).getString(), arg2));
+                                else
+                                    setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), cleanString(arg2)));
+                            }
+                            else if (isNumber(arg0))
+                                error(CONV_ERR, arg0, false);
+                            else
+                                error(IS_NULL, arg0, false);
+                        }
+                    }
+                }
+                else if (arg1 == "*=")
+                {
+                    if (variableExists(arg2))
+                    {
+                        if (isNumber(arg2))
+                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * variables.at(indexOfVariable(arg2)).getNumber());
+                        else if (isString(arg2))
+                            error(CONV_ERR, arg2, false);
+                        else
+                            error(IS_NULL, arg2, false);
+                    }
+                    else
+                    {
+                        if (containsParams(arg2))
+                        {
+                            if (stackReady(arg2))
+                            {
+                                if (isNumber(arg0))
+                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * getStack(arg2));
+                            }
+                            else if (methodExists(beforeParams(arg2)))
+                            {
+                                executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
 
-								if (isNumber(arg0))
-								{
-									if (isNumeric(__LastValue))
-										setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(__LastValue));
-									else
-										error(CONV_ERR, arg0, false);
-								}
-								else
-									error(NULL_NUMBER, arg0, false);
-							}
-							else if (objectExists(beforeDot(arg2)))
-							{
-								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                                if (isNumber(arg0))
+                                {
+                                    if (isNumeric(__LastValue))
+                                        setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(__LastValue));
+                                    else
+                                        error(CONV_ERR, arg0, false);
+                                }
+                                else
+                                    error(NULL_NUMBER, arg0, false);
+                            }
+                            else if (objectExists(beforeDot(arg2)))
+                            {
+                                executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
 
-								if (isNumber(arg0))
-								{
-									if (isNumeric(__LastValue))
-										setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(__LastValue));
-									else
-										error(CONV_ERR, arg0, false);
-								}
-								else
-									error(NULL_NUMBER, arg0, false);
-							}
-						}
-						else if (methodExists(arg2))
-						{
-							parse(arg2);
+                                if (isNumber(arg0))
+                                {
+                                    if (isNumeric(__LastValue))
+                                        setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(__LastValue));
+                                    else
+                                        error(CONV_ERR, arg0, false);
+                                }
+                                else
+                                    error(NULL_NUMBER, arg0, false);
+                            }
+                        }
+                        else if (methodExists(arg2))
+                        {
+                            parse(arg2);
 
-							if (isNumber(arg0))
-							{
-								if (isNumeric(__LastValue))
-									setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(__LastValue));
-								else
-									error(CONV_ERR, arg0, false);
-							}
-							else
-								error(NULL_NUMBER, arg0, false);
-						}
-						else if (isNumeric(arg2))
-						{
-							if (isNumber(arg0))
-								setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(arg2));
-						}
-						else
-							setVariable(arg0, cleanString(arg2));
-					}
-				}
-				else if (arg1 == "%=")
-				{
-					if (variableExists(arg2))
-					{
-						if (isNumber(arg2))
-							setVariable(arg0, (int)variables.at(indexOfVariable(arg0)).getNumber() % (int)variables.at(indexOfVariable(arg2)).getNumber());
-						else if (isString(arg2))
-							error(CONV_ERR, arg2, false);
-						else
-							error(IS_NULL, arg2, false);
-					}
-					else if (methodExists(arg2))
-					{
-						parse(arg2);
+                            if (isNumber(arg0))
+                            {
+                                if (isNumeric(__LastValue))
+                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(__LastValue));
+                                else
+                                    error(CONV_ERR, arg0, false);
+                            }
+                            else
+                                error(NULL_NUMBER, arg0, false);
+                        }
+                        else if (isNumeric(arg2))
+                        {
+                            if (isNumber(arg0))
+                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(arg2));
+                        }
+                        else
+                            setVariable(arg0, cleanString(arg2));
+                    }
+                }
+                else if (arg1 == "%=")
+                {
+                    if (variableExists(arg2))
+                    {
+                        if (isNumber(arg2))
+                            setVariable(arg0, (int)variables.at(indexOfVariable(arg0)).getNumber() % (int)variables.at(indexOfVariable(arg2)).getNumber());
+                        else if (isString(arg2))
+                            error(CONV_ERR, arg2, false);
+                        else
+                            error(IS_NULL, arg2, false);
+                    }
+                    else if (methodExists(arg2))
+                    {
+                        parse(arg2);
 
-						if (isNumber(arg0))
-						{
-							if (isNumeric(__LastValue))
-								setVariable(arg0, (int)variables.at(indexOfVariable(arg0)).getNumber() % (int)stod(__LastValue));
-							else
-								error(CONV_ERR, arg0, false);
-						}
-						else
-							error(NULL_NUMBER, arg0, false);
-					}
-					else
-					{
-						if (isNumeric(arg2))
-						{
-							if (isNumber(arg0))
-								setVariable(arg0, (int)variables.at(indexOfVariable(arg0)).getNumber() % (int)stod(arg2));
-						}
-						else
-							setVariable(arg0, cleanString(arg2));
-					}
-				}
-				else if (arg1 == "**=")
-				{
-					if (variableExists(arg2))
-					{
-						if (isNumber(arg2))
-							setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), variables.at(indexOfVariable(arg2)).getNumber()));
-						else if (isString(arg2))
-							error(CONV_ERR, arg2, false);
-						else
-							error(IS_NULL, arg2, false);
-					}
-					else
-					{
-						if (containsParams(arg2))
-						{
-							if (stackReady(arg2))
-							{
-								if (isNumber(arg0))
-									setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)getStack(arg2)));
-							}
-							else if (methodExists(beforeParams(arg2)))
-							{
-								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                        if (isNumber(arg0))
+                        {
+                            if (isNumeric(__LastValue))
+                                setVariable(arg0, (int)variables.at(indexOfVariable(arg0)).getNumber() % (int)stod(__LastValue));
+                            else
+                                error(CONV_ERR, arg0, false);
+                        }
+                        else
+                            error(NULL_NUMBER, arg0, false);
+                    }
+                    else
+                    {
+                        if (isNumeric(arg2))
+                        {
+                            if (isNumber(arg0))
+                                setVariable(arg0, (int)variables.at(indexOfVariable(arg0)).getNumber() % (int)stod(arg2));
+                        }
+                        else
+                            setVariable(arg0, cleanString(arg2));
+                    }
+                }
+                else if (arg1 == "**=")
+                {
+                    if (variableExists(arg2))
+                    {
+                        if (isNumber(arg2))
+                            setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), variables.at(indexOfVariable(arg2)).getNumber()));
+                        else if (isString(arg2))
+                            error(CONV_ERR, arg2, false);
+                        else
+                            error(IS_NULL, arg2, false);
+                    }
+                    else
+                    {
+                        if (containsParams(arg2))
+                        {
+                            if (stackReady(arg2))
+                            {
+                                if (isNumber(arg0))
+                                    setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)getStack(arg2)));
+                            }
+                            else if (methodExists(beforeParams(arg2)))
+                            {
+                                executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
 
-								if (isNumber(arg0))
-								{
-									if (isNumeric(__LastValue))
-										setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)stod(__LastValue)));
-									else
-										error(CONV_ERR, arg0, false);
-								}
-								else
-									error(NULL_NUMBER, arg0, false);
-							}
-							else if (objectExists(beforeDot(arg2)))
-							{
-								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                                if (isNumber(arg0))
+                                {
+                                    if (isNumeric(__LastValue))
+                                        setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)stod(__LastValue)));
+                                    else
+                                        error(CONV_ERR, arg0, false);
+                                }
+                                else
+                                    error(NULL_NUMBER, arg0, false);
+                            }
+                            else if (objectExists(beforeDot(arg2)))
+                            {
+                                executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
 
-								if (isNumber(arg0))
-								{
-									if (isNumeric(__LastValue))
-										setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)stod(__LastValue)));
-									else
-										error(CONV_ERR, arg0, false);
-								}
-								else
-									error(NULL_NUMBER, arg0, false);
-							}
-						}
-						else if (methodExists(arg2))
-						{
-							parse(arg2);
+                                if (isNumber(arg0))
+                                {
+                                    if (isNumeric(__LastValue))
+                                        setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)stod(__LastValue)));
+                                    else
+                                        error(CONV_ERR, arg0, false);
+                                }
+                                else
+                                    error(NULL_NUMBER, arg0, false);
+                            }
+                        }
+                        else if (methodExists(arg2))
+                        {
+                            parse(arg2);
 
-							if (isNumber(arg0))
-							{
-								if (isNumeric(__LastValue))
-									setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)stod(__LastValue)));
-								else
-									error(CONV_ERR, arg0, false);
-							}
-							else
-								error(NULL_NUMBER, arg0, false);
-						}
-						else if (isNumeric(arg2))
-						{
-							if (isNumber(arg0))
-								setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), stod(arg2)));
-						}
-						else
-							setVariable(arg0, cleanString(arg2));
-					}
-				}
-				else if (arg1 == "/=")
-				{
-					if (variableExists(arg2))
-					{
-						if (isNumber(arg2))
-							setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / variables.at(indexOfVariable(arg2)).getNumber());
-						else if (isString(arg2))
-							error(CONV_ERR, arg2, false);
-						else
-							error(IS_NULL, arg2, false);
-					}
-					else
-					{
-						if (containsParams(arg2))
-						{
-							if (stackReady(arg2))
-							{
-								if (isNumber(arg0))
-									setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / getStack(arg2));
-							}
-							else if (methodExists(beforeParams(arg2)))
-							{
-								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                            if (isNumber(arg0))
+                            {
+                                if (isNumeric(__LastValue))
+                                    setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)stod(__LastValue)));
+                                else
+                                    error(CONV_ERR, arg0, false);
+                            }
+                            else
+                                error(NULL_NUMBER, arg0, false);
+                        }
+                        else if (isNumeric(arg2))
+                        {
+                            if (isNumber(arg0))
+                                setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), stod(arg2)));
+                        }
+                        else
+                            setVariable(arg0, cleanString(arg2));
+                    }
+                }
+                else if (arg1 == "/=")
+                {
+                    if (variableExists(arg2))
+                    {
+                        if (isNumber(arg2))
+                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / variables.at(indexOfVariable(arg2)).getNumber());
+                        else if (isString(arg2))
+                            error(CONV_ERR, arg2, false);
+                        else
+                            error(IS_NULL, arg2, false);
+                    }
+                    else
+                    {
+                        if (containsParams(arg2))
+                        {
+                            if (stackReady(arg2))
+                            {
+                                if (isNumber(arg0))
+                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / getStack(arg2));
+                            }
+                            else if (methodExists(beforeParams(arg2)))
+                            {
+                                executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
 
-								if (isNumber(arg0))
-								{
-									if (isNumeric(__LastValue))
-										setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(__LastValue));
-									else
-										error(CONV_ERR, arg0, false);
-								}
-								else
-									error(NULL_NUMBER, arg0, false);
-							}
-							else if (objectExists(beforeDot(arg2)))
-							{
-								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                                if (isNumber(arg0))
+                                {
+                                    if (isNumeric(__LastValue))
+                                        setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(__LastValue));
+                                    else
+                                        error(CONV_ERR, arg0, false);
+                                }
+                                else
+                                    error(NULL_NUMBER, arg0, false);
+                            }
+                            else if (objectExists(beforeDot(arg2)))
+                            {
+                                executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
 
-								if (isNumber(arg0))
-								{
-									if (isNumeric(__LastValue))
-										setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(__LastValue));
-									else
-										error(CONV_ERR, arg0, false);
-								}
-								else
-									error(NULL_NUMBER, arg0, false);
-							}
-						}
-						else if (methodExists(arg2))
-						{
-							parse(arg2);
+                                if (isNumber(arg0))
+                                {
+                                    if (isNumeric(__LastValue))
+                                        setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(__LastValue));
+                                    else
+                                        error(CONV_ERR, arg0, false);
+                                }
+                                else
+                                    error(NULL_NUMBER, arg0, false);
+                            }
+                        }
+                        else if (methodExists(arg2))
+                        {
+                            parse(arg2);
 
-							if (isNumber(arg0))
-							{
-								if (isNumeric(__LastValue))
-									setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(__LastValue));
-								else
-									error(CONV_ERR, arg0, false);
-							}
-							else
-								error(NULL_NUMBER, arg0, false);
-						}
-						else if (isNumeric(arg2))
-						{
-							if (isNumber(arg0))
-								setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(arg2));
-						}
-						else
-							setVariable(arg0, cleanString(arg2));
-					}
-				}
-				else if (arg1 == "++=")
-				{
-					if (variableExists(arg2))
-					{
-						if (isNumber(arg2))
-						{
-							if (isString(arg0))
-							{
-								int tempVarNumber((int)variables.at(indexOfVariable(arg2)).getNumber());
-								string tempVarString(variables.at(indexOfVariable(arg0)).getString());
-								int len(tempVarString.length());
-								string cleaned("");
+                            if (isNumber(arg0))
+                            {
+                                if (isNumeric(__LastValue))
+                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(__LastValue));
+                                else
+                                    error(CONV_ERR, arg0, false);
+                            }
+                            else
+                                error(NULL_NUMBER, arg0, false);
+                        }
+                        else if (isNumeric(arg2))
+                        {
+                            if (isNumber(arg0))
+                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(arg2));
+                        }
+                        else
+                            setVariable(arg0, cleanString(arg2));
+                    }
+                }
+                else if (arg1 == "++=")
+                {
+                    if (variableExists(arg2))
+                    {
+                        if (isNumber(arg2))
+                        {
+                            if (isString(arg0))
+                            {
+                                int tempVarNumber((int)variables.at(indexOfVariable(arg2)).getNumber());
+                                string tempVarString(variables.at(indexOfVariable(arg0)).getString());
+                                int len(tempVarString.length());
+                                string cleaned("");
 
-								for (int i = 0; i < len; i++)
-									cleaned.push_back((char)(((int)tempVarString[i]) + tempVarNumber));
+                                for (int i = 0; i < len; i++)
+                                    cleaned.push_back((char)(((int)tempVarString[i]) + tempVarNumber));
 
-								setVariable(arg0, cleaned);
-							}
-							else
-								error(IS_NULL, arg0, false);
-						}
-						else
-							error(CONV_ERR, arg2, false);
-					}
-					else
-					{
-						if (isNumeric(arg2))
-						{
-							int tempVarNumber(stoi(arg2));
-							string tempVarString(variables.at(indexOfVariable(arg0)).getString());
+                                setVariable(arg0, cleaned);
+                            }
+                            else
+                                error(IS_NULL, arg0, false);
+                        }
+                        else
+                            error(CONV_ERR, arg2, false);
+                    }
+                    else
+                    {
+                        if (isNumeric(arg2))
+                        {
+                            int tempVarNumber(stoi(arg2));
+                            string tempVarString(variables.at(indexOfVariable(arg0)).getString());
 
-							if (tempVarString != __Null)
-							{
-								int len(tempVarString.length());
-								string cleaned("");
+                            if (tempVarString != __Null)
+                            {
+                                int len(tempVarString.length());
+                                string cleaned("");
 
-								for (int i = 0; i < len; i++)
-									cleaned.push_back((char)(((int)tempVarString[i]) + tempVarNumber));
+                                for (int i = 0; i < len; i++)
+                                    cleaned.push_back((char)(((int)tempVarString[i]) + tempVarNumber));
 
-								setVariable(arg0, cleaned);
-							}
-							else
-								error(IS_NULL, tempVarString, false);
-						}
-						else
-							error(CONV_ERR, arg2, false);
-					}
-				}
-				else if (arg1 == "--=")
-				{
-					if (variableExists(arg2))
-					{
-						if (isNumber(arg2))
-						{
-							if (isString(arg0))
-							{
-								int tempVarNumber((int)variables.at(indexOfVariable(arg2)).getNumber());
-								string tempVarString(variables.at(indexOfVariable(arg0)).getString());
-								int len(tempVarString.length());
-								string cleaned("");
+                                setVariable(arg0, cleaned);
+                            }
+                            else
+                                error(IS_NULL, tempVarString, false);
+                        }
+                        else
+                            error(CONV_ERR, arg2, false);
+                    }
+                }
+                else if (arg1 == "--=")
+                {
+                    if (variableExists(arg2))
+                    {
+                        if (isNumber(arg2))
+                        {
+                            if (isString(arg0))
+                            {
+                                int tempVarNumber((int)variables.at(indexOfVariable(arg2)).getNumber());
+                                string tempVarString(variables.at(indexOfVariable(arg0)).getString());
+                                int len(tempVarString.length());
+                                string cleaned("");
 
-								for (int i = 0; i < len; i++)
-									cleaned.push_back((char)(((int)tempVarString[i]) - tempVarNumber));
+                                for (int i = 0; i < len; i++)
+                                    cleaned.push_back((char)(((int)tempVarString[i]) - tempVarNumber));
 
-								setVariable(arg0, cleaned);
-							}
-							else
-								error(IS_NULL, arg0, false);
-						}
-						else
-							error(CONV_ERR, arg2, false);
-					}
-					else
-					{
-						if (isNumeric(arg2))
-						{
-							int tempVarNumber(stoi(arg2));
-							string tempVarString(variables.at(indexOfVariable(arg0)).getString());
+                                setVariable(arg0, cleaned);
+                            }
+                            else
+                                error(IS_NULL, arg0, false);
+                        }
+                        else
+                            error(CONV_ERR, arg2, false);
+                    }
+                    else
+                    {
+                        if (isNumeric(arg2))
+                        {
+                            int tempVarNumber(stoi(arg2));
+                            string tempVarString(variables.at(indexOfVariable(arg0)).getString());
 
-							if (tempVarString != __Null)
-							{
-								int len(tempVarString.length());
-								string cleaned("");
+                            if (tempVarString != __Null)
+                            {
+                                int len(tempVarString.length());
+                                string cleaned("");
 
-								for (int i = 0; i < len; i++)
-									cleaned.push_back((char)(((int)tempVarString[i]) - tempVarNumber));
+                                for (int i = 0; i < len; i++)
+                                    cleaned.push_back((char)(((int)tempVarString[i]) - tempVarNumber));
 
-								setVariable(arg0, cleaned);
-							}
-							else
-								error(IS_NULL, tempVarString, false);
-						}
-						else
-							error(CONV_ERR, arg2, false);
-					}
-				}
-				else if (arg1 == "?")
-				{
-					if (variableExists(arg2))
-					{
-						if (isString(arg2))
-						{
-							if (isString(arg0))
-								setVariable(arg0, getStdout(variables.at(indexOfVariable(arg2)).getString().c_str()));
-							else
-								error(CONV_ERR, arg0, false);
-						}
-						else
-							error(CONV_ERR, arg2, false);
-					}
-					else
-					{
-						if (isString(arg0))
-							setVariable(arg0, getStdout(cleanString(arg2).c_str()));
-						else
-							error(CONV_ERR, arg0, false);
-					}
-				}
-				else if (arg1 == "!")
-				{
-					if (variableExists(arg2))
-					{
-						if (isString(arg2))
-						{
-							if (isString(arg0))
-								setVariable(arg0, getParsedOutput(variables.at(indexOfVariable(arg2)).getString().c_str()));
-							else
-								error(CONV_ERR, arg0, false);
-						}
-						else
-							error(CONV_ERR, arg2, false);
-					}
-					else
-					{
-						if (isString(arg0))
-							setVariable(arg0, getParsedOutput(cleanString(arg2).c_str()));
-						else
-							error(CONV_ERR, arg0, false);
-					}
-				}
-				else
-				{
-					error(INVALID_OPERATOR, arg1, false);
-				}
+                                setVariable(arg0, cleaned);
+                            }
+                            else
+                                error(IS_NULL, tempVarString, false);
+                        }
+                        else
+                            error(CONV_ERR, arg2, false);
+                    }
+                }
+                else if (arg1 == "?")
+                {
+                    if (variableExists(arg2))
+                    {
+                        if (isString(arg2))
+                        {
+                            if (isString(arg0))
+                                setVariable(arg0, getStdout(variables.at(indexOfVariable(arg2)).getString().c_str()));
+                            else
+                                error(CONV_ERR, arg0, false);
+                        }
+                        else
+                            error(CONV_ERR, arg2, false);
+                    }
+                    else
+                    {
+                        if (isString(arg0))
+                            setVariable(arg0, getStdout(cleanString(arg2).c_str()));
+                        else
+                            error(CONV_ERR, arg0, false);
+                    }
+                }
+                else if (arg1 == "!")
+                {
+                    if (variableExists(arg2))
+                    {
+                        if (isString(arg2))
+                        {
+                            if (isString(arg0))
+                                setVariable(arg0, getParsedOutput(variables.at(indexOfVariable(arg2)).getString().c_str()));
+                            else
+                                error(CONV_ERR, arg0, false);
+                        }
+                        else
+                            error(CONV_ERR, arg2, false);
+                    }
+                    else
+                    {
+                        if (isString(arg0))
+                            setVariable(arg0, getParsedOutput(cleanString(arg2).c_str()));
+                        else
+                            error(CONV_ERR, arg0, false);
+                    }
+                }
+                else
+                {
+                    error(INVALID_OPERATOR, arg1, false);
+                }
             }
         }
     }
@@ -9104,7 +9085,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     successfulIF();
                 }
             }
-            else 
+            else
             {
                 if (arg3 == "string?")
                 {
@@ -9435,7 +9416,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     successfulIF();
                 }
             }
-            else 
+            else
             {
                 if (stackValue == "is_string?" || stackValue == "string?")
                 {
@@ -9748,7 +9729,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     successfulIF();
                 }
             }
-            else 
+            else
             {
                 if (arg2 == "==" || arg2 == "is")
                 {
@@ -9868,7 +9849,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     successfulIF();
                 }
             }
-            else 
+            else
             {
                 if (arg2 == "==" || arg2 == "is")
                 {
@@ -10220,7 +10201,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         successfulIF();
                     }
                 }
-                else 
+                else
                 {
                     string arg1Result(""), arg3Result("");
 
@@ -11384,7 +11365,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     failedIfStatement();
                 }
             }
-            else 
+            else
             {
                 if (arg3 == "string?")
                 {
@@ -11715,7 +11696,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     failedIfStatement();
                 }
             }
-            else 
+            else
             {
                 if (stackValue == "string?")
                 {
@@ -12028,7 +12009,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     failedIfStatement();
                 }
             }
-            else 
+            else
             {
                 if (arg2 == "==" || arg2 == "is")
                 {
@@ -12148,7 +12129,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     failedIfStatement();
                 }
             }
-            else 
+            else
             {
                 if (arg2 == "==" || arg2 == "is")
                 {
@@ -12500,7 +12481,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         failedIfStatement();
                     }
                 }
-                else 
+                else
                 {
                     string arg1Result(""), arg3Result("");
 
@@ -13541,7 +13522,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     failedFor();
                 }
             }
-            else 
+            else
             {
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
@@ -13604,7 +13585,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     failedFor();
                 }
             }
-            else 
+            else
             {
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
@@ -13667,7 +13648,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     failedFor();
                 }
             }
-            else 
+            else
             {
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
@@ -13730,7 +13711,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     failedFor();
                 }
             }
-            else 
+            else
             {
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
@@ -14881,10 +14862,10 @@ void InternalOutput(string arg0, string arg1)
             else if (objects.at(indexOfObject(beforeDot(arg1))).getVariable(afterDot(arg1)).getNumber() != __NullNum)
                 text = (dtos(objects.at(indexOfObject(beforeDot(arg1))).getVariable(afterDot(arg1)).getNumber()));
             else
-			{
+            {
                 error(IS_NULL, arg1, false);
-				return;
-			}
+                return;
+            }
         }
         else
         {
@@ -14893,10 +14874,10 @@ void InternalOutput(string arg0, string arg1)
             else if (isNumber(arg1))
                 text = (dtos(variables.at(indexOfVariable(arg1)).getNumber()));
             else
-			{
+            {
                 error(IS_NULL, arg1, false);
-				return;
-			}
+                return;
+            }
         }
     }
 
@@ -15266,7 +15247,6 @@ void delay(int seconds)
 double random(double min, double max)
 {
     double r = (double)rand() / (double)RAND_MAX;
-
     return (min + (r * (max - min)));
 }
 
@@ -15274,7 +15254,7 @@ string random(string start, string sc)
 {
     string s("");
     char c;
-    c = (rand() % get_alpha_num(sc[0])) + start[0];
+    c = start[0] == sc[0] ? sc[0] : (rand() % get_alpha_num(sc[0])) + start[0];
     s.push_back(c);
 
     return (s);
@@ -15463,10 +15443,10 @@ int main(int c, char ** v)
         }
         else if (is(opt, "n") || is(opt, "negligence"))
         {
-			__Negligence = true;
-			args.push_back(opt);
-			args.push_back(script);
-			__ArgumentCount = (int)args.size();
+            __Negligence = true;
+            args.push_back(opt);
+            args.push_back(script);
+            __ArgumentCount = (int)args.size();
             if (isScript(script))
             {
                 __CurrentScript = script;
@@ -15481,13 +15461,13 @@ int main(int c, char ** v)
         else if (is(opt, "l") || is(opt, "log"))
         {
             __LogFile = script;
-			// __Logging = true;
-            
+            // __Logging = true;
+
             if (!fileExists(__LogFile))
             {
-				createFile(__LogFile);
+                createFile(__LogFile);
             }
-			loop(false);
+            loop(false);
         }
         else if (is(opt, "p") || is(opt, "parse"))
         {
