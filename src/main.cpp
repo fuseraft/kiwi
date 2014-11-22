@@ -29,6 +29,11 @@
 
 using namespace std;
 
+const int OS_UNKNOWN	= 0x0000;
+const int OS_NIX	= 0x0001;
+const int OS_WIN64	= 0x0002;
+const int OS_WIN32	= 0x0004;
+
 const int MAX_BUFFER = 1024;
 
 #include "methods.h"
@@ -95,7 +100,6 @@ string	__CurrentLine,
         __CurrentScriptName,
         __ErrorVarName,
         __GoTo,
-        __GuessedOS,
         __InitialDirectory,
         __LastError,
         __LastValue,
@@ -110,6 +114,7 @@ string	__CurrentLine,
         __DefaultLoopSymbol,
         __Null,
         cleanString(string st),
+		getGuessedOS(string os),
         getParsedOutput(string cmd),
         getSilentOutput(string text);
 
@@ -121,7 +126,8 @@ int __ArgumentCount,
     __IfStatementCount,
     __ForLoopCount,
     __ParamVarCount,
-    __WhileLoopCount;
+    __WhileLoopCount,
+	__GuessedOS;
 
 double __NullNum;
 
@@ -186,7 +192,6 @@ void    cd(string p),
         clearWhile(),
         delay(int seconds),
         displayVersion(),
-        error(string e, bool quit),
         executeMethod(Method m),
         executeNest(Container n),
         failedIfStatement(),
@@ -254,6 +259,42 @@ bool isStringStack(string arg2);
 bool stackReady(string arg2);
 string getStringStack(string arg2);
 
+void error(int errorType, string errorMessage, bool quit);
+string getErrorString(int errorType);
+
+const int IS_NULL =	0;
+const int BAD_LOAD = 1;
+const int CONV_ERR = 2;
+const int INFINITE_LOOP = 3;	
+const int INVALID_OP = 4;
+const int DIR_EXISTS = 5;
+const int DIR_NOT_FOUND = 6;
+const int FILE_EXISTS =	7;
+const int FILE_NOT_FOUND = 8;
+const int OUT_OF_BOUNDS = 9;
+const int INVALID_RANGE_SEP = 10;
+const int INVALID_SEQ = 11;
+const int INVALID_SEQ_SEP = 12;
+const int INVALID_VAR_DECL = 13;
+const int LIST_UNDEFINED = 14;
+const int METHOD_DEFINED = 15;
+const int METHOD_UNDEFINED = 16;
+const int NULL_NUMBER = 17;
+const int NULL_STRING = 18;
+const int OBJ_METHOD_UNDEFINED = 19;
+const int OBJ_UNDEFINED = 20;
+const int OBJ_VAR_UNDEFINED = 21;
+const int VAR_DEFINED = 22;
+const int VAR_UNDEFINED = 23;
+const int TARGET_UNDEFINED = 24;
+const int CONST_UNDEFINED = 25;
+const int INVALID_OPERATOR = 26;
+const int IS_EMPTY = 27;
+const int READ_FAIL = 28;
+const int DIVIDED_BY_ZERO = 29;
+const int UNDEFINED = 30;
+const int UNDEFINED_OS = 31;
+
 void setLastValue(string s)
 {
     __LastValue = s;
@@ -300,7 +341,7 @@ void setList(string arg1, string arg2, vector<string> params)
                 else if (isNumber(params.at(i)))
                     lists.at(indexOfList(arg1)).add(dtos(variables.at(indexOfVariable(params.at(i))).getNumber()));
                 else
-                    error("is_null:" + params.at(i), false);
+                    error(IS_NULL, params.at(i), false);
             }
             else
                 lists.at(indexOfList(arg1)).add(params.at(i));
@@ -423,7 +464,7 @@ void appendText(string arg1, string arg2, bool newLine)
                             app(variables.at(indexOfVariable(arg1)).getString(), dtos(variables.at(indexOfVariable(arg2)).getNumber()));
                     }
                     else
-                        error("is_null:" + arg2, false);
+                        error(IS_NULL, arg2, false);
                 }
                 else
                 {
@@ -434,10 +475,10 @@ void appendText(string arg1, string arg2, bool newLine)
                 }
             }
             else
-                error("read_fail:" + variables.at(indexOfVariable(arg1)).getString(), false);
+                error(READ_FAIL, variables.at(indexOfVariable(arg1)).getString(), false);
         }
         else
-            error("conversion_error:" + arg1, false);
+            error(CONV_ERR, arg1, false);
     }
     else
     {
@@ -453,10 +494,10 @@ void appendText(string arg1, string arg2, bool newLine)
                         app(arg1, variables.at(indexOfVariable(arg2)).getString());
                 }
                 else
-                    error("read_fail:" + variables.at(indexOfVariable(arg2)).getString(), false);
+                    error(READ_FAIL, variables.at(indexOfVariable(arg2)).getString(), false);
             }
             else
-                error("conversion_error:" + arg2, false);
+                error(CONV_ERR, arg2, false);
         }
         else
         {
@@ -468,7 +509,7 @@ void appendText(string arg1, string arg2, bool newLine)
                     app(arg1, arg2);
             }
             else
-                error("read_fail:" + arg1, false);
+                error(READ_FAIL, arg1, false);
         }
     }
 }
@@ -495,7 +536,7 @@ void __fwrite(string arg1, string arg2)
                     }
                     else
                     {
-                        error("is_null:" + arg2, false);
+                        error(IS_NULL, arg2, false);
                         __LastValue = "-1";
                     }
                 }
@@ -521,7 +562,7 @@ void __fwrite(string arg1, string arg2)
                 }
                 else
                 {
-                    error("is_null:" + arg2, false);
+                    error(IS_NULL, arg2, false);
                     __LastValue = "-1";
                 }
 
@@ -530,7 +571,7 @@ void __fwrite(string arg1, string arg2)
         }
         else
         {
-            error("conversion_error:" + arg1, false);
+            error(CONV_ERR, arg1, false);
             __LastValue = "-1";
         }
     }
@@ -554,7 +595,7 @@ void __fwrite(string arg1, string arg2)
             }
             else
             {
-                error("conversion_error:" + arg2, false);
+                error(CONV_ERR, arg2, false);
                 __LastValue = "-1";
             }
         }
@@ -631,16 +672,22 @@ void cd(string p)
         {
             if (p[i] == '~')
             {
-                if (__GuessedOS == "UNIXMacorLINUX")
-                    cleaned.append(getEnvironmentVariable("HOME"));
-                else if (__GuessedOS == "Win2000NTorXP")
-                    cleaned.append(getEnvironmentVariable("HOMEPATH"));
-                else if (__GuessedOS == "Win7orVista")
-                    cleaned.append(getEnvironmentVariable("HOMEPATH"));
-                else if (__GuessedOS == "UnknownWindowsOS")
-                    cleaned.append(getEnvironmentVariable("HOME"));
-                else
-                    error("undefined_os", false);
+				switch (__GuessedOS)
+				{
+					case OS_NIX:
+						cleaned.append(getEnvironmentVariable("HOME"));
+						break;
+					case OS_WIN32:
+					case OS_WIN64:
+						cleaned.append(getEnvironmentVariable("HOMEPATH"));
+						break;
+					case OS_UNKNOWN:
+						cleaned.append(getEnvironmentVariable("HOME"));
+						break;
+					default:
+						error(UNDEFINED_OS, "", false);
+						break;
+				}
             }
             else
                 cleaned.push_back(p[i]);
@@ -649,13 +696,13 @@ void cd(string p)
         if (directoryExists(cleaned))
             cd(cleaned);
         else
-            error("read_fail:" + p, false);
+            error(READ_FAIL, p, false);
     }
     else
     {
         if (p == "~")
         {
-            if (__GuessedOS == "UNIXMacorLINUX" || __GuessedOS == "UnknownWindowsOS")
+            if (__GuessedOS == OS_NIX || __GuessedOS == OS_UNKNOWN)
                 cd(getEnvironmentVariable("HOME"));
             else
                 cd(getEnvironmentVariable("HOMEPATH"));
@@ -665,7 +712,7 @@ void cd(string p)
         else
         {
             if (chdir(p.c_str()) != 0)
-                error("read_fail:" + p, false);
+                error(READ_FAIL, p, false);
         }
     }
 }
@@ -721,10 +768,10 @@ string cleanString(string st)
                                 cleaned.append(__LastValue);
                             }
                             else
-                                error("invalid_operation:method_undefined:" + before + "." + beforeParams(after), false);
+                                error(METHOD_UNDEFINED, before + "." + beforeParams(after), false);
                         }
                         else
-                            error("invalid_operation:object_undefined:" + before, false);
+                            error(OBJ_METHOD_UNDEFINED, before, false);
                     }
                     else if (methodExists(beforeParams(builder)))
                     {
@@ -764,7 +811,7 @@ string cleanString(string st)
                                             cleaned.append(_build);
                                         }
                                         else
-                                            error("invalid_operation:index_out_of_bounds:" + rangeBegin + ".." + rangeEnd, false);
+                                            error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                                     }
                                     else if (stoi(rangeBegin) > stoi(rangeEnd))
                                     {
@@ -776,10 +823,10 @@ string cleanString(string st)
                                             cleaned.append(_build);
                                         }
                                         else
-                                            error("invalid_operation:index_out_of_bounds:" + rangeBegin + ".." + rangeEnd, false);
+                                            error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                                     }
                                     else
-                                        error("invalid_operation:invalid_range:" + rangeBegin + ".." + rangeEnd, false);
+                                        error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                                 }
                             }
                             else if (listRange.size() == 1)
@@ -797,13 +844,13 @@ string cleanString(string st)
                                         cleaned.append(_cstr);
                                     }
                                     else
-                                        error("invalid_operation:index_out_of_bounds:" + afterBrackets, false);
+                                        error(OUT_OF_BOUNDS, afterBrackets, false);
                                 }
                                 else
-                                    error("invalid_operation:invalid_range:" + afterBrackets, false);
+                                    error(OUT_OF_BOUNDS, afterBrackets, false);
                             }
                             else
-                                error("invalid_operation:invalid_range:" + afterBrackets, false);
+                                error(OUT_OF_BOUNDS, afterBrackets, false);
                         }
                     }
                     else if (listExists(_beforeBrackets))
@@ -833,7 +880,7 @@ string cleanString(string st)
                                         cleaned.append(bigString);
                                     }
                                     else
-                                        error("invalid_operation:index_out_of_bounds:" + rangeBegin + ".." + rangeEnd, false);
+                                        error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                                 }
                                 else if (stoi(rangeBegin) > stoi(rangeEnd))
                                 {
@@ -854,13 +901,13 @@ string cleanString(string st)
                                         cleaned.append(bigString);
                                     }
                                     else
-                                        error("invalid_operation:index_out_of_bounds:" + rangeBegin + ".." + rangeEnd, false);
+                                        error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                                 }
                                 else
-                                    error("invalid_operation:invalid_range:" + rangeBegin + ".." + rangeEnd, false);
+                                    error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                             }
                             else
-                                error("invalid_operationg:invalid_range:" + rangeBegin + ".." + rangeEnd, false);
+                                error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                         }
                         else if (listRange.size() == 1)
                         {
@@ -871,13 +918,13 @@ string cleanString(string st)
                                 if (stoi(rangeBegin) <= (int)lists.at(indexOfList(_beforeBrackets)).size() - 1 && stoi(rangeBegin) >= 0)
                                     cleaned.append(lists.at(indexOfList(_beforeBrackets)).at(stoi(rangeBegin)));
                                 else
-                                    error("invalid_operation:index_out_of_bounds:" + afterBrackets, false);
+                                    error(OUT_OF_BOUNDS, afterBrackets, false);
                             }
                             else
-                                error("invalid_operation:invalid_range:" + afterBrackets, false);
+                                error(OUT_OF_BOUNDS, afterBrackets, false);
                         }
                         else
-                            error("invalid_operation:invalid_range:" + afterBrackets, false);
+                            error(OUT_OF_BOUNDS, afterBrackets, false);
                     }
                     else
                         cleaned.append("null");
@@ -904,10 +951,10 @@ string cleanString(string st)
                                 cleaned.append("null");
                         }
                         else
-                            error("invalid_operation:variable_undefined:" + before + "." + after, false);
+                            error(VAR_UNDEFINED, before + "." + after, false);
                     }
                     else
-                        error("invalid_operation:object_undefined:" + before, false);
+                        error(OBJ_METHOD_UNDEFINED, before, false);
                 }
                 else
                     cleaned.append(builder);
@@ -955,14 +1002,13 @@ void write(string st)
     else
         cout << cleanString(st);
 
-    // if (__Logging)
-        // app(__LogFile, "[stdout]:" + st + "\r\n");
+    setLastValue(st);
 }
 
 void writeline(string st)
 {
-    setLastValue(st);
-    write(cleanString(st) + __GuessedOS == "UNIXMacorLINUX" ? "\n" : "\r\n");
+    write(st);
+	cout << (__GuessedOS == OS_NIX ? "\n" : "\r\n");
 }
 
 void clearAll()
@@ -1046,23 +1092,73 @@ void displayVersion()
     cout << "\r\nnoctis v0.0.0 by <scstauf@gmail.com>\r\n" << endl;
 }
 
-void error(string e, bool quit)
+string getErrorString(int errorType)
 {
+	string errorString("");
+
+	switch (errorType)
+	{
+		case IS_NULL: errorString.append("is null"); break;
+		case BAD_LOAD: errorString.append("bad load"); break;
+		case CONV_ERR: errorString.append("conversion error"); break;
+		case INFINITE_LOOP: errorString.append("infinite loop");
+		case INVALID_OP: errorString.append("invalid operation"); break;
+		case DIR_EXISTS: errorString.append("directory already exists"); break;
+		case DIR_NOT_FOUND: errorString.append("directory does not exist"); break;
+		case FILE_EXISTS: errorString.append("file already exists"); break;
+		case FILE_NOT_FOUND: errorString.append("file does not exist"); break;
+		case OUT_OF_BOUNDS: errorString.append("index out of bounds"); break;
+		case INVALID_RANGE_SEP: errorString.append("invalid range separator"); break;
+		case INVALID_SEQ: errorString.append("invalid sequence"); break;
+		case INVALID_SEQ_SEP: errorString.append("invalid sequence separator"); break;
+		case INVALID_VAR_DECL: errorString.append("invalid variable declaration"); break;
+		case LIST_UNDEFINED: errorString.append("list undefined"); break;
+		case METHOD_DEFINED: errorString.append("method defined"); break;
+		case METHOD_UNDEFINED: errorString.append("method undefined"); break;
+		case NULL_NUMBER: errorString.append("null number"); break;
+		case NULL_STRING: errorString.append("null string"); break;
+		case OBJ_METHOD_UNDEFINED: errorString.append("object method undefined"); break;
+		case OBJ_UNDEFINED: errorString.append("object undefined"); break;
+		case OBJ_VAR_UNDEFINED: errorString.append("object variable undefined"); break;
+		case VAR_DEFINED: errorString.append("variable defined"); break;
+		case VAR_UNDEFINED: errorString.append("variable undefined"); break;
+		case TARGET_UNDEFINED: errorString.append("target undefined"); break;
+		case CONST_UNDEFINED: errorString.append("constant defined"); break;
+		case INVALID_OPERATOR: errorString.append("invalid operator"); break;
+		case IS_EMPTY: errorString.append("is empty"); break;
+		case READ_FAIL: errorString.append("read failure"); break;
+		case DIVIDED_BY_ZERO: errorString.append("cannot divide by zero"); break;
+		case UNDEFINED: errorString.append("undefined"); break;
+		case UNDEFINED_OS: errorString.append("undefined_os"); break;
+	}
+	
+	return errorString;
+}
+
+void error(int errorType, string errorInfo, bool quit)
+{
+	string completeError("##\n# error:\t");
+	completeError.append(getErrorString(errorType));
+	completeError.append(":\t");
+	completeError.append(errorInfo);
+	completeError.append("\n# line ");
+	completeError.append(itos(__CurrentLineNumber));
+	completeError.append(":\t");
+	completeError.append(__CurrentLine);
+	completeError.append("\n##\n");
+	
     if (__ExecutedTryBlock)
     {
         __RaiseCatchBlock = true;
-        __LastError = e + "(" + __CurrentLine + ")";
+        __LastError = completeError;
     }
     else
     {
         if (__CaptureParse)
-            __ParsedOutput.append("#!=" + itos(__CurrentLineNumber) + ":" + e + "(" + __CurrentLine + ")\r\n");
+            __ParsedOutput.append(completeError);
         else
-            cerr << "#!=" << __CurrentLineNumber << ":" << e << "(" << __CurrentLine << ")" << endl;
+            cerr << completeError;
     }
-
-    // if (__Logging)
-        // app(__LogFile, "#!=" + itos(__CurrentLineNumber) + ":" + e + "(" + __CurrentLine + ")\r\n");
 
     if (!__Negligence)
     {
@@ -1072,6 +1168,29 @@ void error(string e, bool quit)
             exit(0);
         }
     }
+}
+
+string getGuessedOS()
+{
+	string guessedOS("");
+	
+	switch (__GuessedOS) 
+	{
+		case OS_NIX:
+			guessedOS = "OS_NIX";
+			break;
+		case OS_WIN32:
+			guessedOS = "OS_WIN32";
+			break;
+		case OS_WIN64:
+			guessedOS = "OS_WIN64";
+			break;
+		case OS_UNKNOWN:
+			guessedOS = "OS_UNKNOWN";
+			break;
+	}
+	
+	return guessedOS;
 }
 
 string getParsedOutput(string cmd)
@@ -1108,7 +1227,7 @@ List getDirectoryList(string before, bool filesOnly)
                 if (meat == "/")
                     meat = "";
 
-                if (__GuessedOS == "UNIXMacorLINUX")
+                if (__GuessedOS == OS_NIX)
                     tmp = meat + "/" + string(pe->d_name);
                 else
                     tmp = meat + "\\" + string(pe->d_name);
@@ -1353,7 +1472,7 @@ void saveVariable(string variableName)
             file.close();
         }
         else
-            error("read_fail:" + __SavedVars, false);
+            error(READ_FAIL, __SavedVars, false);
     }
 }
 
@@ -1702,7 +1821,7 @@ void loadSavedVars(Crypt c, string &bigStr)
         varValues.clear();
     }
     else
-        error("read_fail:" + __SavedVars, false);
+        error(READ_FAIL, __SavedVars, false);
 }
 
 void runScript()
@@ -1949,7 +2068,7 @@ void forLoop(Method m)
                 }
             }
             else
-                error("infinite_loop", true);
+                error(INFINITE_LOOP, "", true);
         }
         else if (m.start() < m.stop())
         {
@@ -2077,8 +2196,6 @@ void forLoop(Method m)
                 }
             }
         }
-        else
-            error("special_error(5)", false);
     }
 }
 
@@ -3337,7 +3454,7 @@ void parse(string s)
                     command.at(count).push_back('~');
                 else
                 {
-                    if (__GuessedOS == "UNIXMacorLinux")
+                    if (__GuessedOS == OS_NIX)
                         command.at(count).append(getEnvironmentVariable("HOME"));
                     else
                         command.at(count).append(getEnvironmentVariable("HOMEPATH"));
@@ -3409,10 +3526,10 @@ void parse(string s)
                                 command.at(i) = args.at(stoi(params.at(0)));
                         }
                         else
-                            error("invalid_operation:index_out_of_bounds:" + command.at(i), false);
+                            error(OUT_OF_BOUNDS, command.at(i), false);
                     }
                     else
-                        error("invalid_operation:invalid_range:" + command.at(i), false);
+                        error(OUT_OF_BOUNDS, command.at(i), false);
                 }
             }
 
@@ -3906,8 +4023,6 @@ void parse(string s)
                                     __WhileLoopCount = 0;
                                 }
                             }
-                            else
-                                error("special_error(8)", false);
                         }
                         else
                             whileLoops.at(whileLoops.size() - 1).add(s);
@@ -3964,12 +4079,12 @@ void parse(string s)
                                             else if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != __NullNum)
                                                 writeline(dtos(objects.at(indexOfObject(before)).getVariable(after).getNumber()));
                                             else
-                                                error("is_null", false);
+                                                error(IS_NULL, "", false);
                                         }
                                         else if (after == "clear")
                                             objects.at(indexOfObject(before)).clear();
                                         else
-                                            error("undefined", false);
+                                            error(UNDEFINED, "", false);
                                     }
                                     else
                                     {
@@ -4200,10 +4315,10 @@ void redefine(string target, string name)
                             if (fileExists(old_name))
                                 rename(old_name.c_str(), new_name.c_str());
                             else
-                                error("invalid_operation:file_undefined:" + old_name, false);
+                                error(FILE_NOT_FOUND, old_name, false);
                         }
                         else
-                            error("invalid_operation:file_defined:" + new_name, false);
+                            error(FILE_EXISTS, new_name, false);
                     }
                     else if (directoryExists(old_name))
                     {
@@ -4212,16 +4327,16 @@ void redefine(string target, string name)
                             if (directoryExists(old_name))
                                 rename(old_name.c_str(), new_name.c_str());
                             else
-                                error("invalid_operation:directory_undefined:" + old_name, false);
+                                error(DIR_NOT_FOUND, old_name, false);
                         }
                         else
-                            error("invalid_operation:directory_defined:" + new_name, false);
+                            error(DIR_EXISTS, new_name, false);
                     }
                     else
-                        error("invalid_operation:target_undefined:" + old_name, false);
+                        error(TARGET_UNDEFINED, old_name, false);
                 }
                 else
-                    error("invalid_operation:__Null_string:" + name, false);
+                    error(NULL_STRING, name, false);
             }
             else
             {
@@ -4230,17 +4345,17 @@ void redefine(string target, string name)
                     if (!fileExists(name))
                         rename(old_name.c_str(), name.c_str());
                     else
-                        error("invalid_operation:file_defined:" + name, false);
+                        error(FILE_EXISTS, name, false);
                 }
                 else if (directoryExists(old_name))
                 {
                     if (!directoryExists(name))
                         rename(old_name.c_str(), name.c_str());
                     else
-                        error("invalid_operation:directory_defined:" + name, false);
+                        error(DIR_EXISTS, name, false);
                 }
                 else
-                    error("invalid_operation:target_undefined:" + old_name, false);
+                    error(TARGET_UNDEFINED, old_name, false);
             }
         }
         else
@@ -4250,10 +4365,10 @@ void redefine(string target, string name)
                 if (!variableExists(name))
                     variables.at(indexOfVariable(target)).setName(name);
                 else
-                    error("invalid_operation:variable_defined:" + name, false);
+                    error(VAR_DEFINED, name, false);
             }
             else
-                error("invalid_operation:invalid_variable_declaration:" + name, false);
+                error(INVALID_VAR_DECL, name, false);
         }
     }
     else if (listExists(target))
@@ -4261,26 +4376,26 @@ void redefine(string target, string name)
         if (!listExists(name))
             lists.at(indexOfList(target)).setName(name);
         else
-            error("invalid_operation:list_undefined:" + name, false);
+            error(LIST_UNDEFINED, name, false);
     }
     else if (objectExists(target))
     {
         if (!objectExists(name))
             objects.at(indexOfObject(target)).setName(name);
         else
-            error("invalid_operation:object_undefined:" + name, false);
+            error(OBJ_METHOD_UNDEFINED, name, false);
     }
     else if (methodExists(target))
     {
         if (!methodExists(name))
             methods.at(indexOfMethod(target)).setName(name);
         else
-            error("invalid_operation:method_undefined:" + name, false);
+            error(METHOD_UNDEFINED, name, false);
     }
     else if (fileExists(target) || directoryExists(target))
         rename(target.c_str(), name.c_str());
     else
-        error("invalid_operation:target_undefined:" + target, false);
+        error(TARGET_UNDEFINED, target, false);
 }
 
 void setup()
@@ -4347,25 +4462,25 @@ void setup()
 
     __ArgumentCount = 0,
     __NullNum = -DBL_MAX;
-
+	
     if (contains(getEnvironmentVariable("HOMEPATH"), "Users"))
     {
-        __GuessedOS = "Win7orVista";
+        __GuessedOS = OS_WIN64; 
         __SavedVarsPath = (getEnvironmentVariable("HOMEPATH") + "\\AppData") + "\\.__SavedVarsPath", __SavedVars = __SavedVarsPath + "\\.__SavedVars";
     }
     else if (contains(getEnvironmentVariable("HOMEPATH"), "Documents"))
     {
-        __GuessedOS = "Win2000NTorXP";
+        __GuessedOS = OS_WIN32;
         __SavedVarsPath = getEnvironmentVariable("HOMEPATH") + "\\Application Data\\.__SavedVarsPath", __SavedVars = __SavedVarsPath + "\\.__SavedVars";
     }
     else if (startsWith(getEnvironmentVariable("HOME"), "/"))
     {
-        __GuessedOS = "UNIXMacorLINUX";
+        __GuessedOS = OS_NIX;
         __SavedVarsPath = getEnvironmentVariable("HOME") + "/.__SavedVarsPath", __SavedVars = __SavedVarsPath + "/.__SavedVars";
     }
     else
     {
-        __GuessedOS = "UnknownWindowsOS";
+        __GuessedOS = OS_UNKNOWN;
         __SavedVarsPath = "\\.__SavedVarsPath", __SavedVars = __SavedVarsPath + "\\.__SavedVars";
     }
 }
@@ -4400,7 +4515,7 @@ string getSubString(string arg1, string arg2, string beforeBracket)
                             returnValue = tempString;
                         }
                         else
-                            error("invalid_operation:index_out_of_bounds:" + rangeBegin + ".." + rangeEnd, false);
+                            error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                     }
                     else if (stoi(rangeBegin) > stoi(rangeEnd))
                     {
@@ -4414,16 +4529,16 @@ string getSubString(string arg1, string arg2, string beforeBracket)
                             returnValue = tempString;
                         }
                         else
-                            error("invalid_operation:index_out_of_bounds:" + rangeBegin + ".." + rangeEnd, false);
+                            error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                     }
                     else
-                        error("invalid_operation:invalid_range:" + rangeBegin + ".." + rangeEnd, false);
+                        error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                 }
                 else
-                    error("invalid_operation:invalid_range:" + rangeBegin + ".." + rangeEnd, false);
+                    error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
             }
             else
-                error("invalid_operation:invalid_range:" + rangeBegin + ".." + rangeEnd, false);
+                error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
         }
         else if (listRange.size() == 1)
         {
@@ -4444,10 +4559,10 @@ string getSubString(string arg1, string arg2, string beforeBracket)
             }
         }
         else
-            error("invalid_operation:invalid_range:" + arg2, false);
+            error(OUT_OF_BOUNDS, arg2, false);
     }
     else
-        error("invalid_operation:__Null_string:" + beforeBracket, false);
+        error(NULL_STRING, beforeBracket, false);
 
     return (returnValue);
 }
@@ -4483,7 +4598,7 @@ void setSubString(string arg1, string arg2, string beforeBracket)
                                 createVariable(arg1, tempString);
                         }
                         else
-                            error("invalid_operation:index_out_of_bounds:" + rangeBegin + ".." + rangeEnd, false);
+                            error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                     }
                     else if (stoi(rangeBegin) > stoi(rangeEnd))
                     {
@@ -4500,16 +4615,16 @@ void setSubString(string arg1, string arg2, string beforeBracket)
                                 createVariable(arg1, tempString);
                         }
                         else
-                            error("invalid_operation:index_out_of_bounds:" + rangeBegin + ".." + rangeEnd, false);
+                            error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                     }
                     else
-                        error("invalid_operation:invalid_range:" + rangeBegin + ".." + rangeEnd, false);
+                        error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                 }
                 else
-                    error("invalid_operation:invalid_range:" + rangeBegin + ".." + rangeEnd, false);
+                    error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
             }
             else
-                error("invalid_operation:invalid_range:" + rangeBegin + ".." + rangeEnd, false);
+                error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
         }
         else if (listRange.size() == 1)
         {
@@ -4533,10 +4648,10 @@ void setSubString(string arg1, string arg2, string beforeBracket)
             }
         }
         else
-            error("invalid_operation:invalid_range:" + arg2, false);
+            error(OUT_OF_BOUNDS, arg2, false);
     }
     else
-        error("invalid_operation:__Null_string:" + beforeBracket, false);
+        error(NULL_STRING, beforeBracket, false);
 }
 
 void zeroSpace(string arg0, string s, vector<string> command)
@@ -4674,7 +4789,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             __SwitchVarName = arg1;
         }
         else
-            error("invalid_operation:variable_undefined:" + arg1, false);
+            error(VAR_UNDEFINED, arg1, false);
     }
     else if (arg0 == "goto")
     {
@@ -4723,7 +4838,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             else if (isNumber(arg1))
                 cerr << variables.at(indexOfVariable(arg1)).getNumber() << endl;
             else
-                error("is_null:" + arg1, false);
+                error(IS_NULL, arg1, false);
         }
         else
             cerr << arg1 << endl;
@@ -4733,7 +4848,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         if (isNumeric(arg1))
             delay(stoi(arg1));
         else
-            error("conversion_error:" + arg1, false);
+            error(CONV_ERR, arg1, false);
     }
     else if (arg0 == "loop")
         threeSpace("for", "var", "in", arg1, "for var in " + arg1, command); // REFACTOR HERE
@@ -4756,7 +4871,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 else if (methodExists(params.at(i)))
                     methods = removeMethod(methods, params.at(i));
                 else
-                    error("invalid_operation:target_undefined:" + params.at(i), false);
+                    error(TARGET_UNDEFINED, params.at(i), false);
             }
         }
         else if (variableExists(arg1))
@@ -4768,21 +4883,21 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         else if (methodExists(arg1))
             methods = removeMethod(methods, arg1);
         else
-            error("invalid_operation:target_undefined:" + arg1, false);
+            error(TARGET_UNDEFINED, arg1, false);
     }
     else if (arg0 == "see_string")
     {
         if (variableExists(arg1))
             write(variables.at(indexOfVariable(arg1)).getString());
         else
-            error("invalid_operation:variable_undefined:" + arg1, false);
+            error(VAR_UNDEFINED, arg1, false);
     }
     else if (arg0 == "see_number")
     {
         if (variableExists(arg1))
             write(dtos(variables.at(indexOfVariable(arg1)).getNumber()));
         else
-            error("invalid_operation:variable_undefined:" + arg1, false);
+            error(VAR_UNDEFINED, arg1, false);
     }
     else if (arg0 == "__begin__")
     {
@@ -4797,7 +4912,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                     __CurrentScriptName = variables.at(indexOfVariable(arg1)).getString();
                 }
                 else
-                    error("invalid_operation:file_defined:" + variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(FILE_EXISTS, variables.at(indexOfVariable(arg1)).getString(), false);
             }
         }
         else if (!fileExists(arg1))
@@ -4807,7 +4922,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             __CurrentScriptName = arg1;
         }
         else
-            error("invalid_operation:file_defined:" + arg1, false);
+            error(FILE_EXISTS, arg1, false);
     }
     else if (arg0 == "encrypt" || arg0 == "decrypt")
     {
@@ -4835,7 +4950,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 loadScript(arg1);
             }
             else
-                error("bad_load:" + arg1, true);
+                error(BAD_LOAD, arg1, true);
         }
         else if (moduleExists(arg1))
         {
@@ -4845,7 +4960,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 parse(lines.at(i));
         }
         else
-            error("bad_load:" + arg1, true);
+            error(BAD_LOAD, arg1, true);
     }
     else if (arg0 == "say" || arg0 == "stdout" || arg0 == "out" || arg0 == "print" || arg0 == "println")
     {
@@ -4860,10 +4975,10 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 if (directoryExists(variables.at(indexOfVariable(arg1)).getString()))
                     cd(variables.at(indexOfVariable(arg1)).getString());
                 else
-                    error("read_fail:" + variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(READ_FAIL, variables.at(indexOfVariable(arg1)).getString(), false);
             }
             else
-                error("invalid_operation:__Null_string:" + arg1, false);
+                error(NULL_STRING, arg1, false);
         }
         else
         {
@@ -4898,7 +5013,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             if (isString(arg1))
                 parse(variables.at(indexOfVariable(arg1)).getString().c_str());
             else
-                error("is_null:" + arg1, false);
+                error(IS_NULL, arg1, false);
         }
         else
             parse(arg1.c_str());
@@ -4910,7 +5025,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             if (isString(arg1))
                 sysExec(variables.at(indexOfVariable(arg1)).getString(), command);
             else
-                error("is_null:" + arg1, false);
+                error(IS_NULL, arg1, false);
         }
         else
             sysExec(arg1, command);
@@ -4927,10 +5042,10 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                     cd(__InitialDirectory);
                 }
                 else
-                    error("read_fail:" + __InitialDirectory, false);
+                    error(READ_FAIL, __InitialDirectory, false);
             }
             else
-                error("invalid_operation:__Null_string:" + arg1, false);
+                error(NULL_STRING, arg1, false);
         }
         else
         {
@@ -4946,7 +5061,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 cd(__InitialDirectory);
             }
             else
-                error("read_fail:" + __InitialDirectory, false);
+                error(READ_FAIL, __InitialDirectory, false);
         }
     }
     else if (arg0 == "is_method?" || arg0 == "method?")
@@ -5009,7 +5124,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                     __false();
             }
             else
-                error("invalid_operation:target_undefined:" + arg1, false);
+                error(TARGET_UNDEFINED, arg1, false);
         }
         else
         {
@@ -5023,7 +5138,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                         __false();
                 }
                 else
-                    error("invalid_operation:__Null_string:" + arg1, false);
+                    error(NULL_STRING, arg1, false);
             }
             else
             {
@@ -5046,7 +5161,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                     __false();
             }
             else
-                error("invalid_operation:target_undefined:" + arg1, false);
+                error(TARGET_UNDEFINED, arg1, false);
         }
         else
         {
@@ -5095,7 +5210,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                     __false();
             }
             else
-                error("invalid_operation:target_undefined:" + arg1, false);
+                error(TARGET_UNDEFINED, arg1, false);
         }
         else
         {
@@ -5127,7 +5242,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                     __false();
             }
             else
-                error("invalid_operation:target_undefined:" + arg1, false);
+                error(TARGET_UNDEFINED, arg1, false);
         }
         else
         {
@@ -5159,7 +5274,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                     __false();
             }
             else
-                error("invalid_operation:target_undefined:" + arg1, false);
+                error(TARGET_UNDEFINED, arg1, false);
         }
         else
         {
@@ -5201,7 +5316,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                     __false();
             }
             else
-                error("invalid_operation:target_undefined:" + arg1, false);
+                error(TARGET_UNDEFINED, arg1, false);
         }
         else
         {
@@ -5238,7 +5353,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     else if (arg0 == "template")
     {
         if (methodExists(arg1))
-            error("invalid_operation:method_defined:" + arg1, false);
+            error(METHOD_DEFINED, arg1, false);
         else
         {
             if (containsParams(arg1))
@@ -5289,17 +5404,17 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 if (!fileExists(variables.at(indexOfVariable(arg1)).getString()))
                     createFile(variables.at(indexOfVariable(arg1)).getString());
                 else
-                    error("invalid_operation:file_defined:" + variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(FILE_EXISTS, variables.at(indexOfVariable(arg1)).getString(), false);
             }
             else
-                error("invalid_operation:__Null_string:" + arg1, false);
+                error(NULL_STRING, arg1, false);
         }
         else
         {
             if (!fileExists(arg1))
                 createFile(arg1);
             else
-                error("invalid_operation:file_defined:" + arg1, false);
+                error(FILE_EXISTS, arg1, false);
         }
     }
     else if (arg0 == "fpop")
@@ -5311,17 +5426,17 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 if (fileExists(variables.at(indexOfVariable(arg1)).getString()))
                     rm(variables.at(indexOfVariable(arg1)).getString());
                 else
-                    error("invalid_operation:file_undefined:" + variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(FILE_NOT_FOUND, variables.at(indexOfVariable(arg1)).getString(), false);
             }
             else
-                error("invalid_operation:__Null_string:" + arg1, false);
+                error(NULL_STRING, arg1, false);
         }
         else
         {
             if (fileExists(arg1))
                 rm(arg1);
             else
-                error("invalid_operation:file_undefined:" + arg1, false);
+                error(FILE_NOT_FOUND, arg1, false);
         }
     }
     else if (arg0 == "dpush")
@@ -5333,17 +5448,17 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 if (!directoryExists(variables.at(indexOfVariable(arg1)).getString()))
                     md(variables.at(indexOfVariable(arg1)).getString());
                 else
-                    error("invalid_operation:directory_defined:" + variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(DIR_EXISTS, variables.at(indexOfVariable(arg1)).getString(), false);
             }
             else
-                error("invalid_operation:__Null_string:" + arg1, false);
+                error(NULL_STRING, arg1, false);
         }
         else
         {
             if (!directoryExists(arg1))
                 md(arg1);
             else
-                error("invalid_operation:directory_defined:" + arg1, false);
+                error(DIR_EXISTS, arg1, false);
         }
     }
     else if (arg0 == "dpop")
@@ -5355,17 +5470,17 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 if (directoryExists(variables.at(indexOfVariable(arg1)).getString()))
                     rd(variables.at(indexOfVariable(arg1)).getString());
                 else
-                    error("invalid_operation:directory_undefined:" + variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(DIR_NOT_FOUND, variables.at(indexOfVariable(arg1)).getString(), false);
             }
             else
-                error("invalid_operation:__Null_string:" + arg1, false);
+                error(NULL_STRING, arg1, false);
         }
         else
         {
             if (directoryExists(arg1))
                 rd(arg1);
             else
-                error("invalid_operation:directory_undefined:" + arg1, false);
+                error(DIR_NOT_FOUND, arg1, false);
         }
     }
     else
@@ -5688,25 +5803,27 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
 
     if (variableExists(arg0))
     {
-        if (objectExists(beforeDot(arg0)) || startsWith(arg0, "@"))
+		string tmpObjName = beforeDot(arg0), tmpVarName = afterDot(arg0);
+		bool tmpObjExists = objectExists(tmpObjName);
+        if (tmpObjExists || startsWith(arg0, "@"))
         {
-            if (objectExists(beforeDot(arg0)))
+            if (tmpObjExists)
             {
-                if (objects.at(indexOfObject(beforeDot(arg0))).getVariable(afterDot(arg0)).getString() != __Null)
+                if (objects.at(indexOfObject(tmpObjName)).getVariable(tmpVarName).getString() != __Null)
                 {
-                    string tempObjectVariableName("@____" + beforeDot(arg0) + "___" + afterDot(arg0) + "__string_var");
+                    string tempObjectVariableName("@ " + tmpObjName + tmpVarName + "_string");
 
-                    createVariable(tempObjectVariableName, objects.at(indexOfObject(beforeDot(arg0))).getVariable(afterDot(arg0)).getString());
+                    createVariable(tempObjectVariableName, objects.at(indexOfObject(tmpObjName)).getVariable(tmpVarName).getString());
 
-                    twoSpace(tempObjectVariableName, arg1, arg2, tempObjectVariableName + " " + arg1 + " " + arg2, command);
+                    twoSpace(tempObjectVariableName, arg1, arg2, "", command);
 
-                    variables.at(indexOfVariable(tempObjectVariableName)).setName(afterDot(arg0));
+                    variables.at(indexOfVariable(tempObjectVariableName)).setName(tmpVarName);
 
-                    objects.at(indexOfObject(beforeDot(arg0))).removeVariable(afterDot(arg0));
-                    objects.at(indexOfObject(beforeDot(arg0))).addVariable(variables.at(indexOfVariable(afterDot(arg0))));
-                    variables = removeVariable(variables, afterDot(arg0));
+                    objects.at(indexOfObject(tmpObjName)).removeVariable(tmpVarName);
+                    objects.at(indexOfObject(tmpObjName)).addVariable(variables.at(indexOfVariable(tmpVarName)));
+                    variables = removeVariable(variables, tmpVarName);
                 }
-                else if (objects.at(indexOfObject(beforeDot(arg0))).getVariable(afterDot(arg0)).getNumber() != __NullNum)
+                else if (objects.at(indexOfObject(tmpObjName)).getVariable(tmpVarName).getNumber() != __NullNum)
                 {
                     string tempObjectVariableName("@____" + beforeDot(arg0) + "___" + afterDot(arg0) + "__number_var");
 
@@ -5736,7 +5853,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (lists.at(indexOfList(beforeBracket)).size() >= stoi(afterBracket))
                         {
                             if (lists.at(indexOfList(beforeBracket)).at(stoi(afterBracket)) == "#!=no_line")
-                                error("invalid_operation:index_out_of_bounds:" + arg2, false);
+                                error(OUT_OF_BOUNDS, arg2, false);
                             else
                             {
                                 string listValue(lists.at(indexOfList(beforeBracket)).at(stoi(afterBracket)));
@@ -5746,14 +5863,14 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                     if (isNumber(arg0))
                                         setVariable(arg0, stod(listValue));
                                     else
-                                        error("conversion_error:" + arg0, false);
+                                        error(CONV_ERR, arg0, false);
                                 }
                                 else
                                 {
                                     if (isString(arg0))
                                         setVariable(arg0, listValue);
                                     else
-                                        error("conversion_error:" + arg0, false);
+                                        error(CONV_ERR, arg0, false);
                                 }
                             }
                         }
@@ -5761,7 +5878,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                     else if (isString(beforeBracket))
                         setSubString(arg0, arg2, beforeBracket);
                     else
-                        error("invalid_operation:list_undefined:" + beforeBracket, false);
+                        error(LIST_UNDEFINED, beforeBracket, false);
                 }
                 else if (before.length() != 0 && after.length() != 0)
                 {
@@ -5798,8 +5915,6 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                         else
                                             setVariable(arg0, itos((int)random(n0, n2)));
                                     }
-                                    else
-                                        error("special_error(7)", false);
                                 }
                                 else if (isAlpha(s0) && isAlpha(s2))
                                 {
@@ -5813,7 +5928,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                             setVariable(arg0, random(s2, s0));
                                     }
                                     else
-                                        error("invalid_operation:__Null_string:" + arg0, false);
+                                        error(NULL_STRING, arg0, false);
                                 }
                                 else if (variableExists(s0) || variableExists(s2))
                                 {
@@ -5857,8 +5972,6 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                             else
                                                 setVariable(arg0, itos((int)random(n0, n2)));
                                         }
-                                        else
-                                            error("special_error(7)", false);
                                     }
                                     else if (isAlpha(s0) && isAlpha(s2))
                                     {
@@ -5872,14 +5985,14 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                                 setVariable(arg0, random(s2, s0));
                                         }
                                         else
-                                            error("invalid_operation:__Null_string:" + arg0, false);
+                                            error(NULL_STRING, arg0, false);
                                     }
                                 }
                                 else
-                                    error("invalid_operation:invalid_sequence:" + s0 + "_" + s2, false);
+                                    error(INVALID_SEQ, s0 + "_" + s2, false);
                             }
                             else
-                                error("invalid_operation:invalid_sequence_separator:" + arg2, false);
+                                error(INVALID_SEQ_SEP, arg2, false);
                         }
                     }
                     else if (listExists(before) && after == "size")
@@ -5889,7 +6002,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         else if (isString(arg0))
                             setVariable(arg0, itos(lists.at(indexOfList(before)).size()));
                         else
-                            error("is_null:" + arg0, false);
+                            error(IS_NULL, arg0, false);
                     }
                     else if (before == "self")
                     {
@@ -5907,7 +6020,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             else if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != __NullNum)
                                 setVariable(arg0, objects.at(indexOfObject(before)).getVariable(after).getNumber());
                             else
-                                error("is_null:" + arg2, false);
+                                error(IS_NULL, arg2, false);
                         }
                         else if (objects.at(indexOfObject(before)).methodExists(after) && !containsParams(after))
                         {
@@ -5931,23 +6044,23 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                     else if (isNumber(arg0))
                                         setVariable(arg0, stod(__LastValue));
                                     else
-                                        error("is_null:" + arg0, false);
+                                        error(IS_NULL, arg0, false);
                                 }
                                 else
                                 {
                                     if (isString(arg0))
                                         setVariable(arg0, __LastValue);
                                     else if (isNumber(arg0))
-                                        error("conversion_error:" + arg0, false);
+                                        error(CONV_ERR, arg0, false);
                                     else
-                                        error("is_null:" + arg0, false);
+                                        error(IS_NULL, arg0, false);
                                 }
                             }
                             else
                                 sysExec(s, command);
                         }
                         else
-                            error("invalid_operation:variable_undefined:" + arg2, false);
+                            error(VAR_UNDEFINED, arg2, false);
                     }
                     else if (before == "env")
                     {
@@ -5965,10 +6078,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 setVariable(arg0, (double)i);
                             }
                             else
-                                error("is_null:" + before, false);
+                                error(IS_NULL, before, false);
                         }
                         else
-                            error("invalid_operation:variable_undefined:" + before, false);
+                            error(VAR_UNDEFINED, before, false);
                     }
                     else if (after == "to_double")
                     {
@@ -5982,10 +6095,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 setVariable(arg0, (double)i);
                             }
                             else
-                                error("is_null:" + before, false);
+                                error(IS_NULL, before, false);
                         }
                         else
-                            error("invalid_operation:variable_undefined:" + before, false);
+                            error(VAR_UNDEFINED, before, false);
                     }
                     else if (after == "to_string")
                     {
@@ -5994,10 +6107,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             if (isNumber(before))
                                 setVariable(arg0, dtos(variables.at(indexOfVariable(before)).getNumber()));
                             else
-                                error("is_null:" + before, false);
+                                error(IS_NULL, before, false);
                         }
                         else
-                            error("invalid_operation:variable_undefined:" + before, false);
+                            error(VAR_UNDEFINED, before, false);
                     }
                     else if (after == "to_number")
                     {
@@ -6006,10 +6119,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             if (isString(before))
                                 setVariable(arg0, stod(variables.at(indexOfVariable(before)).getString()));
                             else
-                                error("is_null:" + before, false);
+                                error(IS_NULL, before, false);
                         }
                         else
-                            error("invalid_operation:variable_undefined:" + before, false);
+                            error(VAR_UNDEFINED, before, false);
                     }
                     else if (before == "readline")
                     {
@@ -6026,12 +6139,12 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                     if (isNumeric(line))
                                         setVariable(arg0, stod(line));
                                     else
-                                        error("conversion_error:" + line, false);
+                                        error(CONV_ERR, line, false);
                                 }
                                 else if (isString(arg0))
                                     setVariable(arg0, line);
                                 else
-                                    error("is_null:" + arg0, false);
+                                    error(IS_NULL, arg0, false);
                             }
                             else
                             {
@@ -6044,12 +6157,12 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                     if (isNumeric(line))
                                         setVariable(arg0, stod(line));
                                     else
-                                        error("conversion_error:" + line, false);
+                                        error(CONV_ERR, line, false);
                                 }
                                 else if (isString(arg0))
                                     setVariable(arg0, line);
                                 else
-                                    error("is_null:" + arg0, false);
+                                    error(IS_NULL, arg0, false);
                             }
                         }
                         else
@@ -6078,12 +6191,12 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                     if (isNumeric(line))
                                         setVariable(arg0, stod(line));
                                     else
-                                        error("conversion_error:" + line, false);
+                                        error(CONV_ERR, line, false);
                                 }
                                 else if (isString(arg0))
                                     setVariable(arg0, line);
                                 else
-                                    error("is_null:" + arg0, false);
+                                    error(IS_NULL, arg0, false);
 
                                 cout << endl;
                             }
@@ -6097,12 +6210,12 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                     if (isNumeric(line))
                                         setVariable(arg0, stod(line));
                                     else
-                                        error("conversion_error:" + line, false);
+                                        error(CONV_ERR, line, false);
                                 }
                                 else if (isString(arg0))
                                     setVariable(arg0, line);
                                 else
-                                    error("is_null:" + arg0, false);
+                                    error(IS_NULL, arg0, false);
 
                                 cout << endl;
                             }
@@ -6129,17 +6242,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isNumber(before))
                                     setVariable(arg0, cos(variables.at(indexOfVariable(before)).getNumber()));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else if (isString(arg0))
                             {
                                 if (isNumber(before))
                                     setVariable(arg0, dtos(cos(variables.at(indexOfVariable(before)).getNumber())));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else if (after == "acos")
@@ -6151,17 +6264,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isNumber(before))
                                     setVariable(arg0, acos(variables.at(indexOfVariable(before)).getNumber()));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else if (isString(arg0))
                             {
                                 if (isNumber(before))
                                     setVariable(arg0, dtos(acos(variables.at(indexOfVariable(before)).getNumber())));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else if (after == "cosh")
@@ -6173,17 +6286,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isNumber(before))
                                     setVariable(arg0, cosh(variables.at(indexOfVariable(before)).getNumber()));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else if (isString(arg0))
                             {
                                 if (isNumber(before))
                                     setVariable(arg0, dtos(cosh(variables.at(indexOfVariable(before)).getNumber())));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else if (after == "log")
@@ -6195,17 +6308,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isNumber(before))
                                     setVariable(arg0, log(variables.at(indexOfVariable(before)).getNumber()));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else if (isString(arg0))
                             {
                                 if (isNumber(before))
                                     setVariable(arg0, dtos(log(variables.at(indexOfVariable(before)).getNumber())));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else if (after == "sqrt")
@@ -6217,17 +6330,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isNumber(before))
                                     setVariable(arg0, sqrt(variables.at(indexOfVariable(before)).getNumber()));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else if (isString(arg0))
                             {
                                 if (isNumber(before))
                                     setVariable(arg0, dtos(sqrt(variables.at(indexOfVariable(before)).getNumber())));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else if (after == "abs")
@@ -6239,17 +6352,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isNumber(before))
                                     setVariable(arg0, abs(variables.at(indexOfVariable(before)).getNumber()));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else if (isString(arg0))
                             {
                                 if (isNumber(before))
                                     setVariable(arg0, dtos(abs(variables.at(indexOfVariable(before)).getNumber())));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else if (after == "floor")
@@ -6261,17 +6374,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isNumber(before))
                                     setVariable(arg0, floor(variables.at(indexOfVariable(before)).getNumber()));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else if (isString(arg0))
                             {
                                 if (isNumber(before))
                                     setVariable(arg0, dtos(floor(variables.at(indexOfVariable(before)).getNumber())));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else if (after == "ceil")
@@ -6283,17 +6396,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isNumber(before))
                                     setVariable(arg0, ceil(variables.at(indexOfVariable(before)).getNumber()));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else if (isString(arg0))
                             {
                                 if (isNumber(before))
                                     setVariable(arg0, dtos(ceil(variables.at(indexOfVariable(before)).getNumber())));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else if (after == "exp")
@@ -6305,17 +6418,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isNumber(before))
                                     setVariable(arg0, exp(variables.at(indexOfVariable(before)).getNumber()));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else if (isString(arg0))
                             {
                                 if (isNumber(before))
                                     setVariable(arg0, dtos(exp(variables.at(indexOfVariable(before)).getNumber())));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else if (after == "sin")
@@ -6327,17 +6440,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isNumber(before))
                                     setVariable(arg0, sin(variables.at(indexOfVariable(before)).getNumber()));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else if (isString(arg0))
                             {
                                 if (isNumber(before))
                                     setVariable(arg0, dtos(sin(variables.at(indexOfVariable(before)).getNumber())));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else if (after == "sinh")
@@ -6349,17 +6462,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isNumber(before))
                                     setVariable(arg0, sinh(variables.at(indexOfVariable(before)).getNumber()));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else if (isString(arg0))
                             {
                                 if (isNumber(before))
                                     setVariable(arg0, dtos(sinh(variables.at(indexOfVariable(before)).getNumber())));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else if (after == "asin")
@@ -6371,17 +6484,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isNumber(before))
                                     setVariable(arg0, asin(variables.at(indexOfVariable(before)).getNumber()));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else if (isString(arg0))
                             {
                                 if (isNumber(before))
                                     setVariable(arg0, dtos(asin(variables.at(indexOfVariable(before)).getNumber())));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else if (after == "tan")
@@ -6393,17 +6506,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isNumber(before))
                                     setVariable(arg0, tan(variables.at(indexOfVariable(before)).getNumber()));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else if (isString(arg0))
                             {
                                 if (isNumber(before))
                                     setVariable(arg0, dtos(tan(variables.at(indexOfVariable(before)).getNumber())));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else if (after == "tanh")
@@ -6415,17 +6528,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isNumber(before))
                                     setVariable(arg0, tanh(variables.at(indexOfVariable(before)).getNumber()));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else if (isString(arg0))
                             {
                                 if (isNumber(before))
                                     setVariable(arg0, dtos(tanh(variables.at(indexOfVariable(before)).getNumber())));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else if (after == "atan")
@@ -6437,17 +6550,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isNumber(before))
                                     setVariable(arg0, atan(variables.at(indexOfVariable(before)).getNumber()));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else if (isString(arg0))
                             {
                                 if (isNumber(before))
                                     setVariable(arg0, dtos(atan(variables.at(indexOfVariable(before)).getNumber())));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else if (after == "to_lower")
@@ -6459,10 +6572,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isString(before))
                                     setVariable(arg0, getLower(variables.at(indexOfVariable(before)).getString()));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else if (after == "read")
@@ -6491,13 +6604,13 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                             setVariable(arg0, bigString);
                                         }
                                         else
-                                            error("read_fail:" + variables.at(indexOfVariable(before)).getString(), false);
+                                            error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                                     }
                                     else
-                                        error("read_fail:" + variables.at(indexOfVariable(before)).getString(), false);
+                                        error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                                 }
                                 else
-                                    error("invalid_operation:__Null_string:" + before, false);
+                                    error(NULL_STRING, before, false);
                             }
                             else
                             {
@@ -6519,14 +6632,14 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                         setVariable(arg0, bigString);
                                     }
                                     else
-                                        error("read_fail:" + before, false);
+                                        error(READ_FAIL, before, false);
                                 }
                                 else
-                                    error("read_fail:" + before, false);
+                                    error(READ_FAIL, before, false);
                             }
                         }
                         else
-                            error("invalid_operation:__Null_string:" + arg0, false);
+                            error(NULL_STRING, arg0, false);
                     }
                     else if (after == "to_upper")
                     {
@@ -6537,10 +6650,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isString(before))
                                     setVariable(arg0, getUpper(variables.at(indexOfVariable(before)).getString()));
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else if (after == "size")
@@ -6552,17 +6665,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isString(before))
                                     setVariable(arg0, (double)variables.at(indexOfVariable(before)).getString().length());
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
-                                error("conversion_error:" + arg0, false);
+                                error(CONV_ERR, arg0, false);
                         }
                         else
                         {
                             if (isNumber(arg0))
                                 setVariable(arg0, (double)before.length());
                             else
-                                error("conversion_error:" + arg0, false);
+                                error(CONV_ERR, arg0, false);
                         }
                     }
                     else if (after == "bytes")
@@ -6576,21 +6689,21 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                     if (fileExists(variables.at(indexOfVariable(before)).getString()))
                                         setVariable(arg0, getBytes(variables.at(indexOfVariable(before)).getString()));
                                     else
-                                        error("read_fail:" + variables.at(indexOfVariable(before)).getString(), false);
+                                        error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                                 }
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
                             {
                                 if (fileExists(before))
                                     setVariable(arg0, getBytes(before));
                                 else
-                                    error("read_fail:" + before, false);
+                                    error(READ_FAIL, before, false);
                             }
                         }
                         else
-                            error("conversion_error:" + arg0, false);
+                            error(CONV_ERR, arg0, false);
                     }
                     else if (after == "kbytes")
                     {
@@ -6603,21 +6716,21 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                     if (fileExists(variables.at(indexOfVariable(before)).getString()))
                                         setVariable(arg0, getKBytes(variables.at(indexOfVariable(before)).getString()));
                                     else
-                                        error("read_fail:" + variables.at(indexOfVariable(before)).getString(), false);
+                                        error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                                 }
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
                             {
                                 if (fileExists(before))
                                     setVariable(arg0, getKBytes(before));
                                 else
-                                    error("read_fail:" + before, false);
+                                    error(READ_FAIL, before, false);
                             }
                         }
                         else
-                            error("conversion_error:" + arg0, false);
+                            error(CONV_ERR, arg0, false);
                     }
                     else if (after == "mbytes")
                     {
@@ -6630,21 +6743,21 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                     if (fileExists(variables.at(indexOfVariable(before)).getString()))
                                         setVariable(arg0, getMBytes(variables.at(indexOfVariable(before)).getString()));
                                     else
-                                        error("read_fail:" + variables.at(indexOfVariable(before)).getString(), false);
+                                        error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                                 }
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
                             {
                                 if (fileExists(before))
                                     setVariable(arg0, getMBytes(before));
                                 else
-                                    error("read_fail:" + before, false);
+                                    error(READ_FAIL, before, false);
                             }
                         }
                         else
-                            error("conversion_error:" + arg0, false);
+                            error(CONV_ERR, arg0, false);
                     }
                     else if (after == "gbytes")
                     {
@@ -6657,21 +6770,21 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                     if (fileExists(variables.at(indexOfVariable(before)).getString()))
                                         setVariable(arg0, getGBytes(variables.at(indexOfVariable(before)).getString()));
                                     else
-                                        error("read_fail:" + variables.at(indexOfVariable(before)).getString(), false);
+                                        error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                                 }
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
                             {
                                 if (fileExists(before))
                                     setVariable(arg0, getGBytes(before));
                                 else
-                                    error("read_fail:" + before, false);
+                                    error(READ_FAIL, before, false);
                             }
                         }
                         else
-                            error("conversion_error:" + arg0, false);
+                            error(CONV_ERR, arg0, false);
                     }
                     else if (after == "tbytes")
                     {
@@ -6684,21 +6797,21 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                     if (fileExists(variables.at(indexOfVariable(before)).getString()))
                                         setVariable(arg0, getTBytes(variables.at(indexOfVariable(before)).getString()));
                                     else
-                                        error("read_fail:" + variables.at(indexOfVariable(before)).getString(), false);
+                                        error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                                 }
                                 else
-                                    error("conversion_error:" + before, false);
+                                    error(CONV_ERR, before, false);
                             }
                             else
                             {
                                 if (fileExists(before))
                                     setVariable(arg0, getTBytes(before));
                                 else
-                                    error("read_fail:" + before, false);
+                                    error(READ_FAIL, before, false);
                             }
                         }
                         else
-                            error("conversion_error:" + arg0, false);
+                            error(CONV_ERR, arg0, false);
                     }
                     else
                     {
@@ -6707,7 +6820,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             if (isNumeric(arg2))
                                 setVariable(arg0, stod(arg2));
                             else
-                                error("conversion_error:" + arg0, false);
+                                error(CONV_ERR, arg0, false);
                         }
                         else if (isString(arg0))
                             setVariable(arg0, arg2);
@@ -6719,7 +6832,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 setVariable(arg0, arg2);
                         }
                         else
-                            error("is_null:" + arg0, false);
+                            error(IS_NULL, arg0, false);
                     }
                 }
                 else
@@ -6738,7 +6851,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         else if (isNumber(arg0))
                             variables.at(indexOfVariable(arg0)).setNull();
                         else
-                            error("is_null:" + arg0, false);
+                            error(IS_NULL, arg0, false);
                     }
                     else if (constantExists(arg2))
                     {
@@ -6754,10 +6867,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             if (constants.at(indexOfConstant(arg2)).ConstNumber())
                                 setVariable(arg0, constants.at(indexOfConstant(arg2)).getNumber());
                             else
-                                error("conversion_error:__Null_number:" + arg2, false);
+                                error(CONV_ERR, arg2, false);
                         }
                         else
-                            error("is_null:" + arg0, false);
+                            error(IS_NULL, arg0, false);
                     }
                     else if (methodExists(arg2))
                     {
@@ -6775,9 +6888,9 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             if (isString(arg0))
                                 setVariable(arg0, variables.at(indexOfVariable(arg2)).getString());
                             else if (isNumber(arg0))
-                                error("conversion_error:" + arg2, false);
+                                error(CONV_ERR, arg2, false);
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                         else if (isNumber(arg2))
                         {
@@ -6786,10 +6899,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             else if (isNumber(arg0))
                                 setVariable(arg0, variables.at(indexOfVariable(arg2)).getNumber());
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                         else
-                            error("is_null:" + arg2, false);
+                            error(IS_NULL, arg2, false);
                     }
                     else if (arg2 == "password" || arg2 == "readline")
                     {
@@ -6803,7 +6916,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 if (isNumeric(passworder))
                                     setVariable(arg0, stod(passworder));
                                 else
-                                    error("conversion_error:" + passworder, false);
+                                    error(CONV_ERR, passworder, false);
                             }
                             else if (isString(arg0))
                                 setVariable(arg0, passworder);
@@ -6843,7 +6956,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             if (isString(arg0))
                                 setVariable(arg0, getStringStack(arg2));
                             else
-                                error("conversion_error:" + arg0, false);
+                                error(CONV_ERR, arg0, false);
                         }
                         else if (stackReady(arg2))
                         {
@@ -6852,7 +6965,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             else if (isNumber(arg0))
                                 setVariable(arg0, getStack(arg2));
                             else
-                                error("is_null:" + arg0, false);
+                                error(IS_NULL, arg0, false);
                         }
                     }
                     else
@@ -6867,645 +6980,648 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         else
                         {
                             if (isNumber(arg0))
-                                error("conversion_error:" + arg0, false);
+                                error(CONV_ERR, arg0, false);
                             else if (isString(arg0))
                                 setVariable(arg0, cleanString(arg2));
                         }
                     }
                 }
             }
-            else if (arg1 == "+=")
-            {
-                if (variableExists(arg2))
-                {
-                    if (isString(arg0))
-                    {
-                        if (isString(arg2))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + variables.at(indexOfVariable(arg2)).getString());
-                        else if (isNumber(arg2))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + dtos(variables.at(indexOfVariable(arg2)).getNumber()));
-                        else
-                            error("is_null:" + arg2, false);
-                    }
-                    else if (isNumber(arg0))
-                    {
-                        if (isString(arg2))
-                            error("conversion_error:" + arg2, false);
-                        else if (isNumber(arg2))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + variables.at(indexOfVariable(arg2)).getNumber());
-                        else
-                            error("is_null:" + arg2, false);
-                    }
-                    else
-                        error("is_null:" + arg0, false);
-                }
-                else
-                {
-                    if (containsParams(arg2))
-                    {
-                        if (isStringStack(arg2))
-                        {
-                            if (isString(arg0))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + getStringStack(arg2));
-                            else
-                                error("conversion_error:" + arg0, false);
-                        }
-                        else if (stackReady(arg2))
-                        {
-                            if (isNumber(arg0))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + getStack(arg2));
-                        }
-                        else if (methodExists(beforeParams(arg2)))
-                        {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
-
-                            if (isString(arg0))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + __LastValue);
-                            else if (isNumber(arg0))
-                            {
-                                if (isNumeric(__LastValue))
-                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(__LastValue));
-                                else
-                                    error("conversion_error:" + arg0, false);
-                            }
-                            else
-                                error("is_null:" + arg0, false);
-                        }
-                        else if (objectExists(beforeDot(arg2)))
-                        {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
-
-                            if (isString(arg0))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + __LastValue);
-                            else if (isNumber(arg0))
-                            {
-                                if (isNumeric(__LastValue))
-                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(__LastValue));
-                                else
-                                    error("conversion_error:" + arg0, false);
-                            }
-                            else
-                                error("is_null:" + arg0, false);
-                        }
-                    }
-                    else if (methodExists(arg2))
-                    {
-                        parse(arg2);
-
-                        if (isString(arg0))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + __LastValue);
-                        else if (isNumber(arg0))
-                        {
-                            if (isNumeric(__LastValue))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(__LastValue));
-                            else
-                                error("conversion_error:" + arg0, false);
-                        }
-                        else
-                            error("is_null:" + arg0, false);
-                    }
-                    else if (isNumeric(arg2))
-                    {
-                        if (isString(arg0))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + arg2);
-                        else if (isNumber(arg0))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(arg2));
-                        else
-                            error("is_null:" + arg0, false);
-                    }
-                    else
-                    {
-                        if (isString(arg0))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + cleanString(arg2));
-                        else if (isNumber(arg0))
-                            error("conversion_error:" + arg0, false);
-                        else
-                            error("is_null:" + arg0, false);
-                    }
-                }
-            }
-            else if (arg1 == "-=")
-            {
-                if (variableExists(arg2))
-                {
-                    if (isString(arg0))
-                    {
-                        if (isString(arg2))
-                        {
-                            if (variables.at(indexOfVariable(arg2)).getString().length() == 1)
-                                setVariable(arg0, subtractChar(variables.at(indexOfVariable(arg0)).getString(), variables.at(indexOfVariable(arg2)).getString()));
-                            else
-                                setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), variables.at(indexOfVariable(arg2)).getString()));
-                        }
-                        else if (isNumber(arg2))
-                            setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), dtos(variables.at(indexOfVariable(arg2)).getNumber())));
-                        else
-                            error("is_null:" + arg2, false);
-                    }
-                    else if (isNumber(arg0))
-                    {
-                        if (isString(arg2))
-                            error("conversion_error:" + arg2, false);
-                        else if (isNumber(arg2))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - variables.at(indexOfVariable(arg2)).getNumber());
-                        else
-                            error("is_null:" + arg2, false);
-                    }
-                    else
-                        error("is_null:" + arg0, false);
-                }
-                else
-                {
-                    if (containsParams(arg2))
-                    {
-                        if (isStringStack(arg2))
-                        {
-                            if (isString(arg0))
-                                setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), getStringStack(arg2)));
-                            else
-                                error("conversion_error:" + arg0, false);
-                        }
-                        else if (stackReady(arg2))
-                        {
-                            if (isNumber(arg0))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - getStack(arg2));
-                        }
-                        else if (methodExists(beforeParams(arg2)))
-                        {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
-
-                            if (isString(arg0))
-                                setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), __LastValue));
-                            else if (isNumber(arg0))
-                            {
-                                if (isNumeric(__LastValue))
-                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(__LastValue));
-                                else
-                                    error("conversion_error:" + arg0, false);
-                            }
-                            else
-                                error("is_null:" + arg0, false);
-                        }
-                        else if (objectExists(beforeDot(arg2)))
-                        {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
-
-                            if (isString(arg0))
-                                setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), __LastValue));
-                            else if (isNumber(arg0))
-                            {
-                                if (isNumeric(__LastValue))
-                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(__LastValue));
-                                else
-                                    error("conversion_error:" + arg0, false);
-                            }
-                            else
-                                error("is_null:" + arg0, false);
-                        }
-                    }
-                    else if (methodExists(arg2))
-                    {
-                        parse(arg2);
-
-                        if (isString(arg0))
-                            setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), __LastValue));
-                        else if (isNumber(arg0))
-                        {
-                            if (isNumeric(__LastValue))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(__LastValue));
-                            else
-                                error("conversion_error:" + arg0, false);
-                        }
-                        else
-                            error("is_null:" + arg0, false);
-                    }
-                    else if (isNumeric(arg2))
-                    {
-                        if (isString(arg0))
-                        {
-                            if (arg2.length() == 1)
-                                setVariable(arg0, subtractChar(variables.at(indexOfVariable(arg0)).getString(), arg2));
-                            else
-                                setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), arg2));
-                        }
-                        else if (isNumber(arg0))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(arg2));
-                        else
-                            error("is_null:" + arg0, false);
-                    }
-                    else
-                    {
-                        if (isString(arg0))
-                        {
-                            if (arg2.length() == 1)
-                                setVariable(arg0, subtractChar(variables.at(indexOfVariable(arg0)).getString(), arg2));
-                            else
-                                setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), cleanString(arg2)));
-                        }
-                        else if (isNumber(arg0))
-                            error("conversion_error:" + arg0, false);
-                        else
-                            error("is_null:" + arg0, false);
-                    }
-                }
-            }
-            else if (arg1 == "*=")
-            {
-                if (variableExists(arg2))
-                {
-                    if (isNumber(arg2))
-                        setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * variables.at(indexOfVariable(arg2)).getNumber());
-                    else if (isString(arg2))
-                        error("conversion_error:" + arg2, false);
-                    else
-                        error("is_null:" + arg2, false);
-                }
-                else
-                {
-                    if (containsParams(arg2))
-                    {
-                        if (stackReady(arg2))
-                        {
-                            if (isNumber(arg0))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * getStack(arg2));
-                        }
-                        else if (methodExists(beforeParams(arg2)))
-                        {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
-
-                            if (isNumber(arg0))
-                            {
-                                if (isNumeric(__LastValue))
-                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(__LastValue));
-                                else
-                                    error("conversion_error:" + arg0, false);
-                            }
-                            else
-                                error("invalid_operation:__Null_number:" + arg0, false);
-                        }
-                        else if (objectExists(beforeDot(arg2)))
-                        {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
-
-                            if (isNumber(arg0))
-                            {
-                                if (isNumeric(__LastValue))
-                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(__LastValue));
-                                else
-                                    error("conversion_error:" + arg0, false);
-                            }
-                            else
-                                error("invalid_operation:__Null_number:" + arg0, false);
-                        }
-                    }
-                    else if (methodExists(arg2))
-                    {
-                        parse(arg2);
-
-                        if (isNumber(arg0))
-                        {
-                            if (isNumeric(__LastValue))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(__LastValue));
-                            else
-                                error("conversion_error:" + arg0, false);
-                        }
-                        else
-                            error("invalid_operation:__Null_number:" + arg0, false);
-                    }
-                    else if (isNumeric(arg2))
-                    {
-                        if (isNumber(arg0))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(arg2));
-                    }
-                    else
-                        setVariable(arg0, cleanString(arg2));
-                }
-            }
-            else if (arg1 == "%=")
-            {
-                if (variableExists(arg2))
-                {
-                    if (isNumber(arg2))
-                        setVariable(arg0, (int)variables.at(indexOfVariable(arg0)).getNumber() % (int)variables.at(indexOfVariable(arg2)).getNumber());
-                    else if (isString(arg2))
-                        error("conversion_error:" + arg2, false);
-                    else
-                        error("is_null:" + arg2, false);
-                }
-                else if (methodExists(arg2))
-                {
-                    parse(arg2);
-
-                    if (isNumber(arg0))
-                    {
-                        if (isNumeric(__LastValue))
-                            setVariable(arg0, (int)variables.at(indexOfVariable(arg0)).getNumber() % (int)stod(__LastValue));
-                        else
-                            error("conversion_error:" + arg0, false);
-                    }
-                    else
-                        error("invalid_operation:__Null_number:" + arg0, false);
-                }
-                else
-                {
-                    if (isNumeric(arg2))
-                    {
-                        if (isNumber(arg0))
-                            setVariable(arg0, (int)variables.at(indexOfVariable(arg0)).getNumber() % (int)stod(arg2));
-                    }
-                    else
-                        setVariable(arg0, cleanString(arg2));
-                }
-            }
-            else if (arg1 == "**=")
-            {
-                if (variableExists(arg2))
-                {
-                    if (isNumber(arg2))
-                        setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), variables.at(indexOfVariable(arg2)).getNumber()));
-                    else if (isString(arg2))
-                        error("conversion_error:" + arg2, false);
-                    else
-                        error("is_null:" + arg2, false);
-                }
-                else
-                {
-                    if (containsParams(arg2))
-                    {
-                        if (stackReady(arg2))
-                        {
-                            if (isNumber(arg0))
-                                setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)getStack(arg2)));
-                        }
-                        else if (methodExists(beforeParams(arg2)))
-                        {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
-
-                            if (isNumber(arg0))
-                            {
-                                if (isNumeric(__LastValue))
-                                    setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)stod(__LastValue)));
-                                else
-                                    error("conversion_error:" + arg0, false);
-                            }
-                            else
-                                error("invalid_operation:__Null_number:" + arg0, false);
-                        }
-                        else if (objectExists(beforeDot(arg2)))
-                        {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
-
-                            if (isNumber(arg0))
-                            {
-                                if (isNumeric(__LastValue))
-                                    setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)stod(__LastValue)));
-                                else
-                                    error("conversion_error:" + arg0, false);
-                            }
-                            else
-                                error("invalid_operation:__Null_number:" + arg0, false);
-                        }
-                    }
-                    else if (methodExists(arg2))
-                    {
-                        parse(arg2);
-
-                        if (isNumber(arg0))
-                        {
-                            if (isNumeric(__LastValue))
-                                setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)stod(__LastValue)));
-                            else
-                                error("conversion_error:" + arg0, false);
-                        }
-                        else
-                            error("invalid_operation:__Null_number:" + arg0, false);
-                    }
-                    else if (isNumeric(arg2))
-                    {
-                        if (isNumber(arg0))
-                            setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), stod(arg2)));
-                    }
-                    else
-                        setVariable(arg0, cleanString(arg2));
-                }
-            }
-            else if (arg1 == "/=")
-            {
-                if (variableExists(arg2))
-                {
-                    if (isNumber(arg2))
-                        setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / variables.at(indexOfVariable(arg2)).getNumber());
-                    else if (isString(arg2))
-                        error("conversion_error:" + arg2, false);
-                    else
-                        error("is_null:" + arg2, false);
-                }
-                else
-                {
-                    if (containsParams(arg2))
-                    {
-                        if (stackReady(arg2))
-                        {
-                            if (isNumber(arg0))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / getStack(arg2));
-                        }
-                        else if (methodExists(beforeParams(arg2)))
-                        {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
-
-                            if (isNumber(arg0))
-                            {
-                                if (isNumeric(__LastValue))
-                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(__LastValue));
-                                else
-                                    error("conversion_error:" + arg0, false);
-                            }
-                            else
-                                error("invalid_operation:__Null_number:" + arg0, false);
-                        }
-                        else if (objectExists(beforeDot(arg2)))
-                        {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
-
-                            if (isNumber(arg0))
-                            {
-                                if (isNumeric(__LastValue))
-                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(__LastValue));
-                                else
-                                    error("conversion_error:" + arg0, false);
-                            }
-                            else
-                                error("invalid_operation:__Null_number:" + arg0, false);
-                        }
-                    }
-                    else if (methodExists(arg2))
-                    {
-                        parse(arg2);
-
-                        if (isNumber(arg0))
-                        {
-                            if (isNumeric(__LastValue))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(__LastValue));
-                            else
-                                error("conversion_error:" + arg0, false);
-                        }
-                        else
-                            error("invalid_operation:__Null_number:" + arg0, false);
-                    }
-                    else if (isNumeric(arg2))
-                    {
-                        if (isNumber(arg0))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(arg2));
-                    }
-                    else
-                        setVariable(arg0, cleanString(arg2));
-                }
-            }
-            else if (arg1 == "++=")
-            {
-                if (variableExists(arg2))
-                {
-                    if (isNumber(arg2))
-                    {
-                        if (isString(arg0))
-                        {
-                            int tempVarNumber((int)variables.at(indexOfVariable(arg2)).getNumber());
-                            string tempVarString(variables.at(indexOfVariable(arg0)).getString());
-                            int len(tempVarString.length());
-                            string cleaned("");
-
-                            for (int i = 0; i < len; i++)
-                                cleaned.push_back((char)(((int)tempVarString[i]) + tempVarNumber));
-
-                            setVariable(arg0, cleaned);
-                        }
-                        else
-                            error("is_null:" + arg0, false);
-                    }
-                    else
-                        error("conversion_error:" + arg2, false);
-                }
-                else
-                {
-                    if (isNumeric(arg2))
-                    {
-                        int tempVarNumber(stoi(arg2));
-                        string tempVarString(variables.at(indexOfVariable(arg0)).getString());
-
-                        if (tempVarString != __Null)
-                        {
-                            int len(tempVarString.length());
-                            string cleaned("");
-
-                            for (int i = 0; i < len; i++)
-                                cleaned.push_back((char)(((int)tempVarString[i]) + tempVarNumber));
-
-                            setVariable(arg0, cleaned);
-                        }
-                        else
-                            error("is_null:" + tempVarString, false);
-                    }
-                    else
-                        error("conversion_error:" + arg2, false);
-                }
-            }
-            else if (arg1 == "--=")
-            {
-                if (variableExists(arg2))
-                {
-                    if (isNumber(arg2))
-                    {
-                        if (isString(arg0))
-                        {
-                            int tempVarNumber((int)variables.at(indexOfVariable(arg2)).getNumber());
-                            string tempVarString(variables.at(indexOfVariable(arg0)).getString());
-                            int len(tempVarString.length());
-                            string cleaned("");
-
-                            for (int i = 0; i < len; i++)
-                                cleaned.push_back((char)(((int)tempVarString[i]) - tempVarNumber));
-
-                            setVariable(arg0, cleaned);
-                        }
-                        else
-                            error("is_null:" + arg0, false);
-                    }
-                    else
-                        error("conversion_error:" + arg2, false);
-                }
-                else
-                {
-                    if (isNumeric(arg2))
-                    {
-                        int tempVarNumber(stoi(arg2));
-                        string tempVarString(variables.at(indexOfVariable(arg0)).getString());
-
-                        if (tempVarString != __Null)
-                        {
-                            int len(tempVarString.length());
-                            string cleaned("");
-
-                            for (int i = 0; i < len; i++)
-                                cleaned.push_back((char)(((int)tempVarString[i]) - tempVarNumber));
-
-                            setVariable(arg0, cleaned);
-                        }
-                        else
-                            error("is_null:" + tempVarString, false);
-                    }
-                    else
-                        error("conversion_error:" + arg2, false);
-                }
-            }
-            else if (arg1 == "?")
-            {
-                if (variableExists(arg2))
-                {
-                    if (isString(arg2))
-                    {
-                        if (isString(arg0))
-                            setVariable(arg0, getStdout(variables.at(indexOfVariable(arg2)).getString().c_str()));
-                        else
-                            error("conversion_error:" + arg0, false);
-                    }
-                    else
-                        error("conversion_error:" + arg2, false);
-                }
-                else
-                {
-                    if (isString(arg0))
-                        setVariable(arg0, getStdout(cleanString(arg2).c_str()));
-                    else
-                        error("conversion_error:" + arg0, false);
-                }
-            }
-            else if (arg1 == "!")
-            {
-                if (variableExists(arg2))
-                {
-                    if (isString(arg2))
-                    {
-                        if (isString(arg0))
-                            setVariable(arg0, getParsedOutput(variables.at(indexOfVariable(arg2)).getString().c_str()));
-                        else
-                            error("conversion_error:" + arg0, false);
-                    }
-                    else
-                        error("conversion_error:" + arg2, false);
-                }
-                else
-                {
-                    if (isString(arg0))
-                        setVariable(arg0, getParsedOutput(cleanString(arg2).c_str()));
-                    else
-                        error("conversion_error:" + arg0, false);
-                }
-            }
             else
-                error("invalid_operator:" + arg1, false);
+            {
+				if (arg1 == "+=")
+				{
+					if (variableExists(arg2))
+					{
+						if (isString(arg0))
+						{
+							if (isString(arg2))
+								setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + variables.at(indexOfVariable(arg2)).getString());
+							else if (isNumber(arg2))
+								setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + dtos(variables.at(indexOfVariable(arg2)).getNumber()));
+							else
+								error(IS_NULL, arg2, false);
+						}
+						else if (isNumber(arg0))
+						{
+							if (isString(arg2))
+								error(CONV_ERR, arg2, false);
+							else if (isNumber(arg2))
+								setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + variables.at(indexOfVariable(arg2)).getNumber());
+							else
+								error(IS_NULL, arg2, false);
+						}
+						else
+							error(IS_NULL, arg0, false);
+					}
+					else
+					{
+						if (containsParams(arg2))
+						{
+							if (isStringStack(arg2))
+							{
+								if (isString(arg0))
+									setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + getStringStack(arg2));
+								else
+									error(CONV_ERR, arg0, false);
+							}
+							else if (stackReady(arg2))
+							{
+								if (isNumber(arg0))
+									setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + getStack(arg2));
+							}
+							else if (methodExists(beforeParams(arg2)))
+							{
+								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+
+								if (isString(arg0))
+									setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + __LastValue);
+								else if (isNumber(arg0))
+								{
+									if (isNumeric(__LastValue))
+										setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(__LastValue));
+									else
+										error(CONV_ERR, arg0, false);
+								}
+								else
+									error(IS_NULL, arg0, false);
+							}
+							else if (objectExists(beforeDot(arg2)))
+							{
+								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+
+								if (isString(arg0))
+									setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + __LastValue);
+								else if (isNumber(arg0))
+								{
+									if (isNumeric(__LastValue))
+										setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(__LastValue));
+									else
+										error(CONV_ERR, arg0, false);
+								}
+								else
+									error(IS_NULL, arg0, false);
+							}
+						}
+						else if (methodExists(arg2))
+						{
+							parse(arg2);
+
+							if (isString(arg0))
+								setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + __LastValue);
+							else if (isNumber(arg0))
+							{
+								if (isNumeric(__LastValue))
+									setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(__LastValue));
+								else
+									error(CONV_ERR, arg0, false);
+							}
+							else
+								error(IS_NULL, arg0, false);
+						}
+						else if (isNumeric(arg2))
+						{
+							if (isString(arg0))
+								setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + arg2);
+							else if (isNumber(arg0))
+								setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(arg2));
+							else
+								error(IS_NULL, arg0, false);
+						}
+						else
+						{
+							if (isString(arg0))
+								setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + cleanString(arg2));
+							else if (isNumber(arg0))
+								error(CONV_ERR, arg0, false);
+							else
+								error(IS_NULL, arg0, false);
+						}
+					}
+				}
+				else if (arg1 == "-=")
+				{
+					if (variableExists(arg2))
+					{
+						if (isString(arg0))
+						{
+							if (isString(arg2))
+							{
+								if (variables.at(indexOfVariable(arg2)).getString().length() == 1)
+									setVariable(arg0, subtractChar(variables.at(indexOfVariable(arg0)).getString(), variables.at(indexOfVariable(arg2)).getString()));
+								else
+									setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), variables.at(indexOfVariable(arg2)).getString()));
+							}
+							else if (isNumber(arg2))
+								setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), dtos(variables.at(indexOfVariable(arg2)).getNumber())));
+							else
+								error(IS_NULL, arg2, false);
+						}
+						else if (isNumber(arg0))
+						{
+							if (isString(arg2))
+								error(CONV_ERR, arg2, false);
+							else if (isNumber(arg2))
+								setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - variables.at(indexOfVariable(arg2)).getNumber());
+							else
+								error(IS_NULL, arg2, false);
+						}
+						else
+							error(IS_NULL, arg0, false);
+					}
+					else
+					{
+						if (containsParams(arg2))
+						{
+							if (isStringStack(arg2))
+							{
+								if (isString(arg0))
+									setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), getStringStack(arg2)));
+								else
+									error(CONV_ERR, arg0, false);
+							}
+							else if (stackReady(arg2))
+							{
+								if (isNumber(arg0))
+									setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - getStack(arg2));
+							}
+							else if (methodExists(beforeParams(arg2)))
+							{
+								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+
+								if (isString(arg0))
+									setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), __LastValue));
+								else if (isNumber(arg0))
+								{
+									if (isNumeric(__LastValue))
+										setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(__LastValue));
+									else
+										error(CONV_ERR, arg0, false);
+								}
+								else
+									error(IS_NULL, arg0, false);
+							}
+							else if (objectExists(beforeDot(arg2)))
+							{
+								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+
+								if (isString(arg0))
+									setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), __LastValue));
+								else if (isNumber(arg0))
+								{
+									if (isNumeric(__LastValue))
+										setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(__LastValue));
+									else
+										error(CONV_ERR, arg0, false);
+								}
+								else
+									error(IS_NULL, arg0, false);
+							}
+						}
+						else if (methodExists(arg2))
+						{
+							parse(arg2);
+
+							if (isString(arg0))
+								setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), __LastValue));
+							else if (isNumber(arg0))
+							{
+								if (isNumeric(__LastValue))
+									setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(__LastValue));
+								else
+									error(CONV_ERR, arg0, false);
+							}
+							else
+								error(IS_NULL, arg0, false);
+						}
+						else if (isNumeric(arg2))
+						{
+							if (isString(arg0))
+							{
+								if (arg2.length() == 1)
+									setVariable(arg0, subtractChar(variables.at(indexOfVariable(arg0)).getString(), arg2));
+								else
+									setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), arg2));
+							}
+							else if (isNumber(arg0))
+								setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(arg2));
+							else
+								error(IS_NULL, arg0, false);
+						}
+						else
+						{
+							if (isString(arg0))
+							{
+								if (arg2.length() == 1)
+									setVariable(arg0, subtractChar(variables.at(indexOfVariable(arg0)).getString(), arg2));
+								else
+									setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), cleanString(arg2)));
+							}
+							else if (isNumber(arg0))
+								error(CONV_ERR, arg0, false);
+							else
+								error(IS_NULL, arg0, false);
+						}
+					}
+				}
+				else if (arg1 == "*=")
+				{
+					if (variableExists(arg2))
+					{
+						if (isNumber(arg2))
+							setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * variables.at(indexOfVariable(arg2)).getNumber());
+						else if (isString(arg2))
+							error(CONV_ERR, arg2, false);
+						else
+							error(IS_NULL, arg2, false);
+					}
+					else
+					{
+						if (containsParams(arg2))
+						{
+							if (stackReady(arg2))
+							{
+								if (isNumber(arg0))
+									setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * getStack(arg2));
+							}
+							else if (methodExists(beforeParams(arg2)))
+							{
+								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+
+								if (isNumber(arg0))
+								{
+									if (isNumeric(__LastValue))
+										setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(__LastValue));
+									else
+										error(CONV_ERR, arg0, false);
+								}
+								else
+									error(NULL_NUMBER, arg0, false);
+							}
+							else if (objectExists(beforeDot(arg2)))
+							{
+								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+
+								if (isNumber(arg0))
+								{
+									if (isNumeric(__LastValue))
+										setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(__LastValue));
+									else
+										error(CONV_ERR, arg0, false);
+								}
+								else
+									error(NULL_NUMBER, arg0, false);
+							}
+						}
+						else if (methodExists(arg2))
+						{
+							parse(arg2);
+
+							if (isNumber(arg0))
+							{
+								if (isNumeric(__LastValue))
+									setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(__LastValue));
+								else
+									error(CONV_ERR, arg0, false);
+							}
+							else
+								error(NULL_NUMBER, arg0, false);
+						}
+						else if (isNumeric(arg2))
+						{
+							if (isNumber(arg0))
+								setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(arg2));
+						}
+						else
+							setVariable(arg0, cleanString(arg2));
+					}
+				}
+				else if (arg1 == "%=")
+				{
+					if (variableExists(arg2))
+					{
+						if (isNumber(arg2))
+							setVariable(arg0, (int)variables.at(indexOfVariable(arg0)).getNumber() % (int)variables.at(indexOfVariable(arg2)).getNumber());
+						else if (isString(arg2))
+							error(CONV_ERR, arg2, false);
+						else
+							error(IS_NULL, arg2, false);
+					}
+					else if (methodExists(arg2))
+					{
+						parse(arg2);
+
+						if (isNumber(arg0))
+						{
+							if (isNumeric(__LastValue))
+								setVariable(arg0, (int)variables.at(indexOfVariable(arg0)).getNumber() % (int)stod(__LastValue));
+							else
+								error(CONV_ERR, arg0, false);
+						}
+						else
+							error(NULL_NUMBER, arg0, false);
+					}
+					else
+					{
+						if (isNumeric(arg2))
+						{
+							if (isNumber(arg0))
+								setVariable(arg0, (int)variables.at(indexOfVariable(arg0)).getNumber() % (int)stod(arg2));
+						}
+						else
+							setVariable(arg0, cleanString(arg2));
+					}
+				}
+				else if (arg1 == "**=")
+				{
+					if (variableExists(arg2))
+					{
+						if (isNumber(arg2))
+							setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), variables.at(indexOfVariable(arg2)).getNumber()));
+						else if (isString(arg2))
+							error(CONV_ERR, arg2, false);
+						else
+							error(IS_NULL, arg2, false);
+					}
+					else
+					{
+						if (containsParams(arg2))
+						{
+							if (stackReady(arg2))
+							{
+								if (isNumber(arg0))
+									setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)getStack(arg2)));
+							}
+							else if (methodExists(beforeParams(arg2)))
+							{
+								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+
+								if (isNumber(arg0))
+								{
+									if (isNumeric(__LastValue))
+										setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)stod(__LastValue)));
+									else
+										error(CONV_ERR, arg0, false);
+								}
+								else
+									error(NULL_NUMBER, arg0, false);
+							}
+							else if (objectExists(beforeDot(arg2)))
+							{
+								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+
+								if (isNumber(arg0))
+								{
+									if (isNumeric(__LastValue))
+										setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)stod(__LastValue)));
+									else
+										error(CONV_ERR, arg0, false);
+								}
+								else
+									error(NULL_NUMBER, arg0, false);
+							}
+						}
+						else if (methodExists(arg2))
+						{
+							parse(arg2);
+
+							if (isNumber(arg0))
+							{
+								if (isNumeric(__LastValue))
+									setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)stod(__LastValue)));
+								else
+									error(CONV_ERR, arg0, false);
+							}
+							else
+								error(NULL_NUMBER, arg0, false);
+						}
+						else if (isNumeric(arg2))
+						{
+							if (isNumber(arg0))
+								setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), stod(arg2)));
+						}
+						else
+							setVariable(arg0, cleanString(arg2));
+					}
+				}
+				else if (arg1 == "/=")
+				{
+					if (variableExists(arg2))
+					{
+						if (isNumber(arg2))
+							setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / variables.at(indexOfVariable(arg2)).getNumber());
+						else if (isString(arg2))
+							error(CONV_ERR, arg2, false);
+						else
+							error(IS_NULL, arg2, false);
+					}
+					else
+					{
+						if (containsParams(arg2))
+						{
+							if (stackReady(arg2))
+							{
+								if (isNumber(arg0))
+									setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / getStack(arg2));
+							}
+							else if (methodExists(beforeParams(arg2)))
+							{
+								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+
+								if (isNumber(arg0))
+								{
+									if (isNumeric(__LastValue))
+										setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(__LastValue));
+									else
+										error(CONV_ERR, arg0, false);
+								}
+								else
+									error(NULL_NUMBER, arg0, false);
+							}
+							else if (objectExists(beforeDot(arg2)))
+							{
+								executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+
+								if (isNumber(arg0))
+								{
+									if (isNumeric(__LastValue))
+										setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(__LastValue));
+									else
+										error(CONV_ERR, arg0, false);
+								}
+								else
+									error(NULL_NUMBER, arg0, false);
+							}
+						}
+						else if (methodExists(arg2))
+						{
+							parse(arg2);
+
+							if (isNumber(arg0))
+							{
+								if (isNumeric(__LastValue))
+									setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(__LastValue));
+								else
+									error(CONV_ERR, arg0, false);
+							}
+							else
+								error(NULL_NUMBER, arg0, false);
+						}
+						else if (isNumeric(arg2))
+						{
+							if (isNumber(arg0))
+								setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(arg2));
+						}
+						else
+							setVariable(arg0, cleanString(arg2));
+					}
+				}
+				else if (arg1 == "++=")
+				{
+					if (variableExists(arg2))
+					{
+						if (isNumber(arg2))
+						{
+							if (isString(arg0))
+							{
+								int tempVarNumber((int)variables.at(indexOfVariable(arg2)).getNumber());
+								string tempVarString(variables.at(indexOfVariable(arg0)).getString());
+								int len(tempVarString.length());
+								string cleaned("");
+
+								for (int i = 0; i < len; i++)
+									cleaned.push_back((char)(((int)tempVarString[i]) + tempVarNumber));
+
+								setVariable(arg0, cleaned);
+							}
+							else
+								error(IS_NULL, arg0, false);
+						}
+						else
+							error(CONV_ERR, arg2, false);
+					}
+					else
+					{
+						if (isNumeric(arg2))
+						{
+							int tempVarNumber(stoi(arg2));
+							string tempVarString(variables.at(indexOfVariable(arg0)).getString());
+
+							if (tempVarString != __Null)
+							{
+								int len(tempVarString.length());
+								string cleaned("");
+
+								for (int i = 0; i < len; i++)
+									cleaned.push_back((char)(((int)tempVarString[i]) + tempVarNumber));
+
+								setVariable(arg0, cleaned);
+							}
+							else
+								error(IS_NULL, tempVarString, false);
+						}
+						else
+							error(CONV_ERR, arg2, false);
+					}
+				}
+				else if (arg1 == "--=")
+				{
+					if (variableExists(arg2))
+					{
+						if (isNumber(arg2))
+						{
+							if (isString(arg0))
+							{
+								int tempVarNumber((int)variables.at(indexOfVariable(arg2)).getNumber());
+								string tempVarString(variables.at(indexOfVariable(arg0)).getString());
+								int len(tempVarString.length());
+								string cleaned("");
+
+								for (int i = 0; i < len; i++)
+									cleaned.push_back((char)(((int)tempVarString[i]) - tempVarNumber));
+
+								setVariable(arg0, cleaned);
+							}
+							else
+								error(IS_NULL, arg0, false);
+						}
+						else
+							error(CONV_ERR, arg2, false);
+					}
+					else
+					{
+						if (isNumeric(arg2))
+						{
+							int tempVarNumber(stoi(arg2));
+							string tempVarString(variables.at(indexOfVariable(arg0)).getString());
+
+							if (tempVarString != __Null)
+							{
+								int len(tempVarString.length());
+								string cleaned("");
+
+								for (int i = 0; i < len; i++)
+									cleaned.push_back((char)(((int)tempVarString[i]) - tempVarNumber));
+
+								setVariable(arg0, cleaned);
+							}
+							else
+								error(IS_NULL, tempVarString, false);
+						}
+						else
+							error(CONV_ERR, arg2, false);
+					}
+				}
+				else if (arg1 == "?")
+				{
+					if (variableExists(arg2))
+					{
+						if (isString(arg2))
+						{
+							if (isString(arg0))
+								setVariable(arg0, getStdout(variables.at(indexOfVariable(arg2)).getString().c_str()));
+							else
+								error(CONV_ERR, arg0, false);
+						}
+						else
+							error(CONV_ERR, arg2, false);
+					}
+					else
+					{
+						if (isString(arg0))
+							setVariable(arg0, getStdout(cleanString(arg2).c_str()));
+						else
+							error(CONV_ERR, arg0, false);
+					}
+				}
+				else if (arg1 == "!")
+				{
+					if (variableExists(arg2))
+					{
+						if (isString(arg2))
+						{
+							if (isString(arg0))
+								setVariable(arg0, getParsedOutput(variables.at(indexOfVariable(arg2)).getString().c_str()));
+							else
+								error(CONV_ERR, arg0, false);
+						}
+						else
+							error(CONV_ERR, arg2, false);
+					}
+					else
+					{
+						if (isString(arg0))
+							setVariable(arg0, getParsedOutput(cleanString(arg2).c_str()));
+						else
+							error(CONV_ERR, arg0, false);
+					}
+				}
+				else
+				{
+					error(INVALID_OPERATOR, arg1, false);
+				}
+            }
         }
-        else
-            error("special_error(4)", false);
     }
     else if (listExists(arg0) || listExists(beforeBrackets(arg0)))
     {
@@ -7531,14 +7647,14 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             else if (isNumber(arg2))
                                 replaceElement(before, after, dtos(variables.at(indexOfVariable(arg2)).getNumber()));
                             else
-                                error("is_null:" + arg2, false);
+                                error(IS_NULL, arg2, false);
                         }
                         else
                             replaceElement(before, after, arg2);
                     }
                 }
                 else if (lists.at(indexOfList(before)).at(stoi(after)) == "#!=no_line")
-                    error("invalid_operation:index_out_of_bounds:" + arg0, false);
+                    error(OUT_OF_BOUNDS, arg0, false);
                 else
                 {
                     if (arg1 == "=")
@@ -7550,7 +7666,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             else if (isNumber(arg2))
                                 replaceElement(before, after, dtos(variables.at(indexOfVariable(arg2)).getNumber()));
                             else
-                                error("is_null:" + arg2, false);
+                                error(IS_NULL, arg2, false);
                         }
                         else
                             replaceElement(before, after, arg2);
@@ -7558,7 +7674,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                 }
             }
             else
-                error("invalid_operation:index_out_of_bounds:" + arg2, false);
+                error(OUT_OF_BOUNDS, arg2, false);
         }
         else if (containsBrackets(arg2))
         {
@@ -7595,13 +7711,13 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                                 lists.at(indexOfList(arg0)).add(lists.at(indexOfList(listName)).at(i));
                                         }
                                         else
-                                            error("invalid_operator:" + arg1, false);
+                                            error(INVALID_OPERATOR, arg1, false);
                                     }
                                     else
-                                        error("invalid_operation:index_invalid:" + rangeBegin, false);
+                                        error(OUT_OF_BOUNDS, rangeBegin, false);
                                 }
                                 else
-                                    error("invalid_operation:index_out_of_bounds:" + rangeEnd, false);
+                                    error(OUT_OF_BOUNDS, rangeEnd, false);
                             }
                             else if (stoi(rangeBegin) > stoi(rangeEnd))
                             {
@@ -7622,28 +7738,28 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                                 lists.at(indexOfList(arg0)).add(lists.at(indexOfList(listName)).at(i));
                                         }
                                         else
-                                            error("invalid_operator:" + arg1, false);
+                                            error(INVALID_OPERATOR, arg1, false);
                                     }
                                     else
-                                        error("invalid_operation:index_invalid:" + rangeBegin, false);
+                                        error(OUT_OF_BOUNDS, rangeBegin, false);
                                 }
                                 else
-                                    error("invalid_operation:index_out_of_bounds:" + rangeEnd, false);
+                                    error(OUT_OF_BOUNDS, rangeEnd, false);
                             }
                             else
-                                error("invalid_operation:invalid_range:" + rangeBegin + ".." + rangeEnd, false);
+                                error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                         }
                         else
-                            error("invalid_operation:invalid_range:" + rangeBegin + ".." + rangeEnd, false);
+                            error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                     }
                     else
-                        error("invalid_operation:invalid_range_lengths:" + rangeBegin + ".." + rangeEnd, false);
+                        error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                 }
                 else
-                    error("invalid_operation:invalid_range:" + arg2, false);
+                    error(OUT_OF_BOUNDS, arg2, false);
             }
             else
-                error("invalid_operation:list_undefined:" + listName, false);
+                error(LIST_UNDEFINED, listName, false);
         }
         else if (variableExists(_b) && contains(_a, "split") && arg1 == "=")
         {
@@ -7668,7 +7784,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                     lists.at(indexOfList(arg0)).add(elements.at(i));
             }
             else
-                error("invalid_operation:__Null_string:" + _b, false);
+                error(NULL_STRING, _b, false);
         }
         else if (containsParams(arg2))
         {
@@ -7693,14 +7809,14 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         else if (isNumber(params.at(i)))
                             lists.at(indexOfList(arg0)).remove(dtos(variables.at(indexOfVariable(params.at(i))).getNumber()));
                         else
-                            error("is_null:" + params.at(i), false);
+                            error(IS_NULL, params.at(i), false);
                     }
                     else
                         lists.at(indexOfList(arg0)).remove(params.at(i));
                 }
             }
             else
-                error("invalid_operator:" + arg1, false);
+                error(INVALID_OPERATOR, arg1, false);
         }
         else if (variableExists(arg2))
         {
@@ -7711,7 +7827,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                 else if (isNumber(arg2))
                     lists.at(indexOfList(arg0)).add(dtos(variables.at(indexOfVariable(arg2)).getNumber()));
                 else
-                    error("conversion_error:" + arg2, false);
+                    error(CONV_ERR, arg2, false);
             }
             else if (arg1 == "-=")
             {
@@ -7720,10 +7836,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                 else if (isNumber(arg2))
                     lists.at(indexOfList(arg0)).remove(dtos(variables.at(indexOfVariable(arg2)).getNumber()));
                 else
-                    error("conversion_error:" + arg2, false);
+                    error(CONV_ERR, arg2, false);
             }
             else
-                error("invalid_operator:" + arg1, false);
+                error(INVALID_OPERATOR, arg1, false);
         }
         else if (methodExists(arg2))
         {
@@ -7744,7 +7860,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                     lists.at(indexOfList(arg0)).add(_p.at(i));
             }
             else
-                error("invalid_operator:" + arg1, false);
+                error(INVALID_OPERATOR, arg1, false);
         }
         else
         {
@@ -7753,14 +7869,14 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                 if (arg2.length() != 0)
                     lists.at(indexOfList(arg0)).add(arg2);
                 else
-                    error("is_empty:" + arg2, false);
+                    error(IS_EMPTY, arg2, false);
             }
             else if (arg1 == "-=")
             {
                 if (arg2.length() != 0)
                     lists.at(indexOfList(arg0)).remove(arg2);
                 else
-                    error("is_empty:" + arg2, false);
+                    error(IS_EMPTY, arg2, false);
             }
         }
     }
@@ -7783,7 +7899,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (lists.at(indexOfList(beforeBracket)).size() >= stoi(afterBracket))
                         {
                             if (lists.at(indexOfList(beforeBracket)).at(stoi(afterBracket)) == "#!=no_line")
-                                error("invalid_operation:index_out_of_bounds:" + arg2, false);
+                                error(OUT_OF_BOUNDS, arg2, false);
                             else
                             {
                                 string listValue(lists.at(indexOfList(beforeBracket)).at(stoi(afterBracket)));
@@ -7795,12 +7911,12 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             }
                         }
                         else
-                            error("invalid_operation:index_out_of_bounds:" + arg2, false);
+                            error(OUT_OF_BOUNDS, arg2, false);
                     }
                     else if (variableExists(beforeBracket))
                         setSubString(arg0, arg2, beforeBracket);
                     else
-                        error("invalid_operation:list_undefined:" + beforeBracket, false);
+                        error(LIST_UNDEFINED, beforeBracket, false);
                 }
                 else if (listExists(before) && after == "size")
                     createVariable(arg0, stod(itos(lists.at(indexOfList(before)).size())));
@@ -7823,10 +7939,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             createVariable(arg0, (double)i);
                         }
                         else
-                            error("is_null:" + before, false);
+                            error(IS_NULL, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "to_double" || after == "double")
                 {
@@ -7840,10 +7956,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             createVariable(arg0, (double)i);
                         }
                         else
-                            error("is_null:" + before, false);
+                            error(IS_NULL, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "to_string")
                 {
@@ -7852,10 +7968,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isNumber(before))
                             createVariable(arg0, dtos(variables.at(indexOfVariable(before)).getNumber()));
                         else
-                            error("is_null:" + before, false);
+                            error(IS_NULL, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "to_number")
                 {
@@ -7864,10 +7980,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isString(before))
                             createVariable(arg0, stod(variables.at(indexOfVariable(before)).getString()));
                         else
-                            error("is_null:" + before, false);
+                            error(IS_NULL, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (objectExists(before))
                 {
@@ -7901,7 +8017,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         else if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != __NullNum)
                             createVariable(arg0, objects.at(indexOfObject(before)).getVariable(after).getNumber());
                         else
-                            error("is_null:" + objects.at(indexOfObject(before)).getVariable(after).name(), false);
+                            error(IS_NULL, objects.at(indexOfObject(before)).getVariable(after).name(), false);
                     }
                 }
                 else if (variableExists(before) && after == "read")
@@ -7926,13 +8042,13 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 createVariable(arg0, bigString);
                             }
                             else
-                                error("read_fail:" + variables.at(indexOfVariable(before)).getString(), false);
+                                error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                         }
                         else
-                            error("read_fail:" + variables.at(indexOfVariable(before)).getString(), false);
+                            error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                     }
                     else
-                        error("invalid_operation:__Null_string:" + before, false);
+                        error(NULL_STRING, before, false);
                 }
                 else if (__DefiningObject)
                 {
@@ -7977,7 +8093,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                     else if (constants.at(indexOfConstant(arg2)).ConstString())
                         createVariable(arg0, constants.at(indexOfConstant(arg2)).getString());
                     else
-                        error("conversion_error:__Null_constant:" + arg2, false);
+                        error(CONV_ERR, arg2, false);
                 }
                 else if (containsParams(arg2))
                 {
@@ -8052,10 +8168,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                                 }
                             }
                             else
-                                error("invalid_operation:invalid_range:" + s0 + ".." + s2, false);
+                                error(OUT_OF_BOUNDS, s0 + ".." + s2, false);
                         }
                         else
-                            error("invalid_operation:invalid_range_separator:" + arg2, false);
+                            error(INVALID_RANGE_SEP, arg2, false);
                     }
                     else
                     {
@@ -8189,7 +8305,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isString(before))
                             createVariable(arg0, (double)variables.at(indexOfVariable(before)).getString().length());
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
                         createVariable(arg0, (double)before.length());
@@ -8201,10 +8317,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isNumber(before))
                             createVariable(arg0, sin(variables.at(indexOfVariable(before)).getNumber()));
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "sinh")
                 {
@@ -8213,10 +8329,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isNumber(before))
                             createVariable(arg0, sinh(variables.at(indexOfVariable(before)).getNumber()));
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "asin")
                 {
@@ -8225,10 +8341,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isNumber(before))
                             createVariable(arg0, asin(variables.at(indexOfVariable(before)).getNumber()));
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "tan")
                 {
@@ -8237,10 +8353,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isNumber(before))
                             createVariable(arg0, tan(variables.at(indexOfVariable(before)).getNumber()));
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "tanh")
                 {
@@ -8249,10 +8365,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isNumber(before))
                             createVariable(arg0, tanh(variables.at(indexOfVariable(before)).getNumber()));
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "atan")
                 {
@@ -8261,10 +8377,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isNumber(before))
                             createVariable(arg0, atan(variables.at(indexOfVariable(before)).getNumber()));
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "cos")
                 {
@@ -8273,10 +8389,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isNumber(before))
                             createVariable(arg0, cos(variables.at(indexOfVariable(before)).getNumber()));
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "acos")
                 {
@@ -8285,10 +8401,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isNumber(before))
                             createVariable(arg0, acos(variables.at(indexOfVariable(before)).getNumber()));
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "cosh")
                 {
@@ -8297,10 +8413,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isNumber(before))
                             createVariable(arg0, cosh(variables.at(indexOfVariable(before)).getNumber()));
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "log")
                 {
@@ -8309,10 +8425,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isNumber(before))
                             createVariable(arg0, log(variables.at(indexOfVariable(before)).getNumber()));
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "sqrt")
                 {
@@ -8321,10 +8437,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isNumber(before))
                             createVariable(arg0, sqrt(variables.at(indexOfVariable(before)).getNumber()));
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "abs")
                 {
@@ -8333,10 +8449,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isNumber(before))
                             createVariable(arg0, abs(variables.at(indexOfVariable(before)).getNumber()));
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "floor")
                 {
@@ -8345,10 +8461,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isNumber(before))
                             createVariable(arg0, floor(variables.at(indexOfVariable(before)).getNumber()));
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "ceil")
                 {
@@ -8357,10 +8473,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isNumber(before))
                             createVariable(arg0, ceil(variables.at(indexOfVariable(before)).getNumber()));
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "exp")
                 {
@@ -8369,10 +8485,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isNumber(before))
                             createVariable(arg0, exp(variables.at(indexOfVariable(before)).getNumber()));
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "to_upper")
                 {
@@ -8381,10 +8497,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isString(before))
                             createVariable(arg0, getUpper(variables.at(indexOfVariable(before)).getString()));
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "to_lower")
                 {
@@ -8393,10 +8509,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         if (isString(before))
                             createVariable(arg0, getLower(variables.at(indexOfVariable(before)).getString()));
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
-                        error("invalid_operation:variable_undefined:" + before, false);
+                        error(VAR_UNDEFINED, before, false);
                 }
                 else if (after == "bytes")
                 {
@@ -8407,17 +8523,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             if (fileExists(variables.at(indexOfVariable(before)).getString()))
                                 createVariable(arg0, getBytes(variables.at(indexOfVariable(before)).getString()));
                             else
-                                error("read_fail:" + variables.at(indexOfVariable(before)).getString(), false);
+                                error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                         }
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
                     {
                         if (fileExists(before))
                             createVariable(arg0, getBytes(before));
                         else
-                            error("read_fail:" + before, false);
+                            error(READ_FAIL, before, false);
                     }
                 }
                 else if (after == "kbytes")
@@ -8429,17 +8545,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             if (fileExists(variables.at(indexOfVariable(before)).getString()))
                                 createVariable(arg0, getKBytes(variables.at(indexOfVariable(before)).getString()));
                             else
-                                error("read_fail:" + variables.at(indexOfVariable(before)).getString(), false);
+                                error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                         }
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
                     {
                         if (fileExists(before))
                             createVariable(arg0, getKBytes(before));
                         else
-                            error("read_fail:" + before, false);
+                            error(READ_FAIL, before, false);
                     }
                 }
                 else if (after == "mbytes")
@@ -8451,17 +8567,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             if (fileExists(variables.at(indexOfVariable(before)).getString()))
                                 createVariable(arg0, getMBytes(variables.at(indexOfVariable(before)).getString()));
                             else
-                                error("read_fail:" + variables.at(indexOfVariable(before)).getString(), false);
+                                error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                         }
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
                     {
                         if (fileExists(before))
                             createVariable(arg0, getMBytes(before));
                         else
-                            error("read_fail:" + before, false);
+                            error(READ_FAIL, before, false);
                     }
                 }
                 else if (after == "gbytes")
@@ -8473,17 +8589,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             if (fileExists(variables.at(indexOfVariable(before)).getString()))
                                 createVariable(arg0, getGBytes(variables.at(indexOfVariable(before)).getString()));
                             else
-                                error("read_fail:" + variables.at(indexOfVariable(before)).getString(), false);
+                                error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                         }
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
                     {
                         if (fileExists(before))
                             createVariable(arg0, getGBytes(before));
                         else
-                            error("read_fail:" + before, false);
+                            error(READ_FAIL, before, false);
                     }
                 }
                 else if (after == "tbytes")
@@ -8495,17 +8611,17 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                             if (fileExists(variables.at(indexOfVariable(before)).getString()))
                                 createVariable(arg0, getTBytes(variables.at(indexOfVariable(before)).getString()));
                             else
-                                error("read_fail:" + variables.at(indexOfVariable(before)).getString(), false);
+                                error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                         }
                         else
-                            error("conversion_error:" + before, false);
+                            error(CONV_ERR, before, false);
                     }
                     else
                     {
                         if (fileExists(before))
                             createVariable(arg0, getTBytes(before));
                         else
-                            error("read_fail:" + before, false);
+                            error(READ_FAIL, before, false);
                     }
                 }
                 else if (before == "env")
@@ -8563,7 +8679,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                     if (isString(arg2))
                         createVariable(arg0, getStdout(variables.at(indexOfVariable(arg2)).getString()));
                     else
-                        error("conversion_error:" + arg2, false);
+                        error(CONV_ERR, arg2, false);
                 }
                 else
                     createVariable(arg0, getStdout(cleanString(arg2)));
@@ -8575,13 +8691,13 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                     if (isString(arg2))
                         createVariable(arg0, getParsedOutput(variables.at(indexOfVariable(arg2)).getString()));
                     else
-                        error("conversion_error:" + arg2, false);
+                        error(CONV_ERR, arg2, false);
                 }
                 else
                     createVariable(arg0, getParsedOutput(cleanString(arg2)));
             }
             else
-                error("invalid_operator:" + arg2, false);
+                error(INVALID_OPERATOR, arg2, false);
         }
         else if (startsWith(arg0, "@") && !zeroDots(arg2))
         {
@@ -8628,7 +8744,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                 objectMethods.clear();
             }
             else
-                error("invalid_operator:" + arg1, false);
+                error(INVALID_OPERATOR, arg1, false);
         }
         else if (isUpperConstant(arg0))
         {
@@ -8648,10 +8764,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                     }
                 }
                 else
-                    error("invalid_operator:" + arg1, false);
+                    error(INVALID_OPERATOR, arg1, false);
             }
             else
-                error("invalid_operation:constant_defined:" + arg0, false);
+                error(CONST_UNDEFINED, arg0, false);
         }
         else
         {
@@ -8670,12 +8786,12 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                 else if (arg1 == "%")
                 {
                     if ((int)stod(arg2) == 0)
-                        error("segfault:" + s, false);
+                        error(DIVIDED_BY_ZERO, s, false);
                     else
                         writeline(dtos((int)stod(arg0) % (int)stod(arg2)));
                 }
                 else
-                    error("invalid_operator:" + arg1, false);
+                    error(INVALID_OPERATOR, arg1, false);
             }
             else
             {
@@ -8697,12 +8813,12 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                         setLastValue(bigstr);
                     }
                     else
-                        error("invalid_operation:" + s, false);
+                        error(INVALID_OP, s, false);
                 }
                 else if (arg1 == "/")
                     writeline(subtractString(arg0, arg2));
                 else
-                    error("invalid_operator:" + arg1, false);
+                    error(INVALID_OPERATOR, arg1, false);
             }
         }
     }
@@ -8743,10 +8859,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     objectMethods.clear();
                 }
                 else
-                    error("invalid_operator:" + arg2, false);
+                    error(INVALID_OPERATOR, arg2, false);
             }
             else
-                error("invalid_operation:object_undefined:" + arg3, false);
+                error(OBJ_METHOD_UNDEFINED, arg3, false);
         }
     }
     else if (arg0 == "unless")
@@ -8764,7 +8880,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else if (isNumber(arg1))
                         testString = dtos(variables.at(indexOfVariable(arg1)).getNumber());
                     else
-                        error("is_null:" + arg1, false);
+                        error(IS_NULL, arg1, false);
                 }
                 else
                     testString = arg1;
@@ -8859,7 +8975,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("invalid_operator:" + arg2, false);
+                    error(INVALID_OPERATOR, arg2, false);
                     successfulIF();
                 }
             }
@@ -8909,13 +9025,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("invalid_operator:" + arg2, false);
+                    error(INVALID_OPERATOR, arg2, false);
                     successfulIF();
                 }
             }
             else
             {
-                error("conversion_error:" + s, false);
+                error(CONV_ERR, s, false);
                 successfulIF();
             }
         }
@@ -8969,7 +9085,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         successfulIF();
                     }
                 }
@@ -8980,15 +9096,15 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else if (arg2 == "!=" || arg2 == "not")
                         successfulIF();
                     else
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     successfulIF();
                 }
             }
-            else if (isString(arg1))
+            else 
             {
                 if (arg3 == "string?")
                 {
@@ -9000,7 +9116,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             successfulIF();
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             successfulIF();
                         }
                     }
@@ -9022,7 +9138,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             successfulIF();
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             successfulIF();
                         }
                     }
@@ -9054,7 +9170,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             successfulIF();
                         }
                     }
@@ -9091,7 +9207,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             successfulIF();
                         }
                     }
@@ -9120,7 +9236,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 successfulIF();
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 successfulIF();
                             }
                         }
@@ -9134,7 +9250,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("is_null:" + arg1, false);
+                        error(IS_NULL, arg1, false);
                         successfulIF();
                     }
                 }
@@ -9150,7 +9266,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 successfulIF();
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 successfulIF();
                             }
                         }
@@ -9164,7 +9280,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("is_null:" + arg1, false);
+                        error(IS_NULL, arg1, false);
                         successfulIF();
                     }
                 }
@@ -9235,15 +9351,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         successfulIF();
                     }
                 }
-            }
-            else
-            {
-                error("special_error(0)", false); // variable is neither string nor number
-                successfulIF();
             }
         }
         else if ((variableExists(arg1) && !variableExists(arg3)) && !methodExists(arg3) && notObjectMethod(arg3) && containsParams(arg3))
@@ -9305,7 +9416,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         successfulIF();
                     }
                 }
@@ -9316,15 +9427,15 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else if (arg2 == "!=" || arg2 == "not")
                         successfulIF();
                     else
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     successfulIF();
                 }
             }
-            else if (isString(arg1))
+            else 
             {
                 if (stackValue == "is_string?" || stackValue == "string?")
                 {
@@ -9336,7 +9447,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             successfulIF();
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             successfulIF();
                         }
                     }
@@ -9358,7 +9469,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             successfulIF();
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             successfulIF();
                         }
                     }
@@ -9390,7 +9501,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             successfulIF();
                         }
                     }
@@ -9427,7 +9538,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             successfulIF();
                         }
                     }
@@ -9456,7 +9567,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 successfulIF();
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 successfulIF();
                             }
                         }
@@ -9470,7 +9581,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("is_null:" + arg1, false);
+                        error(IS_NULL, arg1, false);
                         successfulIF();
                     }
                 }
@@ -9486,7 +9597,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 successfulIF();
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 successfulIF();
                             }
                         }
@@ -9500,7 +9611,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("is_null:" + arg1, false);
+                        error(IS_NULL, arg1, false);
                         successfulIF();
                     }
                 }
@@ -9571,15 +9682,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         successfulIF();
                     }
                 }
-            }
-            else
-            {
-                error("special_error(0)", false); // variable is neither string nor number
-                successfulIF();
             }
         }
         else if ((!variableExists(arg1) && variableExists(arg3)) && !methodExists(arg1) && notObjectMethod(arg1) && !containsParams(arg1))
@@ -9632,17 +9738,17 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         successfulIF();
                     }
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     successfulIF();
                 }
             }
-            else if (isString(arg3))
+            else 
             {
                 if (arg2 == "==" || arg2 == "is")
                 {
@@ -9688,14 +9794,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("invalid_operator:" + arg2, false);
+                    error(INVALID_OPERATOR, arg2, false);
                     successfulIF();
                 }
-            }
-            else
-            {
-                error("special_error(1)", false); // variable is neither string nor number
-                successfulIF();
             }
         }
         else if ((!variableExists(arg1) && variableExists(arg3)) && !methodExists(arg1) && notObjectMethod(arg1) && containsParams(arg1))
@@ -9757,17 +9858,17 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         successfulIF();
                     }
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     successfulIF();
                 }
             }
-            else if (isString(arg3))
+            else 
             {
                 if (arg2 == "==" || arg2 == "is")
                 {
@@ -9813,14 +9914,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("invalid_operator:" + arg2, false);
+                    error(INVALID_OPERATOR, arg2, false);
                     successfulIF();
                 }
-            }
-            else
-            {
-                error("special_error(1)", false); // variable is neither string nor number
-                successfulIF();
             }
         }
         else if (containsParams(arg1) || containsParams(arg3))
@@ -9892,7 +9988,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 successfulIF();
                             }
                         }
@@ -9914,7 +10010,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 successfulIF();
                             }
                         }
@@ -9922,10 +10018,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else
                     {
                         if (!objectExists(arg1before))
-                            error("invalid_operation:object_undefined:" + arg1before, false);
+                            error(OBJ_METHOD_UNDEFINED, arg1before, false);
 
                         if (!objectExists(arg3before))
-                            error("invalid_operation:object_undefined:" + arg3before, false);
+                            error(OBJ_METHOD_UNDEFINED, arg3before, false);
 
                         successfulIF();
                     }
@@ -9994,7 +10090,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 successfulIF();
                             }
                         }
@@ -10016,14 +10112,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 successfulIF();
                             }
                         }
                     }
                     else
                     {
-                        error("invalid_operation:object_undefined:" + arg1before, false);
+                        error(OBJ_METHOD_UNDEFINED, arg1before, false);
                         successfulIF();
                     }
                 }
@@ -10091,7 +10187,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 successfulIF();
                             }
                         }
@@ -10113,18 +10209,18 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 successfulIF();
                             }
                         }
                     }
                     else
                     {
-                        error("invalid_operation:object_undefined:" + arg3before, false);
+                        error(OBJ_METHOD_UNDEFINED, arg3before, false);
                         successfulIF();
                     }
                 }
-                else if (zeroDots(arg1) && zeroDots(arg3))
+                else 
                 {
                     string arg1Result(""), arg3Result("");
 
@@ -10184,7 +10280,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             successfulIF();
                         }
                     }
@@ -10206,15 +10302,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             successfulIF();
                         }
                     }
-                }
-                else
-                {
-                    error("special_error(9)", false);
-                    successfulIF();
                 }
             }
             else if (containsParams(arg1) && !containsParams(arg3))
@@ -10245,7 +10336,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             else
                             {
                                 pass = false;
-                                error("is_null:" + arg3, false);
+                                error(IS_NULL, arg3, false);
                                 successfulIF();
                             }
                         }
@@ -10300,7 +10391,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error("invalid_operator:" + arg2, false);
+                                    error(INVALID_OPERATOR, arg2, false);
                                     successfulIF();
                                 }
                             }
@@ -10322,7 +10413,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error("invalid_operator:" + arg2, false);
+                                    error(INVALID_OPERATOR, arg2, false);
                                     successfulIF();
                                 }
                             }
@@ -10332,7 +10423,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("invalid_operation:method_undefined:" + beforeParams(arg1), false);
+                        error(METHOD_UNDEFINED, beforeParams(arg1), false);
                         successfulIF();
                     }
                 }
@@ -10356,7 +10447,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             else
                             {
                                 pass = false;
-                                error("is_null:" + arg3, false);
+                                error(IS_NULL, arg3, false);
                                 successfulIF();
                             }
                         }
@@ -10417,7 +10508,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error("invalid_operator:" + arg2, false);
+                                    error(INVALID_OPERATOR, arg2, false);
                                     successfulIF();
                                 }
                             }
@@ -10439,7 +10530,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error("invalid_operator:" + arg2, false);
+                                    error(INVALID_OPERATOR, arg2, false);
                                     successfulIF();
                                 }
                             }
@@ -10447,7 +10538,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("invalid_operation:object_undefined:" + arg1before, false);
+                        error(OBJ_METHOD_UNDEFINED, arg1before, false);
                         successfulIF();
                     }
                 }
@@ -10480,7 +10571,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             else
                             {
                                 pass = false;
-                                error("is_null:" + arg1, false);
+                                error(IS_NULL, arg1, false);
                                 successfulIF();
                             }
                         }
@@ -10535,7 +10626,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error("invalid_operator:" + arg2, false);
+                                    error(INVALID_OPERATOR, arg2, false);
                                     successfulIF();
                                 }
                             }
@@ -10557,7 +10648,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error("invalid_operator:" + arg2, false);
+                                    error(INVALID_OPERATOR, arg2, false);
                                     successfulIF();
                                 }
                             }
@@ -10565,7 +10656,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("invalid_operation:method_undefined:" + beforeParams(arg3), false);
+                        error(METHOD_UNDEFINED, beforeParams(arg3), false);
                         successfulIF();
                     }
                 }
@@ -10588,7 +10679,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 arg1Result = dtos(variables.at(indexOfVariable(arg1)).getNumber());
                             else
                             {
-                                error("is_null:" + arg1, false);
+                                error(IS_NULL, arg1, false);
                                 successfulIF();
                             }
                         }
@@ -10647,7 +10738,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 successfulIF();
                             }
                         }
@@ -10669,14 +10760,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 successfulIF();
                             }
                         }
                     }
                     else
                     {
-                        error("invalid_operation:object_undefined:" + arg3before, false);
+                        error(OBJ_METHOD_UNDEFINED, arg3before, false);
                         successfulIF();
                     }
                 }
@@ -10699,7 +10790,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     arg1Result = dtos(variables.at(indexOfVariable(arg1)).getNumber());
                 else
                 {
-                    error("is_null:" + arg1, false);
+                    error(IS_NULL, arg1, false);
                     successfulIF();
                 }
             }
@@ -10719,7 +10810,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     arg3Result = dtos(variables.at(indexOfVariable(arg3)).getNumber());
                 else
                 {
-                    error("is_null:" + arg3, false);
+                    error(IS_NULL, arg3, false);
                     successfulIF();
                 }
             }
@@ -10772,7 +10863,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("invalid_operator:" + arg2, false);
+                    error(INVALID_OPERATOR, arg2, false);
                     successfulIF();
                 }
             }
@@ -10794,7 +10885,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("invalid_operator:" + arg2, false);
+                    error(INVALID_OPERATOR, arg2, false);
                     successfulIF();
                 }
             }
@@ -10811,7 +10902,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         successfulIF();
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         successfulIF();
                     }
                 }
@@ -10823,7 +10914,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         failedIfStatement();
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         successfulIF();
                     }
                 }
@@ -10838,7 +10929,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         successfulIF();
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         successfulIF();
                     }
                 }
@@ -10850,7 +10941,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         failedIfStatement();
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         successfulIF();
                     }
                 }
@@ -10865,7 +10956,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         successfulIF();
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         successfulIF();
                     }
                 }
@@ -10877,7 +10968,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         failedIfStatement();
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         successfulIF();
                     }
                 }
@@ -10892,7 +10983,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         successfulIF();
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         successfulIF();
                     }
                 }
@@ -10904,7 +10995,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         failedIfStatement();
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         successfulIF();
                     }
                 }
@@ -10968,7 +11059,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("invalid_operator:>=", false);
+                    error(INVALID_OPERATOR, arg2, false);
                     successfulIF();
                 }
             }
@@ -10983,7 +11074,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("invalid_operator:<=", false);
+                    error(INVALID_OPERATOR, arg2, false);
                     failedIfStatement();
                 }
             }
@@ -11010,7 +11101,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             }
             else
             {
-                error("invalid_operator:" + arg2, false);
+                error(INVALID_OPERATOR, arg2, false);
                 successfulIF();
             }
         }
@@ -11030,7 +11121,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else if (isNumber(arg1))
                         testString = dtos(variables.at(indexOfVariable(arg1)).getNumber());
                     else
-                        error("is_null:" + arg1, false);
+                        error(IS_NULL, arg1, false);
                 }
                 else
                     testString = arg1;
@@ -11069,7 +11160,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else if (isNumber(arg3))
                         testString = dtos(variables.at(indexOfVariable(arg3)).getNumber());
                     else
-                        error("is_null:" + arg3, false);
+                        error(IS_NULL, arg3, false);
                 }
                 else
                     testString = arg3;
@@ -11164,7 +11255,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("invalid_operator:" + arg2, false);
+                    error(INVALID_OPERATOR, arg2, false);
                     failedIfStatement();
                 }
             }
@@ -11214,13 +11305,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("invalid_operator:" + arg2, false);
+                    error(INVALID_OPERATOR, arg2, false);
                     failedIfStatement();
                 }
             }
             else
             {
-                error("conversion_error:" + s, false);
+                error(CONV_ERR, s, false);
                 failedIfStatement();
             }
         }
@@ -11274,7 +11365,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         failedIfStatement();
                     }
                 }
@@ -11285,15 +11376,15 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else if (arg2 == "!=" || arg2 == "not")
                         failedIfStatement();
                     else
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedIfStatement();
                 }
             }
-            else if (isString(arg1))
+            else 
             {
                 if (arg3 == "string?")
                 {
@@ -11305,7 +11396,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             failedIfStatement();
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             failedIfStatement();
                         }
                     }
@@ -11327,7 +11418,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             failedIfStatement();
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             failedIfStatement();
                         }
                     }
@@ -11359,7 +11450,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             failedIfStatement();
                         }
                     }
@@ -11396,7 +11487,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             failedIfStatement();
                         }
                     }
@@ -11425,7 +11516,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 failedIfStatement();
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 failedIfStatement();
                             }
                         }
@@ -11439,7 +11530,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("is_null:" + arg1, false);
+                        error(IS_NULL, arg1, false);
                         failedIfStatement();
                     }
                 }
@@ -11455,7 +11546,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 failedIfStatement();
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 failedIfStatement();
                             }
                         }
@@ -11469,7 +11560,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("is_null:" + arg1, false);
+                        error(IS_NULL, arg1, false);
                         failedIfStatement();
                     }
                 }
@@ -11540,15 +11631,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         failedIfStatement();
                     }
                 }
-            }
-            else
-            {
-                error("special_error(0)", false); // variable is neither string nor number
-                failedIfStatement();
             }
         }
         else if ((variableExists(arg1) && !variableExists(arg3)) && !methodExists(arg3) && notObjectMethod(arg3) && containsParams(arg3))
@@ -11610,7 +11696,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         failedIfStatement();
                     }
                 }
@@ -11621,15 +11707,15 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else if (arg2 == "!=" || arg2 == "not")
                         failedIfStatement();
                     else
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedIfStatement();
                 }
             }
-            else if (isString(arg1))
+            else 
             {
                 if (stackValue == "string?")
                 {
@@ -11641,7 +11727,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             failedIfStatement();
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             failedIfStatement();
                         }
                     }
@@ -11663,7 +11749,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             failedIfStatement();
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             failedIfStatement();
                         }
                     }
@@ -11695,7 +11781,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             failedIfStatement();
                         }
                     }
@@ -11732,7 +11818,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             failedIfStatement();
                         }
                     }
@@ -11761,7 +11847,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 failedIfStatement();
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 failedIfStatement();
                             }
                         }
@@ -11775,7 +11861,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("is_null:" + arg1, false);
+                        error(IS_NULL, arg1, false);
                         failedIfStatement();
                     }
                 }
@@ -11791,7 +11877,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 failedIfStatement();
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 failedIfStatement();
                             }
                         }
@@ -11805,7 +11891,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("is_null:" + arg1, false);
+                        error(IS_NULL, arg1, false);
                         failedIfStatement();
                     }
                 }
@@ -11876,15 +11962,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         failedIfStatement();
                     }
                 }
-            }
-            else
-            {
-                error("special_error(0)", false); // variable is neither string nor number
-                failedIfStatement();
             }
         }
         else if ((!variableExists(arg1) && variableExists(arg3)) && !methodExists(arg1) && notObjectMethod(arg1) && !containsParams(arg1))
@@ -11937,17 +12018,17 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         failedIfStatement();
                     }
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedIfStatement();
                 }
             }
-            else if (isString(arg3))
+            else 
             {
                 if (arg2 == "==" || arg2 == "is")
                 {
@@ -11993,14 +12074,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("invalid_operator:" + arg2, false);
+                    error(INVALID_OPERATOR, arg2, false);
                     failedIfStatement();
                 }
-            }
-            else
-            {
-                error("special_error(1)", false); // variable is neither string nor number
-                failedIfStatement();
             }
         }
         else if ((!variableExists(arg1) && variableExists(arg3)) && !methodExists(arg1) && notObjectMethod(arg1) && containsParams(arg1))
@@ -12062,17 +12138,17 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         failedIfStatement();
                     }
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedIfStatement();
                 }
             }
-            else if (isString(arg3))
+            else 
             {
                 if (arg2 == "==" || arg2 == "is")
                 {
@@ -12118,14 +12194,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("invalid_operator:" + arg2, false);
+                    error(INVALID_OPERATOR, arg2, false);
                     failedIfStatement();
                 }
-            }
-            else
-            {
-                error("special_error(1)", false); // variable is neither string nor number
-                failedIfStatement();
             }
         }
         else if (containsParams(arg1) || containsParams(arg3))
@@ -12197,7 +12268,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 failedIfStatement();
                             }
                         }
@@ -12219,7 +12290,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 failedIfStatement();
                             }
                         }
@@ -12227,10 +12298,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else
                     {
                         if (!objectExists(arg1before))
-                            error("invalid_operation:object_undefined:" + arg1before, false);
+                            error(OBJ_METHOD_UNDEFINED, arg1before, false);
 
                         if (!objectExists(arg3before))
-                            error("invalid_operation:object_undefined:" + arg3before, false);
+                            error(OBJ_METHOD_UNDEFINED, arg3before, false);
 
                         failedIfStatement();
                     }
@@ -12299,7 +12370,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 failedIfStatement();
                             }
                         }
@@ -12321,14 +12392,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 failedIfStatement();
                             }
                         }
                     }
                     else
                     {
-                        error("invalid_operation:object_undefined:" + arg1before, false);
+                        error(OBJ_METHOD_UNDEFINED, arg1before, false);
                         failedIfStatement();
                     }
                 }
@@ -12396,7 +12467,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 failedIfStatement();
                             }
                         }
@@ -12418,18 +12489,18 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 failedIfStatement();
                             }
                         }
                     }
                     else
                     {
-                        error("invalid_operation:object_undefined:" + arg3before, false);
+                        error(OBJ_METHOD_UNDEFINED, arg3before, false);
                         failedIfStatement();
                     }
                 }
-                else if (zeroDots(arg1) && zeroDots(arg3))
+                else 
                 {
                     string arg1Result(""), arg3Result("");
 
@@ -12489,7 +12560,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             failedIfStatement();
                         }
                     }
@@ -12511,15 +12582,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error("invalid_operator:" + arg2, false);
+                            error(INVALID_OPERATOR, arg2, false);
                             failedIfStatement();
                         }
                     }
-                }
-                else
-                {
-                    error("special_error(9)", false);
-                    failedIfStatement();
                 }
             }
             else if (containsParams(arg1) && !containsParams(arg3))
@@ -12550,7 +12616,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             else
                             {
                                 pass = false;
-                                error("is_null:" + arg3, false);
+                                error(IS_NULL, arg3, false);
                                 failedIfStatement();
                             }
                         }
@@ -12605,7 +12671,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error("invalid_operator:" + arg2, false);
+                                    error(INVALID_OPERATOR, arg2, false);
                                     failedIfStatement();
                                 }
                             }
@@ -12627,7 +12693,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error("invalid_operator:" + arg2, false);
+                                    error(INVALID_OPERATOR, arg2, false);
                                     failedIfStatement();
                                 }
                             }
@@ -12714,7 +12780,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 failedIfStatement();
                             }
                         }
@@ -12736,14 +12802,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 failedIfStatement();
                             }
                         }
                     }
                     else
                     {
-                        error("invalid_operation:method_undefined:" + beforeParams(arg1), false);
+                        error(METHOD_UNDEFINED, beforeParams(arg1), false);
                         failedIfStatement();
                     }
                 }
@@ -12767,7 +12833,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             else
                             {
                                 pass = false;
-                                error("is_null:" + arg3, false);
+                                error(IS_NULL, arg3, false);
                                 failedIfStatement();
                             }
                         }
@@ -12828,7 +12894,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error("invalid_operator:" + arg2, false);
+                                    error(INVALID_OPERATOR, arg2, false);
                                     failedIfStatement();
                                 }
                             }
@@ -12850,7 +12916,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error("invalid_operator:" + arg2, false);
+                                    error(INVALID_OPERATOR, arg2, false);
                                     failedIfStatement();
                                 }
                             }
@@ -12858,7 +12924,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("invalid_operation:object_undefined:" + arg1before, false);
+                        error(OBJ_METHOD_UNDEFINED, arg1before, false);
                         failedIfStatement();
                     }
                 }
@@ -12891,7 +12957,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             else
                             {
                                 pass = false;
-                                error("is_null:" + arg1, false);
+                                error(IS_NULL, arg1, false);
                                 failedIfStatement();
                             }
                         }
@@ -12946,7 +13012,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error("invalid_operator:" + arg2, false);
+                                    error(INVALID_OPERATOR, arg2, false);
                                     failedIfStatement();
                                 }
                             }
@@ -12968,7 +13034,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error("invalid_operator:" + arg2, false);
+                                    error(INVALID_OPERATOR, arg2, false);
                                     failedIfStatement();
                                 }
                             }
@@ -12976,7 +13042,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error("invalid_operation:method_undefined:" + beforeParams(arg3), false);
+                        error(METHOD_UNDEFINED, beforeParams(arg3), false);
                         failedIfStatement();
                     }
                 }
@@ -12999,7 +13065,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 arg1Result = dtos(variables.at(indexOfVariable(arg1)).getNumber());
                             else
                             {
-                                error("is_null:" + arg1, false);
+                                error(IS_NULL, arg1, false);
                                 failedIfStatement();
                             }
                         }
@@ -13058,7 +13124,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 failedIfStatement();
                             }
                         }
@@ -13080,14 +13146,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error("invalid_operator:" + arg2, false);
+                                error(INVALID_OPERATOR, arg2, false);
                                 failedIfStatement();
                             }
                         }
                     }
                     else
                     {
-                        error("invalid_operation:object_undefined:" + arg3before, false);
+                        error(OBJ_METHOD_UNDEFINED, arg3before, false);
                         failedIfStatement();
                     }
                 }
@@ -13110,7 +13176,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     arg1Result = dtos(variables.at(indexOfVariable(arg1)).getNumber());
                 else
                 {
-                    error("is_null:" + arg1, false);
+                    error(IS_NULL, arg1, false);
                     failedIfStatement();
                 }
             }
@@ -13130,7 +13196,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     arg3Result = dtos(variables.at(indexOfVariable(arg3)).getNumber());
                 else
                 {
-                    error("is_null:" + arg3, false);
+                    error(IS_NULL, arg3, false);
                     failedIfStatement();
                 }
             }
@@ -13183,7 +13249,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("invalid_operator:" + arg2, false);
+                    error(INVALID_OPERATOR, arg2, false);
                     failedIfStatement();
                 }
             }
@@ -13205,7 +13271,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("invalid_operator:" + arg2, false);
+                    error(INVALID_OPERATOR, arg2, false);
                     failedIfStatement();
                 }
             }
@@ -13222,7 +13288,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         failedIfStatement();
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         failedIfStatement();
                     }
                 }
@@ -13234,7 +13300,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         successfulIF();
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         failedIfStatement();
                     }
                 }
@@ -13249,7 +13315,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         failedIfStatement();
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         failedIfStatement();
                     }
                 }
@@ -13261,7 +13327,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         successfulIF();
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         failedIfStatement();
                     }
                 }
@@ -13276,7 +13342,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         failedIfStatement();
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         failedIfStatement();
                     }
                 }
@@ -13288,7 +13354,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         successfulIF();
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         failedIfStatement();
                     }
                 }
@@ -13303,7 +13369,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         failedIfStatement();
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         failedIfStatement();
                     }
                 }
@@ -13315,7 +13381,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         successfulIF();
                     else
                     {
-                        error("invalid_operator:" + arg2, false);
+                        error(INVALID_OPERATOR, arg2, false);
                         failedIfStatement();
                     }
                 }
@@ -13379,7 +13445,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("invalid_operator:>=", false);
+                    error(INVALID_OPERATOR, arg2, false);
                     failedIfStatement();
                 }
             }
@@ -13394,7 +13460,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("invalid_operator:<=", false);
+                    error(INVALID_OPERATOR, arg2, false);
                     failedIfStatement();
                 }
             }
@@ -13421,7 +13487,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             }
             else
             {
-                error("invalid_operator:" + arg2, false);
+                error(INVALID_OPERATOR, arg2, false);
                 failedIfStatement();
             }
         }
@@ -13441,7 +13507,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -13456,7 +13522,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -13471,11 +13537,11 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedFor();
                 }
             }
-            else if (!variableExists(arg1) && !variableExists(arg3))
+            else 
             {
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
@@ -13486,14 +13552,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedFor();
                 }
-            }
-            else
-            {
-                error("special_error(2)", false); // impossible operation
-                failedFor();
             }
         }
         else if (arg2 == ">")
@@ -13509,7 +13570,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -13524,7 +13585,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -13539,11 +13600,11 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedFor();
                 }
             }
-            else if (!variableExists(arg1) && !variableExists(arg3))
+            else 
             {
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
@@ -13554,14 +13615,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedFor();
                 }
-            }
-            else
-            {
-                error("special_error(3)", false); // impossible operation
-                failedFor();
             }
         }
         else if (arg2 == "<=")
@@ -13577,7 +13633,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -13592,7 +13648,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -13607,11 +13663,11 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedFor();
                 }
             }
-            else if (!variableExists(arg1) && !variableExists(arg3))
+            else 
             {
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
@@ -13622,14 +13678,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedFor();
                 }
-            }
-            else
-            {
-                error("special_error(2)", false); // impossible operation
-                failedFor();
             }
         }
         else if (arg2 == ">=")
@@ -13645,7 +13696,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -13660,7 +13711,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -13675,11 +13726,11 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedFor();
                 }
             }
-            else if (!variableExists(arg1) && !variableExists(arg3))
+            else 
             {
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
@@ -13690,14 +13741,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error("conversion_error:" + s, false);
+                    error(CONV_ERR, s, false);
                     failedFor();
                 }
-            }
-            else
-            {
-                error("special_error(3)", false); // impossible operation
-                failedFor();
             }
         }
         else if (arg2 == "in")
@@ -13767,7 +13813,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                     successfulFor(getDirectoryList(before, false));
                                 else
                                 {
-                                    error("read_fail:" + variables.at(indexOfVariable(before)).getString(), false);
+                                    error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                                     failedFor();
                                 }
                             }
@@ -13777,7 +13823,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                     successfulFor(getDirectoryList(before, true));
                                 else
                                 {
-                                    error("read_fail:" + variables.at(indexOfVariable(before)).getString(), false);
+                                    error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                                     failedFor();
                                 }
                             }
@@ -13804,20 +13850,20 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                     }
                                     else
                                     {
-                                        error("read_fail:" + variables.at(indexOfVariable(before)).getString(), false);
+                                        error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                                         failedFor();
                                     }
                                 }
                             }
                             else
                             {
-                                error("invalid_operation:method_undefined:" + after, false);
+                                error(METHOD_UNDEFINED, after, false);
                                 failedFor();
                             }
                         }
                         else
                         {
-                            error("invalid_operation:variable_undefined:" + before, false);
+                            error(VAR_UNDEFINED, before, false);
                             failedFor();
                         }
                     }
@@ -13827,7 +13873,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             successfulFor(lists.at(indexOfList(arg3)));
                         else
                         {
-                            error("invalid_operation:list_undefined:" + arg3, false);
+                            error(LIST_UNDEFINED, arg3, false);
                             failedFor();
                         }
                     }
@@ -13916,7 +13962,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                             lists = removeList(lists, "&l&i&s&t&");
                                         }
                                         else
-                                            error("invalid_operation:index_out_of_bounds:" + rangeBegin + ".." + rangeEnd, false);
+                                            error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                                     }
                                     else if (stoi(rangeBegin) > stoi(rangeEnd))
                                     {
@@ -13938,23 +13984,23 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                             lists = removeList(lists, "&l&i&s&t&");
                                         }
                                         else
-                                            error("invalid_operation:index_out_of_bounds:" + rangeBegin + ".." + rangeEnd, false);
+                                            error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                                     }
                                     else
-                                        error("invalid_operation:invalid_range:" + rangeBegin + ".." + rangeEnd, false);
+                                        error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                                 }
                                 else
-                                    error("invalid_operation:invalid_range:" + rangeBegin + ".." + rangeEnd, false);
+                                    error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                             }
                             else
-                                error("invalid_operation:invalid_range:" + rangeBegin + ".." + rangeEnd, false);
+                                error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                         }
                         else
-                            error("invalid_operation:invalid_range:" + arg3, false);
+                            error(OUT_OF_BOUNDS, arg3, false);
                     }
                     else
                     {
-                        error("invalid_operation:__Null_string:" + before, false);
+                        error(NULL_STRING, before, false);
                         failedFor();
                     }
                 }
@@ -14070,7 +14116,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error("read_fail:" + variables.at(indexOfVariable(_b)).getString(), false);
+                                    error(READ_FAIL, variables.at(indexOfVariable(_b)).getString(), false);
                                     failedFor();
                                 }
                             }
@@ -14083,7 +14129,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error("read_fail:" + variables.at(indexOfVariable(_b)).getString(), false);
+                                    error(READ_FAIL, variables.at(indexOfVariable(_b)).getString(), false);
                                     failedFor();
                                 }
                             }
@@ -14111,20 +14157,20 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                     }
                                     else
                                     {
-                                        error("read_fail:" + variables.at(indexOfVariable(_b)).getString(), false);
+                                        error(READ_FAIL, variables.at(indexOfVariable(_b)).getString(), false);
                                         failedFor();
                                     }
                                 }
                             }
                             else
                             {
-                                error("invalid_operation:method_undefined:" + _a, false);
+                                error(METHOD_UNDEFINED, _a, false);
                                 failedFor();
                             }
                         }
                         else
                         {
-                            error("invalid_operation:variable_undefined:" + _b, false);
+                            error(VAR_UNDEFINED, _b, false);
                             failedFor();
                         }
                     }
@@ -14132,13 +14178,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             }
             else
             {
-                error("invalid_operation:" + s, false);
+                error(INVALID_OP, s, false);
                 failedFor();
             }
         }
         else
         {
-            error("invalid_operation:" + s, false);
+            error(INVALID_OP, s, false);
             failedFor();
         }
     }
@@ -14152,13 +14198,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     successfullWhile(arg1, arg2, arg3);
                 else
                 {
-                    error("invalid_operation:" + s, false);
+                    error(INVALID_OP, s, false);
                     failedWhile();
                 }
             }
             else
             {
-                error("conversion_error:__Null_number:" + arg1 + arg2 + arg3, false);
+                error(CONV_ERR, arg1 + arg2 + arg3, false);
                 failedWhile();
             }
         }
@@ -14170,13 +14216,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     successfullWhile(arg1, arg2, arg3);
                 else
                 {
-                    error("invalid_operation:" + s, false);
+                    error(INVALID_OP, s, false);
                     failedWhile();
                 }
             }
             else
             {
-                error("conversion_error:__Null_number:" + arg1 + arg2 + arg3, false);
+                error(CONV_ERR, arg1 + arg2 + arg3, false);
                 failedWhile();
             }
         }
@@ -14186,20 +14232,20 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 successfullWhile(arg1, arg2, arg3);
             else
             {
-                error("invalid_operation:" + s, false);
+                error(INVALID_OP, s, false);
                 failedWhile();
             }
         }
         else
         {
-            error("invalid_operation:" + s, false);
+            error(INVALID_OP, s, false);
             failedWhile();
         }
     }
     else
         sysExec(s, command);
 }
-// AAAA
+
 void InternalEncryptDecrypt(string arg0, string arg1)
 {
     Crypt c;
@@ -14228,10 +14274,10 @@ void InternalInspect(string arg0, string arg1, string before, string after)
                     write(__Null);
             }
             else
-                error("invalid_operation:target_undefined:" + arg1, false);
+                error(TARGET_UNDEFINED, arg1, false);
         }
         else
-            error("invalid_operation:object_undefined:" + before, false);
+            error(OBJ_METHOD_UNDEFINED, before, false);
     }
     else
     {
@@ -14299,11 +14345,11 @@ void InternalInspect(string arg0, string arg1, string before, string after)
                 write(constants.at(i).name());
         }
         else if (arg1 == "os?")
-            write(__GuessedOS);
+            write(getGuessedOS());
         else if (arg1 == "last")
             write(__LastValue);
         else
-            error("invalid_operation:target_undefined:" + arg1, false);
+            error(TARGET_UNDEFINED, arg1, false);
     }
 }
 
@@ -14321,7 +14367,7 @@ void InternalGlobalize(string arg0, string arg1)
         methods.push_back(method);
     }
     else
-        error("invalid_operation:object_method_undefined:" + arg1, false);
+        error(OBJ_METHOD_UNDEFINED, arg1, false);
 }
 
 void InternalCallMethod(string arg0, string arg1, string before, string after)
@@ -14331,7 +14377,7 @@ void InternalCallMethod(string arg0, string arg1, string before, string after)
         if (objects.at(indexOfObject(__CurrentObject)).methodExists(arg1))
             executeMethod(objects.at(indexOfObject(__CurrentObject)).getMethod(arg1));
         else
-            error("invalid_operation:method_undefined:" + arg1, false);
+            error(METHOD_UNDEFINED, arg1, false);
     }
     else
     {
@@ -14342,17 +14388,17 @@ void InternalCallMethod(string arg0, string arg1, string before, string after)
                 if (objects.at(indexOfObject(before)).methodExists(after))
                     executeMethod(objects.at(indexOfObject(before)).getMethod(after));
                 else
-                    error("invalid_operation:method_undefined:" + arg1, false);
+                    error(METHOD_UNDEFINED, arg1, false);
             }
             else
-                error("invalid_operation:object_undefined:" + before, true);
+                error(OBJ_METHOD_UNDEFINED, before, true);
         }
         else
         {
             if (methodExists(arg1))
                 executeMethod(methods.at(indexOfMethod(arg1)));
             else
-                error("invalid_operation:method_undefined:" + arg1, true);
+                error(METHOD_UNDEFINED, arg1, true);
         }
     }
 }
@@ -14367,7 +14413,7 @@ void InternalCreateMethod(string arg0, string arg1)
     if (__DefiningObject)
     {
         if (objects.at(indexOfObject(__CurrentObject)).methodExists(arg1))
-            error("invalid_operation:method_defined:" + arg1, false);
+            error(METHOD_DEFINED, arg1, false);
         else
         {
             if (containsParams(arg1))
@@ -14400,13 +14446,13 @@ void InternalCreateMethod(string arg0, string arg1)
                                     else if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != __NullNum)
                                         method.addMethodVariable(objects.at(indexOfObject(before)).getVariable(after).getNumber(), after);
                                     else
-                                        error("is_null:" + params.at(i), false);
+                                        error(IS_NULL, params.at(i), false);
                                 }
                                 else
-                                    error("invalid_operation:object_variable_undefined:" + after, false);
+                                    error(OBJ_VAR_UNDEFINED, after, false);
                             }
                             else
-                                error("invalid_operation:object_undefined:" + before, false);
+                                error(OBJ_METHOD_UNDEFINED, before, false);
                         }
                         else
                         {
@@ -14415,7 +14461,7 @@ void InternalCreateMethod(string arg0, string arg1)
                             else if (isNumber(params.at(i)))
                                 method.addMethodVariable(variables.at(indexOfVariable(params.at(i))).getNumber(), variables.at(indexOfVariable(params.at(i))).name());
                             else
-                                error("is_null:" + params.at(i), false);
+                                error(IS_NULL, params.at(i), false);
                         }
                     }
                     else
@@ -14461,7 +14507,7 @@ void InternalCreateMethod(string arg0, string arg1)
     else
     {
         if (methodExists(arg1))
-            error("invalid_operation:method_defined:" + arg1, false);
+            error(METHOD_DEFINED, arg1, false);
         else
         {
             if (!zeroDots(arg1))
@@ -14484,7 +14530,7 @@ void InternalCreateMethod(string arg0, string arg1)
                     __DefiningObjectMethod = true;
                 }
                 else
-                    error("invalid_operation:object_undefined", false);
+                    error(OBJ_UNDEFINED, "", false);
             }
             else if (containsParams(arg1))
             {
@@ -14512,13 +14558,13 @@ void InternalCreateMethod(string arg0, string arg1)
                                     else if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != __NullNum)
                                         method.addMethodVariable(objects.at(indexOfObject(before)).getVariable(after).getNumber(), after);
                                     else
-                                        error("is_null:" + params.at(i), false);
+                                        error(IS_NULL, params.at(i), false);
                                 }
                                 else
-                                    error("invalid_operation:object_variable_undefined:" + after, false);
+                                    error(OBJ_VAR_UNDEFINED, after, false);
                             }
                             else
-                                error("invalid_operation:object_undefined:" + before, false);
+                                error(OBJ_METHOD_UNDEFINED, before, false);
                         }
                         else
                         {
@@ -14527,7 +14573,7 @@ void InternalCreateMethod(string arg0, string arg1)
                             else if (isNumber(params.at(i)))
                                 method.addMethodVariable(variables.at(indexOfVariable(params.at(i))).getNumber(), variables.at(indexOfVariable(params.at(i))).name());
                             else
-                                error("is_null:" + params.at(i), false);
+                                error(IS_NULL, params.at(i), false);
                         }
                     }
                     else
@@ -14696,7 +14742,7 @@ void InternalGetEnv(string arg0, string after, int mode)
     }
     else if (after == "os?")
     {
-        sValue = __GuessedOS;
+        sValue = getGuessedOS();
     }
     else if (after == "user")
     {
@@ -14835,7 +14881,10 @@ void InternalOutput(string arg0, string arg1)
             else if (objects.at(indexOfObject(beforeDot(arg1))).getVariable(afterDot(arg1)).getNumber() != __NullNum)
                 text = (dtos(objects.at(indexOfObject(beforeDot(arg1))).getVariable(afterDot(arg1)).getNumber()));
             else
-                text = ("is_null:" + arg1, false);
+			{
+                error(IS_NULL, arg1, false);
+				return;
+			}
         }
         else
         {
@@ -14844,7 +14893,10 @@ void InternalOutput(string arg0, string arg1)
             else if (isNumber(arg1))
                 text = (dtos(variables.at(indexOfVariable(arg1)).getNumber()));
             else
-                text = ("is_null:" + arg1, false);
+			{
+                error(IS_NULL, arg1, false);
+				return;
+			}
         }
     }
 
@@ -14878,10 +14930,10 @@ void InternalRemember(string arg0, string arg1)
         else if (isNumber(arg1))
             saveVariable(arg1 + "&" + dtos(variables.at(indexOfVariable(arg1)).getNumber()));
         else
-            error("is_null:" + arg1, false);
+            error(IS_NULL, arg1, false);
     }
     else
-        error("invalid_operation:target_undefined:" + arg1, false);
+        error(TARGET_UNDEFINED, arg1, false);
 }
 
 bool InternalReturn(string arg0, string arg1, string before, string after)
@@ -15256,7 +15308,7 @@ double getBytes(string path)
 
     if(!file.is_open())
     {
-        error("read_fail:" + path, false);
+        error(READ_FAIL, path, false);
 
         return (-DBL_MAX);
     }
