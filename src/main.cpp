@@ -1864,7 +1864,7 @@ void loadScript(string script)
                     char * c = new char[s.size() + 1];
                     copy(s.begin(), s.end(), c);
                     c[s.size()] = '\0';
-                    newScript.add(trim_leading_whitespace(c));
+                    newScript.add(trimLeadingWhitespace(c));
                     delete[] c;
                 }
                 else
@@ -1872,7 +1872,7 @@ void loadScript(string script)
                     char * c = new char[s.size() + 1];
                     copy(s.begin(), s.end(), c);
                     c[s.size()] = '\0';
-                    newScript.add(trim_leading_whitespace(c));
+                    newScript.add(trimLeadingWhitespace(c));
                     delete[] c;
                 }
             }
@@ -1936,7 +1936,7 @@ void loop(bool skip)
             char * c = new char[s.size() + 1];
             copy(s.begin(), s.end(), c);
             c[s.size()] = '\0';
-            parse(trim_leading_whitespace(c));
+            parse(trimLeadingWhitespace(c));
             delete[] c;
         }
     }
@@ -4239,7 +4239,7 @@ void parse(string s)
                     char * c = new char[commentString.size() + 1];
                     copy(commentString.begin(), commentString.end(), c);
                     c[commentString.size()] = '\0';
-                    parse(trim_leading_whitespace(c));
+                    parse(trimLeadingWhitespace(c));
                     delete[] c;
                 }
                 else
@@ -4261,7 +4261,7 @@ void parse(string s)
                     copy(commentString.begin(), commentString.end(), c);
                     c[commentString.size()] = '\0';
 
-                    stringContainer.add(trim_leading_whitespace(c));
+                    stringContainer.add(trimLeadingWhitespace(c));
 
                     delete[] c;
 
@@ -8845,8 +8845,8 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                 {
                     if (!zeroNumbers(arg2))
                     {
-                        string bigstr(arg0);
-                        for (int i = 1; i <= stoi(arg2); i++)
+                        string bigstr("");
+                        for (int i = 0; i < stoi(arg2); i++)
                         {
                             bigstr.append(arg0);
                             write(arg0);
