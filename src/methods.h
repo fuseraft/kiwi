@@ -24,15 +24,14 @@ string  afterUS(string s),
 		getInner(string s, int left, int right),
         subtractChar(string s1, string s2),
         subtractString(string s1, string s2),
-        trim_leading_whitespace(char *str);
+        trimLeadingWhitespace(char *str);
 
 bool    contains(string s1, string s2),
         containsBrackets(string s),
         containsParams(string s),
         directoryExists(string p),
         exists(string p),
-        fileExists(string p),				
-		invalid_var_id(string s),
+        fileExists(string p),	
         isNumeric(string s),
 		isAlpha(string s),
         isUpper(string in),
@@ -60,73 +59,63 @@ vector<string> getParams(string s);
 vector<string> getRange(string s);
 vector<string> getBracketRange(string s);
 
-// Evan Teran @ stackoverflow.com
-// trim from both ends
-// trim from start
-static inline std::string &ltrim(std::string &s)
+static inline string &ltrim(string &s)
 {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+    s.erase(s.begin(), find_if(s.begin(), s.end(), not1(ptr_fun<int, int>(isspace))));
     return s;
 }
 // trim from end
-static inline std::string &rtrim(std::string &s)
+static inline string &rtrim(string &s)
 {
-    s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+    s.erase(find_if(s.rbegin(), s.rend(), not1(ptr_fun<int, int>(isspace))).base(), s.end());
     return s;
 }
-static inline std::string &trim(std::string &s)
+static inline string &trim(string &s)
 {
     return ltrim(rtrim(s));
 }
-// EO Evan Teran
 
-// From indiv @ stackoverflow
-// http://stackoverflow.com/users/19719/indiv
-string trim_leading_whitespace(char *str)
+string trimLeadingWhitespace(char *str)
 {
     size_t len = 0;
-    char *frontp = str - 1;
-    char *endp = NULL;
+    char *start = str - 1;
+    char *end = NULL;
 
-    if( str == NULL )
+    if (str == NULL)
         return NULL;
 
-    if( str[0] == '\0' )
+    if (str[0] == '\0')
         return str;
 
     len = strlen(str);
-    endp = str + len;
+    end = str + len;
 
-    /* Move the front and back pointers to address
-     * the first non-whitespace characters from
-     * each end.
-     */
-    while( isspace(*(++frontp)) );
-    while( isspace(*(--endp)) && endp != frontp );
+    while (isspace(*(++start)));
+    while (isspace(*(--end)) && end != start);
 
-    if( str + len - 1 != endp )
-        *(endp + 1) = '\0';
-    else if( frontp != str &&  endp == frontp )
+    if (str + len - 1 != end)
+	{
+        *(end + 1) = '\0';
+    }
+	else if (start != str && end == start)
+	{
         *str = '\0';
-
-    /* Shift the string so that it starts at str so
-     * that if it's dynamically allocated, we can
-     * still free it on the returned pointer.  Note
-     * the reuse of endp to mean the front of the
-     * string buffer now.
-     */
-    endp = str;
-    if( frontp != str )
+	}
+	
+    end = str;
+    if (start != str)
     {
-        while( *frontp ) *endp++ = *frontp++;
-        *endp = '\0';
+        while (*start) 
+		{
+			*end++ = *start++;
+		}
+        *end = '\0';
     }
 
     string ret_str(str);
 
-    return (ret_str);
+    return ret_str;
 }
-// EO indiv
 
 string getStdout(string cmd)
 {
@@ -704,7 +693,9 @@ bool zeroDots(string s)
     for (int i = 0; i < l; i++)
     {
         if (s[i] == '.')
+		{
             none = false;
+		}
     }
 
     return (none);
@@ -712,31 +703,17 @@ bool zeroDots(string s)
 
 bool zeroNumbers(string s)
 {
-    int l = s.length();
-
-    for (int i = 0; i < l; i++)
+	int start = '0', stop = '9';
+	
+    for (unsigned int i = 0; i < s.length(); i++)
     {
-        switch (s[i])
-        {
-        case '0':
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-            break;
-
-        default:
-            return (true);
-            break;
-        }
+		if (s[i] >= start && s[i] <= stop)
+		{
+			return false;
+		}
     }
 
-    return (false);
+    return true;
 }
 
 string subtractString(string s1, string s2)
@@ -864,23 +841,6 @@ bool isNumeric(string s)
     }
 
     return (true);
-}
-
-bool invalid_var_id(string s)
-{
-    if (s.length() > 1)
-    {
-        string c("");
-        c.push_back(s[1]);
-
-        if (s[0] != '$')
-            return (true);
-
-        if (isNumeric(c))
-            return (true);
-    }
-
-    return (false);
 }
 
 bool isTrue(string s)
