@@ -21,6 +21,7 @@ string  afterUS(string s),
         getStdout(string cmd),
         getUpper(string in),
         getLower(string in),
+		getInner(string s, int left, int right),
         subtractChar(string s1, string s2),
         subtractString(string s1, string s2),
         trim_leading_whitespace(char *str);
@@ -30,12 +31,16 @@ bool    contains(string s1, string s2),
         containsParams(string s),
         directoryExists(string p),
         exists(string p),
-        fileExists(string p),
-        isAlpha(string s),
+        fileExists(string p),				
+		invalid_var_id(string s),
+        isNumeric(string s),
+		isAlpha(string s),
         isUpper(string in),
         isLower(string in),
-        oneDot(string s),
-        endsWith(string fullString, string ending),
+        isTrue(string s),
+		isFalse(string s),
+		oneDot(string s),
+        endsWith(string s, string end),
         startsWith(string s1, string s2),
         zeroDots(string s),
         zeroNumbers(string s);
@@ -135,6 +140,18 @@ string getStdout(string cmd)
     pclose(stream);
 
     return trim(data);
+}
+
+void exec(string cmd)
+{
+    FILE *stream;
+    char buffer[MAX_BUFFER];
+
+    stream = popen(cmd.c_str(), "r");
+    while (fgets(buffer, MAX_BUFFER, stream) != NULL)
+        cout << buffer;
+		
+    pclose(stream);
 }
 
 bool isUpper(string in)
@@ -582,6 +599,24 @@ string beforeUS(string s)
     return (var);
 }
 
+string getInner(string s, int left, int right) {
+	string inner("");
+	int len = s.length();
+	if (left > len || right > len) {
+		// overflow error 
+	} else if (left > right) {
+		// invalid operation
+	} else if (left == right) {
+		inner.push_back(s[left]);
+	} else {
+		for (int i = left; i <= right; i++) {
+			inner.push_back(s[i]);
+		}
+	}
+	
+	return inner;
+}
+
 string subtractChar(string s1, string s2)
 {
     string r("");
@@ -629,40 +664,36 @@ bool oneDot(string s)
     return (true);
 }
 
-bool endsWith(string fullString, string ending)
+bool endsWith(string s, string end)
 {
-    unsigned int lastMatchPos = fullString.rfind(ending);
+    unsigned int lastMatchPos = s.rfind(end);
     bool isEnding = lastMatchPos != std::string::npos;
 
-    int el = ending.length(), fl = fullString.length();
+    int el = end.length(), fl = s.length();
 
     for (int i = lastMatchPos + el; (i < fl) && isEnding; i++)
     {
-        if ((fullString[i] != '\n') && (fullString[i] != '\r'))
-            isEnding = false;
+        if ((s[i] != '\n') && (s[i] != '\r'))
+            return false;
     }
 
-    return (isEnding);
+    return isEnding;
 }
 
 bool startsWith(string s1, string s2)
 {
-    if (s1.length() > s2.length())
+    if (s1.length() >= s2.length())
     {
         int s2l = s2.length();
 
         for (int i = 0; i < s2l; i++)
-        {
             if (s1[i] != s2[i])
-                return (false);
-        }
+                return false;
 
-        return (true);
+        return true;
     }
-    else
-        return (false);
 
-    return (false);
+    return false;
 }
 
 bool zeroDots(string s)
@@ -780,6 +811,7 @@ bool is_num(string s)
     }
     return (true);
 }
+
 bool isNumeric(string s)
 {
     int l = s.length();
@@ -849,6 +881,18 @@ bool invalid_var_id(string s)
     }
 
     return (false);
+}
+
+bool isTrue(string s)
+{
+	string test = getLower(s);
+	return test == "true" || test == "1";
+}
+
+bool isFalse(string s)
+{
+	string test = getLower(s);
+	return test == "false" || test == "0";
 }
 
 // NUMBER > STRING & VICE-VERSA

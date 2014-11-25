@@ -4,27 +4,27 @@
  *		scstauf@gmail.com
  **/
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include <iostream>
 //#include <iomanip>
 #include <sstream>
 #include <fstream>
-#include <vector>
 #include <dirent.h>
-#include <sys/stat.h>
-#include <stdio.h>
 #include <algorithm>
-#include <functional>
-#include <locale>
-#include <cmath>
-#include <string.h>
 #include <cfloat>
 
 #ifdef __linux__
+#include <vector>
+#include <sys/stat.h>
+// #include <stdio.h>
+// #include <functional>
+// #include <locale>
+#include <cmath>
+#include <string.h>
 #include <unistd.h>
+#endif
+
+#ifdef _WIN32
+#include <windows.h>
 #endif
 
 using namespace std;
@@ -158,7 +158,6 @@ bool    __Breaking,
         __FailedNest,
         __GoToLabel,
         __InDefaultCase,
-        // __Logging,
         __Negligence,
         __Returning,
         __SkipCatchBlock,
@@ -194,7 +193,7 @@ void    cd(string p),
         displayVersion(),
         executeMethod(Method m),
         executeNest(Container n),
-        failedIfStatement(),
+        setFalseIf(),
         failedFor(),
         failedWhile(),
         forLoop(Method m),
@@ -213,7 +212,7 @@ void    cd(string p),
         setVariable(string name, double value),
         successfulFor(),
         successfulFor(double a, double b, string op),
-        successfulIF(),
+        setTrueIf(),
         successfullWhile(string v1, string op, string v2),
         successfulFor(List list),
         executeTemplate(Method m, vector<string> vs),
@@ -233,8 +232,10 @@ void __fwrite(string file, string contents);
 
 bool is(string s, string si),
      isNumber(string varName),
+	 isNumber(Variable var),
      isScript(string path),
      isString(string varName),
+	 isString(Variable var),
      methodExists(string s),
      objectExists(string s),
      variableExists(string s),
@@ -1263,8 +1264,8 @@ string getParsedOutput(string cmd)
     string ret = __ParsedOutput;
     __ParsedOutput.clear();
     __CaptureParse = false;
-
-    return (ret);
+	
+    return ret.length() == 0 ? __LastValue : ret;
 }
 
 List getDirectoryList(string before, bool filesOnly)
@@ -1275,9 +1276,9 @@ List getDirectoryList(string before, bool filesOnly)
     DIR *pd;
     struct dirent *pe;
 
-    string meat = variables.at(indexOfVariable(before)).getString();
+    string dir = variables.at(indexOfVariable(before)).getString();
 
-    if ((pd = opendir(meat.c_str())) == NULL)
+    if ((pd = opendir(dir.c_str())) == NULL)
         __DefiningForLoop = false;
     else
     {
@@ -1287,13 +1288,13 @@ List getDirectoryList(string before, bool filesOnly)
             {
                 string tmp("");
 
-                if (meat == "/")
-                    meat = "";
+                if (dir == "/")
+                    dir = "";
 
                 if (__GuessedOS == OS_NIX)
-                    tmp = meat + "/" + string(pe->d_name);
+                    tmp = dir + "/" + string(pe->d_name);
                 else
-                    tmp = meat + "\\" + string(pe->d_name);
+                    tmp = dir + "\\" + string(pe->d_name);
 
                 if (filesOnly)
                 {
@@ -1614,7 +1615,6 @@ void help(string app)
          << "\t" << app << " {script} {args}\t// interpret a script, with parameters" << endl
          << "\t" << app << " -n, --negligence\t// do not terminate on parse errors" << endl
          << "\t" << app << " -sl, --skipload\t// start the shell, skip loading saved vars" << endl
-         << "\t" << app << " -l, --log {path}\t// log activity" << endl
          << "\t" << app << " -u, --uninstall\t// remove $HOME/.savedVarsPath" << endl
          << "\t" << app << " -v, --version\t// display current version" << endl
          << "\t" << app << " -p, --parse\t\t// parse a command" << endl
@@ -1637,16 +1637,16 @@ bool notStandardOneSpace(string arg)
 {
     const char * standardOneSpaceWords =
         "!;?;__begin__;call_method;cd;chdir;collect?;"
-        "decrypt;delay;dir?;directory?;dpush;dpop;"
+        "decrypt;delay;directory?;dpush;dpop;"
         "encrypt;err;error;file?;for;forget;fpush;fpop;"
-        "garbage?;globalize;goto;help;init_dir;intial_directory;"
-        "is_directory?;is_file?;is_list?;is_lowercase?;is_method?;"
-        "is_number?;is_object?;is_string?;is_uppercase?;is_variable?;"
-        "list;list?;load;lock;loop;lose;lower?;lowercase?;"
-        "method;method?;[method];number?;object;object?;out;"
+        "garbage?;globalize;goto;help;if;init_dir;intial_directory;"
+        "directory?;file?;list?;lowercase?;method?;"
+        "number?;object?;string?;uppercase?;variable?;"
+        "list;list?;load;lock;loop;lose;"
+        "method;[method];object;out;"
         "print;println;prompt;remember;remove;return;"
-        "save;say;see;see_string;see_number;stdout;string?;switch;"
-        "template;unlock;upper?;uppercase?;var?;variable?;";
+        "save;say;see;see_string;see_number;stdout;switch;"
+        "template;unlock;";
 
     return !contains(standardOneSpaceWords, arg);
 }
@@ -2495,7 +2495,7 @@ void successfulFor()
     suc_stat = true;
 }
 
-void failedIfStatement()
+void setFalseIf()
 {
     __LastValue = "false";
 
@@ -2512,7 +2512,7 @@ void failedIfStatement()
         __FailedNest = true;
 }
 
-void successfulIF()
+void setTrueIf()
 {
     __LastValue = "true";
 
@@ -3294,19 +3294,20 @@ bool __IsCommented, __MultilineComment;
 
 int sysExec(string s, vector<string> command)
 {
-//    string _cleaned;
-//	_cleaned = cleanString(s);
+	/*string _cleaned;
+	_cleaned = cleanstring(s);
     for (int i = 0; i < (int)methods.size(); i++)
     {
         if (command.at(0) == methods.at(i).name())
         {
-            if ((int)command.size() - 1 == (int)methods.at(i).getMethodVariables().size())
+            if ((int)command.size() - 1 == (int)methods.at(i).getmethodvariables().size())
             {
                 // work
             }
         }
-    }
-    return system(cleanString(s).c_str());
+    }*/
+	exec(cleanString(s));
+	return 0;
 }
 
 /**
@@ -3765,11 +3766,11 @@ void parse(string s)
                         {
                             __DefiningNest = true;
 
-                            if (size == 4)
+							if (size == 4)
                                 threeSpace("if", command.at(1), command.at(2), command.at(3), s, command);
                             else
                             {
-                                failedIfStatement();
+                                setFalseIf();
                                 __DefiningNest = false;
                             }
                         }
@@ -3801,16 +3802,16 @@ void parse(string s)
                             if (size == 4)
                                 threeSpace("if", command.at(1), command.at(2), command.at(3), s, command);
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                         else if (s == "else")
-                            threeSpace("if", "true", "is", "true", "if true is true", command);
+                            threeSpace("if", "true", "==", "true", "if true == true", command);
                         else if (s == "failif")
                         {
                             if (__FailedIfStatement == true)
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                         else
                             ifStatements.at((int)ifStatements.size() - 1).add(s);
@@ -3832,7 +3833,7 @@ void parse(string s)
 
                             if (variableExists(v1) && variableExists(v2))
                             {
-                                if (op == "==" || op == "is")
+                                if (op == "==")
                                 {
                                     while (variables.at(indexOfVariable(v1)).getNumber() == variables.at(indexOfVariable(v2)).getNumber())
                                     {
@@ -3902,7 +3903,7 @@ void parse(string s)
 
                                     __WhileLoopCount = 0;
                                 }
-                                else if (op == "!=" || op == "not")
+                                else if (op == "!=")
                                 {
                                     while (variables.at(indexOfVariable(v1)).getNumber() != variables.at(indexOfVariable(v2)).getNumber())
                                     {
@@ -3919,7 +3920,7 @@ void parse(string s)
                             }
                             else if (variableExists(v1))
                             {
-                                if (op == "==" || op == "is")
+                                if (op == "==")
                                 {
                                     while (variables.at(indexOfVariable(v1)).getNumber() == stoi(v2))
                                     {
@@ -3989,7 +3990,7 @@ void parse(string s)
 
                                     __WhileLoopCount = 0;
                                 }
-                                else if (op == "!=" || op == "not")
+                                else if (op == "!=")
                                 {
                                     while (variables.at(indexOfVariable(v1)).getNumber() != stoi(v2))
                                     {
@@ -4727,9 +4728,9 @@ void zeroSpace(string arg0, string s, vector<string> command)
     else if (arg0 == "failif")
     {
         if (__FailedIfStatement == true)
-            successfulIF();
+            setTrueIf();
         else
-            failedIfStatement();
+            setFalseIf();
     }
     else
         sysExec(s, command);
@@ -4784,7 +4785,57 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         }
     }
     else if (arg0 == "help")
+	{
         comprehensiveHelp(arg1);
+	}
+	else if (arg0 == "if") {
+		string tmpValue("");
+		// if arg1 is a variable
+		if (variableExists(arg1)) {
+			// can we can assume that arg1 belongs to an object?
+			if (!zeroDots(arg1)) {
+				string objName(beforeDot(arg1)), varName(afterDot(arg1));
+				Variable tmpVar = getObject(objName).getVariable(varName);
+				
+				if (isString(tmpVar)) {
+					tmpValue = tmpVar.getString();
+				} else if (isNumber(tmpVar)) {
+					tmpValue = dtos(tmpVar.getNumber());
+				} else {
+					// error(IS_NULL, arg1, true);
+				}
+			} else {
+				if (isString(arg1)) {
+					tmpValue = getVariable(arg1).getString();
+				} else if (isNumber(arg1)) {
+					tmpValue = getVariable(arg1).getNumber();
+				} else {
+					// error(IS_NULL, arg1, true);
+				}
+			}
+		} else {
+			if (isNumeric(arg1) || isTrue(arg1) || isFalse(arg1)) {
+				tmpValue = arg1;
+			} else {
+				string tmpCode("");
+				
+				if (startsWith(arg1, "(\"") && endsWith(arg1, "\")")) {
+					tmpCode = getInner(arg1, 2, arg1.length() - 3);
+				} else {
+					tmpCode = arg1;
+				}
+				tmpValue = getParsedOutput(tmpCode);
+			}
+		}
+		
+		if (isTrue(tmpValue)) {
+			setTrueIf();
+		} else if (isFalse(tmpValue)) {
+			setFalseIf();
+		} else {
+			// error(INVALID_OP, arg1, true);
+		}
+	}
     else if (arg0 == "prompt")
     {
         if (arg1 == "bash")
@@ -5045,7 +5096,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 error(READ_FAIL, __InitialDirectory, false);
         }
     }
-    else if (arg0 == "is_method?" || arg0 == "method?")
+    else if (arg0 == "method?")
     {
         if (before.length() != 0 && after.length() != 0)
         {
@@ -5062,14 +5113,14 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 __false();
         }
     }
-    else if (arg0 == "is_object?" || arg0 == "object?")
+    else if (arg0 == "object?")
     {
         if (objectExists(arg1))
             __true();
         else
             __false();
     }
-    else if (arg0 == "is_variable?" || arg0 == "var?" || arg0 == "variable?")
+    else if (arg0 == "variable?")
     {
         if (before.length() != 0 && after.length() != 0)
         {
@@ -5086,14 +5137,14 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 __false();
         }
     }
-    else if (arg0 == "is_list?" || arg0 == "list?")
+    else if (arg0 == "list?")
     {
         if (listExists(arg1))
             __true();
         else
             __false();
     }
-    else if (arg0 == "is_directory?" || arg0 == "dir?" || arg0 == "directory?")
+    else if (arg0 == "directory?")
     {
         if (before.length() != 0 && after.length() != 0)
         {
@@ -5130,7 +5181,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             }
         }
     }
-    else if (arg0 == "is_file?" || arg0 == "file?")
+    else if (arg0 == "file?")
     {
         if (before.length() != 0 && after.length() != 0)
         {
@@ -5167,7 +5218,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             }
         }
     }
-    else if (arg0 == "collect?" || arg0 == "garbage?")
+    else if (arg0 == "collect?")
     {
         if (variableExists(arg1))
         {
@@ -5179,7 +5230,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         else
             cout << "under construction..." << endl;
     }
-    else if (arg0 == "is_number?" || arg0 == "number?")
+    else if (arg0 == "number?")
     {
         if (before.length() != 0 && after.length() != 0)
         {
@@ -5211,7 +5262,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             }
         }
     }
-    else if (arg0 == "is_string?" || arg0 == "string?")
+    else if (arg0 == "string?")
     {
         if (before.length() != 0 && after.length() != 0)
         {
@@ -5243,7 +5294,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             }
         }
     }
-    else if (arg0 == "is_uppercase?" || arg0 == "upper?" || arg0 == "uppercase?")
+    else if (arg0 == "uppercase?")
     {
         if (before.length() != 0 && after.length() != 0)
         {
@@ -5285,7 +5336,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             }
         }
     }
-    else if (arg0 == "is_lowercase?" || arg0 == "lower?" || arg0 == "lowercase?")
+    else if (arg0 == "lowercase?")
     {
         if (before.length() != 0 && after.length() != 0)
         {
@@ -5468,9 +5519,19 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         sysExec(s, command);
 }
 
+bool isNumber(Variable var)
+{
+	return var.getNumber() != __NullNum;
+}
+
 bool isNumber(string varName)
 {
     return variables.at(indexOfVariable(varName)).getNumber() != __NullNum;
+}
+
+bool isString(Variable var)
+{
+	return var.getString() != __Null;
 }
 
 bool isString(string varName)
@@ -7908,7 +7969,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                     else
                         twoSpace(arg0, arg1, after, (arg0 + " " + arg1 + " " + after), command);
                 }
-                else if (after == "to_int" || after == "integer")
+                else if (after == "to_integer")
                 {
                     if (variableExists(before))
                     {
@@ -7925,7 +7986,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                     else
                         error(VAR_UNDEFINED, before, false);
                 }
-                else if (after == "to_double" || after == "double")
+                else if (after == "to_double")
                 {
                     if (variableExists(before))
                     {
@@ -8874,146 +8935,146 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (lists.at(indexOfList(arg3)).at(i) == testString)
                         {
                             elementFound = true;
-                            failedIfStatement();
+                            setFalseIf();
                             __LastValue = itos(i);
                             break;
                         }
                     }
 
                     if (!elementFound)
-                        successfulIF();
+                        setTrueIf();
                 }
                 else
-                    successfulIF();
+                    setTrueIf();
             }
         }
         else if (variableExists(arg1) && variableExists(arg3))
         {
             if (isString(arg1) && isString(arg3))
             {
-                if (arg2 == "==" || arg2 == "is")
+                if (arg2 == "==")
                 {
                     if (variables.at(indexOfVariable(arg1)).getString() == variables.at(indexOfVariable(arg3)).getString())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
-                else if (arg2 == "!=" || arg2 == "not")
+                else if (arg2 == "!=")
                 {
                     if (variables.at(indexOfVariable(arg1)).getString() != variables.at(indexOfVariable(arg3)).getString())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == ">")
                 {
                     if (variables.at(indexOfVariable(arg1)).getString().length() > variables.at(indexOfVariable(arg3)).getString().length())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == "<")
                 {
                     if (variables.at(indexOfVariable(arg1)).getString().length() < variables.at(indexOfVariable(arg3)).getString().length())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == "<=")
                 {
                     if (variables.at(indexOfVariable(arg1)).getString().length() <= variables.at(indexOfVariable(arg3)).getString().length())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == ">=")
                 {
                     if (variables.at(indexOfVariable(arg1)).getString().length() >= variables.at(indexOfVariable(arg3)).getString().length())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == "contains")
                 {
                     if (contains(variables.at(indexOfVariable(arg1)).getString(), variables.at(indexOfVariable(arg3)).getString()))
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == "ends_with")
                 {
                     if (endsWith(variables.at(indexOfVariable(arg1)).getString(), variables.at(indexOfVariable(arg3)).getString()))
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == "begins_with")
                 {
                     if (startsWith(variables.at(indexOfVariable(arg1)).getString(), variables.at(indexOfVariable(arg3)).getString()))
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else
                 {
                     error(INVALID_OPERATOR, arg2, false);
-                    successfulIF();
+                    setTrueIf();
                 }
             }
             else if (isNumber(arg1) && isNumber(arg3))
             {
-                if (arg2 == "==" || arg2 == "is")
+                if (arg2 == "==")
                 {
                     if (variables.at(indexOfVariable(arg1)).getNumber() == variables.at(indexOfVariable(arg3)).getNumber())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
-                else if (arg2 == "!=" || arg2 == "not")
+                else if (arg2 == "!=")
                 {
                     if (variables.at(indexOfVariable(arg1)).getNumber() != variables.at(indexOfVariable(arg3)).getNumber())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == ">")
                 {
                     if (variables.at(indexOfVariable(arg1)).getNumber() > variables.at(indexOfVariable(arg3)).getNumber())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == ">=")
                 {
                     if (variables.at(indexOfVariable(arg1)).getNumber() >= variables.at(indexOfVariable(arg3)).getNumber())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == "<")
                 {
                     if (variables.at(indexOfVariable(arg1)).getNumber() < variables.at(indexOfVariable(arg3)).getNumber())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == "<=")
                 {
                     if (variables.at(indexOfVariable(arg1)).getNumber() <= variables.at(indexOfVariable(arg3)).getNumber())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else
                 {
                     error(INVALID_OPERATOR, arg2, false);
-                    successfulIF();
+                    setTrueIf();
                 }
             }
             else
             {
                 error(CONV_ERR, s, false);
-                successfulIF();
+                setTrueIf();
             }
         }
         else if ((variableExists(arg1) && !variableExists(arg3)) && !methodExists(arg3) && notObjectMethod(arg3) && !containsParams(arg3))
@@ -9022,67 +9083,67 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumeric(arg3))
                 {
-                    if (arg2 == "==" || arg2 == "is")
+                    if (arg2 == "==")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() == stod(arg3))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
-                    else if (arg2 == "!=" || arg2 == "not")
+                    else if (arg2 == "!=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() != stod(arg3))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() > stod(arg3))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() < stod(arg3))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() >= stod(arg3))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() <= stod(arg3))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
                 else if (arg3 == "number?")
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        failedIfStatement();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        successfulIF();
+                    if (arg2 == "==")
+                        setFalseIf();
+                    else if (arg2 == "!=")
+                        setTrueIf();
                     else
                         error(INVALID_OPERATOR, arg2, false);
                 }
                 else
                 {
                     error(CONV_ERR, s, false);
-                    successfulIF();
+                    setTrueIf();
                 }
             }
             else
@@ -9091,118 +9152,118 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (arg2 == "==" || arg2 == "is")
-                            failedIfStatement();
-                        else if (arg2 == "!=" || arg2 == "not")
-                            successfulIF();
+                        if (arg2 == "==")
+                            setFalseIf();
+                        else if (arg2 == "!=")
+                            setTrueIf();
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            successfulIF();
+                            setTrueIf();
                         }
                     }
                     else
                     {
                         if (arg2 == "!")
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                 }
                 else if (arg3 == "number?")
                 {
                     if (isNumber(arg1))
                     {
-                        if (arg2 == "==" || arg2 == "is")
-                            failedIfStatement();
-                        else if (arg2 == "!=" || arg2 == "not")
-                            successfulIF();
+                        if (arg2 == "==")
+                            setFalseIf();
+                        else if (arg2 == "!=")
+                            setTrueIf();
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            successfulIF();
+                            setTrueIf();
                         }
                     }
                     else
                     {
-                        if (arg2 == "!=" || arg2 == "not")
-                            failedIfStatement();
+                        if (arg2 == "!=")
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                 }
-                else if (arg3 == "upper?" || arg3 == "uppercase?")
+                else if (arg3 == "uppercase?")
                 {
                     if (isString(arg1))
                     {
-                        if (arg2 == "==" || arg2 == "is")
+                        if (arg2 == "==")
                         {
                             if (isUpper(variables.at(indexOfVariable(arg1)).getString()))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
-                        else if (arg2 == "!=" || arg2 == "not")
+                        else if (arg2 == "!=")
                         {
                             if (isUpper(variables.at(indexOfVariable(arg1)).getString()))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            successfulIF();
+                            setTrueIf();
                         }
                     }
                     else
                     {
-                        if (arg2 == "!=" || arg2 == "not")
+                        if (arg2 == "!=")
                         {
                             if (isUpper(arg2))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                 }
-                else if (arg3 == "lower?" || arg3 == "lowercase?")
+                else if (arg3 == "lowercase?")
                 {
                     if (isString(arg1))
                     {
-                        if (arg2 == "==" || arg2 == "is")
+                        if (arg2 == "==")
                         {
                             if (isLower(variables.at(indexOfVariable(arg1)).getString()))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
-                        else if (arg2 == "!=" || arg2 == "not")
+                        else if (arg2 == "!=")
                         {
                             if (isLower(variables.at(indexOfVariable(arg1)).getString()))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            successfulIF();
+                            setTrueIf();
                         }
                     }
                     else
                     {
-                        if (arg2 == "!=" || arg2 == "not")
+                        if (arg2 == "!=")
                         {
                             if (isLower(arg2))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                 }
                 else if (arg3 == "file?")
@@ -9211,129 +9272,129 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         if (fileExists(variables.at(indexOfVariable(arg1)).getString()))
                         {
-                            if (arg2 == "==" || arg2 == "is")
-                                failedIfStatement();
-                            else if (arg2 == "!=" || arg2 == "not")
-                                successfulIF();
+                            if (arg2 == "==")
+                                setFalseIf();
+                            else if (arg2 == "!=")
+                                setTrueIf();
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                successfulIF();
+                                setTrueIf();
                             }
                         }
                         else
                         {
-                            if (arg2 == "!=" || arg2 == "not")
-                                failedIfStatement();
+                            if (arg2 == "!=")
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                     }
                     else
                     {
                         error(IS_NULL, arg1, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
-                else if (arg3 == "dir?" || arg3 == "directory?")
+                else if (arg3 == "directory?")
                 {
                     if (isString(arg1))
                     {
                         if (directoryExists(variables.at(indexOfVariable(arg1)).getString()))
                         {
-                            if (arg2 == "==" || arg2 == "is")
-                                failedIfStatement();
-                            else if (arg2 == "!=" || arg2 == "not")
-                                successfulIF();
+                            if (arg2 == "==")
+                                setFalseIf();
+                            else if (arg2 == "!=")
+                                setTrueIf();
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                successfulIF();
+                                setTrueIf();
                             }
                         }
                         else
                         {
-                            if (arg2 == "!=" || arg2 == "not")
-                                failedIfStatement();
+                            if (arg2 == "!=")
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                     }
                     else
                     {
                         error(IS_NULL, arg1, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
                 else
                 {
-                    if (arg2 == "==" || arg2 == "is")
+                    if (arg2 == "==")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString() == arg3)
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
-                    else if (arg2 == "!=" || arg2 == "not")
+                    else if (arg2 == "!=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString() != arg3)
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString().length() > arg3.length())
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString().length() < arg3.length())
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString().length() >= arg3.length())
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString().length() <= arg3.length())
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "contains")
                     {
                         if (contains(variables.at(indexOfVariable(arg1)).getString(), arg3))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "ends_with")
                     {
                         if (endsWith(variables.at(indexOfVariable(arg1)).getString(), arg3))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "begins_with")
                     {
                         if (startsWith(variables.at(indexOfVariable(arg1)).getString(), arg3))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
             }
@@ -9353,187 +9414,187 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumeric(stackValue))
                 {
-                    if (arg2 == "==" || arg2 == "is")
+                    if (arg2 == "==")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() == stod(stackValue))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
-                    else if (arg2 == "!=" || arg2 == "not")
+                    else if (arg2 == "!=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() != stod(stackValue))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() > stod(stackValue))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() < stod(stackValue))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() >= stod(stackValue))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() <= stod(stackValue))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
-                else if (stackValue == "is_number?" || stackValue == "number?")
+                else if (stackValue == "number?")
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        failedIfStatement();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        successfulIF();
+                    if (arg2 == "==")
+                        setFalseIf();
+                    else if (arg2 == "!=")
+                        setTrueIf();
                     else
                         error(INVALID_OPERATOR, arg2, false);
                 }
                 else
                 {
                     error(CONV_ERR, s, false);
-                    successfulIF();
+                    setTrueIf();
                 }
             }
             else
             {
-                if (stackValue == "is_string?" || stackValue == "string?")
+                if (stackValue == "string?")
                 {
                     if (isString(arg1))
                     {
-                        if (arg2 == "==" || arg2 == "is")
-                            failedIfStatement();
-                        else if (arg2 == "!=" || arg2 == "not")
-                            successfulIF();
+                        if (arg2 == "==")
+                            setFalseIf();
+                        else if (arg2 == "!=")
+                            setTrueIf();
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            successfulIF();
+                            setTrueIf();
                         }
                     }
                     else
                     {
-                        if (arg2 == "!=" || arg2 == "not")
-                            failedIfStatement();
+                        if (arg2 == "!=")
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                 }
-                else if (stackValue == "is_number?" || stackValue == "number?")
+                else if (stackValue == "number?")
                 {
                     if (isNumber(arg1))
                     {
-                        if (arg2 == "==" || arg2 == "is")
-                            failedIfStatement();
-                        else if (arg2 == "!=" || arg2 == "not")
-                            successfulIF();
+                        if (arg2 == "==")
+                            setFalseIf();
+                        else if (arg2 == "!=")
+                            setTrueIf();
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            successfulIF();
+                            setTrueIf();
                         }
                     }
                     else
                     {
-                        if (arg2 == "!=" || arg2 == "not")
-                            failedIfStatement();
+                        if (arg2 == "!=")
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                 }
-                else if (stackValue == "uppercase?" || stackValue == "upper?")
+                else if (stackValue == "uppercase?")
                 {
                     if (isString(arg1))
                     {
-                        if (arg2 == "==" || arg2 == "is")
+                        if (arg2 == "==")
                         {
                             if (isUpper(variables.at(indexOfVariable(arg1)).getString()))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
-                        else if (arg2 == "!=" || arg2 == "not")
+                        else if (arg2 == "!=")
                         {
                             if (isUpper(variables.at(indexOfVariable(arg1)).getString()))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            successfulIF();
+                            setTrueIf();
                         }
                     }
                     else
                     {
-                        if (arg2 == "!=" || arg2 == "not")
+                        if (arg2 == "!=")
                         {
                             if (isUpper(arg2))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                 }
-                else if (stackValue == "lowercase?" || stackValue == "lower?")
+                else if (stackValue == "lowercase?")
                 {
                     if (isString(arg1))
                     {
-                        if (arg2 == "==" || arg2 == "is")
+                        if (arg2 == "==")
                         {
                             if (isLower(variables.at(indexOfVariable(arg1)).getString()))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
-                        else if (arg2 == "!=" || arg2 == "not")
+                        else if (arg2 == "!=")
                         {
                             if (isLower(variables.at(indexOfVariable(arg1)).getString()))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            successfulIF();
+                            setTrueIf();
                         }
                     }
                     else
                     {
-                        if (arg2 == "!=" || arg2 == "not")
+                        if (arg2 == "!=")
                         {
                             if (isLower(arg2))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                 }
                 else if (stackValue == "file?")
@@ -9542,129 +9603,129 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         if (fileExists(variables.at(indexOfVariable(arg1)).getString()))
                         {
-                            if (arg2 == "==" || arg2 == "is")
-                                failedIfStatement();
-                            else if (arg2 == "!=" || arg2 == "not")
-                                successfulIF();
+                            if (arg2 == "==")
+                                setFalseIf();
+                            else if (arg2 == "!=")
+                                setTrueIf();
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                successfulIF();
+                                setTrueIf();
                             }
                         }
                         else
                         {
-                            if (arg2 == "!=" || arg2 == "not")
-                                failedIfStatement();
+                            if (arg2 == "!=")
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                     }
                     else
                     {
                         error(IS_NULL, arg1, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
-                else if (stackValue == "dir?" || stackValue == "directory?")
+                else if (stackValue == "directory?")
                 {
                     if (isString(arg1))
                     {
                         if (directoryExists(variables.at(indexOfVariable(arg1)).getString()))
                         {
-                            if (arg2 == "==" || arg2 == "is")
-                                failedIfStatement();
-                            else if (arg2 == "!=" || arg2 == "not")
-                                successfulIF();
+                            if (arg2 == "==")
+                                setFalseIf();
+                            else if (arg2 == "!=")
+                                setTrueIf();
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                successfulIF();
+                                setTrueIf();
                             }
                         }
                         else
                         {
-                            if (arg2 == "!=" || arg2 == "not")
-                                failedIfStatement();
+                            if (arg2 == "!=")
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                     }
                     else
                     {
                         error(IS_NULL, arg1, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
                 else
                 {
-                    if (arg2 == "==" || arg2 == "is")
+                    if (arg2 == "==")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString() == stackValue)
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
-                    else if (arg2 == "!=" || arg2 == "not")
+                    else if (arg2 == "!=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString() != stackValue)
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString().length() > stackValue.length())
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString().length() < stackValue.length())
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString().length() >= stackValue.length())
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString().length() <= stackValue.length())
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "contains")
                     {
                         if (contains(variables.at(indexOfVariable(arg1)).getString(), stackValue))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "ends_with")
                     {
                         if (endsWith(variables.at(indexOfVariable(arg1)).getString(), stackValue))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "begins_with")
                     {
                         if (startsWith(variables.at(indexOfVariable(arg1)).getString(), stackValue))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
             }
@@ -9675,108 +9736,108 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumeric(arg1))
                 {
-                    if (arg2 == "==" || arg2 == "is")
+                    if (arg2 == "==")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() == stod(arg1))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
-                    else if (arg2 == "!=" || arg2 == "not")
+                    else if (arg2 == "!=")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() != stod(arg1))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() > stod(arg1))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() < stod(arg1))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() >= stod(arg1))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() <= stod(arg1))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
                 else
                 {
                     error(CONV_ERR, s, false);
-                    successfulIF();
+                    setTrueIf();
                 }
             }
             else
             {
-                if (arg2 == "==" || arg2 == "is")
+                if (arg2 == "==")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString() == arg1)
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
-                else if (arg2 == "!=" || arg2 == "not")
+                else if (arg2 == "!=")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString() != arg1)
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == ">")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString().length() > arg1.length())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == "<")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString().length() < arg1.length())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == ">=")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString().length() >= arg1.length())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == "<=")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString().length() <= arg1.length())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else
                 {
                     error(INVALID_OPERATOR, arg2, false);
-                    successfulIF();
+                    setTrueIf();
                 }
             }
         }
@@ -9795,108 +9856,108 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumeric(stackValue))
                 {
-                    if (arg2 == "==" || arg2 == "is")
+                    if (arg2 == "==")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() == stod(stackValue))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
-                    else if (arg2 == "!=" || arg2 == "not")
+                    else if (arg2 == "!=")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() != stod(stackValue))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() > stod(stackValue))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() < stod(stackValue))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() >= stod(stackValue))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() <= stod(stackValue))
-                            failedIfStatement();
+                            setFalseIf();
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
                 else
                 {
                     error(CONV_ERR, s, false);
-                    successfulIF();
+                    setTrueIf();
                 }
             }
             else
             {
-                if (arg2 == "==" || arg2 == "is")
+                if (arg2 == "==")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString() == stackValue)
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
-                else if (arg2 == "!=" || arg2 == "not")
+                else if (arg2 == "!=")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString() != stackValue)
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == ">")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString().length() > stackValue.length())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == "<")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString().length() < stackValue.length())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == ">=")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString().length() >= stackValue.length())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == "<=")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString().length() <= stackValue.length())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else
                 {
                     error(INVALID_OPERATOR, arg2, false);
-                    successfulIF();
+                    setTrueIf();
                 }
             }
         }
@@ -9925,74 +9986,74 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                         if (isNumeric(arg1Result) && isNumeric(arg3Result))
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (stod(arg1Result) == stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (stod(arg1Result) != stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(arg1Result) < stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(arg1Result) > stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(arg1Result) <= stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(arg1Result) >= stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                successfulIF();
+                                setTrueIf();
                             }
                         }
                         else
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (arg1Result == arg3Result)
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (arg1Result != arg3Result)
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                successfulIF();
+                                setTrueIf();
                             }
                         }
                     }
@@ -10004,7 +10065,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (!objectExists(arg3before))
                             error(OBJ_METHOD_UNDEFINED, arg3before, false);
 
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
                 else if (!zeroDots(arg1) && zeroDots(arg3))
@@ -10027,81 +10088,81 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                         if (isNumeric(arg1Result) && isNumeric(arg3Result))
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (stod(arg1Result) == stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (stod(arg1Result) != stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(arg1Result) < stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(arg1Result) > stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(arg1Result) <= stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(arg1Result) >= stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                successfulIF();
+                                setTrueIf();
                             }
                         }
                         else
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (arg1Result == arg3Result)
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (arg1Result != arg3Result)
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                successfulIF();
+                                setTrueIf();
                             }
                         }
                     }
                     else
                     {
                         error(OBJ_METHOD_UNDEFINED, arg1before, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
                 else if (zeroDots(arg1) && !zeroDots(arg3))
@@ -10124,81 +10185,81 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                         if (isNumeric(arg1Result) && isNumeric(arg3Result))
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (stod(arg1Result) == stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (stod(arg1Result) != stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(arg1Result) < stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(arg1Result) > stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(arg1Result) <= stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(arg1Result) >= stod(arg3Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                successfulIF();
+                                setTrueIf();
                             }
                         }
                         else
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (arg1Result == arg3Result)
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (arg1Result != arg3Result)
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                successfulIF();
+                                setTrueIf();
                             }
                         }
                     }
                     else
                     {
                         error(OBJ_METHOD_UNDEFINED, arg3before, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
                 else
@@ -10217,74 +10278,74 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (isNumeric(arg1Result) && isNumeric(arg3Result))
                     {
-                        if (arg2 == "==" || arg2 == "is")
+                        if (arg2 == "==")
                         {
                             if (stod(arg1Result) == stod(arg3Result))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
-                        else if (arg2 == "!=" || arg2 == "not")
+                        else if (arg2 == "!=")
                         {
                             if (stod(arg1Result) != stod(arg3Result))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                         else if (arg2 == "<")
                         {
                             if (stod(arg1Result) < stod(arg3Result))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                         else if (arg2 == ">")
                         {
                             if (stod(arg1Result) > stod(arg3Result))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                         else if (arg2 == "<=")
                         {
                             if (stod(arg1Result) <= stod(arg3Result))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                         else if (arg2 == ">=")
                         {
                             if (stod(arg1Result) >= stod(arg3Result))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            successfulIF();
+                            setTrueIf();
                         }
                     }
                     else
                     {
-                        if (arg2 == "==" || arg2 == "is")
+                        if (arg2 == "==")
                         {
                             if (arg1Result == arg3Result)
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
-                        else if (arg2 == "!=" || arg2 == "not")
+                        else if (arg2 == "!=")
                         {
                             if (arg1Result != arg3Result)
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            successfulIF();
+                            setTrueIf();
                         }
                     }
                 }
@@ -10318,7 +10379,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             {
                                 pass = false;
                                 error(IS_NULL, arg3, false);
-                                successfulIF();
+                                setTrueIf();
                             }
                         }
                         else
@@ -10328,84 +10389,84 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             if (isNumeric(arg1Result) && isNumeric(arg3Result))
                             {
-                                if (arg2 == "==" || arg2 == "is")
+                                if (arg2 == "==")
                                 {
                                     if (stod(arg1Result) == stod(arg3Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
-                                else if (arg2 == "!=" || arg2 == "not")
+                                else if (arg2 == "!=")
                                 {
                                     if (stod(arg1Result) != stod(arg3Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else if (arg2 == "<")
                                 {
                                     if (stod(arg1Result) < stod(arg3Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else if (arg2 == ">")
                                 {
                                     if (stod(arg1Result) > stod(arg3Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else if (arg2 == "<=")
                                 {
                                     if (stod(arg1Result) <= stod(arg3Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else if (arg2 == ">=")
                                 {
                                     if (stod(arg1Result) >= stod(arg3Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else
                                 {
                                     error(INVALID_OPERATOR, arg2, false);
-                                    successfulIF();
+                                    setTrueIf();
                                 }
                             }
                             else
                             {
-                                if (arg2 == "==" || arg2 == "is")
+                                if (arg2 == "==")
                                 {
                                     if (arg1Result == arg3Result)
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
-                                else if (arg2 == "!=" || arg2 == "not")
+                                else if (arg2 == "!=")
                                 {
                                     if (arg1Result != arg3Result)
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else
                                 {
                                     error(INVALID_OPERATOR, arg2, false);
-                                    successfulIF();
+                                    setTrueIf();
                                 }
                             }
                         }
                         else
-                            successfulIF();
+                            setTrueIf();
                     }
                     else
                     {
                         error(METHOD_UNDEFINED, beforeParams(arg1), false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
                 else
@@ -10429,7 +10490,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             {
                                 pass = false;
                                 error(IS_NULL, arg3, false);
-                                successfulIF();
+                                setTrueIf();
                             }
                         }
                         else if (methodExists(arg3))
@@ -10445,74 +10506,74 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             if (isNumeric(arg1Result) && isNumeric(arg3Result))
                             {
-                                if (arg2 == "==" || arg2 == "is")
+                                if (arg2 == "==")
                                 {
                                     if (stod(arg1Result) == stod(arg3Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
-                                else if (arg2 == "!=" || arg2 == "not")
+                                else if (arg2 == "!=")
                                 {
                                     if (stod(arg1Result) != stod(arg3Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else if (arg2 == "<")
                                 {
                                     if (stod(arg1Result) < stod(arg3Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else if (arg2 == ">")
                                 {
                                     if (stod(arg1Result) > stod(arg3Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else if (arg2 == "<=")
                                 {
                                     if (stod(arg1Result) <= stod(arg3Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else if (arg2 == ">=")
                                 {
                                     if (stod(arg1Result) >= stod(arg3Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else
                                 {
                                     error(INVALID_OPERATOR, arg2, false);
-                                    successfulIF();
+                                    setTrueIf();
                                 }
                             }
                             else
                             {
-                                if (arg2 == "==" || arg2 == "is")
+                                if (arg2 == "==")
                                 {
                                     if (arg1Result == arg3Result)
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
-                                else if (arg2 == "!=" || arg2 == "not")
+                                else if (arg2 == "!=")
                                 {
                                     if (arg1Result != arg3Result)
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else
                                 {
                                     error(INVALID_OPERATOR, arg2, false);
-                                    successfulIF();
+                                    setTrueIf();
                                 }
                             }
                         }
@@ -10520,7 +10581,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else
                     {
                         error(OBJ_METHOD_UNDEFINED, arg1before, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
             }
@@ -10553,7 +10614,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             {
                                 pass = false;
                                 error(IS_NULL, arg1, false);
-                                successfulIF();
+                                setTrueIf();
                             }
                         }
                         else
@@ -10563,74 +10624,74 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             if (isNumeric(arg3Result) && isNumeric(arg1Result))
                             {
-                                if (arg2 == "==" || arg2 == "is")
+                                if (arg2 == "==")
                                 {
                                     if (stod(arg3Result) == stod(arg1Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
-                                else if (arg2 == "!=" || arg2 == "not")
+                                else if (arg2 == "!=")
                                 {
                                     if (stod(arg3Result) != stod(arg1Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else if (arg2 == "<")
                                 {
                                     if (stod(arg3Result) < stod(arg1Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else if (arg2 == ">")
                                 {
                                     if (stod(arg3Result) > stod(arg1Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else if (arg2 == "<=")
                                 {
                                     if (stod(arg3Result) <= stod(arg1Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else if (arg2 == ">=")
                                 {
                                     if (stod(arg3Result) >= stod(arg1Result))
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else
                                 {
                                     error(INVALID_OPERATOR, arg2, false);
-                                    successfulIF();
+                                    setTrueIf();
                                 }
                             }
                             else
                             {
-                                if (arg2 == "==" || arg2 == "is")
+                                if (arg2 == "==")
                                 {
                                     if (arg3Result == arg1Result)
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
-                                else if (arg2 == "!=" || arg2 == "not")
+                                else if (arg2 == "!=")
                                 {
                                     if (arg3Result != arg1Result)
-                                        failedIfStatement();
+                                        setFalseIf();
                                     else
-                                        successfulIF();
+                                        setTrueIf();
                                 }
                                 else
                                 {
                                     error(INVALID_OPERATOR, arg2, false);
-                                    successfulIF();
+                                    setTrueIf();
                                 }
                             }
                         }
@@ -10638,7 +10699,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else
                     {
                         error(METHOD_UNDEFINED, beforeParams(arg3), false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
                 else
@@ -10661,7 +10722,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             else
                             {
                                 error(IS_NULL, arg1, false);
-                                successfulIF();
+                                setTrueIf();
                             }
                         }
                         else if (methodExists(arg1))
@@ -10675,81 +10736,81 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                         if (isNumeric(arg3Result) && isNumeric(arg1Result))
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (stod(arg3Result) == stod(arg1Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (stod(arg3Result) != stod(arg1Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(arg3Result) < stod(arg1Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(arg3Result) > stod(arg1Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(arg3Result) <= stod(arg1Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(arg3Result) >= stod(arg1Result))
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                successfulIF();
+                                setTrueIf();
                             }
                         }
                         else
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (arg3Result == arg1Result)
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (arg3Result != arg1Result)
-                                    failedIfStatement();
+                                    setFalseIf();
                                 else
-                                    successfulIF();
+                                    setTrueIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                successfulIF();
+                                setTrueIf();
                             }
                         }
                     }
                     else
                     {
                         error(OBJ_METHOD_UNDEFINED, arg3before, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
             }
@@ -10772,7 +10833,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 else
                 {
                     error(IS_NULL, arg1, false);
-                    successfulIF();
+                    setTrueIf();
                 }
             }
             else
@@ -10792,7 +10853,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 else
                 {
                     error(IS_NULL, arg3, false);
-                    successfulIF();
+                    setTrueIf();
                 }
             }
             else
@@ -10800,74 +10861,74 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
             if (isNumeric(arg1Result) && isNumeric(arg3Result))
             {
-                if (arg2 == "==" || arg2 == "is")
+                if (arg2 == "==")
                 {
                     if (stod(arg1Result) == stod(arg3Result))
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
-                else if (arg2 == "!=" || arg2 == "not")
+                else if (arg2 == "!=")
                 {
                     if (stod(arg1Result) != stod(arg3Result))
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == "<")
                 {
                     if (stod(arg1Result) < stod(arg3Result))
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == ">")
                 {
                     if (stod(arg1Result) > stod(arg3Result))
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == "<=")
                 {
                     if (stod(arg1Result) <= stod(arg3Result))
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else if (arg2 == ">=")
                 {
                     if (stod(arg1Result) >= stod(arg3Result))
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else
                 {
                     error(INVALID_OPERATOR, arg2, false);
-                    successfulIF();
+                    setTrueIf();
                 }
             }
             else
             {
-                if (arg2 == "==" || arg2 == "is")
+                if (arg2 == "==")
                 {
                     if (arg1Result == arg3Result)
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
-                else if (arg2 == "!=" || arg2 == "not")
+                else if (arg2 == "!=")
                 {
                     if (arg1Result != arg3Result)
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else
                 {
                     error(INVALID_OPERATOR, arg2, false);
-                    successfulIF();
+                    setTrueIf();
                 }
             }
         }
@@ -10877,53 +10938,53 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (objectExists(arg1))
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        failedIfStatement();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        successfulIF();
+                    if (arg2 == "==")
+                        setFalseIf();
+                    else if (arg2 == "!=")
+                        setTrueIf();
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
                 else
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        successfulIF();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        failedIfStatement();
+                    if (arg2 == "==")
+                        setTrueIf();
+                    else if (arg2 == "!=")
+                        setFalseIf();
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
             }
-            else if (arg3 == "var?" || arg3 == "variable?")
+            else if (arg3 == "variable?")
             {
                 if (variableExists(arg1))
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        failedIfStatement();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        successfulIF();
+                    if (arg2 == "==")
+                        setFalseIf();
+                    else if (arg2 == "!=")
+                        setTrueIf();
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
                 else
                 {
                     if (arg2 == "=")
-                        successfulIF();
+                        setTrueIf();
                     else if (arg2 == "!")
-                        failedIfStatement();
+                        setFalseIf();
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
             }
@@ -10931,26 +10992,26 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (methodExists(arg1))
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        failedIfStatement();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        successfulIF();
+                    if (arg2 == "==")
+                        setFalseIf();
+                    else if (arg2 == "!=")
+                        setTrueIf();
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
                 else
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        successfulIF();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        failedIfStatement();
+                    if (arg2 == "==")
+                        setTrueIf();
+                    else if (arg2 == "!=")
+                        setFalseIf();
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
             }
@@ -10958,58 +11019,58 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (listExists(arg1))
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        failedIfStatement();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        successfulIF();
+                    if (arg2 == "==")
+                        setFalseIf();
+                    else if (arg2 == "!=")
+                        setTrueIf();
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
                 else
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        successfulIF();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        failedIfStatement();
+                    if (arg2 == "==")
+                        setTrueIf();
+                    else if (arg2 == "!=")
+                        setFalseIf();
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        successfulIF();
+                        setTrueIf();
                     }
                 }
             }
-            else if (arg2 == "==" || arg2 == "is")
+            else if (arg2 == "==")
             {
                 if (arg1 == arg3)
-                    failedIfStatement();
+                    setFalseIf();
                 else
-                    successfulIF();
+                    setTrueIf();
             }
-            else if (arg2 == "!=" || arg2 == "not")
+            else if (arg2 == "!=")
             {
                 if (arg1 != arg3)
-                    failedIfStatement();
+                    setFalseIf();
                 else
-                    successfulIF();
+                    setTrueIf();
             }
             else if (arg2 == ">")
             {
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) > stod(arg3))
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else
                 {
                     if (arg1.length() > arg3.length())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
             }
             else if (arg2 == "<")
@@ -11017,16 +11078,16 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) < stod(arg3))
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else
                 {
                     if (arg1.length() < arg3.length())
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
             }
             else if (arg2 == ">=")
@@ -11034,14 +11095,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) >= stod(arg3))
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else
                 {
                     error(INVALID_OPERATOR, arg2, false);
-                    successfulIF();
+                    setTrueIf();
                 }
             }
             else if (arg2 == "<=")
@@ -11049,41 +11110,41 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) <= stod(arg3))
-                        failedIfStatement();
+                        setFalseIf();
                     else
-                        successfulIF();
+                        setTrueIf();
                 }
                 else
                 {
                     error(INVALID_OPERATOR, arg2, false);
-                    failedIfStatement();
+                    setFalseIf();
                 }
             }
             else if (arg2 == "begins_with")
             {
                 if (startsWith(arg1, arg3))
-                    failedIfStatement();
+                    setFalseIf();
                 else
-                    successfulIF();
+                    setTrueIf();
             }
             else if (arg2 == "ends_with")
             {
                 if (endsWith(arg1, arg3))
-                    failedIfStatement();
+                    setFalseIf();
                 else
-                    successfulIF();
+                    setTrueIf();
             }
             else if (arg2 == "contains")
             {
                 if (contains(arg1, arg3))
-                    failedIfStatement();
+                    setFalseIf();
                 else
-                    successfulIF();
+                    setTrueIf();
             }
             else
             {
                 error(INVALID_OPERATOR, arg2, false);
-                successfulIF();
+                setTrueIf();
             }
         }
     }
@@ -11115,17 +11176,17 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (lists.at(indexOfList(arg3)).at(i) == testString)
                         {
                             elementFound = true;
-                            successfulIF();
+                            setTrueIf();
                             __LastValue = itos(i);
                             break;
                         }
                     }
 
                     if (!elementFound)
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else
-                    failedIfStatement();
+                    setFalseIf();
             }
         }
         else if (listExists(arg1) && arg3 != "list?")
@@ -11154,146 +11215,146 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (lists.at(indexOfList(arg1)).at(i) == testString)
                         {
                             elementFound = true;
-                            successfulIF();
+                            setTrueIf();
                             __LastValue = itos(i);
                             break;
                         }
                     }
 
                     if (!elementFound)
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else
-                    failedIfStatement();
+                    setFalseIf();
             }
         }
         else if (variableExists(arg1) && variableExists(arg3))
         {
             if (isString(arg1) && isString(arg3))
             {
-                if (arg2 == "==" || arg2 == "is")
+                if (arg2 == "==")
                 {
                     if (variables.at(indexOfVariable(arg1)).getString() == variables.at(indexOfVariable(arg3)).getString())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
-                else if (arg2 == "!=" || arg2 == "not")
+                else if (arg2 == "!=")
                 {
                     if (variables.at(indexOfVariable(arg1)).getString() != variables.at(indexOfVariable(arg3)).getString())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == ">")
                 {
                     if (variables.at(indexOfVariable(arg1)).getString().length() > variables.at(indexOfVariable(arg3)).getString().length())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == "<")
                 {
                     if (variables.at(indexOfVariable(arg1)).getString().length() < variables.at(indexOfVariable(arg3)).getString().length())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == "<=")
                 {
                     if (variables.at(indexOfVariable(arg1)).getString().length() <= variables.at(indexOfVariable(arg3)).getString().length())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == ">=")
                 {
                     if (variables.at(indexOfVariable(arg1)).getString().length() >= variables.at(indexOfVariable(arg3)).getString().length())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == "contains")
                 {
                     if (contains(variables.at(indexOfVariable(arg1)).getString(), variables.at(indexOfVariable(arg3)).getString()))
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == "ends_with")
                 {
                     if (endsWith(variables.at(indexOfVariable(arg1)).getString(), variables.at(indexOfVariable(arg3)).getString()))
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == "begins_with")
                 {
                     if (startsWith(variables.at(indexOfVariable(arg1)).getString(), variables.at(indexOfVariable(arg3)).getString()))
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else
                 {
                     error(INVALID_OPERATOR, arg2, false);
-                    failedIfStatement();
+                    setFalseIf();
                 }
             }
             else if (isNumber(arg1) && isNumber(arg3))
             {
-                if (arg2 == "==" || arg2 == "is")
+                if (arg2 == "==")
                 {
                     if (variables.at(indexOfVariable(arg1)).getNumber() == variables.at(indexOfVariable(arg3)).getNumber())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
-                else if (arg2 == "!=" || arg2 == "not")
+                else if (arg2 == "!=")
                 {
                     if (variables.at(indexOfVariable(arg1)).getNumber() != variables.at(indexOfVariable(arg3)).getNumber())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == ">")
                 {
                     if (variables.at(indexOfVariable(arg1)).getNumber() > variables.at(indexOfVariable(arg3)).getNumber())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == ">=")
                 {
                     if (variables.at(indexOfVariable(arg1)).getNumber() >= variables.at(indexOfVariable(arg3)).getNumber())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == "<")
                 {
                     if (variables.at(indexOfVariable(arg1)).getNumber() < variables.at(indexOfVariable(arg3)).getNumber())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == "<=")
                 {
                     if (variables.at(indexOfVariable(arg1)).getNumber() <= variables.at(indexOfVariable(arg3)).getNumber())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else
                 {
                     error(INVALID_OPERATOR, arg2, false);
-                    failedIfStatement();
+                    setFalseIf();
                 }
             }
             else
             {
                 error(CONV_ERR, s, false);
-                failedIfStatement();
+                setFalseIf();
             }
         }
         else if ((variableExists(arg1) && !variableExists(arg3)) && !methodExists(arg3) && notObjectMethod(arg3) && !containsParams(arg3))
@@ -11302,67 +11363,67 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumeric(arg3))
                 {
-                    if (arg2 == "==" || arg2 == "is")
+                    if (arg2 == "==")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() == stod(arg3))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
-                    else if (arg2 == "!=" || arg2 == "not")
+                    else if (arg2 == "!=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() != stod(arg3))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() > stod(arg3))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() < stod(arg3))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() >= stod(arg3))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() <= stod(arg3))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
                 else if (arg3 == "number?")
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        successfulIF();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        failedIfStatement();
+                    if (arg2 == "==")
+                        setTrueIf();
+                    else if (arg2 == "!=")
+                        setFalseIf();
                     else
                         error(INVALID_OPERATOR, arg2, false);
                 }
                 else
                 {
                     error(CONV_ERR, s, false);
-                    failedIfStatement();
+                    setFalseIf();
                 }
             }
             else
@@ -11371,68 +11432,68 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (arg2 == "==" || arg2 == "is")
-                            successfulIF();
-                        else if (arg2 == "!=" || arg2 == "not")
-                            failedIfStatement();
+                        if (arg2 == "==")
+                            setTrueIf();
+                        else if (arg2 == "!=")
+                            setFalseIf();
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            failedIfStatement();
+                            setFalseIf();
                         }
                     }
                     else
                     {
                         if (arg2 == "!=")
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                 }
                 else if (arg3 == "number?")
                 {
                     if (isNumber(arg1))
                     {
-                        if (arg2 == "==" || arg2 == "is")
-                            successfulIF();
-                        else if (arg2 == "!=" || arg2 == "not")
-                            failedIfStatement();
+                        if (arg2 == "==")
+                            setTrueIf();
+                        else if (arg2 == "!=")
+                            setFalseIf();
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            failedIfStatement();
+                            setFalseIf();
                         }
                     }
                     else
                     {
                         if (arg2 == "!=")
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                 }
-                else if (arg3 == "upper?" || arg3 == "uppercase?")
+                else if (arg3 == "uppercase?")
                 {
                     if (isString(arg1))
                     {
-                        if (arg2 == "==" || arg2 == "is")
+                        if (arg2 == "==")
                         {
                             if (isUpper(variables.at(indexOfVariable(arg1)).getString()))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
-                        else if (arg2 == "!=" || arg2 == "not")
+                        else if (arg2 == "!=")
                         {
                             if (isUpper(variables.at(indexOfVariable(arg1)).getString()))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            failedIfStatement();
+                            setFalseIf();
                         }
                     }
                     else
@@ -11440,36 +11501,36 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "!=")
                         {
                             if (isUpper(arg2))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                 }
-                else if (arg3 == "lower?" || arg3 == "lowercase?")
+                else if (arg3 == "lowercase?")
                 {
                     if (isString(arg1))
                     {
-                        if (arg2 == "==" || arg2 == "is")
+                        if (arg2 == "==")
                         {
                             if (isLower(variables.at(indexOfVariable(arg1)).getString()))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
-                        else if (arg2 == "!=" || arg2 == "not")
+                        else if (arg2 == "!=")
                         {
                             if (isLower(variables.at(indexOfVariable(arg1)).getString()))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            failedIfStatement();
+                            setFalseIf();
                         }
                     }
                     else
@@ -11477,12 +11538,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "!=")
                         {
                             if (isLower(arg2))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                 }
                 else if (arg3 == "file?")
@@ -11491,28 +11552,28 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         if (fileExists(variables.at(indexOfVariable(arg1)).getString()))
                         {
-                            if (arg2 == "==" || arg2 == "is")
-                                successfulIF();
-                            else if (arg2 == "!=" || arg2 == "not")
-                                failedIfStatement();
+                            if (arg2 == "==")
+                                setTrueIf();
+                            else if (arg2 == "!=")
+                                setFalseIf();
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                         else
                         {
                             if (arg2 == "!=")
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                     }
                     else
                     {
                         error(IS_NULL, arg1, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
                 else if (arg3 == "dir?" || arg3 == "directory?")
@@ -11521,99 +11582,99 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         if (directoryExists(variables.at(indexOfVariable(arg1)).getString()))
                         {
-                            if (arg2 == "==" || arg2 == "is")
-                                successfulIF();
-                            else if (arg2 == "!=" || arg2 == "not")
-                                failedIfStatement();
+                            if (arg2 == "==")
+                                setTrueIf();
+                            else if (arg2 == "!=")
+                                setFalseIf();
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                         else
                         {
                             if (arg2 == "!=")
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                     }
                     else
                     {
                         error(IS_NULL, arg1, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
                 else
                 {
-                    if (arg2 == "==" || arg2 == "is")
+                    if (arg2 == "==")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString() == arg3)
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
-                    else if (arg2 == "!=" || arg2 == "not")
+                    else if (arg2 == "!=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString() != arg3)
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString().length() > arg3.length())
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString().length() < arg3.length())
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString().length() >= arg3.length())
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString().length() <= arg3.length())
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "contains")
                     {
                         if (contains(variables.at(indexOfVariable(arg1)).getString(), arg3))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "ends_with")
                     {
                         if (endsWith(variables.at(indexOfVariable(arg1)).getString(), arg3))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "begins_with")
                     {
                         if (startsWith(variables.at(indexOfVariable(arg1)).getString(), arg3))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
             }
@@ -11633,67 +11694,67 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumeric(stackValue))
                 {
-                    if (arg2 == "==" || arg2 == "is")
+                    if (arg2 == "==")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() == stod(stackValue))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
-                    else if (arg2 == "!=" || arg2 == "not")
+                    else if (arg2 == "!=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() != stod(stackValue))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() > stod(stackValue))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() < stod(stackValue))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() >= stod(stackValue))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getNumber() <= stod(stackValue))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
                 else if (stackValue == "number?")
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        successfulIF();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        failedIfStatement();
+                    if (arg2 == "==")
+                        setTrueIf();
+                    else if (arg2 == "!=")
+                        setFalseIf();
                     else
                         error(INVALID_OPERATOR, arg2, false);
                 }
                 else
                 {
                     error(CONV_ERR, s, false);
-                    failedIfStatement();
+                    setFalseIf();
                 }
             }
             else
@@ -11702,68 +11763,68 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (arg2 == "==" || arg2 == "is")
-                            successfulIF();
-                        else if (arg2 == "!=" || arg2 == "not")
-                            failedIfStatement();
+                        if (arg2 == "==")
+                            setTrueIf();
+                        else if (arg2 == "!=")
+                            setFalseIf();
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            failedIfStatement();
+                            setFalseIf();
                         }
                     }
                     else
                     {
                         if (arg2 == "!=")
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                 }
                 else if (stackValue == "number?")
                 {
                     if (isNumber(arg1))
                     {
-                        if (arg2 == "==" || arg2 == "is")
-                            successfulIF();
-                        else if (arg2 == "!=" || arg2 == "not")
-                            failedIfStatement();
+                        if (arg2 == "==")
+                            setTrueIf();
+                        else if (arg2 == "!=")
+                            setFalseIf();
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            failedIfStatement();
+                            setFalseIf();
                         }
                     }
                     else
                     {
                         if (arg2 == "!=")
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                 }
-                else if (stackValue == "upper?" || stackValue == "uppercase?")
+                else if (stackValue == "uppercase?")
                 {
                     if (isString(arg1))
                     {
-                        if (arg2 == "==" || arg2 == "is")
+                        if (arg2 == "==")
                         {
                             if (isUpper(variables.at(indexOfVariable(arg1)).getString()))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
-                        else if (arg2 == "!=" || arg2 == "not")
+                        else if (arg2 == "!=")
                         {
                             if (isUpper(variables.at(indexOfVariable(arg1)).getString()))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            failedIfStatement();
+                            setFalseIf();
                         }
                     }
                     else
@@ -11771,36 +11832,36 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "!=")
                         {
                             if (isUpper(arg2))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                 }
                 else if (stackValue == "lower?" || stackValue == "lowercase?")
                 {
                     if (isString(arg1))
                     {
-                        if (arg2 == "==" || arg2 == "is")
+                        if (arg2 == "==")
                         {
                             if (isLower(variables.at(indexOfVariable(arg1)).getString()))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
-                        else if (arg2 == "!=" || arg2 == "not")
+                        else if (arg2 == "!=")
                         {
                             if (isLower(variables.at(indexOfVariable(arg1)).getString()))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            failedIfStatement();
+                            setFalseIf();
                         }
                     }
                     else
@@ -11808,12 +11869,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "!=")
                         {
                             if (isLower(arg2))
-                                failedIfStatement();
+                                setFalseIf();
                             else
-                                successfulIF();
+                                setTrueIf();
                         }
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                 }
                 else if (stackValue == "file?")
@@ -11822,129 +11883,129 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         if (fileExists(variables.at(indexOfVariable(arg1)).getString()))
                         {
-                            if (arg2 == "==" || arg2 == "is")
-                                successfulIF();
-                            else if (arg2 == "!=" || arg2 == "not")
-                                failedIfStatement();
+                            if (arg2 == "==")
+                                setTrueIf();
+                            else if (arg2 == "!=")
+                                setFalseIf();
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                         else
                         {
                             if (arg2 == "!=")
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                     }
                     else
                     {
                         error(IS_NULL, arg1, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
-                else if (stackValue == "dir?" || stackValue == "directory?")
+                else if (stackValue == "directory?")
                 {
                     if (isString(arg1))
                     {
                         if (directoryExists(variables.at(indexOfVariable(arg1)).getString()))
                         {
-                            if (arg2 == "==" || arg2 == "is")
-                                successfulIF();
-                            else if (arg2 == "!=" || arg2 == "not")
-                                failedIfStatement();
+                            if (arg2 == "==")
+                                setTrueIf();
+                            else if (arg2 == "!=")
+                                setFalseIf();
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                         else
                         {
                             if (arg2 == "!=")
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                     }
                     else
                     {
                         error(IS_NULL, arg1, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
                 else
                 {
-                    if (arg2 == "==" || arg2 == "is")
+                    if (arg2 == "==")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString() == stackValue)
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
-                    else if (arg2 == "!=" || arg2 == "not")
+                    else if (arg2 == "!=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString() != stackValue)
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString().length() > stackValue.length())
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString().length() < stackValue.length())
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString().length() >= stackValue.length())
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
                         if (variables.at(indexOfVariable(arg1)).getString().length() <= stackValue.length())
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "contains")
                     {
                         if (contains(variables.at(indexOfVariable(arg1)).getString(), stackValue))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "ends_with")
                     {
                         if (endsWith(variables.at(indexOfVariable(arg1)).getString(), stackValue))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "begins_with")
                     {
                         if (startsWith(variables.at(indexOfVariable(arg1)).getString(), stackValue))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
             }
@@ -11955,108 +12016,108 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumeric(arg1))
                 {
-                    if (arg2 == "==" || arg2 == "is")
+                    if (arg2 == "==")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() == stod(arg1))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
-                    else if (arg2 == "!=" || arg2 == "not")
+                    else if (arg2 == "!=")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() != stod(arg1))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() > stod(arg1))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() < stod(arg1))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() >= stod(arg1))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() <= stod(arg1))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
                 else
                 {
                     error(CONV_ERR, s, false);
-                    failedIfStatement();
+                    setFalseIf();
                 }
             }
             else
             {
-                if (arg2 == "==" || arg2 == "is")
+                if (arg2 == "==")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString() == arg1)
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
-                else if (arg2 == "!=" || arg2 == "not")
+                else if (arg2 == "!=")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString() != arg1)
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == ">")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString().length() > arg1.length())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == "<")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString().length() < arg1.length())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == ">=")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString().length() >= arg1.length())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == "<=")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString().length() <= arg1.length())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else
                 {
                     error(INVALID_OPERATOR, arg2, false);
-                    failedIfStatement();
+                    setFalseIf();
                 }
             }
         }
@@ -12075,108 +12136,108 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumeric(stackValue))
                 {
-                    if (arg2 == "==" || arg2 == "is")
+                    if (arg2 == "==")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() == stod(stackValue))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
-                    else if (arg2 == "!=" || arg2 == "not")
+                    else if (arg2 == "!=")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() != stod(stackValue))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() > stod(stackValue))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() < stod(stackValue))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() >= stod(stackValue))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
                         if (variables.at(indexOfVariable(arg3)).getNumber() <= stod(stackValue))
-                            successfulIF();
+                            setTrueIf();
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
                 else
                 {
                     error(CONV_ERR, s, false);
-                    failedIfStatement();
+                    setFalseIf();
                 }
             }
             else
             {
-                if (arg2 == "==" || arg2 == "is")
+                if (arg2 == "==")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString() == stackValue)
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
-                else if (arg2 == "!=" || arg2 == "not")
+                else if (arg2 == "!=")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString() != stackValue)
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == ">")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString().length() > stackValue.length())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == "<")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString().length() < stackValue.length())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == ">=")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString().length() >= stackValue.length())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == "<=")
                 {
                     if (variables.at(indexOfVariable(arg3)).getString().length() <= stackValue.length())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else
                 {
                     error(INVALID_OPERATOR, arg2, false);
-                    failedIfStatement();
+                    setFalseIf();
                 }
             }
         }
@@ -12205,74 +12266,74 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                         if (isNumeric(arg1Result) && isNumeric(arg3Result))
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (stod(arg1Result) == stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (stod(arg1Result) != stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(arg1Result) < stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(arg1Result) > stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(arg1Result) <= stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(arg1Result) >= stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                         else
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (arg1Result == arg3Result)
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (arg1Result != arg3Result)
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                     }
@@ -12284,7 +12345,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (!objectExists(arg3before))
                             error(OBJ_METHOD_UNDEFINED, arg3before, false);
 
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
                 else if (!zeroDots(arg1) && zeroDots(arg3))
@@ -12307,81 +12368,81 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                         if (isNumeric(arg1Result) && isNumeric(arg3Result))
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (stod(arg1Result) == stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (stod(arg1Result) != stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(arg1Result) < stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(arg1Result) > stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(arg1Result) <= stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(arg1Result) >= stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                         else
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (arg1Result == arg3Result)
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (arg1Result != arg3Result)
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                     }
                     else
                     {
                         error(OBJ_METHOD_UNDEFINED, arg1before, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
                 else if (zeroDots(arg1) && !zeroDots(arg3))
@@ -12404,81 +12465,81 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                         if (isNumeric(arg1Result) && isNumeric(arg3Result))
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (stod(arg1Result) == stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (stod(arg1Result) != stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(arg1Result) < stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(arg1Result) > stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(arg1Result) <= stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(arg1Result) >= stod(arg3Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                         else
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (arg1Result == arg3Result)
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (arg1Result != arg3Result)
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                     }
                     else
                     {
                         error(OBJ_METHOD_UNDEFINED, arg3before, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
                 else
@@ -12497,74 +12558,74 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (isNumeric(arg1Result) && isNumeric(arg3Result))
                     {
-                        if (arg2 == "==" || arg2 == "is")
+                        if (arg2 == "==")
                         {
                             if (stod(arg1Result) == stod(arg3Result))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
-                        else if (arg2 == "!=" || arg2 == "not")
+                        else if (arg2 == "!=")
                         {
                             if (stod(arg1Result) != stod(arg3Result))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                         else if (arg2 == "<")
                         {
                             if (stod(arg1Result) < stod(arg3Result))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                         else if (arg2 == ">")
                         {
                             if (stod(arg1Result) > stod(arg3Result))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                         else if (arg2 == "<=")
                         {
                             if (stod(arg1Result) <= stod(arg3Result))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                         else if (arg2 == ">=")
                         {
                             if (stod(arg1Result) >= stod(arg3Result))
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            failedIfStatement();
+                            setFalseIf();
                         }
                     }
                     else
                     {
-                        if (arg2 == "==" || arg2 == "is")
+                        if (arg2 == "==")
                         {
                             if (arg1Result == arg3Result)
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
-                        else if (arg2 == "!=" || arg2 == "not")
+                        else if (arg2 == "!=")
                         {
                             if (arg1Result != arg3Result)
-                                successfulIF();
+                                setTrueIf();
                             else
-                                failedIfStatement();
+                                setFalseIf();
                         }
                         else
                         {
                             error(INVALID_OPERATOR, arg2, false);
-                            failedIfStatement();
+                            setFalseIf();
                         }
                     }
                 }
@@ -12598,7 +12659,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             {
                                 pass = false;
                                 error(IS_NULL, arg3, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                         else
@@ -12608,79 +12669,79 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             if (isNumeric(arg1Result) && isNumeric(arg3Result))
                             {
-                                if (arg2 == "==" || arg2 == "is")
+                                if (arg2 == "==")
                                 {
                                     if (stod(arg1Result) == stod(arg3Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
-                                else if (arg2 == "!=" || arg2 == "not")
+                                else if (arg2 == "!=")
                                 {
                                     if (stod(arg1Result) != stod(arg3Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else if (arg2 == "<")
                                 {
                                     if (stod(arg1Result) < stod(arg3Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else if (arg2 == ">")
                                 {
                                     if (stod(arg1Result) > stod(arg3Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else if (arg2 == "<=")
                                 {
                                     if (stod(arg1Result) <= stod(arg3Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else if (arg2 == ">=")
                                 {
                                     if (stod(arg1Result) >= stod(arg3Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else
                                 {
                                     error(INVALID_OPERATOR, arg2, false);
-                                    failedIfStatement();
+                                    setFalseIf();
                                 }
                             }
                             else
                             {
-                                if (arg2 == "==" || arg2 == "is")
+                                if (arg2 == "==")
                                 {
                                     if (arg1Result == arg3Result)
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
-                                else if (arg2 == "!=" || arg2 == "not")
+                                else if (arg2 == "!=")
                                 {
                                     if (arg1Result != arg3Result)
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else
                                 {
                                     error(INVALID_OPERATOR, arg2, false);
-                                    failedIfStatement();
+                                    setFalseIf();
                                 }
                             }
                         }
                         else
-                            failedIfStatement();
+                            setFalseIf();
                     }
                     else if (stackReady(arg1))
                     {
@@ -12717,81 +12778,81 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                         if (isNumeric(stackValue) && isNumeric(comp))
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (stod(stackValue) == stod(comp))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (stod(stackValue) != stod(comp))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(stackValue) < stod(comp))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(stackValue) > stod(comp))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(stackValue) <= stod(comp))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(stackValue) >= stod(comp))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                         else
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (stackValue == comp)
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (stackValue != comp)
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                     }
                     else
                     {
                         error(METHOD_UNDEFINED, beforeParams(arg1), false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
                 else
@@ -12815,7 +12876,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             {
                                 pass = false;
                                 error(IS_NULL, arg3, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                         else if (methodExists(arg3))
@@ -12831,74 +12892,74 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             if (isNumeric(arg1Result) && isNumeric(arg3Result))
                             {
-                                if (arg2 == "==" || arg2 == "is")
+                                if (arg2 == "==")
                                 {
                                     if (stod(arg1Result) == stod(arg3Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
-                                else if (arg2 == "!=" || arg2 == "not")
+                                else if (arg2 == "!=")
                                 {
                                     if (stod(arg1Result) != stod(arg3Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else if (arg2 == "<")
                                 {
                                     if (stod(arg1Result) < stod(arg3Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else if (arg2 == ">")
                                 {
                                     if (stod(arg1Result) > stod(arg3Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else if (arg2 == "<=")
                                 {
                                     if (stod(arg1Result) <= stod(arg3Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else if (arg2 == ">=")
                                 {
                                     if (stod(arg1Result) >= stod(arg3Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else
                                 {
                                     error(INVALID_OPERATOR, arg2, false);
-                                    failedIfStatement();
+                                    setFalseIf();
                                 }
                             }
                             else
                             {
-                                if (arg2 == "==" || arg2 == "is")
+                                if (arg2 == "==")
                                 {
                                     if (arg1Result == arg3Result)
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
-                                else if (arg2 == "!=" || arg2 == "not")
+                                else if (arg2 == "!=")
                                 {
                                     if (arg1Result != arg3Result)
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else
                                 {
                                     error(INVALID_OPERATOR, arg2, false);
-                                    failedIfStatement();
+                                    setFalseIf();
                                 }
                             }
                         }
@@ -12906,7 +12967,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else
                     {
                         error(OBJ_METHOD_UNDEFINED, arg1before, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
             }
@@ -12939,7 +13000,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             {
                                 pass = false;
                                 error(IS_NULL, arg1, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                         else
@@ -12949,74 +13010,74 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             if (isNumeric(arg3Result) && isNumeric(arg1Result))
                             {
-                                if (arg2 == "==" || arg2 == "is")
+                                if (arg2 == "==")
                                 {
                                     if (stod(arg3Result) == stod(arg1Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
-                                else if (arg2 == "!=" || arg2 == "not")
+                                else if (arg2 == "!=")
                                 {
                                     if (stod(arg3Result) != stod(arg1Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else if (arg2 == "<")
                                 {
                                     if (stod(arg3Result) < stod(arg1Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else if (arg2 == ">")
                                 {
                                     if (stod(arg3Result) > stod(arg1Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else if (arg2 == "<=")
                                 {
                                     if (stod(arg3Result) <= stod(arg1Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else if (arg2 == ">=")
                                 {
                                     if (stod(arg3Result) >= stod(arg1Result))
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else
                                 {
                                     error(INVALID_OPERATOR, arg2, false);
-                                    failedIfStatement();
+                                    setFalseIf();
                                 }
                             }
                             else
                             {
-                                if (arg2 == "==" || arg2 == "is")
+                                if (arg2 == "==")
                                 {
                                     if (arg3Result == arg1Result)
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
-                                else if (arg2 == "!=" || arg2 == "not")
+                                else if (arg2 == "!=")
                                 {
                                     if (arg3Result != arg1Result)
-                                        successfulIF();
+                                        setTrueIf();
                                     else
-                                        failedIfStatement();
+                                        setFalseIf();
                                 }
                                 else
                                 {
                                     error(INVALID_OPERATOR, arg2, false);
-                                    failedIfStatement();
+                                    setFalseIf();
                                 }
                             }
                         }
@@ -13024,7 +13085,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else
                     {
                         error(METHOD_UNDEFINED, beforeParams(arg3), false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
                 else
@@ -13047,7 +13108,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             else
                             {
                                 error(IS_NULL, arg1, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                         else if (methodExists(arg1))
@@ -13061,81 +13122,81 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                         if (isNumeric(arg3Result) && isNumeric(arg1Result))
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (stod(arg3Result) == stod(arg1Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (stod(arg3Result) != stod(arg1Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(arg3Result) < stod(arg1Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(arg3Result) > stod(arg1Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(arg3Result) <= stod(arg1Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(arg3Result) >= stod(arg1Result))
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                         else
                         {
-                            if (arg2 == "==" || arg2 == "is")
+                            if (arg2 == "==")
                             {
                                 if (arg3Result == arg1Result)
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
-                            else if (arg2 == "!=" || arg2 == "not")
+                            else if (arg2 == "!=")
                             {
                                 if (arg3Result != arg1Result)
-                                    successfulIF();
+                                    setTrueIf();
                                 else
-                                    failedIfStatement();
+                                    setFalseIf();
                             }
                             else
                             {
                                 error(INVALID_OPERATOR, arg2, false);
-                                failedIfStatement();
+                                setFalseIf();
                             }
                         }
                     }
                     else
                     {
                         error(OBJ_METHOD_UNDEFINED, arg3before, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
             }
@@ -13158,7 +13219,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 else
                 {
                     error(IS_NULL, arg1, false);
-                    failedIfStatement();
+                    setFalseIf();
                 }
             }
             else
@@ -13178,7 +13239,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 else
                 {
                     error(IS_NULL, arg3, false);
-                    failedIfStatement();
+                    setFalseIf();
                 }
             }
             else
@@ -13186,74 +13247,74 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
             if (isNumeric(arg1Result) && isNumeric(arg3Result))
             {
-                if (arg2 == "==" || arg2 == "is")
+                if (arg2 == "==")
                 {
                     if (stod(arg1Result) == stod(arg3Result))
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
-                else if (arg2 == "!=" || arg2 == "not")
+                else if (arg2 == "!=")
                 {
                     if (stod(arg1Result) != stod(arg3Result))
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == "<")
                 {
                     if (stod(arg1Result) < stod(arg3Result))
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == ">")
                 {
                     if (stod(arg1Result) > stod(arg3Result))
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == "<=")
                 {
                     if (stod(arg1Result) <= stod(arg3Result))
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else if (arg2 == ">=")
                 {
                     if (stod(arg1Result) >= stod(arg3Result))
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else
                 {
                     error(INVALID_OPERATOR, arg2, false);
-                    failedIfStatement();
+                    setFalseIf();
                 }
             }
             else
             {
-                if (arg2 == "==" || arg2 == "is")
+                if (arg2 == "==")
                 {
                     if (arg1Result == arg3Result)
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
-                else if (arg2 == "!=" || arg2 == "not")
+                else if (arg2 == "!=")
                 {
                     if (arg1Result != arg3Result)
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else
                 {
                     error(INVALID_OPERATOR, arg2, false);
-                    failedIfStatement();
+                    setFalseIf();
                 }
             }
         }
@@ -13263,53 +13324,53 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (objectExists(arg1))
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        successfulIF();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        failedIfStatement();
+                    if (arg2 == "==")
+                        setTrueIf();
+                    else if (arg2 == "!=")
+                        setFalseIf();
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
                 else
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        failedIfStatement();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        successfulIF();
+                    if (arg2 == "==")
+                        setFalseIf();
+                    else if (arg2 == "!=")
+                        setTrueIf();
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
             }
-            else if (arg3 == "var?" || arg3 == "variable?")
+            else if (arg3 == "variable?")
             {
                 if (variableExists(arg1))
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        successfulIF();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        failedIfStatement();
+                    if (arg2 == "==")
+                        setTrueIf();
+                    else if (arg2 == "!=")
+                        setFalseIf();
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
                 else
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        failedIfStatement();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        successfulIF();
+                    if (arg2 == "==")
+                        setFalseIf();
+                    else if (arg2 == "!=")
+                        setTrueIf();
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
             }
@@ -13317,26 +13378,26 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (methodExists(arg1))
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        successfulIF();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        failedIfStatement();
+                    if (arg2 == "==")
+                        setTrueIf();
+                    else if (arg2 == "!=")
+                        setFalseIf();
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
                 else
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        failedIfStatement();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        successfulIF();
+                    if (arg2 == "==")
+                        setFalseIf();
+                    else if (arg2 == "!=")
+                        setTrueIf();
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
             }
@@ -13344,58 +13405,58 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (listExists(arg1))
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        successfulIF();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        failedIfStatement();
+                    if (arg2 == "==")
+                        setTrueIf();
+                    else if (arg2 == "!=")
+                        setFalseIf();
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
                 else
                 {
-                    if (arg2 == "==" || arg2 == "is")
-                        failedIfStatement();
-                    else if (arg2 == "!=" || arg2 == "not")
-                        successfulIF();
+                    if (arg2 == "==")
+                        setFalseIf();
+                    else if (arg2 == "!=")
+                        setTrueIf();
                     else
                     {
                         error(INVALID_OPERATOR, arg2, false);
-                        failedIfStatement();
+                        setFalseIf();
                     }
                 }
             }
-            else if (arg2 == "==" || arg2 == "is")
+            else if (arg2 == "==")
             {
                 if (arg1 == arg3)
-                    successfulIF();
+                    setTrueIf();
                 else
-                    failedIfStatement();
+                    setFalseIf();
             }
-            else if (arg2 == "!=" || arg2 == "not")
+            else if (arg2 == "!=")
             {
                 if (arg1 != arg3)
-                    successfulIF();
+                    setTrueIf();
                 else
-                    failedIfStatement();
+                    setFalseIf();
             }
             else if (arg2 == ">")
             {
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) > stod(arg3))
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else
                 {
                     if (arg1.length() > arg3.length())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
             }
             else if (arg2 == "<")
@@ -13403,16 +13464,16 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) < stod(arg3))
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else
                 {
                     if (arg1.length() < arg3.length())
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
             }
             else if (arg2 == ">=")
@@ -13420,14 +13481,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) >= stod(arg3))
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else
                 {
                     error(INVALID_OPERATOR, arg2, false);
-                    failedIfStatement();
+                    setFalseIf();
                 }
             }
             else if (arg2 == "<=")
@@ -13435,41 +13496,41 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) <= stod(arg3))
-                        successfulIF();
+                        setTrueIf();
                     else
-                        failedIfStatement();
+                        setFalseIf();
                 }
                 else
                 {
                     error(INVALID_OPERATOR, arg2, false);
-                    failedIfStatement();
+                    setFalseIf();
                 }
             }
             else if (arg2 == "begins_with")
             {
                 if (startsWith(arg1, arg3))
-                    successfulIF();
+                    setTrueIf();
                 else
-                    failedIfStatement();
+                    setFalseIf();
             }
             else if (arg2 == "ends_with")
             {
                 if (endsWith(arg1, arg3))
-                    successfulIF();
+                    setTrueIf();
                 else
-                    failedIfStatement();
+                    setFalseIf();
             }
             else if (arg2 == "contains")
             {
                 if (contains(arg1, arg3))
-                    successfulIF();
+                    setTrueIf();
                 else
-                    failedIfStatement();
+                    setFalseIf();
             }
             else
             {
                 error(INVALID_OPERATOR, arg2, false);
-                failedIfStatement();
+                setFalseIf();
             }
         }
     }
@@ -13742,7 +13803,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     successfulFor(newList);
                 }
-                else if (objectExists(before) && (after == "get_methods" || after == "methods"))
+                else if (objectExists(before) && after == "get_methods")
                 {
                     List newList;
 
@@ -13753,7 +13814,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     successfulFor(newList);
                 }
-                else if (objectExists(before) && (after == "get_variables" || after == "variables"))
+                else if (objectExists(before) && after == "get_variables")
                 {
                     List newList;
 
@@ -13764,7 +13825,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     successfulFor(newList);
                 }
-                else if (variableExists(before) && (after == "size" || after == "length"))
+                else if (variableExists(before) && after == "length")
                 {
                     if (isString(before))
                     {
@@ -13788,7 +13849,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         if (variableExists(before))
                         {
-                            if (after == "read_dirs" || after == "directories")
+                            if (after == "get_dirs")
                             {
                                 if (directoryExists(variables.at(indexOfVariable(before)).getString()))
                                     successfulFor(getDirectoryList(before, false));
@@ -13798,7 +13859,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                     failedFor();
                                 }
                             }
-                            else if (after == "read_files" || after == "files")
+                            else if (after == "get_files")
                             {
                                 if (directoryExists(variables.at(indexOfVariable(before)).getString()))
                                     successfulFor(getDirectoryList(before, true));
@@ -14007,7 +14068,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     successfulFor(newList);
                 }
-                else if (_b == "env" && (_a == "get_members" || _a == "members"))
+                else if (_b == "env" && _a == "get_variables")
                 {
                     List newList;
 
@@ -14039,7 +14100,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     __DefaultLoopSymbol = arg1;
                     successfulFor(newList);
                 }
-                else if (objectExists(_b) && (_a == "get_methods" || _a == "methods"))
+                else if (objectExists(_b) && _a == "get_methods")
                 {
                     List newList;
 
@@ -14051,7 +14112,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     __DefaultLoopSymbol = arg1;
                     successfulFor(newList);
                 }
-                else if (objectExists(_b) && (_a == "get_variables" || _a == "variables"))
+                else if (objectExists(_b) && _a == "get_variables")
                 {
                     List newList;
 
@@ -14063,7 +14124,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     __DefaultLoopSymbol = arg1;
                     successfulFor(newList);
                 }
-                else if (variableExists(_b) && (_a == "size" || _a == "length"))
+                else if (variableExists(_b) && _a == "length")
                 {
                     if (isString(_b))
                     {
@@ -14088,7 +14149,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         if (variableExists(_b))
                         {
-                            if (_a == "read_dirs" || _a == "directories")
+                            if (_a == "get_dirs")
                             {
                                 if (directoryExists(variables.at(indexOfVariable(_b)).getString()))
                                 {
@@ -14101,7 +14162,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                     failedFor();
                                 }
                             }
-                            else if (_a == "read_files" || _a == "files")
+                            else if (_a == "get_files")
                             {
                                 if (directoryExists(variables.at(indexOfVariable(_b)).getString()))
                                 {
@@ -15457,17 +15518,6 @@ int main(int c, char ** v)
                 __CurrentScript = noctis;
                 loop(true);
             }
-        }
-        else if (is(opt, "l") || is(opt, "log"))
-        {
-            __LogFile = script;
-            // __Logging = true;
-
-            if (!fileExists(__LogFile))
-            {
-                createFile(__LogFile);
-            }
-            loop(false);
         }
         else if (is(opt, "p") || is(opt, "parse"))
         {
