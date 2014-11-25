@@ -8708,7 +8708,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
                 }
                 else
                 {
-                    if (is_num(arg2))
+                    if (isNumeric(arg2))
                         createVariable(arg0, stod(arg2));
                     else
                         createVariable(arg0, cleanString(arg2));

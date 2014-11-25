@@ -741,54 +741,6 @@ string subtractString(string s1, string s2)
     return (bs);
 }
 
-// STRINTEGER TESTS
-bool is_num_char(char c, bool &hFound, bool &pFound)
-{
-    switch (c)
-    {
-    case '-':
-        if (hFound)
-            return (false);
-        else
-            hFound = true;
-        break;
-    case '.':
-        if (pFound)
-            return (false);
-        else
-            pFound = true;
-        break;
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-        return (true);
-        break;
-
-    default:
-        return (false);
-        break;
-    }
-
-    return (false);
-}
-bool is_num(string s)
-{
-    int l = s.length();
-    for (int i = 0; i < l; i++)
-    {
-        if (!isdigit(s[i]))
-            return (false);
-    }
-    return (true);
-}
-
 bool isNumeric(string s)
 {
     int l = s.length();
