@@ -39,19 +39,8 @@ const int MAX_BUFFER    = 1024;
 #include "methods.h"
 #include "objects.h"
 
-#include <ctime>
+#include "noctis_datetime.h"
 
-int secondNow();
-int minuteNow();
-int hourNow();
-int monthNow();
-int yearNow();
-int dayOfTheMonth();
-int dayOfTheYear();
-string amOrPm();
-string dayOfTheWeek();
-string monthOfTheYear();
-string timeNow();
 string getPrompt();
 
 int random(int low, int high);
@@ -112,6 +101,7 @@ string __SavedVars;
 string __SwitchVarName;
 string __DefaultLoopSymbol;
 string __Null;
+double __NullNum;
 
 string cleanString(string st);
 string getGuessedOS(string os);
@@ -128,8 +118,6 @@ int __ForLoopCount;
 int __ParamVarCount;
 int __WhileLoopCount;
 int __GuessedOS;
-
-double __NullNum;
 
 bool __Breaking;
 bool __CaptureParse;
@@ -258,10 +246,6 @@ bool notStandardOneSpace(string arg1);
 bool notStandardTwoSpace(string arg1);
 
 double getBytes(string path);
-double getKBytes(string path);
-double getMBytes(string path);
-double getGBytes(string path);
-double getTBytes(string path);
 double getStack(string arg2);
 
 bool isStringStack(string arg2);
@@ -1635,7 +1619,7 @@ bool notStandardZeroSpace(string arg)
 {
     const char * standardZeroSpaceWords =
         "};break;caught;clear_all!;clear_constants!clear_lists!;clear_methods!;"
-        "clear_objects!;clear_variables!;else;end;exit;failif;help;leave!;"
+        "clear_objects!;clear_variables!;else;end;exit;failif;leave!;"
         "no_methods?;no_objects?;no_variables?;parser;pass;private;public;try";
 
     return !contains(standardZeroSpaceWords, arg);
@@ -1647,7 +1631,7 @@ bool notStandardOneSpace(string arg)
         "!;?;__begin__;call_method;cd;chdir;collect?;"
         "decrypt;delay;directory?;dpush;dpop;"
         "encrypt;err;error;file?;for;forget;fpush;fpop;"
-        "garbage?;globalize;goto;help;if;init_dir;intial_directory;"
+        "garbage?;globalize;goto;if;init_dir;intial_directory;"
         "directory?;file?;list?;lowercase?;method?;"
         "number?;object?;string?;uppercase?;variable?;"
         "list;list?;load;lock;loop;lose;"
@@ -4674,8 +4658,6 @@ void zeroSpace(string arg0, string s, vector<string> command)
         clearAll();
     else if (arg0 == "clear_constants!")
         clearConstants();
-    else if (arg0 == "help")
-        printUSLHelp();
     else if (arg0 == "exit")
     {
         clearAll();
@@ -4792,10 +4774,6 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             }
         }
     }
-    else if (arg0 == "help")
-	{
-        comprehensiveHelp(arg1);
-	}
 	else if (arg0 == "if") {
 		string tmpValue("");
 		// if arg1 is a variable
@@ -6788,114 +6766,6 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     else
                         error(CONV_ERR, arg0, false);
                 }
-                else if (after == "kbytes")
-                {
-                    if (isNumber(arg0))
-                    {
-                        if (variableExists(before))
-                        {
-                            if (isString(before))
-                            {
-                                if (fileExists(variables.at(indexOfVariable(before)).getString()))
-                                    setVariable(arg0, getKBytes(variables.at(indexOfVariable(before)).getString()));
-                                else
-                                    error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
-                            }
-                            else
-                                error(CONV_ERR, before, false);
-                        }
-                        else
-                        {
-                            if (fileExists(before))
-                                setVariable(arg0, getKBytes(before));
-                            else
-                                error(READ_FAIL, before, false);
-                        }
-                    }
-                    else
-                        error(CONV_ERR, arg0, false);
-                }
-                else if (after == "mbytes")
-                {
-                    if (isNumber(arg0))
-                    {
-                        if (variableExists(before))
-                        {
-                            if (isString(before))
-                            {
-                                if (fileExists(variables.at(indexOfVariable(before)).getString()))
-                                    setVariable(arg0, getMBytes(variables.at(indexOfVariable(before)).getString()));
-                                else
-                                    error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
-                            }
-                            else
-                                error(CONV_ERR, before, false);
-                        }
-                        else
-                        {
-                            if (fileExists(before))
-                                setVariable(arg0, getMBytes(before));
-                            else
-                                error(READ_FAIL, before, false);
-                        }
-                    }
-                    else
-                        error(CONV_ERR, arg0, false);
-                }
-                else if (after == "gbytes")
-                {
-                    if (isNumber(arg0))
-                    {
-                        if (variableExists(before))
-                        {
-                            if (isString(before))
-                            {
-                                if (fileExists(variables.at(indexOfVariable(before)).getString()))
-                                    setVariable(arg0, getGBytes(variables.at(indexOfVariable(before)).getString()));
-                                else
-                                    error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
-                            }
-                            else
-                                error(CONV_ERR, before, false);
-                        }
-                        else
-                        {
-                            if (fileExists(before))
-                                setVariable(arg0, getGBytes(before));
-                            else
-                                error(READ_FAIL, before, false);
-                        }
-                    }
-                    else
-                        error(CONV_ERR, arg0, false);
-                }
-                else if (after == "tbytes")
-                {
-                    if (isNumber(arg0))
-                    {
-                        if (variableExists(before))
-                        {
-                            if (isString(before))
-                            {
-                                if (fileExists(variables.at(indexOfVariable(before)).getString()))
-                                    setVariable(arg0, getTBytes(variables.at(indexOfVariable(before)).getString()));
-                                else
-                                    error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
-                            }
-                            else
-                                error(CONV_ERR, before, false);
-                        }
-                        else
-                        {
-                            if (fileExists(before))
-                                setVariable(arg0, getTBytes(before));
-                            else
-                                error(READ_FAIL, before, false);
-                        }
-                    }
-                    else
-                        error(CONV_ERR, arg0, false);
-                }
                 else
                 {
                     if (isNumber(arg0))
@@ -8613,94 +8483,6 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
             {
                 if (fileExists(before))
                     createVariable(arg0, getBytes(before));
-                else
-                    error(READ_FAIL, before, false);
-            }
-        }
-        else if (after == "kbytes")
-        {
-            if (variableExists(before))
-            {
-                if (isString(before))
-                {
-                    if (fileExists(variables.at(indexOfVariable(before)).getString()))
-                        createVariable(arg0, getKBytes(variables.at(indexOfVariable(before)).getString()));
-                    else
-                        error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
-                }
-                else
-                    error(CONV_ERR, before, false);
-            }
-            else
-            {
-                if (fileExists(before))
-                    createVariable(arg0, getKBytes(before));
-                else
-                    error(READ_FAIL, before, false);
-            }
-        }
-        else if (after == "mbytes")
-        {
-            if (variableExists(before))
-            {
-                if (isString(before))
-                {
-                    if (fileExists(variables.at(indexOfVariable(before)).getString()))
-                        createVariable(arg0, getMBytes(variables.at(indexOfVariable(before)).getString()));
-                    else
-                        error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
-                }
-                else
-                    error(CONV_ERR, before, false);
-            }
-            else
-            {
-                if (fileExists(before))
-                    createVariable(arg0, getMBytes(before));
-                else
-                    error(READ_FAIL, before, false);
-            }
-        }
-        else if (after == "gbytes")
-        {
-            if (variableExists(before))
-            {
-                if (isString(before))
-                {
-                    if (fileExists(variables.at(indexOfVariable(before)).getString()))
-                        createVariable(arg0, getGBytes(variables.at(indexOfVariable(before)).getString()));
-                    else
-                        error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
-                }
-                else
-                    error(CONV_ERR, before, false);
-            }
-            else
-            {
-                if (fileExists(before))
-                    createVariable(arg0, getGBytes(before));
-                else
-                    error(READ_FAIL, before, false);
-            }
-        }
-        else if (after == "tbytes")
-        {
-            if (variableExists(before))
-            {
-                if (isString(before))
-                {
-                    if (fileExists(variables.at(indexOfVariable(before)).getString()))
-                        createVariable(arg0, getTBytes(variables.at(indexOfVariable(before)).getString()));
-                    else
-                        error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
-                }
-                else
-                    error(CONV_ERR, before, false);
-            }
-            else
-            {
-                if (fileExists(before))
-                    createVariable(arg0, getTBytes(before));
                 else
                     error(READ_FAIL, before, false);
             }
@@ -15112,232 +14894,6 @@ bool InternalReturn(string arg0, string arg1, string before, string after)
     return false;
 }
 
-int secondNow()
-{
-    time_t currently;
-
-    time(&currently);
-
-    struct tm * t = localtime(&currently);
-
-    return (t->tm_sec + 1);
-}
-
-int minuteNow()
-{
-    time_t currently;
-
-    time(&currently);
-
-    struct tm * t = localtime(&currently);
-
-    return (t->tm_min);
-}
-
-int hourNow()
-{
-    time_t currently;
-
-    time(&currently);
-
-    struct tm * t = localtime(&currently);
-
-    if (t->tm_hour <= 11)
-    {
-        if (t->tm_hour == 0)
-            return (12);
-        else
-            return (t->tm_hour);
-    }
-
-    return (t->tm_hour - 12);
-}
-
-string amOrPm()
-{
-    time_t currently;
-
-    time(&currently);
-
-    struct tm * t = localtime(&currently);
-
-    if (t->tm_hour > 11)
-        return ("PM");
-
-    return ("AM");
-}
-
-string timeNow()
-{
-    string now("");
-
-    now = itos(monthNow()) + "/" + itos(dayOfTheMonth()) + "/" + itos(yearNow()) + " ";
-
-    if (hourNow() < 10)
-        now.append("0" + itos(hourNow()));
-    else
-        now.append(itos(hourNow()));
-
-    now.append(":");
-
-    if (minuteNow() < 10)
-        now.append("0" + itos(minuteNow()));
-    else
-        now.append(itos(minuteNow()));
-
-    now.append(":");
-
-    if (secondNow() < 10)
-        now.append("0" + itos(secondNow()));
-    else
-        now.append(itos(secondNow()));
-
-    now.append(" " + amOrPm());
-
-    return (now);
-}
-
-int monthNow()
-{
-    time_t currently;
-
-    time(&currently);
-
-    struct tm * t = localtime(&currently);
-
-    return (t->tm_mon + 1);
-}
-
-int yearNow()
-{
-    time_t currently;
-
-    time(&currently);
-
-    struct tm * t = localtime(&currently);
-
-    return (t->tm_year + 1900);
-}
-
-int dayOfTheMonth()
-{
-    time_t currently;
-
-    time(&currently);
-
-    struct tm * t = localtime(&currently);
-
-    return (t->tm_mday);
-}
-
-int dayOfTheYear()
-{
-    time_t currently;
-
-    time(&currently);
-
-    struct tm * t = localtime(&currently);
-
-    return (t->tm_yday + 2);
-}
-
-string dayOfTheWeek()
-{
-    time_t currently;
-
-    time(&currently);
-
-    struct tm * t = localtime(&currently);
-
-    string day("");
-
-    switch (t->tm_wday)
-    {
-    case 0:
-        day = "Sunday";
-        break;
-    case 1:
-        day = "Monday";
-        break;
-    case 2:
-        day = "Tuesday";
-        break;
-    case 3:
-        day = "Wednesday";
-        break;
-    case 4:
-        day = "Thursday";
-        break;
-    case 5:
-        day = "Friday";
-        break;
-    case 6:
-        day = "Saturday";
-        break;
-    default:
-        cout << "defaulted: " << t->tm_mday << endl;
-        break;
-    }
-
-    return (day);
-}
-
-string monthOfTheYear()
-{
-    time_t currently;
-
-    time(&currently);
-
-    struct tm * t = localtime(&currently);
-
-    string month("");
-
-    switch (t->tm_mon)
-    {
-    case 0:
-        month = "January";
-        break;
-    case 1:
-        month = "February";
-        break;
-    case 2:
-        month = "March";
-        break;
-    case 3:
-        month = "April";
-        break;
-    case 4:
-        month = "May";
-        break;
-    case 5:
-        month = "June";
-        break;
-    case 6:
-        month = "July";
-        break;
-    case 7:
-        month = "August";
-        break;
-    case 8:
-        month = "September";
-        break;
-    case 9:
-        month = "October";
-        break;
-    case 10:
-        month = "November";
-        break;
-    case 11:
-        month = "December";
-        break;
-    default:
-        month = "Unknown";
-        break;
-    }
-
-    return (month);
-}
-
 void delay(int seconds)
 {
     clock_t ct;
@@ -15406,26 +14962,6 @@ double getBytes(string path)
     bytes = (end - begin);
 
     return (bytes);
-}
-
-double getKBytes(string path)
-{
-    return (getBytes(path) / 1024.0);
-}
-
-double getMBytes(string path)
-{
-    return (getBytes(path) / 1048576.0);
-}
-
-double getGBytes(string path)
-{
-    return (getBytes(path) / 1073741824.0);
-}
-
-double getTBytes(string path)
-{
-    return (getBytes(path) / 1099511627776.0);
 }
 
 #ifdef __linux__
