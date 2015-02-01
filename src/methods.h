@@ -46,7 +46,6 @@ bool zeroNumbers(string s);
 
 void app(string p, string a);
 void cd(string p);
-void printUSLHelp();
 void md(string p);
 void rm(string p);
 void rd(string p);
@@ -283,7 +282,7 @@ void app(string p, string a)
     ofstream f(p.c_str(), ios::out|ios::app);
 
     if (!f.is_open())
-        cout << "#!=read_fail") << endl;
+        cout << "#!=read_fail" << endl;
     else
     {
         string cleaned("");
