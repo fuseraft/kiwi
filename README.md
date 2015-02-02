@@ -6,4 +6,4 @@ noctis
 @project_name = args[0];<br />
 @description = "hybrid-typed, object-oriented, interpreted";
 
-say "\{@project_name} is a \{@description}.";
+say "\\{@project_name} is a \\{@description}.";
