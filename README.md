@@ -1,4 +1,4 @@
-noctis
+noctis scripting language
 ===
 
 &#35;!/usr/bin/noctis
