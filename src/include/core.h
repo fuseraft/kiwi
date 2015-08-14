@@ -1109,8 +1109,6 @@ void help(string app)
          << "\t" << app << " -h, --help\t\t// display this message" << endl << endl;
 }
 
-// TODO:
-//		how can I clean up these stupidly long if-statements?
 bool notStandardZeroSpace(string arg)
 {
     const char * standardZeroSpaceWords =
