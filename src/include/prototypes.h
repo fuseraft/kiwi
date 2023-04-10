@@ -46,78 +46,7 @@ void InternalOutput(string arg0, string arg1);
 void InternalRemember(string arg0, string arg1);
 bool InternalReturn(string arg0, string arg1, string before, string after);
 
-
 string cleanString(string st);
-
-string __CurrentLine;
-string __CurrentMethodObject;
-string __CurrentModule;
-string __CurrentObject;
-string __CurrentScript;
-string __CurrentScriptName;
-string __GoTo;
-string __LastValue;
-string __LogFile;
-string __Noctis;
-string __PreviousScript;
-string __PromptStyle;
-string __SavedVarsPath;
-string __SavedVars;
-string __SwitchVarName;
-string __DefaultLoopSymbol;
-string __Null;
-double __NullNum;
-
-int __ArgumentCount;
-int __BadMethodCount;
-int __BadObjectCount;
-int __BadVarCount;
-int __CurrentLineNumber;
-int __IfStatementCount;
-int __ForLoopCount;
-int __ParamVarCount;
-int __WhileLoopCount;
-
-bool __IsCommented;
-bool __MultilineComment;
-
-bool __Breaking;
-bool __DefiningIfStatement;
-bool __DefiningForLoop;
-bool __DefiningLocalForLoop;
-bool __DefiningLocalSwitchBlock;
-bool __DefiningLocalWhileLoop;
-bool __DefiningMethod;
-bool __DefiningModule;
-bool __DefiningNest;
-bool __DefiningObject;
-bool __DefiningObjectMethod;
-bool __DefiningParameterizedMethod;
-bool __DefiningPrivateCode;
-bool __DefiningPublicCode;
-bool __DefiningScript;
-bool __DefiningSwitchBlock;
-bool __DefiningWhileLoop;
-bool __DontCollectMethodVars;
-bool __ExecutedIfStatement;
-bool __ExecutedMethod;
-bool __ExecutedTemplate;
-bool __FailedIfStatement;
-bool __FailedNest;
-bool __GoToLabel;
-bool __InDefaultCase;
-bool __Returning;
-bool __SkipDefaultBlock;
-bool __UseCustomPrompt;
-
-string __ErrorVarName;
-string __LastError;
-bool __ExecutedTryBlock;
-bool __RaiseCatchBlock;
-bool __Negligence;
-bool __SkipCatchBlock;
-
-bool suc_stat = false;
 
 List        getDirectoryList(string before, bool filesOnly);
 Method      getMethod(string s);
@@ -159,14 +88,13 @@ void redefine(string target, string name);
 void replaceElement(string before, string after, string replacement);
 void saveVariable(string var);
 void writeline(string st);
-void setLastValue(string s);
 void setup();
 void setVariable(string name, string value);
 void setVariable(string name, double value);
 void successfulFor();
 void successfulFor(double a, double b, string op);
 void setTrueIf();
-void successfullWhile(string v1, string op, string v2);
+void successfulWhile(string v1, string op, string v2);
 void successfulFor(List list);
 void executeTemplate(Method m, vector<string> vs);
 void uninstall();
@@ -212,5 +140,7 @@ double getStack(string arg2);
 bool isStringStack(string arg2);
 bool stackReady(string arg2);
 string getStringStack(string arg2);
+
+void error(int errorType, string errorInfo, bool quit);
 
 #endif
