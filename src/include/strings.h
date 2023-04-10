@@ -17,7 +17,6 @@ string beforeDot(string s);
 string beforeBrackets(string s);
 string beforeParams(string s);
 string beforeUS(string s);
-string getStdout(string cmd);
 string getUpper(string in);
 string getLower(string in);
 string getInner(string s, int left, int right);
@@ -41,8 +40,7 @@ bool startsWith(string s1, string s2);
 bool zeroDots(string s);
 bool zeroNumbers(string s);
 
-int     stoi(string s);
-string  itos(int i);
+string itos(int i);
 
 vector<string> getParams(string s);
 vector<string> getRange(string s);
@@ -146,10 +144,10 @@ bool isUpper(string in)
         char c = in[i];
 
         if (!isupper(c))
-            return (false);
+            return false;
     }
 
-    return (true);
+    return true;
 }
 
 bool isUpperConstant(string in)
@@ -161,11 +159,11 @@ bool isUpperConstant(string in)
         if (!isupper(c))
         {
             if (c != '_')
-                return (false);
+                return false;
         }
     }
 
-    return (true);
+    return true;
 }
 
 bool isLower(string in)
@@ -175,10 +173,10 @@ bool isLower(string in)
         char c = in[i];
 
         if (!islower(c))
-            return (false);
+            return false;
     }
 
-    return (true);
+    return true;
 }
 
 string getUpper(string in)
@@ -190,7 +188,7 @@ string getUpper(string in)
         builder.push_back(toupper(c));
     }
 
-    return (builder);
+    return builder;
 }
 
 string getLower(string in)
@@ -202,7 +200,7 @@ string getLower(string in)
         builder.push_back(tolower(c));
     }
 
-    return (builder);
+    return builder;
 }
 
 int dot_count(string s)
@@ -214,7 +212,7 @@ int dot_count(string s)
             c++;
     }
 
-    return (c);
+    return c;
 }
 
 bool contains(string s1, string s2)
@@ -243,10 +241,10 @@ bool containsParams(string s)
     for (int i = 0; i < sl; i++)
     {
         if (s[i] == '(')
-            return (true);
+            return true;
     }
 
-    return (false);
+    return false;
 }
 
 bool containsBrackets(string s)
@@ -256,10 +254,10 @@ bool containsBrackets(string s)
     for (int i = 0; i < sl; i++)
     {
         if (s[i] == '[')
-            return (true);
+            return true;
     }
 
-    return (false);
+    return false;
 }
 
 
@@ -295,7 +293,7 @@ vector<string> getParams(string s)
 
     params.push_back(new_name);
 
-    return (params);
+    return params;
 }
 
 vector<string> getBracketRange(string s)
@@ -334,7 +332,7 @@ vector<string> getBracketRange(string s)
 
     params.push_back(new_name);
 
-    return (params);
+    return params;
 }
 
 vector<string> getRange(string s)
@@ -373,7 +371,7 @@ vector<string> getRange(string s)
 
     params.push_back(new_name);
 
-    return (params);
+    return params;
 }
 
 string beforeParams(string s)
@@ -391,7 +389,7 @@ string beforeParams(string s)
             new_str.push_back(s[i]);
     }
 
-    return (new_str);
+    return new_str;
 }
 
 
@@ -410,7 +408,7 @@ string beforeBrackets(string s)
             new_str.push_back(s[i]);
     }
 
-    return (new_str);
+    return new_str;
 }
 
 string afterBrackets(string s)
@@ -429,7 +427,7 @@ string afterBrackets(string s)
 
     s = subtractChar(s, "]");
 
-    return (var);
+    return var;
 }
 
 string afterDot(string s)
@@ -449,7 +447,7 @@ string afterDot(string s)
         }
     }
 
-    return (var);
+    return var;
 }
 
 string beforeDot(string s)
@@ -469,7 +467,7 @@ string beforeDot(string s)
         }
     }
 
-    return (var);
+    return var;
 }
 
 string afterUS(string s)
@@ -489,7 +487,7 @@ string afterUS(string s)
         }
     }
 
-    return (var);
+    return var;
 }
 
 string beforeUS(string s)
@@ -509,7 +507,7 @@ string beforeUS(string s)
         }
     }
 
-    return (var);
+    return var;
 }
 
 string getInner(string s, int left, int right) {
@@ -541,7 +539,7 @@ string subtractChar(string s1, string s2)
             r.push_back(s1[i]);
     }
 
-    return (r);
+    return r;
 }
 
 bool isAlpha(string s)
@@ -551,10 +549,10 @@ bool isAlpha(string s)
     for (int i = 0; i < l; i++)
     {
         if (!isalpha(s[i]))
-            return (false);
+            return false;
     }
 
-    return (true);
+    return true;
 }
 
 bool oneDot(string s)
@@ -568,13 +566,13 @@ bool oneDot(string s)
         if (s[i] == '.')
         {
             if (found)
-                return (false);
+                return false;
             else
                 found = true;
         }
     }
 
-    return (true);
+    return true;
 }
 
 bool endsWith(string s, string end)
@@ -622,7 +620,7 @@ bool zeroDots(string s)
 		}
     }
 
-    return (none);
+    return none;
 }
 
 bool zeroNumbers(string s)
@@ -662,7 +660,7 @@ string subtractString(string s1, string s2)
         }
     }
 
-    return (bs);
+    return bs;
 }
 
 bool isNumeric(string s)
@@ -678,36 +676,36 @@ bool isNumeric(string s)
 			{
 			case '.':
 				if (i == 0)
-					return (false);
+					return false;
 				else
 				{
 					if (!pFound)
 						pFound = true;
 					else
-						return (false);
+						return false;
 				}
 				break;
 
 			case '-':
 				if (i != 0)
-					return (false);
+					return false;
 				else
 				{
 					if (!hFound)
 						hFound = true;
 					else
-						return (false);
+						return false;
 				}
 				break;
 
 			default:
-				return (false);
+				return false;
 				break;
 			}
 		}
     }
 
-    return (true);
+    return true;
 }
 
 bool isTrue(string s)
@@ -722,39 +720,23 @@ bool isFalse(string s)
 
 // NUMBER > STRING & VICE-VERSA
 
-int stoi(string s)
-{
-    stringstream ss(s);
-    int i;
-    ss >> i;
-    return (i);
-}
-
 string itos(int i)
 {
     stringstream ss;
     ss << i;
-    return (ss.str());
-}
-
-double stod(string s)
-{
-    stringstream ss(s);
-    double i;
-    ss >> i;
-    return (i);
+    return ss.str();
 }
 
 string dtos(double i)
 {
     stringstream ss;
     ss << i;
-    return (ss.str());
+    return ss.str();
 }
 
 int get_ascii_num(char c)
 {
-    return ((int)c);
+    return (int)c;
 }
 
 int get_alpha_num(char c)

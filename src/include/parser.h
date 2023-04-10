@@ -14,18 +14,15 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command);
 void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> command);
 void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, vector<string> command);
 
-bool __CaptureParse;
-string __ParsedOutput;
-
 string getParsedOutput(string cmd)
 {
-    __CaptureParse = true;
+    State.CaptureParse = true;
     parse(cmd);
-    string ret = __ParsedOutput;
-    __ParsedOutput.clear();
-    __CaptureParse = false;
+    string ret = State.ParsedOutput;
+    State.ParsedOutput.clear();
+    State.CaptureParse = false;
 	
-    return ret.length() == 0 ? __LastValue : ret;
+    return ret.length() == 0 ? State.LastValue : ret;
 }
 
 /**
@@ -46,8 +43,8 @@ void parse(string s)
     StringContainer stringContainer; // contains separate commands
     string bigString(""); // a string to build upon
 
-    __CurrentLine = s; // store a copy of the current line
-    // if (__Logging) app(__LogFile, s + "\r\n"); // if __Logging a session, log the line
+    State.CurrentLine = s; // store a copy of the current line
+    // if (__Logging) app(State.LogFile, s + "\r\n"); // if __Logging a session, log the line
 
     command.push_back(""); // push back an empty string to begin.
     // iterate each char in the initial string
@@ -56,7 +53,7 @@ void parse(string s)
         switch (s[i])
         {
         case ' ':
-            if (!__IsCommented)
+            if (!State.IsCommented)
             {
                 if ((!parenthesis && quoted) || (parenthesis && quoted))
                 {
@@ -108,7 +105,7 @@ void parse(string s)
         case '\\':
             if (quoted || parenthesis)
             {
-                if (!__IsCommented)
+                if (!State.IsCommented)
                     command.at(count).push_back('\\');
             }
 
@@ -130,17 +127,17 @@ void parse(string s)
         case '#':
             if (quoted || parenthesis)
                 command.at(count).push_back('#');
-            else if (prevChar == '#' && __MultilineComment == false)
+            else if (prevChar == '#' && State.IsMultilineComment == false)
             {
-                __MultilineComment = true;
-                __IsCommented = true;
+                State.IsMultilineComment = true;
+                State.IsCommented = true;
                 uncomment = false;
             }
-            else if (prevChar == '#' && __MultilineComment == true)
+            else if (prevChar == '#' && State.IsMultilineComment == true)
                 uncomment = true;
-            else if (prevChar != '#' && __MultilineComment == false)
+            else if (prevChar != '#' && State.IsMultilineComment == false)
             {
-                __IsCommented = true;
+                State.IsCommented = true;
                 uncomment = true;
             }
 
@@ -148,16 +145,16 @@ void parse(string s)
             break;
 
         case '~':
-            if (!__IsCommented)
+            if (!State.IsCommented)
             {
                 if (prevChar == '\\')
                     command.at(count).push_back('~');
                 else
                 {
-                    if (__GuessedOS == OS_NIX)
-                        command.at(count).append(getEnvironmentVariable("HOME"));
+                    if (NoctisEnv.GuessedOS == OS_NIX)
+                        command.at(count).append(Env::getEnvironmentVariable("HOME"));
                     else
-                        command.at(count).append(getEnvironmentVariable("HOMEPATH"));
+                        command.at(count).append(Env::getEnvironmentVariable("HOMEPATH"));
                 }
             }
             bigString.push_back('~');
@@ -166,7 +163,7 @@ void parse(string s)
         case ';':
             if (!quoted)
             {
-                if (!__IsCommented)
+                if (!State.IsCommented)
                 {
                     broken = true;
                     stringContainer.add(bigString);
@@ -184,7 +181,7 @@ void parse(string s)
             break;
 
         default:
-            if (!__IsCommented)
+            if (!State.IsCommented)
                 command.at(count).push_back(s[i]);
             bigString.push_back(s[i]);
             break;
@@ -204,7 +201,7 @@ void parse(string s)
 
     size = (int)command.size();
 
-    if (!__IsCommented)
+    if (!State.IsCommented)
     {
         if (!broken)
         {
@@ -221,41 +218,41 @@ void parse(string s)
                         if ((int)args.size() - 1 >= stoi(params.at(0)) && stoi(params.at(0)) >= 0)
                         {
                             if (params.at(0) == "0")
-                                command.at(i) = __CurrentScript;
+                                command.at(i) = State.CurrentScript;
                             else
                                 command.at(i) = args.at(stoi(params.at(0)));
                         }
                         else
-                            error(OUT_OF_BOUNDS, command.at(i), false);
+                            error(ErrorMessage::OUT_OF_BOUNDS, command.at(i), false);
                     }
                     else
-                        error(OUT_OF_BOUNDS, command.at(i), false);
+                        error(ErrorMessage::OUT_OF_BOUNDS, command.at(i), false);
                 }
             }
 
-            if (__DefiningSwitchBlock)
+            if (State.DefiningSwitchBlock)
             {
                 if (s == "{")
                     doNothing();
                 else if (startsWith(s, "case"))
                     mainSwitch.addCase(command.at(1));
                 else if (s == "default")
-                    __InDefaultCase = true;
+                    State.InDefaultCase = true;
                 else if (s == "end" || s == "}")
                 {
                     string switch_value("");
 
-                    if (isString(__SwitchVarName))
-                        switch_value = variables.at(indexOfVariable(__SwitchVarName)).getString();
-                    else if (isNumber(__SwitchVarName))
-                        switch_value = dtos(variables.at(indexOfVariable(__SwitchVarName)).getNumber());
+                    if (isString(State.SwitchVarName))
+                        switch_value = variables.at(indexOfVariable(State.SwitchVarName)).getString();
+                    else if (isNumber(State.SwitchVarName))
+                        switch_value = dtos(variables.at(indexOfVariable(State.SwitchVarName)).getNumber());
                     else
                         switch_value = "";
 
                     Container rightCase = mainSwitch.rightCase(switch_value);
 
-                    __InDefaultCase = false;
-                    __DefiningSwitchBlock = false;
+                    State.InDefaultCase = false;
+                    State.DefiningSwitchBlock = false;
 
                     for (int i = 0; i < (int)rightCase.size(); i++)
                         parse(rightCase.at(i));
@@ -264,88 +261,88 @@ void parse(string s)
                 }
                 else
                 {
-                    if (__InDefaultCase)
+                    if (State.InDefaultCase)
                         mainSwitch.addToDefault(s);
                     else
                         mainSwitch.addToCase(s);
                 }
             }
-            else if (__DefiningModule)
+            else if (State.DefiningModule)
             {
-                if (s == ("[/" + __CurrentModule + "]"))
+                if (s == ("[/" + State.CurrentModule + "]"))
                 {
-                    __DefiningModule = false;
-                    __CurrentModule = "";
+                    State.DefiningModule = false;
+                    State.CurrentModule = "";
                 }
                 else
-                    modules.at(indexOfModule(__CurrentModule)).add(s);
+                    modules.at(indexOfModule(State.CurrentModule)).add(s);
             }
-            else if (__DefiningScript)
+            else if (State.DefiningScript)
             {
                 if (s == "__end__")
                 {
-                    __CurrentScriptName = "";
-                    __DefiningScript = false;
+                    State.CurrentScriptName = "";
+                    State.DefiningScript = false;
                 }
                 else
-                    app(__CurrentScriptName, s + "\n");
+                    Env::app(State.CurrentScriptName, s + "\n");
             }
             else
             {
-                if (__RaiseCatchBlock)
+                if (State.RaiseCatchBlock)
                 {
                     if (s == "catch")
-                        __RaiseCatchBlock = false;
+                        State.RaiseCatchBlock = false;
                 }
-                else if (__ExecutedTryBlock && s == "catch")
-                    __SkipCatchBlock = true;
-                else if (__ExecutedTryBlock && __SkipCatchBlock)
+                else if (State.ExecutedTryBlock && s == "catch")
+                    State.SkipCatchBlock = true;
+                else if (State.ExecutedTryBlock && State.SkipCatchBlock)
                 {
                     if (s == "caught")
                     {
-                        __SkipCatchBlock = false;
+                        State.SkipCatchBlock = false;
                         parse("caught");
                     }
                 }
-                else if (__DefiningMethod)
+                else if (State.DefiningMethod)
                 {
                     if (contains(s, "while"))
-                        __DefiningLocalWhileLoop = true;
+                        State.DefiningLocalWhileLoop = true;
 
                     if (contains(s, "switch"))
-                        __DefiningLocalSwitchBlock = true;
+                        State.DefiningLocalSwitchBlock = true;
 
-                    if (__DefiningParameterizedMethod)
+                    if (State.DefiningParameterizedMethod)
                     {
                         if (s == "{")
                             doNothing();
                         else if (s == "end" || s == "}")
                         {
-                            if (__DefiningLocalWhileLoop)
+                            if (State.DefiningLocalWhileLoop)
                             {
-                                __DefiningLocalWhileLoop = false;
+                                State.DefiningLocalWhileLoop = false;
 
-                                if (__DefiningObject)
-                                    objects.at(indexOfObject(__CurrentObject)).addToCurrentMethod(s);
+                                if (State.DefiningObject)
+                                    objects.at(indexOfObject(State.CurrentObject)).addToCurrentMethod(s);
                                 else
                                     methods.at(methods.size() - 1).add(s);
                             }
-                            else if (__DefiningLocalSwitchBlock)
+                            else if (State.DefiningLocalSwitchBlock)
                             {
-                                __DefiningLocalSwitchBlock = false;
+                                State.DefiningLocalSwitchBlock = false;
 
-                                if (__DefiningObject)
-                                    objects.at(indexOfObject(__CurrentObject)).addToCurrentMethod(s);
+                                if (State.DefiningObject)
+                                    objects.at(indexOfObject(State.CurrentObject)).addToCurrentMethod(s);
                                 else
                                     methods.at(methods.size() - 1).add(s);
                             }
                             else
                             {
-                                __DefiningMethod = false;
+                                State.DefiningMethod = false;
 
-                                if (__DefiningObject)
+                                if (State.DefiningObject)
                                 {
-                                    __DefiningObjectMethod = false;
+                                    State.DefiningObjectMethod = false;
                                     objects.at(objects.size() - 1).setCurrentMethod("");
                                 }
                             }
@@ -387,16 +384,16 @@ void parse(string s)
                                     freshLine.push_back(' ');
                             }
 
-                            if (__DefiningObject)
+                            if (State.DefiningObject)
                             {
-                                objects.at(indexOfObject(__CurrentObject)).addToCurrentMethod(freshLine);
+                                objects.at(indexOfObject(State.CurrentObject)).addToCurrentMethod(freshLine);
 
-                                if (__DefiningPublicCode)
-                                    objects.at(indexOfObject(__CurrentObject)).setPublic();
-                                else if (__DefiningPrivateCode)
-                                    objects.at(indexOfObject(__CurrentObject)).setPrivate();
+                                if (State.DefiningPublicCode)
+                                    objects.at(indexOfObject(State.CurrentObject)).setPublic();
+                                else if (State.DefiningPrivateCode)
+                                    objects.at(indexOfObject(State.CurrentObject)).setPrivate();
                                 else
-                                    objects.at(indexOfObject(__CurrentObject)).setPublic();
+                                    objects.at(indexOfObject(State.CurrentObject)).setPublic();
                             }
                             else
                                 methods.at(methods.size() - 1).add(freshLine);
@@ -408,57 +405,57 @@ void parse(string s)
                             doNothing();
                         else if (s == "end" || s == "}")
                         {
-                            if (__DefiningLocalWhileLoop)
+                            if (State.DefiningLocalWhileLoop)
                             {
-                                __DefiningLocalWhileLoop = false;
+                                State.DefiningLocalWhileLoop = false;
 
-                                if (__DefiningObject)
+                                if (State.DefiningObject)
                                     objects.at(objects.size() - 1).addToCurrentMethod(s);
                                 else
                                     methods.at(methods.size() - 1).add(s);
                             }
-                            else if (__DefiningLocalSwitchBlock)
+                            else if (State.DefiningLocalSwitchBlock)
                             {
-                                __DefiningLocalSwitchBlock = false;
+                                State.DefiningLocalSwitchBlock = false;
 
-                                if (__DefiningObject)
+                                if (State.DefiningObject)
                                     objects.at(objects.size() - 1).addToCurrentMethod(s);
                                 else
                                     methods.at(methods.size() - 1).add(s);
                             }
                             else
                             {
-                                __DefiningMethod = false;
+                                State.DefiningMethod = false;
 
-                                if (__DefiningObject)
+                                if (State.DefiningObject)
                                 {
-                                    __DefiningObjectMethod = false;
+                                    State.DefiningObjectMethod = false;
                                     objects.at(objects.size() - 1).setCurrentMethod("");
                                 }
                             }
                         }
                         else
                         {
-                            if (__DefiningObject)
+                            if (State.DefiningObject)
                             {
                                 objects.at(objects.size() - 1).addToCurrentMethod(s);
 
-                                if (__DefiningPublicCode)
+                                if (State.DefiningPublicCode)
                                     objects.at(objects.size() - 1).setPublic();
-                                else if (__DefiningPrivateCode)
+                                else if (State.DefiningPrivateCode)
                                     objects.at(objects.size() - 1).setPrivate();
                                 else
                                     objects.at(objects.size() - 1).setPublic();
                             }
                             else
                             {
-                                if (__DefiningObjectMethod)
+                                if (State.DefiningObjectMethod)
                                 {
                                     objects.at(objects.size() - 1).addToCurrentMethod(s);
 
-                                    if (__DefiningPublicCode)
+                                    if (State.DefiningPublicCode)
                                         objects.at(objects.size() - 1).setPublic();
-                                    else if (__DefiningPrivateCode)
+                                    else if (State.DefiningPrivateCode)
                                         objects.at(objects.size() - 1).setPrivate();
                                     else
                                         objects.at(objects.size() - 1).setPublic();
@@ -469,9 +466,9 @@ void parse(string s)
                         }
                     }
                 }
-                else if (__DefiningIfStatement)
+                else if (State.DefiningIfStatement)
                 {
-                    if (__DefiningNest)
+                    if (State.DefiningNest)
                     {
                         if (command.at(0) == "endif")
                             executeNest(ifStatements.at((int)ifStatements.size() - 1).getNest());
@@ -482,20 +479,20 @@ void parse(string s)
                     {
                         if (command.at(0) == "if")
                         {
-                            __DefiningNest = true;
+                            State.DefiningNest = true;
 
 							if (size == 4)
                                 threeSpace("if", command.at(1), command.at(2), command.at(3), s, command);
                             else
                             {
                                 setFalseIf();
-                                __DefiningNest = false;
+                                State.DefiningNest = false;
                             }
                         }
                         else if (command.at(0) == "endif")
                         {
-                            __DefiningIfStatement = false;
-                            __ExecutedIfStatement = true;
+                            State.DefiningIfStatement = false;
+                            State.ExecutedIfStatement = true;
 
                             for (int i = 0; i < (int)ifStatements.size(); i++)
                             {
@@ -503,17 +500,17 @@ void parse(string s)
                                 {
                                     executeMethod(ifStatements.at(i));
 
-                                    if (__FailedIfStatement == false)
+                                    if (State.FailedIfStatement == false)
                                         break;
                                 }
                             }
 
-                            __ExecutedIfStatement = false;
+                            State.ExecutedIfStatement = false;
 
                             ifStatements.clear();
 
-                            __IfStatementCount = 0;
-                            __FailedIfStatement = false;
+                            State.IfStatementCount = 0;
+                            State.FailedIfStatement = false;
                         }
                         else if (command.at(0) == "elsif" || command.at(0) == "elif")
                         {
@@ -526,7 +523,7 @@ void parse(string s)
                             threeSpace("if", "true", "==", "true", "if true == true", command);
                         else if (s == "failif")
                         {
-                            if (__FailedIfStatement == true)
+                            if (State.FailedIfStatement == true)
                                 setTrueIf();
                             else
                                 setFalseIf();
@@ -537,13 +534,13 @@ void parse(string s)
                 }
                 else
                 {
-                    if (__DefiningWhileLoop)
+                    if (State.DefiningWhileLoop)
                     {
                         if (s == "{")
                             doNothing();
                         else if (command.at(0) == "end" || command.at(0) == "}")
                         {
-                            __DefiningWhileLoop = false;
+                            State.DefiningWhileLoop = false;
 
                             string v1 = whileLoops.at(whileLoops.size() - 1).valueOne(),
                                    v2 = whileLoops.at(whileLoops.size() - 1).valueTwo(),
@@ -557,13 +554,13 @@ void parse(string s)
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
-                                        if (__Breaking)
+                                        if (State.Breaking)
                                             break;
                                     }
 
                                     whileLoops.clear();
 
-                                    __WhileLoopCount = 0;
+                                    State.WhileLoopCount = 0;
                                 }
                                 else if (op == "<")
                                 {
@@ -571,13 +568,13 @@ void parse(string s)
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
-                                        if (__Breaking)
+                                        if (State.Breaking)
                                             break;
                                     }
 
                                     whileLoops.clear();
 
-                                    __WhileLoopCount = 0;
+                                    State.WhileLoopCount = 0;
                                 }
                                 else if (op == ">")
                                 {
@@ -585,13 +582,13 @@ void parse(string s)
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
-                                        if (__Breaking)
+                                        if (State.Breaking)
                                             break;
                                     }
 
                                     whileLoops.clear();
 
-                                    __WhileLoopCount = 0;
+                                    State.WhileLoopCount = 0;
                                 }
                                 else if (op == "<=")
                                 {
@@ -599,13 +596,13 @@ void parse(string s)
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
-                                        if (__Breaking)
+                                        if (State.Breaking)
                                             break;
                                     }
 
                                     whileLoops.clear();
 
-                                    __WhileLoopCount = 0;
+                                    State.WhileLoopCount = 0;
                                 }
                                 else if (op == ">=")
                                 {
@@ -613,13 +610,13 @@ void parse(string s)
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
-                                        if (__Breaking)
+                                        if (State.Breaking)
                                             break;
                                     }
 
                                     whileLoops.clear();
 
-                                    __WhileLoopCount = 0;
+                                    State.WhileLoopCount = 0;
                                 }
                                 else if (op == "!=")
                                 {
@@ -627,13 +624,13 @@ void parse(string s)
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
-                                        if (__Breaking)
+                                        if (State.Breaking)
                                             break;
                                     }
 
                                     whileLoops.clear();
 
-                                    __WhileLoopCount = 0;
+                                    State.WhileLoopCount = 0;
                                 }
                             }
                             else if (variableExists(v1))
@@ -644,13 +641,13 @@ void parse(string s)
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
-                                        if (__Breaking)
+                                        if (State.Breaking)
                                             break;
                                     }
 
                                     whileLoops.clear();
 
-                                    __WhileLoopCount = 0;
+                                    State.WhileLoopCount = 0;
                                 }
                                 else if (op == "<")
                                 {
@@ -658,13 +655,13 @@ void parse(string s)
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
-                                        if (__Breaking)
+                                        if (State.Breaking)
                                             break;
                                     }
 
                                     whileLoops.clear();
 
-                                    __WhileLoopCount = 0;
+                                    State.WhileLoopCount = 0;
                                 }
                                 else if (op == ">")
                                 {
@@ -672,13 +669,13 @@ void parse(string s)
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
-                                        if (__Breaking)
+                                        if (State.Breaking)
                                             break;
                                     }
 
                                     whileLoops.clear();
 
-                                    __WhileLoopCount = 0;
+                                    State.WhileLoopCount = 0;
                                 }
                                 else if (op == "<=")
                                 {
@@ -686,13 +683,13 @@ void parse(string s)
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
-                                        if (__Breaking)
+                                        if (State.Breaking)
                                             break;
                                     }
 
                                     whileLoops.clear();
 
-                                    __WhileLoopCount = 0;
+                                    State.WhileLoopCount = 0;
                                 }
                                 else if (op == ">=")
                                 {
@@ -700,13 +697,13 @@ void parse(string s)
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
-                                        if (__Breaking)
+                                        if (State.Breaking)
                                             break;
                                     }
 
                                     whileLoops.clear();
 
-                                    __WhileLoopCount = 0;
+                                    State.WhileLoopCount = 0;
                                 }
                                 else if (op == "!=")
                                 {
@@ -714,24 +711,24 @@ void parse(string s)
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
-                                        if (__Breaking)
+                                        if (State.Breaking)
                                             break;
                                     }
 
                                     whileLoops.clear();
 
-                                    __WhileLoopCount = 0;
+                                    State.WhileLoopCount = 0;
                                 }
                             }
                         }
                         else
                             whileLoops.at(whileLoops.size() - 1).add(s);
                     }
-                    else if (__DefiningForLoop)
+                    else if (State.DefiningForLoop)
                     {
                         if (command.at(0) == "next" || command.at(0) == "endfor")
                         {
-                            __DefiningForLoop = false;
+                            State.DefiningForLoop = false;
 
                             for (int i = 0; i < (int)forLoops.size(); i++)
                                 if (forLoops.at(i).isForLoop())
@@ -739,7 +736,7 @@ void parse(string s)
 
                             forLoops.clear();
 
-                            __ForLoopCount = 0;
+                            State.ForLoopCount = 0;
                         }
                         else
                         {
@@ -768,23 +765,23 @@ void parse(string s)
                                             if (objects.at(indexOfObject(before)).methodExists(beforeParams(after)))
                                                 executeTemplate(objects.at(indexOfObject(before)).getMethod(beforeParams(after)), getParams(after));
                                             else
-                                                sysExec(s, command);
+                                                Env::sysExec(s, command);
                                         }
                                         else if (objects.at(indexOfObject(before)).methodExists(after))
                                             executeMethod(objects.at(indexOfObject(before)).getMethod(after));
                                         else if (objects.at(indexOfObject(before)).variableExists(after))
                                         {
-                                            if (objects.at(indexOfObject(before)).getVariable(after).getString() != __Null)
+                                            if (objects.at(indexOfObject(before)).getVariable(after).getString() != State.Null)
                                                 writeline(objects.at(indexOfObject(before)).getVariable(after).getString());
-                                            else if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != __NullNum)
+                                            else if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != State.NullNum)
                                                 writeline(dtos(objects.at(indexOfObject(before)).getVariable(after).getNumber()));
                                             else
-                                                error(IS_NULL, "", false);
+                                                error(ErrorMessage::IS_NULL, "", false);
                                         }
                                         else if (after == "clear")
                                             objects.at(indexOfObject(before)).clear();
                                         else
-                                            error(UNDEFINED, "", false);
+                                            error(ErrorMessage::UNDEFINED, "", false);
                                     }
                                     else
                                     {
@@ -795,7 +792,7 @@ void parse(string s)
                                         else if (variableExists(before))
                                         {
                                             if (after == "clear")
-                                                parse(before + " = __Null");
+                                                parse(before + " = State.Null");
                                         }
                                         else if (listExists(before))
                                         {
@@ -811,20 +808,20 @@ void parse(string s)
                                         }
                                         else if (before == "self")
                                         {
-                                            if (__ExecutedMethod)
-                                                executeMethod(objects.at(indexOfObject(__CurrentMethodObject)).getMethod(after));
+                                            if (State.ExecutedMethod)
+                                                executeMethod(objects.at(indexOfObject(State.CurrentMethodObject)).getMethod(after));
                                         }
                                         else
-                                            sysExec(s, command);
+                                            Env::sysExec(s, command);
                                     }
                                 }
                                 else if (endsWith(s, "::"))
                                 {
-                                    if (__CurrentScript != "")
+                                    if (State.CurrentScript != "")
                                     {
                                         string newMark(s);
                                         newMark = subtractString(s, "::");
-                                        scripts.at(indexOfScript(__CurrentScript)).addMark(newMark);
+                                        scripts.at(indexOfScript(State.CurrentScript)).addMark(newMark);
                                     }
                                 }
                                 else if (methodExists(s))
@@ -840,7 +837,7 @@ void parse(string s)
                                     if (methodExists(beforeParams(s)))
                                         executeTemplate(getMethod(beforeParams(s)), getParams(s));
                                     else
-                                        sysExec(s, command);
+                                        Env::sysExec(s, command);
                                 }
                             }
                             else
@@ -849,7 +846,7 @@ void parse(string s)
                         else if (size == 2)
                         {
                             if (notStandardOneSpace(command.at(0)))
-                                sysExec(s, command);
+                                Env::sysExec(s, command);
                             else
                             {
                                 oneSpace(command.at(0), command.at(1), s, command);
@@ -871,18 +868,18 @@ void parse(string s)
                                 {
                                     if (containsParams(command.at(2)))
                                     {
-                                        __DefaultLoopSymbol = command.at(2);
-                                        __DefaultLoopSymbol = subtractChar(__DefaultLoopSymbol, "(");
-                                        __DefaultLoopSymbol = subtractChar(__DefaultLoopSymbol, ")");
+                                        State.DefaultLoopSymbol = command.at(2);
+                                        State.DefaultLoopSymbol = subtractChar(State.DefaultLoopSymbol, "(");
+                                        State.DefaultLoopSymbol = subtractChar(State.DefaultLoopSymbol, ")");
 
                                         oneSpace(command.at(0), command.at(1), subtractString(s, command.at(2)), command);
-                                        __DefaultLoopSymbol = "$";
+                                        State.DefaultLoopSymbol = "$";
                                     }
                                     else
-                                        sysExec(s, command);
+                                        Env::sysExec(s, command);
                                 }
                                 else
-                                    sysExec(s, command);
+                                    Env::sysExec(s, command);
                             }
                             else
                                 twoSpace(command.at(0), command.at(1), command.at(2), s, command);
@@ -895,21 +892,21 @@ void parse(string s)
                             {
                                 if (containsParams(command.at(4)))
                                 {
-                                    __DefaultLoopSymbol = command.at(4);
-                                    __DefaultLoopSymbol = subtractChar(__DefaultLoopSymbol, "(");
-                                    __DefaultLoopSymbol = subtractChar(__DefaultLoopSymbol, ")");
+                                    State.DefaultLoopSymbol = command.at(4);
+                                    State.DefaultLoopSymbol = subtractChar(State.DefaultLoopSymbol, "(");
+                                    State.DefaultLoopSymbol = subtractChar(State.DefaultLoopSymbol, ")");
 
                                     threeSpace(command.at(0), command.at(1), command.at(2), command.at(3), subtractString(s, command.at(4)), command);
-                                    __DefaultLoopSymbol = "$";
+                                    State.DefaultLoopSymbol = "$";
                                 }
                                 else
-                                    sysExec(s, command);
+                                    Env::sysExec(s, command);
                             }
                             else
-                                sysExec(s, command);
+                                Env::sysExec(s, command);
                         }
                         else
-                            sysExec(s, command);
+                            Env::sysExec(s, command);
                     }
                 }
             }
@@ -924,19 +921,19 @@ void parse(string s)
     }
     else
     {
-        if (__MultilineComment)
+        if (State.IsMultilineComment)
         {
             if (uncomment)
             {
-                __IsCommented = false;
-                __MultilineComment = false;
+                State.IsCommented = false;
+                State.IsMultilineComment = false;
             }
         }
         else
         {
             if (uncomment)
             {
-                __IsCommented = false;
+                State.IsCommented = false;
                 uncomment = false;
 
                 if (!broken)
@@ -1000,14 +997,14 @@ void zeroSpace(string arg0, string s, vector<string> command)
     else if (arg0 == "caught")
     {
         string to_remove = "remove ";
-        to_remove.append(__ErrorVarName);
+        to_remove.append(State.ErrorVarName);
 
         parse(to_remove);
 
-        __ExecutedTryBlock = false,
-        __RaiseCatchBlock = false;
-        __LastError = "";
-        __ErrorVarName = "";
+        State.ExecutedTryBlock = false,
+        State.RaiseCatchBlock = false;
+        State.LastError = "";
+        State.ErrorVarName = "";
     }
     else if (arg0 == "clear_methods!")
         clearMethods();
@@ -1027,7 +1024,7 @@ void zeroSpace(string arg0, string s, vector<string> command)
         exit(0);
     }
     else if (arg0 == "break" || arg0 == "leave!")
-        __Breaking = true;
+        State.Breaking = true;
     else if (arg0 == "no_methods?")
     {
         if (noMethods())
@@ -1058,35 +1055,35 @@ void zeroSpace(string arg0, string s, vector<string> command)
     }
     else if (arg0 == "end" || arg0 == "}")
     {
-        __DefiningPrivateCode = false,
-        __DefiningPublicCode = false;
-        __DefiningObject = false;
-        __DefiningObjectMethod = false;
-        __CurrentObject = "";
+        State.DefiningPrivateCode = false,
+        State.DefiningPublicCode = false;
+        State.DefiningObject = false;
+        State.DefiningObjectMethod = false;
+        State.CurrentObject = "";
     }
     else if (arg0 == "parser")
         loop(false);
     else if (arg0 == "private")
     {
-        __DefiningPrivateCode = true;
-        __DefiningPublicCode = false;
+        State.DefiningPrivateCode = true;
+        State.DefiningPublicCode = false;
     }
     else if (arg0 == "public")
     {
-        __DefiningPrivateCode = false;
-        __DefiningPublicCode = true;
+        State.DefiningPrivateCode = false;
+        State.DefiningPublicCode = true;
     }
     else if (arg0 == "try")
-        __ExecutedTryBlock = true;
+        State.ExecutedTryBlock = true;
     else if (arg0 == "failif")
     {
-        if (__FailedIfStatement == true)
+        if (State.FailedIfStatement == true)
             setTrueIf();
         else
             setFalseIf();
     }
     else
-        sysExec(s, command);
+        Env::sysExec(s, command);
 }
 
 void oneSpace(string arg0, string arg1, string s, vector<string> command)
@@ -1095,7 +1092,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
 
     if (contains(arg1, "self."))
     {
-        arg1 = replace(arg1, "self", __CurrentMethodObject);
+        arg1 = replace(arg1, "self", State.CurrentMethodObject);
     }
 
     if (arg0 == "return")
@@ -1107,20 +1104,20 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (variableExists(arg1))
         {
-            __DefiningSwitchBlock = true;
-            __SwitchVarName = arg1;
+            State.DefiningSwitchBlock = true;
+            State.SwitchVarName = arg1;
         }
         else
-            error(VAR_UNDEFINED, arg1, false);
+            error(ErrorMessage::VAR_UNDEFINED, arg1, false);
     }
     else if (arg0 == "goto")
     {
-        if (__CurrentScript != "")
+        if (State.CurrentScript != "")
         {
-            if (scripts.at(indexOfScript(__CurrentScript)).markExists(arg1))
+            if (scripts.at(indexOfScript(State.CurrentScript)).markExists(arg1))
             {
-                __GoTo = arg1;
-                __GoToLabel = true;
+                State.GoTo = arg1;
+                State.GoToLabel = true;
             }
         }
     }
@@ -1138,7 +1135,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
 				} else if (isNumber(tmpVar)) {
 					tmpValue = dtos(tmpVar.getNumber());
 				} else {
-					// error(IS_NULL, arg1, true);
+					// error(ErrorMessage::IS_NULL, arg1, true);
 				}
 			} else {
 				if (isString(arg1)) {
@@ -1146,7 +1143,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
 				} else if (isNumber(arg1)) {
 					tmpValue = getVariable(arg1).getNumber();
 				} else {
-					// error(IS_NULL, arg1, true);
+					// error(ErrorMessage::IS_NULL, arg1, true);
 				}
 			}
 		} else {
@@ -1169,32 +1166,32 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
 		} else if (isFalse(tmpValue)) {
 			setFalseIf();
 		} else {
-			// error(INVALID_OP, arg1, true);
+			// error(ErrorMessage::INVALID_OP, arg1, true);
 		}
 	}
     else if (arg0 == "prompt")
     {
         if (arg1 == "bash")
         {
-            __UseCustomPrompt = true;
-            __PromptStyle = "bash";
+            State.UseCustomPrompt = true;
+            State.PromptStyle = "bash";
         }
         else if (arg1 == "!")
         {
-            if (__UseCustomPrompt == true)
-                __UseCustomPrompt = false;
+            if (State.UseCustomPrompt == true)
+                State.UseCustomPrompt = false;
             else
-                __UseCustomPrompt = true;
+                State.UseCustomPrompt = true;
         }
         else if (arg1 == "empty")
         {
-            __UseCustomPrompt = true;
-            __PromptStyle = "empty";
+            State.UseCustomPrompt = true;
+            State.PromptStyle = "empty";
         }
         else
         {
-            __UseCustomPrompt = true;
-            __PromptStyle = arg1;
+            State.UseCustomPrompt = true;
+            State.PromptStyle = arg1;
         }
     }
     else if (arg0 == "err" || arg0 == "error")
@@ -1202,21 +1199,21 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         if (variableExists(arg1))
         {
             if (isString(arg1))
-                cerr << variables.at(indexOfVariable(arg1)).getString() << endl;
+                IO::printerrln(variables.at(indexOfVariable(arg1)).getString());
             else if (isNumber(arg1))
-                cerr << variables.at(indexOfVariable(arg1)).getNumber() << endl;
+                IO::printerrln(dtos(variables.at(indexOfVariable(arg1)).getNumber()));
             else
-                error(IS_NULL, arg1, false);
+                error(ErrorMessage::IS_NULL, arg1, false);
         }
         else
-            cerr << arg1 << endl;
+            IO::printerrln(arg1);
     }
     else if (arg0 == "delay")
     {
         if (isNumeric(arg1))
             delay(stoi(arg1));
         else
-            error(CONV_ERR, arg1, false);
+            error(ErrorMessage::CONV_ERR, arg1, false);
     }
     else if (arg0 == "loop")
         threeSpace("for", "var", "in", arg1, "for var in " + arg1, command); // REFACTOR HERE
@@ -1239,7 +1236,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 else if (methodExists(params.at(i)))
                     methods = removeMethod(methods, params.at(i));
                 else
-                    error(TARGET_UNDEFINED, params.at(i), false);
+                    error(ErrorMessage::TARGET_UNDEFINED, params.at(i), false);
             }
         }
         else if (variableExists(arg1))
@@ -1251,21 +1248,21 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         else if (methodExists(arg1))
             methods = removeMethod(methods, arg1);
         else
-            error(TARGET_UNDEFINED, arg1, false);
+            error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
     }
     else if (arg0 == "see_string")
     {
         if (variableExists(arg1))
             write(variables.at(indexOfVariable(arg1)).getString());
         else
-            error(VAR_UNDEFINED, arg1, false);
+            error(ErrorMessage::VAR_UNDEFINED, arg1, false);
     }
     else if (arg0 == "see_number")
     {
         if (variableExists(arg1))
             write(dtos(variables.at(indexOfVariable(arg1)).getNumber()));
         else
-            error(VAR_UNDEFINED, arg1, false);
+            error(ErrorMessage::VAR_UNDEFINED, arg1, false);
     }
     else if (arg0 == "__begin__")
     {
@@ -1273,24 +1270,24 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (isString(arg1))
             {
-                if (!fileExists(variables.at(indexOfVariable(arg1)).getString()))
+                if (!Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
                 {
-                    createFile(variables.at(indexOfVariable(arg1)).getString());
-                    __DefiningScript = true;
-                    __CurrentScriptName = variables.at(indexOfVariable(arg1)).getString();
+                    Env::createFile(variables.at(indexOfVariable(arg1)).getString());
+                    State.DefiningScript = true;
+                    State.CurrentScriptName = variables.at(indexOfVariable(arg1)).getString();
                 }
                 else
-                    error(FILE_EXISTS, variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(ErrorMessage::FILE_EXISTS, variables.at(indexOfVariable(arg1)).getString(), false);
             }
         }
-        else if (!fileExists(arg1))
+        else if (!Env::fileExists(arg1))
         {
-            createFile(arg1);
-            __DefiningScript = true;
-            __CurrentScriptName = arg1;
+            Env::createFile(arg1);
+            State.DefiningScript = true;
+            State.CurrentScriptName = arg1;
         }
         else
-            error(FILE_EXISTS, arg1, false);
+            error(ErrorMessage::FILE_EXISTS, arg1, false);
     }
     else if (arg0 == "encrypt" || arg0 == "decrypt")
     {
@@ -1310,15 +1307,15 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "load")
     {
-        if (fileExists(arg1))
+        if (Env::fileExists(arg1))
         {
             if (isScript(arg1))
             {
-                __PreviousScript = __CurrentScript;
+                State.PreviousScript = State.CurrentScript;
                 loadScript(arg1);
             }
             else
-                error(BAD_LOAD, arg1, true);
+                error(ErrorMessage::BAD_LOAD, arg1, true);
         }
         else if (moduleExists(arg1))
         {
@@ -1328,7 +1325,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 parse(lines.at(i));
         }
         else
-            error(BAD_LOAD, arg1, true);
+            error(ErrorMessage::BAD_LOAD, arg1, true);
     }
     else if (arg0 == "say" || arg0 == "stdout" || arg0 == "out" || arg0 == "print" || arg0 == "println")
     {
@@ -1340,22 +1337,22 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (isString(arg1))
             {
-                if (directoryExists(variables.at(indexOfVariable(arg1)).getString()))
-                    cd(variables.at(indexOfVariable(arg1)).getString());
+                if (Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
+                    Env::cd(variables.at(indexOfVariable(arg1)).getString());
                 else
-                    error(READ_FAIL, variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(arg1)).getString(), false);
             }
             else
-                error(NULL_STRING, arg1, false);
+                error(ErrorMessage::NULL_STRING, arg1, false);
         }
         else
         {
             if (arg1 == "init_dir" || arg1 == "initial_directory")
-                cd(__InitialDirectory);
-            else if (directoryExists(arg1))
-                cd(arg1);
+                Env::cd(NoctisEnv.InitialDirectory);
+            else if (Env::directoryExists(arg1))
+                Env::cd(arg1);
             else
-                cd(arg1);
+                Env::cd(arg1);
         }
     }
     else if (arg0 == "list")
@@ -1366,7 +1363,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             List newList(arg1);
 
-            if (__ExecutedTemplate || __ExecutedMethod)
+            if (State.ExecutedTemplate || State.ExecutedMethod)
                 newList.collect();
             else
                 newList.dontCollect();
@@ -1381,7 +1378,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             if (isString(arg1))
                 parse(variables.at(indexOfVariable(arg1)).getString().c_str());
             else
-                error(IS_NULL, arg1, false);
+                error(ErrorMessage::IS_NULL, arg1, false);
         }
         else
             parse(arg1.c_str());
@@ -1391,12 +1388,12 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         if (variableExists(arg1))
         {
             if (isString(arg1))
-                sysExec(variables.at(indexOfVariable(arg1)).getString(), command);
+                Env::sysExec(variables.at(indexOfVariable(arg1)).getString(), command);
             else
-                error(IS_NULL, arg1, false);
+                error(ErrorMessage::IS_NULL, arg1, false);
         }
         else
-            sysExec(arg1, command);
+            Env::sysExec(arg1, command);
     }
     else if (arg0 == "init_dir" || arg0 == "initial_directory")
     {
@@ -1404,32 +1401,32 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (isString(arg1))
             {
-                if (directoryExists(variables.at(indexOfVariable(arg1)).getString()))
+                if (Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
                 {
-                    __InitialDirectory = variables.at(indexOfVariable(arg1)).getString();
-                    cd(__InitialDirectory);
+                    NoctisEnv.InitialDirectory = variables.at(indexOfVariable(arg1)).getString();
+                    Env::cd(NoctisEnv.InitialDirectory);
                 }
                 else
-                    error(READ_FAIL, __InitialDirectory, false);
+                    error(ErrorMessage::READ_FAIL, NoctisEnv.InitialDirectory, false);
             }
             else
-                error(NULL_STRING, arg1, false);
+                error(ErrorMessage::NULL_STRING, arg1, false);
         }
         else
         {
-            if (directoryExists(arg1))
+            if (Env::directoryExists(arg1))
             {
                 if (arg1 == ".")
-                    __InitialDirectory = cwd();
+                    NoctisEnv.InitialDirectory = Env::cwd();
                 else if (arg1 == "..")
-                    __InitialDirectory = cwd() + "\\..";
+                    NoctisEnv.InitialDirectory = Env::cwd() + "\\..";
                 else
-                    __InitialDirectory = arg1;
+                    NoctisEnv.InitialDirectory = arg1;
 
-                cd(__InitialDirectory);
+                Env::cd(NoctisEnv.InitialDirectory);
             }
             else
-                error(READ_FAIL, __InitialDirectory, false);
+                error(ErrorMessage::READ_FAIL, NoctisEnv.InitialDirectory, false);
         }
     }
     else if (arg0 == "method?")
@@ -1486,13 +1483,13 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (objects.at(indexOfObject(before)).variableExists(after))
             {
-                if (directoryExists(objects.at(indexOfObject(before)).getVariable(after).getString()))
+                if (Env::directoryExists(objects.at(indexOfObject(before)).getVariable(after).getString()))
                     __true();
                 else
                     __false();
             }
             else
-                error(TARGET_UNDEFINED, arg1, false);
+                error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
         }
         else
         {
@@ -1500,17 +1497,17 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             {
                 if (isString(arg1))
                 {
-                    if (directoryExists(variables.at(indexOfVariable(arg1)).getString()))
+                    if (Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
                         __true();
                     else
                         __false();
                 }
                 else
-                    error(NULL_STRING, arg1, false);
+                    error(ErrorMessage::NULL_STRING, arg1, false);
             }
             else
             {
-                if (directoryExists(arg1))
+                if (Env::directoryExists(arg1))
                     __true();
                 else
                     __false();
@@ -1523,13 +1520,13 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (objects.at(indexOfObject(before)).variableExists(after))
             {
-                if (fileExists(objects.at(indexOfObject(before)).getVariable(after).getString()))
+                if (Env::fileExists(objects.at(indexOfObject(before)).getVariable(after).getString()))
                     __true();
                 else
                     __false();
             }
             else
-                error(TARGET_UNDEFINED, arg1, false);
+                error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
         }
         else
         {
@@ -1537,7 +1534,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             {
                 if (isString(arg1))
                 {
-                    if (fileExists(variables.at(indexOfVariable(arg1)).getString()))
+                    if (Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
                         __true();
                     else
                         __false();
@@ -1547,7 +1544,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             }
             else
             {
-                if (fileExists(arg1))
+                if (Env::fileExists(arg1))
                     __true();
                 else
                     __false();
@@ -1564,7 +1561,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 __false();
         }
         else
-            cout << "under construction..." << endl;
+            IO::println("under construction...");
     }
     else if (arg0 == "number?")
     {
@@ -1572,13 +1569,13 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (objects.at(indexOfObject(before)).variableExists(after))
             {
-                if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != __NullNum)
+                if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != State.NullNum)
                     __true();
                 else
                     __false();
             }
             else
-                error(TARGET_UNDEFINED, arg1, false);
+                error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
         }
         else
         {
@@ -1604,13 +1601,13 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (objects.at(indexOfObject(before)).variableExists(after))
             {
-                if (objects.at(indexOfObject(before)).getVariable(after).getString() != __Null)
+                if (objects.at(indexOfObject(before)).getVariable(after).getString() != State.Null)
                     __true();
                 else
                     __false();
             }
             else
-                error(TARGET_UNDEFINED, arg1, false);
+                error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
         }
         else
         {
@@ -1642,7 +1639,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                     __false();
             }
             else
-                error(TARGET_UNDEFINED, arg1, false);
+                error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
         }
         else
         {
@@ -1684,7 +1681,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                     __false();
             }
             else
-                error(TARGET_UNDEFINED, arg1, false);
+                error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
         }
         else
         {
@@ -1721,7 +1718,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     else if (arg0 == "template")
     {
         if (methodExists(arg1))
-            error(METHOD_DEFINED, arg1, false);
+            error(ErrorMessage::METHOD_DEFINED, arg1, false);
         else
         {
             if (containsParams(arg1))
@@ -1733,7 +1730,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
 
                 methods.push_back(method);
 
-                __DefiningMethod = true;
+                State.DefiningMethod = true;
             }
         }
     }
@@ -1769,20 +1766,20 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (isString(arg1))
             {
-                if (!fileExists(variables.at(indexOfVariable(arg1)).getString()))
-                    createFile(variables.at(indexOfVariable(arg1)).getString());
+                if (!Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
+                    Env::createFile(variables.at(indexOfVariable(arg1)).getString());
                 else
-                    error(FILE_EXISTS, variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(ErrorMessage::FILE_EXISTS, variables.at(indexOfVariable(arg1)).getString(), false);
             }
             else
-                error(NULL_STRING, arg1, false);
+                error(ErrorMessage::NULL_STRING, arg1, false);
         }
         else
         {
-            if (!fileExists(arg1))
-                createFile(arg1);
+            if (!Env::fileExists(arg1))
+                Env::createFile(arg1);
             else
-                error(FILE_EXISTS, arg1, false);
+                error(ErrorMessage::FILE_EXISTS, arg1, false);
         }
     }
     else if (arg0 == "fpop")
@@ -1791,20 +1788,20 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (isString(arg1))
             {
-                if (fileExists(variables.at(indexOfVariable(arg1)).getString()))
-                    rm(variables.at(indexOfVariable(arg1)).getString());
+                if (Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
+                    Env::rm(variables.at(indexOfVariable(arg1)).getString());
                 else
-                    error(FILE_NOT_FOUND, variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(ErrorMessage::FILE_NOT_FOUND, variables.at(indexOfVariable(arg1)).getString(), false);
             }
             else
-                error(NULL_STRING, arg1, false);
+                error(ErrorMessage::NULL_STRING, arg1, false);
         }
         else
         {
-            if (fileExists(arg1))
-                rm(arg1);
+            if (Env::fileExists(arg1))
+                Env::rm(arg1);
             else
-                error(FILE_NOT_FOUND, arg1, false);
+                error(ErrorMessage::FILE_NOT_FOUND, arg1, false);
         }
     }
     else if (arg0 == "dpush")
@@ -1813,20 +1810,20 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (isString(arg1))
             {
-                if (!directoryExists(variables.at(indexOfVariable(arg1)).getString()))
-                    md(variables.at(indexOfVariable(arg1)).getString());
+                if (!Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
+                    Env::md(variables.at(indexOfVariable(arg1)).getString());
                 else
-                    error(DIR_EXISTS, variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(ErrorMessage::DIR_EXISTS, variables.at(indexOfVariable(arg1)).getString(), false);
             }
             else
-                error(NULL_STRING, arg1, false);
+                error(ErrorMessage::NULL_STRING, arg1, false);
         }
         else
         {
-            if (!directoryExists(arg1))
-                md(arg1);
+            if (!Env::directoryExists(arg1))
+                Env::md(arg1);
             else
-                error(DIR_EXISTS, arg1, false);
+                error(ErrorMessage::DIR_EXISTS, arg1, false);
         }
     }
     else if (arg0 == "dpop")
@@ -1835,24 +1832,24 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (isString(arg1))
             {
-                if (directoryExists(variables.at(indexOfVariable(arg1)).getString()))
-                    rd(variables.at(indexOfVariable(arg1)).getString());
+                if (Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
+                    Env::rd(variables.at(indexOfVariable(arg1)).getString());
                 else
-                    error(DIR_NOT_FOUND, variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(ErrorMessage::DIR_NOT_FOUND, variables.at(indexOfVariable(arg1)).getString(), false);
             }
             else
-                error(NULL_STRING, arg1, false);
+                error(ErrorMessage::NULL_STRING, arg1, false);
         }
         else
         {
-            if (directoryExists(arg1))
-                rd(arg1);
+            if (Env::directoryExists(arg1))
+                Env::rd(arg1);
             else
-                error(DIR_NOT_FOUND, arg1, false);
+                error(ErrorMessage::DIR_NOT_FOUND, arg1, false);
         }
     }
     else
-        sysExec(s, command);
+        Env::sysExec(s, command);
 }
 
 void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> command)
@@ -1860,10 +1857,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
     string last_val = "";
 
     if (contains(arg2, "self."))
-        arg2 = replace(arg2, "self", __CurrentMethodObject);
+        arg2 = replace(arg2, "self", State.CurrentMethodObject);
 
     if (contains(arg0, "self."))
-        arg0 = replace(arg0, "self", __CurrentMethodObject);
+        arg0 = replace(arg0, "self", State.CurrentMethodObject);
 
     if (variableExists(arg0))
     {
@@ -1907,8 +1904,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
     {
         if (objectExists(arg1))
         {
-            __DefiningObject = true;
-            __CurrentObject = arg1;
+            State.DefiningObject = true;
+            State.CurrentObject = arg1;
         }
         else
         {
@@ -1926,17 +1923,17 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
 
                     objects.push_back(newObject);
-                    __CurrentObject = arg1;
-                    __DefiningObject = true;
+                    State.CurrentObject = arg1;
+                    State.DefiningObject = true;
 
                     newObject.clear();
                     objectMethods.clear();
                 }
                 else
-                    error(INVALID_OPERATOR, arg2, false);
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
             }
             else
-                error(OBJ_METHOD_UNDEFINED, arg3, false);
+                error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3, false);
         }
     }
     else if (arg0 == "unless")
@@ -1954,7 +1951,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else if (isNumber(arg1))
                         testString = dtos(variables.at(indexOfVariable(arg1)).getNumber());
                     else
-                        error(IS_NULL, arg1, false);
+                        error(ErrorMessage::IS_NULL, arg1, false);
                 }
                 else
                     testString = arg1;
@@ -1968,7 +1965,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             elementFound = true;
                             setFalseIf();
-                            __LastValue = itos(i);
+                            State.LastValue = itos(i);
                             break;
                         }
                     }
@@ -2049,7 +2046,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(INVALID_OPERATOR, arg2, false);
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                     setTrueIf();
                 }
             }
@@ -2099,13 +2096,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(INVALID_OPERATOR, arg2, false);
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                     setTrueIf();
                 }
             }
             else
             {
-                error(CONV_ERR, s, false);
+                error(ErrorMessage::CONV_ERR, s, false);
                 setTrueIf();
             }
         }
@@ -2159,7 +2156,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setTrueIf();
                     }
                 }
@@ -2170,11 +2167,11 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else if (arg2 == "!=")
                         setTrueIf();
                     else
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     setTrueIf();
                 }
             }
@@ -2190,7 +2187,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             setTrueIf();
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setTrueIf();
                         }
                     }
@@ -2212,7 +2209,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             setTrueIf();
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setTrueIf();
                         }
                     }
@@ -2244,7 +2241,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setTrueIf();
                         }
                     }
@@ -2281,7 +2278,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setTrueIf();
                         }
                     }
@@ -2302,7 +2299,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (fileExists(variables.at(indexOfVariable(arg1)).getString()))
+                        if (Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
                         {
                             if (arg2 == "==")
                                 setFalseIf();
@@ -2310,7 +2307,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 setTrueIf();
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setTrueIf();
                             }
                         }
@@ -2324,7 +2321,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(IS_NULL, arg1, false);
+                        error(ErrorMessage::IS_NULL, arg1, false);
                         setTrueIf();
                     }
                 }
@@ -2332,7 +2329,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (directoryExists(variables.at(indexOfVariable(arg1)).getString()))
+                        if (Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
                         {
                             if (arg2 == "==")
                                 setFalseIf();
@@ -2340,7 +2337,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 setTrueIf();
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setTrueIf();
                             }
                         }
@@ -2354,7 +2351,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(IS_NULL, arg1, false);
+                        error(ErrorMessage::IS_NULL, arg1, false);
                         setTrueIf();
                     }
                 }
@@ -2425,7 +2422,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setTrueIf();
                     }
                 }
@@ -2490,7 +2487,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setTrueIf();
                     }
                 }
@@ -2501,11 +2498,11 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else if (arg2 == "!=")
                         setTrueIf();
                     else
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     setTrueIf();
                 }
             }
@@ -2521,7 +2518,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             setTrueIf();
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setTrueIf();
                         }
                     }
@@ -2543,7 +2540,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             setTrueIf();
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setTrueIf();
                         }
                     }
@@ -2575,7 +2572,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setTrueIf();
                         }
                     }
@@ -2612,7 +2609,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setTrueIf();
                         }
                     }
@@ -2633,7 +2630,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (fileExists(variables.at(indexOfVariable(arg1)).getString()))
+                        if (Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
                         {
                             if (arg2 == "==")
                                 setFalseIf();
@@ -2641,7 +2638,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 setTrueIf();
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setTrueIf();
                             }
                         }
@@ -2655,7 +2652,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(IS_NULL, arg1, false);
+                        error(ErrorMessage::IS_NULL, arg1, false);
                         setTrueIf();
                     }
                 }
@@ -2663,7 +2660,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (directoryExists(variables.at(indexOfVariable(arg1)).getString()))
+                        if (Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
                         {
                             if (arg2 == "==")
                                 setFalseIf();
@@ -2671,7 +2668,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 setTrueIf();
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setTrueIf();
                             }
                         }
@@ -2685,7 +2682,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(IS_NULL, arg1, false);
+                        error(ErrorMessage::IS_NULL, arg1, false);
                         setTrueIf();
                     }
                 }
@@ -2756,7 +2753,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setTrueIf();
                     }
                 }
@@ -2812,13 +2809,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setTrueIf();
                     }
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     setTrueIf();
                 }
             }
@@ -2868,7 +2865,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(INVALID_OPERATOR, arg2, false);
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                     setTrueIf();
                 }
             }
@@ -2932,13 +2929,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setTrueIf();
                     }
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     setTrueIf();
                 }
             }
@@ -2988,7 +2985,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(INVALID_OPERATOR, arg2, false);
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                     setTrueIf();
                 }
             }
@@ -3009,12 +3006,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (objects.at(indexOfObject(arg1before)).methodExists(beforeParams(arg1after)))
                             executeTemplate(objects.at(indexOfObject(arg1before)).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
-                        arg1Result = __LastValue;
+                        arg1Result = State.LastValue;
 
                         if (objects.at(indexOfObject(arg3before)).methodExists(beforeParams(arg3after)))
                             executeTemplate(objects.at(indexOfObject(arg3before)).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
-                        arg3Result = __LastValue;
+                        arg3Result = State.LastValue;
 
                         if (isNumeric(arg1Result) && isNumeric(arg3Result))
                         {
@@ -3062,7 +3059,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setTrueIf();
                             }
                         }
@@ -3084,7 +3081,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setTrueIf();
                             }
                         }
@@ -3092,10 +3089,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else
                     {
                         if (!objectExists(arg1before))
-                            error(OBJ_METHOD_UNDEFINED, arg1before, false);
+                            error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
 
                         if (!objectExists(arg3before))
-                            error(OBJ_METHOD_UNDEFINED, arg3before, false);
+                            error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
 
                         setTrueIf();
                     }
@@ -3111,12 +3108,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (objects.at(indexOfObject(arg1before)).methodExists(beforeParams(arg1after)))
                             executeTemplate(objects.at(indexOfObject(arg1before)).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
-                        arg1Result = __LastValue;
+                        arg1Result = State.LastValue;
 
                         if (methodExists(beforeParams(arg3)))
                             executeTemplate(methods.at(indexOfMethod(beforeParams(arg3))), getParams(arg3));
 
-                        arg3Result = __LastValue;
+                        arg3Result = State.LastValue;
 
                         if (isNumeric(arg1Result) && isNumeric(arg3Result))
                         {
@@ -3164,7 +3161,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setTrueIf();
                             }
                         }
@@ -3186,14 +3183,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setTrueIf();
                             }
                         }
                     }
                     else
                     {
-                        error(OBJ_METHOD_UNDEFINED, arg1before, false);
+                        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
                         setTrueIf();
                     }
                 }
@@ -3208,12 +3205,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (objects.at(indexOfObject(arg3before)).methodExists(beforeParams(arg3after)))
                             executeTemplate(objects.at(indexOfObject(arg3before)).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
-                        arg3Result = __LastValue;
+                        arg3Result = State.LastValue;
 
                         if (methodExists(beforeParams(arg1)))
                             executeTemplate(methods.at(indexOfMethod(beforeParams(arg1))), getParams(arg1));
 
-                        arg1Result = __LastValue;
+                        arg1Result = State.LastValue;
 
                         if (isNumeric(arg1Result) && isNumeric(arg3Result))
                         {
@@ -3261,7 +3258,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setTrueIf();
                             }
                         }
@@ -3283,14 +3280,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setTrueIf();
                             }
                         }
                     }
                     else
                     {
-                        error(OBJ_METHOD_UNDEFINED, arg3before, false);
+                        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
                         setTrueIf();
                     }
                 }
@@ -3301,12 +3298,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (methodExists(beforeParams(arg1)))
                         executeTemplate(methods.at(indexOfMethod(beforeParams(arg1))), getParams(arg1));
 
-                    arg1Result = __LastValue;
+                    arg1Result = State.LastValue;
 
                     if (methodExists(beforeParams(arg3)))
                         executeTemplate(methods.at(indexOfMethod(beforeParams(arg3))), getParams(arg3));
 
-                    arg3Result = __LastValue;
+                    arg3Result = State.LastValue;
 
                     if (isNumeric(arg1Result) && isNumeric(arg3Result))
                     {
@@ -3354,7 +3351,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setTrueIf();
                         }
                     }
@@ -3376,7 +3373,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setTrueIf();
                         }
                     }
@@ -3394,12 +3391,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         executeTemplate(methods.at(indexOfMethod(beforeParams(arg1))), getParams(arg1));
 
-                        arg1Result = __LastValue;
+                        arg1Result = State.LastValue;
 
                         if (methodExists(arg3))
                         {
                             parse(arg3);
-                            arg3Result = __LastValue;
+                            arg3Result = State.LastValue;
                         }
                         else if (variableExists(arg3))
                         {
@@ -3410,7 +3407,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             else
                             {
                                 pass = false;
-                                error(IS_NULL, arg3, false);
+                                error(ErrorMessage::IS_NULL, arg3, false);
                                 setTrueIf();
                             }
                         }
@@ -3465,7 +3462,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error(INVALID_OPERATOR, arg2, false);
+                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                     setTrueIf();
                                 }
                             }
@@ -3487,7 +3484,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error(INVALID_OPERATOR, arg2, false);
+                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                     setTrueIf();
                                 }
                             }
@@ -3497,7 +3494,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(METHOD_UNDEFINED, beforeParams(arg1), false);
+                        error(ErrorMessage::METHOD_UNDEFINED, beforeParams(arg1), false);
                         setTrueIf();
                     }
                 }
@@ -3510,7 +3507,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (objects.at(indexOfObject(arg1before)).methodExists(beforeParams(arg1after)))
                             executeTemplate(objects.at(indexOfObject(arg1before)).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
-                        arg1Result = __LastValue;
+                        arg1Result = State.LastValue;
 
                         if (variableExists(arg3))
                         {
@@ -3521,7 +3518,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             else
                             {
                                 pass = false;
-                                error(IS_NULL, arg3, false);
+                                error(ErrorMessage::IS_NULL, arg3, false);
                                 setTrueIf();
                             }
                         }
@@ -3529,7 +3526,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             parse(arg3);
 
-                            arg3Result = __LastValue;
+                            arg3Result = State.LastValue;
                         }
                         else
                             arg3Result = arg3;
@@ -3582,7 +3579,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error(INVALID_OPERATOR, arg2, false);
+                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                     setTrueIf();
                                 }
                             }
@@ -3604,7 +3601,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error(INVALID_OPERATOR, arg2, false);
+                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                     setTrueIf();
                                 }
                             }
@@ -3612,7 +3609,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(OBJ_METHOD_UNDEFINED, arg1before, false);
+                        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
                         setTrueIf();
                     }
                 }
@@ -3629,12 +3626,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         executeTemplate(methods.at(indexOfMethod(beforeParams(arg3))), getParams(arg3));
 
-                        arg3Result = __LastValue;
+                        arg3Result = State.LastValue;
 
                         if (methodExists(arg1))
                         {
                             parse(arg1);
-                            arg1Result = __LastValue;
+                            arg1Result = State.LastValue;
                         }
                         else if (variableExists(arg1))
                         {
@@ -3645,7 +3642,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             else
                             {
                                 pass = false;
-                                error(IS_NULL, arg1, false);
+                                error(ErrorMessage::IS_NULL, arg1, false);
                                 setTrueIf();
                             }
                         }
@@ -3700,7 +3697,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error(INVALID_OPERATOR, arg2, false);
+                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                     setTrueIf();
                                 }
                             }
@@ -3722,7 +3719,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error(INVALID_OPERATOR, arg2, false);
+                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                     setTrueIf();
                                 }
                             }
@@ -3730,7 +3727,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(METHOD_UNDEFINED, beforeParams(arg3), false);
+                        error(ErrorMessage::METHOD_UNDEFINED, beforeParams(arg3), false);
                         setTrueIf();
                     }
                 }
@@ -3743,7 +3740,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (objects.at(indexOfObject(arg3before)).methodExists(beforeParams(arg3after)))
                             executeTemplate(objects.at(indexOfObject(arg3before)).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
-                        arg3Result = __LastValue;
+                        arg3Result = State.LastValue;
 
                         if (variableExists(arg1))
                         {
@@ -3753,7 +3750,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 arg1Result = dtos(variables.at(indexOfVariable(arg1)).getNumber());
                             else
                             {
-                                error(IS_NULL, arg1, false);
+                                error(ErrorMessage::IS_NULL, arg1, false);
                                 setTrueIf();
                             }
                         }
@@ -3761,7 +3758,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             parse(arg1);
 
-                            arg1Result = __LastValue;
+                            arg1Result = State.LastValue;
                         }
                         else
                             arg1Result = arg1;
@@ -3812,7 +3809,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setTrueIf();
                             }
                         }
@@ -3834,14 +3831,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setTrueIf();
                             }
                         }
                     }
                     else
                     {
-                        error(OBJ_METHOD_UNDEFINED, arg3before, false);
+                        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
                         setTrueIf();
                     }
                 }
@@ -3854,7 +3851,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             if (methodExists(arg1))
             {
                 parse(arg1);
-                arg1Result = __LastValue;
+                arg1Result = State.LastValue;
             }
             else if (variableExists(arg1))
             {
@@ -3864,7 +3861,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     arg1Result = dtos(variables.at(indexOfVariable(arg1)).getNumber());
                 else
                 {
-                    error(IS_NULL, arg1, false);
+                    error(ErrorMessage::IS_NULL, arg1, false);
                     setTrueIf();
                 }
             }
@@ -3874,7 +3871,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             if (methodExists(arg3))
             {
                 parse(arg3);
-                arg3Result = __LastValue;
+                arg3Result = State.LastValue;
             }
             else if (variableExists(arg3))
             {
@@ -3884,7 +3881,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     arg3Result = dtos(variables.at(indexOfVariable(arg3)).getNumber());
                 else
                 {
-                    error(IS_NULL, arg3, false);
+                    error(ErrorMessage::IS_NULL, arg3, false);
                     setTrueIf();
                 }
             }
@@ -3937,7 +3934,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(INVALID_OPERATOR, arg2, false);
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                     setTrueIf();
                 }
             }
@@ -3959,7 +3956,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(INVALID_OPERATOR, arg2, false);
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                     setTrueIf();
                 }
             }
@@ -3976,7 +3973,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         setTrueIf();
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setTrueIf();
                     }
                 }
@@ -3988,7 +3985,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         setFalseIf();
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setTrueIf();
                     }
                 }
@@ -4003,7 +4000,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         setTrueIf();
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setTrueIf();
                     }
                 }
@@ -4015,7 +4012,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         setFalseIf();
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setTrueIf();
                     }
                 }
@@ -4030,7 +4027,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         setTrueIf();
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setTrueIf();
                     }
                 }
@@ -4042,7 +4039,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         setFalseIf();
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setTrueIf();
                     }
                 }
@@ -4057,7 +4054,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         setTrueIf();
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setTrueIf();
                     }
                 }
@@ -4069,7 +4066,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         setFalseIf();
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setTrueIf();
                     }
                 }
@@ -4133,7 +4130,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(INVALID_OPERATOR, arg2, false);
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                     setTrueIf();
                 }
             }
@@ -4148,7 +4145,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(INVALID_OPERATOR, arg2, false);
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                     setFalseIf();
                 }
             }
@@ -4175,7 +4172,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             }
             else
             {
-                error(INVALID_OPERATOR, arg2, false);
+                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                 setTrueIf();
             }
         }
@@ -4195,7 +4192,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else if (isNumber(arg1))
                         testString = dtos(variables.at(indexOfVariable(arg1)).getNumber());
                     else
-                        error(IS_NULL, arg1, false);
+                        error(ErrorMessage::IS_NULL, arg1, false);
                 }
                 else
                     testString = arg1;
@@ -4209,7 +4206,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             elementFound = true;
                             setTrueIf();
-                            __LastValue = itos(i);
+                            State.LastValue = itos(i);
                             break;
                         }
                     }
@@ -4234,7 +4231,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else if (isNumber(arg3))
                         testString = dtos(variables.at(indexOfVariable(arg3)).getNumber());
                     else
-                        error(IS_NULL, arg3, false);
+                        error(ErrorMessage::IS_NULL, arg3, false);
                 }
                 else
                     testString = arg3;
@@ -4248,7 +4245,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             elementFound = true;
                             setTrueIf();
-                            __LastValue = itos(i);
+                            State.LastValue = itos(i);
                             break;
                         }
                     }
@@ -4329,7 +4326,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(INVALID_OPERATOR, arg2, false);
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                     setFalseIf();
                 }
             }
@@ -4379,13 +4376,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(INVALID_OPERATOR, arg2, false);
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                     setFalseIf();
                 }
             }
             else
             {
-                error(CONV_ERR, s, false);
+                error(ErrorMessage::CONV_ERR, s, false);
                 setFalseIf();
             }
         }
@@ -4439,7 +4436,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setFalseIf();
                     }
                 }
@@ -4450,11 +4447,11 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else if (arg2 == "!=")
                         setFalseIf();
                     else
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     setFalseIf();
                 }
             }
@@ -4470,7 +4467,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             setFalseIf();
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setFalseIf();
                         }
                     }
@@ -4492,7 +4489,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             setFalseIf();
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setFalseIf();
                         }
                     }
@@ -4524,7 +4521,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setFalseIf();
                         }
                     }
@@ -4561,7 +4558,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setFalseIf();
                         }
                     }
@@ -4582,7 +4579,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (fileExists(variables.at(indexOfVariable(arg1)).getString()))
+                        if (Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
                         {
                             if (arg2 == "==")
                                 setTrueIf();
@@ -4590,7 +4587,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 setFalseIf();
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setFalseIf();
                             }
                         }
@@ -4604,7 +4601,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(IS_NULL, arg1, false);
+                        error(ErrorMessage::IS_NULL, arg1, false);
                         setFalseIf();
                     }
                 }
@@ -4612,7 +4609,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (directoryExists(variables.at(indexOfVariable(arg1)).getString()))
+                        if (Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
                         {
                             if (arg2 == "==")
                                 setTrueIf();
@@ -4620,7 +4617,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 setFalseIf();
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setFalseIf();
                             }
                         }
@@ -4634,7 +4631,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(IS_NULL, arg1, false);
+                        error(ErrorMessage::IS_NULL, arg1, false);
                         setFalseIf();
                     }
                 }
@@ -4705,7 +4702,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setFalseIf();
                     }
                 }
@@ -4770,7 +4767,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setFalseIf();
                     }
                 }
@@ -4781,11 +4778,11 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else if (arg2 == "!=")
                         setFalseIf();
                     else
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     setFalseIf();
                 }
             }
@@ -4801,7 +4798,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             setFalseIf();
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setFalseIf();
                         }
                     }
@@ -4823,7 +4820,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             setFalseIf();
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setFalseIf();
                         }
                     }
@@ -4855,7 +4852,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setFalseIf();
                         }
                     }
@@ -4892,7 +4889,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setFalseIf();
                         }
                     }
@@ -4913,7 +4910,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (fileExists(variables.at(indexOfVariable(arg1)).getString()))
+                        if (Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
                         {
                             if (arg2 == "==")
                                 setTrueIf();
@@ -4921,7 +4918,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 setFalseIf();
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setFalseIf();
                             }
                         }
@@ -4935,7 +4932,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(IS_NULL, arg1, false);
+                        error(ErrorMessage::IS_NULL, arg1, false);
                         setFalseIf();
                     }
                 }
@@ -4943,7 +4940,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (directoryExists(variables.at(indexOfVariable(arg1)).getString()))
+                        if (Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
                         {
                             if (arg2 == "==")
                                 setTrueIf();
@@ -4951,7 +4948,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 setFalseIf();
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setFalseIf();
                             }
                         }
@@ -4965,7 +4962,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(IS_NULL, arg1, false);
+                        error(ErrorMessage::IS_NULL, arg1, false);
                         setFalseIf();
                     }
                 }
@@ -5036,7 +5033,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setFalseIf();
                     }
                 }
@@ -5092,13 +5089,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setFalseIf();
                     }
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     setFalseIf();
                 }
             }
@@ -5148,7 +5145,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(INVALID_OPERATOR, arg2, false);
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                     setFalseIf();
                 }
             }
@@ -5212,13 +5209,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setFalseIf();
                     }
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     setFalseIf();
                 }
             }
@@ -5268,7 +5265,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(INVALID_OPERATOR, arg2, false);
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                     setFalseIf();
                 }
             }
@@ -5289,12 +5286,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (objects.at(indexOfObject(arg1before)).methodExists(beforeParams(arg1after)))
                             executeTemplate(objects.at(indexOfObject(arg1before)).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
-                        arg1Result = __LastValue;
+                        arg1Result = State.LastValue;
 
                         if (objects.at(indexOfObject(arg3before)).methodExists(beforeParams(arg3after)))
                             executeTemplate(objects.at(indexOfObject(arg3before)).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
-                        arg3Result = __LastValue;
+                        arg3Result = State.LastValue;
 
                         if (isNumeric(arg1Result) && isNumeric(arg3Result))
                         {
@@ -5342,7 +5339,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setFalseIf();
                             }
                         }
@@ -5364,7 +5361,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setFalseIf();
                             }
                         }
@@ -5372,10 +5369,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else
                     {
                         if (!objectExists(arg1before))
-                            error(OBJ_METHOD_UNDEFINED, arg1before, false);
+                            error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
 
                         if (!objectExists(arg3before))
-                            error(OBJ_METHOD_UNDEFINED, arg3before, false);
+                            error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
 
                         setFalseIf();
                     }
@@ -5391,12 +5388,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (objects.at(indexOfObject(arg1before)).methodExists(beforeParams(arg1after)))
                             executeTemplate(objects.at(indexOfObject(arg1before)).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
-                        arg1Result = __LastValue;
+                        arg1Result = State.LastValue;
 
                         if (methodExists(beforeParams(arg3)))
                             executeTemplate(methods.at(indexOfMethod(beforeParams(arg3))), getParams(arg3));
 
-                        arg3Result = __LastValue;
+                        arg3Result = State.LastValue;
 
                         if (isNumeric(arg1Result) && isNumeric(arg3Result))
                         {
@@ -5444,7 +5441,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setFalseIf();
                             }
                         }
@@ -5466,14 +5463,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setFalseIf();
                             }
                         }
                     }
                     else
                     {
-                        error(OBJ_METHOD_UNDEFINED, arg1before, false);
+                        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
                         setFalseIf();
                     }
                 }
@@ -5488,12 +5485,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (objects.at(indexOfObject(arg3before)).methodExists(beforeParams(arg3after)))
                             executeTemplate(objects.at(indexOfObject(arg3before)).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
-                        arg3Result = __LastValue;
+                        arg3Result = State.LastValue;
 
                         if (methodExists(beforeParams(arg1)))
                             executeTemplate(methods.at(indexOfMethod(beforeParams(arg1))), getParams(arg1));
 
-                        arg1Result = __LastValue;
+                        arg1Result = State.LastValue;
 
                         if (isNumeric(arg1Result) && isNumeric(arg3Result))
                         {
@@ -5541,7 +5538,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setFalseIf();
                             }
                         }
@@ -5563,14 +5560,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setFalseIf();
                             }
                         }
                     }
                     else
                     {
-                        error(OBJ_METHOD_UNDEFINED, arg3before, false);
+                        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
                         setFalseIf();
                     }
                 }
@@ -5581,12 +5578,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (methodExists(beforeParams(arg1)))
                         executeTemplate(methods.at(indexOfMethod(beforeParams(arg1))), getParams(arg1));
 
-                    arg1Result = __LastValue;
+                    arg1Result = State.LastValue;
 
                     if (methodExists(beforeParams(arg3)))
                         executeTemplate(methods.at(indexOfMethod(beforeParams(arg3))), getParams(arg3));
 
-                    arg3Result = __LastValue;
+                    arg3Result = State.LastValue;
 
                     if (isNumeric(arg1Result) && isNumeric(arg3Result))
                     {
@@ -5634,7 +5631,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setFalseIf();
                         }
                     }
@@ -5656,7 +5653,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else
                         {
-                            error(INVALID_OPERATOR, arg2, false);
+                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                             setFalseIf();
                         }
                     }
@@ -5674,12 +5671,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         executeTemplate(methods.at(indexOfMethod(beforeParams(arg1))), getParams(arg1));
 
-                        arg1Result = __LastValue;
+                        arg1Result = State.LastValue;
 
                         if (methodExists(arg3))
                         {
                             parse(arg3);
-                            arg3Result = __LastValue;
+                            arg3Result = State.LastValue;
                         }
                         else if (variableExists(arg3))
                         {
@@ -5690,7 +5687,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             else
                             {
                                 pass = false;
-                                error(IS_NULL, arg3, false);
+                                error(ErrorMessage::IS_NULL, arg3, false);
                                 setFalseIf();
                             }
                         }
@@ -5745,7 +5742,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error(INVALID_OPERATOR, arg2, false);
+                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                     setFalseIf();
                                 }
                             }
@@ -5767,7 +5764,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error(INVALID_OPERATOR, arg2, false);
+                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                     setFalseIf();
                                 }
                             }
@@ -5797,13 +5794,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             parse(arg3);
 
-                            comp = __LastValue;
+                            comp = State.LastValue;
                         }
                         else if (containsParams(arg3))
                         {
                             executeTemplate(getMethod(beforeParams(arg3)), getParams(arg3));
 
-                            comp = __LastValue;
+                            comp = State.LastValue;
                         }
                         else
                             comp = arg3;
@@ -5854,7 +5851,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setFalseIf();
                             }
                         }
@@ -5876,14 +5873,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setFalseIf();
                             }
                         }
                     }
                     else
                     {
-                        error(METHOD_UNDEFINED, beforeParams(arg1), false);
+                        error(ErrorMessage::METHOD_UNDEFINED, beforeParams(arg1), false);
                         setFalseIf();
                     }
                 }
@@ -5896,7 +5893,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (objects.at(indexOfObject(arg1before)).methodExists(beforeParams(arg1after)))
                             executeTemplate(objects.at(indexOfObject(arg1before)).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
-                        arg1Result = __LastValue;
+                        arg1Result = State.LastValue;
 
                         if (variableExists(arg3))
                         {
@@ -5907,7 +5904,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             else
                             {
                                 pass = false;
-                                error(IS_NULL, arg3, false);
+                                error(ErrorMessage::IS_NULL, arg3, false);
                                 setFalseIf();
                             }
                         }
@@ -5915,7 +5912,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             parse(arg3);
 
-                            arg3Result = __LastValue;
+                            arg3Result = State.LastValue;
                         }
                         else
                             arg3Result = arg3;
@@ -5968,7 +5965,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error(INVALID_OPERATOR, arg2, false);
+                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                     setFalseIf();
                                 }
                             }
@@ -5990,7 +5987,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error(INVALID_OPERATOR, arg2, false);
+                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                     setFalseIf();
                                 }
                             }
@@ -5998,7 +5995,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(OBJ_METHOD_UNDEFINED, arg1before, false);
+                        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
                         setFalseIf();
                     }
                 }
@@ -6015,12 +6012,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         executeTemplate(methods.at(indexOfMethod(beforeParams(arg3))), getParams(arg3));
 
-                        arg3Result = __LastValue;
+                        arg3Result = State.LastValue;
 
                         if (methodExists(arg1))
                         {
                             parse(arg1);
-                            arg1Result = __LastValue;
+                            arg1Result = State.LastValue;
                         }
                         else if (variableExists(arg1))
                         {
@@ -6031,7 +6028,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             else
                             {
                                 pass = false;
-                                error(IS_NULL, arg1, false);
+                                error(ErrorMessage::IS_NULL, arg1, false);
                                 setFalseIf();
                             }
                         }
@@ -6086,7 +6083,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error(INVALID_OPERATOR, arg2, false);
+                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                     setFalseIf();
                                 }
                             }
@@ -6108,7 +6105,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 }
                                 else
                                 {
-                                    error(INVALID_OPERATOR, arg2, false);
+                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                     setFalseIf();
                                 }
                             }
@@ -6116,7 +6113,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(METHOD_UNDEFINED, beforeParams(arg3), false);
+                        error(ErrorMessage::METHOD_UNDEFINED, beforeParams(arg3), false);
                         setFalseIf();
                     }
                 }
@@ -6129,7 +6126,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (objects.at(indexOfObject(arg3before)).methodExists(beforeParams(arg3after)))
                             executeTemplate(objects.at(indexOfObject(arg3before)).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
-                        arg3Result = __LastValue;
+                        arg3Result = State.LastValue;
 
                         if (variableExists(arg1))
                         {
@@ -6139,7 +6136,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 arg1Result = dtos(variables.at(indexOfVariable(arg1)).getNumber());
                             else
                             {
-                                error(IS_NULL, arg1, false);
+                                error(ErrorMessage::IS_NULL, arg1, false);
                                 setFalseIf();
                             }
                         }
@@ -6147,7 +6144,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             parse(arg1);
 
-                            arg1Result = __LastValue;
+                            arg1Result = State.LastValue;
                         }
                         else
                             arg1Result = arg1;
@@ -6198,7 +6195,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setFalseIf();
                             }
                         }
@@ -6220,14 +6217,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             }
                             else
                             {
-                                error(INVALID_OPERATOR, arg2, false);
+                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                                 setFalseIf();
                             }
                         }
                     }
                     else
                     {
-                        error(OBJ_METHOD_UNDEFINED, arg3before, false);
+                        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
                         setFalseIf();
                     }
                 }
@@ -6240,7 +6237,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             if (methodExists(arg1))
             {
                 parse(arg1);
-                arg1Result = __LastValue;
+                arg1Result = State.LastValue;
             }
             else if (variableExists(arg1))
             {
@@ -6250,7 +6247,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     arg1Result = dtos(variables.at(indexOfVariable(arg1)).getNumber());
                 else
                 {
-                    error(IS_NULL, arg1, false);
+                    error(ErrorMessage::IS_NULL, arg1, false);
                     setFalseIf();
                 }
             }
@@ -6260,7 +6257,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             if (methodExists(arg3))
             {
                 parse(arg3);
-                arg3Result = __LastValue;
+                arg3Result = State.LastValue;
             }
             else if (variableExists(arg3))
             {
@@ -6270,7 +6267,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     arg3Result = dtos(variables.at(indexOfVariable(arg3)).getNumber());
                 else
                 {
-                    error(IS_NULL, arg3, false);
+                    error(ErrorMessage::IS_NULL, arg3, false);
                     setFalseIf();
                 }
             }
@@ -6323,7 +6320,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(INVALID_OPERATOR, arg2, false);
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                     setFalseIf();
                 }
             }
@@ -6345,7 +6342,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(INVALID_OPERATOR, arg2, false);
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                     setFalseIf();
                 }
             }
@@ -6362,7 +6359,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         setFalseIf();
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setFalseIf();
                     }
                 }
@@ -6374,7 +6371,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         setTrueIf();
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setFalseIf();
                     }
                 }
@@ -6389,7 +6386,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         setFalseIf();
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setFalseIf();
                     }
                 }
@@ -6401,7 +6398,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         setTrueIf();
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setFalseIf();
                     }
                 }
@@ -6416,7 +6413,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         setFalseIf();
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setFalseIf();
                     }
                 }
@@ -6428,7 +6425,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         setTrueIf();
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setFalseIf();
                     }
                 }
@@ -6443,7 +6440,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         setFalseIf();
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setFalseIf();
                     }
                 }
@@ -6455,7 +6452,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         setTrueIf();
                     else
                     {
-                        error(INVALID_OPERATOR, arg2, false);
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                         setFalseIf();
                     }
                 }
@@ -6519,7 +6516,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(INVALID_OPERATOR, arg2, false);
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                     setFalseIf();
                 }
             }
@@ -6534,7 +6531,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(INVALID_OPERATOR, arg2, false);
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                     setFalseIf();
                 }
             }
@@ -6561,7 +6558,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             }
             else
             {
-                error(INVALID_OPERATOR, arg2, false);
+                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                 setFalseIf();
             }
         }
@@ -6581,7 +6578,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -6596,7 +6593,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -6611,7 +6608,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -6626,7 +6623,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -6644,7 +6641,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -6659,7 +6656,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -6674,7 +6671,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -6689,7 +6686,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -6707,7 +6704,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -6722,7 +6719,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -6737,7 +6734,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -6752,7 +6749,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -6770,7 +6767,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -6785,7 +6782,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -6800,7 +6797,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -6815,7 +6812,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, s, false);
                     failedFor();
                 }
             }
@@ -6883,27 +6880,27 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             if (after == "get_dirs")
                             {
-                                if (directoryExists(variables.at(indexOfVariable(before)).getString()))
+                                if (Env::directoryExists(variables.at(indexOfVariable(before)).getString()))
                                     successfulFor(getDirectoryList(before, false));
                                 else
                                 {
-                                    error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
+                                    error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                                     failedFor();
                                 }
                             }
                             else if (after == "get_files")
                             {
-                                if (directoryExists(variables.at(indexOfVariable(before)).getString()))
+                                if (Env::directoryExists(variables.at(indexOfVariable(before)).getString()))
                                     successfulFor(getDirectoryList(before, true));
                                 else
                                 {
-                                    error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
+                                    error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                                     failedFor();
                                 }
                             }
                             else if (after == "read")
                             {
-                                if (fileExists(variables.at(indexOfVariable(before)).getString()))
+                                if (Env::fileExists(variables.at(indexOfVariable(before)).getString()))
                                 {
                                     List newList;
 
@@ -6924,20 +6921,20 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                     }
                                     else
                                     {
-                                        error(READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
+                                        error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
                                         failedFor();
                                     }
                                 }
                             }
                             else
                             {
-                                error(METHOD_UNDEFINED, after, false);
+                                error(ErrorMessage::METHOD_UNDEFINED, after, false);
                                 failedFor();
                             }
                         }
                         else
                         {
-                            error(VAR_UNDEFINED, before, false);
+                            error(ErrorMessage::VAR_UNDEFINED, before, false);
                             failedFor();
                         }
                     }
@@ -6947,7 +6944,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             successfulFor(lists.at(indexOfList(arg3)));
                         else
                         {
-                            error(LIST_UNDEFINED, arg3, false);
+                            error(ErrorMessage::LIST_UNDEFINED, arg3, false);
                             failedFor();
                         }
                     }
@@ -6981,7 +6978,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (isNumeric(firstRangeSpecifier) && isNumeric(lastRangeSpecifier))
                     {
-                        __DefaultLoopSymbol = arg1;
+                        State.DefaultLoopSymbol = arg1;
 
                         int ifrs = stoi(firstRangeSpecifier), ilrs(stoi(lastRangeSpecifier));
 
@@ -7029,14 +7026,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                                 newList.add(tempString);
                                             }
 
-                                            __DefaultLoopSymbol = arg1;
+                                            State.DefaultLoopSymbol = arg1;
 
                                             successfulFor(newList);
 
                                             lists = removeList(lists, "&l&i&s&t&");
                                         }
                                         else
-                                            error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+                                            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                                     }
                                     else if (stoi(rangeBegin) > stoi(rangeEnd))
                                     {
@@ -7051,37 +7048,37 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                                 newList.add(tempString);
                                             }
 
-                                            __DefaultLoopSymbol = arg1;
+                                            State.DefaultLoopSymbol = arg1;
 
                                             successfulFor(newList);
 
                                             lists = removeList(lists, "&l&i&s&t&");
                                         }
                                         else
-                                            error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+                                            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                                     }
                                     else
-                                        error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+                                        error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                                 }
                                 else
-                                    error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+                                    error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                             }
                             else
-                                error(OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+                                error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                         }
                         else
-                            error(OUT_OF_BOUNDS, arg3, false);
+                            error(ErrorMessage::OUT_OF_BOUNDS, arg3, false);
                     }
                     else
                     {
-                        error(NULL_STRING, before, false);
+                        error(ErrorMessage::NULL_STRING, before, false);
                         failedFor();
                     }
                 }
             }
             else if (listExists(arg3))
             {
-                __DefaultLoopSymbol = arg1;
+                State.DefaultLoopSymbol = arg1;
 
                 successfulFor(lists.at(indexOfList(arg3)));
             }
@@ -7093,7 +7090,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     List newList;
 
-                    __DefaultLoopSymbol = arg1;
+                    State.DefaultLoopSymbol = arg1;
 
                     for (int i = 0; i < (int)args.size(); i++)
                         newList.add(args.at(i));
@@ -7129,7 +7126,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     newList.add("get_members");
                     newList.add("members");
 
-                    __DefaultLoopSymbol = arg1;
+                    State.DefaultLoopSymbol = arg1;
                     successfulFor(newList);
                 }
                 else if (objectExists(_b) && _a == "get_methods")
@@ -7141,7 +7138,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     for (int i = 0; i < (int)objMethods.size(); i++)
                         newList.add(objMethods.at(i).name());
 
-                    __DefaultLoopSymbol = arg1;
+                    State.DefaultLoopSymbol = arg1;
                     successfulFor(newList);
                 }
                 else if (objectExists(_b) && _a == "get_variables")
@@ -7153,14 +7150,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     for (int i = 0; i < (int)objVars.size(); i++)
                         newList.add(objVars.at(i).name());
 
-                    __DefaultLoopSymbol = arg1;
+                    State.DefaultLoopSymbol = arg1;
                     successfulFor(newList);
                 }
                 else if (variableExists(_b) && _a == "length")
                 {
                     if (isString(_b))
                     {
-                        __DefaultLoopSymbol = arg1;
+                        State.DefaultLoopSymbol = arg1;
                         List newList;
                         string _t = variables.at(indexOfVariable(_b)).getString();
                         int _l = _t.length();
@@ -7183,33 +7180,33 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             if (_a == "get_dirs")
                             {
-                                if (directoryExists(variables.at(indexOfVariable(_b)).getString()))
+                                if (Env::directoryExists(variables.at(indexOfVariable(_b)).getString()))
                                 {
-                                    __DefaultLoopSymbol = arg1;
+                                    State.DefaultLoopSymbol = arg1;
                                     successfulFor(getDirectoryList(_b, false));
                                 }
                                 else
                                 {
-                                    error(READ_FAIL, variables.at(indexOfVariable(_b)).getString(), false);
+                                    error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(_b)).getString(), false);
                                     failedFor();
                                 }
                             }
                             else if (_a == "get_files")
                             {
-                                if (directoryExists(variables.at(indexOfVariable(_b)).getString()))
+                                if (Env::directoryExists(variables.at(indexOfVariable(_b)).getString()))
                                 {
-                                    __DefaultLoopSymbol = arg1;
+                                    State.DefaultLoopSymbol = arg1;
                                     successfulFor(getDirectoryList(_b, true));
                                 }
                                 else
                                 {
-                                    error(READ_FAIL, variables.at(indexOfVariable(_b)).getString(), false);
+                                    error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(_b)).getString(), false);
                                     failedFor();
                                 }
                             }
                             else if (_a == "read")
                             {
-                                if (fileExists(variables.at(indexOfVariable(_b)).getString()))
+                                if (Env::fileExists(variables.at(indexOfVariable(_b)).getString()))
                                 {
                                     List newList;
 
@@ -7226,25 +7223,25 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                                         file.close();
 
-                                        __DefaultLoopSymbol = arg1;
+                                        State.DefaultLoopSymbol = arg1;
                                         successfulFor(newList);
                                     }
                                     else
                                     {
-                                        error(READ_FAIL, variables.at(indexOfVariable(_b)).getString(), false);
+                                        error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(_b)).getString(), false);
                                         failedFor();
                                     }
                                 }
                             }
                             else
                             {
-                                error(METHOD_UNDEFINED, _a, false);
+                                error(ErrorMessage::METHOD_UNDEFINED, _a, false);
                                 failedFor();
                             }
                         }
                         else
                         {
-                            error(VAR_UNDEFINED, _b, false);
+                            error(ErrorMessage::VAR_UNDEFINED, _b, false);
                             failedFor();
                         }
                     }
@@ -7252,13 +7249,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             }
             else
             {
-                error(INVALID_OP, s, false);
+                error(ErrorMessage::INVALID_OP, s, false);
                 failedFor();
             }
         }
         else
         {
-            error(INVALID_OP, s, false);
+            error(ErrorMessage::INVALID_OP, s, false);
             failedFor();
         }
     }
@@ -7269,16 +7266,16 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             if (isNumber(arg1) && isNumber(arg3))
             {
                 if (arg2 == "<" || arg2 == "<=" || arg2 == ">=" || arg2 == ">" || arg2 == "==" || arg2 == "!=")
-                    successfullWhile(arg1, arg2, arg3);
+                    successfulWhile(arg1, arg2, arg3);
                 else
                 {
-                    error(INVALID_OP, s, false);
+                    error(ErrorMessage::INVALID_OP, s, false);
                     failedWhile();
                 }
             }
             else
             {
-                error(CONV_ERR, arg1 + arg2 + arg3, false);
+                error(ErrorMessage::CONV_ERR, arg1 + arg2 + arg3, false);
                 failedWhile();
             }
         }
@@ -7287,37 +7284,37 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             if (isNumber(arg1))
             {
                 if (arg2 == "<" || arg2 == "<=" || arg2 == ">=" || arg2 == ">" || arg2 == "==" || arg2 == "!=")
-                    successfullWhile(arg1, arg2, arg3);
+                    successfulWhile(arg1, arg2, arg3);
                 else
                 {
-                    error(INVALID_OP, s, false);
+                    error(ErrorMessage::INVALID_OP, s, false);
                     failedWhile();
                 }
             }
             else
             {
-                error(CONV_ERR, arg1 + arg2 + arg3, false);
+                error(ErrorMessage::CONV_ERR, arg1 + arg2 + arg3, false);
                 failedWhile();
             }
         }
         else if (isNumeric(arg1) && isNumeric(arg3))
         {
             if (arg2 == "<" || arg2 == "<=" || arg2 == ">=" || arg2 == ">" || arg2 == "==" || arg2 == "!=")
-                successfullWhile(arg1, arg2, arg3);
+                successfulWhile(arg1, arg2, arg3);
             else
             {
-                error(INVALID_OP, s, false);
+                error(ErrorMessage::INVALID_OP, s, false);
                 failedWhile();
             }
         }
         else
         {
-            error(INVALID_OP, s, false);
+            error(ErrorMessage::INVALID_OP, s, false);
             failedWhile();
         }
     }
     else
-        sysExec(s, command);
+        Env::sysExec(s, command);
 }
 
 #endif
