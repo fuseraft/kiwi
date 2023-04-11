@@ -243,9 +243,9 @@ void parse(string s)
                     string switch_value("");
 
                     if (isString(State.SwitchVarName))
-                        switch_value = variables.at(indexOfVariable(State.SwitchVarName)).getString();
+                        switch_value = varString(State.SwitchVarName);
                     else if (isNumber(State.SwitchVarName))
-                        switch_value = dtos(variables.at(indexOfVariable(State.SwitchVarName)).getNumber());
+                        switch_value = varNumberString(State.SwitchVarName);
                     else
                         switch_value = "";
 
@@ -323,7 +323,7 @@ void parse(string s)
                                 State.DefiningLocalWhileLoop = false;
 
                                 if (State.DefiningObject)
-                                    objects.at(indexOfObject(State.CurrentObject)).addToCurrentMethod(s);
+                                    getObject(State.CurrentObject).addToCurrentMethod(s);
                                 else
                                     methods.at(methods.size() - 1).add(s);
                             }
@@ -332,7 +332,7 @@ void parse(string s)
                                 State.DefiningLocalSwitchBlock = false;
 
                                 if (State.DefiningObject)
-                                    objects.at(indexOfObject(State.CurrentObject)).addToCurrentMethod(s);
+                                    getObject(State.CurrentObject).addToCurrentMethod(s);
                                 else
                                     methods.at(methods.size() - 1).add(s);
                             }
@@ -373,9 +373,9 @@ void parse(string s)
                                 if (variableExists(words.at(z)))
                                 {
                                     if (isString(words.at(z)))
-                                        freshLine.append(variables.at(indexOfVariable(words.at(z))).getString());
+                                        freshLine.append(varString(words.at(z)));
                                     else if (isNumber(words.at(z)))
-                                        freshLine.append(dtos(variables.at(indexOfVariable(words.at(z))).getNumber()));
+                                        freshLine.append(varNumberString(words.at(z)));
                                 }
                                 else
                                     freshLine.append(words.at(z));
@@ -386,14 +386,14 @@ void parse(string s)
 
                             if (State.DefiningObject)
                             {
-                                objects.at(indexOfObject(State.CurrentObject)).addToCurrentMethod(freshLine);
+                                getObject(State.CurrentObject).addToCurrentMethod(freshLine);
 
                                 if (State.DefiningPublicCode)
-                                    objects.at(indexOfObject(State.CurrentObject)).setPublic();
+                                    getObject(State.CurrentObject).setPublic();
                                 else if (State.DefiningPrivateCode)
-                                    objects.at(indexOfObject(State.CurrentObject)).setPrivate();
+                                    getObject(State.CurrentObject).setPrivate();
                                 else
-                                    objects.at(indexOfObject(State.CurrentObject)).setPublic();
+                                    getObject(State.CurrentObject).setPublic();
                             }
                             else
                                 methods.at(methods.size() - 1).add(freshLine);
@@ -550,7 +550,7 @@ void parse(string s)
                             {
                                 if (op == "==")
                                 {
-                                    while (variables.at(indexOfVariable(v1)).getNumber() == variables.at(indexOfVariable(v2)).getNumber())
+                                    while (varNumber(v1) == varNumber(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -564,7 +564,7 @@ void parse(string s)
                                 }
                                 else if (op == "<")
                                 {
-                                    while (variables.at(indexOfVariable(v1)).getNumber() < variables.at(indexOfVariable(v2)).getNumber())
+                                    while (varNumber(v1) < varNumber(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -578,7 +578,7 @@ void parse(string s)
                                 }
                                 else if (op == ">")
                                 {
-                                    while (variables.at(indexOfVariable(v1)).getNumber() > variables.at(indexOfVariable(v2)).getNumber())
+                                    while (varNumber(v1) > varNumber(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -592,7 +592,7 @@ void parse(string s)
                                 }
                                 else if (op == "<=")
                                 {
-                                    while (variables.at(indexOfVariable(v1)).getNumber() <= variables.at(indexOfVariable(v2)).getNumber())
+                                    while (varNumber(v1) <= varNumber(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -606,7 +606,7 @@ void parse(string s)
                                 }
                                 else if (op == ">=")
                                 {
-                                    while (variables.at(indexOfVariable(v1)).getNumber() >= variables.at(indexOfVariable(v2)).getNumber())
+                                    while (varNumber(v1) >= varNumber(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -620,7 +620,7 @@ void parse(string s)
                                 }
                                 else if (op == "!=")
                                 {
-                                    while (variables.at(indexOfVariable(v1)).getNumber() != variables.at(indexOfVariable(v2)).getNumber())
+                                    while (varNumber(v1) != varNumber(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -637,7 +637,7 @@ void parse(string s)
                             {
                                 if (op == "==")
                                 {
-                                    while (variables.at(indexOfVariable(v1)).getNumber() == stoi(v2))
+                                    while (varNumber(v1) == stoi(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -651,7 +651,7 @@ void parse(string s)
                                 }
                                 else if (op == "<")
                                 {
-                                    while (variables.at(indexOfVariable(v1)).getNumber() < stoi(v2))
+                                    while (varNumber(v1) < stoi(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -665,7 +665,7 @@ void parse(string s)
                                 }
                                 else if (op == ">")
                                 {
-                                    while (variables.at(indexOfVariable(v1)).getNumber() > stoi(v2))
+                                    while (varNumber(v1) > stoi(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -679,7 +679,7 @@ void parse(string s)
                                 }
                                 else if (op == "<=")
                                 {
-                                    while (variables.at(indexOfVariable(v1)).getNumber() <= stoi(v2))
+                                    while (varNumber(v1) <= stoi(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -693,7 +693,7 @@ void parse(string s)
                                 }
                                 else if (op == ">=")
                                 {
-                                    while (variables.at(indexOfVariable(v1)).getNumber() >= stoi(v2))
+                                    while (varNumber(v1) >= stoi(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -707,7 +707,7 @@ void parse(string s)
                                 }
                                 else if (op == "!=")
                                 {
-                                    while (variables.at(indexOfVariable(v1)).getNumber() != stoi(v2))
+                                    while (varNumber(v1) != stoi(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -762,24 +762,24 @@ void parse(string s)
                                         {
                                             s = subtractChar(s, "\"");
 
-                                            if (objects.at(indexOfObject(before)).methodExists(beforeParams(after)))
-                                                executeTemplate(objects.at(indexOfObject(before)).getMethod(beforeParams(after)), getParams(after));
+                                            if (getObject(before).methodExists(beforeParams(after)))
+                                                executeTemplate(getObject(before).getMethod(beforeParams(after)), getParams(after));
                                             else
                                                 Env::sysExec(s, command);
                                         }
-                                        else if (objects.at(indexOfObject(before)).methodExists(after))
-                                            executeMethod(objects.at(indexOfObject(before)).getMethod(after));
-                                        else if (objects.at(indexOfObject(before)).variableExists(after))
+                                        else if (getObject(before).methodExists(after))
+                                            executeMethod(getObject(before).getMethod(after));
+                                        else if (getObject(before).variableExists(after))
                                         {
-                                            if (objects.at(indexOfObject(before)).getVariable(after).getString() != State.Null)
-                                                writeline(objects.at(indexOfObject(before)).getVariable(after).getString());
-                                            else if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != State.NullNum)
-                                                writeline(dtos(objects.at(indexOfObject(before)).getVariable(after).getNumber()));
+                                            if (getObject(before).getVariable(after).getString() != State.Null)
+                                                writeline(getObject(before).getVariable(after).getString());
+                                            else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
+                                                writeline(dtos(getObject(before).getVariable(after).getNumber()));
                                             else
                                                 error(ErrorMessage::IS_NULL, "", false);
                                         }
                                         else if (after == "clear")
-                                            objects.at(indexOfObject(before)).clear();
+                                            getObject(before).clear();
                                         else
                                             error(ErrorMessage::UNDEFINED, "", false);
                                     }
@@ -798,18 +798,18 @@ void parse(string s)
                                         {
                                             // REFACTOR HERE
                                             if (after == "clear")
-                                                lists.at(indexOfList(before)).clear();
+                                                getList(before).clear();
                                             else if (after == "sort")
-                                                lists.at(indexOfList(before)).listSort();
+                                                getList(before).listSort();
                                             else if (after == "reverse")
-                                                lists.at(indexOfList(before)).listReverse();
+                                                getList(before).listReverse();
                                             else if (after == "revert")
-                                                lists.at(indexOfList(before)).listRevert();
+                                                getList(before).listRevert();
                                         }
                                         else if (before == "self")
                                         {
                                             if (State.ExecutedMethod)
-                                                executeMethod(objects.at(indexOfObject(State.CurrentMethodObject)).getMethod(after));
+                                                executeMethod(getObject(State.CurrentMethodObject).getMethod(after));
                                         }
                                         else
                                             Env::sysExec(s, command);
@@ -1139,9 +1139,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
 				}
 			} else {
 				if (isString(arg1)) {
-					tmpValue = getVariable(arg1).getString();
+					tmpValue = varString(arg1);
 				} else if (isNumber(arg1)) {
-					tmpValue = getVariable(arg1).getNumber();
+					tmpValue = varNumber(arg1);
 				} else {
 					// error(ErrorMessage::IS_NULL, arg1, true);
 				}
@@ -1199,9 +1199,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         if (variableExists(arg1))
         {
             if (isString(arg1))
-                IO::printerrln(variables.at(indexOfVariable(arg1)).getString());
+                IO::printerrln(varString(arg1));
             else if (isNumber(arg1))
-                IO::printerrln(dtos(variables.at(indexOfVariable(arg1)).getNumber()));
+                IO::printerrln(dtos(varNumber(arg1)));
             else
                 error(ErrorMessage::IS_NULL, arg1, false);
         }
@@ -1253,14 +1253,14 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     else if (arg0 == "see_string")
     {
         if (variableExists(arg1))
-            write(variables.at(indexOfVariable(arg1)).getString());
+            write(varString(arg1));
         else
             error(ErrorMessage::VAR_UNDEFINED, arg1, false);
     }
     else if (arg0 == "see_number")
     {
         if (variableExists(arg1))
-            write(dtos(variables.at(indexOfVariable(arg1)).getNumber()));
+            write(dtos(varNumber(arg1)));
         else
             error(ErrorMessage::VAR_UNDEFINED, arg1, false);
     }
@@ -1270,14 +1270,14 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (isString(arg1))
             {
-                if (!Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
+                if (!Env::fileExists(varString(arg1)))
                 {
-                    Env::createFile(variables.at(indexOfVariable(arg1)).getString());
+                    Env::createFile(varString(arg1));
                     State.DefiningScript = true;
-                    State.CurrentScriptName = variables.at(indexOfVariable(arg1)).getString();
+                    State.CurrentScriptName = varString(arg1);
                 }
                 else
-                    error(ErrorMessage::FILE_EXISTS, variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(ErrorMessage::FILE_EXISTS, varString(arg1), false);
             }
         }
         else if (!Env::fileExists(arg1))
@@ -1337,10 +1337,10 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (isString(arg1))
             {
-                if (Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
-                    Env::cd(variables.at(indexOfVariable(arg1)).getString());
+                if (Env::directoryExists(varString(arg1)))
+                    Env::cd(varString(arg1));
                 else
-                    error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(ErrorMessage::READ_FAIL, varString(arg1), false);
             }
             else
                 error(ErrorMessage::NULL_STRING, arg1, false);
@@ -1358,7 +1358,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     else if (arg0 == "list")
     {
         if (listExists(arg1))
-            lists.at(indexOfList(arg1)).clear();
+            getList(arg1).clear();
         else
         {
             List newList(arg1);
@@ -1376,7 +1376,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         if (variableExists(arg1))
         {
             if (isString(arg1))
-                parse(variables.at(indexOfVariable(arg1)).getString().c_str());
+                parse(varString(arg1).c_str());
             else
                 error(ErrorMessage::IS_NULL, arg1, false);
         }
@@ -1388,7 +1388,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         if (variableExists(arg1))
         {
             if (isString(arg1))
-                Env::sysExec(variables.at(indexOfVariable(arg1)).getString(), command);
+                Env::sysExec(varString(arg1), command);
             else
                 error(ErrorMessage::IS_NULL, arg1, false);
         }
@@ -1401,9 +1401,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (isString(arg1))
             {
-                if (Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
+                if (Env::directoryExists(varString(arg1)))
                 {
-                    NoctisEnv.InitialDirectory = variables.at(indexOfVariable(arg1)).getString();
+                    NoctisEnv.InitialDirectory = varString(arg1);
                     Env::cd(NoctisEnv.InitialDirectory);
                 }
                 else
@@ -1433,7 +1433,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (objects.at(indexOfObject(before)).methodExists(after))
+            if (getObject(before).methodExists(after))
                 __true();
             else
                 __false();
@@ -1457,7 +1457,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (objects.at(indexOfObject(before)).variableExists(after))
+            if (getObject(before).variableExists(after))
                 __true();
             else
                 __false();
@@ -1481,9 +1481,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (objects.at(indexOfObject(before)).variableExists(after))
+            if (getObject(before).variableExists(after))
             {
-                if (Env::directoryExists(objects.at(indexOfObject(before)).getVariable(after).getString()))
+                if (Env::directoryExists(getObject(before).getVariable(after).getString()))
                     __true();
                 else
                     __false();
@@ -1497,7 +1497,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             {
                 if (isString(arg1))
                 {
-                    if (Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
+                    if (Env::directoryExists(varString(arg1)))
                         __true();
                     else
                         __false();
@@ -1518,9 +1518,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (objects.at(indexOfObject(before)).variableExists(after))
+            if (getObject(before).variableExists(after))
             {
-                if (Env::fileExists(objects.at(indexOfObject(before)).getVariable(after).getString()))
+                if (Env::fileExists(getObject(before).getVariable(after).getString()))
                     __true();
                 else
                     __false();
@@ -1534,7 +1534,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             {
                 if (isString(arg1))
                 {
-                    if (Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
+                    if (Env::fileExists(varString(arg1)))
                         __true();
                     else
                         __false();
@@ -1555,7 +1555,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (variableExists(arg1))
         {
-            if (variables.at(indexOfVariable(arg1)).garbage())
+            if (getVar(arg1).garbage())
                 __true();
             else
                 __false();
@@ -1567,9 +1567,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (objects.at(indexOfObject(before)).variableExists(after))
+            if (getObject(before).variableExists(after))
             {
-                if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != State.NullNum)
+                if (getObject(before).getVariable(after).getNumber() != State.NullNum)
                     __true();
                 else
                     __false();
@@ -1599,9 +1599,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (objects.at(indexOfObject(before)).variableExists(after))
+            if (getObject(before).variableExists(after))
             {
-                if (objects.at(indexOfObject(before)).getVariable(after).getString() != State.Null)
+                if (getObject(before).getVariable(after).getString() != State.Null)
                     __true();
                 else
                     __false();
@@ -1631,9 +1631,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (objects.at(indexOfObject(before)).variableExists(after))
+            if (getObject(before).variableExists(after))
             {
-                if (isUpper(objects.at(indexOfObject(before)).getVariable(after).getString()))
+                if (isUpper(getObject(before).getVariable(after).getString()))
                     __true();
                 else
                     __false();
@@ -1647,7 +1647,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             {
                 if (isString(arg1))
                 {
-                    if (isUpper(variables.at(indexOfVariable(arg1)).getString()))
+                    if (isUpper(varString(arg1)))
                         __true();
                     else
                         __false();
@@ -1673,9 +1673,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (objects.at(indexOfObject(before)).variableExists(after))
+            if (getObject(before).variableExists(after))
             {
-                if (isLower(objects.at(indexOfObject(before)).getVariable(after).getString()))
+                if (isLower(getObject(before).getVariable(after).getString()))
                     __true();
                 else
                     __false();
@@ -1689,7 +1689,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             {
                 if (isString(arg1))
                 {
-                    if (isLower(variables.at(indexOfVariable(arg1)).getString()))
+                    if (isLower(varString(arg1)))
                         __true();
                     else
                         __false();
@@ -1737,16 +1737,16 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     else if (arg0 == "lock")
     {
         if (variableExists(arg1))
-            variables.at(indexOfVariable(arg1)).setIndestructible();
+            getVar(arg1).setIndestructible();
         else if (methodExists(arg1))
-            methods.at(indexOfMethod(arg1)).setIndestructible();
+            getMethod(arg1).setIndestructible();
     }
     else if (arg0 == "unlock")
     {
         if (variableExists(arg1))
-            variables.at(indexOfVariable(arg1)).setDestructible();
+            getVar(arg1).setDestructible();
         else if (methodExists(arg1))
-            methods.at(indexOfMethod(arg1)).setDestructible();
+            getMethod(arg1).setDestructible();
     }
     else if (arg0 == "method" || arg0 == "[method]")
     {
@@ -1766,10 +1766,10 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (isString(arg1))
             {
-                if (!Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
-                    Env::createFile(variables.at(indexOfVariable(arg1)).getString());
+                if (!Env::fileExists(varString(arg1)))
+                    Env::createFile(varString(arg1));
                 else
-                    error(ErrorMessage::FILE_EXISTS, variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(ErrorMessage::FILE_EXISTS, varString(arg1), false);
             }
             else
                 error(ErrorMessage::NULL_STRING, arg1, false);
@@ -1788,10 +1788,10 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (isString(arg1))
             {
-                if (Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
-                    Env::rm(variables.at(indexOfVariable(arg1)).getString());
+                if (Env::fileExists(varString(arg1)))
+                    Env::rm(varString(arg1));
                 else
-                    error(ErrorMessage::FILE_NOT_FOUND, variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(ErrorMessage::FILE_NOT_FOUND, varString(arg1), false);
             }
             else
                 error(ErrorMessage::NULL_STRING, arg1, false);
@@ -1810,10 +1810,10 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (isString(arg1))
             {
-                if (!Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
-                    Env::md(variables.at(indexOfVariable(arg1)).getString());
+                if (!Env::directoryExists(varString(arg1)))
+                    Env::md(varString(arg1));
                 else
-                    error(ErrorMessage::DIR_EXISTS, variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(ErrorMessage::DIR_EXISTS, varString(arg1), false);
             }
             else
                 error(ErrorMessage::NULL_STRING, arg1, false);
@@ -1832,10 +1832,10 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             if (isString(arg1))
             {
-                if (Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
-                    Env::rd(variables.at(indexOfVariable(arg1)).getString());
+                if (Env::directoryExists(varString(arg1)))
+                    Env::rd(varString(arg1));
                 else
-                    error(ErrorMessage::DIR_NOT_FOUND, variables.at(indexOfVariable(arg1)).getString(), false);
+                    error(ErrorMessage::DIR_NOT_FOUND, varString(arg1), false);
             }
             else
                 error(ErrorMessage::NULL_STRING, arg1, false);
@@ -1913,7 +1913,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (arg2 == "=")
                 {
-                    vector<Method> objectMethods = objects.at(indexOfObject(arg3)).getMethods();
+                    vector<Method> objectMethods = getObject(arg3).getMethods();
                     Object newObject(arg1);
 
                     for (int i = 0; i < (int)objectMethods.size(); i++)
@@ -1947,9 +1947,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (variableExists(arg1))
                 {
                     if (isString(arg1))
-                        testString = variables.at(indexOfVariable(arg1)).getString();
+                        testString = varString(arg1);
                     else if (isNumber(arg1))
-                        testString = dtos(variables.at(indexOfVariable(arg1)).getNumber());
+                        testString = dtos(varNumber(arg1));
                     else
                         error(ErrorMessage::IS_NULL, arg1, false);
                 }
@@ -1959,9 +1959,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (testString != "[none]")
                 {
                     bool elementFound = false;
-                    for (int i = 0; i < (int)lists.at(indexOfList(arg3)).size(); i++)
+                    for (int i = 0; i < (int)getList(arg3).size(); i++)
                     {
-                        if (lists.at(indexOfList(arg3)).at(i) == testString)
+                        if (getList(arg3).at(i) == testString)
                         {
                             elementFound = true;
                             setFalseIf();
@@ -1983,63 +1983,63 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (arg2 == "==")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getString() == variables.at(indexOfVariable(arg3)).getString())
+                    if (varString(arg1) == varString(arg3))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "!=")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getString() != variables.at(indexOfVariable(arg3)).getString())
+                    if (varString(arg1) != varString(arg3))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == ">")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getString().length() > variables.at(indexOfVariable(arg3)).getString().length())
+                    if (varString(arg1).length() > varString(arg3).length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "<")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getString().length() < variables.at(indexOfVariable(arg3)).getString().length())
+                    if (varString(arg1).length() < varString(arg3).length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "<=")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getString().length() <= variables.at(indexOfVariable(arg3)).getString().length())
+                    if (varString(arg1).length() <= varString(arg3).length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == ">=")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getString().length() >= variables.at(indexOfVariable(arg3)).getString().length())
+                    if (varString(arg1).length() >= varString(arg3).length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "contains")
                 {
-                    if (contains(variables.at(indexOfVariable(arg1)).getString(), variables.at(indexOfVariable(arg3)).getString()))
+                    if (contains(varString(arg1), varString(arg3)))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "ends_with")
                 {
-                    if (endsWith(variables.at(indexOfVariable(arg1)).getString(), variables.at(indexOfVariable(arg3)).getString()))
+                    if (endsWith(varString(arg1), varString(arg3)))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "begins_with")
                 {
-                    if (startsWith(variables.at(indexOfVariable(arg1)).getString(), variables.at(indexOfVariable(arg3)).getString()))
+                    if (startsWith(varString(arg1), varString(arg3)))
                         setFalseIf();
                     else
                         setTrueIf();
@@ -2054,42 +2054,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (arg2 == "==")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() == variables.at(indexOfVariable(arg3)).getNumber())
+                    if (varNumber(arg1) == varNumber(arg3))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "!=")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() != variables.at(indexOfVariable(arg3)).getNumber())
+                    if (varNumber(arg1) != varNumber(arg3))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == ">")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() > variables.at(indexOfVariable(arg3)).getNumber())
+                    if (varNumber(arg1) > varNumber(arg3))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == ">=")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() >= variables.at(indexOfVariable(arg3)).getNumber())
+                    if (varNumber(arg1) >= varNumber(arg3))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "<")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() < variables.at(indexOfVariable(arg3)).getNumber())
+                    if (varNumber(arg1) < varNumber(arg3))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "<=")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() <= variables.at(indexOfVariable(arg3)).getNumber())
+                    if (varNumber(arg1) <= varNumber(arg3))
                         setFalseIf();
                     else
                         setTrueIf();
@@ -2114,42 +2114,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (arg2 == "==")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() == stod(arg3))
+                        if (varNumber(arg1) == stod(arg3))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() != stod(arg3))
+                        if (varNumber(arg1) != stod(arg3))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() > stod(arg3))
+                        if (varNumber(arg1) > stod(arg3))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() < stod(arg3))
+                        if (varNumber(arg1) < stod(arg3))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() >= stod(arg3))
+                        if (varNumber(arg1) >= stod(arg3))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() <= stod(arg3))
+                        if (varNumber(arg1) <= stod(arg3))
                             setFalseIf();
                         else
                             setTrueIf();
@@ -2227,14 +2227,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         if (arg2 == "==")
                         {
-                            if (isUpper(variables.at(indexOfVariable(arg1)).getString()))
+                            if (isUpper(varString(arg1)))
                                 setFalseIf();
                             else
                                 setTrueIf();
                         }
                         else if (arg2 == "!=")
                         {
-                            if (isUpper(variables.at(indexOfVariable(arg1)).getString()))
+                            if (isUpper(varString(arg1)))
                                 setTrueIf();
                             else
                                 setFalseIf();
@@ -2264,14 +2264,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         if (arg2 == "==")
                         {
-                            if (isLower(variables.at(indexOfVariable(arg1)).getString()))
+                            if (isLower(varString(arg1)))
                                 setFalseIf();
                             else
                                 setTrueIf();
                         }
                         else if (arg2 == "!=")
                         {
-                            if (isLower(variables.at(indexOfVariable(arg1)).getString()))
+                            if (isLower(varString(arg1)))
                                 setTrueIf();
                             else
                                 setFalseIf();
@@ -2299,7 +2299,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
+                        if (Env::fileExists(varString(arg1)))
                         {
                             if (arg2 == "==")
                                 setFalseIf();
@@ -2329,7 +2329,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
+                        if (Env::directoryExists(varString(arg1)))
                         {
                             if (arg2 == "==")
                                 setFalseIf();
@@ -2359,63 +2359,63 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (arg2 == "==")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString() == arg3)
+                        if (varString(arg1) == arg3)
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString() != arg3)
+                        if (varString(arg1) != arg3)
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString().length() > arg3.length())
+                        if (varString(arg1).length() > arg3.length())
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString().length() < arg3.length())
+                        if (varString(arg1).length() < arg3.length())
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString().length() >= arg3.length())
+                        if (varString(arg1).length() >= arg3.length())
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString().length() <= arg3.length())
+                        if (varString(arg1).length() <= arg3.length())
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "contains")
                     {
-                        if (contains(variables.at(indexOfVariable(arg1)).getString(), arg3))
+                        if (contains(varString(arg1), arg3))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "ends_with")
                     {
-                        if (endsWith(variables.at(indexOfVariable(arg1)).getString(), arg3))
+                        if (endsWith(varString(arg1), arg3))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "begins_with")
                     {
-                        if (startsWith(variables.at(indexOfVariable(arg1)).getString(), arg3))
+                        if (startsWith(varString(arg1), arg3))
                             setFalseIf();
                         else
                             setTrueIf();
@@ -2445,42 +2445,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (arg2 == "==")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() == stod(stackValue))
+                        if (varNumber(arg1) == stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() != stod(stackValue))
+                        if (varNumber(arg1) != stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() > stod(stackValue))
+                        if (varNumber(arg1) > stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() < stod(stackValue))
+                        if (varNumber(arg1) < stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() >= stod(stackValue))
+                        if (varNumber(arg1) >= stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() <= stod(stackValue))
+                        if (varNumber(arg1) <= stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
@@ -2558,14 +2558,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         if (arg2 == "==")
                         {
-                            if (isUpper(variables.at(indexOfVariable(arg1)).getString()))
+                            if (isUpper(varString(arg1)))
                                 setFalseIf();
                             else
                                 setTrueIf();
                         }
                         else if (arg2 == "!=")
                         {
-                            if (isUpper(variables.at(indexOfVariable(arg1)).getString()))
+                            if (isUpper(varString(arg1)))
                                 setTrueIf();
                             else
                                 setFalseIf();
@@ -2595,14 +2595,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         if (arg2 == "==")
                         {
-                            if (isLower(variables.at(indexOfVariable(arg1)).getString()))
+                            if (isLower(varString(arg1)))
                                 setFalseIf();
                             else
                                 setTrueIf();
                         }
                         else if (arg2 == "!=")
                         {
-                            if (isLower(variables.at(indexOfVariable(arg1)).getString()))
+                            if (isLower(varString(arg1)))
                                 setTrueIf();
                             else
                                 setFalseIf();
@@ -2630,7 +2630,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
+                        if (Env::fileExists(varString(arg1)))
                         {
                             if (arg2 == "==")
                                 setFalseIf();
@@ -2660,7 +2660,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
+                        if (Env::directoryExists(varString(arg1)))
                         {
                             if (arg2 == "==")
                                 setFalseIf();
@@ -2690,63 +2690,63 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (arg2 == "==")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString() == stackValue)
+                        if (varString(arg1) == stackValue)
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString() != stackValue)
+                        if (varString(arg1) != stackValue)
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString().length() > stackValue.length())
+                        if (varString(arg1).length() > stackValue.length())
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString().length() < stackValue.length())
+                        if (varString(arg1).length() < stackValue.length())
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString().length() >= stackValue.length())
+                        if (varString(arg1).length() >= stackValue.length())
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString().length() <= stackValue.length())
+                        if (varString(arg1).length() <= stackValue.length())
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "contains")
                     {
-                        if (contains(variables.at(indexOfVariable(arg1)).getString(), stackValue))
+                        if (contains(varString(arg1), stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "ends_with")
                     {
-                        if (endsWith(variables.at(indexOfVariable(arg1)).getString(), stackValue))
+                        if (endsWith(varString(arg1), stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "begins_with")
                     {
-                        if (startsWith(variables.at(indexOfVariable(arg1)).getString(), stackValue))
+                        if (startsWith(varString(arg1), stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
@@ -2767,42 +2767,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (arg2 == "==")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() == stod(arg1))
+                        if (varNumber(arg3) == stod(arg1))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() != stod(arg1))
+                        if (varNumber(arg3) != stod(arg1))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() > stod(arg1))
+                        if (varNumber(arg3) > stod(arg1))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() < stod(arg1))
+                        if (varNumber(arg3) < stod(arg1))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() >= stod(arg1))
+                        if (varNumber(arg3) >= stod(arg1))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() <= stod(arg1))
+                        if (varNumber(arg3) <= stod(arg1))
                             setFalseIf();
                         else
                             setTrueIf();
@@ -2823,42 +2823,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (arg2 == "==")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString() == arg1)
+                    if (varString(arg3) == arg1)
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "!=")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString() != arg1)
+                    if (varString(arg3) != arg1)
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == ">")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString().length() > arg1.length())
+                    if (varString(arg3).length() > arg1.length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "<")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString().length() < arg1.length())
+                    if (varString(arg3).length() < arg1.length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == ">=")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString().length() >= arg1.length())
+                    if (varString(arg3).length() >= arg1.length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "<=")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString().length() <= arg1.length())
+                    if (varString(arg3).length() <= arg1.length())
                         setFalseIf();
                     else
                         setTrueIf();
@@ -2887,42 +2887,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (arg2 == "==")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() == stod(stackValue))
+                        if (varNumber(arg3) == stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() != stod(stackValue))
+                        if (varNumber(arg3) != stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() > stod(stackValue))
+                        if (varNumber(arg3) > stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() < stod(stackValue))
+                        if (varNumber(arg3) < stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() >= stod(stackValue))
+                        if (varNumber(arg3) >= stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() <= stod(stackValue))
+                        if (varNumber(arg3) <= stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
@@ -2943,42 +2943,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (arg2 == "==")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString() == stackValue)
+                    if (varString(arg3) == stackValue)
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "!=")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString() != stackValue)
+                    if (varString(arg3) != stackValue)
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == ">")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString().length() > stackValue.length())
+                    if (varString(arg3).length() > stackValue.length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "<")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString().length() < stackValue.length())
+                    if (varString(arg3).length() < stackValue.length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == ">=")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString().length() >= stackValue.length())
+                    if (varString(arg3).length() >= stackValue.length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "<=")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString().length() <= stackValue.length())
+                    if (varString(arg3).length() <= stackValue.length())
                         setFalseIf();
                     else
                         setTrueIf();
@@ -3003,13 +3003,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (objectExists(arg1before) && objectExists(arg3before))
                     {
-                        if (objects.at(indexOfObject(arg1before)).methodExists(beforeParams(arg1after)))
-                            executeTemplate(objects.at(indexOfObject(arg1before)).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (getObject(arg1before).methodExists(beforeParams(arg1after)))
+                            executeTemplate(getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
-                        if (objects.at(indexOfObject(arg3before)).methodExists(beforeParams(arg3after)))
-                            executeTemplate(objects.at(indexOfObject(arg3before)).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (getObject(arg3before).methodExists(beforeParams(arg3after)))
+                            executeTemplate(getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
@@ -3105,13 +3105,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (objectExists(arg1before))
                     {
-                        if (objects.at(indexOfObject(arg1before)).methodExists(beforeParams(arg1after)))
-                            executeTemplate(objects.at(indexOfObject(arg1before)).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (getObject(arg1before).methodExists(beforeParams(arg1after)))
+                            executeTemplate(getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
                         if (methodExists(beforeParams(arg3)))
-                            executeTemplate(methods.at(indexOfMethod(beforeParams(arg3))), getParams(arg3));
+                            executeTemplate(getMethod(beforeParams(arg3)), getParams(arg3));
 
                         arg3Result = State.LastValue;
 
@@ -3202,13 +3202,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (objectExists(arg3before))
                     {
-                        if (objects.at(indexOfObject(arg3before)).methodExists(beforeParams(arg3after)))
-                            executeTemplate(objects.at(indexOfObject(arg3before)).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (getObject(arg3before).methodExists(beforeParams(arg3after)))
+                            executeTemplate(getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
                         if (methodExists(beforeParams(arg1)))
-                            executeTemplate(methods.at(indexOfMethod(beforeParams(arg1))), getParams(arg1));
+                            executeTemplate(getMethod(beforeParams(arg1)), getParams(arg1));
 
                         arg1Result = State.LastValue;
 
@@ -3296,12 +3296,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     string arg1Result(""), arg3Result("");
 
                     if (methodExists(beforeParams(arg1)))
-                        executeTemplate(methods.at(indexOfMethod(beforeParams(arg1))), getParams(arg1));
+                        executeTemplate(getMethod(beforeParams(arg1)), getParams(arg1));
 
                     arg1Result = State.LastValue;
 
                     if (methodExists(beforeParams(arg3)))
-                        executeTemplate(methods.at(indexOfMethod(beforeParams(arg3))), getParams(arg3));
+                        executeTemplate(getMethod(beforeParams(arg3)), getParams(arg3));
 
                     arg3Result = State.LastValue;
 
@@ -3389,7 +3389,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (methodExists(beforeParams(arg1)))
                     {
-                        executeTemplate(methods.at(indexOfMethod(beforeParams(arg1))), getParams(arg1));
+                        executeTemplate(getMethod(beforeParams(arg1)), getParams(arg1));
 
                         arg1Result = State.LastValue;
 
@@ -3401,9 +3401,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         else if (variableExists(arg3))
                         {
                             if (isString(arg3))
-                                arg3Result = variables.at(indexOfVariable(arg3)).getString();
+                                arg3Result = varString(arg3);
                             else if (isNumber(arg3))
-                                arg3Result = dtos(variables.at(indexOfVariable(arg3)).getNumber());
+                                arg3Result = dtos(varNumber(arg3));
                             else
                             {
                                 pass = false;
@@ -3504,17 +3504,17 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (objectExists(arg1before))
                     {
-                        if (objects.at(indexOfObject(arg1before)).methodExists(beforeParams(arg1after)))
-                            executeTemplate(objects.at(indexOfObject(arg1before)).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (getObject(arg1before).methodExists(beforeParams(arg1after)))
+                            executeTemplate(getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
                         if (variableExists(arg3))
                         {
                             if (isString(arg3))
-                                arg3Result = variables.at(indexOfVariable(arg3)).getString();
+                                arg3Result = varString(arg3);
                             else if (isNumber(arg3))
-                                arg3Result = dtos(variables.at(indexOfVariable(arg3)).getNumber());
+                                arg3Result = dtos(varNumber(arg3));
                             else
                             {
                                 pass = false;
@@ -3624,7 +3624,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (methodExists(beforeParams(arg3)))
                     {
-                        executeTemplate(methods.at(indexOfMethod(beforeParams(arg3))), getParams(arg3));
+                        executeTemplate(getMethod(beforeParams(arg3)), getParams(arg3));
 
                         arg3Result = State.LastValue;
 
@@ -3636,9 +3636,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         else if (variableExists(arg1))
                         {
                             if (isString(arg1))
-                                arg1Result = variables.at(indexOfVariable(arg1)).getString();
+                                arg1Result = varString(arg1);
                             else if (isNumber(arg1))
-                                arg1Result = dtos(variables.at(indexOfVariable(arg1)).getNumber());
+                                arg1Result = dtos(varNumber(arg1));
                             else
                             {
                                 pass = false;
@@ -3737,17 +3737,17 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (objectExists(arg3before))
                     {
-                        if (objects.at(indexOfObject(arg3before)).methodExists(beforeParams(arg3after)))
-                            executeTemplate(objects.at(indexOfObject(arg3before)).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (getObject(arg3before).methodExists(beforeParams(arg3after)))
+                            executeTemplate(getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
                         if (variableExists(arg1))
                         {
                             if (isString(arg1))
-                                arg1Result = variables.at(indexOfVariable(arg1)).getString();
+                                arg1Result = varString(arg1);
                             else if (isNumber(arg3))
-                                arg1Result = dtos(variables.at(indexOfVariable(arg1)).getNumber());
+                                arg1Result = dtos(varNumber(arg1));
                             else
                             {
                                 error(ErrorMessage::IS_NULL, arg1, false);
@@ -3856,9 +3856,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             else if (variableExists(arg1))
             {
                 if (isString(arg1))
-                    arg1Result = variables.at(indexOfVariable(arg1)).getString();
+                    arg1Result = varString(arg1);
                 else if (isNumber(arg1))
-                    arg1Result = dtos(variables.at(indexOfVariable(arg1)).getNumber());
+                    arg1Result = dtos(varNumber(arg1));
                 else
                 {
                     error(ErrorMessage::IS_NULL, arg1, false);
@@ -3876,9 +3876,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             else if (variableExists(arg3))
             {
                 if (isString(arg3))
-                    arg3Result = variables.at(indexOfVariable(arg3)).getString();
+                    arg3Result = varString(arg3);
                 else if (isNumber(arg3))
-                    arg3Result = dtos(variables.at(indexOfVariable(arg3)).getNumber());
+                    arg3Result = dtos(varNumber(arg3));
                 else
                 {
                     error(ErrorMessage::IS_NULL, arg3, false);
@@ -4188,9 +4188,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (variableExists(arg1))
                 {
                     if (isString(arg1))
-                        testString = variables.at(indexOfVariable(arg1)).getString();
+                        testString = varString(arg1);
                     else if (isNumber(arg1))
-                        testString = dtos(variables.at(indexOfVariable(arg1)).getNumber());
+                        testString = dtos(varNumber(arg1));
                     else
                         error(ErrorMessage::IS_NULL, arg1, false);
                 }
@@ -4200,9 +4200,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (testString != "[none]")
                 {
                     bool elementFound = false;
-                    for (int i = 0; i < (int)lists.at(indexOfList(arg3)).size(); i++)
+                    for (int i = 0; i < (int)getList(arg3).size(); i++)
                     {
-                        if (lists.at(indexOfList(arg3)).at(i) == testString)
+                        if (getList(arg3).at(i) == testString)
                         {
                             elementFound = true;
                             setTrueIf();
@@ -4227,9 +4227,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (variableExists(arg3))
                 {
                     if (isString(arg3))
-                        testString = variables.at(indexOfVariable(arg3)).getString();
+                        testString = varString(arg3);
                     else if (isNumber(arg3))
-                        testString = dtos(variables.at(indexOfVariable(arg3)).getNumber());
+                        testString = dtos(varNumber(arg3));
                     else
                         error(ErrorMessage::IS_NULL, arg3, false);
                 }
@@ -4239,9 +4239,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (testString != "[none]")
                 {
                     bool elementFound = false;
-                    for (int i = 0; i < (int)lists.at(indexOfList(arg1)).size(); i++)
+                    for (int i = 0; i < (int)getList(arg1).size(); i++)
                     {
-                        if (lists.at(indexOfList(arg1)).at(i) == testString)
+                        if (getList(arg1).at(i) == testString)
                         {
                             elementFound = true;
                             setTrueIf();
@@ -4263,63 +4263,63 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (arg2 == "==")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getString() == variables.at(indexOfVariable(arg3)).getString())
+                    if (varString(arg1) == varString(arg3))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "!=")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getString() != variables.at(indexOfVariable(arg3)).getString())
+                    if (varString(arg1) != varString(arg3))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == ">")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getString().length() > variables.at(indexOfVariable(arg3)).getString().length())
+                    if (varString(arg1).length() > varString(arg3).length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "<")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getString().length() < variables.at(indexOfVariable(arg3)).getString().length())
+                    if (varString(arg1).length() < varString(arg3).length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "<=")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getString().length() <= variables.at(indexOfVariable(arg3)).getString().length())
+                    if (varString(arg1).length() <= varString(arg3).length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == ">=")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getString().length() >= variables.at(indexOfVariable(arg3)).getString().length())
+                    if (varString(arg1).length() >= varString(arg3).length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "contains")
                 {
-                    if (contains(variables.at(indexOfVariable(arg1)).getString(), variables.at(indexOfVariable(arg3)).getString()))
+                    if (contains(varString(arg1), varString(arg3)))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "ends_with")
                 {
-                    if (endsWith(variables.at(indexOfVariable(arg1)).getString(), variables.at(indexOfVariable(arg3)).getString()))
+                    if (endsWith(varString(arg1), varString(arg3)))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "begins_with")
                 {
-                    if (startsWith(variables.at(indexOfVariable(arg1)).getString(), variables.at(indexOfVariable(arg3)).getString()))
+                    if (startsWith(varString(arg1), varString(arg3)))
                         setTrueIf();
                     else
                         setFalseIf();
@@ -4334,42 +4334,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (arg2 == "==")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() == variables.at(indexOfVariable(arg3)).getNumber())
+                    if (varNumber(arg1) == varNumber(arg3))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "!=")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() != variables.at(indexOfVariable(arg3)).getNumber())
+                    if (varNumber(arg1) != varNumber(arg3))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == ">")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() > variables.at(indexOfVariable(arg3)).getNumber())
+                    if (varNumber(arg1) > varNumber(arg3))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == ">=")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() >= variables.at(indexOfVariable(arg3)).getNumber())
+                    if (varNumber(arg1) >= varNumber(arg3))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "<")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() < variables.at(indexOfVariable(arg3)).getNumber())
+                    if (varNumber(arg1) < varNumber(arg3))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "<=")
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() <= variables.at(indexOfVariable(arg3)).getNumber())
+                    if (varNumber(arg1) <= varNumber(arg3))
                         setTrueIf();
                     else
                         setFalseIf();
@@ -4394,42 +4394,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (arg2 == "==")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() == stod(arg3))
+                        if (varNumber(arg1) == stod(arg3))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() != stod(arg3))
+                        if (varNumber(arg1) != stod(arg3))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() > stod(arg3))
+                        if (varNumber(arg1) > stod(arg3))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() < stod(arg3))
+                        if (varNumber(arg1) < stod(arg3))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() >= stod(arg3))
+                        if (varNumber(arg1) >= stod(arg3))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() <= stod(arg3))
+                        if (varNumber(arg1) <= stod(arg3))
                             setTrueIf();
                         else
                             setFalseIf();
@@ -4507,14 +4507,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         if (arg2 == "==")
                         {
-                            if (isUpper(variables.at(indexOfVariable(arg1)).getString()))
+                            if (isUpper(varString(arg1)))
                                 setTrueIf();
                             else
                                 setFalseIf();
                         }
                         else if (arg2 == "!=")
                         {
-                            if (isUpper(variables.at(indexOfVariable(arg1)).getString()))
+                            if (isUpper(varString(arg1)))
                                 setFalseIf();
                             else
                                 setTrueIf();
@@ -4544,14 +4544,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         if (arg2 == "==")
                         {
-                            if (isLower(variables.at(indexOfVariable(arg1)).getString()))
+                            if (isLower(varString(arg1)))
                                 setTrueIf();
                             else
                                 setFalseIf();
                         }
                         else if (arg2 == "!=")
                         {
-                            if (isLower(variables.at(indexOfVariable(arg1)).getString()))
+                            if (isLower(varString(arg1)))
                                 setFalseIf();
                             else
                                 setTrueIf();
@@ -4579,7 +4579,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
+                        if (Env::fileExists(varString(arg1)))
                         {
                             if (arg2 == "==")
                                 setTrueIf();
@@ -4609,7 +4609,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
+                        if (Env::directoryExists(varString(arg1)))
                         {
                             if (arg2 == "==")
                                 setTrueIf();
@@ -4639,63 +4639,63 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (arg2 == "==")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString() == arg3)
+                        if (varString(arg1) == arg3)
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString() != arg3)
+                        if (varString(arg1) != arg3)
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString().length() > arg3.length())
+                        if (varString(arg1).length() > arg3.length())
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString().length() < arg3.length())
+                        if (varString(arg1).length() < arg3.length())
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString().length() >= arg3.length())
+                        if (varString(arg1).length() >= arg3.length())
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString().length() <= arg3.length())
+                        if (varString(arg1).length() <= arg3.length())
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "contains")
                     {
-                        if (contains(variables.at(indexOfVariable(arg1)).getString(), arg3))
+                        if (contains(varString(arg1), arg3))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "ends_with")
                     {
-                        if (endsWith(variables.at(indexOfVariable(arg1)).getString(), arg3))
+                        if (endsWith(varString(arg1), arg3))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "begins_with")
                     {
-                        if (startsWith(variables.at(indexOfVariable(arg1)).getString(), arg3))
+                        if (startsWith(varString(arg1), arg3))
                             setTrueIf();
                         else
                             setFalseIf();
@@ -4725,42 +4725,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (arg2 == "==")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() == stod(stackValue))
+                        if (varNumber(arg1) == stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() != stod(stackValue))
+                        if (varNumber(arg1) != stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() > stod(stackValue))
+                        if (varNumber(arg1) > stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() < stod(stackValue))
+                        if (varNumber(arg1) < stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() >= stod(stackValue))
+                        if (varNumber(arg1) >= stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getNumber() <= stod(stackValue))
+                        if (varNumber(arg1) <= stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
@@ -4838,14 +4838,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         if (arg2 == "==")
                         {
-                            if (isUpper(variables.at(indexOfVariable(arg1)).getString()))
+                            if (isUpper(varString(arg1)))
                                 setTrueIf();
                             else
                                 setFalseIf();
                         }
                         else if (arg2 == "!=")
                         {
-                            if (isUpper(variables.at(indexOfVariable(arg1)).getString()))
+                            if (isUpper(varString(arg1)))
                                 setFalseIf();
                             else
                                 setTrueIf();
@@ -4875,14 +4875,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         if (arg2 == "==")
                         {
-                            if (isLower(variables.at(indexOfVariable(arg1)).getString()))
+                            if (isLower(varString(arg1)))
                                 setTrueIf();
                             else
                                 setFalseIf();
                         }
                         else if (arg2 == "!=")
                         {
-                            if (isLower(variables.at(indexOfVariable(arg1)).getString()))
+                            if (isLower(varString(arg1)))
                                 setFalseIf();
                             else
                                 setTrueIf();
@@ -4910,7 +4910,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
+                        if (Env::fileExists(varString(arg1)))
                         {
                             if (arg2 == "==")
                                 setTrueIf();
@@ -4940,7 +4940,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(arg1))
                     {
-                        if (Env::directoryExists(variables.at(indexOfVariable(arg1)).getString()))
+                        if (Env::directoryExists(varString(arg1)))
                         {
                             if (arg2 == "==")
                                 setTrueIf();
@@ -4970,63 +4970,63 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (arg2 == "==")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString() == stackValue)
+                        if (varString(arg1) == stackValue)
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString() != stackValue)
+                        if (varString(arg1) != stackValue)
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString().length() > stackValue.length())
+                        if (varString(arg1).length() > stackValue.length())
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString().length() < stackValue.length())
+                        if (varString(arg1).length() < stackValue.length())
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString().length() >= stackValue.length())
+                        if (varString(arg1).length() >= stackValue.length())
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (variables.at(indexOfVariable(arg1)).getString().length() <= stackValue.length())
+                        if (varString(arg1).length() <= stackValue.length())
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "contains")
                     {
-                        if (contains(variables.at(indexOfVariable(arg1)).getString(), stackValue))
+                        if (contains(varString(arg1), stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "ends_with")
                     {
-                        if (endsWith(variables.at(indexOfVariable(arg1)).getString(), stackValue))
+                        if (endsWith(varString(arg1), stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "begins_with")
                     {
-                        if (startsWith(variables.at(indexOfVariable(arg1)).getString(), stackValue))
+                        if (startsWith(varString(arg1), stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
@@ -5047,42 +5047,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (arg2 == "==")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() == stod(arg1))
+                        if (varNumber(arg3) == stod(arg1))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() != stod(arg1))
+                        if (varNumber(arg3) != stod(arg1))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() > stod(arg1))
+                        if (varNumber(arg3) > stod(arg1))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() < stod(arg1))
+                        if (varNumber(arg3) < stod(arg1))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() >= stod(arg1))
+                        if (varNumber(arg3) >= stod(arg1))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() <= stod(arg1))
+                        if (varNumber(arg3) <= stod(arg1))
                             setTrueIf();
                         else
                             setFalseIf();
@@ -5103,42 +5103,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (arg2 == "==")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString() == arg1)
+                    if (varString(arg3) == arg1)
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "!=")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString() != arg1)
+                    if (varString(arg3) != arg1)
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == ">")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString().length() > arg1.length())
+                    if (varString(arg3).length() > arg1.length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "<")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString().length() < arg1.length())
+                    if (varString(arg3).length() < arg1.length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == ">=")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString().length() >= arg1.length())
+                    if (varString(arg3).length() >= arg1.length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "<=")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString().length() <= arg1.length())
+                    if (varString(arg3).length() <= arg1.length())
                         setTrueIf();
                     else
                         setFalseIf();
@@ -5167,42 +5167,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (arg2 == "==")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() == stod(stackValue))
+                        if (varNumber(arg3) == stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() != stod(stackValue))
+                        if (varNumber(arg3) != stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() > stod(stackValue))
+                        if (varNumber(arg3) > stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() < stod(stackValue))
+                        if (varNumber(arg3) < stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() >= stod(stackValue))
+                        if (varNumber(arg3) >= stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (variables.at(indexOfVariable(arg3)).getNumber() <= stod(stackValue))
+                        if (varNumber(arg3) <= stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
@@ -5223,42 +5223,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (arg2 == "==")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString() == stackValue)
+                    if (varString(arg3) == stackValue)
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "!=")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString() != stackValue)
+                    if (varString(arg3) != stackValue)
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == ">")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString().length() > stackValue.length())
+                    if (varString(arg3).length() > stackValue.length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "<")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString().length() < stackValue.length())
+                    if (varString(arg3).length() < stackValue.length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == ">=")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString().length() >= stackValue.length())
+                    if (varString(arg3).length() >= stackValue.length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "<=")
                 {
-                    if (variables.at(indexOfVariable(arg3)).getString().length() <= stackValue.length())
+                    if (varString(arg3).length() <= stackValue.length())
                         setTrueIf();
                     else
                         setFalseIf();
@@ -5283,13 +5283,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (objectExists(arg1before) && objectExists(arg3before))
                     {
-                        if (objects.at(indexOfObject(arg1before)).methodExists(beforeParams(arg1after)))
-                            executeTemplate(objects.at(indexOfObject(arg1before)).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (getObject(arg1before).methodExists(beforeParams(arg1after)))
+                            executeTemplate(getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
-                        if (objects.at(indexOfObject(arg3before)).methodExists(beforeParams(arg3after)))
-                            executeTemplate(objects.at(indexOfObject(arg3before)).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (getObject(arg3before).methodExists(beforeParams(arg3after)))
+                            executeTemplate(getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
@@ -5385,13 +5385,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (objectExists(arg1before))
                     {
-                        if (objects.at(indexOfObject(arg1before)).methodExists(beforeParams(arg1after)))
-                            executeTemplate(objects.at(indexOfObject(arg1before)).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (getObject(arg1before).methodExists(beforeParams(arg1after)))
+                            executeTemplate(getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
                         if (methodExists(beforeParams(arg3)))
-                            executeTemplate(methods.at(indexOfMethod(beforeParams(arg3))), getParams(arg3));
+                            executeTemplate(getMethod(beforeParams(arg3)), getParams(arg3));
 
                         arg3Result = State.LastValue;
 
@@ -5482,13 +5482,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (objectExists(arg3before))
                     {
-                        if (objects.at(indexOfObject(arg3before)).methodExists(beforeParams(arg3after)))
-                            executeTemplate(objects.at(indexOfObject(arg3before)).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (getObject(arg3before).methodExists(beforeParams(arg3after)))
+                            executeTemplate(getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
                         if (methodExists(beforeParams(arg1)))
-                            executeTemplate(methods.at(indexOfMethod(beforeParams(arg1))), getParams(arg1));
+                            executeTemplate(getMethod(beforeParams(arg1)), getParams(arg1));
 
                         arg1Result = State.LastValue;
 
@@ -5576,12 +5576,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     string arg1Result(""), arg3Result("");
 
                     if (methodExists(beforeParams(arg1)))
-                        executeTemplate(methods.at(indexOfMethod(beforeParams(arg1))), getParams(arg1));
+                        executeTemplate(getMethod(beforeParams(arg1)), getParams(arg1));
 
                     arg1Result = State.LastValue;
 
                     if (methodExists(beforeParams(arg3)))
-                        executeTemplate(methods.at(indexOfMethod(beforeParams(arg3))), getParams(arg3));
+                        executeTemplate(getMethod(beforeParams(arg3)), getParams(arg3));
 
                     arg3Result = State.LastValue;
 
@@ -5669,7 +5669,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (methodExists(beforeParams(arg1)))
                     {
-                        executeTemplate(methods.at(indexOfMethod(beforeParams(arg1))), getParams(arg1));
+                        executeTemplate(getMethod(beforeParams(arg1)), getParams(arg1));
 
                         arg1Result = State.LastValue;
 
@@ -5681,9 +5681,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         else if (variableExists(arg3))
                         {
                             if (isString(arg3))
-                                arg3Result = variables.at(indexOfVariable(arg3)).getString();
+                                arg3Result = varString(arg3);
                             else if (isNumber(arg3))
-                                arg3Result = dtos(variables.at(indexOfVariable(arg3)).getNumber());
+                                arg3Result = dtos(varNumber(arg3));
                             else
                             {
                                 pass = false;
@@ -5786,9 +5786,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (variableExists(arg3))
                         {
                             if (isString(arg3))
-                                comp = variables.at(indexOfVariable(arg3)).getString();
+                                comp = varString(arg3);
                             else if (isNumber(arg3))
-                                comp = dtos(variables.at(indexOfVariable(arg3)).getNumber());
+                                comp = dtos(varNumber(arg3));
                         }
                         else if (methodExists(arg3))
                         {
@@ -5890,17 +5890,17 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (objectExists(arg1before))
                     {
-                        if (objects.at(indexOfObject(arg1before)).methodExists(beforeParams(arg1after)))
-                            executeTemplate(objects.at(indexOfObject(arg1before)).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (getObject(arg1before).methodExists(beforeParams(arg1after)))
+                            executeTemplate(getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
                         if (variableExists(arg3))
                         {
                             if (isString(arg3))
-                                arg3Result = variables.at(indexOfVariable(arg3)).getString();
+                                arg3Result = varString(arg3);
                             else if (isNumber(arg3))
-                                arg3Result = dtos(variables.at(indexOfVariable(arg3)).getNumber());
+                                arg3Result = dtos(varNumber(arg3));
                             else
                             {
                                 pass = false;
@@ -6010,7 +6010,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (methodExists(beforeParams(arg3)))
                     {
-                        executeTemplate(methods.at(indexOfMethod(beforeParams(arg3))), getParams(arg3));
+                        executeTemplate(getMethod(beforeParams(arg3)), getParams(arg3));
 
                         arg3Result = State.LastValue;
 
@@ -6022,9 +6022,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         else if (variableExists(arg1))
                         {
                             if (isString(arg1))
-                                arg1Result = variables.at(indexOfVariable(arg1)).getString();
+                                arg1Result = varString(arg1);
                             else if (isNumber(arg1))
-                                arg1Result = dtos(variables.at(indexOfVariable(arg1)).getNumber());
+                                arg1Result = dtos(varNumber(arg1));
                             else
                             {
                                 pass = false;
@@ -6123,17 +6123,17 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (objectExists(arg3before))
                     {
-                        if (objects.at(indexOfObject(arg3before)).methodExists(beforeParams(arg3after)))
-                            executeTemplate(objects.at(indexOfObject(arg3before)).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (getObject(arg3before).methodExists(beforeParams(arg3after)))
+                            executeTemplate(getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
                         if (variableExists(arg1))
                         {
                             if (isString(arg1))
-                                arg1Result = variables.at(indexOfVariable(arg1)).getString();
+                                arg1Result = varString(arg1);
                             else if (isNumber(arg3))
-                                arg1Result = dtos(variables.at(indexOfVariable(arg1)).getNumber());
+                                arg1Result = dtos(varNumber(arg1));
                             else
                             {
                                 error(ErrorMessage::IS_NULL, arg1, false);
@@ -6242,9 +6242,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             else if (variableExists(arg1))
             {
                 if (isString(arg1))
-                    arg1Result = variables.at(indexOfVariable(arg1)).getString();
+                    arg1Result = varString(arg1);
                 else if (isNumber(arg1))
-                    arg1Result = dtos(variables.at(indexOfVariable(arg1)).getNumber());
+                    arg1Result = dtos(varNumber(arg1));
                 else
                 {
                     error(ErrorMessage::IS_NULL, arg1, false);
@@ -6262,9 +6262,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             else if (variableExists(arg3))
             {
                 if (isString(arg3))
-                    arg3Result = variables.at(indexOfVariable(arg3)).getString();
+                    arg3Result = varString(arg3);
                 else if (isNumber(arg3))
-                    arg3Result = dtos(variables.at(indexOfVariable(arg3)).getNumber());
+                    arg3Result = dtos(varNumber(arg3));
                 else
                 {
                     error(ErrorMessage::IS_NULL, arg3, false);
@@ -6571,8 +6571,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumber(arg1) && isNumber(arg3))
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() < variables.at(indexOfVariable(arg3)).getNumber())
-                        successfulFor(variables.at(indexOfVariable(arg1)).getNumber(), variables.at(indexOfVariable(arg3)).getNumber(), "<");
+                    if (varNumber(arg1) < varNumber(arg3))
+                        successfulFor(varNumber(arg1), varNumber(arg3), "<");
                     else
                         failedFor();
                 }
@@ -6586,8 +6586,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumber(arg1) && isNumeric(arg3))
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() < stod(arg3))
-                        successfulFor(variables.at(indexOfVariable(arg1)).getNumber(), stod(arg3), "<");
+                    if (varNumber(arg1) < stod(arg3))
+                        successfulFor(varNumber(arg1), stod(arg3), "<");
                     else
                         failedFor();
                 }
@@ -6601,8 +6601,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumeric(arg1) && isNumber(arg3))
                 {
-                    if (stod(arg1) < variables.at(indexOfVariable(arg3)).getNumber())
-                        successfulFor(stod(arg1), variables.at(indexOfVariable(arg3)).getNumber(), "<");
+                    if (stod(arg1) < varNumber(arg3))
+                        successfulFor(stod(arg1), varNumber(arg3), "<");
                     else
                         failedFor();
                 }
@@ -6634,8 +6634,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumber(arg1) && isNumber(arg3))
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() > variables.at(indexOfVariable(arg3)).getNumber())
-                        successfulFor(variables.at(indexOfVariable(arg1)).getNumber(), variables.at(indexOfVariable(arg3)).getNumber(), ">");
+                    if (varNumber(arg1) > varNumber(arg3))
+                        successfulFor(varNumber(arg1), varNumber(arg3), ">");
                     else
                         failedFor();
                 }
@@ -6649,8 +6649,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumber(arg1) && isNumeric(arg3))
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() > stod(arg3))
-                        successfulFor(variables.at(indexOfVariable(arg1)).getNumber(), stod(arg3), ">");
+                    if (varNumber(arg1) > stod(arg3))
+                        successfulFor(varNumber(arg1), stod(arg3), ">");
                     else
                         failedFor();
                 }
@@ -6664,8 +6664,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumeric(arg1) && isNumber(arg3))
                 {
-                    if (stod(arg1) > variables.at(indexOfVariable(arg3)).getNumber())
-                        successfulFor(stod(arg1), variables.at(indexOfVariable(arg3)).getNumber(), ">");
+                    if (stod(arg1) > varNumber(arg3))
+                        successfulFor(stod(arg1), varNumber(arg3), ">");
                     else
                         failedFor();
                 }
@@ -6697,8 +6697,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumber(arg1) && isNumber(arg3))
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() <= variables.at(indexOfVariable(arg3)).getNumber())
-                        successfulFor(variables.at(indexOfVariable(arg1)).getNumber(), variables.at(indexOfVariable(arg3)).getNumber(), "<=");
+                    if (varNumber(arg1) <= varNumber(arg3))
+                        successfulFor(varNumber(arg1), varNumber(arg3), "<=");
                     else
                         failedFor();
                 }
@@ -6712,8 +6712,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumber(arg1) && isNumeric(arg3))
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() <= stod(arg3))
-                        successfulFor(variables.at(indexOfVariable(arg1)).getNumber(), stod(arg3), "<=");
+                    if (varNumber(arg1) <= stod(arg3))
+                        successfulFor(varNumber(arg1), stod(arg3), "<=");
                     else
                         failedFor();
                 }
@@ -6727,8 +6727,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumeric(arg1) && isNumber(arg3))
                 {
-                    if (stod(arg1) <= variables.at(indexOfVariable(arg3)).getNumber())
-                        successfulFor(stod(arg1), variables.at(indexOfVariable(arg3)).getNumber(), "<=");
+                    if (stod(arg1) <= varNumber(arg3))
+                        successfulFor(stod(arg1), varNumber(arg3), "<=");
                     else
                         failedFor();
                 }
@@ -6760,8 +6760,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumber(arg1) && isNumber(arg3))
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() >= variables.at(indexOfVariable(arg3)).getNumber())
-                        successfulFor(variables.at(indexOfVariable(arg1)).getNumber(), variables.at(indexOfVariable(arg3)).getNumber(), ">=");
+                    if (varNumber(arg1) >= varNumber(arg3))
+                        successfulFor(varNumber(arg1), varNumber(arg3), ">=");
                     else
                         failedFor();
                 }
@@ -6775,8 +6775,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumber(arg1) && isNumeric(arg3))
                 {
-                    if (variables.at(indexOfVariable(arg1)).getNumber() >= stod(arg3))
-                        successfulFor(variables.at(indexOfVariable(arg1)).getNumber(), stod(arg3), ">=");
+                    if (varNumber(arg1) >= stod(arg3))
+                        successfulFor(varNumber(arg1), stod(arg3), ">=");
                     else
                         failedFor();
                 }
@@ -6790,8 +6790,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (isNumeric(arg1) && isNumber(arg3))
                 {
-                    if (stod(arg1) >= variables.at(indexOfVariable(arg3)).getNumber())
-                        successfulFor(stod(arg1), variables.at(indexOfVariable(arg3)).getNumber(), ">=");
+                    if (stod(arg1) >= varNumber(arg3))
+                        successfulFor(stod(arg1), varNumber(arg3), ">=");
                     else
                         failedFor();
                 }
@@ -6836,7 +6836,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     List newList;
 
-                    vector<Method> objMethods = objects.at(indexOfObject(before)).getMethods();
+                    vector<Method> objMethods = getObject(before).getMethods();
 
                     for (int i = 0; i < (int)objMethods.size(); i++)
                         newList.add(objMethods.at(i).name());
@@ -6847,7 +6847,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     List newList;
 
-                    vector<Variable> objVars = objects.at(indexOfObject(before)).getVariables();
+                    vector<Variable> objVars = getObject(before).getVariables();
 
                     for (int i = 0; i < (int)objVars.size(); i++)
                         newList.add(objVars.at(i).name());
@@ -6859,7 +6859,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (isString(before))
                     {
                         List newList;
-                        string tempVarStr = variables.at(indexOfVariable(before)).getString();
+                        string tempVarStr = varString(before);
                         int len = tempVarStr.length();
 
                         for (int i = 0; i < len; i++)
@@ -6880,31 +6880,31 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             if (after == "get_dirs")
                             {
-                                if (Env::directoryExists(variables.at(indexOfVariable(before)).getString()))
+                                if (Env::directoryExists(varString(before)))
                                     successfulFor(getDirectoryList(before, false));
                                 else
                                 {
-                                    error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
+                                    error(ErrorMessage::READ_FAIL, varString(before), false);
                                     failedFor();
                                 }
                             }
                             else if (after == "get_files")
                             {
-                                if (Env::directoryExists(variables.at(indexOfVariable(before)).getString()))
+                                if (Env::directoryExists(varString(before)))
                                     successfulFor(getDirectoryList(before, true));
                                 else
                                 {
-                                    error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
+                                    error(ErrorMessage::READ_FAIL, varString(before), false);
                                     failedFor();
                                 }
                             }
                             else if (after == "read")
                             {
-                                if (Env::fileExists(variables.at(indexOfVariable(before)).getString()))
+                                if (Env::fileExists(varString(before)))
                                 {
                                     List newList;
 
-                                    ifstream file(variables.at(indexOfVariable(before)).getString().c_str());
+                                    ifstream file(varString(before).c_str());
                                     string line("");
 
                                     if (file.is_open())
@@ -6921,7 +6921,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                     }
                                     else
                                     {
-                                        error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
+                                        error(ErrorMessage::READ_FAIL, varString(before), false);
                                         failedFor();
                                     }
                                 }
@@ -6941,7 +6941,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else
                     {
                         if (listExists(arg3))
-                            successfulFor(lists.at(indexOfList(arg3)));
+                            successfulFor(getList(arg3));
                         else
                         {
                             error(ErrorMessage::LIST_UNDEFINED, arg3, false);
@@ -6963,7 +6963,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (variableExists(firstRangeSpecifier))
                     {
                         if (isNumber(firstRangeSpecifier))
-                            firstRangeSpecifier = dtos(variables.at(indexOfVariable(firstRangeSpecifier)).getNumber());
+                            firstRangeSpecifier = varNumberString(firstRangeSpecifier);
                         else
                             failedFor();
                     }
@@ -6971,7 +6971,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (variableExists(lastRangeSpecifier))
                     {
                         if (isNumber(lastRangeSpecifier))
-                            lastRangeSpecifier = dtos(variables.at(indexOfVariable(lastRangeSpecifier)).getNumber());
+                            lastRangeSpecifier = varNumberString(lastRangeSpecifier);
                         else
                             failedFor();
                     }
@@ -7001,7 +7001,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (isString(before))
                     {
-                        string tempVarString(variables.at(indexOfVariable(before)).getString());
+                        string tempVarString(varString(before));
 
                         vector<string> range = getBracketRange(arg3);
 
@@ -7080,7 +7080,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 State.DefaultLoopSymbol = arg1;
 
-                successfulFor(lists.at(indexOfList(arg3)));
+                successfulFor(getList(arg3));
             }
             else if (!zeroDots(arg3))
             {
@@ -7133,7 +7133,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     List newList;
 
-                    vector<Method> objMethods = objects.at(indexOfObject(_b)).getMethods();
+                    vector<Method> objMethods = getObject(_b).getMethods();
 
                     for (int i = 0; i < (int)objMethods.size(); i++)
                         newList.add(objMethods.at(i).name());
@@ -7145,7 +7145,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     List newList;
 
-                    vector<Variable> objVars = objects.at(indexOfObject(_b)).getVariables();
+                    vector<Variable> objVars = getObject(_b).getVariables();
 
                     for (int i = 0; i < (int)objVars.size(); i++)
                         newList.add(objVars.at(i).name());
@@ -7159,7 +7159,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     {
                         State.DefaultLoopSymbol = arg1;
                         List newList;
-                        string _t = variables.at(indexOfVariable(_b)).getString();
+                        string _t = varString(_b);
                         int _l = _t.length();
 
                         for (int i = 0; i < _l; i++)
@@ -7180,37 +7180,37 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         {
                             if (_a == "get_dirs")
                             {
-                                if (Env::directoryExists(variables.at(indexOfVariable(_b)).getString()))
+                                if (Env::directoryExists(varString(_b)))
                                 {
                                     State.DefaultLoopSymbol = arg1;
                                     successfulFor(getDirectoryList(_b, false));
                                 }
                                 else
                                 {
-                                    error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(_b)).getString(), false);
+                                    error(ErrorMessage::READ_FAIL, varString(_b), false);
                                     failedFor();
                                 }
                             }
                             else if (_a == "get_files")
                             {
-                                if (Env::directoryExists(variables.at(indexOfVariable(_b)).getString()))
+                                if (Env::directoryExists(varString(_b)))
                                 {
                                     State.DefaultLoopSymbol = arg1;
                                     successfulFor(getDirectoryList(_b, true));
                                 }
                                 else
                                 {
-                                    error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(_b)).getString(), false);
+                                    error(ErrorMessage::READ_FAIL, varString(_b), false);
                                     failedFor();
                                 }
                             }
                             else if (_a == "read")
                             {
-                                if (Env::fileExists(variables.at(indexOfVariable(_b)).getString()))
+                                if (Env::fileExists(varString(_b)))
                                 {
                                     List newList;
 
-                                    ifstream file(variables.at(indexOfVariable(_b)).getString().c_str());
+                                    ifstream file(varString(_b).c_str());
                                     string line("");
 
                                     if (file.is_open())
@@ -7228,7 +7228,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                     }
                                     else
                                     {
-                                        error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(_b)).getString(), false);
+                                        error(ErrorMessage::READ_FAIL, varString(_b), false);
                                         failedFor();
                                     }
                                 }

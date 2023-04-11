@@ -13,67 +13,70 @@ void setList(string arg1, string arg2, vector<string> params)
     {
         executeTemplate(getMethod(beforeParams(arg2)), params);
 
-        if (containsParams(State.LastValue))
+        if (!containsParams(State.LastValue))
         {
-            vector<string> last_params = getParams(State.LastValue);
-
-            for (int i = 0; i < (int)last_params.size(); i++)
-                lists.at(indexOfList(arg1)).add(last_params.at(i));
+            getList(arg1).add(State.LastValue);
+            return;
         }
-        else
-            lists.at(indexOfList(arg1)).add(State.LastValue);
+
+        vector<string> last_params = getParams(State.LastValue);
+
+        for (int i = 0; i < (int)last_params.size(); i++)
+            getList(arg1).add(last_params.at(i));
     }
     else if (objectExists(beforeDot(beforeParams(arg2))))
     {
-        executeTemplate(objects.at(indexOfObject(beforeDot(beforeParams(arg2)))).getMethod(afterDot(beforeParams(arg2))), params);
+        executeTemplate(getObject(beforeDot(beforeParams(arg2))).getMethod(afterDot(beforeParams(arg2))), params);
 
-        if (containsParams(State.LastValue))
+        if (!containsParams(State.LastValue))
         {
-            vector<string> last_params = getParams(State.LastValue);
-
-            for (int i = 0; i < (int)last_params.size(); i++)
-                lists.at(indexOfList(arg1)).add(last_params.at(i));
+            getList(arg1).add(State.LastValue);
+            return;
         }
-        else
-            lists.at(indexOfList(arg1)).add(State.LastValue);
+
+        vector<string> last_params = getParams(State.LastValue);
+
+        for (int i = 0; i < (int)last_params.size(); i++)
+            getList(arg1).add(last_params.at(i));
     }
     else
     {
         for (int i = 0; i < (int)params.size(); i++)
         {
-            if (variableExists(params.at(i)))
+            if (!variableExists(params.at(i)))
             {
-                if (isString(params.at(i)))
-                    lists.at(indexOfList(arg1)).add(variables.at(indexOfVariable(params.at(i))).getString());
-                else if (isNumber(params.at(i)))
-                    lists.at(indexOfList(arg1)).add(dtos(variables.at(indexOfVariable(params.at(i))).getNumber()));
-                else
-                    error(ErrorMessage::IS_NULL, params.at(i), false);
+                getList(arg1).add(params.at(i));
+                return;
             }
+
+            if (isString(params.at(i)))
+                getList(arg1).add(varString(params.at(i)));
+            else if (isNumber(params.at(i)))
+                getList(arg1).add(varNumberString(params.at(i)));
             else
-                lists.at(indexOfList(arg1)).add(params.at(i));
+                error(ErrorMessage::IS_NULL, params.at(i), false);
         }
     }
 }
 
 void setVariable(string name, string value)
 {
-    variables.at(indexOfVariable(name)).setVariable(value);
+    getVar(name).setVariable(value);
     State.LastValue = value;
 }
 
 void setVariable(string name, double value)
 {
     if (isString(name))
-        variables.at(indexOfVariable(name)).setVariable(dtos(value));
+        getVar(name).setVariable(dtos(value));
     else if (isNumber(name))
-        variables.at(indexOfVariable(name)).setVariable(value);
+        getVar(name).setVariable(value);
     else
     {
-        if (variables.at(indexOfVariable(name)).waiting())
-            variables.at(indexOfVariable(name)).stopWait();
+        if (getVar(name).waiting())
+            getVar(name).stopWait();
 
-        variables.at(indexOfVariable(name)).setVariable(value);
+        getVar(name).setVariable(value);
     }
 
     State.LastValue = dtos(value);
@@ -110,18 +113,18 @@ void replaceElement(string before, string after, string replacement)
 {
     vector<string> newList;
 
-    for (int i = 0; i < (int)lists.at(indexOfList(before)).size(); i++)
+    for (int i = 0; i < (int)getList(before).size(); i++)
     {
         if (i == stoi(after))
             newList.push_back(replacement);
         else
-            newList.push_back(lists.at(indexOfList(before)).at(i));
+            newList.push_back(getList(before).at(i));
     }
 
-    lists.at(indexOfList(before)).clear();
+    getList(before).clear();
 
     for (int i = 0; i < (int)newList.size(); i++)
-        lists.at(indexOfList(before)).add(newList.at(i));
+        getList(before).add(newList.at(i));
 
     newList.clear();
 }
@@ -130,73 +133,78 @@ void appendText(string arg1, string arg2, bool newLine)
 {
     if (variableExists(arg1))
     {
-        if (isString(arg1))
+        if (!isString(arg1))
         {
-            if (Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
+            error(ErrorMessage::CONV_ERR, arg1, false);
+            return;
+        }
+
+        if (!Env::fileExists(varString(arg1)))
+        {
+            error(ErrorMessage::READ_FAIL, varString(arg1), false);
+            return;
+        }
+
+        if (variableExists(arg2))
+        {
+            if (isString(arg2))
             {
-                if (variableExists(arg2))
-                {
-                    if (isString(arg2))
-                    {
-                        if (newLine)
-                            Env::app(variables.at(indexOfVariable(arg1)).getString(), variables.at(indexOfVariable(arg2)).getString() + "\r\n");
-                        else
-                            Env::app(variables.at(indexOfVariable(arg1)).getString(), variables.at(indexOfVariable(arg2)).getString());
-                    }
-                    else if (isNumber(arg2))
-                    {
-                        if (newLine)
-                            Env::app(variables.at(indexOfVariable(arg1)).getString(), dtos(variables.at(indexOfVariable(arg2)).getNumber()) + "\r\n");
-                        else
-                            Env::app(variables.at(indexOfVariable(arg1)).getString(), dtos(variables.at(indexOfVariable(arg2)).getNumber()));
-                    }
-                    else
-                        error(ErrorMessage::IS_NULL, arg2, false);
-                }
+                if (newLine)
+                    Env::app(varString(arg1), varString(arg2) + "\r\n");
                 else
-                {
-                    if (newLine)
-                        Env::app(variables.at(indexOfVariable(arg1)).getString(), arg2 + "\r\n");
-                    else
-                        Env::app(variables.at(indexOfVariable(arg1)).getString(), arg2);
-                }
+                    Env::app(varString(arg1), varString(arg2));
+            }
+            else if (isNumber(arg2))
+            {
+                if (newLine)
+                    Env::app(varString(arg1), varNumberString(arg2) + "\r\n");
+                else
+                    Env::app(varString(arg1), varNumberString(arg2));
             }
             else
-                error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(arg1)).getString(), false);
+                error(ErrorMessage::IS_NULL, arg2, false);
         }
         else
-            error(ErrorMessage::CONV_ERR, arg1, false);
+        {
+            if (newLine)
+                Env::app(varString(arg1), arg2 + "\r\n");
+            else
+                Env::app(varString(arg1), arg2);
+        }
     }
     else
     {
         if (variableExists(arg2))
         {
-            if (isString(arg2))
+            if (!isString(arg2))
             {
-                if (Env::fileExists(arg1))
-                {
-                    if (newLine)
-                        Env::app(arg1, variables.at(indexOfVariable(arg2)).getString() + "\r\n");
-                    else
-                        Env::app(arg1, variables.at(indexOfVariable(arg2)).getString());
-                }
-                else
-                    error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(arg2)).getString(), false);
-            }
-            else
                 error(ErrorMessage::CONV_ERR, arg2, false);
+                return;
+            }
+
+            if (!Env::fileExists(arg1))
+            {
+                error(ErrorMessage::READ_FAIL, varString(arg2), false);
+                return;
+            }
+
+            if (newLine)
+                Env::app(arg1, varString(arg2) + "\r\n");
+            else
+                Env::app(arg1, varString(arg2));
         }
         else
         {
-            if (Env::fileExists(arg1))
+            if (!Env::fileExists(arg1))
             {
-                if (newLine)
-                    Env::app(arg1, arg2 + "\r\n");
-                else
-                    Env::app(arg1, arg2);
-            }
-            else
                 error(ErrorMessage::READ_FAIL, arg1, false);
+                return;
+            }
+
+            if (newLine)
+                Env::app(arg1, arg2 + "\r\n");
+            else
+                Env::app(arg1, arg2);
         }
     }
 }
@@ -207,18 +215,18 @@ void __fwrite(string arg1, string arg2)
     {
         if (isString(arg1))
         {
-            if (Env::fileExists(variables.at(indexOfVariable(arg1)).getString()))
+            if (Env::fileExists(varString(arg1)))
             {
                 if (variableExists(arg2))
                 {
                     if (isString(arg2))
                     {
-                        Env::app(variables.at(indexOfVariable(arg1)).getString(), variables.at(indexOfVariable(arg2)).getString() + "\r\n");
+                        Env::app(varString(arg1), varString(arg2) + "\r\n");
                         State.LastValue = "0";
                     }
                     else if (isNumber(arg2))
                     {
-                        Env::app(variables.at(indexOfVariable(arg1)).getString(), dtos(variables.at(indexOfVariable(arg2)).getNumber()) + "\r\n");
+                        Env::app(varString(arg1), varNumberString(arg2) + "\r\n");
                         State.LastValue = "0";
                     }
                     else
@@ -229,22 +237,22 @@ void __fwrite(string arg1, string arg2)
                 }
                 else
                 {
-                    Env::app(variables.at(indexOfVariable(arg1)).getString(), arg2 + "\r\n");
+                    Env::app(varString(arg1), arg2 + "\r\n");
                     State.LastValue = "0";
                 }
             }
             else
             {
-                Env::createFile(variables.at(indexOfVariable(arg1)).getString());
+                Env::createFile(varString(arg1));
 
                 if (isString(arg2))
                 {
-                    Env::app(variables.at(indexOfVariable(arg1)).getString(), variables.at(indexOfVariable(arg2)).getString() + "\r\n");
+                    Env::app(varString(arg1), varString(arg2) + "\r\n");
                     State.LastValue = "1";
                 }
                 else if (isNumber(arg2))
                 {
-                    Env::app(variables.at(indexOfVariable(arg1)).getString(), dtos(variables.at(indexOfVariable(arg2)).getNumber()) + "\r\n");
+                    Env::app(varString(arg1), varNumberString(arg2) + "\r\n");
                     State.LastValue = "1";
                 }
                 else
@@ -270,13 +278,13 @@ void __fwrite(string arg1, string arg2)
             {
                 if (Env::fileExists(arg1))
                 {
-                    Env::app(arg1, variables.at(indexOfVariable(arg2)).getString() + "\r\n");
+                    Env::app(arg1, varString(arg2) + "\r\n");
                     State.LastValue = "0";
                 }
                 else
                 {
-                    Env::createFile(variables.at(indexOfVariable(arg2)).getString());
-                    Env::app(arg1, variables.at(indexOfVariable(arg2)).getString() + "\r\n");
+                    Env::createFile(varString(arg2));
+                    Env::app(arg1, varString(arg2) + "\r\n");
                     State.LastValue = "1";
                 }
             }
@@ -345,7 +353,7 @@ string getPrompt()
         prevChar = State.PromptStyle[i];
     }
 
-    return (new_style);
+    return new_style;
 }
 
 string cleanString(string st)
@@ -365,9 +373,9 @@ string cleanString(string st)
                 if (variableExists(builder) && zeroDots(builder))
                 {
                     if (isString(builder))
-                        cleaned.append(variables.at(indexOfVariable(builder)).getString());
+                        cleaned.append(varString(builder));
                     else if (isNumber(builder))
-                        cleaned.append(dtos(variables.at(indexOfVariable(builder)).getNumber()));
+                        cleaned.append(varNumberString(builder));
                     else
                         cleaned.append("null");
                 }
@@ -392,9 +400,9 @@ string cleanString(string st)
 
                         if (objectExists(before))
                         {
-                            if (objects.at(indexOfObject(before)).methodExists(beforeParams(after)))
+                            if (getObject(before).methodExists(beforeParams(after)))
                             {
-                                executeTemplate(objects.at(indexOfObject(before)).getMethod(beforeParams(after)), getParams(after));
+                                executeTemplate(getObject(before).getMethod(beforeParams(after)), getParams(after));
 
                                 cleaned.append(State.LastValue);
                             }
@@ -406,7 +414,7 @@ string cleanString(string st)
                     }
                     else if (methodExists(beforeParams(builder)))
                     {
-                        executeTemplate(methods.at(indexOfMethod(beforeParams(builder))), getParams(builder));
+                        executeTemplate(getMethod(beforeParams(builder)), getParams(builder));
 
                         cleaned.append(State.LastValue);
                     }
@@ -424,7 +432,7 @@ string cleanString(string st)
                     {
                         if (isString(_beforeBrackets))
                         {
-                            string tempString(variables.at(indexOfVariable(_beforeBrackets)).getString());
+                            string tempString(varString(_beforeBrackets));
 
                             if (listRange.size() == 2)
                             {
@@ -498,7 +506,7 @@ string cleanString(string st)
                             
                             if (stoi(rangeBegin) < stoi(rangeEnd))
                             {
-                                if (!(lists.at(indexOfList(_beforeBrackets)).size() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0))
+                                if (!(getList(_beforeBrackets).size() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0))
                                 {
                                     error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                                     return Constants.Null;
@@ -508,7 +516,7 @@ string cleanString(string st)
 
                                 for (int z = stoi(rangeBegin); z <= stoi(rangeEnd); z++)
                                 {
-                                    bigString.append("\"" + lists.at(indexOfList(_beforeBrackets)).at(z) + "\"");
+                                    bigString.append("\"" + getList(_beforeBrackets).at(z) + "\"");
 
                                     if (z < stoi(rangeEnd))
                                         bigString.push_back(',');
@@ -520,7 +528,7 @@ string cleanString(string st)
                             }
                             else if (stoi(rangeBegin) > stoi(rangeEnd))
                             {
-                                if (!(lists.at(indexOfList(_beforeBrackets)).size() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0))
+                                if (!(getList(_beforeBrackets).size() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0))
                                 {
                                     error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                                     return Constants.Null;
@@ -530,7 +538,7 @@ string cleanString(string st)
 
                                 for (int z = stoi(rangeBegin); z >= stoi(rangeEnd); z--)
                                 {
-                                    bigString.append("\"" + lists.at(indexOfList(_beforeBrackets)).at(z) + "\"");
+                                    bigString.append("\"" + getList(_beforeBrackets).at(z) + "\"");
 
                                     if (z > stoi(rangeEnd))
                                         bigString.push_back(',');
@@ -553,13 +561,13 @@ string cleanString(string st)
                                 return Constants.Null;
                             }
 
-                            if (!(stoi(rangeBegin) <= (int)lists.at(indexOfList(_beforeBrackets)).size() - 1 && stoi(rangeBegin) >= 0))
+                            if (!(stoi(rangeBegin) <= (int)getList(_beforeBrackets).size() - 1 && stoi(rangeBegin) >= 0))
                             {
                                 error(ErrorMessage::OUT_OF_BOUNDS, afterBrackets, false);
                                 return Constants.Null;
                             }
                                 
-                            cleaned.append(lists.at(indexOfList(_beforeBrackets)).at(stoi(rangeBegin)));
+                            cleaned.append(getList(_beforeBrackets).at(stoi(rangeBegin)));
                         }
                         else
                             error(ErrorMessage::OUT_OF_BOUNDS, afterBrackets, false);
@@ -577,17 +585,17 @@ string cleanString(string st)
                         return Constants.Null;
                     }
 
-                    if (objects.at(indexOfObject(before)).methodExists(after))
+                    if (getObject(before).methodExists(after))
                     {
                         parse(before + "." + after);
                         cleaned.append(State.LastValue);
                     }
-                    else if (objects.at(indexOfObject(before)).variableExists(after))
+                    else if (getObject(before).variableExists(after))
                     {
-                        if (objects.at(indexOfObject(before)).getVariable(after).getString() != State.Null)
-                            cleaned.append(objects.at(indexOfObject(before)).getVariable(after).getString());
-                        else if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != State.NullNum)
-                            cleaned.append(dtos(objects.at(indexOfObject(before)).getVariable(after).getNumber()));
+                        if (getObject(before).getVariable(after).getString() != State.Null)
+                            cleaned.append(getObject(before).getVariable(after).getString());
+                        else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
+                            cleaned.append(dtos(getObject(before).getVariable(after).getNumber()));
                         else
                             cleaned.append("null");
                     }
@@ -630,7 +638,7 @@ string cleanString(string st)
         }
     }
 
-    return (cleaned);
+    return cleaned;
 }
 
 void write(string st)
@@ -766,7 +774,7 @@ void displayVersion()
 List getDirectoryList(string before, bool filesOnly)
 {
 	List newList;
-	vector<string> dirList = Env::getDirectoryContents(variables.at(indexOfVariable(before)).getString(), filesOnly);
+	vector<string> dirList = Env::getDirectoryContents(varString(before), filesOnly);
 	for (unsigned int i = 0; i < dirList.size(); i++) 
 	{
 		newList.add(dirList.at(i));
@@ -778,20 +786,7 @@ List getDirectoryList(string before, bool filesOnly)
 	return newList;
 }
 
-Method getMethod(string s)
-{
-    Method bad_meth("[bad_meth#" + itos(State.BadMethodCount) + "]");
-
-    if (methodExists(s))
-        for (int i = 0; i < (int)methods.size(); i++)
-            if (methods.at(i).name() == s)
-                return (methods.at(i));
-
-    State.BadMethodCount++;
-    return (bad_meth);
-}
-
-Object getObject(string s)
+/*Object getObject(string s)
 {
     Object bad_obj("[bad_obj#" + itos(State.BadObjectCount) + "]");
 
@@ -803,7 +798,7 @@ Object getObject(string s)
     State.BadObjectCount++;
 
     return (bad_obj);
-}
+}*/
 
 Variable getVariable(string s)
 {
@@ -812,20 +807,20 @@ Variable getVariable(string s)
     if (variableExists(s))
         for (int i = 0; i < (int)variables.size(); i++)
             if (variables.at(i).name() == s)
-                return (variables.at(i));
+                return variables.at(i);
 
     State.BadVarCount++;
 
-    return (bad_var);
+    return bad_var;
 }
 
 bool listExists(string s)
 {
     for (int i = 0; i < (int)lists.size(); i++)
         if (lists.at(i).name() == s)
-            return (true);
+            return true;
 
-    return (false);
+    return false;
 }
 
 bool methodExists(string s)
@@ -834,27 +829,27 @@ bool methodExists(string s)
     {
         if (objectExists(beforeDot(s)))
         {
-            if (objects.at(indexOfObject(beforeDot(s))).methodExists(afterDot(s)))
-                return (true);
+            if (getObject(beforeDot(s)).methodExists(afterDot(s)))
+                return true;
             else
-                return (false);
+                return false;
         }
     }
     else
         for (int i = 0; i < (int)methods.size(); i++)
             if (methods.at(i).name() == s)
-                return (true);
+                return true;
 
-    return (false);
+    return false;
 }
 
 bool objectExists(string s)
 {
     for (int i = 0; i < (int)objects.size(); i++)
         if (objects.at(i).name() == s)
-            return (true);
+            return true;
 
-    return (false);
+    return false;
 }
 
 bool variableExists(string s)
@@ -865,87 +860,87 @@ bool variableExists(string s)
 
         if (objectExists(before))
         {
-            if (objects.at(indexOfObject(before)).variableExists(after))
-                return (true);
+            if (getObject(before).variableExists(after))
+                return true;
             else
-                return (false);
+                return false;
         }
         else
-            return (false);
+            return false;
     }
     else
         for (int i = 0; i < (int)variables.size(); i++)
             if (variables.at(i).name() == s)
-                return (true);
+                return true;
 
-    return (false);
+    return false;
 }
 
 bool moduleExists(string s)
 {
     for (int i = 0; i < (int)modules.size(); i++)
         if (modules.at(i).name() == s)
-            return (true);
+            return true;
 
-    return (false);
+    return false;
 }
 
 bool constantExists(string s)
 {
     for (int i = 0; i < (int)constants.size(); i++)
         if (constants.at(i).name() == s)
-            return (true);
+            return true;
 
-    return (false);
+    return false;
 }
 
 bool noLists()
 {
     if (lists.empty())
-        return (true);
+        return true;
 
-    return (false);
+    return false;
 }
 
 bool noMethods()
 {
     if (methods.empty())
-        return (true);
+        return true;
 
-    return (false);
+    return false;
 }
 
 bool noObjects()
 {
     if (objects.empty())
-        return (true);
+        return true;
 
-    return (false);
+    return false;
 }
 
 bool noVariables()
 {
     if (variables.empty())
-        return (true);
+        return true;
 
-    return (false);
+    return false;
 }
 
 bool notObjectMethod(string s)
 {
     if (zeroDots(s))
-        return (true);
+        return true;
     else
     {
         string before(beforeDot(s));
 
         if (objectExists(before))
-            return (false);
+            return false;
         else
-            return (true);
+            return true;
     }
 
-    return (true);
+    return true;
 }
 
 void __true()
@@ -1005,7 +1000,7 @@ vector<Method> removeMethod(vector<Method> v, string target)
         if (v.at(i).name() != target)
             cleanedVector.push_back(v.at(i));
 
-    return (cleanedVector);
+    return cleanedVector;
 }
 
 vector<Object> removeObject(vector<Object> v, string target)
@@ -1016,7 +1011,7 @@ vector<Object> removeObject(vector<Object> v, string target)
         if (v.at(i).name() != target)
             cleanedVector.push_back(v.at(i));
 
-    return (cleanedVector);
+    return cleanedVector;
 }
 
 vector<Variable> removeVariable(vector<Variable> v, string target)
@@ -1027,7 +1022,7 @@ vector<Variable> removeVariable(vector<Variable> v, string target)
         if (v.at(i).name() != target)
             cleanedVector.push_back(v.at(i));
 
-    return (cleanedVector);
+    return cleanedVector;
 }
 
 vector<List> removeList(vector<List> v, string target)
@@ -1038,7 +1033,7 @@ vector<List> removeList(vector<List> v, string target)
         if (v.at(i).name() != target)
             cleanedVector.push_back(v.at(i));
 
-    return (cleanedVector);
+    return cleanedVector;
 }
 
 vector<Module> removeModule(vector<Module> v, string target)
@@ -1049,7 +1044,7 @@ vector<Module> removeModule(vector<Module> v, string target)
         if (v.at(i).name() != target)
             cleanedVector.push_back(v.at(i));
 
-    return (cleanedVector);
+    return cleanedVector;
 }
 
 vector<Constant> removeConstant(vector<Constant> v, string target)
@@ -1060,7 +1055,7 @@ vector<Constant> removeConstant(vector<Constant> v, string target)
         if (v.at(i).name() != target)
             cleanedVector.push_back(v.at(i));
 
-    return (cleanedVector);
+    return cleanedVector;
 }
 
 void error(int errorType, string errorInfo, bool quit)
@@ -1154,10 +1149,15 @@ int indexOfMethod(string s)
     for (int i = 0; i < (int)methods.size(); i++)
     {
         if (methods.at(i).name() == s)
-            return (i);
+            return i;
     }
 
-    return (-1);
+    return -1;
+}
+
+Method getMethod(string s)
+{
+    return methods.at(indexOfMethod(s));
 }
 
 int indexOfObject(string s)
@@ -1165,10 +1165,15 @@ int indexOfObject(string s)
     for (int i = 0; i < (int)objects.size(); i++)
     {
         if (objects.at(i).name() == s)
-            return (i);
+            return i;
     }
 
-    return (-1);
+    return -1;
+}
+
+Object getObject(string s)
+{
+    return objects.at(indexOfObject(s));
 }
 
 int indexOfVariable(string s)
@@ -1176,10 +1181,30 @@ int indexOfVariable(string s)
     for (int i = 0; i < (int)variables.size(); i++)
     {
         if (variables.at(i).name() == s)
-            return (i);
+            return i;
     }
 
-    return (-1);
+    return -1;
+}
+
+Variable getVar(string s)
+{
+    return variables.at(indexOfVariable(s));
+}
+
+string varString(string s)
+{
+    return getVar(s).getString();
+}
+
+double varNumber(string s)
+{
+    return getVar(s).getNumber();
+}
+
+string varNumberString(string s)
+{
+    return dtos(varNumber(s));
 }
 
 int indexOfList(string s)
@@ -1187,10 +1212,15 @@ int indexOfList(string s)
     for (int i = 0; i < (int)lists.size(); i++)
     {
         if (lists.at(i).name() == s)
-            return (i);
+            return i;
     }
 
-    return (-1);
+    return -1;
+}
+
+List getList(string s)
+{
+    return lists.at(indexOfList(s));
 }
 
 int indexOfModule(string s)
@@ -1198,10 +1228,10 @@ int indexOfModule(string s)
     for (int i = 0; i < (int)modules.size(); i++)
     {
         if (modules.at(i).name() == s)
-            return (i);
+            return i;
     }
 
-    return (-1);
+    return -1;
 }
 
 int indexOfScript(string s)
@@ -1209,10 +1239,10 @@ int indexOfScript(string s)
     for (int i = 0; i < (int)scripts.size(); i++)
     {
         if (scripts.at(i).name() == s)
-            return (i);
+            return i;
     }
 
-    return (-1);
+    return -1;
 }
 
 int indexOfConstant(string s)
@@ -1220,15 +1250,15 @@ int indexOfConstant(string s)
     for (int i = 0; i < (int)constants.size(); i++)
     {
         if (constants.at(i).name() == s)
-            return (i);
+            return i;
     }
 
-    return (-1);
+    return -1;
 }
 
 bool is(string s, string si)
 {
-    return (s == ("-" + si) || s == ("--" + si) || s == ("/" + si));
+    return s == ("-" + si) || s == ("--" + si) || s == ("/" + si);
 }
 
 bool isScript(string path)
@@ -1437,7 +1467,7 @@ void loop(bool skip)
 
 bool success()
 {
-    return (State.SuccessFlag);
+    return State.SuccessFlag;
 }
 
 void failedFor()
@@ -1554,9 +1584,9 @@ void setTrueIf()
 bool stackReady(string arg2)
 {
     if (contains(arg2, "+") || contains(arg2, "-") || contains(arg2, "*") || contains(arg2, "/") || contains(arg2, "%") || contains(arg2, "^"))
-        return (true);
+        return true;
 
-    return (false);
+    return false;
 }
 
 bool isStringStack(string arg2)
@@ -1576,7 +1606,7 @@ bool isStringStack(string arg2)
                     if (isNumber(temporaryBuild))
                         temporaryBuild.clear();
                     else if (isString(temporaryBuild))
-                        return (true);
+                        return true;
                 }
                 else if (methodExists(temporaryBuild))
                 {
@@ -1585,7 +1615,7 @@ bool isStringStack(string arg2)
                     if (isNumeric(State.LastValue))
                         temporaryBuild.clear();
                     else
-                        return (true);
+                        return true;
                 }
                 else
                     temporaryBuild.clear();
@@ -1598,7 +1628,7 @@ bool isStringStack(string arg2)
                 if (isNumber(temporaryBuild))
                     temporaryBuild.clear();
                 else if (isString(temporaryBuild))
-                    return (true);
+                    return true;
             }
             else if (methodExists(temporaryBuild))
             {
@@ -1607,10 +1637,10 @@ bool isStringStack(string arg2)
                 if (isNumeric(State.LastValue))
                     temporaryBuild.clear();
                 else
-                    return (true);
+                    return true;
             }
             else if (!isNumeric(temporaryBuild))
-                return (true);
+                return true;
             else
                 temporaryBuild.clear();
         }
@@ -1621,7 +1651,7 @@ bool isStringStack(string arg2)
                 if (isNumber(temporaryBuild))
                     temporaryBuild.clear();
                 else if (isString(temporaryBuild))
-                    return (true);
+                    return true;
             }
             else if (methodExists(temporaryBuild))
             {
@@ -1630,10 +1660,10 @@ bool isStringStack(string arg2)
                 if (isNumeric(State.LastValue))
                     temporaryBuild.clear();
                 else
-                    return (true);
+                    return true;
             }
             else if (!isNumeric(temporaryBuild))
-                return (true);
+                return true;
             else
                 temporaryBuild.clear();
         }
@@ -1644,7 +1674,7 @@ bool isStringStack(string arg2)
                 if (isNumber(temporaryBuild))
                     temporaryBuild.clear();
                 else if (isString(temporaryBuild))
-                    return (true);
+                    return true;
             }
             else if (methodExists(temporaryBuild))
             {
@@ -1653,10 +1683,10 @@ bool isStringStack(string arg2)
                 if (isNumeric(State.LastValue))
                     temporaryBuild.clear();
                 else
-                    return (true);
+                    return true;
             }
             else if (!isNumeric(temporaryBuild))
-                return (true);
+                return true;
             else
                 temporaryBuild.clear();
         }
@@ -1667,7 +1697,7 @@ bool isStringStack(string arg2)
                 if (isNumber(temporaryBuild))
                     temporaryBuild.clear();
                 else if (isString(temporaryBuild))
-                    return (true);
+                    return true;
             }
             else if (methodExists(temporaryBuild))
             {
@@ -1676,10 +1706,10 @@ bool isStringStack(string arg2)
                 if (isNumeric(State.LastValue))
                     temporaryBuild.clear();
                 else
-                    return (true);
+                    return true;
             }
             else if (!isNumeric(temporaryBuild))
-                return (true);
+                return true;
             else
                 temporaryBuild.clear();
         }
@@ -1690,7 +1720,7 @@ bool isStringStack(string arg2)
                 if (isNumber(temporaryBuild))
                     temporaryBuild.clear();
                 else if (isString(temporaryBuild))
-                    return (true);
+                    return true;
             }
             else if (methodExists(temporaryBuild))
             {
@@ -1699,10 +1729,10 @@ bool isStringStack(string arg2)
                 if (isNumeric(State.LastValue))
                     temporaryBuild.clear();
                 else
-                    return (true);
+                    return true;
             }
             else if (!isNumeric(temporaryBuild))
-                return (true);
+                return true;
             else
                 temporaryBuild.clear();
         }
@@ -1713,7 +1743,7 @@ bool isStringStack(string arg2)
                 if (isNumber(temporaryBuild))
                     temporaryBuild.clear();
                 else if (isString(temporaryBuild))
-                    return (true);
+                    return true;
             }
             else if (methodExists(temporaryBuild))
             {
@@ -1722,10 +1752,10 @@ bool isStringStack(string arg2)
                 if (isNumeric(State.LastValue))
                     temporaryBuild.clear();
                 else
-                    return (true);
+                    return true;
             }
             else if (!isNumeric(temporaryBuild))
-                return (true);
+                return true;
             else
                 temporaryBuild.clear();
         }
@@ -1733,7 +1763,7 @@ bool isStringStack(string arg2)
             temporaryBuild.push_back(tempArgTwo[i]);
     }
 
-    return (false);
+    return false;
 }
 
 string getStringStack(string arg2)
@@ -1775,13 +1805,13 @@ string getStringStack(string arg2)
                         if (isNumber(temporaryBuild))
                         {
                             vars.push_back(temporaryBuild);
-                            contents.push_back(dtos(variables.at(indexOfVariable(temporaryBuild)).getNumber()));
+                            contents.push_back(dtos(varNumber(temporaryBuild)));
                             temporaryBuild.clear();
                         }
                         else if (isString(temporaryBuild))
                         {
                             vars.push_back(temporaryBuild);
-                            contents.push_back(variables.at(indexOfVariable(temporaryBuild)).getString());
+                            contents.push_back(varString(temporaryBuild));
                             temporaryBuild.clear();
                         }
                     }
@@ -1807,14 +1837,14 @@ string getStringStack(string arg2)
                 if (isNumber(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(variables.at(indexOfVariable(temporaryBuild)).getNumber()));
+                    contents.push_back(dtos(varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("+");
                 }
                 else if (isString(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(variables.at(indexOfVariable(temporaryBuild)).getString());
+                    contents.push_back(varString(temporaryBuild));
                     temporaryBuild.clear();
                     contents.push_back("+");
                 }
@@ -1842,14 +1872,14 @@ string getStringStack(string arg2)
                 if (isNumber(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(variables.at(indexOfVariable(temporaryBuild)).getNumber()));
+                    contents.push_back(dtos(varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("-");
                 }
                 else if (isString(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(variables.at(indexOfVariable(temporaryBuild)).getString());
+                    contents.push_back(varString(temporaryBuild));
                     temporaryBuild.clear();
                     contents.push_back("-");
                 }
@@ -1877,14 +1907,14 @@ string getStringStack(string arg2)
                 if (isNumber(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(variables.at(indexOfVariable(temporaryBuild)).getNumber()));
+                    contents.push_back(dtos(varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("*");
                 }
                 else if (isString(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(variables.at(indexOfVariable(temporaryBuild)).getString());
+                    contents.push_back(varString(temporaryBuild));
                     temporaryBuild.clear();
                     contents.push_back("*");
                 }
@@ -1914,13 +1944,13 @@ string getStringStack(string arg2)
         if (isNumber(temporaryBuild))
         {
             vars.push_back(temporaryBuild);
-            contents.push_back(dtos(variables.at(indexOfVariable(temporaryBuild)).getNumber()));
+            contents.push_back(dtos(varNumber(temporaryBuild)));
             temporaryBuild.clear();
         }
         else if (isString(temporaryBuild))
         {
             vars.push_back(temporaryBuild);
-            contents.push_back(variables.at(indexOfVariable(temporaryBuild)).getString());
+            contents.push_back(varString(temporaryBuild));
             temporaryBuild.clear();
         }
     }
@@ -1984,7 +2014,7 @@ string getStringStack(string arg2)
         State.Returning = false;
     }
 
-    return (stackValue);
+    return stackValue;
 }
 
 double getStack(string arg2)
@@ -2009,7 +2039,7 @@ double getStack(string arg2)
                     if (isNumber(temporaryBuild))
                     {
                         vars.push_back(temporaryBuild);
-                        contents.push_back(dtos(variables.at(indexOfVariable(temporaryBuild)).getNumber()));
+                        contents.push_back(dtos(varNumber(temporaryBuild)));
                         temporaryBuild.clear();
                     }
                 }
@@ -2037,7 +2067,7 @@ double getStack(string arg2)
                 if (isNumber(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(variables.at(indexOfVariable(temporaryBuild)).getNumber()));
+                    contents.push_back(dtos(varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("+");
                 }
@@ -2068,7 +2098,7 @@ double getStack(string arg2)
                 if (isNumber(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(variables.at(indexOfVariable(temporaryBuild)).getNumber()));
+                    contents.push_back(dtos(varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("-");
                 }
@@ -2097,7 +2127,7 @@ double getStack(string arg2)
             {
                 if (isNumber(temporaryBuild))
                 {
-                    contents.push_back(dtos(variables.at(indexOfVariable(temporaryBuild)).getNumber()));
+                    contents.push_back(dtos(varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("*");
                 }
@@ -2128,7 +2158,7 @@ double getStack(string arg2)
                 if (isNumber(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(variables.at(indexOfVariable(temporaryBuild)).getNumber()));
+                    contents.push_back(dtos(varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("/");
                 }
@@ -2159,7 +2189,7 @@ double getStack(string arg2)
                 if (isNumber(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(variables.at(indexOfVariable(temporaryBuild)).getNumber()));
+                    contents.push_back(dtos(varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("%");
                 }
@@ -2189,7 +2219,7 @@ double getStack(string arg2)
                 if (isNumber(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(variables.at(indexOfVariable(temporaryBuild)).getNumber()));
+                    contents.push_back(dtos(varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("^");
                 }
@@ -2221,7 +2251,7 @@ double getStack(string arg2)
         if (isNumber(temporaryBuild))
         {
             vars.push_back(temporaryBuild);
-            contents.push_back(dtos(variables.at(indexOfVariable(temporaryBuild)).getNumber()));
+            contents.push_back(dtos(varNumber(temporaryBuild)));
             temporaryBuild.clear();
         }
     }
@@ -2305,7 +2335,7 @@ double getStack(string arg2)
         State.Returning = false;
     }
 
-    return (stackValue);
+    return stackValue;
 }
 
 /**
@@ -2315,15 +2345,15 @@ void redefine(string target, string name)
 {
     if (variableExists(target))
     {
-        if (Env::fileExists(variables.at(indexOfVariable(target)).getString()) || Env::directoryExists(variables.at(indexOfVariable(target)).getString()))
+        if (Env::fileExists(varString(target)) || Env::directoryExists(varString(target)))
         {
-            string old_name(variables.at(indexOfVariable(target)).getString()), new_name("");
+            string old_name(varString(target)), new_name("");
 
             if (variableExists(name))
             {
                 if (isString(name))
                 {
-                    new_name = variables.at(indexOfVariable(name)).getString();
+                    new_name = varString(name);
 
                     if (Env::fileExists(old_name))
                     {
@@ -2380,7 +2410,7 @@ void redefine(string target, string name)
             if (startsWith(name, "@"))
             {
                 if (!variableExists(name))
-                    variables.at(indexOfVariable(target)).setName(name);
+                    getVar(target).setName(name);
                 else
                     error(ErrorMessage::VAR_DEFINED, name, false);
             }
@@ -2391,21 +2421,21 @@ void redefine(string target, string name)
     else if (listExists(target))
     {
         if (!listExists(name))
-            lists.at(indexOfList(target)).setName(name);
+            getList(name).setName(name);
         else
             error(ErrorMessage::LIST_UNDEFINED, name, false);
     }
     else if (objectExists(target))
     {
         if (!objectExists(name))
-            objects.at(indexOfObject(target)).setName(name);
+            getObject(target).setName(name);
         else
             error(ErrorMessage::OBJ_METHOD_UNDEFINED, name, false);
     }
     else if (methodExists(target))
     {
         if (!methodExists(name))
-            methods.at(indexOfMethod(target)).setName(name);
+            getMethod(target).setName(name);
         else
             error(ErrorMessage::METHOD_UNDEFINED, name, false);
     }
@@ -2423,7 +2453,7 @@ string getSubString(string arg1, string arg2, string beforeBracket)
     {
         vector<string> listRange = getBracketRange(arg2);
 
-        string variableString = variables.at(indexOfVariable(beforeBracket)).getString();
+        string variableString = varString(beforeBracket);
 
         if (listRange.size() == 2)
         {
@@ -2494,7 +2524,7 @@ string getSubString(string arg1, string arg2, string beforeBracket)
     else
         error(ErrorMessage::NULL_STRING, beforeBracket, false);
 
-    return (returnValue);
+    return returnValue;
 }
 
 void setSubString(string arg1, string arg2, string beforeBracket)
@@ -2503,7 +2533,7 @@ void setSubString(string arg1, string arg2, string beforeBracket)
     {
         vector<string> listRange = getBracketRange(arg2);
 
-        string variableString = variables.at(indexOfVariable(beforeBracket)).getString();
+        string variableString = varString(beforeBracket);
 
         if (listRange.size() == 2)
         {
@@ -2591,7 +2621,7 @@ bool isNumber(Variable var)
 
 bool isNumber(string varName)
 {
-    return variables.at(indexOfVariable(varName)).getNumber() != State.NullNum;
+    return varNumber(varName) != State.NullNum;
 }
 
 bool isString(Variable var)
@@ -2601,17 +2631,17 @@ bool isString(Variable var)
 
 bool isString(string varName)
 {
-    return variables.at(indexOfVariable(varName)).getString() != State.Null;
+    return varString(varName) != State.Null;
 }
 
 double getNumber(string varName)
 {
-    return variables.at(indexOfVariable(varName)).getNumber();
+    return varNumber(varName);
 }
 
 string getString(string varName)
 {
-    return variables.at(indexOfVariable(varName)).getString();
+    return varString(varName);
 }
 
 bool secondIsNumber(string s)
@@ -2619,20 +2649,20 @@ bool secondIsNumber(string s)
     if (variableExists(s))
     {
         if (isNumber(s))
-            return (true);
+            return true;
     }
     else if (stackReady(s))
     {
         if (!isStringStack(s))
-            return (true);
+            return true;
     }
     else
     {
         if (isNumeric(s))
-            return (true);
+            return true;
     }
 
-    return (false);
+    return false;
 }
 
 string getStringValue(string arg1, string op, string arg2)
@@ -2675,7 +2705,7 @@ string getStringValue(string arg1, string op, string arg2)
         }
         else if (objectExists(_beforeDot))
         {
-            executeTemplate(objects.at(indexOfObject(_beforeDot)).getMethod(_afterDot), getParams(_afterDot));
+            executeTemplate(getObject(_beforeDot).getMethod(_afterDot), getParams(_afterDot));
 
             lastValue = lastValue;
         }
@@ -2709,10 +2739,10 @@ string getStringValue(string arg1, string op, string arg2)
         {
             _afterBrackets = subtractString(_afterBrackets, "]");
 
-            if (lists.at(indexOfList(_beforeBrackets)).size() >= stoi(_afterBrackets))
+            if (getList(_beforeBrackets).size() >= stoi(_afterBrackets))
             {
                 if (stoi(_afterBrackets) >= 0)
-                    lastValue = lists.at(indexOfList(_beforeBrackets)).at(stoi(_afterBrackets));
+                    lastValue = getList(_beforeBrackets).at(stoi(_afterBrackets));
                 else
                     lastValue = "";
             }
@@ -2724,7 +2754,7 @@ string getStringValue(string arg1, string op, string arg2)
     {
         if (beforeParams(arg2).length() != 0)
         {
-            executeTemplate(methods.at(indexOfMethod(arg2)), getParams(arg2));
+            executeTemplate(getMethod(arg2), getParams(arg2));
 
             lastValue = lastValue;
         }
@@ -2808,7 +2838,7 @@ double getNumberValue(string arg1, string op, string arg2)
         }
         else if (objectExists(_beforeDot))
         {
-            executeTemplate(objects.at(indexOfObject(_beforeDot)).getMethod(_afterDot), getParams(_afterDot));
+            executeTemplate(getObject(_beforeDot).getMethod(_afterDot), getParams(_afterDot));
 
             if (isNumeric(State.LastValue))
                 lastValue = stod(State.LastValue);
@@ -2831,12 +2861,12 @@ double getNumberValue(string arg1, string op, string arg2)
         {
             _afterBrackets = subtractString(_afterBrackets, "]");
 
-            if (lists.at(indexOfList(_beforeBrackets)).size() >= stoi(_afterBrackets))
+            if (getList(_beforeBrackets).size() >= stoi(_afterBrackets))
             {
                 if (stoi(_afterBrackets) >= 0)
                 {
-                    if (isNumeric(lists.at(indexOfList(_beforeBrackets)).at(stoi(_afterBrackets))))
-                        lastValue = stod(lists.at(indexOfList(_beforeBrackets)).at(stoi(_afterBrackets)));
+                    if (isNumeric(getList(_beforeBrackets).at(stoi(_afterBrackets))))
+                        lastValue = stod(getList(_beforeBrackets).at(stoi(_afterBrackets)));
                     else
                         lastValue = 0;
                 }
@@ -2851,7 +2881,7 @@ double getNumberValue(string arg1, string op, string arg2)
     {
         if (beforeParams(arg2).length() != 0)
         {
-            executeTemplate(methods.at(indexOfMethod(arg2)), getParams(arg2));
+            executeTemplate(getMethod(arg2), getParams(arg2));
 
             if (isNumeric(State.LastValue))
 
@@ -2889,7 +2919,7 @@ double getNumberValue(string arg1, string op, string arg2)
         returnValue = lastValue;
 
     State.LastValue = dtos(returnValue);
-    return (returnValue);
+    return returnValue;
 }
 
 void whileLoop(Method m)
@@ -3161,9 +3191,9 @@ void executeTemplate(Method m, vector<string> strings)
         if (variableExists(strings.at(i)))
         {
             if (isString(strings.at(i)))
-                createVariable(methodVariables.at(i).name(), variables.at(indexOfVariable(strings.at(i))).getString());
+                createVariable(methodVariables.at(i).name(), varString(strings.at(i)));
             else if (isNumber(strings.at(i)))
-                createVariable(methodVariables.at(i).name(), variables.at(indexOfVariable(strings.at(i))).getNumber());
+                createVariable(methodVariables.at(i).name(), varNumber(strings.at(i)));
         }
         else if (methodExists(strings.at(i)))
         {
@@ -3342,32 +3372,32 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
     {
         if (tmpObjExists)
         {
-            if (objects.at(indexOfObject(tmpObjName)).getVariable(tmpVarName).getString() != State.Null)
+            if (getObject(tmpObjName).getVariable(tmpVarName).getString() != State.Null)
             {
                 string tempObjectVariableName("@ " + tmpObjName + tmpVarName + "_string");
 
-                createVariable(tempObjectVariableName, objects.at(indexOfObject(tmpObjName)).getVariable(tmpVarName).getString());
+                createVariable(tempObjectVariableName, getObject(tmpObjName).getVariable(tmpVarName).getString());
 
                 twoSpace(tempObjectVariableName, arg1, arg2, "", command);
 
-                variables.at(indexOfVariable(tempObjectVariableName)).setName(tmpVarName);
+                getVar(tempObjectVariableName).setName(tmpVarName);
 
-                objects.at(indexOfObject(tmpObjName)).removeVariable(tmpVarName);
-                objects.at(indexOfObject(tmpObjName)).addVariable(variables.at(indexOfVariable(tmpVarName)));
+                getObject(tmpObjName).removeVariable(tmpVarName);
+                getObject(tmpObjName).addVariable(getVar(tmpVarName));
                 variables = removeVariable(variables, tmpVarName);
             }
-            else if (objects.at(indexOfObject(tmpObjName)).getVariable(tmpVarName).getNumber() != State.NullNum)
+            else if (getObject(tmpObjName).getVariable(tmpVarName).getNumber() != State.NullNum)
             {
                 string tempObjectVariableName("@____" + beforeDot(arg0) + "___" + afterDot(arg0) + "_number");
 
-                createVariable(tempObjectVariableName, objects.at(indexOfObject(beforeDot(arg0))).getVariable(afterDot(arg0)).getNumber());
+                createVariable(tempObjectVariableName, getObject(beforeDot(arg0)).getVariable(afterDot(arg0)).getNumber());
 
                 twoSpace(tempObjectVariableName, arg1, arg2, tempObjectVariableName + " " + arg1 + " " + arg2, command);
 
-                variables.at(indexOfVariable(tempObjectVariableName)).setName(afterDot(arg0));
+                getVar(tempObjectVariableName).setName(afterDot(arg0));
 
-                objects.at(indexOfObject(beforeDot(arg0))).removeVariable(afterDot(arg0));
-                objects.at(indexOfObject(beforeDot(arg0))).addVariable(variables.at(indexOfVariable(afterDot(arg0))));
+                getObject(beforeDot(arg0)).removeVariable(afterDot(arg0));
+                getObject(beforeDot(arg0)).addVariable(getVar(afterDot(arg0)));
                 variables = removeVariable(variables, afterDot(arg0));
             }
         }
@@ -3383,13 +3413,13 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
 
                 if (listExists(beforeBracket))
                 {
-                    if (lists.at(indexOfList(beforeBracket)).size() >= stoi(afterBracket))
+                    if (getList(beforeBracket).size() >= stoi(afterBracket))
                     {
-                        if (lists.at(indexOfList(beforeBracket)).at(stoi(afterBracket)) == "#!=no_line")
+                        if (getList(beforeBracket).at(stoi(afterBracket)) == "#!=no_line")
                             error(ErrorMessage::OUT_OF_BOUNDS, arg2, false);
                         else
                         {
-                            string listValue(lists.at(indexOfList(beforeBracket)).at(stoi(afterBracket)));
+                            string listValue(getList(beforeBracket).at(stoi(afterBracket)));
 
                             if (isNumeric(listValue))
                             {
@@ -3419,10 +3449,72 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 {
                     if (beforeParams(arg2) == "random")
                     {
-                        if (contains(arg2, ".."))
+                        if (!contains(arg2, ".."))
                         {
-                            vector<string> range = getRange(arg2);
-                            string s0(range.at(0)), s2(range.at(1));
+                            error(ErrorMessage::INVALID_SEQ_SEP, arg2, false);
+                            return;
+                        }
+
+                        vector<string> range = getRange(arg2);
+                        string s0(range.at(0)), s2(range.at(1));
+
+                        if (isNumeric(s0) && isNumeric(s2))
+                        {
+                            if (isNumber(arg0))
+                            {
+                                double n0 = stod(s0), n2 = stod(s2);
+
+                                if (n0 < n2)
+                                    setVariable(arg0, (int)random(n0, n2));
+                                else if (n0 > n2)
+                                    setVariable(arg0, (int)random(n2, n0));
+                                else
+                                    setVariable(arg0, (int)random(n0, n2));
+                            }
+                            else if (isString(arg0))
+                            {
+                                double n0 = stod(s0), n2 = stod(s2);
+
+                                if (n0 < n2)
+                                    setVariable(arg0, itos((int)random(n0, n2)));
+                                else if (n0 > n2)
+                                    setVariable(arg0, itos((int)random(n2, n0)));
+                                else
+                                    setVariable(arg0, itos((int)random(n0, n2)));
+                            }
+                        }
+                        else if (isAlpha(s0) && isAlpha(s2))
+                        {
+                            if (!isString(arg0))
+                            {
+                                error(ErrorMessage::NULL_STRING, arg0, false);
+                                return;
+                            }
+
+                            if (get_alpha_num(s0[0]) < get_alpha_num(s2[0]))
+                                setVariable(arg0, random(s0, s2));
+                            else if (get_alpha_num(s0[0]) > get_alpha_num(s2[0]))
+                                setVariable(arg0, random(s2, s0));
+                            else
+                                setVariable(arg0, random(s2, s0));
+                        }
+                        else if (variableExists(s0) || variableExists(s2))
+                        {
+                            if (variableExists(s0))
+                            {
+                                if (isNumber(s0))
+                                    s0 = dtos(varNumber(s0));
+                                else if (isString(s0))
+                                    s0 = varString(s0);
+                            }
+
+                            if (variableExists(s2))
+                            {
+                                if (isNumber(s2))
+                                    s2 = varNumberString(s2);
+                                else if (isString(s2))
+                                    s2 = varString(s2);
+                            }
 
                             if (isNumeric(s0) && isNumeric(s2))
                             {
@@ -3451,89 +3543,30 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             }
                             else if (isAlpha(s0) && isAlpha(s2))
                             {
-                                if (isString(arg0))
+                                if (!isString(arg0))
                                 {
-                                    if (get_alpha_num(s0[0]) < get_alpha_num(s2[0]))
-                                        setVariable(arg0, random(s0, s2));
-                                    else if (get_alpha_num(s0[0]) > get_alpha_num(s2[0]))
-                                        setVariable(arg0, random(s2, s0));
-                                    else
-                                        setVariable(arg0, random(s2, s0));
-                                }
-                                else
                                     error(ErrorMessage::NULL_STRING, arg0, false);
+                                    return;
+                                }
+
+                                if (get_alpha_num(s0[0]) < get_alpha_num(s2[0]))
+                                    setVariable(arg0, random(s0, s2));
+                                else if (get_alpha_num(s0[0]) > get_alpha_num(s2[0]))
+                                    setVariable(arg0, random(s2, s0));
+                                else
+                                    setVariable(arg0, random(s2, s0));
                             }
-                            else if (variableExists(s0) || variableExists(s2))
-                            {
-                                if (variableExists(s0))
-                                {
-                                    if (isNumber(s0))
-                                        s0 = dtos(variables.at(indexOfVariable(s0)).getNumber());
-                                    else if (isString(s0))
-                                        s0 = variables.at(indexOfVariable(s0)).getString();
-                                }
-
-                                if (variableExists(s2))
-                                {
-                                    if (isNumber(s2))
-                                        s2 = dtos(variables.at(indexOfVariable(s2)).getNumber());
-                                    else if (isString(s2))
-                                        s2 = variables.at(indexOfVariable(s2)).getString();
-                                }
-
-                                if (isNumeric(s0) && isNumeric(s2))
-                                {
-                                    if (isNumber(arg0))
-                                    {
-                                        double n0 = stod(s0), n2 = stod(s2);
-
-                                        if (n0 < n2)
-                                            setVariable(arg0, (int)random(n0, n2));
-                                        else if (n0 > n2)
-                                            setVariable(arg0, (int)random(n2, n0));
-                                        else
-                                            setVariable(arg0, (int)random(n0, n2));
-                                    }
-                                    else if (isString(arg0))
-                                    {
-                                        double n0 = stod(s0), n2 = stod(s2);
-
-                                        if (n0 < n2)
-                                            setVariable(arg0, itos((int)random(n0, n2)));
-                                        else if (n0 > n2)
-                                            setVariable(arg0, itos((int)random(n2, n0)));
-                                        else
-                                            setVariable(arg0, itos((int)random(n0, n2)));
-                                    }
-                                }
-                                else if (isAlpha(s0) && isAlpha(s2))
-                                {
-                                    if (isString(arg0))
-                                    {
-                                        if (get_alpha_num(s0[0]) < get_alpha_num(s2[0]))
-                                            setVariable(arg0, random(s0, s2));
-                                        else if (get_alpha_num(s0[0]) > get_alpha_num(s2[0]))
-                                            setVariable(arg0, random(s2, s0));
-                                        else
-                                            setVariable(arg0, random(s2, s0));
-                                    }
-                                    else
-                                        error(ErrorMessage::NULL_STRING, arg0, false);
-                                }
-                            }
-                            else
-                                error(ErrorMessage::INVALID_SEQ, s0 + "_" + s2, false);
                         }
                         else
-                            error(ErrorMessage::INVALID_SEQ_SEP, arg2, false);
+                            error(ErrorMessage::INVALID_SEQ, s0 + "_" + s2, false);
                     }
                 }
                 else if (listExists(before) && after == "size")
                 {
                     if (isNumber(arg0))
-                        setVariable(arg0, stod(itos(lists.at(indexOfList(before)).size())));
+                        setVariable(arg0, stod(itos(getList(before).size())));
                     else if (isString(arg0))
-                        setVariable(arg0, itos(lists.at(indexOfList(before)).size()));
+                        setVariable(arg0, itos(getList(before).size()));
                     else
                         error(ErrorMessage::IS_NULL, arg0, false);
                 }
@@ -3546,16 +3579,16 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (objectExists(before))
                 {
-                    if (objects.at(indexOfObject(before)).variableExists(after))
+                    if (getObject(before).variableExists(after))
                     {
-                        if (objects.at(indexOfObject(before)).getVariable(after).getString() != State.Null)
-                            setVariable(arg0, objects.at(indexOfObject(before)).getVariable(after).getString());
-                        else if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != State.NullNum)
-                            setVariable(arg0, objects.at(indexOfObject(before)).getVariable(after).getNumber());
+                        if (getObject(before).getVariable(after).getString() != State.Null)
+                            setVariable(arg0, getObject(before).getVariable(after).getString());
+                        else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
+                            setVariable(arg0, getObject(before).getVariable(after).getNumber());
                         else
                             error(ErrorMessage::IS_NULL, arg2, false);
                     }
-                    else if (objects.at(indexOfObject(before)).methodExists(after) && !containsParams(after))
+                    else if (getObject(before).methodExists(after) && !containsParams(after))
                     {
                         parse(arg2);
 
@@ -3566,9 +3599,9 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     }
                     else if (containsParams(after))
                     {
-                        if (objects.at(indexOfObject(before)).methodExists(beforeParams(after)))
+                        if (getObject(before).methodExists(beforeParams(after)))
                         {
-                            executeTemplate(objects.at(indexOfObject(before)).getMethod(beforeParams(after)), getParams(after));
+                            executeTemplate(getObject(before).getMethod(beforeParams(after)), getParams(after));
 
                             if (isNumeric(State.LastValue))
                             {
@@ -3604,10 +3637,10 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     if (variableExists(before))
                     {
                         if (isString(before))
-                            setVariable(arg0, (int)variables.at(indexOfVariable(before)).getString()[0]);
+                            setVariable(arg0, (int)varString(before)[0]);
                         else if (isNumber(before))
                         {
-                            int i = (int)variables.at(indexOfVariable(before)).getNumber();
+                            int i = (int)varNumber(before);
                             setVariable(arg0, (double)i);
                         }
                         else
@@ -3621,10 +3654,10 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     if (variableExists(before))
                     {
                         if (isString(before))
-                            setVariable(arg0, (double)variables.at(indexOfVariable(before)).getString()[0]);
+                            setVariable(arg0, (double)varString(before)[0]);
                         else if (isNumber(before))
                         {
-                            double i = variables.at(indexOfVariable(before)).getNumber();
+                            double i = varNumber(before);
                             setVariable(arg0, (double)i);
                         }
                         else
@@ -3638,7 +3671,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     if (variableExists(before))
                     {
                         if (isNumber(before))
-                            setVariable(arg0, dtos(variables.at(indexOfVariable(before)).getNumber()));
+                            setVariable(arg0, dtos(varNumber(before)));
                         else
                             error(ErrorMessage::IS_NULL, before, false);
                     }
@@ -3650,7 +3683,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     if (variableExists(before))
                     {
                         if (isString(before))
-                            setVariable(arg0, stod(variables.at(indexOfVariable(before)).getString()));
+                            setVariable(arg0, stod(varString(before)));
                         else
                             error(ErrorMessage::IS_NULL, before, false);
                     }
@@ -3664,7 +3697,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isString(after))
                         {
                             string line("");
-                            write(cleanString(variables.at(indexOfVariable(after)).getString()));
+                            write(cleanString(varString(after)));
                             getline(cin, line, '\n');
 
                             if (isNumber(arg0))
@@ -3717,7 +3750,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isString(after))
                         {
                             string line("");
-                            line = getSilentOutput(variables.at(indexOfVariable(after)).getString());
+                            line = getSilentOutput(varString(after));
 
                             if (isNumber(arg0))
                             {
@@ -3773,14 +3806,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, cos(variables.at(indexOfVariable(before)).getNumber()));
+                                setVariable(arg0, cos(varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
                         else if (isString(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, dtos(cos(variables.at(indexOfVariable(before)).getNumber())));
+                                setVariable(arg0, dtos(cos(varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3795,14 +3828,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, acos(variables.at(indexOfVariable(before)).getNumber()));
+                                setVariable(arg0, acos(varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
                         else if (isString(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, dtos(acos(variables.at(indexOfVariable(before)).getNumber())));
+                                setVariable(arg0, dtos(acos(varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3817,14 +3850,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, cosh(variables.at(indexOfVariable(before)).getNumber()));
+                                setVariable(arg0, cosh(varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
                         else if (isString(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, dtos(cosh(variables.at(indexOfVariable(before)).getNumber())));
+                                setVariable(arg0, dtos(cosh(varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3839,14 +3872,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, log(variables.at(indexOfVariable(before)).getNumber()));
+                                setVariable(arg0, log(varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
                         else if (isString(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, dtos(log(variables.at(indexOfVariable(before)).getNumber())));
+                                setVariable(arg0, dtos(log(varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3861,14 +3894,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, sqrt(variables.at(indexOfVariable(before)).getNumber()));
+                                setVariable(arg0, sqrt(varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
                         else if (isString(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, dtos(sqrt(variables.at(indexOfVariable(before)).getNumber())));
+                                setVariable(arg0, dtos(sqrt(varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3883,14 +3916,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, abs(variables.at(indexOfVariable(before)).getNumber()));
+                                setVariable(arg0, abs(varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
                         else if (isString(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, dtos(abs(variables.at(indexOfVariable(before)).getNumber())));
+                                setVariable(arg0, dtos(abs(varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3905,14 +3938,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, floor(variables.at(indexOfVariable(before)).getNumber()));
+                                setVariable(arg0, floor(varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
                         else if (isString(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, dtos(floor(variables.at(indexOfVariable(before)).getNumber())));
+                                setVariable(arg0, dtos(floor(varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3927,14 +3960,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, ceil(variables.at(indexOfVariable(before)).getNumber()));
+                                setVariable(arg0, ceil(varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
                         else if (isString(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, dtos(ceil(variables.at(indexOfVariable(before)).getNumber())));
+                                setVariable(arg0, dtos(ceil(varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3949,14 +3982,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, exp(variables.at(indexOfVariable(before)).getNumber()));
+                                setVariable(arg0, exp(varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
                         else if (isString(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, dtos(exp(variables.at(indexOfVariable(before)).getNumber())));
+                                setVariable(arg0, dtos(exp(varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3971,14 +4004,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, sin(variables.at(indexOfVariable(before)).getNumber()));
+                                setVariable(arg0, sin(varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
                         else if (isString(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, dtos(sin(variables.at(indexOfVariable(before)).getNumber())));
+                                setVariable(arg0, dtos(sin(varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3993,14 +4026,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, sinh(variables.at(indexOfVariable(before)).getNumber()));
+                                setVariable(arg0, sinh(varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
                         else if (isString(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, dtos(sinh(variables.at(indexOfVariable(before)).getNumber())));
+                                setVariable(arg0, dtos(sinh(varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -4015,14 +4048,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, asin(variables.at(indexOfVariable(before)).getNumber()));
+                                setVariable(arg0, asin(varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
                         else if (isString(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, dtos(asin(variables.at(indexOfVariable(before)).getNumber())));
+                                setVariable(arg0, dtos(asin(varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -4037,14 +4070,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, tan(variables.at(indexOfVariable(before)).getNumber()));
+                                setVariable(arg0, tan(varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
                         else if (isString(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, dtos(tan(variables.at(indexOfVariable(before)).getNumber())));
+                                setVariable(arg0, dtos(tan(varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -4059,14 +4092,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, tanh(variables.at(indexOfVariable(before)).getNumber()));
+                                setVariable(arg0, tanh(varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
                         else if (isString(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, dtos(tanh(variables.at(indexOfVariable(before)).getNumber())));
+                                setVariable(arg0, dtos(tanh(varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -4081,14 +4114,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, atan(variables.at(indexOfVariable(before)).getNumber()));
+                                setVariable(arg0, atan(varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
                         else if (isString(arg0))
                         {
                             if (isNumber(before))
-                                setVariable(arg0, dtos(atan(variables.at(indexOfVariable(before)).getNumber())));
+                                setVariable(arg0, dtos(atan(varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -4103,7 +4136,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isString(arg0))
                         {
                             if (isString(before))
-                                setVariable(arg0, getLower(variables.at(indexOfVariable(before)).getString()));
+                                setVariable(arg0, getLower(varString(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -4119,9 +4152,9 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         {
                             if (isString(before))
                             {
-                                if (Env::fileExists(variables.at(indexOfVariable(before)).getString()))
+                                if (Env::fileExists(varString(before)))
                                 {
-                                    ifstream file(variables.at(indexOfVariable(before)).getString().c_str());
+                                    ifstream file(varString(before).c_str());
                                     string line(""), bigString("");
 
                                     if (file.is_open())
@@ -4137,10 +4170,10 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                                         setVariable(arg0, bigString);
                                     }
                                     else
-                                        error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
+                                        error(ErrorMessage::READ_FAIL, varString(before), false);
                                 }
                                 else
-                                    error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
+                                    error(ErrorMessage::READ_FAIL, varString(before), false);
                             }
                             else
                                 error(ErrorMessage::NULL_STRING, before, false);
@@ -4181,7 +4214,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isString(arg0))
                         {
                             if (isString(before))
-                                setVariable(arg0, getUpper(variables.at(indexOfVariable(before)).getString()));
+                                setVariable(arg0, getUpper(varString(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -4196,7 +4229,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isString(before))
-                                setVariable(arg0, (double)variables.at(indexOfVariable(before)).getString().length());
+                                setVariable(arg0, (double)varString(before).length());
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -4219,10 +4252,10 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         {
                             if (isString(before))
                             {
-                                if (Env::fileExists(variables.at(indexOfVariable(before)).getString()))
-                                    setVariable(arg0, getBytes(variables.at(indexOfVariable(before)).getString()));
+                                if (Env::fileExists(varString(before)))
+                                    setVariable(arg0, getBytes(varString(before)));
                                 else
-                                    error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
+                                    error(ErrorMessage::READ_FAIL, varString(before), false);
                             }
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
@@ -4249,7 +4282,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     }
                     else if (isString(arg0))
                         setVariable(arg0, arg2);
-                    else if (variables.at(indexOfVariable(arg0)).waiting())
+                    else if (getVar(arg0).waiting())
                     {
                         if (isNumeric(arg2))
                             setVariable(arg0, stod(before + "." + after));
@@ -4262,7 +4295,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
             }
             else
             {
-                if (variables.at(indexOfVariable(arg0)).waiting())
+                if (getVar(arg0).waiting())
                 {
                     if (isNumeric(arg2))
                         setVariable(arg0, stod(arg2));
@@ -4272,9 +4305,9 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 else if (arg2 == "null")
                 {
                     if (isString(arg0))
-                        variables.at(indexOfVariable(arg0)).setNull();
+                        getVar(arg0).setNull();
                     else if (isNumber(arg0))
-                        variables.at(indexOfVariable(arg0)).setNull();
+                        getVar(arg0).setNull();
                     else
                         error(ErrorMessage::IS_NULL, arg0, false);
                 }
@@ -4311,7 +4344,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     if (isString(arg2))
                     {
                         if (isString(arg0))
-                            setVariable(arg0, variables.at(indexOfVariable(arg2)).getString());
+                            setVariable(arg0, varString(arg2));
                         else if (isNumber(arg0))
                             error(ErrorMessage::CONV_ERR, arg2, false);
                         else
@@ -4320,9 +4353,9 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     else if (isNumber(arg2))
                     {
                         if (isString(arg0))
-                            setVariable(arg0, dtos(variables.at(indexOfVariable(arg2)).getNumber()));
+                            setVariable(arg0, dtos(varNumber(arg2)));
                         else if (isNumber(arg0))
-                            setVariable(arg0, variables.at(indexOfVariable(arg2)).getNumber());
+                            setVariable(arg0, varNumber(arg2));
                         else
                             error(ErrorMessage::IS_NULL, arg0, false);
                     }
@@ -4421,9 +4454,9 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     if (isString(arg0))
                     {
                         if (isString(arg2))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + variables.at(indexOfVariable(arg2)).getString());
+                            setVariable(arg0, varString(arg0) + varString(arg2));
                         else if (isNumber(arg2))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + dtos(variables.at(indexOfVariable(arg2)).getNumber()));
+                            setVariable(arg0, varString(arg0) + dtos(varNumber(arg2)));
                         else
                             error(ErrorMessage::IS_NULL, arg2, false);
                     }
@@ -4432,7 +4465,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isString(arg2))
                             error(ErrorMessage::CONV_ERR, arg2, false);
                         else if (isNumber(arg2))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + variables.at(indexOfVariable(arg2)).getNumber());
+                            setVariable(arg0, varNumber(arg0) + varNumber(arg2));
                         else
                             error(ErrorMessage::IS_NULL, arg2, false);
                     }
@@ -4446,25 +4479,25 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isStringStack(arg2))
                         {
                             if (isString(arg0))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + getStringStack(arg2));
+                                setVariable(arg0, varString(arg0) + getStringStack(arg2));
                             else
                                 error(ErrorMessage::CONV_ERR, arg0, false);
                         }
                         else if (stackReady(arg2))
                         {
                             if (isNumber(arg0))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + getStack(arg2));
+                                setVariable(arg0, varNumber(arg0) + getStack(arg2));
                         }
                         else if (methodExists(beforeParams(arg2)))
                         {
                             executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
 
                             if (isString(arg0))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + State.LastValue);
+                                setVariable(arg0, varString(arg0) + State.LastValue);
                             else if (isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(State.LastValue));
+                                    setVariable(arg0, varNumber(arg0) + stod(State.LastValue));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
@@ -4476,11 +4509,11 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
 
                             if (isString(arg0))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + State.LastValue);
+                                setVariable(arg0, varString(arg0) + State.LastValue);
                             else if (isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(State.LastValue));
+                                    setVariable(arg0, varNumber(arg0) + stod(State.LastValue));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
@@ -4493,11 +4526,11 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         parse(arg2);
 
                         if (isString(arg0))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + State.LastValue);
+                            setVariable(arg0, varString(arg0) + State.LastValue);
                         else if (isNumber(arg0))
                         {
                             if (isNumeric(State.LastValue))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(State.LastValue));
+                                setVariable(arg0, varNumber(arg0) + stod(State.LastValue));
                             else
                                 error(ErrorMessage::CONV_ERR, arg0, false);
                         }
@@ -4507,16 +4540,16 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     else if (isNumeric(arg2))
                     {
                         if (isString(arg0))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + arg2);
+                            setVariable(arg0, varString(arg0) + arg2);
                         else if (isNumber(arg0))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() + stod(arg2));
+                            setVariable(arg0, varNumber(arg0) + stod(arg2));
                         else
                             error(ErrorMessage::IS_NULL, arg0, false);
                     }
                     else
                     {
                         if (isString(arg0))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getString() + cleanString(arg2));
+                            setVariable(arg0, varString(arg0) + cleanString(arg2));
                         else if (isNumber(arg0))
                             error(ErrorMessage::CONV_ERR, arg0, false);
                         else
@@ -4532,13 +4565,13 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     {
                         if (isString(arg2))
                         {
-                            if (variables.at(indexOfVariable(arg2)).getString().length() == 1)
-                                setVariable(arg0, subtractChar(variables.at(indexOfVariable(arg0)).getString(), variables.at(indexOfVariable(arg2)).getString()));
+                            if (varString(arg2).length() == 1)
+                                setVariable(arg0, subtractChar(varString(arg0), varString(arg2)));
                             else
-                                setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), variables.at(indexOfVariable(arg2)).getString()));
+                                setVariable(arg0, subtractString(varString(arg0), varString(arg2)));
                         }
                         else if (isNumber(arg2))
-                            setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), dtos(variables.at(indexOfVariable(arg2)).getNumber())));
+                            setVariable(arg0, subtractString(varString(arg0), dtos(varNumber(arg2))));
                         else
                             error(ErrorMessage::IS_NULL, arg2, false);
                     }
@@ -4547,7 +4580,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isString(arg2))
                             error(ErrorMessage::CONV_ERR, arg2, false);
                         else if (isNumber(arg2))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - variables.at(indexOfVariable(arg2)).getNumber());
+                            setVariable(arg0, varNumber(arg0) - varNumber(arg2));
                         else
                             error(ErrorMessage::IS_NULL, arg2, false);
                     }
@@ -4561,25 +4594,25 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isStringStack(arg2))
                         {
                             if (isString(arg0))
-                                setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), getStringStack(arg2)));
+                                setVariable(arg0, subtractString(varString(arg0), getStringStack(arg2)));
                             else
                                 error(ErrorMessage::CONV_ERR, arg0, false);
                         }
                         else if (stackReady(arg2))
                         {
                             if (isNumber(arg0))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - getStack(arg2));
+                                setVariable(arg0, varNumber(arg0) - getStack(arg2));
                         }
                         else if (methodExists(beforeParams(arg2)))
                         {
                             executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
 
                             if (isString(arg0))
-                                setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), State.LastValue));
+                                setVariable(arg0, subtractString(varString(arg0), State.LastValue));
                             else if (isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(State.LastValue));
+                                    setVariable(arg0, varNumber(arg0) - stod(State.LastValue));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
@@ -4591,11 +4624,11 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
 
                             if (isString(arg0))
-                                setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), State.LastValue));
+                                setVariable(arg0, subtractString(varString(arg0), State.LastValue));
                             else if (isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(State.LastValue));
+                                    setVariable(arg0, varNumber(arg0) - stod(State.LastValue));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
@@ -4608,11 +4641,11 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         parse(arg2);
 
                         if (isString(arg0))
-                            setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), State.LastValue));
+                            setVariable(arg0, subtractString(varString(arg0), State.LastValue));
                         else if (isNumber(arg0))
                         {
                             if (isNumeric(State.LastValue))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(State.LastValue));
+                                setVariable(arg0, varNumber(arg0) - stod(State.LastValue));
                             else
                                 error(ErrorMessage::CONV_ERR, arg0, false);
                         }
@@ -4624,12 +4657,12 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isString(arg0))
                         {
                             if (arg2.length() == 1)
-                                setVariable(arg0, subtractChar(variables.at(indexOfVariable(arg0)).getString(), arg2));
+                                setVariable(arg0, subtractChar(varString(arg0), arg2));
                             else
-                                setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), arg2));
+                                setVariable(arg0, subtractString(varString(arg0), arg2));
                         }
                         else if (isNumber(arg0))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() - stod(arg2));
+                            setVariable(arg0, varNumber(arg0) - stod(arg2));
                         else
                             error(ErrorMessage::IS_NULL, arg0, false);
                     }
@@ -4638,9 +4671,9 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isString(arg0))
                         {
                             if (arg2.length() == 1)
-                                setVariable(arg0, subtractChar(variables.at(indexOfVariable(arg0)).getString(), arg2));
+                                setVariable(arg0, subtractChar(varString(arg0), arg2));
                             else
-                                setVariable(arg0, subtractString(variables.at(indexOfVariable(arg0)).getString(), cleanString(arg2)));
+                                setVariable(arg0, subtractString(varString(arg0), cleanString(arg2)));
                         }
                         else if (isNumber(arg0))
                             error(ErrorMessage::CONV_ERR, arg0, false);
@@ -4654,7 +4687,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 if (variableExists(arg2))
                 {
                     if (isNumber(arg2))
-                        setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * variables.at(indexOfVariable(arg2)).getNumber());
+                        setVariable(arg0, varNumber(arg0) * varNumber(arg2));
                     else if (isString(arg2))
                         error(ErrorMessage::CONV_ERR, arg2, false);
                     else
@@ -4667,7 +4700,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (stackReady(arg2))
                         {
                             if (isNumber(arg0))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * getStack(arg2));
+                                setVariable(arg0, varNumber(arg0) * getStack(arg2));
                         }
                         else if (methodExists(beforeParams(arg2)))
                         {
@@ -4676,7 +4709,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             if (isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(State.LastValue));
+                                    setVariable(arg0, varNumber(arg0) * stod(State.LastValue));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
@@ -4690,7 +4723,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             if (isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(State.LastValue));
+                                    setVariable(arg0, varNumber(arg0) * stod(State.LastValue));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
@@ -4705,7 +4738,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumeric(State.LastValue))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(State.LastValue));
+                                setVariable(arg0, varNumber(arg0) * stod(State.LastValue));
                             else
                                 error(ErrorMessage::CONV_ERR, arg0, false);
                         }
@@ -4715,7 +4748,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     else if (isNumeric(arg2))
                     {
                         if (isNumber(arg0))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() * stod(arg2));
+                            setVariable(arg0, varNumber(arg0) * stod(arg2));
                     }
                     else
                         setVariable(arg0, cleanString(arg2));
@@ -4726,7 +4759,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 if (variableExists(arg2))
                 {
                     if (isNumber(arg2))
-                        setVariable(arg0, (int)variables.at(indexOfVariable(arg0)).getNumber() % (int)variables.at(indexOfVariable(arg2)).getNumber());
+                        setVariable(arg0, (int)varNumber(arg0) % (int)varNumber(arg2));
                     else if (isString(arg2))
                         error(ErrorMessage::CONV_ERR, arg2, false);
                     else
@@ -4739,7 +4772,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     if (isNumber(arg0))
                     {
                         if (isNumeric(State.LastValue))
-                            setVariable(arg0, (int)variables.at(indexOfVariable(arg0)).getNumber() % (int)stod(State.LastValue));
+                            setVariable(arg0, (int)varNumber(arg0) % (int)stod(State.LastValue));
                         else
                             error(ErrorMessage::CONV_ERR, arg0, false);
                     }
@@ -4751,7 +4784,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     if (isNumeric(arg2))
                     {
                         if (isNumber(arg0))
-                            setVariable(arg0, (int)variables.at(indexOfVariable(arg0)).getNumber() % (int)stod(arg2));
+                            setVariable(arg0, (int)varNumber(arg0) % (int)stod(arg2));
                     }
                     else
                         setVariable(arg0, cleanString(arg2));
@@ -4762,7 +4795,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 if (variableExists(arg2))
                 {
                     if (isNumber(arg2))
-                        setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), variables.at(indexOfVariable(arg2)).getNumber()));
+                        setVariable(arg0, pow(varNumber(arg0), varNumber(arg2)));
                     else if (isString(arg2))
                         error(ErrorMessage::CONV_ERR, arg2, false);
                     else
@@ -4775,7 +4808,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (stackReady(arg2))
                         {
                             if (isNumber(arg0))
-                                setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)getStack(arg2)));
+                                setVariable(arg0, pow(varNumber(arg0), (int)getStack(arg2)));
                         }
                         else if (methodExists(beforeParams(arg2)))
                         {
@@ -4784,7 +4817,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             if (isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)stod(State.LastValue)));
+                                    setVariable(arg0, pow(varNumber(arg0), (int)stod(State.LastValue)));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
@@ -4798,7 +4831,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             if (isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)stod(State.LastValue)));
+                                    setVariable(arg0, pow(varNumber(arg0), (int)stod(State.LastValue)));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
@@ -4813,7 +4846,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumeric(State.LastValue))
-                                setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), (int)stod(State.LastValue)));
+                                setVariable(arg0, pow(varNumber(arg0), (int)stod(State.LastValue)));
                             else
                                 error(ErrorMessage::CONV_ERR, arg0, false);
                         }
@@ -4823,7 +4856,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     else if (isNumeric(arg2))
                     {
                         if (isNumber(arg0))
-                            setVariable(arg0, pow(variables.at(indexOfVariable(arg0)).getNumber(), stod(arg2)));
+                            setVariable(arg0, pow(varNumber(arg0), stod(arg2)));
                     }
                     else
                         setVariable(arg0, cleanString(arg2));
@@ -4834,7 +4867,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 if (variableExists(arg2))
                 {
                     if (isNumber(arg2))
-                        setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / variables.at(indexOfVariable(arg2)).getNumber());
+                        setVariable(arg0, varNumber(arg0) / varNumber(arg2));
                     else if (isString(arg2))
                         error(ErrorMessage::CONV_ERR, arg2, false);
                     else
@@ -4847,7 +4880,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (stackReady(arg2))
                         {
                             if (isNumber(arg0))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / getStack(arg2));
+                                setVariable(arg0, varNumber(arg0) / getStack(arg2));
                         }
                         else if (methodExists(beforeParams(arg2)))
                         {
@@ -4856,7 +4889,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             if (isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(State.LastValue));
+                                    setVariable(arg0, varNumber(arg0) / stod(State.LastValue));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
@@ -4870,7 +4903,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             if (isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(State.LastValue));
+                                    setVariable(arg0, varNumber(arg0) / stod(State.LastValue));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
@@ -4885,7 +4918,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         if (isNumber(arg0))
                         {
                             if (isNumeric(State.LastValue))
-                                setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(State.LastValue));
+                                setVariable(arg0, varNumber(arg0) / stod(State.LastValue));
                             else
                                 error(ErrorMessage::CONV_ERR, arg0, false);
                         }
@@ -4895,7 +4928,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     else if (isNumeric(arg2))
                     {
                         if (isNumber(arg0))
-                            setVariable(arg0, variables.at(indexOfVariable(arg0)).getNumber() / stod(arg2));
+                            setVariable(arg0, varNumber(arg0) / stod(arg2));
                     }
                     else
                         setVariable(arg0, cleanString(arg2));
@@ -4909,8 +4942,8 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     {
                         if (isString(arg0))
                         {
-                            int tempVarNumber((int)variables.at(indexOfVariable(arg2)).getNumber());
-                            string tempVarString(variables.at(indexOfVariable(arg0)).getString());
+                            int tempVarNumber((int)varNumber(arg2));
+                            string tempVarString(varString(arg0));
                             int len(tempVarString.length());
                             string cleaned("");
 
@@ -4930,7 +4963,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     if (isNumeric(arg2))
                     {
                         int tempVarNumber(stoi(arg2));
-                        string tempVarString(variables.at(indexOfVariable(arg0)).getString());
+                        string tempVarString(varString(arg0));
 
                         if (tempVarString != State.Null)
                         {
@@ -4957,8 +4990,8 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     {
                         if (isString(arg0))
                         {
-                            int tempVarNumber((int)variables.at(indexOfVariable(arg2)).getNumber());
-                            string tempVarString(variables.at(indexOfVariable(arg0)).getString());
+                            int tempVarNumber((int)varNumber(arg2));
+                            string tempVarString(varString(arg0));
                             int len(tempVarString.length());
                             string cleaned("");
 
@@ -4978,7 +5011,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     if (isNumeric(arg2))
                     {
                         int tempVarNumber(stoi(arg2));
-                        string tempVarString(variables.at(indexOfVariable(arg0)).getString());
+                        string tempVarString(varString(arg0));
 
                         if (tempVarString != State.Null)
                         {
@@ -5004,7 +5037,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     if (isString(arg2))
                     {
                         if (isString(arg0))
-                            setVariable(arg0, Env::getStdout(variables.at(indexOfVariable(arg2)).getString().c_str()));
+                            setVariable(arg0, Env::getStdout(varString(arg2).c_str()));
                         else
                             error(ErrorMessage::CONV_ERR, arg0, false);
                     }
@@ -5026,7 +5059,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     if (isString(arg2))
                     {
                         if (isString(arg0))
-                            setVariable(arg0, getParsedOutput(variables.at(indexOfVariable(arg2)).getString().c_str()));
+                            setVariable(arg0, getParsedOutput(varString(arg2).c_str()));
                         else
                             error(ErrorMessage::CONV_ERR, arg0, false);
                     }
@@ -5058,7 +5091,7 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
         string after(afterBrackets(arg0)), before(beforeBrackets(arg0));
         after = subtractString(after, "]");
 
-        if (lists.at(indexOfList(before)).size() >= stoi(after))
+        if (getList(before).size() >= stoi(after))
         {
             if (stoi(after) == 0)
             {
@@ -5067,9 +5100,9 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
                     if (variableExists(arg2))
                     {
                         if (isString(arg2))
-                            replaceElement(before, after, variables.at(indexOfVariable(arg2)).getString());
+                            replaceElement(before, after, varString(arg2));
                         else if (isNumber(arg2))
-                            replaceElement(before, after, dtos(variables.at(indexOfVariable(arg2)).getNumber()));
+                            replaceElement(before, after, dtos(varNumber(arg2)));
                         else
                             error(ErrorMessage::IS_NULL, arg2, false);
                     }
@@ -5077,7 +5110,7 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
                         replaceElement(before, after, arg2);
                 }
             }
-            else if (lists.at(indexOfList(before)).at(stoi(after)) == "#!=no_line")
+            else if (getList(before).at(stoi(after)) == "#!=no_line")
                 error(ErrorMessage::OUT_OF_BOUNDS, arg0, false);
             else
             {
@@ -5086,9 +5119,9 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
                     if (variableExists(arg2))
                     {
                         if (isString(arg2))
-                            replaceElement(before, after, variables.at(indexOfVariable(arg2)).getString());
+                            replaceElement(before, after, varString(arg2));
                         else if (isNumber(arg2))
-                            replaceElement(before, after, dtos(variables.at(indexOfVariable(arg2)).getNumber()));
+                            replaceElement(before, after, dtos(varNumber(arg2)));
                         else
                             error(ErrorMessage::IS_NULL, arg2, false);
                     }
@@ -5104,111 +5137,108 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
     {
         string listName(beforeBrackets(arg2));
 
-        if (listExists(listName))
+        if (!listExists(listName))
         {
-            vector<string> listRange = getBracketRange(arg2);
+            error(ErrorMessage::LIST_UNDEFINED, listName, false);
+            return;
+        }
 
-            if (listRange.size() == 2)
+        vector<string> listRange = getBracketRange(arg2);
+
+        if (listRange.size() != 2)
+        {
+            error(ErrorMessage::OUT_OF_BOUNDS, arg2, false);
+            return;
+        }
+
+        string rangeBegin(listRange.at(0)), rangeEnd(listRange.at(1));
+
+        if (!(rangeBegin.length() != 0 && rangeEnd.length() != 0))
+        {
+            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+            return;
+        }
+
+        if (!(isNumeric(rangeBegin) && isNumeric(rangeEnd)))
+        {
+            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+            return;
+        }
+
+        if (stoi(rangeBegin) < stoi(rangeEnd))
+        {
+            if (!(getList(listName).size() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0) || !(stoi(rangeBegin) >= 0))
             {
-                string rangeBegin(listRange.at(0)), rangeEnd(listRange.at(1));
+                error(ErrorMessage::OUT_OF_BOUNDS, rangeEnd, false);
+                return;
+            }
 
-                if (rangeBegin.length() != 0 && rangeEnd.length() != 0)
-                {
-                    if (isNumeric(rangeBegin) && isNumeric(rangeEnd))
-                    {
-                        if (stoi(rangeBegin) < stoi(rangeEnd))
-                        {
-                            if (lists.at(indexOfList(listName)).size() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)
-                            {
-                                if (stoi(rangeBegin) >= 0)
-                                {
-                                    if (arg1 == "+=")
-                                    {
-                                        for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
-                                            lists.at(indexOfList(arg0)).add(lists.at(indexOfList(listName)).at(i));
-                                    }
-                                    else if (arg1 == "=")
-                                    {
-                                        lists.at(indexOfList(arg0)).clear();
+            if (arg1 == "+=")
+            {
+                for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
+                    getList(arg0).add(getList(listName).at(i));
+            }
+            else if (arg1 == "=")
+            {
+                getList(arg0).clear();
 
-                                        for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
-                                            lists.at(indexOfList(arg0)).add(lists.at(indexOfList(listName)).at(i));
-                                    }
-                                    else
-                                        error(ErrorMessage::INVALID_OPERATOR, arg1, false);
-                                }
-                                else
-                                    error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin, false);
-                            }
-                            else
-                                error(ErrorMessage::OUT_OF_BOUNDS, rangeEnd, false);
-                        }
-                        else if (stoi(rangeBegin) > stoi(rangeEnd))
-                        {
-                            if (lists.at(indexOfList(listName)).size() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)
-                            {
-                                if (stoi(rangeBegin) >= 0)
-                                {
-                                    if (arg1 == "+=")
-                                    {
-                                        for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
-                                            lists.at(indexOfList(arg0)).add(lists.at(indexOfList(listName)).at(i));
-                                    }
-                                    else if (arg1 == "=")
-                                    {
-                                        lists.at(indexOfList(arg0)).clear();
-
-                                        for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
-                                            lists.at(indexOfList(arg0)).add(lists.at(indexOfList(listName)).at(i));
-                                    }
-                                    else
-                                        error(ErrorMessage::INVALID_OPERATOR, arg1, false);
-                                }
-                                else
-                                    error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin, false);
-                            }
-                            else
-                                error(ErrorMessage::OUT_OF_BOUNDS, rangeEnd, false);
-                        }
-                        else
-                            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
-                    }
-                    else
-                        error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
-                }
-                else
-                    error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+                for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
+                    getList(arg0).add(getList(listName).at(i));
             }
             else
-                error(ErrorMessage::OUT_OF_BOUNDS, arg2, false);
+                error(ErrorMessage::INVALID_OPERATOR, arg1, false);
+        }
+        else if (stoi(rangeBegin) > stoi(rangeEnd))
+        {
+            if (!(getList(listName).size() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0) || !(stoi(rangeBegin) >= 0))
+            {
+                error(ErrorMessage::OUT_OF_BOUNDS, rangeEnd, false);
+                return;
+            }
+
+            if (arg1 == "+=")
+            {
+                for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
+                    getList(arg0).add(getList(listName).at(i));
+            }
+            else if (arg1 == "=")
+            {
+                getList(arg0).clear();
+
+                for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
+                    getList(arg0).add(getList(listName).at(i));
+            }
+            else
+                error(ErrorMessage::INVALID_OPERATOR, arg1, false);
         }
         else
-            error(ErrorMessage::LIST_UNDEFINED, listName, false);
+            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
     }
     else if (variableExists(_b) && contains(_a, "split") && arg1 == "=")
     {
-        if (isString(_b))
+        if (!isString(_b))
         {
-            vector<string> params = getParams(_a);
-            vector<string> elements;
-
-            if (params.at(0) == "")
-                elements = split(variables.at(indexOfVariable(_b)).getString(), ' ');
-            else
-            {
-                if (params.at(0)[0] == ';')
-                    elements = split(variables.at(indexOfVariable(_b)).getString(), ';');
-                else
-                    elements = split(variables.at(indexOfVariable(_b)).getString(), params.at(0)[0]);
-            }
-
-            lists.at(indexOfList(arg0)).clear();
-
-            for (int i = 0; i < (int)elements.size(); i++)
-                lists.at(indexOfList(arg0)).add(elements.at(i));
-        }
-        else
             error(ErrorMessage::NULL_STRING, _b, false);
+            return;
+        }
+
+        vector<string> params = getParams(_a);
+        vector<string> elements;
+
+        if (params.at(0) == "")
+            elements = split(varString(_b), ' ');
+        else
+        {
+            if (params.at(0)[0] == ';')
+                elements = split(varString(_b), ';');
+            else
+                elements = split(varString(_b), params.at(0)[0]);
+        }
+
+        getList(arg0).clear();
+
+        for (int i = 0; i < (int)elements.size(); i++)
+            getList(arg0).add(elements.at(i));
     }
     else if (containsParams(arg2)) // ADD/REMOVE ARRAY FROM LIST
     {
@@ -5216,7 +5246,7 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
 
         if (arg1 == "=")
         {
-            lists.at(indexOfList(arg0)).clear();
+            getList(arg0).clear();
 
             setList(arg0, arg2, params);
         }
@@ -5229,14 +5259,14 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
                 if (variableExists(params.at(i)))
                 {
                     if (isString(params.at(i)))
-                        lists.at(indexOfList(arg0)).remove(variables.at(indexOfVariable(params.at(i))).getString());
+                        getList(arg0).remove(varString(params.at(i)));
                     else if (isNumber(params.at(i)))
-                        lists.at(indexOfList(arg0)).remove(dtos(variables.at(indexOfVariable(params.at(i))).getNumber()));
+                        getList(arg0).remove(dtos(varNumber(params.at(i))));
                     else
                         error(ErrorMessage::IS_NULL, params.at(i), false);
                 }
                 else
-                    lists.at(indexOfList(arg0)).remove(params.at(i));
+                    getList(arg0).remove(params.at(i));
             }
         }
         else
@@ -5247,18 +5277,18 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
         if (arg1 == "+=")
         {
             if (isString(arg2))
-                lists.at(indexOfList(arg0)).add(variables.at(indexOfVariable(arg2)).getString());
+                getList(arg0).add(varString(arg2));
             else if (isNumber(arg2))
-                lists.at(indexOfList(arg0)).add(dtos(variables.at(indexOfVariable(arg2)).getNumber()));
+                getList(arg0).add(dtos(varNumber(arg2)));
             else
                 error(ErrorMessage::CONV_ERR, arg2, false);
         }
         else if (arg1 == "-=")
         {
             if (isString(arg2))
-                lists.at(indexOfList(arg0)).remove(variables.at(indexOfVariable(arg2)).getString());
+                getList(arg0).remove(varString(arg2));
             else if (isNumber(arg2))
-                lists.at(indexOfList(arg0)).remove(dtos(variables.at(indexOfVariable(arg2)).getNumber()));
+                getList(arg0).remove(dtos(varNumber(arg2)));
             else
                 error(ErrorMessage::CONV_ERR, arg2, false);
         }
@@ -5273,15 +5303,15 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
 
         if (arg1 == "=")
         {
-            lists.at(indexOfList(arg0)).clear();
+            getList(arg0).clear();
 
             for (int i = 0; i < (int)_p.size(); i++)
-                lists.at(indexOfList(arg0)).add(_p.at(i));
+                getList(arg0).add(_p.at(i));
         }
         else if (arg1 == "+=")
         {
             for (int i = 0; i < (int)_p.size(); i++)
-                lists.at(indexOfList(arg0)).add(_p.at(i));
+                getList(arg0).add(_p.at(i));
         }
         else
             error(ErrorMessage::INVALID_OPERATOR, arg1, false);
@@ -5291,14 +5321,14 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
         if (arg1 == "+=")
         {
             if (arg2.length() != 0)
-                lists.at(indexOfList(arg0)).add(arg2);
+                getList(arg0).add(arg2);
             else
                 error(ErrorMessage::IS_EMPTY, arg2, false);
         }
         else if (arg1 == "-=")
         {
             if (arg2.length() != 0)
-                lists.at(indexOfList(arg0)).remove(arg2);
+                getList(arg0).remove(arg2);
             else
                 error(ErrorMessage::IS_EMPTY, arg2, false);
         }
@@ -5319,13 +5349,13 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
 
             if (listExists(beforeBracket))
             {
-                if (lists.at(indexOfList(beforeBracket)).size() >= stoi(afterBracket))
+                if (getList(beforeBracket).size() >= stoi(afterBracket))
                 {
-                    if (lists.at(indexOfList(beforeBracket)).at(stoi(afterBracket)) == "#!=no_line")
+                    if (getList(beforeBracket).at(stoi(afterBracket)) == "#!=no_line")
                         error(ErrorMessage::OUT_OF_BOUNDS, arg2, false);
                     else
                     {
-                        string listValue(lists.at(indexOfList(beforeBracket)).at(stoi(afterBracket)));
+                        string listValue(getList(beforeBracket).at(stoi(afterBracket)));
 
                         if (isNumeric(listValue))
                             createVariable(arg0, stod(listValue));
@@ -5342,7 +5372,7 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                 error(ErrorMessage::LIST_UNDEFINED, beforeBracket, false);
         }
         else if (listExists(before) && after == "size")
-            createVariable(arg0, stod(itos(lists.at(indexOfList(before)).size())));
+            createVariable(arg0, stod(itos(getList(before).size())));
         else if (before == "self")
         {
             if (objectExists(State.CurrentMethodObject))
@@ -5352,65 +5382,69 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
         }
         else if (after == "to_integer")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isString(before))
-                    createVariable(arg0, (int)variables.at(indexOfVariable(before)).getString()[0]);
-                else if (isNumber(before))
-                {
-                    int i = (int)variables.at(indexOfVariable(before)).getNumber();
-                    createVariable(arg0, (double)i);
-                }
-                else
-                    error(ErrorMessage::IS_NULL, before, false);
+                error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isString(before))
+                createVariable(arg0, (int)varString(before)[0]);
+            else if (isNumber(before))
+            {
+                int i = (int)varNumber(before);
+                createVariable(arg0, (double)i);
             }
             else
-                error(ErrorMessage::VAR_UNDEFINED, before, false);
+                error(ErrorMessage::IS_NULL, before, false);
         }
         else if (after == "to_double")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isString(before))
-                    createVariable(arg0, (double)variables.at(indexOfVariable(before)).getString()[0]);
-                else if (isNumber(before))
-                {
-                    double i = variables.at(indexOfVariable(before)).getNumber();
-                    createVariable(arg0, (double)i);
-                }
-                else
-                    error(ErrorMessage::IS_NULL, before, false);
+                error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isString(before))
+                createVariable(arg0, (double)varString(before)[0]);
+            else if (isNumber(before))
+            {
+                double i = varNumber(before);
+                createVariable(arg0, (double)i);
             }
             else
-                error(ErrorMessage::VAR_UNDEFINED, before, false);
+                error(ErrorMessage::IS_NULL, before, false);
         }
         else if (after == "to_string")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isNumber(before))
-                    createVariable(arg0, dtos(variables.at(indexOfVariable(before)).getNumber()));
-                else
-                    error(ErrorMessage::IS_NULL, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isNumber(before))
+                createVariable(arg0, dtos(varNumber(before)));
+            else
+                error(ErrorMessage::IS_NULL, before, false);
         }
         else if (after == "to_number")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isString(before))
-                    createVariable(arg0, stod(variables.at(indexOfVariable(before)).getString()));
-                else
-                    error(ErrorMessage::IS_NULL, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isString(before))
+                createVariable(arg0, stod(varString(before)));
+            else
+                error(ErrorMessage::IS_NULL, before, false);
         }
         else if (objectExists(before))
         {
-            if (objects.at(indexOfObject(before)).methodExists(after) && !containsParams(after))
+            if (getObject(before).methodExists(after) && !containsParams(after))
             {
                 parse(arg2);
 
@@ -5421,57 +5455,62 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
             }
             else if (containsParams(after))
             {
-                if (objects.at(indexOfObject(before)).methodExists(beforeParams(after)))
+                if (!getObject(before).methodExists(beforeParams(after)))
                 {
-                    executeTemplate(objects.at(indexOfObject(before)).getMethod(beforeParams(after)), getParams(after));
-
-                    if (isNumeric(State.LastValue))
-                        createVariable(arg0, stod(State.LastValue));
-                    else
-                        createVariable(arg0, State.LastValue);
-                }
-                else
                     Env::sysExec(s, command);
-            }
-            else if (objects.at(indexOfObject(before)).variableExists(after))
-            {
-                if (objects.at(indexOfObject(before)).getVariable(after).getString() != State.Null)
-                    createVariable(arg0, objects.at(indexOfObject(before)).getVariable(after).getString());
-                else if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != State.NullNum)
-                    createVariable(arg0, objects.at(indexOfObject(before)).getVariable(after).getNumber());
+                    return;
+                }
+
+                executeTemplate(getObject(before).getMethod(beforeParams(after)), getParams(after));
+
+                if (isNumeric(State.LastValue))
+                    createVariable(arg0, stod(State.LastValue));
                 else
-                    error(ErrorMessage::IS_NULL, objects.at(indexOfObject(before)).getVariable(after).name(), false);
+                    createVariable(arg0, State.LastValue);
+            }
+            else if (getObject(before).variableExists(after))
+            {
+                if (getObject(before).getVariable(after).getString() != State.Null)
+                    createVariable(arg0, getObject(before).getVariable(after).getString());
+                else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
+                    createVariable(arg0, getObject(before).getVariable(after).getNumber());
+                else
+                    error(ErrorMessage::IS_NULL, getObject(before).getVariable(after).name(), false);
             }
         }
         else if (variableExists(before) && after == "read")
         {
-            if (isString(before))
+            if (!isString(before))
             {
-                if (Env::fileExists(variables.at(indexOfVariable(before)).getString()))
-                {
-                    ifstream file(variables.at(indexOfVariable(before)).getString().c_str());
-                    string line(""), bigString("");
-
-                    if (file.is_open())
-                    {
-                        while (!file.eof())
-                        {
-                            getline(file, line);
-                            bigString.append(line + "\r\n");
-                        }
-
-                        file.close();
-
-                        createVariable(arg0, bigString);
-                    }
-                    else
-                        error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
-                }
-                else
-                    error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
-            }
-            else
                 error(ErrorMessage::NULL_STRING, before, false);
+                return;
+            }
+
+            if (!Env::fileExists(varString(before)))
+            {
+                error(ErrorMessage::READ_FAIL, varString(before), false);
+                return;
+            }
+
+            ifstream file(varString(before).c_str());
+            string line(""), bigString("");
+
+            if (!file.is_open())
+            {
+                error(ErrorMessage::READ_FAIL, varString(before), false);
+                return;
+            }
+
+            while (!file.eof())
+            {
+                getline(file, line);
+                bigString.append(line + "\r\n");
+            }
+
+            file.close();
+
+            createVariable(arg0, bigString);
+
         }
         else if (State.DefiningObject)
         {
@@ -5484,7 +5523,7 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                 else if (State.DefiningPublicCode)
                     newVariable.setPublic();
 
-                objects.at(indexOfObject(State.CurrentObject)).addVariable(newVariable);
+                getObject(State.CurrentObject).addVariable(newVariable);
             }
             else
             {
@@ -5495,7 +5534,7 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                 else if (State.DefiningPublicCode)
                     newVariable.setPublic();
 
-                objects.at(indexOfObject(State.CurrentObject)).addVariable(newVariable);
+                getObject(State.CurrentObject).addVariable(newVariable);
             }
         }
         else if (arg2 == "null")
@@ -5526,10 +5565,52 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                 createVariable(arg0, getStack(arg2));
             else if (beforeParams(arg2) == "random")
             {
-                if (contains(arg2, ".."))
+                if (!contains(arg2, ".."))
                 {
-                    vector<string> range = getRange(arg2);
-                    string s0(range.at(0)), s2(range.at(1));
+                    error(ErrorMessage::INVALID_RANGE_SEP, arg2, false);
+                    return;
+                }
+
+                vector<string> range = getRange(arg2);
+                string s0(range.at(0)), s2(range.at(1));
+
+                if (isNumeric(s0) && isNumeric(s2))
+                {
+                    double n0 = stod(s0), n2 = stod(s2);
+
+                    if (n0 < n2)
+                        createVariable(arg0, (int)random(n0, n2));
+                    else if (n0 > n2)
+                        createVariable(arg0, (int)random(n2, n0));
+                    else
+                        createVariable(arg0, (int)random(n0, n2));
+                }
+                else if (isAlpha(s0) && isAlpha(s2))
+                {
+                    if (get_alpha_num(s0[0]) < get_alpha_num(s2[0]))
+                        createVariable(arg0, random(s0, s2));
+                    else if (get_alpha_num(s0[0]) > get_alpha_num(s2[0]))
+                        createVariable(arg0, random(s2, s0));
+                    else
+                        createVariable(arg0, random(s2, s0));
+                }
+                else if (variableExists(s0) || variableExists(s2))
+                {
+                    if (variableExists(s0))
+                    {
+                        if (isNumber(s0))
+                            s0 = dtos(varNumber(s0));
+                        else if (isString(s0))
+                            s0 = varString(s0);
+                    }
+
+                    if (variableExists(s2))
+                    {
+                        if (isNumber(s2))
+                            s2 = varNumberString(s2);
+                        else if (isString(s2))
+                            s2 = varString(s2);
+                    }
 
                     if (isNumeric(s0) && isNumeric(s2))
                     {
@@ -5551,50 +5632,9 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                         else
                             createVariable(arg0, random(s2, s0));
                     }
-                    else if (variableExists(s0) || variableExists(s2))
-                    {
-                        if (variableExists(s0))
-                        {
-                            if (isNumber(s0))
-                                s0 = dtos(variables.at(indexOfVariable(s0)).getNumber());
-                            else if (isString(s0))
-                                s0 = variables.at(indexOfVariable(s0)).getString();
-                        }
-
-                        if (variableExists(s2))
-                        {
-                            if (isNumber(s2))
-                                s2 = dtos(variables.at(indexOfVariable(s2)).getNumber());
-                            else if (isString(s2))
-                                s2 = variables.at(indexOfVariable(s2)).getString();
-                        }
-
-                        if (isNumeric(s0) && isNumeric(s2))
-                        {
-                            double n0 = stod(s0), n2 = stod(s2);
-
-                            if (n0 < n2)
-                                createVariable(arg0, (int)random(n0, n2));
-                            else if (n0 > n2)
-                                createVariable(arg0, (int)random(n2, n0));
-                            else
-                                createVariable(arg0, (int)random(n0, n2));
-                        }
-                        else if (isAlpha(s0) && isAlpha(s2))
-                        {
-                            if (get_alpha_num(s0[0]) < get_alpha_num(s2[0]))
-                                createVariable(arg0, random(s0, s2));
-                            else if (get_alpha_num(s0[0]) > get_alpha_num(s2[0]))
-                                createVariable(arg0, random(s2, s0));
-                            else
-                                createVariable(arg0, random(s2, s0));
-                        }
-                    }
-                    else
-                        error(ErrorMessage::OUT_OF_BOUNDS, s0 + ".." + s2, false);
                 }
                 else
-                    error(ErrorMessage::INVALID_RANGE_SEP, arg2, false);
+                    error(ErrorMessage::OUT_OF_BOUNDS, s0 + ".." + s2, false);
             }
             else
             {
@@ -5609,9 +5649,9 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
         else if (variableExists(arg2))
         {
             if (isNumber(arg2))
-                createVariable(arg0, variables.at(indexOfVariable(arg2)).getNumber());
+                createVariable(arg0, varNumber(arg2));
             else if (isString(arg2))
-                createVariable(arg0, variables.at(indexOfVariable(arg2)).getString());
+                createVariable(arg0, varString(arg2));
             else
                 createVariable(arg0, State.Null);
         }
@@ -5647,7 +5687,7 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                 if (isString(after))
                 {
                     string line("");
-                    IO::print(cleanString(variables.at(indexOfVariable(after)).getString()));
+                    IO::print(cleanString(varString(after)));
                     getline(cin, line, '\n');
 
                     if (isNumeric(line))
@@ -5686,7 +5726,7 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                 if (isString(after))
                 {
                     string line("");
-                    line = getSilentOutput(variables.at(indexOfVariable(after)).getString());
+                    line = getSilentOutput(varString(after));
 
                     if (isNumeric(line))
                         createVariable(arg0, stod(line));
@@ -5698,7 +5738,7 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                 else
                 {
                     string line("");
-                    line = getSilentOutput("password: ");
+                    line = getSilentOutput("");
 
                     if (isNumeric(line))
                         createVariable(arg0, stod(line));
@@ -5723,241 +5763,259 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
         }
         else if (after == "size")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isString(before))
-                    createVariable(arg0, (double)variables.at(indexOfVariable(before)).getString().length());
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 createVariable(arg0, (double)before.length());
+                return;
+            }
+
+            if (isString(before))
+                createVariable(arg0, (double)varString(before).length());
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "sin")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isNumber(before))
-                    createVariable(arg0, sin(variables.at(indexOfVariable(before)).getNumber()));
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isNumber(before))
+                createVariable(arg0, sin(varNumber(before)));
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "sinh")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isNumber(before))
-                    createVariable(arg0, sinh(variables.at(indexOfVariable(before)).getNumber()));
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isNumber(before))
+                createVariable(arg0, sinh(varNumber(before)));
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "asin")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isNumber(before))
-                    createVariable(arg0, asin(variables.at(indexOfVariable(before)).getNumber()));
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isNumber(before))
+                createVariable(arg0, asin(varNumber(before)));
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "tan")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isNumber(before))
-                    createVariable(arg0, tan(variables.at(indexOfVariable(before)).getNumber()));
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isNumber(before))
+                createVariable(arg0, tan(varNumber(before)));
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "tanh")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isNumber(before))
-                    createVariable(arg0, tanh(variables.at(indexOfVariable(before)).getNumber()));
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isNumber(before))
+                createVariable(arg0, tanh(varNumber(before)));
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "atan")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isNumber(before))
-                    createVariable(arg0, atan(variables.at(indexOfVariable(before)).getNumber()));
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isNumber(before))
+                createVariable(arg0, atan(varNumber(before)));
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "cos")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isNumber(before))
-                    createVariable(arg0, cos(variables.at(indexOfVariable(before)).getNumber()));
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isNumber(before))
+                createVariable(arg0, cos(varNumber(before)));
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "acos")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isNumber(before))
-                    createVariable(arg0, acos(variables.at(indexOfVariable(before)).getNumber()));
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isNumber(before))
+                createVariable(arg0, acos(varNumber(before)));
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "cosh")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isNumber(before))
-                    createVariable(arg0, cosh(variables.at(indexOfVariable(before)).getNumber()));
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isNumber(before))
+                createVariable(arg0, cosh(varNumber(before)));
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "log")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isNumber(before))
-                    createVariable(arg0, log(variables.at(indexOfVariable(before)).getNumber()));
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isNumber(before))
+                createVariable(arg0, log(varNumber(before)));
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "sqrt")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isNumber(before))
-                    createVariable(arg0, sqrt(variables.at(indexOfVariable(before)).getNumber()));
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isNumber(before))
+                createVariable(arg0, sqrt(varNumber(before)));
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "abs")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isNumber(before))
-                    createVariable(arg0, abs(variables.at(indexOfVariable(before)).getNumber()));
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isNumber(before))
+                createVariable(arg0, abs(varNumber(before)));
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "floor")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isNumber(before))
-                    createVariable(arg0, floor(variables.at(indexOfVariable(before)).getNumber()));
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isNumber(before))
+                createVariable(arg0, floor(varNumber(before)));
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "ceil")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isNumber(before))
-                    createVariable(arg0, ceil(variables.at(indexOfVariable(before)).getNumber()));
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isNumber(before))
+                createVariable(arg0, ceil(varNumber(before)));
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "exp")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isNumber(before))
-                    createVariable(arg0, exp(variables.at(indexOfVariable(before)).getNumber()));
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isNumber(before))
+                createVariable(arg0, exp(varNumber(before)));
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "to_upper")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isString(before))
-                    createVariable(arg0, getUpper(variables.at(indexOfVariable(before)).getString()));
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isString(before))
+                createVariable(arg0, getUpper(varString(before)));
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "to_lower")
         {
-            if (variableExists(before))
+            if (!variableExists(before))
             {
-                if (isString(before))
-                    createVariable(arg0, getLower(variables.at(indexOfVariable(before)).getString()));
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
+                return;
+            }
+
+            if (isString(before))
+                createVariable(arg0, getLower(varString(before)));
+            else
+                error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "bytes")
         {
-            if (variableExists(before))
-            {
-                if (isString(before))
-                {
-                    if (Env::fileExists(variables.at(indexOfVariable(before)).getString()))
-                        createVariable(arg0, getBytes(variables.at(indexOfVariable(before)).getString()));
-                    else
-                        error(ErrorMessage::READ_FAIL, variables.at(indexOfVariable(before)).getString(), false);
-                }
-                else
-                    error(ErrorMessage::CONV_ERR, before, false);
-            }
-            else
+            if (!variableExists(before))
             {
                 if (Env::fileExists(before))
                     createVariable(arg0, getBytes(before));
                 else
                     error(ErrorMessage::READ_FAIL, before, false);
+                return;
             }
+
+            if (!isString(before))
+            {
+                error(ErrorMessage::CONV_ERR, before, false);
+                return;
+            }
+
+            if (Env::fileExists(varString(before)))
+                createVariable(arg0, getBytes(varString(before)));
+            else
+                error(ErrorMessage::READ_FAIL, varString(before), false);
         }
         else if (before == "env")
         {
@@ -5976,9 +6034,9 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
         if (variableExists(arg2))
         {
             if (isString(arg2))
-                createVariable(arg0, variables.at(indexOfVariable(arg2)).getString());
+                createVariable(arg0, varString(arg2));
             else if (isNumber(arg2))
-                createVariable(arg0, variables.at(indexOfVariable(arg2)).getNumber());
+                createVariable(arg0, varNumber(arg2));
             else
                 createVariable(arg0, State.Null);
         }
@@ -5995,7 +6053,7 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
         if (variableExists(arg2))
         {
             if (isNumber(arg2))
-                createVariable(arg0, 0 - variables.at(indexOfVariable(arg2)).getNumber());
+                createVariable(arg0, 0 - varNumber(arg2));
             else
                 createVariable(arg0, State.Null);
         }
@@ -6009,27 +6067,29 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
     }
     else if (arg1 == "?")
     {
-        if (variableExists(arg2))
+        if (!variableExists(arg2))
         {
-            if (isString(arg2))
-                createVariable(arg0, Env::getStdout(variables.at(indexOfVariable(arg2)).getString()));
-            else
-                error(ErrorMessage::CONV_ERR, arg2, false);
-        }
-        else
             createVariable(arg0, Env::getStdout(cleanString(arg2)));
+            return;
+        }
+
+        if (isString(arg2))
+            createVariable(arg0, Env::getStdout(varString(arg2)));
+        else
+            error(ErrorMessage::CONV_ERR, arg2, false);
     }
     else if (arg1 == "!")
     {
-        if (variableExists(arg2))
+        if (!variableExists(arg2))
         {
-            if (isString(arg2))
-                createVariable(arg0, getParsedOutput(variables.at(indexOfVariable(arg2)).getString()));
-            else
-                error(ErrorMessage::CONV_ERR, arg2, false);
-        }
-        else
             createVariable(arg0, getParsedOutput(cleanString(arg2)));
+            return;
+        }
+
+        if (isString(arg2))
+            createVariable(arg0, getParsedOutput(varString(arg2)));
+        else
+            error(ErrorMessage::CONV_ERR, arg2, false);
     }
     else
         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
@@ -6044,10 +6104,10 @@ void createObjectVariable(string arg0, string arg1, string arg2, string s, vecto
     {
         if (arg1 == "=")
         {
-            if (objects.at(indexOfObject(before)).getVariable(after).getString() != State.Null)
-                createVariable(arg0, objects.at(indexOfObject(before)).getVariable(after).getString());
-            else if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != State.NullNum)
-                createVariable(arg0, objects.at(indexOfObject(before)).getVariable(after).getNumber());
+            if (getObject(before).getVariable(after).getString() != State.Null)
+                createVariable(arg0, getObject(before).getVariable(after).getString());
+            else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
+                createVariable(arg0, getObject(before).getVariable(after).getNumber());
         }
     }
 }
@@ -6056,14 +6116,14 @@ void copyObject(string arg0, string arg1, string arg2, string s, vector<string> 
 {
     if (arg1 == "=")
     {
-        vector<Method> objectMethods = objects.at(indexOfObject(arg2)).getMethods();
+        vector<Method> objectMethods = getObject(arg2).getMethods();
         Object newObject(arg0);
 
         for (int i = 0; i < (int)objectMethods.size(); i++)
             newObject.addMethod(objectMethods.at(i));
 
 
-        vector<Variable> objectVariables = objects.at(indexOfObject(arg2)).getVariables();
+        vector<Variable> objectVariables = getObject(arg2).getVariables();
 
         for (int i = 0; i < (int)objectVariables.size(); i++)
             newObject.addVariable(objectVariables.at(i));
@@ -6172,36 +6232,38 @@ void InternalInspect(string arg0, string arg1, string before, string after)
 {
     if (before.length() != 0 && after.length() != 0)
     {
-        if (objectExists(before))
+        if (!objectExists(before))
         {
-            if (objects.at(indexOfObject(before)).methodExists(after))
-            {
-                for (int i = 0; i < objects.at(indexOfObject(before)).getMethod(after).size(); i++)
-                    write(objects.at(indexOfObject(before)).getMethod(after).at(i));
-            }
-            else if (objects.at(indexOfObject(before)).variableExists(after))
-            {
-                if (objects.at(indexOfObject(before)).getVariable(after).getString() != State.Null)
-                    write(objects.at(indexOfObject(before)).getVariable(after).getString());
-                else if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != State.NullNum)
-                    write(dtos(objects.at(indexOfObject(before)).getVariable(after).getNumber()));
-                else
-                    write(State.Null);
-            }
+            error(ErrorMessage::OBJ_METHOD_UNDEFINED, before, false);
+            return;
+        }
+
+        if (getObject(before).methodExists(after))
+        {
+            for (int i = 0; i < getObject(before).getMethod(after).size(); i++)
+                write(getObject(before).getMethod(after).at(i));
+        }
+        else if (getObject(before).variableExists(after))
+        {
+            if (getObject(before).getVariable(after).getString() != State.Null)
+                write(getObject(before).getVariable(after).getString());
+            else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
+                write(dtos(getObject(before).getVariable(after).getNumber()));
             else
-                error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
+                write(State.Null);
         }
         else
-            error(ErrorMessage::OBJ_METHOD_UNDEFINED, before, false);
+            error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
+
     }
     else
     {
         if (objectExists(arg1))
         {
-            for (int i = 0; i < objects.at(indexOfObject(arg1)).methodSize(); i++)
-                write(objects.at(indexOfObject(arg1)).getMethod(objects.at(indexOfObject(arg1)).getMethodName(i)).name());
-            for (int i = 0; i < objects.at(indexOfObject(arg1)).variableSize(); i++)
-                write(objects.at(indexOfObject(arg1)).getVariable(objects.at(indexOfObject(arg1)).getVariableName(i)).name());
+            for (int i = 0; i < getObject(arg1).methodSize(); i++)
+                write(getObject(arg1).getMethod(getObject(arg1).getMethodName(i)).name());
+            for (int i = 0; i < getObject(arg1).variableSize(); i++)
+                write(getObject(arg1).getVariable(getObject(arg1).getVariableName(i)).name());
         }
         else if (constantExists(arg1))
         {
@@ -6212,20 +6274,20 @@ void InternalInspect(string arg0, string arg1, string before, string after)
         }
         else if (methodExists(arg1))
         {
-            for (int i = 0; i < methods.at(indexOfMethod(arg1)).size(); i++)
-                write(methods.at(indexOfMethod(arg1)).at(i));
+            for (int i = 0; i < getMethod(arg1).size(); i++)
+                write(getMethod(arg1).at(i));
         }
         else if (variableExists(arg1))
         {
             if (isString(arg1))
-                write(variables.at(indexOfVariable(arg1)).getString());
+                write(varString(arg1));
             else if (isNumber(arg1))
-                write(dtos(variables.at(indexOfVariable(arg1)).getNumber()));
+                write(dtos(varNumber(arg1)));
         }
         else if (listExists(arg1))
         {
-            for (int i = 0; i < lists.at(indexOfList(arg1)).size(); i++)
-                write(lists.at(indexOfList(arg1)).at(i));
+            for (int i = 0; i < getList(arg1).size(); i++)
+                write(getList(arg1).at(i));
         }
         else if (arg1 == "variables")
         {
@@ -6270,51 +6332,52 @@ void InternalInspect(string arg0, string arg1, string before, string after)
 
 void InternalGlobalize(string arg0, string arg1)
 {
-    if (contains(arg1, ".") && methodExists(arg1) && !methodExists(afterDot(arg1)))
+    if (!(contains(arg1, ".") && methodExists(arg1) && !methodExists(afterDot(arg1))))
     {
-        Method method(afterDot(arg1));
-
-        vector<string> lines = getObject(beforeDot(arg1)).getMethod(afterDot(arg1)).getLines();
-
-        for (int i = 0; i < (int)lines.size(); i++)
-            method.add(lines[i]);
-
-        methods.push_back(method);
-    }
-    else
         error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1, false);
+        return;
+    }
+
+    Method method(afterDot(arg1));
+
+    vector<string> lines = getObject(beforeDot(arg1)).getMethod(afterDot(arg1)).getLines();
+
+    for (int i = 0; i < (int)lines.size(); i++)
+        method.add(lines[i]);
+
+    methods.push_back(method);
 }
 
 void InternalCallMethod(string arg0, string arg1, string before, string after)
 {
     if (State.DefiningObject)
     {
-        if (objects.at(indexOfObject(State.CurrentObject)).methodExists(arg1))
-            executeMethod(objects.at(indexOfObject(State.CurrentObject)).getMethod(arg1));
+        if (getObject(State.CurrentObject).methodExists(arg1))
+            executeMethod(getObject(State.CurrentObject).getMethod(arg1));
+        else
+            error(ErrorMessage::METHOD_UNDEFINED, arg1, false);
+        return;
+    }
+    
+    if (before.length() != 0 && after.length() != 0)
+    {
+        if (!objectExists(before))
+        {
+            error(ErrorMessage::OBJ_METHOD_UNDEFINED, before, true);
+            return;
+        }
+
+        if (getObject(before).methodExists(after))
+            executeMethod(getObject(before).getMethod(after));
         else
             error(ErrorMessage::METHOD_UNDEFINED, arg1, false);
     }
     else
     {
-        if (before.length() != 0 && after.length() != 0)
-        {
-            if (objectExists(before))
-            {
-                if (objects.at(indexOfObject(before)).methodExists(after))
-                    executeMethod(objects.at(indexOfObject(before)).getMethod(after));
-                else
-                    error(ErrorMessage::METHOD_UNDEFINED, arg1, false);
-            }
-            else
-                error(ErrorMessage::OBJ_METHOD_UNDEFINED, before, true);
-        }
+        if (methodExists(arg1))
+            executeMethod(getMethod(arg1));
         else
-        {
-            if (methodExists(arg1))
-                executeMethod(methods.at(indexOfMethod(arg1)));
-            else
-                error(ErrorMessage::METHOD_UNDEFINED, arg1, true);
-        }
+            error(ErrorMessage::METHOD_UNDEFINED, arg1, true);
     }
 }
 
@@ -6327,97 +6390,98 @@ void InternalCreateMethod(string arg0, string arg1)
 
     if (State.DefiningObject)
     {
-        if (objects.at(indexOfObject(State.CurrentObject)).methodExists(arg1))
-            error(ErrorMessage::METHOD_DEFINED, arg1, false);
-        else
+        if (getObject(State.CurrentObject).methodExists(arg1))
         {
-            if (containsParams(arg1))
+            error(ErrorMessage::METHOD_DEFINED, arg1, false);
+            return;
+        }
+
+        if (!containsParams(arg1))
+        {
+            Method method(arg1);
+
+            if (State.DefiningPublicCode)
+                method.setPublic();
+            else if (State.DefiningPrivateCode)
+                method.setPrivate();
+
+            method.setObject(State.CurrentObject);
+            getObject(State.CurrentObject).addMethod(method);
+            getObject(State.CurrentObject).setCurrentMethod(arg1);
+            State.DefiningMethod = true;
+            State.DefiningObjectMethod = true;
+            return;
+        }
+
+        vector<string> params = getParams(arg1);
+
+        Method method(beforeParams(arg1));
+
+        if (State.DefiningPublicCode)
+            method.setPublic();
+        else if (State.DefiningPrivateCode)
+            method.setPrivate();
+
+        method.setObject(State.CurrentObject);
+
+        for (int i = 0; i < (int)params.size(); i++)
+        {
+            if (variableExists(params.at(i)))
             {
-                vector<string> params = getParams(arg1);
-
-                Method method(beforeParams(arg1));
-
-                if (State.DefiningPublicCode)
-                    method.setPublic();
-                else if (State.DefiningPrivateCode)
-                    method.setPrivate();
-
-                method.setObject(State.CurrentObject);
-
-                for (int i = 0; i < (int)params.size(); i++)
-                {
-                    if (variableExists(params.at(i)))
-                    {
-                        if (!zeroDots(params.at(i)))
-                        {
-                            string before(beforeDot(params.at(i))), after(afterDot(params.at(i)));
-
-                            if (objectExists(before))
-                            {
-                                if (objects.at(indexOfObject(before)).variableExists(after))
-                                {
-                                    if (objects.at(indexOfObject(before)).getVariable(after).getString() != State.Null)
-                                        method.addMethodVariable(objects.at(indexOfObject(before)).getVariable(after).getString(), after);
-                                    else if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != State.NullNum)
-                                        method.addMethodVariable(objects.at(indexOfObject(before)).getVariable(after).getNumber(), after);
-                                    else
-                                        error(ErrorMessage::IS_NULL, params.at(i), false);
-                                }
-                                else
-                                    error(ErrorMessage::OBJ_VAR_UNDEFINED, after, false);
-                            }
-                            else
-                                error(ErrorMessage::OBJ_METHOD_UNDEFINED, before, false);
-                        }
-                        else
-                        {
-                            if (isString(params.at(i)))
-                                method.addMethodVariable(variables.at(indexOfVariable(params.at(i))).getString(), variables.at(indexOfVariable(params.at(i))).name());
-                            else if (isNumber(params.at(i)))
-                                method.addMethodVariable(variables.at(indexOfVariable(params.at(i))).getNumber(), variables.at(indexOfVariable(params.at(i))).name());
-                            else
-                                error(ErrorMessage::IS_NULL, params.at(i), false);
-                        }
-                    }
+                if (zeroDots(params.at(i)))
+                {                    
+                    if (isString(params.at(i)))
+                        method.addMethodVariable(varString(params.at(i)), getVar(params.at(i)).name());
+                    else if (isNumber(params.at(i)))
+                        method.addMethodVariable(varNumber(params.at(i)), getVar(params.at(i)).name());
                     else
-                    {
-                        if (isAlpha(params.at(i)))
-                        {
-                            Variable newVariable("@[pm#" + itos(State.ParamVarCount) + "]", params.at(i));
-                            method.addMethodVariable(newVariable);
-                            State.ParamVarCount++;
-                        }
-                        else
-                        {
-                            Variable newVariable("@[pm#" + itos(State.ParamVarCount) + "]", stod(params.at(i)));
-                            method.addMethodVariable(newVariable);
-                            State.ParamVarCount++;
-                        }
-                    }
+                        error(ErrorMessage::IS_NULL, params.at(i), false);
+                    return;
                 }
 
-                objects.at(indexOfObject(State.CurrentObject)).addMethod(method);
-                objects.at(indexOfObject(State.CurrentObject)).setCurrentMethod(beforeParams(arg1));
-                State.DefiningMethod = true;
-                State.DefiningParameterizedMethod = true;
-                State.DefiningObjectMethod = true;
+                string before(beforeDot(params.at(i))), after(afterDot(params.at(i)));
+
+                if (!objectExists(before))
+                {
+                    error(ErrorMessage::OBJ_METHOD_UNDEFINED, before, false);
+                    return;
+                }
+
+                if (!getObject(before).variableExists(after))
+                {
+                    error(ErrorMessage::OBJ_VAR_UNDEFINED, after, false);
+                    return;
+                }
+
+                if (getObject(before).getVariable(after).getString() != State.Null)
+                    method.addMethodVariable(getObject(before).getVariable(after).getString(), after);
+                else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
+                    method.addMethodVariable(getObject(before).getVariable(after).getNumber(), after);
+                else
+                    error(ErrorMessage::IS_NULL, params.at(i), false);
             }
             else
             {
-                Method method(arg1);
-
-                if (State.DefiningPublicCode)
-                    method.setPublic();
-                else if (State.DefiningPrivateCode)
-                    method.setPrivate();
-
-                method.setObject(State.CurrentObject);
-                objects.at(indexOfObject(State.CurrentObject)).addMethod(method);
-                objects.at(indexOfObject(State.CurrentObject)).setCurrentMethod(arg1);
-                State.DefiningMethod = true;
-                State.DefiningObjectMethod = true;
+                if (isAlpha(params.at(i)))
+                {
+                    Variable newVariable("@[pm#" + itos(State.ParamVarCount) + "]", params.at(i));
+                    method.addMethodVariable(newVariable);
+                    State.ParamVarCount++;
+                }
+                else
+                {
+                    Variable newVariable("@[pm#" + itos(State.ParamVarCount) + "]", stod(params.at(i)));
+                    method.addMethodVariable(newVariable);
+                    State.ParamVarCount++;
+                }
             }
         }
+
+        getObject(State.CurrentObject).addMethod(method);
+        getObject(State.CurrentObject).setCurrentMethod(beforeParams(arg1));
+        State.DefiningMethod = true;
+        State.DefiningParameterizedMethod = true;
+        State.DefiningObjectMethod = true;
     }
     else
     {
@@ -6439,8 +6503,8 @@ void InternalCreateMethod(string arg0, string arg1)
                         method.setPrivate();
 
                     method.setObject(before);
-                    objects.at(indexOfObject(before)).addMethod(method);
-                    objects.at(indexOfObject(before)).setCurrentMethod(after);
+                    getObject(before).addMethod(method);
+                    getObject(before).setCurrentMethod(after);
                     State.DefiningMethod = true;
                     State.DefiningObjectMethod = true;
                 }
@@ -6466,12 +6530,12 @@ void InternalCreateMethod(string arg0, string arg1)
 
                             if (objectExists(before))
                             {
-                                if (objects.at(indexOfObject(before)).variableExists(after))
+                                if (getObject(before).variableExists(after))
                                 {
-                                    if (objects.at(indexOfObject(before)).getVariable(after).getString() != State.Null)
-                                        method.addMethodVariable(objects.at(indexOfObject(before)).getVariable(after).getString(), after);
-                                    else if (objects.at(indexOfObject(before)).getVariable(after).getNumber() != State.NullNum)
-                                        method.addMethodVariable(objects.at(indexOfObject(before)).getVariable(after).getNumber(), after);
+                                    if (getObject(before).getVariable(after).getString() != State.Null)
+                                        method.addMethodVariable(getObject(before).getVariable(after).getString(), after);
+                                    else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
+                                        method.addMethodVariable(getObject(before).getVariable(after).getNumber(), after);
                                     else
                                         error(ErrorMessage::IS_NULL, params.at(i), false);
                                 }
@@ -6484,9 +6548,9 @@ void InternalCreateMethod(string arg0, string arg1)
                         else
                         {
                             if (isString(params.at(i)))
-                                method.addMethodVariable(variables.at(indexOfVariable(params.at(i))).getString(), variables.at(indexOfVariable(params.at(i))).name());
+                                method.addMethodVariable(varString(params.at(i)), getVar(params.at(i)).name());
                             else if (isNumber(params.at(i)))
-                                method.addMethodVariable(variables.at(indexOfVariable(params.at(i))).getNumber(), variables.at(indexOfVariable(params.at(i))).name());
+                                method.addMethodVariable(varNumber(params.at(i)), getVar(params.at(i)).name());
                             else
                                 error(ErrorMessage::IS_NULL, params.at(i), false);
                         }
@@ -6791,10 +6855,10 @@ void InternalOutput(string arg0, string arg1)
         // set the value
         if (!zeroDots(arg1))
         {
-            if (objects.at(indexOfObject(beforeDot(arg1))).getVariable(afterDot(arg1)).getString() != State.Null)
-                text = (objects.at(indexOfObject(beforeDot(arg1))).getVariable(afterDot(arg1)).getString());
-            else if (objects.at(indexOfObject(beforeDot(arg1))).getVariable(afterDot(arg1)).getNumber() != State.NullNum)
-                text = (dtos(objects.at(indexOfObject(beforeDot(arg1))).getVariable(afterDot(arg1)).getNumber()));
+            if (getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getString() != State.Null)
+                text = (getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getString());
+            else if (getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber() != State.NullNum)
+                text = (dtos(getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber()));
             else
             {
                 error(ErrorMessage::IS_NULL, arg1, false);
@@ -6804,9 +6868,9 @@ void InternalOutput(string arg0, string arg1)
         else
         {
             if (isString(arg1))
-                text = (variables.at(indexOfVariable(arg1)).getString());
+                text = (varString(arg1));
             else if (isNumber(arg1))
-                text = (dtos(variables.at(indexOfVariable(arg1)).getNumber()));
+                text = (dtos(varNumber(arg1)));
             else
             {
                 error(ErrorMessage::IS_NULL, arg1, false);
@@ -6841,9 +6905,9 @@ void InternalRemember(string arg0, string arg1)
     if (variableExists(arg1))
     {
         if (isString(arg1))
-            saveVariable(arg1 + "&" + variables.at(indexOfVariable(arg1)).getString());
+            saveVariable(arg1 + "&" + varString(arg1));
         else if (isNumber(arg1))
-            saveVariable(arg1 + "&" + dtos(variables.at(indexOfVariable(arg1)).getNumber()));
+            saveVariable(arg1 + "&" + dtos(varNumber(arg1)));
         else
             error(ErrorMessage::IS_NULL, arg1, false);
     }
@@ -6869,9 +6933,9 @@ bool InternalReturn(string arg0, string arg1, string before, string after)
         {
             if (objectExists(before))
             {
-                if (objects.at(indexOfObject(before)).methodExists(beforeParams(after)))
+                if (getObject(before).methodExists(beforeParams(after)))
                 {
-                    executeTemplate(objects.at(indexOfObject(before)).getMethod(beforeParams(after)), getParams(arg1));
+                    executeTemplate(getObject(before).getMethod(beforeParams(after)), getParams(arg1));
                     parse("return " + State.LastValue);
                 }
                 else
@@ -6899,23 +6963,23 @@ bool InternalReturn(string arg0, string arg1, string before, string after)
     {
         if (objectExists(beforeDot(arg1)))
         {
-            if (objects.at(indexOfObject(beforeDot(arg1))).getVariable(afterDot(arg1)).getString() != State.Null)
-                State.LastValue = objects.at(indexOfObject(beforeDot(arg1))).getVariable(afterDot(arg1)).getString();
-            else if (objects.at(indexOfObject(beforeDot(arg1))).getVariable(afterDot(arg1)).getNumber() != State.NullNum)
-                State.LastValue = dtos(objects.at(indexOfObject(beforeDot(arg1))).getVariable(afterDot(arg1)).getNumber());
+            if (getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getString() != State.Null)
+                State.LastValue = getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getString();
+            else if (getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber() != State.NullNum)
+                State.LastValue = dtos(getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber());
             else
                 State.LastValue = "null";
         }
         else
         {
             if (isString(arg1))
-                State.LastValue = variables.at(indexOfVariable(arg1)).getString();
+                State.LastValue = varString(arg1);
             else if (isNumber(arg1))
-                State.LastValue = dtos(variables.at(indexOfVariable(arg1)).getNumber());
+                State.LastValue = dtos(varNumber(arg1));
             else
                 State.LastValue = "null";
 
-            if (variables.at(indexOfVariable(arg1)).garbage())
+            if (getVar(arg1).garbage())
                 variables = removeVariable(variables, arg1);
         }
     }
@@ -6923,11 +6987,11 @@ bool InternalReturn(string arg0, string arg1, string before, string after)
     {
         string bigString("(");
 
-        for (int i = 0; i < (int)lists.at(indexOfList(arg1)).size(); i++)
+        for (int i = 0; i < (int)getList(arg1).size(); i++)
         {
-            bigString.append(lists.at(indexOfList(arg1)).at(i));
+            bigString.append(getList(arg1).at(i));
 
-            if (i != (int)lists.at(indexOfList(arg1)).size() - 1)
+            if (i != (int)getList(arg1).size() - 1)
                 bigString.push_back(',');
         }
 
@@ -6935,7 +6999,7 @@ bool InternalReturn(string arg0, string arg1, string before, string after)
 
         State.LastValue = bigString;
 
-        if (lists.at(indexOfList(arg1)).garbage())
+        if (getList(arg1).garbage())
             lists = removeList(lists, arg1);
     }
     else
@@ -6955,7 +7019,7 @@ void delay(int seconds)
 double random(double min, double max)
 {
     double r = (double)rand() / (double)RAND_MAX;
-    return (min + (r * (max - min)));
+    return min + (r * (max - min));
 }
 
 string random(string start, string sc)
@@ -6965,7 +7029,7 @@ string random(string start, string sc)
     c = start[0] == sc[0] ? sc[0] : (rand() % get_alpha_num(sc[0])) + start[0];
     s.push_back(c);
 
-    return (s);
+    return s;
 }
 
 void uninstall()
@@ -6998,7 +7062,7 @@ double getBytes(string path)
     {
         error(ErrorMessage::READ_FAIL, path, false);
 
-        return (-DBL_MAX);
+        return -DBL_MAX;
     }
 
     long begin, end;
@@ -7011,7 +7075,7 @@ double getBytes(string path)
 
     bytes = (end - begin);
 
-    return (bytes);
+    return bytes;
 }
 
 #ifdef __linux__
@@ -7020,7 +7084,7 @@ string getSilentOutput(string text)
 {
     char * s = getpass(cleanString(text).c_str());
 
-    return (s);
+    return s;
 }
 
 #elif defined _WIN32 || defined _WIN64
@@ -7039,7 +7103,7 @@ string getSilentOutput(string text)
 
     SetConsoleMode(hStdin, mode);
 
-    return (s);
+    return s;
 }
 
 #endif
