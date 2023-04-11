@@ -1234,6 +1234,11 @@ int indexOfModule(string s)
     return -1;
 }
 
+Module getModule(string s)
+{
+    return modules.at(indexOfModule(s));
+}
+
 int indexOfScript(string s)
 {
     for (int i = 0; i < (int)scripts.size(); i++)
@@ -1245,6 +1250,11 @@ int indexOfScript(string s)
     return -1;
 }
 
+Script getScript(string s)
+{
+    return scripts.at(indexOfScript(s));
+}
+
 int indexOfConstant(string s)
 {
     for (int i = 0; i < (int)constants.size(); i++)
@@ -1254,6 +1264,11 @@ int indexOfConstant(string s)
     }
 
     return -1;
+}
+
+Constant getConstant(string s)
+{
+    return constants.at(indexOfConstant(s));
 }
 
 bool is(string s, string si)
@@ -1330,12 +1345,12 @@ void loadSavedVars(Crypt c, string &bigStr)
 
 void runScript()
 {
-    for (int i = 0; i < scripts.at(indexOfScript(State.CurrentScript)).size(); i++)
+    for (int i = 0; i < getScript(State.CurrentScript).size(); i++)
     {
         State.CurrentLineNumber = i + 1;
 
         if (!State.GoToLabel)
-            parse(scripts.at(indexOfScript(State.CurrentScript)).at(i));
+            parse(getScript(State.CurrentScript).at(i));
         else
         {
             bool startParsing = false;
@@ -1343,11 +1358,11 @@ void runScript()
             State.DefiningForLoop = false;
             State.GoToLabel = false;
 
-            for (int z = 0; z < scripts.at(indexOfScript(State.CurrentScript)).size(); z++)
+            for (int z = 0; z < getScript(State.CurrentScript).size(); z++)
             {
-                if (endsWith(scripts.at(indexOfScript(State.CurrentScript)).at(z), "::"))
+                if (endsWith(getScript(State.CurrentScript).at(z), "::"))
                 {
-                    string s(scripts.at(indexOfScript(State.CurrentScript)).at(z));
+                    string s(getScript(State.CurrentScript).at(z));
                     s = subtractString(s, "::");
 
                     if (s == State.GoTo)
@@ -1355,7 +1370,7 @@ void runScript()
                 }
 
                 if (startParsing)
-                    parse(scripts.at(indexOfScript(State.CurrentScript)).at(z));
+                    parse(getScript(State.CurrentScript).at(z));
             }
         }
     }
@@ -4315,15 +4330,15 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 {
                     if (isString(arg0))
                     {
-                        if (constants.at(indexOfConstant(arg2)).ConstNumber())
-                            setVariable(arg0, dtos(constants.at(indexOfConstant(arg2)).getNumber()));
-                        else if (constants.at(indexOfConstant(arg2)).ConstString())
-                            setVariable(arg0, constants.at(indexOfConstant(arg2)).getString());
+                        if (getConstant(arg2).ConstNumber())
+                            setVariable(arg0, dtos(getConstant(arg2).getNumber()));
+                        else if (getConstant(arg2).ConstString())
+                            setVariable(arg0, getConstant(arg2).getString());
                     }
                     else if (isNumber(arg0))
                     {
-                        if (constants.at(indexOfConstant(arg2)).ConstNumber())
-                            setVariable(arg0, constants.at(indexOfConstant(arg2)).getNumber());
+                        if (getConstant(arg2).ConstNumber())
+                            setVariable(arg0, getConstant(arg2).getNumber());
                         else
                             error(ErrorMessage::CONV_ERR, arg2, false);
                     }
@@ -5550,10 +5565,10 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
         }
         else if (constantExists(arg2))
         {
-            if (constants.at(indexOfConstant(arg2)).ConstNumber())
-                createVariable(arg0, constants.at(indexOfConstant(arg2)).getNumber());
-            else if (constants.at(indexOfConstant(arg2)).ConstString())
-                createVariable(arg0, constants.at(indexOfConstant(arg2)).getString());
+            if (getConstant(arg2).ConstNumber())
+                createVariable(arg0, getConstant(arg2).getNumber());
+            else if (getConstant(arg2).ConstString())
+                createVariable(arg0, getConstant(arg2).getString());
             else
                 error(ErrorMessage::CONV_ERR, arg2, false);
         }
@@ -6267,10 +6282,10 @@ void InternalInspect(string arg0, string arg1, string before, string after)
         }
         else if (constantExists(arg1))
         {
-            if (constants.at(indexOfConstant(arg1)).ConstNumber())
-                write(dtos(constants.at(indexOfConstant(arg1)).getNumber()));
-            else if (constants.at(indexOfConstant(arg1)).ConstString())
-                write(constants.at(indexOfConstant(arg1)).getString());
+            if (getConstant(arg1).ConstNumber())
+                write(dtos(getConstant(arg1).getNumber()));
+            else if (getConstant(arg1).ConstString())
+                write(getConstant(arg1).getString());
         }
         else if (methodExists(arg1))
         {

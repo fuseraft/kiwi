@@ -275,7 +275,7 @@ void parse(string s)
                     State.CurrentModule = "";
                 }
                 else
-                    modules.at(indexOfModule(State.CurrentModule)).add(s);
+                    getModule(State.CurrentModule).add(s);
             }
             else if (State.DefiningScript)
             {
@@ -821,7 +821,7 @@ void parse(string s)
                                     {
                                         string newMark(s);
                                         newMark = subtractString(s, "::");
-                                        scripts.at(indexOfScript(State.CurrentScript)).addMark(newMark);
+                                        getScript(State.CurrentScript).addMark(newMark);
                                     }
                                 }
                                 else if (methodExists(s))
@@ -1114,7 +1114,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (State.CurrentScript != "")
         {
-            if (scripts.at(indexOfScript(State.CurrentScript)).markExists(arg1))
+            if (getScript(State.CurrentScript).markExists(arg1))
             {
                 State.GoTo = arg1;
                 State.GoToLabel = true;
@@ -1319,7 +1319,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         }
         else if (moduleExists(arg1))
         {
-            vector<string> lines = modules.at(indexOfModule(arg1)).get();
+            vector<string> lines = getModule(arg1).get();
 
             for (int i = 0; i < (int)lines.size(); i++)
                 parse(lines.at(i));
