@@ -7,159 +7,57 @@
 #ifndef CORE_H
 #define CORE_H
 
-void setList(string arg1, string arg2, vector<string> params)
-{
-    if (methodExists(beforeParams(arg2)))
-    {
-        executeTemplate(getMethod(beforeParams(arg2)), params);
-
-        if (!containsParams(State.LastValue))
-        {
-            getList(arg1).add(State.LastValue);
-            return;
-        }
-
-        vector<string> last_params = getParams(State.LastValue);
-
-        for (int i = 0; i < (int)last_params.size(); i++)
-            getList(arg1).add(last_params.at(i));
-    }
-    else if (objectExists(beforeDot(beforeParams(arg2))))
-    {
-        executeTemplate(getObject(beforeDot(beforeParams(arg2))).getMethod(afterDot(beforeParams(arg2))), params);
-
-        if (!containsParams(State.LastValue))
-        {
-            getList(arg1).add(State.LastValue);
-            return;
-        }
-
-        vector<string> last_params = getParams(State.LastValue);
-
-        for (int i = 0; i < (int)last_params.size(); i++)
-            getList(arg1).add(last_params.at(i));
-    }
-    else
-    {
-        for (int i = 0; i < (int)params.size(); i++)
-        {
-            if (!variableExists(params.at(i)))
-            {
-                getList(arg1).add(params.at(i));
-                return;
-            }
-
-            if (isString(params.at(i)))
-                getList(arg1).add(varString(params.at(i)));
-            else if (isNumber(params.at(i)))
-                getList(arg1).add(varNumberString(params.at(i)));
-            else
-                error(ErrorMessage::IS_NULL, params.at(i), false);
-        }
-    }
-}
-
-void setVariable(string name, string value)
-{
-    getVar(name).setVariable(value);
-    State.LastValue = value;
-}
-
-void setVariable(string name, double value)
-{
-    if (isString(name))
-        getVar(name).setVariable(dtos(value));
-    else if (isNumber(name))
-        getVar(name).setVariable(value);
-    else
-    {
-        if (getVar(name).waiting())
-            getVar(name).stopWait();
-
-        getVar(name).setVariable(value);
-    }
-
-    State.LastValue = dtos(value);
-}
-
-void createVariable(string name, string value)
-{
-    Variable newVariable(name, value);
-
-    if (State.ExecutedTemplate || State.ExecutedMethod || State.ExecutedTryBlock)
-        newVariable.collect();
-    else
-        newVariable.dontCollect();
-
-    variables.push_back(newVariable);
-    State.LastValue = value;
-}
-
-///	Creates a double type variable
-void createVariable(string name, double value)
-{
-    Variable newVariable(name, value);
-
-    if (State.ExecutedTemplate || State.ExecutedMethod || State.ExecutedTryBlock)
-        newVariable.collect();
-    else
-        newVariable.dontCollect();
-
-    variables.push_back(newVariable);
-    State.LastValue = dtos(value);
-}
-
 void replaceElement(string before, string after, string replacement)
 {
     vector<string> newList;
 
-    for (int i = 0; i < (int)getList(before).size(); i++)
+    for (int i = 0; i < (int)mem.getList(before).size(); i++)
     {
         if (i == stoi(after))
             newList.push_back(replacement);
         else
-            newList.push_back(getList(before).at(i));
+            newList.push_back(mem.getList(before).at(i));
     }
 
-    getList(before).clear();
+    mem.getList(before).clear();
 
     for (int i = 0; i < (int)newList.size(); i++)
-        getList(before).add(newList.at(i));
+        mem.getList(before).add(newList.at(i));
 
     newList.clear();
 }
 
 void appendText(string arg1, string arg2, bool newLine)
 {
-    if (variableExists(arg1))
+    if (mem.variableExists(arg1))
     {
-        if (!isString(arg1))
+        if (!mem.isString(arg1))
         {
             error(ErrorMessage::CONV_ERR, arg1, false);
             return;
         }
 
-        if (!Env::fileExists(varString(arg1)))
+        if (!Env::fileExists(mem.varString(arg1)))
         {
-            error(ErrorMessage::READ_FAIL, varString(arg1), false);
+            error(ErrorMessage::READ_FAIL, mem.varString(arg1), false);
             return;
         }
 
-        if (variableExists(arg2))
+        if (mem.variableExists(arg2))
         {
-            if (isString(arg2))
+            if (mem.isString(arg2))
             {
                 if (newLine)
-                    Env::app(varString(arg1), varString(arg2) + "\r\n");
+                    Env::app(mem.varString(arg1), mem.varString(arg2) + "\r\n");
                 else
-                    Env::app(varString(arg1), varString(arg2));
+                    Env::app(mem.varString(arg1), mem.varString(arg2));
             }
-            else if (isNumber(arg2))
+            else if (mem.isNumber(arg2))
             {
                 if (newLine)
-                    Env::app(varString(arg1), varNumberString(arg2) + "\r\n");
+                    Env::app(mem.varString(arg1), mem.varNumberString(arg2) + "\r\n");
                 else
-                    Env::app(varString(arg1), varNumberString(arg2));
+                    Env::app(mem.varString(arg1), mem.varNumberString(arg2));
             }
             else
                 error(ErrorMessage::IS_NULL, arg2, false);
@@ -167,16 +65,16 @@ void appendText(string arg1, string arg2, bool newLine)
         else
         {
             if (newLine)
-                Env::app(varString(arg1), arg2 + "\r\n");
+                Env::app(mem.varString(arg1), arg2 + "\r\n");
             else
-                Env::app(varString(arg1), arg2);
+                Env::app(mem.varString(arg1), arg2);
         }
     }
     else
     {
-        if (variableExists(arg2))
+        if (mem.variableExists(arg2))
         {
-            if (!isString(arg2))
+            if (!mem.isString(arg2))
             {
                 error(ErrorMessage::CONV_ERR, arg2, false);
                 return;
@@ -184,14 +82,14 @@ void appendText(string arg1, string arg2, bool newLine)
 
             if (!Env::fileExists(arg1))
             {
-                error(ErrorMessage::READ_FAIL, varString(arg2), false);
+                error(ErrorMessage::READ_FAIL, mem.varString(arg2), false);
                 return;
             }
 
             if (newLine)
-                Env::app(arg1, varString(arg2) + "\r\n");
+                Env::app(arg1, mem.varString(arg2) + "\r\n");
             else
-                Env::app(arg1, varString(arg2));
+                Env::app(arg1, mem.varString(arg2));
         }
         else
         {
@@ -211,22 +109,22 @@ void appendText(string arg1, string arg2, bool newLine)
 
 void __fwrite(string arg1, string arg2)
 {
-    if (variableExists(arg1))
+    if (mem.variableExists(arg1))
     {
-        if (isString(arg1))
+        if (mem.isString(arg1))
         {
-            if (Env::fileExists(varString(arg1)))
+            if (Env::fileExists(mem.varString(arg1)))
             {
-                if (variableExists(arg2))
+                if (mem.variableExists(arg2))
                 {
-                    if (isString(arg2))
+                    if (mem.isString(arg2))
                     {
-                        Env::app(varString(arg1), varString(arg2) + "\r\n");
+                        Env::app(mem.varString(arg1), mem.varString(arg2) + "\r\n");
                         State.LastValue = "0";
                     }
-                    else if (isNumber(arg2))
+                    else if (mem.isNumber(arg2))
                     {
-                        Env::app(varString(arg1), varNumberString(arg2) + "\r\n");
+                        Env::app(mem.varString(arg1), mem.varNumberString(arg2) + "\r\n");
                         State.LastValue = "0";
                     }
                     else
@@ -237,22 +135,22 @@ void __fwrite(string arg1, string arg2)
                 }
                 else
                 {
-                    Env::app(varString(arg1), arg2 + "\r\n");
+                    Env::app(mem.varString(arg1), arg2 + "\r\n");
                     State.LastValue = "0";
                 }
             }
             else
             {
-                Env::createFile(varString(arg1));
+                Env::createFile(mem.varString(arg1));
 
-                if (isString(arg2))
+                if (mem.isString(arg2))
                 {
-                    Env::app(varString(arg1), varString(arg2) + "\r\n");
+                    Env::app(mem.varString(arg1), mem.varString(arg2) + "\r\n");
                     State.LastValue = "1";
                 }
-                else if (isNumber(arg2))
+                else if (mem.isNumber(arg2))
                 {
-                    Env::app(varString(arg1), varNumberString(arg2) + "\r\n");
+                    Env::app(mem.varString(arg1), mem.varNumberString(arg2) + "\r\n");
                     State.LastValue = "1";
                 }
                 else
@@ -272,19 +170,19 @@ void __fwrite(string arg1, string arg2)
     }
     else
     {
-        if (variableExists(arg2))
+        if (mem.variableExists(arg2))
         {
-            if (isString(arg2))
+            if (mem.isString(arg2))
             {
                 if (Env::fileExists(arg1))
                 {
-                    Env::app(arg1, varString(arg2) + "\r\n");
+                    Env::app(arg1, mem.varString(arg2) + "\r\n");
                     State.LastValue = "0";
                 }
                 else
                 {
-                    Env::createFile(varString(arg2));
-                    Env::app(arg1, varString(arg2) + "\r\n");
+                    Env::createFile(mem.varString(arg2));
+                    Env::app(arg1, mem.varString(arg2) + "\r\n");
                     State.LastValue = "1";
                 }
             }
@@ -370,16 +268,16 @@ string cleanString(string st)
             {
                 builder = subtractChar(builder, "{");
 
-                if (variableExists(builder) && zeroDots(builder))
+                if (mem.variableExists(builder) && zeroDots(builder))
                 {
-                    if (isString(builder))
-                        cleaned.append(varString(builder));
-                    else if (isNumber(builder))
-                        cleaned.append(varNumberString(builder));
+                    if (mem.isString(builder))
+                        cleaned.append(mem.varString(builder));
+                    else if (mem.isNumber(builder))
+                        cleaned.append(mem.varNumberString(builder));
                     else
                         cleaned.append("null");
                 }
-                else if (methodExists(builder))
+                else if (mem.methodExists(builder))
                 {
                     parse(builder);
 
@@ -398,11 +296,11 @@ string cleanString(string st)
                     {
                         string before(beforeDot(builder)), after(afterDot(builder));
 
-                        if (objectExists(before))
+                        if (mem.objectExists(before))
                         {
-                            if (getObject(before).methodExists(beforeParams(after)))
+                            if (mem.getObject(before).methodExists(beforeParams(after)))
                             {
-                                executeTemplate(getObject(before).getMethod(beforeParams(after)), getParams(after));
+                                executeTemplate(mem.getObject(before).getMethod(beforeParams(after)), getParams(after));
 
                                 cleaned.append(State.LastValue);
                             }
@@ -412,9 +310,9 @@ string cleanString(string st)
                         else
                             error(ErrorMessage::OBJ_METHOD_UNDEFINED, before, false);
                     }
-                    else if (methodExists(beforeParams(builder)))
+                    else if (mem.methodExists(beforeParams(builder)))
                     {
-                        executeTemplate(getMethod(beforeParams(builder)), getParams(builder));
+                        executeTemplate(mem.getMethod(beforeParams(builder)), getParams(builder));
 
                         cleaned.append(State.LastValue);
                     }
@@ -428,11 +326,11 @@ string cleanString(string st)
 
                     vector<string> listRange = getBracketRange(afterBrackets);
 
-                    if (variableExists(_beforeBrackets))
+                    if (mem.variableExists(_beforeBrackets))
                     {
-                        if (isString(_beforeBrackets))
+                        if (mem.isString(_beforeBrackets))
                         {
-                            string tempString(varString(_beforeBrackets));
+                            string tempString(mem.varString(_beforeBrackets));
 
                             if (listRange.size() == 2)
                             {
@@ -492,7 +390,7 @@ string cleanString(string st)
                                 error(ErrorMessage::OUT_OF_BOUNDS, afterBrackets, false);
                         }
                     }
-                    else if (listExists(_beforeBrackets))
+                    else if (mem.listExists(_beforeBrackets))
                     {
                         if (listRange.size() == 2)
                         {
@@ -506,7 +404,7 @@ string cleanString(string st)
                             
                             if (stoi(rangeBegin) < stoi(rangeEnd))
                             {
-                                if (!(getList(_beforeBrackets).size() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0))
+                                if (!(mem.getList(_beforeBrackets).size() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0))
                                 {
                                     error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                                     return Constants.Null;
@@ -516,7 +414,7 @@ string cleanString(string st)
 
                                 for (int z = stoi(rangeBegin); z <= stoi(rangeEnd); z++)
                                 {
-                                    bigString.append("\"" + getList(_beforeBrackets).at(z) + "\"");
+                                    bigString.append("\"" + mem.getList(_beforeBrackets).at(z) + "\"");
 
                                     if (z < stoi(rangeEnd))
                                         bigString.push_back(',');
@@ -528,7 +426,7 @@ string cleanString(string st)
                             }
                             else if (stoi(rangeBegin) > stoi(rangeEnd))
                             {
-                                if (!(getList(_beforeBrackets).size() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0))
+                                if (!(mem.getList(_beforeBrackets).size() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0))
                                 {
                                     error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                                     return Constants.Null;
@@ -538,7 +436,7 @@ string cleanString(string st)
 
                                 for (int z = stoi(rangeBegin); z >= stoi(rangeEnd); z--)
                                 {
-                                    bigString.append("\"" + getList(_beforeBrackets).at(z) + "\"");
+                                    bigString.append("\"" + mem.getList(_beforeBrackets).at(z) + "\"");
 
                                     if (z > stoi(rangeEnd))
                                         bigString.push_back(',');
@@ -561,13 +459,13 @@ string cleanString(string st)
                                 return Constants.Null;
                             }
 
-                            if (!(stoi(rangeBegin) <= (int)getList(_beforeBrackets).size() - 1 && stoi(rangeBegin) >= 0))
+                            if (!(stoi(rangeBegin) <= (int)mem.getList(_beforeBrackets).size() - 1 && stoi(rangeBegin) >= 0))
                             {
                                 error(ErrorMessage::OUT_OF_BOUNDS, afterBrackets, false);
                                 return Constants.Null;
                             }
                                 
-                            cleaned.append(getList(_beforeBrackets).at(stoi(rangeBegin)));
+                            cleaned.append(mem.getList(_beforeBrackets).at(stoi(rangeBegin)));
                         }
                         else
                             error(ErrorMessage::OUT_OF_BOUNDS, afterBrackets, false);
@@ -579,23 +477,23 @@ string cleanString(string st)
                 {
                     string before(beforeDot(builder)), after(afterDot(builder));
 
-                    if (!objectExists(before))
+                    if (!mem.objectExists(before))
                     {
                         error(ErrorMessage::OBJ_METHOD_UNDEFINED, before, false);
                         return Constants.Null;
                     }
 
-                    if (getObject(before).methodExists(after))
+                    if (mem.getObject(before).methodExists(after))
                     {
                         parse(before + "." + after);
                         cleaned.append(State.LastValue);
                     }
-                    else if (getObject(before).variableExists(after))
+                    else if (mem.getObject(before).variableExists(after))
                     {
-                        if (getObject(before).getVariable(after).getString() != State.Null)
-                            cleaned.append(getObject(before).getVariable(after).getString());
-                        else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
-                            cleaned.append(dtos(getObject(before).getVariable(after).getNumber()));
+                        if (mem.getObject(before).getVariable(after).getString() != State.Null)
+                            cleaned.append(mem.getObject(before).getVariable(after).getString());
+                        else if (mem.getObject(before).getVariable(after).getNumber() != State.NullNum)
+                            cleaned.append(dtos(mem.getObject(before).getVariable(after).getNumber()));
                         else
                             cleaned.append("null");
                     }
@@ -657,113 +555,6 @@ void writeline(string st)
     IO::print(NoctisEnv.GuessedOS == OS_NIX ? "\n" : "\r\n");
 }
 
-void clearAll()
-{
-    clearMethods();
-    clearObjects();
-    clearVariables();
-    clearLists();
-    clearArgs();
-    clearIf();
-    clearFor();
-    clearWhile();
-    clearConstants();
-}
-
-void clearConstants()
-{
-    constants.clear();
-}
-
-void clearArgs()
-{
-    args.clear();
-}
-
-void clearFor()
-{
-    forLoops.clear();
-}
-
-void clearWhile()
-{
-    whileLoops.clear();
-}
-
-void clearIf()
-{
-    ifStatements.clear();
-}
-
-void clearLists()
-{
-    lists.clear();
-}
-
-void clearMethods()
-{
-    vector<Method> indestructibleMethods;
-
-    for (int i = 0; i < (int)methods.size(); i++)
-        if (methods.at(i).indestructible())
-            indestructibleMethods.push_back(methods.at(i));
-
-    methods.clear();
-
-    for (int i = 0; i < (int)indestructibleMethods.size(); i++)
-        methods.push_back(indestructibleMethods[i]);
-}
-
-void clearObjects()
-{
-    objects.clear();
-}
-
-void clearVariables()
-{
-    vector<Variable> indestructibleVariables;
-
-    for (int i = 0; i < (int)variables.size(); i++)
-        if (variables.at(i).indestructible())
-            indestructibleVariables.push_back(variables.at(i));
-
-    variables.clear();
-
-    for (int i = 0; i < (int)indestructibleVariables.size(); i++)
-        variables.push_back(indestructibleVariables[i]);
-}
-
-void collectGarbage()
-{
-    vector<string> garbageVars;
-
-    for (int i = 0; i < (int)variables.size(); i++)
-        if (variables.at(i).garbage() && !State.ExecutedIfStatement)
-            if (!State.DontCollectMethodVars)
-                garbageVars.push_back(variables.at(i).name());
-
-    for (int i = 0; i < (int)garbageVars.size(); i++)
-        variables = removeVariable(variables, garbageVars.at(i));
-
-    vector<string> garbageLists;
-
-    for (int i = 0; i < (int)lists.size(); i++)
-        if (lists.at(i).garbage() && !State.ExecutedIfStatement)
-            garbageLists.push_back(lists.at(i).name());
-
-    for (int i = 0; i < (int)garbageLists.size(); i++)
-        lists = removeList(lists, garbageLists.at(i));
-
-    vector<string> garbageObjects;
-
-    for (int i = 0; i < (int)objects.size(); i++)
-        if (objects.at(i).garbage() && !State.ExecutedIfStatement)
-            garbageObjects.push_back(objects.at(i).name());
-
-    for (int i = 0; i < (int)garbageObjects.size(); i++)
-        objects = removeObject(objects, garbageObjects.at(i));
-}
-
 void displayVersion()
 {
     IO::println();
@@ -774,7 +565,7 @@ void displayVersion()
 List getDirectoryList(string before, bool filesOnly)
 {
 	List newList;
-	vector<string> dirList = Env::getDirectoryContents(varString(before), filesOnly);
+	vector<string> dirList = Env::getDirectoryContents(mem.varString(before), filesOnly);
 	for (unsigned int i = 0; i < dirList.size(); i++) 
 	{
 		newList.add(dirList.at(i));
@@ -784,135 +575,6 @@ List getDirectoryList(string before, bool filesOnly)
 		State.DefiningForLoop = false;
 	}
 	return newList;
-}
-
-bool listExists(string s)
-{
-    for (int i = 0; i < (int)lists.size(); i++)
-        if (lists.at(i).name() == s)
-            return true;
-
-    return false;
-}
-
-bool methodExists(string s)
-{
-    if (!zeroDots(s))
-    {
-        if (objectExists(beforeDot(s)))
-        {
-            if (getObject(beforeDot(s)).methodExists(afterDot(s)))
-                return true;
-            else
-                return false;
-        }
-    }
-    else
-        for (int i = 0; i < (int)methods.size(); i++)
-            if (methods.at(i).name() == s)
-                return true;
-
-    return false;
-}
-
-bool objectExists(string s)
-{
-    for (int i = 0; i < (int)objects.size(); i++)
-        if (objects.at(i).name() == s)
-            return true;
-
-    return false;
-}
-
-bool variableExists(string s)
-{
-    if (!zeroDots(s))
-    {
-        string before(beforeDot(s)), after(afterDot(s));
-
-        if (objectExists(before))
-        {
-            if (getObject(before).variableExists(after))
-                return true;
-            else
-                return false;
-        }
-        else
-            return false;
-    }
-    else
-        for (int i = 0; i < (int)variables.size(); i++)
-            if (variables.at(i).name() == s)
-                return true;
-
-    return false;
-}
-
-bool moduleExists(string s)
-{
-    for (int i = 0; i < (int)modules.size(); i++)
-        if (modules.at(i).name() == s)
-            return true;
-
-    return false;
-}
-
-bool constantExists(string s)
-{
-    for (int i = 0; i < (int)constants.size(); i++)
-        if (constants.at(i).name() == s)
-            return true;
-
-    return false;
-}
-
-bool noLists()
-{
-    if (lists.empty())
-        return true;
-
-    return false;
-}
-
-bool noMethods()
-{
-    if (methods.empty())
-        return true;
-
-    return false;
-}
-
-bool noObjects()
-{
-    if (objects.empty())
-        return true;
-
-    return false;
-}
-
-bool noVariables()
-{
-    if (variables.empty())
-        return true;
-
-    return false;
-}
-
-bool notObjectMethod(string s)
-{
-    if (zeroDots(s))
-        return true;
-    else
-    {
-        string before(beforeDot(s));
-
-        if (objectExists(before))
-            return false;
-        else
-            return true;
-    }
-
-    return true;
 }
 
 void __true()
@@ -964,72 +626,6 @@ void saveVariable(string variableName)
     }
 }
 
-vector<Method> removeMethod(vector<Method> v, string target)
-{
-    vector<Method> cleanedVector;
-
-    for (int i = 0; i < (int)v.size(); i++)
-        if (v.at(i).name() != target)
-            cleanedVector.push_back(v.at(i));
-
-    return cleanedVector;
-}
-
-vector<Object> removeObject(vector<Object> v, string target)
-{
-    vector<Object> cleanedVector;
-
-    for (int i = 0; i < (int)v.size(); i++)
-        if (v.at(i).name() != target)
-            cleanedVector.push_back(v.at(i));
-
-    return cleanedVector;
-}
-
-vector<Variable> removeVariable(vector<Variable> v, string target)
-{
-    vector<Variable> cleanedVector;
-
-    for (int i = 0; i < (int)v.size(); i++)
-        if (v.at(i).name() != target)
-            cleanedVector.push_back(v.at(i));
-
-    return cleanedVector;
-}
-
-vector<List> removeList(vector<List> v, string target)
-{
-    vector<List> cleanedVector;
-
-    for (int i = 0; i < (int)v.size(); i++)
-        if (v.at(i).name() != target)
-            cleanedVector.push_back(v.at(i));
-
-    return cleanedVector;
-}
-
-vector<Module> removeModule(vector<Module> v, string target)
-{
-    vector<Module> cleanedVector;
-
-    for (int i = 0; i < (int)v.size(); i++)
-        if (v.at(i).name() != target)
-            cleanedVector.push_back(v.at(i));
-
-    return cleanedVector;
-}
-
-vector<Constant> removeConstant(vector<Constant> v, string target)
-{
-    vector<Constant> cleanedVector;
-
-    for (int i = 0; i < (int)v.size(); i++)
-        if (v.at(i).name() != target)
-            cleanedVector.push_back(v.at(i));
-
-    return cleanedVector;
-}
-
 void error(int errorType, string errorInfo, bool quit)
 {
     string completeError("##\n# error:\t");
@@ -1059,7 +655,7 @@ void error(int errorType, string errorInfo, bool quit)
     {
         if (quit)
         {
-            clearAll();
+            mem.clearAll();
             exit(0);
         }
     }
@@ -1114,133 +710,6 @@ bool notStandardOneSpace(string arg)
 bool notStandardTwoSpace(string arg)
 {
     return !contains("=;+=;-=;*=;%=;/=;**=;+;-;*;**;/;%;++=;--=;?;!", arg);
-}
-
-int indexOfMethod(string s)
-{
-    for (int i = 0; i < (int)methods.size(); i++)
-    {
-        if (methods.at(i).name() == s)
-            return i;
-    }
-
-    return -1;
-}
-
-Method getMethod(string s)
-{
-    return methods.at(indexOfMethod(s));
-}
-
-int indexOfObject(string s)
-{
-    for (int i = 0; i < (int)objects.size(); i++)
-    {
-        if (objects.at(i).name() == s)
-            return i;
-    }
-
-    return -1;
-}
-
-Object getObject(string s)
-{
-    return objects.at(indexOfObject(s));
-}
-
-int indexOfVariable(string s)
-{
-    for (int i = 0; i < (int)variables.size(); i++)
-    {
-        if (variables.at(i).name() == s)
-            return i;
-    }
-
-    return -1;
-}
-
-Variable getVar(string s)
-{
-    return variables.at(indexOfVariable(s));
-}
-
-string varString(string s)
-{
-    return getVar(s).getString();
-}
-
-double varNumber(string s)
-{
-    return getVar(s).getNumber();
-}
-
-string varNumberString(string s)
-{
-    return dtos(varNumber(s));
-}
-
-int indexOfList(string s)
-{
-    for (int i = 0; i < (int)lists.size(); i++)
-    {
-        if (lists.at(i).name() == s)
-            return i;
-    }
-
-    return -1;
-}
-
-List getList(string s)
-{
-    return lists.at(indexOfList(s));
-}
-
-int indexOfModule(string s)
-{
-    for (int i = 0; i < (int)modules.size(); i++)
-    {
-        if (modules.at(i).name() == s)
-            return i;
-    }
-
-    return -1;
-}
-
-Module getModule(string s)
-{
-    return modules.at(indexOfModule(s));
-}
-
-int indexOfScript(string s)
-{
-    for (int i = 0; i < (int)scripts.size(); i++)
-    {
-        if (scripts.at(i).name() == s)
-            return i;
-    }
-
-    return -1;
-}
-
-Script getScript(string s)
-{
-    return scripts.at(indexOfScript(s));
-}
-
-int indexOfConstant(string s)
-{
-    for (int i = 0; i < (int)constants.size(); i++)
-    {
-        if (constants.at(i).name() == s)
-            return i;
-    }
-
-    return -1;
-}
-
-Constant getConstant(string s)
-{
-    return constants.at(indexOfConstant(s));
 }
 
 bool is(string s, string si)
@@ -1317,12 +786,12 @@ void loadSavedVars(Crypt c, string &bigStr)
 
 void runScript()
 {
-    for (int i = 0; i < getScript(State.CurrentScript).size(); i++)
+    for (int i = 0; i < mem.getScript(State.CurrentScript).size(); i++)
     {
         State.CurrentLineNumber = i + 1;
 
         if (!State.GoToLabel)
-            parse(getScript(State.CurrentScript).at(i));
+            parse(mem.getScript(State.CurrentScript).at(i));
         else
         {
             bool startParsing = false;
@@ -1330,11 +799,11 @@ void runScript()
             State.DefiningForLoop = false;
             State.GoToLabel = false;
 
-            for (int z = 0; z < getScript(State.CurrentScript).size(); z++)
+            for (int z = 0; z < mem.getScript(State.CurrentScript).size(); z++)
             {
-                if (endsWith(getScript(State.CurrentScript).at(z), "::"))
+                if (endsWith(mem.getScript(State.CurrentScript).at(z), "::"))
                 {
-                    string s(getScript(State.CurrentScript).at(z));
+                    string s(mem.getScript(State.CurrentScript).at(z));
                     s = subtractString(s, "::");
 
                     if (s == State.GoTo)
@@ -1342,58 +811,12 @@ void runScript()
                 }
 
                 if (startParsing)
-                    parse(getScript(State.CurrentScript).at(z));
+                    parse(mem.getScript(State.CurrentScript).at(z));
             }
         }
     }
 
     State.CurrentScript = State.PreviousScript;
-}
-
-void loadScript(string script)
-{
-    string s("");
-    ifstream f(script.c_str());
-    State.CurrentScript = script;
-
-    Script newScript(script);
-
-    if (f.is_open())
-    {
-        while (!f.eof())
-        {
-            getline(f, s);
-
-            if (s.length() > 0)
-            {
-                if (s[0] == '\r' || s[0] == '\n')
-                    doNothing();
-                else if (s[0] == '\t')
-                {
-                    s.erase(remove(s.begin(), s.end(), '\t'), s.end());
-                    char * c = new char[s.size() + 1];
-                    copy(s.begin(), s.end(), c);
-                    c[s.size()] = '\0';
-                    newScript.add(trimLeadingWhitespace(c));
-                    delete[] c;
-                }
-                else
-                {
-                    char * c = new char[s.size() + 1];
-                    copy(s.begin(), s.end(), c);
-                    c[s.size()] = '\0';
-                    newScript.add(trimLeadingWhitespace(c));
-                    delete[] c;
-                }
-            }
-            else
-                newScript.add("");
-        }
-    }
-
-    scripts.push_back(newScript);
-
-    runScript();
 }
 
 void loop(bool skip)
@@ -1436,7 +859,7 @@ void loop(bool skip)
             if (!State.DefiningObject && !State.DefiningMethod)
             {
                 active = false;
-                clearAll();
+                mem.clearAll();
             }
             else
                 parse(s);
@@ -1455,79 +878,6 @@ void loop(bool skip)
 bool success()
 {
     return State.SuccessFlag;
-}
-
-void failedFor()
-{
-    Method forMethod("[for#" + itos(State.ForLoopCount) + "]");
-    forMethod.setFor(false);
-    State.DefiningForLoop = true;
-    forLoops.push_back(forMethod);
-    State.DefaultLoopSymbol = "$";
-    State.SuccessFlag = false;
-}
-
-void failedWhile()
-{
-    Method whileMethod("[while#" + itos(State.WhileLoopCount) + "]");
-    whileMethod.setWhile(false);
-    State.DefiningWhileLoop = true;
-    whileLoops.push_back(whileMethod);
-}
-
-void successfulWhile(string v1, string op, string v2)
-{
-    Method whileMethod("[while#" + itos(State.WhileLoopCount) + "]");
-    whileMethod.setWhile(true);
-    whileMethod.setWhileValues(v1, op, v2);
-    State.DefiningWhileLoop = true;
-    whileLoops.push_back(whileMethod);
-    State.WhileLoopCount++;
-}
-
-void successfulFor(List list)
-{
-    Method forMethod("[for#" + itos(State.ForLoopCount) + "]");
-    forMethod.setFor(true);
-    forMethod.setForList(list);
-    forMethod.setListLoop();
-    forMethod.setSymbol(State.DefaultLoopSymbol);
-    State.DefiningForLoop = true;
-    forLoops.push_back(forMethod);
-    State.ForLoopCount++;
-    State.SuccessFlag = true;
-}
-
-void successfulFor(double a, double b, string op)
-{
-    Method forMethod("[for#" + itos(State.ForLoopCount) + "]");
-    forMethod.setFor(true);
-    forMethod.setSymbol(State.DefaultLoopSymbol);
-
-    if (op == "<=")
-        forMethod.setForValues((int)a, (int)b);
-    else if (op == ">=")
-        forMethod.setForValues((int)a, (int)b);
-    else if (op == "<")
-        forMethod.setForValues((int)a, (int)b - 1);
-    else if (op == ">")
-        forMethod.setForValues((int)a, (int)b + 1);
-
-    State.DefiningForLoop = true;
-    forLoops.push_back(forMethod);
-    State.ForLoopCount++;
-    State.SuccessFlag = true;
-}
-
-void successfulFor()
-{
-    Method forMethod("[for#" + itos(State.ForLoopCount) + "]");
-    forMethod.setFor(true);
-    forMethod.setInfinite();
-    State.DefiningForLoop = true;
-    forLoops.push_back(forMethod);
-    State.ForLoopCount++;
-    State.SuccessFlag = true;
 }
 
 void setFalseIf()
@@ -1588,14 +938,14 @@ bool isStringStack(string arg2)
         {
             if (temporaryBuild.length() != 0)
             {
-                if (variableExists(temporaryBuild))
+                if (mem.variableExists(temporaryBuild))
                 {
-                    if (isNumber(temporaryBuild))
+                    if (mem.isNumber(temporaryBuild))
                         temporaryBuild.clear();
-                    else if (isString(temporaryBuild))
+                    else if (mem.isString(temporaryBuild))
                         return true;
                 }
-                else if (methodExists(temporaryBuild))
+                else if (mem.methodExists(temporaryBuild))
                 {
                     parse(temporaryBuild);
 
@@ -1610,14 +960,14 @@ bool isStringStack(string arg2)
         }
         else if (tempArgTwo[i] == '+')
         {
-            if (variableExists(temporaryBuild))
+            if (mem.variableExists(temporaryBuild))
             {
-                if (isNumber(temporaryBuild))
+                if (mem.isNumber(temporaryBuild))
                     temporaryBuild.clear();
-                else if (isString(temporaryBuild))
+                else if (mem.isString(temporaryBuild))
                     return true;
             }
-            else if (methodExists(temporaryBuild))
+            else if (mem.methodExists(temporaryBuild))
             {
                 parse(temporaryBuild);
 
@@ -1633,14 +983,14 @@ bool isStringStack(string arg2)
         }
         else if (tempArgTwo[i] == '-')
         {
-            if (variableExists(temporaryBuild))
+            if (mem.variableExists(temporaryBuild))
             {
-                if (isNumber(temporaryBuild))
+                if (mem.isNumber(temporaryBuild))
                     temporaryBuild.clear();
-                else if (isString(temporaryBuild))
+                else if (mem.isString(temporaryBuild))
                     return true;
             }
-            else if (methodExists(temporaryBuild))
+            else if (mem.methodExists(temporaryBuild))
             {
                 parse(temporaryBuild);
 
@@ -1656,14 +1006,14 @@ bool isStringStack(string arg2)
         }
         else if (tempArgTwo[i] == '*')
         {
-            if (variableExists(temporaryBuild))
+            if (mem.variableExists(temporaryBuild))
             {
-                if (isNumber(temporaryBuild))
+                if (mem.isNumber(temporaryBuild))
                     temporaryBuild.clear();
-                else if (isString(temporaryBuild))
+                else if (mem.isString(temporaryBuild))
                     return true;
             }
-            else if (methodExists(temporaryBuild))
+            else if (mem.methodExists(temporaryBuild))
             {
                 parse(temporaryBuild);
 
@@ -1679,14 +1029,14 @@ bool isStringStack(string arg2)
         }
         else if (tempArgTwo[i] == '/')
         {
-            if (variableExists(temporaryBuild))
+            if (mem.variableExists(temporaryBuild))
             {
-                if (isNumber(temporaryBuild))
+                if (mem.isNumber(temporaryBuild))
                     temporaryBuild.clear();
-                else if (isString(temporaryBuild))
+                else if (mem.isString(temporaryBuild))
                     return true;
             }
-            else if (methodExists(temporaryBuild))
+            else if (mem.methodExists(temporaryBuild))
             {
                 parse(temporaryBuild);
 
@@ -1702,14 +1052,14 @@ bool isStringStack(string arg2)
         }
         else if (tempArgTwo[i] == '%')
         {
-            if (variableExists(temporaryBuild))
+            if (mem.variableExists(temporaryBuild))
             {
-                if (isNumber(temporaryBuild))
+                if (mem.isNumber(temporaryBuild))
                     temporaryBuild.clear();
-                else if (isString(temporaryBuild))
+                else if (mem.isString(temporaryBuild))
                     return true;
             }
-            else if (methodExists(temporaryBuild))
+            else if (mem.methodExists(temporaryBuild))
             {
                 parse(temporaryBuild);
 
@@ -1725,14 +1075,14 @@ bool isStringStack(string arg2)
         }
         else if (tempArgTwo[i] == '^')
         {
-            if (variableExists(temporaryBuild))
+            if (mem.variableExists(temporaryBuild))
             {
-                if (isNumber(temporaryBuild))
+                if (mem.isNumber(temporaryBuild))
                     temporaryBuild.clear();
-                else if (isString(temporaryBuild))
+                else if (mem.isString(temporaryBuild))
                     return true;
             }
-            else if (methodExists(temporaryBuild))
+            else if (mem.methodExists(temporaryBuild))
             {
                 parse(temporaryBuild);
 
@@ -1787,22 +1137,22 @@ string getStringStack(string arg2)
             {
                 if (temporaryBuild.length() != 0)
                 {
-                    if (variableExists(temporaryBuild))
+                    if (mem.variableExists(temporaryBuild))
                     {
-                        if (isNumber(temporaryBuild))
+                        if (mem.isNumber(temporaryBuild))
                         {
                             vars.push_back(temporaryBuild);
-                            contents.push_back(dtos(varNumber(temporaryBuild)));
+                            contents.push_back(dtos(mem.varNumber(temporaryBuild)));
                             temporaryBuild.clear();
                         }
-                        else if (isString(temporaryBuild))
+                        else if (mem.isString(temporaryBuild))
                         {
                             vars.push_back(temporaryBuild);
-                            contents.push_back(varString(temporaryBuild));
+                            contents.push_back(mem.varString(temporaryBuild));
                             temporaryBuild.clear();
                         }
                     }
-                    else if (methodExists(temporaryBuild))
+                    else if (mem.methodExists(temporaryBuild))
                     {
                         parse(temporaryBuild);
 
@@ -1819,24 +1169,24 @@ string getStringStack(string arg2)
         }
         else if (tempArgTwo[i] == '+')
         {
-            if (variableExists(temporaryBuild))
+            if (mem.variableExists(temporaryBuild))
             {
-                if (isNumber(temporaryBuild))
+                if (mem.isNumber(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(varNumber(temporaryBuild)));
+                    contents.push_back(dtos(mem.varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("+");
                 }
-                else if (isString(temporaryBuild))
+                else if (mem.isString(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(varString(temporaryBuild));
+                    contents.push_back(mem.varString(temporaryBuild));
                     temporaryBuild.clear();
                     contents.push_back("+");
                 }
             }
-            else if (methodExists(temporaryBuild))
+            else if (mem.methodExists(temporaryBuild))
             {
                 parse(temporaryBuild);
 
@@ -1854,24 +1204,24 @@ string getStringStack(string arg2)
         }
         else if (tempArgTwo[i] == '-')
         {
-            if (variableExists(temporaryBuild))
+            if (mem.variableExists(temporaryBuild))
             {
-                if (isNumber(temporaryBuild))
+                if (mem.isNumber(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(varNumber(temporaryBuild)));
+                    contents.push_back(dtos(mem.varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("-");
                 }
-                else if (isString(temporaryBuild))
+                else if (mem.isString(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(varString(temporaryBuild));
+                    contents.push_back(mem.varString(temporaryBuild));
                     temporaryBuild.clear();
                     contents.push_back("-");
                 }
             }
-            else if (methodExists(temporaryBuild))
+            else if (mem.methodExists(temporaryBuild))
             {
                 parse(temporaryBuild);
 
@@ -1889,24 +1239,24 @@ string getStringStack(string arg2)
         }
         else if (tempArgTwo[i] == '*')
         {
-            if (variableExists(temporaryBuild))
+            if (mem.variableExists(temporaryBuild))
             {
-                if (isNumber(temporaryBuild))
+                if (mem.isNumber(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(varNumber(temporaryBuild)));
+                    contents.push_back(dtos(mem.varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("*");
                 }
-                else if (isString(temporaryBuild))
+                else if (mem.isString(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(varString(temporaryBuild));
+                    contents.push_back(mem.varString(temporaryBuild));
                     temporaryBuild.clear();
                     contents.push_back("*");
                 }
             }
-            else if (methodExists(temporaryBuild))
+            else if (mem.methodExists(temporaryBuild))
             {
                 parse(temporaryBuild);
 
@@ -1926,18 +1276,18 @@ string getStringStack(string arg2)
             temporaryBuild.push_back(tempArgTwo[i]);
     }
 
-    if (variableExists(temporaryBuild))
+    if (mem.variableExists(temporaryBuild))
     {
-        if (isNumber(temporaryBuild))
+        if (mem.isNumber(temporaryBuild))
         {
             vars.push_back(temporaryBuild);
-            contents.push_back(dtos(varNumber(temporaryBuild)));
+            contents.push_back(dtos(mem.varNumber(temporaryBuild)));
             temporaryBuild.clear();
         }
-        else if (isString(temporaryBuild))
+        else if (mem.isString(temporaryBuild))
         {
             vars.push_back(temporaryBuild);
-            contents.push_back(varString(temporaryBuild));
+            contents.push_back(mem.varString(temporaryBuild));
             temporaryBuild.clear();
         }
     }
@@ -1996,7 +1346,7 @@ string getStringStack(string arg2)
     if (State.Returning)
     {
         for (int i = 0; i < (int)vars.size(); i++)
-            variables = removeVariable(variables, vars.at(i));
+            mem.removeVariable(vars.at(i));
 
         State.Returning = false;
     }
@@ -2021,16 +1371,16 @@ double getStack(string arg2)
         {
             if (temporaryBuild.length() != 0)
             {
-                if (variableExists(temporaryBuild))
+                if (mem.variableExists(temporaryBuild))
                 {
-                    if (isNumber(temporaryBuild))
+                    if (mem.isNumber(temporaryBuild))
                     {
                         vars.push_back(temporaryBuild);
-                        contents.push_back(dtos(varNumber(temporaryBuild)));
+                        contents.push_back(dtos(mem.varNumber(temporaryBuild)));
                         temporaryBuild.clear();
                     }
                 }
-                else if (methodExists(temporaryBuild))
+                else if (mem.methodExists(temporaryBuild))
                 {
                     parse(temporaryBuild);
 
@@ -2049,17 +1399,17 @@ double getStack(string arg2)
         }
         else if (tempArgTwo[i] == '+')
         {
-            if (variableExists(temporaryBuild))
+            if (mem.variableExists(temporaryBuild))
             {
-                if (isNumber(temporaryBuild))
+                if (mem.isNumber(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(varNumber(temporaryBuild)));
+                    contents.push_back(dtos(mem.varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("+");
                 }
             }
-            else if (methodExists(temporaryBuild))
+            else if (mem.methodExists(temporaryBuild))
             {
                 parse(temporaryBuild);
 
@@ -2080,17 +1430,17 @@ double getStack(string arg2)
         }
         else if (tempArgTwo[i] == '-')
         {
-            if (variableExists(temporaryBuild))
+            if (mem.variableExists(temporaryBuild))
             {
-                if (isNumber(temporaryBuild))
+                if (mem.isNumber(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(varNumber(temporaryBuild)));
+                    contents.push_back(dtos(mem.varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("-");
                 }
             }
-            else if (methodExists(temporaryBuild))
+            else if (mem.methodExists(temporaryBuild))
             {
                 parse(temporaryBuild);
 
@@ -2110,16 +1460,16 @@ double getStack(string arg2)
         }
         else if (tempArgTwo[i] == '*')
         {
-            if (variableExists(temporaryBuild))
+            if (mem.variableExists(temporaryBuild))
             {
-                if (isNumber(temporaryBuild))
+                if (mem.isNumber(temporaryBuild))
                 {
-                    contents.push_back(dtos(varNumber(temporaryBuild)));
+                    contents.push_back(dtos(mem.varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("*");
                 }
             }
-            else if (methodExists(temporaryBuild))
+            else if (mem.methodExists(temporaryBuild))
             {
                 parse(temporaryBuild);
 
@@ -2140,17 +1490,17 @@ double getStack(string arg2)
         }
         else if (tempArgTwo[i] == '/')
         {
-            if (variableExists(temporaryBuild))
+            if (mem.variableExists(temporaryBuild))
             {
-                if (isNumber(temporaryBuild))
+                if (mem.isNumber(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(varNumber(temporaryBuild)));
+                    contents.push_back(dtos(mem.varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("/");
                 }
             }
-            else if (methodExists(temporaryBuild))
+            else if (mem.methodExists(temporaryBuild))
             {
                 parse(temporaryBuild);
 
@@ -2171,17 +1521,17 @@ double getStack(string arg2)
         }
         else if (tempArgTwo[i] == '%')
         {
-            if (variableExists(temporaryBuild))
+            if (mem.variableExists(temporaryBuild))
             {
-                if (isNumber(temporaryBuild))
+                if (mem.isNumber(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(varNumber(temporaryBuild)));
+                    contents.push_back(dtos(mem.varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("%");
                 }
             }
-            else if (methodExists(temporaryBuild))
+            else if (mem.methodExists(temporaryBuild))
             {
                 parse(temporaryBuild);
 
@@ -2201,17 +1551,17 @@ double getStack(string arg2)
         }
         else if (tempArgTwo[i] == '^')
         {
-            if (variableExists(temporaryBuild))
+            if (mem.variableExists(temporaryBuild))
             {
-                if (isNumber(temporaryBuild))
+                if (mem.isNumber(temporaryBuild))
                 {
                     vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(varNumber(temporaryBuild)));
+                    contents.push_back(dtos(mem.varNumber(temporaryBuild)));
                     temporaryBuild.clear();
                     contents.push_back("^");
                 }
             }
-            else if (methodExists(temporaryBuild))
+            else if (mem.methodExists(temporaryBuild))
             {
                 parse(temporaryBuild);
 
@@ -2233,12 +1583,12 @@ double getStack(string arg2)
             temporaryBuild.push_back(tempArgTwo[i]);
     }
 
-    if (variableExists(temporaryBuild))
+    if (mem.variableExists(temporaryBuild))
     {
-        if (isNumber(temporaryBuild))
+        if (mem.isNumber(temporaryBuild))
         {
             vars.push_back(temporaryBuild);
-            contents.push_back(dtos(varNumber(temporaryBuild)));
+            contents.push_back(dtos(mem.varNumber(temporaryBuild)));
             temporaryBuild.clear();
         }
     }
@@ -2317,7 +1667,7 @@ double getStack(string arg2)
     if (State.Returning)
     {
         for (int i = 0; i < (int)vars.size(); i++)
-            variables = removeVariable(variables, vars.at(i));
+            mem.removeVariable(vars.at(i));
 
         State.Returning = false;
     }
@@ -2325,122 +1675,15 @@ double getStack(string arg2)
     return stackValue;
 }
 
-/**
-	Give a new name to anything.
-**/
-void redefine(string target, string name)
-{
-    if (variableExists(target))
-    {
-        if (Env::fileExists(varString(target)) || Env::directoryExists(varString(target)))
-        {
-            string old_name(varString(target)), new_name("");
-
-            if (variableExists(name))
-            {
-                if (isString(name))
-                {
-                    new_name = varString(name);
-
-                    if (Env::fileExists(old_name))
-                    {
-                        if (!Env::fileExists(new_name))
-                        {
-                            if (Env::fileExists(old_name))
-                                rename(old_name.c_str(), new_name.c_str());
-                            else
-                                error(ErrorMessage::FILE_NOT_FOUND, old_name, false);
-                        }
-                        else
-                            error(ErrorMessage::FILE_EXISTS, new_name, false);
-                    }
-                    else if (Env::directoryExists(old_name))
-                    {
-                        if (!Env::directoryExists(new_name))
-                        {
-                            if (Env::directoryExists(old_name))
-                                rename(old_name.c_str(), new_name.c_str());
-                            else
-                                error(ErrorMessage::DIR_NOT_FOUND, old_name, false);
-                        }
-                        else
-                            error(ErrorMessage::DIR_EXISTS, new_name, false);
-                    }
-                    else
-                        error(ErrorMessage::TARGET_UNDEFINED, old_name, false);
-                }
-                else
-                    error(ErrorMessage::NULL_STRING, name, false);
-            }
-            else
-            {
-                if (Env::fileExists(old_name))
-                {
-                    if (!Env::fileExists(name))
-                        rename(old_name.c_str(), name.c_str());
-                    else
-                        error(ErrorMessage::FILE_EXISTS, name, false);
-                }
-                else if (Env::directoryExists(old_name))
-                {
-                    if (!Env::directoryExists(name))
-                        rename(old_name.c_str(), name.c_str());
-                    else
-                        error(ErrorMessage::DIR_EXISTS, name, false);
-                }
-                else
-                    error(ErrorMessage::TARGET_UNDEFINED, old_name, false);
-            }
-        }
-        else
-        {
-            if (startsWith(name, "@"))
-            {
-                if (!variableExists(name))
-                    getVar(target).setName(name);
-                else
-                    error(ErrorMessage::VAR_DEFINED, name, false);
-            }
-            else
-                error(ErrorMessage::INVALID_VAR_DECL, name, false);
-        }
-    }
-    else if (listExists(target))
-    {
-        if (!listExists(name))
-            getList(name).setName(name);
-        else
-            error(ErrorMessage::LIST_UNDEFINED, name, false);
-    }
-    else if (objectExists(target))
-    {
-        if (!objectExists(name))
-            getObject(target).setName(name);
-        else
-            error(ErrorMessage::OBJ_METHOD_UNDEFINED, name, false);
-    }
-    else if (methodExists(target))
-    {
-        if (!methodExists(name))
-            getMethod(target).setName(name);
-        else
-            error(ErrorMessage::METHOD_UNDEFINED, name, false);
-    }
-    else if (Env::fileExists(target) || Env::directoryExists(target))
-        rename(target.c_str(), name.c_str());
-    else
-        error(ErrorMessage::TARGET_UNDEFINED, target, false);
-}
-
 string getSubString(string arg1, string arg2, string beforeBracket)
 {
     string returnValue("");
 
-    if (isString(beforeBracket))
+    if (mem.isString(beforeBracket))
     {
         vector<string> listRange = getBracketRange(arg2);
 
-        string variableString = varString(beforeBracket);
+        string variableString = mem.varString(beforeBracket);
 
         if (listRange.size() == 2)
         {
@@ -2516,11 +1759,11 @@ string getSubString(string arg1, string arg2, string beforeBracket)
 
 void setSubString(string arg1, string arg2, string beforeBracket)
 {
-    if (isString(beforeBracket))
+    if (mem.isString(beforeBracket))
     {
         vector<string> listRange = getBracketRange(arg2);
 
-        string variableString = varString(beforeBracket);
+        string variableString = mem.varString(beforeBracket);
 
         if (listRange.size() == 2)
         {
@@ -2539,10 +1782,10 @@ void setSubString(string arg1, string arg2, string beforeBracket)
                             for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
                                 tempString.push_back(variableString[i]);
 
-                            if (variableExists(arg1))
-                                setVariable(arg1, tempString);
+                            if (mem.variableExists(arg1))
+                                mem.setVariable(arg1, tempString);
                             else
-                                createVariable(arg1, tempString);
+                                mem.createVariable(arg1, tempString);
                         }
                         else
                             error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
@@ -2556,10 +1799,10 @@ void setSubString(string arg1, string arg2, string beforeBracket)
                             for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
                                 tempString.push_back(variableString[i]);
 
-                            if (variableExists(arg1))
-                                setVariable(arg1, tempString);
+                            if (mem.variableExists(arg1))
+                                mem.setVariable(arg1, tempString);
                             else
-                                createVariable(arg1, tempString);
+                                mem.createVariable(arg1, tempString);
                         }
                         else
                             error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
@@ -2586,10 +1829,10 @@ void setSubString(string arg1, string arg2, string beforeBracket)
                         string tmp_("");
                         tmp_.push_back(variableString[stoi(rangeBegin)]);
 
-                        if (variableExists(arg1))
-                            setVariable(arg1, tmp_);
+                        if (mem.variableExists(arg1))
+                            mem.setVariable(arg1, tmp_);
                         else
-                            createVariable(arg1, tmp_);
+                            mem.createVariable(arg1, tmp_);
                     }
                 }
             }
@@ -2601,75 +1844,24 @@ void setSubString(string arg1, string arg2, string beforeBracket)
         error(ErrorMessage::NULL_STRING, beforeBracket, false);
 }
 
-bool isNumber(Variable var)
-{
-	return var.getNumber() != State.NullNum;
-}
-
-bool isNumber(string varName)
-{
-    return varNumber(varName) != State.NullNum;
-}
-
-bool isString(Variable var)
-{
-	return var.getString() != State.Null;
-}
-
-bool isString(string varName)
-{
-    return varString(varName) != State.Null;
-}
-
-double getNumber(string varName)
-{
-    return varNumber(varName);
-}
-
-string getString(string varName)
-{
-    return varString(varName);
-}
-
-bool secondIsNumber(string s)
-{
-    if (variableExists(s))
-    {
-        if (isNumber(s))
-            return true;
-    }
-    else if (stackReady(s))
-    {
-        if (!isStringStack(s))
-            return true;
-    }
-    else
-    {
-        if (isNumeric(s))
-            return true;
-    }
-
-    return false;
-}
-
 string getStringValue(string arg1, string op, string arg2)
 {
     string firstValue(""), lastValue(""), returnValue("");
 
-    if (variableExists(arg1))
+    if (mem.variableExists(arg1))
     {
-        if (isString(arg1))
-            firstValue = getString(arg1);
+        if (mem.isString(arg1))
+            firstValue = mem.varString(arg1);
     }
 
-    if (variableExists(arg2))
+    if (mem.variableExists(arg2))
     {
-        if (isString(arg2))
-            lastValue = getString(arg2);
-        else if (isNumber(arg2))
-            lastValue = dtos(getNumber(arg2));
+        if (mem.isString(arg2))
+            lastValue = mem.varString(arg2);
+        else if (mem.isNumber(arg2))
+            lastValue = dtos(mem.varNumber(arg2));
     }
-    else if (methodExists(arg2))
+    else if (mem.methodExists(arg2))
     {
         parse(arg2);
 
@@ -2690,9 +1882,9 @@ string getStringValue(string arg1, string op, string arg2)
             else
                 lastValue = "";
         }
-        else if (objectExists(_beforeDot))
+        else if (mem.objectExists(_beforeDot))
         {
-            executeTemplate(getObject(_beforeDot).getMethod(_afterDot), getParams(_afterDot));
+            executeTemplate(mem.getObject(_beforeDot).getMethod(_afterDot), getParams(_afterDot));
 
             lastValue = lastValue;
         }
@@ -2722,14 +1914,14 @@ string getStringValue(string arg1, string op, string arg2)
             else
                 lastValue = "";
         }
-        else if (listExists(_beforeBrackets))
+        else if (mem.listExists(_beforeBrackets))
         {
             _afterBrackets = subtractString(_afterBrackets, "]");
 
-            if (getList(_beforeBrackets).size() >= stoi(_afterBrackets))
+            if (mem.getList(_beforeBrackets).size() >= stoi(_afterBrackets))
             {
                 if (stoi(_afterBrackets) >= 0)
-                    lastValue = getList(_beforeBrackets).at(stoi(_afterBrackets));
+                    lastValue = mem.getList(_beforeBrackets).at(stoi(_afterBrackets));
                 else
                     lastValue = "";
             }
@@ -2741,7 +1933,7 @@ string getStringValue(string arg1, string op, string arg2)
     {
         if (beforeParams(arg2).length() != 0)
         {
-            executeTemplate(getMethod(arg2), getParams(arg2));
+            executeTemplate(mem.getMethod(arg2), getParams(arg2));
 
             lastValue = lastValue;
         }
@@ -2787,20 +1979,20 @@ double getNumberValue(string arg1, string op, string arg2)
 {
     double firstValue = 0, lastValue = 0, returnValue = 0;
 
-    if (variableExists(arg1))
+    if (mem.variableExists(arg1))
     {
-        if (isNumber(arg1))
-            firstValue = getNumber(arg1);
+        if (mem.isNumber(arg1))
+            firstValue = mem.varNumber(arg1);
     }
 
-    if (variableExists(arg2))
+    if (mem.variableExists(arg2))
     {
-        if (isNumber(arg2))
-            lastValue = getNumber(arg2);
+        if (mem.isNumber(arg2))
+            lastValue = mem.varNumber(arg2);
         else
             lastValue = 0;
     }
-    else if (methodExists(arg2))
+    else if (mem.methodExists(arg2))
     {
         parse(arg2);
 
@@ -2823,9 +2015,9 @@ double getNumberValue(string arg1, string op, string arg2)
             else
                 lastValue = 0;
         }
-        else if (objectExists(_beforeDot))
+        else if (mem.objectExists(_beforeDot))
         {
-            executeTemplate(getObject(_beforeDot).getMethod(_afterDot), getParams(_afterDot));
+            executeTemplate(mem.getObject(_beforeDot).getMethod(_afterDot), getParams(_afterDot));
 
             if (isNumeric(State.LastValue))
                 lastValue = stod(State.LastValue);
@@ -2844,16 +2036,16 @@ double getNumberValue(string arg1, string op, string arg2)
     {
         string _beforeBrackets(beforeBrackets(arg2)), _afterBrackets(afterBrackets(arg2));
 
-        if (listExists(_beforeBrackets))
+        if (mem.listExists(_beforeBrackets))
         {
             _afterBrackets = subtractString(_afterBrackets, "]");
 
-            if (getList(_beforeBrackets).size() >= stoi(_afterBrackets))
+            if (mem.getList(_beforeBrackets).size() >= stoi(_afterBrackets))
             {
                 if (stoi(_afterBrackets) >= 0)
                 {
-                    if (isNumeric(getList(_beforeBrackets).at(stoi(_afterBrackets))))
-                        lastValue = stod(getList(_beforeBrackets).at(stoi(_afterBrackets)));
+                    if (isNumeric(mem.getList(_beforeBrackets).at(stoi(_afterBrackets))))
+                        lastValue = stod(mem.getList(_beforeBrackets).at(stoi(_afterBrackets)));
                     else
                         lastValue = 0;
                 }
@@ -2868,7 +2060,7 @@ double getNumberValue(string arg1, string op, string arg2)
     {
         if (beforeParams(arg2).length() != 0)
         {
-            executeTemplate(getMethod(arg2), getParams(arg2));
+            executeTemplate(mem.getMethod(arg2), getParams(arg2));
 
             if (isNumeric(State.LastValue))
 
@@ -3175,28 +2367,28 @@ void executeTemplate(Method m, vector<string> strings)
 
     for (int i = 0; i < (int)methodVariables.size(); i++)
     {
-        if (variableExists(strings.at(i)))
+        if (mem.variableExists(strings.at(i)))
         {
-            if (isString(strings.at(i)))
-                createVariable(methodVariables.at(i).name(), varString(strings.at(i)));
-            else if (isNumber(strings.at(i)))
-                createVariable(methodVariables.at(i).name(), varNumber(strings.at(i)));
+            if (mem.isString(strings.at(i)))
+                mem.createVariable(methodVariables.at(i).name(), mem.varString(strings.at(i)));
+            else if (mem.isNumber(strings.at(i)))
+                mem.createVariable(methodVariables.at(i).name(), mem.varNumber(strings.at(i)));
         }
-        else if (methodExists(strings.at(i)))
+        else if (mem.methodExists(strings.at(i)))
         {
             parse(strings.at(i));
 
             if (isNumeric(State.LastValue))
-                createVariable(methodVariables.at(i).name(), stod(State.LastValue));
+                mem.createVariable(methodVariables.at(i).name(), stod(State.LastValue));
             else
-                createVariable(methodVariables.at(i).name(), State.LastValue);
+                mem.createVariable(methodVariables.at(i).name(), State.LastValue);
         }
         else
         {
             if (isNumeric(strings.at(i)))
-                createVariable(methodVariables.at(i).name(), stod(strings.at(i)));
+                mem.createVariable(methodVariables.at(i).name(), stod(strings.at(i)));
             else
-                createVariable(methodVariables.at(i).name(), strings.at(i));
+                mem.createVariable(methodVariables.at(i).name(), strings.at(i));
         }
     }
 
@@ -3260,7 +2452,7 @@ void executeTemplate(Method m, vector<string> strings)
 
     State.ExecutedTemplate = false, State.DontCollectMethodVars = false;
 
-    collectGarbage(); // if (!State.DontCollectMethodVars)
+    mem.collectGarbage(); // if (!State.DontCollectMethodVars)
 }
 
 void executeMethod(Method m)
@@ -3348,84 +2540,84 @@ void executeMethod(Method m)
 
     State.ExecutedMethod = false;
 
-    collectGarbage();
+    mem.collectGarbage();
 }
 
 void initializeVariable(string arg0, string arg1, string arg2, string s, vector<string> command)
 {
     string tmpObjName = beforeDot(arg0), tmpVarName = afterDot(arg0);
-    bool tmpObjExists = objectExists(tmpObjName);
+    bool tmpObjExists = mem.objectExists(tmpObjName);
     if (tmpObjExists || startsWith(arg0, "@"))
     {
         if (tmpObjExists)
         {
-            if (getObject(tmpObjName).getVariable(tmpVarName).getString() != State.Null)
+            if (mem.getObject(tmpObjName).getVariable(tmpVarName).getString() != State.Null)
             {
                 string tempObjectVariableName("@ " + tmpObjName + tmpVarName + "_string");
 
-                createVariable(tempObjectVariableName, getObject(tmpObjName).getVariable(tmpVarName).getString());
+                mem.createVariable(tempObjectVariableName, mem.getObject(tmpObjName).getVariable(tmpVarName).getString());
 
                 twoSpace(tempObjectVariableName, arg1, arg2, "", command);
 
-                getVar(tempObjectVariableName).setName(tmpVarName);
+                mem.getVar(tempObjectVariableName).setName(tmpVarName);
 
-                getObject(tmpObjName).removeVariable(tmpVarName);
-                getObject(tmpObjName).addVariable(getVar(tmpVarName));
-                variables = removeVariable(variables, tmpVarName);
+                mem.getObject(tmpObjName).removeVariable(tmpVarName);
+                mem.getObject(tmpObjName).addVariable(mem.getVar(tmpVarName));
+                mem.removeVariable(tmpVarName);
             }
-            else if (getObject(tmpObjName).getVariable(tmpVarName).getNumber() != State.NullNum)
+            else if (mem.getObject(tmpObjName).getVariable(tmpVarName).getNumber() != State.NullNum)
             {
                 string tempObjectVariableName("@____" + beforeDot(arg0) + "___" + afterDot(arg0) + "_number");
 
-                createVariable(tempObjectVariableName, getObject(beforeDot(arg0)).getVariable(afterDot(arg0)).getNumber());
+                mem.createVariable(tempObjectVariableName, mem.getObject(beforeDot(arg0)).getVariable(afterDot(arg0)).getNumber());
 
                 twoSpace(tempObjectVariableName, arg1, arg2, tempObjectVariableName + " " + arg1 + " " + arg2, command);
 
-                getVar(tempObjectVariableName).setName(afterDot(arg0));
+                mem.getVar(tempObjectVariableName).setName(afterDot(arg0));
 
-                getObject(beforeDot(arg0)).removeVariable(afterDot(arg0));
-                getObject(beforeDot(arg0)).addVariable(getVar(afterDot(arg0)));
-                variables = removeVariable(variables, afterDot(arg0));
+                mem.getObject(beforeDot(arg0)).removeVariable(afterDot(arg0));
+                mem.getObject(beforeDot(arg0)).addVariable(mem.getVar(afterDot(arg0)));
+                mem.removeVariable(afterDot(arg0));
             }
         }
         else if (arg1 == "=")
         {
             string before(beforeDot(arg2)), after(afterDot(arg2));
 
-            if (containsBrackets(arg2) && (variableExists(beforeBrackets(arg2)) || listExists(beforeBrackets(arg2))))
+            if (containsBrackets(arg2) && (mem.variableExists(beforeBrackets(arg2)) || mem.listExists(beforeBrackets(arg2))))
             {
                 string beforeBracket(beforeBrackets(arg2)), afterBracket(afterBrackets(arg2));
 
                 afterBracket = subtractString(afterBracket, "]");
 
-                if (listExists(beforeBracket))
+                if (mem.listExists(beforeBracket))
                 {
-                    if (getList(beforeBracket).size() >= stoi(afterBracket))
+                    if (mem.getList(beforeBracket).size() >= stoi(afterBracket))
                     {
-                        if (getList(beforeBracket).at(stoi(afterBracket)) == "#!=no_line")
+                        if (mem.getList(beforeBracket).at(stoi(afterBracket)) == "#!=no_line")
                             error(ErrorMessage::OUT_OF_BOUNDS, arg2, false);
                         else
                         {
-                            string listValue(getList(beforeBracket).at(stoi(afterBracket)));
+                            string listValue(mem.getList(beforeBracket).at(stoi(afterBracket)));
 
                             if (isNumeric(listValue))
                             {
-                                if (isNumber(arg0))
-                                    setVariable(arg0, stod(listValue));
+                                if (mem.isNumber(arg0))
+                                    mem.setVariable(arg0, stod(listValue));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
                             else
                             {
-                                if (isString(arg0))
-                                    setVariable(arg0, listValue);
+                                if (mem.isString(arg0))
+                                    mem.setVariable(arg0, listValue);
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
                         }
                     }
                 }
-                else if (isString(beforeBracket))
+                else if (mem.isString(beforeBracket))
                     setSubString(arg0, arg2, beforeBracket);
                 else
                     error(ErrorMessage::LIST_UNDEFINED, beforeBracket, false);
@@ -3447,163 +2639,163 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
 
                         if (isNumeric(s0) && isNumeric(s2))
                         {
-                            if (isNumber(arg0))
+                            if (mem.isNumber(arg0))
                             {
                                 double n0 = stod(s0), n2 = stod(s2);
 
                                 if (n0 < n2)
-                                    setVariable(arg0, (int)random(n0, n2));
+                                    mem.setVariable(arg0, (int)random(n0, n2));
                                 else if (n0 > n2)
-                                    setVariable(arg0, (int)random(n2, n0));
+                                    mem.setVariable(arg0, (int)random(n2, n0));
                                 else
-                                    setVariable(arg0, (int)random(n0, n2));
+                                    mem.setVariable(arg0, (int)random(n0, n2));
                             }
-                            else if (isString(arg0))
+                            else if (mem.isString(arg0))
                             {
                                 double n0 = stod(s0), n2 = stod(s2);
 
                                 if (n0 < n2)
-                                    setVariable(arg0, itos((int)random(n0, n2)));
+                                    mem.setVariable(arg0, itos((int)random(n0, n2)));
                                 else if (n0 > n2)
-                                    setVariable(arg0, itos((int)random(n2, n0)));
+                                    mem.setVariable(arg0, itos((int)random(n2, n0)));
                                 else
-                                    setVariable(arg0, itos((int)random(n0, n2)));
+                                    mem.setVariable(arg0, itos((int)random(n0, n2)));
                             }
                         }
                         else if (isAlpha(s0) && isAlpha(s2))
                         {
-                            if (!isString(arg0))
+                            if (!mem.isString(arg0))
                             {
                                 error(ErrorMessage::NULL_STRING, arg0, false);
                                 return;
                             }
 
                             if (get_alpha_num(s0[0]) < get_alpha_num(s2[0]))
-                                setVariable(arg0, random(s0, s2));
+                                mem.setVariable(arg0, random(s0, s2));
                             else if (get_alpha_num(s0[0]) > get_alpha_num(s2[0]))
-                                setVariable(arg0, random(s2, s0));
+                                mem.setVariable(arg0, random(s2, s0));
                             else
-                                setVariable(arg0, random(s2, s0));
+                                mem.setVariable(arg0, random(s2, s0));
                         }
-                        else if (variableExists(s0) || variableExists(s2))
+                        else if (mem.variableExists(s0) || mem.variableExists(s2))
                         {
-                            if (variableExists(s0))
+                            if (mem.variableExists(s0))
                             {
-                                if (isNumber(s0))
-                                    s0 = dtos(varNumber(s0));
-                                else if (isString(s0))
-                                    s0 = varString(s0);
+                                if (mem.isNumber(s0))
+                                    s0 = dtos(mem.varNumber(s0));
+                                else if (mem.isString(s0))
+                                    s0 = mem.varString(s0);
                             }
 
-                            if (variableExists(s2))
+                            if (mem.variableExists(s2))
                             {
-                                if (isNumber(s2))
-                                    s2 = varNumberString(s2);
-                                else if (isString(s2))
-                                    s2 = varString(s2);
+                                if (mem.isNumber(s2))
+                                    s2 = mem.varNumberString(s2);
+                                else if (mem.isString(s2))
+                                    s2 = mem.varString(s2);
                             }
 
                             if (isNumeric(s0) && isNumeric(s2))
                             {
-                                if (isNumber(arg0))
+                                if (mem.isNumber(arg0))
                                 {
                                     double n0 = stod(s0), n2 = stod(s2);
 
                                     if (n0 < n2)
-                                        setVariable(arg0, (int)random(n0, n2));
+                                        mem.setVariable(arg0, (int)random(n0, n2));
                                     else if (n0 > n2)
-                                        setVariable(arg0, (int)random(n2, n0));
+                                        mem.setVariable(arg0, (int)random(n2, n0));
                                     else
-                                        setVariable(arg0, (int)random(n0, n2));
+                                        mem.setVariable(arg0, (int)random(n0, n2));
                                 }
-                                else if (isString(arg0))
+                                else if (mem.isString(arg0))
                                 {
                                     double n0 = stod(s0), n2 = stod(s2);
 
                                     if (n0 < n2)
-                                        setVariable(arg0, itos((int)random(n0, n2)));
+                                        mem.setVariable(arg0, itos((int)random(n0, n2)));
                                     else if (n0 > n2)
-                                        setVariable(arg0, itos((int)random(n2, n0)));
+                                        mem.setVariable(arg0, itos((int)random(n2, n0)));
                                     else
-                                        setVariable(arg0, itos((int)random(n0, n2)));
+                                        mem.setVariable(arg0, itos((int)random(n0, n2)));
                                 }
                             }
                             else if (isAlpha(s0) && isAlpha(s2))
                             {
-                                if (!isString(arg0))
+                                if (!mem.isString(arg0))
                                 {
                                     error(ErrorMessage::NULL_STRING, arg0, false);
                                     return;
                                 }
 
                                 if (get_alpha_num(s0[0]) < get_alpha_num(s2[0]))
-                                    setVariable(arg0, random(s0, s2));
+                                    mem.setVariable(arg0, random(s0, s2));
                                 else if (get_alpha_num(s0[0]) > get_alpha_num(s2[0]))
-                                    setVariable(arg0, random(s2, s0));
+                                    mem.setVariable(arg0, random(s2, s0));
                                 else
-                                    setVariable(arg0, random(s2, s0));
+                                    mem.setVariable(arg0, random(s2, s0));
                             }
                         }
                         else
                             error(ErrorMessage::INVALID_SEQ, s0 + "_" + s2, false);
                     }
                 }
-                else if (listExists(before) && after == "size")
+                else if (mem.listExists(before) && after == "size")
                 {
-                    if (isNumber(arg0))
-                        setVariable(arg0, stod(itos(getList(before).size())));
-                    else if (isString(arg0))
-                        setVariable(arg0, itos(getList(before).size()));
+                    if (mem.isNumber(arg0))
+                        mem.setVariable(arg0, stod(itos(mem.getList(before).size())));
+                    else if (mem.isString(arg0))
+                        mem.setVariable(arg0, itos(mem.getList(before).size()));
                     else
                         error(ErrorMessage::IS_NULL, arg0, false);
                 }
                 else if (before == "self")
                 {
-                    if (objectExists(State.CurrentMethodObject))
+                    if (mem.objectExists(State.CurrentMethodObject))
                         twoSpace(arg0, arg1, (State.CurrentMethodObject + "." + after), (arg0 + " " + arg1 + " " + (State.CurrentMethodObject + "." + after)), command);
                     else
                         twoSpace(arg0, arg1, after, (arg0 + " " + arg1 + " " + after), command);
                 }
-                else if (objectExists(before))
+                else if (mem.objectExists(before))
                 {
-                    if (getObject(before).variableExists(after))
+                    if (mem.getObject(before).variableExists(after))
                     {
-                        if (getObject(before).getVariable(after).getString() != State.Null)
-                            setVariable(arg0, getObject(before).getVariable(after).getString());
-                        else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
-                            setVariable(arg0, getObject(before).getVariable(after).getNumber());
+                        if (mem.getObject(before).getVariable(after).getString() != State.Null)
+                            mem.setVariable(arg0, mem.getObject(before).getVariable(after).getString());
+                        else if (mem.getObject(before).getVariable(after).getNumber() != State.NullNum)
+                            mem.setVariable(arg0, mem.getObject(before).getVariable(after).getNumber());
                         else
                             error(ErrorMessage::IS_NULL, arg2, false);
                     }
-                    else if (getObject(before).methodExists(after) && !containsParams(after))
+                    else if (mem.getObject(before).methodExists(after) && !containsParams(after))
                     {
                         parse(arg2);
 
-                        if (isString(arg0))
-                            setVariable(arg0, State.LastValue);
-                        else if (isNumber(arg0))
-                            setVariable(arg0, stod(State.LastValue));
+                        if (mem.isString(arg0))
+                            mem.setVariable(arg0, State.LastValue);
+                        else if (mem.isNumber(arg0))
+                            mem.setVariable(arg0, stod(State.LastValue));
                     }
                     else if (containsParams(after))
                     {
-                        if (getObject(before).methodExists(beforeParams(after)))
+                        if (mem.getObject(before).methodExists(beforeParams(after)))
                         {
-                            executeTemplate(getObject(before).getMethod(beforeParams(after)), getParams(after));
+                            executeTemplate(mem.getObject(before).getMethod(beforeParams(after)), getParams(after));
 
                             if (isNumeric(State.LastValue))
                             {
-                                if (isString(arg0))
-                                    setVariable(arg0, State.LastValue);
-                                else if (isNumber(arg0))
-                                    setVariable(arg0, stod(State.LastValue));
+                                if (mem.isString(arg0))
+                                    mem.setVariable(arg0, State.LastValue);
+                                else if (mem.isNumber(arg0))
+                                    mem.setVariable(arg0, stod(State.LastValue));
                                 else
                                     error(ErrorMessage::IS_NULL, arg0, false);
                             }
                             else
                             {
-                                if (isString(arg0))
-                                    setVariable(arg0, State.LastValue);
-                                else if (isNumber(arg0))
+                                if (mem.isString(arg0))
+                                    mem.setVariable(arg0, State.LastValue);
+                                else if (mem.isNumber(arg0))
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                                 else
                                     error(ErrorMessage::IS_NULL, arg0, false);
@@ -3621,14 +2813,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "to_int")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isString(before))
-                            setVariable(arg0, (int)varString(before)[0]);
-                        else if (isNumber(before))
+                        if (mem.isString(before))
+                            mem.setVariable(arg0, (int)mem.varString(before)[0]);
+                        else if (mem.isNumber(before))
                         {
-                            int i = (int)varNumber(before);
-                            setVariable(arg0, (double)i);
+                            int i = (int)mem.varNumber(before);
+                            mem.setVariable(arg0, (double)i);
                         }
                         else
                             error(ErrorMessage::IS_NULL, before, false);
@@ -3638,14 +2830,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "to_double")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isString(before))
-                            setVariable(arg0, (double)varString(before)[0]);
-                        else if (isNumber(before))
+                        if (mem.isString(before))
+                            mem.setVariable(arg0, (double)mem.varString(before)[0]);
+                        else if (mem.isNumber(before))
                         {
-                            double i = varNumber(before);
-                            setVariable(arg0, (double)i);
+                            double i = mem.varNumber(before);
+                            mem.setVariable(arg0, (double)i);
                         }
                         else
                             error(ErrorMessage::IS_NULL, before, false);
@@ -3655,10 +2847,10 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "to_string")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isNumber(before))
-                            setVariable(arg0, dtos(varNumber(before)));
+                        if (mem.isNumber(before))
+                            mem.setVariable(arg0, dtos(mem.varNumber(before)));
                         else
                             error(ErrorMessage::IS_NULL, before, false);
                     }
@@ -3667,10 +2859,10 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "to_number")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isString(before))
-                            setVariable(arg0, stod(varString(before)));
+                        if (mem.isString(before))
+                            mem.setVariable(arg0, stod(mem.varString(before)));
                         else
                             error(ErrorMessage::IS_NULL, before, false);
                     }
@@ -3679,23 +2871,23 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (before == "readline")
                 {
-                    if (variableExists(after))
+                    if (mem.variableExists(after))
                     {
-                        if (isString(after))
+                        if (mem.isString(after))
                         {
                             string line("");
-                            write(cleanString(varString(after)));
+                            write(cleanString(mem.varString(after)));
                             getline(cin, line, '\n');
 
-                            if (isNumber(arg0))
+                            if (mem.isNumber(arg0))
                             {
                                 if (isNumeric(line))
-                                    setVariable(arg0, stod(line));
+                                    mem.setVariable(arg0, stod(line));
                                 else
                                     error(ErrorMessage::CONV_ERR, line, false);
                             }
-                            else if (isString(arg0))
-                                setVariable(arg0, line);
+                            else if (mem.isString(arg0))
+                                mem.setVariable(arg0, line);
                             else
                                 error(ErrorMessage::IS_NULL, arg0, false);
                         }
@@ -3705,15 +2897,15 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             IO::print("");
                             getline(cin, line, '\n');
 
-                            if (isNumber(arg0))
+                            if (mem.isNumber(arg0))
                             {
                                 if (isNumeric(line))
-                                    setVariable(arg0, stod(line));
+                                    mem.setVariable(arg0, stod(line));
                                 else
                                     error(ErrorMessage::CONV_ERR, line, false);
                             }
-                            else if (isString(arg0))
-                                setVariable(arg0, line);
+                            else if (mem.isString(arg0))
+                                mem.setVariable(arg0, line);
                             else
                                 error(ErrorMessage::IS_NULL, arg0, false);
                         }
@@ -3725,29 +2917,29 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         getline(cin, line, '\n');
 
                         if (isNumeric(line))
-                            setVariable(arg0, stod(line));
+                            mem.setVariable(arg0, stod(line));
                         else
-                            setVariable(arg0, line);
+                            mem.setVariable(arg0, line);
                     }
                 }
                 else if (before == "password")
                 {
-                    if (variableExists(after))
+                    if (mem.variableExists(after))
                     {
-                        if (isString(after))
+                        if (mem.isString(after))
                         {
                             string line("");
-                            line = getSilentOutput(varString(after));
+                            line = getSilentOutput(mem.varString(after));
 
-                            if (isNumber(arg0))
+                            if (mem.isNumber(arg0))
                             {
                                 if (isNumeric(line))
-                                    setVariable(arg0, stod(line));
+                                    mem.setVariable(arg0, stod(line));
                                 else
                                     error(ErrorMessage::CONV_ERR, line, false);
                             }
-                            else if (isString(arg0))
-                                setVariable(arg0, line);
+                            else if (mem.isString(arg0))
+                                mem.setVariable(arg0, line);
                             else
                                 error(ErrorMessage::IS_NULL, arg0, false);
 
@@ -3758,15 +2950,15 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             string line("");
                             line = getSilentOutput("password: ");
 
-                            if (isNumber(arg0))
+                            if (mem.isNumber(arg0))
                             {
                                 if (isNumeric(line))
-                                    setVariable(arg0, stod(line));
+                                    mem.setVariable(arg0, stod(line));
                                 else
                                     error(ErrorMessage::CONV_ERR, line, false);
                             }
-                            else if (isString(arg0))
-                                setVariable(arg0, line);
+                            else if (mem.isString(arg0))
+                                mem.setVariable(arg0, line);
                             else
                                 error(ErrorMessage::IS_NULL, arg0, false);
 
@@ -3779,28 +2971,28 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         line = getSilentOutput(cleanString(after));
 
                         if (isNumeric(line))
-                            setVariable(arg0, stod(line));
+                            mem.setVariable(arg0, stod(line));
                         else
-                            setVariable(arg0, line);
+                            mem.setVariable(arg0, line);
 
                         IO::println();
                     }
                 }
                 else if (after == "cos")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, cos(varNumber(before)));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, cos(mem.varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
-                        else if (isString(arg0))
+                        else if (mem.isString(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, dtos(cos(varNumber(before))));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, dtos(cos(mem.varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3810,19 +3002,19 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "acos")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, acos(varNumber(before)));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, acos(mem.varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
-                        else if (isString(arg0))
+                        else if (mem.isString(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, dtos(acos(varNumber(before))));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, dtos(acos(mem.varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3832,19 +3024,19 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "cosh")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, cosh(varNumber(before)));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, cosh(mem.varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
-                        else if (isString(arg0))
+                        else if (mem.isString(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, dtos(cosh(varNumber(before))));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, dtos(cosh(mem.varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3854,19 +3046,19 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "log")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, log(varNumber(before)));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, log(mem.varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
-                        else if (isString(arg0))
+                        else if (mem.isString(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, dtos(log(varNumber(before))));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, dtos(log(mem.varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3876,19 +3068,19 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "sqrt")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, sqrt(varNumber(before)));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, sqrt(mem.varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
-                        else if (isString(arg0))
+                        else if (mem.isString(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, dtos(sqrt(varNumber(before))));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, dtos(sqrt(mem.varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3898,19 +3090,19 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "abs")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, abs(varNumber(before)));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, abs(mem.varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
-                        else if (isString(arg0))
+                        else if (mem.isString(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, dtos(abs(varNumber(before))));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, dtos(abs(mem.varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3920,19 +3112,19 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "floor")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, floor(varNumber(before)));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, floor(mem.varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
-                        else if (isString(arg0))
+                        else if (mem.isString(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, dtos(floor(varNumber(before))));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, dtos(floor(mem.varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3942,19 +3134,19 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "ceil")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, ceil(varNumber(before)));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, ceil(mem.varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
-                        else if (isString(arg0))
+                        else if (mem.isString(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, dtos(ceil(varNumber(before))));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, dtos(ceil(mem.varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3964,19 +3156,19 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "exp")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, exp(varNumber(before)));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, exp(mem.varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
-                        else if (isString(arg0))
+                        else if (mem.isString(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, dtos(exp(varNumber(before))));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, dtos(exp(mem.varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -3986,19 +3178,19 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "sin")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, sin(varNumber(before)));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, sin(mem.varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
-                        else if (isString(arg0))
+                        else if (mem.isString(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, dtos(sin(varNumber(before))));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, dtos(sin(mem.varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -4008,19 +3200,19 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "sinh")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, sinh(varNumber(before)));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, sinh(mem.varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
-                        else if (isString(arg0))
+                        else if (mem.isString(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, dtos(sinh(varNumber(before))));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, dtos(sinh(mem.varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -4030,19 +3222,19 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "asin")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, asin(varNumber(before)));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, asin(mem.varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
-                        else if (isString(arg0))
+                        else if (mem.isString(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, dtos(asin(varNumber(before))));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, dtos(asin(mem.varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -4052,19 +3244,19 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "tan")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, tan(varNumber(before)));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, tan(mem.varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
-                        else if (isString(arg0))
+                        else if (mem.isString(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, dtos(tan(varNumber(before))));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, dtos(tan(mem.varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -4074,19 +3266,19 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "tanh")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, tanh(varNumber(before)));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, tanh(mem.varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
-                        else if (isString(arg0))
+                        else if (mem.isString(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, dtos(tanh(varNumber(before))));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, dtos(tanh(mem.varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -4096,19 +3288,19 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "atan")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, atan(varNumber(before)));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, atan(mem.varNumber(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
-                        else if (isString(arg0))
+                        else if (mem.isString(arg0))
                         {
-                            if (isNumber(before))
-                                setVariable(arg0, dtos(atan(varNumber(before))));
+                            if (mem.isNumber(before))
+                                mem.setVariable(arg0, dtos(atan(mem.varNumber(before))));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -4118,12 +3310,12 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "to_lower")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isString(arg0))
+                        if (mem.isString(arg0))
                         {
-                            if (isString(before))
-                                setVariable(arg0, getLower(varString(before)));
+                            if (mem.isString(before))
+                                mem.setVariable(arg0, getLower(mem.varString(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -4133,15 +3325,15 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "read")
                 {
-                    if (isString(arg0))
+                    if (mem.isString(arg0))
                     {
-                        if (variableExists(before))
+                        if (mem.variableExists(before))
                         {
-                            if (isString(before))
+                            if (mem.isString(before))
                             {
-                                if (Env::fileExists(varString(before)))
+                                if (Env::fileExists(mem.varString(before)))
                                 {
-                                    ifstream file(varString(before).c_str());
+                                    ifstream file(mem.varString(before).c_str());
                                     string line(""), bigString("");
 
                                     if (file.is_open())
@@ -4154,13 +3346,13 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
 
                                         file.close();
 
-                                        setVariable(arg0, bigString);
+                                        mem.setVariable(arg0, bigString);
                                     }
                                     else
-                                        error(ErrorMessage::READ_FAIL, varString(before), false);
+                                        error(ErrorMessage::READ_FAIL, mem.varString(before), false);
                                 }
                                 else
-                                    error(ErrorMessage::READ_FAIL, varString(before), false);
+                                    error(ErrorMessage::READ_FAIL, mem.varString(before), false);
                             }
                             else
                                 error(ErrorMessage::NULL_STRING, before, false);
@@ -4182,7 +3374,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
 
                                     file.close();
 
-                                    setVariable(arg0, bigString);
+                                    mem.setVariable(arg0, bigString);
                                 }
                                 else
                                     error(ErrorMessage::READ_FAIL, before, false);
@@ -4196,12 +3388,12 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "to_upper")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isString(arg0))
+                        if (mem.isString(arg0))
                         {
-                            if (isString(before))
-                                setVariable(arg0, getUpper(varString(before)));
+                            if (mem.isString(before))
+                                mem.setVariable(arg0, getUpper(mem.varString(before)));
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -4211,12 +3403,12 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (after == "size")
                 {
-                    if (variableExists(before))
+                    if (mem.variableExists(before))
                     {
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
-                            if (isString(before))
-                                setVariable(arg0, (double)varString(before).length());
+                            if (mem.isString(before))
+                                mem.setVariable(arg0, (double)mem.varString(before).length());
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
                         }
@@ -4225,24 +3417,24 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     }
                     else
                     {
-                        if (isNumber(arg0))
-                            setVariable(arg0, (double)before.length());
+                        if (mem.isNumber(arg0))
+                            mem.setVariable(arg0, (double)before.length());
                         else
                             error(ErrorMessage::CONV_ERR, arg0, false);
                     }
                 }
                 else if (after == "bytes")
                 {
-                    if (isNumber(arg0))
+                    if (mem.isNumber(arg0))
                     {
-                        if (variableExists(before))
+                        if (mem.variableExists(before))
                         {
-                            if (isString(before))
+                            if (mem.isString(before))
                             {
-                                if (Env::fileExists(varString(before)))
-                                    setVariable(arg0, getBytes(varString(before)));
+                                if (Env::fileExists(mem.varString(before)))
+                                    mem.setVariable(arg0, getBytes(mem.varString(before)));
                                 else
-                                    error(ErrorMessage::READ_FAIL, varString(before), false);
+                                    error(ErrorMessage::READ_FAIL, mem.varString(before), false);
                             }
                             else
                                 error(ErrorMessage::CONV_ERR, before, false);
@@ -4250,7 +3442,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         else
                         {
                             if (Env::fileExists(before))
-                                setVariable(arg0, getBytes(before));
+                                mem.setVariable(arg0, getBytes(before));
                             else
                                 error(ErrorMessage::READ_FAIL, before, false);
                         }
@@ -4260,21 +3452,21 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else
                 {
-                    if (isNumber(arg0))
+                    if (mem.isNumber(arg0))
                     {
                         if (isNumeric(arg2))
-                            setVariable(arg0, stod(arg2));
+                            mem.setVariable(arg0, stod(arg2));
                         else
                             error(ErrorMessage::CONV_ERR, arg0, false);
                     }
-                    else if (isString(arg0))
-                        setVariable(arg0, arg2);
-                    else if (getVar(arg0).waiting())
+                    else if (mem.isString(arg0))
+                        mem.setVariable(arg0, arg2);
+                    else if (mem.getVar(arg0).waiting())
                     {
                         if (isNumeric(arg2))
-                            setVariable(arg0, stod(before + "." + after));
+                            mem.setVariable(arg0, stod(before + "." + after));
                         else
-                            setVariable(arg0, arg2);
+                            mem.setVariable(arg0, arg2);
                     }
                     else
                         error(ErrorMessage::IS_NULL, arg0, false);
@@ -4282,67 +3474,67 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
             }
             else
             {
-                if (getVar(arg0).waiting())
+                if (mem.getVar(arg0).waiting())
                 {
                     if (isNumeric(arg2))
-                        setVariable(arg0, stod(arg2));
+                        mem.setVariable(arg0, stod(arg2));
                     else
-                        setVariable(arg0, arg2);
+                        mem.setVariable(arg0, arg2);
                 }
                 else if (arg2 == "null")
                 {
-                    if (isString(arg0))
-                        getVar(arg0).setNull();
-                    else if (isNumber(arg0))
-                        getVar(arg0).setNull();
+                    if (mem.isString(arg0))
+                        mem.getVar(arg0).setNull();
+                    else if (mem.isNumber(arg0))
+                        mem.getVar(arg0).setNull();
                     else
                         error(ErrorMessage::IS_NULL, arg0, false);
                 }
-                else if (constantExists(arg2))
+                else if (mem.constantExists(arg2))
                 {
-                    if (isString(arg0))
+                    if (mem.isString(arg0))
                     {
-                        if (getConstant(arg2).ConstNumber())
-                            setVariable(arg0, dtos(getConstant(arg2).getNumber()));
-                        else if (getConstant(arg2).ConstString())
-                            setVariable(arg0, getConstant(arg2).getString());
+                        if (mem.getConstant(arg2).ConstNumber())
+                            mem.setVariable(arg0, dtos(mem.getConstant(arg2).getNumber()));
+                        else if (mem.getConstant(arg2).ConstString())
+                            mem.setVariable(arg0, mem.getConstant(arg2).getString());
                     }
-                    else if (isNumber(arg0))
+                    else if (mem.isNumber(arg0))
                     {
-                        if (getConstant(arg2).ConstNumber())
-                            setVariable(arg0, getConstant(arg2).getNumber());
+                        if (mem.getConstant(arg2).ConstNumber())
+                            mem.setVariable(arg0, mem.getConstant(arg2).getNumber());
                         else
                             error(ErrorMessage::CONV_ERR, arg2, false);
                     }
                     else
                         error(ErrorMessage::IS_NULL, arg0, false);
                 }
-                else if (methodExists(arg2))
+                else if (mem.methodExists(arg2))
                 {
                     parse(arg2);
 
-                    if (isString(arg0))
-                        setVariable(arg0, State.LastValue);
-                    else if (isNumber(arg0))
-                        setVariable(arg0, stod(State.LastValue));
+                    if (mem.isString(arg0))
+                        mem.setVariable(arg0, State.LastValue);
+                    else if (mem.isNumber(arg0))
+                        mem.setVariable(arg0, stod(State.LastValue));
                 }
-                else if (variableExists(arg2))
+                else if (mem.variableExists(arg2))
                 {
-                    if (isString(arg2))
+                    if (mem.isString(arg2))
                     {
-                        if (isString(arg0))
-                            setVariable(arg0, varString(arg2));
-                        else if (isNumber(arg0))
+                        if (mem.isString(arg0))
+                            mem.setVariable(arg0, mem.varString(arg2));
+                        else if (mem.isNumber(arg0))
                             error(ErrorMessage::CONV_ERR, arg2, false);
                         else
                             error(ErrorMessage::IS_NULL, arg0, false);
                     }
-                    else if (isNumber(arg2))
+                    else if (mem.isNumber(arg2))
                     {
-                        if (isString(arg0))
-                            setVariable(arg0, dtos(varNumber(arg2)));
-                        else if (isNumber(arg0))
-                            setVariable(arg0, varNumber(arg2));
+                        if (mem.isString(arg0))
+                            mem.setVariable(arg0, dtos(mem.varNumber(arg2)));
+                        else if (mem.isNumber(arg0))
+                            mem.setVariable(arg0, mem.varNumber(arg2));
                         else
                             error(ErrorMessage::IS_NULL, arg0, false);
                     }
@@ -4356,17 +3548,17 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         string passworder("");
                         passworder = getSilentOutput("");
 
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
                             if (isNumeric(passworder))
-                                setVariable(arg0, stod(passworder));
+                                mem.setVariable(arg0, stod(passworder));
                             else
                                 error(ErrorMessage::CONV_ERR, passworder, false);
                         }
-                        else if (isString(arg0))
-                            setVariable(arg0, passworder);
+                        else if (mem.isString(arg0))
+                            mem.setVariable(arg0, passworder);
                         else
-                            setVariable(arg0, passworder);
+                            mem.setVariable(arg0, passworder);
                     }
                     else
                     {
@@ -4375,40 +3567,40 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         getline(cin, line, '\n');
 
                         if (isNumeric(line))
-                            createVariable(arg0, stod(line));
+                            mem.createVariable(arg0, stod(line));
                         else
-                            createVariable(arg0, line);
+                            mem.createVariable(arg0, line);
                     }
                 }
                 else if (containsParams(arg2))
                 {
-                    if (methodExists(beforeParams(arg2)))
+                    if (mem.methodExists(beforeParams(arg2)))
                     {
                         // execute the method
-                        executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                        executeTemplate(mem.getMethod(beforeParams(arg2)), getParams(arg2));
                         // set the variable = last value
-                        if (isString(arg0))
+                        if (mem.isString(arg0))
                         {
-                            setVariable(arg0, State.LastValue);
+                            mem.setVariable(arg0, State.LastValue);
                         }
-                        else if (isNumber(arg0))
+                        else if (mem.isNumber(arg0))
                         {
-                            setVariable(arg0, stod(State.LastValue));
+                            mem.setVariable(arg0, stod(State.LastValue));
                         }
                     }
                     else if (isStringStack(arg2))
                     {
-                        if (isString(arg0))
-                            setVariable(arg0, getStringStack(arg2));
+                        if (mem.isString(arg0))
+                            mem.setVariable(arg0, getStringStack(arg2));
                         else
                             error(ErrorMessage::CONV_ERR, arg0, false);
                     }
                     else if (stackReady(arg2))
                     {
-                        if (isString(arg0))
-                            setVariable(arg0, dtos(getStack(arg2)));
-                        else if (isNumber(arg0))
-                            setVariable(arg0, getStack(arg2));
+                        if (mem.isString(arg0))
+                            mem.setVariable(arg0, dtos(getStack(arg2)));
+                        else if (mem.isNumber(arg0))
+                            mem.setVariable(arg0, getStack(arg2));
                         else
                             error(ErrorMessage::IS_NULL, arg0, false);
                     }
@@ -4417,17 +3609,17 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 {
                     if (isNumeric(arg2))
                     {
-                        if (isNumber(arg0))
-                            setVariable(arg0, stod(arg2));
-                        else if (isString(arg0))
-                            setVariable(arg0, arg2);
+                        if (mem.isNumber(arg0))
+                            mem.setVariable(arg0, stod(arg2));
+                        else if (mem.isString(arg0))
+                            mem.setVariable(arg0, arg2);
                     }
                     else
                     {
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                             error(ErrorMessage::CONV_ERR, arg0, false);
-                        else if (isString(arg0))
-                            setVariable(arg0, cleanString(arg2));
+                        else if (mem.isString(arg0))
+                            mem.setVariable(arg0, cleanString(arg2));
                     }
                 }
             }
@@ -4436,23 +3628,23 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
         {
             if (arg1 == "+=")
             {
-                if (variableExists(arg2))
+                if (mem.variableExists(arg2))
                 {
-                    if (isString(arg0))
+                    if (mem.isString(arg0))
                     {
-                        if (isString(arg2))
-                            setVariable(arg0, varString(arg0) + varString(arg2));
-                        else if (isNumber(arg2))
-                            setVariable(arg0, varString(arg0) + dtos(varNumber(arg2)));
+                        if (mem.isString(arg2))
+                            mem.setVariable(arg0, mem.varString(arg0) + mem.varString(arg2));
+                        else if (mem.isNumber(arg2))
+                            mem.setVariable(arg0, mem.varString(arg0) + dtos(mem.varNumber(arg2)));
                         else
                             error(ErrorMessage::IS_NULL, arg2, false);
                     }
-                    else if (isNumber(arg0))
+                    else if (mem.isNumber(arg0))
                     {
-                        if (isString(arg2))
+                        if (mem.isString(arg2))
                             error(ErrorMessage::CONV_ERR, arg2, false);
-                        else if (isNumber(arg2))
-                            setVariable(arg0, varNumber(arg0) + varNumber(arg2));
+                        else if (mem.isNumber(arg2))
+                            mem.setVariable(arg0, mem.varNumber(arg0) + mem.varNumber(arg2));
                         else
                             error(ErrorMessage::IS_NULL, arg2, false);
                     }
@@ -4465,42 +3657,42 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     {
                         if (isStringStack(arg2))
                         {
-                            if (isString(arg0))
-                                setVariable(arg0, varString(arg0) + getStringStack(arg2));
+                            if (mem.isString(arg0))
+                                mem.setVariable(arg0, mem.varString(arg0) + getStringStack(arg2));
                             else
                                 error(ErrorMessage::CONV_ERR, arg0, false);
                         }
                         else if (stackReady(arg2))
                         {
-                            if (isNumber(arg0))
-                                setVariable(arg0, varNumber(arg0) + getStack(arg2));
+                            if (mem.isNumber(arg0))
+                                mem.setVariable(arg0, mem.varNumber(arg0) + getStack(arg2));
                         }
-                        else if (methodExists(beforeParams(arg2)))
+                        else if (mem.methodExists(beforeParams(arg2)))
                         {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                            executeTemplate(mem.getMethod(beforeParams(arg2)), getParams(arg2));
 
-                            if (isString(arg0))
-                                setVariable(arg0, varString(arg0) + State.LastValue);
-                            else if (isNumber(arg0))
+                            if (mem.isString(arg0))
+                                mem.setVariable(arg0, mem.varString(arg0) + State.LastValue);
+                            else if (mem.isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, varNumber(arg0) + stod(State.LastValue));
+                                    mem.setVariable(arg0, mem.varNumber(arg0) + stod(State.LastValue));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
                             else
                                 error(ErrorMessage::IS_NULL, arg0, false);
                         }
-                        else if (objectExists(beforeDot(arg2)))
+                        else if (mem.objectExists(beforeDot(arg2)))
                         {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                            executeTemplate(mem.getMethod(beforeParams(arg2)), getParams(arg2));
 
-                            if (isString(arg0))
-                                setVariable(arg0, varString(arg0) + State.LastValue);
-                            else if (isNumber(arg0))
+                            if (mem.isString(arg0))
+                                mem.setVariable(arg0, mem.varString(arg0) + State.LastValue);
+                            else if (mem.isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, varNumber(arg0) + stod(State.LastValue));
+                                    mem.setVariable(arg0, mem.varNumber(arg0) + stod(State.LastValue));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
@@ -4508,16 +3700,16 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                                 error(ErrorMessage::IS_NULL, arg0, false);
                         }
                     }
-                    else if (methodExists(arg2))
+                    else if (mem.methodExists(arg2))
                     {
                         parse(arg2);
 
-                        if (isString(arg0))
-                            setVariable(arg0, varString(arg0) + State.LastValue);
-                        else if (isNumber(arg0))
+                        if (mem.isString(arg0))
+                            mem.setVariable(arg0, mem.varString(arg0) + State.LastValue);
+                        else if (mem.isNumber(arg0))
                         {
                             if (isNumeric(State.LastValue))
-                                setVariable(arg0, varNumber(arg0) + stod(State.LastValue));
+                                mem.setVariable(arg0, mem.varNumber(arg0) + stod(State.LastValue));
                             else
                                 error(ErrorMessage::CONV_ERR, arg0, false);
                         }
@@ -4526,18 +3718,18 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     }
                     else if (isNumeric(arg2))
                     {
-                        if (isString(arg0))
-                            setVariable(arg0, varString(arg0) + arg2);
-                        else if (isNumber(arg0))
-                            setVariable(arg0, varNumber(arg0) + stod(arg2));
+                        if (mem.isString(arg0))
+                            mem.setVariable(arg0, mem.varString(arg0) + arg2);
+                        else if (mem.isNumber(arg0))
+                            mem.setVariable(arg0, mem.varNumber(arg0) + stod(arg2));
                         else
                             error(ErrorMessage::IS_NULL, arg0, false);
                     }
                     else
                     {
-                        if (isString(arg0))
-                            setVariable(arg0, varString(arg0) + cleanString(arg2));
-                        else if (isNumber(arg0))
+                        if (mem.isString(arg0))
+                            mem.setVariable(arg0, mem.varString(arg0) + cleanString(arg2));
+                        else if (mem.isNumber(arg0))
                             error(ErrorMessage::CONV_ERR, arg0, false);
                         else
                             error(ErrorMessage::IS_NULL, arg0, false);
@@ -4546,28 +3738,28 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
             }
             else if (arg1 == "-=")
             {
-                if (variableExists(arg2))
+                if (mem.variableExists(arg2))
                 {
-                    if (isString(arg0))
+                    if (mem.isString(arg0))
                     {
-                        if (isString(arg2))
+                        if (mem.isString(arg2))
                         {
-                            if (varString(arg2).length() == 1)
-                                setVariable(arg0, subtractChar(varString(arg0), varString(arg2)));
+                            if (mem.varString(arg2).length() == 1)
+                                mem.setVariable(arg0, subtractChar(mem.varString(arg0), mem.varString(arg2)));
                             else
-                                setVariable(arg0, subtractString(varString(arg0), varString(arg2)));
+                                mem.setVariable(arg0, subtractString(mem.varString(arg0), mem.varString(arg2)));
                         }
-                        else if (isNumber(arg2))
-                            setVariable(arg0, subtractString(varString(arg0), dtos(varNumber(arg2))));
+                        else if (mem.isNumber(arg2))
+                            mem.setVariable(arg0, subtractString(mem.varString(arg0), dtos(mem.varNumber(arg2))));
                         else
                             error(ErrorMessage::IS_NULL, arg2, false);
                     }
-                    else if (isNumber(arg0))
+                    else if (mem.isNumber(arg0))
                     {
-                        if (isString(arg2))
+                        if (mem.isString(arg2))
                             error(ErrorMessage::CONV_ERR, arg2, false);
-                        else if (isNumber(arg2))
-                            setVariable(arg0, varNumber(arg0) - varNumber(arg2));
+                        else if (mem.isNumber(arg2))
+                            mem.setVariable(arg0, mem.varNumber(arg0) - mem.varNumber(arg2));
                         else
                             error(ErrorMessage::IS_NULL, arg2, false);
                     }
@@ -4580,42 +3772,42 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     {
                         if (isStringStack(arg2))
                         {
-                            if (isString(arg0))
-                                setVariable(arg0, subtractString(varString(arg0), getStringStack(arg2)));
+                            if (mem.isString(arg0))
+                                mem.setVariable(arg0, subtractString(mem.varString(arg0), getStringStack(arg2)));
                             else
                                 error(ErrorMessage::CONV_ERR, arg0, false);
                         }
                         else if (stackReady(arg2))
                         {
-                            if (isNumber(arg0))
-                                setVariable(arg0, varNumber(arg0) - getStack(arg2));
+                            if (mem.isNumber(arg0))
+                                mem.setVariable(arg0, mem.varNumber(arg0) - getStack(arg2));
                         }
-                        else if (methodExists(beforeParams(arg2)))
+                        else if (mem.methodExists(beforeParams(arg2)))
                         {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                            executeTemplate(mem.getMethod(beforeParams(arg2)), getParams(arg2));
 
-                            if (isString(arg0))
-                                setVariable(arg0, subtractString(varString(arg0), State.LastValue));
-                            else if (isNumber(arg0))
+                            if (mem.isString(arg0))
+                                mem.setVariable(arg0, subtractString(mem.varString(arg0), State.LastValue));
+                            else if (mem.isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, varNumber(arg0) - stod(State.LastValue));
+                                    mem.setVariable(arg0, mem.varNumber(arg0) - stod(State.LastValue));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
                             else
                                 error(ErrorMessage::IS_NULL, arg0, false);
                         }
-                        else if (objectExists(beforeDot(arg2)))
+                        else if (mem.objectExists(beforeDot(arg2)))
                         {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                            executeTemplate(mem.getMethod(beforeParams(arg2)), getParams(arg2));
 
-                            if (isString(arg0))
-                                setVariable(arg0, subtractString(varString(arg0), State.LastValue));
-                            else if (isNumber(arg0))
+                            if (mem.isString(arg0))
+                                mem.setVariable(arg0, subtractString(mem.varString(arg0), State.LastValue));
+                            else if (mem.isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, varNumber(arg0) - stod(State.LastValue));
+                                    mem.setVariable(arg0, mem.varNumber(arg0) - stod(State.LastValue));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
@@ -4623,16 +3815,16 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                                 error(ErrorMessage::IS_NULL, arg0, false);
                         }
                     }
-                    else if (methodExists(arg2))
+                    else if (mem.methodExists(arg2))
                     {
                         parse(arg2);
 
-                        if (isString(arg0))
-                            setVariable(arg0, subtractString(varString(arg0), State.LastValue));
-                        else if (isNumber(arg0))
+                        if (mem.isString(arg0))
+                            mem.setVariable(arg0, subtractString(mem.varString(arg0), State.LastValue));
+                        else if (mem.isNumber(arg0))
                         {
                             if (isNumeric(State.LastValue))
-                                setVariable(arg0, varNumber(arg0) - stod(State.LastValue));
+                                mem.setVariable(arg0, mem.varNumber(arg0) - stod(State.LastValue));
                             else
                                 error(ErrorMessage::CONV_ERR, arg0, false);
                         }
@@ -4641,28 +3833,28 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     }
                     else if (isNumeric(arg2))
                     {
-                        if (isString(arg0))
+                        if (mem.isString(arg0))
                         {
                             if (arg2.length() == 1)
-                                setVariable(arg0, subtractChar(varString(arg0), arg2));
+                                mem.setVariable(arg0, subtractChar(mem.varString(arg0), arg2));
                             else
-                                setVariable(arg0, subtractString(varString(arg0), arg2));
+                                mem.setVariable(arg0, subtractString(mem.varString(arg0), arg2));
                         }
-                        else if (isNumber(arg0))
-                            setVariable(arg0, varNumber(arg0) - stod(arg2));
+                        else if (mem.isNumber(arg0))
+                            mem.setVariable(arg0, mem.varNumber(arg0) - stod(arg2));
                         else
                             error(ErrorMessage::IS_NULL, arg0, false);
                     }
                     else
                     {
-                        if (isString(arg0))
+                        if (mem.isString(arg0))
                         {
                             if (arg2.length() == 1)
-                                setVariable(arg0, subtractChar(varString(arg0), arg2));
+                                mem.setVariable(arg0, subtractChar(mem.varString(arg0), arg2));
                             else
-                                setVariable(arg0, subtractString(varString(arg0), cleanString(arg2)));
+                                mem.setVariable(arg0, subtractString(mem.varString(arg0), cleanString(arg2)));
                         }
-                        else if (isNumber(arg0))
+                        else if (mem.isNumber(arg0))
                             error(ErrorMessage::CONV_ERR, arg0, false);
                         else
                             error(ErrorMessage::IS_NULL, arg0, false);
@@ -4671,11 +3863,11 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
             }
             else if (arg1 == "*=")
             {
-                if (variableExists(arg2))
+                if (mem.variableExists(arg2))
                 {
-                    if (isNumber(arg2))
-                        setVariable(arg0, varNumber(arg0) * varNumber(arg2));
-                    else if (isString(arg2))
+                    if (mem.isNumber(arg2))
+                        mem.setVariable(arg0, mem.varNumber(arg0) * mem.varNumber(arg2));
+                    else if (mem.isString(arg2))
                         error(ErrorMessage::CONV_ERR, arg2, false);
                     else
                         error(ErrorMessage::IS_NULL, arg2, false);
@@ -4686,31 +3878,31 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     {
                         if (stackReady(arg2))
                         {
-                            if (isNumber(arg0))
-                                setVariable(arg0, varNumber(arg0) * getStack(arg2));
+                            if (mem.isNumber(arg0))
+                                mem.setVariable(arg0, mem.varNumber(arg0) * getStack(arg2));
                         }
-                        else if (methodExists(beforeParams(arg2)))
+                        else if (mem.methodExists(beforeParams(arg2)))
                         {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                            executeTemplate(mem.getMethod(beforeParams(arg2)), getParams(arg2));
 
-                            if (isNumber(arg0))
+                            if (mem.isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, varNumber(arg0) * stod(State.LastValue));
+                                    mem.setVariable(arg0, mem.varNumber(arg0) * stod(State.LastValue));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
                             else
                                 error(ErrorMessage::NULL_NUMBER, arg0, false);
                         }
-                        else if (objectExists(beforeDot(arg2)))
+                        else if (mem.objectExists(beforeDot(arg2)))
                         {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                            executeTemplate(mem.getMethod(beforeParams(arg2)), getParams(arg2));
 
-                            if (isNumber(arg0))
+                            if (mem.isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, varNumber(arg0) * stod(State.LastValue));
+                                    mem.setVariable(arg0, mem.varNumber(arg0) * stod(State.LastValue));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
@@ -4718,14 +3910,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                                 error(ErrorMessage::NULL_NUMBER, arg0, false);
                         }
                     }
-                    else if (methodExists(arg2))
+                    else if (mem.methodExists(arg2))
                     {
                         parse(arg2);
 
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
                             if (isNumeric(State.LastValue))
-                                setVariable(arg0, varNumber(arg0) * stod(State.LastValue));
+                                mem.setVariable(arg0, mem.varNumber(arg0) * stod(State.LastValue));
                             else
                                 error(ErrorMessage::CONV_ERR, arg0, false);
                         }
@@ -4734,32 +3926,32 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     }
                     else if (isNumeric(arg2))
                     {
-                        if (isNumber(arg0))
-                            setVariable(arg0, varNumber(arg0) * stod(arg2));
+                        if (mem.isNumber(arg0))
+                            mem.setVariable(arg0, mem.varNumber(arg0) * stod(arg2));
                     }
                     else
-                        setVariable(arg0, cleanString(arg2));
+                        mem.setVariable(arg0, cleanString(arg2));
                 }
             }
             else if (arg1 == "%=")
             {
-                if (variableExists(arg2))
+                if (mem.variableExists(arg2))
                 {
-                    if (isNumber(arg2))
-                        setVariable(arg0, (int)varNumber(arg0) % (int)varNumber(arg2));
-                    else if (isString(arg2))
+                    if (mem.isNumber(arg2))
+                        mem.setVariable(arg0, (int)mem.varNumber(arg0) % (int)mem.varNumber(arg2));
+                    else if (mem.isString(arg2))
                         error(ErrorMessage::CONV_ERR, arg2, false);
                     else
                         error(ErrorMessage::IS_NULL, arg2, false);
                 }
-                else if (methodExists(arg2))
+                else if (mem.methodExists(arg2))
                 {
                     parse(arg2);
 
-                    if (isNumber(arg0))
+                    if (mem.isNumber(arg0))
                     {
                         if (isNumeric(State.LastValue))
-                            setVariable(arg0, (int)varNumber(arg0) % (int)stod(State.LastValue));
+                            mem.setVariable(arg0, (int)mem.varNumber(arg0) % (int)stod(State.LastValue));
                         else
                             error(ErrorMessage::CONV_ERR, arg0, false);
                     }
@@ -4770,20 +3962,20 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 {
                     if (isNumeric(arg2))
                     {
-                        if (isNumber(arg0))
-                            setVariable(arg0, (int)varNumber(arg0) % (int)stod(arg2));
+                        if (mem.isNumber(arg0))
+                            mem.setVariable(arg0, (int)mem.varNumber(arg0) % (int)stod(arg2));
                     }
                     else
-                        setVariable(arg0, cleanString(arg2));
+                        mem.setVariable(arg0, cleanString(arg2));
                 }
             }
             else if (arg1 == "**=")
             {
-                if (variableExists(arg2))
+                if (mem.variableExists(arg2))
                 {
-                    if (isNumber(arg2))
-                        setVariable(arg0, pow(varNumber(arg0), varNumber(arg2)));
-                    else if (isString(arg2))
+                    if (mem.isNumber(arg2))
+                        mem.setVariable(arg0, pow(mem.varNumber(arg0), mem.varNumber(arg2)));
+                    else if (mem.isString(arg2))
                         error(ErrorMessage::CONV_ERR, arg2, false);
                     else
                         error(ErrorMessage::IS_NULL, arg2, false);
@@ -4794,31 +3986,31 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     {
                         if (stackReady(arg2))
                         {
-                            if (isNumber(arg0))
-                                setVariable(arg0, pow(varNumber(arg0), (int)getStack(arg2)));
+                            if (mem.isNumber(arg0))
+                                mem.setVariable(arg0, pow(mem.varNumber(arg0), (int)getStack(arg2)));
                         }
-                        else if (methodExists(beforeParams(arg2)))
+                        else if (mem.methodExists(beforeParams(arg2)))
                         {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                            executeTemplate(mem.getMethod(beforeParams(arg2)), getParams(arg2));
 
-                            if (isNumber(arg0))
+                            if (mem.isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, pow(varNumber(arg0), (int)stod(State.LastValue)));
+                                    mem.setVariable(arg0, pow(mem.varNumber(arg0), (int)stod(State.LastValue)));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
                             else
                                 error(ErrorMessage::NULL_NUMBER, arg0, false);
                         }
-                        else if (objectExists(beforeDot(arg2)))
+                        else if (mem.objectExists(beforeDot(arg2)))
                         {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                            executeTemplate(mem.getMethod(beforeParams(arg2)), getParams(arg2));
 
-                            if (isNumber(arg0))
+                            if (mem.isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, pow(varNumber(arg0), (int)stod(State.LastValue)));
+                                    mem.setVariable(arg0, pow(mem.varNumber(arg0), (int)stod(State.LastValue)));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
@@ -4826,14 +4018,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                                 error(ErrorMessage::NULL_NUMBER, arg0, false);
                         }
                     }
-                    else if (methodExists(arg2))
+                    else if (mem.methodExists(arg2))
                     {
                         parse(arg2);
 
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
                             if (isNumeric(State.LastValue))
-                                setVariable(arg0, pow(varNumber(arg0), (int)stod(State.LastValue)));
+                                mem.setVariable(arg0, pow(mem.varNumber(arg0), (int)stod(State.LastValue)));
                             else
                                 error(ErrorMessage::CONV_ERR, arg0, false);
                         }
@@ -4842,20 +4034,20 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     }
                     else if (isNumeric(arg2))
                     {
-                        if (isNumber(arg0))
-                            setVariable(arg0, pow(varNumber(arg0), stod(arg2)));
+                        if (mem.isNumber(arg0))
+                            mem.setVariable(arg0, pow(mem.varNumber(arg0), stod(arg2)));
                     }
                     else
-                        setVariable(arg0, cleanString(arg2));
+                        mem.setVariable(arg0, cleanString(arg2));
                 }
             }
             else if (arg1 == "/=")
             {
-                if (variableExists(arg2))
+                if (mem.variableExists(arg2))
                 {
-                    if (isNumber(arg2))
-                        setVariable(arg0, varNumber(arg0) / varNumber(arg2));
-                    else if (isString(arg2))
+                    if (mem.isNumber(arg2))
+                        mem.setVariable(arg0, mem.varNumber(arg0) / mem.varNumber(arg2));
+                    else if (mem.isString(arg2))
                         error(ErrorMessage::CONV_ERR, arg2, false);
                     else
                         error(ErrorMessage::IS_NULL, arg2, false);
@@ -4866,31 +4058,31 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     {
                         if (stackReady(arg2))
                         {
-                            if (isNumber(arg0))
-                                setVariable(arg0, varNumber(arg0) / getStack(arg2));
+                            if (mem.isNumber(arg0))
+                                mem.setVariable(arg0, mem.varNumber(arg0) / getStack(arg2));
                         }
-                        else if (methodExists(beforeParams(arg2)))
+                        else if (mem.methodExists(beforeParams(arg2)))
                         {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                            executeTemplate(mem.getMethod(beforeParams(arg2)), getParams(arg2));
 
-                            if (isNumber(arg0))
+                            if (mem.isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, varNumber(arg0) / stod(State.LastValue));
+                                    mem.setVariable(arg0, mem.varNumber(arg0) / stod(State.LastValue));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
                             else
                                 error(ErrorMessage::NULL_NUMBER, arg0, false);
                         }
-                        else if (objectExists(beforeDot(arg2)))
+                        else if (mem.objectExists(beforeDot(arg2)))
                         {
-                            executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                            executeTemplate(mem.getMethod(beforeParams(arg2)), getParams(arg2));
 
-                            if (isNumber(arg0))
+                            if (mem.isNumber(arg0))
                             {
                                 if (isNumeric(State.LastValue))
-                                    setVariable(arg0, varNumber(arg0) / stod(State.LastValue));
+                                    mem.setVariable(arg0, mem.varNumber(arg0) / stod(State.LastValue));
                                 else
                                     error(ErrorMessage::CONV_ERR, arg0, false);
                             }
@@ -4898,14 +4090,14 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                                 error(ErrorMessage::NULL_NUMBER, arg0, false);
                         }
                     }
-                    else if (methodExists(arg2))
+                    else if (mem.methodExists(arg2))
                     {
                         parse(arg2);
 
-                        if (isNumber(arg0))
+                        if (mem.isNumber(arg0))
                         {
                             if (isNumeric(State.LastValue))
-                                setVariable(arg0, varNumber(arg0) / stod(State.LastValue));
+                                mem.setVariable(arg0, mem.varNumber(arg0) / stod(State.LastValue));
                             else
                                 error(ErrorMessage::CONV_ERR, arg0, false);
                         }
@@ -4914,30 +4106,30 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     }
                     else if (isNumeric(arg2))
                     {
-                        if (isNumber(arg0))
-                            setVariable(arg0, varNumber(arg0) / stod(arg2));
+                        if (mem.isNumber(arg0))
+                            mem.setVariable(arg0, mem.varNumber(arg0) / stod(arg2));
                     }
                     else
-                        setVariable(arg0, cleanString(arg2));
+                        mem.setVariable(arg0, cleanString(arg2));
                 }
             }
             else if (arg1 == "++=")
             {
-                if (variableExists(arg2))
+                if (mem.variableExists(arg2))
                 {
-                    if (isNumber(arg2))
+                    if (mem.isNumber(arg2))
                     {
-                        if (isString(arg0))
+                        if (mem.isString(arg0))
                         {
-                            int tempVarNumber((int)varNumber(arg2));
-                            string tempVarString(varString(arg0));
+                            int tempVarNumber((int)mem.varNumber(arg2));
+                            string tempVarString(mem.varString(arg0));
                             int len(tempVarString.length());
                             string cleaned("");
 
                             for (int i = 0; i < len; i++)
                                 cleaned.push_back((char)(((int)tempVarString[i]) + tempVarNumber));
 
-                            setVariable(arg0, cleaned);
+                            mem.setVariable(arg0, cleaned);
                         }
                         else
                             error(ErrorMessage::IS_NULL, arg0, false);
@@ -4950,7 +4142,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     if (isNumeric(arg2))
                     {
                         int tempVarNumber(stoi(arg2));
-                        string tempVarString(varString(arg0));
+                        string tempVarString(mem.varString(arg0));
 
                         if (tempVarString != State.Null)
                         {
@@ -4960,7 +4152,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             for (int i = 0; i < len; i++)
                                 cleaned.push_back((char)(((int)tempVarString[i]) + tempVarNumber));
 
-                            setVariable(arg0, cleaned);
+                            mem.setVariable(arg0, cleaned);
                         }
                         else
                             error(ErrorMessage::IS_NULL, tempVarString, false);
@@ -4971,21 +4163,21 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
             }
             else if (arg1 == "--=")
             {
-                if (variableExists(arg2))
+                if (mem.variableExists(arg2))
                 {
-                    if (isNumber(arg2))
+                    if (mem.isNumber(arg2))
                     {
-                        if (isString(arg0))
+                        if (mem.isString(arg0))
                         {
-                            int tempVarNumber((int)varNumber(arg2));
-                            string tempVarString(varString(arg0));
+                            int tempVarNumber((int)mem.varNumber(arg2));
+                            string tempVarString(mem.varString(arg0));
                             int len(tempVarString.length());
                             string cleaned("");
 
                             for (int i = 0; i < len; i++)
                                 cleaned.push_back((char)(((int)tempVarString[i]) - tempVarNumber));
 
-                            setVariable(arg0, cleaned);
+                            mem.setVariable(arg0, cleaned);
                         }
                         else
                             error(ErrorMessage::IS_NULL, arg0, false);
@@ -4998,7 +4190,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     if (isNumeric(arg2))
                     {
                         int tempVarNumber(stoi(arg2));
-                        string tempVarString(varString(arg0));
+                        string tempVarString(mem.varString(arg0));
 
                         if (tempVarString != State.Null)
                         {
@@ -5008,7 +4200,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             for (int i = 0; i < len; i++)
                                 cleaned.push_back((char)(((int)tempVarString[i]) - tempVarNumber));
 
-                            setVariable(arg0, cleaned);
+                            mem.setVariable(arg0, cleaned);
                         }
                         else
                             error(ErrorMessage::IS_NULL, tempVarString, false);
@@ -5019,12 +4211,12 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
             }
             else if (arg1 == "?")
             {
-                if (variableExists(arg2))
+                if (mem.variableExists(arg2))
                 {
-                    if (isString(arg2))
+                    if (mem.isString(arg2))
                     {
-                        if (isString(arg0))
-                            setVariable(arg0, Env::getStdout(varString(arg2).c_str()));
+                        if (mem.isString(arg0))
+                            mem.setVariable(arg0, Env::getStdout(mem.varString(arg2).c_str()));
                         else
                             error(ErrorMessage::CONV_ERR, arg0, false);
                     }
@@ -5033,20 +4225,20 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else
                 {
-                    if (isString(arg0))
-                        setVariable(arg0, Env::getStdout(cleanString(arg2).c_str()));
+                    if (mem.isString(arg0))
+                        mem.setVariable(arg0, Env::getStdout(cleanString(arg2).c_str()));
                     else
                         error(ErrorMessage::CONV_ERR, arg0, false);
                 }
             }
             else if (arg1 == "!")
             {
-                if (variableExists(arg2))
+                if (mem.variableExists(arg2))
                 {
-                    if (isString(arg2))
+                    if (mem.isString(arg2))
                     {
-                        if (isString(arg0))
-                            setVariable(arg0, getParsedOutput(varString(arg2).c_str()));
+                        if (mem.isString(arg0))
+                            mem.setVariable(arg0, getParsedOutput(mem.varString(arg2).c_str()));
                         else
                             error(ErrorMessage::CONV_ERR, arg0, false);
                     }
@@ -5055,8 +4247,8 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else
                 {
-                    if (isString(arg0))
-                        setVariable(arg0, getParsedOutput(cleanString(arg2).c_str()));
+                    if (mem.isString(arg0))
+                        mem.setVariable(arg0, getParsedOutput(cleanString(arg2).c_str()));
                     else
                         error(ErrorMessage::CONV_ERR, arg0, false);
                 }
@@ -5078,42 +4270,42 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
         string after(afterBrackets(arg0)), before(beforeBrackets(arg0));
         after = subtractString(after, "]");
 
-        if (getList(before).size() >= stoi(after))
+        if (mem.getList(before).size() >= stoi(after))
         {
             if (stoi(after) == 0)
             {
                 if (arg1 == "=")
                 {
-                    if (variableExists(arg2))
+                    if (mem.variableExists(arg2))
                     {
-                        if (isString(arg2))
-                            replaceElement(before, after, varString(arg2));
-                        else if (isNumber(arg2))
-                            replaceElement(before, after, dtos(varNumber(arg2)));
+                        if (mem.isString(arg2))
+                            mem.replaceElement(before, after, mem.varString(arg2));
+                        else if (mem.isNumber(arg2))
+                            mem.replaceElement(before, after, dtos(mem.varNumber(arg2)));
                         else
                             error(ErrorMessage::IS_NULL, arg2, false);
                     }
                     else
-                        replaceElement(before, after, arg2);
+                        mem.replaceElement(before, after, arg2);
                 }
             }
-            else if (getList(before).at(stoi(after)) == "#!=no_line")
+            else if (mem.getList(before).at(stoi(after)) == "#!=no_line")
                 error(ErrorMessage::OUT_OF_BOUNDS, arg0, false);
             else
             {
                 if (arg1 == "=")
                 {
-                    if (variableExists(arg2))
+                    if (mem.variableExists(arg2))
                     {
-                        if (isString(arg2))
-                            replaceElement(before, after, varString(arg2));
-                        else if (isNumber(arg2))
-                            replaceElement(before, after, dtos(varNumber(arg2)));
+                        if (mem.isString(arg2))
+                            mem.replaceElement(before, after, mem.varString(arg2));
+                        else if (mem.isNumber(arg2))
+                            mem.replaceElement(before, after, dtos(mem.varNumber(arg2)));
                         else
                             error(ErrorMessage::IS_NULL, arg2, false);
                     }
                     else
-                        replaceElement(before, after, arg2);
+                        mem.replaceElement(before, after, arg2);
                 }
             }
         }
@@ -5124,7 +4316,7 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
     {
         string listName(beforeBrackets(arg2));
 
-        if (!listExists(listName))
+        if (!mem.listExists(listName))
         {
             error(ErrorMessage::LIST_UNDEFINED, listName, false);
             return;
@@ -5154,7 +4346,7 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
 
         if (stoi(rangeBegin) < stoi(rangeEnd))
         {
-            if (!(getList(listName).size() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0) || !(stoi(rangeBegin) >= 0))
+            if (!(mem.getList(listName).size() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0) || !(stoi(rangeBegin) >= 0))
             {
                 error(ErrorMessage::OUT_OF_BOUNDS, rangeEnd, false);
                 return;
@@ -5163,21 +4355,21 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
             if (arg1 == "+=")
             {
                 for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
-                    getList(arg0).add(getList(listName).at(i));
+                    mem.getList(arg0).add(mem.getList(listName).at(i));
             }
             else if (arg1 == "=")
             {
-                getList(arg0).clear();
+                mem.getList(arg0).clear();
 
                 for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
-                    getList(arg0).add(getList(listName).at(i));
+                    mem.getList(arg0).add(mem.getList(listName).at(i));
             }
             else
                 error(ErrorMessage::INVALID_OPERATOR, arg1, false);
         }
         else if (stoi(rangeBegin) > stoi(rangeEnd))
         {
-            if (!(getList(listName).size() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0) || !(stoi(rangeBegin) >= 0))
+            if (!(mem.getList(listName).size() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0) || !(stoi(rangeBegin) >= 0))
             {
                 error(ErrorMessage::OUT_OF_BOUNDS, rangeEnd, false);
                 return;
@@ -5186,14 +4378,14 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
             if (arg1 == "+=")
             {
                 for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
-                    getList(arg0).add(getList(listName).at(i));
+                    mem.getList(arg0).add(mem.getList(listName).at(i));
             }
             else if (arg1 == "=")
             {
-                getList(arg0).clear();
+                mem.getList(arg0).clear();
 
                 for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
-                    getList(arg0).add(getList(listName).at(i));
+                    mem.getList(arg0).add(mem.getList(listName).at(i));
             }
             else
                 error(ErrorMessage::INVALID_OPERATOR, arg1, false);
@@ -5201,9 +4393,9 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
         else
             error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
     }
-    else if (variableExists(_b) && contains(_a, "split") && arg1 == "=")
+    else if (mem.variableExists(_b) && contains(_a, "split") && arg1 == "=")
     {
-        if (!isString(_b))
+        if (!mem.isString(_b))
         {
             error(ErrorMessage::NULL_STRING, _b, false);
             return;
@@ -5213,19 +4405,19 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
         vector<string> elements;
 
         if (params.at(0) == "")
-            elements = split(varString(_b), ' ');
+            elements = split(mem.varString(_b), ' ');
         else
         {
             if (params.at(0)[0] == ';')
-                elements = split(varString(_b), ';');
+                elements = split(mem.varString(_b), ';');
             else
-                elements = split(varString(_b), params.at(0)[0]);
+                elements = split(mem.varString(_b), params.at(0)[0]);
         }
 
-        getList(arg0).clear();
+        mem.getList(arg0).clear();
 
         for (int i = 0; i < (int)elements.size(); i++)
-            getList(arg0).add(elements.at(i));
+            mem.getList(arg0).add(elements.at(i));
     }
     else if (containsParams(arg2)) // ADD/REMOVE ARRAY FROM LIST
     {
@@ -5233,56 +4425,55 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
 
         if (arg1 == "=")
         {
-            getList(arg0).clear();
-
-            setList(arg0, arg2, params);
+            mem.getList(arg0).clear();
+            mem.setList(arg0, arg2, params);
         }
         else if (arg1 == "+=")
-            setList(arg0, arg2, params);
+            mem.setList(arg0, arg2, params);
         else if (arg1 == "-=")
         {
             for (int i = 0; i < (int)params.size(); i++)
             {
-                if (variableExists(params.at(i)))
+                if (mem.variableExists(params.at(i)))
                 {
-                    if (isString(params.at(i)))
-                        getList(arg0).remove(varString(params.at(i)));
-                    else if (isNumber(params.at(i)))
-                        getList(arg0).remove(dtos(varNumber(params.at(i))));
+                    if (mem.isString(params.at(i)))
+                        mem.getList(arg0).remove(mem.varString(params.at(i)));
+                    else if (mem.isNumber(params.at(i)))
+                        mem.getList(arg0).remove(dtos(mem.varNumber(params.at(i))));
                     else
                         error(ErrorMessage::IS_NULL, params.at(i), false);
                 }
                 else
-                    getList(arg0).remove(params.at(i));
+                    mem.getList(arg0).remove(params.at(i));
             }
         }
         else
             error(ErrorMessage::INVALID_OPERATOR, arg1, false);
     }
-    else if (variableExists(arg2)) // ADD/REMOVE VARIABLE VALUE TO/FROM LIST
+    else if (mem.variableExists(arg2)) // ADD/REMOVE VARIABLE VALUE TO/FROM LIST
     {
         if (arg1 == "+=")
         {
-            if (isString(arg2))
-                getList(arg0).add(varString(arg2));
-            else if (isNumber(arg2))
-                getList(arg0).add(dtos(varNumber(arg2)));
+            if (mem.isString(arg2))
+                mem.getList(arg0).add(mem.varString(arg2));
+            else if (mem.isNumber(arg2))
+                mem.getList(arg0).add(dtos(mem.varNumber(arg2)));
             else
                 error(ErrorMessage::CONV_ERR, arg2, false);
         }
         else if (arg1 == "-=")
         {
-            if (isString(arg2))
-                getList(arg0).remove(varString(arg2));
-            else if (isNumber(arg2))
-                getList(arg0).remove(dtos(varNumber(arg2)));
+            if (mem.isString(arg2))
+                mem.getList(arg0).remove(mem.varString(arg2));
+            else if (mem.isNumber(arg2))
+                mem.getList(arg0).remove(dtos(mem.varNumber(arg2)));
             else
                 error(ErrorMessage::CONV_ERR, arg2, false);
         }
         else
             error(ErrorMessage::INVALID_OPERATOR, arg1, false);
     }
-    else if (methodExists(arg2)) // INITIALIZE LIST FROM METHOD RETURN
+    else if (mem.methodExists(arg2)) // INITIALIZE LIST FROM METHOD RETURN
     {
         parse(arg2);
 
@@ -5290,15 +4481,15 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
 
         if (arg1 == "=")
         {
-            getList(arg0).clear();
+            mem.getList(arg0).clear();
 
             for (int i = 0; i < (int)_p.size(); i++)
-                getList(arg0).add(_p.at(i));
+                mem.getList(arg0).add(_p.at(i));
         }
         else if (arg1 == "+=")
         {
             for (int i = 0; i < (int)_p.size(); i++)
-                getList(arg0).add(_p.at(i));
+                mem.getList(arg0).add(_p.at(i));
         }
         else
             error(ErrorMessage::INVALID_OPERATOR, arg1, false);
@@ -5308,183 +4499,183 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
         if (arg1 == "+=")
         {
             if (arg2.length() != 0)
-                getList(arg0).add(arg2);
+                mem.getList(arg0).add(arg2);
             else
                 error(ErrorMessage::IS_EMPTY, arg2, false);
         }
         else if (arg1 == "-=")
         {
             if (arg2.length() != 0)
-                getList(arg0).remove(arg2);
+                mem.getList(arg0).remove(arg2);
             else
                 error(ErrorMessage::IS_EMPTY, arg2, false);
         }
     }
 }
 
-void createGlobalVariable(string arg0, string arg1, string arg2, string s, vector<string> command)
+void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, vector<string> command)
 {
     if (arg1 == "=")
     {
         string before(beforeDot(arg2)), after(afterDot(arg2));
 
-        if (containsBrackets(arg2) && (variableExists(beforeBrackets(arg2)) || listExists(beforeBrackets(arg2))))
+        if (containsBrackets(arg2) && (mem.variableExists(beforeBrackets(arg2)) || mem.listExists(beforeBrackets(arg2))))
         {
             string beforeBracket(beforeBrackets(arg2)), afterBracket(afterBrackets(arg2));
 
             afterBracket = subtractString(afterBracket, "]");
 
-            if (listExists(beforeBracket))
+            if (mem.listExists(beforeBracket))
             {
-                if (getList(beforeBracket).size() >= stoi(afterBracket))
+                if (mem.getList(beforeBracket).size() >= stoi(afterBracket))
                 {
-                    if (getList(beforeBracket).at(stoi(afterBracket)) == "#!=no_line")
+                    if (mem.getList(beforeBracket).at(stoi(afterBracket)) == "#!=no_line")
                         error(ErrorMessage::OUT_OF_BOUNDS, arg2, false);
                     else
                     {
-                        string listValue(getList(beforeBracket).at(stoi(afterBracket)));
+                        string listValue(mem.getList(beforeBracket).at(stoi(afterBracket)));
 
                         if (isNumeric(listValue))
-                            createVariable(arg0, stod(listValue));
+                            mem.createVariable(arg0, stod(listValue));
                         else
-                            createVariable(arg0, listValue);
+                            mem.createVariable(arg0, listValue);
                     }
                 }
                 else
                     error(ErrorMessage::OUT_OF_BOUNDS, arg2, false);
             }
-            else if (variableExists(beforeBracket))
+            else if (mem.variableExists(beforeBracket))
                 setSubString(arg0, arg2, beforeBracket);
             else
                 error(ErrorMessage::LIST_UNDEFINED, beforeBracket, false);
         }
-        else if (listExists(before) && after == "size")
-            createVariable(arg0, stod(itos(getList(before).size())));
+        else if (mem.listExists(before) && after == "size")
+            mem.createVariable(arg0, stod(itos(mem.getList(before).size())));
         else if (before == "self")
         {
-            if (objectExists(State.CurrentMethodObject))
+            if (mem.objectExists(State.CurrentMethodObject))
                 twoSpace(arg0, arg1, (State.CurrentMethodObject + "." + after), (arg0 + " " + arg1 + " " + (State.CurrentMethodObject + "." + after)), command);
             else
                 twoSpace(arg0, arg1, after, (arg0 + " " + arg1 + " " + after), command);
         }
         else if (after == "to_integer")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isString(before))
-                createVariable(arg0, (int)varString(before)[0]);
-            else if (isNumber(before))
+            if (mem.isString(before))
+                mem.createVariable(arg0, (int)mem.varString(before)[0]);
+            else if (mem.isNumber(before))
             {
-                int i = (int)varNumber(before);
-                createVariable(arg0, (double)i);
+                int i = (int)mem.varNumber(before);
+                mem.createVariable(arg0, (double)i);
             }
             else
                 error(ErrorMessage::IS_NULL, before, false);
         }
         else if (after == "to_double")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isString(before))
-                createVariable(arg0, (double)varString(before)[0]);
-            else if (isNumber(before))
+            if (mem.isString(before))
+                mem.createVariable(arg0, (double)mem.varString(before)[0]);
+            else if (mem.isNumber(before))
             {
-                double i = varNumber(before);
-                createVariable(arg0, (double)i);
+                double i = mem.varNumber(before);
+                mem.createVariable(arg0, (double)i);
             }
             else
                 error(ErrorMessage::IS_NULL, before, false);
         }
         else if (after == "to_string")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isNumber(before))
-                createVariable(arg0, dtos(varNumber(before)));
+            if (mem.isNumber(before))
+                mem.createVariable(arg0, dtos(mem.varNumber(before)));
             else
                 error(ErrorMessage::IS_NULL, before, false);
         }
         else if (after == "to_number")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isString(before))
-                createVariable(arg0, stod(varString(before)));
+            if (mem.isString(before))
+                mem.createVariable(arg0, stod(mem.varString(before)));
             else
                 error(ErrorMessage::IS_NULL, before, false);
         }
-        else if (objectExists(before))
+        else if (mem.objectExists(before))
         {
-            if (getObject(before).methodExists(after) && !containsParams(after))
+            if (mem.getObject(before).methodExists(after) && !containsParams(after))
             {
                 parse(arg2);
 
                 if (isNumeric(State.LastValue))
-                    createVariable(arg0, stod(State.LastValue));
+                    mem.createVariable(arg0, stod(State.LastValue));
                 else
-                    createVariable(arg0, State.LastValue);
+                    mem.createVariable(arg0, State.LastValue);
             }
             else if (containsParams(after))
             {
-                if (!getObject(before).methodExists(beforeParams(after)))
+                if (!mem.getObject(before).methodExists(beforeParams(after)))
                 {
                     Env::sysExec(s, command);
                     return;
                 }
 
-                executeTemplate(getObject(before).getMethod(beforeParams(after)), getParams(after));
+                executeTemplate(mem.getObject(before).getMethod(beforeParams(after)), getParams(after));
 
                 if (isNumeric(State.LastValue))
-                    createVariable(arg0, stod(State.LastValue));
+                    mem.createVariable(arg0, stod(State.LastValue));
                 else
-                    createVariable(arg0, State.LastValue);
+                    mem.createVariable(arg0, State.LastValue);
             }
-            else if (getObject(before).variableExists(after))
+            else if (mem.getObject(before).variableExists(after))
             {
-                if (getObject(before).getVariable(after).getString() != State.Null)
-                    createVariable(arg0, getObject(before).getVariable(after).getString());
-                else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
-                    createVariable(arg0, getObject(before).getVariable(after).getNumber());
+                if (mem.getObject(before).getVariable(after).getString() != State.Null)
+                    mem.createVariable(arg0, mem.getObject(before).getVariable(after).getString());
+                else if (mem.getObject(before).getVariable(after).getNumber() != State.NullNum)
+                    mem.createVariable(arg0, mem.getObject(before).getVariable(after).getNumber());
                 else
-                    error(ErrorMessage::IS_NULL, getObject(before).getVariable(after).name(), false);
+                    error(ErrorMessage::IS_NULL, mem.getObject(before).getVariable(after).name(), false);
             }
         }
-        else if (variableExists(before) && after == "read")
+        else if (mem.variableExists(before) && after == "read")
         {
-            if (!isString(before))
+            if (!mem.isString(before))
             {
                 error(ErrorMessage::NULL_STRING, before, false);
                 return;
             }
 
-            if (!Env::fileExists(varString(before)))
+            if (!Env::fileExists(mem.varString(before)))
             {
-                error(ErrorMessage::READ_FAIL, varString(before), false);
+                error(ErrorMessage::READ_FAIL, mem.varString(before), false);
                 return;
             }
 
-            ifstream file(varString(before).c_str());
+            ifstream file(mem.varString(before).c_str());
             string line(""), bigString("");
 
             if (!file.is_open())
             {
-                error(ErrorMessage::READ_FAIL, varString(before), false);
+                error(ErrorMessage::READ_FAIL, mem.varString(before), false);
                 return;
             }
 
@@ -5496,7 +4687,7 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
 
             file.close();
 
-            createVariable(arg0, bigString);
+            mem.createVariable(arg0, bigString);
 
         }
         else if (State.DefiningObject)
@@ -5510,7 +4701,7 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                 else if (State.DefiningPublicCode)
                     newVariable.setPublic();
 
-                getObject(State.CurrentObject).addVariable(newVariable);
+                mem.getObject(State.CurrentObject).addVariable(newVariable);
             }
             else
             {
@@ -5521,35 +4712,35 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                 else if (State.DefiningPublicCode)
                     newVariable.setPublic();
 
-                getObject(State.CurrentObject).addVariable(newVariable);
+                mem.getObject(State.CurrentObject).addVariable(newVariable);
             }
         }
         else if (arg2 == "null")
-            createVariable(arg0, arg2);
-        else if (methodExists(arg2))
+            mem.createVariable(arg0, arg2);
+        else if (mem.methodExists(arg2))
         {
             parse(arg2);
 
             if (isNumeric(State.LastValue))
-                createVariable(arg0, stod(State.LastValue));
+                mem.createVariable(arg0, stod(State.LastValue));
             else
-                createVariable(arg0, State.LastValue);
+                mem.createVariable(arg0, State.LastValue);
         }
-        else if (constantExists(arg2))
+        else if (mem.constantExists(arg2))
         {
-            if (getConstant(arg2).ConstNumber())
-                createVariable(arg0, getConstant(arg2).getNumber());
-            else if (getConstant(arg2).ConstString())
-                createVariable(arg0, getConstant(arg2).getString());
+            if (mem.getConstant(arg2).ConstNumber())
+                mem.createVariable(arg0, mem.getConstant(arg2).getNumber());
+            else if (mem.getConstant(arg2).ConstString())
+                mem.createVariable(arg0, mem.getConstant(arg2).getString());
             else
                 error(ErrorMessage::CONV_ERR, arg2, false);
         }
         else if (containsParams(arg2))
         {
             if (isStringStack(arg2))
-                createVariable(arg0, getStringStack(arg2));
+                mem.createVariable(arg0, getStringStack(arg2));
             else if (stackReady(arg2))
-                createVariable(arg0, getStack(arg2));
+                mem.createVariable(arg0, getStack(arg2));
             else if (beforeParams(arg2) == "random")
             {
                 if (!contains(arg2, ".."))
@@ -5566,37 +4757,37 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                     double n0 = stod(s0), n2 = stod(s2);
 
                     if (n0 < n2)
-                        createVariable(arg0, (int)random(n0, n2));
+                        mem.createVariable(arg0, (int)random(n0, n2));
                     else if (n0 > n2)
-                        createVariable(arg0, (int)random(n2, n0));
+                        mem.createVariable(arg0, (int)random(n2, n0));
                     else
-                        createVariable(arg0, (int)random(n0, n2));
+                        mem.createVariable(arg0, (int)random(n0, n2));
                 }
                 else if (isAlpha(s0) && isAlpha(s2))
                 {
                     if (get_alpha_num(s0[0]) < get_alpha_num(s2[0]))
-                        createVariable(arg0, random(s0, s2));
+                        mem.createVariable(arg0, random(s0, s2));
                     else if (get_alpha_num(s0[0]) > get_alpha_num(s2[0]))
-                        createVariable(arg0, random(s2, s0));
+                        mem.createVariable(arg0, random(s2, s0));
                     else
-                        createVariable(arg0, random(s2, s0));
+                        mem.createVariable(arg0, random(s2, s0));
                 }
-                else if (variableExists(s0) || variableExists(s2))
+                else if (mem.variableExists(s0) || mem.variableExists(s2))
                 {
-                    if (variableExists(s0))
+                    if (mem.variableExists(s0))
                     {
-                        if (isNumber(s0))
-                            s0 = dtos(varNumber(s0));
-                        else if (isString(s0))
-                            s0 = varString(s0);
+                        if (mem.isNumber(s0))
+                            s0 = dtos(mem.varNumber(s0));
+                        else if (mem.isString(s0))
+                            s0 = mem.varString(s0);
                     }
 
-                    if (variableExists(s2))
+                    if (mem.variableExists(s2))
                     {
-                        if (isNumber(s2))
-                            s2 = varNumberString(s2);
-                        else if (isString(s2))
-                            s2 = varString(s2);
+                        if (mem.isNumber(s2))
+                            s2 = mem.varNumberString(s2);
+                        else if (mem.isString(s2))
+                            s2 = mem.varString(s2);
                     }
 
                     if (isNumeric(s0) && isNumeric(s2))
@@ -5604,20 +4795,20 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                         double n0 = stod(s0), n2 = stod(s2);
 
                         if (n0 < n2)
-                            createVariable(arg0, (int)random(n0, n2));
+                            mem.createVariable(arg0, (int)random(n0, n2));
                         else if (n0 > n2)
-                            createVariable(arg0, (int)random(n2, n0));
+                            mem.createVariable(arg0, (int)random(n2, n0));
                         else
-                            createVariable(arg0, (int)random(n0, n2));
+                            mem.createVariable(arg0, (int)random(n0, n2));
                     }
                     else if (isAlpha(s0) && isAlpha(s2))
                     {
                         if (get_alpha_num(s0[0]) < get_alpha_num(s2[0]))
-                            createVariable(arg0, random(s0, s2));
+                            mem.createVariable(arg0, random(s0, s2));
                         else if (get_alpha_num(s0[0]) > get_alpha_num(s2[0]))
-                            createVariable(arg0, random(s2, s0));
+                            mem.createVariable(arg0, random(s2, s0));
                         else
-                            createVariable(arg0, random(s2, s0));
+                            mem.createVariable(arg0, random(s2, s0));
                     }
                 }
                 else
@@ -5625,22 +4816,22 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
             }
             else
             {
-                executeTemplate(getMethod(beforeParams(arg2)), getParams(arg2));
+                executeTemplate(mem.getMethod(beforeParams(arg2)), getParams(arg2));
 
                 if (isNumeric(State.LastValue))
-                    createVariable(arg0, stod(State.LastValue));
+                    mem.createVariable(arg0, stod(State.LastValue));
                 else
-                    createVariable(arg0, State.LastValue);
+                    mem.createVariable(arg0, State.LastValue);
             }
         }
-        else if (variableExists(arg2))
+        else if (mem.variableExists(arg2))
         {
-            if (isNumber(arg2))
-                createVariable(arg0, varNumber(arg2));
-            else if (isString(arg2))
-                createVariable(arg0, varString(arg2));
+            if (mem.isNumber(arg2))
+                mem.createVariable(arg0, mem.varNumber(arg2));
+            else if (mem.isString(arg2))
+                mem.createVariable(arg0, mem.varString(arg2));
             else
-                createVariable(arg0, State.Null);
+                mem.createVariable(arg0, State.Null);
         }
         else if (arg2 == "password" || arg2 == "readline")
         {
@@ -5650,9 +4841,9 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                 line = getSilentOutput("");
 
                 if (isNumeric(line))
-                    createVariable(arg0, stod(line));
+                    mem.createVariable(arg0, stod(line));
                 else
-                    createVariable(arg0, line);
+                    mem.createVariable(arg0, line);
             }
             else
             {
@@ -5660,27 +4851,27 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                 getline(cin, line, '\n');
 
                 if (isNumeric(line))
-                    createVariable(arg0, stod(line));
+                    mem.createVariable(arg0, stod(line));
                 else
-                    createVariable(arg0, line);
+                    mem.createVariable(arg0, line);
             }
         }
         else if (arg2 == "args.size")
-            createVariable(arg0, (double)State.ArgumentCount);
+            mem.createVariable(arg0, (double)State.ArgumentCount);
         else if (before == "readline")
         {
-            if (variableExists(after))
+            if (mem.variableExists(after))
             {
-                if (isString(after))
+                if (mem.isString(after))
                 {
                     string line("");
-                    IO::print(cleanString(varString(after)));
+                    IO::print(cleanString(mem.varString(after)));
                     getline(cin, line, '\n');
 
                     if (isNumeric(line))
-                        createVariable(arg0, stod(line));
+                        mem.createVariable(arg0, stod(line));
                     else
-                        createVariable(arg0, line);
+                        mem.createVariable(arg0, line);
                 }
                 else
                 {
@@ -5689,9 +4880,9 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                     getline(cin, line, '\n');
 
                     if (isNumeric(line))
-                        createVariable(arg0, stod(line));
+                        mem.createVariable(arg0, stod(line));
                     else
-                        createVariable(arg0, line);
+                        mem.createVariable(arg0, line);
                 }
             }
             else
@@ -5701,24 +4892,24 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                 getline(cin, line, '\n');
 
                 if (isNumeric(line))
-                    createVariable(arg0, stod(line));
+                    mem.createVariable(arg0, stod(line));
                 else
-                    createVariable(arg0, line);
+                    mem.createVariable(arg0, line);
             }
         }
         else if (before == "password")
         {
-            if (variableExists(after))
+            if (mem.variableExists(after))
             {
-                if (isString(after))
+                if (mem.isString(after))
                 {
                     string line("");
-                    line = getSilentOutput(varString(after));
+                    line = getSilentOutput(mem.varString(after));
 
                     if (isNumeric(line))
-                        createVariable(arg0, stod(line));
+                        mem.createVariable(arg0, stod(line));
                     else
-                        createVariable(arg0, line);
+                        mem.createVariable(arg0, line);
 
                     IO::println();
                 }
@@ -5728,9 +4919,9 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                     line = getSilentOutput("");
 
                     if (isNumeric(line))
-                        createVariable(arg0, stod(line));
+                        mem.createVariable(arg0, stod(line));
                     else
-                        createVariable(arg0, line);
+                        mem.createVariable(arg0, line);
 
                     IO::println();
                 }
@@ -5741,268 +4932,268 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
                 line = getSilentOutput(cleanString(after));
 
                 if (isNumeric(line))
-                    createVariable(arg0, stod(line));
+                    mem.createVariable(arg0, stod(line));
                 else
-                    createVariable(arg0, line);
+                    mem.createVariable(arg0, line);
 
                 IO::println();
             }
         }
         else if (after == "size")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
-                createVariable(arg0, (double)before.length());
+                mem.createVariable(arg0, (double)before.length());
                 return;
             }
 
-            if (isString(before))
-                createVariable(arg0, (double)varString(before).length());
+            if (mem.isString(before))
+                mem.createVariable(arg0, (double)mem.varString(before).length());
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "sin")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isNumber(before))
-                createVariable(arg0, sin(varNumber(before)));
+            if (mem.isNumber(before))
+                mem.createVariable(arg0, sin(mem.varNumber(before)));
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "sinh")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isNumber(before))
-                createVariable(arg0, sinh(varNumber(before)));
+            if (mem.isNumber(before))
+                mem.createVariable(arg0, sinh(mem.varNumber(before)));
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "asin")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isNumber(before))
-                createVariable(arg0, asin(varNumber(before)));
+            if (mem.isNumber(before))
+                mem.createVariable(arg0, asin(mem.varNumber(before)));
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "tan")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isNumber(before))
-                createVariable(arg0, tan(varNumber(before)));
+            if (mem.isNumber(before))
+                mem.createVariable(arg0, tan(mem.varNumber(before)));
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "tanh")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isNumber(before))
-                createVariable(arg0, tanh(varNumber(before)));
+            if (mem.isNumber(before))
+                mem.createVariable(arg0, tanh(mem.varNumber(before)));
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "atan")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isNumber(before))
-                createVariable(arg0, atan(varNumber(before)));
+            if (mem.isNumber(before))
+                mem.createVariable(arg0, atan(mem.varNumber(before)));
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "cos")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isNumber(before))
-                createVariable(arg0, cos(varNumber(before)));
+            if (mem.isNumber(before))
+                mem.createVariable(arg0, cos(mem.varNumber(before)));
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "acos")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isNumber(before))
-                createVariable(arg0, acos(varNumber(before)));
+            if (mem.isNumber(before))
+                mem.createVariable(arg0, acos(mem.varNumber(before)));
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "cosh")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isNumber(before))
-                createVariable(arg0, cosh(varNumber(before)));
+            if (mem.isNumber(before))
+                mem.createVariable(arg0, cosh(mem.varNumber(before)));
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "log")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isNumber(before))
-                createVariable(arg0, log(varNumber(before)));
+            if (mem.isNumber(before))
+                mem.createVariable(arg0, log(mem.varNumber(before)));
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "sqrt")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isNumber(before))
-                createVariable(arg0, sqrt(varNumber(before)));
+            if (mem.isNumber(before))
+                mem.createVariable(arg0, sqrt(mem.varNumber(before)));
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "abs")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isNumber(before))
-                createVariable(arg0, abs(varNumber(before)));
+            if (mem.isNumber(before))
+                mem.createVariable(arg0, abs(mem.varNumber(before)));
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "floor")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isNumber(before))
-                createVariable(arg0, floor(varNumber(before)));
+            if (mem.isNumber(before))
+                mem.createVariable(arg0, floor(mem.varNumber(before)));
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "ceil")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isNumber(before))
-                createVariable(arg0, ceil(varNumber(before)));
+            if (mem.isNumber(before))
+                mem.createVariable(arg0, ceil(mem.varNumber(before)));
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "exp")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isNumber(before))
-                createVariable(arg0, exp(varNumber(before)));
+            if (mem.isNumber(before))
+                mem.createVariable(arg0, exp(mem.varNumber(before)));
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "to_upper")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isString(before))
-                createVariable(arg0, getUpper(varString(before)));
+            if (mem.isString(before))
+                mem.createVariable(arg0, getUpper(mem.varString(before)));
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "to_lower")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 error(ErrorMessage::VAR_UNDEFINED, before, false);
                 return;
             }
 
-            if (isString(before))
-                createVariable(arg0, getLower(varString(before)));
+            if (mem.isString(before))
+                mem.createVariable(arg0, getLower(mem.varString(before)));
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
         else if (after == "bytes")
         {
-            if (!variableExists(before))
+            if (!mem.variableExists(before))
             {
                 if (Env::fileExists(before))
-                    createVariable(arg0, getBytes(before));
+                    mem.createVariable(arg0, getBytes(before));
                 else
                     error(ErrorMessage::READ_FAIL, before, false);
                 return;
             }
 
-            if (!isString(before))
+            if (!mem.isString(before))
             {
                 error(ErrorMessage::CONV_ERR, before, false);
                 return;
             }
 
-            if (Env::fileExists(varString(before)))
-                createVariable(arg0, getBytes(varString(before)));
+            if (Env::fileExists(mem.varString(before)))
+                mem.createVariable(arg0, getBytes(mem.varString(before)));
             else
-                error(ErrorMessage::READ_FAIL, varString(before), false);
+                error(ErrorMessage::READ_FAIL, mem.varString(before), false);
         }
         else if (before == "env")
         {
@@ -6011,70 +5202,70 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
         else
         {
             if (isNumeric(arg2))
-                createVariable(arg0, stod(arg2));
+                mem.createVariable(arg0, stod(arg2));
             else
-                createVariable(arg0, cleanString(arg2));
+                mem.createVariable(arg0, cleanString(arg2));
         }
     }
     else if (arg1 == "+=")
     {
-        if (variableExists(arg2))
+        if (mem.variableExists(arg2))
         {
-            if (isString(arg2))
-                createVariable(arg0, varString(arg2));
-            else if (isNumber(arg2))
-                createVariable(arg0, varNumber(arg2));
+            if (mem.isString(arg2))
+                mem.createVariable(arg0, mem.varString(arg2));
+            else if (mem.isNumber(arg2))
+                mem.createVariable(arg0, mem.varNumber(arg2));
             else
-                createVariable(arg0, State.Null);
+                mem.createVariable(arg0, State.Null);
         }
         else
         {
             if (isNumeric(arg2))
-                createVariable(arg0, stod(arg2));
+                mem.createVariable(arg0, stod(arg2));
             else
-                createVariable(arg0, cleanString(arg2));
+                mem.createVariable(arg0, cleanString(arg2));
         }
     }
     else if (arg1 == "-=")
     {
-        if (variableExists(arg2))
+        if (mem.variableExists(arg2))
         {
-            if (isNumber(arg2))
-                createVariable(arg0, 0 - varNumber(arg2));
+            if (mem.isNumber(arg2))
+                mem.createVariable(arg0, 0 - mem.varNumber(arg2));
             else
-                createVariable(arg0, State.Null);
+                mem.createVariable(arg0, State.Null);
         }
         else
         {
             if (isNumeric(arg2))
-                createVariable(arg0, stod(arg2));
+                mem.createVariable(arg0, stod(arg2));
             else
-                createVariable(arg0, cleanString(arg2));
+                mem.createVariable(arg0, cleanString(arg2));
         }
     }
     else if (arg1 == "?")
     {
-        if (!variableExists(arg2))
+        if (!mem.variableExists(arg2))
         {
-            createVariable(arg0, Env::getStdout(cleanString(arg2)));
+            mem.createVariable(arg0, Env::getStdout(cleanString(arg2)));
             return;
         }
 
-        if (isString(arg2))
-            createVariable(arg0, Env::getStdout(varString(arg2)));
+        if (mem.isString(arg2))
+            mem.createVariable(arg0, Env::getStdout(mem.varString(arg2)));
         else
             error(ErrorMessage::CONV_ERR, arg2, false);
     }
     else if (arg1 == "!")
     {
-        if (!variableExists(arg2))
+        if (!mem.variableExists(arg2))
         {
-            createVariable(arg0, getParsedOutput(cleanString(arg2)));
+            mem.createVariable(arg0, getParsedOutput(cleanString(arg2)));
             return;
         }
 
-        if (isString(arg2))
-            createVariable(arg0, getParsedOutput(varString(arg2)));
+        if (mem.isString(arg2))
+            mem.createVariable(arg0, getParsedOutput(mem.varString(arg2)));
         else
             error(ErrorMessage::CONV_ERR, arg2, false);
     }
@@ -6082,19 +5273,19 @@ void createGlobalVariable(string arg0, string arg1, string arg2, string s, vecto
         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
 }
 
-void createObjectVariable(string arg0, string arg1, string arg2, string s, vector<string> command)
+void initializeObjectVariable(string arg0, string arg1, string arg2, string s, vector<string> command)
 {
     string before = beforeDot(arg2),
            after = afterDot(arg2);
 
-    if (objectExists(before))
+    if (mem.objectExists(before))
     {
         if (arg1 == "=")
         {
-            if (getObject(before).getVariable(after).getString() != State.Null)
-                createVariable(arg0, getObject(before).getVariable(after).getString());
-            else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
-                createVariable(arg0, getObject(before).getVariable(after).getNumber());
+            if (mem.getObject(before).getVariable(after).getString() != State.Null)
+                mem.createVariable(arg0, mem.getObject(before).getVariable(after).getString());
+            else if (mem.getObject(before).getVariable(after).getNumber() != State.NullNum)
+                mem.createVariable(arg0, mem.getObject(before).getVariable(after).getNumber());
         }
     }
 }
@@ -6103,14 +5294,14 @@ void copyObject(string arg0, string arg1, string arg2, string s, vector<string> 
 {
     if (arg1 == "=")
     {
-        vector<Method> objectMethods = getObject(arg2).getMethods();
+        vector<Method> objectMethods = mem.getObject(arg2).getMethods();
         Object newObject(arg0);
 
         for (int i = 0; i < (int)objectMethods.size(); i++)
             newObject.addMethod(objectMethods.at(i));
 
 
-        vector<Variable> objectVariables = getObject(arg2).getVariables();
+        vector<Variable> objectVariables = mem.getObject(arg2).getVariables();
 
         for (int i = 0; i < (int)objectVariables.size(); i++)
             newObject.addVariable(objectVariables.at(i));
@@ -6131,9 +5322,9 @@ void copyObject(string arg0, string arg1, string arg2, string s, vector<string> 
         error(ErrorMessage::INVALID_OPERATOR, arg1, false);
 }
 
-void createConstant(string arg0, string arg1, string arg2, string s, vector<string> command)
+void initializeConstant(string arg0, string arg1, string arg2, string s, vector<string> command)
 {
-    if (!constantExists(arg0))
+    if (!mem.constantExists(arg0))
     {
         if (arg1 == "=")
         {
@@ -6211,7 +5402,7 @@ void executeSimpleStatement(string arg0, string arg1, string arg2, string s, vec
 void InternalEncryptDecrypt(string arg0, string arg1)
 {
     Crypt c;
-    string text = variableExists(arg1) ? (isString(arg1) ? varString(arg1) : varNumberString(arg1)) : arg1;
+    string text = mem.variableExists(arg1) ? (mem.isString(arg1) ? mem.varString(arg1) : mem.varNumberString(arg1)) : arg1;
     write(arg0 == "encrypt" ? c.e(text) : c.d(text));
 }
 
@@ -6219,23 +5410,23 @@ void InternalInspect(string arg0, string arg1, string before, string after)
 {
     if (before.length() != 0 && after.length() != 0)
     {
-        if (!objectExists(before))
+        if (!mem.objectExists(before))
         {
             error(ErrorMessage::OBJ_METHOD_UNDEFINED, before, false);
             return;
         }
 
-        if (getObject(before).methodExists(after))
+        if (mem.getObject(before).methodExists(after))
         {
-            for (int i = 0; i < getObject(before).getMethod(after).size(); i++)
-                write(getObject(before).getMethod(after).at(i));
+            for (int i = 0; i < mem.getObject(before).getMethod(after).size(); i++)
+                write(mem.getObject(before).getMethod(after).at(i));
         }
-        else if (getObject(before).variableExists(after))
+        else if (mem.getObject(before).variableExists(after))
         {
-            if (getObject(before).getVariable(after).getString() != State.Null)
-                write(getObject(before).getVariable(after).getString());
-            else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
-                write(dtos(getObject(before).getVariable(after).getNumber()));
+            if (mem.getObject(before).getVariable(after).getString() != State.Null)
+                write(mem.getObject(before).getVariable(after).getString());
+            else if (mem.getObject(before).getVariable(after).getNumber() != State.NullNum)
+                write(dtos(mem.getObject(before).getVariable(after).getNumber()));
             else
                 write(State.Null);
         }
@@ -6245,36 +5436,36 @@ void InternalInspect(string arg0, string arg1, string before, string after)
     }
     else
     {
-        if (objectExists(arg1))
+        if (mem.objectExists(arg1))
         {
-            for (int i = 0; i < getObject(arg1).methodSize(); i++)
-                write(getObject(arg1).getMethod(getObject(arg1).getMethodName(i)).name());
-            for (int i = 0; i < getObject(arg1).variableSize(); i++)
-                write(getObject(arg1).getVariable(getObject(arg1).getVariableName(i)).name());
+            for (int i = 0; i < mem.getObject(arg1).methodSize(); i++)
+                write(mem.getObject(arg1).getMethod(mem.getObject(arg1).getMethodName(i)).name());
+            for (int i = 0; i < mem.getObject(arg1).variableSize(); i++)
+                write(mem.getObject(arg1).getVariable(mem.getObject(arg1).getVariableName(i)).name());
         }
-        else if (constantExists(arg1))
+        else if (mem.constantExists(arg1))
         {
-            if (getConstant(arg1).ConstNumber())
-                write(dtos(getConstant(arg1).getNumber()));
-            else if (getConstant(arg1).ConstString())
-                write(getConstant(arg1).getString());
+            if (mem.getConstant(arg1).ConstNumber())
+                write(dtos(mem.getConstant(arg1).getNumber()));
+            else if (mem.getConstant(arg1).ConstString())
+                write(mem.getConstant(arg1).getString());
         }
-        else if (methodExists(arg1))
+        else if (mem.methodExists(arg1))
         {
-            for (int i = 0; i < getMethod(arg1).size(); i++)
-                write(getMethod(arg1).at(i));
+            for (int i = 0; i < mem.getMethod(arg1).size(); i++)
+                write(mem.getMethod(arg1).at(i));
         }
-        else if (variableExists(arg1))
+        else if (mem.variableExists(arg1))
         {
-            if (isString(arg1))
-                write(varString(arg1));
-            else if (isNumber(arg1))
-                write(dtos(varNumber(arg1)));
+            if (mem.isString(arg1))
+                write(mem.varString(arg1));
+            else if (mem.isNumber(arg1))
+                write(dtos(mem.varNumber(arg1)));
         }
-        else if (listExists(arg1))
+        else if (mem.listExists(arg1))
         {
-            for (int i = 0; i < getList(arg1).size(); i++)
-                write(getList(arg1).at(i));
+            for (int i = 0; i < mem.getList(arg1).size(); i++)
+                write(mem.getList(arg1).at(i));
         }
         else if (arg1 == "variables")
         {
@@ -6317,30 +5508,12 @@ void InternalInspect(string arg0, string arg1, string before, string after)
     }
 }
 
-void InternalGlobalize(string arg0, string arg1)
-{
-    if (!(contains(arg1, ".") && methodExists(arg1) && !methodExists(afterDot(arg1))))
-    {
-        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1, false);
-        return;
-    }
-
-    Method method(afterDot(arg1));
-
-    vector<string> lines = getObject(beforeDot(arg1)).getMethod(afterDot(arg1)).getLines();
-
-    for (int i = 0; i < (int)lines.size(); i++)
-        method.add(lines[i]);
-
-    methods.push_back(method);
-}
-
 void InternalCallMethod(string arg0, string arg1, string before, string after)
 {
     if (State.DefiningObject)
     {
-        if (getObject(State.CurrentObject).methodExists(arg1))
-            executeMethod(getObject(State.CurrentObject).getMethod(arg1));
+        if (mem.getObject(State.CurrentObject).methodExists(arg1))
+            executeMethod(mem.getObject(State.CurrentObject).getMethod(arg1));
         else
             error(ErrorMessage::METHOD_UNDEFINED, arg1, false);
         return;
@@ -6348,234 +5521,23 @@ void InternalCallMethod(string arg0, string arg1, string before, string after)
     
     if (before.length() != 0 && after.length() != 0)
     {
-        if (!objectExists(before))
+        if (!mem.objectExists(before))
         {
             error(ErrorMessage::OBJ_METHOD_UNDEFINED, before, true);
             return;
         }
 
-        if (getObject(before).methodExists(after))
-            executeMethod(getObject(before).getMethod(after));
+        if (mem.getObject(before).methodExists(after))
+            executeMethod(mem.getObject(before).getMethod(after));
         else
             error(ErrorMessage::METHOD_UNDEFINED, arg1, false);
     }
     else
     {
-        if (methodExists(arg1))
-            executeMethod(getMethod(arg1));
+        if (mem.methodExists(arg1))
+            executeMethod(mem.getMethod(arg1));
         else
             error(ErrorMessage::METHOD_UNDEFINED, arg1, true);
-    }
-}
-
-void InternalCreateMethod(string arg0, string arg1)
-{
-    bool indestructable = false;
-
-    if (arg0 == "[method]")
-        indestructable = true;
-
-    if (State.DefiningObject)
-    {
-        if (getObject(State.CurrentObject).methodExists(arg1))
-        {
-            error(ErrorMessage::METHOD_DEFINED, arg1, false);
-            return;
-        }
-
-        if (!containsParams(arg1))
-        {
-            Method method(arg1);
-
-            if (State.DefiningPublicCode)
-                method.setPublic();
-            else if (State.DefiningPrivateCode)
-                method.setPrivate();
-
-            method.setObject(State.CurrentObject);
-            getObject(State.CurrentObject).addMethod(method);
-            getObject(State.CurrentObject).setCurrentMethod(arg1);
-            State.DefiningMethod = true;
-            State.DefiningObjectMethod = true;
-            return;
-        }
-
-        vector<string> params = getParams(arg1);
-
-        Method method(beforeParams(arg1));
-
-        if (State.DefiningPublicCode)
-            method.setPublic();
-        else if (State.DefiningPrivateCode)
-            method.setPrivate();
-
-        method.setObject(State.CurrentObject);
-
-        for (int i = 0; i < (int)params.size(); i++)
-        {
-            if (variableExists(params.at(i)))
-            {
-                if (zeroDots(params.at(i)))
-                {                    
-                    if (isString(params.at(i)))
-                        method.addMethodVariable(varString(params.at(i)), getVar(params.at(i)).name());
-                    else if (isNumber(params.at(i)))
-                        method.addMethodVariable(varNumber(params.at(i)), getVar(params.at(i)).name());
-                    else
-                        error(ErrorMessage::IS_NULL, params.at(i), false);
-                    return;
-                }
-
-                string before(beforeDot(params.at(i))), after(afterDot(params.at(i)));
-
-                if (!objectExists(before))
-                {
-                    error(ErrorMessage::OBJ_METHOD_UNDEFINED, before, false);
-                    return;
-                }
-
-                if (!getObject(before).variableExists(after))
-                {
-                    error(ErrorMessage::OBJ_VAR_UNDEFINED, after, false);
-                    return;
-                }
-
-                if (getObject(before).getVariable(after).getString() != State.Null)
-                    method.addMethodVariable(getObject(before).getVariable(after).getString(), after);
-                else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
-                    method.addMethodVariable(getObject(before).getVariable(after).getNumber(), after);
-                else
-                    error(ErrorMessage::IS_NULL, params.at(i), false);
-            }
-            else
-            {
-                if (isAlpha(params.at(i)))
-                {
-                    Variable newVariable("@[pm#" + itos(State.ParamVarCount) + "]", params.at(i));
-                    method.addMethodVariable(newVariable);
-                    State.ParamVarCount++;
-                }
-                else
-                {
-                    Variable newVariable("@[pm#" + itos(State.ParamVarCount) + "]", stod(params.at(i)));
-                    method.addMethodVariable(newVariable);
-                    State.ParamVarCount++;
-                }
-            }
-        }
-
-        getObject(State.CurrentObject).addMethod(method);
-        getObject(State.CurrentObject).setCurrentMethod(beforeParams(arg1));
-        State.DefiningMethod = true;
-        State.DefiningParameterizedMethod = true;
-        State.DefiningObjectMethod = true;
-    }
-    else
-    {
-        if (methodExists(arg1))
-            error(ErrorMessage::METHOD_DEFINED, arg1, false);
-        else
-        {
-            if (!zeroDots(arg1))
-            {
-                string before(beforeDot(arg1)), after(afterDot(arg1));
-
-                if (objectExists(before))
-                {
-                    Method method(after);
-
-                    if (State.DefiningPublicCode)
-                        method.setPublic();
-                    else if (State.DefiningPrivateCode)
-                        method.setPrivate();
-
-                    method.setObject(before);
-                    getObject(before).addMethod(method);
-                    getObject(before).setCurrentMethod(after);
-                    State.DefiningMethod = true;
-                    State.DefiningObjectMethod = true;
-                }
-                else
-                    error(ErrorMessage::OBJ_UNDEFINED, "", false);
-            }
-            else if (containsParams(arg1))
-            {
-                vector<string> params = getParams(arg1);
-
-                Method method(beforeParams(arg1));
-
-                if (indestructable)
-                    method.setIndestructible();
-
-                for (int i = 0; i < (int)params.size(); i++)
-                {
-                    if (variableExists(params.at(i)))
-                    {
-                        if (!zeroDots(params.at(i)))
-                        {
-                            string before(beforeDot(params.at(i))), after(afterDot(params.at(i)));
-
-                            if (objectExists(before))
-                            {
-                                if (getObject(before).variableExists(after))
-                                {
-                                    if (getObject(before).getVariable(after).getString() != State.Null)
-                                        method.addMethodVariable(getObject(before).getVariable(after).getString(), after);
-                                    else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
-                                        method.addMethodVariable(getObject(before).getVariable(after).getNumber(), after);
-                                    else
-                                        error(ErrorMessage::IS_NULL, params.at(i), false);
-                                }
-                                else
-                                    error(ErrorMessage::OBJ_VAR_UNDEFINED, after, false);
-                            }
-                            else
-                                error(ErrorMessage::OBJ_METHOD_UNDEFINED, before, false);
-                        }
-                        else
-                        {
-                            if (isString(params.at(i)))
-                                method.addMethodVariable(varString(params.at(i)), getVar(params.at(i)).name());
-                            else if (isNumber(params.at(i)))
-                                method.addMethodVariable(varNumber(params.at(i)), getVar(params.at(i)).name());
-                            else
-                                error(ErrorMessage::IS_NULL, params.at(i), false);
-                        }
-                    }
-                    else
-                    {
-                        if (isAlpha(params.at(i)))
-                        {
-                            Variable newVariable("@" + params.at(i), "");
-                            newVariable.setNull();
-                            method.addMethodVariable(newVariable);
-                            State.ParamVarCount++;
-                        }
-                        else
-                        {
-                            Variable newVariable("@" + params.at(i), 0);
-                            newVariable.setNull();
-                            method.addMethodVariable(newVariable);
-                            State.ParamVarCount++;
-                        }
-                    }
-                }
-
-                methods.push_back(method);
-                State.DefiningMethod = true;
-                State.DefiningParameterizedMethod = true;
-            }
-            else
-            {
-                Method method(arg1);
-
-                if (indestructable)
-                    method.setIndestructible();
-
-                methods.push_back(method);
-                State.DefiningMethod = true;
-            }
-        }
     }
 }
 
@@ -6593,7 +5555,7 @@ void InternalCreateModule(string s)
 
 void InternalCreateObject(string arg0)
 {
-    if (objectExists(arg0))
+    if (mem.objectExists(arg0))
     {
         State.DefiningObject = true;
         State.CurrentObject = arg0;
@@ -6792,21 +5754,21 @@ void InternalGetEnv(string arg0, string after, int mode)
     case 0:
         if (sValue != defaultValue)
         {
-            createVariable(arg0, sValue);
+            mem.createVariable(arg0, sValue);
         }
         else
         {
-            createVariable(arg0, dValue);
+            mem.createVariable(arg0, dValue);
         }
         break;
     case 1:
         if (sValue != defaultValue)
         {
-            setVariable(arg0, sValue);
+            mem.setVariable(arg0, sValue);
         }
         else
         {
-            setVariable(arg0, dValue);
+            mem.setVariable(arg0, dValue);
         }
         break;
     case 2:
@@ -6837,15 +5799,15 @@ void InternalOutput(string arg0, string arg1)
     bool is_say = (arg0 == "say");
     bool is_print = (arg0 == "print" || arg0 == "println");
     // if parameter is variable, get it's value
-    if (variableExists(arg1))
+    if (mem.variableExists(arg1))
     {
         // set the value
         if (!zeroDots(arg1))
         {
-            if (getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getString() != State.Null)
-                text = (getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getString());
-            else if (getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber() != State.NullNum)
-                text = (dtos(getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber()));
+            if (mem.getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getString() != State.Null)
+                text = (mem.getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getString());
+            else if (mem.getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber() != State.NullNum)
+                text = (dtos(mem.getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber()));
             else
             {
                 error(ErrorMessage::IS_NULL, arg1, false);
@@ -6854,10 +5816,10 @@ void InternalOutput(string arg0, string arg1)
         }
         else
         {
-            if (isString(arg1))
-                text = (varString(arg1));
-            else if (isNumber(arg1))
-                text = (dtos(varNumber(arg1)));
+            if (mem.isString(arg1))
+                text = (mem.varString(arg1));
+            else if (mem.isNumber(arg1))
+                text = (dtos(mem.varNumber(arg1)));
             else
             {
                 error(ErrorMessage::IS_NULL, arg1, false);
@@ -6889,12 +5851,12 @@ void InternalOutput(string arg0, string arg1)
 
 void InternalRemember(string arg0, string arg1)
 {
-    if (variableExists(arg1))
+    if (mem.variableExists(arg1))
     {
-        if (isString(arg1))
-            saveVariable(arg1 + "&" + varString(arg1));
-        else if (isNumber(arg1))
-            saveVariable(arg1 + "&" + dtos(varNumber(arg1)));
+        if (mem.isString(arg1))
+            saveVariable(arg1 + "&" + mem.varString(arg1));
+        else if (mem.isNumber(arg1))
+            saveVariable(arg1 + "&" + dtos(mem.varNumber(arg1)));
         else
             error(ErrorMessage::IS_NULL, arg1, false);
     }
@@ -6910,19 +5872,19 @@ bool InternalReturn(string arg0, string arg1, string before, string after)
     {
         string before(beforeParams(arg1));
 
-        if (methodExists(before))
+        if (mem.methodExists(before))
         {
-            executeTemplate(getMethod(before), getParams(arg1));
+            executeTemplate(mem.getMethod(before), getParams(arg1));
 
             parse("return " + State.LastValue);
         }
         else if (!zeroDots(arg1))
         {
-            if (objectExists(before))
+            if (mem.objectExists(before))
             {
-                if (getObject(before).methodExists(beforeParams(after)))
+                if (mem.getObject(before).methodExists(beforeParams(after)))
                 {
-                    executeTemplate(getObject(before).getMethod(beforeParams(after)), getParams(arg1));
+                    executeTemplate(mem.getObject(before).getMethod(beforeParams(after)), getParams(arg1));
                     parse("return " + State.LastValue);
                 }
                 else
@@ -6946,39 +5908,39 @@ bool InternalReturn(string arg0, string arg1, string before, string after)
             }
         }
     }
-    else if (variableExists(arg1))
+    else if (mem.variableExists(arg1))
     {
-        if (objectExists(beforeDot(arg1)))
+        if (mem.objectExists(beforeDot(arg1)))
         {
-            if (getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getString() != State.Null)
-                State.LastValue = getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getString();
-            else if (getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber() != State.NullNum)
-                State.LastValue = dtos(getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber());
+            if (mem.getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getString() != State.Null)
+                State.LastValue = mem.getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getString();
+            else if (mem.getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber() != State.NullNum)
+                State.LastValue = dtos(mem.getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber());
             else
                 State.LastValue = "null";
         }
         else
         {
-            if (isString(arg1))
-                State.LastValue = varString(arg1);
-            else if (isNumber(arg1))
-                State.LastValue = dtos(varNumber(arg1));
+            if (mem.isString(arg1))
+                State.LastValue = mem.varString(arg1);
+            else if (mem.isNumber(arg1))
+                State.LastValue = dtos(mem.varNumber(arg1));
             else
                 State.LastValue = "null";
 
-            if (getVar(arg1).garbage())
-                variables = removeVariable(variables, arg1);
+            if (mem.getVar(arg1).garbage())
+                mem.removeVariable(arg1);
         }
     }
-    else if (listExists(arg1))
+    else if (mem.listExists(arg1))
     {
         string bigString("(");
 
-        for (int i = 0; i < (int)getList(arg1).size(); i++)
+        for (int i = 0; i < (int)mem.getList(arg1).size(); i++)
         {
-            bigString.append(getList(arg1).at(i));
+            bigString.append(mem.getList(arg1).at(i));
 
-            if (i != (int)getList(arg1).size() - 1)
+            if (i != (int)mem.getList(arg1).size() - 1)
                 bigString.push_back(',');
         }
 
@@ -6986,8 +5948,8 @@ bool InternalReturn(string arg0, string arg1, string before, string after)
 
         State.LastValue = bigString;
 
-        if (getList(arg1).garbage())
-            lists = removeList(lists, arg1);
+        if (mem.getList(arg1).garbage())
+            mem.removeList(arg1);
     }
     else
         State.LastValue = arg1;

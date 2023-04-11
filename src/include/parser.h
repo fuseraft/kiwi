@@ -7,12 +7,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-string getParsedOutput(string cmd);
-void parse(string s);
-void zeroSpace(string arg0, string s, vector<string> command);
-void oneSpace(string arg0, string arg1, string s, vector<string> command);
-void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> command);
-void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, vector<string> command);
+Memory mem;
 
 string getParsedOutput(string cmd)
 {
@@ -235,21 +230,21 @@ void parse(string s)
                 if (s == "{")
                     doNothing();
                 else if (startsWith(s, "case"))
-                    mainSwitch.addCase(command.at(1));
+                    mem.getMainSwitch().addCase(command.at(1));
                 else if (s == "default")
                     State.InDefaultCase = true;
                 else if (s == "end" || s == "}")
                 {
                     string switch_value("");
 
-                    if (isString(State.SwitchVarName))
-                        switch_value = varString(State.SwitchVarName);
-                    else if (isNumber(State.SwitchVarName))
-                        switch_value = varNumberString(State.SwitchVarName);
+                    if (mem.isString(State.SwitchVarName))
+                        switch_value = mem.varString(State.SwitchVarName);
+                    else if (mem.isNumber(State.SwitchVarName))
+                        switch_value = mem.varNumberString(State.SwitchVarName);
                     else
                         switch_value = "";
 
-                    Container rightCase = mainSwitch.rightCase(switch_value);
+                    Container rightCase = mem.getMainSwitch().rightCase(switch_value);
 
                     State.InDefaultCase = false;
                     State.DefiningSwitchBlock = false;
@@ -257,14 +252,14 @@ void parse(string s)
                     for (int i = 0; i < (int)rightCase.size(); i++)
                         parse(rightCase.at(i));
 
-                    mainSwitch.clear();
+                    mem.getMainSwitch().clear();
                 }
                 else
                 {
                     if (State.InDefaultCase)
-                        mainSwitch.addToDefault(s);
+                        mem.getMainSwitch().addToDefault(s);
                     else
-                        mainSwitch.addToCase(s);
+                        mem.getMainSwitch().addToCase(s);
                 }
             }
             else if (State.DefiningModule)
@@ -275,7 +270,7 @@ void parse(string s)
                     State.CurrentModule = "";
                 }
                 else
-                    getModule(State.CurrentModule).add(s);
+                    mem.getModule(State.CurrentModule).add(s);
             }
             else if (State.DefiningScript)
             {
@@ -323,7 +318,7 @@ void parse(string s)
                                 State.DefiningLocalWhileLoop = false;
 
                                 if (State.DefiningObject)
-                                    getObject(State.CurrentObject).addToCurrentMethod(s);
+                                    mem.getObject(State.CurrentObject).addToCurrentMethod(s);
                                 else
                                     methods.at(methods.size() - 1).add(s);
                             }
@@ -332,7 +327,7 @@ void parse(string s)
                                 State.DefiningLocalSwitchBlock = false;
 
                                 if (State.DefiningObject)
-                                    getObject(State.CurrentObject).addToCurrentMethod(s);
+                                    mem.getObject(State.CurrentObject).addToCurrentMethod(s);
                                 else
                                     methods.at(methods.size() - 1).add(s);
                             }
@@ -370,12 +365,12 @@ void parse(string s)
 
                             for (int z = 0; z < (int)words.size(); z++)
                             {
-                                if (variableExists(words.at(z)))
+                                if (mem.variableExists(words.at(z)))
                                 {
-                                    if (isString(words.at(z)))
-                                        freshLine.append(varString(words.at(z)));
-                                    else if (isNumber(words.at(z)))
-                                        freshLine.append(varNumberString(words.at(z)));
+                                    if (mem.isString(words.at(z)))
+                                        freshLine.append(mem.varString(words.at(z)));
+                                    else if (mem.isNumber(words.at(z)))
+                                        freshLine.append(mem.varNumberString(words.at(z)));
                                 }
                                 else
                                     freshLine.append(words.at(z));
@@ -386,14 +381,14 @@ void parse(string s)
 
                             if (State.DefiningObject)
                             {
-                                getObject(State.CurrentObject).addToCurrentMethod(freshLine);
+                                mem.getObject(State.CurrentObject).addToCurrentMethod(freshLine);
 
                                 if (State.DefiningPublicCode)
-                                    getObject(State.CurrentObject).setPublic();
+                                    mem.getObject(State.CurrentObject).setPublic();
                                 else if (State.DefiningPrivateCode)
-                                    getObject(State.CurrentObject).setPrivate();
+                                    mem.getObject(State.CurrentObject).setPrivate();
                                 else
-                                    getObject(State.CurrentObject).setPublic();
+                                    mem.getObject(State.CurrentObject).setPublic();
                             }
                             else
                                 methods.at(methods.size() - 1).add(freshLine);
@@ -546,11 +541,11 @@ void parse(string s)
                                    v2 = whileLoops.at(whileLoops.size() - 1).valueTwo(),
                                    op = whileLoops.at(whileLoops.size() - 1).logicOperator();
 
-                            if (variableExists(v1) && variableExists(v2))
+                            if (mem.variableExists(v1) && mem.variableExists(v2))
                             {
                                 if (op == "==")
                                 {
-                                    while (varNumber(v1) == varNumber(v2))
+                                    while (mem.varNumber(v1) == mem.varNumber(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -564,7 +559,7 @@ void parse(string s)
                                 }
                                 else if (op == "<")
                                 {
-                                    while (varNumber(v1) < varNumber(v2))
+                                    while (mem.varNumber(v1) < mem.varNumber(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -578,7 +573,7 @@ void parse(string s)
                                 }
                                 else if (op == ">")
                                 {
-                                    while (varNumber(v1) > varNumber(v2))
+                                    while (mem.varNumber(v1) > mem.varNumber(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -592,7 +587,7 @@ void parse(string s)
                                 }
                                 else if (op == "<=")
                                 {
-                                    while (varNumber(v1) <= varNumber(v2))
+                                    while (mem.varNumber(v1) <= mem.varNumber(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -606,7 +601,7 @@ void parse(string s)
                                 }
                                 else if (op == ">=")
                                 {
-                                    while (varNumber(v1) >= varNumber(v2))
+                                    while (mem.varNumber(v1) >= mem.varNumber(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -620,7 +615,7 @@ void parse(string s)
                                 }
                                 else if (op == "!=")
                                 {
-                                    while (varNumber(v1) != varNumber(v2))
+                                    while (mem.varNumber(v1) != mem.varNumber(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -633,11 +628,11 @@ void parse(string s)
                                     State.WhileLoopCount = 0;
                                 }
                             }
-                            else if (variableExists(v1))
+                            else if (mem.variableExists(v1))
                             {
                                 if (op == "==")
                                 {
-                                    while (varNumber(v1) == stoi(v2))
+                                    while (mem.varNumber(v1) == stoi(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -651,7 +646,7 @@ void parse(string s)
                                 }
                                 else if (op == "<")
                                 {
-                                    while (varNumber(v1) < stoi(v2))
+                                    while (mem.varNumber(v1) < stoi(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -665,7 +660,7 @@ void parse(string s)
                                 }
                                 else if (op == ">")
                                 {
-                                    while (varNumber(v1) > stoi(v2))
+                                    while (mem.varNumber(v1) > stoi(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -679,7 +674,7 @@ void parse(string s)
                                 }
                                 else if (op == "<=")
                                 {
-                                    while (varNumber(v1) <= stoi(v2))
+                                    while (mem.varNumber(v1) <= stoi(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -693,7 +688,7 @@ void parse(string s)
                                 }
                                 else if (op == ">=")
                                 {
-                                    while (varNumber(v1) >= stoi(v2))
+                                    while (mem.varNumber(v1) >= stoi(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -707,7 +702,7 @@ void parse(string s)
                                 }
                                 else if (op == "!=")
                                 {
-                                    while (varNumber(v1) != stoi(v2))
+                                    while (mem.varNumber(v1) != stoi(v2))
                                     {
                                         whileLoop(whileLoops.at(whileLoops.size() - 1));
 
@@ -756,30 +751,30 @@ void parse(string s)
 
                                 if (before.length() != 0 && after.length() != 0)
                                 {
-                                    if (objectExists(before) && after.length() != 0)
+                                    if (mem.objectExists(before) && after.length() != 0)
                                     {
                                         if (containsParams(after))
                                         {
                                             s = subtractChar(s, "\"");
 
-                                            if (getObject(before).methodExists(beforeParams(after)))
-                                                executeTemplate(getObject(before).getMethod(beforeParams(after)), getParams(after));
+                                            if (mem.getObject(before).methodExists(beforeParams(after)))
+                                                executeTemplate(mem.getObject(before).getMethod(beforeParams(after)), getParams(after));
                                             else
                                                 Env::sysExec(s, command);
                                         }
-                                        else if (getObject(before).methodExists(after))
-                                            executeMethod(getObject(before).getMethod(after));
-                                        else if (getObject(before).variableExists(after))
+                                        else if (mem.getObject(before).methodExists(after))
+                                            executeMethod(mem.getObject(before).getMethod(after));
+                                        else if (mem.getObject(before).variableExists(after))
                                         {
-                                            if (getObject(before).getVariable(after).getString() != State.Null)
-                                                writeline(getObject(before).getVariable(after).getString());
-                                            else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
-                                                writeline(dtos(getObject(before).getVariable(after).getNumber()));
+                                            if (mem.getObject(before).getVariable(after).getString() != State.Null)
+                                                writeline(mem.getObject(before).getVariable(after).getString());
+                                            else if (mem.getObject(before).getVariable(after).getNumber() != State.NullNum)
+                                                writeline(dtos(mem.getObject(before).getVariable(after).getNumber()));
                                             else
                                                 error(ErrorMessage::IS_NULL, "", false);
                                         }
                                         else if (after == "clear")
-                                            getObject(before).clear();
+                                            mem.getObject(before).clear();
                                         else
                                             error(ErrorMessage::UNDEFINED, "", false);
                                     }
@@ -789,27 +784,27 @@ void parse(string s)
                                         {
                                             InternalGetEnv("", after, 3);
                                         }
-                                        else if (variableExists(before))
+                                        else if (mem.variableExists(before))
                                         {
                                             if (after == "clear")
                                                 parse(before + " = State.Null");
                                         }
-                                        else if (listExists(before))
+                                        else if (mem.listExists(before))
                                         {
                                             // REFACTOR HERE
                                             if (after == "clear")
-                                                getList(before).clear();
+                                                mem.getList(before).clear();
                                             else if (after == "sort")
-                                                getList(before).listSort();
+                                                mem.getList(before).listSort();
                                             else if (after == "reverse")
-                                                getList(before).listReverse();
+                                                mem.getList(before).listReverse();
                                             else if (after == "revert")
-                                                getList(before).listRevert();
+                                                mem.getList(before).listRevert();
                                         }
                                         else if (before == "self")
                                         {
                                             if (State.ExecutedMethod)
-                                                executeMethod(getObject(State.CurrentMethodObject).getMethod(after));
+                                                executeMethod(mem.getObject(State.CurrentMethodObject).getMethod(after));
                                         }
                                         else
                                             Env::sysExec(s, command);
@@ -821,11 +816,11 @@ void parse(string s)
                                     {
                                         string newMark(s);
                                         newMark = subtractString(s, "::");
-                                        getScript(State.CurrentScript).addMark(newMark);
+                                        mem.getScript(State.CurrentScript).addMark(newMark);
                                     }
                                 }
-                                else if (methodExists(s))
-                                    executeMethod(getMethod(s));
+                                else if (mem.methodExists(s))
+                                    executeMethod(mem.getMethod(s));
                                 else if (startsWith(s, "[") && endsWith(s, "]"))
                                 {
                                     InternalCreateModule(s);
@@ -834,8 +829,8 @@ void parse(string s)
                                 {
                                     s = subtractChar(s, "\"");
 
-                                    if (methodExists(beforeParams(s)))
-                                        executeTemplate(getMethod(beforeParams(s)), getParams(s));
+                                    if (mem.methodExists(beforeParams(s)))
+                                        executeTemplate(mem.getMethod(beforeParams(s)), getParams(s));
                                     else
                                         Env::sysExec(s, command);
                                 }
@@ -863,7 +858,7 @@ void parse(string s)
                                 else if ((command.at(0) == "fwrite"))
                                     __fwrite(command.at(1), command.at(2));
                                 else if (command.at(0) == "redefine")
-                                    redefine(command.at(1), command.at(2));
+                                    mem.redefine(command.at(1), command.at(2));
                                 else if (command.at(0) == "loop")
                                 {
                                     if (containsParams(command.at(2)))
@@ -1007,48 +1002,48 @@ void zeroSpace(string arg0, string s, vector<string> command)
         State.ErrorVarName = "";
     }
     else if (arg0 == "clear_methods!")
-        clearMethods();
+        mem.clearMethods();
     else if (arg0 == "clear_objects!")
-        clearObjects();
+        mem.clearObjects();
     else if (arg0 == "clear_variables!")
-        clearVariables();
+        mem.clearVariables();
     else if (arg0 == "clear_lists!")
-        clearLists();
+        mem.clearLists();
     else if (arg0 == "clear_all!")
-        clearAll();
+        mem.clearAll();
     else if (arg0 == "clear_constants!")
-        clearConstants();
+        mem.clearConstants();
     else if (arg0 == "exit")
     {
-        clearAll();
+        mem.clearAll();
         exit(0);
     }
     else if (arg0 == "break" || arg0 == "leave!")
         State.Breaking = true;
     else if (arg0 == "no_methods?")
     {
-        if (noMethods())
+        if (mem.noMethods())
             __true();
         else
             __false();
     }
     else if (arg0 == "no_objects?")
     {
-        if (noObjects())
+        if (mem.noObjects())
             __true();
         else
             __false();
     }
     else if (arg0 == "no_variables?")
     {
-        if (noVariables())
+        if (mem.noVariables())
             __true();
         else
             __false();
     }
     else if (arg0 == "no_lists?")
     {
-        if (noLists())
+        if (mem.noLists())
             __true();
         else
             __false();
@@ -1102,7 +1097,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "switch")
     {
-        if (variableExists(arg1))
+        if (mem.variableExists(arg1))
         {
             State.DefiningSwitchBlock = true;
             State.SwitchVarName = arg1;
@@ -1114,7 +1109,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (State.CurrentScript != "")
         {
-            if (getScript(State.CurrentScript).markExists(arg1))
+            if (mem.getScript(State.CurrentScript).markExists(arg1))
             {
                 State.GoTo = arg1;
                 State.GoToLabel = true;
@@ -1124,24 +1119,24 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
 	else if (arg0 == "if") {
 		string tmpValue("");
 		// if arg1 is a variable
-		if (variableExists(arg1)) {
+		if (mem.variableExists(arg1)) {
 			// can we can assume that arg1 belongs to an object?
 			if (!zeroDots(arg1)) {
 				string objName(beforeDot(arg1)), varName(afterDot(arg1));
-				Variable tmpVar = getObject(objName).getVariable(varName);
+				Variable tmpVar = mem.getObject(objName).getVariable(varName);
 				
-				if (isString(tmpVar)) {
+				if (mem.isString(tmpVar)) {
 					tmpValue = tmpVar.getString();
-				} else if (isNumber(tmpVar)) {
+				} else if (mem.isNumber(tmpVar)) {
 					tmpValue = dtos(tmpVar.getNumber());
 				} else {
 					// error(ErrorMessage::IS_NULL, arg1, true);
 				}
 			} else {
-				if (isString(arg1)) {
-					tmpValue = varString(arg1);
-				} else if (isNumber(arg1)) {
-					tmpValue = varNumber(arg1);
+				if (mem.isString(arg1)) {
+					tmpValue = mem.varString(arg1);
+				} else if (mem.isNumber(arg1)) {
+					tmpValue = mem.varNumber(arg1);
 				} else {
 					// error(ErrorMessage::IS_NULL, arg1, true);
 				}
@@ -1196,12 +1191,12 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "err" || arg0 == "error")
     {
-        if (variableExists(arg1))
+        if (mem.variableExists(arg1))
         {
-            if (isString(arg1))
-                IO::printerrln(varString(arg1));
-            else if (isNumber(arg1))
-                IO::printerrln(dtos(varNumber(arg1)));
+            if (mem.isString(arg1))
+                IO::printerrln(mem.varString(arg1));
+            else if (mem.isNumber(arg1))
+                IO::printerrln(dtos(mem.varNumber(arg1)));
             else
                 error(ErrorMessage::IS_NULL, arg1, false);
         }
@@ -1218,7 +1213,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     else if (arg0 == "loop")
         threeSpace("for", "var", "in", arg1, "for var in " + arg1, command); // REFACTOR HERE
     else if (arg0 == "for" && arg1 == "infinity")
-        successfulFor();
+        mem.createForLoop();
     else if (arg0 == "remove")
     {
         if (containsParams(arg1))
@@ -1227,57 +1222,57 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
 
             for (int i = 0; i < (int)params.size(); i++)
             {
-                if (variableExists(params.at(i)))
-                    variables = removeVariable(variables, params.at(i));
-                else if (listExists(params.at(i)))
-                    lists = removeList(lists, params.at(i));
-                else if (objectExists(params.at(i)))
-                    objects = removeObject(objects, params.at(i));
-                else if (methodExists(params.at(i)))
-                    methods = removeMethod(methods, params.at(i));
+                if (mem.variableExists(params.at(i)))
+                    mem.removeVariable(params.at(i));
+                else if (mem.listExists(params.at(i)))
+                    mem.removeList(params.at(i));
+                else if (mem.objectExists(params.at(i)))
+                    mem.removeObject(params.at(i));
+                else if (mem.methodExists(params.at(i)))
+                    mem.removeMethod(params.at(i));
                 else
                     error(ErrorMessage::TARGET_UNDEFINED, params.at(i), false);
             }
         }
-        else if (variableExists(arg1))
-            variables = removeVariable(variables, arg1);
-        else if (listExists(arg1))
-            lists = removeList(lists, arg1);
-        else if (objectExists(arg1))
-            objects = removeObject(objects, arg1);
-        else if (methodExists(arg1))
-            methods = removeMethod(methods, arg1);
+        else if (mem.variableExists(arg1))
+            mem.removeVariable(arg1);
+        else if (mem.listExists(arg1))
+            mem.removeList(arg1);
+        else if (mem.objectExists(arg1))
+            mem.removeObject(arg1);
+        else if (mem.methodExists(arg1))
+            mem.removeMethod(arg1);
         else
             error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
     }
     else if (arg0 == "see_string")
     {
-        if (variableExists(arg1))
-            write(varString(arg1));
+        if (mem.variableExists(arg1))
+            write(mem.varString(arg1));
         else
             error(ErrorMessage::VAR_UNDEFINED, arg1, false);
     }
     else if (arg0 == "see_number")
     {
-        if (variableExists(arg1))
-            write(dtos(varNumber(arg1)));
+        if (mem.variableExists(arg1))
+            write(dtos(mem.varNumber(arg1)));
         else
             error(ErrorMessage::VAR_UNDEFINED, arg1, false);
     }
     else if (arg0 == "__begin__")
     {
-        if (variableExists(arg1))
+        if (mem.variableExists(arg1))
         {
-            if (isString(arg1))
+            if (mem.isString(arg1))
             {
-                if (!Env::fileExists(varString(arg1)))
+                if (!Env::fileExists(mem.varString(arg1)))
                 {
-                    Env::createFile(varString(arg1));
+                    Env::createFile(mem.varString(arg1));
                     State.DefiningScript = true;
-                    State.CurrentScriptName = varString(arg1);
+                    State.CurrentScriptName = mem.varString(arg1);
                 }
                 else
-                    error(ErrorMessage::FILE_EXISTS, varString(arg1), false);
+                    error(ErrorMessage::FILE_EXISTS, mem.varString(arg1), false);
             }
         }
         else if (!Env::fileExists(arg1))
@@ -1295,7 +1290,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "globalize")
     {
-        InternalGlobalize(arg0, arg1);
+        mem.globalize(arg0, arg1);
     }
     else if (arg0 == "remember" || arg0 == "save")
     {
@@ -1312,14 +1307,15 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             if (isScript(arg1))
             {
                 State.PreviousScript = State.CurrentScript;
-                loadScript(arg1);
+                mem.loadScript(arg1);
+                runScript();
             }
             else
                 error(ErrorMessage::BAD_LOAD, arg1, true);
         }
-        else if (moduleExists(arg1))
+        else if (mem.moduleExists(arg1))
         {
-            vector<string> lines = getModule(arg1).get();
+            vector<string> lines = mem.getModule(arg1).get();
 
             for (int i = 0; i < (int)lines.size(); i++)
                 parse(lines.at(i));
@@ -1333,14 +1329,14 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "cd" || arg0 == "chdir")
     {
-        if (variableExists(arg1))
+        if (mem.variableExists(arg1))
         {
-            if (isString(arg1))
+            if (mem.isString(arg1))
             {
-                if (Env::directoryExists(varString(arg1)))
-                    Env::cd(varString(arg1));
+                if (Env::directoryExists(mem.varString(arg1)))
+                    Env::cd(mem.varString(arg1));
                 else
-                    error(ErrorMessage::READ_FAIL, varString(arg1), false);
+                    error(ErrorMessage::READ_FAIL, mem.varString(arg1), false);
             }
             else
                 error(ErrorMessage::NULL_STRING, arg1, false);
@@ -1357,8 +1353,8 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "list")
     {
-        if (listExists(arg1))
-            getList(arg1).clear();
+        if (mem.listExists(arg1))
+            mem.getList(arg1).clear();
         else
         {
             List newList(arg1);
@@ -1373,10 +1369,10 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "!")
     {
-        if (variableExists(arg1))
+        if (mem.variableExists(arg1))
         {
-            if (isString(arg1))
-                parse(varString(arg1).c_str());
+            if (mem.isString(arg1))
+                parse(mem.varString(arg1).c_str());
             else
                 error(ErrorMessage::IS_NULL, arg1, false);
         }
@@ -1385,10 +1381,10 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "?")
     {
-        if (variableExists(arg1))
+        if (mem.variableExists(arg1))
         {
-            if (isString(arg1))
-                Env::sysExec(varString(arg1), command);
+            if (mem.isString(arg1))
+                Env::sysExec(mem.varString(arg1), command);
             else
                 error(ErrorMessage::IS_NULL, arg1, false);
         }
@@ -1397,13 +1393,13 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "init_dir" || arg0 == "initial_directory")
     {
-        if (variableExists(arg1))
+        if (mem.variableExists(arg1))
         {
-            if (isString(arg1))
+            if (mem.isString(arg1))
             {
-                if (Env::directoryExists(varString(arg1)))
+                if (Env::directoryExists(mem.varString(arg1)))
                 {
-                    NoctisEnv.InitialDirectory = varString(arg1);
+                    NoctisEnv.InitialDirectory = mem.varString(arg1);
                     Env::cd(NoctisEnv.InitialDirectory);
                 }
                 else
@@ -1433,14 +1429,14 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (getObject(before).methodExists(after))
+            if (mem.getObject(before).methodExists(after))
                 __true();
             else
                 __false();
         }
         else
         {
-            if (methodExists(arg1))
+            if (mem.methodExists(arg1))
                 __true();
             else
                 __false();
@@ -1448,7 +1444,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "object?")
     {
-        if (objectExists(arg1))
+        if (mem.objectExists(arg1))
             __true();
         else
             __false();
@@ -1457,14 +1453,14 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (getObject(before).variableExists(after))
+            if (mem.getObject(before).variableExists(after))
                 __true();
             else
                 __false();
         }
         else
         {
-            if (variableExists(arg1))
+            if (mem.variableExists(arg1))
                 __true();
             else
                 __false();
@@ -1472,7 +1468,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "list?")
     {
-        if (listExists(arg1))
+        if (mem.listExists(arg1))
             __true();
         else
             __false();
@@ -1481,9 +1477,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (getObject(before).variableExists(after))
+            if (mem.getObject(before).variableExists(after))
             {
-                if (Env::directoryExists(getObject(before).getVariable(after).getString()))
+                if (Env::directoryExists(mem.getObject(before).getVariable(after).getString()))
                     __true();
                 else
                     __false();
@@ -1493,11 +1489,11 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         }
         else
         {
-            if (variableExists(arg1))
+            if (mem.variableExists(arg1))
             {
-                if (isString(arg1))
+                if (mem.isString(arg1))
                 {
-                    if (Env::directoryExists(varString(arg1)))
+                    if (Env::directoryExists(mem.varString(arg1)))
                         __true();
                     else
                         __false();
@@ -1518,9 +1514,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (getObject(before).variableExists(after))
+            if (mem.getObject(before).variableExists(after))
             {
-                if (Env::fileExists(getObject(before).getVariable(after).getString()))
+                if (Env::fileExists(mem.getObject(before).getVariable(after).getString()))
                     __true();
                 else
                     __false();
@@ -1530,11 +1526,11 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         }
         else
         {
-            if (variableExists(arg1))
+            if (mem.variableExists(arg1))
             {
-                if (isString(arg1))
+                if (mem.isString(arg1))
                 {
-                    if (Env::fileExists(varString(arg1)))
+                    if (Env::fileExists(mem.varString(arg1)))
                         __true();
                     else
                         __false();
@@ -1553,9 +1549,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "collect?")
     {
-        if (variableExists(arg1))
+        if (mem.variableExists(arg1))
         {
-            if (getVar(arg1).garbage())
+            if (mem.getVar(arg1).garbage())
                 __true();
             else
                 __false();
@@ -1567,9 +1563,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (getObject(before).variableExists(after))
+            if (mem.getObject(before).variableExists(after))
             {
-                if (getObject(before).getVariable(after).getNumber() != State.NullNum)
+                if (mem.getObject(before).getVariable(after).getNumber() != State.NullNum)
                     __true();
                 else
                     __false();
@@ -1579,9 +1575,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         }
         else
         {
-            if (variableExists(arg1))
+            if (mem.variableExists(arg1))
             {
-                if (isNumber(arg1))
+                if (mem.isNumber(arg1))
                     __true();
                 else
                     __false();
@@ -1599,9 +1595,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (getObject(before).variableExists(after))
+            if (mem.getObject(before).variableExists(after))
             {
-                if (getObject(before).getVariable(after).getString() != State.Null)
+                if (mem.getObject(before).getVariable(after).getString() != State.Null)
                     __true();
                 else
                     __false();
@@ -1611,9 +1607,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         }
         else
         {
-            if (variableExists(arg1))
+            if (mem.variableExists(arg1))
             {
-                if (isString(arg1))
+                if (mem.isString(arg1))
                     __true();
                 else
                     __false();
@@ -1631,9 +1627,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (getObject(before).variableExists(after))
+            if (mem.getObject(before).variableExists(after))
             {
-                if (isUpper(getObject(before).getVariable(after).getString()))
+                if (isUpper(mem.getObject(before).getVariable(after).getString()))
                     __true();
                 else
                     __false();
@@ -1643,11 +1639,11 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         }
         else
         {
-            if (variableExists(arg1))
+            if (mem.variableExists(arg1))
             {
-                if (isString(arg1))
+                if (mem.isString(arg1))
                 {
-                    if (isUpper(varString(arg1)))
+                    if (isUpper(mem.varString(arg1)))
                         __true();
                     else
                         __false();
@@ -1673,9 +1669,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (getObject(before).variableExists(after))
+            if (mem.getObject(before).variableExists(after))
             {
-                if (isLower(getObject(before).getVariable(after).getString()))
+                if (isLower(mem.getObject(before).getVariable(after).getString()))
                     __true();
                 else
                     __false();
@@ -1685,11 +1681,11 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         }
         else
         {
-            if (variableExists(arg1))
+            if (mem.variableExists(arg1))
             {
-                if (isString(arg1))
+                if (mem.isString(arg1))
                 {
-                    if (isLower(varString(arg1)))
+                    if (isLower(mem.varString(arg1)))
                         __true();
                     else
                         __false();
@@ -1717,7 +1713,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "template")
     {
-        if (methodExists(arg1))
+        if (mem.methodExists(arg1))
             error(ErrorMessage::METHOD_DEFINED, arg1, false);
         else
         {
@@ -1736,21 +1732,21 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "lock")
     {
-        if (variableExists(arg1))
-            getVar(arg1).setIndestructible();
-        else if (methodExists(arg1))
-            getMethod(arg1).setIndestructible();
+        if (mem.variableExists(arg1))
+            mem.getVar(arg1).setIndestructible();
+        else if (mem.methodExists(arg1))
+            mem.getMethod(arg1).setIndestructible();
     }
     else if (arg0 == "unlock")
     {
-        if (variableExists(arg1))
-            getVar(arg1).setDestructible();
-        else if (methodExists(arg1))
-            getMethod(arg1).setDestructible();
+        if (mem.variableExists(arg1))
+            mem.getVar(arg1).setDestructible();
+        else if (mem.methodExists(arg1))
+            mem.getMethod(arg1).setDestructible();
     }
     else if (arg0 == "method" || arg0 == "[method]")
     {
-        InternalCreateMethod(arg0, arg1);
+        mem.createMethod(arg0, arg1);
     }
     else if (arg0 == "call_method")
     {
@@ -1762,14 +1758,14 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "fpush")
     {
-        if (variableExists(arg1))
+        if (mem.variableExists(arg1))
         {
-            if (isString(arg1))
+            if (mem.isString(arg1))
             {
-                if (!Env::fileExists(varString(arg1)))
-                    Env::createFile(varString(arg1));
+                if (!Env::fileExists(mem.varString(arg1)))
+                    Env::createFile(mem.varString(arg1));
                 else
-                    error(ErrorMessage::FILE_EXISTS, varString(arg1), false);
+                    error(ErrorMessage::FILE_EXISTS, mem.varString(arg1), false);
             }
             else
                 error(ErrorMessage::NULL_STRING, arg1, false);
@@ -1784,14 +1780,14 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "fpop")
     {
-        if (variableExists(arg1))
+        if (mem.variableExists(arg1))
         {
-            if (isString(arg1))
+            if (mem.isString(arg1))
             {
-                if (Env::fileExists(varString(arg1)))
-                    Env::rm(varString(arg1));
+                if (Env::fileExists(mem.varString(arg1)))
+                    Env::rm(mem.varString(arg1));
                 else
-                    error(ErrorMessage::FILE_NOT_FOUND, varString(arg1), false);
+                    error(ErrorMessage::FILE_NOT_FOUND, mem.varString(arg1), false);
             }
             else
                 error(ErrorMessage::NULL_STRING, arg1, false);
@@ -1806,14 +1802,14 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "dpush")
     {
-        if (variableExists(arg1))
+        if (mem.variableExists(arg1))
         {
-            if (isString(arg1))
+            if (mem.isString(arg1))
             {
-                if (!Env::directoryExists(varString(arg1)))
-                    Env::md(varString(arg1));
+                if (!Env::directoryExists(mem.varString(arg1)))
+                    Env::md(mem.varString(arg1));
                 else
-                    error(ErrorMessage::DIR_EXISTS, varString(arg1), false);
+                    error(ErrorMessage::DIR_EXISTS, mem.varString(arg1), false);
             }
             else
                 error(ErrorMessage::NULL_STRING, arg1, false);
@@ -1828,14 +1824,14 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "dpop")
     {
-        if (variableExists(arg1))
+        if (mem.variableExists(arg1))
         {
-            if (isString(arg1))
+            if (mem.isString(arg1))
             {
-                if (Env::directoryExists(varString(arg1)))
-                    Env::rd(varString(arg1));
+                if (Env::directoryExists(mem.varString(arg1)))
+                    Env::rd(mem.varString(arg1));
                 else
-                    error(ErrorMessage::DIR_NOT_FOUND, varString(arg1), false);
+                    error(ErrorMessage::DIR_NOT_FOUND, mem.varString(arg1), false);
             }
             else
                 error(ErrorMessage::NULL_STRING, arg1, false);
@@ -1862,11 +1858,11 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
     if (contains(arg0, "self."))
         arg0 = replace(arg0, "self", State.CurrentMethodObject);
 
-    if (variableExists(arg0))
+    if (mem.variableExists(arg0))
     {
         initializeVariable(arg0, arg1, arg2, s, command);
     }
-    else if (listExists(arg0) || listExists(beforeBrackets(arg0)))
+    else if (mem.listExists(arg0) || mem.listExists(beforeBrackets(arg0)))
     {
         initializeListValues(arg0, arg1, arg2, s, command);
     }
@@ -1874,19 +1870,19 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
     {
         if (startsWith(arg0, "@") && zeroDots(arg0)) 
         {
-            createGlobalVariable(arg0, arg1, arg2, s, command);
+            initializeGlobalVariable(arg0, arg1, arg2, s, command);
         }
         else if (startsWith(arg0, "@") && !zeroDots(arg2)) 
         {
-            createObjectVariable(arg0, arg1, arg2, s, command);
+            initializeObjectVariable(arg0, arg1, arg2, s, command);
         }
-        else if (!objectExists(arg0) && objectExists(arg2))
+        else if (!mem.objectExists(arg0) && mem.objectExists(arg2))
         {
             copyObject(arg0, arg1, arg2, s, command);
         }
         else if (isUpperConstant(arg0))
         {
-            createConstant(arg0, arg1, arg2, s, command);
+            initializeConstant(arg0, arg1, arg2, s, command);
         }
         else
         {
@@ -1902,18 +1898,18 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
     if (arg0 == "object")
     {
-        if (objectExists(arg1))
+        if (mem.objectExists(arg1))
         {
             State.DefiningObject = true;
             State.CurrentObject = arg1;
         }
         else
         {
-            if (objectExists(arg3))
+            if (mem.objectExists(arg3))
             {
                 if (arg2 == "=")
                 {
-                    vector<Method> objectMethods = getObject(arg3).getMethods();
+                    vector<Method> objectMethods = mem.getObject(arg3).getMethods();
                     Object newObject(arg1);
 
                     for (int i = 0; i < (int)objectMethods.size(); i++)
@@ -1938,18 +1934,18 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
     }
     else if (arg0 == "unless")
     {
-        if (listExists(arg3))
+        if (mem.listExists(arg3))
         {
             if (arg2 == "in")
             {
                 string testString("[none]");
 
-                if (variableExists(arg1))
+                if (mem.variableExists(arg1))
                 {
-                    if (isString(arg1))
-                        testString = varString(arg1);
-                    else if (isNumber(arg1))
-                        testString = dtos(varNumber(arg1));
+                    if (mem.isString(arg1))
+                        testString = mem.varString(arg1);
+                    else if (mem.isNumber(arg1))
+                        testString = dtos(mem.varNumber(arg1));
                     else
                         error(ErrorMessage::IS_NULL, arg1, false);
                 }
@@ -1959,9 +1955,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (testString != "[none]")
                 {
                     bool elementFound = false;
-                    for (int i = 0; i < (int)getList(arg3).size(); i++)
+                    for (int i = 0; i < (int)mem.getList(arg3).size(); i++)
                     {
-                        if (getList(arg3).at(i) == testString)
+                        if (mem.getList(arg3).at(i) == testString)
                         {
                             elementFound = true;
                             setFalseIf();
@@ -1977,69 +1973,69 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     setTrueIf();
             }
         }
-        else if (variableExists(arg1) && variableExists(arg3))
+        else if (mem.variableExists(arg1) && mem.variableExists(arg3))
         {
-            if (isString(arg1) && isString(arg3))
+            if (mem.isString(arg1) && mem.isString(arg3))
             {
                 if (arg2 == "==")
                 {
-                    if (varString(arg1) == varString(arg3))
+                    if (mem.varString(arg1) == mem.varString(arg3))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "!=")
                 {
-                    if (varString(arg1) != varString(arg3))
+                    if (mem.varString(arg1) != mem.varString(arg3))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == ">")
                 {
-                    if (varString(arg1).length() > varString(arg3).length())
+                    if (mem.varString(arg1).length() > mem.varString(arg3).length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "<")
                 {
-                    if (varString(arg1).length() < varString(arg3).length())
+                    if (mem.varString(arg1).length() < mem.varString(arg3).length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "<=")
                 {
-                    if (varString(arg1).length() <= varString(arg3).length())
+                    if (mem.varString(arg1).length() <= mem.varString(arg3).length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == ">=")
                 {
-                    if (varString(arg1).length() >= varString(arg3).length())
+                    if (mem.varString(arg1).length() >= mem.varString(arg3).length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "contains")
                 {
-                    if (contains(varString(arg1), varString(arg3)))
+                    if (contains(mem.varString(arg1), mem.varString(arg3)))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "ends_with")
                 {
-                    if (endsWith(varString(arg1), varString(arg3)))
+                    if (endsWith(mem.varString(arg1), mem.varString(arg3)))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "begins_with")
                 {
-                    if (startsWith(varString(arg1), varString(arg3)))
+                    if (startsWith(mem.varString(arg1), mem.varString(arg3)))
                         setFalseIf();
                     else
                         setTrueIf();
@@ -2050,46 +2046,46 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     setTrueIf();
                 }
             }
-            else if (isNumber(arg1) && isNumber(arg3))
+            else if (mem.isNumber(arg1) && mem.isNumber(arg3))
             {
                 if (arg2 == "==")
                 {
-                    if (varNumber(arg1) == varNumber(arg3))
+                    if (mem.varNumber(arg1) == mem.varNumber(arg3))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "!=")
                 {
-                    if (varNumber(arg1) != varNumber(arg3))
+                    if (mem.varNumber(arg1) != mem.varNumber(arg3))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == ">")
                 {
-                    if (varNumber(arg1) > varNumber(arg3))
+                    if (mem.varNumber(arg1) > mem.varNumber(arg3))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == ">=")
                 {
-                    if (varNumber(arg1) >= varNumber(arg3))
+                    if (mem.varNumber(arg1) >= mem.varNumber(arg3))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "<")
                 {
-                    if (varNumber(arg1) < varNumber(arg3))
+                    if (mem.varNumber(arg1) < mem.varNumber(arg3))
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "<=")
                 {
-                    if (varNumber(arg1) <= varNumber(arg3))
+                    if (mem.varNumber(arg1) <= mem.varNumber(arg3))
                         setFalseIf();
                     else
                         setTrueIf();
@@ -2106,50 +2102,50 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 setTrueIf();
             }
         }
-        else if ((variableExists(arg1) && !variableExists(arg3)) && !methodExists(arg3) && notObjectMethod(arg3) && !containsParams(arg3))
+        else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notObjectMethod(arg3) && !containsParams(arg3))
         {
-            if (isNumber(arg1))
+            if (mem.isNumber(arg1))
             {
                 if (isNumeric(arg3))
                 {
                     if (arg2 == "==")
                     {
-                        if (varNumber(arg1) == stod(arg3))
+                        if (mem.varNumber(arg1) == stod(arg3))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (varNumber(arg1) != stod(arg3))
+                        if (mem.varNumber(arg1) != stod(arg3))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (varNumber(arg1) > stod(arg3))
+                        if (mem.varNumber(arg1) > stod(arg3))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (varNumber(arg1) < stod(arg3))
+                        if (mem.varNumber(arg1) < stod(arg3))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (varNumber(arg1) >= stod(arg3))
+                        if (mem.varNumber(arg1) >= stod(arg3))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (varNumber(arg1) <= stod(arg3))
+                        if (mem.varNumber(arg1) <= stod(arg3))
                             setFalseIf();
                         else
                             setTrueIf();
@@ -2179,7 +2175,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (arg3 == "string?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
                         if (arg2 == "==")
                             setFalseIf();
@@ -2201,7 +2197,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (arg3 == "number?")
                 {
-                    if (isNumber(arg1))
+                    if (mem.isNumber(arg1))
                     {
                         if (arg2 == "==")
                             setFalseIf();
@@ -2223,18 +2219,18 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (arg3 == "uppercase?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
                         if (arg2 == "==")
                         {
-                            if (isUpper(varString(arg1)))
+                            if (isUpper(mem.varString(arg1)))
                                 setFalseIf();
                             else
                                 setTrueIf();
                         }
                         else if (arg2 == "!=")
                         {
-                            if (isUpper(varString(arg1)))
+                            if (isUpper(mem.varString(arg1)))
                                 setTrueIf();
                             else
                                 setFalseIf();
@@ -2260,18 +2256,18 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (arg3 == "lowercase?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
                         if (arg2 == "==")
                         {
-                            if (isLower(varString(arg1)))
+                            if (isLower(mem.varString(arg1)))
                                 setFalseIf();
                             else
                                 setTrueIf();
                         }
                         else if (arg2 == "!=")
                         {
-                            if (isLower(varString(arg1)))
+                            if (isLower(mem.varString(arg1)))
                                 setTrueIf();
                             else
                                 setFalseIf();
@@ -2297,9 +2293,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (arg3 == "file?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
-                        if (Env::fileExists(varString(arg1)))
+                        if (Env::fileExists(mem.varString(arg1)))
                         {
                             if (arg2 == "==")
                                 setFalseIf();
@@ -2327,9 +2323,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (arg3 == "directory?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
-                        if (Env::directoryExists(varString(arg1)))
+                        if (Env::directoryExists(mem.varString(arg1)))
                         {
                             if (arg2 == "==")
                                 setFalseIf();
@@ -2359,63 +2355,63 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (arg2 == "==")
                     {
-                        if (varString(arg1) == arg3)
+                        if (mem.varString(arg1) == arg3)
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (varString(arg1) != arg3)
+                        if (mem.varString(arg1) != arg3)
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (varString(arg1).length() > arg3.length())
+                        if (mem.varString(arg1).length() > arg3.length())
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (varString(arg1).length() < arg3.length())
+                        if (mem.varString(arg1).length() < arg3.length())
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (varString(arg1).length() >= arg3.length())
+                        if (mem.varString(arg1).length() >= arg3.length())
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (varString(arg1).length() <= arg3.length())
+                        if (mem.varString(arg1).length() <= arg3.length())
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "contains")
                     {
-                        if (contains(varString(arg1), arg3))
+                        if (contains(mem.varString(arg1), arg3))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "ends_with")
                     {
-                        if (endsWith(varString(arg1), arg3))
+                        if (endsWith(mem.varString(arg1), arg3))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "begins_with")
                     {
-                        if (startsWith(varString(arg1), arg3))
+                        if (startsWith(mem.varString(arg1), arg3))
                             setFalseIf();
                         else
                             setTrueIf();
@@ -2428,7 +2424,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
             }
         }
-        else if ((variableExists(arg1) && !variableExists(arg3)) && !methodExists(arg3) && notObjectMethod(arg3) && containsParams(arg3))
+        else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notObjectMethod(arg3) && containsParams(arg3))
         {
             string stackValue("");
 
@@ -2439,48 +2435,48 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             else
                 stackValue = arg3;
 
-            if (isNumber(arg1))
+            if (mem.isNumber(arg1))
             {
                 if (isNumeric(stackValue))
                 {
                     if (arg2 == "==")
                     {
-                        if (varNumber(arg1) == stod(stackValue))
+                        if (mem.varNumber(arg1) == stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (varNumber(arg1) != stod(stackValue))
+                        if (mem.varNumber(arg1) != stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (varNumber(arg1) > stod(stackValue))
+                        if (mem.varNumber(arg1) > stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (varNumber(arg1) < stod(stackValue))
+                        if (mem.varNumber(arg1) < stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (varNumber(arg1) >= stod(stackValue))
+                        if (mem.varNumber(arg1) >= stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (varNumber(arg1) <= stod(stackValue))
+                        if (mem.varNumber(arg1) <= stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
@@ -2510,7 +2506,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (stackValue == "string?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
                         if (arg2 == "==")
                             setFalseIf();
@@ -2532,7 +2528,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (stackValue == "number?")
                 {
-                    if (isNumber(arg1))
+                    if (mem.isNumber(arg1))
                     {
                         if (arg2 == "==")
                             setFalseIf();
@@ -2554,18 +2550,18 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (stackValue == "uppercase?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
                         if (arg2 == "==")
                         {
-                            if (isUpper(varString(arg1)))
+                            if (isUpper(mem.varString(arg1)))
                                 setFalseIf();
                             else
                                 setTrueIf();
                         }
                         else if (arg2 == "!=")
                         {
-                            if (isUpper(varString(arg1)))
+                            if (isUpper(mem.varString(arg1)))
                                 setTrueIf();
                             else
                                 setFalseIf();
@@ -2591,18 +2587,18 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (stackValue == "lowercase?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
                         if (arg2 == "==")
                         {
-                            if (isLower(varString(arg1)))
+                            if (isLower(mem.varString(arg1)))
                                 setFalseIf();
                             else
                                 setTrueIf();
                         }
                         else if (arg2 == "!=")
                         {
-                            if (isLower(varString(arg1)))
+                            if (isLower(mem.varString(arg1)))
                                 setTrueIf();
                             else
                                 setFalseIf();
@@ -2628,9 +2624,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (stackValue == "file?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
-                        if (Env::fileExists(varString(arg1)))
+                        if (Env::fileExists(mem.varString(arg1)))
                         {
                             if (arg2 == "==")
                                 setFalseIf();
@@ -2658,9 +2654,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (stackValue == "directory?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
-                        if (Env::directoryExists(varString(arg1)))
+                        if (Env::directoryExists(mem.varString(arg1)))
                         {
                             if (arg2 == "==")
                                 setFalseIf();
@@ -2690,63 +2686,63 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (arg2 == "==")
                     {
-                        if (varString(arg1) == stackValue)
+                        if (mem.varString(arg1) == stackValue)
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (varString(arg1) != stackValue)
+                        if (mem.varString(arg1) != stackValue)
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (varString(arg1).length() > stackValue.length())
+                        if (mem.varString(arg1).length() > stackValue.length())
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (varString(arg1).length() < stackValue.length())
+                        if (mem.varString(arg1).length() < stackValue.length())
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (varString(arg1).length() >= stackValue.length())
+                        if (mem.varString(arg1).length() >= stackValue.length())
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (varString(arg1).length() <= stackValue.length())
+                        if (mem.varString(arg1).length() <= stackValue.length())
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "contains")
                     {
-                        if (contains(varString(arg1), stackValue))
+                        if (contains(mem.varString(arg1), stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "ends_with")
                     {
-                        if (endsWith(varString(arg1), stackValue))
+                        if (endsWith(mem.varString(arg1), stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "begins_with")
                     {
-                        if (startsWith(varString(arg1), stackValue))
+                        if (startsWith(mem.varString(arg1), stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
@@ -2759,50 +2755,50 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
             }
         }
-        else if ((!variableExists(arg1) && variableExists(arg3)) && !methodExists(arg1) && notObjectMethod(arg1) && !containsParams(arg1))
+        else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notObjectMethod(arg1) && !containsParams(arg1))
         {
-            if (isNumber(arg3))
+            if (mem.isNumber(arg3))
             {
                 if (isNumeric(arg1))
                 {
                     if (arg2 == "==")
                     {
-                        if (varNumber(arg3) == stod(arg1))
+                        if (mem.varNumber(arg3) == stod(arg1))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (varNumber(arg3) != stod(arg1))
+                        if (mem.varNumber(arg3) != stod(arg1))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (varNumber(arg3) > stod(arg1))
+                        if (mem.varNumber(arg3) > stod(arg1))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (varNumber(arg3) < stod(arg1))
+                        if (mem.varNumber(arg3) < stod(arg1))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (varNumber(arg3) >= stod(arg1))
+                        if (mem.varNumber(arg3) >= stod(arg1))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (varNumber(arg3) <= stod(arg1))
+                        if (mem.varNumber(arg3) <= stod(arg1))
                             setFalseIf();
                         else
                             setTrueIf();
@@ -2823,42 +2819,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (arg2 == "==")
                 {
-                    if (varString(arg3) == arg1)
+                    if (mem.varString(arg3) == arg1)
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "!=")
                 {
-                    if (varString(arg3) != arg1)
+                    if (mem.varString(arg3) != arg1)
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == ">")
                 {
-                    if (varString(arg3).length() > arg1.length())
+                    if (mem.varString(arg3).length() > arg1.length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "<")
                 {
-                    if (varString(arg3).length() < arg1.length())
+                    if (mem.varString(arg3).length() < arg1.length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == ">=")
                 {
-                    if (varString(arg3).length() >= arg1.length())
+                    if (mem.varString(arg3).length() >= arg1.length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "<=")
                 {
-                    if (varString(arg3).length() <= arg1.length())
+                    if (mem.varString(arg3).length() <= arg1.length())
                         setFalseIf();
                     else
                         setTrueIf();
@@ -2870,7 +2866,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
             }
         }
-        else if ((!variableExists(arg1) && variableExists(arg3)) && !methodExists(arg1) && notObjectMethod(arg1) && containsParams(arg1))
+        else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notObjectMethod(arg1) && containsParams(arg1))
         {
             string stackValue("");
 
@@ -2881,48 +2877,48 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             else
                 stackValue = arg1;
 
-            if (isNumber(arg3))
+            if (mem.isNumber(arg3))
             {
                 if (isNumeric(stackValue))
                 {
                     if (arg2 == "==")
                     {
-                        if (varNumber(arg3) == stod(stackValue))
+                        if (mem.varNumber(arg3) == stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (varNumber(arg3) != stod(stackValue))
+                        if (mem.varNumber(arg3) != stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (varNumber(arg3) > stod(stackValue))
+                        if (mem.varNumber(arg3) > stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (varNumber(arg3) < stod(stackValue))
+                        if (mem.varNumber(arg3) < stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (varNumber(arg3) >= stod(stackValue))
+                        if (mem.varNumber(arg3) >= stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (varNumber(arg3) <= stod(stackValue))
+                        if (mem.varNumber(arg3) <= stod(stackValue))
                             setFalseIf();
                         else
                             setTrueIf();
@@ -2943,42 +2939,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (arg2 == "==")
                 {
-                    if (varString(arg3) == stackValue)
+                    if (mem.varString(arg3) == stackValue)
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "!=")
                 {
-                    if (varString(arg3) != stackValue)
+                    if (mem.varString(arg3) != stackValue)
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == ">")
                 {
-                    if (varString(arg3).length() > stackValue.length())
+                    if (mem.varString(arg3).length() > stackValue.length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "<")
                 {
-                    if (varString(arg3).length() < stackValue.length())
+                    if (mem.varString(arg3).length() < stackValue.length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == ">=")
                 {
-                    if (varString(arg3).length() >= stackValue.length())
+                    if (mem.varString(arg3).length() >= stackValue.length())
                         setFalseIf();
                     else
                         setTrueIf();
                 }
                 else if (arg2 == "<=")
                 {
-                    if (varString(arg3).length() <= stackValue.length())
+                    if (mem.varString(arg3).length() <= stackValue.length())
                         setFalseIf();
                     else
                         setTrueIf();
@@ -3001,15 +2997,15 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     string arg1Result(""), arg3Result("");
 
-                    if (objectExists(arg1before) && objectExists(arg3before))
+                    if (mem.objectExists(arg1before) && mem.objectExists(arg3before))
                     {
-                        if (getObject(arg1before).methodExists(beforeParams(arg1after)))
-                            executeTemplate(getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getObject(arg1before).methodExists(beforeParams(arg1after)))
+                            executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
-                        if (getObject(arg3before).methodExists(beforeParams(arg3after)))
-                            executeTemplate(getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getObject(arg3before).methodExists(beforeParams(arg3after)))
+                            executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
@@ -3088,10 +3084,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        if (!objectExists(arg1before))
+                        if (!mem.objectExists(arg1before))
                             error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
 
-                        if (!objectExists(arg3before))
+                        if (!mem.objectExists(arg3before))
                             error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
 
                         setTrueIf();
@@ -3103,15 +3099,15 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     string arg1Result(""), arg3Result("");
 
-                    if (objectExists(arg1before))
+                    if (mem.objectExists(arg1before))
                     {
-                        if (getObject(arg1before).methodExists(beforeParams(arg1after)))
-                            executeTemplate(getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getObject(arg1before).methodExists(beforeParams(arg1after)))
+                            executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
-                        if (methodExists(beforeParams(arg3)))
-                            executeTemplate(getMethod(beforeParams(arg3)), getParams(arg3));
+                        if (mem.methodExists(beforeParams(arg3)))
+                            executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
 
                         arg3Result = State.LastValue;
 
@@ -3200,15 +3196,15 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     string arg1Result(""), arg3Result("");
 
-                    if (objectExists(arg3before))
+                    if (mem.objectExists(arg3before))
                     {
-                        if (getObject(arg3before).methodExists(beforeParams(arg3after)))
-                            executeTemplate(getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getObject(arg3before).methodExists(beforeParams(arg3after)))
+                            executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
-                        if (methodExists(beforeParams(arg1)))
-                            executeTemplate(getMethod(beforeParams(arg1)), getParams(arg1));
+                        if (mem.methodExists(beforeParams(arg1)))
+                            executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
 
                         arg1Result = State.LastValue;
 
@@ -3295,13 +3291,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     string arg1Result(""), arg3Result("");
 
-                    if (methodExists(beforeParams(arg1)))
-                        executeTemplate(getMethod(beforeParams(arg1)), getParams(arg1));
+                    if (mem.methodExists(beforeParams(arg1)))
+                        executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
 
                     arg1Result = State.LastValue;
 
-                    if (methodExists(beforeParams(arg3)))
-                        executeTemplate(getMethod(beforeParams(arg3)), getParams(arg3));
+                    if (mem.methodExists(beforeParams(arg3)))
+                        executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
 
                     arg3Result = State.LastValue;
 
@@ -3387,23 +3383,23 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                 if (zeroDots(arg1))
                 {
-                    if (methodExists(beforeParams(arg1)))
+                    if (mem.methodExists(beforeParams(arg1)))
                     {
-                        executeTemplate(getMethod(beforeParams(arg1)), getParams(arg1));
+                        executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
 
                         arg1Result = State.LastValue;
 
-                        if (methodExists(arg3))
+                        if (mem.methodExists(arg3))
                         {
                             parse(arg3);
                             arg3Result = State.LastValue;
                         }
-                        else if (variableExists(arg3))
+                        else if (mem.variableExists(arg3))
                         {
-                            if (isString(arg3))
-                                arg3Result = varString(arg3);
-                            else if (isNumber(arg3))
-                                arg3Result = dtos(varNumber(arg3));
+                            if (mem.isString(arg3))
+                                arg3Result = mem.varString(arg3);
+                            else if (mem.isNumber(arg3))
+                                arg3Result = dtos(mem.varNumber(arg3));
                             else
                             {
                                 pass = false;
@@ -3502,19 +3498,19 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     string arg1before(beforeDot(arg1)), arg1after(afterDot(arg1));
 
-                    if (objectExists(arg1before))
+                    if (mem.objectExists(arg1before))
                     {
-                        if (getObject(arg1before).methodExists(beforeParams(arg1after)))
-                            executeTemplate(getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getObject(arg1before).methodExists(beforeParams(arg1after)))
+                            executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
-                        if (variableExists(arg3))
+                        if (mem.variableExists(arg3))
                         {
-                            if (isString(arg3))
-                                arg3Result = varString(arg3);
-                            else if (isNumber(arg3))
-                                arg3Result = dtos(varNumber(arg3));
+                            if (mem.isString(arg3))
+                                arg3Result = mem.varString(arg3);
+                            else if (mem.isNumber(arg3))
+                                arg3Result = dtos(mem.varNumber(arg3));
                             else
                             {
                                 pass = false;
@@ -3522,7 +3518,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 setTrueIf();
                             }
                         }
-                        else if (methodExists(arg3))
+                        else if (mem.methodExists(arg3))
                         {
                             parse(arg3);
 
@@ -3622,23 +3618,23 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                 if (zeroDots(arg3))
                 {
-                    if (methodExists(beforeParams(arg3)))
+                    if (mem.methodExists(beforeParams(arg3)))
                     {
-                        executeTemplate(getMethod(beforeParams(arg3)), getParams(arg3));
+                        executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
 
                         arg3Result = State.LastValue;
 
-                        if (methodExists(arg1))
+                        if (mem.methodExists(arg1))
                         {
                             parse(arg1);
                             arg1Result = State.LastValue;
                         }
-                        else if (variableExists(arg1))
+                        else if (mem.variableExists(arg1))
                         {
-                            if (isString(arg1))
-                                arg1Result = varString(arg1);
-                            else if (isNumber(arg1))
-                                arg1Result = dtos(varNumber(arg1));
+                            if (mem.isString(arg1))
+                                arg1Result = mem.varString(arg1);
+                            else if (mem.isNumber(arg1))
+                                arg1Result = dtos(mem.varNumber(arg1));
                             else
                             {
                                 pass = false;
@@ -3735,26 +3731,26 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     string arg3before(beforeDot(arg3)), arg3after(afterDot(arg3));
 
-                    if (objectExists(arg3before))
+                    if (mem.objectExists(arg3before))
                     {
-                        if (getObject(arg3before).methodExists(beforeParams(arg3after)))
-                            executeTemplate(getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getObject(arg3before).methodExists(beforeParams(arg3after)))
+                            executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
-                        if (variableExists(arg1))
+                        if (mem.variableExists(arg1))
                         {
-                            if (isString(arg1))
-                                arg1Result = varString(arg1);
-                            else if (isNumber(arg3))
-                                arg1Result = dtos(varNumber(arg1));
+                            if (mem.isString(arg1))
+                                arg1Result = mem.varString(arg1);
+                            else if (mem.isNumber(arg3))
+                                arg1Result = dtos(mem.varNumber(arg1));
                             else
                             {
                                 error(ErrorMessage::IS_NULL, arg1, false);
                                 setTrueIf();
                             }
                         }
-                        else if (methodExists(arg1))
+                        else if (mem.methodExists(arg1))
                         {
                             parse(arg1);
 
@@ -3844,21 +3840,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
             }
         }
-        else if ((methodExists(arg1) && arg3 != "method?")|| methodExists(arg3))
+        else if ((mem.methodExists(arg1) && arg3 != "method?")|| mem.methodExists(arg3))
         {
             string arg1Result(""), arg3Result("");
 
-            if (methodExists(arg1))
+            if (mem.methodExists(arg1))
             {
                 parse(arg1);
                 arg1Result = State.LastValue;
             }
-            else if (variableExists(arg1))
+            else if (mem.variableExists(arg1))
             {
-                if (isString(arg1))
-                    arg1Result = varString(arg1);
-                else if (isNumber(arg1))
-                    arg1Result = dtos(varNumber(arg1));
+                if (mem.isString(arg1))
+                    arg1Result = mem.varString(arg1);
+                else if (mem.isNumber(arg1))
+                    arg1Result = dtos(mem.varNumber(arg1));
                 else
                 {
                     error(ErrorMessage::IS_NULL, arg1, false);
@@ -3868,17 +3864,17 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             else
                 arg1Result = arg1;
 
-            if (methodExists(arg3))
+            if (mem.methodExists(arg3))
             {
                 parse(arg3);
                 arg3Result = State.LastValue;
             }
-            else if (variableExists(arg3))
+            else if (mem.variableExists(arg3))
             {
-                if (isString(arg3))
-                    arg3Result = varString(arg3);
-                else if (isNumber(arg3))
-                    arg3Result = dtos(varNumber(arg3));
+                if (mem.isString(arg3))
+                    arg3Result = mem.varString(arg3);
+                else if (mem.isNumber(arg3))
+                    arg3Result = dtos(mem.varNumber(arg3));
                 else
                 {
                     error(ErrorMessage::IS_NULL, arg3, false);
@@ -3965,7 +3961,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
         {
             if (arg3 == "object?")
             {
-                if (objectExists(arg1))
+                if (mem.objectExists(arg1))
                 {
                     if (arg2 == "==")
                         setFalseIf();
@@ -3992,7 +3988,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             }
             else if (arg3 == "variable?")
             {
-                if (variableExists(arg1))
+                if (mem.variableExists(arg1))
                 {
                     if (arg2 == "==")
                         setFalseIf();
@@ -4019,7 +4015,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             }
             else if (arg3 == "method?")
             {
-                if (methodExists(arg1))
+                if (mem.methodExists(arg1))
                 {
                     if (arg2 == "==")
                         setFalseIf();
@@ -4046,7 +4042,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             }
             else if (arg3 == "list?")
             {
-                if (listExists(arg1))
+                if (mem.listExists(arg1))
                 {
                     if (arg2 == "==")
                         setFalseIf();
@@ -4179,18 +4175,18 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
     }
     else if (arg0 == "if")
     {
-        if (listExists(arg3))
+        if (mem.listExists(arg3))
         {
             if (arg2 == "in")
             {
                 string testString("[none]");
 
-                if (variableExists(arg1))
+                if (mem.variableExists(arg1))
                 {
-                    if (isString(arg1))
-                        testString = varString(arg1);
-                    else if (isNumber(arg1))
-                        testString = dtos(varNumber(arg1));
+                    if (mem.isString(arg1))
+                        testString = mem.varString(arg1);
+                    else if (mem.isNumber(arg1))
+                        testString = dtos(mem.varNumber(arg1));
                     else
                         error(ErrorMessage::IS_NULL, arg1, false);
                 }
@@ -4200,9 +4196,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (testString != "[none]")
                 {
                     bool elementFound = false;
-                    for (int i = 0; i < (int)getList(arg3).size(); i++)
+                    for (int i = 0; i < (int)mem.getList(arg3).size(); i++)
                     {
-                        if (getList(arg3).at(i) == testString)
+                        if (mem.getList(arg3).at(i) == testString)
                         {
                             elementFound = true;
                             setTrueIf();
@@ -4218,18 +4214,18 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     setFalseIf();
             }
         }
-        else if (listExists(arg1) && arg3 != "list?")
+        else if (mem.listExists(arg1) && arg3 != "list?")
         {
             if (arg2 == "contains")
             {
                 string testString("[none]");
 
-                if (variableExists(arg3))
+                if (mem.variableExists(arg3))
                 {
-                    if (isString(arg3))
-                        testString = varString(arg3);
-                    else if (isNumber(arg3))
-                        testString = dtos(varNumber(arg3));
+                    if (mem.isString(arg3))
+                        testString = mem.varString(arg3);
+                    else if (mem.isNumber(arg3))
+                        testString = dtos(mem.varNumber(arg3));
                     else
                         error(ErrorMessage::IS_NULL, arg3, false);
                 }
@@ -4239,9 +4235,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (testString != "[none]")
                 {
                     bool elementFound = false;
-                    for (int i = 0; i < (int)getList(arg1).size(); i++)
+                    for (int i = 0; i < (int)mem.getList(arg1).size(); i++)
                     {
-                        if (getList(arg1).at(i) == testString)
+                        if (mem.getList(arg1).at(i) == testString)
                         {
                             elementFound = true;
                             setTrueIf();
@@ -4257,69 +4253,69 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     setFalseIf();
             }
         }
-        else if (variableExists(arg1) && variableExists(arg3))
+        else if (mem.variableExists(arg1) && mem.variableExists(arg3))
         {
-            if (isString(arg1) && isString(arg3))
+            if (mem.isString(arg1) && mem.isString(arg3))
             {
                 if (arg2 == "==")
                 {
-                    if (varString(arg1) == varString(arg3))
+                    if (mem.varString(arg1) == mem.varString(arg3))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "!=")
                 {
-                    if (varString(arg1) != varString(arg3))
+                    if (mem.varString(arg1) != mem.varString(arg3))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == ">")
                 {
-                    if (varString(arg1).length() > varString(arg3).length())
+                    if (mem.varString(arg1).length() > mem.varString(arg3).length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "<")
                 {
-                    if (varString(arg1).length() < varString(arg3).length())
+                    if (mem.varString(arg1).length() < mem.varString(arg3).length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "<=")
                 {
-                    if (varString(arg1).length() <= varString(arg3).length())
+                    if (mem.varString(arg1).length() <= mem.varString(arg3).length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == ">=")
                 {
-                    if (varString(arg1).length() >= varString(arg3).length())
+                    if (mem.varString(arg1).length() >= mem.varString(arg3).length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "contains")
                 {
-                    if (contains(varString(arg1), varString(arg3)))
+                    if (contains(mem.varString(arg1), mem.varString(arg3)))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "ends_with")
                 {
-                    if (endsWith(varString(arg1), varString(arg3)))
+                    if (endsWith(mem.varString(arg1), mem.varString(arg3)))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "begins_with")
                 {
-                    if (startsWith(varString(arg1), varString(arg3)))
+                    if (startsWith(mem.varString(arg1), mem.varString(arg3)))
                         setTrueIf();
                     else
                         setFalseIf();
@@ -4330,46 +4326,46 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     setFalseIf();
                 }
             }
-            else if (isNumber(arg1) && isNumber(arg3))
+            else if (mem.isNumber(arg1) && mem.isNumber(arg3))
             {
                 if (arg2 == "==")
                 {
-                    if (varNumber(arg1) == varNumber(arg3))
+                    if (mem.varNumber(arg1) == mem.varNumber(arg3))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "!=")
                 {
-                    if (varNumber(arg1) != varNumber(arg3))
+                    if (mem.varNumber(arg1) != mem.varNumber(arg3))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == ">")
                 {
-                    if (varNumber(arg1) > varNumber(arg3))
+                    if (mem.varNumber(arg1) > mem.varNumber(arg3))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == ">=")
                 {
-                    if (varNumber(arg1) >= varNumber(arg3))
+                    if (mem.varNumber(arg1) >= mem.varNumber(arg3))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "<")
                 {
-                    if (varNumber(arg1) < varNumber(arg3))
+                    if (mem.varNumber(arg1) < mem.varNumber(arg3))
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "<=")
                 {
-                    if (varNumber(arg1) <= varNumber(arg3))
+                    if (mem.varNumber(arg1) <= mem.varNumber(arg3))
                         setTrueIf();
                     else
                         setFalseIf();
@@ -4386,50 +4382,50 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 setFalseIf();
             }
         }
-        else if ((variableExists(arg1) && !variableExists(arg3)) && !methodExists(arg3) && notObjectMethod(arg3) && !containsParams(arg3))
+        else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notObjectMethod(arg3) && !containsParams(arg3))
         {
-            if (isNumber(arg1))
+            if (mem.isNumber(arg1))
             {
                 if (isNumeric(arg3))
                 {
                     if (arg2 == "==")
                     {
-                        if (varNumber(arg1) == stod(arg3))
+                        if (mem.varNumber(arg1) == stod(arg3))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (varNumber(arg1) != stod(arg3))
+                        if (mem.varNumber(arg1) != stod(arg3))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (varNumber(arg1) > stod(arg3))
+                        if (mem.varNumber(arg1) > stod(arg3))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (varNumber(arg1) < stod(arg3))
+                        if (mem.varNumber(arg1) < stod(arg3))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (varNumber(arg1) >= stod(arg3))
+                        if (mem.varNumber(arg1) >= stod(arg3))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (varNumber(arg1) <= stod(arg3))
+                        if (mem.varNumber(arg1) <= stod(arg3))
                             setTrueIf();
                         else
                             setFalseIf();
@@ -4459,7 +4455,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (arg3 == "string?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
                         if (arg2 == "==")
                             setTrueIf();
@@ -4481,7 +4477,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (arg3 == "number?")
                 {
-                    if (isNumber(arg1))
+                    if (mem.isNumber(arg1))
                     {
                         if (arg2 == "==")
                             setTrueIf();
@@ -4503,18 +4499,18 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (arg3 == "uppercase?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
                         if (arg2 == "==")
                         {
-                            if (isUpper(varString(arg1)))
+                            if (isUpper(mem.varString(arg1)))
                                 setTrueIf();
                             else
                                 setFalseIf();
                         }
                         else if (arg2 == "!=")
                         {
-                            if (isUpper(varString(arg1)))
+                            if (isUpper(mem.varString(arg1)))
                                 setFalseIf();
                             else
                                 setTrueIf();
@@ -4540,18 +4536,18 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (arg3 == "lowercase?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
                         if (arg2 == "==")
                         {
-                            if (isLower(varString(arg1)))
+                            if (isLower(mem.varString(arg1)))
                                 setTrueIf();
                             else
                                 setFalseIf();
                         }
                         else if (arg2 == "!=")
                         {
-                            if (isLower(varString(arg1)))
+                            if (isLower(mem.varString(arg1)))
                                 setFalseIf();
                             else
                                 setTrueIf();
@@ -4577,9 +4573,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (arg3 == "file?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
-                        if (Env::fileExists(varString(arg1)))
+                        if (Env::fileExists(mem.varString(arg1)))
                         {
                             if (arg2 == "==")
                                 setTrueIf();
@@ -4607,9 +4603,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (arg3 == "dir?" || arg3 == "directory?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
-                        if (Env::directoryExists(varString(arg1)))
+                        if (Env::directoryExists(mem.varString(arg1)))
                         {
                             if (arg2 == "==")
                                 setTrueIf();
@@ -4639,63 +4635,63 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (arg2 == "==")
                     {
-                        if (varString(arg1) == arg3)
+                        if (mem.varString(arg1) == arg3)
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (varString(arg1) != arg3)
+                        if (mem.varString(arg1) != arg3)
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (varString(arg1).length() > arg3.length())
+                        if (mem.varString(arg1).length() > arg3.length())
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (varString(arg1).length() < arg3.length())
+                        if (mem.varString(arg1).length() < arg3.length())
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (varString(arg1).length() >= arg3.length())
+                        if (mem.varString(arg1).length() >= arg3.length())
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (varString(arg1).length() <= arg3.length())
+                        if (mem.varString(arg1).length() <= arg3.length())
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "contains")
                     {
-                        if (contains(varString(arg1), arg3))
+                        if (contains(mem.varString(arg1), arg3))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "ends_with")
                     {
-                        if (endsWith(varString(arg1), arg3))
+                        if (endsWith(mem.varString(arg1), arg3))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "begins_with")
                     {
-                        if (startsWith(varString(arg1), arg3))
+                        if (startsWith(mem.varString(arg1), arg3))
                             setTrueIf();
                         else
                             setFalseIf();
@@ -4708,7 +4704,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
             }
         }
-        else if ((variableExists(arg1) && !variableExists(arg3)) && !methodExists(arg3) && notObjectMethod(arg3) && containsParams(arg3))
+        else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notObjectMethod(arg3) && containsParams(arg3))
         {
             string stackValue("");
 
@@ -4719,48 +4715,48 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             else
                 stackValue = arg3;
 
-            if (isNumber(arg1))
+            if (mem.isNumber(arg1))
             {
                 if (isNumeric(stackValue))
                 {
                     if (arg2 == "==")
                     {
-                        if (varNumber(arg1) == stod(stackValue))
+                        if (mem.varNumber(arg1) == stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (varNumber(arg1) != stod(stackValue))
+                        if (mem.varNumber(arg1) != stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (varNumber(arg1) > stod(stackValue))
+                        if (mem.varNumber(arg1) > stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (varNumber(arg1) < stod(stackValue))
+                        if (mem.varNumber(arg1) < stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (varNumber(arg1) >= stod(stackValue))
+                        if (mem.varNumber(arg1) >= stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (varNumber(arg1) <= stod(stackValue))
+                        if (mem.varNumber(arg1) <= stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
@@ -4790,7 +4786,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (stackValue == "string?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
                         if (arg2 == "==")
                             setTrueIf();
@@ -4812,7 +4808,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (stackValue == "number?")
                 {
-                    if (isNumber(arg1))
+                    if (mem.isNumber(arg1))
                     {
                         if (arg2 == "==")
                             setTrueIf();
@@ -4834,18 +4830,18 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (stackValue == "uppercase?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
                         if (arg2 == "==")
                         {
-                            if (isUpper(varString(arg1)))
+                            if (isUpper(mem.varString(arg1)))
                                 setTrueIf();
                             else
                                 setFalseIf();
                         }
                         else if (arg2 == "!=")
                         {
-                            if (isUpper(varString(arg1)))
+                            if (isUpper(mem.varString(arg1)))
                                 setFalseIf();
                             else
                                 setTrueIf();
@@ -4871,18 +4867,18 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (stackValue == "lower?" || stackValue == "lowercase?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
                         if (arg2 == "==")
                         {
-                            if (isLower(varString(arg1)))
+                            if (isLower(mem.varString(arg1)))
                                 setTrueIf();
                             else
                                 setFalseIf();
                         }
                         else if (arg2 == "!=")
                         {
-                            if (isLower(varString(arg1)))
+                            if (isLower(mem.varString(arg1)))
                                 setFalseIf();
                             else
                                 setTrueIf();
@@ -4908,9 +4904,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (stackValue == "file?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
-                        if (Env::fileExists(varString(arg1)))
+                        if (Env::fileExists(mem.varString(arg1)))
                         {
                             if (arg2 == "==")
                                 setTrueIf();
@@ -4938,9 +4934,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else if (stackValue == "directory?")
                 {
-                    if (isString(arg1))
+                    if (mem.isString(arg1))
                     {
-                        if (Env::directoryExists(varString(arg1)))
+                        if (Env::directoryExists(mem.varString(arg1)))
                         {
                             if (arg2 == "==")
                                 setTrueIf();
@@ -4970,63 +4966,63 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (arg2 == "==")
                     {
-                        if (varString(arg1) == stackValue)
+                        if (mem.varString(arg1) == stackValue)
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (varString(arg1) != stackValue)
+                        if (mem.varString(arg1) != stackValue)
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (varString(arg1).length() > stackValue.length())
+                        if (mem.varString(arg1).length() > stackValue.length())
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (varString(arg1).length() < stackValue.length())
+                        if (mem.varString(arg1).length() < stackValue.length())
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (varString(arg1).length() >= stackValue.length())
+                        if (mem.varString(arg1).length() >= stackValue.length())
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (varString(arg1).length() <= stackValue.length())
+                        if (mem.varString(arg1).length() <= stackValue.length())
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "contains")
                     {
-                        if (contains(varString(arg1), stackValue))
+                        if (contains(mem.varString(arg1), stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "ends_with")
                     {
-                        if (endsWith(varString(arg1), stackValue))
+                        if (endsWith(mem.varString(arg1), stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "begins_with")
                     {
-                        if (startsWith(varString(arg1), stackValue))
+                        if (startsWith(mem.varString(arg1), stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
@@ -5039,50 +5035,50 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
             }
         }
-        else if ((!variableExists(arg1) && variableExists(arg3)) && !methodExists(arg1) && notObjectMethod(arg1) && !containsParams(arg1))
+        else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notObjectMethod(arg1) && !containsParams(arg1))
         {
-            if (isNumber(arg3))
+            if (mem.isNumber(arg3))
             {
                 if (isNumeric(arg1))
                 {
                     if (arg2 == "==")
                     {
-                        if (varNumber(arg3) == stod(arg1))
+                        if (mem.varNumber(arg3) == stod(arg1))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (varNumber(arg3) != stod(arg1))
+                        if (mem.varNumber(arg3) != stod(arg1))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (varNumber(arg3) > stod(arg1))
+                        if (mem.varNumber(arg3) > stod(arg1))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (varNumber(arg3) < stod(arg1))
+                        if (mem.varNumber(arg3) < stod(arg1))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (varNumber(arg3) >= stod(arg1))
+                        if (mem.varNumber(arg3) >= stod(arg1))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (varNumber(arg3) <= stod(arg1))
+                        if (mem.varNumber(arg3) <= stod(arg1))
                             setTrueIf();
                         else
                             setFalseIf();
@@ -5103,42 +5099,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (arg2 == "==")
                 {
-                    if (varString(arg3) == arg1)
+                    if (mem.varString(arg3) == arg1)
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "!=")
                 {
-                    if (varString(arg3) != arg1)
+                    if (mem.varString(arg3) != arg1)
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == ">")
                 {
-                    if (varString(arg3).length() > arg1.length())
+                    if (mem.varString(arg3).length() > arg1.length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "<")
                 {
-                    if (varString(arg3).length() < arg1.length())
+                    if (mem.varString(arg3).length() < arg1.length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == ">=")
                 {
-                    if (varString(arg3).length() >= arg1.length())
+                    if (mem.varString(arg3).length() >= arg1.length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "<=")
                 {
-                    if (varString(arg3).length() <= arg1.length())
+                    if (mem.varString(arg3).length() <= arg1.length())
                         setTrueIf();
                     else
                         setFalseIf();
@@ -5150,7 +5146,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
             }
         }
-        else if ((!variableExists(arg1) && variableExists(arg3)) && !methodExists(arg1) && notObjectMethod(arg1) && containsParams(arg1))
+        else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notObjectMethod(arg1) && containsParams(arg1))
         {
             string stackValue("");
 
@@ -5161,48 +5157,48 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             else
                 stackValue = arg1;
 
-            if (isNumber(arg3))
+            if (mem.isNumber(arg3))
             {
                 if (isNumeric(stackValue))
                 {
                     if (arg2 == "==")
                     {
-                        if (varNumber(arg3) == stod(stackValue))
+                        if (mem.varNumber(arg3) == stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "!=")
                     {
-                        if (varNumber(arg3) != stod(stackValue))
+                        if (mem.varNumber(arg3) != stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">")
                     {
-                        if (varNumber(arg3) > stod(stackValue))
+                        if (mem.varNumber(arg3) > stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<")
                     {
-                        if (varNumber(arg3) < stod(stackValue))
+                        if (mem.varNumber(arg3) < stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == ">=")
                     {
-                        if (varNumber(arg3) >= stod(stackValue))
+                        if (mem.varNumber(arg3) >= stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
                     }
                     else if (arg2 == "<=")
                     {
-                        if (varNumber(arg3) <= stod(stackValue))
+                        if (mem.varNumber(arg3) <= stod(stackValue))
                             setTrueIf();
                         else
                             setFalseIf();
@@ -5223,42 +5219,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             {
                 if (arg2 == "==")
                 {
-                    if (varString(arg3) == stackValue)
+                    if (mem.varString(arg3) == stackValue)
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "!=")
                 {
-                    if (varString(arg3) != stackValue)
+                    if (mem.varString(arg3) != stackValue)
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == ">")
                 {
-                    if (varString(arg3).length() > stackValue.length())
+                    if (mem.varString(arg3).length() > stackValue.length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "<")
                 {
-                    if (varString(arg3).length() < stackValue.length())
+                    if (mem.varString(arg3).length() < stackValue.length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == ">=")
                 {
-                    if (varString(arg3).length() >= stackValue.length())
+                    if (mem.varString(arg3).length() >= stackValue.length())
                         setTrueIf();
                     else
                         setFalseIf();
                 }
                 else if (arg2 == "<=")
                 {
-                    if (varString(arg3).length() <= stackValue.length())
+                    if (mem.varString(arg3).length() <= stackValue.length())
                         setTrueIf();
                     else
                         setFalseIf();
@@ -5281,15 +5277,15 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     string arg1Result(""), arg3Result("");
 
-                    if (objectExists(arg1before) && objectExists(arg3before))
+                    if (mem.objectExists(arg1before) && mem.objectExists(arg3before))
                     {
-                        if (getObject(arg1before).methodExists(beforeParams(arg1after)))
-                            executeTemplate(getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getObject(arg1before).methodExists(beforeParams(arg1after)))
+                            executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
-                        if (getObject(arg3before).methodExists(beforeParams(arg3after)))
-                            executeTemplate(getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getObject(arg3before).methodExists(beforeParams(arg3after)))
+                            executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
@@ -5368,10 +5364,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        if (!objectExists(arg1before))
+                        if (!mem.objectExists(arg1before))
                             error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
 
-                        if (!objectExists(arg3before))
+                        if (!mem.objectExists(arg3before))
                             error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
 
                         setFalseIf();
@@ -5383,15 +5379,15 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     string arg1Result(""), arg3Result("");
 
-                    if (objectExists(arg1before))
+                    if (mem.objectExists(arg1before))
                     {
-                        if (getObject(arg1before).methodExists(beforeParams(arg1after)))
-                            executeTemplate(getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getObject(arg1before).methodExists(beforeParams(arg1after)))
+                            executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
-                        if (methodExists(beforeParams(arg3)))
-                            executeTemplate(getMethod(beforeParams(arg3)), getParams(arg3));
+                        if (mem.methodExists(beforeParams(arg3)))
+                            executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
 
                         arg3Result = State.LastValue;
 
@@ -5480,15 +5476,15 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     string arg1Result(""), arg3Result("");
 
-                    if (objectExists(arg3before))
+                    if (mem.objectExists(arg3before))
                     {
-                        if (getObject(arg3before).methodExists(beforeParams(arg3after)))
-                            executeTemplate(getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getObject(arg3before).methodExists(beforeParams(arg3after)))
+                            executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
-                        if (methodExists(beforeParams(arg1)))
-                            executeTemplate(getMethod(beforeParams(arg1)), getParams(arg1));
+                        if (mem.methodExists(beforeParams(arg1)))
+                            executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
 
                         arg1Result = State.LastValue;
 
@@ -5575,13 +5571,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     string arg1Result(""), arg3Result("");
 
-                    if (methodExists(beforeParams(arg1)))
-                        executeTemplate(getMethod(beforeParams(arg1)), getParams(arg1));
+                    if (mem.methodExists(beforeParams(arg1)))
+                        executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
 
                     arg1Result = State.LastValue;
 
-                    if (methodExists(beforeParams(arg3)))
-                        executeTemplate(getMethod(beforeParams(arg3)), getParams(arg3));
+                    if (mem.methodExists(beforeParams(arg3)))
+                        executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
 
                     arg3Result = State.LastValue;
 
@@ -5667,23 +5663,23 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                 if (zeroDots(arg1))
                 {
-                    if (methodExists(beforeParams(arg1)))
+                    if (mem.methodExists(beforeParams(arg1)))
                     {
-                        executeTemplate(getMethod(beforeParams(arg1)), getParams(arg1));
+                        executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
 
                         arg1Result = State.LastValue;
 
-                        if (methodExists(arg3))
+                        if (mem.methodExists(arg3))
                         {
                             parse(arg3);
                             arg3Result = State.LastValue;
                         }
-                        else if (variableExists(arg3))
+                        else if (mem.variableExists(arg3))
                         {
-                            if (isString(arg3))
-                                arg3Result = varString(arg3);
-                            else if (isNumber(arg3))
-                                arg3Result = dtos(varNumber(arg3));
+                            if (mem.isString(arg3))
+                                arg3Result = mem.varString(arg3);
+                            else if (mem.isNumber(arg3))
+                                arg3Result = dtos(mem.varNumber(arg3));
                             else
                             {
                                 pass = false;
@@ -5783,14 +5779,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                         string comp("");
 
-                        if (variableExists(arg3))
+                        if (mem.variableExists(arg3))
                         {
-                            if (isString(arg3))
-                                comp = varString(arg3);
-                            else if (isNumber(arg3))
-                                comp = dtos(varNumber(arg3));
+                            if (mem.isString(arg3))
+                                comp = mem.varString(arg3);
+                            else if (mem.isNumber(arg3))
+                                comp = dtos(mem.varNumber(arg3));
                         }
-                        else if (methodExists(arg3))
+                        else if (mem.methodExists(arg3))
                         {
                             parse(arg3);
 
@@ -5798,7 +5794,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else if (containsParams(arg3))
                         {
-                            executeTemplate(getMethod(beforeParams(arg3)), getParams(arg3));
+                            executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
 
                             comp = State.LastValue;
                         }
@@ -5888,19 +5884,19 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     string arg1before(beforeDot(arg1)), arg1after(afterDot(arg1));
 
-                    if (objectExists(arg1before))
+                    if (mem.objectExists(arg1before))
                     {
-                        if (getObject(arg1before).methodExists(beforeParams(arg1after)))
-                            executeTemplate(getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getObject(arg1before).methodExists(beforeParams(arg1after)))
+                            executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
-                        if (variableExists(arg3))
+                        if (mem.variableExists(arg3))
                         {
-                            if (isString(arg3))
-                                arg3Result = varString(arg3);
-                            else if (isNumber(arg3))
-                                arg3Result = dtos(varNumber(arg3));
+                            if (mem.isString(arg3))
+                                arg3Result = mem.varString(arg3);
+                            else if (mem.isNumber(arg3))
+                                arg3Result = dtos(mem.varNumber(arg3));
                             else
                             {
                                 pass = false;
@@ -5908,7 +5904,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 setFalseIf();
                             }
                         }
-                        else if (methodExists(arg3))
+                        else if (mem.methodExists(arg3))
                         {
                             parse(arg3);
 
@@ -6008,23 +6004,23 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                 if (zeroDots(arg3))
                 {
-                    if (methodExists(beforeParams(arg3)))
+                    if (mem.methodExists(beforeParams(arg3)))
                     {
-                        executeTemplate(getMethod(beforeParams(arg3)), getParams(arg3));
+                        executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
 
                         arg3Result = State.LastValue;
 
-                        if (methodExists(arg1))
+                        if (mem.methodExists(arg1))
                         {
                             parse(arg1);
                             arg1Result = State.LastValue;
                         }
-                        else if (variableExists(arg1))
+                        else if (mem.variableExists(arg1))
                         {
-                            if (isString(arg1))
-                                arg1Result = varString(arg1);
-                            else if (isNumber(arg1))
-                                arg1Result = dtos(varNumber(arg1));
+                            if (mem.isString(arg1))
+                                arg1Result = mem.varString(arg1);
+                            else if (mem.isNumber(arg1))
+                                arg1Result = dtos(mem.varNumber(arg1));
                             else
                             {
                                 pass = false;
@@ -6121,26 +6117,26 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     string arg3before(beforeDot(arg3)), arg3after(afterDot(arg3));
 
-                    if (objectExists(arg3before))
+                    if (mem.objectExists(arg3before))
                     {
-                        if (getObject(arg3before).methodExists(beforeParams(arg3after)))
-                            executeTemplate(getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getObject(arg3before).methodExists(beforeParams(arg3after)))
+                            executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
-                        if (variableExists(arg1))
+                        if (mem.variableExists(arg1))
                         {
-                            if (isString(arg1))
-                                arg1Result = varString(arg1);
-                            else if (isNumber(arg3))
-                                arg1Result = dtos(varNumber(arg1));
+                            if (mem.isString(arg1))
+                                arg1Result = mem.varString(arg1);
+                            else if (mem.isNumber(arg3))
+                                arg1Result = dtos(mem.varNumber(arg1));
                             else
                             {
                                 error(ErrorMessage::IS_NULL, arg1, false);
                                 setFalseIf();
                             }
                         }
-                        else if (methodExists(arg1))
+                        else if (mem.methodExists(arg1))
                         {
                             parse(arg1);
 
@@ -6230,21 +6226,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
             }
         }
-        else if ((methodExists(arg1) && arg3 != "method?") || methodExists(arg3))
+        else if ((mem.methodExists(arg1) && arg3 != "method?") || mem.methodExists(arg3))
         {
             string arg1Result(""), arg3Result("");
 
-            if (methodExists(arg1))
+            if (mem.methodExists(arg1))
             {
                 parse(arg1);
                 arg1Result = State.LastValue;
             }
-            else if (variableExists(arg1))
+            else if (mem.variableExists(arg1))
             {
-                if (isString(arg1))
-                    arg1Result = varString(arg1);
-                else if (isNumber(arg1))
-                    arg1Result = dtos(varNumber(arg1));
+                if (mem.isString(arg1))
+                    arg1Result = mem.varString(arg1);
+                else if (mem.isNumber(arg1))
+                    arg1Result = dtos(mem.varNumber(arg1));
                 else
                 {
                     error(ErrorMessage::IS_NULL, arg1, false);
@@ -6254,17 +6250,17 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             else
                 arg1Result = arg1;
 
-            if (methodExists(arg3))
+            if (mem.methodExists(arg3))
             {
                 parse(arg3);
                 arg3Result = State.LastValue;
             }
-            else if (variableExists(arg3))
+            else if (mem.variableExists(arg3))
             {
-                if (isString(arg3))
-                    arg3Result = varString(arg3);
-                else if (isNumber(arg3))
-                    arg3Result = dtos(varNumber(arg3));
+                if (mem.isString(arg3))
+                    arg3Result = mem.varString(arg3);
+                else if (mem.isNumber(arg3))
+                    arg3Result = dtos(mem.varNumber(arg3));
                 else
                 {
                     error(ErrorMessage::IS_NULL, arg3, false);
@@ -6351,7 +6347,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
         {
             if (arg3 == "object?")
             {
-                if (objectExists(arg1))
+                if (mem.objectExists(arg1))
                 {
                     if (arg2 == "==")
                         setTrueIf();
@@ -6378,7 +6374,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             }
             else if (arg3 == "variable?")
             {
-                if (variableExists(arg1))
+                if (mem.variableExists(arg1))
                 {
                     if (arg2 == "==")
                         setTrueIf();
@@ -6405,7 +6401,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             }
             else if (arg3 == "method?")
             {
-                if (methodExists(arg1))
+                if (mem.methodExists(arg1))
                 {
                     if (arg2 == "==")
                         setTrueIf();
@@ -6432,7 +6428,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             }
             else if (arg3 == "list?")
             {
-                if (listExists(arg1))
+                if (mem.listExists(arg1))
                 {
                     if (arg2 == "==")
                         setTrueIf();
@@ -6567,49 +6563,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
     {
         if (arg2 == "<")
         {
-            if (variableExists(arg1) && variableExists(arg3))
+            if (mem.variableExists(arg1) && mem.variableExists(arg3))
             {
-                if (isNumber(arg1) && isNumber(arg3))
+                if (mem.isNumber(arg1) && mem.isNumber(arg3))
                 {
-                    if (varNumber(arg1) < varNumber(arg3))
-                        successfulFor(varNumber(arg1), varNumber(arg3), "<");
+                    if (mem.varNumber(arg1) < mem.varNumber(arg3))
+                        mem.createForLoop(mem.varNumber(arg1), mem.varNumber(arg3), "<");
                     else
-                        failedFor();
+                        mem.createFailedForLoop();
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    failedFor();
+                    mem.createFailedForLoop();
                 }
             }
-            else if (variableExists(arg1) && !variableExists(arg3))
+            else if (mem.variableExists(arg1) && !mem.variableExists(arg3))
             {
-                if (isNumber(arg1) && isNumeric(arg3))
+                if (mem.isNumber(arg1) && isNumeric(arg3))
                 {
-                    if (varNumber(arg1) < stod(arg3))
-                        successfulFor(varNumber(arg1), stod(arg3), "<");
+                    if (mem.varNumber(arg1) < stod(arg3))
+                        mem.createForLoop(mem.varNumber(arg1), stod(arg3), "<");
                     else
-                        failedFor();
+                        mem.createFailedForLoop();
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    failedFor();
+                    mem.createFailedForLoop();
                 }
             }
-            else if (!variableExists(arg1) && variableExists(arg3))
+            else if (!mem.variableExists(arg1) && mem.variableExists(arg3))
             {
-                if (isNumeric(arg1) && isNumber(arg3))
+                if (isNumeric(arg1) && mem.isNumber(arg3))
                 {
-                    if (stod(arg1) < varNumber(arg3))
-                        successfulFor(stod(arg1), varNumber(arg3), "<");
+                    if (stod(arg1) < mem.varNumber(arg3))
+                        mem.createForLoop(stod(arg1), mem.varNumber(arg3), "<");
                     else
-                        failedFor();
+                        mem.createFailedForLoop();
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    failedFor();
+                    mem.createFailedForLoop();
                 }
             }
             else
@@ -6617,62 +6613,62 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) < stod(arg3))
-                        successfulFor(stod(arg1), stod(arg3), "<");
+                        mem.createForLoop(stod(arg1), stod(arg3), "<");
                     else
-                        failedFor();
+                        mem.createFailedForLoop();
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    failedFor();
+                    mem.createFailedForLoop();
                 }
             }
         }
         else if (arg2 == ">")
         {
-            if (variableExists(arg1) && variableExists(arg3))
+            if (mem.variableExists(arg1) && mem.variableExists(arg3))
             {
-                if (isNumber(arg1) && isNumber(arg3))
+                if (mem.isNumber(arg1) && mem.isNumber(arg3))
                 {
-                    if (varNumber(arg1) > varNumber(arg3))
-                        successfulFor(varNumber(arg1), varNumber(arg3), ">");
+                    if (mem.varNumber(arg1) > mem.varNumber(arg3))
+                        mem.createForLoop(mem.varNumber(arg1), mem.varNumber(arg3), ">");
                     else
-                        failedFor();
+                        mem.createFailedForLoop();
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    failedFor();
+                    mem.createFailedForLoop();
                 }
             }
-            else if (variableExists(arg1) && !variableExists(arg3))
+            else if (mem.variableExists(arg1) && !mem.variableExists(arg3))
             {
-                if (isNumber(arg1) && isNumeric(arg3))
+                if (mem.isNumber(arg1) && isNumeric(arg3))
                 {
-                    if (varNumber(arg1) > stod(arg3))
-                        successfulFor(varNumber(arg1), stod(arg3), ">");
+                    if (mem.varNumber(arg1) > stod(arg3))
+                        mem.createForLoop(mem.varNumber(arg1), stod(arg3), ">");
                     else
-                        failedFor();
+                        mem.createFailedForLoop();
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    failedFor();
+                    mem.createFailedForLoop();
                 }
             }
-            else if (!variableExists(arg1) && variableExists(arg3))
+            else if (!mem.variableExists(arg1) && mem.variableExists(arg3))
             {
-                if (isNumeric(arg1) && isNumber(arg3))
+                if (isNumeric(arg1) && mem.isNumber(arg3))
                 {
-                    if (stod(arg1) > varNumber(arg3))
-                        successfulFor(stod(arg1), varNumber(arg3), ">");
+                    if (stod(arg1) > mem.varNumber(arg3))
+                        mem.createForLoop(stod(arg1), mem.varNumber(arg3), ">");
                     else
-                        failedFor();
+                        mem.createFailedForLoop();
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    failedFor();
+                    mem.createFailedForLoop();
                 }
             }
             else
@@ -6680,62 +6676,62 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) > stod(arg3))
-                        successfulFor(stod(arg1), stod(arg3), ">");
+                        mem.createForLoop(stod(arg1), stod(arg3), ">");
                     else
-                        failedFor();
+                        mem.createFailedForLoop();
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    failedFor();
+                    mem.createFailedForLoop();
                 }
             }
         }
         else if (arg2 == "<=")
         {
-            if (variableExists(arg1) && variableExists(arg3))
+            if (mem.variableExists(arg1) && mem.variableExists(arg3))
             {
-                if (isNumber(arg1) && isNumber(arg3))
+                if (mem.isNumber(arg1) && mem.isNumber(arg3))
                 {
-                    if (varNumber(arg1) <= varNumber(arg3))
-                        successfulFor(varNumber(arg1), varNumber(arg3), "<=");
+                    if (mem.varNumber(arg1) <= mem.varNumber(arg3))
+                        mem.createForLoop(mem.varNumber(arg1), mem.varNumber(arg3), "<=");
                     else
-                        failedFor();
+                        mem.createFailedForLoop();
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    failedFor();
+                    mem.createFailedForLoop();
                 }
             }
-            else if (variableExists(arg1) && !variableExists(arg3))
+            else if (mem.variableExists(arg1) && !mem.variableExists(arg3))
             {
-                if (isNumber(arg1) && isNumeric(arg3))
+                if (mem.isNumber(arg1) && isNumeric(arg3))
                 {
-                    if (varNumber(arg1) <= stod(arg3))
-                        successfulFor(varNumber(arg1), stod(arg3), "<=");
+                    if (mem.varNumber(arg1) <= stod(arg3))
+                        mem.createForLoop(mem.varNumber(arg1), stod(arg3), "<=");
                     else
-                        failedFor();
+                        mem.createFailedForLoop();
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    failedFor();
+                    mem.createFailedForLoop();
                 }
             }
-            else if (!variableExists(arg1) && variableExists(arg3))
+            else if (!mem.variableExists(arg1) && mem.variableExists(arg3))
             {
-                if (isNumeric(arg1) && isNumber(arg3))
+                if (isNumeric(arg1) && mem.isNumber(arg3))
                 {
-                    if (stod(arg1) <= varNumber(arg3))
-                        successfulFor(stod(arg1), varNumber(arg3), "<=");
+                    if (stod(arg1) <= mem.varNumber(arg3))
+                        mem.createForLoop(stod(arg1), mem.varNumber(arg3), "<=");
                     else
-                        failedFor();
+                        mem.createFailedForLoop();
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    failedFor();
+                    mem.createFailedForLoop();
                 }
             }
             else
@@ -6743,62 +6739,62 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) <= stod(arg3))
-                        successfulFor(stod(arg1), stod(arg3), "<=");
+                        mem.createForLoop(stod(arg1), stod(arg3), "<=");
                     else
-                        failedFor();
+                        mem.createFailedForLoop();
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    failedFor();
+                    mem.createFailedForLoop();
                 }
             }
         }
         else if (arg2 == ">=")
         {
-            if (variableExists(arg1) && variableExists(arg3))
+            if (mem.variableExists(arg1) && mem.variableExists(arg3))
             {
-                if (isNumber(arg1) && isNumber(arg3))
+                if (mem.isNumber(arg1) && mem.isNumber(arg3))
                 {
-                    if (varNumber(arg1) >= varNumber(arg3))
-                        successfulFor(varNumber(arg1), varNumber(arg3), ">=");
+                    if (mem.varNumber(arg1) >= mem.varNumber(arg3))
+                        mem.createForLoop(mem.varNumber(arg1), mem.varNumber(arg3), ">=");
                     else
-                        failedFor();
+                        mem.createFailedForLoop();
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    failedFor();
+                    mem.createFailedForLoop();
                 }
             }
-            else if (variableExists(arg1) && !variableExists(arg3))
+            else if (mem.variableExists(arg1) && !mem.variableExists(arg3))
             {
-                if (isNumber(arg1) && isNumeric(arg3))
+                if (mem.isNumber(arg1) && isNumeric(arg3))
                 {
-                    if (varNumber(arg1) >= stod(arg3))
-                        successfulFor(varNumber(arg1), stod(arg3), ">=");
+                    if (mem.varNumber(arg1) >= stod(arg3))
+                        mem.createForLoop(mem.varNumber(arg1), stod(arg3), ">=");
                     else
-                        failedFor();
+                        mem.createFailedForLoop();
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    failedFor();
+                    mem.createFailedForLoop();
                 }
             }
-            else if (!variableExists(arg1) && variableExists(arg3))
+            else if (!mem.variableExists(arg1) && mem.variableExists(arg3))
             {
-                if (isNumeric(arg1) && isNumber(arg3))
+                if (isNumeric(arg1) && mem.isNumber(arg3))
                 {
-                    if (stod(arg1) >= varNumber(arg3))
-                        successfulFor(stod(arg1), varNumber(arg3), ">=");
+                    if (stod(arg1) >= mem.varNumber(arg3))
+                        mem.createForLoop(stod(arg1), mem.varNumber(arg3), ">=");
                     else
-                        failedFor();
+                        mem.createFailedForLoop();
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    failedFor();
+                    mem.createFailedForLoop();
                 }
             }
             else
@@ -6806,14 +6802,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) >= stod(arg3))
-                        successfulFor(stod(arg1), stod(arg3), ">=");
+                        mem.createForLoop(stod(arg1), stod(arg3), ">=");
                     else
-                        failedFor();
+                        mem.createFailedForLoop();
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    failedFor();
+                    mem.createFailedForLoop();
                 }
             }
         }
@@ -6830,36 +6826,36 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     for (int i = 0; i < (int)args.size(); i++)
                         newList.add(args.at(i));
 
-                    successfulFor(newList);
+                    mem.createForLoop(newList);
                 }
-                else if (objectExists(before) && after == "get_methods")
+                else if (mem.objectExists(before) && after == "get_methods")
                 {
                     List newList;
 
-                    vector<Method> objMethods = getObject(before).getMethods();
+                    vector<Method> objMethods = mem.getObject(before).getMethods();
 
                     for (int i = 0; i < (int)objMethods.size(); i++)
                         newList.add(objMethods.at(i).name());
 
-                    successfulFor(newList);
+                    mem.createForLoop(newList);
                 }
-                else if (objectExists(before) && after == "get_variables")
+                else if (mem.objectExists(before) && after == "get_variables")
                 {
                     List newList;
 
-                    vector<Variable> objVars = getObject(before).getVariables();
+                    vector<Variable> objVars = mem.getObject(before).getVariables();
 
                     for (int i = 0; i < (int)objVars.size(); i++)
                         newList.add(objVars.at(i).name());
 
-                    successfulFor(newList);
+                    mem.createForLoop(newList);
                 }
-                else if (variableExists(before) && after == "length")
+                else if (mem.variableExists(before) && after == "length")
                 {
-                    if (isString(before))
+                    if (mem.isString(before))
                     {
                         List newList;
-                        string tempVarStr = varString(before);
+                        string tempVarStr = mem.varString(before);
                         int len = tempVarStr.length();
 
                         for (int i = 0; i < len; i++)
@@ -6869,42 +6865,42 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             newList.add(tempStr);
                         }
 
-                        successfulFor(newList);
+                        mem.createForLoop(newList);
                     }
                 }
                 else
                 {
                     if (before.length() != 0 && after.length() != 0)
                     {
-                        if (variableExists(before))
+                        if (mem.variableExists(before))
                         {
                             if (after == "get_dirs")
                             {
-                                if (Env::directoryExists(varString(before)))
-                                    successfulFor(getDirectoryList(before, false));
+                                if (Env::directoryExists(mem.varString(before)))
+                                    mem.createForLoop(getDirectoryList(before, false));
                                 else
                                 {
-                                    error(ErrorMessage::READ_FAIL, varString(before), false);
-                                    failedFor();
+                                    error(ErrorMessage::READ_FAIL, mem.varString(before), false);
+                                    mem.createFailedForLoop();
                                 }
                             }
                             else if (after == "get_files")
                             {
-                                if (Env::directoryExists(varString(before)))
-                                    successfulFor(getDirectoryList(before, true));
+                                if (Env::directoryExists(mem.varString(before)))
+                                    mem.createForLoop(getDirectoryList(before, true));
                                 else
                                 {
-                                    error(ErrorMessage::READ_FAIL, varString(before), false);
-                                    failedFor();
+                                    error(ErrorMessage::READ_FAIL, mem.varString(before), false);
+                                    mem.createFailedForLoop();
                                 }
                             }
                             else if (after == "read")
                             {
-                                if (Env::fileExists(varString(before)))
+                                if (Env::fileExists(mem.varString(before)))
                                 {
                                     List newList;
 
-                                    ifstream file(varString(before).c_str());
+                                    ifstream file(mem.varString(before).c_str());
                                     string line("");
 
                                     if (file.is_open())
@@ -6917,35 +6913,35 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                                         file.close();
 
-                                        successfulFor(newList);
+                                        mem.createForLoop(newList);
                                     }
                                     else
                                     {
-                                        error(ErrorMessage::READ_FAIL, varString(before), false);
-                                        failedFor();
+                                        error(ErrorMessage::READ_FAIL, mem.varString(before), false);
+                                        mem.createFailedForLoop();
                                     }
                                 }
                             }
                             else
                             {
                                 error(ErrorMessage::METHOD_UNDEFINED, after, false);
-                                failedFor();
+                                mem.createFailedForLoop();
                             }
                         }
                         else
                         {
                             error(ErrorMessage::VAR_UNDEFINED, before, false);
-                            failedFor();
+                            mem.createFailedForLoop();
                         }
                     }
                     else
                     {
-                        if (listExists(arg3))
-                            successfulFor(getList(arg3));
+                        if (mem.listExists(arg3))
+                            mem.createForLoop(mem.getList(arg3));
                         else
                         {
                             error(ErrorMessage::LIST_UNDEFINED, arg3, false);
-                            failedFor();
+                            mem.createFailedForLoop();
                         }
                     }
                 }
@@ -6960,20 +6956,20 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     string firstRangeSpecifier(rangeSpecifiers.at(0)), lastRangeSpecifier(rangeSpecifiers.at(1));
 
-                    if (variableExists(firstRangeSpecifier))
+                    if (mem.variableExists(firstRangeSpecifier))
                     {
-                        if (isNumber(firstRangeSpecifier))
-                            firstRangeSpecifier = varNumberString(firstRangeSpecifier);
+                        if (mem.isNumber(firstRangeSpecifier))
+                            firstRangeSpecifier = mem.varNumberString(firstRangeSpecifier);
                         else
-                            failedFor();
+                            mem.createFailedForLoop();
                     }
 
-                    if (variableExists(lastRangeSpecifier))
+                    if (mem.variableExists(lastRangeSpecifier))
                     {
-                        if (isNumber(lastRangeSpecifier))
-                            lastRangeSpecifier = varNumberString(lastRangeSpecifier);
+                        if (mem.isNumber(lastRangeSpecifier))
+                            lastRangeSpecifier = mem.varNumberString(lastRangeSpecifier);
                         else
-                            failedFor();
+                            mem.createFailedForLoop();
                     }
 
                     if (isNumeric(firstRangeSpecifier) && isNumeric(lastRangeSpecifier))
@@ -6983,25 +6979,25 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         int ifrs = stoi(firstRangeSpecifier), ilrs(stoi(lastRangeSpecifier));
 
                         if (ifrs < ilrs)
-                            successfulFor(stod(firstRangeSpecifier), stod(lastRangeSpecifier), "<=");
+                            mem.createForLoop(stod(firstRangeSpecifier), stod(lastRangeSpecifier), "<=");
                         else if (ifrs > ilrs)
-                            successfulFor(stod(firstRangeSpecifier), stod(lastRangeSpecifier), ">=");
+                            mem.createForLoop(stod(firstRangeSpecifier), stod(lastRangeSpecifier), ">=");
                         else
-                            failedFor();
+                            mem.createFailedForLoop();
                     }
                     else
-                        failedFor();
+                        mem.createFailedForLoop();
                 }
             }
             else if (containsBrackets(arg3))
             {
                 string before(beforeBrackets(arg3));
 
-                if (variableExists(before))
+                if (mem.variableExists(before))
                 {
-                    if (isString(before))
+                    if (mem.isString(before))
                     {
-                        string tempVarString(varString(before));
+                        string tempVarString(mem.varString(before));
 
                         vector<string> range = getBracketRange(arg3);
 
@@ -7028,9 +7024,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                                             State.DefaultLoopSymbol = arg1;
 
-                                            successfulFor(newList);
+                                            mem.createForLoop(newList);
 
-                                            lists = removeList(lists, "&l&i&s&t&");
+                                            mem.removeList("&l&i&s&t&");
                                         }
                                         else
                                             error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
@@ -7050,9 +7046,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                                             State.DefaultLoopSymbol = arg1;
 
-                                            successfulFor(newList);
+                                            mem.createForLoop(newList);
 
-                                            lists = removeList(lists, "&l&i&s&t&");
+                                            mem.removeList("&l&i&s&t&");
                                         }
                                         else
                                             error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
@@ -7072,15 +7068,15 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else
                     {
                         error(ErrorMessage::NULL_STRING, before, false);
-                        failedFor();
+                        mem.createFailedForLoop();
                     }
                 }
             }
-            else if (listExists(arg3))
+            else if (mem.listExists(arg3))
             {
                 State.DefaultLoopSymbol = arg1;
 
-                successfulFor(getList(arg3));
+                mem.createForLoop(mem.getList(arg3));
             }
             else if (!zeroDots(arg3))
             {
@@ -7095,7 +7091,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     for (int i = 0; i < (int)args.size(); i++)
                         newList.add(args.at(i));
 
-                    successfulFor(newList);
+                    mem.createForLoop(newList);
                 }
                 else if (_b == "env" && _a == "get_variables")
                 {
@@ -7127,39 +7123,39 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     newList.add("members");
 
                     State.DefaultLoopSymbol = arg1;
-                    successfulFor(newList);
+                    mem.createForLoop(newList);
                 }
-                else if (objectExists(_b) && _a == "get_methods")
+                else if (mem.objectExists(_b) && _a == "get_methods")
                 {
                     List newList;
 
-                    vector<Method> objMethods = getObject(_b).getMethods();
+                    vector<Method> objMethods = mem.getObject(_b).getMethods();
 
                     for (int i = 0; i < (int)objMethods.size(); i++)
                         newList.add(objMethods.at(i).name());
 
                     State.DefaultLoopSymbol = arg1;
-                    successfulFor(newList);
+                    mem.createForLoop(newList);
                 }
-                else if (objectExists(_b) && _a == "get_variables")
+                else if (mem.objectExists(_b) && _a == "get_variables")
                 {
                     List newList;
 
-                    vector<Variable> objVars = getObject(_b).getVariables();
+                    vector<Variable> objVars = mem.getObject(_b).getVariables();
 
                     for (int i = 0; i < (int)objVars.size(); i++)
                         newList.add(objVars.at(i).name());
 
                     State.DefaultLoopSymbol = arg1;
-                    successfulFor(newList);
+                    mem.createForLoop(newList);
                 }
-                else if (variableExists(_b) && _a == "length")
+                else if (mem.variableExists(_b) && _a == "length")
                 {
-                    if (isString(_b))
+                    if (mem.isString(_b))
                     {
                         State.DefaultLoopSymbol = arg1;
                         List newList;
-                        string _t = varString(_b);
+                        string _t = mem.varString(_b);
                         int _l = _t.length();
 
                         for (int i = 0; i < _l; i++)
@@ -7169,48 +7165,48 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             newList.add(tmpStr);
                         }
 
-                        successfulFor(newList);
+                        mem.createForLoop(newList);
                     }
                 }
                 else
                 {
                     if (_b.length() != 0 && _a.length() != 0)
                     {
-                        if (variableExists(_b))
+                        if (mem.variableExists(_b))
                         {
                             if (_a == "get_dirs")
                             {
-                                if (Env::directoryExists(varString(_b)))
+                                if (Env::directoryExists(mem.varString(_b)))
                                 {
                                     State.DefaultLoopSymbol = arg1;
-                                    successfulFor(getDirectoryList(_b, false));
+                                    mem.createForLoop(getDirectoryList(_b, false));
                                 }
                                 else
                                 {
-                                    error(ErrorMessage::READ_FAIL, varString(_b), false);
-                                    failedFor();
+                                    error(ErrorMessage::READ_FAIL, mem.varString(_b), false);
+                                    mem.createFailedForLoop();
                                 }
                             }
                             else if (_a == "get_files")
                             {
-                                if (Env::directoryExists(varString(_b)))
+                                if (Env::directoryExists(mem.varString(_b)))
                                 {
                                     State.DefaultLoopSymbol = arg1;
-                                    successfulFor(getDirectoryList(_b, true));
+                                    mem.createForLoop(getDirectoryList(_b, true));
                                 }
                                 else
                                 {
-                                    error(ErrorMessage::READ_FAIL, varString(_b), false);
-                                    failedFor();
+                                    error(ErrorMessage::READ_FAIL, mem.varString(_b), false);
+                                    mem.createFailedForLoop();
                                 }
                             }
                             else if (_a == "read")
                             {
-                                if (Env::fileExists(varString(_b)))
+                                if (Env::fileExists(mem.varString(_b)))
                                 {
                                     List newList;
 
-                                    ifstream file(varString(_b).c_str());
+                                    ifstream file(mem.varString(_b).c_str());
                                     string line("");
 
                                     if (file.is_open())
@@ -7224,25 +7220,25 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                         file.close();
 
                                         State.DefaultLoopSymbol = arg1;
-                                        successfulFor(newList);
+                                        mem.createForLoop(newList);
                                     }
                                     else
                                     {
-                                        error(ErrorMessage::READ_FAIL, varString(_b), false);
-                                        failedFor();
+                                        error(ErrorMessage::READ_FAIL, mem.varString(_b), false);
+                                        mem.createFailedForLoop();
                                     }
                                 }
                             }
                             else
                             {
                                 error(ErrorMessage::METHOD_UNDEFINED, _a, false);
-                                failedFor();
+                                mem.createFailedForLoop();
                             }
                         }
                         else
                         {
                             error(ErrorMessage::VAR_UNDEFINED, _b, false);
-                            failedFor();
+                            mem.createFailedForLoop();
                         }
                     }
                 }
@@ -7250,67 +7246,67 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             else
             {
                 error(ErrorMessage::INVALID_OP, s, false);
-                failedFor();
+                mem.createFailedForLoop();
             }
         }
         else
         {
             error(ErrorMessage::INVALID_OP, s, false);
-            failedFor();
+            mem.createFailedForLoop();
         }
     }
     else if (arg0 == "while")
     {
-        if (variableExists(arg1) && variableExists(arg3))
+        if (mem.variableExists(arg1) && mem.variableExists(arg3))
         {
-            if (isNumber(arg1) && isNumber(arg3))
+            if (mem.isNumber(arg1) && mem.isNumber(arg3))
             {
                 if (arg2 == "<" || arg2 == "<=" || arg2 == ">=" || arg2 == ">" || arg2 == "==" || arg2 == "!=")
-                    successfulWhile(arg1, arg2, arg3);
+                    mem.createWhileLoop(arg1, arg2, arg3);
                 else
                 {
                     error(ErrorMessage::INVALID_OP, s, false);
-                    failedWhile();
+                    mem.createFailedWhileLoop();
                 }
             }
             else
             {
                 error(ErrorMessage::CONV_ERR, arg1 + arg2 + arg3, false);
-                failedWhile();
+                mem.createFailedWhileLoop();
             }
         }
-        else if (isNumeric(arg3) && variableExists(arg1))
+        else if (isNumeric(arg3) && mem.variableExists(arg1))
         {
-            if (isNumber(arg1))
+            if (mem.isNumber(arg1))
             {
                 if (arg2 == "<" || arg2 == "<=" || arg2 == ">=" || arg2 == ">" || arg2 == "==" || arg2 == "!=")
-                    successfulWhile(arg1, arg2, arg3);
+                    mem.createWhileLoop(arg1, arg2, arg3);
                 else
                 {
                     error(ErrorMessage::INVALID_OP, s, false);
-                    failedWhile();
+                    mem.createFailedWhileLoop();
                 }
             }
             else
             {
                 error(ErrorMessage::CONV_ERR, arg1 + arg2 + arg3, false);
-                failedWhile();
+                mem.createFailedWhileLoop();
             }
         }
         else if (isNumeric(arg1) && isNumeric(arg3))
         {
             if (arg2 == "<" || arg2 == "<=" || arg2 == ">=" || arg2 == ">" || arg2 == "==" || arg2 == "!=")
-                successfulWhile(arg1, arg2, arg3);
+                mem.createWhileLoop(arg1, arg2, arg3);
             else
             {
                 error(ErrorMessage::INVALID_OP, s, false);
-                failedWhile();
+                mem.createFailedWhileLoop();
             }
         }
         else
         {
             error(ErrorMessage::INVALID_OP, s, false);
-            failedWhile();
+            mem.createFailedWhileLoop();
         }
     }
     else
