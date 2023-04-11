@@ -61,6 +61,13 @@ int indexOfObject(string s);
 int indexOfScript(string s);
 int indexOfVariable(string s);
 
+Method getMethod(string s);
+List getList(string s);
+Variable getVar(string s);
+string varString(string s);
+double varNumber(string s);
+string varNumberString(string s);
+
 void cd(string p);
 void clearAll();
 void clearArgs();
