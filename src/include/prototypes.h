@@ -49,8 +49,6 @@ bool InternalReturn(string arg0, string arg1, string before, string after);
 string cleanString(string st);
 
 List        getDirectoryList(string before, bool filesOnly);
-Method      getMethod(string s);
-Object      getObject(string s);
 Variable    getVariable(string s);
 
 int indexOfConstant(string s);
@@ -61,6 +59,10 @@ int indexOfObject(string s);
 int indexOfScript(string s);
 int indexOfVariable(string s);
 
+Constant getConstant(string s);
+Script getScript(string s);
+Module getModule(string s);
+Object getObject(string s);
 Method getMethod(string s);
 List getList(string s);
 Variable getVar(string s);
