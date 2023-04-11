@@ -32,10 +32,11 @@ void doNothing() { }
 #include "include/state.h"
 #include "include/strings.h"
 #include "include/objects.h"
-#include "include/datetime.h"
 #include "include/prototypes.h"
 #include "include/error.h"
 #include "include/env.h"
+#include "include/memory.h"
+#include "include/datetime.h"
 #include "include/parser.h"
 #include "include/core.h"
 
@@ -70,7 +71,7 @@ int main(int c, char ** v)
             State.CurrentScript = opt;
             args.push_back(opt);
             State.ArgumentCount = (int)args.size();
-            loadScript(opt);
+            mem.loadScript(opt);
         }
         else if (is(opt, "h") || is(opt, "help"))
             help(noctis);
@@ -115,7 +116,7 @@ int main(int c, char ** v)
                 args.push_back(opt);
                 args.push_back(script);
                 State.ArgumentCount = (int)args.size();
-                loadScript(script);
+                mem.loadScript(script);
             }
             else
             {
@@ -134,7 +135,7 @@ int main(int c, char ** v)
             if (isScript(script))
             {
                 State.CurrentScript = script;
-                loadScript(script);
+                mem.loadScript(script);
             }
             else
             {
@@ -164,7 +165,7 @@ int main(int c, char ** v)
                 args.push_back(opt);
                 args.push_back(script);
                 State.ArgumentCount = (int)args.size();
-                loadScript(opt);
+                mem.loadScript(opt);
             }
             else
             {
@@ -190,7 +191,7 @@ int main(int c, char ** v)
 
             State.ArgumentCount = (int)args.size();
 
-            loadScript(opt);
+            mem.loadScript(opt);
         }
         else
         {
@@ -209,7 +210,7 @@ int main(int c, char ** v)
     else
         help(noctis);
 
-    clearAll();
+    mem.clearAll();
 
     return 0;
 }
