@@ -786,34 +786,6 @@ List getDirectoryList(string before, bool filesOnly)
 	return newList;
 }
 
-/*Object getObject(string s)
-{
-    Object bad_obj("[bad_obj#" + itos(State.BadObjectCount) + "]");
-
-    if (objectExists(s))
-        for (int i = 0; i < (int)objects.size(); i++)
-            if (objects.at(i).name() == s)
-                return (objects.at(i));
-
-    State.BadObjectCount++;
-
-    return (bad_obj);
-}*/
-
-Variable getVariable(string s)
-{
-    Variable bad_var("[bad_var#" + itos(State.BadVarCount) + "]");
-
-    if (variableExists(s))
-        for (int i = 0; i < (int)variables.size(); i++)
-            if (variables.at(i).name() == s)
-                return variables.at(i);
-
-    State.BadVarCount++;
-
-    return bad_var;
-}
-
 bool listExists(string s)
 {
     for (int i = 0; i < (int)lists.size(); i++)
@@ -6239,7 +6211,7 @@ void executeSimpleStatement(string arg0, string arg1, string arg2, string s, vec
 void InternalEncryptDecrypt(string arg0, string arg1)
 {
     Crypt c;
-    string text = variableExists(arg1) ? (isString(arg1) ? getVariable(arg1).getString() : dtos(getVariable(arg1).getNumber())) : arg1;
+    string text = variableExists(arg1) ? (isString(arg1) ? varString(arg1) : varNumberString(arg1)) : arg1;
     write(arg0 == "encrypt" ? c.e(text) : c.d(text));
 }
 
