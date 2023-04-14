@@ -14,78 +14,33 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command);
 void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> command);
 void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, vector<string> command);
 
+void startREPL(bool skip);
 string getPrompt();
 
-int random(int low, int high);
-double random(double min, double max);
-string random(string start, string sc);
-
-vector<Method>      methods;
-vector<Object>      objects;
-vector<Variable>    variables;
-vector<List>        lists;
-vector<Constant>    constants;
-vector<Method>      ifStatements;
-vector<Method>      forLoops;
-vector<Method>      whileLoops;
-vector<string>      args;
-vector<Module>      modules;
-vector<Script>      scripts;
-
-void InternalCallMethod(string arg0, string arg1, string before, string after);
-void InternalCreateModule(string s);
-void InternalCreateObject(string arg0);
 void InternalEncryptDecrypt(string arg0, string arg1);
-void InternalForget(string arg0, string arg1);
-void InternalInspect(string arg0, string arg1, string before, string after);
 void InternalGetEnv(string arg1, string after, int mode);
 void InternalOutput(string arg0, string arg1);
-void InternalRemember(string arg0, string arg1);
 bool InternalReturn(string arg0, string arg1, string before, string after);
 
 string cleanString(string st);
 
 List getDirectoryList(string before, bool filesOnly);
 
-void delay(int seconds);
 void displayVersion();
-void executeMethod(Method m);
-void executeNest(Container n);
-void setFalseIf();
-void forLoop(Method m);
 void help(string app);
-void loadSavedVars(Crypt c, string &bs);
-void runScript();
-void loop(bool skip);
-void saveVariable(string var);
-void writeline(string st);
 void setup();
-void setTrueIf();
 void uninstall();
-void whileLoop(Method m);
 void write(string st);
-void __true();
-void __false();
+void writeline(string st);
 
-void executeTemplate(Method m, vector<string> vs);
-void executeSimpleStatement(string arg0, string arg1, string arg2, string s, vector<string> command);
+void setList(string listName, string methodName, vector<string> params);
 
 void copyObject(string arg0, string arg1, string arg2, string s, vector<string> command);
 void initializeVariable(string arg0, string arg1, string arg2, string s, vector<string> command);
 void initializeListValues(string arg0, string arg1, string arg2, string s, vector<string> command);
 void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, vector<string> command);
 void initializeObjectVariable(string arg0, string arg1, string arg2, string s, vector<string> command);
-void initializeConstant(string arg0, string arg1, string arg2, string s, vector<string> command);
-
-void appendText(string arg1, string arg2, bool newLine);
-void __fwrite(string file, string contents);
-
-bool is(string s, string si);
-bool isScript(string path);
-
-bool notStandardZeroSpace(string s);
-bool notStandardOneSpace(string arg1);
-bool notStandardTwoSpace(string arg1);
+void initializeConstant(string arg0, string arg1, string arg2, string s);
 
 double getBytes(string path);
 double getStack(string arg2);

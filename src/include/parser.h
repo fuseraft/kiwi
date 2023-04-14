@@ -7,8 +7,6 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-Memory mem;
-
 string getParsedOutput(string cmd)
 {
     State.CaptureParse = true;
@@ -210,12 +208,12 @@ void parse(string s)
 
                     if (isNumeric(params.at(0)))
                     {
-                        if ((int)args.size() - 1 >= stoi(params.at(0)) && stoi(params.at(0)) >= 0)
+                        if (mem.getArgCount() - 1 >= stoi(params.at(0)) && stoi(params.at(0)) >= 0)
                         {
                             if (params.at(0) == "0")
                                 command.at(i) = State.CurrentScript;
                             else
-                                command.at(i) = args.at(stoi(params.at(0)));
+                                command.at(i) = mem.getArg(stoi(params.at(0)));
                         }
                         else
                             error(ErrorMessage::OUT_OF_BOUNDS, command.at(i), false);
@@ -320,7 +318,7 @@ void parse(string s)
                                 if (State.DefiningObject)
                                     mem.getObject(State.CurrentObject).addToCurrentMethod(s);
                                 else
-                                    methods.at(methods.size() - 1).add(s);
+                                    mem.getMethod(mem.getMethodCount() - 1).add(s);
                             }
                             else if (State.DefiningLocalSwitchBlock)
                             {
@@ -329,7 +327,7 @@ void parse(string s)
                                 if (State.DefiningObject)
                                     mem.getObject(State.CurrentObject).addToCurrentMethod(s);
                                 else
-                                    methods.at(methods.size() - 1).add(s);
+                                    mem.getMethod(mem.getMethodCount() - 1).add(s);
                             }
                             else
                             {
@@ -338,7 +336,7 @@ void parse(string s)
                                 if (State.DefiningObject)
                                 {
                                     State.DefiningObjectMethod = false;
-                                    objects.at(objects.size() - 1).setCurrentMethod("");
+                                    mem.getObject(mem.getObjectCount() - 1).setCurrentMethod("");
                                 }
                             }
                         }
@@ -391,7 +389,7 @@ void parse(string s)
                                     mem.getObject(State.CurrentObject).setPublic();
                             }
                             else
-                                methods.at(methods.size() - 1).add(freshLine);
+                                mem.getMethod(mem.getMethodCount() - 1).add(freshLine);
                         }
                     }
                     else
@@ -405,18 +403,18 @@ void parse(string s)
                                 State.DefiningLocalWhileLoop = false;
 
                                 if (State.DefiningObject)
-                                    objects.at(objects.size() - 1).addToCurrentMethod(s);
+                                    mem.getObject(mem.getObjectCount() - 1).addToCurrentMethod(s);
                                 else
-                                    methods.at(methods.size() - 1).add(s);
+                                    mem.getMethod(mem.getMethodCount() - 1).add(s);
                             }
                             else if (State.DefiningLocalSwitchBlock)
                             {
                                 State.DefiningLocalSwitchBlock = false;
 
                                 if (State.DefiningObject)
-                                    objects.at(objects.size() - 1).addToCurrentMethod(s);
+                                    mem.getObject(mem.getObjectCount() - 1).addToCurrentMethod(s);
                                 else
-                                    methods.at(methods.size() - 1).add(s);
+                                    mem.getMethod(mem.getMethodCount() - 1).add(s);
                             }
                             else
                             {
@@ -425,7 +423,7 @@ void parse(string s)
                                 if (State.DefiningObject)
                                 {
                                     State.DefiningObjectMethod = false;
-                                    objects.at(objects.size() - 1).setCurrentMethod("");
+                                    mem.getObject(mem.getObjectCount() - 1).setCurrentMethod("");
                                 }
                             }
                         }
@@ -433,30 +431,30 @@ void parse(string s)
                         {
                             if (State.DefiningObject)
                             {
-                                objects.at(objects.size() - 1).addToCurrentMethod(s);
+                                mem.getObject(mem.getObjectCount() - 1).addToCurrentMethod(s);
 
                                 if (State.DefiningPublicCode)
-                                    objects.at(objects.size() - 1).setPublic();
+                                    mem.getObject(mem.getObjectCount() - 1).setPublic();
                                 else if (State.DefiningPrivateCode)
-                                    objects.at(objects.size() - 1).setPrivate();
+                                    mem.getObject(mem.getObjectCount() - 1).setPrivate();
                                 else
-                                    objects.at(objects.size() - 1).setPublic();
+                                    mem.getObject(mem.getObjectCount() - 1).setPublic();
                             }
                             else
                             {
                                 if (State.DefiningObjectMethod)
                                 {
-                                    objects.at(objects.size() - 1).addToCurrentMethod(s);
+                                    mem.getObject(mem.getObjectCount() - 1).addToCurrentMethod(s);
 
                                     if (State.DefiningPublicCode)
-                                        objects.at(objects.size() - 1).setPublic();
+                                        mem.getObject(mem.getObjectCount() - 1).setPublic();
                                     else if (State.DefiningPrivateCode)
-                                        objects.at(objects.size() - 1).setPrivate();
+                                        mem.getObject(mem.getObjectCount() - 1).setPrivate();
                                     else
-                                        objects.at(objects.size() - 1).setPublic();
+                                        mem.getObject(mem.getObjectCount() - 1).setPublic();
                                 }
                                 else
-                                    methods.at(methods.size() - 1).add(s);
+                                    mem.getMethod(mem.getMethodCount() - 1).add(s);
                             }
                         }
                     }
@@ -466,9 +464,9 @@ void parse(string s)
                     if (State.DefiningNest)
                     {
                         if (command.at(0) == "endif")
-                            executeNest(ifStatements.at((int)ifStatements.size() - 1).getNest());
+                            exec.executeNest(mem.getIfStatement(mem.getIfStatementCount() - 1).getNest());
                         else
-                            ifStatements.at((int)ifStatements.size() - 1).inNest(s);
+                            mem.getIfStatement(mem.getIfStatementCount() - 1).inNest(s);
                     }
                     else
                     {
@@ -480,7 +478,7 @@ void parse(string s)
                                 threeSpace("if", command.at(1), command.at(2), command.at(3), s, command);
                             else
                             {
-                                setFalseIf();
+                                mem.createIfStatement(false);
                                 State.DefiningNest = false;
                             }
                         }
@@ -489,42 +487,41 @@ void parse(string s)
                             State.DefiningIfStatement = false;
                             State.ExecutedIfStatement = true;
 
-                            for (int i = 0; i < (int)ifStatements.size(); i++)
+                            for (int i = 0; i < mem.getIfStatementCount(); i++)
                             {
-                                if (ifStatements.at(i).isIF())
+                                if (mem.getIfStatement(i).isIF())
                                 {
-                                    executeMethod(ifStatements.at(i));
+                                    exec.executeMethod(mem.getIfStatement(i));
 
                                     if (State.FailedIfStatement == false)
                                         break;
                                 }
                             }
 
+                            mem.clearIf();
+
                             State.ExecutedIfStatement = false;
-
-                            ifStatements.clear();
-
-                            State.IfStatementCount = 0;
                             State.FailedIfStatement = false;
+                            State.IfStatementCount = 0;
                         }
                         else if (command.at(0) == "elsif" || command.at(0) == "elif")
                         {
                             if (size == 4)
                                 threeSpace("if", command.at(1), command.at(2), command.at(3), s, command);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else if (s == "else")
                             threeSpace("if", "true", "==", "true", "if true == true", command);
                         else if (s == "failif")
                         {
                             if (State.FailedIfStatement == true)
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else
-                            ifStatements.at((int)ifStatements.size() - 1).add(s);
+                            mem.getIfStatement(mem.getIfStatementCount() - 1).add(s);
                     }
                 }
                 else
@@ -537,9 +534,9 @@ void parse(string s)
                         {
                             State.DefiningWhileLoop = false;
 
-                            string v1 = whileLoops.at(whileLoops.size() - 1).valueOne(),
-                                   v2 = whileLoops.at(whileLoops.size() - 1).valueTwo(),
-                                   op = whileLoops.at(whileLoops.size() - 1).logicOperator();
+                            string v1 = mem.getWhileLoop(mem.getWhileLoopCount() - 1).valueOne(),
+                                   v2 = mem.getWhileLoop(mem.getWhileLoopCount() - 1).valueTwo(),
+                                   op = mem.getWhileLoop(mem.getWhileLoopCount() - 1).logicOperator();
 
                             if (mem.variableExists(v1) && mem.variableExists(v2))
                             {
@@ -547,13 +544,13 @@ void parse(string s)
                                 {
                                     while (mem.varNumber(v1) == mem.varNumber(v2))
                                     {
-                                        whileLoop(whileLoops.at(whileLoops.size() - 1));
+                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
 
                                         if (State.Breaking)
                                             break;
                                     }
 
-                                    whileLoops.clear();
+                                    mem.clearWhile();
 
                                     State.WhileLoopCount = 0;
                                 }
@@ -561,13 +558,13 @@ void parse(string s)
                                 {
                                     while (mem.varNumber(v1) < mem.varNumber(v2))
                                     {
-                                        whileLoop(whileLoops.at(whileLoops.size() - 1));
+                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
 
                                         if (State.Breaking)
                                             break;
                                     }
 
-                                    whileLoops.clear();
+                                    mem.clearWhile();
 
                                     State.WhileLoopCount = 0;
                                 }
@@ -575,13 +572,13 @@ void parse(string s)
                                 {
                                     while (mem.varNumber(v1) > mem.varNumber(v2))
                                     {
-                                        whileLoop(whileLoops.at(whileLoops.size() - 1));
+                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
 
                                         if (State.Breaking)
                                             break;
                                     }
 
-                                    whileLoops.clear();
+                                    mem.clearWhile();
 
                                     State.WhileLoopCount = 0;
                                 }
@@ -589,13 +586,13 @@ void parse(string s)
                                 {
                                     while (mem.varNumber(v1) <= mem.varNumber(v2))
                                     {
-                                        whileLoop(whileLoops.at(whileLoops.size() - 1));
+                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
 
                                         if (State.Breaking)
                                             break;
                                     }
 
-                                    whileLoops.clear();
+                                    mem.clearWhile();
 
                                     State.WhileLoopCount = 0;
                                 }
@@ -603,13 +600,13 @@ void parse(string s)
                                 {
                                     while (mem.varNumber(v1) >= mem.varNumber(v2))
                                     {
-                                        whileLoop(whileLoops.at(whileLoops.size() - 1));
+                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
 
                                         if (State.Breaking)
                                             break;
                                     }
 
-                                    whileLoops.clear();
+                                    mem.clearWhile();
 
                                     State.WhileLoopCount = 0;
                                 }
@@ -617,13 +614,13 @@ void parse(string s)
                                 {
                                     while (mem.varNumber(v1) != mem.varNumber(v2))
                                     {
-                                        whileLoop(whileLoops.at(whileLoops.size() - 1));
+                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
 
                                         if (State.Breaking)
                                             break;
                                     }
 
-                                    whileLoops.clear();
+                                    mem.clearWhile();
 
                                     State.WhileLoopCount = 0;
                                 }
@@ -634,13 +631,13 @@ void parse(string s)
                                 {
                                     while (mem.varNumber(v1) == stoi(v2))
                                     {
-                                        whileLoop(whileLoops.at(whileLoops.size() - 1));
+                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
 
                                         if (State.Breaking)
                                             break;
                                     }
 
-                                    whileLoops.clear();
+                                    mem.clearWhile();
 
                                     State.WhileLoopCount = 0;
                                 }
@@ -648,13 +645,13 @@ void parse(string s)
                                 {
                                     while (mem.varNumber(v1) < stoi(v2))
                                     {
-                                        whileLoop(whileLoops.at(whileLoops.size() - 1));
+                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
 
                                         if (State.Breaking)
                                             break;
                                     }
 
-                                    whileLoops.clear();
+                                    mem.clearWhile();
 
                                     State.WhileLoopCount = 0;
                                 }
@@ -662,13 +659,13 @@ void parse(string s)
                                 {
                                     while (mem.varNumber(v1) > stoi(v2))
                                     {
-                                        whileLoop(whileLoops.at(whileLoops.size() - 1));
+                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
 
                                         if (State.Breaking)
                                             break;
                                     }
 
-                                    whileLoops.clear();
+                                    mem.clearWhile();
 
                                     State.WhileLoopCount = 0;
                                 }
@@ -676,13 +673,13 @@ void parse(string s)
                                 {
                                     while (mem.varNumber(v1) <= stoi(v2))
                                     {
-                                        whileLoop(whileLoops.at(whileLoops.size() - 1));
+                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
 
                                         if (State.Breaking)
                                             break;
                                     }
 
-                                    whileLoops.clear();
+                                    mem.clearWhile();
 
                                     State.WhileLoopCount = 0;
                                 }
@@ -690,13 +687,13 @@ void parse(string s)
                                 {
                                     while (mem.varNumber(v1) >= stoi(v2))
                                     {
-                                        whileLoop(whileLoops.at(whileLoops.size() - 1));
+                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
 
                                         if (State.Breaking)
                                             break;
                                     }
 
-                                    whileLoops.clear();
+                                    mem.clearWhile();
 
                                     State.WhileLoopCount = 0;
                                 }
@@ -704,20 +701,20 @@ void parse(string s)
                                 {
                                     while (mem.varNumber(v1) != stoi(v2))
                                     {
-                                        whileLoop(whileLoops.at(whileLoops.size() - 1));
+                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
 
                                         if (State.Breaking)
                                             break;
                                     }
 
-                                    whileLoops.clear();
+                                    mem.clearWhile();
 
                                     State.WhileLoopCount = 0;
                                 }
                             }
                         }
                         else
-                            whileLoops.at(whileLoops.size() - 1).add(s);
+                            mem.getWhileLoop(mem.getWhileLoopCount() - 1).add(s);
                     }
                     else if (State.DefiningForLoop)
                     {
@@ -725,11 +722,11 @@ void parse(string s)
                         {
                             State.DefiningForLoop = false;
 
-                            for (int i = 0; i < (int)forLoops.size(); i++)
-                                if (forLoops.at(i).isForLoop())
-                                    forLoop(forLoops.at(i));
+                            for (int i = 0; i < mem.getForLoopCount(); i++)
+                                if (mem.getForLoop(i).isForLoop())
+                                    exec.executeForLoop(mem.getForLoop(i));
 
-                            forLoops.clear();
+                            mem.clearFor();
 
                             State.ForLoopCount = 0;
                         }
@@ -738,7 +735,7 @@ void parse(string s)
                             if (s == "{")
                                 doNothing();
                             else
-                                forLoops.at(forLoops.size() - 1).add(s);
+                                mem.getForLoop(mem.getForLoopCount() - 1).add(s);
                         }
                     }
                     else
@@ -757,14 +754,14 @@ void parse(string s)
                                         {
                                             s = subtractChar(s, "\"");
 
-                                            if (mem.getObject(before).methodExists(beforeParams(after)))
-                                                executeTemplate(mem.getObject(before).getMethod(beforeParams(after)), getParams(after));
+                                            if (mem.getObject(before).hasMethod(beforeParams(after)))
+                                                exec.executeTemplate(mem.getObject(before).getMethod(beforeParams(after)), getParams(after));
                                             else
                                                 Env::sysExec(s, command);
                                         }
-                                        else if (mem.getObject(before).methodExists(after))
-                                            executeMethod(mem.getObject(before).getMethod(after));
-                                        else if (mem.getObject(before).variableExists(after))
+                                        else if (mem.getObject(before).hasMethod(after))
+                                            exec.executeMethod(mem.getObject(before).getMethod(after));
+                                        else if (mem.getObject(before).hasVariable(after))
                                         {
                                             if (mem.getObject(before).getVariable(after).getString() != State.Null)
                                                 writeline(mem.getObject(before).getVariable(after).getString());
@@ -804,7 +801,7 @@ void parse(string s)
                                         else if (before == "self")
                                         {
                                             if (State.ExecutedMethod)
-                                                executeMethod(mem.getObject(State.CurrentMethodObject).getMethod(after));
+                                                exec.executeMethod(mem.getObject(State.CurrentMethodObject).getMethod(after));
                                         }
                                         else
                                             Env::sysExec(s, command);
@@ -820,17 +817,17 @@ void parse(string s)
                                     }
                                 }
                                 else if (mem.methodExists(s))
-                                    executeMethod(mem.getMethod(s));
+                                    exec.executeMethod(mem.getMethod(s));
                                 else if (startsWith(s, "[") && endsWith(s, "]"))
                                 {
-                                    InternalCreateModule(s);
+                                    mem.createModule(s);
                                 }
                                 else
                                 {
                                     s = subtractChar(s, "\"");
 
                                     if (mem.methodExists(beforeParams(s)))
-                                        executeTemplate(mem.getMethod(beforeParams(s)), getParams(s));
+                                        exec.executeTemplate(mem.getMethod(beforeParams(s)), getParams(s));
                                     else
                                         Env::sysExec(s, command);
                                 }
@@ -852,11 +849,11 @@ void parse(string s)
                             if (notStandardTwoSpace(command.at(1)))
                             {
                                 if (command.at(0) == "append")
-                                    appendText(command.at(1), command.at(2), false);
+                                    FileIO::appendText(command.at(1), command.at(2), false);
                                 else if (command.at(0) == "appendl")
-                                    appendText(command.at(1), command.at(2), true);
+                                    FileIO::appendText(command.at(1), command.at(2), true);
                                 else if ((command.at(0) == "fwrite"))
-                                    __fwrite(command.at(1), command.at(2));
+                                    FileIO::writeText(command.at(1), command.at(2));
                                 else if (command.at(0) == "redefine")
                                     mem.redefine(command.at(1), command.at(2));
                                 else if (command.at(0) == "loop")
@@ -1023,30 +1020,30 @@ void zeroSpace(string arg0, string s, vector<string> command)
     else if (arg0 == "no_methods?")
     {
         if (mem.noMethods())
-            __true();
+            State.LastValue = "true";
         else
-            __false();
+            State.LastValue = "false";
     }
     else if (arg0 == "no_objects?")
     {
         if (mem.noObjects())
-            __true();
+            State.LastValue = "true";
         else
-            __false();
+            State.LastValue = "false";
     }
     else if (arg0 == "no_variables?")
     {
         if (mem.noVariables())
-            __true();
+            State.LastValue = "true";
         else
-            __false();
+            State.LastValue = "false";
     }
     else if (arg0 == "no_lists?")
     {
         if (mem.noLists())
-            __true();
+            State.LastValue = "true";
         else
-            __false();
+            State.LastValue = "false";
     }
     else if (arg0 == "end" || arg0 == "}")
     {
@@ -1057,7 +1054,7 @@ void zeroSpace(string arg0, string s, vector<string> command)
         State.CurrentObject = "";
     }
     else if (arg0 == "parser")
-        loop(false);
+        startREPL(false);
     else if (arg0 == "private")
     {
         State.DefiningPrivateCode = true;
@@ -1073,9 +1070,9 @@ void zeroSpace(string arg0, string s, vector<string> command)
     else if (arg0 == "failif")
     {
         if (State.FailedIfStatement == true)
-            setTrueIf();
+            mem.createIfStatement(true);
         else
-            setFalseIf();
+            mem.createIfStatement(false);
     }
     else
         Env::sysExec(s, command);
@@ -1157,9 +1154,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
 		}
 		
 		if (isTrue(tmpValue)) {
-			setTrueIf();
+			mem.createIfStatement(true);
 		} else if (isFalse(tmpValue)) {
-			setFalseIf();
+			mem.createIfStatement(false);
 		} else {
 			// error(ErrorMessage::INVALID_OP, arg1, true);
 		}
@@ -1206,7 +1203,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     else if (arg0 == "delay")
     {
         if (isNumeric(arg1))
-            delay(stoi(arg1));
+            DT::delay(stoi(arg1));
         else
             error(ErrorMessage::CONV_ERR, arg1, false);
     }
@@ -1290,15 +1287,15 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "globalize")
     {
-        mem.globalize(arg0, arg1);
+        mem.globalize(arg1);
     }
     else if (arg0 == "remember" || arg0 == "save")
     {
-        InternalRemember(arg0, arg1);
+        mem.remember(arg1);
     }
     else if (arg0 == "forget"  || arg0 == "lose")
     {
-        InternalForget(arg0, arg1);
+        mem.forget(arg1);
     }
     else if (arg0 == "load")
     {
@@ -1308,7 +1305,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             {
                 State.PreviousScript = State.CurrentScript;
                 mem.loadScript(arg1);
-                runScript();
+                exec.executeScript();
             }
             else
                 error(ErrorMessage::BAD_LOAD, arg1, true);
@@ -1364,7 +1361,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             else
                 newList.dontCollect();
 
-            lists.push_back(newList);
+            mem.addList(newList);
         }
     }
     else if (arg0 == "!")
@@ -1429,60 +1426,60 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (mem.getObject(before).methodExists(after))
-                __true();
+            if (mem.getObject(before).hasMethod(after))
+                State.LastValue = "true";
             else
-                __false();
+                State.LastValue = "false";
         }
         else
         {
             if (mem.methodExists(arg1))
-                __true();
+                State.LastValue = "true";
             else
-                __false();
+                State.LastValue = "false";
         }
     }
     else if (arg0 == "object?")
     {
         if (mem.objectExists(arg1))
-            __true();
+            State.LastValue = "true";
         else
-            __false();
+            State.LastValue = "false";
     }
     else if (arg0 == "variable?")
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (mem.getObject(before).variableExists(after))
-                __true();
+            if (mem.getObject(before).hasVariable(after))
+                State.LastValue = "true";
             else
-                __false();
+                State.LastValue = "false";
         }
         else
         {
             if (mem.variableExists(arg1))
-                __true();
+                State.LastValue = "true";
             else
-                __false();
+                State.LastValue = "false";
         }
     }
     else if (arg0 == "list?")
     {
         if (mem.listExists(arg1))
-            __true();
+            State.LastValue = "true";
         else
-            __false();
+            State.LastValue = "false";
     }
     else if (arg0 == "directory?")
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (mem.getObject(before).variableExists(after))
+            if (mem.getObject(before).hasVariable(after))
             {
                 if (Env::directoryExists(mem.getObject(before).getVariable(after).getString()))
-                    __true();
+                    State.LastValue = "true";
                 else
-                    __false();
+                    State.LastValue = "false";
             }
             else
                 error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
@@ -1494,9 +1491,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 if (mem.isString(arg1))
                 {
                     if (Env::directoryExists(mem.varString(arg1)))
-                        __true();
+                        State.LastValue = "true";
                     else
-                        __false();
+                        State.LastValue = "false";
                 }
                 else
                     error(ErrorMessage::NULL_STRING, arg1, false);
@@ -1504,9 +1501,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             else
             {
                 if (Env::directoryExists(arg1))
-                    __true();
+                    State.LastValue = "true";
                 else
-                    __false();
+                    State.LastValue = "false";
             }
         }
     }
@@ -1514,12 +1511,12 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (mem.getObject(before).variableExists(after))
+            if (mem.getObject(before).hasVariable(after))
             {
                 if (Env::fileExists(mem.getObject(before).getVariable(after).getString()))
-                    __true();
+                    State.LastValue = "true";
                 else
-                    __false();
+                    State.LastValue = "false";
             }
             else
                 error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
@@ -1531,19 +1528,19 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 if (mem.isString(arg1))
                 {
                     if (Env::fileExists(mem.varString(arg1)))
-                        __true();
+                        State.LastValue = "true";
                     else
-                        __false();
+                        State.LastValue = "false";
                 }
                 else
-                    __false();
+                    State.LastValue = "false";
             }
             else
             {
                 if (Env::fileExists(arg1))
-                    __true();
+                    State.LastValue = "true";
                 else
-                    __false();
+                    State.LastValue = "false";
             }
         }
     }
@@ -1552,9 +1549,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         if (mem.variableExists(arg1))
         {
             if (mem.getVar(arg1).garbage())
-                __true();
+                State.LastValue = "true";
             else
-                __false();
+                State.LastValue = "false";
         }
         else
             IO::println("under construction...");
@@ -1563,12 +1560,12 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (mem.getObject(before).variableExists(after))
+            if (mem.getObject(before).hasVariable(after))
             {
                 if (mem.getObject(before).getVariable(after).getNumber() != State.NullNum)
-                    __true();
+                    State.LastValue = "true";
                 else
-                    __false();
+                    State.LastValue = "false";
             }
             else
                 error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
@@ -1578,16 +1575,16 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             if (mem.variableExists(arg1))
             {
                 if (mem.isNumber(arg1))
-                    __true();
+                    State.LastValue = "true";
                 else
-                    __false();
+                    State.LastValue = "false";
             }
             else
             {
                 if (isNumeric(arg1))
-                    __true();
+                    State.LastValue = "true";
                 else
-                    __false();
+                    State.LastValue = "false";
             }
         }
     }
@@ -1595,12 +1592,12 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (mem.getObject(before).variableExists(after))
+            if (mem.getObject(before).hasVariable(after))
             {
                 if (mem.getObject(before).getVariable(after).getString() != State.Null)
-                    __true();
+                    State.LastValue = "true";
                 else
-                    __false();
+                    State.LastValue = "false";
             }
             else
                 error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
@@ -1610,16 +1607,16 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             if (mem.variableExists(arg1))
             {
                 if (mem.isString(arg1))
-                    __true();
+                    State.LastValue = "true";
                 else
-                    __false();
+                    State.LastValue = "false";
             }
             else
             {
                 if (isNumeric(arg1))
-                    __false();
+                    State.LastValue = "false";
                 else
-                    __true();
+                    State.LastValue = "true";
             }
         }
     }
@@ -1627,12 +1624,12 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (mem.getObject(before).variableExists(after))
+            if (mem.getObject(before).hasVariable(after))
             {
                 if (isUpper(mem.getObject(before).getVariable(after).getString()))
-                    __true();
+                    State.LastValue = "true";
                 else
-                    __false();
+                    State.LastValue = "false";
             }
             else
                 error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
@@ -1644,23 +1641,23 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 if (mem.isString(arg1))
                 {
                     if (isUpper(mem.varString(arg1)))
-                        __true();
+                        State.LastValue = "true";
                     else
-                        __false();
+                        State.LastValue = "false";
                 }
                 else
-                    __false();
+                    State.LastValue = "false";
             }
             else
             {
                 if (isNumeric(arg1))
-                    __false();
+                    State.LastValue = "false";
                 else
                 {
                     if (isUpper(arg1))
-                        __true();
+                        State.LastValue = "true";
                     else
-                        __false();
+                        State.LastValue = "false";
                 }
             }
         }
@@ -1669,12 +1666,12 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (mem.getObject(before).variableExists(after))
+            if (mem.getObject(before).hasVariable(after))
             {
                 if (isLower(mem.getObject(before).getVariable(after).getString()))
-                    __true();
+                    State.LastValue = "true";
                 else
-                    __false();
+                    State.LastValue = "false";
             }
             else
                 error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
@@ -1686,30 +1683,30 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 if (mem.isString(arg1))
                 {
                     if (isLower(mem.varString(arg1)))
-                        __true();
+                        State.LastValue = "true";
                     else
-                        __false();
+                        State.LastValue = "false";
                 }
                 else
-                    __false();
+                    State.LastValue = "false";
             }
             else
             {
                 if (isNumeric(arg1))
-                    __false();
+                    State.LastValue = "false";
                 else
                 {
                     if (isLower(arg1))
-                        __true();
+                        State.LastValue = "true";
                     else
-                        __false();
+                        State.LastValue = "false";
                 }
             }
         }
     }
     else if (arg0 == "see")
     {
-        InternalInspect(arg0, arg1, before, after);
+        exec.executeInspection(arg0, arg1, before, after);
     }
     else if (arg0 == "template")
     {
@@ -1721,11 +1718,8 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             {
                 vector<string> params = getParams(arg1);
                 Method method(beforeParams(arg1), true);
-
                 method.setTemplateSize((int)params.size());
-
-                methods.push_back(method);
-
+                mem.addMethod(method);
                 State.DefiningMethod = true;
             }
         }
@@ -1750,11 +1744,11 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "call_method")
     {
-        InternalCallMethod(arg0, arg1, before, after);
+        exec.executeMethod(arg1, before, after);
     }
     else if (arg0 == "object")
     {
-        InternalCreateObject(arg1);
+        mem.createObject(arg1);
     }
     else if (arg0 == "fpush")
     {
@@ -1882,11 +1876,11 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
         }
         else if (isUpperConstant(arg0))
         {
-            initializeConstant(arg0, arg1, arg2, s, command);
+            initializeConstant(arg0, arg1, arg2, s);
         }
         else
         {
-            executeSimpleStatement(arg0, arg1, arg2, s, command);
+            exec.executeSimpleStatement(arg0, arg1, arg2, s);
         }
     }
 }
@@ -1918,7 +1912,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             newObject.addMethod(objectMethods.at(i));
                     }
 
-                    objects.push_back(newObject);
+                    mem.addObject(newObject);
                     State.CurrentObject = arg1;
                     State.DefiningObject = true;
 
@@ -1960,17 +1954,17 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (mem.getList(arg3).at(i) == testString)
                         {
                             elementFound = true;
-                            setFalseIf();
+                            mem.createIfStatement(false);
                             State.LastValue = itos(i);
                             break;
                         }
                     }
 
                     if (!elementFound)
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else
-                    setTrueIf();
+                    mem.createIfStatement(true);
             }
         }
         else if (mem.variableExists(arg1) && mem.variableExists(arg3))
@@ -1980,70 +1974,70 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (arg2 == "==")
                 {
                     if (mem.varString(arg1) == mem.varString(arg3))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "!=")
                 {
                     if (mem.varString(arg1) != mem.varString(arg3))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == ">")
                 {
                     if (mem.varString(arg1).length() > mem.varString(arg3).length())
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "<")
                 {
                     if (mem.varString(arg1).length() < mem.varString(arg3).length())
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "<=")
                 {
                     if (mem.varString(arg1).length() <= mem.varString(arg3).length())
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == ">=")
                 {
                     if (mem.varString(arg1).length() >= mem.varString(arg3).length())
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "contains")
                 {
                     if (contains(mem.varString(arg1), mem.varString(arg3)))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "ends_with")
                 {
                     if (endsWith(mem.varString(arg1), mem.varString(arg3)))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "begins_with")
                 {
                     if (startsWith(mem.varString(arg1), mem.varString(arg3)))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else
                 {
                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 }
             }
             else if (mem.isNumber(arg1) && mem.isNumber(arg3))
@@ -2051,55 +2045,55 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (arg2 == "==")
                 {
                     if (mem.varNumber(arg1) == mem.varNumber(arg3))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "!=")
                 {
                     if (mem.varNumber(arg1) != mem.varNumber(arg3))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == ">")
                 {
                     if (mem.varNumber(arg1) > mem.varNumber(arg3))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == ">=")
                 {
                     if (mem.varNumber(arg1) >= mem.varNumber(arg3))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "<")
                 {
                     if (mem.varNumber(arg1) < mem.varNumber(arg3))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "<=")
                 {
                     if (mem.varNumber(arg1) <= mem.varNumber(arg3))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else
                 {
                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 }
             }
             else
             {
                 error(ErrorMessage::CONV_ERR, s, false);
-                setTrueIf();
+                mem.createIfStatement(true);
             }
         }
         else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notObjectMethod(arg3) && !containsParams(arg3))
@@ -2111,64 +2105,64 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (arg2 == "==")
                     {
                         if (mem.varNumber(arg1) == stod(arg3))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "!=")
                     {
                         if (mem.varNumber(arg1) != stod(arg3))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == ">")
                     {
                         if (mem.varNumber(arg1) > stod(arg3))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "<")
                     {
                         if (mem.varNumber(arg1) < stod(arg3))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == ">=")
                     {
                         if (mem.varNumber(arg1) >= stod(arg3))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "<=")
                     {
                         if (mem.varNumber(arg1) <= stod(arg3))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
                 else if (arg3 == "number?")
                 {
                     if (arg2 == "==")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else if (arg2 == "!=")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 }
             }
             else
@@ -2178,21 +2172,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (mem.isString(arg1))
                     {
                         if (arg2 == "==")
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else if (arg2 == "!=")
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         }
                     }
                     else
                     {
                         if (arg2 == "!")
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                 }
                 else if (arg3 == "number?")
@@ -2200,21 +2194,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (mem.isNumber(arg1))
                     {
                         if (arg2 == "==")
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else if (arg2 == "!=")
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         }
                     }
                     else
                     {
                         if (arg2 == "!=")
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                 }
                 else if (arg3 == "uppercase?")
@@ -2224,21 +2218,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "==")
                         {
                             if (isUpper(mem.varString(arg1)))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else if (arg2 == "!=")
                         {
                             if (isUpper(mem.varString(arg1)))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         }
                     }
                     else
@@ -2246,12 +2240,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "!=")
                         {
                             if (isUpper(arg2))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                 }
                 else if (arg3 == "lowercase?")
@@ -2261,21 +2255,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "==")
                         {
                             if (isLower(mem.varString(arg1)))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else if (arg2 == "!=")
                         {
                             if (isLower(mem.varString(arg1)))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         }
                     }
                     else
@@ -2283,12 +2277,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "!=")
                         {
                             if (isLower(arg2))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                 }
                 else if (arg3 == "file?")
@@ -2298,27 +2292,27 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (Env::fileExists(mem.varString(arg1)))
                         {
                             if (arg2 == "==")
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else if (arg2 == "!=")
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             }
                         }
                         else
                         {
                             if (arg2 == "!=")
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                     }
                     else
                     {
                         error(ErrorMessage::IS_NULL, arg1, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
                 else if (arg3 == "directory?")
@@ -2328,27 +2322,27 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (Env::directoryExists(mem.varString(arg1)))
                         {
                             if (arg2 == "==")
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else if (arg2 == "!=")
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             }
                         }
                         else
                         {
                             if (arg2 == "!=")
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                     }
                     else
                     {
                         error(ErrorMessage::IS_NULL, arg1, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
                 else
@@ -2356,70 +2350,70 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (arg2 == "==")
                     {
                         if (mem.varString(arg1) == arg3)
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "!=")
                     {
                         if (mem.varString(arg1) != arg3)
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == ">")
                     {
                         if (mem.varString(arg1).length() > arg3.length())
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "<")
                     {
                         if (mem.varString(arg1).length() < arg3.length())
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == ">=")
                     {
                         if (mem.varString(arg1).length() >= arg3.length())
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "<=")
                     {
                         if (mem.varString(arg1).length() <= arg3.length())
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "contains")
                     {
                         if (contains(mem.varString(arg1), arg3))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "ends_with")
                     {
                         if (endsWith(mem.varString(arg1), arg3))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "begins_with")
                     {
                         if (startsWith(mem.varString(arg1), arg3))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
             }
@@ -2442,64 +2436,64 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (arg2 == "==")
                     {
                         if (mem.varNumber(arg1) == stod(stackValue))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "!=")
                     {
                         if (mem.varNumber(arg1) != stod(stackValue))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == ">")
                     {
                         if (mem.varNumber(arg1) > stod(stackValue))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "<")
                     {
                         if (mem.varNumber(arg1) < stod(stackValue))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == ">=")
                     {
                         if (mem.varNumber(arg1) >= stod(stackValue))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "<=")
                     {
                         if (mem.varNumber(arg1) <= stod(stackValue))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
                 else if (stackValue == "number?")
                 {
                     if (arg2 == "==")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else if (arg2 == "!=")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 }
             }
             else
@@ -2509,21 +2503,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (mem.isString(arg1))
                     {
                         if (arg2 == "==")
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else if (arg2 == "!=")
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         }
                     }
                     else
                     {
                         if (arg2 == "!=")
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                 }
                 else if (stackValue == "number?")
@@ -2531,21 +2525,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (mem.isNumber(arg1))
                     {
                         if (arg2 == "==")
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else if (arg2 == "!=")
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         }
                     }
                     else
                     {
                         if (arg2 == "!=")
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                 }
                 else if (stackValue == "uppercase?")
@@ -2555,21 +2549,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "==")
                         {
                             if (isUpper(mem.varString(arg1)))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else if (arg2 == "!=")
                         {
                             if (isUpper(mem.varString(arg1)))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         }
                     }
                     else
@@ -2577,12 +2571,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "!=")
                         {
                             if (isUpper(arg2))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                 }
                 else if (stackValue == "lowercase?")
@@ -2592,21 +2586,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "==")
                         {
                             if (isLower(mem.varString(arg1)))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else if (arg2 == "!=")
                         {
                             if (isLower(mem.varString(arg1)))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         }
                     }
                     else
@@ -2614,12 +2608,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "!=")
                         {
                             if (isLower(arg2))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                 }
                 else if (stackValue == "file?")
@@ -2629,27 +2623,27 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (Env::fileExists(mem.varString(arg1)))
                         {
                             if (arg2 == "==")
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else if (arg2 == "!=")
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             }
                         }
                         else
                         {
                             if (arg2 == "!=")
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                     }
                     else
                     {
                         error(ErrorMessage::IS_NULL, arg1, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
                 else if (stackValue == "directory?")
@@ -2659,27 +2653,27 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (Env::directoryExists(mem.varString(arg1)))
                         {
                             if (arg2 == "==")
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else if (arg2 == "!=")
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             }
                         }
                         else
                         {
                             if (arg2 == "!=")
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                     }
                     else
                     {
                         error(ErrorMessage::IS_NULL, arg1, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
                 else
@@ -2687,70 +2681,70 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (arg2 == "==")
                     {
                         if (mem.varString(arg1) == stackValue)
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "!=")
                     {
                         if (mem.varString(arg1) != stackValue)
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == ">")
                     {
                         if (mem.varString(arg1).length() > stackValue.length())
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "<")
                     {
                         if (mem.varString(arg1).length() < stackValue.length())
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == ">=")
                     {
                         if (mem.varString(arg1).length() >= stackValue.length())
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "<=")
                     {
                         if (mem.varString(arg1).length() <= stackValue.length())
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "contains")
                     {
                         if (contains(mem.varString(arg1), stackValue))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "ends_with")
                     {
                         if (endsWith(mem.varString(arg1), stackValue))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "begins_with")
                     {
                         if (startsWith(mem.varString(arg1), stackValue))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
             }
@@ -2764,55 +2758,55 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (arg2 == "==")
                     {
                         if (mem.varNumber(arg3) == stod(arg1))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "!=")
                     {
                         if (mem.varNumber(arg3) != stod(arg1))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == ">")
                     {
                         if (mem.varNumber(arg3) > stod(arg1))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "<")
                     {
                         if (mem.varNumber(arg3) < stod(arg1))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == ">=")
                     {
                         if (mem.varNumber(arg3) >= stod(arg1))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "<=")
                     {
                         if (mem.varNumber(arg3) <= stod(arg1))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 }
             }
             else
@@ -2820,49 +2814,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (arg2 == "==")
                 {
                     if (mem.varString(arg3) == arg1)
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "!=")
                 {
                     if (mem.varString(arg3) != arg1)
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == ">")
                 {
                     if (mem.varString(arg3).length() > arg1.length())
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "<")
                 {
                     if (mem.varString(arg3).length() < arg1.length())
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == ">=")
                 {
                     if (mem.varString(arg3).length() >= arg1.length())
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "<=")
                 {
                     if (mem.varString(arg3).length() <= arg1.length())
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else
                 {
                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 }
             }
         }
@@ -2884,55 +2878,55 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (arg2 == "==")
                     {
                         if (mem.varNumber(arg3) == stod(stackValue))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "!=")
                     {
                         if (mem.varNumber(arg3) != stod(stackValue))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == ">")
                     {
                         if (mem.varNumber(arg3) > stod(stackValue))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "<")
                     {
                         if (mem.varNumber(arg3) < stod(stackValue))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == ">=")
                     {
                         if (mem.varNumber(arg3) >= stod(stackValue))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else if (arg2 == "<=")
                     {
                         if (mem.varNumber(arg3) <= stod(stackValue))
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 }
             }
             else
@@ -2940,49 +2934,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (arg2 == "==")
                 {
                     if (mem.varString(arg3) == stackValue)
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "!=")
                 {
                     if (mem.varString(arg3) != stackValue)
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == ">")
                 {
                     if (mem.varString(arg3).length() > stackValue.length())
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "<")
                 {
                     if (mem.varString(arg3).length() < stackValue.length())
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == ">=")
                 {
                     if (mem.varString(arg3).length() >= stackValue.length())
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "<=")
                 {
                     if (mem.varString(arg3).length() <= stackValue.length())
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else
                 {
                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 }
             }
         }
@@ -2999,13 +2993,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (mem.objectExists(arg1before) && mem.objectExists(arg3before))
                     {
-                        if (mem.getObject(arg1before).methodExists(beforeParams(arg1after)))
-                            executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getObject(arg1before).hasMethod(beforeParams(arg1after)))
+                            exec.executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
-                        if (mem.getObject(arg3before).methodExists(beforeParams(arg3after)))
-                            executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getObject(arg3before).hasMethod(beforeParams(arg3after)))
+                            exec.executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
@@ -3014,49 +3008,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (stod(arg1Result) == stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (stod(arg1Result) != stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(arg1Result) < stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(arg1Result) > stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(arg1Result) <= stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(arg1Result) >= stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             }
                         }
                         else
@@ -3064,21 +3058,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (arg1Result == arg3Result)
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (arg1Result != arg3Result)
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             }
                         }
                     }
@@ -3090,7 +3084,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (!mem.objectExists(arg3before))
                             error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
 
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
                 else if (!zeroDots(arg1) && zeroDots(arg3))
@@ -3101,13 +3095,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (mem.objectExists(arg1before))
                     {
-                        if (mem.getObject(arg1before).methodExists(beforeParams(arg1after)))
-                            executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getObject(arg1before).hasMethod(beforeParams(arg1after)))
+                            exec.executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
                         if (mem.methodExists(beforeParams(arg3)))
-                            executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
+                            exec.executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
 
                         arg3Result = State.LastValue;
 
@@ -3116,49 +3110,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (stod(arg1Result) == stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (stod(arg1Result) != stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(arg1Result) < stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(arg1Result) > stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(arg1Result) <= stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(arg1Result) >= stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             }
                         }
                         else
@@ -3166,28 +3160,28 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (arg1Result == arg3Result)
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (arg1Result != arg3Result)
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             }
                         }
                     }
                     else
                     {
                         error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
                 else if (zeroDots(arg1) && !zeroDots(arg3))
@@ -3198,13 +3192,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (mem.objectExists(arg3before))
                     {
-                        if (mem.getObject(arg3before).methodExists(beforeParams(arg3after)))
-                            executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getObject(arg3before).hasMethod(beforeParams(arg3after)))
+                            exec.executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
                         if (mem.methodExists(beforeParams(arg1)))
-                            executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
+                            exec.executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
 
                         arg1Result = State.LastValue;
 
@@ -3213,49 +3207,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (stod(arg1Result) == stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (stod(arg1Result) != stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(arg1Result) < stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(arg1Result) > stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(arg1Result) <= stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(arg1Result) >= stod(arg3Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             }
                         }
                         else
@@ -3263,28 +3257,28 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (arg1Result == arg3Result)
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (arg1Result != arg3Result)
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             }
                         }
                     }
                     else
                     {
                         error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
                 else
@@ -3292,12 +3286,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     string arg1Result(""), arg3Result("");
 
                     if (mem.methodExists(beforeParams(arg1)))
-                        executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
+                        exec.executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
 
                     arg1Result = State.LastValue;
 
                     if (mem.methodExists(beforeParams(arg3)))
-                        executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
+                        exec.executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
 
                     arg3Result = State.LastValue;
 
@@ -3306,49 +3300,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "==")
                         {
                             if (stod(arg1Result) == stod(arg3Result))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else if (arg2 == "!=")
                         {
                             if (stod(arg1Result) != stod(arg3Result))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else if (arg2 == "<")
                         {
                             if (stod(arg1Result) < stod(arg3Result))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else if (arg2 == ">")
                         {
                             if (stod(arg1Result) > stod(arg3Result))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else if (arg2 == "<=")
                         {
                             if (stod(arg1Result) <= stod(arg3Result))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else if (arg2 == ">=")
                         {
                             if (stod(arg1Result) >= stod(arg3Result))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         }
                     }
                     else
@@ -3356,21 +3350,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "==")
                         {
                             if (arg1Result == arg3Result)
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else if (arg2 == "!=")
                         {
                             if (arg1Result != arg3Result)
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         }
                     }
                 }
@@ -3385,7 +3379,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (mem.methodExists(beforeParams(arg1)))
                     {
-                        executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
+                        exec.executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
 
                         arg1Result = State.LastValue;
 
@@ -3404,7 +3398,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             {
                                 pass = false;
                                 error(ErrorMessage::IS_NULL, arg3, false);
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             }
                         }
                         else
@@ -3417,49 +3411,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 if (arg2 == "==")
                                 {
                                     if (stod(arg1Result) == stod(arg3Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == "!=")
                                 {
                                     if (stod(arg1Result) != stod(arg3Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == "<")
                                 {
                                     if (stod(arg1Result) < stod(arg3Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == ">")
                                 {
                                     if (stod(arg1Result) > stod(arg3Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == "<=")
                                 {
                                     if (stod(arg1Result) <= stod(arg3Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == ">=")
                                 {
                                     if (stod(arg1Result) >= stod(arg3Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else
                                 {
                                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 }
                             }
                             else
@@ -3467,31 +3461,31 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 if (arg2 == "==")
                                 {
                                     if (arg1Result == arg3Result)
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == "!=")
                                 {
                                     if (arg1Result != arg3Result)
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else
                                 {
                                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 }
                             }
                         }
                         else
-                            setTrueIf();
+                            mem.createIfStatement(true);
                     }
                     else
                     {
                         error(ErrorMessage::METHOD_UNDEFINED, beforeParams(arg1), false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
                 else
@@ -3500,8 +3494,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (mem.objectExists(arg1before))
                     {
-                        if (mem.getObject(arg1before).methodExists(beforeParams(arg1after)))
-                            executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getObject(arg1before).hasMethod(beforeParams(arg1after)))
+                            exec.executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
@@ -3515,7 +3509,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             {
                                 pass = false;
                                 error(ErrorMessage::IS_NULL, arg3, false);
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             }
                         }
                         else if (mem.methodExists(arg3))
@@ -3534,49 +3528,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 if (arg2 == "==")
                                 {
                                     if (stod(arg1Result) == stod(arg3Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == "!=")
                                 {
                                     if (stod(arg1Result) != stod(arg3Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == "<")
                                 {
                                     if (stod(arg1Result) < stod(arg3Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == ">")
                                 {
                                     if (stod(arg1Result) > stod(arg3Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == "<=")
                                 {
                                     if (stod(arg1Result) <= stod(arg3Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == ">=")
                                 {
                                     if (stod(arg1Result) >= stod(arg3Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else
                                 {
                                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 }
                             }
                             else
@@ -3584,21 +3578,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 if (arg2 == "==")
                                 {
                                     if (arg1Result == arg3Result)
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == "!=")
                                 {
                                     if (arg1Result != arg3Result)
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else
                                 {
                                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 }
                             }
                         }
@@ -3606,7 +3600,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else
                     {
                         error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
             }
@@ -3620,7 +3614,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (mem.methodExists(beforeParams(arg3)))
                     {
-                        executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
+                        exec.executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
 
                         arg3Result = State.LastValue;
 
@@ -3639,7 +3633,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             {
                                 pass = false;
                                 error(ErrorMessage::IS_NULL, arg1, false);
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             }
                         }
                         else
@@ -3652,49 +3646,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 if (arg2 == "==")
                                 {
                                     if (stod(arg3Result) == stod(arg1Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == "!=")
                                 {
                                     if (stod(arg3Result) != stod(arg1Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == "<")
                                 {
                                     if (stod(arg3Result) < stod(arg1Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == ">")
                                 {
                                     if (stod(arg3Result) > stod(arg1Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == "<=")
                                 {
                                     if (stod(arg3Result) <= stod(arg1Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == ">=")
                                 {
                                     if (stod(arg3Result) >= stod(arg1Result))
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else
                                 {
                                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 }
                             }
                             else
@@ -3702,21 +3696,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 if (arg2 == "==")
                                 {
                                     if (arg3Result == arg1Result)
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else if (arg2 == "!=")
                                 {
                                     if (arg3Result != arg1Result)
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                     else
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                 }
                                 else
                                 {
                                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 }
                             }
                         }
@@ -3724,7 +3718,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else
                     {
                         error(ErrorMessage::METHOD_UNDEFINED, beforeParams(arg3), false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
                 else
@@ -3733,8 +3727,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (mem.objectExists(arg3before))
                     {
-                        if (mem.getObject(arg3before).methodExists(beforeParams(arg3after)))
-                            executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getObject(arg3before).hasMethod(beforeParams(arg3after)))
+                            exec.executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
@@ -3747,7 +3741,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             else
                             {
                                 error(ErrorMessage::IS_NULL, arg1, false);
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             }
                         }
                         else if (mem.methodExists(arg1))
@@ -3764,49 +3758,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (stod(arg3Result) == stod(arg1Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (stod(arg3Result) != stod(arg1Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(arg3Result) < stod(arg1Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(arg3Result) > stod(arg1Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(arg3Result) <= stod(arg1Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(arg3Result) >= stod(arg1Result))
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             }
                         }
                         else
@@ -3814,28 +3808,28 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (arg3Result == arg1Result)
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (arg3Result != arg1Result)
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 else
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             }
                         }
                     }
                     else
                     {
                         error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
             }
@@ -3858,7 +3852,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 else
                 {
                     error(ErrorMessage::IS_NULL, arg1, false);
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 }
             }
             else
@@ -3878,7 +3872,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 else
                 {
                     error(ErrorMessage::IS_NULL, arg3, false);
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 }
             }
             else
@@ -3889,49 +3883,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (arg2 == "==")
                 {
                     if (stod(arg1Result) == stod(arg3Result))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "!=")
                 {
                     if (stod(arg1Result) != stod(arg3Result))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "<")
                 {
                     if (stod(arg1Result) < stod(arg3Result))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == ">")
                 {
                     if (stod(arg1Result) > stod(arg3Result))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "<=")
                 {
                     if (stod(arg1Result) <= stod(arg3Result))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == ">=")
                 {
                     if (stod(arg1Result) >= stod(arg3Result))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else
                 {
                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 }
             }
             else
@@ -3939,21 +3933,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (arg2 == "==")
                 {
                     if (arg1Result == arg3Result)
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else if (arg2 == "!=")
                 {
                     if (arg1Result != arg3Result)
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else
                 {
                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 }
             }
         }
@@ -3964,25 +3958,25 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (mem.objectExists(arg1))
                 {
                     if (arg2 == "==")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else if (arg2 == "!=")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
                 else
                 {
                     if (arg2 == "==")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else if (arg2 == "!=")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
             }
@@ -3991,25 +3985,25 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (mem.variableExists(arg1))
                 {
                     if (arg2 == "==")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else if (arg2 == "!=")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
                 else
                 {
                     if (arg2 == "=")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else if (arg2 == "!")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
             }
@@ -4018,25 +4012,25 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (mem.methodExists(arg1))
                 {
                     if (arg2 == "==")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else if (arg2 == "!=")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
                 else
                 {
                     if (arg2 == "==")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else if (arg2 == "!=")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
             }
@@ -4045,57 +4039,57 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (mem.listExists(arg1))
                 {
                     if (arg2 == "==")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else if (arg2 == "!=")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
                 else
                 {
                     if (arg2 == "==")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else if (arg2 == "!=")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     }
                 }
             }
             else if (arg2 == "==")
             {
                 if (arg1 == arg3)
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 else
-                    setTrueIf();
+                    mem.createIfStatement(true);
             }
             else if (arg2 == "!=")
             {
                 if (arg1 != arg3)
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 else
-                    setTrueIf();
+                    mem.createIfStatement(true);
             }
             else if (arg2 == ">")
             {
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) > stod(arg3))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else
                 {
                     if (arg1.length() > arg3.length())
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
             }
             else if (arg2 == "<")
@@ -4103,16 +4097,16 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) < stod(arg3))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else
                 {
                     if (arg1.length() < arg3.length())
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
             }
             else if (arg2 == ">=")
@@ -4120,14 +4114,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) >= stod(arg3))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else
                 {
                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 }
             }
             else if (arg2 == "<=")
@@ -4135,41 +4129,41 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) <= stod(arg3))
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
-                        setTrueIf();
+                        mem.createIfStatement(true);
                 }
                 else
                 {
                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 }
             }
             else if (arg2 == "begins_with")
             {
                 if (startsWith(arg1, arg3))
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 else
-                    setTrueIf();
+                    mem.createIfStatement(true);
             }
             else if (arg2 == "ends_with")
             {
                 if (endsWith(arg1, arg3))
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 else
-                    setTrueIf();
+                    mem.createIfStatement(true);
             }
             else if (arg2 == "contains")
             {
                 if (contains(arg1, arg3))
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 else
-                    setTrueIf();
+                    mem.createIfStatement(true);
             }
             else
             {
                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                setTrueIf();
+                mem.createIfStatement(true);
             }
         }
     }
@@ -4201,17 +4195,17 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (mem.getList(arg3).at(i) == testString)
                         {
                             elementFound = true;
-                            setTrueIf();
+                            mem.createIfStatement(true);
                             State.LastValue = itos(i);
                             break;
                         }
                     }
 
                     if (!elementFound)
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else
-                    setFalseIf();
+                    mem.createIfStatement(false);
             }
         }
         else if (mem.listExists(arg1) && arg3 != "list?")
@@ -4240,17 +4234,17 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (mem.getList(arg1).at(i) == testString)
                         {
                             elementFound = true;
-                            setTrueIf();
+                            mem.createIfStatement(true);
                             State.LastValue = itos(i);
                             break;
                         }
                     }
 
                     if (!elementFound)
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else
-                    setFalseIf();
+                    mem.createIfStatement(false);
             }
         }
         else if (mem.variableExists(arg1) && mem.variableExists(arg3))
@@ -4260,70 +4254,70 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (arg2 == "==")
                 {
                     if (mem.varString(arg1) == mem.varString(arg3))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "!=")
                 {
                     if (mem.varString(arg1) != mem.varString(arg3))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == ">")
                 {
                     if (mem.varString(arg1).length() > mem.varString(arg3).length())
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "<")
                 {
                     if (mem.varString(arg1).length() < mem.varString(arg3).length())
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "<=")
                 {
                     if (mem.varString(arg1).length() <= mem.varString(arg3).length())
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == ">=")
                 {
                     if (mem.varString(arg1).length() >= mem.varString(arg3).length())
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "contains")
                 {
                     if (contains(mem.varString(arg1), mem.varString(arg3)))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "ends_with")
                 {
                     if (endsWith(mem.varString(arg1), mem.varString(arg3)))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "begins_with")
                 {
                     if (startsWith(mem.varString(arg1), mem.varString(arg3)))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else
                 {
                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 }
             }
             else if (mem.isNumber(arg1) && mem.isNumber(arg3))
@@ -4331,55 +4325,55 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (arg2 == "==")
                 {
                     if (mem.varNumber(arg1) == mem.varNumber(arg3))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "!=")
                 {
                     if (mem.varNumber(arg1) != mem.varNumber(arg3))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == ">")
                 {
                     if (mem.varNumber(arg1) > mem.varNumber(arg3))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == ">=")
                 {
                     if (mem.varNumber(arg1) >= mem.varNumber(arg3))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "<")
                 {
                     if (mem.varNumber(arg1) < mem.varNumber(arg3))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "<=")
                 {
                     if (mem.varNumber(arg1) <= mem.varNumber(arg3))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else
                 {
                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 }
             }
             else
             {
                 error(ErrorMessage::CONV_ERR, s, false);
-                setFalseIf();
+                mem.createIfStatement(false);
             }
         }
         else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notObjectMethod(arg3) && !containsParams(arg3))
@@ -4391,64 +4385,64 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (arg2 == "==")
                     {
                         if (mem.varNumber(arg1) == stod(arg3))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "!=")
                     {
                         if (mem.varNumber(arg1) != stod(arg3))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == ">")
                     {
                         if (mem.varNumber(arg1) > stod(arg3))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "<")
                     {
                         if (mem.varNumber(arg1) < stod(arg3))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == ">=")
                     {
                         if (mem.varNumber(arg1) >= stod(arg3))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "<=")
                     {
                         if (mem.varNumber(arg1) <= stod(arg3))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
                 else if (arg3 == "number?")
                 {
                     if (arg2 == "==")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else if (arg2 == "!=")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 }
             }
             else
@@ -4458,21 +4452,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (mem.isString(arg1))
                     {
                         if (arg2 == "==")
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else if (arg2 == "!=")
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         }
                     }
                     else
                     {
                         if (arg2 == "!=")
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                 }
                 else if (arg3 == "number?")
@@ -4480,21 +4474,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (mem.isNumber(arg1))
                     {
                         if (arg2 == "==")
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else if (arg2 == "!=")
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         }
                     }
                     else
                     {
                         if (arg2 == "!=")
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                 }
                 else if (arg3 == "uppercase?")
@@ -4504,21 +4498,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "==")
                         {
                             if (isUpper(mem.varString(arg1)))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else if (arg2 == "!=")
                         {
                             if (isUpper(mem.varString(arg1)))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         }
                     }
                     else
@@ -4526,12 +4520,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "!=")
                         {
                             if (isUpper(arg2))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                 }
                 else if (arg3 == "lowercase?")
@@ -4541,21 +4535,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "==")
                         {
                             if (isLower(mem.varString(arg1)))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else if (arg2 == "!=")
                         {
                             if (isLower(mem.varString(arg1)))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         }
                     }
                     else
@@ -4563,12 +4557,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "!=")
                         {
                             if (isLower(arg2))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                 }
                 else if (arg3 == "file?")
@@ -4578,27 +4572,27 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (Env::fileExists(mem.varString(arg1)))
                         {
                             if (arg2 == "==")
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else if (arg2 == "!=")
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                         else
                         {
                             if (arg2 == "!=")
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                     }
                     else
                     {
                         error(ErrorMessage::IS_NULL, arg1, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
                 else if (arg3 == "dir?" || arg3 == "directory?")
@@ -4608,27 +4602,27 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (Env::directoryExists(mem.varString(arg1)))
                         {
                             if (arg2 == "==")
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else if (arg2 == "!=")
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                         else
                         {
                             if (arg2 == "!=")
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                     }
                     else
                     {
                         error(ErrorMessage::IS_NULL, arg1, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
                 else
@@ -4636,70 +4630,70 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (arg2 == "==")
                     {
                         if (mem.varString(arg1) == arg3)
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "!=")
                     {
                         if (mem.varString(arg1) != arg3)
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == ">")
                     {
                         if (mem.varString(arg1).length() > arg3.length())
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "<")
                     {
                         if (mem.varString(arg1).length() < arg3.length())
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == ">=")
                     {
                         if (mem.varString(arg1).length() >= arg3.length())
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "<=")
                     {
                         if (mem.varString(arg1).length() <= arg3.length())
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "contains")
                     {
                         if (contains(mem.varString(arg1), arg3))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "ends_with")
                     {
                         if (endsWith(mem.varString(arg1), arg3))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "begins_with")
                     {
                         if (startsWith(mem.varString(arg1), arg3))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
             }
@@ -4722,64 +4716,64 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (arg2 == "==")
                     {
                         if (mem.varNumber(arg1) == stod(stackValue))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "!=")
                     {
                         if (mem.varNumber(arg1) != stod(stackValue))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == ">")
                     {
                         if (mem.varNumber(arg1) > stod(stackValue))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "<")
                     {
                         if (mem.varNumber(arg1) < stod(stackValue))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == ">=")
                     {
                         if (mem.varNumber(arg1) >= stod(stackValue))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "<=")
                     {
                         if (mem.varNumber(arg1) <= stod(stackValue))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
                 else if (stackValue == "number?")
                 {
                     if (arg2 == "==")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else if (arg2 == "!=")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 }
             }
             else
@@ -4789,21 +4783,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (mem.isString(arg1))
                     {
                         if (arg2 == "==")
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else if (arg2 == "!=")
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         }
                     }
                     else
                     {
                         if (arg2 == "!=")
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                 }
                 else if (stackValue == "number?")
@@ -4811,21 +4805,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (mem.isNumber(arg1))
                     {
                         if (arg2 == "==")
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else if (arg2 == "!=")
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         }
                     }
                     else
                     {
                         if (arg2 == "!=")
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                 }
                 else if (stackValue == "uppercase?")
@@ -4835,21 +4829,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "==")
                         {
                             if (isUpper(mem.varString(arg1)))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else if (arg2 == "!=")
                         {
                             if (isUpper(mem.varString(arg1)))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         }
                     }
                     else
@@ -4857,12 +4851,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "!=")
                         {
                             if (isUpper(arg2))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                 }
                 else if (stackValue == "lower?" || stackValue == "lowercase?")
@@ -4872,21 +4866,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "==")
                         {
                             if (isLower(mem.varString(arg1)))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else if (arg2 == "!=")
                         {
                             if (isLower(mem.varString(arg1)))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         }
                     }
                     else
@@ -4894,12 +4888,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "!=")
                         {
                             if (isLower(arg2))
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
-                                setTrueIf();
+                                mem.createIfStatement(true);
                         }
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                 }
                 else if (stackValue == "file?")
@@ -4909,27 +4903,27 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (Env::fileExists(mem.varString(arg1)))
                         {
                             if (arg2 == "==")
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else if (arg2 == "!=")
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                         else
                         {
                             if (arg2 == "!=")
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                     }
                     else
                     {
                         error(ErrorMessage::IS_NULL, arg1, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
                 else if (stackValue == "directory?")
@@ -4939,27 +4933,27 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (Env::directoryExists(mem.varString(arg1)))
                         {
                             if (arg2 == "==")
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else if (arg2 == "!=")
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                         else
                         {
                             if (arg2 == "!=")
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                     }
                     else
                     {
                         error(ErrorMessage::IS_NULL, arg1, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
                 else
@@ -4967,70 +4961,70 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (arg2 == "==")
                     {
                         if (mem.varString(arg1) == stackValue)
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "!=")
                     {
                         if (mem.varString(arg1) != stackValue)
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == ">")
                     {
                         if (mem.varString(arg1).length() > stackValue.length())
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "<")
                     {
                         if (mem.varString(arg1).length() < stackValue.length())
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == ">=")
                     {
                         if (mem.varString(arg1).length() >= stackValue.length())
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "<=")
                     {
                         if (mem.varString(arg1).length() <= stackValue.length())
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "contains")
                     {
                         if (contains(mem.varString(arg1), stackValue))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "ends_with")
                     {
                         if (endsWith(mem.varString(arg1), stackValue))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "begins_with")
                     {
                         if (startsWith(mem.varString(arg1), stackValue))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
             }
@@ -5044,55 +5038,55 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (arg2 == "==")
                     {
                         if (mem.varNumber(arg3) == stod(arg1))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "!=")
                     {
                         if (mem.varNumber(arg3) != stod(arg1))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == ">")
                     {
                         if (mem.varNumber(arg3) > stod(arg1))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "<")
                     {
                         if (mem.varNumber(arg3) < stod(arg1))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == ">=")
                     {
                         if (mem.varNumber(arg3) >= stod(arg1))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "<=")
                     {
                         if (mem.varNumber(arg3) <= stod(arg1))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 }
             }
             else
@@ -5100,49 +5094,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (arg2 == "==")
                 {
                     if (mem.varString(arg3) == arg1)
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "!=")
                 {
                     if (mem.varString(arg3) != arg1)
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == ">")
                 {
                     if (mem.varString(arg3).length() > arg1.length())
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "<")
                 {
                     if (mem.varString(arg3).length() < arg1.length())
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == ">=")
                 {
                     if (mem.varString(arg3).length() >= arg1.length())
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "<=")
                 {
                     if (mem.varString(arg3).length() <= arg1.length())
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else
                 {
                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 }
             }
         }
@@ -5164,55 +5158,55 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     if (arg2 == "==")
                     {
                         if (mem.varNumber(arg3) == stod(stackValue))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "!=")
                     {
                         if (mem.varNumber(arg3) != stod(stackValue))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == ">")
                     {
                         if (mem.varNumber(arg3) > stod(stackValue))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "<")
                     {
                         if (mem.varNumber(arg3) < stod(stackValue))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == ">=")
                     {
                         if (mem.varNumber(arg3) >= stod(stackValue))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (arg2 == "<=")
                     {
                         if (mem.varNumber(arg3) <= stod(stackValue))
-                            setTrueIf();
+                            mem.createIfStatement(true);
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
                 else
                 {
                     error(ErrorMessage::CONV_ERR, s, false);
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 }
             }
             else
@@ -5220,49 +5214,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (arg2 == "==")
                 {
                     if (mem.varString(arg3) == stackValue)
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "!=")
                 {
                     if (mem.varString(arg3) != stackValue)
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == ">")
                 {
                     if (mem.varString(arg3).length() > stackValue.length())
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "<")
                 {
                     if (mem.varString(arg3).length() < stackValue.length())
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == ">=")
                 {
                     if (mem.varString(arg3).length() >= stackValue.length())
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "<=")
                 {
                     if (mem.varString(arg3).length() <= stackValue.length())
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else
                 {
                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 }
             }
         }
@@ -5279,13 +5273,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (mem.objectExists(arg1before) && mem.objectExists(arg3before))
                     {
-                        if (mem.getObject(arg1before).methodExists(beforeParams(arg1after)))
-                            executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getObject(arg1before).hasMethod(beforeParams(arg1after)))
+                            exec.executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
-                        if (mem.getObject(arg3before).methodExists(beforeParams(arg3after)))
-                            executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getObject(arg3before).hasMethod(beforeParams(arg3after)))
+                            exec.executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
@@ -5294,49 +5288,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (stod(arg1Result) == stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (stod(arg1Result) != stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(arg1Result) < stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(arg1Result) > stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(arg1Result) <= stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(arg1Result) >= stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                         else
@@ -5344,21 +5338,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (arg1Result == arg3Result)
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (arg1Result != arg3Result)
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                     }
@@ -5370,7 +5364,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (!mem.objectExists(arg3before))
                             error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
 
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
                 else if (!zeroDots(arg1) && zeroDots(arg3))
@@ -5381,13 +5375,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (mem.objectExists(arg1before))
                     {
-                        if (mem.getObject(arg1before).methodExists(beforeParams(arg1after)))
-                            executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getObject(arg1before).hasMethod(beforeParams(arg1after)))
+                            exec.executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
                         if (mem.methodExists(beforeParams(arg3)))
-                            executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
+                            exec.executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
 
                         arg3Result = State.LastValue;
 
@@ -5396,49 +5390,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (stod(arg1Result) == stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (stod(arg1Result) != stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(arg1Result) < stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(arg1Result) > stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(arg1Result) <= stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(arg1Result) >= stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                         else
@@ -5446,28 +5440,28 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (arg1Result == arg3Result)
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (arg1Result != arg3Result)
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                     }
                     else
                     {
                         error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
                 else if (zeroDots(arg1) && !zeroDots(arg3))
@@ -5478,13 +5472,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (mem.objectExists(arg3before))
                     {
-                        if (mem.getObject(arg3before).methodExists(beforeParams(arg3after)))
-                            executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getObject(arg3before).hasMethod(beforeParams(arg3after)))
+                            exec.executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
                         if (mem.methodExists(beforeParams(arg1)))
-                            executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
+                            exec.executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
 
                         arg1Result = State.LastValue;
 
@@ -5493,49 +5487,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (stod(arg1Result) == stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (stod(arg1Result) != stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(arg1Result) < stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(arg1Result) > stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(arg1Result) <= stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(arg1Result) >= stod(arg3Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                         else
@@ -5543,28 +5537,28 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (arg1Result == arg3Result)
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (arg1Result != arg3Result)
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                     }
                     else
                     {
                         error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
                 else
@@ -5572,12 +5566,12 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     string arg1Result(""), arg3Result("");
 
                     if (mem.methodExists(beforeParams(arg1)))
-                        executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
+                        exec.executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
 
                     arg1Result = State.LastValue;
 
                     if (mem.methodExists(beforeParams(arg3)))
-                        executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
+                        exec.executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
 
                     arg3Result = State.LastValue;
 
@@ -5586,49 +5580,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "==")
                         {
                             if (stod(arg1Result) == stod(arg3Result))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else if (arg2 == "!=")
                         {
                             if (stod(arg1Result) != stod(arg3Result))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else if (arg2 == "<")
                         {
                             if (stod(arg1Result) < stod(arg3Result))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else if (arg2 == ">")
                         {
                             if (stod(arg1Result) > stod(arg3Result))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else if (arg2 == "<=")
                         {
                             if (stod(arg1Result) <= stod(arg3Result))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else if (arg2 == ">=")
                         {
                             if (stod(arg1Result) >= stod(arg3Result))
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         }
                     }
                     else
@@ -5636,21 +5630,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         if (arg2 == "==")
                         {
                             if (arg1Result == arg3Result)
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else if (arg2 == "!=")
                         {
                             if (arg1Result != arg3Result)
-                                setTrueIf();
+                                mem.createIfStatement(true);
                             else
-                                setFalseIf();
+                                mem.createIfStatement(false);
                         }
                         else
                         {
                             error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            setFalseIf();
+                            mem.createIfStatement(false);
                         }
                     }
                 }
@@ -5665,7 +5659,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (mem.methodExists(beforeParams(arg1)))
                     {
-                        executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
+                        exec.executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
 
                         arg1Result = State.LastValue;
 
@@ -5684,7 +5678,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             {
                                 pass = false;
                                 error(ErrorMessage::IS_NULL, arg3, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                         else
@@ -5697,49 +5691,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 if (arg2 == "==")
                                 {
                                     if (stod(arg1Result) == stod(arg3Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == "!=")
                                 {
                                     if (stod(arg1Result) != stod(arg3Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == "<")
                                 {
                                     if (stod(arg1Result) < stod(arg3Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == ">")
                                 {
                                     if (stod(arg1Result) > stod(arg3Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == "<=")
                                 {
                                     if (stod(arg1Result) <= stod(arg3Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == ">=")
                                 {
                                     if (stod(arg1Result) >= stod(arg3Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else
                                 {
                                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 }
                             }
                             else
@@ -5747,26 +5741,26 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 if (arg2 == "==")
                                 {
                                     if (arg1Result == arg3Result)
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == "!=")
                                 {
                                     if (arg1Result != arg3Result)
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else
                                 {
                                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 }
                             }
                         }
                         else
-                            setFalseIf();
+                            mem.createIfStatement(false);
                     }
                     else if (stackReady(arg1))
                     {
@@ -5794,7 +5788,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                         }
                         else if (containsParams(arg3))
                         {
-                            executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
+                            exec.executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
 
                             comp = State.LastValue;
                         }
@@ -5806,49 +5800,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (stod(stackValue) == stod(comp))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (stod(stackValue) != stod(comp))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(stackValue) < stod(comp))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(stackValue) > stod(comp))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(stackValue) <= stod(comp))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(stackValue) >= stod(comp))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                         else
@@ -5856,28 +5850,28 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (stackValue == comp)
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (stackValue != comp)
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                     }
                     else
                     {
                         error(ErrorMessage::METHOD_UNDEFINED, beforeParams(arg1), false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
                 else
@@ -5886,8 +5880,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (mem.objectExists(arg1before))
                     {
-                        if (mem.getObject(arg1before).methodExists(beforeParams(arg1after)))
-                            executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getObject(arg1before).hasMethod(beforeParams(arg1after)))
+                            exec.executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
@@ -5901,7 +5895,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             {
                                 pass = false;
                                 error(ErrorMessage::IS_NULL, arg3, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                         else if (mem.methodExists(arg3))
@@ -5920,49 +5914,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 if (arg2 == "==")
                                 {
                                     if (stod(arg1Result) == stod(arg3Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == "!=")
                                 {
                                     if (stod(arg1Result) != stod(arg3Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == "<")
                                 {
                                     if (stod(arg1Result) < stod(arg3Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == ">")
                                 {
                                     if (stod(arg1Result) > stod(arg3Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == "<=")
                                 {
                                     if (stod(arg1Result) <= stod(arg3Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == ">=")
                                 {
                                     if (stod(arg1Result) >= stod(arg3Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else
                                 {
                                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 }
                             }
                             else
@@ -5970,21 +5964,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 if (arg2 == "==")
                                 {
                                     if (arg1Result == arg3Result)
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == "!=")
                                 {
                                     if (arg1Result != arg3Result)
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else
                                 {
                                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 }
                             }
                         }
@@ -5992,7 +5986,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else
                     {
                         error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
             }
@@ -6006,7 +6000,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     if (mem.methodExists(beforeParams(arg3)))
                     {
-                        executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
+                        exec.executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
 
                         arg3Result = State.LastValue;
 
@@ -6025,7 +6019,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             {
                                 pass = false;
                                 error(ErrorMessage::IS_NULL, arg1, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                         else
@@ -6038,49 +6032,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 if (arg2 == "==")
                                 {
                                     if (stod(arg3Result) == stod(arg1Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == "!=")
                                 {
                                     if (stod(arg3Result) != stod(arg1Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == "<")
                                 {
                                     if (stod(arg3Result) < stod(arg1Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == ">")
                                 {
                                     if (stod(arg3Result) > stod(arg1Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == "<=")
                                 {
                                     if (stod(arg3Result) <= stod(arg1Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == ">=")
                                 {
                                     if (stod(arg3Result) >= stod(arg1Result))
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else
                                 {
                                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 }
                             }
                             else
@@ -6088,21 +6082,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                                 if (arg2 == "==")
                                 {
                                     if (arg3Result == arg1Result)
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else if (arg2 == "!=")
                                 {
                                     if (arg3Result != arg1Result)
-                                        setTrueIf();
+                                        mem.createIfStatement(true);
                                     else
-                                        setFalseIf();
+                                        mem.createIfStatement(false);
                                 }
                                 else
                                 {
                                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                                 }
                             }
                         }
@@ -6110,7 +6104,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     else
                     {
                         error(ErrorMessage::METHOD_UNDEFINED, beforeParams(arg3), false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
                 else
@@ -6119,8 +6113,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     if (mem.objectExists(arg3before))
                     {
-                        if (mem.getObject(arg3before).methodExists(beforeParams(arg3after)))
-                            executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getObject(arg3before).hasMethod(beforeParams(arg3after)))
+                            exec.executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
@@ -6133,7 +6127,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             else
                             {
                                 error(ErrorMessage::IS_NULL, arg1, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                         else if (mem.methodExists(arg1))
@@ -6150,49 +6144,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (stod(arg3Result) == stod(arg1Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (stod(arg3Result) != stod(arg1Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "<")
                             {
                                 if (stod(arg3Result) < stod(arg1Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == ">")
                             {
                                 if (stod(arg3Result) > stod(arg1Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "<=")
                             {
                                 if (stod(arg3Result) <= stod(arg1Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == ">=")
                             {
                                 if (stod(arg3Result) >= stod(arg1Result))
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                         else
@@ -6200,28 +6194,28 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                             if (arg2 == "==")
                             {
                                 if (arg3Result == arg1Result)
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else if (arg2 == "!=")
                             {
                                 if (arg3Result != arg1Result)
-                                    setTrueIf();
+                                    mem.createIfStatement(true);
                                 else
-                                    setFalseIf();
+                                    mem.createIfStatement(false);
                             }
                             else
                             {
                                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                setFalseIf();
+                                mem.createIfStatement(false);
                             }
                         }
                     }
                     else
                     {
                         error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
             }
@@ -6244,7 +6238,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 else
                 {
                     error(ErrorMessage::IS_NULL, arg1, false);
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 }
             }
             else
@@ -6264,7 +6258,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 else
                 {
                     error(ErrorMessage::IS_NULL, arg3, false);
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 }
             }
             else
@@ -6275,49 +6269,49 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (arg2 == "==")
                 {
                     if (stod(arg1Result) == stod(arg3Result))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "!=")
                 {
                     if (stod(arg1Result) != stod(arg3Result))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "<")
                 {
                     if (stod(arg1Result) < stod(arg3Result))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == ">")
                 {
                     if (stod(arg1Result) > stod(arg3Result))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "<=")
                 {
                     if (stod(arg1Result) <= stod(arg3Result))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == ">=")
                 {
                     if (stod(arg1Result) >= stod(arg3Result))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else
                 {
                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 }
             }
             else
@@ -6325,21 +6319,21 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (arg2 == "==")
                 {
                     if (arg1Result == arg3Result)
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else if (arg2 == "!=")
                 {
                     if (arg1Result != arg3Result)
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else
                 {
                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 }
             }
         }
@@ -6350,25 +6344,25 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (mem.objectExists(arg1))
                 {
                     if (arg2 == "==")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else if (arg2 == "!=")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
                 else
                 {
                     if (arg2 == "==")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else if (arg2 == "!=")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
             }
@@ -6377,25 +6371,25 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (mem.variableExists(arg1))
                 {
                     if (arg2 == "==")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else if (arg2 == "!=")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
                 else
                 {
                     if (arg2 == "==")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else if (arg2 == "!=")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
             }
@@ -6404,25 +6398,25 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (mem.methodExists(arg1))
                 {
                     if (arg2 == "==")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else if (arg2 == "!=")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
                 else
                 {
                     if (arg2 == "==")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else if (arg2 == "!=")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
             }
@@ -6431,57 +6425,57 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (mem.listExists(arg1))
                 {
                     if (arg2 == "==")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else if (arg2 == "!=")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
                 else
                 {
                     if (arg2 == "==")
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     else if (arg2 == "!=")
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
                     {
                         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        setFalseIf();
+                        mem.createIfStatement(false);
                     }
                 }
             }
             else if (arg2 == "==")
             {
                 if (arg1 == arg3)
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 else
-                    setFalseIf();
+                    mem.createIfStatement(false);
             }
             else if (arg2 == "!=")
             {
                 if (arg1 != arg3)
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 else
-                    setFalseIf();
+                    mem.createIfStatement(false);
             }
             else if (arg2 == ">")
             {
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) > stod(arg3))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else
                 {
                     if (arg1.length() > arg3.length())
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
             }
             else if (arg2 == "<")
@@ -6489,16 +6483,16 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) < stod(arg3))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else
                 {
                     if (arg1.length() < arg3.length())
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
             }
             else if (arg2 == ">=")
@@ -6506,14 +6500,14 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) >= stod(arg3))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else
                 {
                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 }
             }
             else if (arg2 == "<=")
@@ -6521,41 +6515,41 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (isNumeric(arg1) && isNumeric(arg3))
                 {
                     if (stod(arg1) <= stod(arg3))
-                        setTrueIf();
+                        mem.createIfStatement(true);
                     else
-                        setFalseIf();
+                        mem.createIfStatement(false);
                 }
                 else
                 {
                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    setFalseIf();
+                    mem.createIfStatement(false);
                 }
             }
             else if (arg2 == "begins_with")
             {
                 if (startsWith(arg1, arg3))
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 else
-                    setFalseIf();
+                    mem.createIfStatement(false);
             }
             else if (arg2 == "ends_with")
             {
                 if (endsWith(arg1, arg3))
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 else
-                    setFalseIf();
+                    mem.createIfStatement(false);
             }
             else if (arg2 == "contains")
             {
                 if (contains(arg1, arg3))
-                    setTrueIf();
+                    mem.createIfStatement(true);
                 else
-                    setFalseIf();
+                    mem.createIfStatement(false);
             }
             else
             {
                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                setFalseIf();
+                mem.createIfStatement(false);
             }
         }
     }
@@ -6823,8 +6817,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     List newList;
 
-                    for (int i = 0; i < (int)args.size(); i++)
-                        newList.add(args.at(i));
+                    for (int i = 0; i < mem.getArgCount(); i++)
+                        newList.add(mem.getArg(i));
 
                     mem.createForLoop(newList);
                 }
@@ -7088,8 +7082,8 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     State.DefaultLoopSymbol = arg1;
 
-                    for (int i = 0; i < (int)args.size(); i++)
-                        newList.add(args.at(i));
+                    for (int i = 0; i < mem.getArgCount(); i++)
+                        newList.add(mem.getArg(i));
 
                     mem.createForLoop(newList);
                 }

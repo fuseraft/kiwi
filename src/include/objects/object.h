@@ -68,19 +68,19 @@ public:
 
     void setPublic()
     {
-        if (methodExists(currentMethod))
+        if (hasMethod(currentMethod))
             methods.at(methodAt(currentMethod)).setPublic();
     }
 
     void setPrivate()
     {
-        if (methodExists(currentMethod))
+        if (hasMethod(currentMethod))
             methods.at(methodAt(currentMethod)).setPrivate();
     }
 
     void addToCurrentMethod(string line)
     {
-        if (methodExists(currentMethod))
+        if (hasMethod(currentMethod))
             methods.at(methodAt(currentMethod)).add(line);
         else
             IO::printerrln("#!=add_to_currentMethod:undefined");
@@ -217,7 +217,7 @@ public:
         return variables;
     }
 
-    bool methodExists(string methodName)
+    bool hasMethod(string methodName)
     {
         for (int i = 0; i < (int)methods.size(); i++)
             if (methods.at(i).name() == methodName)
@@ -231,7 +231,7 @@ public:
         return objectName;
     }
 
-    bool variableExists(string variableName)
+    bool hasVariable(string variableName)
     {
         for (int i = 0; i < (int)variables.size(); i++)
             if (variables.at(i).name() == variableName)
