@@ -42,12 +42,17 @@ class Memory {
     int indexOfScript(string s);
     int indexOfVariable(string s);
     
+    Constant getConstant(int index);
     Constant getConstant(string s);
+    List getList(int index);
     List getList(string s);
+    Method getMethod(int index);
     Method getMethod(string s);
     Module getModule(string s);
+    Object getObject(int index);
     Object getObject(string s);
     Script getScript(string s);
+    Variable getVar(int index);
     Variable getVar(string s);
     Switch getMainSwitch();
 
@@ -65,7 +70,6 @@ class Memory {
     void createVariable(string name, string value);
     void setVariable(string name, double value);
     void setVariable(string name, string value);
-    void setList(string arg1, string arg2, vector<string> params);
     void replaceElement(string before, string after, string replacement);
 
     bool isNumber(string s);
@@ -86,7 +90,7 @@ class Memory {
     bool listExists(string s);
 
     void redefine(string target, string name);
-    void globalize(string arg0, string arg1);
+    void globalize(string arg1);
 
     void removeConstant(string s);
     void removeList(string s);
@@ -98,21 +102,356 @@ class Memory {
     string varNumberString(string s);
     double varNumber(string s);
     string varString(string s);
+
+    int getMethodCount();
+    int getVariableCount();
+    int getObjectCount();
+    int getListCount();
+    int getConstantCount();
+
+    void addConstant(Constant c);
+    void addList(List l);
+    void addMethod(Method m);
+    void addModule(Module m);
+    void addObject(Object o);
+    void addVariable(Variable v);
+
+    void addIfStatement(Method ifStatement);
+    Method getIfStatement(int index);
+    int getIfStatementCount();
+
+    int getForLoopCount();
+    Method getForLoop(int index);
+
+    int getWhileLoopCount();
+    Method getWhileLoop(int index);
+
+    void addArg(string arg);
+    int getArgCount();
+    string getArg(int index);
+
+    void createIfStatement(bool value);
+    void createModule(string s);
+    void createObject(string objectName);
+
+    void forget(string variableName);
+    void remember(string variableName);
+    void loadSavedVars(Crypt c);
+    void saveVariable(string variable);
 };
 
 Memory::Memory() {}
 Memory::~Memory() {}
 
+void Memory::addConstant(Constant c) { constants.push_back(c); }
+void Memory::addList(List l) { lists.push_back(l); }
+void Memory::addMethod(Method m) { methods.push_back(m); }
+void Memory::addModule(Module m) { modules.push_back(m); }
+void Memory::addObject(Object o) { objects.push_back(o); }
+void Memory::addVariable(Variable v) { variables.push_back(v); }
+
+void Memory::addIfStatement(Method ifStatement) { ifStatements.push_back(ifStatement); }
+int Memory::getIfStatementCount() { return ifStatements.size(); }
+
+int Memory::getMethodCount() { return methods.size(); }
+int Memory::getVariableCount() { return variables.size(); }
+int Memory::getObjectCount() { return objects.size(); }
+int Memory::getListCount() { return lists.size(); }
+int Memory::getConstantCount() { return constants.size(); }
+int Memory::getForLoopCount() { return forLoops.size(); }
+
+Method Memory::getMethod(int index) { return methods.at(index); }
+Variable Memory::getVar(int index) { return variables.at(index); }
+Object Memory::getObject(int index) { return objects.at(index); }
+List Memory::getList(int index) { return lists.at(index); }
+Constant Memory::getConstant(int index) { return constants.at(index); }
+
+Method Memory::getIfStatement(int index) { return ifStatements.at(index); }
+Method Memory::getForLoop(int index) { return forLoops.at(index); }
+
+int Memory::getWhileLoopCount() { return whileLoops.size(); }
+Method Memory::getWhileLoop(int index) { return whileLoops.at(index); }
+
+int Memory::getArgCount() { return args.size(); }
+string Memory::getArg(int index) { return args.at(index); }
+void Memory::addArg(string arg) { args.push_back(arg); }
+
+void Memory::remember(string variableName)
+{
+    if (!variableExists(variableName))
+    {
+        error(ErrorMessage::TARGET_UNDEFINED, variableName, false);
+        return;
+    }
+
+    if (isString(variableName))
+        saveVariable(variableName + "&" + varString(variableName));
+    else if (isNumber(variableName))
+        saveVariable(variableName + "&" + dtos(varNumber(variableName)));
+    else
+        error(ErrorMessage::IS_NULL, variableName, false);
+}
+
+void Memory::forget(string variableName)
+{
+    if (Env::fileExists(State.SavedVars))
+    {
+        string line(""), bigStr("");
+        ifstream file(State.SavedVars.c_str());
+        // REFACTOR HERE
+        Crypt c;
+
+        if (file.is_open())
+        {
+            while (!file.eof())
+            {
+                getline(file, line);
+                bigStr.append(line);
+            }
+
+            file.close();
+
+            int bigStrLength = bigStr.length();
+            bool stop = false;
+            string varName("");
+            bigStr = c.d(bigStr);
+
+            vector<string> varNames;
+            vector<string> varValues;
+
+            varNames.push_back("");
+            varValues.push_back("");
+
+            for (int i = 0; i < bigStrLength; i++)
+            {
+                switch (bigStr[i])
+                {
+                case '&':
+                    stop = true;
+                    break;
+
+                case '#':
+                    stop = false;
+                    varNames.push_back("");
+                    varValues.push_back("");
+                    break;
+
+                default:
+                    if (!stop)
+                        varNames.at((int)varNames.size() - 1).push_back(bigStr[i]);
+                    else
+                        varValues.at((int)varValues.size() - 1).push_back(bigStr[i]);
+                    break;
+                }
+            }
+
+            string new_saved("");
+
+            for (int i = 0; i < (int)varNames.size(); i++)
+            {
+                if (varNames.at(i) != variableName)
+                {
+                    Variable newVariable(varNames.at(i), varValues.at(i));
+                    addVariable(newVariable);
+
+                    if (i != (int)varNames.size() - 1)
+                        new_saved.append(varNames.at(i) + "&" + varValues.at(i) + "#");
+                    else
+                        new_saved.append(varNames.at(i) + "&" + varValues.at(i));
+                }
+            }
+
+            varNames.clear();
+            varValues.clear();
+
+            Env::rm(State.SavedVars);
+            Env::createFile(State.SavedVars);
+            Env::app(State.SavedVars, c.e(new_saved));
+        }
+    }
+}
+
+void Memory::saveVariable(string variableName)
+{
+    Crypt c;
+
+    if (!Env::fileExists(State.SavedVars))
+    {
+        if (!Env::directoryExists(State.SavedVarsPath))
+            Env::md(State.SavedVarsPath);
+
+        Env::createFile(State.SavedVars);
+        Env::app(State.SavedVars, c.e(variableName));
+    }
+    else
+    {
+        string line, bigStr("");
+        ifstream file(State.SavedVars.c_str());
+
+        if (file.is_open())
+        {
+            int i = 0;
+
+            while (!file.eof())
+            {
+                i++;
+                getline(file, line);
+                bigStr.append(line);
+            }
+
+            bigStr = c.d(bigStr);
+            Env::rm(State.SavedVars);
+            Env::createFile(State.SavedVars);
+            Env::app(State.SavedVars, c.e(bigStr + "#" + variableName));
+            file.close();
+        }
+        else
+            error(ErrorMessage::READ_FAIL, State.SavedVars, false);
+    }
+}
+
+void Memory::loadSavedVars(Crypt c)
+{
+    string bigStr("");
+    string line("");
+    ifstream file(State.SavedVars.c_str());
+
+    if (!file.is_open())
+    {
+        error(ErrorMessage::READ_FAIL, State.SavedVars, false);
+        return;
+    }
+    while (!file.eof())
+    {
+        getline(file, line);
+        bigStr.append(line);
+    }
+
+    file.close();
+
+    bigStr = c.d(bigStr);
+
+    int bigStrLength = bigStr.length();
+    bool stop = false;
+    vector<string> varNames;
+    vector<string> varValues;
+
+    string varName("");
+    varNames.push_back("");
+    varValues.push_back("");
+
+    for (int i = 0; i < bigStrLength; i++)
+    {
+        switch (bigStr[i])
+        {
+        case '&':
+            stop = true;
+            break;
+
+        case '#':
+            stop = false;
+            varNames.push_back("");
+            varValues.push_back("");
+            break;
+
+        default:
+            if (!stop)
+                varNames.at((int)varNames.size() - 1).push_back(bigStr[i]);
+            else
+                varValues.at((int)varValues.size() - 1).push_back(bigStr[i]);
+            break;
+        }
+    }
+
+    for (int i = 0; i < (int)varNames.size(); i++)
+    {
+        Variable newVariable(varNames.at(i), varValues.at(i));
+        addVariable(newVariable);
+    }
+
+    varNames.clear();
+    varValues.clear();
+}
+
+void Memory::createObject(string objectName)
+{
+    if (objectExists(objectName))
+    {
+        State.DefiningObject = true;
+        State.CurrentObject = objectName;
+    }
+    else
+    {
+        Object object(objectName);
+        State.CurrentObject = objectName;
+        object.dontCollect();
+        addObject(object);
+        State.DefiningObject = true;
+    }
+}
+
+void Memory::createModule(string s)
+{
+    string moduleName = s;
+    moduleName = subtractString(moduleName, "[");
+    moduleName = subtractString(moduleName, "]");
+
+    Module newModule(moduleName);
+    addModule(newModule);
+
+    State.DefiningModule = true;
+    State.CurrentModule = moduleName;
+}
+
+void Memory::createIfStatement(bool value) 
+{
+    if (!value)
+    {
+        State.LastValue = "false";
+
+        if (!State.DefiningNest)
+        {
+            Method ifMethod("[failif]");
+            ifMethod.setBool(false);
+            addIfStatement(ifMethod);
+
+            State.DefiningIfStatement = true;
+            State.FailedIfStatement = true;
+            State.FailedNest = true;
+        }
+        else
+            State.FailedNest = true;
+
+        return;
+    }
+
+    State.LastValue = "true";
+
+    if (State.DefiningNest)
+    {
+        getIfStatement(getIfStatementCount() - 1).buildNest();
+        State.FailedNest = false;
+    }
+    else
+    {
+        Method ifMethod("[if#" + itos(State.IfStatementCount) +"]");
+        ifMethod.setBool(true);
+        State.DefiningIfStatement = true;
+        addIfStatement(ifMethod);
+
+        State.IfStatementCount++;
+        State.FailedIfStatement = false;
+        State.FailedNest = false;
+    }
+}
+
 void Memory::createMethod(string arg0, string arg1)
 {
-    bool indestructable = false;
-
-    if (arg0 == "[method]")
-        indestructable = true;
+    bool indestructable = arg0 == "[method]";
 
     if (State.DefiningObject)
     {
-        if (getObject(State.CurrentObject).methodExists(arg1))
+        if (getObject(State.CurrentObject).hasMethod(arg1))
         {
             error(ErrorMessage::METHOD_DEFINED, arg1, false);
             return;
@@ -169,7 +508,7 @@ void Memory::createMethod(string arg0, string arg1)
                     return;
                 }
 
-                if (!getObject(before).variableExists(after))
+                if (!getObject(before).hasVariable(after))
                 {
                     error(ErrorMessage::OBJ_VAR_UNDEFINED, after, false);
                     return;
@@ -252,7 +591,7 @@ void Memory::createMethod(string arg0, string arg1)
 
                             if (objectExists(before))
                             {
-                                if (getObject(before).variableExists(after))
+                                if (getObject(before).hasVariable(after))
                                 {
                                     if (getObject(before).getVariable(after).getString() != State.Null)
                                         method.addMethodVariable(getObject(before).getVariable(after).getString(), after);
@@ -641,7 +980,7 @@ void Memory::redefine(string target, string name)
         error(ErrorMessage::TARGET_UNDEFINED, target, false);
 }
 
-void Memory::globalize(string arg0, string arg1)
+void Memory::globalize(string arg1)
 {
     if (!(contains(arg1, ".") && methodExists(arg1) && !methodExists(afterDot(arg1))))
     {
@@ -677,58 +1016,6 @@ void Memory::replaceElement(string before, string after, string replacement)
         getList(before).add(newList.at(i));
 
     newList.clear();
-}
-
-void Memory::setList(string arg1, string arg2, vector<string> params)
-{
-    if (methodExists(beforeParams(arg2)))
-    {
-        executeTemplate(getMethod(beforeParams(arg2)), params);
-
-        if (!containsParams(State.LastValue))
-        {
-            getList(arg1).add(State.LastValue);
-            return;
-        }
-
-        vector<string> last_params = getParams(State.LastValue);
-
-        for (int i = 0; i < (int)last_params.size(); i++)
-            getList(arg1).add(last_params.at(i));
-    }
-    else if (objectExists(beforeDot(beforeParams(arg2))))
-    {
-        executeTemplate(getObject(beforeDot(beforeParams(arg2))).getMethod(afterDot(beforeParams(arg2))), params);
-
-        if (!containsParams(State.LastValue))
-        {
-            getList(arg1).add(State.LastValue);
-            return;
-        }
-
-        vector<string> last_params = getParams(State.LastValue);
-
-        for (int i = 0; i < (int)last_params.size(); i++)
-            getList(arg1).add(last_params.at(i));
-    }
-    else
-    {
-        for (int i = 0; i < (int)params.size(); i++)
-        {
-            if (!variableExists(params.at(i)))
-            {
-                getList(arg1).add(params.at(i));
-                return;
-            }
-
-            if (isString(params.at(i)))
-                getList(arg1).add(varString(params.at(i)));
-            else if (isNumber(params.at(i)))
-                getList(arg1).add(varNumberString(params.at(i)));
-            else
-                error(ErrorMessage::IS_NULL, params.at(i), false);
-        }
-    }
 }
 
 void Memory::setVariable(string name, string value)
@@ -898,12 +1185,12 @@ bool Memory::methodExists(string s)
 {
     if (!zeroDots(s) && objectExists(beforeDot(s)))
     {
-        return getObject(beforeDot(s)).methodExists(afterDot(s));
+        return getObject(beforeDot(s)).hasMethod(afterDot(s));
     }
-    else
-        for (unsigned i = 0; i < methods.size(); ++i)
-            if (methods.at(i).name() == s)
-                return true;
+    
+    for (unsigned i = 0; i < methods.size(); ++i)
+        if (methods.at(i).name() == s)
+            return true;
 
     return false;
 }
@@ -922,12 +1209,12 @@ bool Memory::variableExists(string s)
     if (!zeroDots(s))
     {
         string before(beforeDot(s)), after(afterDot(s));
-        return objectExists(before) && getObject(before).variableExists(after);
-    }
-    else
-        for (unsigned i = 0; i < variables.size(); ++i)
-            if (variables.at(i).name() == s)
-                return true;
+        return objectExists(before) && getObject(before).hasVariable(after);
+    }    
+
+    for (unsigned i = 0; i < variables.size(); ++i)
+        if (variables.at(i).name() == s)
+            return true;
 
     return false;
 }

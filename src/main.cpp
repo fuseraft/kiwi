@@ -31,36 +31,35 @@ void doNothing() { }
 #include "include/noctisenv.h"
 #include "include/state.h"
 #include "include/strings.h"
+#include "include/rng.h"
 #include "include/objects.h"
 #include "include/prototypes.h"
 #include "include/error.h"
 #include "include/env.h"
 #include "include/memory.h"
 #include "include/datetime.h"
+#include "include/executor.h"
+#include "include/components.h"
+#include "include/fileio.h"
 #include "include/parser.h"
 #include "include/core.h"
 
 int main(int c, char ** v)
 {
+    RNG::seed();
+    
     setup();
 
     string noctis = v[0];
     State.Noctis = noctis;
     NoctisEnv.InitialDirectory = Env::cwd();
-    // __Logging = false;
-
-#ifdef _WIN32
-    SetConsoleTitle("noctis");
-#endif
-
-    srand((unsigned int)time(NULL));
 
     if (c == 1)
     {
         State.CurrentScript = noctis;
-        args.push_back(noctis);
-        State.ArgumentCount = (int)args.size();
-        loop(false);
+        mem.addArg(noctis);
+        State.ArgumentCount = mem.getArgCount();
+        startREPL(false);
     }
     else if (c == 2)
     {
@@ -69,8 +68,8 @@ int main(int c, char ** v)
         if (isScript(opt))
         {
             State.CurrentScript = opt;
-            args.push_back(opt);
-            State.ArgumentCount = (int)args.size();
+            mem.addArg(opt);
+            State.ArgumentCount = mem.getArgCount();
             mem.loadScript(opt);
         }
         else if (is(opt, "h") || is(opt, "help"))
@@ -80,26 +79,26 @@ int main(int c, char ** v)
         else if (is(opt, "sl") || is(opt, "skipload"))
         {
             State.CurrentScript = noctis;
-            args.push_back(opt);
-            State.ArgumentCount = (int)args.size();
-            loop(true);
+            mem.addArg(opt);
+            State.ArgumentCount = mem.getArgCount();
+            startREPL(true);
         }
         else if (is(opt, "n") || is(opt, "negligence"))
         {
             State.Negligence = true;
             State.CurrentScript = noctis;
-            args.push_back(opt);
-            State.ArgumentCount = (int)args.size();
-            loop(true);
+            mem.addArg(opt);
+            State.ArgumentCount = mem.getArgCount();
+            startREPL(true);
         }
         else if (is(opt, "v") || is(opt, "version"))
             displayVersion();
         else
         {
             State.CurrentScript = noctis;
-            args.push_back(opt);
-            State.ArgumentCount = (int)args.size();
-            loop(false);
+            mem.addArg(opt);
+            State.ArgumentCount = mem.getArgCount();
+            startREPL(false);
         }
     }
     else if (c == 3)
@@ -113,25 +112,25 @@ int main(int c, char ** v)
             if (isScript(script))
             {
                 State.CurrentScript = script;
-                args.push_back(opt);
-                args.push_back(script);
-                State.ArgumentCount = (int)args.size();
+                mem.addArg(opt);
+                mem.addArg(script);
+                State.ArgumentCount = mem.getArgCount();
                 mem.loadScript(script);
             }
             else
             {
-                args.push_back(opt);
-                args.push_back(script);
-                State.ArgumentCount = (int)args.size();
-                loop(true);
+                mem.addArg(opt);
+                mem.addArg(script);
+                State.ArgumentCount = mem.getArgCount();
+                startREPL(true);
             }
         }
         else if (is(opt, "n") || is(opt, "negligence"))
         {
             State.Negligence = true;
-            args.push_back(opt);
-            args.push_back(script);
-            State.ArgumentCount = (int)args.size();
+            mem.addArg(opt);
+            mem.addArg(script);
+            State.ArgumentCount = mem.getArgCount();
             if (isScript(script))
             {
                 State.CurrentScript = script;
@@ -140,7 +139,7 @@ int main(int c, char ** v)
             else
             {
                 State.CurrentScript = noctis;
-                loop(true);
+                startREPL(true);
             }
         }
         else if (is(opt, "p") || is(opt, "parse"))
@@ -162,18 +161,18 @@ int main(int c, char ** v)
             if (isScript(opt))
             {
                 State.CurrentScript = opt;
-                args.push_back(opt);
-                args.push_back(script);
-                State.ArgumentCount = (int)args.size();
+                mem.addArg(opt);
+                mem.addArg(script);
+                State.ArgumentCount = mem.getArgCount();
                 mem.loadScript(opt);
             }
             else
             {
                 State.CurrentScript = noctis;
-                args.push_back(opt);
-                args.push_back(script);
-                State.ArgumentCount = (int)args.size();
-                loop(false);
+                mem.addArg(opt);
+                mem.addArg(script);
+                State.ArgumentCount = mem.getArgCount();
+                startREPL(false);
             }
         }
     }
@@ -186,10 +185,10 @@ int main(int c, char ** v)
             for (int i = 2; i < c; i++)
             {
                 string tmpStr = v[i];
-                args.push_back(tmpStr);
+                mem.addArg(tmpStr);
             }
 
-            State.ArgumentCount = (int)args.size();
+            State.ArgumentCount = mem.getArgCount();
 
             mem.loadScript(opt);
         }
@@ -198,13 +197,13 @@ int main(int c, char ** v)
             for (int i = 1; i < c; i++)
             {
                 string tmpStr = v[i];
-                args.push_back(tmpStr);
+                mem.addArg(tmpStr);
             }
 
-            State.ArgumentCount = (int)args.size();
+            State.ArgumentCount = mem.getArgCount();
 
             State.CurrentScript = noctis;
-            loop(false);
+            startREPL(false);
         }
     }
     else

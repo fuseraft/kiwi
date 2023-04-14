@@ -29,12 +29,13 @@ class ErrorMessage {
     static const int VAR_UNDEFINED = 23;
     static const int TARGET_UNDEFINED = 24;
     static const int CONST_UNDEFINED = 25;
-    static const int INVALID_OPERATOR = 26;
-    static const int IS_EMPTY = 27;
-    static const int READ_FAIL = 28;
-    static const int DIVIDED_BY_ZERO = 29;
-    static const int UNDEFINED = 30;
-    static const int UNDEFINED_OS = 31;
+    static const int CONST_DEFINED = 26;
+    static const int INVALID_OPERATOR = 27;
+    static const int IS_EMPTY = 28;
+    static const int READ_FAIL = 29;
+    static const int DIVIDED_BY_ZERO = 30;
+    static const int UNDEFINED = 31;
+    static const int UNDEFINED_OS = 32;
 };
 
 class Error {
