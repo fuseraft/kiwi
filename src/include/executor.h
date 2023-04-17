@@ -5,10 +5,10 @@
 
 class Executor {
     private:
-    Memory mem;
+    Memory& mem;
 
     public:
-    Executor(Memory mem_);
+    Executor(Memory& mem_) : mem(mem_) {}
     ~Executor();
 
     void executeWhileLoop(Method m);
@@ -22,17 +22,18 @@ class Executor {
     void executeScript();
 };
 
-Executor::Executor(Memory mem_) { mem = mem_; }
 Executor::~Executor() {}
 
 void Executor::executeScript()
 {
-    for (int i = 0; i < mem.getScript(State.CurrentScript).size(); i++)
+    Script script = mem.getScript();
+    
+    for (int i = 0; i < script.size(); i++)
     {
         State.CurrentLineNumber = i + 1;
 
         if (!State.GoToLabel)
-            parse(mem.getScript(State.CurrentScript).at(i));
+            parse(script.at(i));
         else
         {
             bool startParsing = false;
@@ -40,11 +41,11 @@ void Executor::executeScript()
             State.DefiningForLoop = false;
             State.GoToLabel = false;
 
-            for (int z = 0; z < mem.getScript(State.CurrentScript).size(); z++)
+            for (int z = 0; z < mem.getScript().size(); z++)
             {
-                if (endsWith(mem.getScript(State.CurrentScript).at(z), "::"))
+                if (endsWith(mem.getScript().at(z), "::"))
                 {
-                    string s(mem.getScript(State.CurrentScript).at(z));
+                    string s(mem.getScript().at(z));
                     s = subtractString(s, "::");
 
                     if (s == State.GoTo)
@@ -52,7 +53,7 @@ void Executor::executeScript()
                 }
 
                 if (startParsing)
-                    parse(mem.getScript(State.CurrentScript).at(z));
+                    parse(mem.getScript().at(z));
             }
         }
     }

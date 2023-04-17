@@ -22,7 +22,7 @@ string getLower(string in);
 string getInner(string s, int left, int right);
 string subtractChar(string s1, string s2);
 string subtractString(string s1, string s2);
-string trimLeadingWhitespace(char *str);
+string trimLeadingWhitespace(const string& str);
 
 bool contains(string s1, string s2);
 bool containsBrackets(string s);
@@ -95,46 +95,9 @@ static inline string &trim(string &s)
     return ltrim(rtrim(s));
 }
 
-string trimLeadingWhitespace(char *str)
-{
-    size_t len = 0;
-    char *start = str - 1;
-    char *end = NULL;
-
-    if (str == NULL)
-        return NULL;
-
-    if (str[0] == '\0')
-        return str;
-
-    len = strlen(str);
-    end = str + len;
-
-    while (isspace(*(++start)));
-    while (isspace(*(--end)) && end != start);
-
-    if (str + len - 1 != end)
-	{
-        *(end + 1) = '\0';
-    }
-	else if (start != str && end == start)
-	{
-        *str = '\0';
-	}
-	
-    end = str;
-    if (start != str)
-    {
-        while (*start) 
-		{
-			*end++ = *start++;
-		}
-        *end = '\0';
-    }
-
-    string ret_str(str);
-
-    return ret_str;
+string trimLeadingWhitespace(const string& str) {
+  auto it = find_if_not(str.begin(), str.end(), [](int c) { return isspace(c); });
+  return string(it, str.end());
 }
 
 bool isUpper(string in)
@@ -577,34 +540,12 @@ bool oneDot(string s)
 
 bool endsWith(string s, string end)
 {
-    unsigned int lastMatchPos = s.rfind(end);
-    bool isEnding = lastMatchPos != std::string::npos;
-
-    int el = end.length(), fl = s.length();
-
-    for (int i = lastMatchPos + el; (i < fl) && isEnding; i++)
-    {
-        if ((s[i] != '\n') && (s[i] != '\r'))
-            return false;
-    }
-
-    return isEnding;
+    return s.size() > end.size() && s.substr(s.size() - end.size()) == end;
 }
 
-bool startsWith(string s1, string s2)
+bool startsWith(string s, string start)
 {
-    if (s1.length() >= s2.length())
-    {
-        int s2l = s2.length();
-
-        for (int i = 0; i < s2l; i++)
-            if (s1[i] != s2[i])
-                return false;
-
-        return true;
-    }
-
-    return false;
+    return s.size() > start.size() && s.substr(0, start.size()) == start;
 }
 
 bool zeroDots(string s)

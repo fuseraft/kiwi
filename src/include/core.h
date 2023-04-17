@@ -526,11 +526,7 @@ void startREPL(bool skip)
         }
         else
         {
-            char * c = new char[s.size() + 1];
-            copy(s.begin(), s.end(), c);
-            c[s.size()] = '\0';
-            parse(trimLeadingWhitespace(c));
-            delete[] c;
+            parse(trimLeadingWhitespace(s));
         }
     }
 }
