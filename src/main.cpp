@@ -71,6 +71,7 @@ int main(int c, char ** v)
             mem.addArg(opt);
             State.ArgumentCount = mem.getArgCount();
             mem.loadScript(opt);
+            exec.executeScript();
         }
         else if (is(opt, "h") || is(opt, "help"))
             help(noctis);

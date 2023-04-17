@@ -51,7 +51,7 @@ class Memory {
     Module getModule(string s);
     Object getObject(int index);
     Object getObject(string s);
-    Script getScript(string s);
+    Script getScript();
     Variable getVar(int index);
     Variable getVar(string s);
     Switch getMainSwitch();
@@ -669,28 +669,8 @@ void Memory::loadScript(string script)
 
             if (s.length() > 0)
             {
-                if (s[0] == '\r' || s[0] == '\n')
-                    doNothing();
-                else if (s[0] == '\t')
-                {
-                    s.erase(remove(s.begin(), s.end(), '\t'), s.end());
-                    char * c = new char[s.size() + 1];
-                    copy(s.begin(), s.end(), c);
-                    c[s.size()] = '\0';
-                    newScript.add(trimLeadingWhitespace(c));
-                    delete[] c;
-                }
-                else
-                {
-                    char * c = new char[s.size() + 1];
-                    copy(s.begin(), s.end(), c);
-                    c[s.size()] = '\0';
-                    newScript.add(trimLeadingWhitespace(c));
-                    delete[] c;
-                }
+                newScript.add(trimLeadingWhitespace(s));
             }
-            else
-                newScript.add("");
         }
     }
 
@@ -862,7 +842,7 @@ List Memory::getList(string s) { return lists.at(indexOfList(s)); }
 Method Memory::getMethod(string s) { return methods.at(indexOfMethod(s)); }
 Module Memory::getModule(string s) { return modules.at(indexOfModule(s)); }
 Object Memory::getObject(string s) { return objects.at(indexOfObject(s)); }
-Script Memory::getScript(string s) { return scripts.at(indexOfScript(s)); }
+Script Memory::getScript() { return scripts.at(0); }
 Variable Memory::getVar(string s) { return variables.at(indexOfVariable(s)); }
 
 void Memory::removeConstant(string s) { constants.erase(constants.begin() + indexOfConstant(s)); }

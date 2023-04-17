@@ -183,10 +183,6 @@ void parse(string s)
         prevChar = s[i];
     }
 
-    // for (unsigned int x = 0; x < command.size(); x++) {
-    // cout << x << ":\t__ " << command.at(x) << " __" << endl;
-    // }
-
     size = (int)command.size();
 
     if (command.at(size - 1) == "{" && size != 1)
@@ -813,7 +809,7 @@ void parse(string s)
                                     {
                                         string newMark(s);
                                         newMark = subtractString(s, "::");
-                                        mem.getScript(State.CurrentScript).addMark(newMark);
+                                        mem.getScript().addMark(newMark);
                                     }
                                 }
                                 else if (mem.methodExists(s))
@@ -943,11 +939,7 @@ void parse(string s)
                             commentString.push_back(bigString[i]);
                     }
 
-                    char * c = new char[commentString.size() + 1];
-                    copy(commentString.begin(), commentString.end(), c);
-                    c[commentString.size()] = '\0';
-                    parse(trimLeadingWhitespace(c));
-                    delete[] c;
+                    parse(trimLeadingWhitespace(commentString));
                 }
                 else
                 {
@@ -964,13 +956,7 @@ void parse(string s)
                             commentString.push_back(bigString[i]);
                     }
 
-                    char * c = new char[commentString.size() + 1];
-                    copy(commentString.begin(), commentString.end(), c);
-                    c[commentString.size()] = '\0';
-
-                    stringContainer.add(trimLeadingWhitespace(c));
-
-                    delete[] c;
+                    stringContainer.add(trimLeadingWhitespace(commentString));
 
                     for (int i = 0; i < (int)stringContainer.get().size(); i++)
                         parse(stringContainer.at(i));
@@ -1106,7 +1092,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (State.CurrentScript != "")
         {
-            if (mem.getScript(State.CurrentScript).markExists(arg1))
+            if (mem.getScript().markExists(arg1))
             {
                 State.GoTo = arg1;
                 State.GoToLabel = true;
