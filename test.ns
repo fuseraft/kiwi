@@ -1,1 +1,2 @@
-say "Hello, World!"
+@desc = "hybrid-typed, object-oriented, interpreted"
+say "noctis is a \{@desc} scripting language."

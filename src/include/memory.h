@@ -659,6 +659,8 @@ void Memory::loadScript(string script)
     ifstream f(script.c_str());
     State.CurrentScript = script;
 
+    scripts.clear();
+
     Script newScript(script);
 
     if (f.is_open())
