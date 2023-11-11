@@ -47,10 +47,7 @@ void parse(string s)
                 {
                     command.at(count).push_back(' ');
                 }
-                else if (parenthesis && !quoted)
-                {
-                    doNothing();
-                }
+                else if (parenthesis && !quoted) {}
                 else
                 {
                     if (prevChar != ' ')
@@ -200,8 +197,7 @@ void parse(string s)
 
             if (State.DefiningSwitchBlock)
             {
-                if (s == "{")
-                    doNothing();
+                if (s == "{") {}
                 else if (startsWith(s, "case"))
                     mem.getMainSwitch().addCase(command.at(1));
                 else if (s == "default")
@@ -282,8 +278,7 @@ void parse(string s)
 
                     if (State.DefiningParameterizedMethod)
                     {
-                        if (s == "{")
-                            doNothing();
+                        if (s == "{") {}
                         else if (s == "end" || s == "}")
                         {
                             if (State.DefiningLocalWhileLoop)
@@ -369,8 +364,7 @@ void parse(string s)
                     }
                     else
                     {
-                        if (s == "{")
-                            doNothing();
+                        if (s == "{") {}
                         else if (s == "end" || s == "}")
                         {
                             if (State.DefiningLocalWhileLoop)
@@ -503,8 +497,7 @@ void parse(string s)
                 {
                     if (State.DefiningWhileLoop)
                     {
-                        if (s == "{")
-                            doNothing();
+                        if (s == "{") {}
                         else if (command.at(0) == "end" || command.at(0) == "}")
                         {
                             State.DefiningWhileLoop = false;
@@ -707,8 +700,7 @@ void parse(string s)
                         }
                         else
                         {
-                            if (s == "{")
-                                doNothing();
+                            if (s == "{") {}
                             else
                                 mem.getForLoop(mem.getForLoopCount() - 1).add(s);
                         }

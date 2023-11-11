@@ -366,20 +366,17 @@ string cleanString(string st)
                 cleaned.push_back('\r');
             else if (st[i] == 'n' && st[i - 1] == '\\') // end new-line
                 cleaned.push_back('\n');
-            else if (st[i] == '\\' && st[i + 1] == 't') // begin tab
-                doNothing();
             else if (st[i] == 't' && st[i - 1] == '\\') // end tab
                 cleaned.push_back('\t');
-            else if (st[i] == '\\' && st[i + 1] == ';') // begin semi-colon
-                doNothing();
             else if (st[i] == ';' && st[i - 1] == '\\') // end semi-colon
                 cleaned.push_back(';');
-            else if (st[i] == '\\' && st[i + 1] == '\'') // begin apostrophe
-                doNothing();
             else if (st[i] == '\'' && st[i - 1] == '\\') // end apostrophe
                 cleaned.push_back('\'');
             else if (st[i] == '\\' && st[i + 1] == '{') // begin symbol
                 buildSymbol = true;
+            else if (st[i] == '\\' && st[i + 1] == 't') {} // begin tab
+            else if (st[i] == '\\' && st[i + 1] == ';') {} // begin semi-colon
+            else if (st[i] == '\\' && st[i + 1] == '\'') {} // begin apostrophe
             else
                 cleaned.push_back(st[i]);
         }

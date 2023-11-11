@@ -72,14 +72,12 @@ class Env {
                     cleaned.push_back('\r');
                 else if (a[i] == 'n' && a[i - 1] == '\\')
                     cleaned.push_back('\n');
-                else if (a[i] == '\\' && a[i + 1] == 't')
-                    doNothing();
                 else if (a[i] == 't' && a[i - 1] == '\\')
                     cleaned.push_back('\t');
-                else if (a[i] == '\\' && a[i + 1] == '\'')
-                    doNothing();
                 else if (a[i] == '\'' && a[i - 1] == '\\')
                     cleaned.push_back('\"');
+                else if (a[i] == '\\' && a[i + 1] == 't') {}
+                else if (a[i] == '\\' && a[i + 1] == '\'') {}
                 else
                     cleaned.push_back(a[i]);
             }
@@ -143,9 +141,7 @@ class Env {
 
         string dir = path;
 
-        if ((pd = opendir(dir.c_str())) == NULL)
-            doNothing();
-        else
+        if ((pd = opendir(dir.c_str())) != NULL)
         {
             while ((pe = readdir(pd)) != NULL)
             {

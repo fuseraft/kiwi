@@ -278,8 +278,7 @@ vector<string> getBracketRange(string s)
             }
             else if (s[i] == ']')
                 start_push = false;
-            else if (s[i] == ' ')
-                doNothing();
+            else if (s[i] == ' ') {}
             else
                 new_name.push_back(s[i]);
         }
@@ -317,8 +316,7 @@ vector<string> getRange(string s)
             }
             else if (s[i] == ')')
                 start_push = false;
-            else if (s[i] == ' ')
-                doNothing();
+            else if (s[i] == ' ') {}
             else
                 new_name.push_back(s[i]);
         }

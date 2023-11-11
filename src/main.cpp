@@ -19,16 +19,9 @@
 #include <unistd.h>
 #endif
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 using namespace std;
 
-void doNothing() {}
-
 #include "include/debug/stacktrace.h"
-
 #include "include/constants.h"
 #include "include/noctisenv.h"
 #include "include/state.h"
