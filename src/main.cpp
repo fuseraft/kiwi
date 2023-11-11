@@ -59,7 +59,7 @@ int main(int c, char ** v)
         State.CurrentScript = noctis;
         mem.addArg(noctis);
         State.ArgumentCount = mem.getArgCount();
-        startREPL(false);
+        startREPL();
     }
     else if (c == 2)
     {
@@ -74,22 +74,13 @@ int main(int c, char ** v)
         }
         else if (is(opt, "h") || is(opt, "help"))
             help(noctis);
-        else if (is(opt, "u") || is(opt, "uninstall"))
-            uninstall();
-        else if (is(opt, "sl") || is(opt, "skipload"))
-        {
-            State.CurrentScript = noctis;
-            mem.addArg(opt);
-            State.ArgumentCount = mem.getArgCount();
-            startREPL(true);
-        }
         else if (is(opt, "n") || is(opt, "negligence"))
         {
             State.Negligence = true;
             State.CurrentScript = noctis;
             mem.addArg(opt);
             State.ArgumentCount = mem.getArgCount();
-            startREPL(true);
+            startREPL();
         }
         else if (is(opt, "v") || is(opt, "version"))
             displayVersion();
@@ -98,34 +89,14 @@ int main(int c, char ** v)
             State.CurrentScript = noctis;
             mem.addArg(opt);
             State.ArgumentCount = mem.getArgCount();
-            startREPL(false);
+            startREPL();
         }
     }
     else if (c == 3)
     {
         string opt = v[1], script = v[2];
 
-        if (is(opt, "sl") || is(opt, "skipload"))
-        {
-            State.CurrentScript = noctis;
-
-            if (isScript(script))
-            {
-                State.CurrentScript = script;
-                mem.addArg(opt);
-                mem.addArg(script);
-                State.ArgumentCount = mem.getArgCount();
-                mem.loadScript(script);
-            }
-            else
-            {
-                mem.addArg(opt);
-                mem.addArg(script);
-                State.ArgumentCount = mem.getArgCount();
-                startREPL(true);
-            }
-        }
-        else if (is(opt, "n") || is(opt, "negligence"))
+        if (is(opt, "n") || is(opt, "negligence"))
         {
             State.Negligence = true;
             mem.addArg(opt);
@@ -139,7 +110,7 @@ int main(int c, char ** v)
             else
             {
                 State.CurrentScript = noctis;
-                startREPL(true);
+                startREPL();
             }
         }
         else if (is(opt, "p") || is(opt, "parse"))
@@ -172,7 +143,7 @@ int main(int c, char ** v)
                 mem.addArg(opt);
                 mem.addArg(script);
                 State.ArgumentCount = mem.getArgCount();
-                startREPL(false);
+                startREPL();
             }
         }
     }
@@ -203,7 +174,7 @@ int main(int c, char ** v)
             State.ArgumentCount = mem.getArgCount();
 
             State.CurrentScript = noctis;
-            startREPL(false);
+            startREPL();
         }
     }
     else

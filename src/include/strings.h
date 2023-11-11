@@ -694,14 +694,14 @@ bool notStandardOneSpace(string arg)
     const char * standardOneSpaceWords =
         "!;?;__begin__;call_method;cd;chdir;collect?;"
         "decrypt;delay;directory?;dpush;dpop;"
-        "encrypt;err;error;file?;for;forget;fpush;fpop;"
+        "encrypt;err;error;file?;for;fpush;fpop;"
         "garbage?;globalize;goto;if;init_dir;intial_directory;"
         "directory?;file?;list?;lowercase?;method?;"
         "number?;class?;string?;uppercase?;variable?;"
         "list;list?;load;lock;loop;lose;"
         "method;[method];class;out;"
-        "print;println;prompt;remember;remove;return;"
-        "save;say;see;see_string;see_number;stdout;switch;"
+        "print;println;prompt;remove;return;"
+        "say;see;see_string;see_number;stdout;switch;"
         "template;unlock;";
 
     return !contains(standardOneSpaceWords, arg);
