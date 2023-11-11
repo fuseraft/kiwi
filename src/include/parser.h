@@ -1,9 +1,3 @@
-/**
- * 	noctis: a hybrid-typed, object-oriented, interpreted, programmable command line shell.
- *
- *		scstauf@gmail.com
- **/
-
 #ifndef PARSER_H
 #define PARSER_H
 
@@ -311,8 +305,8 @@ void parse(string s)
                             {
                                 State.DefiningLocalWhileLoop = false;
 
-                                if (State.DefiningObject)
-                                    mem.getObject(State.CurrentObject).addToCurrentMethod(s);
+                                if (State.DefiningClass)
+                                    mem.getClass(State.CurrentClass).addToCurrentMethod(s);
                                 else
                                     mem.getMethod(mem.getMethodCount() - 1).add(s);
                             }
@@ -320,8 +314,8 @@ void parse(string s)
                             {
                                 State.DefiningLocalSwitchBlock = false;
 
-                                if (State.DefiningObject)
-                                    mem.getObject(State.CurrentObject).addToCurrentMethod(s);
+                                if (State.DefiningClass)
+                                    mem.getClass(State.CurrentClass).addToCurrentMethod(s);
                                 else
                                     mem.getMethod(mem.getMethodCount() - 1).add(s);
                             }
@@ -329,10 +323,10 @@ void parse(string s)
                             {
                                 State.DefiningMethod = false;
 
-                                if (State.DefiningObject)
+                                if (State.DefiningClass)
                                 {
-                                    State.DefiningObjectMethod = false;
-                                    mem.getObject(mem.getObjectCount() - 1).setCurrentMethod("");
+                                    State.DefiningClassMethod = false;
+                                    mem.getClass(mem.getClassCount() - 1).setCurrentMethod("");
                                 }
                             }
                         }
@@ -373,16 +367,16 @@ void parse(string s)
                                     freshLine.push_back(' ');
                             }
 
-                            if (State.DefiningObject)
+                            if (State.DefiningClass)
                             {
-                                mem.getObject(State.CurrentObject).addToCurrentMethod(freshLine);
+                                mem.getClass(State.CurrentClass).addToCurrentMethod(freshLine);
 
                                 if (State.DefiningPublicCode)
-                                    mem.getObject(State.CurrentObject).setPublic();
+                                    mem.getClass(State.CurrentClass).setPublic();
                                 else if (State.DefiningPrivateCode)
-                                    mem.getObject(State.CurrentObject).setPrivate();
+                                    mem.getClass(State.CurrentClass).setPrivate();
                                 else
-                                    mem.getObject(State.CurrentObject).setPublic();
+                                    mem.getClass(State.CurrentClass).setPublic();
                             }
                             else
                                 mem.getMethod(mem.getMethodCount() - 1).add(freshLine);
@@ -398,8 +392,8 @@ void parse(string s)
                             {
                                 State.DefiningLocalWhileLoop = false;
 
-                                if (State.DefiningObject)
-                                    mem.getObject(mem.getObjectCount() - 1).addToCurrentMethod(s);
+                                if (State.DefiningClass)
+                                    mem.getClass(mem.getClassCount() - 1).addToCurrentMethod(s);
                                 else
                                     mem.getMethod(mem.getMethodCount() - 1).add(s);
                             }
@@ -407,8 +401,8 @@ void parse(string s)
                             {
                                 State.DefiningLocalSwitchBlock = false;
 
-                                if (State.DefiningObject)
-                                    mem.getObject(mem.getObjectCount() - 1).addToCurrentMethod(s);
+                                if (State.DefiningClass)
+                                    mem.getClass(mem.getClassCount() - 1).addToCurrentMethod(s);
                                 else
                                     mem.getMethod(mem.getMethodCount() - 1).add(s);
                             }
@@ -416,38 +410,38 @@ void parse(string s)
                             {
                                 State.DefiningMethod = false;
 
-                                if (State.DefiningObject)
+                                if (State.DefiningClass)
                                 {
-                                    State.DefiningObjectMethod = false;
-                                    mem.getObject(mem.getObjectCount() - 1).setCurrentMethod("");
+                                    State.DefiningClassMethod = false;
+                                    mem.getClass(mem.getClassCount() - 1).setCurrentMethod("");
                                 }
                             }
                         }
                         else
                         {
-                            if (State.DefiningObject)
+                            if (State.DefiningClass)
                             {
-                                mem.getObject(mem.getObjectCount() - 1).addToCurrentMethod(s);
+                                mem.getClass(mem.getClassCount() - 1).addToCurrentMethod(s);
 
                                 if (State.DefiningPublicCode)
-                                    mem.getObject(mem.getObjectCount() - 1).setPublic();
+                                    mem.getClass(mem.getClassCount() - 1).setPublic();
                                 else if (State.DefiningPrivateCode)
-                                    mem.getObject(mem.getObjectCount() - 1).setPrivate();
+                                    mem.getClass(mem.getClassCount() - 1).setPrivate();
                                 else
-                                    mem.getObject(mem.getObjectCount() - 1).setPublic();
+                                    mem.getClass(mem.getClassCount() - 1).setPublic();
                             }
                             else
                             {
-                                if (State.DefiningObjectMethod)
+                                if (State.DefiningClassMethod)
                                 {
-                                    mem.getObject(mem.getObjectCount() - 1).addToCurrentMethod(s);
+                                    mem.getClass(mem.getClassCount() - 1).addToCurrentMethod(s);
 
                                     if (State.DefiningPublicCode)
-                                        mem.getObject(mem.getObjectCount() - 1).setPublic();
+                                        mem.getClass(mem.getClassCount() - 1).setPublic();
                                     else if (State.DefiningPrivateCode)
-                                        mem.getObject(mem.getObjectCount() - 1).setPrivate();
+                                        mem.getClass(mem.getClassCount() - 1).setPrivate();
                                     else
-                                        mem.getObject(mem.getObjectCount() - 1).setPublic();
+                                        mem.getClass(mem.getClassCount() - 1).setPublic();
                                 }
                                 else
                                     mem.getMethod(mem.getMethodCount() - 1).add(s);
@@ -744,30 +738,30 @@ void parse(string s)
 
                                 if (before.length() != 0 && after.length() != 0)
                                 {
-                                    if (mem.objectExists(before) && after.length() != 0)
+                                    if (mem.classExists(before) && after.length() != 0)
                                     {
                                         if (containsParams(after))
                                         {
                                             s = subtractChar(s, "\"");
 
-                                            if (mem.getObject(before).hasMethod(beforeParams(after)))
-                                                exec.executeTemplate(mem.getObject(before).getMethod(beforeParams(after)), getParams(after));
+                                            if (mem.getClass(before).hasMethod(beforeParams(after)))
+                                                exec.executeTemplate(mem.getClass(before).getMethod(beforeParams(after)), getParams(after));
                                             else
                                                 Env::sysExec(s, command);
                                         }
-                                        else if (mem.getObject(before).hasMethod(after))
-                                            exec.executeMethod(mem.getObject(before).getMethod(after));
-                                        else if (mem.getObject(before).hasVariable(after))
+                                        else if (mem.getClass(before).hasMethod(after))
+                                            exec.executeMethod(mem.getClass(before).getMethod(after));
+                                        else if (mem.getClass(before).hasVariable(after))
                                         {
-                                            if (mem.getObject(before).getVariable(after).getString() != State.Null)
-                                                writeline(mem.getObject(before).getVariable(after).getString());
-                                            else if (mem.getObject(before).getVariable(after).getNumber() != State.NullNum)
-                                                writeline(dtos(mem.getObject(before).getVariable(after).getNumber()));
+                                            if (mem.getClass(before).getVariable(after).getString() != State.Null)
+                                                writeline(mem.getClass(before).getVariable(after).getString());
+                                            else if (mem.getClass(before).getVariable(after).getNumber() != State.NullNum)
+                                                writeline(dtos(mem.getClass(before).getVariable(after).getNumber()));
                                             else
                                                 error(ErrorMessage::IS_NULL, "", false);
                                         }
                                         else if (after == "clear")
-                                            mem.getObject(before).clear();
+                                            mem.getClass(before).clear();
                                         else
                                             error(ErrorMessage::UNDEFINED, "", false);
                                     }
@@ -797,7 +791,7 @@ void parse(string s)
                                         else if (before == "self")
                                         {
                                             if (State.ExecutedMethod)
-                                                exec.executeMethod(mem.getObject(State.CurrentMethodObject).getMethod(after));
+                                                exec.executeMethod(mem.getClass(State.CurrentMethodClass).getMethod(after));
                                         }
                                         else
                                             Env::sysExec(s, command);
@@ -986,8 +980,8 @@ void zeroSpace(string arg0, string s, vector<string> command)
     }
     else if (arg0 == "clear_methods!")
         mem.clearMethods();
-    else if (arg0 == "clear_objects!")
-        mem.clearObjects();
+    else if (arg0 == "clear_classes!")
+        mem.clearClasses();
     else if (arg0 == "clear_variables!")
         mem.clearVariables();
     else if (arg0 == "clear_lists!")
@@ -1010,9 +1004,9 @@ void zeroSpace(string arg0, string s, vector<string> command)
         else
             State.LastValue = "false";
     }
-    else if (arg0 == "no_objects?")
+    else if (arg0 == "no_classes?")
     {
-        if (mem.noObjects())
+        if (mem.noClasses())
             State.LastValue = "true";
         else
             State.LastValue = "false";
@@ -1035,9 +1029,9 @@ void zeroSpace(string arg0, string s, vector<string> command)
     {
         State.DefiningPrivateCode = false,
         State.DefiningPublicCode = false;
-        State.DefiningObject = false;
-        State.DefiningObjectMethod = false;
-        State.CurrentObject = "";
+        State.DefiningClass = false;
+        State.DefiningClassMethod = false;
+        State.CurrentClass = "";
     }
     else if (arg0 == "parser")
         startREPL(false);
@@ -1070,7 +1064,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
 
     if (contains(arg1, "self."))
     {
-        arg1 = replace(arg1, "self", State.CurrentMethodObject);
+        arg1 = replace(arg1, "self", State.CurrentMethodClass);
     }
 
     if (arg0 == "return")
@@ -1106,7 +1100,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
 			// can we can assume that arg1 belongs to an object?
 			if (!zeroDots(arg1)) {
 				string objName(beforeDot(arg1)), varName(afterDot(arg1));
-				Variable tmpVar = mem.getObject(objName).getVariable(varName);
+				Variable tmpVar = mem.getClass(objName).getVariable(varName);
 				
 				if (mem.isString(tmpVar)) {
 					tmpValue = tmpVar.getString();
@@ -1209,8 +1203,8 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                     mem.removeVariable(params.at(i));
                 else if (mem.listExists(params.at(i)))
                     mem.removeList(params.at(i));
-                else if (mem.objectExists(params.at(i)))
-                    mem.removeObject(params.at(i));
+                else if (mem.classExists(params.at(i)))
+                    mem.removeClass(params.at(i));
                 else if (mem.methodExists(params.at(i)))
                     mem.removeMethod(params.at(i));
                 else
@@ -1221,8 +1215,8 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             mem.removeVariable(arg1);
         else if (mem.listExists(arg1))
             mem.removeList(arg1);
-        else if (mem.objectExists(arg1))
-            mem.removeObject(arg1);
+        else if (mem.classExists(arg1))
+            mem.removeClass(arg1);
         else if (mem.methodExists(arg1))
             mem.removeMethod(arg1);
         else
@@ -1342,10 +1336,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         {
             List newList(arg1);
 
-            if (State.ExecutedTemplate || State.ExecutedMethod)
-                newList.collect();
-            else
-                newList.dontCollect();
+            newList.setCollectable(State.ExecutedTemplate || State.ExecutedMethod);
 
             mem.addList(newList);
         }
@@ -1412,7 +1403,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (mem.getObject(before).hasMethod(after))
+            if (mem.getClass(before).hasMethod(after))
                 State.LastValue = "true";
             else
                 State.LastValue = "false";
@@ -1425,9 +1416,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
                 State.LastValue = "false";
         }
     }
-    else if (arg0 == "object?")
+    else if (arg0 == "class?")
     {
-        if (mem.objectExists(arg1))
+        if (mem.classExists(arg1))
             State.LastValue = "true";
         else
             State.LastValue = "false";
@@ -1436,7 +1427,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (mem.getObject(before).hasVariable(after))
+            if (mem.getClass(before).hasVariable(after))
                 State.LastValue = "true";
             else
                 State.LastValue = "false";
@@ -1460,9 +1451,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (mem.getObject(before).hasVariable(after))
+            if (mem.getClass(before).hasVariable(after))
             {
-                if (Env::directoryExists(mem.getObject(before).getVariable(after).getString()))
+                if (Env::directoryExists(mem.getClass(before).getVariable(after).getString()))
                     State.LastValue = "true";
                 else
                     State.LastValue = "false";
@@ -1497,9 +1488,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (mem.getObject(before).hasVariable(after))
+            if (mem.getClass(before).hasVariable(after))
             {
-                if (Env::fileExists(mem.getObject(before).getVariable(after).getString()))
+                if (Env::fileExists(mem.getClass(before).getVariable(after).getString()))
                     State.LastValue = "true";
                 else
                     State.LastValue = "false";
@@ -1534,7 +1525,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (mem.variableExists(arg1))
         {
-            if (mem.getVar(arg1).garbage())
+            if (mem.getVar(arg1).isCollectable())
                 State.LastValue = "true";
             else
                 State.LastValue = "false";
@@ -1546,9 +1537,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (mem.getObject(before).hasVariable(after))
+            if (mem.getClass(before).hasVariable(after))
             {
-                if (mem.getObject(before).getVariable(after).getNumber() != State.NullNum)
+                if (mem.getClass(before).getVariable(after).getNumber() != State.NullNum)
                     State.LastValue = "true";
                 else
                     State.LastValue = "false";
@@ -1578,9 +1569,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (mem.getObject(before).hasVariable(after))
+            if (mem.getClass(before).hasVariable(after))
             {
-                if (mem.getObject(before).getVariable(after).getString() != State.Null)
+                if (mem.getClass(before).getVariable(after).getString() != State.Null)
                     State.LastValue = "true";
                 else
                     State.LastValue = "false";
@@ -1610,9 +1601,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (mem.getObject(before).hasVariable(after))
+            if (mem.getClass(before).hasVariable(after))
             {
-                if (isUpper(mem.getObject(before).getVariable(after).getString()))
+                if (isUpper(mem.getClass(before).getVariable(after).getString()))
                     State.LastValue = "true";
                 else
                     State.LastValue = "false";
@@ -1652,9 +1643,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         if (before.length() != 0 && after.length() != 0)
         {
-            if (mem.getObject(before).hasVariable(after))
+            if (mem.getClass(before).hasVariable(after))
             {
-                if (isLower(mem.getObject(before).getVariable(after).getString()))
+                if (isLower(mem.getClass(before).getVariable(after).getString()))
                     State.LastValue = "true";
                 else
                     State.LastValue = "false";
@@ -1732,9 +1723,9 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     {
         exec.executeMethod(arg1, before, after);
     }
-    else if (arg0 == "object")
+    else if (arg0 == "class")
     {
-        mem.createObject(arg1);
+        mem.createClass(arg1);
     }
     else if (arg0 == "fpush")
     {
@@ -1833,10 +1824,10 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
     string last_val = "";
 
     if (contains(arg2, "self."))
-        arg2 = replace(arg2, "self", State.CurrentMethodObject);
+        arg2 = replace(arg2, "self", State.CurrentMethodClass);
 
     if (contains(arg0, "self."))
-        arg0 = replace(arg0, "self", State.CurrentMethodObject);
+        arg0 = replace(arg0, "self", State.CurrentMethodClass);
 
     if (mem.variableExists(arg0))
     {
@@ -1854,11 +1845,11 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
         }
         else if (startsWith(arg0, "@") && !zeroDots(arg2)) 
         {
-            initializeObjectVariable(arg0, arg1, arg2, s, command);
+            initializeClassVariable(arg0, arg1, arg2, s, command);
         }
-        else if (!mem.objectExists(arg0) && mem.objectExists(arg2))
+        else if (!mem.classExists(arg0) && mem.classExists(arg2))
         {
-            copyObject(arg0, arg1, arg2, s, command);
+            copyClass(arg0, arg1, arg2, s, command);
         }
         else if (isUpperConstant(arg0))
         {
@@ -1876,40 +1867,40 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
     // isNumber(arg3)
     // isString(arg3)
 
-    if (arg0 == "object")
+    if (arg0 == "class")
     {
-        if (mem.objectExists(arg1))
+        if (mem.classExists(arg1))
         {
-            State.DefiningObject = true;
-            State.CurrentObject = arg1;
+            State.DefiningClass = true;
+            State.CurrentClass = arg1;
         }
         else
         {
-            if (mem.objectExists(arg3))
+            if (mem.classExists(arg3))
             {
                 if (arg2 == "=")
                 {
-                    vector<Method> objectMethods = mem.getObject(arg3).getMethods();
-                    Object newObject(arg1);
+                    vector<Method> classMethods = mem.getClass(arg3).getMethods();
+                    Class newClass(arg1);
 
-                    for (int i = 0; i < (int)objectMethods.size(); i++)
+                    for (int i = 0; i < (int)classMethods.size(); i++)
                     {
-                        if (objectMethods.at(i).isPublic())
-                            newObject.addMethod(objectMethods.at(i));
+                        if (classMethods.at(i).isPublic())
+                            newClass.addMethod(classMethods.at(i));
                     }
 
-                    mem.addObject(newObject);
-                    State.CurrentObject = arg1;
-                    State.DefiningObject = true;
+                    mem.addClass(newClass);
+                    State.CurrentClass = arg1;
+                    State.DefiningClass = true;
 
-                    newObject.clear();
-                    objectMethods.clear();
+                    newClass.clear();
+                    classMethods.clear();
                 }
                 else
                     error(ErrorMessage::INVALID_OPERATOR, arg2, false);
             }
             else
-                error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3, false);
+                error(ErrorMessage::CLS_METHOD_UNDEFINED, arg3, false);
         }
     }
     else if (arg0 == "unless")
@@ -2082,7 +2073,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 mem.createIfStatement(true);
             }
         }
-        else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notObjectMethod(arg3) && !containsParams(arg3))
+        else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notClassMethod(arg3) && !containsParams(arg3))
         {
             if (mem.isNumber(arg1))
             {
@@ -2404,7 +2395,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
             }
         }
-        else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notObjectMethod(arg3) && containsParams(arg3))
+        else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notClassMethod(arg3) && containsParams(arg3))
         {
             string stackValue("");
 
@@ -2735,7 +2726,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
             }
         }
-        else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notObjectMethod(arg1) && !containsParams(arg1))
+        else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notClassMethod(arg1) && !containsParams(arg1))
         {
             if (mem.isNumber(arg3))
             {
@@ -2846,7 +2837,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
             }
         }
-        else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notObjectMethod(arg1) && containsParams(arg1))
+        else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notClassMethod(arg1) && containsParams(arg1))
         {
             string stackValue("");
 
@@ -2977,15 +2968,15 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     string arg1Result(""), arg3Result("");
 
-                    if (mem.objectExists(arg1before) && mem.objectExists(arg3before))
+                    if (mem.classExists(arg1before) && mem.classExists(arg3before))
                     {
-                        if (mem.getObject(arg1before).hasMethod(beforeParams(arg1after)))
-                            exec.executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getClass(arg1before).hasMethod(beforeParams(arg1after)))
+                            exec.executeTemplate(mem.getClass(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
-                        if (mem.getObject(arg3before).hasMethod(beforeParams(arg3after)))
-                            exec.executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getClass(arg3before).hasMethod(beforeParams(arg3after)))
+                            exec.executeTemplate(mem.getClass(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
@@ -3064,11 +3055,11 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        if (!mem.objectExists(arg1before))
-                            error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
+                        if (!mem.classExists(arg1before))
+                            error(ErrorMessage::CLS_METHOD_UNDEFINED, arg1before, false);
 
-                        if (!mem.objectExists(arg3before))
-                            error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
+                        if (!mem.classExists(arg3before))
+                            error(ErrorMessage::CLS_METHOD_UNDEFINED, arg3before, false);
 
                         mem.createIfStatement(true);
                     }
@@ -3079,10 +3070,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     string arg1Result(""), arg3Result("");
 
-                    if (mem.objectExists(arg1before))
+                    if (mem.classExists(arg1before))
                     {
-                        if (mem.getObject(arg1before).hasMethod(beforeParams(arg1after)))
-                            exec.executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getClass(arg1before).hasMethod(beforeParams(arg1after)))
+                            exec.executeTemplate(mem.getClass(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
@@ -3166,7 +3157,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
+                        error(ErrorMessage::CLS_METHOD_UNDEFINED, arg1before, false);
                         mem.createIfStatement(true);
                     }
                 }
@@ -3176,10 +3167,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     string arg1Result(""), arg3Result("");
 
-                    if (mem.objectExists(arg3before))
+                    if (mem.classExists(arg3before))
                     {
-                        if (mem.getObject(arg3before).hasMethod(beforeParams(arg3after)))
-                            exec.executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getClass(arg3before).hasMethod(beforeParams(arg3after)))
+                            exec.executeTemplate(mem.getClass(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
@@ -3263,7 +3254,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
+                        error(ErrorMessage::CLS_METHOD_UNDEFINED, arg3before, false);
                         mem.createIfStatement(true);
                     }
                 }
@@ -3478,10 +3469,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     string arg1before(beforeDot(arg1)), arg1after(afterDot(arg1));
 
-                    if (mem.objectExists(arg1before))
+                    if (mem.classExists(arg1before))
                     {
-                        if (mem.getObject(arg1before).hasMethod(beforeParams(arg1after)))
-                            exec.executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getClass(arg1before).hasMethod(beforeParams(arg1after)))
+                            exec.executeTemplate(mem.getClass(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
@@ -3585,7 +3576,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
+                        error(ErrorMessage::CLS_METHOD_UNDEFINED, arg1before, false);
                         mem.createIfStatement(true);
                     }
                 }
@@ -3711,10 +3702,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     string arg3before(beforeDot(arg3)), arg3after(afterDot(arg3));
 
-                    if (mem.objectExists(arg3before))
+                    if (mem.classExists(arg3before))
                     {
-                        if (mem.getObject(arg3before).hasMethod(beforeParams(arg3after)))
-                            exec.executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getClass(arg3before).hasMethod(beforeParams(arg3after)))
+                            exec.executeTemplate(mem.getClass(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
@@ -3814,7 +3805,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
+                        error(ErrorMessage::CLS_METHOD_UNDEFINED, arg3before, false);
                         mem.createIfStatement(true);
                     }
                 }
@@ -3939,9 +3930,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
         }
         else
         {
-            if (arg3 == "object?")
+            if (arg3 == "class?")
             {
-                if (mem.objectExists(arg1))
+                if (mem.classExists(arg1))
                 {
                     if (arg2 == "==")
                         mem.createIfStatement(false);
@@ -4362,7 +4353,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 mem.createIfStatement(false);
             }
         }
-        else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notObjectMethod(arg3) && !containsParams(arg3))
+        else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notClassMethod(arg3) && !containsParams(arg3))
         {
             if (mem.isNumber(arg1))
             {
@@ -4684,7 +4675,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
             }
         }
-        else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notObjectMethod(arg3) && containsParams(arg3))
+        else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notClassMethod(arg3) && containsParams(arg3))
         {
             string stackValue("");
 
@@ -5015,7 +5006,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
             }
         }
-        else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notObjectMethod(arg1) && !containsParams(arg1))
+        else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notClassMethod(arg1) && !containsParams(arg1))
         {
             if (mem.isNumber(arg3))
             {
@@ -5126,7 +5117,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
             }
         }
-        else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notObjectMethod(arg1) && containsParams(arg1))
+        else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notClassMethod(arg1) && containsParams(arg1))
         {
             string stackValue("");
 
@@ -5257,15 +5248,15 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     string arg1Result(""), arg3Result("");
 
-                    if (mem.objectExists(arg1before) && mem.objectExists(arg3before))
+                    if (mem.classExists(arg1before) && mem.classExists(arg3before))
                     {
-                        if (mem.getObject(arg1before).hasMethod(beforeParams(arg1after)))
-                            exec.executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getClass(arg1before).hasMethod(beforeParams(arg1after)))
+                            exec.executeTemplate(mem.getClass(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
-                        if (mem.getObject(arg3before).hasMethod(beforeParams(arg3after)))
-                            exec.executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getClass(arg3before).hasMethod(beforeParams(arg3after)))
+                            exec.executeTemplate(mem.getClass(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
@@ -5344,11 +5335,11 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        if (!mem.objectExists(arg1before))
-                            error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
+                        if (!mem.classExists(arg1before))
+                            error(ErrorMessage::CLS_METHOD_UNDEFINED, arg1before, false);
 
-                        if (!mem.objectExists(arg3before))
-                            error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
+                        if (!mem.classExists(arg3before))
+                            error(ErrorMessage::CLS_METHOD_UNDEFINED, arg3before, false);
 
                         mem.createIfStatement(false);
                     }
@@ -5359,10 +5350,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     string arg1Result(""), arg3Result("");
 
-                    if (mem.objectExists(arg1before))
+                    if (mem.classExists(arg1before))
                     {
-                        if (mem.getObject(arg1before).hasMethod(beforeParams(arg1after)))
-                            exec.executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getClass(arg1before).hasMethod(beforeParams(arg1after)))
+                            exec.executeTemplate(mem.getClass(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
@@ -5446,7 +5437,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
+                        error(ErrorMessage::CLS_METHOD_UNDEFINED, arg1before, false);
                         mem.createIfStatement(false);
                     }
                 }
@@ -5456,10 +5447,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     string arg1Result(""), arg3Result("");
 
-                    if (mem.objectExists(arg3before))
+                    if (mem.classExists(arg3before))
                     {
-                        if (mem.getObject(arg3before).hasMethod(beforeParams(arg3after)))
-                            exec.executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getClass(arg3before).hasMethod(beforeParams(arg3after)))
+                            exec.executeTemplate(mem.getClass(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
@@ -5543,7 +5534,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
+                        error(ErrorMessage::CLS_METHOD_UNDEFINED, arg3before, false);
                         mem.createIfStatement(false);
                     }
                 }
@@ -5864,10 +5855,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     string arg1before(beforeDot(arg1)), arg1after(afterDot(arg1));
 
-                    if (mem.objectExists(arg1before))
+                    if (mem.classExists(arg1before))
                     {
-                        if (mem.getObject(arg1before).hasMethod(beforeParams(arg1after)))
-                            exec.executeTemplate(mem.getObject(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
+                        if (mem.getClass(arg1before).hasMethod(beforeParams(arg1after)))
+                            exec.executeTemplate(mem.getClass(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
 
                         arg1Result = State.LastValue;
 
@@ -5971,7 +5962,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1before, false);
+                        error(ErrorMessage::CLS_METHOD_UNDEFINED, arg1before, false);
                         mem.createIfStatement(false);
                     }
                 }
@@ -6097,10 +6088,10 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 {
                     string arg3before(beforeDot(arg3)), arg3after(afterDot(arg3));
 
-                    if (mem.objectExists(arg3before))
+                    if (mem.classExists(arg3before))
                     {
-                        if (mem.getObject(arg3before).hasMethod(beforeParams(arg3after)))
-                            exec.executeTemplate(mem.getObject(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
+                        if (mem.getClass(arg3before).hasMethod(beforeParams(arg3after)))
+                            exec.executeTemplate(mem.getClass(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
 
                         arg3Result = State.LastValue;
 
@@ -6200,7 +6191,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     }
                     else
                     {
-                        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg3before, false);
+                        error(ErrorMessage::CLS_METHOD_UNDEFINED, arg3before, false);
                         mem.createIfStatement(false);
                     }
                 }
@@ -6325,9 +6316,9 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
         }
         else
         {
-            if (arg3 == "object?")
+            if (arg3 == "class?")
             {
-                if (mem.objectExists(arg1))
+                if (mem.classExists(arg1))
                 {
                     if (arg2 == "==")
                         mem.createIfStatement(true);
@@ -6808,22 +6799,22 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
 
                     mem.createForLoop(newList);
                 }
-                else if (mem.objectExists(before) && after == "get_methods")
+                else if (mem.classExists(before) && after == "get_methods")
                 {
                     List newList;
 
-                    vector<Method> objMethods = mem.getObject(before).getMethods();
+                    vector<Method> objMethods = mem.getClass(before).getMethods();
 
                     for (int i = 0; i < (int)objMethods.size(); i++)
                         newList.add(objMethods.at(i).name());
 
                     mem.createForLoop(newList);
                 }
-                else if (mem.objectExists(before) && after == "get_variables")
+                else if (mem.classExists(before) && after == "get_variables")
                 {
                     List newList;
 
-                    vector<Variable> objVars = mem.getObject(before).getVariables();
+                    vector<Variable> objVars = mem.getClass(before).getVariables();
 
                     for (int i = 0; i < (int)objVars.size(); i++)
                         newList.add(objVars.at(i).name());
@@ -7105,11 +7096,11 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     State.DefaultLoopSymbol = arg1;
                     mem.createForLoop(newList);
                 }
-                else if (mem.objectExists(_b) && _a == "get_methods")
+                else if (mem.classExists(_b) && _a == "get_methods")
                 {
                     List newList;
 
-                    vector<Method> objMethods = mem.getObject(_b).getMethods();
+                    vector<Method> objMethods = mem.getClass(_b).getMethods();
 
                     for (int i = 0; i < (int)objMethods.size(); i++)
                         newList.add(objMethods.at(i).name());
@@ -7117,11 +7108,11 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     State.DefaultLoopSymbol = arg1;
                     mem.createForLoop(newList);
                 }
-                else if (mem.objectExists(_b) && _a == "get_variables")
+                else if (mem.classExists(_b) && _a == "get_variables")
                 {
                     List newList;
 
-                    vector<Variable> objVars = mem.getObject(_b).getVariables();
+                    vector<Variable> objVars = mem.getClass(_b).getVariables();
 
                     for (int i = 0; i < (int)objVars.size(); i++)
                         newList.add(objVars.at(i).name());

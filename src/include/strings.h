@@ -1,9 +1,3 @@
-/**
- * 	noctis: a hybrid-typed, object-oriented, interpreted, programmable command line shell.
- *
- *		scstauf@gmail.com
- **/
-
 #ifndef STRINGS_H
 #define STRINGS_H
 
@@ -689,8 +683,8 @@ bool notStandardZeroSpace(string arg)
 {
     const char * standardZeroSpaceWords =
         "};break;caught;clear_all!;clear_constants!clear_lists!;clear_methods!;"
-        "clear_objects!;clear_variables!;else;end;exit;failif;leave!;"
-        "no_methods?;no_objects?;no_variables?;parser;pass;private;public;try";
+        "clear_classes!;clear_variables!;else;end;exit;failif;leave!;"
+        "no_methods?;no_classes?;no_variables?;parser;pass;private;public;try";
 
     return !contains(standardZeroSpaceWords, arg);
 }
@@ -703,9 +697,9 @@ bool notStandardOneSpace(string arg)
         "encrypt;err;error;file?;for;forget;fpush;fpop;"
         "garbage?;globalize;goto;if;init_dir;intial_directory;"
         "directory?;file?;list?;lowercase?;method?;"
-        "number?;object?;string?;uppercase?;variable?;"
+        "number?;class?;string?;uppercase?;variable?;"
         "list;list?;load;lock;loop;lose;"
-        "method;[method];object;out;"
+        "method;[method];class;out;"
         "print;println;prompt;remember;remove;return;"
         "save;say;see;see_string;see_number;stdout;switch;"
         "template;unlock;";

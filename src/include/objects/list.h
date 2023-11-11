@@ -1,4 +1,4 @@
-class List
+class List : public Collectable
 {
 private:
     vector<string>  contents;
@@ -20,17 +20,12 @@ public:
         clear();
     }
 
-    void collect()
+    void setCollectable(bool value) override
     {
-        collectable = true;
+        collectable = value;
     }
 
-    void dontCollect()
-    {
-        collectable = false;
-    }
-
-    bool garbage()
+    bool isCollectable() const override
     {
         return collectable;
     }

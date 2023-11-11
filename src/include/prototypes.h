@@ -1,9 +1,3 @@
-/**
- * 	noctis: a hybrid-typed, object-oriented, interpreted, programmable command line shell.
- *
- *		scstauf@gmail.com
- **/
-
 #ifndef PROTOTYPES_H
 #define PROTOTYPES_H
 
@@ -35,11 +29,11 @@ void writeline(string st);
 
 void setList(string listName, string methodName, vector<string> params);
 
-void copyObject(string arg0, string arg1, string arg2, string s, vector<string> command);
+void copyClass(string arg0, string arg1, string arg2, string s, vector<string> command);
 void initializeVariable(string arg0, string arg1, string arg2, string s, vector<string> command);
 void initializeListValues(string arg0, string arg1, string arg2, string s, vector<string> command);
 void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, vector<string> command);
-void initializeObjectVariable(string arg0, string arg1, string arg2, string s, vector<string> command);
+void initializeClassVariable(string arg0, string arg1, string arg2, string s, vector<string> command);
 void initializeConstant(string arg0, string arg1, string arg2, string s);
 
 double getBytes(string path);

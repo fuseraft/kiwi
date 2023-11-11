@@ -1,9 +1,3 @@
-/**
- * 	noctis: a hybrid-typed, object-oriented, interpreted, programmable command line shell.
- *
- *		scstauf@gmail.com
- **/
-
 #ifndef CORE_H
 #define CORE_H
 
@@ -24,9 +18,9 @@ void setList(string listName, string methodName, vector<string> params)
         for (int i = 0; i < (int)last_params.size(); i++)
             mem.getList(listName).add(last_params.at(i));
     }
-    else if (mem.objectExists(beforeDot(beforeParams(methodName))))
+    else if (mem.classExists(beforeDot(beforeParams(methodName))))
     {
-        exec.executeTemplate(mem.getObject(beforeDot(beforeParams(methodName))).getMethod(afterDot(beforeParams(methodName))), params);
+        exec.executeTemplate(mem.getClass(beforeDot(beforeParams(methodName))).getMethod(afterDot(beforeParams(methodName))), params);
 
         if (!containsParams(State.LastValue))
         {
@@ -146,11 +140,11 @@ string cleanString(string st)
                     {
                         string before(beforeDot(builder)), after(afterDot(builder));
 
-                        if (mem.objectExists(before))
+                        if (mem.classExists(before))
                         {
-                            if (mem.getObject(before).hasMethod(beforeParams(after)))
+                            if (mem.getClass(before).hasMethod(beforeParams(after)))
                             {
-                                exec.executeTemplate(mem.getObject(before).getMethod(beforeParams(after)), getParams(after));
+                                exec.executeTemplate(mem.getClass(before).getMethod(beforeParams(after)), getParams(after));
 
                                 cleaned.append(State.LastValue);
                             }
@@ -158,7 +152,7 @@ string cleanString(string st)
                                 error(ErrorMessage::METHOD_UNDEFINED, before + "." + beforeParams(after), false);
                         }
                         else
-                            error(ErrorMessage::OBJ_METHOD_UNDEFINED, before, false);
+                            error(ErrorMessage::CLS_METHOD_UNDEFINED, before, false);
                     }
                     else if (mem.methodExists(beforeParams(builder)))
                     {
@@ -327,23 +321,23 @@ string cleanString(string st)
                 {
                     string before(beforeDot(builder)), after(afterDot(builder));
 
-                    if (!mem.objectExists(before))
+                    if (!mem.classExists(before))
                     {
-                        error(ErrorMessage::OBJ_METHOD_UNDEFINED, before, false);
+                        error(ErrorMessage::CLS_METHOD_UNDEFINED, before, false);
                         return Constants.Null;
                     }
 
-                    if (mem.getObject(before).hasMethod(after))
+                    if (mem.getClass(before).hasMethod(after))
                     {
                         parse(before + "." + after);
                         cleaned.append(State.LastValue);
                     }
-                    else if (mem.getObject(before).hasVariable(after))
+                    else if (mem.getClass(before).hasVariable(after))
                     {
-                        if (mem.getObject(before).getVariable(after).getString() != State.Null)
-                            cleaned.append(mem.getObject(before).getVariable(after).getString());
-                        else if (mem.getObject(before).getVariable(after).getNumber() != State.NullNum)
-                            cleaned.append(dtos(mem.getObject(before).getVariable(after).getNumber()));
+                        if (mem.getClass(before).getVariable(after).getString() != State.Null)
+                            cleaned.append(mem.getClass(before).getVariable(after).getString());
+                        else if (mem.getClass(before).getVariable(after).getNumber() != State.NullNum)
+                            cleaned.append(dtos(mem.getClass(before).getVariable(after).getNumber()));
                         else
                             cleaned.append("null");
                     }
@@ -516,7 +510,7 @@ void startREPL(bool skip)
 
         if (s == "exit")
         {
-            if (!State.DefiningObject && !State.DefiningMethod)
+            if (!State.DefiningClass && !State.DefiningMethod)
             {
                 active = false;
                 mem.clearAll();
@@ -1492,9 +1486,9 @@ string getStringValue(string arg1, string op, string arg2)
             else
                 lastValue = "";
         }
-        else if (mem.objectExists(_beforeDot))
+        else if (mem.classExists(_beforeDot))
         {
-            exec.executeTemplate(mem.getObject(_beforeDot).getMethod(_afterDot), getParams(_afterDot));
+            exec.executeTemplate(mem.getClass(_beforeDot).getMethod(_afterDot), getParams(_afterDot));
 
             lastValue = lastValue;
         }
@@ -1625,9 +1619,9 @@ double getNumberValue(string arg1, string op, string arg2)
             else
                 lastValue = 0;
         }
-        else if (mem.objectExists(_beforeDot))
+        else if (mem.classExists(_beforeDot))
         {
-            exec.executeTemplate(mem.getObject(_beforeDot).getMethod(_afterDot), getParams(_afterDot));
+            exec.executeTemplate(mem.getClass(_beforeDot).getMethod(_afterDot), getParams(_afterDot));
 
             if (isNumeric(State.LastValue))
                 lastValue = stod(State.LastValue);
@@ -1714,37 +1708,37 @@ double getNumberValue(string arg1, string op, string arg2)
 void initializeVariable(string arg0, string arg1, string arg2, string s, vector<string> command)
 {
     string tmpObjName = beforeDot(arg0), tmpVarName = afterDot(arg0);
-    bool tmpObjExists = mem.objectExists(tmpObjName);
+    bool tmpObjExists = mem.classExists(tmpObjName);
     if (tmpObjExists || startsWith(arg0, "@"))
     {
         if (tmpObjExists)
         {
-            if (mem.getObject(tmpObjName).getVariable(tmpVarName).getString() != State.Null)
+            if (mem.getClass(tmpObjName).getVariable(tmpVarName).getString() != State.Null)
             {
-                string tempObjectVariableName("@ " + tmpObjName + tmpVarName + "_string");
+                string tempClassVariableName("@ " + tmpObjName + tmpVarName + "_string");
 
-                mem.createVariable(tempObjectVariableName, mem.getObject(tmpObjName).getVariable(tmpVarName).getString());
+                mem.createVariable(tempClassVariableName, mem.getClass(tmpObjName).getVariable(tmpVarName).getString());
 
-                twoSpace(tempObjectVariableName, arg1, arg2, "", command);
+                twoSpace(tempClassVariableName, arg1, arg2, "", command);
 
-                mem.getVar(tempObjectVariableName).setName(tmpVarName);
+                mem.getVar(tempClassVariableName).setName(tmpVarName);
 
-                mem.getObject(tmpObjName).removeVariable(tmpVarName);
-                mem.getObject(tmpObjName).addVariable(mem.getVar(tmpVarName));
+                mem.getClass(tmpObjName).removeVariable(tmpVarName);
+                mem.getClass(tmpObjName).addVariable(mem.getVar(tmpVarName));
                 mem.removeVariable(tmpVarName);
             }
-            else if (mem.getObject(tmpObjName).getVariable(tmpVarName).getNumber() != State.NullNum)
+            else if (mem.getClass(tmpObjName).getVariable(tmpVarName).getNumber() != State.NullNum)
             {
-                string tempObjectVariableName("@____" + beforeDot(arg0) + "___" + afterDot(arg0) + "_number");
+                string tempClassVariableName("@____" + beforeDot(arg0) + "___" + afterDot(arg0) + "_number");
 
-                mem.createVariable(tempObjectVariableName, mem.getObject(beforeDot(arg0)).getVariable(afterDot(arg0)).getNumber());
+                mem.createVariable(tempClassVariableName, mem.getClass(beforeDot(arg0)).getVariable(afterDot(arg0)).getNumber());
 
-                twoSpace(tempObjectVariableName, arg1, arg2, tempObjectVariableName + " " + arg1 + " " + arg2, command);
+                twoSpace(tempClassVariableName, arg1, arg2, tempClassVariableName + " " + arg1 + " " + arg2, command);
 
-                mem.getVar(tempObjectVariableName).setName(afterDot(arg0));
+                mem.getVar(tempClassVariableName).setName(afterDot(arg0));
 
-                mem.getObject(beforeDot(arg0)).removeVariable(afterDot(arg0));
-                mem.getObject(beforeDot(arg0)).addVariable(mem.getVar(afterDot(arg0)));
+                mem.getClass(beforeDot(arg0)).removeVariable(afterDot(arg0));
+                mem.getClass(beforeDot(arg0)).addVariable(mem.getVar(afterDot(arg0)));
                 mem.removeVariable(afterDot(arg0));
             }
         }
@@ -1919,23 +1913,23 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 }
                 else if (before == "self")
                 {
-                    if (mem.objectExists(State.CurrentMethodObject))
-                        twoSpace(arg0, arg1, (State.CurrentMethodObject + "." + after), (arg0 + " " + arg1 + " " + (State.CurrentMethodObject + "." + after)), command);
+                    if (mem.classExists(State.CurrentMethodClass))
+                        twoSpace(arg0, arg1, (State.CurrentMethodClass + "." + after), (arg0 + " " + arg1 + " " + (State.CurrentMethodClass + "." + after)), command);
                     else
                         twoSpace(arg0, arg1, after, (arg0 + " " + arg1 + " " + after), command);
                 }
-                else if (mem.objectExists(before))
+                else if (mem.classExists(before))
                 {
-                    if (mem.getObject(before).hasVariable(after))
+                    if (mem.getClass(before).hasVariable(after))
                     {
-                        if (mem.getObject(before).getVariable(after).getString() != State.Null)
-                            mem.setVariable(arg0, mem.getObject(before).getVariable(after).getString());
-                        else if (mem.getObject(before).getVariable(after).getNumber() != State.NullNum)
-                            mem.setVariable(arg0, mem.getObject(before).getVariable(after).getNumber());
+                        if (mem.getClass(before).getVariable(after).getString() != State.Null)
+                            mem.setVariable(arg0, mem.getClass(before).getVariable(after).getString());
+                        else if (mem.getClass(before).getVariable(after).getNumber() != State.NullNum)
+                            mem.setVariable(arg0, mem.getClass(before).getVariable(after).getNumber());
                         else
                             error(ErrorMessage::IS_NULL, arg2, false);
                     }
-                    else if (mem.getObject(before).hasMethod(after) && !containsParams(after))
+                    else if (mem.getClass(before).hasMethod(after) && !containsParams(after))
                     {
                         parse(arg2);
 
@@ -1946,9 +1940,9 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     }
                     else if (containsParams(after))
                     {
-                        if (mem.getObject(before).hasMethod(beforeParams(after)))
+                        if (mem.getClass(before).hasMethod(beforeParams(after)))
                         {
-                            exec.executeTemplate(mem.getObject(before).getMethod(beforeParams(after)), getParams(after));
+                            exec.executeTemplate(mem.getClass(before).getMethod(beforeParams(after)), getParams(after));
 
                             if (isNumeric(State.LastValue))
                             {
@@ -2851,7 +2845,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             else
                                 error(ErrorMessage::IS_NULL, arg0, false);
                         }
-                        else if (mem.objectExists(beforeDot(arg2)))
+                        else if (mem.classExists(beforeDot(arg2)))
                         {
                             exec.executeTemplate(mem.getMethod(beforeParams(arg2)), getParams(arg2));
 
@@ -2966,7 +2960,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             else
                                 error(ErrorMessage::IS_NULL, arg0, false);
                         }
-                        else if (mem.objectExists(beforeDot(arg2)))
+                        else if (mem.classExists(beforeDot(arg2)))
                         {
                             exec.executeTemplate(mem.getMethod(beforeParams(arg2)), getParams(arg2));
 
@@ -3063,7 +3057,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             else
                                 error(ErrorMessage::NULL_NUMBER, arg0, false);
                         }
-                        else if (mem.objectExists(beforeDot(arg2)))
+                        else if (mem.classExists(beforeDot(arg2)))
                         {
                             exec.executeTemplate(mem.getMethod(beforeParams(arg2)), getParams(arg2));
 
@@ -3171,7 +3165,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             else
                                 error(ErrorMessage::NULL_NUMBER, arg0, false);
                         }
-                        else if (mem.objectExists(beforeDot(arg2)))
+                        else if (mem.classExists(beforeDot(arg2)))
                         {
                             exec.executeTemplate(mem.getMethod(beforeParams(arg2)), getParams(arg2));
 
@@ -3243,7 +3237,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             else
                                 error(ErrorMessage::NULL_NUMBER, arg0, false);
                         }
-                        else if (mem.objectExists(beforeDot(arg2)))
+                        else if (mem.classExists(beforeDot(arg2)))
                         {
                             exec.executeTemplate(mem.getMethod(beforeParams(arg2)), getParams(arg2));
 
@@ -3721,8 +3715,8 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, v
             mem.createVariable(arg0, stod(itos(mem.getList(before).size())));
         else if (before == "self")
         {
-            if (mem.objectExists(State.CurrentMethodObject))
-                twoSpace(arg0, arg1, (State.CurrentMethodObject + "." + after), (arg0 + " " + arg1 + " " + (State.CurrentMethodObject + "." + after)), command);
+            if (mem.classExists(State.CurrentMethodClass))
+                twoSpace(arg0, arg1, (State.CurrentMethodClass + "." + after), (arg0 + " " + arg1 + " " + (State.CurrentMethodClass + "." + after)), command);
             else
                 twoSpace(arg0, arg1, after, (arg0 + " " + arg1 + " " + after), command);
         }
@@ -3788,9 +3782,9 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, v
             else
                 error(ErrorMessage::IS_NULL, before, false);
         }
-        else if (mem.objectExists(before))
+        else if (mem.classExists(before))
         {
-            if (mem.getObject(before).hasMethod(after) && !containsParams(after))
+            if (mem.getClass(before).hasMethod(after) && !containsParams(after))
             {
                 parse(arg2);
 
@@ -3801,27 +3795,27 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, v
             }
             else if (containsParams(after))
             {
-                if (!mem.getObject(before).hasMethod(beforeParams(after)))
+                if (!mem.getClass(before).hasMethod(beforeParams(after)))
                 {
                     Env::sysExec(s, command);
                     return;
                 }
 
-                exec.executeTemplate(mem.getObject(before).getMethod(beforeParams(after)), getParams(after));
+                exec.executeTemplate(mem.getClass(before).getMethod(beforeParams(after)), getParams(after));
 
                 if (isNumeric(State.LastValue))
                     mem.createVariable(arg0, stod(State.LastValue));
                 else
                     mem.createVariable(arg0, State.LastValue);
             }
-            else if (mem.getObject(before).hasVariable(after))
+            else if (mem.getClass(before).hasVariable(after))
             {
-                if (mem.getObject(before).getVariable(after).getString() != State.Null)
-                    mem.createVariable(arg0, mem.getObject(before).getVariable(after).getString());
-                else if (mem.getObject(before).getVariable(after).getNumber() != State.NullNum)
-                    mem.createVariable(arg0, mem.getObject(before).getVariable(after).getNumber());
+                if (mem.getClass(before).getVariable(after).getString() != State.Null)
+                    mem.createVariable(arg0, mem.getClass(before).getVariable(after).getString());
+                else if (mem.getClass(before).getVariable(after).getNumber() != State.NullNum)
+                    mem.createVariable(arg0, mem.getClass(before).getVariable(after).getNumber());
                 else
-                    error(ErrorMessage::IS_NULL, mem.getObject(before).getVariable(after).name(), false);
+                    error(ErrorMessage::IS_NULL, mem.getClass(before).getVariable(after).name(), false);
             }
         }
         else if (mem.variableExists(before) && after == "read")
@@ -3858,7 +3852,7 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, v
             mem.createVariable(arg0, bigString);
 
         }
-        else if (State.DefiningObject)
+        else if (State.DefiningClass)
         {
             if (isNumeric(arg2))
             {
@@ -3869,7 +3863,7 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, v
                 else if (State.DefiningPublicCode)
                     newVariable.setPublic();
 
-                mem.getObject(State.CurrentObject).addVariable(newVariable);
+                mem.getClass(State.CurrentClass).addVariable(newVariable);
             }
             else
             {
@@ -3880,7 +3874,7 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, v
                 else if (State.DefiningPublicCode)
                     newVariable.setPublic();
 
-                mem.getObject(State.CurrentObject).addVariable(newVariable);
+                mem.getClass(State.CurrentClass).addVariable(newVariable);
             }
         }
         else if (arg2 == "null")
@@ -4441,51 +4435,48 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, v
         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
 }
 
-void initializeObjectVariable(string arg0, string arg1, string arg2, string s, vector<string> command)
+void initializeClassVariable(string arg0, string arg1, string arg2, string s, vector<string> command)
 {
     string before = beforeDot(arg2),
            after = afterDot(arg2);
 
-    if (mem.objectExists(before))
+    if (mem.classExists(before))
     {
         if (arg1 == "=")
         {
-            if (mem.getObject(before).getVariable(after).getString() != State.Null)
-                mem.createVariable(arg0, mem.getObject(before).getVariable(after).getString());
-            else if (mem.getObject(before).getVariable(after).getNumber() != State.NullNum)
-                mem.createVariable(arg0, mem.getObject(before).getVariable(after).getNumber());
+            if (mem.getClass(before).getVariable(after).getString() != State.Null)
+                mem.createVariable(arg0, mem.getClass(before).getVariable(after).getString());
+            else if (mem.getClass(before).getVariable(after).getNumber() != State.NullNum)
+                mem.createVariable(arg0, mem.getClass(before).getVariable(after).getNumber());
         }
     }
 }
 
-void copyObject(string arg0, string arg1, string arg2, string s, vector<string> command)
+void copyClass(string arg0, string arg1, string arg2, string s, vector<string> command)
 {
     if (arg1 == "=")
     {
-        vector<Method> objectMethods = mem.getObject(arg2).getMethods();
-        Object newObject(arg0);
+        vector<Method> classMethods = mem.getClass(arg2).getMethods();
+        Class newClass(arg0);
 
-        for (int i = 0; i < (int)objectMethods.size(); i++)
-            newObject.addMethod(objectMethods.at(i));
+        for (int i = 0; i < (int)classMethods.size(); i++)
+            newClass.addMethod(classMethods.at(i));
 
 
-        vector<Variable> objectVariables = mem.getObject(arg2).getVariables();
+        vector<Variable> classVariables = mem.getClass(arg2).getVariables();
 
-        for (int i = 0; i < (int)objectVariables.size(); i++)
-            newObject.addVariable(objectVariables.at(i));
+        for (int i = 0; i < (int)classVariables.size(); i++)
+            newClass.addVariable(classVariables.at(i));
 
-        if (State.ExecutedMethod)
-            newObject.collect();
-        else
-            newObject.dontCollect();
+        newClass.setCollectable(State.ExecutedMethod);
 
-        mem.addObject(newObject);
+        mem.addClass(newClass);
 
-        State.CurrentObject = arg1;
-        State.DefiningObject = false;
+        State.CurrentClass = arg1;
+        State.DefiningClass = false;
 
-        newObject.clear();
-        objectMethods.clear();
+        newClass.clear();
+        classMethods.clear();
     }
     else
         error(ErrorMessage::INVALID_OPERATOR, arg1, false);
@@ -4679,10 +4670,10 @@ void InternalOutput(string arg0, string arg1)
         // set the value
         if (!zeroDots(arg1))
         {
-            if (mem.getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getString() != State.Null)
-                text = (mem.getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getString());
-            else if (mem.getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber() != State.NullNum)
-                text = (dtos(mem.getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber()));
+            if (mem.getClass(beforeDot(arg1)).getVariable(afterDot(arg1)).getString() != State.Null)
+                text = (mem.getClass(beforeDot(arg1)).getVariable(afterDot(arg1)).getString());
+            else if (mem.getClass(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber() != State.NullNum)
+                text = (dtos(mem.getClass(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber()));
             else
             {
                 error(ErrorMessage::IS_NULL, arg1, false);
@@ -4740,11 +4731,11 @@ bool InternalReturn(string arg0, string arg1, string before, string after)
         }
         else if (!zeroDots(arg1))
         {
-            if (mem.objectExists(before))
+            if (mem.classExists(before))
             {
-                if (mem.getObject(before).hasMethod(beforeParams(after)))
+                if (mem.getClass(before).hasMethod(beforeParams(after)))
                 {
-                    exec.executeTemplate(mem.getObject(before).getMethod(beforeParams(after)), getParams(arg1));
+                    exec.executeTemplate(mem.getClass(before).getMethod(beforeParams(after)), getParams(arg1));
                     parse("return " + State.LastValue);
                 }
                 else
@@ -4770,12 +4761,12 @@ bool InternalReturn(string arg0, string arg1, string before, string after)
     }
     else if (mem.variableExists(arg1))
     {
-        if (mem.objectExists(beforeDot(arg1)))
+        if (mem.classExists(beforeDot(arg1)))
         {
-            if (mem.getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getString() != State.Null)
-                State.LastValue = mem.getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getString();
-            else if (mem.getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber() != State.NullNum)
-                State.LastValue = dtos(mem.getObject(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber());
+            if (mem.getClass(beforeDot(arg1)).getVariable(afterDot(arg1)).getString() != State.Null)
+                State.LastValue = mem.getClass(beforeDot(arg1)).getVariable(afterDot(arg1)).getString();
+            else if (mem.getClass(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber() != State.NullNum)
+                State.LastValue = dtos(mem.getClass(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber());
             else
                 State.LastValue = "null";
         }
@@ -4788,7 +4779,7 @@ bool InternalReturn(string arg0, string arg1, string before, string after)
             else
                 State.LastValue = "null";
 
-            if (mem.getVar(arg1).garbage())
+            if (mem.getVar(arg1).isCollectable())
                 mem.removeVariable(arg1);
         }
     }
@@ -4808,7 +4799,7 @@ bool InternalReturn(string arg0, string arg1, string before, string after)
 
         State.LastValue = bigString;
 
-        if (mem.getList(arg1).garbage())
+        if (mem.getList(arg1).isCollectable())
             mem.removeList(arg1);
     }
     else
@@ -4896,7 +4887,7 @@ string getSilentOutput(string text)
 void setup()
 {
     State.BadMethodCount = 0,
-    State.BadObjectCount = 0,
+    State.BadClassCount = 0,
     State.BadVarCount = 0,
     State.CurrentLineNumber = 0,
     State.IfStatementCount = 0,
@@ -4928,8 +4919,8 @@ void setup()
     State.Negligence = false,
     State.FailedNest = false,
     State.DefiningNest = false,
-    State.DefiningObject = false,
-    State.DefiningObjectMethod = false,
+    State.DefiningClass = false,
+    State.DefiningClassMethod = false,
     State.DefiningParameterizedMethod = false,
     State.Returning = false,
     State.SkipCatchBlock = false,
@@ -4938,8 +4929,8 @@ void setup()
     State.DefiningLocalWhileLoop = false,
     State.DefiningLocalForLoop = false;
 
-    State.CurrentObject = "",
-    State.CurrentMethodObject = "",
+    State.CurrentClass = "",
+    State.CurrentMethodClass = "",
     State.CurrentModule = "",
     State.CurrentScript = "",
     State.ErrorVarName = "",
