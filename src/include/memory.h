@@ -4,7 +4,7 @@
 class Memory {
     private:
     vector<Method> methods;
-    vector<Object> objects;
+    vector<Class> classes;
     vector<Variable> variables;
     vector<List> lists;
     vector<Constant> constants;
@@ -27,7 +27,7 @@ class Memory {
     void clearIf();
     void clearLists();
     void clearMethods();
-    void clearObjects();
+    void clearClasses();
     void clearVariables();
     void clearWhile();
     void collectGarbage();
@@ -38,7 +38,7 @@ class Memory {
     int indexOfList(string s);
     int indexOfMethod(string s);
     int indexOfModule(string s);
-    int indexOfObject(string s);
+    int indexOfClass(string s);
     int indexOfScript(string s);
     int indexOfVariable(string s);
     
@@ -49,8 +49,8 @@ class Memory {
     Method getMethod(int index);
     Method getMethod(string s);
     Module getModule(string s);
-    Object getObject(int index);
-    Object getObject(string s);
+    Class getClass(int index);
+    Class getClass(string s);
     Script getScript();
     Variable getVar(int index);
     Variable getVar(string s);
@@ -77,15 +77,15 @@ class Memory {
     bool isString(string s);
     bool isString(Variable var);
 
-    bool notObjectMethod(string s);
+    bool notClassMethod(string s);
     bool noVariables();
-    bool noObjects();
+    bool noClasses();
     bool noMethods();
     bool noLists();
     bool constantExists(string s);
     bool moduleExists(string s);
     bool variableExists(string s);
-    bool objectExists(string s);
+    bool classExists(string s);
     bool methodExists(string s);
     bool listExists(string s);
 
@@ -96,7 +96,7 @@ class Memory {
     void removeList(string s);
     void removeMethod(string s);
     void removeModule(string s);
-    void removeObject(string s);
+    void removeClass(string s);
     void removeVariable(string s);
 
     string varNumberString(string s);
@@ -105,7 +105,7 @@ class Memory {
 
     int getMethodCount();
     int getVariableCount();
-    int getObjectCount();
+    int getClassCount();
     int getListCount();
     int getConstantCount();
 
@@ -113,7 +113,7 @@ class Memory {
     void addList(List l);
     void addMethod(Method m);
     void addModule(Module m);
-    void addObject(Object o);
+    void addClass(Class c);
     void addVariable(Variable v);
 
     void addIfStatement(Method ifStatement);
@@ -132,12 +132,7 @@ class Memory {
 
     void createIfStatement(bool value);
     void createModule(string s);
-    void createObject(string objectName);
-
-    void forget(string variableName);
-    void remember(string variableName);
-    void loadSavedVars(Crypt c);
-    void saveVariable(string variable);
+    void createClass(string className);
 };
 
 Memory::Memory() {}
@@ -147,7 +142,7 @@ void Memory::addConstant(Constant c) { constants.push_back(c); }
 void Memory::addList(List l) { lists.push_back(l); }
 void Memory::addMethod(Method m) { methods.push_back(m); }
 void Memory::addModule(Module m) { modules.push_back(m); }
-void Memory::addObject(Object o) { objects.push_back(o); }
+void Memory::addClass(Class c) { classes.push_back(c); }
 void Memory::addVariable(Variable v) { variables.push_back(v); }
 
 void Memory::addIfStatement(Method ifStatement) { ifStatements.push_back(ifStatement); }
@@ -155,14 +150,14 @@ int Memory::getIfStatementCount() { return ifStatements.size(); }
 
 int Memory::getMethodCount() { return methods.size(); }
 int Memory::getVariableCount() { return variables.size(); }
-int Memory::getObjectCount() { return objects.size(); }
+int Memory::getClassCount() { return classes.size(); }
 int Memory::getListCount() { return lists.size(); }
 int Memory::getConstantCount() { return constants.size(); }
 int Memory::getForLoopCount() { return forLoops.size(); }
 
 Method Memory::getMethod(int index) { return methods.at(index); }
 Variable Memory::getVar(int index) { return variables.at(index); }
-Object Memory::getObject(int index) { return objects.at(index); }
+Class Memory::getClass(int index) { return classes.at(index); }
 List Memory::getList(int index) { return lists.at(index); }
 Constant Memory::getConstant(int index) { return constants.at(index); }
 
@@ -176,217 +171,20 @@ int Memory::getArgCount() { return args.size(); }
 string Memory::getArg(int index) { return args.at(index); }
 void Memory::addArg(string arg) { args.push_back(arg); }
 
-void Memory::remember(string variableName)
+void Memory::createClass(string className)
 {
-    if (!variableExists(variableName))
+    if (classExists(className))
     {
-        error(ErrorMessage::TARGET_UNDEFINED, variableName, false);
-        return;
-    }
-
-    if (isString(variableName))
-        saveVariable(variableName + "&" + varString(variableName));
-    else if (isNumber(variableName))
-        saveVariable(variableName + "&" + dtos(varNumber(variableName)));
-    else
-        error(ErrorMessage::IS_NULL, variableName, false);
-}
-
-void Memory::forget(string variableName)
-{
-    if (Env::fileExists(State.SavedVars))
-    {
-        string line(""), bigStr("");
-        ifstream file(State.SavedVars.c_str());
-        // REFACTOR HERE
-        Crypt c;
-
-        if (file.is_open())
-        {
-            while (!file.eof())
-            {
-                getline(file, line);
-                bigStr.append(line);
-            }
-
-            file.close();
-
-            int bigStrLength = bigStr.length();
-            bool stop = false;
-            string varName("");
-            bigStr = c.d(bigStr);
-
-            vector<string> varNames;
-            vector<string> varValues;
-
-            varNames.push_back("");
-            varValues.push_back("");
-
-            for (int i = 0; i < bigStrLength; i++)
-            {
-                switch (bigStr[i])
-                {
-                case '&':
-                    stop = true;
-                    break;
-
-                case '#':
-                    stop = false;
-                    varNames.push_back("");
-                    varValues.push_back("");
-                    break;
-
-                default:
-                    if (!stop)
-                        varNames.at((int)varNames.size() - 1).push_back(bigStr[i]);
-                    else
-                        varValues.at((int)varValues.size() - 1).push_back(bigStr[i]);
-                    break;
-                }
-            }
-
-            string new_saved("");
-
-            for (int i = 0; i < (int)varNames.size(); i++)
-            {
-                if (varNames.at(i) != variableName)
-                {
-                    Variable newVariable(varNames.at(i), varValues.at(i));
-                    addVariable(newVariable);
-
-                    if (i != (int)varNames.size() - 1)
-                        new_saved.append(varNames.at(i) + "&" + varValues.at(i) + "#");
-                    else
-                        new_saved.append(varNames.at(i) + "&" + varValues.at(i));
-                }
-            }
-
-            varNames.clear();
-            varValues.clear();
-
-            Env::rm(State.SavedVars);
-            Env::createFile(State.SavedVars);
-            Env::app(State.SavedVars, c.e(new_saved));
-        }
-    }
-}
-
-void Memory::saveVariable(string variableName)
-{
-    Crypt c;
-
-    if (!Env::fileExists(State.SavedVars))
-    {
-        if (!Env::directoryExists(State.SavedVarsPath))
-            Env::md(State.SavedVarsPath);
-
-        Env::createFile(State.SavedVars);
-        Env::app(State.SavedVars, c.e(variableName));
+        State.DefiningClass = true;
+        State.CurrentClass = className;
     }
     else
     {
-        string line, bigStr("");
-        ifstream file(State.SavedVars.c_str());
-
-        if (file.is_open())
-        {
-            int i = 0;
-
-            while (!file.eof())
-            {
-                i++;
-                getline(file, line);
-                bigStr.append(line);
-            }
-
-            bigStr = c.d(bigStr);
-            Env::rm(State.SavedVars);
-            Env::createFile(State.SavedVars);
-            Env::app(State.SavedVars, c.e(bigStr + "#" + variableName));
-            file.close();
-        }
-        else
-            error(ErrorMessage::READ_FAIL, State.SavedVars, false);
-    }
-}
-
-void Memory::loadSavedVars(Crypt c)
-{
-    string bigStr("");
-    string line("");
-    ifstream file(State.SavedVars.c_str());
-
-    if (!file.is_open())
-    {
-        error(ErrorMessage::READ_FAIL, State.SavedVars, false);
-        return;
-    }
-    while (!file.eof())
-    {
-        getline(file, line);
-        bigStr.append(line);
-    }
-
-    file.close();
-
-    bigStr = c.d(bigStr);
-
-    int bigStrLength = bigStr.length();
-    bool stop = false;
-    vector<string> varNames;
-    vector<string> varValues;
-
-    string varName("");
-    varNames.push_back("");
-    varValues.push_back("");
-
-    for (int i = 0; i < bigStrLength; i++)
-    {
-        switch (bigStr[i])
-        {
-        case '&':
-            stop = true;
-            break;
-
-        case '#':
-            stop = false;
-            varNames.push_back("");
-            varValues.push_back("");
-            break;
-
-        default:
-            if (!stop)
-                varNames.at((int)varNames.size() - 1).push_back(bigStr[i]);
-            else
-                varValues.at((int)varValues.size() - 1).push_back(bigStr[i]);
-            break;
-        }
-    }
-
-    for (int i = 0; i < (int)varNames.size(); i++)
-    {
-        Variable newVariable(varNames.at(i), varValues.at(i));
-        addVariable(newVariable);
-    }
-
-    varNames.clear();
-    varValues.clear();
-}
-
-void Memory::createObject(string objectName)
-{
-    if (objectExists(objectName))
-    {
-        State.DefiningObject = true;
-        State.CurrentObject = objectName;
-    }
-    else
-    {
-        Object object(objectName);
-        State.CurrentObject = objectName;
-        object.dontCollect();
-        addObject(object);
-        State.DefiningObject = true;
+        Class newClass(className);
+        State.CurrentClass = className;
+        newClass.setCollectable(false);
+        addClass(newClass);
+        State.DefiningClass = true;
     }
 }
 
@@ -449,9 +247,9 @@ void Memory::createMethod(string arg0, string arg1)
 {
     bool indestructable = arg0 == "[method]";
 
-    if (State.DefiningObject)
+    if (State.DefiningClass)
     {
-        if (getObject(State.CurrentObject).hasMethod(arg1))
+        if (getClass(State.CurrentClass).hasMethod(arg1))
         {
             error(ErrorMessage::METHOD_DEFINED, arg1, false);
             return;
@@ -466,11 +264,11 @@ void Memory::createMethod(string arg0, string arg1)
             else if (State.DefiningPrivateCode)
                 method.setPrivate();
 
-            method.setObject(State.CurrentObject);
-            getObject(State.CurrentObject).addMethod(method);
-            getObject(State.CurrentObject).setCurrentMethod(arg1);
+            method.setClass(State.CurrentClass);
+            getClass(State.CurrentClass).addMethod(method);
+            getClass(State.CurrentClass).setCurrentMethod(arg1);
             State.DefiningMethod = true;
-            State.DefiningObjectMethod = true;
+            State.DefiningClassMethod = true;
             return;
         }
 
@@ -483,7 +281,7 @@ void Memory::createMethod(string arg0, string arg1)
         else if (State.DefiningPrivateCode)
             method.setPrivate();
 
-        method.setObject(State.CurrentObject);
+        method.setClass(State.CurrentClass);
 
         for (int i = 0; i < (int)params.size(); i++)
         {
@@ -502,22 +300,22 @@ void Memory::createMethod(string arg0, string arg1)
 
                 string before(beforeDot(params.at(i))), after(afterDot(params.at(i)));
 
-                if (!objectExists(before))
+                if (!classExists(before))
                 {
-                    error(ErrorMessage::OBJ_METHOD_UNDEFINED, before, false);
+                    error(ErrorMessage::CLS_METHOD_UNDEFINED, before, false);
                     return;
                 }
 
-                if (!getObject(before).hasVariable(after))
+                if (!getClass(before).hasVariable(after))
                 {
-                    error(ErrorMessage::OBJ_VAR_UNDEFINED, after, false);
+                    error(ErrorMessage::CLS_VAR_UNDEFINED, after, false);
                     return;
                 }
 
-                if (getObject(before).getVariable(after).getString() != State.Null)
-                    method.addMethodVariable(getObject(before).getVariable(after).getString(), after);
-                else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
-                    method.addMethodVariable(getObject(before).getVariable(after).getNumber(), after);
+                if (getClass(before).getVariable(after).getString() != State.Null)
+                    method.addMethodVariable(getClass(before).getVariable(after).getString(), after);
+                else if (getClass(before).getVariable(after).getNumber() != State.NullNum)
+                    method.addMethodVariable(getClass(before).getVariable(after).getNumber(), after);
                 else
                     error(ErrorMessage::IS_NULL, params.at(i), false);
             }
@@ -538,11 +336,11 @@ void Memory::createMethod(string arg0, string arg1)
             }
         }
 
-        getObject(State.CurrentObject).addMethod(method);
-        getObject(State.CurrentObject).setCurrentMethod(beforeParams(arg1));
+        getClass(State.CurrentClass).addMethod(method);
+        getClass(State.CurrentClass).setCurrentMethod(beforeParams(arg1));
         State.DefiningMethod = true;
         State.DefiningParameterizedMethod = true;
-        State.DefiningObjectMethod = true;
+        State.DefiningClassMethod = true;
     }
     else
     {
@@ -554,7 +352,7 @@ void Memory::createMethod(string arg0, string arg1)
             {
                 string before(beforeDot(arg1)), after(afterDot(arg1));
 
-                if (objectExists(before))
+                if (classExists(before))
                 {
                     Method method(after);
 
@@ -563,14 +361,14 @@ void Memory::createMethod(string arg0, string arg1)
                     else if (State.DefiningPrivateCode)
                         method.setPrivate();
 
-                    method.setObject(before);
-                    getObject(before).addMethod(method);
-                    getObject(before).setCurrentMethod(after);
+                    method.setClass(before);
+                    getClass(before).addMethod(method);
+                    getClass(before).setCurrentMethod(after);
                     State.DefiningMethod = true;
-                    State.DefiningObjectMethod = true;
+                    State.DefiningClassMethod = true;
                 }
                 else
-                    error(ErrorMessage::OBJ_UNDEFINED, "", false);
+                    error(ErrorMessage::CLS_UNDEFINED, "", false);
             }
             else if (containsParams(arg1))
             {
@@ -589,22 +387,22 @@ void Memory::createMethod(string arg0, string arg1)
                         {
                             string before(beforeDot(params.at(i))), after(afterDot(params.at(i)));
 
-                            if (objectExists(before))
+                            if (classExists(before))
                             {
-                                if (getObject(before).hasVariable(after))
+                                if (getClass(before).hasVariable(after))
                                 {
-                                    if (getObject(before).getVariable(after).getString() != State.Null)
-                                        method.addMethodVariable(getObject(before).getVariable(after).getString(), after);
-                                    else if (getObject(before).getVariable(after).getNumber() != State.NullNum)
-                                        method.addMethodVariable(getObject(before).getVariable(after).getNumber(), after);
+                                    if (getClass(before).getVariable(after).getString() != State.Null)
+                                        method.addMethodVariable(getClass(before).getVariable(after).getString(), after);
+                                    else if (getClass(before).getVariable(after).getNumber() != State.NullNum)
+                                        method.addMethodVariable(getClass(before).getVariable(after).getNumber(), after);
                                     else
                                         error(ErrorMessage::IS_NULL, params.at(i), false);
                                 }
                                 else
-                                    error(ErrorMessage::OBJ_VAR_UNDEFINED, after, false);
+                                    error(ErrorMessage::CLS_VAR_UNDEFINED, after, false);
                             }
                             else
-                                error(ErrorMessage::OBJ_METHOD_UNDEFINED, before, false);
+                                error(ErrorMessage::CLS_METHOD_UNDEFINED, before, false);
                         }
                         else
                         {
@@ -806,11 +604,11 @@ int Memory::indexOfModule(string s)
     return -1;
 }
 
-int Memory::indexOfObject(string s)
+int Memory::indexOfClass(string s)
 {
-    for (unsigned i = 0; i < objects.size(); ++i)
+    for (unsigned i = 0; i < classes.size(); ++i)
     {
-        if (objects.at(i).name() == s)
+        if (classes.at(i).name() == s)
             return i;
     }
 
@@ -843,7 +641,7 @@ Constant Memory::getConstant(string s) { return constants.at(indexOfConstant(s))
 List Memory::getList(string s) { return lists.at(indexOfList(s)); }
 Method Memory::getMethod(string s) { return methods.at(indexOfMethod(s)); }
 Module Memory::getModule(string s) { return modules.at(indexOfModule(s)); }
-Object Memory::getObject(string s) { return objects.at(indexOfObject(s)); }
+Class Memory::getClass(string s) { return classes.at(indexOfClass(s)); }
 Script Memory::getScript() { return scripts.at(0); }
 Variable Memory::getVar(string s) { return variables.at(indexOfVariable(s)); }
 
@@ -851,7 +649,7 @@ void Memory::removeConstant(string s) { constants.erase(constants.begin() + inde
 void Memory::removeList(string s) { lists.erase(lists.begin() + indexOfList(s)); }
 void Memory::removeMethod(string s) { methods.erase(methods.begin() + indexOfMethod(s)); }
 void Memory::removeModule(string s) { modules.erase(modules.begin() + indexOfModule(s)); }
-void Memory::removeObject(string s) { objects.erase(objects.begin() + indexOfObject(s)); }
+void Memory::removeClass(string s) { classes.erase(classes.begin() + indexOfClass(s)); }
 void Memory::removeVariable(string s) { variables.erase(variables.begin() + indexOfVariable(s)); }
 
 string Memory::varString(string s) { return getVar(s).getString(); }
@@ -942,12 +740,12 @@ void Memory::redefine(string target, string name)
         else
             error(ErrorMessage::LIST_UNDEFINED, name, false);
     }
-    else if (objectExists(target))
+    else if (classExists(target))
     {
-        if (!objectExists(name))
-            getObject(target).setName(name);
+        if (!classExists(name))
+            getClass(target).setName(name);
         else
-            error(ErrorMessage::OBJ_METHOD_UNDEFINED, name, false);
+            error(ErrorMessage::CLS_METHOD_UNDEFINED, name, false);
     }
     else if (methodExists(target))
     {
@@ -966,13 +764,13 @@ void Memory::globalize(string arg1)
 {
     if (!(contains(arg1, ".") && methodExists(arg1) && !methodExists(afterDot(arg1))))
     {
-        error(ErrorMessage::OBJ_METHOD_UNDEFINED, arg1, false);
+        error(ErrorMessage::CLS_METHOD_UNDEFINED, arg1, false);
         return;
     }
 
     Method method(afterDot(arg1));
 
-    vector<string> lines = getObject(beforeDot(arg1)).getMethod(afterDot(arg1)).getLines();
+    vector<string> lines = getClass(beforeDot(arg1)).getMethod(afterDot(arg1)).getLines();
 
     for (int i = 0; i < (int)lines.size(); i++)
         method.add(lines[i]);
@@ -1027,10 +825,7 @@ void Memory::createVariable(string name, string value)
 {
     Variable newVariable(name, value);
 
-    if (State.ExecutedTemplate || State.ExecutedMethod || State.ExecutedTryBlock)
-        newVariable.collect();
-    else
-        newVariable.dontCollect();
+    newVariable.setCollectable(State.ExecutedTemplate || State.ExecutedMethod || State.ExecutedTryBlock);
 
     variables.push_back(newVariable);
     State.LastValue = value;
@@ -1040,11 +835,8 @@ void Memory::createVariable(string name, double value)
 {
     Variable newVariable(name, value);
 
-    if (State.ExecutedTemplate || State.ExecutedMethod || State.ExecutedTryBlock)
-        newVariable.collect();
-    else
-        newVariable.dontCollect();
-
+    newVariable.setCollectable(State.ExecutedTemplate || State.ExecutedMethod || State.ExecutedTryBlock);
+    
     variables.push_back(newVariable);
     State.LastValue = dtos(value);
 }
@@ -1052,7 +844,7 @@ void Memory::createVariable(string name, double value)
 void Memory::clearAll()
 {
     clearMethods();
-    clearObjects();
+    clearClasses();
     clearVariables();
     clearLists();
     clearArgs();
@@ -1107,7 +899,7 @@ void Memory::clearMethods()
 }
 
 // TODO: Implement indestructible objects?
-void Memory::clearObjects() { objects.clear(); }
+void Memory::clearClasses() { classes.clear(); }
 
 void Memory::clearVariables()
 {
@@ -1128,7 +920,7 @@ void Memory::collectGarbage()
     vector<string> garbageVars;
 
     for (unsigned i = 0; i < variables.size(); ++i)
-        if (variables.at(i).garbage() && !State.ExecutedIfStatement)
+        if (variables.at(i).isCollectable() && !State.ExecutedIfStatement)
             if (!State.DontCollectMethodVars)
                 garbageVars.push_back(variables.at(i).name());
 
@@ -1138,20 +930,20 @@ void Memory::collectGarbage()
     vector<string> garbageLists;
 
     for (unsigned i = 0; i < lists.size(); ++i)
-        if (lists.at(i).garbage() && !State.ExecutedIfStatement)
+        if (lists.at(i).isCollectable() && !State.ExecutedIfStatement)
             garbageLists.push_back(lists.at(i).name());
 
     for (unsigned i = 0; i < garbageLists.size(); ++i)
         removeList(garbageLists.at(i));
 
-    vector<string> garbageObjects;
+    vector<string> garbageClasses;
 
-    for (unsigned i = 0; i < objects.size(); ++i)
-        if (objects.at(i).garbage() && !State.ExecutedIfStatement)
-            garbageObjects.push_back(objects.at(i).name());
+    for (unsigned i = 0; i < classes.size(); ++i)
+        if (classes.at(i).isCollectable() && !State.ExecutedIfStatement)
+            garbageClasses.push_back(classes.at(i).name());
 
-    for (unsigned i = 0; i < garbageObjects.size(); ++i)
-        removeObject(garbageObjects.at(i));
+    for (unsigned i = 0; i < garbageClasses.size(); ++i)
+        removeClass(garbageClasses.at(i));
 }
 
 bool Memory::listExists(string s)
@@ -1165,9 +957,9 @@ bool Memory::listExists(string s)
 
 bool Memory::methodExists(string s)
 {
-    if (!zeroDots(s) && objectExists(beforeDot(s)))
+    if (!zeroDots(s) && classExists(beforeDot(s)))
     {
-        return getObject(beforeDot(s)).hasMethod(afterDot(s));
+        return getClass(beforeDot(s)).hasMethod(afterDot(s));
     }
     
     for (unsigned i = 0; i < methods.size(); ++i)
@@ -1177,10 +969,10 @@ bool Memory::methodExists(string s)
     return false;
 }
 
-bool Memory::objectExists(string s)
+bool Memory::classExists(string s)
 {
-    for (unsigned i = 0; i < objects.size(); ++i)
-        if (objects.at(i).name() == s)
+    for (unsigned i = 0; i < classes.size(); ++i)
+        if (classes.at(i).name() == s)
             return true;
 
     return false;
@@ -1191,7 +983,7 @@ bool Memory::variableExists(string s)
     if (!zeroDots(s))
     {
         string before(beforeDot(s)), after(afterDot(s));
-        return objectExists(before) && getObject(before).hasVariable(after);
+        return classExists(before) && getClass(before).hasVariable(after);
     }    
 
     for (unsigned i = 0; i < variables.size(); ++i)
@@ -1221,15 +1013,15 @@ bool Memory::constantExists(string s)
 
 bool Memory::noLists() { return lists.empty(); }
 bool Memory::noMethods() { return methods.empty(); }
-bool Memory::noObjects() { return objects.empty(); }
+bool Memory::noClasses() { return classes.empty(); }
 bool Memory::noVariables() { return variables.empty(); }
 
-bool Memory::notObjectMethod(string s)
+bool Memory::notClassMethod(string s)
 {
     if (!zeroDots(s))
     {
         string before(beforeDot(s));
-        return !objectExists(before);
+        return !classExists(before);
     }
 
     return true;

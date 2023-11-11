@@ -8,11 +8,6 @@ string cleanString(string st);
 string getParsedOutput(string cmd);
 string getSilentOutput(string text);
 
-const int OS_UNKNOWN	= 0x0000;
-const int OS_NIX	    = 0x0001;
-const int OS_WIN64	    = 0x0002;
-const int OS_WIN32	    = 0x0004;
-
 class Env {
     public:
     Env() {}
@@ -72,14 +67,12 @@ class Env {
                     cleaned.push_back('\r');
                 else if (a[i] == 'n' && a[i - 1] == '\\')
                     cleaned.push_back('\n');
-                else if (a[i] == '\\' && a[i + 1] == 't')
-                    doNothing();
                 else if (a[i] == 't' && a[i - 1] == '\\')
                     cleaned.push_back('\t');
-                else if (a[i] == '\\' && a[i + 1] == '\'')
-                    doNothing();
                 else if (a[i] == '\'' && a[i - 1] == '\\')
                     cleaned.push_back('\"');
+                else if (a[i] == '\\' && a[i + 1] == 't') {}
+                else if (a[i] == '\\' && a[i + 1] == '\'') {}
                 else
                     cleaned.push_back(a[i]);
             }
@@ -134,29 +127,6 @@ class Env {
         return 0;
     }
 
-    static string getGuessedOS()
-    {
-        string guessedOS("");
-
-        switch (NoctisEnv.GuessedOS)
-        {
-        case OS_NIX:
-            guessedOS = "OS_NIX";
-            break;
-        case OS_WIN32:
-            guessedOS = "OS_WIN32";
-            break;
-        case OS_WIN64:
-            guessedOS = "OS_WIN64";
-            break;
-        case OS_UNKNOWN:
-            guessedOS = "OS_UNKNOWN";
-            break;
-        }
-
-        return guessedOS;
-    }
-
     static vector<string> getDirectoryContents(string path, bool filesOnly)
     {
         vector<string> newList;
@@ -166,9 +136,7 @@ class Env {
 
         string dir = path;
 
-        if ((pd = opendir(dir.c_str())) == NULL)
-            doNothing();
-        else
+        if ((pd = opendir(dir.c_str())) != NULL)
         {
             while ((pe = readdir(pd)) != NULL)
             {
@@ -179,10 +147,7 @@ class Env {
                     if (dir == "/")
                         dir = "";
 
-                    if (NoctisEnv.GuessedOS == OS_NIX)
-                        tmp = dir + "/" + string(pe->d_name);
-                    else
-                        tmp = dir + "\\" + string(pe->d_name);
+                    tmp = dir + "/" + string(pe->d_name);
 
                     if (filesOnly)
                     {
@@ -209,10 +174,6 @@ class Env {
 
     static string cwd()
     {
-        #ifdef _WIN32
-        const int PATH_MAX = 1024;
-        #endif
-        
         char tmp[PATH_MAX];
 
         return getcwd(tmp, PATH_MAX) ? string(tmp) : string("");
@@ -222,49 +183,14 @@ class Env {
     {
         if (containsTilde(p))
         {
-            string cleaned("");
-            int l = p.length();
-
-            for (int i = 0; i < l; i++)
-            {
-                if (p[i] == '~')
-                {
-                    switch (NoctisEnv.GuessedOS)
-                    {
-                    case OS_NIX:
-                        cleaned.append(getEnvironmentVariable("HOME"));
-                        break;
-                    case OS_WIN32:
-                    case OS_WIN64:
-                        cleaned.append(getEnvironmentVariable("HOMEPATH"));
-                        break;
-                    case OS_UNKNOWN:
-                        cleaned.append(getEnvironmentVariable("HOME"));
-                        break;
-                    default:
-                        error(ErrorMessage::UNDEFINED_OS, "", false);
-                        break;
-                    }
-                }
-                else
-                    cleaned.push_back(p[i]);
-            }
-
-            if (Env::directoryExists(cleaned))
-                cd(cleaned);
+            if (Env::directoryExists(p))
+                cd(p);
             else
                 error(ErrorMessage::READ_FAIL, p, false);
         }
         else
         {
-            if (p == "~")
-            {
-                if (NoctisEnv.GuessedOS == OS_NIX || NoctisEnv.GuessedOS == OS_UNKNOWN)
-                    cd(getEnvironmentVariable("HOME"));
-                else
-                    cd(getEnvironmentVariable("HOMEPATH"));
-            }
-            else if (p == "init_dir" || p == "initial_directory")
+            if (p == "init_dir" || p == "initial_directory")
                 cd(NoctisEnv.InitialDirectory);
             else
             {
@@ -285,24 +211,22 @@ class Env {
             return "[not_available]";
     }
 
-    #ifdef __linux__
-
     static void md(string p)
     {
         if (mkdir(p.c_str(), S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH) != 0)
-            IO::printerrln("...could not create directory: " + p);
+            error(ErrorMessage::MAKE_DIR_FAIL, p, false);
     }
 
     static void rd(string p)
     {
         if (rmdir(p.c_str()) != 0)
-            IO::printerrln("...could not remove directory: " + p);
+            error(ErrorMessage::REMOVE_DIR_FAIL, p, false);
     }
 
     static void rm(string p)
     {
         if (remove(p.c_str()) != 0)
-            IO::printerrln("...could not remove file: " + p);
+            error(ErrorMessage::REMOVE_FILE_FAIL, p, false);
     }
 
     static string getUser()
@@ -312,7 +236,8 @@ class Env {
 
         if (pUser != NULL)
             return pUser;
-        return "#!=no_user";
+
+        return "";
     }
 
     static string getMachine()
@@ -324,52 +249,8 @@ class Env {
         if (gethostname(name, namelen) != -1)
             return name;
 
-        return "#!=no_machine";
+        return "";
     }
-
-    #elif defined _WIN32 || defined _WIN64
-
-    static void md(string p)
-    {
-        if (mkdir(p.c_str()) != 0)
-            IO::printerrln("...could not create directory: " + p);
-    }
-
-    static void rd(string p)
-    {
-        if (rmdir(p.c_str()) != 0)
-            IO::printerrln("...could not remove directory: " + p);
-    }
-
-    static void rm(string p)
-    {
-        if (remove(p.c_str()) != 0)
-            IO::printerrln("...could not remove file: " + p);
-    }
-
-    static string getUser()
-    {
-        char lpszUsername[255];
-        DWORD dUsername = sizeof(lpszUsername);
-
-        if(GetUserName(lpszUsername, &dUsername))
-            return(lpszUsername);
-
-        return "#!=no_user";
-    }
-
-    static string getMachine()
-    {
-        char lpszComputer[255];
-        DWORD dComputer = sizeof(lpszComputer);
-
-        if(GetComputerName(lpszComputer, &dComputer))
-            return lpszComputer;
-
-        return "#!=no_machine";
-    }
-
-    #endif
 };
 
 #endif

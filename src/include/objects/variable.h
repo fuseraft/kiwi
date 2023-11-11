@@ -1,4 +1,4 @@
-class Variable
+class Variable : public Collectable
 {
 private:
     double  numericValue;
@@ -51,17 +51,12 @@ public:
 
     ~Variable() { }
 
-    void collect()
+    void setCollectable(bool value) override
     {
-        collectable = true;
+        collectable = value;
     }
 
-    void dontCollect()
-    {
-        collectable = false;
-    }
-
-    bool garbage()
+    bool isCollectable() const override
     {
         return collectable;
     }

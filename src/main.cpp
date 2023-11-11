@@ -10,23 +10,15 @@
 #include <dirent.h>
 #include <algorithm>
 #include <cfloat>
-
-#ifdef __linux__
 #include <vector>
 #include <sys/stat.h>
 #include <cmath>
 #include <string.h>
 #include <unistd.h>
-#endif
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 using namespace std;
 
-void doNothing() { }
-
+#include "include/debug/stacktrace.h"
 #include "include/constants.h"
 #include "include/noctisenv.h"
 #include "include/state.h"
@@ -44,10 +36,24 @@ void doNothing() { }
 #include "include/parser.h"
 #include "include/core.h"
 
-int main(int c, char ** v)
+int noctis(int c, char **v);
+
+int main(int c, char **v)
+{
+    try
+    {
+        noctis(c, v);
+    }
+    catch (const exception &e)
+    {
+        printError(e);
+    }
+}
+
+int noctis(int c, char **v)
 {
     RNG::seed();
-    
+
     setup();
 
     string noctis = v[0];
@@ -59,7 +65,7 @@ int main(int c, char ** v)
         State.CurrentScript = noctis;
         mem.addArg(noctis);
         State.ArgumentCount = mem.getArgCount();
-        startREPL(false);
+        return startREPL();
     }
     else if (c == 2)
     {
@@ -74,23 +80,6 @@ int main(int c, char ** v)
         }
         else if (is(opt, "h") || is(opt, "help"))
             help(noctis);
-        else if (is(opt, "u") || is(opt, "uninstall"))
-            uninstall();
-        else if (is(opt, "sl") || is(opt, "skipload"))
-        {
-            State.CurrentScript = noctis;
-            mem.addArg(opt);
-            State.ArgumentCount = mem.getArgCount();
-            startREPL(true);
-        }
-        else if (is(opt, "n") || is(opt, "negligence"))
-        {
-            State.Negligence = true;
-            State.CurrentScript = noctis;
-            mem.addArg(opt);
-            State.ArgumentCount = mem.getArgCount();
-            startREPL(true);
-        }
         else if (is(opt, "v") || is(opt, "version"))
             displayVersion();
         else
@@ -98,51 +87,14 @@ int main(int c, char ** v)
             State.CurrentScript = noctis;
             mem.addArg(opt);
             State.ArgumentCount = mem.getArgCount();
-            startREPL(false);
+            return startREPL();
         }
     }
     else if (c == 3)
     {
         string opt = v[1], script = v[2];
 
-        if (is(opt, "sl") || is(opt, "skipload"))
-        {
-            State.CurrentScript = noctis;
-
-            if (isScript(script))
-            {
-                State.CurrentScript = script;
-                mem.addArg(opt);
-                mem.addArg(script);
-                State.ArgumentCount = mem.getArgCount();
-                mem.loadScript(script);
-            }
-            else
-            {
-                mem.addArg(opt);
-                mem.addArg(script);
-                State.ArgumentCount = mem.getArgCount();
-                startREPL(true);
-            }
-        }
-        else if (is(opt, "n") || is(opt, "negligence"))
-        {
-            State.Negligence = true;
-            mem.addArg(opt);
-            mem.addArg(script);
-            State.ArgumentCount = mem.getArgCount();
-            if (isScript(script))
-            {
-                State.CurrentScript = script;
-                mem.loadScript(script);
-            }
-            else
-            {
-                State.CurrentScript = noctis;
-                startREPL(true);
-            }
-        }
-        else if (is(opt, "p") || is(opt, "parse"))
+        if (is(opt, "p") || is(opt, "parse"))
         {
             string stringBuilder("");
 
@@ -172,7 +124,7 @@ int main(int c, char ** v)
                 mem.addArg(opt);
                 mem.addArg(script);
                 State.ArgumentCount = mem.getArgCount();
-                startREPL(false);
+                return startREPL();
             }
         }
     }
@@ -203,7 +155,7 @@ int main(int c, char ** v)
             State.ArgumentCount = mem.getArgCount();
 
             State.CurrentScript = noctis;
-            startREPL(false);
+            return startREPL();
         }
     }
     else
@@ -213,8 +165,6 @@ int main(int c, char ** v)
     {
         exec.executeScript();
     }
-
-    mem.clearAll();
 
     return 0;
 }
