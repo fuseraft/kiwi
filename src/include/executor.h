@@ -154,8 +154,6 @@ void Executor::executeInspection(string arg0, string arg1, string before, string
             for (int i = 0; i < mem.getConstantCount(); i++)
                 write(mem.getConstant(i).name());
         }
-        else if (arg1 == "os?")
-            write(Env::getGuessedOS());
         else if (arg1 == "last")
             write(State.LastValue);
         else
@@ -546,22 +544,17 @@ void Executor::executeForLoop(Method m)
     {
         if (m.isInfinite())
         {
-            if (State.Negligence)
+            for (;;)
             {
-                for (;;)
-                {
-                    for (int z = 0; z < m.size(); z++)
-                        parse(m.at(z));
+                for (int z = 0; z < m.size(); z++)
+                    parse(m.at(z));
 
-                    if (State.Breaking == true)
-                    {
-                        State.Breaking = false;
-                        break;
-                    }
+                if (State.Breaking == true)
+                {
+                    State.Breaking = false;
+                    break;
                 }
             }
-            else
-                error(ErrorMessage::INFINITE_LOOP, "", true);
         }
         else if (m.start() < m.stop())
         {

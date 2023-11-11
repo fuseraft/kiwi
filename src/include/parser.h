@@ -35,6 +35,7 @@ void parse(string s)
 
     command.push_back(""); // push back an empty string to begin.
     // iterate each char in the initial string
+
     for (int i = 0; i < length; i++)
     {
         switch (s[i])
@@ -129,22 +130,6 @@ void parse(string s)
             }
 
             bigString.push_back('#');
-            break;
-
-        case '~':
-            if (!State.IsCommented)
-            {
-                if (prevChar == '\\')
-                    command.at(count).push_back('~');
-                else
-                {
-                    if (NoctisEnv.GuessedOS == OS_NIX)
-                        command.at(count).append(Env::getEnvironmentVariable("HOME"));
-                    else
-                        command.at(count).append(Env::getEnvironmentVariable("HOMEPATH"));
-                }
-            }
-            bigString.push_back('~');
             break;
 
         case ';':

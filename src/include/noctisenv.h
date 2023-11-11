@@ -3,7 +3,6 @@
 
 struct {
     string InitialDirectory;
-    int GuessedOS;
 } NoctisEnv;
 
 #endif

@@ -55,6 +55,11 @@ void setList(string listName, string methodName, vector<string> params)
 
 string getPrompt()
 {
+    if (!State.UseCustomPrompt || State.PromptStyle == "empty")
+    {
+        return "> ";
+    }
+
     string new_style("");
     int length = State.PromptStyle.length();
     char prevChar = 'a';
@@ -245,7 +250,7 @@ string cleanString(string st)
                                 error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
                                 return Constants.Null;
                             }
-                            
+
                             if (stoi(rangeBegin) < stoi(rangeEnd))
                             {
                                 if (!(mem.getList(_beforeBrackets).size() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0))
@@ -308,7 +313,7 @@ string cleanString(string st)
                                 error(ErrorMessage::OUT_OF_BOUNDS, afterBrackets, false);
                                 return Constants.Null;
                             }
-                                
+
                             cleaned.append(mem.getList(_beforeBrackets).at(stoi(rangeBegin)));
                         }
                         else
@@ -395,8 +400,7 @@ void write(string st)
 
 void writeline(string st)
 {
-    write(st);
-    IO::print(NoctisEnv.GuessedOS == OS_NIX ? "\n" : "\r\n");
+    write(st + "\n");
 }
 
 void displayVersion()
@@ -408,17 +412,17 @@ void displayVersion()
 
 List getDirectoryList(string before, bool filesOnly)
 {
-	List newList;
-	vector<string> dirList = Env::getDirectoryContents(mem.varString(before), filesOnly);
-	for (unsigned int i = 0; i < dirList.size(); i++) 
-	{
-		newList.add(dirList.at(i));
-	}
-	if (newList.size() == 0) 
-	{
-		State.DefiningForLoop = false;
-	}
-	return newList;
+    List newList;
+    vector<string> dirList = Env::getDirectoryContents(mem.varString(before), filesOnly);
+    for (unsigned int i = 0; i < dirList.size(); i++)
+    {
+        newList.add(dirList.at(i));
+    }
+    if (newList.size() == 0)
+    {
+        State.DefiningForLoop = false;
+    }
+    return newList;
 }
 
 void error(int errorType, string errorInfo, bool quit)
@@ -446,13 +450,10 @@ void error(int errorType, string errorInfo, bool quit)
             IO::printerr(completeError);
     }
 
-    if (!State.Negligence)
+    if (quit)
     {
-        if (quit)
-        {
-            mem.clearAll();
-            exit(0);
-        }
+        mem.clearAll();
+        exit(0);
     }
 }
 
@@ -472,47 +473,44 @@ void help(string app)
     IO::println();
 }
 
-void startREPL()
+int startREPL()
 {
     string s("");
     bool active = true;
 
     while (active)
     {
-        s.clear();
-
-        if (State.UseCustomPrompt)
+        try
         {
-            if (State.PromptStyle == "bash")
-                IO::print(Env::getUser() + "@" + Env::getMachine() + "(" + Env::cwd() + ")" + "$ ");
-            else if (State.PromptStyle == "empty")
-                doNothing();
-            else
-                IO::print(getPrompt());
-        }
-        else
-            IO::print("> ");
+            IO::print(getPrompt());
 
-        getline(cin, s, '\n');
+            s.clear();
+            getline(cin, s);
 
-        if (s[0] == '\t')
-            s.erase(remove(s.begin(), s.end(), '\t'), s.end());
-
-        if (s == "exit")
-        {
-            if (!State.DefiningClass && !State.DefiningMethod)
+            if (s != "exit")
             {
-                active = false;
-                mem.clearAll();
+                parse(trimLeadingWhitespace(s));
+                continue;
             }
-            else
+
+            if (State.DefiningClass || State.DefiningMethod)
+            {
                 parse(s);
+                continue;
+            }
+
+            active = false;
+            mem.clearAll();
+            break;
         }
-        else
+        catch (const exception &e)
         {
-            parse(trimLeadingWhitespace(s));
+            printError(e);
+            return -1;
         }
     }
+
+    return 0;
 }
 
 bool stackReady(string arg2)
@@ -3840,7 +3838,6 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, v
             file.close();
 
             mem.createVariable(arg0, bigString);
-
         }
         else if (State.DefiningClass)
         {
@@ -4452,7 +4449,6 @@ void copyClass(string arg0, string arg1, string arg2, string s, vector<string> c
         for (int i = 0; i < (int)classMethods.size(); i++)
             newClass.addMethod(classMethods.at(i));
 
-
         vector<Variable> classVariables = mem.getClass(arg2).getVariables();
 
         for (int i = 0; i < (int)classVariables.size(); i++)
@@ -4523,10 +4519,6 @@ void InternalGetEnv(string arg0, string after, int mode)
     else if (after == "noctis")
     {
         sValue = State.Noctis;
-    }
-    else if (after == "os?")
-    {
-        sValue = Env::getGuessedOS();
     }
     else if (after == "user")
     {
@@ -4804,7 +4796,7 @@ double getBytes(string path)
 
     ifstream file(path.c_str());
 
-    if(!file.is_open())
+    if (!file.is_open())
     {
         error(ErrorMessage::READ_FAIL, path, false);
 
@@ -4824,35 +4816,11 @@ double getBytes(string path)
     return bytes;
 }
 
-#ifdef __linux__
-
 string getSilentOutput(string text)
 {
-    char * s = getpass(cleanString(text).c_str());
-
+    char *s = getpass(cleanString(text).c_str());
     return s;
 }
-
-#elif defined _WIN32 || defined _WIN64
-
-string getSilentOutput(string text)
-{
-    HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
-    DWORD mode = 0;
-    GetConsoleMode(hStdin, &mode);
-    SetConsoleMode(hStdin, mode & (~ENABLE_ECHO_INPUT));
-
-    IO::print(cleanString(text));
-
-    string s("");
-    getline(cin, s);
-
-    SetConsoleMode(hStdin, mode);
-
-    return s;
-}
-
-#endif
 
 void setup()
 {
@@ -4882,11 +4850,10 @@ void setup()
     State.DefiningPublicCode = false,
     State.DefiningScript = false,
     State.ExecutedTemplate = false, // remove
-    State.ExecutedTryBlock = false,
+        State.ExecutedTryBlock = false,
     State.Breaking = false,
     State.DefiningMethod = false,
     State.IsMultilineComment = false,
-    State.Negligence = false,
     State.FailedNest = false,
     State.DefiningNest = false,
     State.DefiningClass = false,
@@ -4918,23 +4885,6 @@ void setup()
 
     State.ArgumentCount = 0,
     State.NullNum = -DBL_MAX;
-
-    if (contains(Env::getEnvironmentVariable("HOMEPATH"), "Users"))
-    {
-        NoctisEnv.GuessedOS = OS_WIN64;
-    }
-    else if (contains(Env::getEnvironmentVariable("HOMEPATH"), "Documents"))
-    {
-        NoctisEnv.GuessedOS = OS_WIN32;
-    }
-    else if (startsWith(Env::getEnvironmentVariable("HOME"), "/"))
-    {
-        NoctisEnv.GuessedOS = OS_NIX;
-    }
-    else
-    {
-        NoctisEnv.GuessedOS = OS_UNKNOWN;
-    }
 }
 
 #endif

@@ -8,7 +8,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command);
 void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> command);
 void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, vector<string> command);
 
-void startREPL();
+int startREPL();
 string getPrompt();
 
 void InternalEncryptDecrypt(string arg0, string arg1);

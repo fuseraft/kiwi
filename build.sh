@@ -1,5 +1,5 @@
 #!/bin/bash
-g++ -o noctis -Wall src/main.cpp
+g++ -rdynamic -o noctis -Wall src/main.cpp
 
 if [ $? -eq 0 ]; then
     ./noctis test.ns
