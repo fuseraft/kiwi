@@ -65,7 +65,6 @@ struct {
     string LastError;
     bool ExecutedTryBlock;
     bool RaiseCatchBlock;
-    bool Negligence;
     bool SkipCatchBlock;
     bool SuccessFlag;
 } State;
