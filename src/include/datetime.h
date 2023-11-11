@@ -1,9 +1,3 @@
-/**
- * 	noctis: a hybrid-typed, object-oriented, interpreted, programmable command line shell.
- *
- *		scstauf@gmail.com
- **/
-
 #ifndef DATETIME_H
 #define DATETIME_H
 

@@ -8,7 +8,7 @@ private:
 
     string              logicOperatorValue,
                         methodName,
-                        objectName,
+                        className,
                         symbolString,
                         valueOne_,
                         valueTwo_;
@@ -25,7 +25,7 @@ private:
 
     int                 startValue,
                         stopValue,
-                        templateObjects;
+                        templateClasses;
 
     List                list;
 
@@ -52,9 +52,9 @@ public:
         clear();
     }
 
-    void setObject(string name)
+    void setClass(string name)
     {
-        objectName = name;
+        className = name;
     }
 
     void setIndestructible()
@@ -72,9 +72,9 @@ public:
         isIndestructible = false;
     }
 
-    string getObject()
+    string getClass()
     {
-        return objectName;
+        return className;
     }
 
     /**
@@ -210,7 +210,7 @@ public:
         defaultSymbol = '$';
         logicOperatorValue = "",
         methodName = name,
-        objectName = "",
+        className = "",
         symbolString = "$",
         valueOne_ = "",
         valueTwo_ = "";
@@ -225,7 +225,7 @@ public:
         isWhileLoop_ = false;
         startValue = 0,
         stopValue = 0,
-        templateObjects = 0;
+        templateClasses = 0;
     }
 
     bool isBad()
@@ -243,12 +243,12 @@ public:
 
     void setTemplateSize(int size)
     {
-        templateObjects = size;
+        templateClasses = size;
     }
 
     int getTemplateSize()
     {
-        return templateObjects;
+        return templateClasses;
     }
 
     int size()
