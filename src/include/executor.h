@@ -13,7 +13,7 @@ class Executor {
 
     void executeWhileLoop(Method m);
     void executeMethod(Method m);
-    void executeMethod(string methodName, string objectName, string objectMethodName);
+    void executeMethod(string methodName, string className, string classMethodName);
     void executeNest(Container n);
     void executeForLoop(Method m);
     void executeTemplate(Method m, vector<string> vs);
@@ -65,23 +65,23 @@ void Executor::executeInspection(string arg0, string arg1, string before, string
 {
     if (before.length() != 0 && after.length() != 0)
     {
-        if (!mem.objectExists(before))
+        if (!mem.classExists(before))
         {
-            error(ErrorMessage::OBJ_METHOD_UNDEFINED, before, false);
+            error(ErrorMessage::CLS_METHOD_UNDEFINED, before, false);
             return;
         }
 
-        if (mem.getObject(before).hasMethod(after))
+        if (mem.getClass(before).hasMethod(after))
         {
-            for (int i = 0; i < mem.getObject(before).getMethod(after).size(); i++)
-                write(mem.getObject(before).getMethod(after).at(i));
+            for (int i = 0; i < mem.getClass(before).getMethod(after).size(); i++)
+                write(mem.getClass(before).getMethod(after).at(i));
         }
-        else if (mem.getObject(before).hasVariable(after))
+        else if (mem.getClass(before).hasVariable(after))
         {
-            if (mem.getObject(before).getVariable(after).getString() != State.Null)
-                write(mem.getObject(before).getVariable(after).getString());
-            else if (mem.getObject(before).getVariable(after).getNumber() != State.NullNum)
-                write(dtos(mem.getObject(before).getVariable(after).getNumber()));
+            if (mem.getClass(before).getVariable(after).getString() != State.Null)
+                write(mem.getClass(before).getVariable(after).getString());
+            else if (mem.getClass(before).getVariable(after).getNumber() != State.NullNum)
+                write(dtos(mem.getClass(before).getVariable(after).getNumber()));
             else
                 write(State.Null);
         }
@@ -91,12 +91,12 @@ void Executor::executeInspection(string arg0, string arg1, string before, string
     }
     else
     {
-        if (mem.objectExists(arg1))
+        if (mem.classExists(arg1))
         {
-            for (int i = 0; i < mem.getObject(arg1).methodSize(); i++)
-                write(mem.getObject(arg1).getMethod(mem.getObject(arg1).getMethodName(i)).name());
-            for (int i = 0; i < mem.getObject(arg1).variableSize(); i++)
-                write(mem.getObject(arg1).getVariable(mem.getObject(arg1).getVariableName(i)).name());
+            for (int i = 0; i < mem.getClass(arg1).methodSize(); i++)
+                write(mem.getClass(arg1).getMethod(mem.getClass(arg1).getMethodName(i)).name());
+            for (int i = 0; i < mem.getClass(arg1).variableSize(); i++)
+                write(mem.getClass(arg1).getVariable(mem.getClass(arg1).getVariableName(i)).name());
         }
         else if (mem.constantExists(arg1))
         {
@@ -144,18 +144,16 @@ void Executor::executeInspection(string arg0, string arg1, string before, string
             for (int i = 0; i < mem.getMethodCount(); i++)
                 write(mem.getMethod(i).name());
         }
-        else if (arg1 == "objects")
+        else if (arg1 == "classes")
         {
-            for (int i = 0; i < mem.getObjectCount(); i++)
-                write(mem.getObject(i).name());
+            for (int i = 0; i < mem.getClassCount(); i++)
+                write(mem.getClass(i).name());
         }
         else if (arg1 == "constants")
         {
             for (int i = 0; i < mem.getConstantCount(); i++)
                 write(mem.getConstant(i).name());
         }
-        else if (arg1 == "os?")
-            write(Env::getGuessedOS());
         else if (arg1 == "last")
             write(State.LastValue);
         else
@@ -223,7 +221,7 @@ void Executor::executeTemplate(Method m, vector<string> strings)
 
     State.ExecutedTemplate = true;
     State.DontCollectMethodVars = true;
-    State.CurrentMethodObject = m.getObject();
+    State.CurrentMethodClass = m.getClass();
 
     vector<Variable> methodVariables = m.getMethodVariables();
 
@@ -333,27 +331,27 @@ void Executor::executeNest(Container n)
     State.DefiningIfStatement = true;
 }
 
-void Executor::executeMethod(string methodName, string objectName, string objectMethodName)
+void Executor::executeMethod(string methodName, string className, string classMethodName)
 {
-    if (State.DefiningObject)
+    if (State.DefiningClass)
     {
-        if (mem.getObject(State.CurrentObject).hasMethod(methodName))
-            executeMethod(mem.getObject(State.CurrentObject).getMethod(methodName));
+        if (mem.getClass(State.CurrentClass).hasMethod(methodName))
+            executeMethod(mem.getClass(State.CurrentClass).getMethod(methodName));
         else
             error(ErrorMessage::METHOD_UNDEFINED, methodName, false);
         return;
     }
     
-    if (objectName.length() != 0 && objectMethodName.length() != 0)
+    if (className.length() != 0 && classMethodName.length() != 0)
     {
-        if (!mem.objectExists(objectName))
+        if (!mem.classExists(className))
         {
-            error(ErrorMessage::OBJ_METHOD_UNDEFINED, objectName, true);
+            error(ErrorMessage::CLS_METHOD_UNDEFINED, className, true);
             return;
         }
 
-        if (mem.getObject(objectName).hasMethod(objectMethodName))
-            executeMethod(mem.getObject(objectName).getMethod(objectMethodName));
+        if (mem.getClass(className).hasMethod(classMethodName))
+            executeMethod(mem.getClass(className).getMethod(classMethodName));
         else
             error(ErrorMessage::METHOD_UNDEFINED, methodName, false);
     }
@@ -369,7 +367,7 @@ void Executor::executeMethod(string methodName, string objectName, string object
 void Executor::executeMethod(Method m)
 {
     State.ExecutedMethod = true;
-    State.CurrentMethodObject = m.getObject();
+    State.CurrentMethodClass = m.getClass();
 
     if (State.DefiningParameterizedMethod)
     {
@@ -546,22 +544,17 @@ void Executor::executeForLoop(Method m)
     {
         if (m.isInfinite())
         {
-            if (State.Negligence)
+            for (;;)
             {
-                for (;;)
-                {
-                    for (int z = 0; z < m.size(); z++)
-                        parse(m.at(z));
+                for (int z = 0; z < m.size(); z++)
+                    parse(m.at(z));
 
-                    if (State.Breaking == true)
-                    {
-                        State.Breaking = false;
-                        break;
-                    }
+                if (State.Breaking == true)
+                {
+                    State.Breaking = false;
+                    break;
                 }
             }
-            else
-                error(ErrorMessage::INFINITE_LOOP, "", true);
         }
         else if (m.start() < m.stop())
         {

@@ -5,9 +5,9 @@ struct {
     bool CaptureParse;
     string ParsedOutput;
     string CurrentLine;
-    string CurrentMethodObject;
+    string CurrentMethodClass;
     string CurrentModule;
-    string CurrentObject;
+    string CurrentClass;
     string CurrentScript;
     string CurrentScriptName;
     string GoTo;
@@ -16,15 +16,13 @@ struct {
     string Noctis;
     string PreviousScript;
     string PromptStyle;
-    string SavedVarsPath;
-    string SavedVars;
     string SwitchVarName;
     string DefaultLoopSymbol;
     string Null;
     double NullNum;
     int ArgumentCount;
     int BadMethodCount;
-    int BadObjectCount;
+    int BadClassCount;
     int BadVarCount;
     int CurrentLineNumber;
     int IfStatementCount;
@@ -44,8 +42,8 @@ struct {
     bool DefiningMethod;
     bool DefiningModule;
     bool DefiningNest;
-    bool DefiningObject;
-    bool DefiningObjectMethod;
+    bool DefiningClass;
+    bool DefiningClassMethod;
     bool DefiningParameterizedMethod;
     bool DefiningPrivateCode;
     bool DefiningPublicCode;
@@ -67,7 +65,6 @@ struct {
     string LastError;
     bool ExecutedTryBlock;
     bool RaiseCatchBlock;
-    bool Negligence;
     bool SkipCatchBlock;
     bool SuccessFlag;
 } State;
