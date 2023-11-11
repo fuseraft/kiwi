@@ -680,7 +680,7 @@ int get_alpha_num(char c)
 bool notStandardZeroSpace(string arg)
 {
     const char * standardZeroSpaceWords =
-        "};break;caught;"
+        "break;caught;"
         "clear_all!;clear_constants!;clear_lists!;clear_methods!;clear_classes!;clear_variables!;"
         "else;end;exit;failif;leave!;"
         "no_methods?;no_classes?;no_variables?;parser;pass;private;public;try;";

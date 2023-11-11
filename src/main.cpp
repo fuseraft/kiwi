@@ -10,14 +10,11 @@
 #include <dirent.h>
 #include <algorithm>
 #include <cfloat>
-
-#ifdef __linux__
 #include <vector>
 #include <sys/stat.h>
 #include <cmath>
 #include <string.h>
 #include <unistd.h>
-#endif
 
 using namespace std;
 
