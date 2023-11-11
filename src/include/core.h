@@ -469,23 +469,13 @@ void help(string app)
     IO::println("\t" + app + " -h, --help\t\tdisplay this message");
     IO::println("\t" + app + " -p, --parse\t\tparse a command");
     IO::println("\t" + app + " -n, --negligence\tignore parse errors");
-    IO::println("\t" + app + " -sl, --skipload\tstart the shell without saved variables");
-    IO::println("\t" + app + " -u, --uninstall\tremove $HOME/.savedVarsPath");
     IO::println();
 }
 
-void startREPL(bool skip)
+void startREPL()
 {
     string s("");
     bool active = true;
-
-    if (!skip)
-    {
-        Crypt c;
-
-        if (Env::fileExists(State.SavedVars))
-            mem.loadSavedVars(c);
-    }
 
     while (active)
     {
@@ -4808,26 +4798,6 @@ bool InternalReturn(string arg0, string arg1, string before, string after)
     return false;
 }
 
-void uninstall()
-{
-    if (Env::directoryExists(State.SavedVarsPath))
-    {
-        if (Env::fileExists(State.SavedVars))
-            Env::rm(State.SavedVars);
-        else
-            IO::printerrln("...no remembered variables");
-
-        Env::rd(State.SavedVarsPath);
-
-        if (!Env::directoryExists(State.SavedVarsPath) && !Env::fileExists(State.SavedVars))
-            IO::println("...removed successfully");
-        else
-            IO::printerrln("...failed to remove");
-    }
-    else
-        IO::printerrln("...found nothing to remove");
-}
-
 double getBytes(string path)
 {
     int bytes;
@@ -4952,22 +4922,18 @@ void setup()
     if (contains(Env::getEnvironmentVariable("HOMEPATH"), "Users"))
     {
         NoctisEnv.GuessedOS = OS_WIN64;
-        State.SavedVarsPath = (Env::getEnvironmentVariable("HOMEPATH") + "\\AppData") + "\\.State.SavedVarsPath", State.SavedVars = State.SavedVarsPath + "\\.State.SavedVars";
     }
     else if (contains(Env::getEnvironmentVariable("HOMEPATH"), "Documents"))
     {
         NoctisEnv.GuessedOS = OS_WIN32;
-        State.SavedVarsPath = Env::getEnvironmentVariable("HOMEPATH") + "\\Application Data\\.State.SavedVarsPath", State.SavedVars = State.SavedVarsPath + "\\.State.SavedVars";
     }
     else if (startsWith(Env::getEnvironmentVariable("HOME"), "/"))
     {
         NoctisEnv.GuessedOS = OS_NIX;
-        State.SavedVarsPath = Env::getEnvironmentVariable("HOME") + "/.State.SavedVarsPath", State.SavedVars = State.SavedVarsPath + "/.State.SavedVars";
     }
     else
     {
         NoctisEnv.GuessedOS = OS_UNKNOWN;
-        State.SavedVarsPath = "\\.State.SavedVarsPath", State.SavedVars = State.SavedVarsPath + "\\.State.SavedVars";
     }
 }
 

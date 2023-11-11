@@ -1034,7 +1034,7 @@ void zeroSpace(string arg0, string s, vector<string> command)
         State.CurrentClass = "";
     }
     else if (arg0 == "parser")
-        startREPL(false);
+        startREPL();
     else if (arg0 == "private")
     {
         State.DefiningPrivateCode = true;
@@ -1268,14 +1268,6 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     else if (arg0 == "globalize")
     {
         mem.globalize(arg1);
-    }
-    else if (arg0 == "remember" || arg0 == "save")
-    {
-        mem.remember(arg1);
-    }
-    else if (arg0 == "forget"  || arg0 == "lose")
-    {
-        mem.forget(arg1);
     }
     else if (arg0 == "load")
     {

@@ -8,7 +8,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command);
 void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> command);
 void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, vector<string> command);
 
-void startREPL(bool skip);
+void startREPL();
 string getPrompt();
 
 void InternalEncryptDecrypt(string arg0, string arg1);
@@ -23,7 +23,6 @@ List getDirectoryList(string before, bool filesOnly);
 void displayVersion();
 void help(string app);
 void setup();
-void uninstall();
 void write(string st);
 void writeline(string st);
 

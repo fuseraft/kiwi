@@ -16,8 +16,6 @@ struct {
     string Noctis;
     string PreviousScript;
     string PromptStyle;
-    string SavedVarsPath;
-    string SavedVars;
     string SwitchVarName;
     string DefaultLoopSymbol;
     string Null;
