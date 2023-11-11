@@ -34,7 +34,6 @@ class ErrorMessage {
     static const int READ_FAIL = 29;
     static const int DIVIDED_BY_ZERO = 30;
     static const int UNDEFINED = 31;
-    static const int UNDEFINED_OS = 32;
     static const int MAKE_DIR_FAIL = 33;
     static const int REMOVE_DIR_FAIL = 34;
     static const int REMOVE_FILE_FAIL = 35;
@@ -140,9 +139,6 @@ class Error {
                 break;
             case ErrorMessage::UNDEFINED:
                 errorString.append("undefined");
-                break;
-            case ErrorMessage::UNDEFINED_OS:
-                errorString.append("undefined_os");
                 break;
             case ErrorMessage::MAKE_DIR_FAIL:
                 errorString.append("could not create directory");

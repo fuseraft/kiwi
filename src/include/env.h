@@ -8,11 +8,6 @@ string cleanString(string st);
 string getParsedOutput(string cmd);
 string getSilentOutput(string text);
 
-const int OS_UNKNOWN	= 0x0000;
-const int OS_NIX	    = 0x0001;
-const int OS_WIN64	    = 0x0002;
-const int OS_WIN32	    = 0x0004;
-
 class Env {
     public:
     Env() {}
@@ -179,10 +174,6 @@ class Env {
 
     static string cwd()
     {
-        #ifdef _WIN32
-        const int PATH_MAX = 1024;
-        #endif
-        
         char tmp[PATH_MAX];
 
         return getcwd(tmp, PATH_MAX) ? string(tmp) : string("");

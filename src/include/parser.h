@@ -161,11 +161,6 @@ void parse(string s)
 
     size = (int)command.size();
 
-    if (command.at(size - 1) == "{" && size != 1)
-        command.pop_back();
-
-    size = (int)command.size();
-
     if (!State.IsCommented)
     {
         if (!broken)
@@ -197,12 +192,11 @@ void parse(string s)
 
             if (State.DefiningSwitchBlock)
             {
-                if (s == "{") {}
-                else if (startsWith(s, "case"))
+                if (startsWith(s, "case"))
                     mem.getMainSwitch().addCase(command.at(1));
                 else if (s == "default")
                     State.InDefaultCase = true;
-                else if (s == "end" || s == "}")
+                else if (s == "end")
                 {
                     string switch_value("");
 
@@ -278,8 +272,7 @@ void parse(string s)
 
                     if (State.DefiningParameterizedMethod)
                     {
-                        if (s == "{") {}
-                        else if (s == "end" || s == "}")
+                        if (s == "end")
                         {
                             if (State.DefiningLocalWhileLoop)
                             {
@@ -364,8 +357,7 @@ void parse(string s)
                     }
                     else
                     {
-                        if (s == "{") {}
-                        else if (s == "end" || s == "}")
+                        if (s == "end")
                         {
                             if (State.DefiningLocalWhileLoop)
                             {
@@ -497,8 +489,7 @@ void parse(string s)
                 {
                     if (State.DefiningWhileLoop)
                     {
-                        if (s == "{") {}
-                        else if (command.at(0) == "end" || command.at(0) == "}")
+                        if (command.at(0) == "end")
                         {
                             State.DefiningWhileLoop = false;
 
@@ -700,9 +691,7 @@ void parse(string s)
                         }
                         else
                         {
-                            if (s == "{") {}
-                            else
-                                mem.getForLoop(mem.getForLoopCount() - 1).add(s);
+                            mem.getForLoop(mem.getForLoopCount() - 1).add(s);
                         }
                     }
                     else
