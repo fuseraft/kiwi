@@ -1,6 +1,6 @@
 #include "../io.h"
 
-class Object
+class Class : public Collectable
 {
 private:
     vector<Method>      methods;
@@ -9,21 +9,21 @@ private:
     int                 badMethods,
                         badVariables;
 
-    string              objectName,
+    string              className,
                         currentMethod;
 
     bool                collectable;
 
 public:
-    Object() { }
+    Class() { }
 
-    Object(string name)
+    Class(string name)
     {
         initialize(name);
         currentMethod = "";
     }
 
-    ~Object()
+    ~Class()
     {
         clear();
     }
@@ -33,25 +33,20 @@ public:
         badMethods = 0,
         badVariables = 0;
         currentMethod = "",
-        objectName = name;
+        className = name;
     }
 
     void setName(string name)
     {
-        objectName = name;
+        className = name;
     }
 
-    void collect()
+    void setCollectable(bool value) override
     {
         collectable = true;
     }
 
-    void dontCollect()
-    {
-        collectable = false;
-    }
-
-    bool garbage()
+    bool isCollectable() const override
     {
         return collectable;
     }
@@ -228,7 +223,7 @@ public:
 
     string name()
     {
-        return objectName;
+        return className;
     }
 
     bool hasVariable(string variableName)

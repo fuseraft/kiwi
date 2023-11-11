@@ -22,9 +22,9 @@ class ErrorMessage {
     static const int METHOD_UNDEFINED = 16;
     static const int NULL_NUMBER = 17;
     static const int NULL_STRING = 18;
-    static const int OBJ_METHOD_UNDEFINED = 19;
-    static const int OBJ_UNDEFINED = 20;
-    static const int OBJ_VAR_UNDEFINED = 21;
+    static const int CLS_METHOD_UNDEFINED = 19;
+    static const int CLS_UNDEFINED = 20;
+    static const int CLS_VAR_UNDEFINED = 21;
     static const int VAR_DEFINED = 22;
     static const int VAR_UNDEFINED = 23;
     static const int TARGET_UNDEFINED = 24;
@@ -105,14 +105,14 @@ class Error {
         case ErrorMessage::NULL_STRING:
             errorString.append("null string");
             break;
-        case ErrorMessage::OBJ_METHOD_UNDEFINED:
-            errorString.append("object method undefined");
+        case ErrorMessage::CLS_METHOD_UNDEFINED:
+            errorString.append("class method undefined");
             break;
-        case ErrorMessage::OBJ_UNDEFINED:
-            errorString.append("object undefined");
+        case ErrorMessage::CLS_UNDEFINED:
+            errorString.append("class undefined");
             break;
-        case ErrorMessage::OBJ_VAR_UNDEFINED:
-            errorString.append("object variable undefined");
+        case ErrorMessage::CLS_VAR_UNDEFINED:
+            errorString.append("class variable undefined");
             break;
         case ErrorMessage::VAR_DEFINED:
             errorString.append("variable defined");
