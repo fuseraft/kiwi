@@ -8,27 +8,27 @@ string getParsedOutput(string cmd)
     string ret = State.ParsedOutput;
     State.ParsedOutput.clear();
     State.CaptureParse = false;
-	
+
     return ret.length() == 0 ? State.LastValue : ret;
 }
 
 /**
-	The heart of it all. Parse a string and send for interpretation.
+    The heart of it all. Parse a string and send for interpretation.
 **/
 void parse(string s)
 {
-    vector<string> command; // a tokenized command container
+    vector<string> command;  // a tokenized command container
     int length = s.length(), //	length of the line
-        count = 0, // command token counter
-        size = 0; // final size of tokenized command container
-    bool quoted = false, // flag: parsing string literals
-         broken = false, // flag: end of a command
-         uncomment = false, // flag: end a command
-         parenthesis = false; // flag: parsing contents within parentheses
-    char prevChar = 'a'; // previous character in string
+        count = 0,           // command token counter
+        size = 0;            // final size of tokenized command container
+    bool quoted = false,     // flag: parsing string literals
+        broken = false,      // flag: end of a command
+        uncomment = false,   // flag: end a command
+        parenthesis = false; // flag: parsing contents within parentheses
+    char prevChar = 'a';     // previous character in string
 
     StringContainer stringContainer; // contains separate commands
-    string bigString(""); // a string to build upon
+    string bigString("");            // a string to build upon
 
     State.CurrentLine = s; // store a copy of the current line
     // if (__Logging) app(State.LogFile, s + "\r\n"); // if __Logging a session, log the line
@@ -47,7 +47,9 @@ void parse(string s)
                 {
                     command.at(count).push_back(' ');
                 }
-                else if (parenthesis && !quoted) {}
+                else if (parenthesis && !quoted)
+                {
+                }
                 else
                 {
                     if (prevChar != ' ')
@@ -435,7 +437,7 @@ void parse(string s)
                         {
                             State.DefiningNest = true;
 
-							if (size == 4)
+                            if (size == 4)
                                 threeSpace("if", command.at(1), command.at(2), command.at(3), s, command);
                             else
                             {
@@ -691,7 +693,7 @@ void parse(string s)
                         }
                         else
                         {
-                            mem.getForLoop(mem.getForLoopCount() - 1).add(s);
+                            mem.addLineToCurrentForLoop(s);
                         }
                     }
                     else
@@ -748,11 +750,11 @@ void parse(string s)
                                             if (after == "clear")
                                                 mem.getList(before).clear();
                                             else if (after == "sort")
-                                                mem.getList(before).listSort();
+                                                mem.getList(before).sort();
                                             else if (after == "reverse")
-                                                mem.getList(before).listReverse();
+                                                mem.getList(before).reverse();
                                             else if (after == "revert")
-                                                mem.getList(before).listRevert();
+                                                mem.getList(before).revert();
                                         }
                                         else if (before == "self")
                                         {
@@ -836,6 +838,7 @@ void parse(string s)
                             threeSpace(command.at(0), command.at(1), command.at(2), command.at(3), s, command);
                         else if (size == 5)
                         {
+                            // for var in 
                             if (command.at(0) == "for")
                             {
                                 if (containsParams(command.at(4)))
@@ -991,7 +994,7 @@ void zeroSpace(string arg0, string s, vector<string> command)
         else
             State.LastValue = "false";
     }
-    else if (arg0 == "end" || arg0 == "}")
+    else if (arg0 == "end")
     {
         State.DefiningPrivateCode = false,
         State.DefiningPublicCode = false;
@@ -1059,54 +1062,82 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             }
         }
     }
-	else if (arg0 == "if") {
-		string tmpValue("");
-		// if arg1 is a variable
-		if (mem.variableExists(arg1)) {
-			// can we can assume that arg1 belongs to an object?
-			if (!zeroDots(arg1)) {
-				string objName(beforeDot(arg1)), varName(afterDot(arg1));
-				Variable tmpVar = mem.getClass(objName).getVariable(varName);
-				
-				if (mem.isString(tmpVar)) {
-					tmpValue = tmpVar.getString();
-				} else if (mem.isNumber(tmpVar)) {
-					tmpValue = dtos(tmpVar.getNumber());
-				} else {
-					// error(ErrorMessage::IS_NULL, arg1, true);
-				}
-			} else {
-				if (mem.isString(arg1)) {
-					tmpValue = mem.varString(arg1);
-				} else if (mem.isNumber(arg1)) {
-					tmpValue = mem.varNumber(arg1);
-				} else {
-					// error(ErrorMessage::IS_NULL, arg1, true);
-				}
-			}
-		} else {
-			if (isNumeric(arg1) || isTrue(arg1) || isFalse(arg1)) {
-				tmpValue = arg1;
-			} else {
-				string tmpCode("");
-				
-				if (startsWith(arg1, "(\"") && endsWith(arg1, "\")")) {
-					tmpCode = getInner(arg1, 2, arg1.length() - 3);
-				} else {
-					tmpCode = arg1;
-				}
-				tmpValue = getParsedOutput(tmpCode);
-			}
-		}
-		
-		if (isTrue(tmpValue)) {
-			mem.createIfStatement(true);
-		} else if (isFalse(tmpValue)) {
-			mem.createIfStatement(false);
-		} else {
-			// error(ErrorMessage::INVALID_OP, arg1, true);
-		}
-	}
+    else if (arg0 == "if")
+    {
+        string tmpValue("");
+        // if arg1 is a variable
+        if (mem.variableExists(arg1))
+        {
+            // can we can assume that arg1 belongs to an object?
+            if (!zeroDots(arg1))
+            {
+                string objName(beforeDot(arg1)), varName(afterDot(arg1));
+                Variable tmpVar = mem.getClass(objName).getVariable(varName);
+
+                if (mem.isString(tmpVar))
+                {
+                    tmpValue = tmpVar.getString();
+                }
+                else if (mem.isNumber(tmpVar))
+                {
+                    tmpValue = dtos(tmpVar.getNumber());
+                }
+                else
+                {
+                    // error(ErrorMessage::IS_NULL, arg1, true);
+                }
+            }
+            else
+            {
+                if (mem.isString(arg1))
+                {
+                    tmpValue = mem.varString(arg1);
+                }
+                else if (mem.isNumber(arg1))
+                {
+                    tmpValue = mem.varNumber(arg1);
+                }
+                else
+                {
+                    // error(ErrorMessage::IS_NULL, arg1, true);
+                }
+            }
+        }
+        else
+        {
+            if (isNumeric(arg1) || isTrue(arg1) || isFalse(arg1))
+            {
+                tmpValue = arg1;
+            }
+            else
+            {
+                string tmpCode("");
+
+                if (startsWith(arg1, "(\"") && endsWith(arg1, "\")"))
+                {
+                    tmpCode = getInner(arg1, 2, arg1.length() - 3);
+                }
+                else
+                {
+                    tmpCode = arg1;
+                }
+                tmpValue = getParsedOutput(tmpCode);
+            }
+        }
+
+        if (isTrue(tmpValue))
+        {
+            mem.createIfStatement(true);
+        }
+        else if (isFalse(tmpValue))
+        {
+            mem.createIfStatement(false);
+        }
+        else
+        {
+            // error(ErrorMessage::INVALID_OP, arg1, true);
+        }
+    }
     else if (arg0 == "prompt")
     {
         if (arg1 == "bash")
@@ -1155,7 +1186,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "loop")
         threeSpace("for", "var", "in", arg1, "for var in " + arg1, command); // REFACTOR HERE
-    else if (arg0 == "for" && arg1 == "infinity")
+    else if (arg0 == "for" && arg1 == "inf")
         mem.createForLoop();
     else if (arg0 == "remove")
     {
@@ -1662,16 +1693,16 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     else if (arg0 == "lock")
     {
         if (mem.variableExists(arg1))
-            mem.getVar(arg1).setIndestructible();
+            mem.getVar(arg1).setIndestructible(true);
         else if (mem.methodExists(arg1))
-            mem.getMethod(arg1).setIndestructible();
+            mem.getMethod(arg1).setIndestructible(true);
     }
     else if (arg0 == "unlock")
     {
         if (mem.variableExists(arg1))
-            mem.getVar(arg1).setDestructible();
+            mem.getVar(arg1).setIndestructible(false);
         else if (mem.methodExists(arg1))
-            mem.getMethod(arg1).setDestructible();
+            mem.getMethod(arg1).setIndestructible(false);
     }
     else if (arg0 == "method" || arg0 == "[method]")
     {
@@ -1797,11 +1828,11 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
     }
     else
     {
-        if (startsWith(arg0, "@") && zeroDots(arg0)) 
+        if (startsWith(arg0, "@") && zeroDots(arg0))
         {
             initializeGlobalVariable(arg0, arg1, arg2, s, command);
         }
-        else if (startsWith(arg0, "@") && !zeroDots(arg2)) 
+        else if (startsWith(arg0, "@") && !zeroDots(arg2))
         {
             initializeClassVariable(arg0, arg1, arg2, s, command);
         }
@@ -2922,7 +2953,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (!zeroDots(arg1) && !zeroDots(arg3))
                 {
                     string arg1before(beforeDot(arg1)), arg1after(afterDot(arg1)),
-                           arg3before(beforeDot(arg3)), arg3after(afterDot(arg3));
+                        arg3before(beforeDot(arg3)), arg3after(afterDot(arg3));
 
                     string arg1Result(""), arg3Result("");
 
@@ -3769,7 +3800,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
             }
         }
-        else if ((mem.methodExists(arg1) && arg3 != "method?")|| mem.methodExists(arg3))
+        else if ((mem.methodExists(arg1) && arg3 != "method?") || mem.methodExists(arg3))
         {
             string arg1Result(""), arg3Result("");
 
@@ -5202,7 +5233,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 if (!zeroDots(arg1) && !zeroDots(arg3))
                 {
                     string arg1before(beforeDot(arg1)), arg1after(afterDot(arg1)),
-                           arg3before(beforeDot(arg3)), arg3after(afterDot(arg3));
+                        arg3before(beforeDot(arg3)), arg3after(afterDot(arg3));
 
                     string arg1Result(""), arg3Result("");
 

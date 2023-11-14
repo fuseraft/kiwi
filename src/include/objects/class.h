@@ -3,19 +3,16 @@
 class Class : public Collectable
 {
 private:
-    vector<Method>      methods;
-    vector<Variable>    variables;
+    vector<Method> methods;
+    vector<Variable> variables;
 
-    int                 badMethods,
-                        badVariables;
+    string className;
+    string currentMethod;
 
-    string              className,
-                        currentMethod;
-
-    bool                collectable;
+    bool collectable;
 
 public:
-    Class() { }
+    Class() {}
 
     Class(string name)
     {
@@ -30,8 +27,6 @@ public:
 
     void initialize(string name)
     {
-        badMethods = 0,
-        badVariables = 0;
         currentMethod = "",
         className = name;
     }
@@ -77,8 +72,6 @@ public:
     {
         if (hasMethod(currentMethod))
             methods.at(methodAt(currentMethod)).add(line);
-        else
-            IO::printerrln("#!=add_to_currentMethod:undefined");
     }
 
     int methodSize()
@@ -157,14 +150,6 @@ public:
         variables.clear();
     }
 
-    bool isBad()
-    {
-        if (startsWith(name(), "[bad_meth"))
-            return true;
-
-        return false;
-    }
-
     void removeVariable(string variableName)
     {
         vector<Variable> oldVariables = getVariables();
@@ -178,14 +163,12 @@ public:
 
     Method getMethod(string methodName)
     {
-        Method badMethod("[bad_meth#" + itos(badMethods) + "]");
-
         for (int i = 0; i < (int)methods.size(); i++)
             if (methods.at(i).name() == methodName)
                 return methods.at(i);
 
-        badMethods++;
-
+        Method badMethod;
+        badMethod.setIsBad(true);
         return badMethod;
     }
 
@@ -196,14 +179,12 @@ public:
 
     Variable getVariable(string variableName)
     {
-        Variable badVariable("[bad_var#" + itos(badVariables) + "]", "[null]");
-
         for (int i = 0; i < (int)variables.size(); i++)
             if (variables.at(i).name() == variableName)
                 return variables.at(i);
 
-        badVariables++;
-
+        Variable badVariable;
+        badVariable.setIsBad(true);
         return badVariable;
     }
 

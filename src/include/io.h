@@ -1,28 +1,34 @@
 #ifndef IO_H
 #define IO_H
 
-class IO {
-    public:
+class IO
+{
+public:
     IO() {}
     ~IO() {}
 
-    static void print(string s) {
+    static void print(string s)
+    {
         cout << s;
     }
 
-    static void printerr(string s) {
+    static void printerr(string s)
+    {
         cerr << s;
     }
 
-    static void println(string s) {
+    static void println(string s)
+    {
         cout << s << endl;
     }
 
-    static void printerrln(string s) {
+    static void printerrln(string s)
+    {
         cerr << s << endl;
     }
 
-    static void println() {
+    static void println()
+    {
         cout << endl;
     }
 };
