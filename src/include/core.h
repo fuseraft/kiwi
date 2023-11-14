@@ -9,14 +9,14 @@ void setList(string listName, string methodName, vector<string> params)
 
         if (!containsParams(State.LastValue))
         {
-            mem.getList(listName).add(State.LastValue);
+            mem.addItemToList(listName, State.LastValue);
             return;
         }
 
         vector<string> last_params = getParams(State.LastValue);
 
         for (int i = 0; i < (int)last_params.size(); i++)
-            mem.getList(listName).add(last_params.at(i));
+            mem.addItemToList(listName, last_params.at(i));
     }
     else if (mem.classExists(beforeDot(beforeParams(methodName))))
     {
@@ -24,14 +24,14 @@ void setList(string listName, string methodName, vector<string> params)
 
         if (!containsParams(State.LastValue))
         {
-            mem.getList(listName).add(State.LastValue);
+            mem.addItemToList(listName, State.LastValue);
             return;
         }
 
         vector<string> last_params = getParams(State.LastValue);
 
         for (int i = 0; i < (int)last_params.size(); i++)
-            mem.getList(listName).add(last_params.at(i));
+            mem.addItemToList(listName, last_params.at(i));
     }
     else
     {
@@ -39,14 +39,14 @@ void setList(string listName, string methodName, vector<string> params)
         {
             if (!mem.variableExists(params.at(i)))
             {
-                mem.getList(listName).add(params.at(i));
+                mem.addItemToList(listName, params.at(i));
                 return;
             }
 
             if (mem.isString(params.at(i)))
-                mem.getList(listName).add(mem.varString(params.at(i)));
+                mem.addItemToList(listName, mem.varString(params.at(i)));
             else if (mem.isNumber(params.at(i)))
-                mem.getList(listName).add(mem.varNumberString(params.at(i)));
+                mem.addItemToList(listName, mem.varNumberString(params.at(i)));
             else
                 error(ErrorMessage::IS_NULL, params.at(i), false);
         }
@@ -3508,14 +3508,14 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
             if (arg1 == "+=")
             {
                 for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
-                    mem.getList(arg0).add(mem.getList(listName).at(i));
+                    mem.addItemToList(arg0, mem.getList(listName).at(i)); 
             }
             else if (arg1 == "=")
             {
                 mem.getList(arg0).clear();
 
                 for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
-                    mem.getList(arg0).add(mem.getList(listName).at(i));
+                    mem.addItemToList(arg0, mem.getList(listName).at(i));
             }
             else
                 error(ErrorMessage::INVALID_OPERATOR, arg1, false);
@@ -3531,14 +3531,14 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
             if (arg1 == "+=")
             {
                 for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
-                    mem.getList(arg0).add(mem.getList(listName).at(i));
+                    mem.addItemToList(arg0, mem.getList(listName).at(i));
             }
             else if (arg1 == "=")
             {
                 mem.getList(arg0).clear();
 
                 for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
-                    mem.getList(arg0).add(mem.getList(listName).at(i));
+                    mem.addItemToList(arg0, mem.getList(listName).at(i));
             }
             else
                 error(ErrorMessage::INVALID_OPERATOR, arg1, false);
@@ -3570,7 +3570,7 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
         mem.getList(arg0).clear();
 
         for (int i = 0; i < (int)elements.size(); i++)
-            mem.getList(arg0).add(elements.at(i));
+            mem.addItemToList(arg0, elements.at(i));
     }
     else if (containsParams(arg2)) // ADD/REMOVE ARRAY FROM LIST
     {
@@ -3608,9 +3608,9 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
         if (arg1 == "+=")
         {
             if (mem.isString(arg2))
-                mem.getList(arg0).add(mem.varString(arg2));
+                mem.addItemToList(arg0, mem.varString(arg2));
             else if (mem.isNumber(arg2))
-                mem.getList(arg0).add(dtos(mem.varNumber(arg2)));
+                mem.addItemToList(arg0, dtos(mem.varNumber(arg2)));
             else
                 error(ErrorMessage::CONV_ERR, arg2, false);
         }
@@ -3637,12 +3637,12 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
             mem.getList(arg0).clear();
 
             for (int i = 0; i < (int)_p.size(); i++)
-                mem.getList(arg0).add(_p.at(i));
+                mem.addItemToList(arg0, _p.at(i));
         }
         else if (arg1 == "+=")
         {
             for (int i = 0; i < (int)_p.size(); i++)
-                mem.getList(arg0).add(_p.at(i));
+                mem.addItemToList(arg0, _p.at(i));
         }
         else
             error(ErrorMessage::INVALID_OPERATOR, arg1, false);
@@ -3652,7 +3652,7 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
         if (arg1 == "+=")
         {
             if (arg2.length() != 0)
-                mem.getList(arg0).add(arg2);
+                mem.addItemToList(arg0, arg2);
             else
                 error(ErrorMessage::IS_EMPTY, arg2, false);
         }
