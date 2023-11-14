@@ -1,4 +1,4 @@
-# Methods in USL
+# Methods
 
 Use the `method` keyword to define a method.
 
