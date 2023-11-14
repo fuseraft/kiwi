@@ -2075,7 +2075,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             mem.setVariable(arg0, line);
                     }
                 }
-                else if (before == "password")
+                else if (before == "mask")
                 {
                     if (mem.variableExists(after))
                     {
@@ -2101,7 +2101,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                         else
                         {
                             string line("");
-                            line = getSilentOutput("password: ");
+                            line = getSilentOutput("");
 
                             if (mem.isNumber(arg0))
                             {
@@ -2694,24 +2694,24 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                     else
                         error(ErrorMessage::IS_NULL, arg2, false);
                 }
-                else if (arg2 == "password" || arg2 == "readline")
+                else if (arg2 == "mask" || arg2 == "readline")
                 {
-                    if (arg2 == "password")
+                    if (arg2 == "mask")
                     {
-                        string passworder("");
-                        passworder = getSilentOutput("");
+                        string masked("");
+                        masked = getSilentOutput("");
 
                         if (mem.isNumber(arg0))
                         {
-                            if (isNumeric(passworder))
-                                mem.setVariable(arg0, stod(passworder));
+                            if (isNumeric(masked))
+                                mem.setVariable(arg0, stod(masked));
                             else
-                                error(ErrorMessage::CONV_ERR, passworder, false);
+                                error(ErrorMessage::CONV_ERR, masked, false);
                         }
                         else if (mem.isString(arg0))
-                            mem.setVariable(arg0, passworder);
+                            mem.setVariable(arg0, masked);
                         else
-                            mem.setVariable(arg0, passworder);
+                            mem.setVariable(arg0, masked);
                     }
                     else
                     {
@@ -3985,10 +3985,10 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, v
             else
                 mem.createVariable(arg0, State.Null);
         }
-        else if (arg2 == "password" || arg2 == "readline")
+        else if (arg2 == "mask" || arg2 == "readline")
         {
             string line("");
-            if (arg2 == "password")
+            if (arg2 == "mask")
             {
                 line = getSilentOutput("");
 
@@ -4049,7 +4049,7 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, v
                     mem.createVariable(arg0, line);
             }
         }
-        else if (before == "password")
+        else if (before == "mask")
         {
             if (mem.variableExists(after))
             {
