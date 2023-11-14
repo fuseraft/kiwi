@@ -43,19 +43,22 @@ public:
     int indexOfScript(string s);
     int indexOfVariable(string s);
 
-    Constant getConstant(int index);
-    Constant getConstant(string s);
-    List getList(int index);
-    List getList(string s);
-    Method getMethod(int index);
-    Method getMethod(string s);
-    Module getModule(string s);
-    Class getClass(int index);
-    Class getClass(string s);
-    Script getScript();
-    Variable getVar(int index);
-    Variable getVar(string s);
-    Switch getMainSwitch();
+    Constant& getConstant(int index);
+    Constant& getConstant(string s);
+    List& getList(int index);
+    List& getList(string s);
+    Method& getMethod(int index);
+    Method& getMethod(string s);
+    Module& getModule(string s);
+    Class& getClass(int index);
+    Class& getClass(string s);
+    Script& getScript();
+    Variable& getVar(int index);
+    Variable& getVar(string s);
+    Switch& getMainSwitch();
+    Method& getIfStatement(int index);
+    Method& getForLoop(int index);
+    Method& getWhileLoop(int index);
 
     void createMethod(string arg0, string arg1);
 
@@ -118,15 +121,10 @@ public:
     void addVariable(Variable v);
 
     void addIfStatement(Method ifStatement);
-    Method getIfStatement(int index);
     int getIfStatementCount();
-
     int getForLoopCount();
-    Method getForLoop(int index);
-
     int getWhileLoopCount();
-    Method getWhileLoop(int index);
-
+    
     void addArg(string arg);
     int getArgCount();
     string getArg(int index);
@@ -136,6 +134,7 @@ public:
     void createClass(string className);
 
     void addLineToCurrentForLoop(string line);
+    void addItemToList(string listName, string value);
 };
 
 Memory::Memory() {}
@@ -144,6 +143,11 @@ Memory::~Memory() {}
 void Memory::addLineToCurrentForLoop(string line)
 {
     forLoops[forLoops.size() - 1].add(line);
+}
+
+void Memory::addItemToList(string listName, string value)
+{
+    this->getList(listName).add(value);
 }
 
 void Memory::addConstant(Constant c) { constants.push_back(c); }
@@ -163,17 +167,17 @@ int Memory::getListCount() { return lists.size(); }
 int Memory::getConstantCount() { return constants.size(); }
 int Memory::getForLoopCount() { return forLoops.size(); }
 
-Method Memory::getMethod(int index) { return methods.at(index); }
-Variable Memory::getVar(int index) { return variables.at(index); }
-Class Memory::getClass(int index) { return classes.at(index); }
-List Memory::getList(int index) { return lists.at(index); }
-Constant Memory::getConstant(int index) { return constants.at(index); }
+Method& Memory::getMethod(int index) { return methods.at(index); }
+Variable& Memory::getVar(int index) { return variables.at(index); }
+Class& Memory::getClass(int index) { return classes.at(index); }
+List& Memory::getList(int index) { return lists.at(index); }
+Constant& Memory::getConstant(int index) { return constants.at(index); }
 
-Method Memory::getIfStatement(int index) { return ifStatements.at(index); }
-Method Memory::getForLoop(int index) { return forLoops.at(index); }
+Method& Memory::getIfStatement(int index) { return ifStatements.at(index); }
+Method& Memory::getForLoop(int index) { return forLoops.at(index); }
 
 int Memory::getWhileLoopCount() { return whileLoops.size(); }
-Method Memory::getWhileLoop(int index) { return whileLoops.at(index); }
+Method& Memory::getWhileLoop(int index) { return whileLoops.at(index); }
 
 int Memory::getArgCount() { return args.size(); }
 string Memory::getArg(int index) { return args.at(index); }
@@ -481,7 +485,7 @@ void Memory::loadScript(string script)
     scripts.push_back(newScript);
 }
 
-Switch Memory::getMainSwitch()
+Switch& Memory::getMainSwitch()
 {
     return mainSwitch;
 }
@@ -637,13 +641,13 @@ int Memory::indexOfVariable(string s)
     return -1;
 }
 
-Constant Memory::getConstant(string s) { return constants.at(indexOfConstant(s)); }
-List Memory::getList(string s) { return lists.at(indexOfList(s)); }
-Method Memory::getMethod(string s) { return methods.at(indexOfMethod(s)); }
-Module Memory::getModule(string s) { return modules.at(indexOfModule(s)); }
-Class Memory::getClass(string s) { return classes.at(indexOfClass(s)); }
-Script Memory::getScript() { return scripts.at(0); }
-Variable Memory::getVar(string s) { return variables.at(indexOfVariable(s)); }
+Constant& Memory::getConstant(string s) { return constants.at(indexOfConstant(s)); }
+List& Memory::getList(string s) { return lists.at(indexOfList(s)); }
+Method& Memory::getMethod(string s) { return methods.at(indexOfMethod(s)); }
+Module& Memory::getModule(string s) { return modules.at(indexOfModule(s)); }
+Class& Memory::getClass(string s) { return classes.at(indexOfClass(s)); }
+Script& Memory::getScript() { return scripts.at(0); }
+Variable& Memory::getVar(string s) { return variables.at(indexOfVariable(s)); }
 
 void Memory::removeConstant(string s) { constants.erase(constants.begin() + indexOfConstant(s)); }
 void Memory::removeList(string s) { lists.erase(lists.begin() + indexOfList(s)); }
@@ -793,7 +797,7 @@ void Memory::replaceElement(string before, string after, string replacement)
     getList(before).clear();
 
     for (int i = 0; i < (int)newList.size(); i++)
-        getList(before).add(newList.at(i));
+        addItemToList(before, newList.at(i));
 
     newList.clear();
 }

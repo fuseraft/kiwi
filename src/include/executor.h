@@ -544,17 +544,18 @@ void Executor::executeForLoop(Method m)
     {
         if (m.isInfinite())
         {
-            for (;;)
+            bool runningInfiniteLoop = true;
+            while (runningInfiniteLoop)
             {
                 for (int z = 0; z < m.size(); z++)
                     parse(m.at(z));
 
-                if (State.Breaking == true)
+                if (State.Breaking)
                 {
-                    State.Breaking = false;
-                    break;
+                    runningInfiniteLoop = false;
                 }
             }
+            State.Breaking = false;
         }
         else if (m.start() < m.stop())
         {

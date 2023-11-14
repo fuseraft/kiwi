@@ -994,7 +994,7 @@ void zeroSpace(string arg0, string s, vector<string> command)
         else
             State.LastValue = "false";
     }
-    else if (arg0 == "end" || arg0 == "}")
+    else if (arg0 == "end")
     {
         State.DefiningPrivateCode = false,
         State.DefiningPublicCode = false;
