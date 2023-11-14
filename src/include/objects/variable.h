@@ -9,6 +9,7 @@ private:
         isPrivate_,
         isPublic_,
         isIndestructible,
+        _isBad,
         waitToAssign;
 
     void setAll(double numValue, string strValue)
@@ -61,6 +62,16 @@ public:
         return collectable;
     }
 
+    void setIsBad(bool value)
+    {
+        _isBad = value;
+    }
+
+    bool isBad()
+    {
+        return _isBad;
+    }
+
     void clear()
     {
         setAll(0, "");
@@ -111,7 +122,9 @@ public:
             waitToAssign = false;
         }
         else
+        {
             stringValue = value;
+        }
     }
 
     void setPrivate()
@@ -154,14 +167,9 @@ public:
         waitToAssign = false;
     }
 
-    void setIndestructible()
+    void setIndestructible(bool value)
     {
-        isIndestructible = true;
-    }
-
-    void setDestructible()
-    {
-        isIndestructible = false;
+        isIndestructible = value;
     }
 
     bool indestructible()

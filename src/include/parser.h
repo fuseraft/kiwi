@@ -1185,7 +1185,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "loop")
         threeSpace("for", "var", "in", arg1, "for var in " + arg1, command); // REFACTOR HERE
-    else if (arg0 == "for" && arg1 == "infinity")
+    else if (arg0 == "for" && arg1 == "inf")
         mem.createForLoop();
     else if (arg0 == "remove")
     {
@@ -1692,16 +1692,16 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     else if (arg0 == "lock")
     {
         if (mem.variableExists(arg1))
-            mem.getVar(arg1).setIndestructible();
+            mem.getVar(arg1).setIndestructible(true);
         else if (mem.methodExists(arg1))
-            mem.getMethod(arg1).setIndestructible();
+            mem.getMethod(arg1).setIndestructible(true);
     }
     else if (arg0 == "unlock")
     {
         if (mem.variableExists(arg1))
-            mem.getVar(arg1).setDestructible();
+            mem.getVar(arg1).setIndestructible(false);
         else if (mem.methodExists(arg1))
-            mem.getMethod(arg1).setDestructible();
+            mem.getMethod(arg1).setIndestructible(false);
     }
     else if (arg0 == "method" || arg0 == "[method]")
     {

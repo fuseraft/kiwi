@@ -31,7 +31,7 @@ public:
     void clearClasses();
     void clearVariables();
     void clearWhile();
-    void collectGarbage();
+    void gc();
 
     void loadScript(string script);
 
@@ -376,9 +376,7 @@ void Memory::createMethod(string arg0, string arg1)
                 vector<string> params = getParams(arg1);
 
                 Method method(beforeParams(arg1));
-
-                if (indestructable)
-                    method.setIndestructible();
+                method.setIndestructible(indestructable);
 
                 for (int i = 0; i < (int)params.size(); i++)
                 {
@@ -441,9 +439,7 @@ void Memory::createMethod(string arg0, string arg1)
             else
             {
                 Method method(arg1);
-
-                if (indestructable)
-                    method.setIndestructible();
+                method.setIndestructible(indestructable);
 
                 methods.push_back(method);
                 State.DefiningMethod = true;
@@ -916,7 +912,7 @@ void Memory::clearVariables()
         variables.push_back(indestructibleVariables[i]);
 }
 
-void Memory::collectGarbage()
+void Memory::gc()
 {
     vector<string> garbageVars;
 

@@ -21,7 +21,8 @@ private:
         isPrivate_,
         isPublic_,
         isTemplate_,
-        isWhileLoop_;
+        isWhileLoop_,
+        isBad_;
 
     int startValue,
         stopValue,
@@ -57,19 +58,14 @@ public:
         className = name;
     }
 
-    void setIndestructible()
+    void setIndestructible(bool value)
     {
-        isIndestructible = true;
+        isIndestructible = value;
     }
 
     bool indestructible()
     {
         return isIndestructible;
-    }
-
-    void setDestructible()
-    {
-        isIndestructible = false;
     }
 
     string getClass()
@@ -228,12 +224,14 @@ public:
         templateClasses = 0;
     }
 
+    void setIsBad(bool value)
+    {
+        isBad_ = value;
+    }
+
     bool isBad()
     {
-        if (startsWith(name(), "[bad_meth"))
-            return true;
-
-        return false;
+        return isBad_;
     }
 
     string name()
