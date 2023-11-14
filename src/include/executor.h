@@ -312,7 +312,7 @@ void Executor::executeTemplate(Method m, vector<string> strings)
 
     State.ExecutedTemplate = false, State.DontCollectMethodVars = false;
 
-    mem.collectGarbage(); // if (!State.DontCollectMethodVars)
+    mem.gc(); // if (!State.DontCollectMethodVars)
 }
 
 void Executor::executeNest(Container n)
@@ -449,7 +449,7 @@ void Executor::executeMethod(Method m)
 
     State.ExecutedMethod = false;
 
-    mem.collectGarbage();
+    mem.gc();
 }
 
 void Executor::executeWhileLoop(Method m)
