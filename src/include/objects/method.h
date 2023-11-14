@@ -3,35 +3,36 @@
 class Method
 {
 private:
-    vector<Variable>    methodVariables;
-    vector<string>      lines;
+    vector<Variable> methodVariables;
+    vector<string> lines;
 
-    string              logicOperatorValue,
-                        methodName,
-                        className,
-                        symbolString,
-                        valueOne_,
-                        valueTwo_;
+    string logicOperatorValue,
+        methodName,
+        className,
+        symbolString,
+        valueOne_,
+        valueTwo_;
 
-    bool                isForLoop_,
-                        isIF_,
-                        isIndestructible,
-                        isInfinite_,
-                        isListLoop_,
-                        isPrivate_,
-                        isPublic_,
-                        isTemplate_,
-                        isWhileLoop_;
+    bool isForLoop_,
+        isIF_,
+        isIndestructible,
+        isInfinite_,
+        isListLoop_,
+        isPrivate_,
+        isPublic_,
+        isTemplate_,
+        isWhileLoop_,
+        isBad_;
 
-    int                 startValue,
-                        stopValue,
-                        templateClasses;
+    int startValue,
+        stopValue,
+        templateClasses;
 
-    List                list;
+    List list;
 
-    Container           nest;
+    Container nest;
 
-    char                defaultSymbol;
+    char defaultSymbol;
 
 public:
     Method() {}
@@ -49,7 +50,6 @@ public:
 
     ~Method()
     {
-        clear();
     }
 
     void setClass(string name)
@@ -57,19 +57,14 @@ public:
         className = name;
     }
 
-    void setIndestructible()
+    void setIndestructible(bool value)
     {
-        isIndestructible = true;
+        isIndestructible = value;
     }
 
     bool indestructible()
     {
         return isIndestructible;
-    }
-
-    void setDestructible()
-    {
-        isIndestructible = false;
     }
 
     string getClass()
@@ -228,12 +223,14 @@ public:
         templateClasses = 0;
     }
 
+    void setIsBad(bool value)
+    {
+        isBad_ = value;
+    }
+
     bool isBad()
     {
-        if (startsWith(name(), "[bad_meth"))
-            return true;
-
-        return false;
+        return isBad_;
     }
 
     string name()

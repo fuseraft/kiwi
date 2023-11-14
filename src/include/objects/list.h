@@ -1,10 +1,10 @@
 class List : public Collectable
 {
 private:
-    vector<string>  contents;
-    vector<string>  reversion;
-    string          listName;
-    bool            collectable;
+    vector<string> contents;
+    vector<string> reversion;
+    string listName;
+    bool collectable;
 
 public:
     List() {}
@@ -35,19 +35,19 @@ public:
         listName = s;
     }
 
-    void listSort()
+    void sort()
     {
         reversion = contents;
-        sort(contents.begin(), contents.end());
+        std::sort(contents.begin(), contents.end());
     }
 
-    void listReverse()
+    void reverse()
     {
         reversion = contents;
-        reverse(contents.begin(), contents.end());
+        std::reverse(contents.begin(), contents.end());
     }
 
-    void listRevert()
+    void revert()
     {
         contents = reversion;
     }

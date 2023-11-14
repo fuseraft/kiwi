@@ -7,7 +7,7 @@
 #include <cxxabi.h>
 
 void printStackTrace()
-{    
+{
     void *array[5];
     size_t size;
 

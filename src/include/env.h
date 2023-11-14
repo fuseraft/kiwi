@@ -8,8 +8,9 @@ string cleanString(string st);
 string getParsedOutput(string cmd);
 string getSilentOutput(string text);
 
-class Env {
-    public:
+class Env
+{
+public:
     Env() {}
     ~Env() {}
 
@@ -52,7 +53,7 @@ class Env {
 
     static void app(string p, string a)
     {
-        ofstream f(p.c_str(), ios::out|ios::app);
+        ofstream f(p.c_str(), ios::out | ios::app);
 
         if (!f.is_open())
             IO::printerrln("#!=read_fail");
@@ -71,8 +72,12 @@ class Env {
                     cleaned.push_back('\t');
                 else if (a[i] == '\'' && a[i - 1] == '\\')
                     cleaned.push_back('\"');
-                else if (a[i] == '\\' && a[i + 1] == 't') {}
-                else if (a[i] == '\\' && a[i + 1] == '\'') {}
+                else if (a[i] == '\\' && a[i + 1] == 't')
+                {
+                }
+                else if (a[i] == '\\' && a[i + 1] == '\'')
+                {
+                }
                 else
                     cleaned.push_back(a[i]);
             }
@@ -104,7 +109,7 @@ class Env {
         stream = popen(cmd.c_str(), "r");
         while (fgets(buffer, MAX_BUFFER, stream) != NULL)
             IO::print(buffer);
-            
+
         pclose(stream);
     }
 
@@ -122,7 +127,7 @@ class Env {
                 }
             }
         }*/
-        
+
         exec(cleanString(s));
         return 0;
     }
@@ -202,7 +207,7 @@ class Env {
 
     static string getEnvironmentVariable(string s)
     {
-        char * cString;
+        char *cString;
         cString = getenv(s.c_str());
 
         if (cString != NULL)
@@ -213,7 +218,7 @@ class Env {
 
     static void md(string p)
     {
-        if (mkdir(p.c_str(), S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH) != 0)
+        if (mkdir(p.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
             error(ErrorMessage::MAKE_DIR_FAIL, p, false);
     }
 
@@ -231,7 +236,7 @@ class Env {
 
     static string getUser()
     {
-        char * pUser;
+        char *pUser;
         pUser = getenv("USER");
 
         if (pUser != NULL)

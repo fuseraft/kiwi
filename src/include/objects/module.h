@@ -1,8 +1,8 @@
 class Module
 {
 private:
-    vector<string>  lines;
-    string          moduleName;
+    vector<string> lines;
+    string moduleName;
 
 public:
     Module() {}
