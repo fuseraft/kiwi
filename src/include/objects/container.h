@@ -1,10 +1,11 @@
 class Container
 {
 private:
-    vector<string>  lines;
-    string          containerName,
-                    value;
-    bool            isNestedIF;
+    vector<string> lines;
+    string containerName,
+        value;
+    bool isNestedIF;
+    bool _isBad;
 
 public:
     Container() {}
@@ -85,9 +86,11 @@ public:
 
     bool isBad()
     {
-        if (startsWith(name(), "[bad_nest"))
-            return true;
+        return _isBad;
+    }
 
-        return false;
+    void setIsBad(bool value)
+    {
+        _isBad = value;
     }
 };

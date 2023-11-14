@@ -1,8 +1,9 @@
 #ifndef NOCTIS_MEM_H
 #define NOCTIS_MEM_H
 
-class Memory {
-    private:
+class Memory
+{
+private:
     vector<Method> methods;
     vector<Class> classes;
     vector<Variable> variables;
@@ -16,7 +17,7 @@ class Memory {
     vector<Script> scripts;
     Switch mainSwitch;
 
-    public:
+public:
     Memory();
     ~Memory();
 
@@ -30,7 +31,7 @@ class Memory {
     void clearClasses();
     void clearVariables();
     void clearWhile();
-    void collectGarbage();
+    void gc();
 
     void loadScript(string script);
 
@@ -41,20 +42,23 @@ class Memory {
     int indexOfClass(string s);
     int indexOfScript(string s);
     int indexOfVariable(string s);
-    
-    Constant getConstant(int index);
-    Constant getConstant(string s);
-    List getList(int index);
-    List getList(string s);
-    Method getMethod(int index);
-    Method getMethod(string s);
-    Module getModule(string s);
-    Class getClass(int index);
-    Class getClass(string s);
-    Script getScript();
-    Variable getVar(int index);
-    Variable getVar(string s);
-    Switch getMainSwitch();
+
+    Constant& getConstant(int index);
+    Constant& getConstant(string s);
+    List& getList(int index);
+    List& getList(string s);
+    Method& getMethod(int index);
+    Method& getMethod(string s);
+    Module& getModule(string s);
+    Class& getClass(int index);
+    Class& getClass(string s);
+    Script& getScript();
+    Variable& getVar(int index);
+    Variable& getVar(string s);
+    Switch& getMainSwitch();
+    Method& getIfStatement(int index);
+    Method& getForLoop(int index);
+    Method& getWhileLoop(int index);
 
     void createMethod(string arg0, string arg1);
 
@@ -117,15 +121,10 @@ class Memory {
     void addVariable(Variable v);
 
     void addIfStatement(Method ifStatement);
-    Method getIfStatement(int index);
     int getIfStatementCount();
-
     int getForLoopCount();
-    Method getForLoop(int index);
-
     int getWhileLoopCount();
-    Method getWhileLoop(int index);
-
+    
     void addArg(string arg);
     int getArgCount();
     string getArg(int index);
@@ -133,10 +132,23 @@ class Memory {
     void createIfStatement(bool value);
     void createModule(string s);
     void createClass(string className);
+
+    void addLineToCurrentForLoop(string line);
+    void addItemToList(string listName, string value);
 };
 
 Memory::Memory() {}
 Memory::~Memory() {}
+
+void Memory::addLineToCurrentForLoop(string line)
+{
+    forLoops[forLoops.size() - 1].add(line);
+}
+
+void Memory::addItemToList(string listName, string value)
+{
+    this->getList(listName).add(value);
+}
 
 void Memory::addConstant(Constant c) { constants.push_back(c); }
 void Memory::addList(List l) { lists.push_back(l); }
@@ -155,17 +167,17 @@ int Memory::getListCount() { return lists.size(); }
 int Memory::getConstantCount() { return constants.size(); }
 int Memory::getForLoopCount() { return forLoops.size(); }
 
-Method Memory::getMethod(int index) { return methods.at(index); }
-Variable Memory::getVar(int index) { return variables.at(index); }
-Class Memory::getClass(int index) { return classes.at(index); }
-List Memory::getList(int index) { return lists.at(index); }
-Constant Memory::getConstant(int index) { return constants.at(index); }
+Method& Memory::getMethod(int index) { return methods.at(index); }
+Variable& Memory::getVar(int index) { return variables.at(index); }
+Class& Memory::getClass(int index) { return classes.at(index); }
+List& Memory::getList(int index) { return lists.at(index); }
+Constant& Memory::getConstant(int index) { return constants.at(index); }
 
-Method Memory::getIfStatement(int index) { return ifStatements.at(index); }
-Method Memory::getForLoop(int index) { return forLoops.at(index); }
+Method& Memory::getIfStatement(int index) { return ifStatements.at(index); }
+Method& Memory::getForLoop(int index) { return forLoops.at(index); }
 
 int Memory::getWhileLoopCount() { return whileLoops.size(); }
-Method Memory::getWhileLoop(int index) { return whileLoops.at(index); }
+Method& Memory::getWhileLoop(int index) { return whileLoops.at(index); }
 
 int Memory::getArgCount() { return args.size(); }
 string Memory::getArg(int index) { return args.at(index); }
@@ -201,7 +213,7 @@ void Memory::createModule(string s)
     State.CurrentModule = moduleName;
 }
 
-void Memory::createIfStatement(bool value) 
+void Memory::createIfStatement(bool value)
 {
     if (!value)
     {
@@ -232,7 +244,7 @@ void Memory::createIfStatement(bool value)
     }
     else
     {
-        Method ifMethod("[if#" + itos(State.IfStatementCount) +"]");
+        Method ifMethod("[if#" + itos(State.IfStatementCount) + "]");
         ifMethod.setBool(true);
         State.DefiningIfStatement = true;
         addIfStatement(ifMethod);
@@ -288,7 +300,7 @@ void Memory::createMethod(string arg0, string arg1)
             if (variableExists(params.at(i)))
             {
                 if (zeroDots(params.at(i)))
-                {                    
+                {
                     if (isString(params.at(i)))
                         method.addMethodVariable(varString(params.at(i)), getVar(params.at(i)).name());
                     else if (isNumber(params.at(i)))
@@ -375,9 +387,7 @@ void Memory::createMethod(string arg0, string arg1)
                 vector<string> params = getParams(arg1);
 
                 Method method(beforeParams(arg1));
-
-                if (indestructable)
-                    method.setIndestructible();
+                method.setIndestructible(indestructable);
 
                 for (int i = 0; i < (int)params.size(); i++)
                 {
@@ -440,9 +450,7 @@ void Memory::createMethod(string arg0, string arg1)
             else
             {
                 Method method(arg1);
-
-                if (indestructable)
-                    method.setIndestructible();
+                method.setIndestructible(indestructable);
 
                 methods.push_back(method);
                 State.DefiningMethod = true;
@@ -477,7 +485,7 @@ void Memory::loadScript(string script)
     scripts.push_back(newScript);
 }
 
-Switch Memory::getMainSwitch()
+Switch& Memory::getMainSwitch()
 {
     return mainSwitch;
 }
@@ -511,14 +519,10 @@ void Memory::createForLoop(double a, double b, string op)
     forMethod.setFor(true);
     forMethod.setSymbol(State.DefaultLoopSymbol);
 
-    if (op == "<=")
+    if (op == "<=" || op == ">=")
         forMethod.setForValues((int)a, (int)b);
-    else if (op == ">=")
-        forMethod.setForValues((int)a, (int)b);
-    else if (op == "<")
+    else if (op == "<" || op == ">")
         forMethod.setForValues((int)a, (int)b - 1);
-    else if (op == ">")
-        forMethod.setForValues((int)a, (int)b + 1);
 
     State.DefiningForLoop = true;
     forLoops.push_back(forMethod);
@@ -637,13 +641,13 @@ int Memory::indexOfVariable(string s)
     return -1;
 }
 
-Constant Memory::getConstant(string s) { return constants.at(indexOfConstant(s)); }
-List Memory::getList(string s) { return lists.at(indexOfList(s)); }
-Method Memory::getMethod(string s) { return methods.at(indexOfMethod(s)); }
-Module Memory::getModule(string s) { return modules.at(indexOfModule(s)); }
-Class Memory::getClass(string s) { return classes.at(indexOfClass(s)); }
-Script Memory::getScript() { return scripts.at(0); }
-Variable Memory::getVar(string s) { return variables.at(indexOfVariable(s)); }
+Constant& Memory::getConstant(string s) { return constants.at(indexOfConstant(s)); }
+List& Memory::getList(string s) { return lists.at(indexOfList(s)); }
+Method& Memory::getMethod(string s) { return methods.at(indexOfMethod(s)); }
+Module& Memory::getModule(string s) { return modules.at(indexOfModule(s)); }
+Class& Memory::getClass(string s) { return classes.at(indexOfClass(s)); }
+Script& Memory::getScript() { return scripts.at(0); }
+Variable& Memory::getVar(string s) { return variables.at(indexOfVariable(s)); }
 
 void Memory::removeConstant(string s) { constants.erase(constants.begin() + indexOfConstant(s)); }
 void Memory::removeList(string s) { lists.erase(lists.begin() + indexOfList(s)); }
@@ -793,7 +797,7 @@ void Memory::replaceElement(string before, string after, string replacement)
     getList(before).clear();
 
     for (int i = 0; i < (int)newList.size(); i++)
-        getList(before).add(newList.at(i));
+        addItemToList(before, newList.at(i));
 
     newList.clear();
 }
@@ -836,7 +840,7 @@ void Memory::createVariable(string name, double value)
     Variable newVariable(name, value);
 
     newVariable.setCollectable(State.ExecutedTemplate || State.ExecutedMethod || State.ExecutedTryBlock);
-    
+
     variables.push_back(newVariable);
     State.LastValue = dtos(value);
 }
@@ -915,7 +919,7 @@ void Memory::clearVariables()
         variables.push_back(indestructibleVariables[i]);
 }
 
-void Memory::collectGarbage()
+void Memory::gc()
 {
     vector<string> garbageVars;
 
@@ -961,7 +965,7 @@ bool Memory::methodExists(string s)
     {
         return getClass(beforeDot(s)).hasMethod(afterDot(s));
     }
-    
+
     for (unsigned i = 0; i < methods.size(); ++i)
         if (methods.at(i).name() == s)
             return true;
@@ -984,7 +988,7 @@ bool Memory::variableExists(string s)
     {
         string before(beforeDot(s)), after(afterDot(s));
         return classExists(before) && getClass(before).hasVariable(after);
-    }    
+    }
 
     for (unsigned i = 0; i < variables.size(); ++i)
         if (variables.at(i).name() == s)

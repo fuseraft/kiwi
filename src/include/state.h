@@ -1,7 +1,8 @@
 #ifndef NOCTIS_STATE_H
 #define NOCTIS_STATE_H
 
-struct {
+struct
+{
     bool CaptureParse;
     string ParsedOutput;
     string CurrentLine;
@@ -70,4 +71,3 @@ struct {
 } State;
 
 #endif
-
