@@ -134,10 +134,17 @@ public:
     void createIfStatement(bool value);
     void createModule(string s);
     void createClass(string className);
+
+    void addLineToCurrentForLoop(string line);
 };
 
 Memory::Memory() {}
 Memory::~Memory() {}
+
+void Memory::addLineToCurrentForLoop(string line)
+{
+    forLoops[forLoops.size() - 1].add(line);
+}
 
 void Memory::addConstant(Constant c) { constants.push_back(c); }
 void Memory::addList(List l) { lists.push_back(l); }
@@ -508,14 +515,10 @@ void Memory::createForLoop(double a, double b, string op)
     forMethod.setFor(true);
     forMethod.setSymbol(State.DefaultLoopSymbol);
 
-    if (op == "<=")
+    if (op == "<=" || op == ">=")
         forMethod.setForValues((int)a, (int)b);
-    else if (op == ">=")
-        forMethod.setForValues((int)a, (int)b);
-    else if (op == "<")
+    else if (op == "<" || op == ">")
         forMethod.setForValues((int)a, (int)b - 1);
-    else if (op == ">")
-        forMethod.setForValues((int)a, (int)b + 1);
 
     State.DefiningForLoop = true;
     forLoops.push_back(forMethod);

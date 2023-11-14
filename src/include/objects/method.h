@@ -50,7 +50,6 @@ public:
 
     ~Method()
     {
-        clear();
     }
 
     void setClass(string name)
