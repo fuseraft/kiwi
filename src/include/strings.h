@@ -612,12 +612,25 @@ string subtractString(string s1, string s2)
 bool isNumeric(string s)
 {
     int l = s.length();
-    bool pFound = false, hFound = false;
+    bool foundDot = false, foundSign = false, foundNonEmpty = false;
 
     for (int i = 0; i < l; i++)
     {
+        if (s[i] == ' ')
+        {
+            if (foundNonEmpty) 
+            {
+                return false;
+            }
+            else 
+            {
+                continue;
+            }
+        }
+
         if (!isdigit(s[i]))
         {
+            foundNonEmpty = true;
             switch (s[i])
             {
             case '.':
@@ -625,8 +638,8 @@ bool isNumeric(string s)
                     return false;
                 else
                 {
-                    if (!pFound)
-                        pFound = true;
+                    if (!foundDot)
+                        foundDot = true;
                     else
                         return false;
                 }
@@ -637,8 +650,8 @@ bool isNumeric(string s)
                     return false;
                 else
                 {
-                    if (!hFound)
-                        hFound = true;
+                    if (!foundSign)
+                        foundSign = true;
                     else
                         return false;
                 }
