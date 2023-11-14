@@ -1,9 +1,9 @@
 class Switch
 {
 private:
-    vector<Container>   cases;
-    Container           defaultCase;
-    int                 count;
+    vector<Container> cases;
+    Container defaultCase;
+    int count;
 
 public:
     Switch()

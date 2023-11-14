@@ -1,10 +1,10 @@
 class List : public Collectable
 {
 private:
-    vector<string>  contents;
-    vector<string>  reversion;
-    string          listName;
-    bool            collectable;
+    vector<string> contents;
+    vector<string> reversion;
+    string listName;
+    bool collectable;
 
 public:
     List() {}

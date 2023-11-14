@@ -1,8 +1,9 @@
 #ifndef NOCTIS_MEM_H
 #define NOCTIS_MEM_H
 
-class Memory {
-    private:
+class Memory
+{
+private:
     vector<Method> methods;
     vector<Class> classes;
     vector<Variable> variables;
@@ -16,7 +17,7 @@ class Memory {
     vector<Script> scripts;
     Switch mainSwitch;
 
-    public:
+public:
     Memory();
     ~Memory();
 
@@ -41,7 +42,7 @@ class Memory {
     int indexOfClass(string s);
     int indexOfScript(string s);
     int indexOfVariable(string s);
-    
+
     Constant getConstant(int index);
     Constant getConstant(string s);
     List getList(int index);
@@ -201,7 +202,7 @@ void Memory::createModule(string s)
     State.CurrentModule = moduleName;
 }
 
-void Memory::createIfStatement(bool value) 
+void Memory::createIfStatement(bool value)
 {
     if (!value)
     {
@@ -232,7 +233,7 @@ void Memory::createIfStatement(bool value)
     }
     else
     {
-        Method ifMethod("[if#" + itos(State.IfStatementCount) +"]");
+        Method ifMethod("[if#" + itos(State.IfStatementCount) + "]");
         ifMethod.setBool(true);
         State.DefiningIfStatement = true;
         addIfStatement(ifMethod);
@@ -288,7 +289,7 @@ void Memory::createMethod(string arg0, string arg1)
             if (variableExists(params.at(i)))
             {
                 if (zeroDots(params.at(i)))
-                {                    
+                {
                     if (isString(params.at(i)))
                         method.addMethodVariable(varString(params.at(i)), getVar(params.at(i)).name());
                     else if (isNumber(params.at(i)))
@@ -836,7 +837,7 @@ void Memory::createVariable(string name, double value)
     Variable newVariable(name, value);
 
     newVariable.setCollectable(State.ExecutedTemplate || State.ExecutedMethod || State.ExecutedTryBlock);
-    
+
     variables.push_back(newVariable);
     State.LastValue = dtos(value);
 }
@@ -961,7 +962,7 @@ bool Memory::methodExists(string s)
     {
         return getClass(beforeDot(s)).hasMethod(afterDot(s));
     }
-    
+
     for (unsigned i = 0; i < methods.size(); ++i)
         if (methods.at(i).name() == s)
             return true;
@@ -984,7 +985,7 @@ bool Memory::variableExists(string s)
     {
         string before(beforeDot(s)), after(afterDot(s));
         return classExists(before) && getClass(before).hasVariable(after);
-    }    
+    }
 
     for (unsigned i = 0; i < variables.size(); ++i)
         if (variables.at(i).name() == s)

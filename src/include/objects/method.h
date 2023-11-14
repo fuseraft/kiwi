@@ -3,35 +3,35 @@
 class Method
 {
 private:
-    vector<Variable>    methodVariables;
-    vector<string>      lines;
+    vector<Variable> methodVariables;
+    vector<string> lines;
 
-    string              logicOperatorValue,
-                        methodName,
-                        className,
-                        symbolString,
-                        valueOne_,
-                        valueTwo_;
+    string logicOperatorValue,
+        methodName,
+        className,
+        symbolString,
+        valueOne_,
+        valueTwo_;
 
-    bool                isForLoop_,
-                        isIF_,
-                        isIndestructible,
-                        isInfinite_,
-                        isListLoop_,
-                        isPrivate_,
-                        isPublic_,
-                        isTemplate_,
-                        isWhileLoop_;
+    bool isForLoop_,
+        isIF_,
+        isIndestructible,
+        isInfinite_,
+        isListLoop_,
+        isPrivate_,
+        isPublic_,
+        isTemplate_,
+        isWhileLoop_;
 
-    int                 startValue,
-                        stopValue,
-                        templateClasses;
+    int startValue,
+        stopValue,
+        templateClasses;
 
-    List                list;
+    List list;
 
-    Container           nest;
+    Container nest;
 
-    char                defaultSymbol;
+    char defaultSymbol;
 
 public:
     Method() {}

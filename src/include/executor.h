@@ -3,12 +3,13 @@
 
 #include "memory.h"
 
-class Executor {
-    private:
-    Memory& mem;
+class Executor
+{
+private:
+    Memory &mem;
 
-    public:
-    Executor(Memory& mem_) : mem(mem_) {}
+public:
+    Executor(Memory &mem_) : mem(mem_) {}
     ~Executor();
 
     void executeWhileLoop(Method m);
@@ -27,7 +28,7 @@ Executor::~Executor() {}
 void Executor::executeScript()
 {
     Script script = mem.getScript();
-    
+
     for (int i = 0; i < script.size(); i++)
     {
         State.CurrentLineNumber = i + 1;
@@ -87,7 +88,6 @@ void Executor::executeInspection(string arg0, string arg1, string before, string
         }
         else
             error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
-
     }
     else
     {
@@ -341,7 +341,7 @@ void Executor::executeMethod(string methodName, string className, string classMe
             error(ErrorMessage::METHOD_UNDEFINED, methodName, false);
         return;
     }
-    
+
     if (className.length() != 0 && classMethodName.length() != 0)
     {
         if (!mem.classExists(className))

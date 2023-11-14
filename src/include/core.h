@@ -374,9 +374,15 @@ string cleanString(string st)
                 cleaned.push_back('\'');
             else if (st[i] == '\\' && st[i + 1] == '{') // begin symbol
                 buildSymbol = true;
-            else if (st[i] == '\\' && st[i + 1] == 't') {} // begin tab
-            else if (st[i] == '\\' && st[i + 1] == ';') {} // begin semi-colon
-            else if (st[i] == '\\' && st[i + 1] == '\'') {} // begin apostrophe
+            else if (st[i] == '\\' && st[i + 1] == 't')
+            {
+            } // begin tab
+            else if (st[i] == '\\' && st[i + 1] == ';')
+            {
+            } // begin semi-colon
+            else if (st[i] == '\\' && st[i + 1] == '\'')
+            {
+            } // begin apostrophe
             else
                 cleaned.push_back(st[i]);
         }
