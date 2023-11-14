@@ -1,4 +1,4 @@
-# Loops in USL
+# Loops
 
 There are a handful of ways to loop so far.
 
