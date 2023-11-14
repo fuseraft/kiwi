@@ -4,22 +4,25 @@
 #include <ctime>
 #include "io.h"
 
-class DT {
-    public:
+class DT
+{
+public:
     static void delay(int seconds)
     {
         clock_t ct;
         ct = clock() + seconds * CLOCKS_PER_SEC;
 
-        while(clock() < ct) {}
+        while (clock() < ct)
+        {
+        }
     }
 
     static int secondNow()
     {
         time_t currently;
         time(&currently);
-        struct tm * t = localtime(&currently);
-        
+        struct tm *t = localtime(&currently);
+
         return t->tm_sec + 1;
     }
 
@@ -27,8 +30,8 @@ class DT {
     {
         time_t currently;
         time(&currently);
-        struct tm * t = localtime(&currently);
-        
+        struct tm *t = localtime(&currently);
+
         return t->tm_min;
     }
 
@@ -36,7 +39,7 @@ class DT {
     {
         time_t currently;
         time(&currently);
-        struct tm * t = localtime(&currently);
+        struct tm *t = localtime(&currently);
 
         if (t->tm_hour <= 11)
         {
@@ -53,7 +56,7 @@ class DT {
     {
         time_t currently;
         time(&currently);
-        struct tm * t = localtime(&currently);
+        struct tm *t = localtime(&currently);
 
         return t->tm_hour > 11 ? "PM" : "AM";
     }
@@ -91,7 +94,7 @@ class DT {
     {
         time_t currently;
         time(&currently);
-        struct tm * t = localtime(&currently);
+        struct tm *t = localtime(&currently);
 
         return t->tm_mon + 1;
     }
@@ -100,7 +103,7 @@ class DT {
     {
         time_t currently;
         time(&currently);
-        struct tm * t = localtime(&currently);
+        struct tm *t = localtime(&currently);
 
         return t->tm_year + 1900;
     }
@@ -109,7 +112,7 @@ class DT {
     {
         time_t currently;
         time(&currently);
-        struct tm * t = localtime(&currently);
+        struct tm *t = localtime(&currently);
 
         return t->tm_mday;
     }
@@ -118,7 +121,7 @@ class DT {
     {
         time_t currently;
         time(&currently);
-        struct tm * t = localtime(&currently);
+        struct tm *t = localtime(&currently);
 
         return t->tm_yday + 2;
     }
@@ -127,7 +130,7 @@ class DT {
     {
         time_t currently;
         time(&currently);
-        struct tm * t = localtime(&currently);
+        struct tm *t = localtime(&currently);
         string day("");
 
         switch (t->tm_wday)
@@ -165,7 +168,7 @@ class DT {
     {
         time_t currently;
         time(&currently);
-        struct tm * t = localtime(&currently);
+        struct tm *t = localtime(&currently);
         string month("");
 
         switch (t->tm_mon)

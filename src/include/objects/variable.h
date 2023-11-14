@@ -1,15 +1,16 @@
 class Variable : public Collectable
 {
 private:
-    double  numericValue;
-    string  stringValue,
-            variableName;
+    double numericValue;
+    string stringValue,
+        variableName;
 
-    bool    collectable,
-            isPrivate_,
-            isPublic_,
-            isIndestructible,
-            waitToAssign;
+    bool collectable,
+        isPrivate_,
+        isPublic_,
+        isIndestructible,
+        _isBad,
+        waitToAssign;
 
     void setAll(double numValue, string strValue)
     {
@@ -49,7 +50,7 @@ public:
         setAll(value, "[null]");
     }
 
-    ~Variable() { }
+    ~Variable() {}
 
     void setCollectable(bool value) override
     {
@@ -59,6 +60,16 @@ public:
     bool isCollectable() const override
     {
         return collectable;
+    }
+
+    void setIsBad(bool value)
+    {
+        _isBad = value;
+    }
+
+    bool isBad()
+    {
+        return _isBad;
     }
 
     void clear()
@@ -111,9 +122,10 @@ public:
             waitToAssign = false;
         }
         else
+        {
             stringValue = value;
+        }
     }
-
 
     void setPrivate()
     {
@@ -155,14 +167,9 @@ public:
         waitToAssign = false;
     }
 
-    void setIndestructible()
+    void setIndestructible(bool value)
     {
-        isIndestructible = true;
-    }
-
-    void setDestructible()
-    {
-        isIndestructible = false;
+        isIndestructible = value;
     }
 
     bool indestructible()

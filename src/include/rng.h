@@ -1,14 +1,15 @@
 #ifndef NOCTIS_RNG_H
 #define NOCTIS_RNG_H
 
-class RNG {
-    public:
+class RNG
+{
+public:
     static void seed();
     static double random(double min, double max);
     static string random(string start, string sc);
 };
 
-void RNG::seed() 
+void RNG::seed()
 {
     srand((unsigned int)time(NULL));
 }
