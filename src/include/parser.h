@@ -693,7 +693,7 @@ void parse(string s)
                         }
                         else
                         {
-                            mem.getForLoop(mem.getForLoopCount() - 1).add(s);
+                            mem.addLineToCurrentForLoop(s);
                         }
                     }
                     else
@@ -750,11 +750,11 @@ void parse(string s)
                                             if (after == "clear")
                                                 mem.getList(before).clear();
                                             else if (after == "sort")
-                                                mem.getList(before).listSort();
+                                                mem.getList(before).sort();
                                             else if (after == "reverse")
-                                                mem.getList(before).listReverse();
+                                                mem.getList(before).reverse();
                                             else if (after == "revert")
-                                                mem.getList(before).listRevert();
+                                                mem.getList(before).revert();
                                         }
                                         else if (before == "self")
                                         {
@@ -838,6 +838,7 @@ void parse(string s)
                             threeSpace(command.at(0), command.at(1), command.at(2), command.at(3), s, command);
                         else if (size == 5)
                         {
+                            // for var in 
                             if (command.at(0) == "for")
                             {
                                 if (containsParams(command.at(4)))
