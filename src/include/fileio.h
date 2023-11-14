@@ -1,8 +1,9 @@
 #ifndef NOCTIS_FILEIO_H
 #define NOCTIS_FILEIO_H
 
-class FileIO {
-    public:
+class FileIO
+{
+public:
     static void appendText(string arg1, string arg2, bool newLine);
     static void writeText(string arg1, string arg2);
 };
@@ -18,7 +19,7 @@ void FileIO::appendText(string arg1, string arg2, bool newLine)
             error(ErrorMessage::CONV_ERR, arg1, false);
             return;
         }
-        
+
         target = mem.varString(arg1);
 
         if (!mem.variableExists(arg2))
@@ -45,7 +46,7 @@ void FileIO::appendText(string arg1, string arg2, bool newLine)
     else
     {
         target = arg1;
-        
+
         if (!mem.variableExists(arg2))
         {
             text = arg2;
@@ -94,7 +95,7 @@ void FileIO::writeText(string arg1, string arg2)
         }
 
         target = mem.varString(arg1);
-        
+
         if (!mem.variableExists(arg2))
         {
             text = arg2;

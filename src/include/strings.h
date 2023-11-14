@@ -16,7 +16,7 @@ string getLower(string in);
 string getInner(string s, int left, int right);
 string subtractChar(string s1, string s2);
 string subtractString(string s1, string s2);
-string trimLeadingWhitespace(const string& str);
+string trimLeadingWhitespace(const string &str);
 
 bool contains(string s1, string s2);
 bool containsBrackets(string s);
@@ -45,7 +45,7 @@ std::vector<std::string> &split(const std::string &s, char delim, std::vector<st
     std::stringstream ss(s);
     std::string item;
 
-    while(std::getline(ss, item, delim))
+    while (std::getline(ss, item, delim))
     {
         elems.push_back(item);
     }
@@ -60,7 +60,7 @@ std::vector<std::string> split(const std::string &s, char delim)
     return split(s, delim, elems);
 }
 
-string& replace(string &original, string target, string replacement)
+string &replace(string &original, string target, string replacement)
 {
     size_t pos = original.find(target);
 
@@ -89,9 +89,11 @@ static inline string &trim(string &s)
     return ltrim(rtrim(s));
 }
 
-string trimLeadingWhitespace(const string& str) {
-  auto it = find_if_not(str.begin(), str.end(), [](int c) { return isspace(c); });
-  return string(it, str.end());
+string trimLeadingWhitespace(const string &str)
+{
+    auto it = find_if_not(str.begin(), str.end(), [](int c)
+                          { return isspace(c); });
+    return string(it, str.end());
 }
 
 bool isUpper(string in)
@@ -217,7 +219,6 @@ bool containsBrackets(string s)
     return false;
 }
 
-
 vector<string> getParams(string s)
 {
     vector<string> params;
@@ -278,7 +279,9 @@ vector<string> getBracketRange(string s)
             }
             else if (s[i] == ']')
                 start_push = false;
-            else if (s[i] == ' ') {}
+            else if (s[i] == ' ')
+            {
+            }
             else
                 new_name.push_back(s[i]);
         }
@@ -316,7 +319,9 @@ vector<string> getRange(string s)
             }
             else if (s[i] == ')')
                 start_push = false;
-            else if (s[i] == ' ') {}
+            else if (s[i] == ' ')
+            {
+            }
             else
                 new_name.push_back(s[i]);
         }
@@ -346,7 +351,6 @@ string beforeParams(string s)
 
     return new_str;
 }
-
 
 string beforeBrackets(string s)
 {
@@ -465,22 +469,31 @@ string beforeUS(string s)
     return var;
 }
 
-string getInner(string s, int left, int right) {
-	string inner("");
-	int len = s.length();
-	if (left > len || right > len) {
-		// overflow error 
-	} else if (left > right) {
-		// invalid operation
-	} else if (left == right) {
-		inner.push_back(s[left]);
-	} else {
-		for (int i = left; i <= right; i++) {
-			inner.push_back(s[i]);
-		}
-	}
-	
-	return inner;
+string getInner(string s, int left, int right)
+{
+    string inner("");
+    int len = s.length();
+    if (left > len || right > len)
+    {
+        // overflow error
+    }
+    else if (left > right)
+    {
+        // invalid operation
+    }
+    else if (left == right)
+    {
+        inner.push_back(s[left]);
+    }
+    else
+    {
+        for (int i = left; i <= right; i++)
+        {
+            inner.push_back(s[i]);
+        }
+    }
+
+    return inner;
 }
 
 string subtractChar(string s1, string s2)
@@ -548,9 +561,9 @@ bool zeroDots(string s)
     for (int i = 0; i < l; i++)
     {
         if (s[i] == '.')
-		{
+        {
             none = false;
-		}
+        }
     }
 
     return none;
@@ -558,14 +571,14 @@ bool zeroDots(string s)
 
 bool zeroNumbers(string s)
 {
-	int start = '0', stop = '9';
-	
+    int start = '0', stop = '9';
+
     for (unsigned int i = 0; i < s.length(); i++)
     {
-		if (s[i] >= start && s[i] <= stop)
-		{
-			return false;
-		}
+        if (s[i] >= start && s[i] <= stop)
+        {
+            return false;
+        }
     }
 
     return true;
@@ -603,39 +616,39 @@ bool isNumeric(string s)
 
     for (int i = 0; i < l; i++)
     {
-		if (!isdigit(s[i])) 
-		{
-			switch (s[i])
-			{
-			case '.':
-				if (i == 0)
-					return false;
-				else
-				{
-					if (!pFound)
-						pFound = true;
-					else
-						return false;
-				}
-				break;
+        if (!isdigit(s[i]))
+        {
+            switch (s[i])
+            {
+            case '.':
+                if (i == 0)
+                    return false;
+                else
+                {
+                    if (!pFound)
+                        pFound = true;
+                    else
+                        return false;
+                }
+                break;
 
-			case '-':
-				if (i != 0)
-					return false;
-				else
-				{
-					if (!hFound)
-						hFound = true;
-					else
-						return false;
-				}
-				break;
+            case '-':
+                if (i != 0)
+                    return false;
+                else
+                {
+                    if (!hFound)
+                        hFound = true;
+                    else
+                        return false;
+                }
+                break;
 
-			default:
-				return false;
-				break;
-			}
-		}
+            default:
+                return false;
+                break;
+            }
+        }
     }
 
     return true;
@@ -643,12 +656,12 @@ bool isNumeric(string s)
 
 bool isTrue(string s)
 {
-	return s == "true" || s == "1";
+    return s == "true" || s == "1";
 }
 
 bool isFalse(string s)
 {
-	return s == "false" || s == "0";
+    return s == "false" || s == "0";
 }
 
 // NUMBER > STRING & VICE-VERSA
@@ -679,7 +692,7 @@ int get_alpha_num(char c)
 
 bool notStandardZeroSpace(string arg)
 {
-    const char * standardZeroSpaceWords =
+    const char *standardZeroSpaceWords =
         "break;caught;"
         "clear_all!;clear_constants!;clear_lists!;clear_methods!;clear_classes!;clear_variables!;"
         "else;end;exit;failif;leave!;"
@@ -690,7 +703,7 @@ bool notStandardZeroSpace(string arg)
 
 bool notStandardOneSpace(string arg)
 {
-    const char * standardOneSpaceWords =
+    const char *standardOneSpaceWords =
         "!;?;__begin__;call_method;cd;chdir;collect?;"
         "decrypt;delay;directory?;dpush;dpop;"
         "encrypt;err;error;file?;for;fpush;fpop;"

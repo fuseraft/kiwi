@@ -3,19 +3,19 @@
 class Class : public Collectable
 {
 private:
-    vector<Method>      methods;
-    vector<Variable>    variables;
+    vector<Method> methods;
+    vector<Variable> variables;
 
-    int                 badMethods,
-                        badVariables;
+    int badMethods,
+        badVariables;
 
-    string              className,
-                        currentMethod;
+    string className,
+        currentMethod;
 
-    bool                collectable;
+    bool collectable;
 
 public:
-    Class() { }
+    Class() {}
 
     Class(string name)
     {

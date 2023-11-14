@@ -1,15 +1,15 @@
 class Variable : public Collectable
 {
 private:
-    double  numericValue;
-    string  stringValue,
-            variableName;
+    double numericValue;
+    string stringValue,
+        variableName;
 
-    bool    collectable,
-            isPrivate_,
-            isPublic_,
-            isIndestructible,
-            waitToAssign;
+    bool collectable,
+        isPrivate_,
+        isPublic_,
+        isIndestructible,
+        waitToAssign;
 
     void setAll(double numValue, string strValue)
     {
@@ -49,7 +49,7 @@ public:
         setAll(value, "[null]");
     }
 
-    ~Variable() { }
+    ~Variable() {}
 
     void setCollectable(bool value) override
     {
@@ -113,7 +113,6 @@ public:
         else
             stringValue = value;
     }
-
 
     void setPrivate()
     {

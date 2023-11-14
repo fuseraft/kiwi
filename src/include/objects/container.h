@@ -1,10 +1,10 @@
 class Container
 {
 private:
-    vector<string>  lines;
-    string          containerName,
-                    value;
-    bool            isNestedIF;
+    vector<string> lines;
+    string containerName,
+        value;
+    bool isNestedIF;
 
 public:
     Container() {}
