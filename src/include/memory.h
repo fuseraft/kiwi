@@ -52,6 +52,7 @@ public:
     Module& getModule(string s);
     Class& getClass(int index);
     Class& getClass(string s);
+    Variable getClassVariable(string className, string variableName);
     Script& getScript();
     Variable& getVar(int index);
     Variable& getVar(string s);
@@ -644,6 +645,10 @@ Module& Memory::getModule(string s) { return modules.at(indexOfModule(s)); }
 Class& Memory::getClass(string s) { return classes.at(indexOfClass(s)); }
 Script& Memory::getScript() { return scripts.at(0); }
 Variable& Memory::getVar(string s) { return variables.at(indexOfVariable(s)); }
+Variable Memory::getClassVariable(string className, string variableName)
+{
+    return getClass(className).getVariable(variableName);
+}
 
 void Memory::removeConstant(string s) { constants.erase(constants.begin() + indexOfConstant(s)); }
 void Memory::removeList(string s) { lists.erase(lists.begin() + indexOfList(s)); }

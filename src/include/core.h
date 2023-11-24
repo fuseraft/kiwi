@@ -1110,74 +1110,54 @@ string getSubString(string arg1, string arg2, string beforeBracket)
     if (mem.isString(beforeBracket))
     {
         vector<string> listRange = getBracketRange(arg2);
-
         string variableString = mem.varString(beforeBracket);
 
-        if (listRange.size() == 2)
+        if (listRange.size() < 1 || listRange.size() > 2)
         {
-            string rangeBegin(listRange.at(0)), rangeEnd(listRange.at(1));
-
-            if (rangeBegin.length() != 0 && rangeEnd.length() != 0)
-            {
-                if (isNumeric(rangeBegin) && isNumeric(rangeEnd))
-                {
-                    if (stoi(rangeBegin) < stoi(rangeEnd))
-                    {
-                        if ((int)variableString.length() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)
-                        {
-                            string tempString("");
-
-                            for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
-                                tempString.push_back(variableString[i]);
-
-                            returnValue = tempString;
-                        }
-                        else
-                            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
-                    }
-                    else if (stoi(rangeBegin) > stoi(rangeEnd))
-                    {
-                        if ((int)variableString.length() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)
-                        {
-                            string tempString("");
-
-                            for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
-                                tempString.push_back(variableString[i]);
-
-                            returnValue = tempString;
-                        }
-                        else
-                            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
-                    }
-                    else
-                        error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
-                }
-                else
-                    error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
-            }
-            else
-                error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+            error(ErrorMessage::OUT_OF_BOUNDS, arg2, false);
         }
         else if (listRange.size() == 1)
         {
             string rangeBegin(listRange.at(0));
 
-            if (rangeBegin.length() != 0)
+            if (rangeBegin.length() != 0 && isNumeric(rangeBegin))
             {
-                if (isNumeric(rangeBegin))
-                {
-                    if ((int)variableString.length() - 1 >= stoi(rangeBegin) && stoi(rangeBegin) >= 0)
-                    {
-                        string tmp_("");
-                        tmp_.push_back(variableString[stoi(rangeBegin)]);
+                int beginIndex = stoi(rangeBegin);
 
-                        returnValue = tmp_;
-                    }
+                if ((int)variableString.length() - 1 >= beginIndex && beginIndex >= 0)
+                {
+                    returnValue = "" + variableString[beginIndex];
                 }
             }
         }
-        else
-            error(ErrorMessage::OUT_OF_BOUNDS, arg2, false);
+        else if (listRange.size() == 2)
+        {
+            string rangeBegin(listRange.at(0)), rangeEnd(listRange.at(1));
+
+            if (!(rangeBegin.length() != 0 && rangeEnd.length() != 0) || !((isNumeric(rangeBegin) && isNumeric(rangeEnd)) || !((int)variableString.length() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0) || !((int)variableString.length() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)))
+            {
+                error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+                return returnValue;
+            }
+
+            int beginIndex = stoi(rangeBegin),
+                endIndex = stoi(rangeEnd);
+
+            if (beginIndex < endIndex)
+            {
+                for (int i = beginIndex; i <= endIndex; i++)
+                {
+                    returnValue.push_back(variableString[i]);
+                }
+            }
+            else if (beginIndex > endIndex)
+            {
+                for (int i = beginIndex; i >= endIndex; i--)
+                {
+                    returnValue.push_back(variableString[i]);
+                }
+            }
+        }
     }
     else
         error(ErrorMessage::NULL_STRING, beforeBracket, false);
@@ -1187,99 +1167,83 @@ string getSubString(string arg1, string arg2, string beforeBracket)
 
 void setSubString(string arg1, string arg2, string beforeBracket)
 {
-    if (mem.isString(beforeBracket))
+    if (!mem.isString(beforeBracket))
     {
-        vector<string> listRange = getBracketRange(arg2);
+        error(ErrorMessage::NULL_STRING, beforeBracket, false);
+        return;
+    }
 
-        string variableString = mem.varString(beforeBracket);
+    vector<string> listRange = getBracketRange(arg2);
+    string variableString = mem.varString(beforeBracket);
 
-        if (listRange.size() == 2)
+    if (listRange.size() == 2)
+    {
+        string rangeBegin(listRange.at(0)), rangeEnd(listRange.at(1));
+
+        if (rangeBegin.length() == 0 || rangeEnd.length() == 0 || !(isNumeric(rangeBegin) && isNumeric(rangeEnd)))
         {
-            string rangeBegin(listRange.at(0)), rangeEnd(listRange.at(1));
-
-            if (rangeBegin.length() != 0 && rangeEnd.length() != 0)
-            {
-                if (isNumeric(rangeBegin) && isNumeric(rangeEnd))
-                {
-                    if (stoi(rangeBegin) < stoi(rangeEnd))
-                    {
-                        if ((int)variableString.length() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)
-                        {
-                            string tempString("");
-
-                            for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
-                                tempString.push_back(variableString[i]);
-
-                            if (mem.variableExists(arg1))
-                                mem.setVariable(arg1, tempString);
-                            else
-                                mem.createVariable(arg1, tempString);
-                        }
-                        else
-                            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
-                    }
-                    else if (stoi(rangeBegin) > stoi(rangeEnd))
-                    {
-                        if ((int)variableString.length() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)
-                        {
-                            string tempString("");
-
-                            for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
-                                tempString.push_back(variableString[i]);
-
-                            if (mem.variableExists(arg1))
-                                mem.setVariable(arg1, tempString);
-                            else
-                                mem.createVariable(arg1, tempString);
-                        }
-                        else
-                            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
-                    }
-                    else
-                        error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
-                }
-                else
-                    error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
-            }
-            else
-                error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+            return;
         }
-        else if (listRange.size() == 1)
+
+        int beginIndex = stoi(rangeBegin),
+            endIndex = stoi(rangeEnd);
+
+        string tempString("");
+
+        if (beginIndex < endIndex && beginIndex >= 0 && endIndex <= (int)variableString.length() - 1)
         {
-            string rangeBegin(listRange.at(0));
+            for (int i = beginIndex; i <= endIndex; i++)
+                tempString.push_back(variableString[i]);
 
-            if (rangeBegin.length() != 0)
-            {
-                if (isNumeric(rangeBegin))
-                {
-                    if ((int)variableString.length() - 1 >= stoi(rangeBegin) && stoi(rangeBegin) >= 0)
-                    {
-                        string tmp_("");
-                        tmp_.push_back(variableString[stoi(rangeBegin)]);
+            if (mem.variableExists(arg1))
+                mem.setVariable(arg1, tempString);
+            else
+                mem.createVariable(arg1, tempString);
+        }
+        else if (beginIndex > endIndex && beginIndex >= 0 && endIndex <= (int)variableString.length())
+        {
+            for (int i = beginIndex; i >= endIndex; i--)
+                tempString.push_back(variableString[i]);
 
-                        if (mem.variableExists(arg1))
-                            mem.setVariable(arg1, tmp_);
-                        else
-                            mem.createVariable(arg1, tmp_);
-                    }
-                }
-            }
+            if (mem.variableExists(arg1))
+                mem.setVariable(arg1, tempString);
+            else
+                mem.createVariable(arg1, tempString);
         }
         else
-            error(ErrorMessage::OUT_OF_BOUNDS, arg2, false);
+            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+    }
+    else if (listRange.size() == 1)
+    {
+        string rangeBegin(listRange.at(0));
+
+        if (rangeBegin.length() != 0 && isNumeric(rangeBegin))
+        {
+            int beginIndex = stoi(rangeBegin);
+            if ((int)variableString.length() - 1 >= beginIndex && beginIndex >= 0)
+            {
+                string tmp_("");
+                tmp_.push_back(variableString[beginIndex]);
+
+                if (mem.variableExists(arg1))
+                    mem.setVariable(arg1, tmp_);
+                else
+                    mem.createVariable(arg1, tmp_);
+            }
+        }
     }
     else
-        error(ErrorMessage::NULL_STRING, beforeBracket, false);
+        error(ErrorMessage::OUT_OF_BOUNDS, arg2, false);
 }
 
 string getStringValue(string arg1, string op, string arg2)
 {
     string firstValue(""), lastValue(""), returnValue("");
 
-    if (mem.variableExists(arg1))
+    if (mem.variableExists(arg1) && mem.isString(arg1))
     {
-        if (mem.isString(arg1))
-            firstValue = mem.varString(arg1);
+        firstValue = mem.varString(arg1);
     }
 
     if (mem.variableExists(arg2))
@@ -1292,8 +1256,7 @@ string getStringValue(string arg1, string op, string arg2)
     else if (mem.methodExists(arg2))
     {
         parse(arg2);
-
-        lastValue = lastValue;
+        lastValue = State.LastValue;
     }
     else if (!zeroDots(arg2))
     {
@@ -1303,18 +1266,14 @@ string getStringValue(string arg1, string op, string arg2)
         {
             InternalGetEnv("", _afterDot, 2);
         }
-        else if (_beforeDot == "args")
+        else if (_beforeDot == "args" && _afterDot == "size")
         {
-            if (_afterDot == "size")
-                lastValue = itos(mem.getArgCount());
-            else
-                lastValue = "";
+            lastValue = itos(mem.getArgCount());
         }
         else if (mem.classExists(_beforeDot))
         {
             exec.executeTemplate(mem.getClass(_beforeDot).getMethod(_afterDot), getParams(_afterDot));
-
-            lastValue = lastValue;
+            lastValue = State.LastValue;
         }
         else
             lastValue = arg2;
@@ -1326,35 +1285,25 @@ string getStringValue(string arg1, string op, string arg2)
         if (_beforeBrackets == "args")
         {
             vector<string> params = getBracketRange(_afterBrackets);
+            int index = stoi(params.at(0));
 
-            if (isNumeric(params.at(0)))
+            if (isNumeric(params.at(0)) && mem.getArgCount() - 1 >= index && index >= 0)
             {
-                if (mem.getArgCount() - 1 >= stoi(params.at(0)) && stoi(params.at(0)) >= 0)
-                {
-                    if (params.at(0) == "0")
-                        lastValue = State.CurrentScript;
-                    else
-                        lastValue = mem.getArg(stoi(params.at(0)));
-                }
+                if (params.at(0) == "0")
+                    lastValue = State.CurrentScript;
                 else
-                    lastValue = "";
+                    lastValue = mem.getArg(index);
             }
-            else
-                lastValue = "";
         }
         else if (mem.listExists(_beforeBrackets))
         {
             _afterBrackets = subtractString(_afterBrackets, "]");
+            int index = stoi(_afterBrackets);
 
-            if (mem.getList(_beforeBrackets).size() >= stoi(_afterBrackets))
+            if (mem.getList(_beforeBrackets).size() >= index && index >= 0)
             {
-                if (stoi(_afterBrackets) >= 0)
-                    lastValue = mem.getList(_beforeBrackets).at(stoi(_afterBrackets));
-                else
-                    lastValue = "";
+                lastValue = mem.getList(_beforeBrackets).at(index);
             }
-            else
-                lastValue = "";
         }
     }
     else if (containsParams(arg2))
@@ -1362,16 +1311,12 @@ string getStringValue(string arg1, string op, string arg2)
         if (beforeParams(arg2).length() != 0)
         {
             exec.executeTemplate(mem.getMethod(arg2), getParams(arg2));
-
-            lastValue = lastValue;
+            lastValue = State.LastValue;
         }
-        else
-        {
-            if (isStringStack(arg2))
-                lastValue = getStringStack(arg2);
-            else if (stackReady(arg2))
-                lastValue = dtos(getStack(arg2));
-        }
+        else if (isStringStack(arg2))
+            lastValue = getStringStack(arg2);
+        else if (stackReady(arg2))
+            lastValue = dtos(getStack(arg2));
     }
     else
         lastValue = arg2;
@@ -1380,17 +1325,9 @@ string getStringValue(string arg1, string op, string arg2)
         returnValue = (firstValue + lastValue);
     else if (op == "-=")
         returnValue = subtractString(firstValue, lastValue);
-    else if (op == "*=")
+    else if (op == "*=" && isNumeric(lastValue))
     {
-        if (isNumeric(lastValue))
-        {
-            string bigString("");
-
-            for (int i = 0; i < (int)stod(lastValue); i++)
-                bigString.append(firstValue);
-
-            returnValue = bigString;
-        }
+        returnValue = multiplyString(firstValue, stoi(lastValue));
     }
     else if (op == "/=")
         returnValue = subtractString(firstValue, lastValue);
@@ -1407,27 +1344,19 @@ double getNumberValue(string arg1, string op, string arg2)
 {
     double firstValue = 0, lastValue = 0, returnValue = 0;
 
-    if (mem.variableExists(arg1))
+    if (mem.variableExists(arg1) && mem.isNumber(arg1))
     {
-        if (mem.isNumber(arg1))
-            firstValue = mem.varNumber(arg1);
+        firstValue = mem.varNumber(arg1);
     }
 
-    if (mem.variableExists(arg2))
+    if (mem.variableExists(arg2) && mem.isNumber(arg2))
     {
-        if (mem.isNumber(arg2))
-            lastValue = mem.varNumber(arg2);
-        else
-            lastValue = 0;
+        lastValue = mem.varNumber(arg2);
     }
     else if (mem.methodExists(arg2))
     {
         parse(arg2);
-
-        if (isNumeric(State.LastValue))
-            lastValue = stod(State.LastValue);
-        else
-            lastValue = 0;
+        lastValue = isNumeric(State.LastValue) ? stod(State.LastValue) : 0;
     }
     else if (!zeroDots(arg2))
     {
@@ -1436,29 +1365,17 @@ double getNumberValue(string arg1, string op, string arg2)
         {
             InternalGetEnv("", _afterDot, 2);
         }
-        else if (_beforeDot == "args")
+        else if (_beforeDot == "args" && _afterDot == "size")
         {
-            if (_afterDot == "size")
-                lastValue = stod(itos(mem.getArgCount()));
-            else
-                lastValue = 0;
+            lastValue = stod(itos(mem.getArgCount()));
         }
         else if (mem.classExists(_beforeDot))
         {
             exec.executeTemplate(mem.getClass(_beforeDot).getMethod(_afterDot), getParams(_afterDot));
-
-            if (isNumeric(State.LastValue))
-                lastValue = stod(State.LastValue);
-            else
-                lastValue = 0;
+            lastValue = isNumeric(State.LastValue) ? stod(State.LastValue) : 0;
         }
-        else
-        {
-            if (isNumeric(State.LastValue))
-                lastValue = stod(arg2);
-            else
-                lastValue = 0;
-        }
+        else if (isNumeric(State.LastValue))
+            lastValue = stod(arg2);
     }
     else if (containsBrackets(arg2))
     {
@@ -1467,21 +1384,15 @@ double getNumberValue(string arg1, string op, string arg2)
         if (mem.listExists(_beforeBrackets))
         {
             _afterBrackets = subtractString(_afterBrackets, "]");
+            int index = stoi(_afterBrackets);
 
-            if (mem.getList(_beforeBrackets).size() >= stoi(_afterBrackets))
+            if (mem.getList(_beforeBrackets).size() >= index)
             {
-                if (stoi(_afterBrackets) >= 0)
+                if (index >= 0 && isNumeric(mem.getList(_beforeBrackets).at(index)))
                 {
-                    if (isNumeric(mem.getList(_beforeBrackets).at(stoi(_afterBrackets))))
-                        lastValue = stod(mem.getList(_beforeBrackets).at(stoi(_afterBrackets)));
-                    else
-                        lastValue = 0;
+                    lastValue = stod(mem.getList(_beforeBrackets).at(index));
                 }
-                else
-                    lastValue = 0;
             }
-            else
-                lastValue = 0;
         }
     }
     else if (containsParams(arg2))
@@ -1489,28 +1400,16 @@ double getNumberValue(string arg1, string op, string arg2)
         if (beforeParams(arg2).length() != 0)
         {
             exec.executeTemplate(mem.getMethod(arg2), getParams(arg2));
-
             if (isNumeric(State.LastValue))
-
                 lastValue = stod(State.LastValue);
-            else
-                lastValue = 0;
         }
-        else
+        else if (stackReady(arg2))
         {
-            if (stackReady(arg2))
-                lastValue = getStack(arg2);
-            else
-                lastValue = 0;
+            lastValue = getStack(arg2);
         }
     }
-    else
-    {
-        if (isNumeric(arg2))
-            lastValue = stod(arg2);
-        else
-            lastValue = 0;
-    }
+    else if (isNumeric(arg2))
+        lastValue = stod(arg2);
 
     if (op == "+=")
         returnValue = (firstValue + lastValue);
@@ -1529,6 +1428,27 @@ double getNumberValue(string arg1, string op, string arg2)
     return returnValue;
 }
 
+void initializeTemporaryVariable(string arg1, string arg2, vector<string> command, string tempClassVariableName, string className, string variableName)
+{
+    twoSpace(tempClassVariableName, arg1, arg2, command);
+    mem.getVar(tempClassVariableName).setName(variableName);
+    mem.getClass(className).removeVariable(variableName);
+    mem.getClass(className).addVariable(mem.getVar(variableName));
+    mem.removeVariable(variableName);
+}
+
+void initializeTemporaryString(string arg1, string arg2, vector<string> command, string tempClassVariableName, string className, string variableName)
+{
+    mem.createVariable(tempClassVariableName, mem.getClassVariable(className, variableName).getString());
+    initializeTemporaryVariable(arg1, arg2, command, tempClassVariableName, className, variableName);
+}
+
+void initializeTemporaryNumber(string arg1, string arg2, vector<string> command, string tempClassVariableName, string className, string variableName)
+{
+    mem.createVariable(tempClassVariableName, mem.getClass(beforeDot(className)).getVariable(afterDot(className)).getNumber());
+    initializeTemporaryVariable(arg1, arg2, command, tempClassVariableName, className, variableName);
+}
+
 void initializeVariable(string arg0, string arg1, string arg2, vector<string> command)
 {
     string tmpObjName = beforeDot(arg0), tmpVarName = afterDot(arg0);
@@ -1540,30 +1460,12 @@ void initializeVariable(string arg0, string arg1, string arg2, vector<string> co
             if (mem.getClass(tmpObjName).getVariable(tmpVarName).getString() != State.Null)
             {
                 string tempClassVariableName("@ " + tmpObjName + tmpVarName + "_string");
-
-                mem.createVariable(tempClassVariableName, mem.getClass(tmpObjName).getVariable(tmpVarName).getString());
-
-                twoSpace(tempClassVariableName, arg1, arg2, command);
-
-                mem.getVar(tempClassVariableName).setName(tmpVarName);
-
-                mem.getClass(tmpObjName).removeVariable(tmpVarName);
-                mem.getClass(tmpObjName).addVariable(mem.getVar(tmpVarName));
-                mem.removeVariable(tmpVarName);
+                initializeTemporaryString(arg1, arg2, command, tempClassVariableName, tmpObjName, tmpVarName);
             }
             else if (mem.getClass(tmpObjName).getVariable(tmpVarName).getNumber() != State.NullNum)
             {
-                string tempClassVariableName("@____" + beforeDot(arg0) + "___" + afterDot(arg0) + "_number");
-
-                mem.createVariable(tempClassVariableName, mem.getClass(beforeDot(arg0)).getVariable(afterDot(arg0)).getNumber());
-
-                twoSpace(tempClassVariableName, arg1, arg2, command);
-
-                mem.getVar(tempClassVariableName).setName(afterDot(arg0));
-
-                mem.getClass(beforeDot(arg0)).removeVariable(afterDot(arg0));
-                mem.getClass(beforeDot(arg0)).addVariable(mem.getVar(afterDot(arg0)));
-                mem.removeVariable(afterDot(arg0));
+                string tempClassVariableName("@____" + tmpObjName + "___" + tmpVarName + "_number");
+                initializeTemporaryNumber(arg1, arg2, command, tempClassVariableName, tmpObjName, tmpVarName);
             }
         }
         else if (arg1 == "=")
