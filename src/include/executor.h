@@ -18,8 +18,7 @@ public:
     void executeNest(Container n);
     void executeForLoop(Method m);
     void executeTemplate(Method m, vector<string> vs);
-    void executeSimpleStatement(string left, string oper, string right, string s);
-    void executeInspection(string arg0, string arg1, string before, string after);
+    void executeSimpleStatement(string left, string oper, string right);
     void executeScript();
 };
 
@@ -62,106 +61,7 @@ void Executor::executeScript()
     State.CurrentScript = State.PreviousScript;
 }
 
-void Executor::executeInspection(string arg0, string arg1, string before, string after)
-{
-    if (before.length() != 0 && after.length() != 0)
-    {
-        if (!mem.classExists(before))
-        {
-            error(ErrorMessage::CLS_METHOD_UNDEFINED, before, false);
-            return;
-        }
-
-        if (mem.getClass(before).hasMethod(after))
-        {
-            for (int i = 0; i < mem.getClass(before).getMethod(after).size(); i++)
-                write(mem.getClass(before).getMethod(after).at(i));
-        }
-        else if (mem.getClass(before).hasVariable(after))
-        {
-            if (mem.getClass(before).getVariable(after).getString() != State.Null)
-                write(mem.getClass(before).getVariable(after).getString());
-            else if (mem.getClass(before).getVariable(after).getNumber() != State.NullNum)
-                write(dtos(mem.getClass(before).getVariable(after).getNumber()));
-            else
-                write(State.Null);
-        }
-        else
-            error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
-    }
-    else
-    {
-        if (mem.classExists(arg1))
-        {
-            for (int i = 0; i < mem.getClass(arg1).methodSize(); i++)
-                write(mem.getClass(arg1).getMethod(mem.getClass(arg1).getMethodName(i)).name());
-            for (int i = 0; i < mem.getClass(arg1).variableSize(); i++)
-                write(mem.getClass(arg1).getVariable(mem.getClass(arg1).getVariableName(i)).name());
-        }
-        else if (mem.constantExists(arg1))
-        {
-            if (mem.getConstant(arg1).ConstNumber())
-                write(dtos(mem.getConstant(arg1).getNumber()));
-            else if (mem.getConstant(arg1).ConstString())
-                write(mem.getConstant(arg1).getString());
-        }
-        else if (mem.methodExists(arg1))
-        {
-            for (int i = 0; i < mem.getMethod(arg1).size(); i++)
-                write(mem.getMethod(arg1).at(i));
-        }
-        else if (mem.variableExists(arg1))
-        {
-            if (mem.isString(arg1))
-                write(mem.varString(arg1));
-            else if (mem.isNumber(arg1))
-                write(dtos(mem.varNumber(arg1)));
-        }
-        else if (mem.listExists(arg1))
-        {
-            for (int i = 0; i < mem.getList(arg1).size(); i++)
-                write(mem.getList(arg1).at(i));
-        }
-        else if (arg1 == "variables")
-        {
-            for (int i = 0; i < mem.getVariableCount(); i++)
-            {
-                if (mem.getVar(i).getString() != State.Null)
-                    write(mem.getVar(i).name() + ":\t" + mem.getVar(i).getString());
-                else if (mem.getVar(i).getNumber() != State.NullNum)
-                    write(mem.getVar(i).name() + ":\t" + dtos(mem.getVar(i).getNumber()));
-                else
-                    write(mem.getVar(i).name() + ":\tis_null");
-            }
-        }
-        else if (arg1 == "lists")
-        {
-            for (int i = 0; i < mem.getListCount(); i++)
-                write(mem.getList(i).name());
-        }
-        else if (arg1 == "methods")
-        {
-            for (int i = 0; i < mem.getMethodCount(); i++)
-                write(mem.getMethod(i).name());
-        }
-        else if (arg1 == "classes")
-        {
-            for (int i = 0; i < mem.getClassCount(); i++)
-                write(mem.getClass(i).name());
-        }
-        else if (arg1 == "constants")
-        {
-            for (int i = 0; i < mem.getConstantCount(); i++)
-                write(mem.getConstant(i).name());
-        }
-        else if (arg1 == "last")
-            write(State.LastValue);
-        else
-            error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
-    }
-}
-
-void Executor::executeSimpleStatement(string left, string oper, string right, string s)
+void Executor::executeSimpleStatement(string left, string oper, string right)
 {
     if (isNumeric(left) && isNumeric(right))
     {
@@ -178,7 +78,7 @@ void Executor::executeSimpleStatement(string left, string oper, string right, st
         else if (oper == "%")
         {
             if ((int)stod(right) == 0)
-                error(ErrorMessage::DIVIDED_BY_ZERO, s, false);
+                error(ErrorMessage::DIVIDED_BY_ZERO, left + " " + oper + " " + right, false);
             else
                 writeline(dtos((int)stod(left) % (int)stod(right)));
         }

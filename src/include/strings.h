@@ -717,16 +717,16 @@ bool notStandardZeroSpace(string arg)
 bool notStandardOneSpace(string arg)
 {
     const char *standardOneSpaceWords =
-        "!;?;__begin__;call_method;cd;chdir;collect?;"
+        "!;?;__begin__;call_method;cd;clear;chdir;collect?;"
         "decrypt;delay;directory?;dpush;dpop;"
         "encrypt;err;error;file?;for;fpush;fpop;"
         "garbage?;globalize;goto;if;init_dir;intial_directory;"
-        "directory?;file?;list?;lowercase?;method?;"
-        "number?;class?;string?;uppercase?;variable?;"
+        "directory?;file?;list?;method?;"
+        "number?;class?;string?;variable?;"
         "list;list?;load;lock;loop;lose;"
         "method;[method];class;out;"
         "print;println;prompt;remove;return;"
-        "say;see;see_string;see_number;stdout;switch;"
+        "say;stdout;switch;"
         "template;unlock;";
 
     return !contains(standardOneSpaceWords, arg);
