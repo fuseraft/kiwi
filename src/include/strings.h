@@ -747,4 +747,14 @@ bool isScript(string path)
     return endsWith(path, ".ns");
 }
 
+string multiplyString(string input, int factor)
+{
+    string output("");
+
+    for (int i = 0; i < factor; i++)
+        output.append(input);
+
+    return output;
+}
+
 #endif
