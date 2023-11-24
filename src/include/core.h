@@ -938,14 +938,6 @@ string getStringStack(string arg2)
         }
     }
 
-    if (State.Returning)
-    {
-        for (int i = 0; i < (int)vars.size(); i++)
-            mem.removeVariable(vars.at(i));
-
-        State.Returning = false;
-    }
-
     return stackValue;
 }
 
@@ -1257,14 +1249,6 @@ double getStack(string arg2)
                 stackValue = stod(contents.at(i));
             }
         }
-    }
-
-    if (State.Returning)
-    {
-        for (int i = 0; i < (int)vars.size(); i++)
-            mem.removeVariable(vars.at(i));
-
-        State.Returning = false;
     }
 
     return stackValue;
@@ -4700,99 +4684,6 @@ void InternalOutput(string arg0, string arg1)
     }
 }
 
-bool InternalReturn(string arg0, string arg1, string before, string after)
-{
-    State.Returning = true;
-
-    if (containsParams(arg1))
-    {
-        string before(beforeParams(arg1));
-
-        if (mem.methodExists(before))
-        {
-            exec.executeTemplate(mem.getMethod(before), getParams(arg1));
-
-            parse("return " + State.LastValue);
-        }
-        else if (!zeroDots(arg1))
-        {
-            if (mem.classExists(before))
-            {
-                if (mem.getClass(before).hasMethod(beforeParams(after)))
-                {
-                    exec.executeTemplate(mem.getClass(before).getMethod(beforeParams(after)), getParams(arg1));
-                    parse("return " + State.LastValue);
-                }
-                else
-                    State.LastValue = arg1;
-            }
-            else
-                State.LastValue = arg1;
-        }
-        else
-        {
-            if (isStringStack(arg1))
-                State.LastValue = getStringStack(arg1);
-            else if (stackReady(arg1))
-                State.LastValue = dtos(getStack(arg1));
-            else
-            {
-                arg1 = subtractString(arg1, "(");
-                arg1 = subtractString(arg1, ")");
-
-                return true;
-            }
-        }
-    }
-    else if (mem.variableExists(arg1))
-    {
-        if (mem.classExists(beforeDot(arg1)))
-        {
-            if (mem.getClass(beforeDot(arg1)).getVariable(afterDot(arg1)).getString() != State.Null)
-                State.LastValue = mem.getClass(beforeDot(arg1)).getVariable(afterDot(arg1)).getString();
-            else if (mem.getClass(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber() != State.NullNum)
-                State.LastValue = dtos(mem.getClass(beforeDot(arg1)).getVariable(afterDot(arg1)).getNumber());
-            else
-                State.LastValue = "null";
-        }
-        else
-        {
-            if (mem.isString(arg1))
-                State.LastValue = mem.varString(arg1);
-            else if (mem.isNumber(arg1))
-                State.LastValue = dtos(mem.varNumber(arg1));
-            else
-                State.LastValue = "null";
-
-            if (mem.getVar(arg1).isCollectable())
-                mem.removeVariable(arg1);
-        }
-    }
-    else if (mem.listExists(arg1))
-    {
-        string bigString("(");
-
-        for (int i = 0; i < (int)mem.getList(arg1).size(); i++)
-        {
-            bigString.append(mem.getList(arg1).at(i));
-
-            if (i != (int)mem.getList(arg1).size() - 1)
-                bigString.push_back(',');
-        }
-
-        bigString.append(")");
-
-        State.LastValue = bigString;
-
-        if (mem.getList(arg1).isCollectable())
-            mem.removeList(arg1);
-    }
-    else
-        State.LastValue = arg1;
-
-    return false;
-}
-
 double getBytes(string path)
 {
     int bytes;
@@ -4862,7 +4753,6 @@ void setup()
     State.DefiningClass = false,
     State.DefiningClassMethod = false,
     State.DefiningParameterizedMethod = false,
-    State.Returning = false,
     State.SkipCatchBlock = false,
     State.RaiseCatchBlock = false,
     State.DefiningLocalSwitchBlock = false,
