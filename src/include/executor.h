@@ -195,7 +195,7 @@ void Executor::executeSimpleStatement(string left, string oper, string right, st
         {
             if (zeroNumbers(right))
             {
-                error(ErrorMessage::INVALID_OP, s, false);
+                error(ErrorMessage::INVALID_OP, oper, false);
                 return;
             }
 

@@ -438,7 +438,7 @@ void parse(string s)
                             State.DefiningNest = true;
 
                             if (size == 4)
-                                threeSpace("if", command.at(1), command.at(2), command.at(3), s, command);
+                                threeSpace("if", command.at(1), command.at(2), command.at(3), command);
                             else
                             {
                                 mem.createIfStatement(false);
@@ -470,12 +470,12 @@ void parse(string s)
                         else if (command.at(0) == "elsif" || command.at(0) == "elif")
                         {
                             if (size == 4)
-                                threeSpace("if", command.at(1), command.at(2), command.at(3), s, command);
+                                threeSpace("if", command.at(1), command.at(2), command.at(3), command);
                             else
                                 mem.createIfStatement(false);
                         }
                         else if (s == "else")
-                            threeSpace("if", "true", "==", "true", "if true == true", command);
+                            threeSpace("if", "true", "==", "true", command);
                         else if (s == "failif")
                         {
                             if (State.FailedIfStatement == true)
@@ -835,7 +835,7 @@ void parse(string s)
                                 twoSpace(command.at(0), command.at(1), command.at(2), s, command);
                         }
                         else if (size == 4)
-                            threeSpace(command.at(0), command.at(1), command.at(2), command.at(3), s, command);
+                            threeSpace(command.at(0), command.at(1), command.at(2), command.at(3), command);
                         else if (size == 5)
                         {
                             // for var in 
@@ -847,7 +847,7 @@ void parse(string s)
                                     State.DefaultLoopSymbol = subtractChar(State.DefaultLoopSymbol, "(");
                                     State.DefaultLoopSymbol = subtractChar(State.DefaultLoopSymbol, ")");
 
-                                    threeSpace(command.at(0), command.at(1), command.at(2), command.at(3), subtractString(s, command.at(4)), command);
+                                    threeSpace(command.at(0), command.at(1), command.at(2), command.at(3), command);
                                     State.DefaultLoopSymbol = "$";
                                 }
                                 else
@@ -1036,12 +1036,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         arg1 = replace(arg1, "self", State.CurrentMethodClass);
     }
 
-    if (arg0 == "return")
-    {
-        if (!InternalReturn(arg0, arg1, before, after))
-            oneSpace("return", arg1, "return " + arg1, command);
-    }
-    else if (arg0 == "switch")
+    if (arg0 == "switch")
     {
         if (mem.variableExists(arg1))
         {
@@ -1140,12 +1135,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "prompt")
     {
-        if (arg1 == "bash")
-        {
-            State.UseCustomPrompt = true;
-            State.PromptStyle = "bash";
-        }
-        else if (arg1 == "!")
+        if (arg1 == "!")
         {
             if (State.UseCustomPrompt == true)
                 State.UseCustomPrompt = false;
@@ -1185,7 +1175,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
             error(ErrorMessage::CONV_ERR, arg1, false);
     }
     else if (arg0 == "loop")
-        threeSpace("for", "var", "in", arg1, "for var in " + arg1, command); // REFACTOR HERE
+        threeSpace("for", "var", "in", arg1, command);
     else if (arg0 == "for" && arg1 == "inf")
         mem.createForLoop();
     else if (arg0 == "remove")
@@ -1851,7 +1841,7 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
     }
 }
 
-void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, vector<string> command)
+void threeSpace(string arg0, string arg1, string arg2, string arg3, vector<string> command)
 {
     // isNumber(arg3)
     // isString(arg3)
@@ -2058,7 +2048,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             }
             else
             {
-                error(ErrorMessage::CONV_ERR, s, false);
+                error(ErrorMessage::CONV_ERR, arg0, false);
                 mem.createIfStatement(true);
             }
         }
@@ -2127,7 +2117,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createIfStatement(true);
                 }
             }
@@ -2458,7 +2448,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createIfStatement(true);
                 }
             }
@@ -2771,7 +2761,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createIfStatement(true);
                 }
             }
@@ -2891,7 +2881,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createIfStatement(true);
                 }
             }
@@ -4338,7 +4328,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             }
             else
             {
-                error(ErrorMessage::CONV_ERR, s, false);
+                error(ErrorMessage::CONV_ERR, arg0, false);
                 mem.createIfStatement(false);
             }
         }
@@ -4407,7 +4397,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createIfStatement(false);
                 }
             }
@@ -4738,7 +4728,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createIfStatement(false);
                 }
             }
@@ -5051,7 +5041,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createIfStatement(false);
                 }
             }
@@ -5171,7 +5161,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createIfStatement(false);
                 }
             }
@@ -6534,7 +6524,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createFailedForLoop();
                 }
             }
@@ -6549,7 +6539,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createFailedForLoop();
                 }
             }
@@ -6564,7 +6554,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createFailedForLoop();
                 }
             }
@@ -6579,7 +6569,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createFailedForLoop();
                 }
             }
@@ -6597,7 +6587,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createFailedForLoop();
                 }
             }
@@ -6612,7 +6602,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createFailedForLoop();
                 }
             }
@@ -6627,7 +6617,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createFailedForLoop();
                 }
             }
@@ -6642,7 +6632,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createFailedForLoop();
                 }
             }
@@ -6660,7 +6650,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createFailedForLoop();
                 }
             }
@@ -6675,7 +6665,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createFailedForLoop();
                 }
             }
@@ -6690,7 +6680,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createFailedForLoop();
                 }
             }
@@ -6705,7 +6695,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createFailedForLoop();
                 }
             }
@@ -6723,7 +6713,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createFailedForLoop();
                 }
             }
@@ -6738,7 +6728,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createFailedForLoop();
                 }
             }
@@ -6753,7 +6743,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createFailedForLoop();
                 }
             }
@@ -6768,7 +6758,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 }
                 else
                 {
-                    error(ErrorMessage::CONV_ERR, s, false);
+                    error(ErrorMessage::CONV_ERR, arg0, false);
                     mem.createFailedForLoop();
                 }
             }
@@ -7205,13 +7195,13 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
             }
             else
             {
-                error(ErrorMessage::INVALID_OP, s, false);
+                error(ErrorMessage::INVALID_OP, arg0, false);
                 mem.createFailedForLoop();
             }
         }
         else
         {
-            error(ErrorMessage::INVALID_OP, s, false);
+            error(ErrorMessage::INVALID_OP, arg0, false);
             mem.createFailedForLoop();
         }
     }
@@ -7225,7 +7215,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     mem.createWhileLoop(arg1, arg2, arg3);
                 else
                 {
-                    error(ErrorMessage::INVALID_OP, s, false);
+                    error(ErrorMessage::INVALID_OP, arg0, false);
                     mem.createFailedWhileLoop();
                 }
             }
@@ -7243,7 +7233,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                     mem.createWhileLoop(arg1, arg2, arg3);
                 else
                 {
-                    error(ErrorMessage::INVALID_OP, s, false);
+                    error(ErrorMessage::INVALID_OP, arg0, false);
                     mem.createFailedWhileLoop();
                 }
             }
@@ -7259,18 +7249,18 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, string s, ve
                 mem.createWhileLoop(arg1, arg2, arg3);
             else
             {
-                error(ErrorMessage::INVALID_OP, s, false);
+                error(ErrorMessage::INVALID_OP, arg0, false);
                 mem.createFailedWhileLoop();
             }
         }
         else
         {
-            error(ErrorMessage::INVALID_OP, s, false);
+            error(ErrorMessage::INVALID_OP, arg0, false);
             mem.createFailedWhileLoop();
         }
     }
     else
-        Env::sysExec(s, command);
+        Env::sysExec(arg0, command);
 }
 
 #endif
