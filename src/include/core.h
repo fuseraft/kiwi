@@ -941,6 +941,50 @@ string getStringStack(string arg2)
     return stackValue;
 }
 
+string getStackValue(string value)
+{
+    string stackValue("");
+
+    if (isStringStack(value))
+        stackValue = getStringStack(value);
+    else if (stackReady(value))
+        stackValue = dtos(getStack(value));
+    else
+        stackValue = value;
+
+    return stackValue;
+}
+
+void parseStack(vector<string> &contents, vector<string> vars, string &temporaryBuild, char currentChar)
+{
+    if (mem.variableExists(temporaryBuild) && mem.isNumber(temporaryBuild))
+    {
+        vars.push_back(temporaryBuild);
+        contents.push_back(dtos(mem.varNumber(temporaryBuild)));
+        temporaryBuild.clear();
+    }
+    else if (mem.methodExists(temporaryBuild))
+    {
+        parse(temporaryBuild);
+
+        if (isNumeric(State.LastValue))
+        {
+            contents.push_back(State.LastValue);
+            temporaryBuild.clear();
+        }
+    }
+    else
+    {
+        contents.push_back(temporaryBuild);
+        temporaryBuild.clear();
+    }
+
+    if (currentChar != ' ')
+    {
+        contents.push_back("" + currentChar);
+    }
+}
+
 double getStack(string arg2)
 {
     string tempArgTwo = arg2, temporaryBuild("");
@@ -954,230 +998,35 @@ double getStack(string arg2)
 
     for (int i = 0; i < (int)tempArgTwo.length(); i++)
     {
-        if (tempArgTwo[i] == ' ')
+        if (tempArgTwo[i] == ' ' && temporaryBuild.length() != 0)
         {
-            if (temporaryBuild.length() != 0)
-            {
-                if (mem.variableExists(temporaryBuild))
-                {
-                    if (mem.isNumber(temporaryBuild))
-                    {
-                        vars.push_back(temporaryBuild);
-                        contents.push_back(dtos(mem.varNumber(temporaryBuild)));
-                        temporaryBuild.clear();
-                    }
-                }
-                else if (mem.methodExists(temporaryBuild))
-                {
-                    parse(temporaryBuild);
-
-                    if (isNumeric(State.LastValue))
-                    {
-                        contents.push_back(State.LastValue);
-                        temporaryBuild.clear();
-                    }
-                }
-                else
-                {
-                    contents.push_back(temporaryBuild);
-                    temporaryBuild.clear();
-                }
-            }
-        }
-        else if (tempArgTwo[i] == '+')
-        {
-            if (mem.variableExists(temporaryBuild))
-            {
-                if (mem.isNumber(temporaryBuild))
-                {
-                    vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(mem.varNumber(temporaryBuild)));
-                    temporaryBuild.clear();
-                    contents.push_back("+");
-                }
-            }
-            else if (mem.methodExists(temporaryBuild))
-            {
-                parse(temporaryBuild);
-
-                if (isNumeric(State.LastValue))
-                {
-                    contents.push_back(State.LastValue);
-                    temporaryBuild.clear();
-                }
-
-                contents.push_back("+");
-            }
-            else
-            {
-                contents.push_back(temporaryBuild);
-                temporaryBuild.clear();
-                contents.push_back("+");
-            }
-        }
-        else if (tempArgTwo[i] == '-')
-        {
-            if (mem.variableExists(temporaryBuild))
-            {
-                if (mem.isNumber(temporaryBuild))
-                {
-                    vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(mem.varNumber(temporaryBuild)));
-                    temporaryBuild.clear();
-                    contents.push_back("-");
-                }
-            }
-            else if (mem.methodExists(temporaryBuild))
-            {
-                parse(temporaryBuild);
-
-                if (isNumeric(State.LastValue))
-                {
-                    contents.push_back(State.LastValue);
-                    temporaryBuild.clear();
-                }
-                contents.push_back("-");
-            }
-            else
-            {
-                contents.push_back(temporaryBuild);
-                temporaryBuild.clear();
-                contents.push_back("-");
-            }
-        }
-        else if (tempArgTwo[i] == '*')
-        {
-            if (mem.variableExists(temporaryBuild))
-            {
-                if (mem.isNumber(temporaryBuild))
-                {
-                    contents.push_back(dtos(mem.varNumber(temporaryBuild)));
-                    temporaryBuild.clear();
-                    contents.push_back("*");
-                }
-            }
-            else if (mem.methodExists(temporaryBuild))
-            {
-                parse(temporaryBuild);
-
-                if (isNumeric(State.LastValue))
-                {
-                    contents.push_back(State.LastValue);
-                    temporaryBuild.clear();
-                }
-
-                contents.push_back("*");
-            }
-            else
-            {
-                contents.push_back(temporaryBuild);
-                temporaryBuild.clear();
-                contents.push_back("*");
-            }
-        }
-        else if (tempArgTwo[i] == '/')
-        {
-            if (mem.variableExists(temporaryBuild))
-            {
-                if (mem.isNumber(temporaryBuild))
-                {
-                    vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(mem.varNumber(temporaryBuild)));
-                    temporaryBuild.clear();
-                    contents.push_back("/");
-                }
-            }
-            else if (mem.methodExists(temporaryBuild))
-            {
-                parse(temporaryBuild);
-
-                if (isNumeric(State.LastValue))
-                {
-                    contents.push_back(State.LastValue);
-                    temporaryBuild.clear();
-                }
-
-                contents.push_back("/");
-            }
-            else
-            {
-                contents.push_back(temporaryBuild);
-                temporaryBuild.clear();
-                contents.push_back("/");
-            }
-        }
-        else if (tempArgTwo[i] == '%')
-        {
-            if (mem.variableExists(temporaryBuild))
-            {
-                if (mem.isNumber(temporaryBuild))
-                {
-                    vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(mem.varNumber(temporaryBuild)));
-                    temporaryBuild.clear();
-                    contents.push_back("%");
-                }
-            }
-            else if (mem.methodExists(temporaryBuild))
-            {
-                parse(temporaryBuild);
-
-                if (isNumeric(State.LastValue))
-                {
-                    contents.push_back(State.LastValue);
-                    temporaryBuild.clear();
-                }
-                contents.push_back("%");
-            }
-            else
-            {
-                contents.push_back(temporaryBuild);
-                temporaryBuild.clear();
-                contents.push_back("%");
-            }
-        }
-        else if (tempArgTwo[i] == '^')
-        {
-            if (mem.variableExists(temporaryBuild))
-            {
-                if (mem.isNumber(temporaryBuild))
-                {
-                    vars.push_back(temporaryBuild);
-                    contents.push_back(dtos(mem.varNumber(temporaryBuild)));
-                    temporaryBuild.clear();
-                    contents.push_back("^");
-                }
-            }
-            else if (mem.methodExists(temporaryBuild))
-            {
-                parse(temporaryBuild);
-
-                if (isNumeric(State.LastValue))
-                {
-                    contents.push_back(State.LastValue);
-                    temporaryBuild.clear();
-                }
-                contents.push_back("^");
-            }
-            else
-            {
-                contents.push_back(temporaryBuild);
-                temporaryBuild.clear();
-                contents.push_back("^");
-            }
+            parseStack(contents, vars, temporaryBuild, ' ');
         }
         else
-            temporaryBuild.push_back(tempArgTwo[i]);
+        {
+            switch (tempArgTwo[i])
+            {
+            case '+':
+            case '-':
+            case '*':
+            case '/':
+            case '%':
+            case '^':
+                parseStack(contents, vars, temporaryBuild, tempArgTwo[i]);
+                break;
+
+            default:
+                temporaryBuild.push_back(tempArgTwo[i]);
+                break;
+            }
+        }
     }
 
-    if (mem.variableExists(temporaryBuild))
+    if (mem.variableExists(temporaryBuild) && mem.isNumber(temporaryBuild))
     {
-        if (mem.isNumber(temporaryBuild))
-        {
-            vars.push_back(temporaryBuild);
-            contents.push_back(dtos(mem.varNumber(temporaryBuild)));
-            temporaryBuild.clear();
-        }
+        vars.push_back(temporaryBuild);
+        contents.push_back(dtos(mem.varNumber(temporaryBuild)));
+        temporaryBuild.clear();
     }
     else
     {
@@ -1680,7 +1529,7 @@ double getNumberValue(string arg1, string op, string arg2)
     return returnValue;
 }
 
-void initializeVariable(string arg0, string arg1, string arg2, string s, vector<string> command)
+void initializeVariable(string arg0, string arg1, string arg2, vector<string> command)
 {
     string tmpObjName = beforeDot(arg0), tmpVarName = afterDot(arg0);
     bool tmpObjExists = mem.classExists(tmpObjName);
@@ -1694,7 +1543,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
 
                 mem.createVariable(tempClassVariableName, mem.getClass(tmpObjName).getVariable(tmpVarName).getString());
 
-                twoSpace(tempClassVariableName, arg1, arg2, "", command);
+                twoSpace(tempClassVariableName, arg1, arg2, command);
 
                 mem.getVar(tempClassVariableName).setName(tmpVarName);
 
@@ -1708,7 +1557,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
 
                 mem.createVariable(tempClassVariableName, mem.getClass(beforeDot(arg0)).getVariable(afterDot(arg0)).getNumber());
 
-                twoSpace(tempClassVariableName, arg1, arg2, tempClassVariableName + " " + arg1 + " " + arg2, command);
+                twoSpace(tempClassVariableName, arg1, arg2, command);
 
                 mem.getVar(tempClassVariableName).setName(afterDot(arg0));
 
@@ -1889,9 +1738,9 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                 else if (before == "self")
                 {
                     if (mem.classExists(State.CurrentMethodClass))
-                        twoSpace(arg0, arg1, (State.CurrentMethodClass + "." + after), (arg0 + " " + arg1 + " " + (State.CurrentMethodClass + "." + after)), command);
+                        twoSpace(arg0, arg1, (State.CurrentMethodClass + "." + after), command);
                     else
-                        twoSpace(arg0, arg1, after, (arg0 + " " + arg1 + " " + after), command);
+                        twoSpace(arg0, arg1, after, command);
                 }
                 else if (mem.classExists(before))
                 {
@@ -1939,7 +1788,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
                             }
                         }
                         else
-                            Env::sysExec(s, command);
+                            Env::sysExec(arg0, command);
                     }
                     else
                         error(ErrorMessage::VAR_UNDEFINED, arg2, false);
@@ -3398,7 +3247,7 @@ void initializeVariable(string arg0, string arg1, string arg2, string s, vector<
     }
 }
 
-void initializeListValues(string arg0, string arg1, string arg2, string s, vector<string> command)
+void initializeListValues(string arg0, string arg1, string arg2, vector<string> command)
 {
     string _b(beforeDot(arg2)), _a(afterDot(arg2)), __b(beforeParams(arg2));
 
@@ -3492,7 +3341,7 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
             if (arg1 == "+=")
             {
                 for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
-                    mem.addItemToList(arg0, mem.getList(listName).at(i)); 
+                    mem.addItemToList(arg0, mem.getList(listName).at(i));
             }
             else if (arg1 == "=")
             {
@@ -3650,7 +3499,7 @@ void initializeListValues(string arg0, string arg1, string arg2, string s, vecto
     }
 }
 
-void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, vector<string> command)
+void initializeGlobalVariable(string arg0, string arg1, string arg2, vector<string> command)
 {
     if (arg1 == "=")
     {
@@ -3691,9 +3540,9 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, v
         else if (before == "self")
         {
             if (mem.classExists(State.CurrentMethodClass))
-                twoSpace(arg0, arg1, (State.CurrentMethodClass + "." + after), (arg0 + " " + arg1 + " " + (State.CurrentMethodClass + "." + after)), command);
+                twoSpace(arg0, arg1, (State.CurrentMethodClass + "." + after), command);
             else
-                twoSpace(arg0, arg1, after, (arg0 + " " + arg1 + " " + after), command);
+                twoSpace(arg0, arg1, after, command);
         }
         else if (after == "to_integer")
         {
@@ -3772,7 +3621,7 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, v
             {
                 if (!mem.getClass(before).hasMethod(beforeParams(after)))
                 {
-                    Env::sysExec(s, command);
+                    Env::sysExec(arg0, command);
                     return;
                 }
 
@@ -4409,7 +4258,7 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, v
         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
 }
 
-void initializeClassVariable(string arg0, string arg1, string arg2, string s, vector<string> command)
+void initializeClassVariable(string arg0, string arg1, string arg2, vector<string> command)
 {
     string before = beforeDot(arg2),
            after = afterDot(arg2);
@@ -4426,7 +4275,7 @@ void initializeClassVariable(string arg0, string arg1, string arg2, string s, ve
     }
 }
 
-void copyClass(string arg0, string arg1, string arg2, string s, vector<string> command)
+void copyClass(string arg0, string arg1, string arg2, vector<string> command)
 {
     if (arg1 == "=")
     {
@@ -4455,7 +4304,7 @@ void copyClass(string arg0, string arg1, string arg2, string s, vector<string> c
         error(ErrorMessage::INVALID_OPERATOR, arg1, false);
 }
 
-void initializeConstant(string arg0, string arg1, string arg2, string s)
+void initializeConstant(string arg0, string arg1, string arg2)
 {
     if (mem.constantExists(arg0))
     {
@@ -4479,6 +4328,22 @@ void initializeConstant(string arg0, string arg1, string arg2, string s)
         Constant newConstant(arg0, arg2);
         mem.addConstant(newConstant);
     }
+}
+
+void handleClear(string &arg)
+{
+    if (arg == "methods")
+        mem.clearMethods();
+    else if (arg == "classes")
+        mem.clearClasses();
+    else if (arg == "variables")
+        mem.clearVariables();
+    else if (arg == "lists")
+        mem.clearLists();
+    else if (arg == "all")
+        mem.clearAll();
+    else if (arg == "constants")
+        mem.clearConstants();
 }
 
 void InternalEncryptDecrypt(string arg0, string arg1)

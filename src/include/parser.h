@@ -791,7 +791,7 @@ void parse(string s)
                                 }
                             }
                             else
-                                zeroSpace(command.at(0), s, command);
+                                zeroSpace(command.at(0), command);
                         }
                         else if (size == 2)
                         {
@@ -799,7 +799,7 @@ void parse(string s)
                                 Env::sysExec(s, command);
                             else
                             {
-                                oneSpace(command.at(0), command.at(1), s, command);
+                                oneSpace(command.at(0), command.at(1), command);
                             }
                         }
                         else if (size == 3)
@@ -822,7 +822,7 @@ void parse(string s)
                                         State.DefaultLoopSymbol = subtractChar(State.DefaultLoopSymbol, "(");
                                         State.DefaultLoopSymbol = subtractChar(State.DefaultLoopSymbol, ")");
 
-                                        oneSpace(command.at(0), command.at(1), subtractString(s, command.at(2)), command);
+                                        oneSpace(command.at(0), command.at(1), command);
                                         State.DefaultLoopSymbol = "$";
                                     }
                                     else
@@ -832,13 +832,13 @@ void parse(string s)
                                     Env::sysExec(s, command);
                             }
                             else
-                                twoSpace(command.at(0), command.at(1), command.at(2), s, command);
+                                twoSpace(command.at(0), command.at(1), command.at(2), command);
                         }
                         else if (size == 4)
                             threeSpace(command.at(0), command.at(1), command.at(2), command.at(3), command);
                         else if (size == 5)
                         {
-                            // for var in 
+                            // for var in
                             if (command.at(0) == "for")
                             {
                                 if (containsParams(command.at(4)))
@@ -929,7 +929,7 @@ void parse(string s)
     }
 }
 
-void zeroSpace(string arg0, string s, vector<string> command)
+void zeroSpace(string arg0, vector<string> command)
 {
     if (arg0 == "pass")
     {
@@ -937,97 +937,39 @@ void zeroSpace(string arg0, string s, vector<string> command)
     }
     else if (arg0 == "caught")
     {
-        string to_remove = "remove ";
-        to_remove.append(State.ErrorVarName);
-
-        parse(to_remove);
-
-        State.ExecutedTryBlock = false,
-        State.RaiseCatchBlock = false;
-        State.LastError = "";
-        State.ErrorVarName = "";
+        handleCaught();
     }
-    else if (arg0 == "clear_methods!")
-        mem.clearMethods();
-    else if (arg0 == "clear_classes!")
-        mem.clearClasses();
-    else if (arg0 == "clear_variables!")
-        mem.clearVariables();
-    else if (arg0 == "clear_lists!")
-        mem.clearLists();
-    else if (arg0 == "clear_all!")
-        mem.clearAll();
-    else if (arg0 == "clear_constants!")
-        mem.clearConstants();
     else if (arg0 == "exit")
     {
-        mem.clearAll();
-        exit(0);
+        handleExit();
     }
     else if (arg0 == "break" || arg0 == "leave!")
         State.Breaking = true;
-    else if (arg0 == "no_methods?")
-    {
-        if (mem.noMethods())
-            State.LastValue = "true";
-        else
-            State.LastValue = "false";
-    }
-    else if (arg0 == "no_classes?")
-    {
-        if (mem.noClasses())
-            State.LastValue = "true";
-        else
-            State.LastValue = "false";
-    }
-    else if (arg0 == "no_variables?")
-    {
-        if (mem.noVariables())
-            State.LastValue = "true";
-        else
-            State.LastValue = "false";
-    }
-    else if (arg0 == "no_lists?")
-    {
-        if (mem.noLists())
-            State.LastValue = "true";
-        else
-            State.LastValue = "false";
-    }
     else if (arg0 == "end")
     {
-        State.DefiningPrivateCode = false,
-        State.DefiningPublicCode = false;
-        State.DefiningClass = false;
-        State.DefiningClassMethod = false;
-        State.CurrentClass = "";
+        handleEnd();
     }
     else if (arg0 == "parser")
         startREPL();
     else if (arg0 == "private")
     {
-        State.DefiningPrivateCode = true;
-        State.DefiningPublicCode = false;
+        handlePrivateDecl();
     }
     else if (arg0 == "public")
     {
-        State.DefiningPrivateCode = false;
-        State.DefiningPublicCode = true;
+        handlePublicDecl();
     }
     else if (arg0 == "try")
         State.ExecutedTryBlock = true;
     else if (arg0 == "failif")
     {
-        if (State.FailedIfStatement == true)
-            mem.createIfStatement(true);
-        else
-            mem.createIfStatement(false);
+        handleFailedIfStatement();
     }
     else
-        Env::sysExec(s, command);
+        Env::sysExec(arg0, command);
 }
 
-void oneSpace(string arg0, string arg1, string s, vector<string> command)
+void oneSpace(string arg0, string arg1, vector<string> command)
 {
     string before(beforeDot(arg1)), after(afterDot(arg1));
 
@@ -1036,143 +978,33 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         arg1 = replace(arg1, "self", State.CurrentMethodClass);
     }
 
-    if (arg0 == "switch")
+    if (arg0 == "clear")
     {
-        if (mem.variableExists(arg1))
-        {
-            State.DefiningSwitchBlock = true;
-            State.SwitchVarName = arg1;
-        }
-        else
-            error(ErrorMessage::VAR_UNDEFINED, arg1, false);
+        handleClear(arg1);
+    }
+    else if (arg0 == "switch")
+    {
+        handleSwitch(arg1);
     }
     else if (arg0 == "goto")
     {
-        if (State.CurrentScript != "")
-        {
-            if (mem.getScript().markExists(arg1))
-            {
-                State.GoTo = arg1;
-                State.GoToLabel = true;
-            }
-        }
+        handleGoto(arg1);
     }
     else if (arg0 == "if")
     {
-        string tmpValue("");
-        // if arg1 is a variable
-        if (mem.variableExists(arg1))
-        {
-            // can we can assume that arg1 belongs to an object?
-            if (!zeroDots(arg1))
-            {
-                string objName(beforeDot(arg1)), varName(afterDot(arg1));
-                Variable tmpVar = mem.getClass(objName).getVariable(varName);
-
-                if (mem.isString(tmpVar))
-                {
-                    tmpValue = tmpVar.getString();
-                }
-                else if (mem.isNumber(tmpVar))
-                {
-                    tmpValue = dtos(tmpVar.getNumber());
-                }
-                else
-                {
-                    // error(ErrorMessage::IS_NULL, arg1, true);
-                }
-            }
-            else
-            {
-                if (mem.isString(arg1))
-                {
-                    tmpValue = mem.varString(arg1);
-                }
-                else if (mem.isNumber(arg1))
-                {
-                    tmpValue = mem.varNumber(arg1);
-                }
-                else
-                {
-                    // error(ErrorMessage::IS_NULL, arg1, true);
-                }
-            }
-        }
-        else
-        {
-            if (isNumeric(arg1) || isTrue(arg1) || isFalse(arg1))
-            {
-                tmpValue = arg1;
-            }
-            else
-            {
-                string tmpCode("");
-
-                if (startsWith(arg1, "(\"") && endsWith(arg1, "\")"))
-                {
-                    tmpCode = getInner(arg1, 2, arg1.length() - 3);
-                }
-                else
-                {
-                    tmpCode = arg1;
-                }
-                tmpValue = getParsedOutput(tmpCode);
-            }
-        }
-
-        if (isTrue(tmpValue))
-        {
-            mem.createIfStatement(true);
-        }
-        else if (isFalse(tmpValue))
-        {
-            mem.createIfStatement(false);
-        }
-        else
-        {
-            // error(ErrorMessage::INVALID_OP, arg1, true);
-        }
+        handleIfStatement(arg1);
     }
     else if (arg0 == "prompt")
     {
-        if (arg1 == "!")
-        {
-            if (State.UseCustomPrompt == true)
-                State.UseCustomPrompt = false;
-            else
-                State.UseCustomPrompt = true;
-        }
-        else if (arg1 == "empty")
-        {
-            State.UseCustomPrompt = true;
-            State.PromptStyle = "empty";
-        }
-        else
-        {
-            State.UseCustomPrompt = true;
-            State.PromptStyle = arg1;
-        }
+        handlePrompt(arg1);
     }
     else if (arg0 == "err" || arg0 == "error")
     {
-        if (mem.variableExists(arg1))
-        {
-            if (mem.isString(arg1))
-                IO::printerrln(mem.varString(arg1));
-            else if (mem.isNumber(arg1))
-                IO::printerrln(dtos(mem.varNumber(arg1)));
-            else
-                error(ErrorMessage::IS_NULL, arg1, false);
-        }
-        else
-            IO::printerrln(arg1);
+        handleErr(arg1);
     }
     else if (arg0 == "delay")
     {
-        if (isNumeric(arg1))
-            DT::delay(stoi(arg1));
-        else
-            error(ErrorMessage::CONV_ERR, arg1, false);
+        handleDelay(arg1);
     }
     else if (arg0 == "loop")
         threeSpace("for", "var", "in", arg1, command);
@@ -1180,73 +1012,11 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
         mem.createForLoop();
     else if (arg0 == "remove")
     {
-        if (containsParams(arg1))
-        {
-            vector<string> params = getParams(arg1);
-
-            for (int i = 0; i < (int)params.size(); i++)
-            {
-                if (mem.variableExists(params.at(i)))
-                    mem.removeVariable(params.at(i));
-                else if (mem.listExists(params.at(i)))
-                    mem.removeList(params.at(i));
-                else if (mem.classExists(params.at(i)))
-                    mem.removeClass(params.at(i));
-                else if (mem.methodExists(params.at(i)))
-                    mem.removeMethod(params.at(i));
-                else
-                    error(ErrorMessage::TARGET_UNDEFINED, params.at(i), false);
-            }
-        }
-        else if (mem.variableExists(arg1))
-            mem.removeVariable(arg1);
-        else if (mem.listExists(arg1))
-            mem.removeList(arg1);
-        else if (mem.classExists(arg1))
-            mem.removeClass(arg1);
-        else if (mem.methodExists(arg1))
-            mem.removeMethod(arg1);
-        else
-            error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
-    }
-    else if (arg0 == "see_string")
-    {
-        if (mem.variableExists(arg1))
-            write(mem.varString(arg1));
-        else
-            error(ErrorMessage::VAR_UNDEFINED, arg1, false);
-    }
-    else if (arg0 == "see_number")
-    {
-        if (mem.variableExists(arg1))
-            write(dtos(mem.varNumber(arg1)));
-        else
-            error(ErrorMessage::VAR_UNDEFINED, arg1, false);
+        handleRemove(arg1);
     }
     else if (arg0 == "__begin__")
     {
-        if (mem.variableExists(arg1))
-        {
-            if (mem.isString(arg1))
-            {
-                if (!Env::fileExists(mem.varString(arg1)))
-                {
-                    Env::createFile(mem.varString(arg1));
-                    State.DefiningScript = true;
-                    State.CurrentScriptName = mem.varString(arg1);
-                }
-                else
-                    error(ErrorMessage::FILE_EXISTS, mem.varString(arg1), false);
-            }
-        }
-        else if (!Env::fileExists(arg1))
-        {
-            Env::createFile(arg1);
-            State.DefiningScript = true;
-            State.CurrentScriptName = arg1;
-        }
-        else
-            error(ErrorMessage::FILE_EXISTS, arg1, false);
+        handleInlineScriptDecl(arg1);
     }
     else if (arg0 == "encrypt" || arg0 == "decrypt")
     {
@@ -1258,26 +1028,7 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "load")
     {
-        if (Env::fileExists(arg1))
-        {
-            if (isScript(arg1))
-            {
-                State.PreviousScript = State.CurrentScript;
-                mem.loadScript(arg1);
-                exec.executeScript();
-            }
-            else
-                error(ErrorMessage::BAD_LOAD, arg1, true);
-        }
-        else if (mem.moduleExists(arg1))
-        {
-            vector<string> lines = mem.getModule(arg1).get();
-
-            for (int i = 0; i < (int)lines.size(); i++)
-                parse(lines.at(i));
-        }
-        else
-            error(ErrorMessage::BAD_LOAD, arg1, true);
+        handleLoad(arg1);
     }
     else if (arg0 == "say" || arg0 == "stdout" || arg0 == "out" || arg0 == "print" || arg0 == "println")
     {
@@ -1285,414 +1036,71 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "cd" || arg0 == "chdir")
     {
-        if (mem.variableExists(arg1))
-        {
-            if (mem.isString(arg1))
-            {
-                if (Env::directoryExists(mem.varString(arg1)))
-                    Env::cd(mem.varString(arg1));
-                else
-                    error(ErrorMessage::READ_FAIL, mem.varString(arg1), false);
-            }
-            else
-                error(ErrorMessage::NULL_STRING, arg1, false);
-        }
-        else
-        {
-            if (arg1 == "init_dir" || arg1 == "initial_directory")
-                Env::cd(NoctisEnv.InitialDirectory);
-            else if (Env::directoryExists(arg1))
-                Env::cd(arg1);
-            else
-                Env::cd(arg1);
-        }
+        handleChangeDir(arg1);
     }
     else if (arg0 == "list")
     {
-        if (mem.listExists(arg1))
-            mem.getList(arg1).clear();
-        else
-        {
-            List newList(arg1);
-
-            newList.setCollectable(State.ExecutedTemplate || State.ExecutedMethod);
-
-            mem.addList(newList);
-        }
+        handleListDecl(arg1);
     }
     else if (arg0 == "!")
     {
-        if (mem.variableExists(arg1))
-        {
-            if (mem.isString(arg1))
-                parse(mem.varString(arg1).c_str());
-            else
-                error(ErrorMessage::IS_NULL, arg1, false);
-        }
-        else
-            parse(arg1.c_str());
+        handleInlineParse(arg1);
     }
     else if (arg0 == "?")
     {
-        if (mem.variableExists(arg1))
-        {
-            if (mem.isString(arg1))
-                Env::sysExec(mem.varString(arg1), command);
-            else
-                error(ErrorMessage::IS_NULL, arg1, false);
-        }
-        else
-            Env::sysExec(arg1, command);
+        handleInlineShellExec(arg1, command);
     }
     else if (arg0 == "init_dir" || arg0 == "initial_directory")
     {
-        if (mem.variableExists(arg1))
-        {
-            if (mem.isString(arg1))
-            {
-                if (Env::directoryExists(mem.varString(arg1)))
-                {
-                    NoctisEnv.InitialDirectory = mem.varString(arg1);
-                    Env::cd(NoctisEnv.InitialDirectory);
-                }
-                else
-                    error(ErrorMessage::READ_FAIL, NoctisEnv.InitialDirectory, false);
-            }
-            else
-                error(ErrorMessage::NULL_STRING, arg1, false);
-        }
-        else
-        {
-            if (Env::directoryExists(arg1))
-            {
-                if (arg1 == ".")
-                    NoctisEnv.InitialDirectory = Env::cwd();
-                else if (arg1 == "..")
-                    NoctisEnv.InitialDirectory = Env::cwd() + "\\..";
-                else
-                    NoctisEnv.InitialDirectory = arg1;
-
-                Env::cd(NoctisEnv.InitialDirectory);
-            }
-            else
-                error(ErrorMessage::READ_FAIL, NoctisEnv.InitialDirectory, false);
-        }
+        handleInitialDir(arg1);
     }
     else if (arg0 == "method?")
     {
-        if (before.length() != 0 && after.length() != 0)
-        {
-            if (mem.getClass(before).hasMethod(after))
-                State.LastValue = "true";
-            else
-                State.LastValue = "false";
-        }
-        else
-        {
-            if (mem.methodExists(arg1))
-                State.LastValue = "true";
-            else
-                State.LastValue = "false";
-        }
+        handleMethodInspect(before, after, arg1);
     }
     else if (arg0 == "class?")
     {
-        if (mem.classExists(arg1))
-            State.LastValue = "true";
-        else
-            State.LastValue = "false";
+        handleClassInspect(arg1);
     }
     else if (arg0 == "variable?")
     {
-        if (before.length() != 0 && after.length() != 0)
-        {
-            if (mem.getClass(before).hasVariable(after))
-                State.LastValue = "true";
-            else
-                State.LastValue = "false";
-        }
-        else
-        {
-            if (mem.variableExists(arg1))
-                State.LastValue = "true";
-            else
-                State.LastValue = "false";
-        }
+        handleVariableInspect(before, after, arg1);
     }
     else if (arg0 == "list?")
     {
-        if (mem.listExists(arg1))
-            State.LastValue = "true";
-        else
-            State.LastValue = "false";
+        handleListInspect(arg1);
     }
     else if (arg0 == "directory?")
     {
-        if (before.length() != 0 && after.length() != 0)
-        {
-            if (mem.getClass(before).hasVariable(after))
-            {
-                if (Env::directoryExists(mem.getClass(before).getVariable(after).getString()))
-                    State.LastValue = "true";
-                else
-                    State.LastValue = "false";
-            }
-            else
-                error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
-        }
-        else
-        {
-            if (mem.variableExists(arg1))
-            {
-                if (mem.isString(arg1))
-                {
-                    if (Env::directoryExists(mem.varString(arg1)))
-                        State.LastValue = "true";
-                    else
-                        State.LastValue = "false";
-                }
-                else
-                    error(ErrorMessage::NULL_STRING, arg1, false);
-            }
-            else
-            {
-                if (Env::directoryExists(arg1))
-                    State.LastValue = "true";
-                else
-                    State.LastValue = "false";
-            }
-        }
+        handleDirectoryInspect(before, after, arg1);
     }
     else if (arg0 == "file?")
     {
-        if (before.length() != 0 && after.length() != 0)
-        {
-            if (mem.getClass(before).hasVariable(after))
-            {
-                if (Env::fileExists(mem.getClass(before).getVariable(after).getString()))
-                    State.LastValue = "true";
-                else
-                    State.LastValue = "false";
-            }
-            else
-                error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
-        }
-        else
-        {
-            if (mem.variableExists(arg1))
-            {
-                if (mem.isString(arg1))
-                {
-                    if (Env::fileExists(mem.varString(arg1)))
-                        State.LastValue = "true";
-                    else
-                        State.LastValue = "false";
-                }
-                else
-                    State.LastValue = "false";
-            }
-            else
-            {
-                if (Env::fileExists(arg1))
-                    State.LastValue = "true";
-                else
-                    State.LastValue = "false";
-            }
-        }
+        handleFileInspect(before, after, arg1);
     }
     else if (arg0 == "collect?")
     {
-        if (mem.variableExists(arg1))
-        {
-            if (mem.getVar(arg1).isCollectable())
-                State.LastValue = "true";
-            else
-                State.LastValue = "false";
-        }
-        else
-            IO::println("under construction...");
+        handleCollectInspect(arg1);
     }
     else if (arg0 == "number?")
     {
-        if (before.length() != 0 && after.length() != 0)
-        {
-            if (mem.getClass(before).hasVariable(after))
-            {
-                if (mem.getClass(before).getVariable(after).getNumber() != State.NullNum)
-                    State.LastValue = "true";
-                else
-                    State.LastValue = "false";
-            }
-            else
-                error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
-        }
-        else
-        {
-            if (mem.variableExists(arg1))
-            {
-                if (mem.isNumber(arg1))
-                    State.LastValue = "true";
-                else
-                    State.LastValue = "false";
-            }
-            else
-            {
-                if (isNumeric(arg1))
-                    State.LastValue = "true";
-                else
-                    State.LastValue = "false";
-            }
-        }
+        handleNumberInspect(before, after, arg1);
     }
     else if (arg0 == "string?")
     {
-        if (before.length() != 0 && after.length() != 0)
-        {
-            if (mem.getClass(before).hasVariable(after))
-            {
-                if (mem.getClass(before).getVariable(after).getString() != State.Null)
-                    State.LastValue = "true";
-                else
-                    State.LastValue = "false";
-            }
-            else
-                error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
-        }
-        else
-        {
-            if (mem.variableExists(arg1))
-            {
-                if (mem.isString(arg1))
-                    State.LastValue = "true";
-                else
-                    State.LastValue = "false";
-            }
-            else
-            {
-                if (isNumeric(arg1))
-                    State.LastValue = "false";
-                else
-                    State.LastValue = "true";
-            }
-        }
-    }
-    else if (arg0 == "uppercase?")
-    {
-        if (before.length() != 0 && after.length() != 0)
-        {
-            if (mem.getClass(before).hasVariable(after))
-            {
-                if (isUpper(mem.getClass(before).getVariable(after).getString()))
-                    State.LastValue = "true";
-                else
-                    State.LastValue = "false";
-            }
-            else
-                error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
-        }
-        else
-        {
-            if (mem.variableExists(arg1))
-            {
-                if (mem.isString(arg1))
-                {
-                    if (isUpper(mem.varString(arg1)))
-                        State.LastValue = "true";
-                    else
-                        State.LastValue = "false";
-                }
-                else
-                    State.LastValue = "false";
-            }
-            else
-            {
-                if (isNumeric(arg1))
-                    State.LastValue = "false";
-                else
-                {
-                    if (isUpper(arg1))
-                        State.LastValue = "true";
-                    else
-                        State.LastValue = "false";
-                }
-            }
-        }
-    }
-    else if (arg0 == "lowercase?")
-    {
-        if (before.length() != 0 && after.length() != 0)
-        {
-            if (mem.getClass(before).hasVariable(after))
-            {
-                if (isLower(mem.getClass(before).getVariable(after).getString()))
-                    State.LastValue = "true";
-                else
-                    State.LastValue = "false";
-            }
-            else
-                error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
-        }
-        else
-        {
-            if (mem.variableExists(arg1))
-            {
-                if (mem.isString(arg1))
-                {
-                    if (isLower(mem.varString(arg1)))
-                        State.LastValue = "true";
-                    else
-                        State.LastValue = "false";
-                }
-                else
-                    State.LastValue = "false";
-            }
-            else
-            {
-                if (isNumeric(arg1))
-                    State.LastValue = "false";
-                else
-                {
-                    if (isLower(arg1))
-                        State.LastValue = "true";
-                    else
-                        State.LastValue = "false";
-                }
-            }
-        }
-    }
-    else if (arg0 == "see")
-    {
-        exec.executeInspection(arg0, arg1, before, after);
+        handleStringInspect(before, after, arg1);
     }
     else if (arg0 == "template")
     {
-        if (mem.methodExists(arg1))
-            error(ErrorMessage::METHOD_DEFINED, arg1, false);
-        else
-        {
-            if (containsParams(arg1))
-            {
-                vector<string> params = getParams(arg1);
-                Method method(beforeParams(arg1), true);
-                method.setTemplateSize((int)params.size());
-                mem.addMethod(method);
-                State.DefiningMethod = true;
-            }
-        }
+        handleTemplateDecl(arg1);
     }
     else if (arg0 == "lock")
     {
-        if (mem.variableExists(arg1))
-            mem.getVar(arg1).setIndestructible(true);
-        else if (mem.methodExists(arg1))
-            mem.getMethod(arg1).setIndestructible(true);
+        handleLockAssignment(arg1);
     }
     else if (arg0 == "unlock")
     {
-        if (mem.variableExists(arg1))
-            mem.getVar(arg1).setIndestructible(false);
-        else if (mem.methodExists(arg1))
-            mem.getMethod(arg1).setIndestructible(false);
+        handleUnlockAssignment(arg1);
     }
     else if (arg0 == "method" || arg0 == "[method]")
     {
@@ -1708,97 +1116,25 @@ void oneSpace(string arg0, string arg1, string s, vector<string> command)
     }
     else if (arg0 == "fpush")
     {
-        if (mem.variableExists(arg1))
-        {
-            if (mem.isString(arg1))
-            {
-                if (!Env::fileExists(mem.varString(arg1)))
-                    Env::createFile(mem.varString(arg1));
-                else
-                    error(ErrorMessage::FILE_EXISTS, mem.varString(arg1), false);
-            }
-            else
-                error(ErrorMessage::NULL_STRING, arg1, false);
-        }
-        else
-        {
-            if (!Env::fileExists(arg1))
-                Env::createFile(arg1);
-            else
-                error(ErrorMessage::FILE_EXISTS, arg1, false);
-        }
+        handleFilePush(arg1);
     }
     else if (arg0 == "fpop")
     {
-        if (mem.variableExists(arg1))
-        {
-            if (mem.isString(arg1))
-            {
-                if (Env::fileExists(mem.varString(arg1)))
-                    Env::rm(mem.varString(arg1));
-                else
-                    error(ErrorMessage::FILE_NOT_FOUND, mem.varString(arg1), false);
-            }
-            else
-                error(ErrorMessage::NULL_STRING, arg1, false);
-        }
-        else
-        {
-            if (Env::fileExists(arg1))
-                Env::rm(arg1);
-            else
-                error(ErrorMessage::FILE_NOT_FOUND, arg1, false);
-        }
+        handleFilePop(arg1);
     }
     else if (arg0 == "dpush")
     {
-        if (mem.variableExists(arg1))
-        {
-            if (mem.isString(arg1))
-            {
-                if (!Env::directoryExists(mem.varString(arg1)))
-                    Env::md(mem.varString(arg1));
-                else
-                    error(ErrorMessage::DIR_EXISTS, mem.varString(arg1), false);
-            }
-            else
-                error(ErrorMessage::NULL_STRING, arg1, false);
-        }
-        else
-        {
-            if (!Env::directoryExists(arg1))
-                Env::md(arg1);
-            else
-                error(ErrorMessage::DIR_EXISTS, arg1, false);
-        }
+        handleDirPush(arg1);
     }
     else if (arg0 == "dpop")
     {
-        if (mem.variableExists(arg1))
-        {
-            if (mem.isString(arg1))
-            {
-                if (Env::directoryExists(mem.varString(arg1)))
-                    Env::rd(mem.varString(arg1));
-                else
-                    error(ErrorMessage::DIR_NOT_FOUND, mem.varString(arg1), false);
-            }
-            else
-                error(ErrorMessage::NULL_STRING, arg1, false);
-        }
-        else
-        {
-            if (Env::directoryExists(arg1))
-                Env::rd(arg1);
-            else
-                error(ErrorMessage::DIR_NOT_FOUND, arg1, false);
-        }
+        handleDirPop(arg1);
     }
     else
-        Env::sysExec(s, command);
+        Env::sysExec(arg0, command);
 }
 
-void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> command)
+void twoSpace(string arg0, string arg1, string arg2, vector<string> command)
 {
     string last_val = "";
 
@@ -1810,33 +1146,33 @@ void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> co
 
     if (mem.variableExists(arg0))
     {
-        initializeVariable(arg0, arg1, arg2, s, command);
+        initializeVariable(arg0, arg1, arg2, command);
     }
     else if (mem.listExists(arg0) || mem.listExists(beforeBrackets(arg0)))
     {
-        initializeListValues(arg0, arg1, arg2, s, command);
+        initializeListValues(arg0, arg1, arg2, command);
     }
     else
     {
         if (startsWith(arg0, "@") && zeroDots(arg0))
         {
-            initializeGlobalVariable(arg0, arg1, arg2, s, command);
+            initializeGlobalVariable(arg0, arg1, arg2, command);
         }
         else if (startsWith(arg0, "@") && !zeroDots(arg2))
         {
-            initializeClassVariable(arg0, arg1, arg2, s, command);
+            initializeClassVariable(arg0, arg1, arg2, command);
         }
         else if (!mem.classExists(arg0) && mem.classExists(arg2))
         {
-            copyClass(arg0, arg1, arg2, s, command);
+            copyClass(arg0, arg1, arg2, command);
         }
         else if (isUpperConstant(arg0))
         {
-            initializeConstant(arg0, arg1, arg2, s);
+            initializeConstant(arg0, arg1, arg2);
         }
         else
         {
-            exec.executeSimpleStatement(arg0, arg1, arg2, s);
+            exec.executeSimpleStatement(arg0, arg1, arg2);
         }
     }
 }
@@ -1848,4666 +1184,11 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, vector<strin
 
     if (arg0 == "class")
     {
-        if (mem.classExists(arg1))
-        {
-            State.DefiningClass = true;
-            State.CurrentClass = arg1;
-        }
-        else
-        {
-            if (mem.classExists(arg3))
-            {
-                if (arg2 == "=")
-                {
-                    vector<Method> classMethods = mem.getClass(arg3).getMethods();
-                    Class newClass(arg1);
-
-                    for (int i = 0; i < (int)classMethods.size(); i++)
-                    {
-                        if (classMethods.at(i).isPublic())
-                            newClass.addMethod(classMethods.at(i));
-                    }
-
-                    mem.addClass(newClass);
-                    State.CurrentClass = arg1;
-                    State.DefiningClass = true;
-
-                    newClass.clear();
-                    classMethods.clear();
-                }
-                else
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-            }
-            else
-                error(ErrorMessage::CLS_METHOD_UNDEFINED, arg3, false);
-        }
-    }
-    else if (arg0 == "unless")
-    {
-        if (mem.listExists(arg3))
-        {
-            if (arg2 == "in")
-            {
-                string testString("[none]");
-
-                if (mem.variableExists(arg1))
-                {
-                    if (mem.isString(arg1))
-                        testString = mem.varString(arg1);
-                    else if (mem.isNumber(arg1))
-                        testString = dtos(mem.varNumber(arg1));
-                    else
-                        error(ErrorMessage::IS_NULL, arg1, false);
-                }
-                else
-                    testString = arg1;
-
-                if (testString != "[none]")
-                {
-                    bool elementFound = false;
-                    for (int i = 0; i < (int)mem.getList(arg3).size(); i++)
-                    {
-                        if (mem.getList(arg3).at(i) == testString)
-                        {
-                            elementFound = true;
-                            mem.createIfStatement(false);
-                            State.LastValue = itos(i);
-                            break;
-                        }
-                    }
-
-                    if (!elementFound)
-                        mem.createIfStatement(true);
-                }
-                else
-                    mem.createIfStatement(true);
-            }
-        }
-        else if (mem.variableExists(arg1) && mem.variableExists(arg3))
-        {
-            if (mem.isString(arg1) && mem.isString(arg3))
-            {
-                if (arg2 == "==")
-                {
-                    if (mem.varString(arg1) == mem.varString(arg3))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "!=")
-                {
-                    if (mem.varString(arg1) != mem.varString(arg3))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == ">")
-                {
-                    if (mem.varString(arg1).length() > mem.varString(arg3).length())
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "<")
-                {
-                    if (mem.varString(arg1).length() < mem.varString(arg3).length())
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "<=")
-                {
-                    if (mem.varString(arg1).length() <= mem.varString(arg3).length())
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == ">=")
-                {
-                    if (mem.varString(arg1).length() >= mem.varString(arg3).length())
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "contains")
-                {
-                    if (contains(mem.varString(arg1), mem.varString(arg3)))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "ends_with")
-                {
-                    if (endsWith(mem.varString(arg1), mem.varString(arg3)))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "begins_with")
-                {
-                    if (startsWith(mem.varString(arg1), mem.varString(arg3)))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else
-                {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    mem.createIfStatement(true);
-                }
-            }
-            else if (mem.isNumber(arg1) && mem.isNumber(arg3))
-            {
-                if (arg2 == "==")
-                {
-                    if (mem.varNumber(arg1) == mem.varNumber(arg3))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "!=")
-                {
-                    if (mem.varNumber(arg1) != mem.varNumber(arg3))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == ">")
-                {
-                    if (mem.varNumber(arg1) > mem.varNumber(arg3))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == ">=")
-                {
-                    if (mem.varNumber(arg1) >= mem.varNumber(arg3))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "<")
-                {
-                    if (mem.varNumber(arg1) < mem.varNumber(arg3))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "<=")
-                {
-                    if (mem.varNumber(arg1) <= mem.varNumber(arg3))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else
-                {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    mem.createIfStatement(true);
-                }
-            }
-            else
-            {
-                error(ErrorMessage::CONV_ERR, arg0, false);
-                mem.createIfStatement(true);
-            }
-        }
-        else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notClassMethod(arg3) && !containsParams(arg3))
-        {
-            if (mem.isNumber(arg1))
-            {
-                if (isNumeric(arg3))
-                {
-                    if (arg2 == "==")
-                    {
-                        if (mem.varNumber(arg1) == stod(arg3))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "!=")
-                    {
-                        if (mem.varNumber(arg1) != stod(arg3))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == ">")
-                    {
-                        if (mem.varNumber(arg1) > stod(arg3))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "<")
-                    {
-                        if (mem.varNumber(arg1) < stod(arg3))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == ">=")
-                    {
-                        if (mem.varNumber(arg1) >= stod(arg3))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "<=")
-                    {
-                        if (mem.varNumber(arg1) <= stod(arg3))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-                else if (arg3 == "number?")
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(false);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(true);
-                    else
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createIfStatement(true);
-                }
-            }
-            else
-            {
-                if (arg3 == "string?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (arg2 == "==")
-                            mem.createIfStatement(false);
-                        else if (arg2 == "!=")
-                            mem.createIfStatement(true);
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(true);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "!")
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                }
-                else if (arg3 == "number?")
-                {
-                    if (mem.isNumber(arg1))
-                    {
-                        if (arg2 == "==")
-                            mem.createIfStatement(false);
-                        else if (arg2 == "!=")
-                            mem.createIfStatement(true);
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(true);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "!=")
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                }
-                else if (arg3 == "uppercase?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (arg2 == "==")
-                        {
-                            if (isUpper(mem.varString(arg1)))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else if (arg2 == "!=")
-                        {
-                            if (isUpper(mem.varString(arg1)))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(true);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "!=")
-                        {
-                            if (isUpper(arg2))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else
-                            mem.createIfStatement(true);
-                    }
-                }
-                else if (arg3 == "lowercase?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (arg2 == "==")
-                        {
-                            if (isLower(mem.varString(arg1)))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else if (arg2 == "!=")
-                        {
-                            if (isLower(mem.varString(arg1)))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(true);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "!=")
-                        {
-                            if (isLower(arg2))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else
-                            mem.createIfStatement(true);
-                    }
-                }
-                else if (arg3 == "file?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (Env::fileExists(mem.varString(arg1)))
-                        {
-                            if (arg2 == "==")
-                                mem.createIfStatement(false);
-                            else if (arg2 == "!=")
-                                mem.createIfStatement(true);
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(true);
-                            }
-                        }
-                        else
-                        {
-                            if (arg2 == "!=")
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::IS_NULL, arg1, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-                else if (arg3 == "directory?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (Env::directoryExists(mem.varString(arg1)))
-                        {
-                            if (arg2 == "==")
-                                mem.createIfStatement(false);
-                            else if (arg2 == "!=")
-                                mem.createIfStatement(true);
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(true);
-                            }
-                        }
-                        else
-                        {
-                            if (arg2 == "!=")
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::IS_NULL, arg1, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-                else
-                {
-                    if (arg2 == "==")
-                    {
-                        if (mem.varString(arg1) == arg3)
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "!=")
-                    {
-                        if (mem.varString(arg1) != arg3)
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == ">")
-                    {
-                        if (mem.varString(arg1).length() > arg3.length())
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "<")
-                    {
-                        if (mem.varString(arg1).length() < arg3.length())
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == ">=")
-                    {
-                        if (mem.varString(arg1).length() >= arg3.length())
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "<=")
-                    {
-                        if (mem.varString(arg1).length() <= arg3.length())
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "contains")
-                    {
-                        if (contains(mem.varString(arg1), arg3))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "ends_with")
-                    {
-                        if (endsWith(mem.varString(arg1), arg3))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "begins_with")
-                    {
-                        if (startsWith(mem.varString(arg1), arg3))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-            }
-        }
-        else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notClassMethod(arg3) && containsParams(arg3))
-        {
-            string stackValue("");
-
-            if (isStringStack(arg3))
-                stackValue = getStringStack(arg3);
-            else if (stackReady(arg3))
-                stackValue = dtos(getStack(arg3));
-            else
-                stackValue = arg3;
-
-            if (mem.isNumber(arg1))
-            {
-                if (isNumeric(stackValue))
-                {
-                    if (arg2 == "==")
-                    {
-                        if (mem.varNumber(arg1) == stod(stackValue))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "!=")
-                    {
-                        if (mem.varNumber(arg1) != stod(stackValue))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == ">")
-                    {
-                        if (mem.varNumber(arg1) > stod(stackValue))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "<")
-                    {
-                        if (mem.varNumber(arg1) < stod(stackValue))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == ">=")
-                    {
-                        if (mem.varNumber(arg1) >= stod(stackValue))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "<=")
-                    {
-                        if (mem.varNumber(arg1) <= stod(stackValue))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-                else if (stackValue == "number?")
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(false);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(true);
-                    else
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createIfStatement(true);
-                }
-            }
-            else
-            {
-                if (stackValue == "string?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (arg2 == "==")
-                            mem.createIfStatement(false);
-                        else if (arg2 == "!=")
-                            mem.createIfStatement(true);
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(true);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "!=")
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                }
-                else if (stackValue == "number?")
-                {
-                    if (mem.isNumber(arg1))
-                    {
-                        if (arg2 == "==")
-                            mem.createIfStatement(false);
-                        else if (arg2 == "!=")
-                            mem.createIfStatement(true);
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(true);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "!=")
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                }
-                else if (stackValue == "uppercase?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (arg2 == "==")
-                        {
-                            if (isUpper(mem.varString(arg1)))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else if (arg2 == "!=")
-                        {
-                            if (isUpper(mem.varString(arg1)))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(true);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "!=")
-                        {
-                            if (isUpper(arg2))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else
-                            mem.createIfStatement(true);
-                    }
-                }
-                else if (stackValue == "lowercase?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (arg2 == "==")
-                        {
-                            if (isLower(mem.varString(arg1)))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else if (arg2 == "!=")
-                        {
-                            if (isLower(mem.varString(arg1)))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(true);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "!=")
-                        {
-                            if (isLower(arg2))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else
-                            mem.createIfStatement(true);
-                    }
-                }
-                else if (stackValue == "file?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (Env::fileExists(mem.varString(arg1)))
-                        {
-                            if (arg2 == "==")
-                                mem.createIfStatement(false);
-                            else if (arg2 == "!=")
-                                mem.createIfStatement(true);
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(true);
-                            }
-                        }
-                        else
-                        {
-                            if (arg2 == "!=")
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::IS_NULL, arg1, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-                else if (stackValue == "directory?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (Env::directoryExists(mem.varString(arg1)))
-                        {
-                            if (arg2 == "==")
-                                mem.createIfStatement(false);
-                            else if (arg2 == "!=")
-                                mem.createIfStatement(true);
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(true);
-                            }
-                        }
-                        else
-                        {
-                            if (arg2 == "!=")
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::IS_NULL, arg1, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-                else
-                {
-                    if (arg2 == "==")
-                    {
-                        if (mem.varString(arg1) == stackValue)
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "!=")
-                    {
-                        if (mem.varString(arg1) != stackValue)
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == ">")
-                    {
-                        if (mem.varString(arg1).length() > stackValue.length())
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "<")
-                    {
-                        if (mem.varString(arg1).length() < stackValue.length())
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == ">=")
-                    {
-                        if (mem.varString(arg1).length() >= stackValue.length())
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "<=")
-                    {
-                        if (mem.varString(arg1).length() <= stackValue.length())
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "contains")
-                    {
-                        if (contains(mem.varString(arg1), stackValue))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "ends_with")
-                    {
-                        if (endsWith(mem.varString(arg1), stackValue))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "begins_with")
-                    {
-                        if (startsWith(mem.varString(arg1), stackValue))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-            }
-        }
-        else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notClassMethod(arg1) && !containsParams(arg1))
-        {
-            if (mem.isNumber(arg3))
-            {
-                if (isNumeric(arg1))
-                {
-                    if (arg2 == "==")
-                    {
-                        if (mem.varNumber(arg3) == stod(arg1))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "!=")
-                    {
-                        if (mem.varNumber(arg3) != stod(arg1))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == ">")
-                    {
-                        if (mem.varNumber(arg3) > stod(arg1))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "<")
-                    {
-                        if (mem.varNumber(arg3) < stod(arg1))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == ">=")
-                    {
-                        if (mem.varNumber(arg3) >= stod(arg1))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "<=")
-                    {
-                        if (mem.varNumber(arg3) <= stod(arg1))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createIfStatement(true);
-                }
-            }
-            else
-            {
-                if (arg2 == "==")
-                {
-                    if (mem.varString(arg3) == arg1)
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "!=")
-                {
-                    if (mem.varString(arg3) != arg1)
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == ">")
-                {
-                    if (mem.varString(arg3).length() > arg1.length())
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "<")
-                {
-                    if (mem.varString(arg3).length() < arg1.length())
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == ">=")
-                {
-                    if (mem.varString(arg3).length() >= arg1.length())
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "<=")
-                {
-                    if (mem.varString(arg3).length() <= arg1.length())
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else
-                {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    mem.createIfStatement(true);
-                }
-            }
-        }
-        else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notClassMethod(arg1) && containsParams(arg1))
-        {
-            string stackValue("");
-
-            if (isStringStack(arg1))
-                stackValue = getStringStack(arg1);
-            else if (stackReady(arg1))
-                stackValue = dtos(getStack(arg1));
-            else
-                stackValue = arg1;
-
-            if (mem.isNumber(arg3))
-            {
-                if (isNumeric(stackValue))
-                {
-                    if (arg2 == "==")
-                    {
-                        if (mem.varNumber(arg3) == stod(stackValue))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "!=")
-                    {
-                        if (mem.varNumber(arg3) != stod(stackValue))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == ">")
-                    {
-                        if (mem.varNumber(arg3) > stod(stackValue))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "<")
-                    {
-                        if (mem.varNumber(arg3) < stod(stackValue))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == ">=")
-                    {
-                        if (mem.varNumber(arg3) >= stod(stackValue))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else if (arg2 == "<=")
-                    {
-                        if (mem.varNumber(arg3) <= stod(stackValue))
-                            mem.createIfStatement(false);
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createIfStatement(true);
-                }
-            }
-            else
-            {
-                if (arg2 == "==")
-                {
-                    if (mem.varString(arg3) == stackValue)
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "!=")
-                {
-                    if (mem.varString(arg3) != stackValue)
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == ">")
-                {
-                    if (mem.varString(arg3).length() > stackValue.length())
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "<")
-                {
-                    if (mem.varString(arg3).length() < stackValue.length())
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == ">=")
-                {
-                    if (mem.varString(arg3).length() >= stackValue.length())
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "<=")
-                {
-                    if (mem.varString(arg3).length() <= stackValue.length())
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else
-                {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    mem.createIfStatement(true);
-                }
-            }
-        }
-        else if (containsParams(arg1) || containsParams(arg3))
-        {
-            if (containsParams(arg1) && containsParams(arg3))
-            {
-                if (!zeroDots(arg1) && !zeroDots(arg3))
-                {
-                    string arg1before(beforeDot(arg1)), arg1after(afterDot(arg1)),
-                        arg3before(beforeDot(arg3)), arg3after(afterDot(arg3));
-
-                    string arg1Result(""), arg3Result("");
-
-                    if (mem.classExists(arg1before) && mem.classExists(arg3before))
-                    {
-                        if (mem.getClass(arg1before).hasMethod(beforeParams(arg1after)))
-                            exec.executeTemplate(mem.getClass(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
-
-                        arg1Result = State.LastValue;
-
-                        if (mem.getClass(arg3before).hasMethod(beforeParams(arg3after)))
-                            exec.executeTemplate(mem.getClass(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
-
-                        arg3Result = State.LastValue;
-
-                        if (isNumeric(arg1Result) && isNumeric(arg3Result))
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (stod(arg1Result) == stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (stod(arg1Result) != stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == "<")
-                            {
-                                if (stod(arg1Result) < stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == ">")
-                            {
-                                if (stod(arg1Result) > stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == "<=")
-                            {
-                                if (stod(arg1Result) <= stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == ">=")
-                            {
-                                if (stod(arg1Result) >= stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(true);
-                            }
-                        }
-                        else
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (arg1Result == arg3Result)
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (arg1Result != arg3Result)
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(true);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (!mem.classExists(arg1before))
-                            error(ErrorMessage::CLS_METHOD_UNDEFINED, arg1before, false);
-
-                        if (!mem.classExists(arg3before))
-                            error(ErrorMessage::CLS_METHOD_UNDEFINED, arg3before, false);
-
-                        mem.createIfStatement(true);
-                    }
-                }
-                else if (!zeroDots(arg1) && zeroDots(arg3))
-                {
-                    string arg1before(beforeDot(arg1)), arg1after(afterDot(arg1));
-
-                    string arg1Result(""), arg3Result("");
-
-                    if (mem.classExists(arg1before))
-                    {
-                        if (mem.getClass(arg1before).hasMethod(beforeParams(arg1after)))
-                            exec.executeTemplate(mem.getClass(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
-
-                        arg1Result = State.LastValue;
-
-                        if (mem.methodExists(beforeParams(arg3)))
-                            exec.executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
-
-                        arg3Result = State.LastValue;
-
-                        if (isNumeric(arg1Result) && isNumeric(arg3Result))
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (stod(arg1Result) == stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (stod(arg1Result) != stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == "<")
-                            {
-                                if (stod(arg1Result) < stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == ">")
-                            {
-                                if (stod(arg1Result) > stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == "<=")
-                            {
-                                if (stod(arg1Result) <= stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == ">=")
-                            {
-                                if (stod(arg1Result) >= stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(true);
-                            }
-                        }
-                        else
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (arg1Result == arg3Result)
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (arg1Result != arg3Result)
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(true);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::CLS_METHOD_UNDEFINED, arg1before, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-                else if (zeroDots(arg1) && !zeroDots(arg3))
-                {
-                    string arg3before(beforeDot(arg3)), arg3after(afterDot(arg3));
-
-                    string arg1Result(""), arg3Result("");
-
-                    if (mem.classExists(arg3before))
-                    {
-                        if (mem.getClass(arg3before).hasMethod(beforeParams(arg3after)))
-                            exec.executeTemplate(mem.getClass(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
-
-                        arg3Result = State.LastValue;
-
-                        if (mem.methodExists(beforeParams(arg1)))
-                            exec.executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
-
-                        arg1Result = State.LastValue;
-
-                        if (isNumeric(arg1Result) && isNumeric(arg3Result))
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (stod(arg1Result) == stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (stod(arg1Result) != stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == "<")
-                            {
-                                if (stod(arg1Result) < stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == ">")
-                            {
-                                if (stod(arg1Result) > stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == "<=")
-                            {
-                                if (stod(arg1Result) <= stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == ">=")
-                            {
-                                if (stod(arg1Result) >= stod(arg3Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(true);
-                            }
-                        }
-                        else
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (arg1Result == arg3Result)
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (arg1Result != arg3Result)
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(true);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::CLS_METHOD_UNDEFINED, arg3before, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-                else
-                {
-                    string arg1Result(""), arg3Result("");
-
-                    if (mem.methodExists(beforeParams(arg1)))
-                        exec.executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
-
-                    arg1Result = State.LastValue;
-
-                    if (mem.methodExists(beforeParams(arg3)))
-                        exec.executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
-
-                    arg3Result = State.LastValue;
-
-                    if (isNumeric(arg1Result) && isNumeric(arg3Result))
-                    {
-                        if (arg2 == "==")
-                        {
-                            if (stod(arg1Result) == stod(arg3Result))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else if (arg2 == "!=")
-                        {
-                            if (stod(arg1Result) != stod(arg3Result))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else if (arg2 == "<")
-                        {
-                            if (stod(arg1Result) < stod(arg3Result))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else if (arg2 == ">")
-                        {
-                            if (stod(arg1Result) > stod(arg3Result))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else if (arg2 == "<=")
-                        {
-                            if (stod(arg1Result) <= stod(arg3Result))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else if (arg2 == ">=")
-                        {
-                            if (stod(arg1Result) >= stod(arg3Result))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(true);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "==")
-                        {
-                            if (arg1Result == arg3Result)
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else if (arg2 == "!=")
-                        {
-                            if (arg1Result != arg3Result)
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(true);
-                        }
-                    }
-                }
-            }
-            else if (containsParams(arg1) && !containsParams(arg3))
-            {
-                string arg1Result(""), arg3Result("");
-
-                bool pass = true;
-
-                if (zeroDots(arg1))
-                {
-                    if (mem.methodExists(beforeParams(arg1)))
-                    {
-                        exec.executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
-
-                        arg1Result = State.LastValue;
-
-                        if (mem.methodExists(arg3))
-                        {
-                            parse(arg3);
-                            arg3Result = State.LastValue;
-                        }
-                        else if (mem.variableExists(arg3))
-                        {
-                            if (mem.isString(arg3))
-                                arg3Result = mem.varString(arg3);
-                            else if (mem.isNumber(arg3))
-                                arg3Result = dtos(mem.varNumber(arg3));
-                            else
-                            {
-                                pass = false;
-                                error(ErrorMessage::IS_NULL, arg3, false);
-                                mem.createIfStatement(true);
-                            }
-                        }
-                        else
-                            arg3Result = arg3;
-
-                        if (pass)
-                        {
-                            if (isNumeric(arg1Result) && isNumeric(arg3Result))
-                            {
-                                if (arg2 == "==")
-                                {
-                                    if (stod(arg1Result) == stod(arg3Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == "!=")
-                                {
-                                    if (stod(arg1Result) != stod(arg3Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == "<")
-                                {
-                                    if (stod(arg1Result) < stod(arg3Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == ">")
-                                {
-                                    if (stod(arg1Result) > stod(arg3Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == "<=")
-                                {
-                                    if (stod(arg1Result) <= stod(arg3Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == ">=")
-                                {
-                                    if (stod(arg1Result) >= stod(arg3Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else
-                                {
-                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    mem.createIfStatement(true);
-                                }
-                            }
-                            else
-                            {
-                                if (arg2 == "==")
-                                {
-                                    if (arg1Result == arg3Result)
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == "!=")
-                                {
-                                    if (arg1Result != arg3Result)
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else
-                                {
-                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    mem.createIfStatement(true);
-                                }
-                            }
-                        }
-                        else
-                            mem.createIfStatement(true);
-                    }
-                    else
-                    {
-                        error(ErrorMessage::METHOD_UNDEFINED, beforeParams(arg1), false);
-                        mem.createIfStatement(true);
-                    }
-                }
-                else
-                {
-                    string arg1before(beforeDot(arg1)), arg1after(afterDot(arg1));
-
-                    if (mem.classExists(arg1before))
-                    {
-                        if (mem.getClass(arg1before).hasMethod(beforeParams(arg1after)))
-                            exec.executeTemplate(mem.getClass(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
-
-                        arg1Result = State.LastValue;
-
-                        if (mem.variableExists(arg3))
-                        {
-                            if (mem.isString(arg3))
-                                arg3Result = mem.varString(arg3);
-                            else if (mem.isNumber(arg3))
-                                arg3Result = dtos(mem.varNumber(arg3));
-                            else
-                            {
-                                pass = false;
-                                error(ErrorMessage::IS_NULL, arg3, false);
-                                mem.createIfStatement(true);
-                            }
-                        }
-                        else if (mem.methodExists(arg3))
-                        {
-                            parse(arg3);
-
-                            arg3Result = State.LastValue;
-                        }
-                        else
-                            arg3Result = arg3;
-
-                        if (pass)
-                        {
-                            if (isNumeric(arg1Result) && isNumeric(arg3Result))
-                            {
-                                if (arg2 == "==")
-                                {
-                                    if (stod(arg1Result) == stod(arg3Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == "!=")
-                                {
-                                    if (stod(arg1Result) != stod(arg3Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == "<")
-                                {
-                                    if (stod(arg1Result) < stod(arg3Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == ">")
-                                {
-                                    if (stod(arg1Result) > stod(arg3Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == "<=")
-                                {
-                                    if (stod(arg1Result) <= stod(arg3Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == ">=")
-                                {
-                                    if (stod(arg1Result) >= stod(arg3Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else
-                                {
-                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    mem.createIfStatement(true);
-                                }
-                            }
-                            else
-                            {
-                                if (arg2 == "==")
-                                {
-                                    if (arg1Result == arg3Result)
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == "!=")
-                                {
-                                    if (arg1Result != arg3Result)
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else
-                                {
-                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    mem.createIfStatement(true);
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::CLS_METHOD_UNDEFINED, arg1before, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-            }
-            else if (!containsParams(arg1) && containsParams(arg3))
-            {
-                string arg1Result(""), arg3Result("");
-
-                bool pass = true;
-
-                if (zeroDots(arg3))
-                {
-                    if (mem.methodExists(beforeParams(arg3)))
-                    {
-                        exec.executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
-
-                        arg3Result = State.LastValue;
-
-                        if (mem.methodExists(arg1))
-                        {
-                            parse(arg1);
-                            arg1Result = State.LastValue;
-                        }
-                        else if (mem.variableExists(arg1))
-                        {
-                            if (mem.isString(arg1))
-                                arg1Result = mem.varString(arg1);
-                            else if (mem.isNumber(arg1))
-                                arg1Result = dtos(mem.varNumber(arg1));
-                            else
-                            {
-                                pass = false;
-                                error(ErrorMessage::IS_NULL, arg1, false);
-                                mem.createIfStatement(true);
-                            }
-                        }
-                        else
-                            arg1Result = arg1;
-
-                        if (pass)
-                        {
-                            if (isNumeric(arg3Result) && isNumeric(arg1Result))
-                            {
-                                if (arg2 == "==")
-                                {
-                                    if (stod(arg3Result) == stod(arg1Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == "!=")
-                                {
-                                    if (stod(arg3Result) != stod(arg1Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == "<")
-                                {
-                                    if (stod(arg3Result) < stod(arg1Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == ">")
-                                {
-                                    if (stod(arg3Result) > stod(arg1Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == "<=")
-                                {
-                                    if (stod(arg3Result) <= stod(arg1Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == ">=")
-                                {
-                                    if (stod(arg3Result) >= stod(arg1Result))
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else
-                                {
-                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    mem.createIfStatement(true);
-                                }
-                            }
-                            else
-                            {
-                                if (arg2 == "==")
-                                {
-                                    if (arg3Result == arg1Result)
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else if (arg2 == "!=")
-                                {
-                                    if (arg3Result != arg1Result)
-                                        mem.createIfStatement(false);
-                                    else
-                                        mem.createIfStatement(true);
-                                }
-                                else
-                                {
-                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    mem.createIfStatement(true);
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::METHOD_UNDEFINED, beforeParams(arg3), false);
-                        mem.createIfStatement(true);
-                    }
-                }
-                else
-                {
-                    string arg3before(beforeDot(arg3)), arg3after(afterDot(arg3));
-
-                    if (mem.classExists(arg3before))
-                    {
-                        if (mem.getClass(arg3before).hasMethod(beforeParams(arg3after)))
-                            exec.executeTemplate(mem.getClass(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
-
-                        arg3Result = State.LastValue;
-
-                        if (mem.variableExists(arg1))
-                        {
-                            if (mem.isString(arg1))
-                                arg1Result = mem.varString(arg1);
-                            else if (mem.isNumber(arg3))
-                                arg1Result = dtos(mem.varNumber(arg1));
-                            else
-                            {
-                                error(ErrorMessage::IS_NULL, arg1, false);
-                                mem.createIfStatement(true);
-                            }
-                        }
-                        else if (mem.methodExists(arg1))
-                        {
-                            parse(arg1);
-
-                            arg1Result = State.LastValue;
-                        }
-                        else
-                            arg1Result = arg1;
-
-                        if (isNumeric(arg3Result) && isNumeric(arg1Result))
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (stod(arg3Result) == stod(arg1Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (stod(arg3Result) != stod(arg1Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == "<")
-                            {
-                                if (stod(arg3Result) < stod(arg1Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == ">")
-                            {
-                                if (stod(arg3Result) > stod(arg1Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == "<=")
-                            {
-                                if (stod(arg3Result) <= stod(arg1Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == ">=")
-                            {
-                                if (stod(arg3Result) >= stod(arg1Result))
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(true);
-                            }
-                        }
-                        else
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (arg3Result == arg1Result)
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (arg3Result != arg1Result)
-                                    mem.createIfStatement(false);
-                                else
-                                    mem.createIfStatement(true);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(true);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::CLS_METHOD_UNDEFINED, arg3before, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-            }
-        }
-        else if ((mem.methodExists(arg1) && arg3 != "method?") || mem.methodExists(arg3))
-        {
-            string arg1Result(""), arg3Result("");
-
-            if (mem.methodExists(arg1))
-            {
-                parse(arg1);
-                arg1Result = State.LastValue;
-            }
-            else if (mem.variableExists(arg1))
-            {
-                if (mem.isString(arg1))
-                    arg1Result = mem.varString(arg1);
-                else if (mem.isNumber(arg1))
-                    arg1Result = dtos(mem.varNumber(arg1));
-                else
-                {
-                    error(ErrorMessage::IS_NULL, arg1, false);
-                    mem.createIfStatement(true);
-                }
-            }
-            else
-                arg1Result = arg1;
-
-            if (mem.methodExists(arg3))
-            {
-                parse(arg3);
-                arg3Result = State.LastValue;
-            }
-            else if (mem.variableExists(arg3))
-            {
-                if (mem.isString(arg3))
-                    arg3Result = mem.varString(arg3);
-                else if (mem.isNumber(arg3))
-                    arg3Result = dtos(mem.varNumber(arg3));
-                else
-                {
-                    error(ErrorMessage::IS_NULL, arg3, false);
-                    mem.createIfStatement(true);
-                }
-            }
-            else
-                arg3Result = arg3;
-
-            if (isNumeric(arg1Result) && isNumeric(arg3Result))
-            {
-                if (arg2 == "==")
-                {
-                    if (stod(arg1Result) == stod(arg3Result))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "!=")
-                {
-                    if (stod(arg1Result) != stod(arg3Result))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "<")
-                {
-                    if (stod(arg1Result) < stod(arg3Result))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == ">")
-                {
-                    if (stod(arg1Result) > stod(arg3Result))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "<=")
-                {
-                    if (stod(arg1Result) <= stod(arg3Result))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == ">=")
-                {
-                    if (stod(arg1Result) >= stod(arg3Result))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else
-                {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    mem.createIfStatement(true);
-                }
-            }
-            else
-            {
-                if (arg2 == "==")
-                {
-                    if (arg1Result == arg3Result)
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else if (arg2 == "!=")
-                {
-                    if (arg1Result != arg3Result)
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else
-                {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    mem.createIfStatement(true);
-                }
-            }
-        }
-        else
-        {
-            if (arg3 == "class?")
-            {
-                if (mem.classExists(arg1))
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(false);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(true);
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-                else
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(true);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(false);
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-            }
-            else if (arg3 == "variable?")
-            {
-                if (mem.variableExists(arg1))
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(false);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(true);
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-                else
-                {
-                    if (arg2 == "=")
-                        mem.createIfStatement(true);
-                    else if (arg2 == "!")
-                        mem.createIfStatement(false);
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-            }
-            else if (arg3 == "method?")
-            {
-                if (mem.methodExists(arg1))
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(false);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(true);
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-                else
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(true);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(false);
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-            }
-            else if (arg3 == "list?")
-            {
-                if (mem.listExists(arg1))
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(false);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(true);
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-                else
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(true);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(false);
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(true);
-                    }
-                }
-            }
-            else if (arg2 == "==")
-            {
-                if (arg1 == arg3)
-                    mem.createIfStatement(false);
-                else
-                    mem.createIfStatement(true);
-            }
-            else if (arg2 == "!=")
-            {
-                if (arg1 != arg3)
-                    mem.createIfStatement(false);
-                else
-                    mem.createIfStatement(true);
-            }
-            else if (arg2 == ">")
-            {
-                if (isNumeric(arg1) && isNumeric(arg3))
-                {
-                    if (stod(arg1) > stod(arg3))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else
-                {
-                    if (arg1.length() > arg3.length())
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-            }
-            else if (arg2 == "<")
-            {
-                if (isNumeric(arg1) && isNumeric(arg3))
-                {
-                    if (stod(arg1) < stod(arg3))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else
-                {
-                    if (arg1.length() < arg3.length())
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-            }
-            else if (arg2 == ">=")
-            {
-                if (isNumeric(arg1) && isNumeric(arg3))
-                {
-                    if (stod(arg1) >= stod(arg3))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else
-                {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    mem.createIfStatement(true);
-                }
-            }
-            else if (arg2 == "<=")
-            {
-                if (isNumeric(arg1) && isNumeric(arg3))
-                {
-                    if (stod(arg1) <= stod(arg3))
-                        mem.createIfStatement(false);
-                    else
-                        mem.createIfStatement(true);
-                }
-                else
-                {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    mem.createIfStatement(false);
-                }
-            }
-            else if (arg2 == "begins_with")
-            {
-                if (startsWith(arg1, arg3))
-                    mem.createIfStatement(false);
-                else
-                    mem.createIfStatement(true);
-            }
-            else if (arg2 == "ends_with")
-            {
-                if (endsWith(arg1, arg3))
-                    mem.createIfStatement(false);
-                else
-                    mem.createIfStatement(true);
-            }
-            else if (arg2 == "contains")
-            {
-                if (contains(arg1, arg3))
-                    mem.createIfStatement(false);
-                else
-                    mem.createIfStatement(true);
-            }
-            else
-            {
-                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                mem.createIfStatement(true);
-            }
-        }
+        handleClassDecl(arg1, arg3, arg2);
     }
     else if (arg0 == "if")
     {
-        if (mem.listExists(arg3))
-        {
-            if (arg2 == "in")
-            {
-                string testString("[none]");
-
-                if (mem.variableExists(arg1))
-                {
-                    if (mem.isString(arg1))
-                        testString = mem.varString(arg1);
-                    else if (mem.isNumber(arg1))
-                        testString = dtos(mem.varNumber(arg1));
-                    else
-                        error(ErrorMessage::IS_NULL, arg1, false);
-                }
-                else
-                    testString = arg1;
-
-                if (testString != "[none]")
-                {
-                    bool elementFound = false;
-                    for (int i = 0; i < (int)mem.getList(arg3).size(); i++)
-                    {
-                        if (mem.getList(arg3).at(i) == testString)
-                        {
-                            elementFound = true;
-                            mem.createIfStatement(true);
-                            State.LastValue = itos(i);
-                            break;
-                        }
-                    }
-
-                    if (!elementFound)
-                        mem.createIfStatement(false);
-                }
-                else
-                    mem.createIfStatement(false);
-            }
-        }
-        else if (mem.listExists(arg1) && arg3 != "list?")
-        {
-            if (arg2 == "contains")
-            {
-                string testString("[none]");
-
-                if (mem.variableExists(arg3))
-                {
-                    if (mem.isString(arg3))
-                        testString = mem.varString(arg3);
-                    else if (mem.isNumber(arg3))
-                        testString = dtos(mem.varNumber(arg3));
-                    else
-                        error(ErrorMessage::IS_NULL, arg3, false);
-                }
-                else
-                    testString = arg3;
-
-                if (testString != "[none]")
-                {
-                    bool elementFound = false;
-                    for (int i = 0; i < (int)mem.getList(arg1).size(); i++)
-                    {
-                        if (mem.getList(arg1).at(i) == testString)
-                        {
-                            elementFound = true;
-                            mem.createIfStatement(true);
-                            State.LastValue = itos(i);
-                            break;
-                        }
-                    }
-
-                    if (!elementFound)
-                        mem.createIfStatement(false);
-                }
-                else
-                    mem.createIfStatement(false);
-            }
-        }
-        else if (mem.variableExists(arg1) && mem.variableExists(arg3))
-        {
-            if (mem.isString(arg1) && mem.isString(arg3))
-            {
-                if (arg2 == "==")
-                {
-                    if (mem.varString(arg1) == mem.varString(arg3))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "!=")
-                {
-                    if (mem.varString(arg1) != mem.varString(arg3))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == ">")
-                {
-                    if (mem.varString(arg1).length() > mem.varString(arg3).length())
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "<")
-                {
-                    if (mem.varString(arg1).length() < mem.varString(arg3).length())
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "<=")
-                {
-                    if (mem.varString(arg1).length() <= mem.varString(arg3).length())
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == ">=")
-                {
-                    if (mem.varString(arg1).length() >= mem.varString(arg3).length())
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "contains")
-                {
-                    if (contains(mem.varString(arg1), mem.varString(arg3)))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "ends_with")
-                {
-                    if (endsWith(mem.varString(arg1), mem.varString(arg3)))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "begins_with")
-                {
-                    if (startsWith(mem.varString(arg1), mem.varString(arg3)))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else
-                {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    mem.createIfStatement(false);
-                }
-            }
-            else if (mem.isNumber(arg1) && mem.isNumber(arg3))
-            {
-                if (arg2 == "==")
-                {
-                    if (mem.varNumber(arg1) == mem.varNumber(arg3))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "!=")
-                {
-                    if (mem.varNumber(arg1) != mem.varNumber(arg3))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == ">")
-                {
-                    if (mem.varNumber(arg1) > mem.varNumber(arg3))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == ">=")
-                {
-                    if (mem.varNumber(arg1) >= mem.varNumber(arg3))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "<")
-                {
-                    if (mem.varNumber(arg1) < mem.varNumber(arg3))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "<=")
-                {
-                    if (mem.varNumber(arg1) <= mem.varNumber(arg3))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else
-                {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    mem.createIfStatement(false);
-                }
-            }
-            else
-            {
-                error(ErrorMessage::CONV_ERR, arg0, false);
-                mem.createIfStatement(false);
-            }
-        }
-        else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notClassMethod(arg3) && !containsParams(arg3))
-        {
-            if (mem.isNumber(arg1))
-            {
-                if (isNumeric(arg3))
-                {
-                    if (arg2 == "==")
-                    {
-                        if (mem.varNumber(arg1) == stod(arg3))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "!=")
-                    {
-                        if (mem.varNumber(arg1) != stod(arg3))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == ">")
-                    {
-                        if (mem.varNumber(arg1) > stod(arg3))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "<")
-                    {
-                        if (mem.varNumber(arg1) < stod(arg3))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == ">=")
-                    {
-                        if (mem.varNumber(arg1) >= stod(arg3))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "<=")
-                    {
-                        if (mem.varNumber(arg1) <= stod(arg3))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-                else if (arg3 == "number?")
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(true);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(false);
-                    else
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createIfStatement(false);
-                }
-            }
-            else
-            {
-                if (arg3 == "string?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (arg2 == "==")
-                            mem.createIfStatement(true);
-                        else if (arg2 == "!=")
-                            mem.createIfStatement(false);
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(false);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "!=")
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                }
-                else if (arg3 == "number?")
-                {
-                    if (mem.isNumber(arg1))
-                    {
-                        if (arg2 == "==")
-                            mem.createIfStatement(true);
-                        else if (arg2 == "!=")
-                            mem.createIfStatement(false);
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(false);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "!=")
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                }
-                else if (arg3 == "uppercase?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (arg2 == "==")
-                        {
-                            if (isUpper(mem.varString(arg1)))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else if (arg2 == "!=")
-                        {
-                            if (isUpper(mem.varString(arg1)))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(false);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "!=")
-                        {
-                            if (isUpper(arg2))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else
-                            mem.createIfStatement(false);
-                    }
-                }
-                else if (arg3 == "lowercase?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (arg2 == "==")
-                        {
-                            if (isLower(mem.varString(arg1)))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else if (arg2 == "!=")
-                        {
-                            if (isLower(mem.varString(arg1)))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(false);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "!=")
-                        {
-                            if (isLower(arg2))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else
-                            mem.createIfStatement(false);
-                    }
-                }
-                else if (arg3 == "file?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (Env::fileExists(mem.varString(arg1)))
-                        {
-                            if (arg2 == "==")
-                                mem.createIfStatement(true);
-                            else if (arg2 == "!=")
-                                mem.createIfStatement(false);
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                        else
-                        {
-                            if (arg2 == "!=")
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::IS_NULL, arg1, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-                else if (arg3 == "dir?" || arg3 == "directory?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (Env::directoryExists(mem.varString(arg1)))
-                        {
-                            if (arg2 == "==")
-                                mem.createIfStatement(true);
-                            else if (arg2 == "!=")
-                                mem.createIfStatement(false);
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                        else
-                        {
-                            if (arg2 == "!=")
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::IS_NULL, arg1, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-                else
-                {
-                    if (arg2 == "==")
-                    {
-                        if (mem.varString(arg1) == arg3)
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "!=")
-                    {
-                        if (mem.varString(arg1) != arg3)
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == ">")
-                    {
-                        if (mem.varString(arg1).length() > arg3.length())
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "<")
-                    {
-                        if (mem.varString(arg1).length() < arg3.length())
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == ">=")
-                    {
-                        if (mem.varString(arg1).length() >= arg3.length())
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "<=")
-                    {
-                        if (mem.varString(arg1).length() <= arg3.length())
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "contains")
-                    {
-                        if (contains(mem.varString(arg1), arg3))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "ends_with")
-                    {
-                        if (endsWith(mem.varString(arg1), arg3))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "begins_with")
-                    {
-                        if (startsWith(mem.varString(arg1), arg3))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-            }
-        }
-        else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notClassMethod(arg3) && containsParams(arg3))
-        {
-            string stackValue("");
-
-            if (isStringStack(arg3))
-                stackValue = getStringStack(arg3);
-            else if (stackReady(arg3))
-                stackValue = dtos(getStack(arg3));
-            else
-                stackValue = arg3;
-
-            if (mem.isNumber(arg1))
-            {
-                if (isNumeric(stackValue))
-                {
-                    if (arg2 == "==")
-                    {
-                        if (mem.varNumber(arg1) == stod(stackValue))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "!=")
-                    {
-                        if (mem.varNumber(arg1) != stod(stackValue))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == ">")
-                    {
-                        if (mem.varNumber(arg1) > stod(stackValue))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "<")
-                    {
-                        if (mem.varNumber(arg1) < stod(stackValue))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == ">=")
-                    {
-                        if (mem.varNumber(arg1) >= stod(stackValue))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "<=")
-                    {
-                        if (mem.varNumber(arg1) <= stod(stackValue))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-                else if (stackValue == "number?")
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(true);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(false);
-                    else
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createIfStatement(false);
-                }
-            }
-            else
-            {
-                if (stackValue == "string?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (arg2 == "==")
-                            mem.createIfStatement(true);
-                        else if (arg2 == "!=")
-                            mem.createIfStatement(false);
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(false);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "!=")
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                }
-                else if (stackValue == "number?")
-                {
-                    if (mem.isNumber(arg1))
-                    {
-                        if (arg2 == "==")
-                            mem.createIfStatement(true);
-                        else if (arg2 == "!=")
-                            mem.createIfStatement(false);
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(false);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "!=")
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                }
-                else if (stackValue == "uppercase?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (arg2 == "==")
-                        {
-                            if (isUpper(mem.varString(arg1)))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else if (arg2 == "!=")
-                        {
-                            if (isUpper(mem.varString(arg1)))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(false);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "!=")
-                        {
-                            if (isUpper(arg2))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else
-                            mem.createIfStatement(false);
-                    }
-                }
-                else if (stackValue == "lower?" || stackValue == "lowercase?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (arg2 == "==")
-                        {
-                            if (isLower(mem.varString(arg1)))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else if (arg2 == "!=")
-                        {
-                            if (isLower(mem.varString(arg1)))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(false);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "!=")
-                        {
-                            if (isLower(arg2))
-                                mem.createIfStatement(false);
-                            else
-                                mem.createIfStatement(true);
-                        }
-                        else
-                            mem.createIfStatement(false);
-                    }
-                }
-                else if (stackValue == "file?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (Env::fileExists(mem.varString(arg1)))
-                        {
-                            if (arg2 == "==")
-                                mem.createIfStatement(true);
-                            else if (arg2 == "!=")
-                                mem.createIfStatement(false);
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                        else
-                        {
-                            if (arg2 == "!=")
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::IS_NULL, arg1, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-                else if (stackValue == "directory?")
-                {
-                    if (mem.isString(arg1))
-                    {
-                        if (Env::directoryExists(mem.varString(arg1)))
-                        {
-                            if (arg2 == "==")
-                                mem.createIfStatement(true);
-                            else if (arg2 == "!=")
-                                mem.createIfStatement(false);
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                        else
-                        {
-                            if (arg2 == "!=")
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::IS_NULL, arg1, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-                else
-                {
-                    if (arg2 == "==")
-                    {
-                        if (mem.varString(arg1) == stackValue)
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "!=")
-                    {
-                        if (mem.varString(arg1) != stackValue)
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == ">")
-                    {
-                        if (mem.varString(arg1).length() > stackValue.length())
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "<")
-                    {
-                        if (mem.varString(arg1).length() < stackValue.length())
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == ">=")
-                    {
-                        if (mem.varString(arg1).length() >= stackValue.length())
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "<=")
-                    {
-                        if (mem.varString(arg1).length() <= stackValue.length())
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "contains")
-                    {
-                        if (contains(mem.varString(arg1), stackValue))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "ends_with")
-                    {
-                        if (endsWith(mem.varString(arg1), stackValue))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "begins_with")
-                    {
-                        if (startsWith(mem.varString(arg1), stackValue))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-            }
-        }
-        else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notClassMethod(arg1) && !containsParams(arg1))
-        {
-            if (mem.isNumber(arg3))
-            {
-                if (isNumeric(arg1))
-                {
-                    if (arg2 == "==")
-                    {
-                        if (mem.varNumber(arg3) == stod(arg1))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "!=")
-                    {
-                        if (mem.varNumber(arg3) != stod(arg1))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == ">")
-                    {
-                        if (mem.varNumber(arg3) > stod(arg1))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "<")
-                    {
-                        if (mem.varNumber(arg3) < stod(arg1))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == ">=")
-                    {
-                        if (mem.varNumber(arg3) >= stod(arg1))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "<=")
-                    {
-                        if (mem.varNumber(arg3) <= stod(arg1))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createIfStatement(false);
-                }
-            }
-            else
-            {
-                if (arg2 == "==")
-                {
-                    if (mem.varString(arg3) == arg1)
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "!=")
-                {
-                    if (mem.varString(arg3) != arg1)
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == ">")
-                {
-                    if (mem.varString(arg3).length() > arg1.length())
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "<")
-                {
-                    if (mem.varString(arg3).length() < arg1.length())
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == ">=")
-                {
-                    if (mem.varString(arg3).length() >= arg1.length())
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "<=")
-                {
-                    if (mem.varString(arg3).length() <= arg1.length())
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else
-                {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    mem.createIfStatement(false);
-                }
-            }
-        }
-        else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notClassMethod(arg1) && containsParams(arg1))
-        {
-            string stackValue("");
-
-            if (isStringStack(arg1))
-                stackValue = getStringStack(arg1);
-            else if (stackReady(arg1))
-                stackValue = dtos(getStack(arg1));
-            else
-                stackValue = arg1;
-
-            if (mem.isNumber(arg3))
-            {
-                if (isNumeric(stackValue))
-                {
-                    if (arg2 == "==")
-                    {
-                        if (mem.varNumber(arg3) == stod(stackValue))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "!=")
-                    {
-                        if (mem.varNumber(arg3) != stod(stackValue))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == ">")
-                    {
-                        if (mem.varNumber(arg3) > stod(stackValue))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "<")
-                    {
-                        if (mem.varNumber(arg3) < stod(stackValue))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == ">=")
-                    {
-                        if (mem.varNumber(arg3) >= stod(stackValue))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (arg2 == "<=")
-                    {
-                        if (mem.varNumber(arg3) <= stod(stackValue))
-                            mem.createIfStatement(true);
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createIfStatement(false);
-                }
-            }
-            else
-            {
-                if (arg2 == "==")
-                {
-                    if (mem.varString(arg3) == stackValue)
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "!=")
-                {
-                    if (mem.varString(arg3) != stackValue)
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == ">")
-                {
-                    if (mem.varString(arg3).length() > stackValue.length())
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "<")
-                {
-                    if (mem.varString(arg3).length() < stackValue.length())
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == ">=")
-                {
-                    if (mem.varString(arg3).length() >= stackValue.length())
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "<=")
-                {
-                    if (mem.varString(arg3).length() <= stackValue.length())
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else
-                {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    mem.createIfStatement(false);
-                }
-            }
-        }
-        else if (containsParams(arg1) || containsParams(arg3))
-        {
-            if (containsParams(arg1) && containsParams(arg3))
-            {
-                if (!zeroDots(arg1) && !zeroDots(arg3))
-                {
-                    string arg1before(beforeDot(arg1)), arg1after(afterDot(arg1)),
-                        arg3before(beforeDot(arg3)), arg3after(afterDot(arg3));
-
-                    string arg1Result(""), arg3Result("");
-
-                    if (mem.classExists(arg1before) && mem.classExists(arg3before))
-                    {
-                        if (mem.getClass(arg1before).hasMethod(beforeParams(arg1after)))
-                            exec.executeTemplate(mem.getClass(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
-
-                        arg1Result = State.LastValue;
-
-                        if (mem.getClass(arg3before).hasMethod(beforeParams(arg3after)))
-                            exec.executeTemplate(mem.getClass(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
-
-                        arg3Result = State.LastValue;
-
-                        if (isNumeric(arg1Result) && isNumeric(arg3Result))
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (stod(arg1Result) == stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (stod(arg1Result) != stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "<")
-                            {
-                                if (stod(arg1Result) < stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == ">")
-                            {
-                                if (stod(arg1Result) > stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "<=")
-                            {
-                                if (stod(arg1Result) <= stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == ">=")
-                            {
-                                if (stod(arg1Result) >= stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                        else
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (arg1Result == arg3Result)
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (arg1Result != arg3Result)
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (!mem.classExists(arg1before))
-                            error(ErrorMessage::CLS_METHOD_UNDEFINED, arg1before, false);
-
-                        if (!mem.classExists(arg3before))
-                            error(ErrorMessage::CLS_METHOD_UNDEFINED, arg3before, false);
-
-                        mem.createIfStatement(false);
-                    }
-                }
-                else if (!zeroDots(arg1) && zeroDots(arg3))
-                {
-                    string arg1before(beforeDot(arg1)), arg1after(afterDot(arg1));
-
-                    string arg1Result(""), arg3Result("");
-
-                    if (mem.classExists(arg1before))
-                    {
-                        if (mem.getClass(arg1before).hasMethod(beforeParams(arg1after)))
-                            exec.executeTemplate(mem.getClass(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
-
-                        arg1Result = State.LastValue;
-
-                        if (mem.methodExists(beforeParams(arg3)))
-                            exec.executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
-
-                        arg3Result = State.LastValue;
-
-                        if (isNumeric(arg1Result) && isNumeric(arg3Result))
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (stod(arg1Result) == stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (stod(arg1Result) != stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "<")
-                            {
-                                if (stod(arg1Result) < stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == ">")
-                            {
-                                if (stod(arg1Result) > stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "<=")
-                            {
-                                if (stod(arg1Result) <= stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == ">=")
-                            {
-                                if (stod(arg1Result) >= stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                        else
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (arg1Result == arg3Result)
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (arg1Result != arg3Result)
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::CLS_METHOD_UNDEFINED, arg1before, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-                else if (zeroDots(arg1) && !zeroDots(arg3))
-                {
-                    string arg3before(beforeDot(arg3)), arg3after(afterDot(arg3));
-
-                    string arg1Result(""), arg3Result("");
-
-                    if (mem.classExists(arg3before))
-                    {
-                        if (mem.getClass(arg3before).hasMethod(beforeParams(arg3after)))
-                            exec.executeTemplate(mem.getClass(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
-
-                        arg3Result = State.LastValue;
-
-                        if (mem.methodExists(beforeParams(arg1)))
-                            exec.executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
-
-                        arg1Result = State.LastValue;
-
-                        if (isNumeric(arg1Result) && isNumeric(arg3Result))
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (stod(arg1Result) == stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (stod(arg1Result) != stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "<")
-                            {
-                                if (stod(arg1Result) < stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == ">")
-                            {
-                                if (stod(arg1Result) > stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "<=")
-                            {
-                                if (stod(arg1Result) <= stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == ">=")
-                            {
-                                if (stod(arg1Result) >= stod(arg3Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                        else
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (arg1Result == arg3Result)
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (arg1Result != arg3Result)
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::CLS_METHOD_UNDEFINED, arg3before, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-                else
-                {
-                    string arg1Result(""), arg3Result("");
-
-                    if (mem.methodExists(beforeParams(arg1)))
-                        exec.executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
-
-                    arg1Result = State.LastValue;
-
-                    if (mem.methodExists(beforeParams(arg3)))
-                        exec.executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
-
-                    arg3Result = State.LastValue;
-
-                    if (isNumeric(arg1Result) && isNumeric(arg3Result))
-                    {
-                        if (arg2 == "==")
-                        {
-                            if (stod(arg1Result) == stod(arg3Result))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else if (arg2 == "!=")
-                        {
-                            if (stod(arg1Result) != stod(arg3Result))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else if (arg2 == "<")
-                        {
-                            if (stod(arg1Result) < stod(arg3Result))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else if (arg2 == ">")
-                        {
-                            if (stod(arg1Result) > stod(arg3Result))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else if (arg2 == "<=")
-                        {
-                            if (stod(arg1Result) <= stod(arg3Result))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else if (arg2 == ">=")
-                        {
-                            if (stod(arg1Result) >= stod(arg3Result))
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(false);
-                        }
-                    }
-                    else
-                    {
-                        if (arg2 == "==")
-                        {
-                            if (arg1Result == arg3Result)
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else if (arg2 == "!=")
-                        {
-                            if (arg1Result != arg3Result)
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else
-                        {
-                            error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                            mem.createIfStatement(false);
-                        }
-                    }
-                }
-            }
-            else if (containsParams(arg1) && !containsParams(arg3))
-            {
-                string arg1Result(""), arg3Result("");
-
-                bool pass = true;
-
-                if (zeroDots(arg1))
-                {
-                    if (mem.methodExists(beforeParams(arg1)))
-                    {
-                        exec.executeTemplate(mem.getMethod(beforeParams(arg1)), getParams(arg1));
-
-                        arg1Result = State.LastValue;
-
-                        if (mem.methodExists(arg3))
-                        {
-                            parse(arg3);
-                            arg3Result = State.LastValue;
-                        }
-                        else if (mem.variableExists(arg3))
-                        {
-                            if (mem.isString(arg3))
-                                arg3Result = mem.varString(arg3);
-                            else if (mem.isNumber(arg3))
-                                arg3Result = dtos(mem.varNumber(arg3));
-                            else
-                            {
-                                pass = false;
-                                error(ErrorMessage::IS_NULL, arg3, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                        else
-                            arg3Result = arg3;
-
-                        if (pass)
-                        {
-                            if (isNumeric(arg1Result) && isNumeric(arg3Result))
-                            {
-                                if (arg2 == "==")
-                                {
-                                    if (stod(arg1Result) == stod(arg3Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == "!=")
-                                {
-                                    if (stod(arg1Result) != stod(arg3Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == "<")
-                                {
-                                    if (stod(arg1Result) < stod(arg3Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == ">")
-                                {
-                                    if (stod(arg1Result) > stod(arg3Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == "<=")
-                                {
-                                    if (stod(arg1Result) <= stod(arg3Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == ">=")
-                                {
-                                    if (stod(arg1Result) >= stod(arg3Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else
-                                {
-                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    mem.createIfStatement(false);
-                                }
-                            }
-                            else
-                            {
-                                if (arg2 == "==")
-                                {
-                                    if (arg1Result == arg3Result)
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == "!=")
-                                {
-                                    if (arg1Result != arg3Result)
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else
-                                {
-                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    mem.createIfStatement(false);
-                                }
-                            }
-                        }
-                        else
-                            mem.createIfStatement(false);
-                    }
-                    else if (stackReady(arg1))
-                    {
-                        string stackValue("");
-
-                        if (isStringStack(arg1))
-                            stackValue = getStringStack(arg1);
-                        else
-                            stackValue = dtos(getStack(arg1));
-
-                        string comp("");
-
-                        if (mem.variableExists(arg3))
-                        {
-                            if (mem.isString(arg3))
-                                comp = mem.varString(arg3);
-                            else if (mem.isNumber(arg3))
-                                comp = dtos(mem.varNumber(arg3));
-                        }
-                        else if (mem.methodExists(arg3))
-                        {
-                            parse(arg3);
-
-                            comp = State.LastValue;
-                        }
-                        else if (containsParams(arg3))
-                        {
-                            exec.executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
-
-                            comp = State.LastValue;
-                        }
-                        else
-                            comp = arg3;
-
-                        if (isNumeric(stackValue) && isNumeric(comp))
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (stod(stackValue) == stod(comp))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (stod(stackValue) != stod(comp))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "<")
-                            {
-                                if (stod(stackValue) < stod(comp))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == ">")
-                            {
-                                if (stod(stackValue) > stod(comp))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "<=")
-                            {
-                                if (stod(stackValue) <= stod(comp))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == ">=")
-                            {
-                                if (stod(stackValue) >= stod(comp))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                        else
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (stackValue == comp)
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (stackValue != comp)
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::METHOD_UNDEFINED, beforeParams(arg1), false);
-                        mem.createIfStatement(false);
-                    }
-                }
-                else
-                {
-                    string arg1before(beforeDot(arg1)), arg1after(afterDot(arg1));
-
-                    if (mem.classExists(arg1before))
-                    {
-                        if (mem.getClass(arg1before).hasMethod(beforeParams(arg1after)))
-                            exec.executeTemplate(mem.getClass(arg1before).getMethod(beforeParams(arg1after)), getParams(arg1after));
-
-                        arg1Result = State.LastValue;
-
-                        if (mem.variableExists(arg3))
-                        {
-                            if (mem.isString(arg3))
-                                arg3Result = mem.varString(arg3);
-                            else if (mem.isNumber(arg3))
-                                arg3Result = dtos(mem.varNumber(arg3));
-                            else
-                            {
-                                pass = false;
-                                error(ErrorMessage::IS_NULL, arg3, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                        else if (mem.methodExists(arg3))
-                        {
-                            parse(arg3);
-
-                            arg3Result = State.LastValue;
-                        }
-                        else
-                            arg3Result = arg3;
-
-                        if (pass)
-                        {
-                            if (isNumeric(arg1Result) && isNumeric(arg3Result))
-                            {
-                                if (arg2 == "==")
-                                {
-                                    if (stod(arg1Result) == stod(arg3Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == "!=")
-                                {
-                                    if (stod(arg1Result) != stod(arg3Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == "<")
-                                {
-                                    if (stod(arg1Result) < stod(arg3Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == ">")
-                                {
-                                    if (stod(arg1Result) > stod(arg3Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == "<=")
-                                {
-                                    if (stod(arg1Result) <= stod(arg3Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == ">=")
-                                {
-                                    if (stod(arg1Result) >= stod(arg3Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else
-                                {
-                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    mem.createIfStatement(false);
-                                }
-                            }
-                            else
-                            {
-                                if (arg2 == "==")
-                                {
-                                    if (arg1Result == arg3Result)
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == "!=")
-                                {
-                                    if (arg1Result != arg3Result)
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else
-                                {
-                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    mem.createIfStatement(false);
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::CLS_METHOD_UNDEFINED, arg1before, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-            }
-            else if (!containsParams(arg1) && containsParams(arg3))
-            {
-                string arg1Result(""), arg3Result("");
-
-                bool pass = true;
-
-                if (zeroDots(arg3))
-                {
-                    if (mem.methodExists(beforeParams(arg3)))
-                    {
-                        exec.executeTemplate(mem.getMethod(beforeParams(arg3)), getParams(arg3));
-
-                        arg3Result = State.LastValue;
-
-                        if (mem.methodExists(arg1))
-                        {
-                            parse(arg1);
-                            arg1Result = State.LastValue;
-                        }
-                        else if (mem.variableExists(arg1))
-                        {
-                            if (mem.isString(arg1))
-                                arg1Result = mem.varString(arg1);
-                            else if (mem.isNumber(arg1))
-                                arg1Result = dtos(mem.varNumber(arg1));
-                            else
-                            {
-                                pass = false;
-                                error(ErrorMessage::IS_NULL, arg1, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                        else
-                            arg1Result = arg1;
-
-                        if (pass)
-                        {
-                            if (isNumeric(arg3Result) && isNumeric(arg1Result))
-                            {
-                                if (arg2 == "==")
-                                {
-                                    if (stod(arg3Result) == stod(arg1Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == "!=")
-                                {
-                                    if (stod(arg3Result) != stod(arg1Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == "<")
-                                {
-                                    if (stod(arg3Result) < stod(arg1Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == ">")
-                                {
-                                    if (stod(arg3Result) > stod(arg1Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == "<=")
-                                {
-                                    if (stod(arg3Result) <= stod(arg1Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == ">=")
-                                {
-                                    if (stod(arg3Result) >= stod(arg1Result))
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else
-                                {
-                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    mem.createIfStatement(false);
-                                }
-                            }
-                            else
-                            {
-                                if (arg2 == "==")
-                                {
-                                    if (arg3Result == arg1Result)
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else if (arg2 == "!=")
-                                {
-                                    if (arg3Result != arg1Result)
-                                        mem.createIfStatement(true);
-                                    else
-                                        mem.createIfStatement(false);
-                                }
-                                else
-                                {
-                                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                    mem.createIfStatement(false);
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::METHOD_UNDEFINED, beforeParams(arg3), false);
-                        mem.createIfStatement(false);
-                    }
-                }
-                else
-                {
-                    string arg3before(beforeDot(arg3)), arg3after(afterDot(arg3));
-
-                    if (mem.classExists(arg3before))
-                    {
-                        if (mem.getClass(arg3before).hasMethod(beforeParams(arg3after)))
-                            exec.executeTemplate(mem.getClass(arg3before).getMethod(beforeParams(arg3after)), getParams(arg3after));
-
-                        arg3Result = State.LastValue;
-
-                        if (mem.variableExists(arg1))
-                        {
-                            if (mem.isString(arg1))
-                                arg1Result = mem.varString(arg1);
-                            else if (mem.isNumber(arg3))
-                                arg1Result = dtos(mem.varNumber(arg1));
-                            else
-                            {
-                                error(ErrorMessage::IS_NULL, arg1, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                        else if (mem.methodExists(arg1))
-                        {
-                            parse(arg1);
-
-                            arg1Result = State.LastValue;
-                        }
-                        else
-                            arg1Result = arg1;
-
-                        if (isNumeric(arg3Result) && isNumeric(arg1Result))
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (stod(arg3Result) == stod(arg1Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (stod(arg3Result) != stod(arg1Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "<")
-                            {
-                                if (stod(arg3Result) < stod(arg1Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == ">")
-                            {
-                                if (stod(arg3Result) > stod(arg1Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "<=")
-                            {
-                                if (stod(arg3Result) <= stod(arg1Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == ">=")
-                            {
-                                if (stod(arg3Result) >= stod(arg1Result))
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                        else
-                        {
-                            if (arg2 == "==")
-                            {
-                                if (arg3Result == arg1Result)
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else if (arg2 == "!=")
-                            {
-                                if (arg3Result != arg1Result)
-                                    mem.createIfStatement(true);
-                                else
-                                    mem.createIfStatement(false);
-                            }
-                            else
-                            {
-                                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                                mem.createIfStatement(false);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        error(ErrorMessage::CLS_METHOD_UNDEFINED, arg3before, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-            }
-        }
-        else if ((mem.methodExists(arg1) && arg3 != "method?") || mem.methodExists(arg3))
-        {
-            string arg1Result(""), arg3Result("");
-
-            if (mem.methodExists(arg1))
-            {
-                parse(arg1);
-                arg1Result = State.LastValue;
-            }
-            else if (mem.variableExists(arg1))
-            {
-                if (mem.isString(arg1))
-                    arg1Result = mem.varString(arg1);
-                else if (mem.isNumber(arg1))
-                    arg1Result = dtos(mem.varNumber(arg1));
-                else
-                {
-                    error(ErrorMessage::IS_NULL, arg1, false);
-                    mem.createIfStatement(false);
-                }
-            }
-            else
-                arg1Result = arg1;
-
-            if (mem.methodExists(arg3))
-            {
-                parse(arg3);
-                arg3Result = State.LastValue;
-            }
-            else if (mem.variableExists(arg3))
-            {
-                if (mem.isString(arg3))
-                    arg3Result = mem.varString(arg3);
-                else if (mem.isNumber(arg3))
-                    arg3Result = dtos(mem.varNumber(arg3));
-                else
-                {
-                    error(ErrorMessage::IS_NULL, arg3, false);
-                    mem.createIfStatement(false);
-                }
-            }
-            else
-                arg3Result = arg3;
-
-            if (isNumeric(arg1Result) && isNumeric(arg3Result))
-            {
-                if (arg2 == "==")
-                {
-                    if (stod(arg1Result) == stod(arg3Result))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "!=")
-                {
-                    if (stod(arg1Result) != stod(arg3Result))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "<")
-                {
-                    if (stod(arg1Result) < stod(arg3Result))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == ">")
-                {
-                    if (stod(arg1Result) > stod(arg3Result))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "<=")
-                {
-                    if (stod(arg1Result) <= stod(arg3Result))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == ">=")
-                {
-                    if (stod(arg1Result) >= stod(arg3Result))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else
-                {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    mem.createIfStatement(false);
-                }
-            }
-            else
-            {
-                if (arg2 == "==")
-                {
-                    if (arg1Result == arg3Result)
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else if (arg2 == "!=")
-                {
-                    if (arg1Result != arg3Result)
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else
-                {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    mem.createIfStatement(false);
-                }
-            }
-        }
-        else
-        {
-            if (arg3 == "class?")
-            {
-                if (mem.classExists(arg1))
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(true);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(false);
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-                else
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(false);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(true);
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-            }
-            else if (arg3 == "variable?")
-            {
-                if (mem.variableExists(arg1))
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(true);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(false);
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-                else
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(false);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(true);
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-            }
-            else if (arg3 == "method?")
-            {
-                if (mem.methodExists(arg1))
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(true);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(false);
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-                else
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(false);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(true);
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-            }
-            else if (arg3 == "list?")
-            {
-                if (mem.listExists(arg1))
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(true);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(false);
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-                else
-                {
-                    if (arg2 == "==")
-                        mem.createIfStatement(false);
-                    else if (arg2 == "!=")
-                        mem.createIfStatement(true);
-                    else
-                    {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                        mem.createIfStatement(false);
-                    }
-                }
-            }
-            else if (arg2 == "==")
-            {
-                if (arg1 == arg3)
-                    mem.createIfStatement(true);
-                else
-                    mem.createIfStatement(false);
-            }
-            else if (arg2 == "!=")
-            {
-                if (arg1 != arg3)
-                    mem.createIfStatement(true);
-                else
-                    mem.createIfStatement(false);
-            }
-            else if (arg2 == ">")
-            {
-                if (isNumeric(arg1) && isNumeric(arg3))
-                {
-                    if (stod(arg1) > stod(arg3))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else
-                {
-                    if (arg1.length() > arg3.length())
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-            }
-            else if (arg2 == "<")
-            {
-                if (isNumeric(arg1) && isNumeric(arg3))
-                {
-                    if (stod(arg1) < stod(arg3))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else
-                {
-                    if (arg1.length() < arg3.length())
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-            }
-            else if (arg2 == ">=")
-            {
-                if (isNumeric(arg1) && isNumeric(arg3))
-                {
-                    if (stod(arg1) >= stod(arg3))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else
-                {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    mem.createIfStatement(false);
-                }
-            }
-            else if (arg2 == "<=")
-            {
-                if (isNumeric(arg1) && isNumeric(arg3))
-                {
-                    if (stod(arg1) <= stod(arg3))
-                        mem.createIfStatement(true);
-                    else
-                        mem.createIfStatement(false);
-                }
-                else
-                {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                    mem.createIfStatement(false);
-                }
-            }
-            else if (arg2 == "begins_with")
-            {
-                if (startsWith(arg1, arg3))
-                    mem.createIfStatement(true);
-                else
-                    mem.createIfStatement(false);
-            }
-            else if (arg2 == "ends_with")
-            {
-                if (endsWith(arg1, arg3))
-                    mem.createIfStatement(true);
-                else
-                    mem.createIfStatement(false);
-            }
-            else if (arg2 == "contains")
-            {
-                if (contains(arg1, arg3))
-                    mem.createIfStatement(true);
-                else
-                    mem.createIfStatement(false);
-            }
-            else
-            {
-                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
-                mem.createIfStatement(false);
-            }
-        }
+        checkCondition(arg1, arg2, arg3);
     }
     else if (arg0 == "for")
     {
@@ -7261,6 +1942,1127 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, vector<strin
     }
     else
         Env::sysExec(arg0, command);
+}
+
+void handleIfStatementDecl_Generic(std::string first, std::string second, std::string oper)
+{
+    if (isNumeric(first) && isNumeric(second))
+    {
+        if (oper == "==")
+        {
+            mem.createIfStatement(stod(first) == stod(second));
+        }
+        else if (oper == "!=")
+        {
+            mem.createIfStatement(stod(first) != stod(second));
+        }
+        else if (oper == "<")
+        {
+            mem.createIfStatement(stod(first) < stod(second));
+        }
+        else if (oper == ">")
+        {
+            mem.createIfStatement(stod(first) > stod(second));
+        }
+        else if (oper == "<=")
+        {
+            mem.createIfStatement(stod(first) <= stod(second));
+        }
+        else if (oper == ">=")
+        {
+            mem.createIfStatement(stod(first) >= stod(second));
+        }
+        else
+        {
+            error(ErrorMessage::INVALID_OPERATOR, oper, false);
+            mem.createIfStatement(false);
+        }
+    }
+    else
+    {
+        if (oper == "==")
+        {
+            mem.createIfStatement(first == second);
+        }
+        else if (oper == "!=")
+        {
+            mem.createIfStatement(first != second);
+        }
+        else if (oper == "begins_with")
+        {
+            mem.createIfStatement(startsWith(first, second));
+        }
+        else if (oper == "ends_with")
+        {
+            mem.createIfStatement(endsWith(first, second));
+        }
+        else if (oper == "contains")
+        {
+            mem.createIfStatement(contains(first, second));
+        }
+        else
+        {
+            error(ErrorMessage::INVALID_OPERATOR, oper, false);
+            mem.createIfStatement(false);
+        }
+    }
+}
+
+void handleIfStatementDecl_Method(std::string arg1, std::string arg1Result, std::string arg3, std::string arg3Result)
+{
+    if (mem.methodExists(arg1))
+    {
+        parse(arg1);
+        arg1Result = State.LastValue;
+    }
+    else if (mem.variableExists(arg1))
+    {
+        if (mem.isString(arg1))
+            arg1Result = mem.varString(arg1);
+        else if (mem.isNumber(arg1))
+            arg1Result = dtos(mem.varNumber(arg1));
+        else
+        {
+            error(ErrorMessage::IS_NULL, arg1, false);
+            mem.createIfStatement(false);
+        }
+    }
+    else
+        arg1Result = arg1;
+
+    if (mem.methodExists(arg3))
+    {
+        parse(arg3);
+        arg3Result = State.LastValue;
+    }
+    else if (mem.variableExists(arg3))
+    {
+        if (mem.isString(arg3))
+            arg3Result = mem.varString(arg3);
+        else if (mem.isNumber(arg3))
+            arg3Result = dtos(mem.varNumber(arg3));
+        else
+        {
+            error(ErrorMessage::IS_NULL, arg3, false);
+            mem.createIfStatement(false);
+        }
+    }
+    else
+        arg3Result = arg3;
+}
+
+void handleClassDecl(std::string arg1, std::string arg3, std::string arg2)
+{
+    if (mem.classExists(arg1))
+    {
+        State.DefiningClass = true;
+        State.CurrentClass = arg1;
+    }
+    else
+    {
+        if (mem.classExists(arg3))
+        {
+            if (arg2 == "=")
+            {
+                vector<Method> classMethods = mem.getClass(arg3).getMethods();
+                Class newClass(arg1);
+
+                for (int i = 0; i < (int)classMethods.size(); i++)
+                {
+                    if (classMethods.at(i).isPublic())
+                        newClass.addMethod(classMethods.at(i));
+                }
+
+                mem.addClass(newClass);
+                State.CurrentClass = arg1;
+                State.DefiningClass = true;
+
+                newClass.clear();
+                classMethods.clear();
+            }
+            else
+                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
+        }
+        else
+            error(ErrorMessage::CLS_METHOD_UNDEFINED, arg3, false);
+    }
+}
+
+void handleFailedIfStatement()
+{
+    mem.createIfStatement(State.FailedIfStatement);
+}
+
+void checkCondition(const string arg1, const string arg2, const string arg3) {
+    if (mem.listExists(arg1) && arg2 == "in") {
+        checkListInCondition(arg1, arg2, arg3);
+    }
+    else if (mem.listExists(arg1) && arg2 == "contains" && arg3 != "list?") {
+        checkListContainsCondition(arg1, arg2, arg3);
+    }
+    else if (mem.variableExists(arg1) && mem.variableExists(arg3)) {
+        checkVariableCondition(arg1, arg2, arg3);
+    }
+    else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notClassMethod(arg3) && !containsParams(arg3)) {
+        checkNumericStringFileDirCondition(arg1, arg2, arg3);
+    }
+    else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notClassMethod(arg3) && containsParams(arg3)) {
+        checkNumericStringFileDirCondition(arg1, arg2, getStackValue(arg3));
+    }
+    else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notClassMethod(arg1) && !containsParams(arg1)) {
+        checkNumericStringFileDirCondition(arg3, arg2, arg1);
+    }
+    else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notClassMethod(arg1) && containsParams(arg1)) {
+        checkNumericStringFileDirCondition(arg3, arg2, getStackValue(arg1));
+    }
+    else if (containsParams(arg1) || containsParams(arg3)) {
+        checkParamsCondition(arg1, arg2, arg3);
+    }
+    else if ((mem.methodExists(arg1) && arg3 != "method?") || mem.methodExists(arg3)) {
+        checkMethodCondition(arg1, arg3, arg2);
+    }
+    else {
+        checkGenericCondition(arg1, arg3, arg2);
+    }
+}
+
+void checkNumericStringFileDirCondition(string arg1, string arg2, string arg3)
+{
+    if (mem.isNumber(arg1))
+    {
+        if (isNumeric(arg3))
+        {
+            handleIfStatementDecl_Generic(dtos(mem.varNumber(arg1)), arg3, arg2);
+        }
+        else if (arg3 == "number?")
+        {
+            if (arg2 == "==")
+                mem.createIfStatement(true);
+            else if (arg2 == "!=")
+                mem.createIfStatement(false);
+            else
+                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
+        }
+        else
+        {
+            error(ErrorMessage::CONV_ERR, arg2, false);
+            mem.createIfStatement(false);
+        }
+    }
+    else
+    {
+        if (arg3 == "string?")
+        {
+            if (mem.isString(arg1))
+            {
+                if (arg2 == "==")
+                    mem.createIfStatement(true);
+                else if (arg2 == "!=")
+                    mem.createIfStatement(false);
+                else
+                {
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
+                    mem.createIfStatement(false);
+                }
+            }
+            else
+            {
+                mem.createIfStatement(arg2 == "!=");
+            }
+        }
+        else if (arg3 == "number?")
+        {
+            if (mem.isNumber(arg1))
+            {
+                if (arg2 == "==")
+                    mem.createIfStatement(true);
+                else if (arg2 == "!=")
+                    mem.createIfStatement(false);
+                else
+                {
+                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
+                    mem.createIfStatement(false);
+                }
+            }
+            else
+            {
+                mem.createIfStatement(arg2 == "!=");
+            }
+        }
+        else if (arg3 == "file?")
+        {
+            if (mem.isString(arg1))
+            {
+                if (Env::fileExists(mem.varString(arg1)))
+                {
+                    if (arg2 == "==")
+                        mem.createIfStatement(true);
+                    else if (arg2 == "!=")
+                        mem.createIfStatement(false);
+                    else
+                    {
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
+                        mem.createIfStatement(false);
+                    }
+                }
+                else
+                {
+                    mem.createIfStatement(arg2 == "!=");
+                }
+            }
+            else
+            {
+                error(ErrorMessage::IS_NULL, arg1, false);
+                mem.createIfStatement(false);
+            }
+        }
+        else if (arg3 == "dir?" || arg3 == "directory?")
+        {
+            if (mem.isString(arg1))
+            {
+                if (Env::directoryExists(mem.varString(arg1)))
+                {
+                    if (arg2 == "==")
+                        mem.createIfStatement(true);
+                    else if (arg2 == "!=")
+                        mem.createIfStatement(false);
+                    else
+                    {
+                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
+                        mem.createIfStatement(false);
+                    }
+                }
+                else
+                {
+                    mem.createIfStatement(arg2 == "!=");
+                }
+            }
+            else
+            {
+                error(ErrorMessage::IS_NULL, arg1, false);
+                mem.createIfStatement(false);
+            }
+        }
+        else
+        {
+            handleIfStatementDecl_Generic(mem.varString(arg1), arg3, arg2);
+        }
+    }
+}
+
+void checkListInCondition(const string listName, const string condition, const string testValue) {
+    string testString = getTestString(mem.variableExists(testValue), listName);
+    if (testString == "[none]") {
+        mem.createIfStatement(false);
+    }
+    else {
+        bool elementFound = checkListForElement(listName, testString, condition);
+        mem.createIfStatement(!elementFound);
+    }
+}
+
+void checkListContainsCondition(const string listName, const string condition, const string testValue) {
+    string testString = getTestString(mem.variableExists(testValue), testValue);
+    if (testString == "[none]") {
+        mem.createIfStatement(false);
+    }
+    else {
+        bool elementFound = checkListForElement(listName, testString, condition);
+        mem.createIfStatement(!elementFound);
+    }
+}
+
+bool checkListForElement(const string listName, const string testString, const string conditionType) {
+    bool result = false;
+
+    if (mem.listExists(listName)) {
+        if (conditionType == "in") {
+            result = checkListContains(listName, testString);
+        }
+        else if (conditionType == "contains" && testString != "list?") {
+            result = checkListContains(listName, testString);
+        }
+        else {
+            error(ErrorMessage::INVALID_OP, conditionType, false);
+        }
+    }
+    else {
+        error(ErrorMessage::LIST_UNDEFINED, listName, false);
+    }
+
+    return result;
+}
+
+bool checkListContains(const string listName, const string testString) {
+    bool elementFound = false;
+    List list = mem.getList(listName);
+    for (int i = 0; i < list.size(); i++)
+    {
+        if (list.at(i) == testString)
+        {
+            elementFound = true;
+            mem.createIfStatement(true);
+            State.LastValue = itos(i);
+            break;
+        }
+    }
+
+    mem.createIfStatement(elementFound);
+    return elementFound;
+}
+
+void checkVariableCondition(const string arg1, const string arg2, const string arg3) {
+    if (mem.isString(arg1) && mem.isString(arg3)) {
+        handleIfStatementDecl_Generic(mem.varString(arg1), mem.varString(arg3), arg2);
+    }
+    else if (mem.isNumber(arg1) && mem.isNumber(arg3)) {
+        handleIfStatementDecl_Generic(dtos(mem.varNumber(arg1)), dtos(mem.varNumber(arg3)), arg2);
+    }
+    else {
+        error(ErrorMessage::CONV_ERR, arg1 + " " + arg2 + " " + arg3, false);
+        mem.createIfStatement(false);
+    }
+}
+
+// Continue with other conditions...
+
+void checkParamsCondition(const string arg1, const string arg2, const string arg3) {
+    // Implement the logic for conditions with parameters
+    // ...
+
+    // Example:
+    // handleIfStatementDecl_Generic(arg1Result, arg3Result, arg2);
+}
+
+void checkMethodCondition(const string arg1, const string arg3, const string arg2) {
+    string arg1Result(""), arg3Result("");
+    handleIfStatementDecl_Method(arg1, arg1Result, arg3, arg3Result);
+    handleIfStatementDecl_Generic(arg1Result, arg3Result, arg2);
+}
+
+void checkGenericCondition(const string arg1, const string arg3, const string arg2) {
+    handleIfStatementDecl_Generic(arg1, arg3, arg2);
+}
+
+string getTestString(bool variableExists, const string variableName) {
+    string testString("[none]");
+
+    if (variableExists) {
+        if (mem.isString(variableName))
+            testString = mem.varString(variableName);
+        else if (mem.isNumber(variableName))
+            testString = dtos(mem.varNumber(variableName));
+        else
+            handleError(ErrorMessage::IS_NULL, variableName, false);
+    }
+    else {
+        testString = variableName;
+    }
+
+    return testString;
+}
+
+void handleError(int errorType, const string variableName, bool isMethod) {
+    error(errorType, variableName, isMethod);
+    mem.createIfStatement(false);
+}
+
+void handlePublicDecl()
+{
+    State.DefiningPrivateCode = false;
+    State.DefiningPublicCode = true;
+}
+
+void handlePrivateDecl()
+{
+    State.DefiningPrivateCode = true;
+    State.DefiningPublicCode = false;
+}
+
+void handleEnd()
+{
+    State.DefiningPrivateCode = false,
+    State.DefiningPublicCode = false;
+    State.DefiningClass = false;
+    State.DefiningClassMethod = false;
+    State.CurrentClass = "";
+}
+
+void handleExit()
+{
+    mem.clearAll();
+    exit(0);
+}
+
+void handleCaught()
+{
+    string to_remove = "remove ";
+    to_remove.append(State.ErrorVarName);
+
+    parse(to_remove);
+
+    State.ExecutedTryBlock = false,
+    State.RaiseCatchBlock = false;
+    State.LastError = "";
+    State.ErrorVarName = "";
+}
+
+void handleInlineScriptDecl(std::string &arg1)
+{
+    if (mem.variableExists(arg1))
+    {
+        if (mem.isString(arg1))
+        {
+            if (!Env::fileExists(mem.varString(arg1)))
+            {
+                Env::createFile(mem.varString(arg1));
+                State.DefiningScript = true;
+                State.CurrentScriptName = mem.varString(arg1);
+            }
+            else
+                error(ErrorMessage::FILE_EXISTS, mem.varString(arg1), false);
+        }
+    }
+    else if (!Env::fileExists(arg1))
+    {
+        Env::createFile(arg1);
+        State.DefiningScript = true;
+        State.CurrentScriptName = arg1;
+    }
+    else
+        error(ErrorMessage::FILE_EXISTS, arg1, false);
+}
+
+void handleDirPop(std::string &arg1)
+{
+    if (mem.variableExists(arg1))
+    {
+        if (mem.isString(arg1))
+        {
+            if (Env::directoryExists(mem.varString(arg1)))
+                Env::rd(mem.varString(arg1));
+            else
+                error(ErrorMessage::DIR_NOT_FOUND, mem.varString(arg1), false);
+        }
+        else
+            error(ErrorMessage::NULL_STRING, arg1, false);
+    }
+    else
+    {
+        if (Env::directoryExists(arg1))
+            Env::rd(arg1);
+        else
+            error(ErrorMessage::DIR_NOT_FOUND, arg1, false);
+    }
+}
+
+void handleDirPush(std::string &arg1)
+{
+    if (mem.variableExists(arg1))
+    {
+        if (mem.isString(arg1))
+        {
+            if (!Env::directoryExists(mem.varString(arg1)))
+                Env::md(mem.varString(arg1));
+            else
+                error(ErrorMessage::DIR_EXISTS, mem.varString(arg1), false);
+        }
+        else
+            error(ErrorMessage::NULL_STRING, arg1, false);
+    }
+    else
+    {
+        if (!Env::directoryExists(arg1))
+            Env::md(arg1);
+        else
+            error(ErrorMessage::DIR_EXISTS, arg1, false);
+    }
+}
+
+void handleFilePop(std::string &arg1)
+{
+    if (mem.variableExists(arg1))
+    {
+        if (mem.isString(arg1))
+        {
+            if (Env::fileExists(mem.varString(arg1)))
+                Env::rm(mem.varString(arg1));
+            else
+                error(ErrorMessage::FILE_NOT_FOUND, mem.varString(arg1), false);
+        }
+        else
+            error(ErrorMessage::NULL_STRING, arg1, false);
+    }
+    else
+    {
+        if (Env::fileExists(arg1))
+            Env::rm(arg1);
+        else
+            error(ErrorMessage::FILE_NOT_FOUND, arg1, false);
+    }
+}
+
+void handleFilePush(std::string &arg1)
+{
+    if (mem.variableExists(arg1))
+    {
+        if (mem.isString(arg1))
+        {
+            if (!Env::fileExists(mem.varString(arg1)))
+                Env::createFile(mem.varString(arg1));
+            else
+                error(ErrorMessage::FILE_EXISTS, mem.varString(arg1), false);
+        }
+        else
+            error(ErrorMessage::NULL_STRING, arg1, false);
+    }
+    else
+    {
+        if (!Env::fileExists(arg1))
+            Env::createFile(arg1);
+        else
+            error(ErrorMessage::FILE_EXISTS, arg1, false);
+    }
+}
+
+void handleUnlockAssignment(std::string &arg1)
+{
+    if (mem.variableExists(arg1))
+        mem.getVar(arg1).setIndestructible(false);
+    else if (mem.methodExists(arg1))
+        mem.getMethod(arg1).setIndestructible(false);
+}
+
+void handleLockAssignment(std::string &arg1)
+{
+    if (mem.variableExists(arg1))
+        mem.getVar(arg1).setIndestructible(true);
+    else if (mem.methodExists(arg1))
+        mem.getMethod(arg1).setIndestructible(true);
+}
+
+void handleTemplateDecl(std::string &arg1)
+{
+    if (mem.methodExists(arg1))
+        error(ErrorMessage::METHOD_DEFINED, arg1, false);
+    else
+    {
+        if (containsParams(arg1))
+        {
+            vector<string> params = getParams(arg1);
+            Method method(beforeParams(arg1), true);
+            method.setTemplateSize((int)params.size());
+            mem.addMethod(method);
+            State.DefiningMethod = true;
+        }
+    }
+}
+
+void handleStringInspect(std::string &before, std::string &after, std::string &arg1)
+{
+    if (before.length() != 0 && after.length() != 0)
+    {
+        if (mem.getClass(before).hasVariable(after))
+        {
+            if (mem.getClass(before).getVariable(after).getString() != State.Null)
+                State.LastValue = "true";
+            else
+                State.LastValue = "false";
+        }
+        else
+            error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
+    }
+    else
+    {
+        if (mem.variableExists(arg1))
+        {
+            if (mem.isString(arg1))
+                State.LastValue = "true";
+            else
+                State.LastValue = "false";
+        }
+        else
+        {
+            if (isNumeric(arg1))
+                State.LastValue = "false";
+            else
+                State.LastValue = "true";
+        }
+    }
+}
+
+void handleNumberInspect(std::string &before, std::string &after, std::string &arg1)
+{
+    if (before.length() != 0 && after.length() != 0)
+    {
+        if (mem.getClass(before).hasVariable(after))
+        {
+            if (mem.getClass(before).getVariable(after).getNumber() != State.NullNum)
+                State.LastValue = "true";
+            else
+                State.LastValue = "false";
+        }
+        else
+            error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
+    }
+    else
+    {
+        if (mem.variableExists(arg1))
+        {
+            if (mem.isNumber(arg1))
+                State.LastValue = "true";
+            else
+                State.LastValue = "false";
+        }
+        else
+        {
+            if (isNumeric(arg1))
+                State.LastValue = "true";
+            else
+                State.LastValue = "false";
+        }
+    }
+}
+
+void handleCollectInspect(std::string &arg1)
+{
+    if (mem.variableExists(arg1))
+    {
+        if (mem.getVar(arg1).isCollectable())
+            State.LastValue = "true";
+        else
+            State.LastValue = "false";
+    }
+    else
+        IO::println("under construction...");
+}
+
+void handleFileInspect(std::string &before, std::string &after, std::string &arg1)
+{
+    if (before.length() != 0 && after.length() != 0)
+    {
+        if (mem.getClass(before).hasVariable(after))
+        {
+            if (Env::fileExists(mem.getClass(before).getVariable(after).getString()))
+                State.LastValue = "true";
+            else
+                State.LastValue = "false";
+        }
+        else
+            error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
+    }
+    else
+    {
+        if (mem.variableExists(arg1))
+        {
+            if (mem.isString(arg1))
+            {
+                if (Env::fileExists(mem.varString(arg1)))
+                    State.LastValue = "true";
+                else
+                    State.LastValue = "false";
+            }
+            else
+                State.LastValue = "false";
+        }
+        else
+        {
+            if (Env::fileExists(arg1))
+                State.LastValue = "true";
+            else
+                State.LastValue = "false";
+        }
+    }
+}
+
+void handleDirectoryInspect(std::string &before, std::string &after, std::string &arg1)
+{
+    if (before.length() != 0 && after.length() != 0)
+    {
+        if (mem.getClass(before).hasVariable(after))
+        {
+            if (Env::directoryExists(mem.getClass(before).getVariable(after).getString()))
+                State.LastValue = "true";
+            else
+                State.LastValue = "false";
+        }
+        else
+            error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
+    }
+    else
+    {
+        if (mem.variableExists(arg1))
+        {
+            if (mem.isString(arg1))
+            {
+                if (Env::directoryExists(mem.varString(arg1)))
+                    State.LastValue = "true";
+                else
+                    State.LastValue = "false";
+            }
+            else
+                error(ErrorMessage::NULL_STRING, arg1, false);
+        }
+        else
+        {
+            if (Env::directoryExists(arg1))
+                State.LastValue = "true";
+            else
+                State.LastValue = "false";
+        }
+    }
+}
+
+void handleListInspect(std::string &arg1)
+{
+    if (mem.listExists(arg1))
+        State.LastValue = "true";
+    else
+        State.LastValue = "false";
+}
+
+void handleVariableInspect(std::string &before, std::string &after, std::string &arg1)
+{
+    if (before.length() != 0 && after.length() != 0)
+    {
+        if (mem.getClass(before).hasVariable(after))
+            State.LastValue = "true";
+        else
+            State.LastValue = "false";
+    }
+    else
+    {
+        if (mem.variableExists(arg1))
+            State.LastValue = "true";
+        else
+            State.LastValue = "false";
+    }
+}
+
+void handleClassInspect(std::string &arg1)
+{
+    if (mem.classExists(arg1))
+        State.LastValue = "true";
+    else
+        State.LastValue = "false";
+}
+
+void handleMethodInspect(std::string &before, std::string &after, std::string &arg1)
+{
+    if (before.length() != 0 && after.length() != 0)
+    {
+        if (mem.getClass(before).hasMethod(after))
+            State.LastValue = "true";
+        else
+            State.LastValue = "false";
+    }
+    else
+    {
+        if (mem.methodExists(arg1))
+            State.LastValue = "true";
+        else
+            State.LastValue = "false";
+    }
+}
+
+void handleInitialDir(std::string &arg1)
+{
+    if (mem.variableExists(arg1))
+    {
+        if (mem.isString(arg1))
+        {
+            if (Env::directoryExists(mem.varString(arg1)))
+            {
+                NoctisEnv.InitialDirectory = mem.varString(arg1);
+                Env::cd(NoctisEnv.InitialDirectory);
+            }
+            else
+                error(ErrorMessage::READ_FAIL, NoctisEnv.InitialDirectory, false);
+        }
+        else
+            error(ErrorMessage::NULL_STRING, arg1, false);
+    }
+    else
+    {
+        if (Env::directoryExists(arg1))
+        {
+            if (arg1 == ".")
+                NoctisEnv.InitialDirectory = Env::cwd();
+            else if (arg1 == "..")
+                NoctisEnv.InitialDirectory = Env::cwd() + "\\..";
+            else
+                NoctisEnv.InitialDirectory = arg1;
+
+            Env::cd(NoctisEnv.InitialDirectory);
+        }
+        else
+            error(ErrorMessage::READ_FAIL, NoctisEnv.InitialDirectory, false);
+    }
+}
+
+void handleInlineShellExec(std::string &arg1, std::vector<std::string> &command)
+{
+    if (mem.variableExists(arg1))
+    {
+        if (mem.isString(arg1))
+            Env::sysExec(mem.varString(arg1), command);
+        else
+            error(ErrorMessage::IS_NULL, arg1, false);
+    }
+    else
+        Env::sysExec(arg1, command);
+}
+
+void handleInlineParse(std::string &arg1)
+{
+    if (mem.variableExists(arg1))
+    {
+        if (mem.isString(arg1))
+            parse(mem.varString(arg1).c_str());
+        else
+            error(ErrorMessage::IS_NULL, arg1, false);
+    }
+    else
+        parse(arg1.c_str());
+}
+
+void handleListDecl(std::string &arg1)
+{
+    if (mem.listExists(arg1))
+        mem.getList(arg1).clear();
+    else
+    {
+        List newList(arg1);
+
+        newList.setCollectable(State.ExecutedTemplate || State.ExecutedMethod);
+
+        mem.addList(newList);
+    }
+}
+
+void handleChangeDir(std::string &arg1)
+{
+    if (mem.variableExists(arg1))
+    {
+        if (mem.isString(arg1))
+        {
+            if (Env::directoryExists(mem.varString(arg1)))
+                Env::cd(mem.varString(arg1));
+            else
+                error(ErrorMessage::READ_FAIL, mem.varString(arg1), false);
+        }
+        else
+            error(ErrorMessage::NULL_STRING, arg1, false);
+    }
+    else
+    {
+        if (arg1 == "init_dir" || arg1 == "initial_directory")
+            Env::cd(NoctisEnv.InitialDirectory);
+        else if (Env::directoryExists(arg1))
+            Env::cd(arg1);
+        else
+            Env::cd(arg1);
+    }
+}
+
+void handleLoad(std::string &arg1)
+{
+    if (Env::fileExists(arg1))
+    {
+        if (isScript(arg1))
+        {
+            State.PreviousScript = State.CurrentScript;
+            mem.loadScript(arg1);
+            exec.executeScript();
+        }
+        else
+            error(ErrorMessage::BAD_LOAD, arg1, true);
+    }
+    else if (mem.moduleExists(arg1))
+    {
+        vector<string> lines = mem.getModule(arg1).get();
+
+        for (int i = 0; i < (int)lines.size(); i++)
+            parse(lines.at(i));
+    }
+    else
+        error(ErrorMessage::BAD_LOAD, arg1, true);
+}
+
+void handleRemove(std::string &arg1)
+{
+    if (containsParams(arg1))
+    {
+        vector<string> params = getParams(arg1);
+
+        for (int i = 0; i < (int)params.size(); i++)
+        {
+            if (mem.variableExists(params.at(i)))
+                mem.removeVariable(params.at(i));
+            else if (mem.listExists(params.at(i)))
+                mem.removeList(params.at(i));
+            else if (mem.classExists(params.at(i)))
+                mem.removeClass(params.at(i));
+            else if (mem.methodExists(params.at(i)))
+                mem.removeMethod(params.at(i));
+            else
+                error(ErrorMessage::TARGET_UNDEFINED, params.at(i), false);
+        }
+    }
+    else if (mem.variableExists(arg1))
+        mem.removeVariable(arg1);
+    else if (mem.listExists(arg1))
+        mem.removeList(arg1);
+    else if (mem.classExists(arg1))
+        mem.removeClass(arg1);
+    else if (mem.methodExists(arg1))
+        mem.removeMethod(arg1);
+    else
+        error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
+}
+
+void handleDelay(std::string &arg1)
+{
+    if (isNumeric(arg1))
+        DT::delay(stoi(arg1));
+    else
+        error(ErrorMessage::CONV_ERR, arg1, false);
+}
+
+void handleErr(std::string &arg1)
+{
+    if (mem.variableExists(arg1))
+    {
+        if (mem.isString(arg1))
+            IO::printerrln(mem.varString(arg1));
+        else if (mem.isNumber(arg1))
+            IO::printerrln(dtos(mem.varNumber(arg1)));
+        else
+            error(ErrorMessage::IS_NULL, arg1, false);
+    }
+    else
+        IO::printerrln(arg1);
+}
+
+void handlePrompt(std::string &arg1)
+{
+    if (arg1 == "!")
+    {
+        if (State.UseCustomPrompt == true)
+            State.UseCustomPrompt = false;
+        else
+            State.UseCustomPrompt = true;
+    }
+    else if (arg1 == "empty")
+    {
+        State.UseCustomPrompt = true;
+        State.PromptStyle = "empty";
+    }
+    else
+    {
+        State.UseCustomPrompt = true;
+        State.PromptStyle = arg1;
+    }
+}
+
+void handleIfStatement(std::string &arg1)
+{
+    string tmpValue("");
+    // if arg1 is a variable
+    if (mem.variableExists(arg1))
+    {
+        // can we can assume that arg1 belongs to an object?
+        if (!zeroDots(arg1))
+        {
+            string objName(beforeDot(arg1)), varName(afterDot(arg1));
+            Variable tmpVar = mem.getClass(objName).getVariable(varName);
+
+            if (mem.isString(tmpVar))
+            {
+                tmpValue = tmpVar.getString();
+            }
+            else if (mem.isNumber(tmpVar))
+            {
+                tmpValue = dtos(tmpVar.getNumber());
+            }
+            else
+            {
+                // error(ErrorMessage::IS_NULL, arg1, true);
+            }
+        }
+        else
+        {
+            if (mem.isString(arg1))
+            {
+                tmpValue = mem.varString(arg1);
+            }
+            else if (mem.isNumber(arg1))
+            {
+                tmpValue = mem.varNumber(arg1);
+            }
+            else
+            {
+                // error(ErrorMessage::IS_NULL, arg1, true);
+            }
+        }
+    }
+    else
+    {
+        if (isNumeric(arg1) || isTrue(arg1) || isFalse(arg1))
+        {
+            tmpValue = arg1;
+        }
+        else
+        {
+            string tmpCode("");
+
+            if (startsWith(arg1, "(\"") && endsWith(arg1, "\")"))
+            {
+                tmpCode = getInner(arg1, 2, arg1.length() - 3);
+            }
+            else
+            {
+                tmpCode = arg1;
+            }
+            tmpValue = getParsedOutput(tmpCode);
+        }
+    }
+
+    if (isTrue(tmpValue))
+    {
+        mem.createIfStatement(true);
+    }
+    else if (isFalse(tmpValue))
+    {
+        mem.createIfStatement(false);
+    }
+    else
+    {
+        // error(ErrorMessage::INVALID_OP, arg1, true);
+    }
+}
+
+void handleGoto(std::string &arg1)
+{
+    if (State.CurrentScript != "")
+    {
+        if (mem.getScript().markExists(arg1))
+        {
+            State.GoTo = arg1;
+            State.GoToLabel = true;
+        }
+    }
+}
+
+void handleSwitch(std::string &arg1)
+{
+    if (mem.variableExists(arg1))
+    {
+        State.DefiningSwitchBlock = true;
+        State.SwitchVarName = arg1;
+    }
+    else
+        error(ErrorMessage::VAR_UNDEFINED, arg1, false);
 }
 
 #endif

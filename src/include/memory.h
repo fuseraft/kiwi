@@ -82,10 +82,6 @@ public:
     bool isString(Variable var);
 
     bool notClassMethod(string s);
-    bool noVariables();
-    bool noClasses();
-    bool noMethods();
-    bool noLists();
     bool constantExists(string s);
     bool moduleExists(string s);
     bool variableExists(string s);
@@ -1014,11 +1010,6 @@ bool Memory::constantExists(string s)
 
     return false;
 }
-
-bool Memory::noLists() { return lists.empty(); }
-bool Memory::noMethods() { return methods.empty(); }
-bool Memory::noClasses() { return classes.empty(); }
-bool Memory::noVariables() { return variables.empty(); }
 
 bool Memory::notClassMethod(string s)
 {

@@ -1,11 +1,66 @@
 #ifndef PROTOTYPES_H
 #define PROTOTYPES_H
 
+void handleFailedIfStatement();
+void handlePublicDecl();
+void handlePrivateDecl();
+void handleEnd();
+void handleExit();
+void handleCaught();
+void handleInlineScriptDecl(std::string &arg1);
+void handleDirPop(std::string &arg1);
+void handleDirPush(std::string &arg1);
+void handleFilePop(std::string &arg1);
+void handleFilePush(std::string &arg1);
+void handleUnlockAssignment(std::string &arg1);
+void handleLockAssignment(std::string &arg1);
+void handleTemplateDecl(std::string &arg1);
+void handleStringInspect(std::string &before, std::string &after, std::string &arg1);
+void handleNumberInspect(std::string &before, std::string &after, std::string &arg1);
+void handleCollectInspect(std::string &arg1);
+void handleFileInspect(std::string &before, std::string &after, std::string &arg1);
+void handleDirectoryInspect(std::string &before, std::string &after, std::string &arg1);
+void handleListInspect(std::string &arg1);
+void handleVariableInspect(std::string &before, std::string &after, std::string &arg1);
+void handleClassInspect(std::string &arg1);
+void handleMethodInspect(std::string &before, std::string &after, std::string &arg1);
+void handleInitialDir(std::string &arg1);
+void handleInlineShellExec(std::string &arg1, std::vector<std::string> &command);
+void handleInlineParse(std::string &arg1);
+void handleListDecl(std::string &arg1);
+void handleChangeDir(std::string &arg1);
+void handleLoad(std::string &arg1);
+void handleRemove(std::string &arg1);
+void handleDelay(std::string &arg1);
+void handleErr(std::string &arg1);
+void handlePrompt(std::string &arg1);
+void handleIfStatement(std::string &arg1);
+void handleGoto(std::string &arg1);
+void handleSwitch(std::string &arg1);
+void handleClear(std::string &arg);
+void handleError(int errorType, const string variableName, bool isMethod);
+void handleIfStatementDecl_Generic(std::string first, std::string second, std::string oper);
+void handleIfStatementDecl_Method(std::string arg1, std::string arg1Result, std::string arg3, std::string arg3Result);
+void handleClassDecl(std::string arg1, std::string arg3, std::string arg2);
+
+void checkGenericCondition(const string arg1, const string arg3, const string arg2);
+void checkMethodCondition(const string arg1, const string arg3, const string arg2);
+void checkParamsCondition(const string arg1, const string arg2, const string arg3);
+void checkVariableCondition(const string arg1, const string arg2, const string arg3);
+void checkListContainsCondition(const string listName, const string condition, const string testValue);
+void checkListInCondition(const string listName, const string condition, const string testValue);
+void checkCondition(const string arg1, const string arg2, const string arg3);
+bool checkListContains(const string listName, const string testString);
+bool checkListForElement(const string listName, const string testString, const string conditionType);
+void checkNumericStringFileDirCondition(string arg1, string arg2, string arg3);
+
 string getParsedOutput(string cmd);
+string getTestString(bool variableExists, const string variableName);
+
 void parse(string s);
-void zeroSpace(string arg0, string s, vector<string> command);
-void oneSpace(string arg0, string arg1, string s, vector<string> command);
-void twoSpace(string arg0, string arg1, string arg2, string s, vector<string> command);
+void zeroSpace(string arg0, vector<string> command);
+void oneSpace(string arg0, string arg1, vector<string> command);
+void twoSpace(string arg0, string arg1, string arg2, vector<string> command);
 void threeSpace(string arg0, string arg1, string arg2, string arg3, vector<string> command);
 
 int startREPL();
@@ -27,16 +82,18 @@ void writeline(string st);
 
 void setList(string listName, string methodName, vector<string> params);
 
-void copyClass(string arg0, string arg1, string arg2, string s, vector<string> command);
-void initializeVariable(string arg0, string arg1, string arg2, string s, vector<string> command);
-void initializeListValues(string arg0, string arg1, string arg2, string s, vector<string> command);
-void initializeGlobalVariable(string arg0, string arg1, string arg2, string s, vector<string> command);
-void initializeClassVariable(string arg0, string arg1, string arg2, string s, vector<string> command);
-void initializeConstant(string arg0, string arg1, string arg2, string s);
+void copyClass(string arg0, string arg1, string arg2, vector<string> command);
+void initializeVariable(string arg0, string arg1, string arg2, vector<string> command);
+void initializeListValues(string arg0, string arg1, string arg2, vector<string> command);
+void initializeGlobalVariable(string arg0, string arg1, string arg2, vector<string> command);
+void initializeClassVariable(string arg0, string arg1, string arg2, vector<string> command);
+void initializeConstant(string arg0, string arg1, string arg2);
 
 double getBytes(string path);
-double getStack(string arg2);
 
+void parseStack(vector<string> &contents, vector<string> vars, string &temporaryBuild, char currentChar);
+string getStackValue(string value);
+double getStack(string arg2);
 bool isStringStack(string arg2);
 bool stackReady(string arg2);
 string getStringStack(string arg2);
