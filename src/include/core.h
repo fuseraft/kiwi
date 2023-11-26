@@ -506,7 +506,7 @@ int startREPL()
         }
         catch (const exception &e)
         {
-            printError(e);
+            print_error(e);
             return -1;
         }
     }
