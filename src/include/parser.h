@@ -1,3 +1,4 @@
+#include "prototypes.h"
 #ifndef PARSER_H
 #define PARSER_H
 
@@ -1192,693 +1193,16 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, vector<strin
     }
     else if (arg0 == "for")
     {
-        if (arg2 == "<")
+        if (arg2 == "<" || arg2 == ">" || arg2 == "<=" || arg2 == ">=")
         {
-            if (mem.variableExists(arg1) && mem.variableExists(arg3))
-            {
-                if (mem.isNumber(arg1) && mem.isNumber(arg3))
-                {
-                    if (mem.varNumber(arg1) < mem.varNumber(arg3))
-                        mem.createForLoop(mem.varNumber(arg1), mem.varNumber(arg3), "<");
-                    else
-                        mem.createFailedForLoop();
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createFailedForLoop();
-                }
-            }
-            else if (mem.variableExists(arg1) && !mem.variableExists(arg3))
-            {
-                if (mem.isNumber(arg1) && isNumeric(arg3))
-                {
-                    if (mem.varNumber(arg1) < stod(arg3))
-                        mem.createForLoop(mem.varNumber(arg1), stod(arg3), "<");
-                    else
-                        mem.createFailedForLoop();
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createFailedForLoop();
-                }
-            }
-            else if (!mem.variableExists(arg1) && mem.variableExists(arg3))
-            {
-                if (isNumeric(arg1) && mem.isNumber(arg3))
-                {
-                    if (stod(arg1) < mem.varNumber(arg3))
-                        mem.createForLoop(stod(arg1), mem.varNumber(arg3), "<");
-                    else
-                        mem.createFailedForLoop();
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createFailedForLoop();
-                }
-            }
-            else
-            {
-                if (isNumeric(arg1) && isNumeric(arg3))
-                {
-                    if (stod(arg1) < stod(arg3))
-                        mem.createForLoop(stod(arg1), stod(arg3), "<");
-                    else
-                        mem.createFailedForLoop();
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createFailedForLoop();
-                }
-            }
-        }
-        else if (arg2 == ">")
-        {
-            if (mem.variableExists(arg1) && mem.variableExists(arg3))
-            {
-                if (mem.isNumber(arg1) && mem.isNumber(arg3))
-                {
-                    if (mem.varNumber(arg1) > mem.varNumber(arg3))
-                        mem.createForLoop(mem.varNumber(arg1), mem.varNumber(arg3), ">");
-                    else
-                        mem.createFailedForLoop();
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createFailedForLoop();
-                }
-            }
-            else if (mem.variableExists(arg1) && !mem.variableExists(arg3))
-            {
-                if (mem.isNumber(arg1) && isNumeric(arg3))
-                {
-                    if (mem.varNumber(arg1) > stod(arg3))
-                        mem.createForLoop(mem.varNumber(arg1), stod(arg3), ">");
-                    else
-                        mem.createFailedForLoop();
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createFailedForLoop();
-                }
-            }
-            else if (!mem.variableExists(arg1) && mem.variableExists(arg3))
-            {
-                if (isNumeric(arg1) && mem.isNumber(arg3))
-                {
-                    if (stod(arg1) > mem.varNumber(arg3))
-                        mem.createForLoop(stod(arg1), mem.varNumber(arg3), ">");
-                    else
-                        mem.createFailedForLoop();
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createFailedForLoop();
-                }
-            }
-            else
-            {
-                if (isNumeric(arg1) && isNumeric(arg3))
-                {
-                    if (stod(arg1) > stod(arg3))
-                        mem.createForLoop(stod(arg1), stod(arg3), ">");
-                    else
-                        mem.createFailedForLoop();
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createFailedForLoop();
-                }
-            }
-        }
-        else if (arg2 == "<=")
-        {
-            if (mem.variableExists(arg1) && mem.variableExists(arg3))
-            {
-                if (mem.isNumber(arg1) && mem.isNumber(arg3))
-                {
-                    if (mem.varNumber(arg1) <= mem.varNumber(arg3))
-                        mem.createForLoop(mem.varNumber(arg1), mem.varNumber(arg3), "<=");
-                    else
-                        mem.createFailedForLoop();
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createFailedForLoop();
-                }
-            }
-            else if (mem.variableExists(arg1) && !mem.variableExists(arg3))
-            {
-                if (mem.isNumber(arg1) && isNumeric(arg3))
-                {
-                    if (mem.varNumber(arg1) <= stod(arg3))
-                        mem.createForLoop(mem.varNumber(arg1), stod(arg3), "<=");
-                    else
-                        mem.createFailedForLoop();
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createFailedForLoop();
-                }
-            }
-            else if (!mem.variableExists(arg1) && mem.variableExists(arg3))
-            {
-                if (isNumeric(arg1) && mem.isNumber(arg3))
-                {
-                    if (stod(arg1) <= mem.varNumber(arg3))
-                        mem.createForLoop(stod(arg1), mem.varNumber(arg3), "<=");
-                    else
-                        mem.createFailedForLoop();
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createFailedForLoop();
-                }
-            }
-            else
-            {
-                if (isNumeric(arg1) && isNumeric(arg3))
-                {
-                    if (stod(arg1) <= stod(arg3))
-                        mem.createForLoop(stod(arg1), stod(arg3), "<=");
-                    else
-                        mem.createFailedForLoop();
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createFailedForLoop();
-                }
-            }
-        }
-        else if (arg2 == ">=")
-        {
-            if (mem.variableExists(arg1) && mem.variableExists(arg3))
-            {
-                if (mem.isNumber(arg1) && mem.isNumber(arg3))
-                {
-                    if (mem.varNumber(arg1) >= mem.varNumber(arg3))
-                        mem.createForLoop(mem.varNumber(arg1), mem.varNumber(arg3), ">=");
-                    else
-                        mem.createFailedForLoop();
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createFailedForLoop();
-                }
-            }
-            else if (mem.variableExists(arg1) && !mem.variableExists(arg3))
-            {
-                if (mem.isNumber(arg1) && isNumeric(arg3))
-                {
-                    if (mem.varNumber(arg1) >= stod(arg3))
-                        mem.createForLoop(mem.varNumber(arg1), stod(arg3), ">=");
-                    else
-                        mem.createFailedForLoop();
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createFailedForLoop();
-                }
-            }
-            else if (!mem.variableExists(arg1) && mem.variableExists(arg3))
-            {
-                if (isNumeric(arg1) && mem.isNumber(arg3))
-                {
-                    if (stod(arg1) >= mem.varNumber(arg3))
-                        mem.createForLoop(stod(arg1), mem.varNumber(arg3), ">=");
-                    else
-                        mem.createFailedForLoop();
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createFailedForLoop();
-                }
-            }
-            else
-            {
-                if (isNumeric(arg1) && isNumeric(arg3))
-                {
-                    if (stod(arg1) >= stod(arg3))
-                        mem.createForLoop(stod(arg1), stod(arg3), ">=");
-                    else
-                        mem.createFailedForLoop();
-                }
-                else
-                {
-                    error(ErrorMessage::CONV_ERR, arg0, false);
-                    mem.createFailedForLoop();
-                }
-            }
+            handleLoopInit_For(arg1, arg2, arg3, arg0);
         }
         else if (arg2 == "in")
         {
-            if (arg1 == "var")
-            {
-                string before(beforeDot(arg3)), after(afterDot(arg3));
-
-                if (before == "args" && after == "size")
-                {
-                    List newList;
-
-                    for (int i = 0; i < mem.getArgCount(); i++)
-                        newList.add(mem.getArg(i));
-
-                    mem.createForLoop(newList);
-                }
-                else if (mem.classExists(before) && after == "get_methods")
-                {
-                    List newList;
-
-                    vector<Method> objMethods = mem.getClass(before).getMethods();
-
-                    for (int i = 0; i < (int)objMethods.size(); i++)
-                        newList.add(objMethods.at(i).name());
-
-                    mem.createForLoop(newList);
-                }
-                else if (mem.classExists(before) && after == "get_variables")
-                {
-                    List newList;
-
-                    vector<Variable> objVars = mem.getClass(before).getVariables();
-
-                    for (int i = 0; i < (int)objVars.size(); i++)
-                        newList.add(objVars.at(i).name());
-
-                    mem.createForLoop(newList);
-                }
-                else if (mem.variableExists(before) && after == "length")
-                {
-                    if (mem.isString(before))
-                    {
-                        List newList;
-                        string tempVarStr = mem.varString(before);
-                        int len = tempVarStr.length();
-
-                        for (int i = 0; i < len; i++)
-                        {
-                            string tempStr("");
-                            tempStr.push_back(tempVarStr[i]);
-                            newList.add(tempStr);
-                        }
-
-                        mem.createForLoop(newList);
-                    }
-                }
-                else
-                {
-                    if (before.length() != 0 && after.length() != 0)
-                    {
-                        if (mem.variableExists(before))
-                        {
-                            if (after == "get_dirs")
-                            {
-                                if (Env::directoryExists(mem.varString(before)))
-                                    mem.createForLoop(getDirectoryList(before, false));
-                                else
-                                {
-                                    error(ErrorMessage::READ_FAIL, mem.varString(before), false);
-                                    mem.createFailedForLoop();
-                                }
-                            }
-                            else if (after == "get_files")
-                            {
-                                if (Env::directoryExists(mem.varString(before)))
-                                    mem.createForLoop(getDirectoryList(before, true));
-                                else
-                                {
-                                    error(ErrorMessage::READ_FAIL, mem.varString(before), false);
-                                    mem.createFailedForLoop();
-                                }
-                            }
-                            else if (after == "read")
-                            {
-                                if (Env::fileExists(mem.varString(before)))
-                                {
-                                    List newList;
-
-                                    ifstream file(mem.varString(before).c_str());
-                                    string line("");
-
-                                    if (file.is_open())
-                                    {
-                                        while (!file.eof())
-                                        {
-                                            getline(file, line);
-                                            newList.add(line);
-                                        }
-
-                                        file.close();
-
-                                        mem.createForLoop(newList);
-                                    }
-                                    else
-                                    {
-                                        error(ErrorMessage::READ_FAIL, mem.varString(before), false);
-                                        mem.createFailedForLoop();
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                error(ErrorMessage::METHOD_UNDEFINED, after, false);
-                                mem.createFailedForLoop();
-                            }
-                        }
-                        else
-                        {
-                            error(ErrorMessage::VAR_UNDEFINED, before, false);
-                            mem.createFailedForLoop();
-                        }
-                    }
-                    else
-                    {
-                        if (mem.listExists(arg3))
-                            mem.createForLoop(mem.getList(arg3));
-                        else
-                        {
-                            error(ErrorMessage::LIST_UNDEFINED, arg3, false);
-                            mem.createFailedForLoop();
-                        }
-                    }
-                }
-            }
-            else if (containsParams(arg3))
-            {
-                vector<string> rangeSpecifiers;
-
-                rangeSpecifiers = getRange(arg3);
-
-                if (rangeSpecifiers.size() == 2)
-                {
-                    string firstRangeSpecifier(rangeSpecifiers.at(0)), lastRangeSpecifier(rangeSpecifiers.at(1));
-
-                    if (mem.variableExists(firstRangeSpecifier))
-                    {
-                        if (mem.isNumber(firstRangeSpecifier))
-                            firstRangeSpecifier = mem.varNumberString(firstRangeSpecifier);
-                        else
-                            mem.createFailedForLoop();
-                    }
-
-                    if (mem.variableExists(lastRangeSpecifier))
-                    {
-                        if (mem.isNumber(lastRangeSpecifier))
-                            lastRangeSpecifier = mem.varNumberString(lastRangeSpecifier);
-                        else
-                            mem.createFailedForLoop();
-                    }
-
-                    if (isNumeric(firstRangeSpecifier) && isNumeric(lastRangeSpecifier))
-                    {
-                        State.DefaultLoopSymbol = arg1;
-
-                        int ifrs = stoi(firstRangeSpecifier), ilrs(stoi(lastRangeSpecifier));
-
-                        if (ifrs < ilrs)
-                            mem.createForLoop(stod(firstRangeSpecifier), stod(lastRangeSpecifier), "<=");
-                        else if (ifrs > ilrs)
-                            mem.createForLoop(stod(firstRangeSpecifier), stod(lastRangeSpecifier), ">=");
-                        else
-                            mem.createFailedForLoop();
-                    }
-                    else
-                        mem.createFailedForLoop();
-                }
-            }
-            else if (containsBrackets(arg3))
-            {
-                string before(beforeBrackets(arg3));
-
-                if (mem.variableExists(before))
-                {
-                    if (mem.isString(before))
-                    {
-                        string tempVarString(mem.varString(before));
-
-                        vector<string> range = getBracketRange(arg3);
-
-                        if (range.size() == 2)
-                        {
-                            string rangeBegin(range.at(0)), rangeEnd(range.at(1));
-
-                            if (rangeBegin.length() != 0 && rangeEnd.length() != 0)
-                            {
-                                if (isNumeric(rangeBegin) && isNumeric(rangeEnd))
-                                {
-                                    if (stoi(rangeBegin) < stoi(rangeEnd))
-                                    {
-                                        if ((int)tempVarString.length() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)
-                                        {
-                                            List newList("&l&i&s&t&");
-
-                                            for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
-                                            {
-                                                string tempString("");
-                                                tempString.push_back(tempVarString[i]);
-                                                newList.add(tempString);
-                                            }
-
-                                            State.DefaultLoopSymbol = arg1;
-
-                                            mem.createForLoop(newList);
-
-                                            mem.removeList("&l&i&s&t&");
-                                        }
-                                        else
-                                            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
-                                    }
-                                    else if (stoi(rangeBegin) > stoi(rangeEnd))
-                                    {
-                                        if ((int)tempVarString.length() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)
-                                        {
-                                            List newList("&l&i&s&t&");
-
-                                            for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
-                                            {
-                                                string tempString("");
-                                                tempString.push_back(tempVarString[i]);
-                                                newList.add(tempString);
-                                            }
-
-                                            State.DefaultLoopSymbol = arg1;
-
-                                            mem.createForLoop(newList);
-
-                                            mem.removeList("&l&i&s&t&");
-                                        }
-                                        else
-                                            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
-                                    }
-                                    else
-                                        error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
-                                }
-                                else
-                                    error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
-                            }
-                            else
-                                error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
-                        }
-                        else
-                            error(ErrorMessage::OUT_OF_BOUNDS, arg3, false);
-                    }
-                    else
-                    {
-                        error(ErrorMessage::NULL_STRING, before, false);
-                        mem.createFailedForLoop();
-                    }
-                }
-            }
-            else if (mem.listExists(arg3))
-            {
-                State.DefaultLoopSymbol = arg1;
-
-                mem.createForLoop(mem.getList(arg3));
-            }
-            else if (!zeroDots(arg3))
-            {
-                string _b(beforeDot(arg3)), _a(afterDot(arg3));
-
-                if (_b == "args" && _a == "size")
-                {
-                    List newList;
-
-                    State.DefaultLoopSymbol = arg1;
-
-                    for (int i = 0; i < mem.getArgCount(); i++)
-                        newList.add(mem.getArg(i));
-
-                    mem.createForLoop(newList);
-                }
-                else if (_b == "env" && _a == "get_variables")
-                {
-                    List newList;
-
-                    newList.add("cwd");
-                    newList.add("noctis");
-                    newList.add("os?");
-                    newList.add("user");
-                    newList.add("machine");
-                    newList.add("init_dir");
-                    newList.add("initial_directory");
-                    newList.add("am_or_pm");
-                    newList.add("now");
-                    newList.add("day_of_this_week");
-                    newList.add("day_of_this_month");
-                    newList.add("day_of_this_year");
-                    newList.add("month_of_this_year");
-                    newList.add("this_second");
-                    newList.add("this_minute");
-                    newList.add("this_hour");
-                    newList.add("this_month");
-                    newList.add("this_year");
-                    newList.add("empty_string");
-                    newList.add("empty_number");
-                    newList.add("last_error");
-                    newList.add("last_value");
-                    newList.add("get_members");
-                    newList.add("members");
-
-                    State.DefaultLoopSymbol = arg1;
-                    mem.createForLoop(newList);
-                }
-                else if (mem.classExists(_b) && _a == "get_methods")
-                {
-                    List newList;
-
-                    vector<Method> objMethods = mem.getClass(_b).getMethods();
-
-                    for (int i = 0; i < (int)objMethods.size(); i++)
-                        newList.add(objMethods.at(i).name());
-
-                    State.DefaultLoopSymbol = arg1;
-                    mem.createForLoop(newList);
-                }
-                else if (mem.classExists(_b) && _a == "get_variables")
-                {
-                    List newList;
-
-                    vector<Variable> objVars = mem.getClass(_b).getVariables();
-
-                    for (int i = 0; i < (int)objVars.size(); i++)
-                        newList.add(objVars.at(i).name());
-
-                    State.DefaultLoopSymbol = arg1;
-                    mem.createForLoop(newList);
-                }
-                else if (mem.variableExists(_b) && _a == "length")
-                {
-                    if (mem.isString(_b))
-                    {
-                        State.DefaultLoopSymbol = arg1;
-                        List newList;
-                        string _t = mem.varString(_b);
-                        int _l = _t.length();
-
-                        for (int i = 0; i < _l; i++)
-                        {
-                            string tmpStr("");
-                            tmpStr.push_back(_t[i]);
-                            newList.add(tmpStr);
-                        }
-
-                        mem.createForLoop(newList);
-                    }
-                }
-                else
-                {
-                    if (_b.length() != 0 && _a.length() != 0)
-                    {
-                        if (mem.variableExists(_b))
-                        {
-                            if (_a == "get_dirs")
-                            {
-                                if (Env::directoryExists(mem.varString(_b)))
-                                {
-                                    State.DefaultLoopSymbol = arg1;
-                                    mem.createForLoop(getDirectoryList(_b, false));
-                                }
-                                else
-                                {
-                                    error(ErrorMessage::READ_FAIL, mem.varString(_b), false);
-                                    mem.createFailedForLoop();
-                                }
-                            }
-                            else if (_a == "get_files")
-                            {
-                                if (Env::directoryExists(mem.varString(_b)))
-                                {
-                                    State.DefaultLoopSymbol = arg1;
-                                    mem.createForLoop(getDirectoryList(_b, true));
-                                }
-                                else
-                                {
-                                    error(ErrorMessage::READ_FAIL, mem.varString(_b), false);
-                                    mem.createFailedForLoop();
-                                }
-                            }
-                            else if (_a == "read")
-                            {
-                                if (Env::fileExists(mem.varString(_b)))
-                                {
-                                    List newList;
-
-                                    ifstream file(mem.varString(_b).c_str());
-                                    string line("");
-
-                                    if (file.is_open())
-                                    {
-                                        while (!file.eof())
-                                        {
-                                            getline(file, line);
-                                            newList.add(line);
-                                        }
-
-                                        file.close();
-
-                                        State.DefaultLoopSymbol = arg1;
-                                        mem.createForLoop(newList);
-                                    }
-                                    else
-                                    {
-                                        error(ErrorMessage::READ_FAIL, mem.varString(_b), false);
-                                        mem.createFailedForLoop();
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                error(ErrorMessage::METHOD_UNDEFINED, _a, false);
-                                mem.createFailedForLoop();
-                            }
-                        }
-                        else
-                        {
-                            error(ErrorMessage::VAR_UNDEFINED, _b, false);
-                            mem.createFailedForLoop();
-                        }
-                    }
-                }
-            }
-            else
-            {
-                error(ErrorMessage::INVALID_OP, arg0, false);
-                mem.createFailedForLoop();
-            }
+            bool retFlag;
+            handleLoopInit_ForIn(arg1, arg3, arg0, retFlag);
+            if (retFlag)
+                return;
         }
         else
         {
@@ -1888,43 +1212,466 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, vector<strin
     }
     else if (arg0 == "while")
     {
-        if (mem.variableExists(arg1) && mem.variableExists(arg3))
+        handleLoopInit_While(arg1, arg3, arg2, arg0);
+    }
+    else
+        Env::sysExec(arg0, command);
+}
+
+void handleLoopInit_For(std::string &arg1, std::string &arg2, std::string &arg3, std::string &arg0)
+{
+    double first = 0, second = 0;
+    bool failed = false;
+    if (mem.variableExists(arg1) && mem.variableExists(arg3) && (mem.isNumber(arg1) && mem.isNumber(arg3)))
+    {
+        first = mem.varNumber(arg1);
+        second = mem.varNumber(arg3);
+    }
+    else if (mem.variableExists(arg1) && !mem.variableExists(arg3) && (mem.isNumber(arg1) && isNumeric(arg3)))
+    {
+        first = mem.varNumber(arg1);
+        second = stod(arg3);
+    }
+    else if (!mem.variableExists(arg1) && mem.variableExists(arg3) && (isNumeric(arg1) && mem.isNumber(arg3)))
+    {
+        first = stod(arg1);
+        second = mem.varNumber(arg3);
+    }
+    else if (isNumeric(arg1) && isNumeric(arg3))
+    {
+        first = stod(arg1);
+        second = stod(arg3);
+    }
+    else
+    {
+        error(ErrorMessage::CONV_ERR, arg0, false);
+        mem.createFailedForLoop();
+        failed = true;
+    }
+
+    if (failed) return;
+
+    if ((arg2 == "<" && first < second)
+        || (arg2 == ">" && first > second)
+        || (arg2 == "<=" && first <= second)
+        || (arg2 == ">=" && first >= second))
+        mem.createForLoop(first, second, arg2);
+    else
+        mem.createFailedForLoop();
+}
+
+void handleLoopInit_ForIn(std::string &arg1, std::string &arg3, std::string &arg0, bool &retFlag)
+{
+    retFlag = true;
+    if (arg1 == "var")
+    {
+        string before(beforeDot(arg3)), after(afterDot(arg3));
+
+        if (before == "args" && after == "size")
         {
-            if (mem.isNumber(arg1) && mem.isNumber(arg3))
+            handleLoopInit_CommandLineArgs();
+        }
+        else if (before == "env" && after == "__variables")
+        {
+            handleLoopInit_Environment_BuiltIns();
+        }
+        else if (mem.classExists(before) && after == "__methods")
+        {
+            handleLoopInit_ClassMembers_Methods(before);
+        }
+        else if (mem.classExists(before) && after == "__variables")
+        {
+            handleLoopInit_ClassMembers_Variables(before);
+        }
+        else if (mem.variableExists(before) && after == "length")
+        {
+            if (mem.isString(before))
             {
-                if (arg2 == "<" || arg2 == "<=" || arg2 == ">=" || arg2 == ">" || arg2 == "==" || arg2 == "!=")
-                    mem.createWhileLoop(arg1, arg2, arg3);
+                handleLoopInit_Variable_Length(before);
+            }
+        }
+        else
+        {
+            if (before.length() != 0 && after.length() != 0)
+            {
+                if (mem.variableExists(before))
+                {
+                    if (after == "get_dirs")
+                    {
+                        handleLoopInit_Variable_Directories(before);
+                    }
+                    else if (after == "get_files")
+                    {
+                        handleLoopInit_Variable_Files(before);
+                    }
+                    else if (after == "read")
+                    {
+                        handleLoopInit_Variable_FileRead(before);
+                    }
+                    else
+                    {
+                        error(ErrorMessage::METHOD_UNDEFINED, after, false);
+                        mem.createFailedForLoop();
+                    }
+                }
                 else
                 {
-                    error(ErrorMessage::INVALID_OP, arg0, false);
-                    mem.createFailedWhileLoop();
+                    error(ErrorMessage::VAR_UNDEFINED, before, false);
+                    mem.createFailedForLoop();
                 }
             }
             else
             {
-                error(ErrorMessage::CONV_ERR, arg1 + arg2 + arg3, false);
-                mem.createFailedWhileLoop();
-            }
-        }
-        else if (isNumeric(arg3) && mem.variableExists(arg1))
-        {
-            if (mem.isNumber(arg1))
-            {
-                if (arg2 == "<" || arg2 == "<=" || arg2 == ">=" || arg2 == ">" || arg2 == "==" || arg2 == "!=")
-                    mem.createWhileLoop(arg1, arg2, arg3);
+                if (mem.listExists(arg3))
+                    mem.createForLoop(mem.getList(arg3));
                 else
                 {
-                    error(ErrorMessage::INVALID_OP, arg0, false);
-                    mem.createFailedWhileLoop();
+                    error(ErrorMessage::LIST_UNDEFINED, arg3, false);
+                    mem.createFailedForLoop();
                 }
             }
-            else
+        }
+    }
+    else if (containsParams(arg3))
+    {
+        handleLoopInit_Params(arg3, arg1);
+    }
+    else if (containsBrackets(arg3))
+    {
+        bool retFlag;
+        handleLoopInit_Brackets(arg3, arg1, retFlag);
+        if (retFlag)
+            return;
+    }
+    else if (mem.listExists(arg3))
+    {
+        State.DefaultLoopSymbol = arg1;
+        mem.createForLoop(mem.getList(arg3));
+    }
+    else if (!zeroDots(arg3))
+    {
+        State.DefaultLoopSymbol = arg1;
+        string _b(beforeDot(arg3)), _a(afterDot(arg3));
+
+        if (_b == "args" && _a == "size")
+        {
+            handleLoopInit_CommandLineArgs();
+        }
+        else if (_b == "env" && _a == "__variables")
+        {
+            handleLoopInit_Environment_BuiltIns();
+        }
+        else if (mem.classExists(_b) && _a == "__methods")
+        {
+            handleLoopInit_ClassMembers_Methods(_b);
+        }
+        else if (mem.classExists(_b) && _a == "__variables")
+        {
+            handleLoopInit_ClassMembers_Variables(_b);
+        }
+        else if (mem.variableExists(_b) && _a == "length")
+        {
+            handleLoopInit_Variable_Length(_b);
+        }
+        else
+        {
+            if (_b.length() != 0 && _a.length() != 0)
             {
-                error(ErrorMessage::CONV_ERR, arg1 + arg2 + arg3, false);
-                mem.createFailedWhileLoop();
+                if (mem.variableExists(_b))
+                {
+                    if (_a == "get_dirs")
+                    {
+                        handleLoopInit_Variable_Directories(_b);
+                    }
+                    else if (_a == "get_files")
+                    {
+                        handleLoopInit_Variable_Files(_b);
+                    }
+                    else if (_a == "read")
+                    {
+                        handleLoopInit_Variable_FileRead(_b);
+                    }
+                    else
+                    {
+                        error(ErrorMessage::METHOD_UNDEFINED, _a, false);
+                        mem.createFailedForLoop();
+                    }
+                }
+                else
+                {
+                    error(ErrorMessage::VAR_UNDEFINED, _b, false);
+                    mem.createFailedForLoop();
+                }
             }
         }
-        else if (isNumeric(arg1) && isNumeric(arg3))
+    }
+    else
+    {
+        error(ErrorMessage::INVALID_OP, arg0, false);
+        mem.createFailedForLoop();
+    }
+    retFlag = false;
+}
+
+void handleLoopInit_Environment_BuiltIns()
+{
+    List newList;
+
+    newList.add("cwd");
+    newList.add("noctis");
+    newList.add("user");
+    newList.add("machine");
+    newList.add("init_dir");
+    newList.add("initial_directory");
+    newList.add("am_or_pm");
+    newList.add("now");
+    newList.add("day_of_this_week");
+    newList.add("day_of_this_month");
+    newList.add("day_of_this_year");
+    newList.add("month_of_this_year");
+    newList.add("this_second");
+    newList.add("this_minute");
+    newList.add("this_hour");
+    newList.add("this_month");
+    newList.add("this_year");
+    newList.add("empty_string");
+    newList.add("empty_number");
+    newList.add("last_error");
+    newList.add("last_value");
+    newList.add("get_members");
+    newList.add("members");
+    mem.createForLoop(newList);
+}
+
+void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag)
+{
+    retFlag = true;
+    string before(beforeBrackets(arg3));
+
+    if (!mem.variableExists(before) || !mem.isString(before))
+    {
+        error(ErrorMessage::NULL_STRING, before, false);
+        mem.createFailedForLoop();
+        return;
+    }
+
+    string tempVarString(mem.varString(before));
+
+    vector<string> range = getBracketRange(arg3);
+
+    if (range.size() != 2)
+    {
+        error(ErrorMessage::OUT_OF_BOUNDS, arg3, false);
+        return;
+    }
+
+    string rangeBegin(range.at(0)), rangeEnd(range.at(1));
+
+    if ((rangeBegin.length() == 0 || rangeEnd.length() == 0) || !(isNumeric(rangeBegin) && isNumeric(rangeEnd)))
+    {
+        error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+        return;
+    }
+
+    if (stoi(rangeBegin) < stoi(rangeEnd))
+    {
+        if ((int)tempVarString.length() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)
+        {
+            List newList("&l&i&s&t&");
+
+            for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
+            {
+                string tempString("");
+                tempString.push_back(tempVarString[i]);
+                newList.add(tempString);
+            }
+
+            State.DefaultLoopSymbol = arg1;
+
+            mem.createForLoop(newList);
+
+            mem.removeList("&l&i&s&t&");
+        }
+        else
+            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+    }
+    else if (stoi(rangeBegin) > stoi(rangeEnd))
+    {
+        if ((int)tempVarString.length() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)
+        {
+            List newList("&l&i&s&t&");
+
+            for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
+            {
+                string tempString("");
+                tempString.push_back(tempVarString[i]);
+                newList.add(tempString);
+            }
+
+            State.DefaultLoopSymbol = arg1;
+
+            mem.createForLoop(newList);
+
+            mem.removeList("&l&i&s&t&");
+        }
+        else
+            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+    }
+    else
+        error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+    retFlag = false;
+}
+
+void handleLoopInit_Params(std::string &arg3, std::string &arg1)
+{
+    vector<string> rangeSpecifiers;
+
+    rangeSpecifiers = getRange(arg3);
+
+    if (rangeSpecifiers.size() == 2)
+    {
+        string firstRangeSpecifier(rangeSpecifiers.at(0)), lastRangeSpecifier(rangeSpecifiers.at(1));
+
+        if (mem.variableExists(firstRangeSpecifier))
+        {
+            if (mem.isNumber(firstRangeSpecifier))
+                firstRangeSpecifier = mem.varNumberString(firstRangeSpecifier);
+            else
+                mem.createFailedForLoop();
+        }
+
+        if (mem.variableExists(lastRangeSpecifier))
+        {
+            if (mem.isNumber(lastRangeSpecifier))
+                lastRangeSpecifier = mem.varNumberString(lastRangeSpecifier);
+            else
+                mem.createFailedForLoop();
+        }
+
+        if (isNumeric(firstRangeSpecifier) && isNumeric(lastRangeSpecifier))
+        {
+            State.DefaultLoopSymbol = arg1;
+
+            int ifrs = stoi(firstRangeSpecifier), ilrs(stoi(lastRangeSpecifier));
+
+            if (ifrs < ilrs)
+                mem.createForLoop(stod(firstRangeSpecifier), stod(lastRangeSpecifier), "<=");
+            else if (ifrs > ilrs)
+                mem.createForLoop(stod(firstRangeSpecifier), stod(lastRangeSpecifier), ">=");
+            else
+                mem.createFailedForLoop();
+        }
+        else
+            mem.createFailedForLoop();
+    }
+}
+
+void handleLoopInit_Variable_FileRead(std::string &before)
+{
+    if (Env::fileExists(mem.varString(before)))
+    {
+        List newList;
+
+        ifstream file(mem.varString(before).c_str());
+        string line("");
+
+        if (file.is_open())
+        {
+            while (!file.eof())
+            {
+                getline(file, line);
+                newList.add(line);
+            }
+
+            file.close();
+
+            mem.createForLoop(newList);
+        }
+        else
+        {
+            error(ErrorMessage::READ_FAIL, mem.varString(before), false);
+            mem.createFailedForLoop();
+        }
+    }
+}
+
+void handleLoopInit_Variable_Files(std::string &before)
+{
+    if (Env::directoryExists(mem.varString(before)))
+        mem.createForLoop(getDirectoryList(before, true));
+    else
+    {
+        error(ErrorMessage::READ_FAIL, mem.varString(before), false);
+        mem.createFailedForLoop();
+    }
+}
+
+void handleLoopInit_Variable_Directories(std::string &before)
+{
+    if (Env::directoryExists(mem.varString(before)))
+        mem.createForLoop(getDirectoryList(before, false));
+    else
+    {
+        error(ErrorMessage::READ_FAIL, mem.varString(before), false);
+        mem.createFailedForLoop();
+    }
+}
+
+void handleLoopInit_Variable_Length(std::string &before)
+{
+    List newList;
+    string tempVarStr = mem.varString(before);
+    int len = tempVarStr.length();
+
+    for (int i = 0; i < len; i++)
+    {
+        string tempStr("");
+        tempStr.push_back(tempVarStr[i]);
+        newList.add(tempStr);
+    }
+
+    mem.createForLoop(newList);
+}
+
+void handleLoopInit_ClassMembers_Variables(std::string &before)
+{
+    List newList;
+
+    vector<Variable> objVars = mem.getClass(before).getVariables();
+
+    for (int i = 0; i < (int)objVars.size(); i++)
+        newList.add(objVars.at(i).name());
+
+    mem.createForLoop(newList);
+}
+
+void handleLoopInit_ClassMembers_Methods(std::string &before)
+{
+    List newList;
+
+    vector<Method> objMethods = mem.getClass(before).getMethods();
+
+    for (int i = 0; i < (int)objMethods.size(); i++)
+        newList.add(objMethods.at(i).name());
+
+    mem.createForLoop(newList);
+}
+
+void handleLoopInit_CommandLineArgs()
+{
+    List newList;
+
+    for (int i = 0; i < mem.getArgCount(); i++)
+        newList.add(mem.getArg(i));
+
+    mem.createForLoop(newList);
+}
+
+void handleLoopInit_While(std::string &arg1, std::string &arg3, std::string &arg2, std::string &arg0)
+{
+    if (mem.variableExists(arg1) && mem.variableExists(arg3))
+    {
+        if (mem.isNumber(arg1) && mem.isNumber(arg3))
         {
             if (arg2 == "<" || arg2 == "<=" || arg2 == ">=" || arg2 == ">" || arg2 == "==" || arg2 == "!=")
                 mem.createWhileLoop(arg1, arg2, arg3);
@@ -1936,14 +1683,44 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, vector<strin
         }
         else
         {
+            error(ErrorMessage::CONV_ERR, arg1 + arg2 + arg3, false);
+            mem.createFailedWhileLoop();
+        }
+    }
+    else if (isNumeric(arg3) && mem.variableExists(arg1))
+    {
+        if (mem.isNumber(arg1))
+        {
+            if (arg2 == "<" || arg2 == "<=" || arg2 == ">=" || arg2 == ">" || arg2 == "==" || arg2 == "!=")
+                mem.createWhileLoop(arg1, arg2, arg3);
+            else
+            {
+                error(ErrorMessage::INVALID_OP, arg0, false);
+                mem.createFailedWhileLoop();
+            }
+        }
+        else
+        {
+            error(ErrorMessage::CONV_ERR, arg1 + arg2 + arg3, false);
+            mem.createFailedWhileLoop();
+        }
+    }
+    else if (isNumeric(arg1) && isNumeric(arg3))
+    {
+        if (arg2 == "<" || arg2 == "<=" || arg2 == ">=" || arg2 == ">" || arg2 == "==" || arg2 == "!=")
+            mem.createWhileLoop(arg1, arg2, arg3);
+        else
+        {
             error(ErrorMessage::INVALID_OP, arg0, false);
             mem.createFailedWhileLoop();
         }
     }
     else
-        Env::sysExec(arg0, command);
+    {
+        error(ErrorMessage::INVALID_OP, arg0, false);
+        mem.createFailedWhileLoop();
+    }
 }
-
 void handleIfStatementDecl_Generic(std::string first, std::string second, std::string oper)
 {
     if (isNumeric(first) && isNumeric(second))
