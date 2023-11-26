@@ -20,6 +20,12 @@ Loop with default iterator symbol `$`.
 for 1 < 10
     say "${$}"
 endfor
+
+@start = 0
+@stop = 10
+for @start < @stop
+    say "${$}"
+endfor
 ```
 
 Loop indefinitely.
@@ -29,9 +35,10 @@ for inf
 endfor
 ```
 
+Loop command-line arguments.
 ```
-for var in 
-
-for @n < @limit
+for var in args.size
+    say "${$}"
+endfor
 ```
 

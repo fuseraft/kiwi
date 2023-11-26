@@ -705,31 +705,12 @@ int get_alpha_num(char c)
 
 bool notStandardZeroSpace(string arg)
 {
-    const char *standardZeroSpaceWords =
-        "break;caught;"
-        "clear_all!;clear_constants!;clear_lists!;clear_methods!;clear_classes!;clear_variables!;"
-        "else;end;exit;failif;leave!;"
-        "no_methods?;no_classes?;no_variables?;parser;pass;private;public;try;";
-
-    return !contains(standardZeroSpaceWords, arg);
+    return !contains("break;caught;clear_all!;clear_constants!;clear_lists!;clear_methods!;clear_classes!;clear_variables!;else;end;exit;failif;leave!;no_methods?;no_classes?;no_variables?;parser;pass;private;public;try;", arg);
 }
 
 bool notStandardOneSpace(string arg)
 {
-    const char *standardOneSpaceWords =
-        "!;?;__begin__;call_method;cd;chdir;collect?;"
-        "decrypt;delay;directory?;dpush;dpop;"
-        "encrypt;err;error;file?;for;fpush;fpop;"
-        "garbage?;globalize;goto;if;init_dir;intial_directory;"
-        "directory?;file?;list?;lowercase?;method?;"
-        "number?;class?;string?;uppercase?;variable?;"
-        "list;list?;load;lock;loop;lose;"
-        "method;[method];class;out;"
-        "print;println;prompt;remove;return;"
-        "say;see;see_string;see_number;stdout;switch;"
-        "template;unlock;";
-
-    return !contains(standardOneSpaceWords, arg);
+    return !contains("!;?;__begin__;call_method;cd;clear;chdir;collect?;decrypt;delay;directory?;dpush;dpop;encrypt;err;error;file?;for;fpush;fpop;garbage?;globalize;goto;if;init_dir;intial_directory;directory?;file?;list?;method?;number?;class?;string?;variable?;list;list?;load;lock;loop;lose;method;[method];class;out;print;println;prompt;remove;return;say;stdout;switch;template;unlock;", arg);
 }
 
 bool notStandardTwoSpace(string arg)
@@ -745,6 +726,16 @@ bool is(string s, string si)
 bool isScript(string path)
 {
     return endsWith(path, ".ns");
+}
+
+string multiplyString(string input, int factor)
+{
+    string output("");
+
+    for (int i = 0; i < factor; i++)
+        output.append(input);
+
+    return output;
 }
 
 #endif
