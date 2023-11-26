@@ -738,7 +738,7 @@ void parse(string s)
                                     {
                                         if (before == "env")
                                         {
-                                            InternalGetEnv("", after, 3);
+                                            internal_env_builtins("", after, 3);
                                         }
                                         else if (mem.variableExists(before))
                                         {
@@ -1019,9 +1019,9 @@ void oneSpace(string arg0, string arg1, vector<string> command)
     {
         handleInlineScriptDecl(arg1);
     }
-    else if (arg0 == "encrypt" || arg0 == "decrypt")
+    else if (arg0 == "encode" || arg0 == "decode")
     {
-        InternalEncryptDecrypt(arg0, arg1);
+        internal_encode_decode(arg0, arg1);
     }
     else if (arg0 == "globalize")
     {
@@ -1033,7 +1033,7 @@ void oneSpace(string arg0, string arg1, vector<string> command)
     }
     else if (arg0 == "say" || arg0 == "stdout" || arg0 == "out" || arg0 == "print" || arg0 == "println")
     {
-        InternalOutput(arg0, arg1);
+        internal_puts(arg0, arg1);
     }
     else if (arg0 == "cd" || arg0 == "chdir")
     {
@@ -1418,7 +1418,7 @@ void handleLoopInit_Environment_BuiltIns()
     List newList;
 
     newList.add("cwd");
-    newList.add("noctis");
+    newList.add("usl");
     newList.add("user");
     newList.add("machine");
     newList.add("init_dir");
@@ -2550,11 +2550,11 @@ void handleInitialDir(std::string &arg1)
         {
             if (Env::directoryExists(mem.varString(arg1)))
             {
-                NoctisEnv.InitialDirectory = mem.varString(arg1);
-                Env::cd(NoctisEnv.InitialDirectory);
+                State.InitialDirectory = mem.varString(arg1);
+                Env::cd(State.InitialDirectory);
             }
             else
-                error(ErrorMessage::READ_FAIL, NoctisEnv.InitialDirectory, false);
+                error(ErrorMessage::READ_FAIL, State.InitialDirectory, false);
         }
         else
             error(ErrorMessage::NULL_STRING, arg1, false);
@@ -2564,16 +2564,16 @@ void handleInitialDir(std::string &arg1)
         if (Env::directoryExists(arg1))
         {
             if (arg1 == ".")
-                NoctisEnv.InitialDirectory = Env::cwd();
+                State.InitialDirectory = Env::cwd();
             else if (arg1 == "..")
-                NoctisEnv.InitialDirectory = Env::cwd() + "\\..";
+                State.InitialDirectory = Env::cwd() + "\\..";
             else
-                NoctisEnv.InitialDirectory = arg1;
+                State.InitialDirectory = arg1;
 
-            Env::cd(NoctisEnv.InitialDirectory);
+            Env::cd(State.InitialDirectory);
         }
         else
-            error(ErrorMessage::READ_FAIL, NoctisEnv.InitialDirectory, false);
+            error(ErrorMessage::READ_FAIL, State.InitialDirectory, false);
     }
 }
 
@@ -2634,7 +2634,7 @@ void handleChangeDir(std::string &arg1)
     else
     {
         if (arg1 == "init_dir" || arg1 == "initial_directory")
-            Env::cd(NoctisEnv.InitialDirectory);
+            Env::cd(State.InitialDirectory);
         else if (Env::directoryExists(arg1))
             Env::cd(arg1);
         else

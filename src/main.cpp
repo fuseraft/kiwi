@@ -1,8 +1,7 @@
-/**
- * 	noctis: a hybrid-typed, object-oriented, interpreted, programmable command line shell.
- *
- *		scstauf@gmail.com
- **/
+/*
+ * 	uslang: unorthodox scripting language
+ *  hybrid-typed, object-oriented, repl shell, fuseraft
+ */
 
 #include <iostream>
 #include <sstream>
@@ -20,7 +19,6 @@ using namespace std;
 
 #include "include/debug/stacktrace.h"
 #include "include/constants.h"
-#include "include/noctisenv.h"
 #include "include/state.h"
 #include "include/strings.h"
 #include "include/rng.h"
@@ -36,13 +34,13 @@ using namespace std;
 #include "include/parser.h"
 #include "include/core.h"
 
-int noctis(int c, char **v);
+int uslang(int c, char **v);
 
 int main(int c, char **v)
 {
     try
     {
-        noctis(c, v);
+        uslang(c, v);
     }
     catch (const exception &e)
     {
@@ -50,118 +48,95 @@ int main(int c, char **v)
     }
 }
 
-int noctis(int c, char **v)
+int uslang(int c, char **v)
 {
     RNG::seed();
 
-    setup();
+    string usl(v[0]), opt(""), script("");
+    initialize_state(usl);
 
-    string noctis = v[0];
-    State.Noctis = noctis;
-    NoctisEnv.InitialDirectory = Env::cwd();
+    State.InitialDirectory = Env::cwd();
 
-    if (c == 1)
+    switch (c)
     {
-        State.CurrentScript = noctis;
-        mem.addArg(noctis);
-        State.ArgumentCount = mem.getArgCount();
-        return startREPL();
-    }
-    else if (c == 2)
-    {
-        string opt = v[1];
-
-        if (isScript(opt))
-        {
-            State.CurrentScript = opt;
-            mem.addArg(opt);
-            State.ArgumentCount = mem.getArgCount();
-            mem.loadScript(opt);
-        }
-        else if (is(opt, "h") || is(opt, "help"))
-            help(noctis);
-        else if (is(opt, "v") || is(opt, "version"))
-            displayVersion();
-        else
-        {
-            State.CurrentScript = noctis;
-            mem.addArg(opt);
-            State.ArgumentCount = mem.getArgCount();
+        case 1:
+            mem.addArg(usl);
             return startREPL();
-        }
-    }
-    else if (c == 3)
-    {
-        string opt = v[1], script = v[2];
 
-        if (is(opt, "p") || is(opt, "parse"))
-        {
-            string stringBuilder("");
+        case 2:
+            opt = v[1];
 
-            for (int i = 0; i < (int)script.length(); i++)
-            {
-                if (script[i] == '\'')
-                    stringBuilder.push_back('\"');
-                else
-                    stringBuilder.push_back(script[i]);
-            }
-
-            parse(stringBuilder);
-        }
-        else
-        {
             if (isScript(opt))
             {
-                State.CurrentScript = opt;
                 mem.addArg(opt);
-                mem.addArg(script);
-                State.ArgumentCount = mem.getArgCount();
                 mem.loadScript(opt);
+            }
+            else if (is(opt, "h") || is(opt, "help"))
+                help(usl);
+            else if (is(opt, "v") || is(opt, "version"))
+                show_version();
+            else
+            {
+                mem.addArg(opt);
+                return startREPL();
+            }
+
+            break;
+
+        case 3:
+            opt = v[1], script = v[2];
+
+            if (is(opt, "p") || is(opt, "parse"))
+            {
+                string code("");
+
+                for (int i = 0; i < (int)script.length(); i++)
+                {
+                    if (script[i] == '\'')
+                        code.push_back('\"');
+                    else
+                        code.push_back(script[i]);
+                }
+
+                parse(code);
             }
             else
             {
-                State.CurrentScript = noctis;
                 mem.addArg(opt);
                 mem.addArg(script);
-                State.ArgumentCount = mem.getArgCount();
+                    
+                if (isScript(opt))
+                    mem.loadScript(opt);
+                else
+                    return startREPL();
+            }
+
+            break;
+
+        default:
+            if (c < 3)
+            {
+                help(usl);
+                break;
+            }
+            
+            opt = v[1];
+
+            for (int i = isScript(opt) ? 2 : 1; i < c; i++)
+            {
+                string arg(v[i]);
+                mem.addArg(arg);
+            }
+
+            if (isScript(opt))
+                mem.loadScript(opt);
+            else
                 return startREPL();
-            }
-        }
+
+            break;
     }
-    else if (c > 3)
-    {
-        string opt = v[1];
 
-        if (isScript(opt))
-        {
-            for (int i = 2; i < c; i++)
-            {
-                string tmpStr = v[i];
-                mem.addArg(tmpStr);
-            }
-
-            State.ArgumentCount = mem.getArgCount();
-
-            mem.loadScript(opt);
-        }
-        else
-        {
-            for (int i = 1; i < c; i++)
-            {
-                string tmpStr = v[i];
-                mem.addArg(tmpStr);
-            }
-
-            State.ArgumentCount = mem.getArgCount();
-
-            State.CurrentScript = noctis;
-            return startREPL();
-        }
-    }
-    else
-        help(noctis);
-
-    if (State.CurrentScript != "")
+    if (State.CurrentScript != usl)
     {
         exec.executeScript();
     }

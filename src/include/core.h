@@ -406,11 +406,10 @@ void writeline(string st)
     write(st + "\n");
 }
 
-void displayVersion()
+// TODO: ugh
+void show_version()
 {
-    IO::println();
-    IO::println("noctis v0.0.2 by <scstauf@gmail.com>");
-    IO::println();
+    IO::println("uslang 0.1.1"); 
 }
 
 List getDirectoryList(string before, bool filesOnly)
@@ -462,17 +461,15 @@ void error(int errorType, string errorInfo, bool quit)
 
 void help(string app)
 {
-    IO::println();
-    IO::println("noctis by <scstauf@gmail.com>");
+    IO::println("uslang interpreter");
     IO::println();
     IO::println("usage:\t" + app + "\t\t\tstart the shell");
-    IO::println("\t" + app + " {args}\t\tstart the shell with parameters");
+    IO::println("\t" + app + " {args}\t\t\tstart the shell with parameters");
     IO::println("\t" + app + " {script}\t\trun a script");
     IO::println("\t" + app + " {script} {args}\trun a script with parameters");
-    IO::println("\t" + app + " -v, --version\tdisplay current version");
-    IO::println("\t" + app + " -h, --help\t\tdisplay this message");
+    IO::println("\t" + app + " -v, --version\t\tshow current version");
     IO::println("\t" + app + " -p, --parse\t\tparse a command");
-    IO::println("\t" + app + " -n, --negligence\tignore parse errors");
+    IO::println("\t" + app + " -h, --help\t\tshow this message");
     IO::println();
 }
 
@@ -1168,7 +1165,7 @@ string getStringValue(string arg1, string op, string arg2)
 
         if (_beforeDot == "env")
         {
-            InternalGetEnv("", _afterDot, 2);
+            internal_env_builtins("", _afterDot, 2);
         }
         else if (_beforeDot == "args" && _afterDot == "size")
         {
@@ -1267,7 +1264,7 @@ double getNumberValue(string arg1, string op, string arg2)
         string _beforeDot(beforeDot(arg2)), _afterDot(afterDot(arg2));
         if (_beforeDot == "env")
         {
-            InternalGetEnv("", _afterDot, 2);
+            internal_env_builtins("", _afterDot, 2);
         }
         else if (_beforeDot == "args" && _afterDot == "size")
         {
@@ -1601,7 +1598,7 @@ void initializeVariable(string arg0, string arg1, string arg2, vector<string> co
                 }
                 else if (before == "env")
                 {
-                    InternalGetEnv(arg0, after, 1);
+                    internal_env_builtins(arg0, after, 1);
                 }
                 else if (after == "to_int")
                 {
@@ -1721,7 +1718,7 @@ void initializeVariable(string arg0, string arg1, string arg2, vector<string> co
                         if (mem.isString(after))
                         {
                             string line("");
-                            line = getSilentOutput(mem.varString(after));
+                            line = get_stdin_quiet(mem.varString(after));
 
                             if (mem.isNumber(arg0))
                             {
@@ -1740,7 +1737,7 @@ void initializeVariable(string arg0, string arg1, string arg2, vector<string> co
                         else
                         {
                             string line("");
-                            line = getSilentOutput("");
+                            line = get_stdin_quiet("");
 
                             if (mem.isNumber(arg0))
                             {
@@ -1760,7 +1757,7 @@ void initializeVariable(string arg0, string arg1, string arg2, vector<string> co
                     else
                     {
                         string line("");
-                        line = getSilentOutput(cleanString(after));
+                        line = get_stdin_quiet(cleanString(after));
 
                         if (isNumeric(line))
                             mem.setVariable(arg0, stod(line));
@@ -2224,7 +2221,7 @@ void initializeVariable(string arg0, string arg1, string arg2, vector<string> co
                             if (mem.isString(before))
                             {
                                 if (Env::fileExists(mem.varString(before)))
-                                    mem.setVariable(arg0, getBytes(mem.varString(before)));
+                                    mem.setVariable(arg0, get_filesize(mem.varString(before)));
                                 else
                                     error(ErrorMessage::READ_FAIL, mem.varString(before), false);
                             }
@@ -2234,7 +2231,7 @@ void initializeVariable(string arg0, string arg1, string arg2, vector<string> co
                         else
                         {
                             if (Env::fileExists(before))
-                                mem.setVariable(arg0, getBytes(before));
+                                mem.setVariable(arg0, get_filesize(before));
                             else
                                 error(ErrorMessage::READ_FAIL, before, false);
                         }
@@ -2338,7 +2335,7 @@ void initializeVariable(string arg0, string arg1, string arg2, vector<string> co
                     if (arg2 == "mask")
                     {
                         string masked("");
-                        masked = getSilentOutput("");
+                        masked = get_stdin_quiet("");
 
                         if (mem.isNumber(arg0))
                         {
@@ -3154,7 +3151,7 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, vector<stri
             string line("");
             if (arg2 == "mask")
             {
-                line = getSilentOutput("");
+                line = get_stdin_quiet("");
 
                 if (isNumeric(line))
                     mem.createVariable(arg0, stod(line));
@@ -3173,7 +3170,7 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, vector<stri
             }
         }
         else if (arg2 == "args.size")
-            mem.createVariable(arg0, (double)State.ArgumentCount);
+            mem.createVariable(arg0, (double)mem.getArgCount());
         else if (before == "readline")
         {
             if (mem.variableExists(after))
@@ -3220,7 +3217,7 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, vector<stri
                 if (mem.isString(after))
                 {
                     string line("");
-                    line = getSilentOutput(mem.varString(after));
+                    line = get_stdin_quiet(mem.varString(after));
 
                     if (isNumeric(line))
                         mem.createVariable(arg0, stod(line));
@@ -3232,7 +3229,7 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, vector<stri
                 else
                 {
                     string line("");
-                    line = getSilentOutput("");
+                    line = get_stdin_quiet("");
 
                     if (isNumeric(line))
                         mem.createVariable(arg0, stod(line));
@@ -3245,7 +3242,7 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, vector<stri
             else
             {
                 string line("");
-                line = getSilentOutput(cleanString(after));
+                line = get_stdin_quiet(cleanString(after));
 
                 if (isNumeric(line))
                     mem.createVariable(arg0, stod(line));
@@ -3494,7 +3491,7 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, vector<stri
             if (!mem.variableExists(before))
             {
                 if (Env::fileExists(before))
-                    mem.createVariable(arg0, getBytes(before));
+                    mem.createVariable(arg0, get_filesize(before));
                 else
                     error(ErrorMessage::READ_FAIL, before, false);
                 return;
@@ -3507,13 +3504,13 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, vector<stri
             }
 
             if (Env::fileExists(mem.varString(before)))
-                mem.createVariable(arg0, getBytes(mem.varString(before)));
+                mem.createVariable(arg0, get_filesize(mem.varString(before)));
             else
                 error(ErrorMessage::READ_FAIL, mem.varString(before), false);
         }
         else if (before == "env")
         {
-            InternalGetEnv(arg0, after, 0);
+            internal_env_builtins(arg0, after, 0);
         }
         else
         {
@@ -3677,18 +3674,19 @@ void handleClear(string &arg)
         mem.clearConstants();
 }
 
-void InternalEncryptDecrypt(string arg0, string arg1)
+void internal_encode_decode(string arg0, string arg1)
 {
     Crypt c;
     string text = mem.variableExists(arg1) ? (mem.isString(arg1) ? mem.varString(arg1) : mem.varNumberString(arg1)) : arg1;
-    write(arg0 == "encrypt" ? c.e(text) : c.d(text));
+    write(arg0 == "encode" ? c.e(text) : c.d(text));
 }
 
+// TODO: refactor
 //	modes:
 //		0 = createVariable
 //		1 = setVariable
 //		2 = setLastValue
-void InternalGetEnv(string arg0, string after, int mode)
+void internal_env_builtins(string arg0, string after, int mode)
 {
     Crypt c;
     string defaultValue = c.e(DT::timeNow());
@@ -3699,9 +3697,9 @@ void InternalGetEnv(string arg0, string after, int mode)
     {
         sValue = Env::cwd();
     }
-    else if (after == "noctis")
+    else if (after == "usl")
     {
-        sValue = State.Noctis;
+        sValue = State.Application;
     }
     else if (after == "user")
     {
@@ -3713,7 +3711,7 @@ void InternalGetEnv(string arg0, string after, int mode)
     }
     else if (after == "init_dir" || after == "initial_directory")
     {
-        sValue = NoctisEnv.InitialDirectory;
+        sValue = State.InitialDirectory;
     }
     else if (after == "this_second")
     {
@@ -3824,7 +3822,8 @@ void InternalGetEnv(string arg0, string after, int mode)
     }
 }
 
-void InternalOutput(string arg0, string arg1)
+// TODO: refactor
+void internal_puts(string arg0, string arg1)
 {
     string text(arg1);
     bool is_say = (arg0 == "say");
@@ -3880,7 +3879,7 @@ void InternalOutput(string arg0, string arg1)
     }
 }
 
-double getBytes(string path)
+double get_filesize(string path)
 {
     int bytes;
 
@@ -3889,7 +3888,6 @@ double getBytes(string path)
     if (!file.is_open())
     {
         error(ErrorMessage::READ_FAIL, path, false);
-
         return -DBL_MAX;
     }
 
@@ -3906,13 +3904,13 @@ double getBytes(string path)
     return bytes;
 }
 
-string getSilentOutput(string text)
+string get_stdin_quiet(string text)
 {
     char *s = getpass(cleanString(text).c_str());
     return s;
 }
 
-void setup()
+void initialize_state(string uslang)
 {
     State.BadMethodCount = 0,
     State.BadClassCount = 0,
@@ -3940,7 +3938,7 @@ void setup()
     State.DefiningPublicCode = false,
     State.DefiningScript = false,
     State.ExecutedTemplate = false, // remove
-        State.ExecutedTryBlock = false,
+    State.ExecutedTryBlock = false,
     State.Breaking = false,
     State.DefiningMethod = false,
     State.IsMultilineComment = false,
@@ -3971,9 +3969,10 @@ void setup()
     State.DefaultLoopSymbol = "$";
 
     State.Null = "[null]";
-
-    State.ArgumentCount = 0,
     State.NullNum = -DBL_MAX;
+
+    State.Application = uslang;
+    State.CurrentScript = uslang;
 }
 
 #endif
