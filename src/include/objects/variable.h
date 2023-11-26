@@ -2,7 +2,7 @@ class Variable : public Collectable
 {
 private:
     double numericValue;
-    string stringValue,
+    std::string stringValue,
         variableName;
 
     bool collectable,
@@ -154,7 +154,7 @@ public:
         return numericValue;
     }
 
-    string getString()
+    std::string getString()
     {
         return stringValue;
     }
@@ -192,7 +192,7 @@ public:
         return false;
     }
 
-    string name()
+    std::string name()
     {
         return variableName;
     }

@@ -3,7 +3,7 @@ class Script
 private:
     std::vector<std::string> lines;
     std::vector<std::string> marks;
-    string scriptName;
+    std::string scriptName;
 
 public:
     Script() {}
@@ -39,7 +39,7 @@ public:
         return lines;
     }
 
-    string at(int index)
+    std::string at(int index)
     {
         if (index < (int)lines.size())
             return lines.at(index);
@@ -47,7 +47,7 @@ public:
         return "[no_line]";
     }
 
-    string markAt(int index)
+    std::string markAt(int index)
     {
         if (index < (int)marks.size())
             return marks.at(index);
@@ -76,7 +76,7 @@ public:
         return get().size();
     }
 
-    string name()
+    std::string name()
     {
         return scriptName;
     }

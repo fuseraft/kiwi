@@ -45,7 +45,7 @@ void Executor::executeScript()
             {
                 if (ends_with(mem.getScript().at(z), "::"))
                 {
-                    string s(mem.getScript().at(z));
+                    std::string s(mem.getScript().at(z));
                     s = subtract_string(s, "::");
 
                     if (s == State.GoTo)
@@ -99,7 +99,7 @@ void Executor::executeSimpleStatement(std::string left, std::string oper, std::s
                 return;
             }
 
-            string bigstr("");
+            std::string bigstr("");
             for (int i = 0; i < stoi(right); i++)
             {
                 bigstr.append(left);
@@ -154,7 +154,7 @@ void Executor::executeTemplate(Method m, std::vector<std::string> strings)
 
     for (int i = 0; i < (int)m.size(); i++)
     {
-        string line = m.at(i), word("");
+        std::string line = m.at(i), word("");
         int len = line.length();
         std::vector<std::string> words;
 
@@ -179,7 +179,7 @@ void Executor::executeTemplate(Method m, std::vector<std::string> strings)
 
             for (int a = 0; a < (int)strings.size(); a++)
             {
-                string variableString("$");
+                std::string variableString("$");
                 variableString.append(itos(a));
 
                 if (words.at(x) == variableString)
@@ -194,7 +194,7 @@ void Executor::executeTemplate(Method m, std::vector<std::string> strings)
                 newWords.push_back(words.at(x));
         }
 
-        string freshLine("");
+        std::string freshLine("");
 
         for (int b = 0; b < (int)newWords.size(); b++)
         {
@@ -275,7 +275,7 @@ void Executor::executeMethod(Method m)
 
         for (int i = 0; i < (int)m.size(); i++)
         {
-            string line = m.at(i), word("");
+            std::string line = m.at(i), word("");
             int len = line.length();
             std::vector<std::string> words;
 
@@ -300,7 +300,7 @@ void Executor::executeMethod(Method m)
 
                 for (int a = 0; a < (int)m.getMethodVariables().size(); a++)
                 {
-                    string variableString("$");
+                    std::string variableString("$");
                     variableString.append(itos(a));
 
                     if (words.at(x) == m.getMethodVariables().at(a).name())
@@ -327,7 +327,7 @@ void Executor::executeMethod(Method m)
                     newWords.push_back(words.at(x));
             }
 
-            string freshLine("");
+            std::string freshLine("");
 
             for (int b = 0; b < (int)newWords.size(); b++)
             {
@@ -375,7 +375,7 @@ void Executor::executeForLoop(Method m)
         {
             for (int z = 0; z < m.size(); z++)
             {
-                string cleaned(""), builder("");
+                std::string cleaned(""), builder("");
                 int len = m.at(z).length();
                 bool buildSymbol = false, almostBuild = false, ended = false;
 
@@ -465,7 +465,7 @@ void Executor::executeForLoop(Method m)
             {
                 for (int z = 0; z < m.size(); z++)
                 {
-                    string cleanString(""), builder(""), tmp(m.at(z));
+                    std::string cleanString(""), builder(""), tmp(m.at(z));
                     int l(tmp.length());
                     bool buildSymbol = false, almostBuild = false, ended = false;
 
@@ -528,7 +528,7 @@ void Executor::executeForLoop(Method m)
             {
                 for (int z = 0; z < m.size(); z++)
                 {
-                    string cleaned(""), builder(""), tmp(m.at(z));
+                    std::string cleaned(""), builder(""), tmp(m.at(z));
                     int l(tmp.length());
                     bool buildSymbol = false, almostBuild = false, ended = false;
 

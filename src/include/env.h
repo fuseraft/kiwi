@@ -4,9 +4,9 @@
 #include "io.h"
 #include "error.h"
 
-string cleanString(std::string st);
-string getParsedOutput(std::string cmd);
-string get_stdin_quiet(std::string text);
+std::string pre_parse(std::string st);
+std::string get_parsed_stdout(std::string cmd);
+std::string get_stdin_quiet(std::string text);
 
 class Env
 {
@@ -30,7 +30,7 @@ public:
     {
         if (!directoryExists(p))
         {
-            ifstream f(p.c_str());
+            std::ifstream f(p.c_str());
             if (f.is_open())
             {
                 f.close();
@@ -43,7 +43,7 @@ public:
 
     static void createFile(std::string p)
     {
-        ofstream f(p.c_str(), ios::out);
+        std::ofstream f(p.c_str(), std::ios::out);
 
         if (f.is_open())
             f.close();
@@ -53,13 +53,13 @@ public:
 
     static void appendToFile(std::string p, std::string a)
     {
-        ofstream f(p.c_str(), ios::out | ios::app);
+        std::ofstream f(p.c_str(), std::ios::out | std::ios::app);
 
         if (!f.is_open())
             IO::printerrln("#!=read_fail");
         else
         {
-            string cleaned("");
+            std::string cleaned("");
             int l = a.length();
 
             for (int i = 0; i < l; i++)
@@ -87,9 +87,9 @@ public:
         }
     }
 
-    static string getStdout(std::string cmd)
+    static std::string getStdout(std::string cmd)
     {
-        string data;
+        std::string data;
         FILE *stream;
         char buffer[MAX_BUFFER];
 
@@ -115,7 +115,7 @@ public:
 
     static int shellExec(std::string s, std::vector<std::string> command)
     {
-        exec(cleanString(s));
+        exec(pre_parse(s));
         return 0;
     }
 
@@ -126,20 +126,20 @@ public:
         DIR *pd;
         struct dirent *pe;
 
-        string dir = path;
+        std::string dir = path;
 
         if ((pd = opendir(dir.c_str())) != NULL)
         {
             while ((pe = readdir(pd)) != NULL)
             {
-                if (string(pe->d_name) != "." && string(pe->d_name) != "..")
+                if (std::string(pe->d_name) != "." && std::string(pe->d_name) != "..")
                 {
-                    string tmp("");
+                    std::string tmp("");
 
                     if (dir == "/")
                         dir = "";
 
-                    tmp = dir + "/" + string(pe->d_name);
+                    tmp = dir + "/" + std::string(pe->d_name);
 
                     if (filesOnly)
                     {
@@ -164,11 +164,11 @@ public:
         return newList;
     }
 
-    static string getCurrentDirectory()
+    static std::string getCurrentDirectory()
     {
         char tmp[PATH_MAX];
 
-        return getcwd(tmp, PATH_MAX) ? string(tmp) : string("");
+        return getcwd(tmp, PATH_MAX) ? std::string(tmp) : std::string("");
     }
 
     static void changeDirectory(std::string p)
@@ -179,13 +179,13 @@ public:
             error(ErrorMessage::READ_FAIL, p, false);
     }
 
-    static string getEnvironmentVariable(std::string s)
+    static std::string getEnvironmentVariable(std::string s)
     {
         char *cString;
         cString = getenv(s.c_str());
 
         if (cString != NULL)
-            return string(cString);
+            return std::string(cString);
         else
             return "[not_available]";
     }
@@ -208,7 +208,7 @@ public:
             error(ErrorMessage::REMOVE_FILE_FAIL, p, false);
     }
 
-    static string getUser()
+    static std::string getUser()
     {
         char *pUser;
         pUser = getenv("USER");
@@ -219,7 +219,7 @@ public:
         return "";
     }
 
-    static string getMachine()
+    static std::string getMachine()
     {
         const int MAXHOSTNAMELEN = 1024;
         char name[MAXHOSTNAMELEN];

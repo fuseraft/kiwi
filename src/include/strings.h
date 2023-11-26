@@ -3,17 +3,17 @@
 
 const int MAX_BUFFER = 1024;
 
-string after_brackets(std::string s);
-string before_brackets(std::string s);
-string after_dot(std::string s);
-string before_dot(std::string s);
-string before_params(std::string s);
-string to_upper(std::string in);
-string to_lower(std::string in);
-string substring(std::string s, int left, int right);
-string subtract_char(std::string s, char c);
-string subtract_string(std::string s1, std::string s2);
-string ltrim_ws(const string &str);
+std::string after_brackets(std::string s);
+std::string before_brackets(std::string s);
+std::string after_dot(std::string s);
+std::string before_dot(std::string s);
+std::string before_params(std::string s);
+std::string to_upper(std::string in);
+std::string to_lower(std::string in);
+std::string substring(std::string s, int left, int right);
+std::string subtract_char(std::string s, char c);
+std::string subtract_string(std::string s1, std::string s2);
+std::string ltrim_ws(const std::string &str);
 
 bool contains(std::string s1, std::string s2);
 bool has_brackets(std::string s);
@@ -30,9 +30,9 @@ bool is_numberless(std::string s);
 
 std::string itos(int i);
 
-vector<std::string> parse_params(std::string s);
-vector<std::string> parse_range(std::string s);
-vector<std::string> parse_bracketrange(std::string s);
+std::vector<std::string> parse_params(std::string s);
+std::vector<std::string> parse_range(std::string s);
+std::vector<std::string> parse_bracketrange(std::string s);
 
 std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems)
 {
@@ -51,11 +51,11 @@ std::vector<std::string> split(const std::string &s, char delim)
     return split(s, delim, elems);
 }
 
-string &replace(std::string &original, std::string target, std::string replacement)
+std::string &replace(std::string &original, std::string target, std::string replacement)
 {
     size_t pos = original.find(target);
 
-    if (pos != string::npos)
+    if (pos != std::string::npos)
     {
         original.erase(pos, target.size());
         original.insert(pos, replacement);
@@ -64,26 +64,26 @@ string &replace(std::string &original, std::string target, std::string replaceme
     return original;
 }
 
-static inline string &ltrim(std::string &s)
+static inline std::string &ltrim(std::string &s)
 {
-    s.erase(s.begin(), find_if(s.begin(), s.end(), not1(ptr_fun<int, int>(isspace))));
+    s.erase(s.begin(), find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(isspace))));
     return s;
 }
 
-static inline string &rtrim(std::string &s)
+static inline std::string &rtrim(std::string &s)
 {
-    s.erase(find_if(s.rbegin(), s.rend(), not1(ptr_fun<int, int>(isspace))).base(), s.end());
+    s.erase(find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(isspace))).base(), s.end());
     return s;
 }
-static inline string &trim(std::string &s)
+static inline std::string &trim(std::string &s)
 {
     return ltrim(rtrim(s));
 }
 
-string ltrim_ws(const string &str)
+std::string ltrim_ws(const std::string &str)
 {
     auto it = find_if_not(str.begin(), str.end(), [](int c) { return isspace(c); });
-    return string(it, str.end());
+    return std::string(it, str.end());
 }
 
 bool valid_const_name(std::string in)
@@ -101,9 +101,9 @@ bool valid_const_name(std::string in)
     return true;
 }
 
-string to_upper(std::string in)
+std::string to_upper(std::string in)
 {
-    string builder("");
+    std::string builder("");
     for (int i = 0; i < (int)in.length(); i++)
     {
         char c = in[i];
@@ -113,9 +113,9 @@ string to_upper(std::string in)
     return builder;
 }
 
-string to_lower(std::string in)
+std::string to_lower(std::string in)
 {
-    string builder("");
+    std::string builder("");
     for (int i = 0; i < (int)in.length(); i++)
     {
         char c = in[i];
@@ -127,7 +127,7 @@ string to_lower(std::string in)
 
 bool contains(std::string s1, std::string s2)
 {
-    return s1.find(s2) != string::npos;
+    return s1.find(s2) != std::string::npos;
 }
 
 bool has_params(std::string s)
@@ -156,14 +156,14 @@ bool has_brackets(std::string s)
     return false;
 }
 
-vector<std::string> parse_params(std::string s)
+std::vector<std::string> parse_params(std::string s)
 {
     std::vector<std::string> params;
 
     int sl = s.length();
     bool start_push = false;
 
-    string new_name("");
+    std::string new_name("");
 
     for (int i = 0; i < sl; i++)
     {
@@ -191,14 +191,14 @@ vector<std::string> parse_params(std::string s)
     return params;
 }
 
-vector<std::string> parse_bracketrange(std::string s)
+std::vector<std::string> parse_bracketrange(std::string s)
 {
     std::vector<std::string> params;
 
     int sl = s.length();
     bool start_push = false, almost_push = false;
 
-    string new_name("");
+    std::string new_name("");
 
     for (int i = 0; i < sl; i++)
     {
@@ -231,14 +231,14 @@ vector<std::string> parse_bracketrange(std::string s)
     return params;
 }
 
-vector<std::string> parse_range(std::string s)
+std::vector<std::string> parse_range(std::string s)
 {
     std::vector<std::string> params;
 
     int sl = s.length();
     bool start_push = false, almost_push = false;
 
-    string new_name("");
+    std::string new_name("");
 
     for (int i = 0; i < sl; i++)
     {
@@ -268,11 +268,11 @@ vector<std::string> parse_range(std::string s)
     return params;
 }
 
-string before_params(std::string s)
+std::string before_params(std::string s)
 {
     int sl = s.length();
     bool stop_push = false;
-    string new_str("");
+    std::string new_str("");
 
     for (int i = 0; i < sl; i++)
     {
@@ -286,11 +286,11 @@ string before_params(std::string s)
     return new_str;
 }
 
-string before_brackets(std::string s)
+std::string before_brackets(std::string s)
 {
     int sl = s.length();
     bool stop_push = false;
-    string new_str("");
+    std::string new_str("");
 
     for (int i = 0; i < sl; i++)
     {
@@ -304,9 +304,9 @@ string before_brackets(std::string s)
     return new_str;
 }
 
-string after_brackets(std::string s)
+std::string after_brackets(std::string s)
 {
-    string var("");
+    std::string var("");
     int sl = s.length();
     bool start_push = false;
 
@@ -323,9 +323,9 @@ string after_brackets(std::string s)
     return var;
 }
 
-string after_dot(std::string s)
+std::string after_dot(std::string s)
 {
-    string var("");
+    std::string var("");
     int sl = s.length();
     bool start_push = false;
 
@@ -340,9 +340,9 @@ string after_dot(std::string s)
     return var;
 }
 
-string before_dot(std::string s)
+std::string before_dot(std::string s)
 {
-    string var("");
+    std::string var("");
     int sl = s.length();
     bool start_push = true;
 
@@ -360,9 +360,9 @@ string before_dot(std::string s)
     return var;
 }
 
-string substring(std::string s, int left, int right)
+std::string substring(std::string s, int left, int right)
 {
-    string inner("");
+    std::string inner("");
     int len = s.length();
     if (left > len || right > len)
     {
@@ -387,9 +387,9 @@ string substring(std::string s, int left, int right)
     return inner;
 }
 
-string multiply_string(std::string input, int factor)
+std::string multiply_string(std::string input, int factor)
 {
-    string output("");
+    std::string output("");
 
     for (int i = 0; i < factor; i++)
         output.append(input);
@@ -397,9 +397,9 @@ string multiply_string(std::string input, int factor)
     return output;
 }
 
-string subtract_char(std::string s, char c)
+std::string subtract_char(std::string s, char c)
 {
-    string r("");
+    std::string r("");
     int len = s.length();
 
     for (int i = 0; i < len; i++)
@@ -411,15 +411,15 @@ string subtract_char(std::string s, char c)
     return r;
 }
 
-string subtract_string(std::string s1, std::string s2)
+std::string subtract_string(std::string s1, std::string s2)
 {
-    string bs("");
+    std::string bs("");
 
     int l1(s1.length()), l2(s2.length());
 
     for (int k = 0; k < l1; k++)
     {
-        string tmp("");
+        std::string tmp("");
 
         for (int z = k; z < l2 + k; z++)
             tmp.push_back(s1[z]);
@@ -558,16 +558,16 @@ bool is_falsey(std::string s)
     return s == "false" || s == "0";
 }
 
-string itos(int i)
+std::string itos(int i)
 {
-    stringstream ss;
+    std::stringstream ss;
     ss << i;
     return ss.str();
 }
 
-string dtos(double i)
+std::string dtos(double i)
 {
-    stringstream ss;
+    std::stringstream ss;
     ss << i;
     return ss.str();
 }
