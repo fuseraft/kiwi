@@ -1,2 +1,2 @@
 @desc = "hybrid-typed, object-oriented, interpreted"
-say "noctis is a \{@desc} scripting language."
+say "uslang is a \{@desc} scripting language."

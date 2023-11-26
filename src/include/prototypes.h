@@ -92,17 +92,17 @@ void handleLoopInit_While(std::string &arg1, std::string &arg3, std::string &arg
 int startREPL();
 string getPrompt();
 
-void InternalEncryptDecrypt(string arg0, string arg1);
-void InternalGetEnv(string arg1, string after, int mode);
-void InternalOutput(string arg0, string arg1);
+void internal_encode_decode(string arg0, string arg1);
+void internal_env_builtins(string arg1, string after, int mode);
+void internal_puts(string arg0, string arg1);
 
 string cleanString(string st);
 
 List getDirectoryList(string before, bool filesOnly);
 
-void displayVersion();
+void show_version();
 void help(string app);
-void setup();
+void initialize_state(string uslang);
 void write(string st);
 void writeline(string st);
 
@@ -115,7 +115,7 @@ void initializeGlobalVariable(string arg0, string arg1, string arg2, vector<stri
 void initializeClassVariable(string arg0, string arg1, string arg2, vector<string> command);
 void initializeConstant(string arg0, string arg1, string arg2);
 
-double getBytes(string path);
+double get_filesize(string path);
 
 void parseAssignment(string arg0, string arg1, string arg2);
 void parseNumberStack(vector<string> &contents, vector<string> vars, string &temporaryBuild, char currentChar);
