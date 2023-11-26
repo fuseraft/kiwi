@@ -1151,13 +1151,13 @@ void twoSpace(std::string arg0, std::string arg1, std::string arg2, std::vector<
     }
     else if (mem.listExists(arg0) || mem.listExists(before_brackets(arg0)))
     {
-        initializeListValues(arg0, arg1, arg2, command);
+        init_listvalues(arg0, arg1, arg2, command);
     }
     else
     {
         if (begins_with(arg0, "@") && is_dotless(arg0))
         {
-            initializeGlobalVariable(arg0, arg1, arg2, command);
+            init_globalvar(arg0, arg1, arg2, command);
         }
         else if (begins_with(arg0, "@") && !is_dotless(arg2))
         {
