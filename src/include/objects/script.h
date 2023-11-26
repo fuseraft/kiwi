@@ -1,14 +1,14 @@
 class Script
 {
 private:
-    vector<string> lines;
-    vector<string> marks;
+    std::vector<std::string> lines;
+    std::vector<std::string> marks;
     string scriptName;
 
 public:
     Script() {}
 
-    Script(string name)
+    Script(std::string name)
     {
         scriptName = name;
     }
@@ -24,17 +24,17 @@ public:
         marks.clear();
     }
 
-    void add(string line)
+    void add(std::string line)
     {
         lines.push_back(line);
     }
 
-    void addMark(string mark)
+    void addMark(std::string mark)
     {
         marks.push_back(mark);
     }
 
-    vector<string> get()
+    std::vector<std::string> get()
     {
         return lines;
     }
@@ -55,7 +55,7 @@ public:
         return "[no_line]";
     }
 
-    bool markExists(string mark)
+    bool markExists(std::string mark)
     {
         for (int i = 0; i < (int)marks.size(); i++)
         {

@@ -1,7 +1,7 @@
 class StringContainer
 {
 private:
-    vector<string> strings;
+    std::vector<std::string> strings;
 
 public:
     StringContainer() {}
@@ -16,12 +16,12 @@ public:
         strings.clear();
     }
 
-    void add(string line)
+    void add(std::string line)
     {
         strings.push_back(line);
     }
 
-    vector<string> get()
+    std::vector<std::string> get()
     {
         return strings;
     }

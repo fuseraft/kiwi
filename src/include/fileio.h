@@ -4,11 +4,11 @@
 class FileIO
 {
 public:
-    static void appendText(string arg1, string arg2, bool newLine);
-    static void writeText(string arg1, string arg2);
+    static void appendText(std::string arg1, std::string arg2, bool newLine);
+    static void writeText(std::string arg1, std::string arg2);
 };
 
-void FileIO::appendText(string arg1, string arg2, bool newLine)
+void FileIO::appendText(std::string arg1, std::string arg2, bool newLine)
 {
     string target(""), text("");
 
@@ -76,12 +76,12 @@ void FileIO::appendText(string arg1, string arg2, bool newLine)
     }
 
     if (newLine)
-        Env::app(target, text + "\r\n");
+        Env::appendToFile(target, text + "\r\n");
     else
-        Env::app(target, text);
+        Env::appendToFile(target, text);
 }
 
-void FileIO::writeText(string arg1, string arg2)
+void FileIO::writeText(std::string arg1, std::string arg2)
 {
     string target(""), text("");
 
@@ -145,13 +145,13 @@ void FileIO::writeText(string arg1, string arg2)
 
     if (Env::fileExists(target))
     {
-        Env::app(target, text + "\r\n");
+        Env::appendToFile(target, text + "\r\n");
         State.LastValue = "0";
     }
     else
     {
         Env::createFile(target);
-        Env::app(target, text + "\r\n");
+        Env::appendToFile(target, text + "\r\n");
         State.LastValue = "1";
     }
 }
