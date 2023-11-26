@@ -127,6 +127,7 @@ std::string to_lower(std::string in)
 
 bool contains(std::string s1, std::string s2)
 {
+    if (s2 == "") return false;
     return s1.find(s2) != std::string::npos;
 }
 
@@ -595,6 +596,11 @@ bool unrecognized_1space(std::string arg)
 bool unrecognized_2space(std::string arg)
 {
     return !contains("=;+=;-=;*=;%=;/=;**=;+;-;*;**;/;%;++=;--=;?;!", arg);
+}
+
+bool recognized_mathfunc(std::string arg)
+{
+    return contains("sin;sinh;asin;tan;tanh;atan;cos;acos;cosh;log;sqrt;abs;floor;ceil;exp;", arg);
 }
 
 bool is(std::string s, std::string si)
