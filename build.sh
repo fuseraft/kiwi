@@ -1,8 +1,8 @@
 #!/bin/bash
-g++ -rdynamic -o noctis -Wall src/main.cpp
+g++ -rdynamic -o usl -Wall src/main.cpp
 
 if [ $? -eq 0 ]; then
-    ./noctis test.ns
+    ./usl test.uslang
 else
     echo "Failed to compile."
 fi

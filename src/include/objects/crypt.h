@@ -6,16 +6,16 @@ public:
 
     string d(string o)
     {
-        return decrypt(o);
+        return decode(o);
     }
 
     string e(string o)
     {
-        return encrypt(o);
+        return encode(o);
     }
 
 private:
-    string decrypt(string o)
+    string decode(string o)
     {
         int l = o.length(), s = 7;
         string ax("");
@@ -47,7 +47,7 @@ private:
         return ax;
     }
 
-    string encrypt(string o)
+    string encode(string o)
     {
         int l = o.length(), s = 7;
         string ax("");
