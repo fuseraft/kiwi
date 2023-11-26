@@ -100,9 +100,9 @@ public:
     void removeClass(std::string s);
     void removeVariable(std::string s);
 
-    string varNumberString(std::string s);
+    std::string varNumberString(std::string s);
     double varNumber(std::string s);
-    string varString(std::string s);
+    std::string varString(std::string s);
 
     int getMethodCount();
     int getVariableCount();
@@ -124,7 +124,7 @@ public:
     
     void addArg(std::string arg);
     int getArgCount();
-    string getArg(int index);
+    std::string getArg(int index);
 
     void createIfStatement(bool value);
     void createModule(std::string s);
@@ -177,7 +177,7 @@ int Memory::getWhileLoopCount() { return whileLoops.size(); }
 Method& Memory::getWhileLoop(int index) { return whileLoops.at(index); }
 
 int Memory::getArgCount() { return args.size(); }
-string Memory::getArg(int index) { return args.at(index); }
+std::string Memory::getArg(int index) { return args.at(index); }
 void Memory::addArg(std::string arg) { args.push_back(arg); }
 
 void Memory::createClass(std::string className)
@@ -199,7 +199,7 @@ void Memory::createClass(std::string className)
 
 void Memory::createModule(std::string s)
 {
-    string moduleName = s;
+    std::string moduleName = s;
     moduleName = subtract_string(moduleName, "[");
     moduleName = subtract_string(moduleName, "]");
 
@@ -307,7 +307,7 @@ void Memory::createMethod(std::string arg0, std::string arg1)
                     return;
                 }
 
-                string before(before_dot(params.at(i))), after(after_dot(params.at(i)));
+                std::string before(before_dot(params.at(i))), after(after_dot(params.at(i)));
 
                 if (!classExists(before))
                 {
@@ -359,7 +359,7 @@ void Memory::createMethod(std::string arg0, std::string arg1)
         {
             if (!is_dotless(arg1))
             {
-                string before(before_dot(arg1)), after(after_dot(arg1));
+                std::string before(before_dot(arg1)), after(after_dot(arg1));
 
                 if (classExists(before))
                 {
@@ -392,7 +392,7 @@ void Memory::createMethod(std::string arg0, std::string arg1)
                     {
                         if (!is_dotless(params.at(i)))
                         {
-                            string before(before_dot(params.at(i))), after(after_dot(params.at(i)));
+                            std::string before(before_dot(params.at(i))), after(after_dot(params.at(i)));
 
                             if (classExists(before))
                             {
@@ -458,8 +458,8 @@ void Memory::createMethod(std::string arg0, std::string arg1)
 
 void Memory::loadScript(std::string script)
 {
-    string s("");
-    ifstream f(script.c_str());
+    std::string s("");
+    std::ifstream f(script.c_str());
     State.CurrentScript = script;
 
     scripts.clear();
@@ -470,7 +470,7 @@ void Memory::loadScript(std::string script)
     {
         while (!f.eof())
         {
-            getline(f, s);
+            std::getline(f, s);
 
             if (s.length() > 0)
             {
@@ -657,9 +657,9 @@ void Memory::removeModule(std::string s) { modules.erase(modules.begin() + index
 void Memory::removeClass(std::string s) { classes.erase(classes.begin() + indexOfClass(s)); }
 void Memory::removeVariable(std::string s) { variables.erase(variables.begin() + indexOfVariable(s)); }
 
-string Memory::varString(std::string s) { return getVar(s).getString(); }
+std::string Memory::varString(std::string s) { return getVar(s).getString(); }
 double Memory::varNumber(std::string s) { return getVar(s).getNumber(); }
-string Memory::varNumberString(std::string s) { return dtos(varNumber(s)); }
+std::string Memory::varNumberString(std::string s) { return dtos(varNumber(s)); }
 
 void Memory::redefine(std::string target, std::string name)
 {
@@ -667,7 +667,7 @@ void Memory::redefine(std::string target, std::string name)
     {
         if (Env::fileExists(varString(target)) || Env::directoryExists(varString(target)))
         {
-            string old_name(varString(target)), new_name("");
+            std::string old_name(varString(target)), new_name("");
 
             if (variableExists(name))
             {
@@ -987,7 +987,7 @@ bool Memory::variableExists(std::string s)
 {
     if (!is_dotless(s))
     {
-        string before(before_dot(s)), after(after_dot(s));
+        std::string before(before_dot(s)), after(after_dot(s));
         return classExists(before) && getClass(before).hasVariable(after);
     }
 
@@ -1020,7 +1020,7 @@ bool Memory::notClassMethod(std::string s)
 {
     if (!is_dotless(s))
     {
-        string before(before_dot(s));
+        std::string before(before_dot(s));
         return !classExists(before);
     }
 
