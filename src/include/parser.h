@@ -981,7 +981,7 @@ void oneSpace(std::string arg0, std::string arg1, std::vector<std::string> comma
 
     if (arg0 == "clear")
     {
-        handleClear(arg1);
+        parse_clear(arg1);
     }
     else if (arg0 == "switch")
     {
@@ -1151,25 +1151,25 @@ void twoSpace(std::string arg0, std::string arg1, std::string arg2, std::vector<
     }
     else if (mem.listExists(arg0) || mem.listExists(before_brackets(arg0)))
     {
-        initializeListValues(arg0, arg1, arg2, command);
+        init_listvalues(arg0, arg1, arg2, command);
     }
     else
     {
         if (begins_with(arg0, "@") && is_dotless(arg0))
         {
-            initializeGlobalVariable(arg0, arg1, arg2, command);
+            init_globalvar(arg0, arg1, arg2, command);
         }
         else if (begins_with(arg0, "@") && !is_dotless(arg2))
         {
-            initializeClassVariable(arg0, arg1, arg2, command);
+            init_classvar(arg0, arg1, arg2, command);
         }
         else if (!mem.classExists(arg0) && mem.classExists(arg2))
         {
-            copyClass(arg0, arg1, arg2, command);
+            copy_class(arg0, arg1, arg2, command);
         }
         else if (valid_const_name(arg0))
         {
-            initializeConstant(arg0, arg1, arg2);
+            init_const(arg0, arg1, arg2);
         }
         else
         {
