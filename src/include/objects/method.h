@@ -6,7 +6,7 @@ private:
     std::vector<Variable> methodVariables;
     std::vector<std::string> lines;
 
-    string logicOperatorValue,
+    std::string logicOperatorValue,
         methodName,
         className,
         symbolString,
@@ -67,7 +67,7 @@ public:
         return isIndestructible;
     }
 
-    string getClass()
+    std::string getClass()
     {
         return className;
     }
@@ -88,7 +88,7 @@ public:
         defaultSymbol = symbol[0];
     }
 
-    string getSymbolString()
+    std::string getSymbolString()
     {
         return symbolString;
     }
@@ -157,7 +157,7 @@ public:
         methodVariables.push_back(variable);
     }
 
-    string at(int index)
+    std::string at(int index)
     {
         if (index < (int)lines.size())
             return lines.at(index);
@@ -181,7 +181,7 @@ public:
         nest.add(line);
     }
 
-    string nestAt(int index)
+    std::string nestAt(int index)
     {
         if (index < nest.size())
             return nest.at(index);
@@ -233,7 +233,7 @@ public:
         return isBad_;
     }
 
-    string name()
+    std::string name()
     {
         return methodName;
     }
@@ -283,17 +283,17 @@ public:
         return stopValue;
     }
 
-    string valueOne()
+    std::string valueOne()
     {
         return valueOne_;
     }
 
-    string valueTwo()
+    std::string valueTwo()
     {
         return valueTwo_;
     }
 
-    string logicOperator()
+    std::string logicOperator()
     {
         return logicOperatorValue;
     }

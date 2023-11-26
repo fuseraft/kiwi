@@ -4,21 +4,21 @@ public:
     Crypt() {}
     ~Crypt() {}
 
-    string d(std::string o)
+    std::string d(std::string o)
     {
         return decode(o);
     }
 
-    string e(std::string o)
+    std::string e(std::string o)
     {
         return encode(o);
     }
 
 private:
-    string decode(std::string o)
+    std::string decode(std::string o)
     {
         int l = o.length(), s = 7;
-        string ax("");
+        std::string ax("");
 
         for (int i = 0; i < l; i++)
         {
@@ -47,10 +47,10 @@ private:
         return ax;
     }
 
-    string encode(std::string o)
+    std::string encode(std::string o)
     {
         int l = o.length(), s = 7;
-        string ax("");
+        std::string ax("");
 
         for (int i = 0; i < l; i++)
         {

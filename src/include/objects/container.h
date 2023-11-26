@@ -2,7 +2,7 @@ class Container
 {
 private:
     std::vector<std::string> lines;
-    string containerName,
+    std::string containerName,
         value;
     bool isNestedIF;
     bool _isBad;
@@ -35,12 +35,12 @@ public:
         value = val;
     }
 
-    string getCase()
+    std::string getCase()
     {
         return value;
     }
 
-    string at(int index)
+    std::string at(int index)
     {
         if (index < (int)lines.size())
             return lines.at(index);
@@ -64,7 +64,7 @@ public:
         isNestedIF = false;
     }
 
-    string name()
+    std::string name()
     {
         return containerName;
     }

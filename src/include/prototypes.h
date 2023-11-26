@@ -38,24 +38,24 @@ void handleIfStatement(std::string &arg1);
 void handleGoto(std::string &arg1);
 void handleSwitch(std::string &arg1);
 void handleClear(std::string &arg);
-void handleError(int errorType, const string variableName, bool isMethod);
+void handleError(int errorType, const std::string variableName, bool isMethod);
 void handleIfStatementDecl_Generic(std::string first, std::string second, std::string oper);
 void handleIfStatementDecl_Method(std::string arg1, std::string arg1Result, std::string arg3, std::string arg3Result);
 void handleClassDecl(std::string arg1, std::string arg3, std::string arg2);
 
-void checkGenericCondition(const string arg1, const string arg3, const string arg2);
-void checkMethodCondition(const string arg1, const string arg3, const string arg2);
-void checkParamsCondition(const string arg1, const string arg2, const string arg3);
-void checkVariableCondition(const string arg1, const string arg2, const string arg3);
-void checkListContainsCondition(const string listName, const string condition, const string testValue);
-void checkListInCondition(const string listName, const string condition, const string testValue);
-void checkCondition(const string arg1, const string arg2, const string arg3);
-bool checkListContains(const string listName, const string testString);
-bool checkListForElement(const string listName, const string testString, const string conditionType);
+void checkGenericCondition(const std::string arg1, const std::string arg3, const std::string arg2);
+void checkMethodCondition(const std::string arg1, const std::string arg3, const std::string arg2);
+void checkParamsCondition(const std::string arg1, const std::string arg2, const std::string arg3);
+void checkVariableCondition(const std::string arg1, const std::string arg2, const std::string arg3);
+void checkListContainsCondition(const std::string listName, const std::string condition, const std::string testValue);
+void checkListInCondition(const std::string listName, const std::string condition, const std::string testValue);
+void checkCondition(const std::string arg1, const std::string arg2, const std::string arg3);
+bool checkListContains(const std::string listName, const std::string testString);
+bool checkListForElement(const std::string listName, const std::string testString, const std::string conditionType);
 void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std::string arg3);
 
-string getParsedOutput(std::string cmd);
-string getTestString(bool variableExists, const string variableName);
+std::string get_parsed_stdout(std::string cmd);
+std::string getTestString(bool variableExists, const std::string variableName);
 
 void parse(std::string s);
 void zeroSpace(std::string arg0, std::vector<std::string> command);
@@ -90,13 +90,13 @@ void handleLoopInit_CommandLineArgs();
 void handleLoopInit_While(std::string &arg1, std::string &arg3, std::string &arg2, std::string &arg0);
 
 int load_repl();
-string get_prompt();
+std::string get_prompt();
 
 void internal_encode_decode(std::string arg0, std::string arg1);
 void internal_env_builtins(std::string arg1, std::string after, int mode);
 void internal_puts(std::string arg0, std::string arg1);
 
-string cleanString(std::string st);
+std::string pre_parse(std::string st);
 
 List getDirectoryList(std::string before, bool filesOnly);
 
@@ -118,13 +118,13 @@ void initializeConstant(std::string arg0, std::string arg1, std::string arg2);
 double get_filesize(std::string path);
 
 void parseAssignment(std::string arg0, std::string arg1, std::string arg2);
-void parseNumberStack(vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar);
-void parseStringStack(vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar);
-string getStackValue(std::string value);
+void parseNumberStack(std::vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar);
+void parseStringStack(std::vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar);
+std::string getStackValue(std::string value);
 double getStack(std::string arg2);
 bool isStringStack(std::string arg2);
 bool stackReady(std::string arg2);
-string getStringStack(std::string arg2);
+std::string getStringStack(std::string arg2);
 
 void error(int errorType, std::string errorInfo, bool quit);
 
