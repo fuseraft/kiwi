@@ -1,13 +1,13 @@
 class Module
 {
 private:
-    vector<string> lines;
+    std::vector<std::string> lines;
     string moduleName;
 
 public:
     Module() {}
 
-    Module(string name)
+    Module(std::string name)
     {
         moduleName = name;
     }
@@ -22,12 +22,12 @@ public:
         lines.clear();
     }
 
-    void add(string line)
+    void add(std::string line)
     {
         lines.push_back(line);
     }
 
-    vector<string> get()
+    std::vector<std::string> get()
     {
         return lines;
     }

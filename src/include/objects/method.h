@@ -3,8 +3,8 @@
 class Method
 {
 private:
-    vector<Variable> methodVariables;
-    vector<string> lines;
+    std::vector<Variable> methodVariables;
+    std::vector<std::string> lines;
 
     string logicOperatorValue,
         methodName,
@@ -37,12 +37,12 @@ private:
 public:
     Method() {}
 
-    Method(string name)
+    Method(std::string name)
     {
         initialize(name);
     }
 
-    Method(string name, bool isTemplate)
+    Method(std::string name, bool isTemplate)
     {
         initialize(name);
         isTemplate_ = isTemplate;
@@ -52,7 +52,7 @@ public:
     {
     }
 
-    void setClass(string name)
+    void setClass(std::string name)
     {
         className = name;
     }
@@ -75,7 +75,7 @@ public:
     /**
      * symbol is the variable containing the current iteration value.
      */
-    void setSymbol(string symbol)
+    void setSymbol(std::string symbol)
     {
         symbolString = symbol;
     }
@@ -83,7 +83,7 @@ public:
     /**
      * symbol is the variable containing the current iteration value.
      */
-    void setDefaultSymbol(string symbol)
+    void setDefaultSymbol(std::string symbol)
     {
         defaultSymbol = symbol[0];
     }
@@ -125,28 +125,28 @@ public:
         return isTemplate_;
     }
 
-    vector<Variable> getMethodVariables()
+    std::vector<Variable> getMethodVariables()
     {
         return methodVariables;
     }
 
-    void setName(string name)
+    void setName(std::string name)
     {
         methodName = name;
     }
 
-    void add(string line)
+    void add(std::string line)
     {
         lines.push_back(line);
     }
 
-    void addMethodVariable(string value, string variableName)
+    void addMethodVariable(std::string value, std::string variableName)
     {
         Variable newVariable(variableName, value);
         methodVariables.push_back(newVariable);
     }
 
-    void addMethodVariable(double value, string variableName)
+    void addMethodVariable(double value, std::string variableName)
     {
         Variable newVariable(variableName, value);
         methodVariables.push_back(newVariable);
@@ -176,7 +176,7 @@ public:
         return nest;
     }
 
-    void inNest(string line)
+    void inNest(std::string line)
     {
         nest.add(line);
     }
@@ -195,12 +195,12 @@ public:
         methodVariables.clear();
     }
 
-    vector<string> getLines()
+    std::vector<std::string> getLines()
     {
         return lines;
     }
 
-    void initialize(string name)
+    void initialize(std::string name)
     {
         defaultSymbol = '$';
         logicOperatorValue = "",
@@ -318,7 +318,7 @@ public:
         isWhileLoop_ = b;
     }
 
-    void setWhileValues(string v1, string op, string v2)
+    void setWhileValues(std::string v1, std::string op, std::string v2)
     {
         valueOne_ = v1,
         logicOperatorValue = op,

@@ -1,15 +1,15 @@
 class List : public Collectable
 {
 private:
-    vector<string> contents;
-    vector<string> reversion;
+    std::vector<std::string> contents;
+    std::vector<std::string> reversion;
     string listName;
     bool collectable;
 
 public:
     List() {}
 
-    List(string name)
+    List(std::string name)
     {
         collectable = false;
         listName = name;
@@ -30,7 +30,7 @@ public:
         return collectable;
     }
 
-    void setName(string s)
+    void setName(std::string s)
     {
         listName = s;
     }
@@ -52,14 +52,14 @@ public:
         contents = reversion;
     }
 
-    void add(string line)
+    void add(std::string line)
     {
         contents.push_back(line);
     }
 
-    void remove(string line)
+    void remove(std::string line)
     {
-        vector<string> newContents;
+        std::vector<std::string> newContents;
 
         for (int i = 0; i < size(); i++)
         {

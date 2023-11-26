@@ -14,11 +14,11 @@ public:
 
     void executeWhileLoop(Method m);
     void executeMethod(Method m);
-    void executeMethod(string methodName, string className, string classMethodName);
+    void executeMethod(std::string methodName, std::string className, std::string classMethodName);
     void executeNest(Container n);
     void executeForLoop(Method m);
-    void executeTemplate(Method m, vector<string> vs);
-    void executeSimpleStatement(string left, string oper, string right);
+    void executeTemplate(Method m, std::vector<std::string> vs);
+    void executeSimpleStatement(std::string left, std::string oper, std::string right);
     void executeScript();
 };
 
@@ -43,10 +43,10 @@ void Executor::executeScript()
 
             for (int z = 0; z < mem.getScript().size(); z++)
             {
-                if (endsWith(mem.getScript().at(z), "::"))
+                if (ends_with(mem.getScript().at(z), "::"))
                 {
                     string s(mem.getScript().at(z));
-                    s = subtractString(s, "::");
+                    s = subtract_string(s, "::");
 
                     if (s == State.GoTo)
                         startParsing = true;
@@ -61,9 +61,9 @@ void Executor::executeScript()
     State.CurrentScript = State.PreviousScript;
 }
 
-void Executor::executeSimpleStatement(string left, string oper, string right)
+void Executor::executeSimpleStatement(std::string left, std::string oper, std::string right)
 {
-    if (isNumeric(left) && isNumeric(right))
+    if (is_numeric(left) && is_numeric(right))
     {
         if (oper == "+")
             writeline(dtos(stod(left) + stod(right)));
@@ -90,10 +90,10 @@ void Executor::executeSimpleStatement(string left, string oper, string right)
         if (oper == "+")
             writeline(left + right);
         else if (oper == "-")
-            writeline(subtractString(left, right));
+            writeline(subtract_string(left, right));
         else if (oper == "*")
         {
-            if (zeroNumbers(right))
+            if (is_numberless(right))
             {
                 error(ErrorMessage::INVALID_OP, oper, false);
                 return;
@@ -109,21 +109,21 @@ void Executor::executeSimpleStatement(string left, string oper, string right)
             State.LastValue = bigstr;
         }
         else if (oper == "/")
-            writeline(subtractString(left, right));
+            writeline(subtract_string(left, right));
         else
             error(ErrorMessage::INVALID_OPERATOR, oper, false);
     }
 }
 
-void Executor::executeTemplate(Method m, vector<string> strings)
+void Executor::executeTemplate(Method m, std::vector<std::string> strings)
 {
-    vector<string> methodLines;
+    std::vector<std::string> methodLines;
 
     State.ExecutedTemplate = true;
     State.DontCollectMethodVars = true;
     State.CurrentMethodClass = m.getClass();
 
-    vector<Variable> methodVariables = m.getMethodVariables();
+    std::vector<Variable> methodVariables = m.getMethodVariables();
 
     for (int i = 0; i < (int)methodVariables.size(); i++)
     {
@@ -138,14 +138,14 @@ void Executor::executeTemplate(Method m, vector<string> strings)
         {
             parse(strings.at(i));
 
-            if (isNumeric(State.LastValue))
+            if (is_numeric(State.LastValue))
                 mem.createVariable(methodVariables.at(i).name(), stod(State.LastValue));
             else
                 mem.createVariable(methodVariables.at(i).name(), State.LastValue);
         }
         else
         {
-            if (isNumeric(strings.at(i)))
+            if (is_numeric(strings.at(i)))
                 mem.createVariable(methodVariables.at(i).name(), stod(strings.at(i)));
             else
                 mem.createVariable(methodVariables.at(i).name(), strings.at(i));
@@ -156,7 +156,7 @@ void Executor::executeTemplate(Method m, vector<string> strings)
     {
         string line = m.at(i), word("");
         int len = line.length();
-        vector<string> words;
+        std::vector<std::string> words;
 
         for (int x = 0; x < len; x++)
         {
@@ -171,7 +171,7 @@ void Executor::executeTemplate(Method m, vector<string> strings)
 
         words.push_back(word);
 
-        vector<string> newWords;
+        std::vector<std::string> newWords;
 
         for (int x = 0; x < (int)words.size(); x++)
         {
@@ -231,7 +231,7 @@ void Executor::executeNest(Container n)
     State.DefiningIfStatement = true;
 }
 
-void Executor::executeMethod(string methodName, string className, string classMethodName)
+void Executor::executeMethod(std::string methodName, std::string className, std::string classMethodName)
 {
     if (State.DefiningClass)
     {
@@ -271,13 +271,13 @@ void Executor::executeMethod(Method m)
 
     if (State.DefiningParameterizedMethod)
     {
-        vector<string> methodLines;
+        std::vector<std::string> methodLines;
 
         for (int i = 0; i < (int)m.size(); i++)
         {
             string line = m.at(i), word("");
             int len = line.length();
-            vector<string> words;
+            std::vector<std::string> words;
 
             for (int x = 0; x < len; x++)
             {
@@ -292,7 +292,7 @@ void Executor::executeMethod(Method m)
 
             words.push_back(word);
 
-            vector<string> newWords;
+            std::vector<std::string> newWords;
 
             for (int x = 0; x < (int)words.size(); x++)
             {
@@ -395,7 +395,7 @@ void Executor::executeForLoop(Method m)
                             buildSymbol = false;
                             ended = true;
 
-                            builder = subtractString(builder, "{");
+                            builder = subtract_string(builder, "{");
 
                             if (builder == m.getSymbolString())
                             {
@@ -485,7 +485,7 @@ void Executor::executeForLoop(Method m)
                                 buildSymbol = false;
                                 ended = true;
 
-                                builder = subtractString(builder, "{");
+                                builder = subtract_string(builder, "{");
 
                                 if (builder == m.getSymbolString())
                                     cleanString.append(itos(start));
@@ -548,7 +548,7 @@ void Executor::executeForLoop(Method m)
                                 buildSymbol = false;
                                 ended = true;
 
-                                builder = subtractString(builder, "{");
+                                builder = subtract_string(builder, "{");
 
                                 if (builder == m.getSymbolString())
                                     cleaned.append(itos(start));

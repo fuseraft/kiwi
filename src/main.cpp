@@ -26,18 +26,18 @@ int uslang(int c, char **v)
     string usl(v[0]), opt(""), script("");
     initialize_state(usl);
 
-    State.InitialDirectory = Env::cwd();
+    State.InitialDirectory = Env::getCurrentDirectory();
 
     switch (c)
     {
         case 1:
             mem.addArg(usl);
-            return startREPL();
+            return load_repl();
 
         case 2:
             opt = v[1];
 
-            if (isScript(opt))
+            if (is_script(opt))
             {
                 mem.addArg(opt);
                 mem.loadScript(opt);
@@ -49,7 +49,7 @@ int uslang(int c, char **v)
             else
             {
                 mem.addArg(opt);
-                return startREPL();
+                return load_repl();
             }
 
             break;
@@ -76,10 +76,10 @@ int uslang(int c, char **v)
                 mem.addArg(opt);
                 mem.addArg(script);
                     
-                if (isScript(opt))
+                if (is_script(opt))
                     mem.loadScript(opt);
                 else
-                    return startREPL();
+                    return load_repl();
             }
 
             break;
@@ -93,16 +93,16 @@ int uslang(int c, char **v)
             
             opt = v[1];
 
-            for (int i = isScript(opt) ? 2 : 1; i < c; i++)
+            for (int i = is_script(opt) ? 2 : 1; i < c; i++)
             {
                 string arg(v[i]);
                 mem.addArg(arg);
             }
 
-            if (isScript(opt))
+            if (is_script(opt))
                 mem.loadScript(opt);
             else
-                return startREPL();
+                return load_repl();
 
             break;
     }
