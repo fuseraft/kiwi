@@ -710,7 +710,7 @@ bool notStandardZeroSpace(string arg)
 
 bool notStandardOneSpace(string arg)
 {
-    return !contains("!;?;__begin__;call_method;cd;clear;chdir;collect?;decrypt;delay;directory?;dpush;dpop;encrypt;err;error;file?;for;fpush;fpop;garbage?;globalize;goto;if;init_dir;intial_directory;directory?;file?;list?;method?;number?;class?;string?;variable?;list;list?;load;lock;loop;lose;method;[method];class;out;print;println;prompt;remove;return;say;stdout;switch;template;unlock;", arg);
+    return !contains("!;?;__begin__;call_method;cd;clear;chdir;collect?;decode;delay;directory?;dpush;dpop;encode;err;error;file?;for;fpush;fpop;garbage?;globalize;goto;if;init_dir;intial_directory;directory?;file?;list?;method?;number?;class?;string?;variable?;list;list?;load;lock;loop;lose;method;[method];class;out;print;println;prompt;remove;return;say;stdout;switch;template;unlock;", arg);
 }
 
 bool notStandardTwoSpace(string arg)
@@ -725,7 +725,7 @@ bool is(string s, string si)
 
 bool isScript(string path)
 {
-    return endsWith(path, ".ns");
+    return endsWith(path, ".usl") || endsWith(path, ".uslang");
 }
 
 string multiplyString(string input, int factor)
