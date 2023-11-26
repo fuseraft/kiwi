@@ -6,7 +6,7 @@ private:
     bool isNumber_, isString_;
 
 public:
-    Constant(string name, string val)
+    Constant(std::string name, std::string val)
     {
         constantName = name,
         stringValue = val;
@@ -14,7 +14,7 @@ public:
         isNumber_ = false;
     }
 
-    Constant(string name, double val)
+    Constant(std::string name, double val)
     {
         constantName = name,
         numericValue = val;

@@ -7,29 +7,29 @@ public:
     IO() {}
     ~IO() {}
 
-    static void print(string s)
+    static void print(std::string s)
     {
-        cout << s;
+        std::cout << s;
     }
 
-    static void printerr(string s)
+    static void printerr(std::string s)
     {
-        cerr << s;
+        std::cerr << s;
     }
 
-    static void println(string s)
+    static void println(std::string s)
     {
-        cout << s << endl;
+        std::cout << s << std::endl;
     }
 
-    static void printerrln(string s)
+    static void printerrln(std::string s)
     {
-        cerr << s << endl;
+        std::cerr << s << std::endl;
     }
 
     static void println()
     {
-        cout << endl;
+        std::cout << std::endl;
     }
 };
 
