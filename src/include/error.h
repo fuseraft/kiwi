@@ -46,9 +46,9 @@ public:
     Error() {}
     ~Error() {}
 
-    static string getErrorString(int errorType)
+    static std::string getErrorString(int errorType)
     {
-        string errorString("");
+        std::string errorString("");
 
         switch (errorType)
         {
