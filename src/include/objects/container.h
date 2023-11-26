@@ -1,7 +1,7 @@
 class Container
 {
 private:
-    vector<string> lines;
+    std::vector<std::string> lines;
     string containerName,
         value;
     bool isNestedIF;
@@ -10,7 +10,7 @@ private:
 public:
     Container() {}
 
-    Container(string name)
+    Container(std::string name)
     {
         initialize(name);
     }
@@ -20,17 +20,17 @@ public:
         clear();
     }
 
-    void setName(string name)
+    void setName(std::string name)
     {
         containerName = name;
     }
 
-    void add(string line)
+    void add(std::string line)
     {
         lines.push_back(line);
     }
 
-    void setValue(string val)
+    void setValue(std::string val)
     {
         value = val;
     }
@@ -53,12 +53,12 @@ public:
         lines.clear();
     }
 
-    vector<string> getLines()
+    std::vector<std::string> getLines()
     {
         return lines;
     }
 
-    void initialize(string name)
+    void initialize(std::string name)
     {
         containerName = name;
         isNestedIF = false;

@@ -1,7 +1,7 @@
 class Switch
 {
 private:
-    vector<Container> cases;
+    std::vector<Container> cases;
     Container defaultCase;
     int count;
 
@@ -24,7 +24,7 @@ public:
         count = 0;
     }
 
-    Container rightCase(string value)
+    Container rightCase(std::string value)
     {
         for (int i = 0; i < (int)cases.size(); i++)
         {
@@ -35,7 +35,7 @@ public:
         return defaultCase;
     }
 
-    void addCase(string value)
+    void addCase(std::string value)
     {
         Container newCase("[case#" + itos(count) + "]");
         newCase.setValue(value);
@@ -43,12 +43,12 @@ public:
         count++;
     }
 
-    void addToCase(string line)
+    void addToCase(std::string line)
     {
         cases.at(count - 1).add(line);
     }
 
-    void addToDefault(string line)
+    void addToDefault(std::string line)
     {
         defaultCase.add(line);
     }

@@ -4,9 +4,9 @@
 #include "io.h"
 #include "error.h"
 
-string cleanString(string st);
-string getParsedOutput(string cmd);
-string get_stdin_quiet(string text);
+string cleanString(std::string st);
+string getParsedOutput(std::string cmd);
+string get_stdin_quiet(std::string text);
 
 class Env
 {
@@ -14,7 +14,7 @@ public:
     Env() {}
     ~Env() {}
 
-    static bool directoryExists(string p)
+    static bool directoryExists(std::string p)
     {
         DIR *pd;
         if ((pd = opendir(p.c_str())) == NULL)
@@ -26,7 +26,7 @@ public:
         }
     }
 
-    static bool fileExists(string p)
+    static bool fileExists(std::string p)
     {
         if (!directoryExists(p))
         {
@@ -41,7 +41,7 @@ public:
         return false;
     }
 
-    static void createFile(string p)
+    static void createFile(std::string p)
     {
         ofstream f(p.c_str(), ios::out);
 
@@ -51,7 +51,7 @@ public:
             IO::printerrln("...could not create file: " + p);
     }
 
-    static void app(string p, string a)
+    static void appendToFile(std::string p, std::string a)
     {
         ofstream f(p.c_str(), ios::out | ios::app);
 
@@ -87,7 +87,7 @@ public:
         }
     }
 
-    static string getStdout(string cmd)
+    static string getStdout(std::string cmd)
     {
         string data;
         FILE *stream;
@@ -101,7 +101,7 @@ public:
         return trim(data);
     }
 
-    static void exec(string cmd)
+    static void exec(std::string cmd)
     {
         FILE *stream;
         char buffer[MAX_BUFFER];
@@ -113,28 +113,15 @@ public:
         pclose(stream);
     }
 
-    static int sysExec(string s, vector<string> command)
+    static int shellExec(std::string s, std::vector<std::string> command)
     {
-        /*string _cleaned;
-        _cleaned = cleanstring(s);
-        for (int i = 0; i < (int)methods.size(); i++)
-        {
-            if (command.at(0) == methods.at(i).name())
-            {
-                if ((int)command.size() - 1 == (int)methods.at(i).getmethodvariables().size())
-                {
-                    // work
-                }
-            }
-        }*/
-
         exec(cleanString(s));
         return 0;
     }
 
-    static vector<string> getDirectoryContents(string path, bool filesOnly)
+    static std::vector<std::string> getDirectoryContents(std::string path, bool filesOnly)
     {
-        vector<string> newList;
+        std::vector<std::string> newList;
 
         DIR *pd;
         struct dirent *pe;
@@ -177,35 +164,22 @@ public:
         return newList;
     }
 
-    static string cwd()
+    static string getCurrentDirectory()
     {
         char tmp[PATH_MAX];
 
         return getcwd(tmp, PATH_MAX) ? string(tmp) : string("");
     }
 
-    static void cd(string p)
+    static void changeDirectory(std::string p)
     {
-        if (containsTilde(p))
-        {
-            if (Env::directoryExists(p))
-                cd(p);
-            else
-                error(ErrorMessage::READ_FAIL, p, false);
-        }
-        else
-        {
-            if (p == "init_dir" || p == "initial_directory")
-                cd(State.InitialDirectory);
-            else
-            {
-                if (chdir(p.c_str()) != 0)
-                    error(ErrorMessage::READ_FAIL, p, false);
-            }
-        }
+        if (p == "init_dir" || p == "initial_directory")
+            changeDirectory(State.InitialDirectory);
+        else if (chdir(p.c_str()) != 0)
+            error(ErrorMessage::READ_FAIL, p, false);
     }
 
-    static string getEnvironmentVariable(string s)
+    static string getEnvironmentVariable(std::string s)
     {
         char *cString;
         cString = getenv(s.c_str());
@@ -216,19 +190,19 @@ public:
             return "[not_available]";
     }
 
-    static void md(string p)
+    static void makeDirectory(std::string p)
     {
         if (mkdir(p.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
             error(ErrorMessage::MAKE_DIR_FAIL, p, false);
     }
 
-    static void rd(string p)
+    static void removeDirectory(std::string p)
     {
         if (rmdir(p.c_str()) != 0)
             error(ErrorMessage::REMOVE_DIR_FAIL, p, false);
     }
 
-    static void rm(string p)
+    static void removeFile(std::string p)
     {
         if (remove(p.c_str()) != 0)
             error(ErrorMessage::REMOVE_FILE_FAIL, p, false);

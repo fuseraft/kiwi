@@ -3,42 +3,36 @@
 
 const int MAX_BUFFER = 1024;
 
-string afterUS(string s);
-string afterBrackets(string s);
-string afterDot(string s);
-string afterUS(string s);
-string beforeDot(string s);
-string beforeBrackets(string s);
-string beforeParams(string s);
-string beforeUS(string s);
-string getUpper(string in);
-string getLower(string in);
-string getInner(string s, int left, int right);
-string subtractChar(string s1, string s2);
-string subtractString(string s1, string s2);
-string trimLeadingWhitespace(const string &str);
+string after_brackets(std::string s);
+string before_brackets(std::string s);
+string after_dot(std::string s);
+string before_dot(std::string s);
+string before_params(std::string s);
+string to_upper(std::string in);
+string to_lower(std::string in);
+string substring(std::string s, int left, int right);
+string subtract_char(std::string s, char c);
+string subtract_string(std::string s1, std::string s2);
+string ltrim_ws(const string &str);
 
-bool contains(string s1, string s2);
-bool containsBrackets(string s);
-bool containsParams(string s);
+bool contains(std::string s1, std::string s2);
+bool has_brackets(std::string s);
+bool has_params(std::string s);
 
-bool isNumeric(string s);
-bool isAlpha(string s);
-bool isUpper(string in);
-bool isLower(string in);
-bool isTrue(string s);
-bool isFalse(string s);
-bool oneDot(string s);
-bool endsWith(string s, string end);
-bool startsWith(string s1, string s2);
-bool zeroDots(string s);
-bool zeroNumbers(string s);
+bool is_numeric(std::string s);
+bool is_alpha(std::string s);
+bool is_truthy(std::string s);
+bool is_falsey(std::string s);
+bool ends_with(std::string s, std::string end);
+bool begins_with(std::string s1, std::string s2);
+bool is_dotless(std::string s);
+bool is_numberless(std::string s);
 
-string itos(int i);
+std::string itos(int i);
 
-vector<string> getParams(string s);
-vector<string> getRange(string s);
-vector<string> getBracketRange(string s);
+vector<std::string> parse_params(std::string s);
+vector<std::string> parse_range(std::string s);
+vector<std::string> parse_bracketrange(std::string s);
 
 std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems)
 {
@@ -46,9 +40,7 @@ std::vector<std::string> &split(const std::string &s, char delim, std::vector<st
     std::string item;
 
     while (std::getline(ss, item, delim))
-    {
         elems.push_back(item);
-    }
 
     return elems;
 }
@@ -56,11 +48,10 @@ std::vector<std::string> &split(const std::string &s, char delim, std::vector<st
 std::vector<std::string> split(const std::string &s, char delim)
 {
     std::vector<std::string> elems;
-
     return split(s, delim, elems);
 }
 
-string &replace(string &original, string target, string replacement)
+string &replace(std::string &original, std::string target, std::string replacement)
 {
     size_t pos = original.find(target);
 
@@ -73,72 +64,44 @@ string &replace(string &original, string target, string replacement)
     return original;
 }
 
-static inline string &ltrim(string &s)
+static inline string &ltrim(std::string &s)
 {
     s.erase(s.begin(), find_if(s.begin(), s.end(), not1(ptr_fun<int, int>(isspace))));
     return s;
 }
-// trim from end
-static inline string &rtrim(string &s)
+
+static inline string &rtrim(std::string &s)
 {
     s.erase(find_if(s.rbegin(), s.rend(), not1(ptr_fun<int, int>(isspace))).base(), s.end());
     return s;
 }
-static inline string &trim(string &s)
+static inline string &trim(std::string &s)
 {
     return ltrim(rtrim(s));
 }
 
-string trimLeadingWhitespace(const string &str)
+string ltrim_ws(const string &str)
 {
-    auto it = find_if_not(str.begin(), str.end(), [](int c)
-                          { return isspace(c); });
+    auto it = find_if_not(str.begin(), str.end(), [](int c) { return isspace(c); });
     return string(it, str.end());
 }
 
-bool isUpper(string in)
+bool valid_const_name(std::string in)
 {
     for (int i = 0; i < (int)in.length(); i++)
     {
         char c = in[i];
 
-        if (!isupper(c))
-            return false;
-    }
-
-    return true;
-}
-
-bool isUpperConstant(string in)
-{
-    for (int i = 0; i < (int)in.length(); i++)
-    {
-        char c = in[i];
-
-        if (!isupper(c))
+        if (!isupper(c) && c != '_')
         {
-            if (c != '_')
-                return false;
+            return false;
         }
     }
 
     return true;
 }
 
-bool isLower(string in)
-{
-    for (int i = 0; i < (int)in.length(); i++)
-    {
-        char c = in[i];
-
-        if (!islower(c))
-            return false;
-    }
-
-    return true;
-}
-
-string getUpper(string in)
+string to_upper(std::string in)
 {
     string builder("");
     for (int i = 0; i < (int)in.length(); i++)
@@ -150,7 +113,7 @@ string getUpper(string in)
     return builder;
 }
 
-string getLower(string in)
+string to_lower(std::string in)
 {
     string builder("");
     for (int i = 0; i < (int)in.length(); i++)
@@ -162,38 +125,12 @@ string getLower(string in)
     return builder;
 }
 
-int dot_count(string s)
-{
-    int l = s.length(), c = 0;
-    for (int i = 0; i < l; i++)
-    {
-        if (s[i] == '.')
-            c++;
-    }
-
-    return c;
-}
-
-bool contains(string s1, string s2)
+bool contains(std::string s1, std::string s2)
 {
     return s1.find(s2) != string::npos;
 }
 
-bool containsTilde(string s)
-{
-    int l = s.length();
-
-    if (s == "~")
-        return true;
-    else
-        for (int i = 0; i < l; i++)
-            if (s[i] == '~')
-                return true;
-
-    return false;
-}
-
-bool containsParams(string s)
+bool has_params(std::string s)
 {
     int sl = s.length();
 
@@ -206,7 +143,7 @@ bool containsParams(string s)
     return false;
 }
 
-bool containsBrackets(string s)
+bool has_brackets(std::string s)
 {
     int sl = s.length();
 
@@ -219,9 +156,9 @@ bool containsBrackets(string s)
     return false;
 }
 
-vector<string> getParams(string s)
+vector<std::string> parse_params(std::string s)
 {
-    vector<string> params;
+    std::vector<std::string> params;
 
     int sl = s.length();
     bool start_push = false;
@@ -254,9 +191,9 @@ vector<string> getParams(string s)
     return params;
 }
 
-vector<string> getBracketRange(string s)
+vector<std::string> parse_bracketrange(std::string s)
 {
-    vector<string> params;
+    std::vector<std::string> params;
 
     int sl = s.length();
     bool start_push = false, almost_push = false;
@@ -294,9 +231,9 @@ vector<string> getBracketRange(string s)
     return params;
 }
 
-vector<string> getRange(string s)
+vector<std::string> parse_range(std::string s)
 {
-    vector<string> params;
+    std::vector<std::string> params;
 
     int sl = s.length();
     bool start_push = false, almost_push = false;
@@ -319,10 +256,7 @@ vector<string> getRange(string s)
             }
             else if (s[i] == ')')
                 start_push = false;
-            else if (s[i] == ' ')
-            {
-            }
-            else
+            else if (s[i] != ' ')
                 new_name.push_back(s[i]);
         }
         else if (s[i] == '(')
@@ -334,7 +268,7 @@ vector<string> getRange(string s)
     return params;
 }
 
-string beforeParams(string s)
+string before_params(std::string s)
 {
     int sl = s.length();
     bool stop_push = false;
@@ -352,7 +286,7 @@ string beforeParams(string s)
     return new_str;
 }
 
-string beforeBrackets(string s)
+string before_brackets(std::string s)
 {
     int sl = s.length();
     bool stop_push = false;
@@ -370,7 +304,7 @@ string beforeBrackets(string s)
     return new_str;
 }
 
-string afterBrackets(string s)
+string after_brackets(std::string s)
 {
     string var("");
     int sl = s.length();
@@ -384,12 +318,12 @@ string afterBrackets(string s)
             start_push = true;
     }
 
-    s = subtractChar(s, "]");
+    s = subtract_char(s, ']');
 
     return var;
 }
 
-string afterDot(string s)
+string after_dot(std::string s)
 {
     string var("");
     int sl = s.length();
@@ -399,17 +333,14 @@ string afterDot(string s)
     {
         if (start_push)
             var.push_back(s[i]);
-        else
-        {
-            if (s[i] == '.')
-                start_push = true;
-        }
+        else if (s[i] == '.')
+            start_push = true;
     }
 
     return var;
 }
 
-string beforeDot(string s)
+string before_dot(std::string s)
 {
     string var("");
     int sl = s.length();
@@ -429,47 +360,7 @@ string beforeDot(string s)
     return var;
 }
 
-string afterUS(string s)
-{
-    string var("");
-    int sl = s.length();
-    bool start_push = false;
-
-    for (int i = 0; i < sl; i++)
-    {
-        if (start_push)
-            var.push_back(s[i]);
-        else
-        {
-            if (s[i] == '_')
-                start_push = true;
-        }
-    }
-
-    return var;
-}
-
-string beforeUS(string s)
-{
-    string var("");
-    int sl = s.length();
-    bool start_push = true;
-
-    for (int i = 0; i < sl; i++)
-    {
-        if (start_push)
-        {
-            if (s[i] == '_')
-                start_push = false;
-            else
-                var.push_back(s[i]);
-        }
-    }
-
-    return var;
-}
-
-string getInner(string s, int left, int right)
+string substring(std::string s, int left, int right)
 {
     string inner("");
     int len = s.length();
@@ -496,95 +387,31 @@ string getInner(string s, int left, int right)
     return inner;
 }
 
-string subtractChar(string s1, string s2)
+string multiply_string(std::string input, int factor)
+{
+    string output("");
+
+    for (int i = 0; i < factor; i++)
+        output.append(input);
+
+    return output;
+}
+
+string subtract_char(std::string s, char c)
 {
     string r("");
-    int len = s1.length();
+    int len = s.length();
 
     for (int i = 0; i < len; i++)
     {
-        if (s1[i] != s2[0])
-            r.push_back(s1[i]);
+        if (s[i] != c)
+            r.push_back(s[i]);
     }
 
     return r;
 }
 
-bool isAlpha(string s)
-{
-    int l = s.length();
-
-    for (int i = 0; i < l; i++)
-    {
-        if (!isalpha(s[i]))
-            return false;
-    }
-
-    return true;
-}
-
-bool oneDot(string s)
-{
-    bool found = false;
-
-    int l = s.length();
-
-    for (int i = 0; i < l; i++)
-    {
-        if (s[i] == '.')
-        {
-            if (found)
-                return false;
-            else
-                found = true;
-        }
-    }
-
-    return true;
-}
-
-bool endsWith(string s, string end)
-{
-    return s.size() > end.size() && s.substr(s.size() - end.size()) == end;
-}
-
-bool startsWith(string s, string start)
-{
-    return s.size() > start.size() && s.substr(0, start.size()) == start;
-}
-
-bool zeroDots(string s)
-{
-    bool none = true;
-    int l = s.length();
-
-    for (int i = 0; i < l; i++)
-    {
-        if (s[i] == '.')
-        {
-            none = false;
-        }
-    }
-
-    return none;
-}
-
-bool zeroNumbers(string s)
-{
-    int start = '0', stop = '9';
-
-    for (unsigned int i = 0; i < s.length(); i++)
-    {
-        if (s[i] >= start && s[i] <= stop)
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-string subtractString(string s1, string s2)
+string subtract_string(std::string s1, std::string s2)
 {
     string bs("");
 
@@ -609,7 +436,61 @@ string subtractString(string s1, string s2)
     return bs;
 }
 
-bool isNumeric(string s)
+bool is_alpha(std::string s)
+{
+    int l = s.length();
+
+    for (int i = 0; i < l; i++)
+    {
+        if (!isalpha(s[i]))
+            return false;
+    }
+
+    return true;
+}
+
+bool ends_with(std::string s, std::string end)
+{
+    return s.size() > end.size() && s.substr(s.size() - end.size()) == end;
+}
+
+bool begins_with(std::string s, std::string start)
+{
+    return s.size() > start.size() && s.substr(0, start.size()) == start;
+}
+
+bool is_dotless(std::string s)
+{
+    bool none = true;
+    int l = s.length();
+
+    for (int i = 0; i < l; i++)
+    {
+        if (s[i] == '.')
+        {
+            none = false;
+        }
+    }
+
+    return none;
+}
+
+bool is_numberless(std::string s)
+{
+    int start = '0', stop = '9';
+
+    for (unsigned int i = 0; i < s.length(); i++)
+    {
+        if (s[i] >= start && s[i] <= stop)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool is_numeric(std::string s)
 {
     int l = s.length();
     bool foundDot = false, foundSign = false, foundNonEmpty = false;
@@ -667,17 +548,15 @@ bool isNumeric(string s)
     return true;
 }
 
-bool isTrue(string s)
+bool is_truthy(std::string s)
 {
     return s == "true" || s == "1";
 }
 
-bool isFalse(string s)
+bool is_falsey(std::string s)
 {
     return s == "false" || s == "0";
 }
-
-// NUMBER > STRING & VICE-VERSA
 
 string itos(int i)
 {
@@ -703,39 +582,29 @@ int get_alpha_num(char c)
     return tolower(c) - 'a' + 1;
 }
 
-bool notStandardZeroSpace(string arg)
+bool unrecognized_0space(std::string arg)
 {
     return !contains("break;caught;clear_all!;clear_constants!;clear_lists!;clear_methods!;clear_classes!;clear_variables!;else;end;exit;failif;leave!;no_methods?;no_classes?;no_variables?;parser;pass;private;public;try;", arg);
 }
 
-bool notStandardOneSpace(string arg)
+bool unrecognized_1space(std::string arg)
 {
     return !contains("!;?;__begin__;call_method;cd;clear;chdir;collect?;decode;delay;directory?;dpush;dpop;encode;err;error;file?;for;fpush;fpop;garbage?;globalize;goto;if;init_dir;intial_directory;directory?;file?;list?;method?;number?;class?;string?;variable?;list;list?;load;lock;loop;lose;method;[method];class;out;print;println;prompt;remove;return;say;stdout;switch;template;unlock;", arg);
 }
 
-bool notStandardTwoSpace(string arg)
+bool unrecognized_2space(std::string arg)
 {
     return !contains("=;+=;-=;*=;%=;/=;**=;+;-;*;**;/;%;++=;--=;?;!", arg);
 }
 
-bool is(string s, string si)
+bool is(std::string s, std::string si)
 {
     return s == ("-" + si) || s == ("--" + si) || s == ("/" + si);
 }
 
-bool isScript(string path)
+bool is_script(std::string path)
 {
-    return endsWith(path, ".usl") || endsWith(path, ".uslang");
-}
-
-string multiplyString(string input, int factor)
-{
-    string output("");
-
-    for (int i = 0; i < factor; i++)
-        output.append(input);
-
-    return output;
+    return ends_with(path, ".usl") || ends_with(path, ".uslang");
 }
 
 #endif
