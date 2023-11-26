@@ -110,15 +110,16 @@ void setList(std::string listName, std::string methodName, std::vector<std::stri
 
 void copy_class(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command);
 void initializeVariable(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command);
-void initializeListValues(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command);
-void initializeGlobalVariable(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command);
+void init_listvalues(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command);
+void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command);
 void init_classvar(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command);
 void init_const(std::string arg0, std::string arg1, std::string arg2);
 void parse_mathfunc(std::string arg0, std::string before, std::string after);
+void parse_mathfunc_assignfromvar(std::string arg0, std::string before, std::string after);
 
 double get_filesize(std::string path);
 
-void parseAssignment(std::string arg0, std::string arg1, std::string arg2);
+void parse_assign(std::string arg0, std::string arg1, std::string arg2);
 void parseNumberStack(std::vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar);
 void parseStringStack(std::vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar);
 std::string getStackValue(std::string value);

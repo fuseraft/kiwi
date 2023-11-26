@@ -1428,43 +1428,13 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
 
                         if (is_numeric(s0) && is_numeric(s2))
                         {
+                            double n0 = stod(s0), n2 = stod(s2);
+                            int rand = (int)RNG::random(n0, n2);
+                            
                             if (mem.isNumber(arg0))
-                            {
-                                double n0 = stod(s0), n2 = stod(s2);
-
-                                if (n0 < n2)
-                                    mem.setVariable(arg0, (int)RNG::random(n0, n2));
-                                else if (n0 > n2)
-                                    mem.setVariable(arg0, (int)RNG::random(n2, n0));
-                                else
-                                    mem.setVariable(arg0, (int)RNG::random(n0, n2));
-                            }
+                                mem.setVariable(arg0, rand);
                             else if (mem.isString(arg0))
-                            {
-                                double n0 = stod(s0), n2 = stod(s2);
-
-                                if (n0 < n2)
-                                    mem.setVariable(arg0, itos((int)RNG::random(n0, n2)));
-                                else if (n0 > n2)
-                                    mem.setVariable(arg0, itos((int)RNG::random(n2, n0)));
-                                else
-                                    mem.setVariable(arg0, itos((int)RNG::random(n0, n2)));
-                            }
-                        }
-                        else if (is_alpha(s0) && is_alpha(s2))
-                        {
-                            if (!mem.isString(arg0))
-                            {
-                                error(ErrorMessage::NULL_STRING, arg0, false);
-                                return;
-                            }
-
-                            if (get_alpha_num(s0[0]) < get_alpha_num(s2[0]))
-                                mem.setVariable(arg0, RNG::random(s0, s2));
-                            else if (get_alpha_num(s0[0]) > get_alpha_num(s2[0]))
-                                mem.setVariable(arg0, RNG::random(s2, s0));
-                            else
-                                mem.setVariable(arg0, RNG::random(s2, s0));
+                                mem.setVariable(arg0, itos(rand));
                         }
                         else if (mem.variableExists(s0) || mem.variableExists(s2))
                         {
@@ -1486,43 +1456,12 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
 
                             if (is_numeric(s0) && is_numeric(s2))
                             {
+                                double n0 = stod(s0), n2 = stod(s2);
+                                int rand = (int)RNG::random(n0, n2);
                                 if (mem.isNumber(arg0))
-                                {
-                                    double n0 = stod(s0), n2 = stod(s2);
-
-                                    if (n0 < n2)
-                                        mem.setVariable(arg0, (int)RNG::random(n0, n2));
-                                    else if (n0 > n2)
-                                        mem.setVariable(arg0, (int)RNG::random(n2, n0));
-                                    else
-                                        mem.setVariable(arg0, (int)RNG::random(n0, n2));
-                                }
+                                    mem.setVariable(arg0, rand);
                                 else if (mem.isString(arg0))
-                                {
-                                    double n0 = stod(s0), n2 = stod(s2);
-
-                                    if (n0 < n2)
-                                        mem.setVariable(arg0, itos((int)RNG::random(n0, n2)));
-                                    else if (n0 > n2)
-                                        mem.setVariable(arg0, itos((int)RNG::random(n2, n0)));
-                                    else
-                                        mem.setVariable(arg0, itos((int)RNG::random(n0, n2)));
-                                }
-                            }
-                            else if (is_alpha(s0) && is_alpha(s2))
-                            {
-                                if (!mem.isString(arg0))
-                                {
-                                    error(ErrorMessage::NULL_STRING, arg0, false);
-                                    return;
-                                }
-
-                                if (get_alpha_num(s0[0]) < get_alpha_num(s2[0]))
-                                    mem.setVariable(arg0, RNG::random(s0, s2));
-                                else if (get_alpha_num(s0[0]) > get_alpha_num(s2[0]))
-                                    mem.setVariable(arg0, RNG::random(s2, s0));
-                                else
-                                    mem.setVariable(arg0, RNG::random(s2, s0));
+                                    mem.setVariable(arg0, itos(rand));
                             }
                         }
                         else
@@ -1599,6 +1538,10 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                 else if (before == "env")
                 {
                     internal_env_builtins(arg0, after, 1);
+                }
+                else if (recognized_mathfunc(after))
+                {
+                    parse_mathfunc_assignfromvar(arg0, before, after);
                 }
                 else if (after == "to_int")
                 {
@@ -1765,336 +1708,6 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                             mem.setVariable(arg0, line);
 
                         IO::println();
-                    }
-                }
-                else if (after == "cos")
-                {
-                    if (mem.variableExists(before))
-                    {
-                        if (mem.isNumber(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, cos(mem.varNumber(before)));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else if (mem.isString(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, dtos(cos(mem.varNumber(before))));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else
-                            error(ErrorMessage::IS_NULL, arg0, false);
-                    }
-                }
-                else if (after == "acos")
-                {
-                    if (mem.variableExists(before))
-                    {
-                        if (mem.isNumber(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, acos(mem.varNumber(before)));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else if (mem.isString(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, dtos(acos(mem.varNumber(before))));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else
-                            error(ErrorMessage::IS_NULL, arg0, false);
-                    }
-                }
-                else if (after == "cosh")
-                {
-                    if (mem.variableExists(before))
-                    {
-                        if (mem.isNumber(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, cosh(mem.varNumber(before)));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else if (mem.isString(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, dtos(cosh(mem.varNumber(before))));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else
-                            error(ErrorMessage::IS_NULL, arg0, false);
-                    }
-                }
-                else if (after == "log")
-                {
-                    if (mem.variableExists(before))
-                    {
-                        if (mem.isNumber(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, log(mem.varNumber(before)));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else if (mem.isString(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, dtos(log(mem.varNumber(before))));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else
-                            error(ErrorMessage::IS_NULL, arg0, false);
-                    }
-                }
-                else if (after == "sqrt")
-                {
-                    if (mem.variableExists(before))
-                    {
-                        if (mem.isNumber(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, sqrt(mem.varNumber(before)));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else if (mem.isString(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, dtos(sqrt(mem.varNumber(before))));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else
-                            error(ErrorMessage::IS_NULL, arg0, false);
-                    }
-                }
-                else if (after == "abs")
-                {
-                    if (mem.variableExists(before))
-                    {
-                        if (mem.isNumber(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, abs(mem.varNumber(before)));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else if (mem.isString(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, dtos(abs(mem.varNumber(before))));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else
-                            error(ErrorMessage::IS_NULL, arg0, false);
-                    }
-                }
-                else if (after == "floor")
-                {
-                    if (mem.variableExists(before))
-                    {
-                        if (mem.isNumber(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, floor(mem.varNumber(before)));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else if (mem.isString(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, dtos(floor(mem.varNumber(before))));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else
-                            error(ErrorMessage::IS_NULL, arg0, false);
-                    }
-                }
-                else if (after == "ceil")
-                {
-                    if (mem.variableExists(before))
-                    {
-                        if (mem.isNumber(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, ceil(mem.varNumber(before)));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else if (mem.isString(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, dtos(ceil(mem.varNumber(before))));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else
-                            error(ErrorMessage::IS_NULL, arg0, false);
-                    }
-                }
-                else if (after == "exp")
-                {
-                    if (mem.variableExists(before))
-                    {
-                        if (mem.isNumber(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, exp(mem.varNumber(before)));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else if (mem.isString(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, dtos(exp(mem.varNumber(before))));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else
-                            error(ErrorMessage::IS_NULL, arg0, false);
-                    }
-                }
-                else if (after == "sin")
-                {
-                    if (mem.variableExists(before))
-                    {
-                        if (mem.isNumber(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, sin(mem.varNumber(before)));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else if (mem.isString(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, dtos(sin(mem.varNumber(before))));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else
-                            error(ErrorMessage::IS_NULL, arg0, false);
-                    }
-                }
-                else if (after == "sinh")
-                {
-                    if (mem.variableExists(before))
-                    {
-                        if (mem.isNumber(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, sinh(mem.varNumber(before)));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else if (mem.isString(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, dtos(sinh(mem.varNumber(before))));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else
-                            error(ErrorMessage::IS_NULL, arg0, false);
-                    }
-                }
-                else if (after == "asin")
-                {
-                    if (mem.variableExists(before))
-                    {
-                        if (mem.isNumber(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, asin(mem.varNumber(before)));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else if (mem.isString(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, dtos(asin(mem.varNumber(before))));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else
-                            error(ErrorMessage::IS_NULL, arg0, false);
-                    }
-                }
-                else if (after == "tan")
-                {
-                    if (mem.variableExists(before))
-                    {
-                        if (mem.isNumber(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, tan(mem.varNumber(before)));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else if (mem.isString(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, dtos(tan(mem.varNumber(before))));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else
-                            error(ErrorMessage::IS_NULL, arg0, false);
-                    }
-                }
-                else if (after == "tanh")
-                {
-                    if (mem.variableExists(before))
-                    {
-                        if (mem.isNumber(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, tanh(mem.varNumber(before)));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else if (mem.isString(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, dtos(tanh(mem.varNumber(before))));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else
-                            error(ErrorMessage::IS_NULL, arg0, false);
-                    }
-                }
-                else if (after == "atan")
-                {
-                    if (mem.variableExists(before))
-                    {
-                        if (mem.isNumber(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, atan(mem.varNumber(before)));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else if (mem.isString(arg0))
-                        {
-                            if (mem.isNumber(before))
-                                mem.setVariable(arg0, dtos(atan(mem.varNumber(before))));
-                            else
-                                error(ErrorMessage::CONV_ERR, before, false);
-                        }
-                        else
-                            error(ErrorMessage::IS_NULL, arg0, false);
                     }
                 }
                 else if (after == "to_lower")
@@ -2415,12 +2028,12 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
         }
         else if (!unrecognized_2space(arg1))
         {
-            parseAssignment(arg0, arg1, arg2);
+            parse_assign(arg0, arg1, arg2);
         }
     }
 }
 
-void parseAssignment(std::string arg0, std::string arg1, std::string arg2)
+void parse_assign(std::string arg0, std::string arg1, std::string arg2)
 {
     std::string first(""), second("");
 
@@ -2575,7 +2188,7 @@ void parseAssignment(std::string arg0, std::string arg1, std::string arg2)
     }
 }
 
-void initializeListValues(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command)
+void init_listvalues(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command)
 {
     std::string _b(before_dot(arg2)), _a(after_dot(arg2)), __b(before_params(arg2));
 
@@ -2827,7 +2440,7 @@ void initializeListValues(std::string arg0, std::string arg1, std::string arg2, 
     }
 }
 
-void initializeGlobalVariable(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command)
+void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command)
 {
     if (arg1 == "=")
     {
@@ -3070,15 +2683,6 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
                     double n0 = stod(s0), n2 = stod(s2);
                     mem.createVariable(arg0, (int)RNG::random(std::min(n0, n2), std::max(n0, n2)));
                 }
-                else if (is_alpha(s0) && is_alpha(s2))
-                {
-                    if (get_alpha_num(s0[0]) < get_alpha_num(s2[0]))
-                        mem.createVariable(arg0, RNG::random(s0, s2));
-                    else if (get_alpha_num(s0[0]) > get_alpha_num(s2[0]))
-                        mem.createVariable(arg0, RNG::random(s2, s0));
-                    else
-                        mem.createVariable(arg0, RNG::random(s2, s0));
-                }
                 else if (mem.variableExists(s0) || mem.variableExists(s2))
                 {
                     if (mem.variableExists(s0))
@@ -3100,22 +2704,7 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
                     if (is_numeric(s0) && is_numeric(s2))
                     {
                         double n0 = stod(s0), n2 = stod(s2);
-
-                        if (n0 < n2)
-                            mem.createVariable(arg0, (int)RNG::random(n0, n2));
-                        else if (n0 > n2)
-                            mem.createVariable(arg0, (int)RNG::random(n2, n0));
-                        else
-                            mem.createVariable(arg0, (int)RNG::random(n0, n2));
-                    }
-                    else if (is_alpha(s0) && is_alpha(s2))
-                    {
-                        if (get_alpha_num(s0[0]) < get_alpha_num(s2[0]))
-                            mem.createVariable(arg0, RNG::random(s0, s2));
-                        else if (get_alpha_num(s0[0]) > get_alpha_num(s2[0]))
-                            mem.createVariable(arg0, RNG::random(s2, s0));
-                        else
-                            mem.createVariable(arg0, RNG::random(s2, s0));
+                        mem.createVariable(arg0, (int)RNG::random(n0, n2));
                     }
                 }
                 else
@@ -3387,6 +2976,61 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
     }
     else
         error(ErrorMessage::INVALID_OPERATOR, arg2, false);
+}
+
+void parse_mathfunc_assignfromvar(std::string arg0, std::string before, std::string after)
+{
+    if (!mem.variableExists(before))
+    {
+        error(ErrorMessage::VAR_UNDEFINED, before, false);
+        return;
+    }
+
+    if (!mem.isNumber(before))
+    {
+        error(ErrorMessage::CONV_ERR, before, false);
+        return;
+    }
+
+    double value = mem.varNumber(before);
+
+    if (after == "cos")
+        value = cos(value);
+    else if (after == "acos")
+        value = acos(value);
+    else if (after == "cosh")
+        value = cosh(value);
+    else if (after == "log")
+        value = log(value);
+    else if (after == "sqrt")
+        value = sqrt(value);
+    else if (after == "abs")
+        value = abs(value);
+    else if (after == "floor")
+        value = floor(value);
+    else if (after == "ceil")
+        value = ceil(value);
+    else if (after == "exp")
+        value = exp(value);
+    else if (after == "sin")
+        value = sin(value);
+    else if (after == "sinh")
+        value = sinh(value);
+    else if (after == "asin")
+        value = asin(value);
+    else if (after == "tan")
+        value = tan(value);
+    else if (after == "tanh")
+        value = tanh(value);
+    else if (after == "atan")
+        value = atan(value);
+
+    if (mem.isNumber(arg0))
+        mem.setVariable(arg0, value);
+    else if (mem.isString(arg0))
+        mem.setVariable(arg0, dtos(value));
+    else
+        error(ErrorMessage::IS_NULL, arg0, false);
 }
 
 void parse_mathfunc(std::string arg0, std::string before, std::string after)
