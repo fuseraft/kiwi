@@ -6,8 +6,8 @@ private:
     std::vector<Method> methods;
     std::vector<Variable> variables;
 
-    string className;
-    string currentMethod;
+    std::string className;
+    std::string currentMethod;
 
     bool collectable;
 
@@ -106,7 +106,7 @@ public:
         return -1;
     }
 
-    string getMethodName(int index)
+    std::string getMethodName(int index)
     {
         if (index < (int)methods.size())
             return methods.at(index).name();
@@ -114,7 +114,7 @@ public:
         return "[undefined]";
     }
 
-    string getVariableName(int index)
+    std::string getVariableName(int index)
     {
         if (index < (int)variables.size())
             return variables.at(index).name();
@@ -202,7 +202,7 @@ public:
         return false;
     }
 
-    string name()
+    std::string name()
     {
         return className;
     }

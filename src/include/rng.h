@@ -6,7 +6,7 @@ class RNG
 public:
     static void seed();
     static double random(double min, double max);
-    static string random(std::string start, std::string sc);
+    static std::string random(std::string start, std::string sc);
 };
 
 void RNG::seed()
@@ -20,9 +20,9 @@ double RNG::random(double min, double max)
     return min + (r * (max - min));
 }
 
-string RNG::random(std::string start, std::string sc)
+std::string RNG::random(std::string start, std::string sc)
 {
-    string s("");
+    std::string s("");
     char c;
     c = start[0] == sc[0] ? sc[0] : (rand() % get_alpha_num(sc[0])) + start[0];
     s.push_back(c);

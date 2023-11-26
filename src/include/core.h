@@ -53,14 +53,14 @@ void setList(std::string listName, std::string methodName, std::vector<std::stri
     }
 }
 
-string get_prompt()
+std::string get_prompt()
 {
     if (!State.UseCustomPrompt || State.PromptStyle == "empty")
     {
-        return "> ";
+        return std::string("> ");
     }
 
-    string new_style("");
+    std::string new_style("");
     int length = State.PromptStyle.length();
     char prevChar = 'a';
 
@@ -103,9 +103,9 @@ string get_prompt()
     return new_style;
 }
 
-string cleanString(std::string st)
+std::string pre_parse(std::string st)
 {
-    string cleaned(""), builder("");
+    std::string cleaned(""), builder("");
     int l = st.length();
     bool buildSymbol = false;
 
@@ -143,7 +143,7 @@ string cleanString(std::string st)
                     }
                     else if (!is_dotless(builder))
                     {
-                        string before(before_dot(builder)), after(after_dot(builder));
+                        std::string before(before_dot(builder)), after(after_dot(builder));
 
                         if (mem.classExists(before))
                         {
@@ -170,8 +170,8 @@ string cleanString(std::string st)
                 }
                 else if (has_brackets(builder))
                 {
-                    string _beforeBrackets(before_brackets(builder)), afterBrackets(builder);
-                    string rangeBegin(""), rangeEnd(""), _build("");
+                    std::string _beforeBrackets(before_brackets(builder)), afterBrackets(builder);
+                    std::string rangeBegin(""), rangeEnd(""), _build("");
 
                     std::vector<std::string> listRange = parse_bracketrange(afterBrackets);
 
@@ -179,7 +179,7 @@ string cleanString(std::string st)
                     {
                         if (mem.isString(_beforeBrackets))
                         {
-                            string tempString(mem.varString(_beforeBrackets));
+                            std::string tempString(mem.varString(_beforeBrackets));
 
                             if (listRange.size() == 2)
                             {
@@ -223,7 +223,7 @@ string cleanString(std::string st)
                                 {
                                     if (stoi(rangeBegin) <= (int)tempString.length() - 1 && stoi(rangeBegin) >= 0)
                                     {
-                                        string _cstr("");
+                                        std::string _cstr("");
 
                                         _cstr.push_back(tempString[stoi(rangeBegin)]);
 
@@ -259,7 +259,7 @@ string cleanString(std::string st)
                                     return Constants.Null;
                                 }
 
-                                string bigString("(");
+                                std::string bigString("(");
 
                                 for (int z = stoi(rangeBegin); z <= stoi(rangeEnd); z++)
                                 {
@@ -281,7 +281,7 @@ string cleanString(std::string st)
                                     return Constants.Null;
                                 }
 
-                                string bigString("(");
+                                std::string bigString("(");
 
                                 for (int z = stoi(rangeBegin); z >= stoi(rangeEnd); z--)
                                 {
@@ -324,7 +324,7 @@ string cleanString(std::string st)
                 }
                 else if (!is_dotless(builder))
                 {
-                    string before(before_dot(builder)), after(after_dot(builder));
+                    std::string before(before_dot(builder)), after(after_dot(builder));
 
                     if (!mem.classExists(before))
                     {
@@ -394,9 +394,9 @@ string cleanString(std::string st)
 void write(std::string st)
 {
     if (State.CaptureParse)
-        State.ParsedOutput.append(cleanString(st));
+        State.ParsedOutput.append(pre_parse(st));
     else
-        IO::print(cleanString(st));
+        IO::print(pre_parse(st));
 
     State.LastValue = st;
 }
@@ -429,7 +429,7 @@ List getDirectoryList(std::string before, bool filesOnly)
 
 void error(int errorType, std::string errorInfo, bool quit)
 {
-    string completeError("\nError: ");
+    std::string completeError("\nError: ");
     completeError.append(Error::getErrorString(errorType));
     completeError.append("\n- line: ");
     completeError.append(itos(State.CurrentLineNumber));
@@ -475,7 +475,7 @@ void help(std::string app)
 
 int load_repl()
 {
-    string s("");
+    std::string s("");
     bool active = true;
 
     while (active)
@@ -485,7 +485,7 @@ int load_repl()
             IO::print(get_prompt());
 
             s.clear();
-            getline(cin, s);
+            std::getline(std::cin, s);
             ++State.CurrentLineNumber;
 
             if (s != "exit")
@@ -504,7 +504,7 @@ int load_repl()
             mem.clearAll();
             break;
         }
-        catch (const exception &e)
+        catch (const std::exception &e)
         {
             print_error(e);
             return -1;
@@ -521,7 +521,7 @@ bool stackReady(std::string arg2)
 
 bool isStringStack(std::string arg2)
 {
-    string tempArgTwo = arg2, temporaryBuild("");
+    std::string tempArgTwo = arg2, temporaryBuild("");
     tempArgTwo = subtract_char(tempArgTwo, '(');
     tempArgTwo = subtract_char(tempArgTwo, ')');
 
@@ -693,13 +693,13 @@ bool isStringStack(std::string arg2)
     return false;
 }
 
-string getStringStack(std::string arg2)
+std::string getStringStack(std::string arg2)
 {
-    string tempArgTwo = arg2, temporaryBuild("");
+    std::string tempArgTwo = arg2, temporaryBuild("");
     tempArgTwo = subtract_char(tempArgTwo, '(');
     tempArgTwo = subtract_char(tempArgTwo, ')');
 
-    string stackValue("");
+    std::string stackValue("");
 
     std::vector<std::string> contents;
     std::vector<std::string> vars;
@@ -801,9 +801,9 @@ string getStringStack(std::string arg2)
     return stackValue;
 }
 
-string getStackValue(std::string value)
+std::string getStackValue(std::string value)
 {
-    string stackValue("");
+    std::string stackValue("");
 
     if (isStringStack(value))
         stackValue = getStringStack(value);
@@ -815,7 +815,7 @@ string getStackValue(std::string value)
     return stackValue;
 }
 
-void parseNumberStack(vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar)
+void parseNumberStack(std::vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar)
 {
     if (mem.variableExists(temporaryBuild) && mem.isNumber(temporaryBuild))
     {
@@ -845,7 +845,7 @@ void parseNumberStack(vector<std::string> &contents, std::vector<std::string> va
     }
 }
 
-void parseStringStack(vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar)
+void parseStringStack(std::vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar)
 {
     if (mem.variableExists(temporaryBuild))
     {
@@ -888,7 +888,7 @@ void parseStringStack(vector<std::string> &contents, std::vector<std::string> va
 
 double getStack(std::string arg2)
 {
-    string tempArgTwo = arg2, temporaryBuild("");
+    std::string tempArgTwo = arg2, temporaryBuild("");
     tempArgTwo = subtract_char(tempArgTwo, '(');
     tempArgTwo = subtract_char(tempArgTwo, ')');
 
@@ -1004,14 +1004,14 @@ double getStack(std::string arg2)
     return stackValue;
 }
 
-string getSubString(std::string arg1, std::string arg2, std::string beforeBracket)
+std::string getSubString(std::string arg1, std::string arg2, std::string beforeBracket)
 {
-    string returnValue("");
+    std::string returnValue("");
 
     if (mem.isString(beforeBracket))
     {
         std::vector<std::string> listRange = parse_bracketrange(arg2);
-        string variableString = mem.varString(beforeBracket);
+        std::string variableString = mem.varString(beforeBracket);
 
         if (listRange.size() < 1 || listRange.size() > 2)
         {
@@ -1019,7 +1019,7 @@ string getSubString(std::string arg1, std::string arg2, std::string beforeBracke
         }
         else if (listRange.size() == 1)
         {
-            string rangeBegin(listRange.at(0));
+            std::string rangeBegin(listRange.at(0));
 
             if (rangeBegin.length() != 0 && is_numeric(rangeBegin))
             {
@@ -1033,7 +1033,7 @@ string getSubString(std::string arg1, std::string arg2, std::string beforeBracke
         }
         else if (listRange.size() == 2)
         {
-            string rangeBegin(listRange.at(0)), rangeEnd(listRange.at(1));
+            std::string rangeBegin(listRange.at(0)), rangeEnd(listRange.at(1));
 
             if (!(rangeBegin.length() != 0 && rangeEnd.length() != 0) || !((is_numeric(rangeBegin) && is_numeric(rangeEnd)) || !((int)variableString.length() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0) || !((int)variableString.length() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)))
             {
@@ -1075,11 +1075,11 @@ void setSubString(std::string arg1, std::string arg2, std::string beforeBracket)
     }
 
     std::vector<std::string> listRange = parse_bracketrange(arg2);
-    string variableString = mem.varString(beforeBracket);
+    std::string variableString = mem.varString(beforeBracket);
 
     if (listRange.size() == 2)
     {
-        string rangeBegin(listRange.at(0)), rangeEnd(listRange.at(1));
+        std::string rangeBegin(listRange.at(0)), rangeEnd(listRange.at(1));
 
         if (rangeBegin.length() == 0 || rangeEnd.length() == 0 || !(is_numeric(rangeBegin) && is_numeric(rangeEnd)))
         {
@@ -1090,7 +1090,7 @@ void setSubString(std::string arg1, std::string arg2, std::string beforeBracket)
         int beginIndex = stoi(rangeBegin),
             endIndex = stoi(rangeEnd);
 
-        string tempString("");
+        std::string tempString("");
 
         if (beginIndex < endIndex && beginIndex >= 0 && endIndex <= (int)variableString.length() - 1)
         {
@@ -1117,14 +1117,14 @@ void setSubString(std::string arg1, std::string arg2, std::string beforeBracket)
     }
     else if (listRange.size() == 1)
     {
-        string rangeBegin(listRange.at(0));
+        std::string rangeBegin(listRange.at(0));
 
         if (rangeBegin.length() != 0 && is_numeric(rangeBegin))
         {
             int beginIndex = stoi(rangeBegin);
             if ((int)variableString.length() - 1 >= beginIndex && beginIndex >= 0)
             {
-                string tmp_("");
+                std::string tmp_("");
                 tmp_.push_back(variableString[beginIndex]);
 
                 if (mem.variableExists(arg1))
@@ -1138,9 +1138,9 @@ void setSubString(std::string arg1, std::string arg2, std::string beforeBracket)
         error(ErrorMessage::OUT_OF_BOUNDS, arg2, false);
 }
 
-string getStringValue(std::string arg1, std::string op, std::string arg2)
+std::string getStringValue(std::string arg1, std::string op, std::string arg2)
 {
-    string firstValue(""), lastValue(""), returnValue("");
+    std::string firstValue(""), lastValue(""), returnValue("");
 
     if (mem.variableExists(arg1) && mem.isString(arg1))
     {
@@ -1161,7 +1161,7 @@ string getStringValue(std::string arg1, std::string op, std::string arg2)
     }
     else if (!is_dotless(arg2))
     {
-        string _beforeDot(before_dot(arg2)), _afterDot(after_dot(arg2));
+        std::string _beforeDot(before_dot(arg2)), _afterDot(after_dot(arg2));
 
         if (_beforeDot == "env")
         {
@@ -1181,7 +1181,7 @@ string getStringValue(std::string arg1, std::string op, std::string arg2)
     }
     else if (has_brackets(arg2))
     {
-        string _beforeBrackets(before_brackets(arg2)), _afterBrackets(after_brackets(arg2));
+        std::string _beforeBrackets(before_brackets(arg2)), _afterBrackets(after_brackets(arg2));
 
         if (_beforeBrackets == "args")
         {
@@ -1261,7 +1261,7 @@ double getNumberValue(std::string arg1, std::string op, std::string arg2)
     }
     else if (!is_dotless(arg2))
     {
-        string _beforeDot(before_dot(arg2)), _afterDot(after_dot(arg2));
+        std::string _beforeDot(before_dot(arg2)), _afterDot(after_dot(arg2));
         if (_beforeDot == "env")
         {
             internal_env_builtins("", _afterDot, 2);
@@ -1280,7 +1280,7 @@ double getNumberValue(std::string arg1, std::string op, std::string arg2)
     }
     else if (has_brackets(arg2))
     {
-        string _beforeBrackets(before_brackets(arg2)), _afterBrackets(after_brackets(arg2));
+        std::string _beforeBrackets(before_brackets(arg2)), _afterBrackets(after_brackets(arg2));
 
         if (mem.listExists(_beforeBrackets))
         {
@@ -1352,7 +1352,7 @@ void initializeTemporaryNumber(std::string arg1, std::string arg2, std::vector<s
 
 void initializeVariable(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command)
 {
-    string tmpObjName = before_dot(arg0), tmpVarName = after_dot(arg0);
+    std::string tmpObjName = before_dot(arg0), tmpVarName = after_dot(arg0);
     bool tmpObjExists = mem.classExists(tmpObjName);
     if (tmpObjExists || begins_with(arg0, "@"))
     {
@@ -1360,22 +1360,22 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
         {
             if (mem.getClass(tmpObjName).getVariable(tmpVarName).getString() != State.Null)
             {
-                string tempClassVariableName("@ " + tmpObjName + tmpVarName + "_string");
+                std::string tempClassVariableName("@ " + tmpObjName + tmpVarName + "_string");
                 initializeTemporaryString(arg1, arg2, command, tempClassVariableName, tmpObjName, tmpVarName);
             }
             else if (mem.getClass(tmpObjName).getVariable(tmpVarName).getNumber() != State.NullNum)
             {
-                string tempClassVariableName("@____" + tmpObjName + "___" + tmpVarName + "_number");
+                std::string tempClassVariableName("@____" + tmpObjName + "___" + tmpVarName + "_number");
                 initializeTemporaryNumber(arg1, arg2, command, tempClassVariableName, tmpObjName, tmpVarName);
             }
         }
         else if (arg1 == "=")
         {
-            string before(before_dot(arg2)), after(after_dot(arg2));
+            std::string before(before_dot(arg2)), after(after_dot(arg2));
 
             if (has_brackets(arg2) && (mem.variableExists(before_brackets(arg2)) || mem.listExists(before_brackets(arg2))))
             {
-                string beforeBracket(before_brackets(arg2)), afterBracket(after_brackets(arg2));
+                std::string beforeBracket(before_brackets(arg2)), afterBracket(after_brackets(arg2));
 
                 afterBracket = subtract_string(afterBracket, "]");
 
@@ -1387,7 +1387,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                             error(ErrorMessage::OUT_OF_BOUNDS, arg2, false);
                         else
                         {
-                            string listValue(mem.getList(beforeBracket).at(stoi(afterBracket)));
+                            std::string listValue(mem.getList(beforeBracket).at(stoi(afterBracket)));
 
                             if (is_numeric(listValue))
                             {
@@ -1424,7 +1424,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                         }
 
                         std::vector<std::string> range = parse_range(arg2);
-                        string s0(range.at(0)), s2(range.at(1));
+                        std::string s0(range.at(0)), s2(range.at(1));
 
                         if (is_numeric(s0) && is_numeric(s2))
                         {
@@ -1664,9 +1664,9 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     {
                         if (mem.isString(after))
                         {
-                            string line("");
-                            write(cleanString(mem.varString(after)));
-                            getline(cin, line, '\n');
+                            std::string line("");
+                            write(pre_parse(mem.varString(after)));
+                            std::getline(std::cin, line, '\n');
 
                             if (mem.isNumber(arg0))
                             {
@@ -1682,9 +1682,9 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                         }
                         else
                         {
-                            string line("");
+                            std::string line("");
                             IO::print("");
-                            getline(cin, line, '\n');
+                            std::getline(std::cin, line, '\n');
 
                             if (mem.isNumber(arg0))
                             {
@@ -1701,9 +1701,9 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     }
                     else
                     {
-                        string line("");
-                        IO::print(cleanString(after));
-                        getline(cin, line, '\n');
+                        std::string line("");
+                        IO::print(pre_parse(after));
+                        std::getline(std::cin, line, '\n');
 
                         if (is_numeric(line))
                             mem.setVariable(arg0, stod(line));
@@ -1717,7 +1717,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     {
                         if (mem.isString(after))
                         {
-                            string line("");
+                            std::string line("");
                             line = get_stdin_quiet(mem.varString(after));
 
                             if (mem.isNumber(arg0))
@@ -1736,7 +1736,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                         }
                         else
                         {
-                            string line("");
+                            std::string line("");
                             line = get_stdin_quiet("");
 
                             if (mem.isNumber(arg0))
@@ -1756,8 +1756,8 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     }
                     else
                     {
-                        string line("");
-                        line = get_stdin_quiet(cleanString(after));
+                        std::string line("");
+                        line = get_stdin_quiet(pre_parse(after));
 
                         if (is_numeric(line))
                             mem.setVariable(arg0, stod(line));
@@ -2122,14 +2122,14 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                             {
                                 if (Env::fileExists(mem.varString(before)))
                                 {
-                                    ifstream file(mem.varString(before).c_str());
-                                    string line(""), bigString("");
+                                    std::ifstream file(mem.varString(before).c_str());
+                                    std::string line(""), bigString("");
 
                                     if (file.is_open())
                                     {
                                         while (!file.eof())
                                         {
-                                            getline(file, line);
+                                            std::getline(file, line);
                                             bigString.append(line + "\r\n");
                                         }
 
@@ -2150,14 +2150,14 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                         {
                             if (Env::fileExists(before))
                             {
-                                ifstream file(before.c_str());
-                                string line(""), bigString("");
+                                std::ifstream file(before.c_str());
+                                std::string line(""), bigString("");
 
                                 if (file.is_open())
                                 {
                                     while (!file.eof())
                                     {
-                                        getline(file, line);
+                                        std::getline(file, line);
                                         bigString.append(line + "\r\n");
                                     }
 
@@ -2334,7 +2334,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                 {
                     if (arg2 == "mask")
                     {
-                        string masked("");
+                        std::string masked("");
                         masked = get_stdin_quiet("");
 
                         if (mem.isNumber(arg0))
@@ -2351,9 +2351,9 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     }
                     else
                     {
-                        string line("");
+                        std::string line("");
                         IO::print("");
-                        getline(cin, line, '\n');
+                        std::getline(std::cin, line, '\n');
 
                         if (is_numeric(line))
                             mem.createVariable(arg0, stod(line));
@@ -2408,7 +2408,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                         if (mem.isNumber(arg0))
                             error(ErrorMessage::CONV_ERR, arg0, false);
                         else if (mem.isString(arg0))
-                            mem.setVariable(arg0, cleanString(arg2));
+                            mem.setVariable(arg0, pre_parse(arg2));
                     }
                 }
             }
@@ -2422,7 +2422,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
 
 void parseAssignment(std::string arg0, std::string arg1, std::string arg2)
 {
-    string first(""), second("");
+    std::string first(""), second("");
 
     bool arg0IsString = mem.isString(arg0),
         arg0IsNumber = mem.isNumber(arg0);
@@ -2481,7 +2481,7 @@ void parseAssignment(std::string arg0, std::string arg1, std::string arg2)
         }
         else
         {
-            second = cleanString(arg2);
+            second = pre_parse(arg2);
         }
     }
 
@@ -2517,7 +2517,7 @@ void parseAssignment(std::string arg0, std::string arg1, std::string arg2)
     }
     else if (!firstIsNumeric && secondIsNumeric)
     {
-        string result(first);
+        std::string result(first);
         if (arg1 == "=")
             result = dtos(secondNumber);
         else if (arg1 == "+=")
@@ -2529,7 +2529,7 @@ void parseAssignment(std::string arg0, std::string arg1, std::string arg2)
         else if (arg1 == "++=")
         {
             int len = result.length();
-            string cleaned("");
+            std::string cleaned("");
             for (int i = 0; i < len; i++)
                 cleaned.push_back((char)(((int)result[i]) + (int)secondNumber));
             result = cleaned;
@@ -2537,7 +2537,7 @@ void parseAssignment(std::string arg0, std::string arg1, std::string arg2)
         else if (arg1 == "--=")
         {
             int len = result.length();
-            string cleaned("");
+            std::string cleaned("");
             for (int i = 0; i < len; i++)
                 cleaned.push_back((char)(((int)result[i]) - (int)secondNumber));
             result = cleaned;
@@ -2552,7 +2552,7 @@ void parseAssignment(std::string arg0, std::string arg1, std::string arg2)
     }
     else if (!firstIsNumeric && !secondIsNumeric)
     {
-        string result(first);
+        std::string result(first);
         if (arg1 == "=")
             result = second;
         else if (arg1 == "+=")
@@ -2560,7 +2560,7 @@ void parseAssignment(std::string arg0, std::string arg1, std::string arg2)
         else if (arg1 == "?")
             result = Env::getStdout(second.c_str());
         else if (arg1 == "!")
-            result = getParsedOutput(second.c_str());
+            result = get_parsed_stdout(second.c_str());
         else
         {
             error(ErrorMessage::INVALID_OP, arg1, true);
@@ -2577,11 +2577,11 @@ void parseAssignment(std::string arg0, std::string arg1, std::string arg2)
 
 void initializeListValues(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command)
 {
-    string _b(before_dot(arg2)), _a(after_dot(arg2)), __b(before_params(arg2));
+    std::string _b(before_dot(arg2)), _a(after_dot(arg2)), __b(before_params(arg2));
 
     if (has_brackets(arg0))
     {
-        string after(after_brackets(arg0)), before(before_brackets(arg0));
+        std::string after(after_brackets(arg0)), before(before_brackets(arg0));
         after = subtract_string(after, "]");
 
         if (mem.getList(before).size() >= stoi(after))
@@ -2628,7 +2628,7 @@ void initializeListValues(std::string arg0, std::string arg1, std::string arg2, 
     }
     else if (has_brackets(arg2)) // INITIALIZE LIST FROM RANGE
     {
-        string listName(before_brackets(arg2));
+        std::string listName(before_brackets(arg2));
 
         if (!mem.listExists(listName))
         {
@@ -2644,7 +2644,7 @@ void initializeListValues(std::string arg0, std::string arg1, std::string arg2, 
             return;
         }
 
-        string rangeBegin(listRange.at(0)), rangeEnd(listRange.at(1));
+        std::string rangeBegin(listRange.at(0)), rangeEnd(listRange.at(1));
 
         if (!(rangeBegin.length() != 0 && rangeEnd.length() != 0))
         {
@@ -2831,11 +2831,11 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
 {
     if (arg1 == "=")
     {
-        string before(before_dot(arg2)), after(after_dot(arg2));
+        std::string before(before_dot(arg2)), after(after_dot(arg2));
 
         if (has_brackets(arg2) && (mem.variableExists(before_brackets(arg2)) || mem.listExists(before_brackets(arg2))))
         {
-            string beforeBracket(before_brackets(arg2)), afterBracket(after_brackets(arg2));
+            std::string beforeBracket(before_brackets(arg2)), afterBracket(after_brackets(arg2));
 
             afterBracket = subtract_string(afterBracket, "]");
 
@@ -2847,7 +2847,7 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
                         error(ErrorMessage::OUT_OF_BOUNDS, arg2, false);
                     else
                     {
-                        string listValue(mem.getList(beforeBracket).at(stoi(afterBracket)));
+                        std::string listValue(mem.getList(beforeBracket).at(stoi(afterBracket)));
 
                         if (is_numeric(listValue))
                             mem.createVariable(arg0, stod(listValue));
@@ -2984,8 +2984,8 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
                 return;
             }
 
-            ifstream file(mem.varString(before).c_str());
-            string line(""), bigString("");
+            std::ifstream file(mem.varString(before).c_str());
+            std::string line(""), bigString("");
 
             if (!file.is_open())
             {
@@ -2995,7 +2995,7 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
 
             while (!file.eof())
             {
-                getline(file, line);
+                std::getline(file, line);
                 bigString.append(line + "\r\n");
             }
 
@@ -3063,7 +3063,7 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
                 }
 
                 std::vector<std::string> range = parse_range(arg2);
-                string s0(range.at(0)), s2(range.at(1));
+                std::string s0(range.at(0)), s2(range.at(1));
 
                 if (is_numeric(s0) && is_numeric(s2))
                 {
@@ -3148,7 +3148,7 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
         }
         else if (arg2 == "mask" || arg2 == "readline")
         {
-            string line("");
+            std::string line("");
             if (arg2 == "mask")
             {
                 line = get_stdin_quiet("");
@@ -3161,7 +3161,7 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
             else
             {
                 IO::print("");
-                getline(cin, line, '\n');
+                std::getline(std::cin, line, '\n');
 
                 if (is_numeric(line))
                     mem.createVariable(arg0, stod(line));
@@ -3177,9 +3177,9 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
             {
                 if (mem.isString(after))
                 {
-                    string line("");
-                    IO::print(cleanString(mem.varString(after)));
-                    getline(cin, line, '\n');
+                    std::string line("");
+                    IO::print(pre_parse(mem.varString(after)));
+                    std::getline(std::cin, line, '\n');
 
                     if (is_numeric(line))
                         mem.createVariable(arg0, stod(line));
@@ -3188,9 +3188,9 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
                 }
                 else
                 {
-                    string line("");
+                    std::string line("");
                     IO::print("");
-                    getline(cin, line, '\n');
+                    std::getline(std::cin, line, '\n');
 
                     if (is_numeric(line))
                         mem.createVariable(arg0, stod(line));
@@ -3200,9 +3200,9 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
             }
             else
             {
-                string line("");
-                IO::print(cleanString(after));
-                getline(cin, line, '\n');
+                std::string line("");
+                IO::print(pre_parse(after));
+                std::getline(std::cin, line, '\n');
 
                 if (is_numeric(line))
                     mem.createVariable(arg0, stod(line));
@@ -3216,7 +3216,7 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
             {
                 if (mem.isString(after))
                 {
-                    string line("");
+                    std::string line("");
                     line = get_stdin_quiet(mem.varString(after));
 
                     if (is_numeric(line))
@@ -3228,7 +3228,7 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
                 }
                 else
                 {
-                    string line("");
+                    std::string line("");
                     line = get_stdin_quiet("");
 
                     if (is_numeric(line))
@@ -3241,8 +3241,8 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
             }
             else
             {
-                string line("");
-                line = get_stdin_quiet(cleanString(after));
+                std::string line("");
+                line = get_stdin_quiet(pre_parse(after));
 
                 if (is_numeric(line))
                     mem.createVariable(arg0, stod(line));
@@ -3517,7 +3517,7 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
             if (is_numeric(arg2))
                 mem.createVariable(arg0, stod(arg2));
             else
-                mem.createVariable(arg0, cleanString(arg2));
+                mem.createVariable(arg0, pre_parse(arg2));
         }
     }
     else if (arg1 == "+=")
@@ -3536,7 +3536,7 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
             if (is_numeric(arg2))
                 mem.createVariable(arg0, stod(arg2));
             else
-                mem.createVariable(arg0, cleanString(arg2));
+                mem.createVariable(arg0, pre_parse(arg2));
         }
     }
     else if (arg1 == "-=")
@@ -3553,14 +3553,14 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
             if (is_numeric(arg2))
                 mem.createVariable(arg0, stod(arg2));
             else
-                mem.createVariable(arg0, cleanString(arg2));
+                mem.createVariable(arg0, pre_parse(arg2));
         }
     }
     else if (arg1 == "?")
     {
         if (!mem.variableExists(arg2))
         {
-            mem.createVariable(arg0, Env::getStdout(cleanString(arg2)));
+            mem.createVariable(arg0, Env::getStdout(pre_parse(arg2)));
             return;
         }
 
@@ -3573,12 +3573,12 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
     {
         if (!mem.variableExists(arg2))
         {
-            mem.createVariable(arg0, getParsedOutput(cleanString(arg2)));
+            mem.createVariable(arg0, get_parsed_stdout(pre_parse(arg2)));
             return;
         }
 
         if (mem.isString(arg2))
-            mem.createVariable(arg0, getParsedOutput(mem.varString(arg2)));
+            mem.createVariable(arg0, get_parsed_stdout(mem.varString(arg2)));
         else
             error(ErrorMessage::CONV_ERR, arg2, false);
     }
@@ -3588,7 +3588,7 @@ void initializeGlobalVariable(std::string arg0, std::string arg1, std::string ar
 
 void initializeClassVariable(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command)
 {
-    string before = before_dot(arg2),
+    std::string before = before_dot(arg2),
            after = after_dot(arg2);
 
     if (mem.classExists(before))
@@ -3677,7 +3677,7 @@ void handleClear(std::string &arg)
 void internal_encode_decode(std::string arg0, std::string arg1)
 {
     Crypt c;
-    string text = mem.variableExists(arg1) ? (mem.isString(arg1) ? mem.varString(arg1) : mem.varNumberString(arg1)) : arg1;
+    std::string text = mem.variableExists(arg1) ? (mem.isString(arg1) ? mem.varString(arg1) : mem.varNumberString(arg1)) : arg1;
     write(arg0 == "encode" ? c.e(text) : c.d(text));
 }
 
@@ -3689,8 +3689,8 @@ void internal_encode_decode(std::string arg0, std::string arg1)
 void internal_env_builtins(std::string arg0, std::string after, int mode)
 {
     Crypt c;
-    string defaultValue = c.e(DT::timeNow());
-    string sValue(defaultValue);
+    std::string defaultValue = c.e(DT::timeNow());
+    std::string sValue(defaultValue);
     double dValue = 0;
 
     if (after == "cwd")
@@ -3825,7 +3825,7 @@ void internal_env_builtins(std::string arg0, std::string after, int mode)
 // TODO: refactor
 void internal_puts(std::string arg0, std::string arg1)
 {
-    string text(arg1);
+    std::string text(arg1);
     bool is_say = (arg0 == "say");
     bool is_print = (arg0 == "print" || arg0 == "println");
     // if parameter is variable, get it's value
@@ -3883,7 +3883,7 @@ double get_filesize(std::string path)
 {
     int bytes;
 
-    ifstream file(path.c_str());
+    std::ifstream file(path.c_str());
 
     if (!file.is_open())
     {
@@ -3894,7 +3894,7 @@ double get_filesize(std::string path)
     long begin, end;
 
     begin = file.tellg();
-    file.seekg(0, ios::end);
+    file.seekg(0, std::ios::end);
     end = file.tellg();
 
     file.close();
@@ -3904,9 +3904,9 @@ double get_filesize(std::string path)
     return bytes;
 }
 
-string get_stdin_quiet(std::string text)
+std::string get_stdin_quiet(std::string text)
 {
-    char *s = getpass(cleanString(text).c_str());
+    char *s = getpass(pre_parse(text).c_str());
     return s;
 }
 

@@ -26,7 +26,7 @@ public:
         return strings;
     }
 
-    string at(int index)
+    std::string at(int index)
     {
         if (index < (int)strings.size())
             return strings.at(index);

@@ -3,24 +3,24 @@
 
 struct
 {
-    string InitialDirectory;
+    std::string InitialDirectory;
     bool CaptureParse;
-    string ParsedOutput;
-    string CurrentLine;
-    string CurrentMethodClass;
-    string CurrentModule;
-    string CurrentClass;
-    string CurrentScript;
-    string CurrentScriptName;
-    string GoTo;
-    string LastValue;
-    string LogFile;
-    string Application;
-    string PreviousScript;
-    string PromptStyle;
-    string SwitchVarName;
-    string DefaultLoopSymbol;
-    string Null;
+    std::string ParsedOutput;
+    std::string CurrentLine;
+    std::string CurrentMethodClass;
+    std::string CurrentModule;
+    std::string CurrentClass;
+    std::string CurrentScript;
+    std::string CurrentScriptName;
+    std::string GoTo;
+    std::string LastValue;
+    std::string LogFile;
+    std::string Application;
+    std::string PreviousScript;
+    std::string PromptStyle;
+    std::string SwitchVarName;
+    std::string DefaultLoopSymbol;
+    std::string Null;
     double NullNum;
     int ArgumentCount;
     int BadMethodCount;
@@ -63,8 +63,8 @@ struct
     bool Returning;
     bool UseCustomPrompt;
 
-    string ErrorVarName;
-    string LastError;
+    std::string ErrorVarName;
+    std::string LastError;
     bool ExecutedTryBlock;
     bool RaiseCatchBlock;
     bool SkipCatchBlock;

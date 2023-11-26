@@ -3,7 +3,7 @@
 
 struct
 {
-    const string Null = "null";
+    const std::string Null = "null";
 } Constants;
 
 #endif
