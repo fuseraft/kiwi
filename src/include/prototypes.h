@@ -37,7 +37,7 @@ void handlePrompt(std::string &arg1);
 void handleIfStatement(std::string &arg1);
 void handleGoto(std::string &arg1);
 void handleSwitch(std::string &arg1);
-void handleClear(std::string &arg);
+void parse_clear(std::string &arg);
 void handleError(int errorType, const std::string variableName, bool isMethod);
 void handleIfStatementDecl_Generic(std::string first, std::string second, std::string oper);
 void handleIfStatementDecl_Method(std::string arg1, std::string arg1Result, std::string arg3, std::string arg3Result);
@@ -108,12 +108,13 @@ void writeline(std::string st);
 
 void setList(std::string listName, std::string methodName, std::vector<std::string> params);
 
-void copyClass(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command);
+void copy_class(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command);
 void initializeVariable(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command);
 void initializeListValues(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command);
 void initializeGlobalVariable(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command);
-void initializeClassVariable(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command);
-void initializeConstant(std::string arg0, std::string arg1, std::string arg2);
+void init_classvar(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command);
+void init_const(std::string arg0, std::string arg1, std::string arg2);
+void parse_mathfunc(std::string arg0, std::string before, std::string after);
 
 double get_filesize(std::string path);
 
