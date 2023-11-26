@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <cxxabi.h>
 
-void printStackTrace()
+void print_stacktrace()
 {
     void *array[5];
     size_t size;
@@ -37,10 +37,10 @@ void printStackTrace()
     free(messages);
 }
 
-void printError(const std::exception &e)
+void print_error(const std::exception &e)
 {
     std::cerr << "Exception caught: " << e.what() << std::endl;
-    printStackTrace();
+    print_stacktrace();
 }
 
 #endif

@@ -3,36 +3,7 @@
  *  hybrid-typed, object-oriented, repl shell, fuseraft
  */
 
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <dirent.h>
-#include <algorithm>
-#include <cfloat>
-#include <vector>
-#include <sys/stat.h>
-#include <cmath>
-#include <string.h>
-#include <unistd.h>
-
-using namespace std;
-
-#include "include/debug/stacktrace.h"
-#include "include/constants.h"
-#include "include/state.h"
-#include "include/strings.h"
-#include "include/rng.h"
-#include "include/objects.h"
-#include "include/prototypes.h"
-#include "include/error.h"
-#include "include/env.h"
-#include "include/memory.h"
-#include "include/datetime.h"
-#include "include/executor.h"
-#include "include/components.h"
-#include "include/fileio.h"
-#include "include/parser.h"
-#include "include/core.h"
+#include "include/uslang.h"
 
 int uslang(int c, char **v);
 
@@ -44,7 +15,7 @@ int main(int c, char **v)
     }
     catch (const exception &e)
     {
-        printError(e);
+        print_error(e);
     }
 }
 
