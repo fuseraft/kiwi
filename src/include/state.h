@@ -3,6 +3,7 @@
 
 struct
 {
+    string InitialDirectory;
     bool CaptureParse;
     string ParsedOutput;
     string CurrentLine;
@@ -14,7 +15,7 @@ struct
     string GoTo;
     string LastValue;
     string LogFile;
-    string Noctis;
+    string Application;
     string PreviousScript;
     string PromptStyle;
     string SwitchVarName;

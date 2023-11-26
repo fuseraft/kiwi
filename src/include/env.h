@@ -6,7 +6,7 @@
 
 string cleanString(string st);
 string getParsedOutput(string cmd);
-string getSilentOutput(string text);
+string get_stdin_quiet(string text);
 
 class Env
 {
@@ -196,7 +196,7 @@ public:
         else
         {
             if (p == "init_dir" || p == "initial_directory")
-                cd(NoctisEnv.InitialDirectory);
+                cd(State.InitialDirectory);
             else
             {
                 if (chdir(p.c_str()) != 0)
