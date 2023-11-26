@@ -63,6 +63,32 @@ void oneSpace(string arg0, string arg1, vector<string> command);
 void twoSpace(string arg0, string arg1, string arg2, vector<string> command);
 void threeSpace(string arg0, string arg1, string arg2, string arg3, vector<string> command);
 
+void handleLoopInit_For(std::string &arg1, std::string &arg2, std::string &arg3, std::string &arg0);
+
+void handleLoopInit_ForIn(std::string &arg1, std::string &arg3, std::string &arg0, bool &retFlag);
+
+void handleLoopInit_Environment_BuiltIns();
+
+void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag);
+
+void handleLoopInit_Params(std::string &arg3, std::string &arg1);
+
+void handleLoopInit_Variable_FileRead(std::string &before);
+
+void handleLoopInit_Variable_Files(std::string &before);
+
+void handleLoopInit_Variable_Directories(std::string &before);
+
+void handleLoopInit_Variable_Length(std::string &before);
+
+void handleLoopInit_ClassMembers_Variables(std::string &before);
+
+void handleLoopInit_ClassMembers_Methods(std::string &before);
+
+void handleLoopInit_CommandLineArgs();
+
+void handleLoopInit_While(std::string &arg1, std::string &arg3, std::string &arg2, std::string &arg0);
+
 int startREPL();
 string getPrompt();
 
@@ -91,7 +117,9 @@ void initializeConstant(string arg0, string arg1, string arg2);
 
 double getBytes(string path);
 
-void parseStack(vector<string> &contents, vector<string> vars, string &temporaryBuild, char currentChar);
+void parseAssignment(string arg0, string arg1, string arg2);
+void parseNumberStack(vector<string> &contents, vector<string> vars, string &temporaryBuild, char currentChar);
+void parseStringStack(vector<string> &contents, vector<string> vars, string &temporaryBuild, char currentChar);
 string getStackValue(string value);
 double getStack(string arg2);
 bool isStringStack(string arg2);
