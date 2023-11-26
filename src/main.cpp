@@ -13,7 +13,7 @@ int main(int c, char **v)
     {
         uslang(c, v);
     }
-    catch (const exception &e)
+    catch (const std::exception &e)
     {
         print_error(e);
     }
@@ -23,7 +23,7 @@ int uslang(int c, char **v)
 {
     RNG::seed();
 
-    string usl(v[0]), opt(""), script("");
+    std::string usl(v[0]), opt(""), script("");
     initialize_state(usl);
 
     State.InitialDirectory = Env::getCurrentDirectory();
@@ -59,7 +59,7 @@ int uslang(int c, char **v)
 
             if (is(opt, "p") || is(opt, "parse"))
             {
-                string code("");
+                std::string code("");
 
                 for (int i = 0; i < (int)script.length(); i++)
                 {
@@ -95,7 +95,7 @@ int uslang(int c, char **v)
 
             for (int i = is_script(opt) ? 2 : 1; i < c; i++)
             {
-                string arg(v[i]);
+                std::string arg(v[i]);
                 mem.addArg(arg);
             }
 

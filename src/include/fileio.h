@@ -10,7 +10,7 @@ public:
 
 void FileIO::appendText(std::string arg1, std::string arg2, bool newLine)
 {
-    string target(""), text("");
+    std::string target(""), text("");
 
     if (mem.variableExists(arg1))
     {
@@ -83,7 +83,7 @@ void FileIO::appendText(std::string arg1, std::string arg2, bool newLine)
 
 void FileIO::writeText(std::string arg1, std::string arg2)
 {
-    string target(""), text("");
+    std::string target(""), text("");
 
     if (mem.variableExists(arg1))
     {

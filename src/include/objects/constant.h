@@ -1,7 +1,7 @@
 class Constant
 {
 private:
-    string stringValue, constantName;
+    std::string stringValue, constantName;
     double numericValue;
     bool isNumber_, isString_;
 
@@ -32,7 +32,7 @@ public:
         return isString_;
     }
 
-    string getString()
+    std::string getString()
     {
         return stringValue;
     }
@@ -42,7 +42,7 @@ public:
         return numericValue;
     }
 
-    string name()
+    std::string name()
     {
         return constantName;
     }

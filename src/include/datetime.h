@@ -52,7 +52,7 @@ public:
         return t->tm_hour - 12;
     }
 
-    static string amOrPm()
+    static std::string amOrPm()
     {
         time_t currently;
         time(&currently);
@@ -61,9 +61,9 @@ public:
         return t->tm_hour > 11 ? "PM" : "AM";
     }
 
-    static string timeNow()
+    static std::string timeNow()
     {
-        string now("");
+        std::string now("");
         now = itos(monthNow()) + "/" + itos(dayOfTheMonth()) + "/" + itos(yearNow()) + " ";
 
         if (hourNow() < 10)
@@ -126,12 +126,12 @@ public:
         return t->tm_yday + 2;
     }
 
-    static string dayOfTheWeek()
+    static std::string dayOfTheWeek()
     {
         time_t currently;
         time(&currently);
         struct tm *t = localtime(&currently);
-        string day("");
+        std::string day("");
 
         switch (t->tm_wday)
         {
@@ -164,12 +164,12 @@ public:
         return day;
     }
 
-    static string monthOfTheYear()
+    static std::string monthOfTheYear()
     {
         time_t currently;
         time(&currently);
         struct tm *t = localtime(&currently);
-        string month("");
+        std::string month("");
 
         switch (t->tm_mon)
         {

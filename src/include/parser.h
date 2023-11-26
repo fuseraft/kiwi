@@ -2,11 +2,11 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-string getParsedOutput(std::string cmd)
+std::string get_parsed_stdout(std::string cmd)
 {
     State.CaptureParse = true;
     parse(cmd);
-    string ret = State.ParsedOutput;
+    std::string ret = State.ParsedOutput;
     State.ParsedOutput.clear();
     State.CaptureParse = false;
 
@@ -29,7 +29,7 @@ void parse(std::string s)
     char prevChar = 'a';     // previous character in string
 
     StringContainer stringContainer; // contains separate commands
-    string bigString("");            // a string to build upon
+    std::string bigString("");            // a string to build upon
 
     State.CurrentLine = s; // store a copy of the current line
     // if (__Logging) app(State.LogFile, s + "\r\n"); // if __Logging a session, log the line
@@ -201,7 +201,7 @@ void parse(std::string s)
                     State.InDefaultCase = true;
                 else if (s == "end")
                 {
-                    string switch_value("");
+                    std::string switch_value("");
 
                     if (mem.isString(State.SwitchVarName))
                         switch_value = mem.varString(State.SwitchVarName);
@@ -310,7 +310,7 @@ void parse(std::string s)
                         {
                             int _len = s.length();
                             std::vector<std::string> words;
-                            string word("");
+                            std::string word("");
 
                             for (int z = 0; z < _len; z++)
                             {
@@ -325,7 +325,7 @@ void parse(std::string s)
 
                             words.push_back(word);
 
-                            string freshLine("");
+                            std::string freshLine("");
 
                             for (int z = 0; z < (int)words.size(); z++)
                             {
@@ -496,7 +496,7 @@ void parse(std::string s)
                         {
                             State.DefiningWhileLoop = false;
 
-                            string v1 = mem.getWhileLoop(mem.getWhileLoopCount() - 1).valueOne(),
+                            std::string v1 = mem.getWhileLoop(mem.getWhileLoopCount() - 1).valueOne(),
                                    v2 = mem.getWhileLoop(mem.getWhileLoopCount() - 1).valueTwo(),
                                    op = mem.getWhileLoop(mem.getWhileLoopCount() - 1).logicOperator();
 
@@ -703,7 +703,7 @@ void parse(std::string s)
                         {
                             if (unrecognized_0space(command.at(0)))
                             {
-                                string before(before_dot(s)), after(after_dot(s));
+                                std::string before(before_dot(s)), after(after_dot(s));
 
                                 if (before.length() != 0 && after.length() != 0)
                                 {
@@ -770,7 +770,7 @@ void parse(std::string s)
                                 {
                                     if (State.CurrentScript != "")
                                     {
-                                        string newMark(s);
+                                        std::string newMark(s);
                                         newMark = subtract_string(s, "::");
                                         mem.getScript().addMark(newMark);
                                     }
@@ -890,7 +890,7 @@ void parse(std::string s)
 
                 if (!broken)
                 {
-                    string commentString("");
+                    std::string commentString("");
 
                     bool commentFound = false;
 
@@ -907,7 +907,7 @@ void parse(std::string s)
                 }
                 else
                 {
-                    string commentString("");
+                    std::string commentString("");
 
                     bool commentFound = false;
 
@@ -972,7 +972,7 @@ void zeroSpace(std::string arg0, std::vector<std::string> command)
 
 void oneSpace(std::string arg0, std::string arg1, std::vector<std::string> command)
 {
-    string before(before_dot(arg1)), after(after_dot(arg1));
+    std::string before(before_dot(arg1)), after(after_dot(arg1));
 
     if (contains(arg1, "self."))
     {
@@ -1137,7 +1137,7 @@ void oneSpace(std::string arg0, std::string arg1, std::vector<std::string> comma
 
 void twoSpace(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command)
 {
-    string last_val = "";
+    std::string last_val = "";
 
     if (contains(arg2, "self."))
         arg2 = replace(arg2, "self", State.CurrentMethodClass);
@@ -1265,7 +1265,7 @@ void handleLoopInit_ForIn(std::string &arg1, std::string &arg3, std::string &arg
     retFlag = true;
     if (arg1 == "var")
     {
-        string before(before_dot(arg3)), after(after_dot(arg3));
+        std::string before(before_dot(arg3)), after(after_dot(arg3));
 
         if (before == "args" && after == "size")
         {
@@ -1351,7 +1351,7 @@ void handleLoopInit_ForIn(std::string &arg1, std::string &arg3, std::string &arg
     else if (!is_dotless(arg3))
     {
         State.DefaultLoopSymbol = arg1;
-        string _b(before_dot(arg3)), _a(after_dot(arg3));
+        std::string _b(before_dot(arg3)), _a(after_dot(arg3));
 
         if (_b == "args" && _a == "size")
         {
@@ -1446,7 +1446,7 @@ void handleLoopInit_Environment_BuiltIns()
 void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag)
 {
     retFlag = true;
-    string before(before_brackets(arg3));
+    std::string before(before_brackets(arg3));
 
     if (!mem.variableExists(before) || !mem.isString(before))
     {
@@ -1455,7 +1455,7 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
         return;
     }
 
-    string tempVarString(mem.varString(before));
+    std::string tempVarString(mem.varString(before));
 
     std::vector<std::string> range = parse_bracketrange(arg3);
 
@@ -1465,7 +1465,7 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
         return;
     }
 
-    string rangeBegin(range.at(0)), rangeEnd(range.at(1));
+    std::string rangeBegin(range.at(0)), rangeEnd(range.at(1));
 
     if ((rangeBegin.length() == 0 || rangeEnd.length() == 0) || !(is_numeric(rangeBegin) && is_numeric(rangeEnd)))
     {
@@ -1481,7 +1481,7 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
 
             for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
             {
-                string tempString("");
+                std::string tempString("");
                 tempString.push_back(tempVarString[i]);
                 newList.add(tempString);
             }
@@ -1503,7 +1503,7 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
 
             for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
             {
-                string tempString("");
+                std::string tempString("");
                 tempString.push_back(tempVarString[i]);
                 newList.add(tempString);
             }
@@ -1530,7 +1530,7 @@ void handleLoopInit_Params(std::string &arg3, std::string &arg1)
 
     if (rangeSpecifiers.size() == 2)
     {
-        string firstRangeSpecifier(rangeSpecifiers.at(0)), lastRangeSpecifier(rangeSpecifiers.at(1));
+        std::string firstRangeSpecifier(rangeSpecifiers.at(0)), lastRangeSpecifier(rangeSpecifiers.at(1));
 
         if (mem.variableExists(firstRangeSpecifier))
         {
@@ -1572,14 +1572,14 @@ void handleLoopInit_Variable_FileRead(std::string &before)
     {
         List newList;
 
-        ifstream file(mem.varString(before).c_str());
-        string line("");
+        std::ifstream file(mem.varString(before).c_str());
+        std::string line("");
 
         if (file.is_open())
         {
             while (!file.eof())
             {
-                getline(file, line);
+                std::getline(file, line);
                 newList.add(line);
             }
 
@@ -1620,12 +1620,12 @@ void handleLoopInit_Variable_Directories(std::string &before)
 void handleLoopInit_Variable_Length(std::string &before)
 {
     List newList;
-    string tempVarStr = mem.varString(before);
+    std::string tempVarStr = mem.varString(before);
     int len = tempVarStr.length();
 
     for (int i = 0; i < len; i++)
     {
-        string tempStr("");
+        std::string tempStr("");
         tempStr.push_back(tempVarStr[i]);
         newList.add(tempStr);
     }
@@ -1870,7 +1870,7 @@ void handleFailedIfStatement()
     mem.createIfStatement(State.FailedIfStatement);
 }
 
-void checkCondition(const string arg1, const string arg2, const string arg3) {
+void checkCondition(const std::string arg1, const std::string arg2, const std::string arg3) {
     if (mem.listExists(arg1) && arg2 == "in") {
         checkListInCondition(arg1, arg2, arg3);
     }
@@ -2027,8 +2027,8 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
     }
 }
 
-void checkListInCondition(const string listName, const string condition, const string testValue) {
-    string testString = getTestString(mem.variableExists(testValue), listName);
+void checkListInCondition(const std::string listName, const std::string condition, const std::string testValue) {
+    std::string testString = getTestString(mem.variableExists(testValue), listName);
     if (testString == "[none]") {
         mem.createIfStatement(false);
     }
@@ -2038,8 +2038,8 @@ void checkListInCondition(const string listName, const string condition, const s
     }
 }
 
-void checkListContainsCondition(const string listName, const string condition, const string testValue) {
-    string testString = getTestString(mem.variableExists(testValue), testValue);
+void checkListContainsCondition(const std::string listName, const std::string condition, const std::string testValue) {
+    std::string testString = getTestString(mem.variableExists(testValue), testValue);
     if (testString == "[none]") {
         mem.createIfStatement(false);
     }
@@ -2049,7 +2049,7 @@ void checkListContainsCondition(const string listName, const string condition, c
     }
 }
 
-bool checkListForElement(const string listName, const string testString, const string conditionType) {
+bool checkListForElement(const std::string listName, const std::string testString, const std::string conditionType) {
     bool result = false;
 
     if (mem.listExists(listName)) {
@@ -2070,7 +2070,7 @@ bool checkListForElement(const string listName, const string testString, const s
     return result;
 }
 
-bool checkListContains(const string listName, const string testString) {
+bool checkListContains(const std::string listName, const std::string testString) {
     bool elementFound = false;
     List list = mem.getList(listName);
     for (int i = 0; i < list.size(); i++)
@@ -2088,7 +2088,7 @@ bool checkListContains(const string listName, const string testString) {
     return elementFound;
 }
 
-void checkVariableCondition(const string arg1, const string arg2, const string arg3) {
+void checkVariableCondition(const std::string arg1, const std::string arg2, const std::string arg3) {
     if (mem.isString(arg1) && mem.isString(arg3)) {
         handleIfStatementDecl_Generic(mem.varString(arg1), mem.varString(arg3), arg2);
     }
@@ -2103,7 +2103,7 @@ void checkVariableCondition(const string arg1, const string arg2, const string a
 
 // Continue with other conditions...
 
-void checkParamsCondition(const string arg1, const string arg2, const string arg3) {
+void checkParamsCondition(const std::string arg1, const std::string arg2, const std::string arg3) {
     // Implement the logic for conditions with parameters
     // ...
 
@@ -2111,18 +2111,18 @@ void checkParamsCondition(const string arg1, const string arg2, const string arg
     // handleIfStatementDecl_Generic(arg1Result, arg3Result, arg2);
 }
 
-void checkMethodCondition(const string arg1, const string arg3, const string arg2) {
-    string arg1Result(""), arg3Result("");
+void checkMethodCondition(const std::string arg1, const std::string arg3, const std::string arg2) {
+    std::string arg1Result(""), arg3Result("");
     handleIfStatementDecl_Method(arg1, arg1Result, arg3, arg3Result);
     handleIfStatementDecl_Generic(arg1Result, arg3Result, arg2);
 }
 
-void checkGenericCondition(const string arg1, const string arg3, const string arg2) {
+void checkGenericCondition(const std::string arg1, const std::string arg3, const std::string arg2) {
     handleIfStatementDecl_Generic(arg1, arg3, arg2);
 }
 
-string getTestString(bool variableExists, const string variableName) {
-    string testString("[none]");
+std::string getTestString(bool variableExists, const std::string variableName) {
+    std::string testString("[none]");
 
     if (variableExists) {
         if (mem.isString(variableName))
@@ -2139,7 +2139,7 @@ string getTestString(bool variableExists, const string variableName) {
     return testString;
 }
 
-void handleError(int errorType, const string variableName, bool isMethod) {
+void handleError(int errorType, const std::string variableName, bool isMethod) {
     error(errorType, variableName, isMethod);
     mem.createIfStatement(false);
 }
@@ -2173,7 +2173,7 @@ void handleExit()
 
 void handleCaught()
 {
-    string to_remove = "remove ";
+    std::string to_remove = "remove ";
     to_remove.append(State.ErrorVarName);
 
     parse(to_remove);
@@ -2744,14 +2744,14 @@ void handlePrompt(std::string &arg1)
 
 void handleIfStatement(std::string &arg1)
 {
-    string tmpValue("");
+    std::string tmpValue("");
     // if arg1 is a variable
     if (mem.variableExists(arg1))
     {
         // can we can assume that arg1 belongs to an object?
         if (!is_dotless(arg1))
         {
-            string objName(before_dot(arg1)), varName(after_dot(arg1));
+            std::string objName(before_dot(arg1)), varName(after_dot(arg1));
             Variable tmpVar = mem.getClass(objName).getVariable(varName);
 
             if (mem.isString(tmpVar))
@@ -2791,7 +2791,7 @@ void handleIfStatement(std::string &arg1)
         }
         else
         {
-            string tmpCode("");
+            std::string tmpCode("");
 
             if (begins_with(arg1, "(\"") && ends_with(arg1, "\")"))
             {
@@ -2801,7 +2801,7 @@ void handleIfStatement(std::string &arg1)
             {
                 tmpCode = arg1;
             }
-            tmpValue = getParsedOutput(tmpCode);
+            tmpValue = get_parsed_stdout(tmpCode);
         }
     }
 

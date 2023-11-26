@@ -2,7 +2,7 @@ class Module
 {
 private:
     std::vector<std::string> lines;
-    string moduleName;
+    std::string moduleName;
 
 public:
     Module() {}
@@ -32,7 +32,7 @@ public:
         return lines;
     }
 
-    string at(int index)
+    std::string at(int index)
     {
         if (index < (int)lines.size())
             return lines.at(index);
@@ -45,7 +45,7 @@ public:
         return get().size();
     }
 
-    string name()
+    std::string name()
     {
         return moduleName;
     }

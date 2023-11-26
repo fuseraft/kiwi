@@ -3,7 +3,7 @@ class List : public Collectable
 private:
     std::vector<std::string> contents;
     std::vector<std::string> reversion;
-    string listName;
+    std::string listName;
     bool collectable;
 
 public:
@@ -77,7 +77,7 @@ public:
         contents.clear();
     }
 
-    string at(int index)
+    std::string at(int index)
     {
         if (index < (int)contents.size())
             return contents.at(index);
@@ -85,7 +85,7 @@ public:
         return "#!=no_line";
     }
 
-    string name()
+    std::string name()
     {
         return listName;
     }

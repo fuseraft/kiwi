@@ -10,8 +10,6 @@
 #include <string.h>
 #include <unistd.h>
 
-using namespace std;
-
 #include "debug/stacktrace.h"
 #include "constants.h"
 #include "state.h"
