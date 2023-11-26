@@ -4,17 +4,17 @@
 class Memory
 {
 private:
-    vector<Method> methods;
-    vector<Class> classes;
-    vector<Variable> variables;
-    vector<List> lists;
-    vector<Constant> constants;
-    vector<Method> ifStatements;
-    vector<Method> forLoops;
-    vector<Method> whileLoops;
-    vector<string> args;
-    vector<Module> modules;
-    vector<Script> scripts;
+    std::vector<Method> methods;
+    std::vector<Class> classes;
+    std::vector<Variable> variables;
+    std::vector<List> lists;
+    std::vector<Constant> constants;
+    std::vector<Method> ifStatements;
+    std::vector<Method> forLoops;
+    std::vector<Method> whileLoops;
+    std::vector<std::string> args;
+    std::vector<Module> modules;
+    std::vector<Script> scripts;
     Switch mainSwitch;
 
 public:
@@ -33,76 +33,76 @@ public:
     void clearWhile();
     void gc();
 
-    void loadScript(string script);
+    void loadScript(std::string script);
 
-    int indexOfConstant(string s);
-    int indexOfList(string s);
-    int indexOfMethod(string s);
-    int indexOfModule(string s);
-    int indexOfClass(string s);
-    int indexOfScript(string s);
-    int indexOfVariable(string s);
+    int indexOfConstant(std::string s);
+    int indexOfList(std::string s);
+    int indexOfMethod(std::string s);
+    int indexOfModule(std::string s);
+    int indexOfClass(std::string s);
+    int indexOfScript(std::string s);
+    int indexOfVariable(std::string s);
 
     Constant& getConstant(int index);
-    Constant& getConstant(string s);
+    Constant& getConstant(std::string s);
     List& getList(int index);
-    List& getList(string s);
+    List& getList(std::string s);
     Method& getMethod(int index);
-    Method& getMethod(string s);
-    Module& getModule(string s);
+    Method& getMethod(std::string s);
+    Module& getModule(std::string s);
     Class& getClass(int index);
-    Class& getClass(string s);
-    Variable getClassVariable(string className, string variableName);
+    Class& getClass(std::string s);
+    Variable getClassVariable(std::string className, std::string variableName);
     Script& getScript();
     Variable& getVar(int index);
-    Variable& getVar(string s);
+    Variable& getVar(std::string s);
     Switch& getMainSwitch();
     Method& getIfStatement(int index);
     Method& getForLoop(int index);
     Method& getWhileLoop(int index);
 
-    void createMethod(string arg0, string arg1);
+    void createMethod(std::string arg0, std::string arg1);
 
     void createFailedWhileLoop();
-    void createWhileLoop(string v1, string op, string v2);
+    void createWhileLoop(std::string v1, std::string op, std::string v2);
 
     void createFailedForLoop();
     void createForLoop();
-    void createForLoop(double a, double b, string op);
+    void createForLoop(double a, double b, std::string op);
     void createForLoop(List list);
 
-    void createVariable(string name, double value);
-    void createVariable(string name, string value);
-    void setVariable(string name, double value);
-    void setVariable(string name, string value);
-    void replaceElement(string before, string after, string replacement);
+    void createVariable(std::string name, double value);
+    void createVariable(std::string name, std::string value);
+    void setVariable(std::string name, double value);
+    void setVariable(std::string name, std::string value);
+    void replaceElement(std::string before, std::string after, std::string replacement);
 
-    bool isNumber(string s);
+    bool isNumber(std::string s);
     bool isNumber(Variable var);
-    bool isString(string s);
+    bool isString(std::string s);
     bool isString(Variable var);
 
-    bool notClassMethod(string s);
-    bool constantExists(string s);
-    bool moduleExists(string s);
-    bool variableExists(string s);
-    bool classExists(string s);
-    bool methodExists(string s);
-    bool listExists(string s);
+    bool notClassMethod(std::string s);
+    bool constantExists(std::string s);
+    bool moduleExists(std::string s);
+    bool variableExists(std::string s);
+    bool classExists(std::string s);
+    bool methodExists(std::string s);
+    bool listExists(std::string s);
 
-    void redefine(string target, string name);
-    void globalize(string arg1);
+    void redefine(std::string target, std::string name);
+    void globalize(std::string arg1);
 
-    void removeConstant(string s);
-    void removeList(string s);
-    void removeMethod(string s);
-    void removeModule(string s);
-    void removeClass(string s);
-    void removeVariable(string s);
+    void removeConstant(std::string s);
+    void removeList(std::string s);
+    void removeMethod(std::string s);
+    void removeModule(std::string s);
+    void removeClass(std::string s);
+    void removeVariable(std::string s);
 
-    string varNumberString(string s);
-    double varNumber(string s);
-    string varString(string s);
+    string varNumberString(std::string s);
+    double varNumber(std::string s);
+    string varString(std::string s);
 
     int getMethodCount();
     int getVariableCount();
@@ -122,27 +122,27 @@ public:
     int getForLoopCount();
     int getWhileLoopCount();
     
-    void addArg(string arg);
+    void addArg(std::string arg);
     int getArgCount();
     string getArg(int index);
 
     void createIfStatement(bool value);
-    void createModule(string s);
-    void createClass(string className);
+    void createModule(std::string s);
+    void createClass(std::string className);
 
-    void addLineToCurrentForLoop(string line);
-    void addItemToList(string listName, string value);
+    void addLineToCurrentForLoop(std::string line);
+    void addItemToList(std::string listName, std::string value);
 };
 
 Memory::Memory() {}
 Memory::~Memory() {}
 
-void Memory::addLineToCurrentForLoop(string line)
+void Memory::addLineToCurrentForLoop(std::string line)
 {
     forLoops[forLoops.size() - 1].add(line);
 }
 
-void Memory::addItemToList(string listName, string value)
+void Memory::addItemToList(std::string listName, std::string value)
 {
     this->getList(listName).add(value);
 }
@@ -178,9 +178,9 @@ Method& Memory::getWhileLoop(int index) { return whileLoops.at(index); }
 
 int Memory::getArgCount() { return args.size(); }
 string Memory::getArg(int index) { return args.at(index); }
-void Memory::addArg(string arg) { args.push_back(arg); }
+void Memory::addArg(std::string arg) { args.push_back(arg); }
 
-void Memory::createClass(string className)
+void Memory::createClass(std::string className)
 {
     if (classExists(className))
     {
@@ -197,11 +197,11 @@ void Memory::createClass(string className)
     }
 }
 
-void Memory::createModule(string s)
+void Memory::createModule(std::string s)
 {
     string moduleName = s;
-    moduleName = subtractString(moduleName, "[");
-    moduleName = subtractString(moduleName, "]");
+    moduleName = subtract_string(moduleName, "[");
+    moduleName = subtract_string(moduleName, "]");
 
     Module newModule(moduleName);
     addModule(newModule);
@@ -252,7 +252,7 @@ void Memory::createIfStatement(bool value)
     }
 }
 
-void Memory::createMethod(string arg0, string arg1)
+void Memory::createMethod(std::string arg0, std::string arg1)
 {
     bool indestructable = arg0 == "[method]";
 
@@ -264,7 +264,7 @@ void Memory::createMethod(string arg0, string arg1)
             return;
         }
 
-        if (!containsParams(arg1))
+        if (!has_params(arg1))
         {
             Method method(arg1);
 
@@ -281,9 +281,9 @@ void Memory::createMethod(string arg0, string arg1)
             return;
         }
 
-        vector<string> params = getParams(arg1);
+        std::vector<std::string> params = parse_params(arg1);
 
-        Method method(beforeParams(arg1));
+        Method method(before_params(arg1));
 
         if (State.DefiningPublicCode)
             method.setPublic();
@@ -296,7 +296,7 @@ void Memory::createMethod(string arg0, string arg1)
         {
             if (variableExists(params.at(i)))
             {
-                if (zeroDots(params.at(i)))
+                if (is_dotless(params.at(i)))
                 {
                     if (isString(params.at(i)))
                         method.addMethodVariable(varString(params.at(i)), getVar(params.at(i)).name());
@@ -307,7 +307,7 @@ void Memory::createMethod(string arg0, string arg1)
                     return;
                 }
 
-                string before(beforeDot(params.at(i))), after(afterDot(params.at(i)));
+                string before(before_dot(params.at(i))), after(after_dot(params.at(i)));
 
                 if (!classExists(before))
                 {
@@ -330,7 +330,7 @@ void Memory::createMethod(string arg0, string arg1)
             }
             else
             {
-                if (isAlpha(params.at(i)))
+                if (is_alpha(params.at(i)))
                 {
                     Variable newVariable("@[pm#" + itos(State.ParamVarCount) + "]", params.at(i));
                     method.addMethodVariable(newVariable);
@@ -346,7 +346,7 @@ void Memory::createMethod(string arg0, string arg1)
         }
 
         getClass(State.CurrentClass).addMethod(method);
-        getClass(State.CurrentClass).setCurrentMethod(beforeParams(arg1));
+        getClass(State.CurrentClass).setCurrentMethod(before_params(arg1));
         State.DefiningMethod = true;
         State.DefiningParameterizedMethod = true;
         State.DefiningClassMethod = true;
@@ -357,9 +357,9 @@ void Memory::createMethod(string arg0, string arg1)
             error(ErrorMessage::METHOD_DEFINED, arg1, false);
         else
         {
-            if (!zeroDots(arg1))
+            if (!is_dotless(arg1))
             {
-                string before(beforeDot(arg1)), after(afterDot(arg1));
+                string before(before_dot(arg1)), after(after_dot(arg1));
 
                 if (classExists(before))
                 {
@@ -379,20 +379,20 @@ void Memory::createMethod(string arg0, string arg1)
                 else
                     error(ErrorMessage::CLS_UNDEFINED, "", false);
             }
-            else if (containsParams(arg1))
+            else if (has_params(arg1))
             {
-                vector<string> params = getParams(arg1);
+                std::vector<std::string> params = parse_params(arg1);
 
-                Method method(beforeParams(arg1));
+                Method method(before_params(arg1));
                 method.setIndestructible(indestructable);
 
                 for (int i = 0; i < (int)params.size(); i++)
                 {
                     if (variableExists(params.at(i)))
                     {
-                        if (!zeroDots(params.at(i)))
+                        if (!is_dotless(params.at(i)))
                         {
-                            string before(beforeDot(params.at(i))), after(afterDot(params.at(i)));
+                            string before(before_dot(params.at(i))), after(after_dot(params.at(i)));
 
                             if (classExists(before))
                             {
@@ -423,7 +423,7 @@ void Memory::createMethod(string arg0, string arg1)
                     }
                     else
                     {
-                        if (isAlpha(params.at(i)))
+                        if (is_alpha(params.at(i)))
                         {
                             Variable newVariable("@" + params.at(i), "");
                             newVariable.setNull();
@@ -456,7 +456,7 @@ void Memory::createMethod(string arg0, string arg1)
     }
 }
 
-void Memory::loadScript(string script)
+void Memory::loadScript(std::string script)
 {
     string s("");
     ifstream f(script.c_str());
@@ -474,7 +474,7 @@ void Memory::loadScript(string script)
 
             if (s.length() > 0)
             {
-                newScript.add(trimLeadingWhitespace(s));
+                newScript.add(ltrim_ws(s));
             }
         }
     }
@@ -487,7 +487,7 @@ Switch& Memory::getMainSwitch()
     return mainSwitch;
 }
 
-void Memory::createWhileLoop(string v1, string op, string v2)
+void Memory::createWhileLoop(std::string v1, std::string op, std::string v2)
 {
     Method whileMethod("[while#" + itos(State.WhileLoopCount) + "]");
     whileMethod.setWhile(true);
@@ -510,7 +510,7 @@ void Memory::createForLoop(List list)
     State.SuccessFlag = true;
 }
 
-void Memory::createForLoop(double a, double b, string op)
+void Memory::createForLoop(double a, double b, std::string op)
 {
     Method forMethod("[for#" + itos(State.ForLoopCount) + "]");
     forMethod.setFor(true);
@@ -556,12 +556,12 @@ void Memory::createFailedWhileLoop()
     whileLoops.push_back(whileMethod);
 }
 
-bool Memory::isNumber(string s) { return varNumber(s) != State.NullNum; }
+bool Memory::isNumber(std::string s) { return varNumber(s) != State.NullNum; }
 bool Memory::isNumber(Variable var) { return var.getNumber() != State.NullNum; }
-bool Memory::isString(string s) { return varString(s) != State.Null; }
+bool Memory::isString(std::string s) { return varString(s) != State.Null; }
 bool Memory::isString(Variable var) { return var.getString() != State.Null; }
 
-int Memory::indexOfConstant(string s)
+int Memory::indexOfConstant(std::string s)
 {
     for (unsigned i = 0; i < constants.size(); ++i)
     {
@@ -572,7 +572,7 @@ int Memory::indexOfConstant(string s)
     return -1;
 }
 
-int Memory::indexOfList(string s)
+int Memory::indexOfList(std::string s)
 {
     for (unsigned i = 0; i < lists.size(); ++i)
     {
@@ -583,7 +583,7 @@ int Memory::indexOfList(string s)
     return -1;
 }
 
-int Memory::indexOfMethod(string s)
+int Memory::indexOfMethod(std::string s)
 {
     for (unsigned i = 0; i < methods.size(); ++i)
     {
@@ -594,7 +594,7 @@ int Memory::indexOfMethod(string s)
     return -1;
 }
 
-int Memory::indexOfModule(string s)
+int Memory::indexOfModule(std::string s)
 {
     for (unsigned i = 0; i < modules.size(); ++i)
     {
@@ -605,7 +605,7 @@ int Memory::indexOfModule(string s)
     return -1;
 }
 
-int Memory::indexOfClass(string s)
+int Memory::indexOfClass(std::string s)
 {
     for (unsigned i = 0; i < classes.size(); ++i)
     {
@@ -616,7 +616,7 @@ int Memory::indexOfClass(string s)
     return -1;
 }
 
-int Memory::indexOfScript(string s)
+int Memory::indexOfScript(std::string s)
 {
     for (unsigned i = 0; i < scripts.size(); ++i)
     {
@@ -627,7 +627,7 @@ int Memory::indexOfScript(string s)
     return -1;
 }
 
-int Memory::indexOfVariable(string s)
+int Memory::indexOfVariable(std::string s)
 {
     for (unsigned i = 0; i < variables.size(); ++i)
     {
@@ -638,30 +638,30 @@ int Memory::indexOfVariable(string s)
     return -1;
 }
 
-Constant& Memory::getConstant(string s) { return constants.at(indexOfConstant(s)); }
-List& Memory::getList(string s) { return lists.at(indexOfList(s)); }
-Method& Memory::getMethod(string s) { return methods.at(indexOfMethod(s)); }
-Module& Memory::getModule(string s) { return modules.at(indexOfModule(s)); }
-Class& Memory::getClass(string s) { return classes.at(indexOfClass(s)); }
+Constant& Memory::getConstant(std::string s) { return constants.at(indexOfConstant(s)); }
+List& Memory::getList(std::string s) { return lists.at(indexOfList(s)); }
+Method& Memory::getMethod(std::string s) { return methods.at(indexOfMethod(s)); }
+Module& Memory::getModule(std::string s) { return modules.at(indexOfModule(s)); }
+Class& Memory::getClass(std::string s) { return classes.at(indexOfClass(s)); }
 Script& Memory::getScript() { return scripts.at(0); }
-Variable& Memory::getVar(string s) { return variables.at(indexOfVariable(s)); }
-Variable Memory::getClassVariable(string className, string variableName)
+Variable& Memory::getVar(std::string s) { return variables.at(indexOfVariable(s)); }
+Variable Memory::getClassVariable(std::string className, std::string variableName)
 {
     return getClass(className).getVariable(variableName);
 }
 
-void Memory::removeConstant(string s) { constants.erase(constants.begin() + indexOfConstant(s)); }
-void Memory::removeList(string s) { lists.erase(lists.begin() + indexOfList(s)); }
-void Memory::removeMethod(string s) { methods.erase(methods.begin() + indexOfMethod(s)); }
-void Memory::removeModule(string s) { modules.erase(modules.begin() + indexOfModule(s)); }
-void Memory::removeClass(string s) { classes.erase(classes.begin() + indexOfClass(s)); }
-void Memory::removeVariable(string s) { variables.erase(variables.begin() + indexOfVariable(s)); }
+void Memory::removeConstant(std::string s) { constants.erase(constants.begin() + indexOfConstant(s)); }
+void Memory::removeList(std::string s) { lists.erase(lists.begin() + indexOfList(s)); }
+void Memory::removeMethod(std::string s) { methods.erase(methods.begin() + indexOfMethod(s)); }
+void Memory::removeModule(std::string s) { modules.erase(modules.begin() + indexOfModule(s)); }
+void Memory::removeClass(std::string s) { classes.erase(classes.begin() + indexOfClass(s)); }
+void Memory::removeVariable(std::string s) { variables.erase(variables.begin() + indexOfVariable(s)); }
 
-string Memory::varString(string s) { return getVar(s).getString(); }
-double Memory::varNumber(string s) { return getVar(s).getNumber(); }
-string Memory::varNumberString(string s) { return dtos(varNumber(s)); }
+string Memory::varString(std::string s) { return getVar(s).getString(); }
+double Memory::varNumber(std::string s) { return getVar(s).getNumber(); }
+string Memory::varNumberString(std::string s) { return dtos(varNumber(s)); }
 
-void Memory::redefine(string target, string name)
+void Memory::redefine(std::string target, std::string name)
 {
     if (variableExists(target))
     {
@@ -727,7 +727,7 @@ void Memory::redefine(string target, string name)
         }
         else
         {
-            if (startsWith(name, "@"))
+            if (begins_with(name, "@"))
             {
                 if (!variableExists(name))
                     getVar(target).setName(name);
@@ -765,17 +765,17 @@ void Memory::redefine(string target, string name)
         error(ErrorMessage::TARGET_UNDEFINED, target, false);
 }
 
-void Memory::globalize(string arg1)
+void Memory::globalize(std::string arg1)
 {
-    if (!(contains(arg1, ".") && methodExists(arg1) && !methodExists(afterDot(arg1))))
+    if (!(contains(arg1, ".") && methodExists(arg1) && !methodExists(after_dot(arg1))))
     {
         error(ErrorMessage::CLS_METHOD_UNDEFINED, arg1, false);
         return;
     }
 
-    Method method(afterDot(arg1));
+    Method method(after_dot(arg1));
 
-    vector<string> lines = getClass(beforeDot(arg1)).getMethod(afterDot(arg1)).getLines();
+    std::vector<std::string> lines = getClass(before_dot(arg1)).getMethod(after_dot(arg1)).getLines();
 
     for (int i = 0; i < (int)lines.size(); i++)
         method.add(lines[i]);
@@ -783,9 +783,9 @@ void Memory::globalize(string arg1)
     methods.push_back(method);
 }
 
-void Memory::replaceElement(string before, string after, string replacement)
+void Memory::replaceElement(std::string before, std::string after, std::string replacement)
 {
-    vector<string> newList;
+    std::vector<std::string> newList;
 
     for (int i = 0; i < (int)getList(before).size(); i++)
     {
@@ -803,13 +803,13 @@ void Memory::replaceElement(string before, string after, string replacement)
     newList.clear();
 }
 
-void Memory::setVariable(string name, string value)
+void Memory::setVariable(std::string name, std::string value)
 {
     getVar(name).setVariable(value);
     State.LastValue = value;
 }
 
-void Memory::setVariable(string name, double value)
+void Memory::setVariable(std::string name, double value)
 {
     if (varString(name) != State.Null)
         getVar(name).setVariable(dtos(value));
@@ -826,7 +826,7 @@ void Memory::setVariable(string name, double value)
     State.LastValue = dtos(value);
 }
 
-void Memory::createVariable(string name, string value)
+void Memory::createVariable(std::string name, std::string value)
 {
     Variable newVariable(name, value);
 
@@ -836,7 +836,7 @@ void Memory::createVariable(string name, string value)
     State.LastValue = value;
 }
 
-void Memory::createVariable(string name, double value)
+void Memory::createVariable(std::string name, double value)
 {
     Variable newVariable(name, value);
 
@@ -891,7 +891,7 @@ void Memory::clearLists()
 
 void Memory::clearMethods()
 {
-    vector<Method> indestructibleMethods;
+    std::vector<Method> indestructibleMethods;
 
     for (unsigned i = 0; i < methods.size(); ++i)
         if (methods.at(i).indestructible())
@@ -908,7 +908,7 @@ void Memory::clearClasses() { classes.clear(); }
 
 void Memory::clearVariables()
 {
-    vector<Variable> indestructibleVariables;
+    std::vector<Variable> indestructibleVariables;
 
     for (unsigned i = 0; i < variables.size(); ++i)
         if (variables.at(i).indestructible())
@@ -922,7 +922,7 @@ void Memory::clearVariables()
 
 void Memory::gc()
 {
-    vector<string> garbageVars;
+    std::vector<std::string> garbageVars;
 
     for (unsigned i = 0; i < variables.size(); ++i)
         if (variables.at(i).isCollectable() && !State.ExecutedIfStatement)
@@ -932,7 +932,7 @@ void Memory::gc()
     for (unsigned i = 0; i < garbageVars.size(); ++i)
         removeVariable(garbageVars.at(i));
 
-    vector<string> garbageLists;
+    std::vector<std::string> garbageLists;
 
     for (unsigned i = 0; i < lists.size(); ++i)
         if (lists.at(i).isCollectable() && !State.ExecutedIfStatement)
@@ -941,7 +941,7 @@ void Memory::gc()
     for (unsigned i = 0; i < garbageLists.size(); ++i)
         removeList(garbageLists.at(i));
 
-    vector<string> garbageClasses;
+    std::vector<std::string> garbageClasses;
 
     for (unsigned i = 0; i < classes.size(); ++i)
         if (classes.at(i).isCollectable() && !State.ExecutedIfStatement)
@@ -951,7 +951,7 @@ void Memory::gc()
         removeClass(garbageClasses.at(i));
 }
 
-bool Memory::listExists(string s)
+bool Memory::listExists(std::string s)
 {
     for (unsigned i = 0; i < lists.size(); ++i)
         if (lists.at(i).name() == s)
@@ -960,11 +960,11 @@ bool Memory::listExists(string s)
     return false;
 }
 
-bool Memory::methodExists(string s)
+bool Memory::methodExists(std::string s)
 {
-    if (!zeroDots(s) && classExists(beforeDot(s)))
+    if (!is_dotless(s) && classExists(before_dot(s)))
     {
-        return getClass(beforeDot(s)).hasMethod(afterDot(s));
+        return getClass(before_dot(s)).hasMethod(after_dot(s));
     }
 
     for (unsigned i = 0; i < methods.size(); ++i)
@@ -974,7 +974,7 @@ bool Memory::methodExists(string s)
     return false;
 }
 
-bool Memory::classExists(string s)
+bool Memory::classExists(std::string s)
 {
     for (unsigned i = 0; i < classes.size(); ++i)
         if (classes.at(i).name() == s)
@@ -983,11 +983,11 @@ bool Memory::classExists(string s)
     return false;
 }
 
-bool Memory::variableExists(string s)
+bool Memory::variableExists(std::string s)
 {
-    if (!zeroDots(s))
+    if (!is_dotless(s))
     {
-        string before(beforeDot(s)), after(afterDot(s));
+        string before(before_dot(s)), after(after_dot(s));
         return classExists(before) && getClass(before).hasVariable(after);
     }
 
@@ -998,7 +998,7 @@ bool Memory::variableExists(string s)
     return false;
 }
 
-bool Memory::moduleExists(string s)
+bool Memory::moduleExists(std::string s)
 {
     for (unsigned i = 0; i < modules.size(); ++i)
         if (modules.at(i).name() == s)
@@ -1007,7 +1007,7 @@ bool Memory::moduleExists(string s)
     return false;
 }
 
-bool Memory::constantExists(string s)
+bool Memory::constantExists(std::string s)
 {
     for (unsigned i = 0; i < constants.size(); ++i)
         if (constants.at(i).name() == s)
@@ -1016,11 +1016,11 @@ bool Memory::constantExists(string s)
     return false;
 }
 
-bool Memory::notClassMethod(string s)
+bool Memory::notClassMethod(std::string s)
 {
-    if (!zeroDots(s))
+    if (!is_dotless(s))
     {
-        string before(beforeDot(s));
+        string before(before_dot(s));
         return !classExists(before);
     }
 

@@ -2,7 +2,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-string getParsedOutput(string cmd)
+string getParsedOutput(std::string cmd)
 {
     State.CaptureParse = true;
     parse(cmd);
@@ -16,9 +16,9 @@ string getParsedOutput(string cmd)
 /**
     The heart of it all. Parse a string and send for interpretation.
 **/
-void parse(string s)
+void parse(std::string s)
 {
-    vector<string> command;  // a tokenized command container
+    std::vector<std::string> command;  // a tokenized command container
     int length = s.length(), //	length of the line
         count = 0,           // command token counter
         size = 0;            // final size of tokenized command container
@@ -174,9 +174,9 @@ void parse(string s)
                 // args[0], args[1], ..., args[n-1]
                 if (contains(command.at(i), "args") && command.at(i) != "args.size")
                 {
-                    vector<string> params = getBracketRange(command.at(i));
+                    std::vector<std::string> params = parse_bracketrange(command.at(i));
 
-                    if (isNumeric(params.at(0)))
+                    if (is_numeric(params.at(0)))
                     {
                         if (mem.getArgCount() - 1 >= stoi(params.at(0)) && stoi(params.at(0)) >= 0)
                         {
@@ -195,7 +195,7 @@ void parse(string s)
 
             if (State.DefiningSwitchBlock)
             {
-                if (startsWith(s, "case"))
+                if (begins_with(s, "case"))
                     mem.getMainSwitch().addCase(command.at(1));
                 else if (s == "default")
                     State.InDefaultCase = true;
@@ -246,7 +246,7 @@ void parse(string s)
                     State.DefiningScript = false;
                 }
                 else
-                    Env::app(State.CurrentScriptName, s + "\n");
+                    Env::appendToFile(State.CurrentScriptName, s + "\n");
             }
             else
             {
@@ -309,7 +309,7 @@ void parse(string s)
                         else
                         {
                             int _len = s.length();
-                            vector<string> words;
+                            std::vector<std::string> words;
                             string word("");
 
                             for (int z = 0; z < _len; z++)
@@ -701,22 +701,22 @@ void parse(string s)
                     {
                         if (size == 1)
                         {
-                            if (notStandardZeroSpace(command.at(0)))
+                            if (unrecognized_0space(command.at(0)))
                             {
-                                string before(beforeDot(s)), after(afterDot(s));
+                                string before(before_dot(s)), after(after_dot(s));
 
                                 if (before.length() != 0 && after.length() != 0)
                                 {
                                     if (mem.classExists(before) && after.length() != 0)
                                     {
-                                        if (containsParams(after))
+                                        if (has_params(after))
                                         {
-                                            s = subtractChar(s, "\"");
+                                            s = subtract_char(s, '"');
 
-                                            if (mem.getClass(before).hasMethod(beforeParams(after)))
-                                                exec.executeTemplate(mem.getClass(before).getMethod(beforeParams(after)), getParams(after));
+                                            if (mem.getClass(before).hasMethod(before_params(after)))
+                                                exec.executeTemplate(mem.getClass(before).getMethod(before_params(after)), parse_params(after));
                                             else
-                                                Env::sysExec(s, command);
+                                                Env::shellExec(s, command);
                                         }
                                         else if (mem.getClass(before).hasMethod(after))
                                             exec.executeMethod(mem.getClass(before).getMethod(after));
@@ -763,32 +763,32 @@ void parse(string s)
                                                 exec.executeMethod(mem.getClass(State.CurrentMethodClass).getMethod(after));
                                         }
                                         else
-                                            Env::sysExec(s, command);
+                                            Env::shellExec(s, command);
                                     }
                                 }
-                                else if (endsWith(s, "::"))
+                                else if (ends_with(s, "::"))
                                 {
                                     if (State.CurrentScript != "")
                                     {
                                         string newMark(s);
-                                        newMark = subtractString(s, "::");
+                                        newMark = subtract_string(s, "::");
                                         mem.getScript().addMark(newMark);
                                     }
                                 }
                                 else if (mem.methodExists(s))
                                     exec.executeMethod(mem.getMethod(s));
-                                else if (startsWith(s, "[") && endsWith(s, "]"))
+                                else if (begins_with(s, "[") && ends_with(s, "]"))
                                 {
                                     mem.createModule(s);
                                 }
                                 else
                                 {
-                                    s = subtractChar(s, "\"");
+                                    s = subtract_char(s, '"');
 
-                                    if (mem.methodExists(beforeParams(s)))
-                                        exec.executeTemplate(mem.getMethod(beforeParams(s)), getParams(s));
+                                    if (mem.methodExists(before_params(s)))
+                                        exec.executeTemplate(mem.getMethod(before_params(s)), parse_params(s));
                                     else
-                                        Env::sysExec(s, command);
+                                        Env::shellExec(s, command);
                                 }
                             }
                             else
@@ -796,8 +796,8 @@ void parse(string s)
                         }
                         else if (size == 2)
                         {
-                            if (notStandardOneSpace(command.at(0)))
-                                Env::sysExec(s, command);
+                            if (unrecognized_1space(command.at(0)))
+                                Env::shellExec(s, command);
                             else
                             {
                                 oneSpace(command.at(0), command.at(1), command);
@@ -805,7 +805,7 @@ void parse(string s)
                         }
                         else if (size == 3)
                         {
-                            if (notStandardTwoSpace(command.at(1)))
+                            if (unrecognized_2space(command.at(1)))
                             {
                                 if (command.at(0) == "append")
                                     FileIO::appendText(command.at(1), command.at(2), false);
@@ -817,20 +817,20 @@ void parse(string s)
                                     mem.redefine(command.at(1), command.at(2));
                                 else if (command.at(0) == "loop")
                                 {
-                                    if (containsParams(command.at(2)))
+                                    if (has_params(command.at(2)))
                                     {
                                         State.DefaultLoopSymbol = command.at(2);
-                                        State.DefaultLoopSymbol = subtractChar(State.DefaultLoopSymbol, "(");
-                                        State.DefaultLoopSymbol = subtractChar(State.DefaultLoopSymbol, ")");
+                                        State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, '(');
+                                        State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, ')');
 
                                         oneSpace(command.at(0), command.at(1), command);
                                         State.DefaultLoopSymbol = "$";
                                     }
                                     else
-                                        Env::sysExec(s, command);
+                                        Env::shellExec(s, command);
                                 }
                                 else
-                                    Env::sysExec(s, command);
+                                    Env::shellExec(s, command);
                             }
                             else
                                 twoSpace(command.at(0), command.at(1), command.at(2), command);
@@ -842,23 +842,23 @@ void parse(string s)
                             // for var in
                             if (command.at(0) == "for")
                             {
-                                if (containsParams(command.at(4)))
+                                if (has_params(command.at(4)))
                                 {
                                     State.DefaultLoopSymbol = command.at(4);
-                                    State.DefaultLoopSymbol = subtractChar(State.DefaultLoopSymbol, "(");
-                                    State.DefaultLoopSymbol = subtractChar(State.DefaultLoopSymbol, ")");
+                                    State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, '(');
+                                    State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, ')');
 
                                     threeSpace(command.at(0), command.at(1), command.at(2), command.at(3), command);
                                     State.DefaultLoopSymbol = "$";
                                 }
                                 else
-                                    Env::sysExec(s, command);
+                                    Env::shellExec(s, command);
                             }
                             else
-                                Env::sysExec(s, command);
+                                Env::shellExec(s, command);
                         }
                         else
-                            Env::sysExec(s, command);
+                            Env::shellExec(s, command);
                     }
                 }
             }
@@ -903,7 +903,7 @@ void parse(string s)
                             commentString.push_back(bigString[i]);
                     }
 
-                    parse(trimLeadingWhitespace(commentString));
+                    parse(ltrim_ws(commentString));
                 }
                 else
                 {
@@ -920,7 +920,7 @@ void parse(string s)
                             commentString.push_back(bigString[i]);
                     }
 
-                    stringContainer.add(trimLeadingWhitespace(commentString));
+                    stringContainer.add(ltrim_ws(commentString));
 
                     for (int i = 0; i < (int)stringContainer.get().size(); i++)
                         parse(stringContainer.at(i));
@@ -930,7 +930,7 @@ void parse(string s)
     }
 }
 
-void zeroSpace(string arg0, vector<string> command)
+void zeroSpace(std::string arg0, std::vector<std::string> command)
 {
     if (arg0 == "pass")
     {
@@ -951,7 +951,7 @@ void zeroSpace(string arg0, vector<string> command)
         handleEnd();
     }
     else if (arg0 == "parser")
-        startREPL();
+        load_repl();
     else if (arg0 == "private")
     {
         handlePrivateDecl();
@@ -967,12 +967,12 @@ void zeroSpace(string arg0, vector<string> command)
         handleFailedIfStatement();
     }
     else
-        Env::sysExec(arg0, command);
+        Env::shellExec(arg0, command);
 }
 
-void oneSpace(string arg0, string arg1, vector<string> command)
+void oneSpace(std::string arg0, std::string arg1, std::vector<std::string> command)
 {
-    string before(beforeDot(arg1)), after(afterDot(arg1));
+    string before(before_dot(arg1)), after(after_dot(arg1));
 
     if (contains(arg1, "self."))
     {
@@ -1132,10 +1132,10 @@ void oneSpace(string arg0, string arg1, vector<string> command)
         handleDirPop(arg1);
     }
     else
-        Env::sysExec(arg0, command);
+        Env::shellExec(arg0, command);
 }
 
-void twoSpace(string arg0, string arg1, string arg2, vector<string> command)
+void twoSpace(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command)
 {
     string last_val = "";
 
@@ -1149,17 +1149,17 @@ void twoSpace(string arg0, string arg1, string arg2, vector<string> command)
     {
         initializeVariable(arg0, arg1, arg2, command);
     }
-    else if (mem.listExists(arg0) || mem.listExists(beforeBrackets(arg0)))
+    else if (mem.listExists(arg0) || mem.listExists(before_brackets(arg0)))
     {
         initializeListValues(arg0, arg1, arg2, command);
     }
     else
     {
-        if (startsWith(arg0, "@") && zeroDots(arg0))
+        if (begins_with(arg0, "@") && is_dotless(arg0))
         {
             initializeGlobalVariable(arg0, arg1, arg2, command);
         }
-        else if (startsWith(arg0, "@") && !zeroDots(arg2))
+        else if (begins_with(arg0, "@") && !is_dotless(arg2))
         {
             initializeClassVariable(arg0, arg1, arg2, command);
         }
@@ -1167,7 +1167,7 @@ void twoSpace(string arg0, string arg1, string arg2, vector<string> command)
         {
             copyClass(arg0, arg1, arg2, command);
         }
-        else if (isUpperConstant(arg0))
+        else if (valid_const_name(arg0))
         {
             initializeConstant(arg0, arg1, arg2);
         }
@@ -1178,7 +1178,7 @@ void twoSpace(string arg0, string arg1, string arg2, vector<string> command)
     }
 }
 
-void threeSpace(string arg0, string arg1, string arg2, string arg3, vector<string> command)
+void threeSpace(std::string arg0, std::string arg1, std::string arg2, std::string arg3, std::vector<std::string> command)
 {
     // isNumber(arg3)
     // isString(arg3)
@@ -1215,7 +1215,7 @@ void threeSpace(string arg0, string arg1, string arg2, string arg3, vector<strin
         handleLoopInit_While(arg1, arg3, arg2, arg0);
     }
     else
-        Env::sysExec(arg0, command);
+        Env::shellExec(arg0, command);
 }
 
 void handleLoopInit_For(std::string &arg1, std::string &arg2, std::string &arg3, std::string &arg0)
@@ -1227,17 +1227,17 @@ void handleLoopInit_For(std::string &arg1, std::string &arg2, std::string &arg3,
         first = mem.varNumber(arg1);
         second = mem.varNumber(arg3);
     }
-    else if (mem.variableExists(arg1) && !mem.variableExists(arg3) && (mem.isNumber(arg1) && isNumeric(arg3)))
+    else if (mem.variableExists(arg1) && !mem.variableExists(arg3) && (mem.isNumber(arg1) && is_numeric(arg3)))
     {
         first = mem.varNumber(arg1);
         second = stod(arg3);
     }
-    else if (!mem.variableExists(arg1) && mem.variableExists(arg3) && (isNumeric(arg1) && mem.isNumber(arg3)))
+    else if (!mem.variableExists(arg1) && mem.variableExists(arg3) && (is_numeric(arg1) && mem.isNumber(arg3)))
     {
         first = stod(arg1);
         second = mem.varNumber(arg3);
     }
-    else if (isNumeric(arg1) && isNumeric(arg3))
+    else if (is_numeric(arg1) && is_numeric(arg3))
     {
         first = stod(arg1);
         second = stod(arg3);
@@ -1265,7 +1265,7 @@ void handleLoopInit_ForIn(std::string &arg1, std::string &arg3, std::string &arg
     retFlag = true;
     if (arg1 == "var")
     {
-        string before(beforeDot(arg3)), after(afterDot(arg3));
+        string before(before_dot(arg3)), after(after_dot(arg3));
 
         if (before == "args" && after == "size")
         {
@@ -1332,11 +1332,11 @@ void handleLoopInit_ForIn(std::string &arg1, std::string &arg3, std::string &arg
             }
         }
     }
-    else if (containsParams(arg3))
+    else if (has_params(arg3))
     {
         handleLoopInit_Params(arg3, arg1);
     }
-    else if (containsBrackets(arg3))
+    else if (has_brackets(arg3))
     {
         bool retFlag;
         handleLoopInit_Brackets(arg3, arg1, retFlag);
@@ -1348,10 +1348,10 @@ void handleLoopInit_ForIn(std::string &arg1, std::string &arg3, std::string &arg
         State.DefaultLoopSymbol = arg1;
         mem.createForLoop(mem.getList(arg3));
     }
-    else if (!zeroDots(arg3))
+    else if (!is_dotless(arg3))
     {
         State.DefaultLoopSymbol = arg1;
-        string _b(beforeDot(arg3)), _a(afterDot(arg3));
+        string _b(before_dot(arg3)), _a(after_dot(arg3));
 
         if (_b == "args" && _a == "size")
         {
@@ -1446,7 +1446,7 @@ void handleLoopInit_Environment_BuiltIns()
 void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag)
 {
     retFlag = true;
-    string before(beforeBrackets(arg3));
+    string before(before_brackets(arg3));
 
     if (!mem.variableExists(before) || !mem.isString(before))
     {
@@ -1457,7 +1457,7 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
 
     string tempVarString(mem.varString(before));
 
-    vector<string> range = getBracketRange(arg3);
+    std::vector<std::string> range = parse_bracketrange(arg3);
 
     if (range.size() != 2)
     {
@@ -1467,7 +1467,7 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
 
     string rangeBegin(range.at(0)), rangeEnd(range.at(1));
 
-    if ((rangeBegin.length() == 0 || rangeEnd.length() == 0) || !(isNumeric(rangeBegin) && isNumeric(rangeEnd)))
+    if ((rangeBegin.length() == 0 || rangeEnd.length() == 0) || !(is_numeric(rangeBegin) && is_numeric(rangeEnd)))
     {
         error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
         return;
@@ -1524,9 +1524,9 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
 
 void handleLoopInit_Params(std::string &arg3, std::string &arg1)
 {
-    vector<string> rangeSpecifiers;
+    std::vector<std::string> rangeSpecifiers;
 
-    rangeSpecifiers = getRange(arg3);
+    rangeSpecifiers = parse_range(arg3);
 
     if (rangeSpecifiers.size() == 2)
     {
@@ -1548,7 +1548,7 @@ void handleLoopInit_Params(std::string &arg3, std::string &arg1)
                 mem.createFailedForLoop();
         }
 
-        if (isNumeric(firstRangeSpecifier) && isNumeric(lastRangeSpecifier))
+        if (is_numeric(firstRangeSpecifier) && is_numeric(lastRangeSpecifier))
         {
             State.DefaultLoopSymbol = arg1;
 
@@ -1637,7 +1637,7 @@ void handleLoopInit_ClassMembers_Variables(std::string &before)
 {
     List newList;
 
-    vector<Variable> objVars = mem.getClass(before).getVariables();
+    std::vector<Variable> objVars = mem.getClass(before).getVariables();
 
     for (int i = 0; i < (int)objVars.size(); i++)
         newList.add(objVars.at(i).name());
@@ -1649,7 +1649,7 @@ void handleLoopInit_ClassMembers_Methods(std::string &before)
 {
     List newList;
 
-    vector<Method> objMethods = mem.getClass(before).getMethods();
+    std::vector<Method> objMethods = mem.getClass(before).getMethods();
 
     for (int i = 0; i < (int)objMethods.size(); i++)
         newList.add(objMethods.at(i).name());
@@ -1687,7 +1687,7 @@ void handleLoopInit_While(std::string &arg1, std::string &arg3, std::string &arg
             mem.createFailedWhileLoop();
         }
     }
-    else if (isNumeric(arg3) && mem.variableExists(arg1))
+    else if (is_numeric(arg3) && mem.variableExists(arg1))
     {
         if (mem.isNumber(arg1))
         {
@@ -1705,7 +1705,7 @@ void handleLoopInit_While(std::string &arg1, std::string &arg3, std::string &arg
             mem.createFailedWhileLoop();
         }
     }
-    else if (isNumeric(arg1) && isNumeric(arg3))
+    else if (is_numeric(arg1) && is_numeric(arg3))
     {
         if (arg2 == "<" || arg2 == "<=" || arg2 == ">=" || arg2 == ">" || arg2 == "==" || arg2 == "!=")
             mem.createWhileLoop(arg1, arg2, arg3);
@@ -1723,7 +1723,7 @@ void handleLoopInit_While(std::string &arg1, std::string &arg3, std::string &arg
 }
 void handleIfStatementDecl_Generic(std::string first, std::string second, std::string oper)
 {
-    if (isNumeric(first) && isNumeric(second))
+    if (is_numeric(first) && is_numeric(second))
     {
         if (oper == "==")
         {
@@ -1767,11 +1767,11 @@ void handleIfStatementDecl_Generic(std::string first, std::string second, std::s
         }
         else if (oper == "begins_with")
         {
-            mem.createIfStatement(startsWith(first, second));
+            mem.createIfStatement(begins_with(first, second));
         }
         else if (oper == "ends_with")
         {
-            mem.createIfStatement(endsWith(first, second));
+            mem.createIfStatement(ends_with(first, second));
         }
         else if (oper == "contains")
         {
@@ -1841,7 +1841,7 @@ void handleClassDecl(std::string arg1, std::string arg3, std::string arg2)
         {
             if (arg2 == "=")
             {
-                vector<Method> classMethods = mem.getClass(arg3).getMethods();
+                std::vector<Method> classMethods = mem.getClass(arg3).getMethods();
                 Class newClass(arg1);
 
                 for (int i = 0; i < (int)classMethods.size(); i++)
@@ -1880,19 +1880,19 @@ void checkCondition(const string arg1, const string arg2, const string arg3) {
     else if (mem.variableExists(arg1) && mem.variableExists(arg3)) {
         checkVariableCondition(arg1, arg2, arg3);
     }
-    else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notClassMethod(arg3) && !containsParams(arg3)) {
+    else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notClassMethod(arg3) && !has_params(arg3)) {
         checkNumericStringFileDirCondition(arg1, arg2, arg3);
     }
-    else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notClassMethod(arg3) && containsParams(arg3)) {
+    else if ((mem.variableExists(arg1) && !mem.variableExists(arg3)) && !mem.methodExists(arg3) && mem.notClassMethod(arg3) && has_params(arg3)) {
         checkNumericStringFileDirCondition(arg1, arg2, getStackValue(arg3));
     }
-    else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notClassMethod(arg1) && !containsParams(arg1)) {
+    else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notClassMethod(arg1) && !has_params(arg1)) {
         checkNumericStringFileDirCondition(arg3, arg2, arg1);
     }
-    else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notClassMethod(arg1) && containsParams(arg1)) {
+    else if ((!mem.variableExists(arg1) && mem.variableExists(arg3)) && !mem.methodExists(arg1) && mem.notClassMethod(arg1) && has_params(arg1)) {
         checkNumericStringFileDirCondition(arg3, arg2, getStackValue(arg1));
     }
-    else if (containsParams(arg1) || containsParams(arg3)) {
+    else if (has_params(arg1) || has_params(arg3)) {
         checkParamsCondition(arg1, arg2, arg3);
     }
     else if ((mem.methodExists(arg1) && arg3 != "method?") || mem.methodExists(arg3)) {
@@ -1903,11 +1903,11 @@ void checkCondition(const string arg1, const string arg2, const string arg3) {
     }
 }
 
-void checkNumericStringFileDirCondition(string arg1, string arg2, string arg3)
+void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std::string arg3)
 {
     if (mem.isNumber(arg1))
     {
-        if (isNumeric(arg3))
+        if (is_numeric(arg3))
         {
             handleIfStatementDecl_Generic(dtos(mem.varNumber(arg1)), arg3, arg2);
         }
@@ -2217,7 +2217,7 @@ void handleDirPop(std::string &arg1)
         if (mem.isString(arg1))
         {
             if (Env::directoryExists(mem.varString(arg1)))
-                Env::rd(mem.varString(arg1));
+                Env::removeDirectory(mem.varString(arg1));
             else
                 error(ErrorMessage::DIR_NOT_FOUND, mem.varString(arg1), false);
         }
@@ -2227,7 +2227,7 @@ void handleDirPop(std::string &arg1)
     else
     {
         if (Env::directoryExists(arg1))
-            Env::rd(arg1);
+            Env::removeDirectory(arg1);
         else
             error(ErrorMessage::DIR_NOT_FOUND, arg1, false);
     }
@@ -2240,7 +2240,7 @@ void handleDirPush(std::string &arg1)
         if (mem.isString(arg1))
         {
             if (!Env::directoryExists(mem.varString(arg1)))
-                Env::md(mem.varString(arg1));
+                Env::makeDirectory(mem.varString(arg1));
             else
                 error(ErrorMessage::DIR_EXISTS, mem.varString(arg1), false);
         }
@@ -2250,7 +2250,7 @@ void handleDirPush(std::string &arg1)
     else
     {
         if (!Env::directoryExists(arg1))
-            Env::md(arg1);
+            Env::makeDirectory(arg1);
         else
             error(ErrorMessage::DIR_EXISTS, arg1, false);
     }
@@ -2263,7 +2263,7 @@ void handleFilePop(std::string &arg1)
         if (mem.isString(arg1))
         {
             if (Env::fileExists(mem.varString(arg1)))
-                Env::rm(mem.varString(arg1));
+                Env::removeFile(mem.varString(arg1));
             else
                 error(ErrorMessage::FILE_NOT_FOUND, mem.varString(arg1), false);
         }
@@ -2273,7 +2273,7 @@ void handleFilePop(std::string &arg1)
     else
     {
         if (Env::fileExists(arg1))
-            Env::rm(arg1);
+            Env::removeFile(arg1);
         else
             error(ErrorMessage::FILE_NOT_FOUND, arg1, false);
     }
@@ -2324,10 +2324,10 @@ void handleTemplateDecl(std::string &arg1)
         error(ErrorMessage::METHOD_DEFINED, arg1, false);
     else
     {
-        if (containsParams(arg1))
+        if (has_params(arg1))
         {
-            vector<string> params = getParams(arg1);
-            Method method(beforeParams(arg1), true);
+            std::vector<std::string> params = parse_params(arg1);
+            Method method(before_params(arg1), true);
             method.setTemplateSize((int)params.size());
             mem.addMethod(method);
             State.DefiningMethod = true;
@@ -2360,7 +2360,7 @@ void handleStringInspect(std::string &before, std::string &after, std::string &a
         }
         else
         {
-            if (isNumeric(arg1))
+            if (is_numeric(arg1))
                 State.LastValue = "false";
             else
                 State.LastValue = "true";
@@ -2393,7 +2393,7 @@ void handleNumberInspect(std::string &before, std::string &after, std::string &a
         }
         else
         {
-            if (isNumeric(arg1))
+            if (is_numeric(arg1))
                 State.LastValue = "true";
             else
                 State.LastValue = "false";
@@ -2551,7 +2551,7 @@ void handleInitialDir(std::string &arg1)
             if (Env::directoryExists(mem.varString(arg1)))
             {
                 State.InitialDirectory = mem.varString(arg1);
-                Env::cd(State.InitialDirectory);
+                Env::changeDirectory(State.InitialDirectory);
             }
             else
                 error(ErrorMessage::READ_FAIL, State.InitialDirectory, false);
@@ -2564,13 +2564,13 @@ void handleInitialDir(std::string &arg1)
         if (Env::directoryExists(arg1))
         {
             if (arg1 == ".")
-                State.InitialDirectory = Env::cwd();
+                State.InitialDirectory = Env::getCurrentDirectory();
             else if (arg1 == "..")
-                State.InitialDirectory = Env::cwd() + "\\..";
+                State.InitialDirectory = Env::getCurrentDirectory() + "\\..";
             else
                 State.InitialDirectory = arg1;
 
-            Env::cd(State.InitialDirectory);
+            Env::changeDirectory(State.InitialDirectory);
         }
         else
             error(ErrorMessage::READ_FAIL, State.InitialDirectory, false);
@@ -2582,12 +2582,12 @@ void handleInlineShellExec(std::string &arg1, std::vector<std::string> &command)
     if (mem.variableExists(arg1))
     {
         if (mem.isString(arg1))
-            Env::sysExec(mem.varString(arg1), command);
+            Env::shellExec(mem.varString(arg1), command);
         else
             error(ErrorMessage::IS_NULL, arg1, false);
     }
     else
-        Env::sysExec(arg1, command);
+        Env::shellExec(arg1, command);
 }
 
 void handleInlineParse(std::string &arg1)
@@ -2624,7 +2624,7 @@ void handleChangeDir(std::string &arg1)
         if (mem.isString(arg1))
         {
             if (Env::directoryExists(mem.varString(arg1)))
-                Env::cd(mem.varString(arg1));
+                Env::changeDirectory(mem.varString(arg1));
             else
                 error(ErrorMessage::READ_FAIL, mem.varString(arg1), false);
         }
@@ -2634,11 +2634,11 @@ void handleChangeDir(std::string &arg1)
     else
     {
         if (arg1 == "init_dir" || arg1 == "initial_directory")
-            Env::cd(State.InitialDirectory);
+            Env::changeDirectory(State.InitialDirectory);
         else if (Env::directoryExists(arg1))
-            Env::cd(arg1);
+            Env::changeDirectory(arg1);
         else
-            Env::cd(arg1);
+            Env::changeDirectory(arg1);
     }
 }
 
@@ -2646,7 +2646,7 @@ void handleLoad(std::string &arg1)
 {
     if (Env::fileExists(arg1))
     {
-        if (isScript(arg1))
+        if (is_script(arg1))
         {
             State.PreviousScript = State.CurrentScript;
             mem.loadScript(arg1);
@@ -2657,7 +2657,7 @@ void handleLoad(std::string &arg1)
     }
     else if (mem.moduleExists(arg1))
     {
-        vector<string> lines = mem.getModule(arg1).get();
+        std::vector<std::string> lines = mem.getModule(arg1).get();
 
         for (int i = 0; i < (int)lines.size(); i++)
             parse(lines.at(i));
@@ -2668,9 +2668,9 @@ void handleLoad(std::string &arg1)
 
 void handleRemove(std::string &arg1)
 {
-    if (containsParams(arg1))
+    if (has_params(arg1))
     {
-        vector<string> params = getParams(arg1);
+        std::vector<std::string> params = parse_params(arg1);
 
         for (int i = 0; i < (int)params.size(); i++)
         {
@@ -2700,7 +2700,7 @@ void handleRemove(std::string &arg1)
 
 void handleDelay(std::string &arg1)
 {
-    if (isNumeric(arg1))
+    if (is_numeric(arg1))
         DT::delay(stoi(arg1));
     else
         error(ErrorMessage::CONV_ERR, arg1, false);
@@ -2749,9 +2749,9 @@ void handleIfStatement(std::string &arg1)
     if (mem.variableExists(arg1))
     {
         // can we can assume that arg1 belongs to an object?
-        if (!zeroDots(arg1))
+        if (!is_dotless(arg1))
         {
-            string objName(beforeDot(arg1)), varName(afterDot(arg1));
+            string objName(before_dot(arg1)), varName(after_dot(arg1));
             Variable tmpVar = mem.getClass(objName).getVariable(varName);
 
             if (mem.isString(tmpVar))
@@ -2785,7 +2785,7 @@ void handleIfStatement(std::string &arg1)
     }
     else
     {
-        if (isNumeric(arg1) || isTrue(arg1) || isFalse(arg1))
+        if (is_numeric(arg1) || is_truthy(arg1) || is_falsey(arg1))
         {
             tmpValue = arg1;
         }
@@ -2793,9 +2793,9 @@ void handleIfStatement(std::string &arg1)
         {
             string tmpCode("");
 
-            if (startsWith(arg1, "(\"") && endsWith(arg1, "\")"))
+            if (begins_with(arg1, "(\"") && ends_with(arg1, "\")"))
             {
-                tmpCode = getInner(arg1, 2, arg1.length() - 3);
+                tmpCode = substring(arg1, 2, arg1.length() - 3);
             }
             else
             {
@@ -2805,11 +2805,11 @@ void handleIfStatement(std::string &arg1)
         }
     }
 
-    if (isTrue(tmpValue))
+    if (is_truthy(tmpValue))
     {
         mem.createIfStatement(true);
     }
-    else if (isFalse(tmpValue))
+    else if (is_falsey(tmpValue))
     {
         mem.createIfStatement(false);
     }
