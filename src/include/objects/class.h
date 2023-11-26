@@ -3,8 +3,8 @@
 class Class : public Collectable
 {
 private:
-    vector<Method> methods;
-    vector<Variable> variables;
+    std::vector<Method> methods;
+    std::vector<Variable> variables;
 
     string className;
     string currentMethod;
@@ -14,7 +14,7 @@ private:
 public:
     Class() {}
 
-    Class(string name)
+    Class(std::string name)
     {
         initialize(name);
         currentMethod = "";
@@ -25,13 +25,13 @@ public:
         clear();
     }
 
-    void initialize(string name)
+    void initialize(std::string name)
     {
         currentMethod = "",
         className = name;
     }
 
-    void setName(string name)
+    void setName(std::string name)
     {
         className = name;
     }
@@ -51,7 +51,7 @@ public:
         return getMethod(currentMethod);
     }
 
-    void setCurrentMethod(string methodName)
+    void setCurrentMethod(std::string methodName)
     {
         currentMethod = methodName;
     }
@@ -68,7 +68,7 @@ public:
             methods.at(methodAt(currentMethod)).setPrivate();
     }
 
-    void addToCurrentMethod(string line)
+    void addToCurrentMethod(std::string line)
     {
         if (hasMethod(currentMethod))
             methods.at(methodAt(currentMethod)).add(line);
@@ -84,7 +84,7 @@ public:
         return (int)variables.size();
     }
 
-    int methodAt(string methodName)
+    int methodAt(std::string methodName)
     {
         for (int i = 0; i < methodSize(); i++)
         {
@@ -95,7 +95,7 @@ public:
         return -1;
     }
 
-    int variableAt(string variableName)
+    int variableAt(std::string variableName)
     {
         for (int i = 0; i < variableSize(); i++)
         {
@@ -150,9 +150,9 @@ public:
         variables.clear();
     }
 
-    void removeVariable(string variableName)
+    void removeVariable(std::string variableName)
     {
-        vector<Variable> oldVariables = getVariables();
+        std::vector<Variable> oldVariables = getVariables();
 
         clearVariables();
 
@@ -161,7 +161,7 @@ public:
                 variables.push_back(oldVariables.at(i));
     }
 
-    Method getMethod(string methodName)
+    Method getMethod(std::string methodName)
     {
         for (int i = 0; i < (int)methods.size(); i++)
             if (methods.at(i).name() == methodName)
@@ -172,12 +172,12 @@ public:
         return badMethod;
     }
 
-    vector<Method> getMethods()
+    std::vector<Method> getMethods()
     {
         return methods;
     }
 
-    Variable getVariable(string variableName)
+    Variable getVariable(std::string variableName)
     {
         for (int i = 0; i < (int)variables.size(); i++)
             if (variables.at(i).name() == variableName)
@@ -188,12 +188,12 @@ public:
         return badVariable;
     }
 
-    vector<Variable> getVariables()
+    std::vector<Variable> getVariables()
     {
         return variables;
     }
 
-    bool hasMethod(string methodName)
+    bool hasMethod(std::string methodName)
     {
         for (int i = 0; i < (int)methods.size(); i++)
             if (methods.at(i).name() == methodName)
@@ -207,7 +207,7 @@ public:
         return className;
     }
 
-    bool hasVariable(string variableName)
+    bool hasVariable(std::string variableName)
     {
         for (int i = 0; i < (int)variables.size(); i++)
             if (variables.at(i).name() == variableName)

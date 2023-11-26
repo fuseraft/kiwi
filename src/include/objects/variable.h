@@ -12,7 +12,7 @@ private:
         _isBad,
         waitToAssign;
 
-    void setAll(double numValue, string strValue)
+    void setAll(double numValue, std::string strValue)
     {
         setVariable(numValue);
         setVariable(strValue);
@@ -25,13 +25,13 @@ public:
         setAll(-DBL_MAX, "[null]");
     }
 
-    Variable(string name)
+    Variable(std::string name)
     {
         initialize(name);
         setAll(-DBL_MAX, "[null]");
     }
 
-    Variable(string name, string value)
+    Variable(std::string name, std::string value)
     {
         initialize(name);
 
@@ -44,7 +44,7 @@ public:
             setAll(-DBL_MAX, value);
     }
 
-    Variable(string name, double value)
+    Variable(std::string name, double value)
     {
         initialize(name);
         setAll(value, "[null]");
@@ -83,7 +83,7 @@ public:
         waitToAssign = true;
     }
 
-    void setName(string name)
+    void setName(std::string name)
     {
         variableName = name;
     }
@@ -113,7 +113,7 @@ public:
         }
     }
 
-    void setVariable(string value)
+    void setVariable(std::string value)
     {
         if (waiting())
         {
@@ -159,7 +159,7 @@ public:
         return stringValue;
     }
 
-    void initialize(string name)
+    void initialize(std::string name)
     {
         variableName = name;
         collectable = false,
