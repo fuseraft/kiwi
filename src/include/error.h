@@ -38,6 +38,7 @@ public:
     static const int MAKE_DIR_FAIL = 33;
     static const int REMOVE_DIR_FAIL = 34;
     static const int REMOVE_FILE_FAIL = 35;
+    static const int CREATE_FILE_FAIL = 36;
 };
 
 class Error

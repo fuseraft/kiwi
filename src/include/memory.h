@@ -214,7 +214,7 @@ void Memory::createIfStatement(bool value)
 {
     if (!value)
     {
-        State.LastValue = "false";
+        State.LastValue = Keywords.False;
 
         if (!State.DefiningNest)
         {
@@ -232,7 +232,7 @@ void Memory::createIfStatement(bool value)
         return;
     }
 
-    State.LastValue = "true";
+    State.LastValue = Keywords.True;
 
     if (State.DefiningNest)
     {
@@ -254,7 +254,7 @@ void Memory::createIfStatement(bool value)
 
 void Memory::createMethod(std::string arg0, std::string arg1)
 {
-    bool indestructable = arg0 == "[method]";
+    bool indestructable = arg0 == Keywords.LockedMethod;
 
     if (State.DefiningClass)
     {
@@ -516,9 +516,9 @@ void Memory::createForLoop(double a, double b, std::string op)
     forMethod.setFor(true);
     forMethod.setSymbol(State.DefaultLoopSymbol);
 
-    if (op == "<=" || op == ">=")
+    if (op == Operators.LessThanOrEqual || op == Operators.GreaterThanOrEqual)
         forMethod.setForValues((int)a, (int)b);
-    else if (op == "<" || op == ">")
+    else if (op == Operators.LessThan || op == Operators.GreaterThan)
         forMethod.setForValues((int)a, (int)b - 1);
 
     State.DefiningForLoop = true;
@@ -767,7 +767,7 @@ void Memory::redefine(std::string target, std::string name)
 
 void Memory::globalize(std::string arg1)
 {
-    if (!(contains(arg1, ".") && methodExists(arg1) && !methodExists(after_dot(arg1))))
+    if (!(contains(arg1, Keywords.Dot) && methodExists(arg1) && !methodExists(after_dot(arg1))))
     {
         error(ErrorMessage::CLS_METHOD_UNDEFINED, arg1, false);
         return;

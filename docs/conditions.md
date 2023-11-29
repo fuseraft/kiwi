@@ -2,7 +2,8 @@
 
 I have removed `unless` for now. I am currently refactoring condition and loop logic at the moment.
 
-You have simple `if` statements for now. Each `if` statement ends with an `endif`.
+## If Statements
+Each `if` statement ends with an `endif`.
 
 ```
 @a = 0
@@ -10,7 +11,19 @@ You have simple `if` statements for now. Each `if` statement ends with an `endif
 
 if @a < @b
     say "\{@a} is less than \{@b}"
-elif @a > @b
+elsif @a > @b
     say "\{@a} is greater than \{@b}"
 endif
+```
+
+## Switch Statements
+
+```
+@n = 5
+switch @n
+    case 5
+        println "five"
+    default
+        println "not five"
+end
 ```
