@@ -551,12 +551,12 @@ bool is_numeric(std::string s)
 
 bool is_truthy(std::string s)
 {
-    return s == "true" || s == "1";
+    return s == Keywords.True || s == Keywords.TruthyOne;
 }
 
 bool is_falsey(std::string s)
 {
-    return s == "false" || s == "0";
+    return s == Keywords.False || s == Keywords.FalseyZero;
 }
 
 std::string itos(int i)
@@ -585,12 +585,12 @@ int get_alpha_num(char c)
 
 bool unrecognized_0space(std::string arg)
 {
-    return !contains("break;caught;clear_all!;clear_constants!;clear_lists!;clear_methods!;clear_classes!;clear_variables!;else;end;exit;failif;leave!;no_methods?;no_classes?;no_variables?;parser;pass;private;public;try;", arg);
+    return !contains("break;caught;else;end;exit;failif;parser;pass;private;public;try;", arg);
 }
 
 bool unrecognized_1space(std::string arg)
 {
-    return !contains("!;?;__begin__;call_method;cd;clear;chdir;collect?;decode;delay;directory?;dpush;dpop;encode;err;error;file?;for;fpush;fpop;garbage?;globalize;goto;if;init_dir;intial_directory;directory?;file?;list?;method?;number?;class?;string?;variable?;list;list?;load;lock;loop;lose;method;[method];class;out;print;println;prompt;remove;return;say;stdout;switch;template;unlock;", arg);
+    return !contains("!;?;__begin__;invoke!;gc!chdir;collect?;delay;directory?;dpush;dpop;err;error;file?;for;fpush;fpop;globalize!;goto;if;init_dir;directory?;file?;list?;method?;number?;class?;string?;variable?;list;list?;lock;loop;method;[method];class;print;println;prompt;remove;switch;template;unlock;", arg);
 }
 
 bool unrecognized_2space(std::string arg)
@@ -605,7 +605,7 @@ bool recognized_mathfunc(std::string arg)
 
 bool is(std::string s, std::string si)
 {
-    return s == ("-" + si) || s == ("--" + si) || s == ("/" + si);
+    return s == (Operators.Subtract + si) || s == ("--" + si) || s == ("/" + si);
 }
 
 bool is_script(std::string path)

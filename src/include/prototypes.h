@@ -92,9 +92,8 @@ void handleLoopInit_While(std::string &arg1, std::string &arg3, std::string &arg
 int load_repl();
 std::string get_prompt();
 
-void internal_encode_decode(std::string arg0, std::string arg1);
 void internal_env_builtins(std::string arg1, std::string after, int mode);
-void internal_puts(std::string arg0, std::string arg1);
+void internal_puts(std::string arg0, std::string arg1, bool newline);
 
 std::string pre_parse(std::string st);
 
