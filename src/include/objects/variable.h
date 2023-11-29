@@ -1,3 +1,4 @@
+// TODO: refactor this.
 class Variable : public Collectable
 {
 private:

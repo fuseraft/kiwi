@@ -4,7 +4,7 @@ Use the `method` keyword to define a method.
 
 ```
 method greet(name)
-    say "Hello, \{@name}!"
+    println "Hello, \{@name}!"
 end
 
 greet("world")
@@ -20,6 +20,6 @@ end
 @ans = add_three(5, 4, 3)
 
 if @ans == 12
-  say "5 + 4 + 3 = 12"
+  println "5 + 4 + 3 = 12"
 endif
 ```

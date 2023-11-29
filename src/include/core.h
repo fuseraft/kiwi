@@ -154,7 +154,7 @@ std::string pre_parse(std::string st)
                                 cleaned.append(State.LastValue);
                             }
                             else
-                                error(ErrorMessage::METHOD_UNDEFINED, before + "." + before_params(after), false);
+                                error(ErrorMessage::METHOD_UNDEFINED, before + Keywords.Dot + before_params(after), false);
                         }
                         else
                             error(ErrorMessage::CLS_METHOD_UNDEFINED, before, false);
@@ -197,7 +197,7 @@ std::string pre_parse(std::string st)
                                             cleaned.append(_build);
                                         }
                                         else
-                                            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+                                            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
                                     }
                                     else if (stoi(rangeBegin) > stoi(rangeEnd))
                                     {
@@ -209,10 +209,10 @@ std::string pre_parse(std::string st)
                                             cleaned.append(_build);
                                         }
                                         else
-                                            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+                                            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
                                     }
                                     else
-                                        error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+                                        error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
                                 }
                             }
                             else if (listRange.size() == 1)
@@ -247,7 +247,7 @@ std::string pre_parse(std::string st)
 
                             if (!(is_numeric(rangeBegin) && is_numeric(rangeEnd)))
                             {
-                                error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+                                error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
                                 return Constants.Null;
                             }
 
@@ -255,7 +255,7 @@ std::string pre_parse(std::string st)
                             {
                                 if (!(mem.getList(_beforeBrackets).size() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0))
                                 {
-                                    error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+                                    error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
                                     return Constants.Null;
                                 }
 
@@ -277,7 +277,7 @@ std::string pre_parse(std::string st)
                             {
                                 if (!(mem.getList(_beforeBrackets).size() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0))
                                 {
-                                    error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+                                    error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
                                     return Constants.Null;
                                 }
 
@@ -296,7 +296,7 @@ std::string pre_parse(std::string st)
                                 cleaned.append(bigString);
                             }
                             else
-                                error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+                                error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
                         }
                         else if (listRange.size() == 1)
                         {
@@ -334,7 +334,7 @@ std::string pre_parse(std::string st)
 
                     if (mem.getClass(before).hasMethod(after))
                     {
-                        parse(before + "." + after);
+                        parse(before + Keywords.Dot + after);
                         cleaned.append(State.LastValue);
                     }
                     else if (mem.getClass(before).hasVariable(after))
@@ -347,7 +347,7 @@ std::string pre_parse(std::string st)
                             cleaned.append("null");
                     }
                     else
-                        error(ErrorMessage::VAR_UNDEFINED, before + "." + after, false);
+                        error(ErrorMessage::VAR_UNDEFINED, before + Keywords.Dot + after, false);
                 }
                 else
                     cleaned.append(builder);
@@ -396,7 +396,7 @@ void write(std::string st)
     if (State.CaptureParse)
         State.ParsedOutput.append(pre_parse(st));
     else
-        IO::print(pre_parse(st));
+        std::cout << pre_parse(st);
 
     State.LastValue = st;
 }
@@ -406,10 +406,15 @@ void writeline(std::string st)
     write(st + "\n");
 }
 
+void writeline()
+{
+    write("\n");
+}
+
 // TODO: ugh
 void show_version()
 {
-    IO::println("uslang 0.1.1"); 
+    writeline("uslang 0.1.1"); 
 }
 
 List getDirectoryList(std::string before, bool filesOnly)
@@ -449,7 +454,7 @@ void error(int errorType, std::string errorInfo, bool quit)
         if (State.CaptureParse)
             State.ParsedOutput.append(completeError);
         else
-            IO::printerr(completeError);
+            std::cerr << completeError;
     }
 
     if (quit)
@@ -461,16 +466,16 @@ void error(int errorType, std::string errorInfo, bool quit)
 
 void help(std::string app)
 {
-    IO::println("uslang interpreter");
-    IO::println();
-    IO::println("usage:\t" + app + "\t\t\tstart the shell");
-    IO::println("\t" + app + " {args}\t\t\tstart the shell with parameters");
-    IO::println("\t" + app + " {script}\t\trun a script");
-    IO::println("\t" + app + " {script} {args}\trun a script with parameters");
-    IO::println("\t" + app + " -v, --version\t\tshow current version");
-    IO::println("\t" + app + " -p, --parse\t\tparse a command");
-    IO::println("\t" + app + " -h, --help\t\tshow this message");
-    IO::println();
+    writeline("uslang interpreter");
+    writeline();
+    writeline("usage:\t" + app + "\t\t\tstart the shell");
+    writeline("\t" + app + " {args}\t\t\tstart the shell with parameters");
+    writeline("\t" + app + " {script}\t\trun a script");
+    writeline("\t" + app + " {script} {args}\trun a script with parameters");
+    writeline("\t" + app + " -v, --version\t\tshow current version");
+    writeline("\t" + app + " -p, --parse\t\tparse a command");
+    writeline("\t" + app + " -h, --help\t\tshow this message");
+    writeline();
 }
 
 int load_repl()
@@ -488,7 +493,7 @@ int load_repl()
             std::getline(std::cin, s);
             ++State.CurrentLineNumber;
 
-            if (s != "exit")
+            if (s != Keywords.Exit)
             {
                 parse(ltrim_ws(s));
                 continue;
@@ -516,7 +521,7 @@ int load_repl()
 
 bool stackReady(std::string arg2)
 {
-    return contains(arg2, "+") || contains(arg2, "-") || contains(arg2, "*") || contains(arg2, "/") || contains(arg2, "%") || contains(arg2, "^");
+    return contains(arg2, Operators.Add) || contains(arg2, Operators.Subtract) || contains(arg2, Operators.Multiply) || contains(arg2, Operators.Divide) || contains(arg2, Operators.Modulus) || contains(arg2, Operators.Exponent);
 }
 
 bool isStringStack(std::string arg2)
@@ -784,11 +789,11 @@ std::string getStringStack(std::string arg2)
                 multiplyNext = false;
             }
 
-            if (contents.at(i) == "+")
+            if (contents.at(i) == Operators.Add)
                 addNext = true;
-            else if (contents.at(i) == "-")
+            else if (contents.at(i) == Operators.Subtract)
                 subtractNext = true;
-            else if (contents.at(i) == "*")
+            else if (contents.at(i) == Operators.Multiply)
                 multiplyNext = true;
         }
         else
@@ -879,11 +884,11 @@ void parseStringStack(std::vector<std::string> &contents, std::vector<std::strin
     }
 
     if (currentChar == '+')
-        contents.push_back("+");
+        contents.push_back(Operators.Add);
     else if (currentChar == '-')
-        contents.push_back("-");
+        contents.push_back(Operators.Subtract);
     else if (currentChar == '*')
-        contents.push_back("*");
+        contents.push_back(Operators.Multiply);
 }
 
 double getStack(std::string arg2)
@@ -978,17 +983,17 @@ double getStack(std::string arg2)
                 powerNext = false;
             }
 
-            if (contents.at(i) == "+")
+            if (contents.at(i) == Operators.Add)
                 addNext = true;
-            else if (contents.at(i) == "-")
+            else if (contents.at(i) == Operators.Subtract)
                 subtractNext = true;
-            else if (contents.at(i) == "*")
+            else if (contents.at(i) == Operators.Multiply)
                 multiplyNext = true;
-            else if (contents.at(i) == "/")
+            else if (contents.at(i) == Operators.Divide)
                 divideNext = true;
-            else if (contents.at(i) == "%")
+            else if (contents.at(i) == Operators.Modulus)
                 moduloNext = true;
-            else if (contents.at(i) == "^")
+            else if (contents.at(i) == Operators.Exponent)
                 powerNext = true;
         }
         else
@@ -1037,7 +1042,7 @@ std::string getSubString(std::string arg1, std::string arg2, std::string beforeB
 
             if (!(rangeBegin.length() != 0 && rangeEnd.length() != 0) || !((is_numeric(rangeBegin) && is_numeric(rangeEnd)) || !((int)variableString.length() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0) || !((int)variableString.length() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)))
             {
-                error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+                error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
                 return returnValue;
             }
 
@@ -1083,7 +1088,7 @@ void setSubString(std::string arg1, std::string arg2, std::string beforeBracket)
 
         if (rangeBegin.length() == 0 || rangeEnd.length() == 0 || !(is_numeric(rangeBegin) && is_numeric(rangeEnd)))
         {
-            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
             return;
         }
 
@@ -1113,7 +1118,7 @@ void setSubString(std::string arg1, std::string arg2, std::string beforeBracket)
                 mem.createVariable(arg1, tempString);
         }
         else
-            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
     }
     else if (listRange.size() == 1)
     {
@@ -1163,11 +1168,11 @@ std::string getStringValue(std::string arg1, std::string op, std::string arg2)
     {
         std::string _beforeDot(before_dot(arg2)), _afterDot(after_dot(arg2));
 
-        if (_beforeDot == "env")
+        if (_beforeDot == Keywords.Env)
         {
             internal_env_builtins("", _afterDot, 2);
         }
-        else if (_beforeDot == "args" && _afterDot == "size")
+        else if (_beforeDot == Keywords.Args && _afterDot == Keywords.Size)
         {
             lastValue = itos(mem.getArgCount());
         }
@@ -1183,7 +1188,7 @@ std::string getStringValue(std::string arg1, std::string op, std::string arg2)
     {
         std::string _beforeBrackets(before_brackets(arg2)), _afterBrackets(after_brackets(arg2));
 
-        if (_beforeBrackets == "args")
+        if (_beforeBrackets == Keywords.Args)
         {
             std::vector<std::string> params = parse_bracketrange(_afterBrackets);
             int index = stoi(params.at(0));
@@ -1222,19 +1227,19 @@ std::string getStringValue(std::string arg1, std::string op, std::string arg2)
     else
         lastValue = arg2;
 
-    if (op == "+=")
+    if (op == Operators.AddAssign)
         returnValue = (firstValue + lastValue);
-    else if (op == "-=")
+    else if (op == Operators.SubtractAssign)
         returnValue = subtract_string(firstValue, lastValue);
-    else if (op == "*=" && is_numeric(lastValue))
+    else if (op == Operators.MultiplyAssign && is_numeric(lastValue))
     {
         returnValue = multiply_string(firstValue, stoi(lastValue));
     }
-    else if (op == "/=")
+    else if (op == Operators.DivideAssign)
         returnValue = subtract_string(firstValue, lastValue);
-    else if (op == "**=")
+    else if (op == Operators.ExponentAssign)
         returnValue = dtos(pow(stod(firstValue), stod(lastValue)));
-    else if (op == "=")
+    else if (op == Operators.Assign)
         returnValue = lastValue;
 
     State.LastValue = returnValue;
@@ -1262,11 +1267,11 @@ double getNumberValue(std::string arg1, std::string op, std::string arg2)
     else if (!is_dotless(arg2))
     {
         std::string _beforeDot(before_dot(arg2)), _afterDot(after_dot(arg2));
-        if (_beforeDot == "env")
+        if (_beforeDot == Keywords.Env)
         {
             internal_env_builtins("", _afterDot, 2);
         }
-        else if (_beforeDot == "args" && _afterDot == "size")
+        else if (_beforeDot == Keywords.Args && _afterDot == Keywords.Size)
         {
             lastValue = stod(itos(mem.getArgCount()));
         }
@@ -1312,17 +1317,17 @@ double getNumberValue(std::string arg1, std::string op, std::string arg2)
     else if (is_numeric(arg2))
         lastValue = stod(arg2);
 
-    if (op == "+=")
+    if (op == Operators.AddAssign)
         returnValue = (firstValue + lastValue);
-    else if (op == "-=")
+    else if (op == Operators.SubtractAssign)
         returnValue = (firstValue - lastValue);
-    else if (op == "*=")
+    else if (op == Operators.MultiplyAssign)
         returnValue = (firstValue * lastValue);
-    else if (op == "/=")
+    else if (op == Operators.DivideAssign)
         returnValue = (firstValue / lastValue);
-    else if (op == "**=")
+    else if (op == Operators.ExponentAssign)
         returnValue = pow(firstValue, lastValue);
-    else if (op == "=")
+    else if (op == Operators.Assign)
         returnValue = lastValue;
 
     State.LastValue = dtos(returnValue);
@@ -1369,7 +1374,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                 initializeTemporaryNumber(arg1, arg2, command, tempClassVariableName, tmpObjName, tmpVarName);
             }
         }
-        else if (arg1 == "=")
+        else if (arg1 == Operators.Assign)
         {
             std::string before(before_dot(arg2)), after(after_dot(arg2));
 
@@ -1415,9 +1420,9 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
             {
                 if (has_params(arg2))
                 {
-                    if (before_params(arg2) == "random")
+                    if (before_params(arg2) == Keywords.Random)
                     {
-                        if (!contains(arg2, ".."))
+                        if (!contains(arg2, Keywords.RangeSeparator))
                         {
                             error(ErrorMessage::INVALID_SEQ_SEP, arg2, false);
                             return;
@@ -1468,7 +1473,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                             error(ErrorMessage::INVALID_SEQ, s0 + "_" + s2, false);
                     }
                 }
-                else if (mem.listExists(before) && after == "size")
+                else if (mem.listExists(before) && after == Keywords.Size)
                 {
                     if (mem.isNumber(arg0))
                         mem.setVariable(arg0, stod(itos(mem.getList(before).size())));
@@ -1477,10 +1482,10 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     else
                         error(ErrorMessage::IS_NULL, arg0, false);
                 }
-                else if (before == "self")
+                else if (before == Keywords.Self)
                 {
                     if (mem.classExists(State.CurrentMethodClass))
-                        twoSpace(arg0, arg1, (State.CurrentMethodClass + "." + after), command);
+                        twoSpace(arg0, arg1, (State.CurrentMethodClass + Keywords.Dot + after), command);
                     else
                         twoSpace(arg0, arg1, after, command);
                 }
@@ -1535,7 +1540,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     else
                         error(ErrorMessage::VAR_UNDEFINED, arg2, false);
                 }
-                else if (before == "env")
+                else if (before == Keywords.Env)
                 {
                     internal_env_builtins(arg0, after, 1);
                 }
@@ -1543,7 +1548,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                 {
                     parse_mathfunc_assignfromvar(arg0, before, after);
                 }
-                else if (after == "to_int")
+                else if (after == Keywords.ToInteger)
                 {
                     if (mem.variableExists(before))
                     {
@@ -1560,7 +1565,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     else
                         error(ErrorMessage::VAR_UNDEFINED, before, false);
                 }
-                else if (after == "to_double")
+                else if (after == Keywords.ToDouble)
                 {
                     if (mem.variableExists(before))
                     {
@@ -1577,7 +1582,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     else
                         error(ErrorMessage::VAR_UNDEFINED, before, false);
                 }
-                else if (after == "to_string")
+                else if (after == Keywords.ToString)
                 {
                     if (mem.variableExists(before))
                     {
@@ -1589,7 +1594,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     else
                         error(ErrorMessage::VAR_UNDEFINED, before, false);
                 }
-                else if (after == "to_number")
+                else if (after == Keywords.ToNumber)
                 {
                     if (mem.variableExists(before))
                     {
@@ -1601,7 +1606,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     else
                         error(ErrorMessage::VAR_UNDEFINED, before, false);
                 }
-                else if (before == "readline")
+                else if (before == Keywords.ReadLine)
                 {
                     if (mem.variableExists(after))
                     {
@@ -1654,7 +1659,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                             mem.setVariable(arg0, line);
                     }
                 }
-                else if (before == "mask")
+                else if (before == Keywords.Mask)
                 {
                     if (mem.variableExists(after))
                     {
@@ -1675,7 +1680,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                             else
                                 error(ErrorMessage::IS_NULL, arg0, false);
 
-                            IO::println();
+                            writeline();
                         }
                         else
                         {
@@ -1694,7 +1699,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                             else
                                 error(ErrorMessage::IS_NULL, arg0, false);
 
-                            IO::println();
+                            writeline();
                         }
                     }
                     else
@@ -1707,10 +1712,10 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                         else
                             mem.setVariable(arg0, line);
 
-                        IO::println();
+                        writeline();
                     }
                 }
-                else if (after == "to_lower")
+                else if (after == Keywords.ToLower)
                 {
                     if (mem.variableExists(before))
                     {
@@ -1725,7 +1730,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                             error(ErrorMessage::IS_NULL, arg0, false);
                     }
                 }
-                else if (after == "read")
+                else if (after == Keywords.Read)
                 {
                     if (mem.isString(arg0))
                     {
@@ -1788,7 +1793,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     else
                         error(ErrorMessage::NULL_STRING, arg0, false);
                 }
-                else if (after == "to_upper")
+                else if (after == Keywords.ToUpper)
                 {
                     if (mem.variableExists(before))
                     {
@@ -1803,7 +1808,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                             error(ErrorMessage::IS_NULL, arg0, false);
                     }
                 }
-                else if (after == "size")
+                else if (after == Keywords.Size)
                 {
                     if (mem.variableExists(before))
                     {
@@ -1825,7 +1830,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                             error(ErrorMessage::CONV_ERR, arg0, false);
                     }
                 }
-                else if (after == "bytes")
+                else if (after == Keywords.FileSize)
                 {
                     if (mem.isNumber(arg0))
                     {
@@ -1866,7 +1871,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     else if (mem.getVar(arg0).waiting())
                     {
                         if (is_numeric(arg2))
-                            mem.setVariable(arg0, stod(before + "." + after));
+                            mem.setVariable(arg0, stod(before + Keywords.Dot + after));
                         else
                             mem.setVariable(arg0, arg2);
                     }
@@ -1943,9 +1948,9 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     else
                         error(ErrorMessage::IS_NULL, arg2, false);
                 }
-                else if (arg2 == "mask" || arg2 == "readline")
+                else if (arg2 == Keywords.Mask || arg2 == Keywords.ReadLine)
                 {
-                    if (arg2 == "mask")
+                    if (arg2 == Keywords.Mask)
                     {
                         std::string masked("");
                         masked = get_stdin_quiet("");
@@ -2106,19 +2111,19 @@ void parse_assign(std::string arg0, std::string arg1, std::string arg2)
     if (firstIsNumeric && secondIsNumeric)
     {
         double result = 0;
-        if (arg1 == "=")
+        if (arg1 == Operators.Assign)
             result = secondNumber;
-        else if (arg1 == "+=")
+        else if (arg1 == Operators.AddAssign)
             result = firstNumber + secondNumber;
-        else if (arg1 == "-=")
+        else if (arg1 == Operators.SubtractAssign)
             result = firstNumber - secondNumber;
-        else if (arg1 == "*=")
+        else if (arg1 == Operators.MultiplyAssign)
             result = firstNumber * secondNumber;
-        else if (arg1 == "%=")
+        else if (arg1 == Operators.ModuloAssign)
             result = (int)firstNumber % (int)secondNumber;
-        else if (arg1 == "**=")
+        else if (arg1 == Operators.ExponentAssign)
             result = pow(firstNumber, secondNumber);
-        else if (arg1 == "/=")
+        else if (arg1 == Operators.DivideAssign)
             result = firstNumber / secondNumber;
         else 
         {
@@ -2131,30 +2136,14 @@ void parse_assign(std::string arg0, std::string arg1, std::string arg2)
     else if (!firstIsNumeric && secondIsNumeric)
     {
         std::string result(first);
-        if (arg1 == "=")
+        if (arg1 == Operators.Assign)
             result = dtos(secondNumber);
-        else if (arg1 == "+=")
+        else if (arg1 == Operators.AddAssign)
             result = result + dtos(secondNumber);
-        else if (arg1 == "-=")
+        else if (arg1 == Operators.SubtractAssign)
             result = subtract_string(result, second);
-        else if (arg1 == "*=")
+        else if (arg1 == Operators.MultiplyAssign)
             result = multiply_string(result, (int)secondNumber);
-        else if (arg1 == "++=")
-        {
-            int len = result.length();
-            std::string cleaned("");
-            for (int i = 0; i < len; i++)
-                cleaned.push_back((char)(((int)result[i]) + (int)secondNumber));
-            result = cleaned;
-        }
-        else if (arg1 == "--=")
-        {
-            int len = result.length();
-            std::string cleaned("");
-            for (int i = 0; i < len; i++)
-                cleaned.push_back((char)(((int)result[i]) - (int)secondNumber));
-            result = cleaned;
-        }
         else 
         {
             error(ErrorMessage::INVALID_OP, arg1, true);
@@ -2166,13 +2155,13 @@ void parse_assign(std::string arg0, std::string arg1, std::string arg2)
     else if (!firstIsNumeric && !secondIsNumeric)
     {
         std::string result(first);
-        if (arg1 == "=")
+        if (arg1 == Operators.Assign)
             result = second;
-        else if (arg1 == "+=")
+        else if (arg1 == Operators.AddAssign)
             result += second;
-        else if (arg1 == "?")
+        else if (arg1 == Keywords.ShellExec)
             result = Env::getStdout(second.c_str());
-        else if (arg1 == "!")
+        else if (arg1 == Keywords.InlineParse)
             result = get_parsed_stdout(second.c_str());
         else
         {
@@ -2201,7 +2190,7 @@ void init_listvalues(std::string arg0, std::string arg1, std::string arg2, std::
         {
             if (stoi(after) == 0)
             {
-                if (arg1 == "=")
+                if (arg1 == Operators.Assign)
                 {
                     if (mem.variableExists(arg2))
                     {
@@ -2220,7 +2209,7 @@ void init_listvalues(std::string arg0, std::string arg1, std::string arg2, std::
                 error(ErrorMessage::OUT_OF_BOUNDS, arg0, false);
             else
             {
-                if (arg1 == "=")
+                if (arg1 == Operators.Assign)
                 {
                     if (mem.variableExists(arg2))
                     {
@@ -2261,13 +2250,13 @@ void init_listvalues(std::string arg0, std::string arg1, std::string arg2, std::
 
         if (!(rangeBegin.length() != 0 && rangeEnd.length() != 0))
         {
-            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
             return;
         }
 
         if (!(is_numeric(rangeBegin) && is_numeric(rangeEnd)))
         {
-            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
             return;
         }
 
@@ -2279,12 +2268,12 @@ void init_listvalues(std::string arg0, std::string arg1, std::string arg2, std::
                 return;
             }
 
-            if (arg1 == "+=")
+            if (arg1 == Operators.AddAssign)
             {
                 for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
                     mem.addItemToList(arg0, mem.getList(listName).at(i));
             }
-            else if (arg1 == "=")
+            else if (arg1 == Operators.Assign)
             {
                 mem.getList(arg0).clear();
 
@@ -2302,12 +2291,12 @@ void init_listvalues(std::string arg0, std::string arg1, std::string arg2, std::
                 return;
             }
 
-            if (arg1 == "+=")
+            if (arg1 == Operators.AddAssign)
             {
                 for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
                     mem.addItemToList(arg0, mem.getList(listName).at(i));
             }
-            else if (arg1 == "=")
+            else if (arg1 == Operators.Assign)
             {
                 mem.getList(arg0).clear();
 
@@ -2318,9 +2307,9 @@ void init_listvalues(std::string arg0, std::string arg1, std::string arg2, std::
                 error(ErrorMessage::INVALID_OPERATOR, arg1, false);
         }
         else
-            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
     }
-    else if (mem.variableExists(_b) && contains(_a, "split") && arg1 == "=")
+    else if (mem.variableExists(_b) && contains(_a, Keywords.Split) && arg1 == Operators.Assign)
     {
         if (!mem.isString(_b))
         {
@@ -2350,14 +2339,14 @@ void init_listvalues(std::string arg0, std::string arg1, std::string arg2, std::
     {
         std::vector<std::string> params = parse_params(arg2);
 
-        if (arg1 == "=")
+        if (arg1 == Operators.Assign)
         {
             mem.getList(arg0).clear();
             setList(arg0, arg2, params);
         }
-        else if (arg1 == "+=")
+        else if (arg1 == Operators.AddAssign)
             setList(arg0, arg2, params);
-        else if (arg1 == "-=")
+        else if (arg1 == Operators.SubtractAssign)
         {
             for (int i = 0; i < (int)params.size(); i++)
             {
@@ -2379,7 +2368,7 @@ void init_listvalues(std::string arg0, std::string arg1, std::string arg2, std::
     }
     else if (mem.variableExists(arg2)) // ADD/REMOVE VARIABLE VALUE TO/FROM LIST
     {
-        if (arg1 == "+=")
+        if (arg1 == Operators.AddAssign)
         {
             if (mem.isString(arg2))
                 mem.addItemToList(arg0, mem.varString(arg2));
@@ -2388,7 +2377,7 @@ void init_listvalues(std::string arg0, std::string arg1, std::string arg2, std::
             else
                 error(ErrorMessage::CONV_ERR, arg2, false);
         }
-        else if (arg1 == "-=")
+        else if (arg1 == Operators.SubtractAssign)
         {
             if (mem.isString(arg2))
                 mem.getList(arg0).remove(mem.varString(arg2));
@@ -2406,14 +2395,14 @@ void init_listvalues(std::string arg0, std::string arg1, std::string arg2, std::
 
         std::vector<std::string> _p = parse_params(State.LastValue);
 
-        if (arg1 == "=")
+        if (arg1 == Operators.Assign)
         {
             mem.getList(arg0).clear();
 
             for (int i = 0; i < (int)_p.size(); i++)
                 mem.addItemToList(arg0, _p.at(i));
         }
-        else if (arg1 == "+=")
+        else if (arg1 == Operators.AddAssign)
         {
             for (int i = 0; i < (int)_p.size(); i++)
                 mem.addItemToList(arg0, _p.at(i));
@@ -2423,14 +2412,14 @@ void init_listvalues(std::string arg0, std::string arg1, std::string arg2, std::
     }
     else // ADD/REMOVE STRING TO/FROM LIST
     {
-        if (arg1 == "+=")
+        if (arg1 == Operators.AddAssign)
         {
             if (arg2.length() != 0)
                 mem.addItemToList(arg0, arg2);
             else
                 error(ErrorMessage::IS_EMPTY, arg2, false);
         }
-        else if (arg1 == "-=")
+        else if (arg1 == Operators.SubtractAssign)
         {
             if (arg2.length() != 0)
                 mem.getList(arg0).remove(arg2);
@@ -2442,7 +2431,7 @@ void init_listvalues(std::string arg0, std::string arg1, std::string arg2, std::
 
 void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command)
 {
-    if (arg1 == "=")
+    if (arg1 == Operators.Assign)
     {
         std::string before(before_dot(arg2)), after(after_dot(arg2));
 
@@ -2476,16 +2465,16 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             else
                 error(ErrorMessage::LIST_UNDEFINED, beforeBracket, false);
         }
-        else if (mem.listExists(before) && after == "size")
+        else if (mem.listExists(before) && after == Keywords.Size)
             mem.createVariable(arg0, stod(itos(mem.getList(before).size())));
-        else if (before == "self")
+        else if (before == Keywords.Self)
         {
             if (mem.classExists(State.CurrentMethodClass))
-                twoSpace(arg0, arg1, (State.CurrentMethodClass + "." + after), command);
+                twoSpace(arg0, arg1, (State.CurrentMethodClass + Keywords.Dot + after), command);
             else
                 twoSpace(arg0, arg1, after, command);
         }
-        else if (after == "to_integer")
+        else if (after == Keywords.ToInteger)
         {
             if (!mem.variableExists(before))
             {
@@ -2503,7 +2492,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             else
                 error(ErrorMessage::IS_NULL, before, false);
         }
-        else if (after == "to_double")
+        else if (after == Keywords.ToDouble)
         {
             if (!mem.variableExists(before))
             {
@@ -2521,7 +2510,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             else
                 error(ErrorMessage::IS_NULL, before, false);
         }
-        else if (after == "to_string")
+        else if (after == Keywords.ToString)
         {
             if (!mem.variableExists(before))
             {
@@ -2534,7 +2523,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             else
                 error(ErrorMessage::IS_NULL, before, false);
         }
-        else if (after == "to_number")
+        else if (after == Keywords.ToNumber)
         {
             if (!mem.variableExists(before))
             {
@@ -2583,7 +2572,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                     error(ErrorMessage::IS_NULL, mem.getClass(before).getVariable(after).name(), false);
             }
         }
-        else if (mem.variableExists(before) && after == "read")
+        else if (mem.variableExists(before) && after == Keywords.Read)
         {
             if (!mem.isString(before))
             {
@@ -2667,9 +2656,9 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 mem.createVariable(arg0, getStringStack(arg2));
             else if (stackReady(arg2))
                 mem.createVariable(arg0, getStack(arg2));
-            else if (before_params(arg2) == "random")
+            else if (before_params(arg2) == Keywords.Random)
             {
-                if (!contains(arg2, ".."))
+                if (!contains(arg2, Keywords.RangeSeparator))
                 {
                     error(ErrorMessage::INVALID_RANGE_SEP, arg2, false);
                     return;
@@ -2708,7 +2697,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                     }
                 }
                 else
-                    error(ErrorMessage::OUT_OF_BOUNDS, s0 + ".." + s2, false);
+                    error(ErrorMessage::OUT_OF_BOUNDS, s0 + Keywords.RangeSeparator + s2, false);
             }
             else
             {
@@ -2729,10 +2718,10 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             else
                 mem.createVariable(arg0, State.Null);
         }
-        else if (arg2 == "mask" || arg2 == "readline")
+        else if (arg2 == Keywords.Mask || arg2 == Keywords.ReadLine)
         {
             std::string line("");
-            if (arg2 == "mask")
+            if (arg2 == Keywords.Mask)
             {
                 line = get_stdin_quiet("");
 
@@ -2754,7 +2743,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
         }
         else if (arg2 == "args.size")
             mem.createVariable(arg0, (double)mem.getArgCount());
-        else if (before == "readline")
+        else if (before == Keywords.ReadLine)
         {
             if (mem.variableExists(after))
             {
@@ -2793,7 +2782,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                     mem.createVariable(arg0, line);
             }
         }
-        else if (before == "mask")
+        else if (before == Keywords.Mask)
         {
             if (mem.variableExists(after))
             {
@@ -2807,7 +2796,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                     else
                         mem.createVariable(arg0, line);
 
-                    IO::println();
+                    writeline();
                 }
                 else
                 {
@@ -2819,7 +2808,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                     else
                         mem.createVariable(arg0, line);
 
-                    IO::println();
+                    writeline();
                 }
             }
             else
@@ -2832,10 +2821,10 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 else
                     mem.createVariable(arg0, line);
 
-                IO::println();
+                writeline();
             }
         }
-        else if (after == "size")
+        else if (after == Keywords.Size)
         {
             if (!mem.variableExists(before))
             {
@@ -2852,7 +2841,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
         {
             parse_mathfunc(arg0, before, after);
         }
-        else if (after == "to_upper")
+        else if (after == Keywords.ToUpper)
         {
             if (!mem.variableExists(before))
             {
@@ -2865,7 +2854,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
-        else if (after == "to_lower")
+        else if (after == Keywords.ToLower)
         {
             if (!mem.variableExists(before))
             {
@@ -2878,7 +2867,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             else
                 error(ErrorMessage::CONV_ERR, before, false);
         }
-        else if (after == "bytes")
+        else if (after == Keywords.FileSize)
         {
             if (!mem.variableExists(before))
             {
@@ -2900,7 +2889,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             else
                 error(ErrorMessage::READ_FAIL, mem.varString(before), false);
         }
-        else if (before == "env")
+        else if (before == Keywords.Env)
         {
             internal_env_builtins(arg0, after, 0);
         }
@@ -2912,7 +2901,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 mem.createVariable(arg0, pre_parse(arg2));
         }
     }
-    else if (arg1 == "+=")
+    else if (arg1 == Operators.AddAssign)
     {
         if (mem.variableExists(arg2))
         {
@@ -2931,7 +2920,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 mem.createVariable(arg0, pre_parse(arg2));
         }
     }
-    else if (arg1 == "-=")
+    else if (arg1 == Operators.SubtractAssign)
     {
         if (mem.variableExists(arg2))
         {
@@ -2948,7 +2937,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 mem.createVariable(arg0, pre_parse(arg2));
         }
     }
-    else if (arg1 == "?")
+    else if (arg1 == Keywords.ShellExec)
     {
         if (!mem.variableExists(arg2))
         {
@@ -2961,7 +2950,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
         else
             error(ErrorMessage::CONV_ERR, arg2, false);
     }
-    else if (arg1 == "!")
+    else if (arg1 == Keywords.InlineParse)
     {
         if (!mem.variableExists(arg2))
         {
@@ -2994,35 +2983,35 @@ void parse_mathfunc_assignfromvar(std::string arg0, std::string before, std::str
 
     double value = mem.varNumber(before);
 
-    if (after == "cos")
+    if (after == Keywords.MathCos)
         value = cos(value);
-    else if (after == "acos")
+    else if (after == Keywords.MathAcos)
         value = acos(value);
-    else if (after == "cosh")
+    else if (after == Keywords.MathCosh)
         value = cosh(value);
-    else if (after == "log")
+    else if (after == Keywords.MathLog)
         value = log(value);
-    else if (after == "sqrt")
+    else if (after == Keywords.MathSqrt)
         value = sqrt(value);
-    else if (after == "abs")
+    else if (after == Keywords.MathAbs)
         value = abs(value);
-    else if (after == "floor")
+    else if (after == Keywords.MathFloor)
         value = floor(value);
-    else if (after == "ceil")
+    else if (after == Keywords.MathCeil)
         value = ceil(value);
-    else if (after == "exp")
+    else if (after == Keywords.MathExp)
         value = exp(value);
-    else if (after == "sin")
+    else if (after == Keywords.MathSin)
         value = sin(value);
-    else if (after == "sinh")
+    else if (after == Keywords.MathSinh)
         value = sinh(value);
-    else if (after == "asin")
+    else if (after == Keywords.MathAsin)
         value = asin(value);
-    else if (after == "tan")
+    else if (after == Keywords.MathTan)
         value = tan(value);
-    else if (after == "tanh")
+    else if (after == Keywords.MathTanh)
         value = tanh(value);
-    else if (after == "atan")
+    else if (after == Keywords.MathAtan)
         value = atan(value);
 
     if (mem.isNumber(arg0))
@@ -3049,35 +3038,35 @@ void parse_mathfunc(std::string arg0, std::string before, std::string after)
 
     double value = mem.varNumber(before);
     
-    if (after == "sin")
+    if (after == Keywords.MathSin)
         mem.createVariable(arg0, sin(value));
-    else if (after == "sinh")
+    else if (after == Keywords.MathSinh)
         mem.createVariable(arg0, sinh(value));
-    else if (after == "asin")
+    else if (after == Keywords.MathAsin)
         mem.createVariable(arg0, asin(value));
-    else if (after == "tan")
+    else if (after == Keywords.MathTan)
         mem.createVariable(arg0, tan(value));
-    else if (after == "tanh")
+    else if (after == Keywords.MathTanh)
         mem.createVariable(arg0, tanh(value));
-    else if (after == "atan")
+    else if (after == Keywords.MathAtan)
         mem.createVariable(arg0, atan(value));
-    else if (after == "cos")
+    else if (after == Keywords.MathCos)
         mem.createVariable(arg0, cos(value));
-    else if (after == "acos")
+    else if (after == Keywords.MathAcos)
         mem.createVariable(arg0, acos(value));
-    else if (after == "cosh")
+    else if (after == Keywords.MathCosh)
         mem.createVariable(arg0, cosh(value));
-    else if (after == "log")
+    else if (after == Keywords.MathLog)
         mem.createVariable(arg0, log(value));
-    else if (after == "sqrt")
+    else if (after == Keywords.MathSqrt)
         mem.createVariable(arg0, sqrt(value));
-    else if (after == "abs")
+    else if (after == Keywords.MathAbs)
         mem.createVariable(arg0, abs(value));
-    else if (after == "floor")
+    else if (after == Keywords.MathFloor)
         mem.createVariable(arg0, floor(value));
-    else if (after == "ceil")
+    else if (after == Keywords.MathCeil)
         mem.createVariable(arg0, ceil(value));
-    else if (after == "exp")
+    else if (after == Keywords.MathExp)
         mem.createVariable(arg0, exp(value));
 }
 
@@ -3088,7 +3077,7 @@ void init_classvar(std::string arg0, std::string arg1, std::string arg2, std::ve
 
     if (mem.classExists(className))
     {
-        if (arg1 == "=")
+        if (arg1 == Operators.Assign)
         {
             Variable classVariable = mem.getClassVariable(className, variableName);
             if (classVariable.getString() != State.Null)
@@ -3101,7 +3090,7 @@ void init_classvar(std::string arg0, std::string arg1, std::string arg2, std::ve
 
 void copy_class(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command)
 {
-    if (arg1 == "=")
+    if (arg1 == Operators.Assign)
     {
         std::vector<Method> classMethods = mem.getClass(arg2).getMethods();
         Class newClass(arg0);
@@ -3136,7 +3125,7 @@ void init_const(std::string arg0, std::string arg1, std::string arg2)
         return;
     }
 
-    if (arg1 != "=")
+    if (arg1 != Operators.Assign)
     {
         error(ErrorMessage::INVALID_OPERATOR, arg1, false);
         return;
@@ -3150,25 +3139,18 @@ void init_const(std::string arg0, std::string arg1, std::string arg2)
 
 void parse_clear(std::string &arg)
 {
-    if (arg == "methods")
+    if (arg == Keywords.Methods)
         mem.clearMethods();
-    else if (arg == "classes")
+    else if (arg == Keywords.Classes)
         mem.clearClasses();
-    else if (arg == "variables")
+    else if (arg == Keywords.Variables)
         mem.clearVariables();
-    else if (arg == "lists")
+    else if (arg == Keywords.Lists)
         mem.clearLists();
-    else if (arg == "all")
+    else if (arg == Keywords.All)
         mem.clearAll();
-    else if (arg == "constants")
+    else if (arg == Keywords.Constants)
         mem.clearConstants();
-}
-
-void internal_encode_decode(std::string arg0, std::string arg1)
-{
-    Crypt c;
-    std::string text = mem.variableExists(arg1) ? (mem.isString(arg1) ? mem.varString(arg1) : mem.varNumberString(arg1)) : arg1;
-    write(arg0 == "encode" ? c.e(text) : c.d(text));
 }
 
 // TODO: refactor
@@ -3178,21 +3160,29 @@ void internal_encode_decode(std::string arg0, std::string arg1)
 //		2 = setLastValue
 void internal_env_builtins(std::string arg0, std::string after, int mode)
 {
-    Crypt c;
-    std::string defaultValue = c.e(DT::timeNow());
+    std::string defaultValue = DT::timeNow();
     std::string sValue(defaultValue);
     double dValue = 0;
 
-    if (after == "cwd")
+    if (after == Keywords.CurrentDirectory)
         sValue = Env::getCurrentDirectory();
-    else if (after == "usl")
+    else if (after == Keywords.UslangApp)
         sValue = State.Application;
-    else if (after == "user")
+    else if (after == Keywords.CurrentUser)
         sValue = Env::getUser();
-    else if (after == "machine")
+    else if (after == Keywords.CurrentMachine)
         sValue = Env::getMachine();
-    else if (after == "init_dir" || after == "initial_directory")
+    else if (after == Keywords.InitialDirectory)
         sValue = State.InitialDirectory;
+    else if (after == Keywords.LastError)
+        sValue = State.LastError;
+    else if (after == Keywords.LastValue)
+        sValue = State.LastValue;
+    else
+        sValue = Env::getEnvironmentVariable(after);
+
+// TODO: Refactor
+/*
     else if (after == "this_second")
         dValue = (double)DT::secondNow();
     else if (after == "this_minute")
@@ -3215,17 +3205,9 @@ void internal_env_builtins(std::string arg0, std::string after, int mode)
         sValue = DT::amOrPm();
     else if (after == "now")
         sValue = DT::timeNow();
-    else if (after == "last_error")
-        sValue = State.LastError;
-    else if (after == "last_value")
-        sValue = State.LastValue;
-    else if (after == "empty_string")
-        sValue = "";
-    else if (after == "empty_number")
-        dValue = 0;
-    else
-        sValue = Env::getEnvironmentVariable(after);
+*/
 
+    // TODO: refactor into three different functions.    
     switch (mode)
     {
     case 0:
@@ -3255,11 +3237,10 @@ void internal_env_builtins(std::string arg0, std::string after, int mode)
 }
 
 // TODO: refactor
-void internal_puts(std::string arg0, std::string arg1)
+void internal_puts(std::string arg0, std::string arg1, bool newline)
 {
     std::string text(arg1);
-    bool is_say = (arg0 == "say");
-    bool is_print = (arg0 == "print" || arg0 == "println");
+    
     // if parameter is variable, get it's value
     if (mem.variableExists(arg1))
     {
@@ -3293,15 +3274,8 @@ void internal_puts(std::string arg0, std::string arg1)
         }
     }
 
-    if (is_say)
+    if (newline)
         writeline(text);
-    else if (is_print)
-    {
-        if (arg0 == "println")
-            IO::println(text);
-        else
-            IO::print(text);
-    }
     else
         write(text);
 }

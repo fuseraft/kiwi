@@ -4,7 +4,6 @@
 #include "gc/collectable.h"
 #include "objects/constant.h"
 #include "objects/container.h"
-#include "objects/crypt.h"
 #include "objects/list.h"
 #include "objects/method.h"
 #include "objects/module.h"
