@@ -65,17 +65,17 @@ void Executor::executeSimpleStatement(std::string left, std::string oper, std::s
 {
     if (is_numeric(left) && is_numeric(right))
     {
-        if (oper == "+")
+        if (oper == Operators.Add)
             writeline(dtos(stod(left) + stod(right)));
-        else if (oper == "-")
+        else if (oper == Operators.Subtract)
             writeline(dtos(stod(left) - stod(right)));
-        else if (oper == "*")
+        else if (oper == Operators.Multiply)
             writeline(dtos(stod(left) * stod(right)));
-        else if (oper == "/")
+        else if (oper == Operators.Divide)
             writeline(dtos(stod(left) / stod(right)));
-        else if (oper == "**")
+        else if (oper == Operators.Exponent)
             writeline(dtos(pow(stod(left), stod(right))));
-        else if (oper == "%")
+        else if (oper == Operators.Modulus)
         {
             if ((int)stod(right) == 0)
                 error(ErrorMessage::DIVIDED_BY_ZERO, left + " " + oper + " " + right, false);
@@ -87,11 +87,11 @@ void Executor::executeSimpleStatement(std::string left, std::string oper, std::s
     }
     else
     {
-        if (oper == "+")
+        if (oper == Operators.Add)
             writeline(left + right);
-        else if (oper == "-")
+        else if (oper == Operators.Subtract)
             writeline(subtract_string(left, right));
-        else if (oper == "*")
+        else if (oper == Operators.Multiply)
         {
             if (is_numberless(right))
             {
@@ -108,7 +108,7 @@ void Executor::executeSimpleStatement(std::string left, std::string oper, std::s
 
             State.LastValue = bigstr;
         }
-        else if (oper == "/")
+        else if (oper == Operators.Divide)
             writeline(subtract_string(left, right));
         else
             error(ErrorMessage::INVALID_OPERATOR, oper, false);
@@ -356,7 +356,7 @@ void Executor::executeWhileLoop(Method m)
 {
     for (int i = 0; i < m.size(); ++i)
     {
-        if (m.at(i) == "leave!")
+        if (m.at(i) == Keywords.Break)
             State.Breaking = true;
         else
             parse(m.at(i));
