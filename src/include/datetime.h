@@ -157,7 +157,7 @@ public:
             day = "Saturday";
             break;
         default:
-            IO::println("defaulted: " + t->tm_mday);
+            writeline("defaulted: " + t->tm_mday);
             break;
         }
 

@@ -172,7 +172,7 @@ void parse(std::string s)
             {
                 // handle arguments
                 // args[0], args[1], ..., args[n-1]
-                if (contains(command.at(i), "args") && command.at(i) != "args.size")
+                if (contains(command.at(i), Keywords.Args) && command.at(i) != Keywords.ArgValues)
                 {
                     std::vector<std::string> params = parse_bracketrange(command.at(i));
 
@@ -195,11 +195,11 @@ void parse(std::string s)
 
             if (State.DefiningSwitchBlock)
             {
-                if (begins_with(s, "case"))
+                if (begins_with(s, Keywords.Case))
                     mem.getMainSwitch().addCase(command.at(1));
-                else if (s == "default")
+                else if (s == Keywords.Default)
                     State.InDefaultCase = true;
-                else if (s == "end")
+                else if (s == Keywords.End)
                 {
                     std::string switch_value("");
 
@@ -240,7 +240,7 @@ void parse(std::string s)
             }
             else if (State.DefiningScript)
             {
-                if (s == "__end__")
+                if (s == Keywords.EndInlineScript)
                 {
                     State.CurrentScriptName = "";
                     State.DefiningScript = false;
@@ -252,30 +252,30 @@ void parse(std::string s)
             {
                 if (State.RaiseCatchBlock)
                 {
-                    if (s == "catch")
+                    if (s == Keywords.Catch)
                         State.RaiseCatchBlock = false;
                 }
-                else if (State.ExecutedTryBlock && s == "catch")
+                else if (State.ExecutedTryBlock && s == Keywords.Catch)
                     State.SkipCatchBlock = true;
                 else if (State.ExecutedTryBlock && State.SkipCatchBlock)
                 {
-                    if (s == "caught")
+                    if (s == Keywords.Caught)
                     {
                         State.SkipCatchBlock = false;
-                        parse("caught");
+                        parse(Keywords.Caught);
                     }
                 }
                 else if (State.DefiningMethod)
                 {
-                    if (contains(s, "while"))
+                    if (contains(s, Keywords.While))
                         State.DefiningLocalWhileLoop = true;
 
-                    if (contains(s, "switch"))
+                    if (contains(s, Keywords.Switch))
                         State.DefiningLocalSwitchBlock = true;
 
                     if (State.DefiningParameterizedMethod)
                     {
-                        if (s == "end")
+                        if (s == Keywords.End)
                         {
                             if (State.DefiningLocalWhileLoop)
                             {
@@ -360,7 +360,7 @@ void parse(std::string s)
                     }
                     else
                     {
-                        if (s == "end")
+                        if (s == Keywords.End)
                         {
                             if (State.DefiningLocalWhileLoop)
                             {
@@ -427,26 +427,26 @@ void parse(std::string s)
                 {
                     if (State.DefiningNest)
                     {
-                        if (command.at(0) == "endif")
+                        if (command.at(0) == Keywords.Endif)
                             exec.executeNest(mem.getIfStatement(mem.getIfStatementCount() - 1).getNest());
                         else
                             mem.getIfStatement(mem.getIfStatementCount() - 1).inNest(s);
                     }
                     else
                     {
-                        if (command.at(0) == "if")
+                        if (command.at(0) == Keywords.If)
                         {
                             State.DefiningNest = true;
 
                             if (size == 4)
-                                threeSpace("if", command.at(1), command.at(2), command.at(3), command);
+                                threeSpace(Keywords.If, command.at(1), command.at(2), command.at(3), command);
                             else
                             {
                                 mem.createIfStatement(false);
                                 State.DefiningNest = false;
                             }
                         }
-                        else if (command.at(0) == "endif")
+                        else if (command.at(0) == Keywords.Endif)
                         {
                             State.DefiningIfStatement = false;
                             State.ExecutedIfStatement = true;
@@ -468,16 +468,16 @@ void parse(std::string s)
                             State.FailedIfStatement = false;
                             State.IfStatementCount = 0;
                         }
-                        else if (command.at(0) == "elsif" || command.at(0) == "elif")
+                        else if (command.at(0) == Keywords.Elsif)
                         {
                             if (size == 4)
-                                threeSpace("if", command.at(1), command.at(2), command.at(3), command);
+                                threeSpace(Keywords.If, command.at(1), command.at(2), command.at(3), command);
                             else
                                 mem.createIfStatement(false);
                         }
-                        else if (s == "else")
-                            threeSpace("if", "true", "==", "true", command);
-                        else if (s == "failif")
+                        else if (s == Keywords.Else)
+                            threeSpace(Keywords.If, Keywords.True, Operators.Equal, Keywords.True, command);
+                        else if (s == Keywords.Failif)
                         {
                             if (State.FailedIfStatement == true)
                                 mem.createIfStatement(true);
@@ -492,7 +492,7 @@ void parse(std::string s)
                 {
                     if (State.DefiningWhileLoop)
                     {
-                        if (command.at(0) == "end")
+                        if (command.at(0) == Keywords.End)
                         {
                             State.DefiningWhileLoop = false;
 
@@ -502,7 +502,7 @@ void parse(std::string s)
 
                             if (mem.variableExists(v1) && mem.variableExists(v2))
                             {
-                                if (op == "==")
+                                if (op == Operators.Equal)
                                 {
                                     while (mem.varNumber(v1) == mem.varNumber(v2))
                                     {
@@ -516,7 +516,7 @@ void parse(std::string s)
 
                                     State.WhileLoopCount = 0;
                                 }
-                                else if (op == "<")
+                                else if (op == Operators.LessThan)
                                 {
                                     while (mem.varNumber(v1) < mem.varNumber(v2))
                                     {
@@ -530,7 +530,7 @@ void parse(std::string s)
 
                                     State.WhileLoopCount = 0;
                                 }
-                                else if (op == ">")
+                                else if (op == Operators.GreaterThan)
                                 {
                                     while (mem.varNumber(v1) > mem.varNumber(v2))
                                     {
@@ -544,7 +544,7 @@ void parse(std::string s)
 
                                     State.WhileLoopCount = 0;
                                 }
-                                else if (op == "<=")
+                                else if (op == Operators.LessThanOrEqual)
                                 {
                                     while (mem.varNumber(v1) <= mem.varNumber(v2))
                                     {
@@ -558,7 +558,7 @@ void parse(std::string s)
 
                                     State.WhileLoopCount = 0;
                                 }
-                                else if (op == ">=")
+                                else if (op == Operators.GreaterThanOrEqual)
                                 {
                                     while (mem.varNumber(v1) >= mem.varNumber(v2))
                                     {
@@ -572,7 +572,7 @@ void parse(std::string s)
 
                                     State.WhileLoopCount = 0;
                                 }
-                                else if (op == "!=")
+                                else if (op == Operators.NotEqual)
                                 {
                                     while (mem.varNumber(v1) != mem.varNumber(v2))
                                     {
@@ -589,7 +589,7 @@ void parse(std::string s)
                             }
                             else if (mem.variableExists(v1))
                             {
-                                if (op == "==")
+                                if (op == Operators.Equal)
                                 {
                                     while (mem.varNumber(v1) == stoi(v2))
                                     {
@@ -603,7 +603,7 @@ void parse(std::string s)
 
                                     State.WhileLoopCount = 0;
                                 }
-                                else if (op == "<")
+                                else if (op == Operators.LessThan)
                                 {
                                     while (mem.varNumber(v1) < stoi(v2))
                                     {
@@ -617,7 +617,7 @@ void parse(std::string s)
 
                                     State.WhileLoopCount = 0;
                                 }
-                                else if (op == ">")
+                                else if (op == Operators.GreaterThan)
                                 {
                                     while (mem.varNumber(v1) > stoi(v2))
                                     {
@@ -631,7 +631,7 @@ void parse(std::string s)
 
                                     State.WhileLoopCount = 0;
                                 }
-                                else if (op == "<=")
+                                else if (op == Operators.LessThanOrEqual)
                                 {
                                     while (mem.varNumber(v1) <= stoi(v2))
                                     {
@@ -645,7 +645,7 @@ void parse(std::string s)
 
                                     State.WhileLoopCount = 0;
                                 }
-                                else if (op == ">=")
+                                else if (op == Operators.GreaterThanOrEqual)
                                 {
                                     while (mem.varNumber(v1) >= stoi(v2))
                                     {
@@ -659,7 +659,7 @@ void parse(std::string s)
 
                                     State.WhileLoopCount = 0;
                                 }
-                                else if (op == "!=")
+                                else if (op == Operators.NotEqual)
                                 {
                                     while (mem.varNumber(v1) != stoi(v2))
                                     {
@@ -680,7 +680,10 @@ void parse(std::string s)
                     }
                     else if (State.DefiningForLoop)
                     {
-                        if (command.at(0) == "next" || command.at(0) == "endfor")
+                        // TODO: I want to use `next` as `continue`. 
+                        // `next if {condition}` 
+                        // `next`
+                        if (command.at(0) == Keywords.Next || command.at(0) == Keywords.EndFor)
                         {
                             State.DefiningForLoop = false;
 
@@ -729,35 +732,35 @@ void parse(std::string s)
                                             else
                                                 error(ErrorMessage::IS_NULL, "", false);
                                         }
-                                        else if (after == "clear")
+                                        else if (after == Keywords.GC)
                                             mem.getClass(before).clear();
                                         else
                                             error(ErrorMessage::UNDEFINED, "", false);
                                     }
                                     else
                                     {
-                                        if (before == "env")
+                                        if (before == Keywords.Env)
                                         {
                                             internal_env_builtins("", after, 3);
                                         }
                                         else if (mem.variableExists(before))
                                         {
-                                            if (after == "clear")
+                                            if (after == Keywords.Clear)
                                                 parse(before + " = State.Null");
                                         }
                                         else if (mem.listExists(before))
                                         {
                                             // REFACTOR HERE
-                                            if (after == "clear")
+                                            if (after == Keywords.Clear)
                                                 mem.getList(before).clear();
-                                            else if (after == "sort")
+                                            else if (after == Keywords.Sort)
                                                 mem.getList(before).sort();
-                                            else if (after == "reverse")
+                                            else if (after == Keywords.Reverse)
                                                 mem.getList(before).reverse();
-                                            else if (after == "revert")
+                                            else if (after == Keywords.Revert)
                                                 mem.getList(before).revert();
                                         }
-                                        else if (before == "self")
+                                        else if (before == Keywords.Self)
                                         {
                                             if (State.ExecutedMethod)
                                                 exec.executeMethod(mem.getClass(State.CurrentMethodClass).getMethod(after));
@@ -805,17 +808,18 @@ void parse(std::string s)
                         }
                         else if (size == 3)
                         {
+                            // TODO: refactor
                             if (unrecognized_2space(command.at(1)))
                             {
-                                if (command.at(0) == "append")
+                                if (command.at(0) == Keywords.FileAppend)
                                     FileIO::appendText(command.at(1), command.at(2), false);
-                                else if (command.at(0) == "appendl")
+                                else if (command.at(0) == Keywords.FileAppendLine)
                                     FileIO::appendText(command.at(1), command.at(2), true);
-                                else if ((command.at(0) == "fwrite"))
+                                else if ((command.at(0) == Keywords.FileWrite))
                                     FileIO::writeText(command.at(1), command.at(2));
-                                else if (command.at(0) == "redefine")
+                                else if (command.at(0) == Keywords.Redefine)
                                     mem.redefine(command.at(1), command.at(2));
-                                else if (command.at(0) == "loop")
+                                else if (command.at(0) == Keywords.Loop)
                                 {
                                     if (has_params(command.at(2)))
                                     {
@@ -840,7 +844,7 @@ void parse(std::string s)
                         else if (size == 5)
                         {
                             // for var in
-                            if (command.at(0) == "for")
+                            if (command.at(0) == Keywords.For)
                             {
                                 if (has_params(command.at(4)))
                                 {
@@ -932,37 +936,37 @@ void parse(std::string s)
 
 void zeroSpace(std::string arg0, std::vector<std::string> command)
 {
-    if (arg0 == "pass")
+    if (arg0 == Keywords.Pass)
     {
         return;
     }
-    else if (arg0 == "caught")
+    else if (arg0 == Keywords.Caught)
     {
         handleCaught();
     }
-    else if (arg0 == "exit")
+    else if (arg0 == Keywords.Exit)
     {
         handleExit();
     }
-    else if (arg0 == "break" || arg0 == "leave!")
+    else if (arg0 == Keywords.Break)
         State.Breaking = true;
-    else if (arg0 == "end")
+    else if (arg0 == Keywords.End)
     {
         handleEnd();
     }
-    else if (arg0 == "parser")
+    else if (arg0 == Keywords.Parser)
         load_repl();
-    else if (arg0 == "private")
+    else if (arg0 == Keywords.Private)
     {
         handlePrivateDecl();
     }
-    else if (arg0 == "public")
+    else if (arg0 == Keywords.Public)
     {
         handlePublicDecl();
     }
-    else if (arg0 == "try")
+    else if (arg0 == Keywords.Try)
         State.ExecutedTryBlock = true;
-    else if (arg0 == "failif")
+    else if (arg0 == Keywords.Failif)
     {
         handleFailedIfStatement();
     }
@@ -974,160 +978,157 @@ void oneSpace(std::string arg0, std::string arg1, std::vector<std::string> comma
 {
     std::string before(before_dot(arg1)), after(after_dot(arg1));
 
-    if (contains(arg1, "self."))
+    // Refactor
+    if (contains(arg1, Keywords.SelfDot))
     {
-        arg1 = replace(arg1, "self", State.CurrentMethodClass);
+        arg1 = replace(arg1, Keywords.Self, State.CurrentMethodClass);
     }
 
-    if (arg0 == "clear")
+    if (arg0 == Keywords.GC)
     {
         parse_clear(arg1);
     }
-    else if (arg0 == "switch")
+    else if (arg0 == Keywords.Switch)
     {
         handleSwitch(arg1);
     }
-    else if (arg0 == "goto")
+    else if (arg0 == Keywords.Goto)
     {
         handleGoto(arg1);
     }
-    else if (arg0 == "if")
+    else if (arg0 == Keywords.If)
     {
         handleIfStatement(arg1);
     }
-    else if (arg0 == "prompt")
+    else if (arg0 == Keywords.Prompt)
     {
         handlePrompt(arg1);
     }
-    else if (arg0 == "err" || arg0 == "error")
+    else if (arg0 == Keywords.Err)
     {
         handleErr(arg1);
     }
-    else if (arg0 == "delay")
+    else if (arg0 == Keywords.Delay)
     {
         handleDelay(arg1);
     }
-    else if (arg0 == "loop")
-        threeSpace("for", "var", "in", arg1, command);
-    else if (arg0 == "for" && arg1 == "inf")
+    else if (arg0 == Keywords.Loop)
+        threeSpace(Keywords.For, Keywords.Each, Keywords.In, arg1, command);
+    else if (arg0 == Keywords.For && arg1 == Keywords.Infinity)
         mem.createForLoop();
-    else if (arg0 == "remove")
+    else if (arg0 == Keywords.Remove)
     {
         handleRemove(arg1);
     }
-    else if (arg0 == "__begin__")
+    else if (arg0 == Keywords.BeginInlineScript)
     {
         handleInlineScriptDecl(arg1);
     }
-    else if (arg0 == "encode" || arg0 == "decode")
-    {
-        internal_encode_decode(arg0, arg1);
-    }
-    else if (arg0 == "globalize")
+    else if (arg0 == Keywords.Globalize)
     {
         mem.globalize(arg1);
     }
-    else if (arg0 == "load")
+    else if (arg0 == Keywords.Load)
     {
         handleLoad(arg1);
     }
-    else if (arg0 == "say" || arg0 == "stdout" || arg0 == "out" || arg0 == "print" || arg0 == "println")
+    else if (arg0 == Keywords.Print || arg0 == Keywords.PrintLn)
     {
-        internal_puts(arg0, arg1);
+        internal_puts(arg0, arg1, arg0 == Keywords.PrintLn);
     }
-    else if (arg0 == "cd" || arg0 == "chdir")
+    else if (arg0 == Keywords.ChangeDirectory)
     {
         handleChangeDir(arg1);
     }
-    else if (arg0 == "list")
+    else if (arg0 == Keywords.List)
     {
         handleListDecl(arg1);
     }
-    else if (arg0 == "!")
+    else if (arg0 == Keywords.InlineParse)
     {
         handleInlineParse(arg1);
     }
-    else if (arg0 == "?")
+    else if (arg0 == Keywords.ShellExec)
     {
         handleInlineShellExec(arg1, command);
     }
-    else if (arg0 == "init_dir" || arg0 == "initial_directory")
+    else if (arg0 == Keywords.InitialDirectory)
     {
         handleInitialDir(arg1);
     }
-    else if (arg0 == "method?")
+    else if (arg0 == Keywords.IsMethod)
     {
         handleMethodInspect(before, after, arg1);
     }
-    else if (arg0 == "class?")
+    else if (arg0 == Keywords.IsClass)
     {
         handleClassInspect(arg1);
     }
-    else if (arg0 == "variable?")
+    else if (arg0 == Keywords.IsVariable)
     {
         handleVariableInspect(before, after, arg1);
     }
-    else if (arg0 == "list?")
+    else if (arg0 == Keywords.IsList)
     {
         handleListInspect(arg1);
     }
-    else if (arg0 == "directory?")
+    else if (arg0 == Keywords.IsDirectory)
     {
         handleDirectoryInspect(before, after, arg1);
     }
-    else if (arg0 == "file?")
+    else if (arg0 == Keywords.IsFile)
     {
         handleFileInspect(before, after, arg1);
     }
-    else if (arg0 == "collect?")
+    else if (arg0 == Keywords.IsCollectable)
     {
         handleCollectInspect(arg1);
     }
-    else if (arg0 == "number?")
+    else if (arg0 == Keywords.IsNumber)
     {
         handleNumberInspect(before, after, arg1);
     }
-    else if (arg0 == "string?")
+    else if (arg0 == Keywords.IsString)
     {
         handleStringInspect(before, after, arg1);
     }
-    else if (arg0 == "template")
+    else if (arg0 == Keywords.Template)
     {
         handleTemplateDecl(arg1);
     }
-    else if (arg0 == "lock")
+    else if (arg0 == Keywords.Lock)
     {
         handleLockAssignment(arg1);
     }
-    else if (arg0 == "unlock")
+    else if (arg0 == Keywords.Unlock)
     {
         handleUnlockAssignment(arg1);
     }
-    else if (arg0 == "method" || arg0 == "[method]")
+    else if (arg0 == Keywords.Method || arg0 == Keywords.LockedMethod)
     {
         mem.createMethod(arg0, arg1);
     }
-    else if (arg0 == "call_method")
+    else if (arg0 == Keywords.InvokeMethod)
     {
         exec.executeMethod(arg1, before, after);
     }
-    else if (arg0 == "class")
+    else if (arg0 == Keywords.Class)
     {
         mem.createClass(arg1);
     }
-    else if (arg0 == "fpush")
+    else if (arg0 == Keywords.CreateFile)
     {
         handleFilePush(arg1);
     }
-    else if (arg0 == "fpop")
+    else if (arg0 == Keywords.RemoveFile)
     {
         handleFilePop(arg1);
     }
-    else if (arg0 == "dpush")
+    else if (arg0 == Keywords.CreateDirectory)
     {
         handleDirPush(arg1);
     }
-    else if (arg0 == "dpop")
+    else if (arg0 == Keywords.RemoveDirectory)
     {
         handleDirPop(arg1);
     }
@@ -1139,11 +1140,11 @@ void twoSpace(std::string arg0, std::string arg1, std::string arg2, std::vector<
 {
     std::string last_val = "";
 
-    if (contains(arg2, "self."))
-        arg2 = replace(arg2, "self", State.CurrentMethodClass);
+    if (contains(arg2, Keywords.SelfDot))
+        arg2 = replace(arg2, Keywords.Self, State.CurrentMethodClass);
 
-    if (contains(arg0, "self."))
-        arg0 = replace(arg0, "self", State.CurrentMethodClass);
+    if (contains(arg0, Keywords.SelfDot))
+        arg0 = replace(arg0, Keywords.Self, State.CurrentMethodClass);
 
     if (mem.variableExists(arg0))
     {
@@ -1183,21 +1184,21 @@ void threeSpace(std::string arg0, std::string arg1, std::string arg2, std::strin
     // isNumber(arg3)
     // isString(arg3)
 
-    if (arg0 == "class")
+    if (arg0 == Keywords.Class)
     {
         handleClassDecl(arg1, arg3, arg2);
     }
-    else if (arg0 == "if")
+    else if (arg0 == Keywords.If)
     {
         checkCondition(arg1, arg2, arg3);
     }
-    else if (arg0 == "for")
+    else if (arg0 == Keywords.For)
     {
-        if (arg2 == "<" || arg2 == ">" || arg2 == "<=" || arg2 == ">=")
+        if (arg2 == Operators.LessThan || arg2 == Operators.GreaterThan || arg2 == Operators.LessThanOrEqual || arg2 == Operators.GreaterThanOrEqual)
         {
             handleLoopInit_For(arg1, arg2, arg3, arg0);
         }
-        else if (arg2 == "in")
+        else if (arg2 == Keywords.In)
         {
             bool retFlag;
             handleLoopInit_ForIn(arg1, arg3, arg0, retFlag);
@@ -1210,7 +1211,7 @@ void threeSpace(std::string arg0, std::string arg1, std::string arg2, std::strin
             mem.createFailedForLoop();
         }
     }
-    else if (arg0 == "while")
+    else if (arg0 == Keywords.While)
     {
         handleLoopInit_While(arg1, arg3, arg2, arg0);
     }
@@ -1251,10 +1252,10 @@ void handleLoopInit_For(std::string &arg1, std::string &arg2, std::string &arg3,
 
     if (failed) return;
 
-    if ((arg2 == "<" && first < second)
-        || (arg2 == ">" && first > second)
-        || (arg2 == "<=" && first <= second)
-        || (arg2 == ">=" && first >= second))
+    if ((arg2 == Operators.LessThan && first < second)
+        || (arg2 == Operators.GreaterThan && first > second)
+        || (arg2 == Operators.LessThanOrEqual && first <= second)
+        || (arg2 == Operators.GreaterThanOrEqual && first >= second))
         mem.createForLoop(first, second, arg2);
     else
         mem.createFailedForLoop();
@@ -1263,27 +1264,27 @@ void handleLoopInit_For(std::string &arg1, std::string &arg2, std::string &arg3,
 void handleLoopInit_ForIn(std::string &arg1, std::string &arg3, std::string &arg0, bool &retFlag)
 {
     retFlag = true;
-    if (arg1 == "var")
+    if (arg1 == Keywords.Each)
     {
         std::string before(before_dot(arg3)), after(after_dot(arg3));
 
-        if (before == "args" && after == "size")
+        if (before == Keywords.Args && after == Keywords.Values)
         {
             handleLoopInit_CommandLineArgs();
         }
-        else if (before == "env" && after == "__variables")
+        else if (before == Keywords.Env && after == Keywords.InternalVariables)
         {
             handleLoopInit_Environment_BuiltIns();
         }
-        else if (mem.classExists(before) && after == "__methods")
+        else if (mem.classExists(before) && after == Keywords.InternalMethods)
         {
             handleLoopInit_ClassMembers_Methods(before);
         }
-        else if (mem.classExists(before) && after == "__variables")
+        else if (mem.classExists(before) && after == Keywords.InternalVariables)
         {
             handleLoopInit_ClassMembers_Variables(before);
         }
-        else if (mem.variableExists(before) && after == "length")
+        else if (mem.variableExists(before) && after == Keywords.Size)
         {
             if (mem.isString(before))
             {
@@ -1296,15 +1297,15 @@ void handleLoopInit_ForIn(std::string &arg1, std::string &arg3, std::string &arg
             {
                 if (mem.variableExists(before))
                 {
-                    if (after == "get_dirs")
+                    if (after == Keywords.GetDirectories)
                     {
                         handleLoopInit_Variable_Directories(before);
                     }
-                    else if (after == "get_files")
+                    else if (after == Keywords.GetFiles)
                     {
                         handleLoopInit_Variable_Files(before);
                     }
-                    else if (after == "read")
+                    else if (after == Keywords.Read)
                     {
                         handleLoopInit_Variable_FileRead(before);
                     }
@@ -1353,23 +1354,23 @@ void handleLoopInit_ForIn(std::string &arg1, std::string &arg3, std::string &arg
         State.DefaultLoopSymbol = arg1;
         std::string _b(before_dot(arg3)), _a(after_dot(arg3));
 
-        if (_b == "args" && _a == "size")
+        if (_b == Keywords.Args && _a == Keywords.Values)
         {
             handleLoopInit_CommandLineArgs();
         }
-        else if (_b == "env" && _a == "__variables")
+        else if (_b == Keywords.Env && _a == Keywords.InternalVariables)
         {
             handleLoopInit_Environment_BuiltIns();
         }
-        else if (mem.classExists(_b) && _a == "__methods")
+        else if (mem.classExists(_b) && _a == Keywords.InternalMethods)
         {
             handleLoopInit_ClassMembers_Methods(_b);
         }
-        else if (mem.classExists(_b) && _a == "__variables")
+        else if (mem.classExists(_b) && _a == Keywords.InternalVariables)
         {
             handleLoopInit_ClassMembers_Variables(_b);
         }
-        else if (mem.variableExists(_b) && _a == "length")
+        else if (mem.variableExists(_b) && _a == Keywords.Size)
         {
             handleLoopInit_Variable_Length(_b);
         }
@@ -1379,15 +1380,15 @@ void handleLoopInit_ForIn(std::string &arg1, std::string &arg3, std::string &arg
             {
                 if (mem.variableExists(_b))
                 {
-                    if (_a == "get_dirs")
+                    if (_a == Keywords.GetDirectories)
                     {
                         handleLoopInit_Variable_Directories(_b);
                     }
-                    else if (_a == "get_files")
+                    else if (_a == Keywords.GetFiles)
                     {
                         handleLoopInit_Variable_Files(_b);
                     }
-                    else if (_a == "read")
+                    else if (_a == Keywords.Read)
                     {
                         handleLoopInit_Variable_FileRead(_b);
                     }
@@ -1417,12 +1418,11 @@ void handleLoopInit_Environment_BuiltIns()
 {
     List newList;
 
-    newList.add("cwd");
-    newList.add("usl");
-    newList.add("user");
-    newList.add("machine");
-    newList.add("init_dir");
-    newList.add("initial_directory");
+    newList.add(Keywords.CurrentDirectory);
+    newList.add(Keywords.UslangApp);
+    newList.add(Keywords.CurrentUser);
+    newList.add(Keywords.CurrentMachine);
+    newList.add(Keywords.InitialDirectory);
     newList.add("am_or_pm");
     newList.add("now");
     newList.add("day_of_this_week");
@@ -1434,12 +1434,8 @@ void handleLoopInit_Environment_BuiltIns()
     newList.add("this_hour");
     newList.add("this_month");
     newList.add("this_year");
-    newList.add("empty_string");
-    newList.add("empty_number");
-    newList.add("last_error");
-    newList.add("last_value");
-    newList.add("get_members");
-    newList.add("members");
+    newList.add(Keywords.LastError);
+    newList.add(Keywords.LastValue);
     mem.createForLoop(newList);
 }
 
@@ -1469,7 +1465,7 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
 
     if ((rangeBegin.length() == 0 || rangeEnd.length() == 0) || !(is_numeric(rangeBegin) && is_numeric(rangeEnd)))
     {
-        error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+        error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
         return;
     }
 
@@ -1493,7 +1489,7 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
             mem.removeList("&l&i&s&t&");
         }
         else
-            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
     }
     else if (stoi(rangeBegin) > stoi(rangeEnd))
     {
@@ -1515,10 +1511,10 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
             mem.removeList("&l&i&s&t&");
         }
         else
-            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
     }
     else
-        error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + ".." + rangeEnd, false);
+        error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
     retFlag = false;
 }
 
@@ -1555,9 +1551,9 @@ void handleLoopInit_Params(std::string &arg3, std::string &arg1)
             int ifrs = stoi(firstRangeSpecifier), ilrs(stoi(lastRangeSpecifier));
 
             if (ifrs < ilrs)
-                mem.createForLoop(stod(firstRangeSpecifier), stod(lastRangeSpecifier), "<=");
+                mem.createForLoop(stod(firstRangeSpecifier), stod(lastRangeSpecifier), Operators.LessThanOrEqual);
             else if (ifrs > ilrs)
-                mem.createForLoop(stod(firstRangeSpecifier), stod(lastRangeSpecifier), ">=");
+                mem.createForLoop(stod(firstRangeSpecifier), stod(lastRangeSpecifier), Operators.GreaterThanOrEqual);
             else
                 mem.createFailedForLoop();
         }
@@ -1673,7 +1669,7 @@ void handleLoopInit_While(std::string &arg1, std::string &arg3, std::string &arg
     {
         if (mem.isNumber(arg1) && mem.isNumber(arg3))
         {
-            if (arg2 == "<" || arg2 == "<=" || arg2 == ">=" || arg2 == ">" || arg2 == "==" || arg2 == "!=")
+            if (arg2 == Operators.LessThan || arg2 == Operators.LessThanOrEqual || arg2 == Operators.GreaterThanOrEqual || arg2 == Operators.GreaterThan || arg2 == Operators.Equal || arg2 == Operators.NotEqual)
                 mem.createWhileLoop(arg1, arg2, arg3);
             else
             {
@@ -1691,7 +1687,7 @@ void handleLoopInit_While(std::string &arg1, std::string &arg3, std::string &arg
     {
         if (mem.isNumber(arg1))
         {
-            if (arg2 == "<" || arg2 == "<=" || arg2 == ">=" || arg2 == ">" || arg2 == "==" || arg2 == "!=")
+            if (arg2 == Operators.LessThan || arg2 == Operators.LessThanOrEqual || arg2 == Operators.GreaterThanOrEqual || arg2 == Operators.GreaterThan || arg2 == Operators.Equal || arg2 == Operators.NotEqual)
                 mem.createWhileLoop(arg1, arg2, arg3);
             else
             {
@@ -1707,7 +1703,7 @@ void handleLoopInit_While(std::string &arg1, std::string &arg3, std::string &arg
     }
     else if (is_numeric(arg1) && is_numeric(arg3))
     {
-        if (arg2 == "<" || arg2 == "<=" || arg2 == ">=" || arg2 == ">" || arg2 == "==" || arg2 == "!=")
+        if (arg2 == Operators.LessThan || arg2 == Operators.LessThanOrEqual || arg2 == Operators.GreaterThanOrEqual || arg2 == Operators.GreaterThan || arg2 == Operators.Equal || arg2 == Operators.NotEqual)
             mem.createWhileLoop(arg1, arg2, arg3);
         else
         {
@@ -1725,27 +1721,27 @@ void handleIfStatementDecl_Generic(std::string first, std::string second, std::s
 {
     if (is_numeric(first) && is_numeric(second))
     {
-        if (oper == "==")
+        if (oper == Operators.Equal)
         {
             mem.createIfStatement(stod(first) == stod(second));
         }
-        else if (oper == "!=")
+        else if (oper == Operators.NotEqual)
         {
             mem.createIfStatement(stod(first) != stod(second));
         }
-        else if (oper == "<")
+        else if (oper == Operators.LessThan)
         {
             mem.createIfStatement(stod(first) < stod(second));
         }
-        else if (oper == ">")
+        else if (oper == Operators.GreaterThan)
         {
             mem.createIfStatement(stod(first) > stod(second));
         }
-        else if (oper == "<=")
+        else if (oper == Operators.LessThanOrEqual)
         {
             mem.createIfStatement(stod(first) <= stod(second));
         }
-        else if (oper == ">=")
+        else if (oper == Operators.GreaterThanOrEqual)
         {
             mem.createIfStatement(stod(first) >= stod(second));
         }
@@ -1757,23 +1753,23 @@ void handleIfStatementDecl_Generic(std::string first, std::string second, std::s
     }
     else
     {
-        if (oper == "==")
+        if (oper == Operators.Equal)
         {
             mem.createIfStatement(first == second);
         }
-        else if (oper == "!=")
+        else if (oper == Operators.NotEqual)
         {
             mem.createIfStatement(first != second);
         }
-        else if (oper == "begins_with")
+        else if (oper == Keywords.BeginsWith)
         {
             mem.createIfStatement(begins_with(first, second));
         }
-        else if (oper == "ends_with")
+        else if (oper == Keywords.EndsWith)
         {
             mem.createIfStatement(ends_with(first, second));
         }
-        else if (oper == "contains")
+        else if (oper == Keywords.Contains)
         {
             mem.createIfStatement(contains(first, second));
         }
@@ -1839,7 +1835,7 @@ void handleClassDecl(std::string arg1, std::string arg3, std::string arg2)
     {
         if (mem.classExists(arg3))
         {
-            if (arg2 == "=")
+            if (arg2 == Operators.Assign)
             {
                 std::vector<Method> classMethods = mem.getClass(arg3).getMethods();
                 Class newClass(arg1);
@@ -1871,10 +1867,10 @@ void handleFailedIfStatement()
 }
 
 void checkCondition(const std::string arg1, const std::string arg2, const std::string arg3) {
-    if (mem.listExists(arg1) && arg2 == "in") {
+    if (mem.listExists(arg1) && arg2 == Keywords.In) {
         checkListInCondition(arg1, arg2, arg3);
     }
-    else if (mem.listExists(arg1) && arg2 == "contains" && arg3 != "list?") {
+    else if (mem.listExists(arg1) && arg2 == Keywords.Contains && arg3 != Keywords.IsList) {
         checkListContainsCondition(arg1, arg2, arg3);
     }
     else if (mem.variableExists(arg1) && mem.variableExists(arg3)) {
@@ -1895,7 +1891,7 @@ void checkCondition(const std::string arg1, const std::string arg2, const std::s
     else if (has_params(arg1) || has_params(arg3)) {
         checkParamsCondition(arg1, arg2, arg3);
     }
-    else if ((mem.methodExists(arg1) && arg3 != "method?") || mem.methodExists(arg3)) {
+    else if ((mem.methodExists(arg1) && arg3 != Keywords.IsMethod) || mem.methodExists(arg3)) {
         checkMethodCondition(arg1, arg3, arg2);
     }
     else {
@@ -1911,11 +1907,11 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
         {
             handleIfStatementDecl_Generic(dtos(mem.varNumber(arg1)), arg3, arg2);
         }
-        else if (arg3 == "number?")
+        else if (arg3 == Keywords.IsNumber)
         {
-            if (arg2 == "==")
+            if (arg2 == Operators.Equal)
                 mem.createIfStatement(true);
-            else if (arg2 == "!=")
+            else if (arg2 == Operators.NotEqual)
                 mem.createIfStatement(false);
             else
                 error(ErrorMessage::INVALID_OPERATOR, arg2, false);
@@ -1928,13 +1924,13 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
     }
     else
     {
-        if (arg3 == "string?")
+        if (arg3 == Keywords.IsString)
         {
             if (mem.isString(arg1))
             {
-                if (arg2 == "==")
+                if (arg2 == Operators.Equal)
                     mem.createIfStatement(true);
-                else if (arg2 == "!=")
+                else if (arg2 == Operators.NotEqual)
                     mem.createIfStatement(false);
                 else
                 {
@@ -1944,16 +1940,16 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
             }
             else
             {
-                mem.createIfStatement(arg2 == "!=");
+                mem.createIfStatement(arg2 == Operators.NotEqual);
             }
         }
-        else if (arg3 == "number?")
+        else if (arg3 == Keywords.IsNumber)
         {
             if (mem.isNumber(arg1))
             {
-                if (arg2 == "==")
+                if (arg2 == Operators.Equal)
                     mem.createIfStatement(true);
-                else if (arg2 == "!=")
+                else if (arg2 == Operators.NotEqual)
                     mem.createIfStatement(false);
                 else
                 {
@@ -1963,18 +1959,18 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
             }
             else
             {
-                mem.createIfStatement(arg2 == "!=");
+                mem.createIfStatement(arg2 == Operators.NotEqual);
             }
         }
-        else if (arg3 == "file?")
+        else if (arg3 == Keywords.IsFile)
         {
             if (mem.isString(arg1))
             {
                 if (Env::fileExists(mem.varString(arg1)))
                 {
-                    if (arg2 == "==")
+                    if (arg2 == Operators.Equal)
                         mem.createIfStatement(true);
-                    else if (arg2 == "!=")
+                    else if (arg2 == Operators.NotEqual)
                         mem.createIfStatement(false);
                     else
                     {
@@ -1984,7 +1980,7 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
                 }
                 else
                 {
-                    mem.createIfStatement(arg2 == "!=");
+                    mem.createIfStatement(arg2 == Operators.NotEqual);
                 }
             }
             else
@@ -1993,15 +1989,15 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
                 mem.createIfStatement(false);
             }
         }
-        else if (arg3 == "dir?" || arg3 == "directory?")
+        else if (arg3 == Keywords.IsDirectory)
         {
             if (mem.isString(arg1))
             {
                 if (Env::directoryExists(mem.varString(arg1)))
                 {
-                    if (arg2 == "==")
+                    if (arg2 == Operators.Equal)
                         mem.createIfStatement(true);
-                    else if (arg2 == "!=")
+                    else if (arg2 == Operators.NotEqual)
                         mem.createIfStatement(false);
                     else
                     {
@@ -2011,7 +2007,7 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
                 }
                 else
                 {
-                    mem.createIfStatement(arg2 == "!=");
+                    mem.createIfStatement(arg2 == Operators.NotEqual);
                 }
             }
             else
@@ -2053,10 +2049,10 @@ bool checkListForElement(const std::string listName, const std::string testStrin
     bool result = false;
 
     if (mem.listExists(listName)) {
-        if (conditionType == "in") {
+        if (conditionType == Keywords.In) {
             result = checkListContains(listName, testString);
         }
-        else if (conditionType == "contains" && testString != "list?") {
+        else if (conditionType == Keywords.Contains && testString != Keywords.IsList) {
             result = checkListContains(listName, testString);
         }
         else {
@@ -2342,9 +2338,9 @@ void handleStringInspect(std::string &before, std::string &after, std::string &a
         if (mem.getClass(before).hasVariable(after))
         {
             if (mem.getClass(before).getVariable(after).getString() != State.Null)
-                State.LastValue = "true";
+                State.LastValue = Keywords.True;
             else
-                State.LastValue = "false";
+                State.LastValue = Keywords.False;
         }
         else
             error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
@@ -2354,16 +2350,16 @@ void handleStringInspect(std::string &before, std::string &after, std::string &a
         if (mem.variableExists(arg1))
         {
             if (mem.isString(arg1))
-                State.LastValue = "true";
+                State.LastValue = Keywords.True;
             else
-                State.LastValue = "false";
+                State.LastValue = Keywords.False;
         }
         else
         {
             if (is_numeric(arg1))
-                State.LastValue = "false";
+                State.LastValue = Keywords.False;
             else
-                State.LastValue = "true";
+                State.LastValue = Keywords.True;
         }
     }
 }
@@ -2375,9 +2371,9 @@ void handleNumberInspect(std::string &before, std::string &after, std::string &a
         if (mem.getClass(before).hasVariable(after))
         {
             if (mem.getClass(before).getVariable(after).getNumber() != State.NullNum)
-                State.LastValue = "true";
+                State.LastValue = Keywords.True;
             else
-                State.LastValue = "false";
+                State.LastValue = Keywords.False;
         }
         else
             error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
@@ -2387,16 +2383,16 @@ void handleNumberInspect(std::string &before, std::string &after, std::string &a
         if (mem.variableExists(arg1))
         {
             if (mem.isNumber(arg1))
-                State.LastValue = "true";
+                State.LastValue = Keywords.True;
             else
-                State.LastValue = "false";
+                State.LastValue = Keywords.False;
         }
         else
         {
             if (is_numeric(arg1))
-                State.LastValue = "true";
+                State.LastValue = Keywords.True;
             else
-                State.LastValue = "false";
+                State.LastValue = Keywords.False;
         }
     }
 }
@@ -2406,12 +2402,12 @@ void handleCollectInspect(std::string &arg1)
     if (mem.variableExists(arg1))
     {
         if (mem.getVar(arg1).isCollectable())
-            State.LastValue = "true";
+            State.LastValue = Keywords.True;
         else
-            State.LastValue = "false";
+            State.LastValue = Keywords.False;
     }
     else
-        IO::println("under construction...");
+        writeline("under construction...");
 }
 
 void handleFileInspect(std::string &before, std::string &after, std::string &arg1)
@@ -2421,9 +2417,9 @@ void handleFileInspect(std::string &before, std::string &after, std::string &arg
         if (mem.getClass(before).hasVariable(after))
         {
             if (Env::fileExists(mem.getClass(before).getVariable(after).getString()))
-                State.LastValue = "true";
+                State.LastValue = Keywords.True;
             else
-                State.LastValue = "false";
+                State.LastValue = Keywords.False;
         }
         else
             error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
@@ -2435,19 +2431,19 @@ void handleFileInspect(std::string &before, std::string &after, std::string &arg
             if (mem.isString(arg1))
             {
                 if (Env::fileExists(mem.varString(arg1)))
-                    State.LastValue = "true";
+                    State.LastValue = Keywords.True;
                 else
-                    State.LastValue = "false";
+                    State.LastValue = Keywords.False;
             }
             else
-                State.LastValue = "false";
+                State.LastValue = Keywords.False;
         }
         else
         {
             if (Env::fileExists(arg1))
-                State.LastValue = "true";
+                State.LastValue = Keywords.True;
             else
-                State.LastValue = "false";
+                State.LastValue = Keywords.False;
         }
     }
 }
@@ -2459,9 +2455,9 @@ void handleDirectoryInspect(std::string &before, std::string &after, std::string
         if (mem.getClass(before).hasVariable(after))
         {
             if (Env::directoryExists(mem.getClass(before).getVariable(after).getString()))
-                State.LastValue = "true";
+                State.LastValue = Keywords.True;
             else
-                State.LastValue = "false";
+                State.LastValue = Keywords.False;
         }
         else
             error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
@@ -2473,9 +2469,9 @@ void handleDirectoryInspect(std::string &before, std::string &after, std::string
             if (mem.isString(arg1))
             {
                 if (Env::directoryExists(mem.varString(arg1)))
-                    State.LastValue = "true";
+                    State.LastValue = Keywords.True;
                 else
-                    State.LastValue = "false";
+                    State.LastValue = Keywords.False;
             }
             else
                 error(ErrorMessage::NULL_STRING, arg1, false);
@@ -2483,9 +2479,9 @@ void handleDirectoryInspect(std::string &before, std::string &after, std::string
         else
         {
             if (Env::directoryExists(arg1))
-                State.LastValue = "true";
+                State.LastValue = Keywords.True;
             else
-                State.LastValue = "false";
+                State.LastValue = Keywords.False;
         }
     }
 }
@@ -2493,9 +2489,9 @@ void handleDirectoryInspect(std::string &before, std::string &after, std::string
 void handleListInspect(std::string &arg1)
 {
     if (mem.listExists(arg1))
-        State.LastValue = "true";
+        State.LastValue = Keywords.True;
     else
-        State.LastValue = "false";
+        State.LastValue = Keywords.False;
 }
 
 void handleVariableInspect(std::string &before, std::string &after, std::string &arg1)
@@ -2503,25 +2499,25 @@ void handleVariableInspect(std::string &before, std::string &after, std::string 
     if (before.length() != 0 && after.length() != 0)
     {
         if (mem.getClass(before).hasVariable(after))
-            State.LastValue = "true";
+            State.LastValue = Keywords.True;
         else
-            State.LastValue = "false";
+            State.LastValue = Keywords.False;
     }
     else
     {
         if (mem.variableExists(arg1))
-            State.LastValue = "true";
+            State.LastValue = Keywords.True;
         else
-            State.LastValue = "false";
+            State.LastValue = Keywords.False;
     }
 }
 
 void handleClassInspect(std::string &arg1)
 {
     if (mem.classExists(arg1))
-        State.LastValue = "true";
+        State.LastValue = Keywords.True;
     else
-        State.LastValue = "false";
+        State.LastValue = Keywords.False;
 }
 
 void handleMethodInspect(std::string &before, std::string &after, std::string &arg1)
@@ -2529,16 +2525,16 @@ void handleMethodInspect(std::string &before, std::string &after, std::string &a
     if (before.length() != 0 && after.length() != 0)
     {
         if (mem.getClass(before).hasMethod(after))
-            State.LastValue = "true";
+            State.LastValue = Keywords.True;
         else
-            State.LastValue = "false";
+            State.LastValue = Keywords.False;
     }
     else
     {
         if (mem.methodExists(arg1))
-            State.LastValue = "true";
+            State.LastValue = Keywords.True;
         else
-            State.LastValue = "false";
+            State.LastValue = Keywords.False;
     }
 }
 
@@ -2563,9 +2559,9 @@ void handleInitialDir(std::string &arg1)
     {
         if (Env::directoryExists(arg1))
         {
-            if (arg1 == ".")
+            if (arg1 == Keywords.Dot)
                 State.InitialDirectory = Env::getCurrentDirectory();
-            else if (arg1 == "..")
+            else if (arg1 == Keywords.RangeSeparator)
                 State.InitialDirectory = Env::getCurrentDirectory() + "\\..";
             else
                 State.InitialDirectory = arg1;
@@ -2633,7 +2629,7 @@ void handleChangeDir(std::string &arg1)
     }
     else
     {
-        if (arg1 == "init_dir" || arg1 == "initial_directory")
+        if (arg1 == Keywords.InitialDirectory)
             Env::changeDirectory(State.InitialDirectory);
         else if (Env::directoryExists(arg1))
             Env::changeDirectory(arg1);
@@ -2708,32 +2704,28 @@ void handleDelay(std::string &arg1)
 
 void handleErr(std::string &arg1)
 {
+    std::string errorValue(arg1);
+    
     if (mem.variableExists(arg1))
     {
         if (mem.isString(arg1))
-            IO::printerrln(mem.varString(arg1));
+            errorValue = mem.varString(arg1);
         else if (mem.isNumber(arg1))
-            IO::printerrln(dtos(mem.varNumber(arg1)));
-        else
-            error(ErrorMessage::IS_NULL, arg1, false);
+            errorValue = dtos(mem.varNumber(arg1));
     }
-    else
-        IO::printerrln(arg1);
+    
+    IO::printerrln(errorValue);
+    State.LastError = errorValue;
 }
 
 void handlePrompt(std::string &arg1)
 {
-    if (arg1 == "!")
+    if (arg1 == Keywords.InlineParse)
     {
         if (State.UseCustomPrompt == true)
             State.UseCustomPrompt = false;
         else
             State.UseCustomPrompt = true;
-    }
-    else if (arg1 == "empty")
-    {
-        State.UseCustomPrompt = true;
-        State.PromptStyle = "empty";
     }
     else
     {

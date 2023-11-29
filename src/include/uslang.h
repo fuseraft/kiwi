@@ -12,6 +12,7 @@
 
 #include "debug/stacktrace.h"
 #include "constants.h"
+#include "keywords.h"
 #include "state.h"
 #include "strings.h"
 #include "rng.h"

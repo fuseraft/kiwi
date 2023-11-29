@@ -48,7 +48,7 @@ public:
         if (f.is_open())
             f.close();
         else
-            IO::printerrln("...could not create file: " + p);
+            error(ErrorMessage::CREATE_FILE_FAIL, p, true);
     }
 
     static void appendToFile(std::string p, std::string a)
@@ -56,7 +56,7 @@ public:
         std::ofstream f(p.c_str(), std::ios::out | std::ios::app);
 
         if (!f.is_open())
-            IO::printerrln("#!=read_fail");
+            error(ErrorMessage::READ_FAIL, p, true);
         else
         {
             std::string cleaned("");
@@ -121,6 +121,7 @@ public:
 
     static std::vector<std::string> getDirectoryContents(std::string path, bool filesOnly)
     {
+        const std::string PathSeparator = "/";
         std::vector<std::string> newList;
 
         DIR *pd;
@@ -132,14 +133,14 @@ public:
         {
             while ((pe = readdir(pd)) != NULL)
             {
-                if (std::string(pe->d_name) != "." && std::string(pe->d_name) != "..")
+                if (std::string(pe->d_name) != Keywords.Dot && std::string(pe->d_name) != Keywords.RangeSeparator)
                 {
                     std::string tmp("");
 
-                    if (dir == "/")
+                    if (dir == PathSeparator)
                         dir = "";
 
-                    tmp = dir + "/" + std::string(pe->d_name);
+                    tmp = dir + PathSeparator + std::string(pe->d_name);
 
                     if (filesOnly)
                     {
@@ -173,7 +174,7 @@ public:
 
     static void changeDirectory(std::string p)
     {
-        if (p == "init_dir" || p == "initial_directory")
+        if (p == Keywords.InitialDirectory)
             changeDirectory(State.InitialDirectory);
         else if (chdir(p.c_str()) != 0)
             error(ErrorMessage::READ_FAIL, p, false);
