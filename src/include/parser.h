@@ -2,17 +2,6 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-std::string get_parsed_stdout(std::string cmd)
-{
-    State.CaptureParse = true;
-    parse(cmd);
-    std::string ret = State.ParsedOutput;
-    State.ParsedOutput.clear();
-    State.CaptureParse = false;
-
-    return ret.length() == 0 ? State.LastValue : ret;
-}
-
 /**
     The heart of it all. Parse a string and send for interpretation.
 **/
@@ -129,6 +118,17 @@ void parse(std::string s)
         stringContainer.add(bigString);
         parse_stringcontainer(stringContainer);
     }
+}
+
+std::string get_parsed_stdout(std::string cmd)
+{
+    State.CaptureParse = true;
+    parse(cmd);
+    std::string ret = State.ParsedOutput;
+    State.ParsedOutput.clear();
+    State.CaptureParse = false;
+
+    return ret.length() == 0 ? State.LastValue : ret;
 }
 
 void parse_stringcontainer(StringContainer &stringContainer)
