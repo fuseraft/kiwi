@@ -19,6 +19,11 @@ std::string get_parsed_stdout(std::string cmd)
 void parse(std::string s)
 {
     std::vector<std::string> command;  // a tokenized command container
+    State.CurrentLine = s; // store a copy of the current line
+
+    StringContainer stringContainer; // contains separate commands
+    std::string bigString("");       // a string to build upon
+
     int length = s.length(), //	length of the line
         count = 0,           // command token counter
         size = 0;            // final size of tokenized command container
@@ -26,17 +31,793 @@ void parse(std::string s)
         broken = false,      // flag: end of a command
         uncomment = false,   // flag: end a command
         parenthesis = false; // flag: parsing contents within parentheses
-    char prevChar = 'a';     // previous character in string
-
-    StringContainer stringContainer; // contains separate commands
-    std::string bigString("");            // a string to build upon
-
-    State.CurrentLine = s; // store a copy of the current line
-    // if (__Logging) app(State.LogFile, s + "\r\n"); // if __Logging a session, log the line
 
     command.push_back(""); // push back an empty string to begin.
     // iterate each char in the initial string
+    char prevChar = 'a';     // previous character in string
 
+    tokenize(length, s, parenthesis, quoted, command, count, prevChar, bigString, uncomment, broken, stringContainer);
+
+    size = (int)command.size();
+
+    if (State.IsCommented)
+    {
+        if (State.IsMultilineComment)
+        {
+            if (uncomment)
+            {
+                State.IsCommented = false;
+                State.IsMultilineComment = false;
+            }
+        }
+        else
+        {
+            if (uncomment)
+            {
+                State.IsCommented = false;
+                uncomment = false;
+
+                std::string commentString("");
+                parse_commentstring(bigString, commentString);
+                
+                if (!broken)
+                {
+                    parse(ltrim_ws(commentString));
+                }
+                else
+                {
+                    stringContainer.add(ltrim_ws(commentString));
+                    parse_stringcontainer(stringContainer);
+                }
+            }
+        }
+    }
+    else if (!broken)
+    {
+        parse_args(size, command);
+
+        if (State.DefiningSwitchBlock)
+        {
+            parse_switchstatement(s, command);
+        }
+        else if (State.DefiningModule)
+        {
+            parse_moduledefinition(s);
+        }
+        else if (State.DefiningScript)
+        {
+            parse_scriptdefinition(s);
+        }
+        else if (State.RaiseCatchBlock)
+        {
+            if (s == Keywords.Catch)
+                State.RaiseCatchBlock = false;
+        }
+        else if (State.ExecutedTryBlock && s == Keywords.Catch)
+            State.SkipCatchBlock = true;
+        else if (State.ExecutedTryBlock && State.SkipCatchBlock)
+        {
+            if (s == Keywords.Caught)
+            {
+                State.SkipCatchBlock = false;
+                parse(Keywords.Caught);
+            }
+        }
+        else if (State.DefiningMethod)
+        {
+            parse_method_def(s);
+        }
+        else if (State.DefiningIfStatement)
+        {
+            parse_ifstatement_def(command, s, size);
+        }
+        else if (State.DefiningWhileLoop)
+        {
+            parse_whileloop_def(command, s);
+        }
+        else if (State.DefiningForLoop)
+        {
+            parse_forloop_def(command, s);
+        }
+        else
+        {
+            parse_default(size, command, s);
+        }
+    }
+    else
+    {
+        stringContainer.add(bigString);
+        parse_stringcontainer(stringContainer);
+    }
+}
+
+void parse_stringcontainer(StringContainer &stringContainer)
+{
+    for (int i = 0; i < (int)stringContainer.get().size(); i++)
+        parse(stringContainer.at(i));
+}
+
+void parse_commentstring(std::string &bigString, std::string &commentString)
+{
+    bool commentFound = false;
+
+    for (int i = 0; i < (int)bigString.length(); i++)
+    {
+        if (bigString[i] == '#')
+            commentFound = true;
+
+        if (!commentFound)
+            commentString.push_back(bigString[i]);
+    }
+}
+
+void parse_method_def(std::string &s)
+{
+    if (contains(s, Keywords.While))
+        State.DefiningLocalWhileLoop = true;
+
+    if (contains(s, Keywords.Switch))
+        State.DefiningLocalSwitchBlock = true;
+
+    if (State.DefiningParameterizedMethod)
+    {
+        if (s == Keywords.End)
+        {
+            if (State.DefiningLocalWhileLoop)
+            {
+                State.DefiningLocalWhileLoop = false;
+
+                if (State.DefiningClass)
+                    mem.getClass(State.CurrentClass).addToCurrentMethod(s);
+                else
+                    mem.addToCurrentMethod(s);
+            }
+            else if (State.DefiningLocalSwitchBlock)
+            {
+                State.DefiningLocalSwitchBlock = false;
+
+                if (State.DefiningClass)
+                    mem.getClass(State.CurrentClass).addToCurrentMethod(s);
+                else
+                    mem.addToCurrentMethod(s);
+            }
+            else
+            {
+                State.DefiningMethod = false;
+
+                if (State.DefiningClass)
+                {
+                    State.DefiningClassMethod = false;
+                    mem.getClass(mem.getClassCount() - 1).setCurrentMethod("");
+                }
+            }
+        }
+        else
+        {
+            std::string freshLine("");
+            preparse_line_classdef(s, freshLine);
+
+            if (State.DefiningClass)
+            {
+                mem.getClass(State.CurrentClass).addToCurrentMethod(freshLine);
+
+                if (State.DefiningPublicCode)
+                    mem.getClass(State.CurrentClass).setPublic();
+                else if (State.DefiningPrivateCode)
+                    mem.getClass(State.CurrentClass).setPrivate();
+                else
+                    mem.getClass(State.CurrentClass).setPublic();
+            }
+            else
+                mem.getMethod(mem.getMethodCount() - 1).add(freshLine);
+        }
+    }
+    else
+    {
+        if (s == Keywords.End)
+        {
+            if (State.DefiningLocalWhileLoop)
+            {
+                State.DefiningLocalWhileLoop = false;
+
+                if (State.DefiningClass)
+                    mem.addToCurrentClassMethod(s);
+                else
+                    mem.addToCurrentMethod(s);
+            }
+            else if (State.DefiningLocalSwitchBlock)
+            {
+                State.DefiningLocalSwitchBlock = false;
+
+                if (State.DefiningClass)
+                    mem.addToCurrentClassMethod(s);
+                else
+                    mem.addToCurrentMethod(s);
+            }
+            else
+            {
+                State.DefiningMethod = false;
+
+                if (State.DefiningClass)
+                {
+                    State.DefiningClassMethod = false;
+                    mem.getClass(mem.getClassCount() - 1).setCurrentMethod("");
+                }
+            }
+        }
+        else
+        {
+            if (State.DefiningClass)
+            {
+                parse_class_decl(s);
+            }
+            else
+            {
+                if (State.DefiningClassMethod)
+                {
+                    parse_classmethod_decl(s);
+                }
+                else
+                    mem.addToCurrentMethod(s);
+            }
+        }
+    }
+}
+
+void parse_ifstatement_def(std::vector<std::string> &command, std::string &s, int size)
+{
+    if (State.DefiningNest)
+    {
+        parse_nestedif_def(command, s);
+    }
+    else
+    {
+        if (command.at(0) == Keywords.If)
+        {
+            State.DefiningNest = true;
+
+            if (size == 4)
+                threeSpace(Keywords.If, command.at(1), command.at(2), command.at(3), command);
+            else
+            {
+                mem.createIfStatement(false);
+                State.DefiningNest = false;
+            }
+        }
+        else if (command.at(0) == Keywords.Endif)
+        {
+            parse_ifstatement();
+        }
+        else if (command.at(0) == Keywords.Elsif)
+        {
+            if (size == 4)
+                threeSpace(Keywords.If, command.at(1), command.at(2), command.at(3), command);
+            else
+                mem.createIfStatement(false);
+        }
+        else if (s == Keywords.Else)
+            threeSpace(Keywords.If, Keywords.True, Operators.Equal, Keywords.True, command);
+        else if (s == Keywords.Failif)
+        {
+            if (State.FailedIfStatement == true)
+                mem.createIfStatement(true);
+            else
+                mem.createIfStatement(false);
+        }
+        else
+            mem.getIfStatement(mem.getIfStatementCount() - 1).add(s);
+    }
+}
+
+void parse_nestedif_def(std::vector<std::string> &command, std::string &s)
+{
+    if (command.at(0) == Keywords.Endif)
+        exec.executeNest(mem.getIfStatement(mem.getIfStatementCount() - 1).getNest());
+    else
+        mem.getIfStatement(mem.getIfStatementCount() - 1).inNest(s);
+}
+
+void parse_whileloop_def(std::vector<std::string> &command, std::string &s)
+{
+    if (command.at(0) == Keywords.End)
+        parse_whileloops();
+    else
+        mem.getWhileLoop(mem.getWhileLoopCount() - 1).add(s);
+}
+
+void parse_forloop_def(std::vector<std::string> &command, std::string &s)
+{
+    // TODO: I want to use `next` as `continue`.
+    // `next if {condition}`
+    // `next`
+    if (command.at(0) == Keywords.Next || command.at(0) == Keywords.EndFor)
+    {
+        parse_forloop();
+    }
+    else
+    {
+        mem.addToCurrentForLoop(s);
+    }
+}
+
+void parse_default(int size, std::vector<std::string> &command, std::string &s)
+{
+    if (size == 1)
+    {
+        parse_0space(command, s);
+    }
+    else if (size == 2)
+    {
+        parse_1space(command, s);
+    }
+    else if (size == 3)
+    {
+        parse_2space(command, s);
+    }
+    else if (size == 4)
+        parse_3space(command);
+    else if (size == 5)
+    {
+        parse_4space(command, s);
+    }
+    else
+        Env::shellExec(s, command);
+}
+
+void parse_4space(std::vector<std::string> &command, std::string &s)
+{
+    // for each in
+    if (command.at(0) == Keywords.For)
+    {
+        if (has_params(command.at(4)))
+        {
+            State.DefaultLoopSymbol = command.at(4);
+            State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, '(');
+            State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, ')');
+
+            threeSpace(command.at(0), command.at(1), command.at(2), command.at(3), command);
+            State.DefaultLoopSymbol = "$";
+        }
+        else
+            Env::shellExec(s, command);
+    }
+    else
+        Env::shellExec(s, command);
+}
+
+void parse_3space(std::vector<std::string> &command)
+{
+    threeSpace(command.at(0), command.at(1), command.at(2), command.at(3), command);
+}
+
+void parse_2space(std::vector<std::string> &command, std::string &s)
+{
+    // TODO: refactor
+    if (unrecognized_2space(command.at(1)))
+    {
+        if (command.at(0) == Keywords.FileAppend)
+            FileIO::appendText(command.at(1), command.at(2), false);
+        else if (command.at(0) == Keywords.FileAppendLine)
+            FileIO::appendText(command.at(1), command.at(2), true);
+        else if ((command.at(0) == Keywords.FileWrite))
+            FileIO::writeText(command.at(1), command.at(2));
+        else if (command.at(0) == Keywords.Redefine)
+            mem.redefine(command.at(1), command.at(2));
+        else if (command.at(0) == Keywords.Loop)
+        {
+            if (has_params(command.at(2)))
+            {
+                State.DefaultLoopSymbol = command.at(2);
+                State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, '(');
+                State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, ')');
+
+                oneSpace(command.at(0), command.at(1), command);
+                State.DefaultLoopSymbol = "$";
+            }
+            else
+                Env::shellExec(s, command);
+        }
+        else
+            Env::shellExec(s, command);
+    }
+    else
+        twoSpace(command.at(0), command.at(1), command.at(2), command);
+}
+
+void parse_1space(std::vector<std::string> &command, std::string &s)
+{
+    if (unrecognized_1space(command.at(0)))
+        Env::shellExec(s, command);
+    else
+    {
+        oneSpace(command.at(0), command.at(1), command);
+    }
+}
+
+void parse_0space(std::vector<std::string> &command, std::string &s)
+{
+    if (unrecognized_0space(command.at(0)))
+    {
+        std::string before(before_dot(s)), after(after_dot(s));
+
+        if (before.length() != 0 && after.length() != 0)
+        {
+            if (mem.classExists(before) && after.length() != 0)
+            {
+                if (has_params(after))
+                {
+                    s = subtract_char(s, '"');
+
+                    if (mem.getClass(before).hasMethod(before_params(after)))
+                        exec.executeTemplate(mem.getClass(before).getMethod(before_params(after)), parse_params(after));
+                    else
+                        Env::shellExec(s, command);
+                }
+                else if (mem.getClass(before).hasMethod(after))
+                    exec.executeMethod(mem.getClass(before).getMethod(after));
+                else if (mem.getClass(before).hasVariable(after))
+                {
+                    if (mem.getClass(before).getVariable(after).getString() != State.Null)
+                        writeline(mem.getClass(before).getVariable(after).getString());
+                    else if (mem.getClass(before).getVariable(after).getNumber() != State.NullNum)
+                        writeline(dtos(mem.getClass(before).getVariable(after).getNumber()));
+                    else
+                        error(ErrorMessage::IS_NULL, "", false);
+                }
+                else if (after == Keywords.GC)
+                    mem.getClass(before).clear();
+                else
+                    error(ErrorMessage::UNDEFINED, "", false);
+            }
+            else
+            {
+                if (before == Keywords.Env)
+                {
+                    internal_env_builtins("", after, 3);
+                }
+                else if (mem.variableExists(before))
+                {
+                    if (after == Keywords.Clear)
+                        parse(before + " = State.Null");
+                }
+                else if (mem.listExists(before))
+                {
+                    // REFACTOR HERE
+                    if (after == Keywords.Clear)
+                        mem.getList(before).clear();
+                    else if (after == Keywords.Sort)
+                        mem.getList(before).sort();
+                    else if (after == Keywords.Reverse)
+                        mem.getList(before).reverse();
+                    else if (after == Keywords.Revert)
+                        mem.getList(before).revert();
+                }
+                else if (before == Keywords.Self)
+                {
+                    if (State.ExecutedMethod)
+                        exec.executeMethod(mem.getClass(State.CurrentMethodClass).getMethod(after));
+                }
+                else
+                    Env::shellExec(s, command);
+            }
+        }
+        else if (ends_with(s, "::"))
+        {
+            if (State.CurrentScript != "")
+            {
+                std::string newMark(s);
+                newMark = subtract_string(s, "::");
+                mem.getScript().addMark(newMark);
+            }
+        }
+        else if (mem.methodExists(s))
+            exec.executeMethod(mem.getMethod(s));
+        else if (begins_with(s, "[") && ends_with(s, "]"))
+        {
+            mem.createModule(s);
+        }
+        else
+        {
+            s = subtract_char(s, '"');
+
+            if (mem.methodExists(before_params(s)))
+                exec.executeTemplate(mem.getMethod(before_params(s)), parse_params(s));
+            else
+                Env::shellExec(s, command);
+        }
+    }
+    else
+        zeroSpace(command.at(0), command);
+}
+
+void parse_ifstatement()
+{
+    State.DefiningIfStatement = false;
+    State.ExecutedIfStatement = true;
+
+    for (int i = 0; i < mem.getIfStatementCount(); i++)
+    {
+        if (mem.getIfStatement(i).isIF())
+        {
+            exec.executeMethod(mem.getIfStatement(i));
+
+            if (State.FailedIfStatement == false)
+                break;
+        }
+    }
+
+    mem.clearIf();
+
+    State.ExecutedIfStatement = false;
+    State.FailedIfStatement = false;
+    State.IfStatementCount = 0;
+}
+
+void preparse_line_classdef(std::string &s, std::string &freshLine)
+{
+    int _len = s.length();
+    std::vector<std::string> words;
+    std::string word("");
+
+    for (int z = 0; z < _len; z++)
+    {
+        if (s[z] == ' ')
+        {
+            words.push_back(word);
+            word.clear();
+        }
+        else
+            word.push_back(s[z]);
+    }
+
+    words.push_back(word);
+
+    for (int z = 0; z < (int)words.size(); z++)
+    {
+        if (mem.variableExists(words.at(z)))
+        {
+            if (mem.isString(words.at(z)))
+                freshLine.append(mem.varString(words.at(z)));
+            else if (mem.isNumber(words.at(z)))
+                freshLine.append(mem.varNumberString(words.at(z)));
+        }
+        else
+            freshLine.append(words.at(z));
+
+        if (z != (int)words.size() - 1)
+            freshLine.push_back(' ');
+    }
+}
+
+void parse_classmethod_decl(std::string &s)
+{
+    mem.addToCurrentClassMethod(s);
+
+    if (State.DefiningPublicCode)
+        mem.getClass(mem.getClassCount() - 1).setPublic();
+    else if (State.DefiningPrivateCode)
+        mem.getClass(mem.getClassCount() - 1).setPrivate();
+    else
+        mem.getClass(mem.getClassCount() - 1).setPublic();
+}
+
+void parse_class_decl(std::string &s)
+{
+    mem.addToCurrentClassMethod(s);
+
+    if (State.DefiningPublicCode)
+        mem.getClass(mem.getClassCount() - 1).setPublic();
+    else if (State.DefiningPrivateCode)
+        mem.getClass(mem.getClassCount() - 1).setPrivate();
+    else
+        mem.getClass(mem.getClassCount() - 1).setPublic();
+}
+
+void parse_scriptdefinition(std::string &s)
+{
+    if (s == Keywords.EndInlineScript)
+    {
+        State.CurrentScriptName = "";
+        State.DefiningScript = false;
+    }
+    else
+        Env::appendToFile(State.CurrentScriptName, s + "\n");
+}
+
+void parse_moduledefinition(std::string &s)
+{
+    if (s == ("[/" + State.CurrentModule + "]"))
+    {
+        State.DefiningModule = false;
+        State.CurrentModule = "";
+    }
+    else
+        mem.getModule(State.CurrentModule).add(s);
+}
+
+void parse_switchstatement(std::string &s, std::vector<std::string> &command)
+{
+    if (begins_with(s, Keywords.Case))
+        mem.getMainSwitch().addCase(command.at(1));
+    else if (s == Keywords.Default)
+        State.InDefaultCase = true;
+    else if (s == Keywords.End)
+    {
+        std::string switch_value("");
+
+        if (mem.isString(State.SwitchVarName))
+            switch_value = mem.varString(State.SwitchVarName);
+        else if (mem.isNumber(State.SwitchVarName))
+            switch_value = mem.varNumberString(State.SwitchVarName);
+        else
+            switch_value = "";
+
+        Container rightCase = mem.getMainSwitch().rightCase(switch_value);
+
+        State.InDefaultCase = false;
+        State.DefiningSwitchBlock = false;
+
+        for (int i = 0; i < (int)rightCase.size(); i++)
+            parse(rightCase.at(i));
+
+        mem.getMainSwitch().clear();
+    }
+    else
+    {
+        if (State.InDefaultCase)
+            mem.getMainSwitch().addToDefault(s);
+        else
+            mem.getMainSwitch().addToCase(s);
+    }
+}
+
+void parse_args(int size, std::vector<std::string> &command)
+{
+    for (int i = 0; i < size; i++)
+    {
+        // handle arguments
+        // args[0], args[1], ..., args[n-1]
+        if (contains(command.at(i), Keywords.Args) && command.at(i) != Keywords.ArgValues)
+        {
+            std::vector<std::string> params = parse_bracketrange(command.at(i));
+
+            if (is_numeric(params.at(0)))
+            {
+                if (mem.getArgCount() - 1 >= stoi(params.at(0)) && stoi(params.at(0)) >= 0)
+                {
+                    if (params.at(0) == "0")
+                        command.at(i) = State.CurrentScript;
+                    else
+                        command.at(i) = mem.getArg(stoi(params.at(0)));
+                }
+                else
+                    error(ErrorMessage::OUT_OF_BOUNDS, command.at(i), false);
+            }
+            else
+                error(ErrorMessage::OUT_OF_BOUNDS, command.at(i), false);
+        }
+    }
+}
+
+void parse_forloop()
+{
+    State.DefiningForLoop = false;
+
+    for (int i = 0; i < mem.getForLoopCount(); i++)
+        if (mem.getForLoop(i).isForLoop())
+            exec.executeForLoop(mem.getForLoop(i));
+
+    mem.clearFor();
+
+    State.ForLoopCount = 0;
+}
+
+template<typename condition>
+void parse_whileloop(std::string v1, std::string v2, condition cond)
+{
+    while (cond(v1, v2))
+    {
+        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
+
+        if (State.Breaking)
+            break;
+    }
+
+    mem.clearWhile();
+
+    State.WhileLoopCount = 0;
+}
+
+void parse_whileloops()
+{
+    State.DefiningWhileLoop = false;
+
+    std::string v1 = mem.getWhileLoop(mem.getWhileLoopCount() - 1).valueOne(),
+            v2 = mem.getWhileLoop(mem.getWhileLoopCount() - 1).valueTwo(),
+            op = mem.getWhileLoop(mem.getWhileLoopCount() - 1).logicOperator();
+
+    if (mem.variableExists(v1) && mem.variableExists(v2))
+    {
+        if (op == Operators.Equal)
+        {
+            parse_whileloop(v1, v2, [](std::string v1, std::string v2) {
+                return mem.varNumber(v1) == mem.varNumber(v2);
+            });
+        }
+        else if (op == Operators.LessThan)
+        {
+            parse_whileloop(v1, v2, [](std::string v1, std::string v2) {
+                return mem.varNumber(v1) < mem.varNumber(v2);
+            });
+        }
+        else if (op == Operators.GreaterThan)
+        {
+            parse_whileloop(v1, v2, [](std::string v1, std::string v2) {
+                return mem.varNumber(v1) > mem.varNumber(v2);
+            });
+        }
+        else if (op == Operators.LessThanOrEqual)
+        {
+            parse_whileloop(v1, v2, [](std::string v1, std::string v2) {
+                return mem.varNumber(v1) <= mem.varNumber(v2);
+            });
+        }
+        else if (op == Operators.GreaterThanOrEqual)
+        {
+            parse_whileloop(v1, v2, [](std::string v1, std::string v2) {
+                return mem.varNumber(v1) >= mem.varNumber(v2);
+            });
+        }
+        else if (op == Operators.NotEqual)
+        {
+            parse_whileloop(v1, v2, [](std::string v1, std::string v2) {
+                return mem.varNumber(v1) != mem.varNumber(v2);
+            });
+        }
+    }
+    else if (mem.variableExists(v1))
+    {
+        if (op == Operators.Equal)
+        {
+            parse_whileloop(v1, v2, [](std::string v1, std::string v2) {
+                return mem.varNumber(v1) == stoi(v2);
+            });
+        }
+        else if (op == Operators.LessThan)
+        {
+            parse_whileloop(v1, v2, [](std::string v1, std::string v2) {
+                return mem.varNumber(v1) < stoi(v2);
+            });
+        }
+        else if (op == Operators.GreaterThan)
+        {
+            parse_whileloop(v1, v2, [](std::string v1, std::string v2) {
+                return mem.varNumber(v1) > stoi(v2);
+            });
+        }
+        else if (op == Operators.LessThanOrEqual)
+        {
+            parse_whileloop(v1, v2, [](std::string v1, std::string v2) {
+                return mem.varNumber(v1) <= stoi(v2);
+            });
+        }
+        else if (op == Operators.GreaterThanOrEqual)
+        {
+            parse_whileloop(v1, v2, [](std::string v1, std::string v2) {
+                return mem.varNumber(v1) >= stoi(v2);
+            });
+        }
+        else if (op == Operators.NotEqual)
+        {
+            parse_whileloop(v1, v2, [](std::string v1, std::string v2) {
+                return mem.varNumber(v1) != stoi(v2);
+            });
+        }
+    }
+}
+
+void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::vector<std::string> &command, int &count, char &prevChar, std::string &bigString, bool &uncomment, bool &broken, StringContainer &stringContainer)
+{
     for (int i = 0; i < length; i++)
     {
         switch (s[i])
@@ -160,777 +941,6 @@ void parse(std::string s)
         }
 
         prevChar = s[i];
-    }
-
-    size = (int)command.size();
-
-    if (!State.IsCommented)
-    {
-        if (!broken)
-        {
-            for (int i = 0; i < size; i++)
-            {
-                // handle arguments
-                // args[0], args[1], ..., args[n-1]
-                if (contains(command.at(i), Keywords.Args) && command.at(i) != Keywords.ArgValues)
-                {
-                    std::vector<std::string> params = parse_bracketrange(command.at(i));
-
-                    if (is_numeric(params.at(0)))
-                    {
-                        if (mem.getArgCount() - 1 >= stoi(params.at(0)) && stoi(params.at(0)) >= 0)
-                        {
-                            if (params.at(0) == "0")
-                                command.at(i) = State.CurrentScript;
-                            else
-                                command.at(i) = mem.getArg(stoi(params.at(0)));
-                        }
-                        else
-                            error(ErrorMessage::OUT_OF_BOUNDS, command.at(i), false);
-                    }
-                    else
-                        error(ErrorMessage::OUT_OF_BOUNDS, command.at(i), false);
-                }
-            }
-
-            if (State.DefiningSwitchBlock)
-            {
-                if (begins_with(s, Keywords.Case))
-                    mem.getMainSwitch().addCase(command.at(1));
-                else if (s == Keywords.Default)
-                    State.InDefaultCase = true;
-                else if (s == Keywords.End)
-                {
-                    std::string switch_value("");
-
-                    if (mem.isString(State.SwitchVarName))
-                        switch_value = mem.varString(State.SwitchVarName);
-                    else if (mem.isNumber(State.SwitchVarName))
-                        switch_value = mem.varNumberString(State.SwitchVarName);
-                    else
-                        switch_value = "";
-
-                    Container rightCase = mem.getMainSwitch().rightCase(switch_value);
-
-                    State.InDefaultCase = false;
-                    State.DefiningSwitchBlock = false;
-
-                    for (int i = 0; i < (int)rightCase.size(); i++)
-                        parse(rightCase.at(i));
-
-                    mem.getMainSwitch().clear();
-                }
-                else
-                {
-                    if (State.InDefaultCase)
-                        mem.getMainSwitch().addToDefault(s);
-                    else
-                        mem.getMainSwitch().addToCase(s);
-                }
-            }
-            else if (State.DefiningModule)
-            {
-                if (s == ("[/" + State.CurrentModule + "]"))
-                {
-                    State.DefiningModule = false;
-                    State.CurrentModule = "";
-                }
-                else
-                    mem.getModule(State.CurrentModule).add(s);
-            }
-            else if (State.DefiningScript)
-            {
-                if (s == Keywords.EndInlineScript)
-                {
-                    State.CurrentScriptName = "";
-                    State.DefiningScript = false;
-                }
-                else
-                    Env::appendToFile(State.CurrentScriptName, s + "\n");
-            }
-            else
-            {
-                if (State.RaiseCatchBlock)
-                {
-                    if (s == Keywords.Catch)
-                        State.RaiseCatchBlock = false;
-                }
-                else if (State.ExecutedTryBlock && s == Keywords.Catch)
-                    State.SkipCatchBlock = true;
-                else if (State.ExecutedTryBlock && State.SkipCatchBlock)
-                {
-                    if (s == Keywords.Caught)
-                    {
-                        State.SkipCatchBlock = false;
-                        parse(Keywords.Caught);
-                    }
-                }
-                else if (State.DefiningMethod)
-                {
-                    if (contains(s, Keywords.While))
-                        State.DefiningLocalWhileLoop = true;
-
-                    if (contains(s, Keywords.Switch))
-                        State.DefiningLocalSwitchBlock = true;
-
-                    if (State.DefiningParameterizedMethod)
-                    {
-                        if (s == Keywords.End)
-                        {
-                            if (State.DefiningLocalWhileLoop)
-                            {
-                                State.DefiningLocalWhileLoop = false;
-
-                                if (State.DefiningClass)
-                                    mem.getClass(State.CurrentClass).addToCurrentMethod(s);
-                                else
-                                    mem.getMethod(mem.getMethodCount() - 1).add(s);
-                            }
-                            else if (State.DefiningLocalSwitchBlock)
-                            {
-                                State.DefiningLocalSwitchBlock = false;
-
-                                if (State.DefiningClass)
-                                    mem.getClass(State.CurrentClass).addToCurrentMethod(s);
-                                else
-                                    mem.getMethod(mem.getMethodCount() - 1).add(s);
-                            }
-                            else
-                            {
-                                State.DefiningMethod = false;
-
-                                if (State.DefiningClass)
-                                {
-                                    State.DefiningClassMethod = false;
-                                    mem.getClass(mem.getClassCount() - 1).setCurrentMethod("");
-                                }
-                            }
-                        }
-                        else
-                        {
-                            int _len = s.length();
-                            std::vector<std::string> words;
-                            std::string word("");
-
-                            for (int z = 0; z < _len; z++)
-                            {
-                                if (s[z] == ' ')
-                                {
-                                    words.push_back(word);
-                                    word.clear();
-                                }
-                                else
-                                    word.push_back(s[z]);
-                            }
-
-                            words.push_back(word);
-
-                            std::string freshLine("");
-
-                            for (int z = 0; z < (int)words.size(); z++)
-                            {
-                                if (mem.variableExists(words.at(z)))
-                                {
-                                    if (mem.isString(words.at(z)))
-                                        freshLine.append(mem.varString(words.at(z)));
-                                    else if (mem.isNumber(words.at(z)))
-                                        freshLine.append(mem.varNumberString(words.at(z)));
-                                }
-                                else
-                                    freshLine.append(words.at(z));
-
-                                if (z != (int)words.size() - 1)
-                                    freshLine.push_back(' ');
-                            }
-
-                            if (State.DefiningClass)
-                            {
-                                mem.getClass(State.CurrentClass).addToCurrentMethod(freshLine);
-
-                                if (State.DefiningPublicCode)
-                                    mem.getClass(State.CurrentClass).setPublic();
-                                else if (State.DefiningPrivateCode)
-                                    mem.getClass(State.CurrentClass).setPrivate();
-                                else
-                                    mem.getClass(State.CurrentClass).setPublic();
-                            }
-                            else
-                                mem.getMethod(mem.getMethodCount() - 1).add(freshLine);
-                        }
-                    }
-                    else
-                    {
-                        if (s == Keywords.End)
-                        {
-                            if (State.DefiningLocalWhileLoop)
-                            {
-                                State.DefiningLocalWhileLoop = false;
-
-                                if (State.DefiningClass)
-                                    mem.getClass(mem.getClassCount() - 1).addToCurrentMethod(s);
-                                else
-                                    mem.getMethod(mem.getMethodCount() - 1).add(s);
-                            }
-                            else if (State.DefiningLocalSwitchBlock)
-                            {
-                                State.DefiningLocalSwitchBlock = false;
-
-                                if (State.DefiningClass)
-                                    mem.getClass(mem.getClassCount() - 1).addToCurrentMethod(s);
-                                else
-                                    mem.getMethod(mem.getMethodCount() - 1).add(s);
-                            }
-                            else
-                            {
-                                State.DefiningMethod = false;
-
-                                if (State.DefiningClass)
-                                {
-                                    State.DefiningClassMethod = false;
-                                    mem.getClass(mem.getClassCount() - 1).setCurrentMethod("");
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (State.DefiningClass)
-                            {
-                                mem.getClass(mem.getClassCount() - 1).addToCurrentMethod(s);
-
-                                if (State.DefiningPublicCode)
-                                    mem.getClass(mem.getClassCount() - 1).setPublic();
-                                else if (State.DefiningPrivateCode)
-                                    mem.getClass(mem.getClassCount() - 1).setPrivate();
-                                else
-                                    mem.getClass(mem.getClassCount() - 1).setPublic();
-                            }
-                            else
-                            {
-                                if (State.DefiningClassMethod)
-                                {
-                                    mem.getClass(mem.getClassCount() - 1).addToCurrentMethod(s);
-
-                                    if (State.DefiningPublicCode)
-                                        mem.getClass(mem.getClassCount() - 1).setPublic();
-                                    else if (State.DefiningPrivateCode)
-                                        mem.getClass(mem.getClassCount() - 1).setPrivate();
-                                    else
-                                        mem.getClass(mem.getClassCount() - 1).setPublic();
-                                }
-                                else
-                                    mem.getMethod(mem.getMethodCount() - 1).add(s);
-                            }
-                        }
-                    }
-                }
-                else if (State.DefiningIfStatement)
-                {
-                    if (State.DefiningNest)
-                    {
-                        if (command.at(0) == Keywords.Endif)
-                            exec.executeNest(mem.getIfStatement(mem.getIfStatementCount() - 1).getNest());
-                        else
-                            mem.getIfStatement(mem.getIfStatementCount() - 1).inNest(s);
-                    }
-                    else
-                    {
-                        if (command.at(0) == Keywords.If)
-                        {
-                            State.DefiningNest = true;
-
-                            if (size == 4)
-                                threeSpace(Keywords.If, command.at(1), command.at(2), command.at(3), command);
-                            else
-                            {
-                                mem.createIfStatement(false);
-                                State.DefiningNest = false;
-                            }
-                        }
-                        else if (command.at(0) == Keywords.Endif)
-                        {
-                            State.DefiningIfStatement = false;
-                            State.ExecutedIfStatement = true;
-
-                            for (int i = 0; i < mem.getIfStatementCount(); i++)
-                            {
-                                if (mem.getIfStatement(i).isIF())
-                                {
-                                    exec.executeMethod(mem.getIfStatement(i));
-
-                                    if (State.FailedIfStatement == false)
-                                        break;
-                                }
-                            }
-
-                            mem.clearIf();
-
-                            State.ExecutedIfStatement = false;
-                            State.FailedIfStatement = false;
-                            State.IfStatementCount = 0;
-                        }
-                        else if (command.at(0) == Keywords.Elsif)
-                        {
-                            if (size == 4)
-                                threeSpace(Keywords.If, command.at(1), command.at(2), command.at(3), command);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else if (s == Keywords.Else)
-                            threeSpace(Keywords.If, Keywords.True, Operators.Equal, Keywords.True, command);
-                        else if (s == Keywords.Failif)
-                        {
-                            if (State.FailedIfStatement == true)
-                                mem.createIfStatement(true);
-                            else
-                                mem.createIfStatement(false);
-                        }
-                        else
-                            mem.getIfStatement(mem.getIfStatementCount() - 1).add(s);
-                    }
-                }
-                else
-                {
-                    if (State.DefiningWhileLoop)
-                    {
-                        if (command.at(0) == Keywords.End)
-                        {
-                            State.DefiningWhileLoop = false;
-
-                            std::string v1 = mem.getWhileLoop(mem.getWhileLoopCount() - 1).valueOne(),
-                                   v2 = mem.getWhileLoop(mem.getWhileLoopCount() - 1).valueTwo(),
-                                   op = mem.getWhileLoop(mem.getWhileLoopCount() - 1).logicOperator();
-
-                            if (mem.variableExists(v1) && mem.variableExists(v2))
-                            {
-                                if (op == Operators.Equal)
-                                {
-                                    while (mem.varNumber(v1) == mem.varNumber(v2))
-                                    {
-                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
-
-                                        if (State.Breaking)
-                                            break;
-                                    }
-
-                                    mem.clearWhile();
-
-                                    State.WhileLoopCount = 0;
-                                }
-                                else if (op == Operators.LessThan)
-                                {
-                                    while (mem.varNumber(v1) < mem.varNumber(v2))
-                                    {
-                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
-
-                                        if (State.Breaking)
-                                            break;
-                                    }
-
-                                    mem.clearWhile();
-
-                                    State.WhileLoopCount = 0;
-                                }
-                                else if (op == Operators.GreaterThan)
-                                {
-                                    while (mem.varNumber(v1) > mem.varNumber(v2))
-                                    {
-                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
-
-                                        if (State.Breaking)
-                                            break;
-                                    }
-
-                                    mem.clearWhile();
-
-                                    State.WhileLoopCount = 0;
-                                }
-                                else if (op == Operators.LessThanOrEqual)
-                                {
-                                    while (mem.varNumber(v1) <= mem.varNumber(v2))
-                                    {
-                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
-
-                                        if (State.Breaking)
-                                            break;
-                                    }
-
-                                    mem.clearWhile();
-
-                                    State.WhileLoopCount = 0;
-                                }
-                                else if (op == Operators.GreaterThanOrEqual)
-                                {
-                                    while (mem.varNumber(v1) >= mem.varNumber(v2))
-                                    {
-                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
-
-                                        if (State.Breaking)
-                                            break;
-                                    }
-
-                                    mem.clearWhile();
-
-                                    State.WhileLoopCount = 0;
-                                }
-                                else if (op == Operators.NotEqual)
-                                {
-                                    while (mem.varNumber(v1) != mem.varNumber(v2))
-                                    {
-                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
-
-                                        if (State.Breaking)
-                                            break;
-                                    }
-
-                                    mem.clearWhile();
-
-                                    State.WhileLoopCount = 0;
-                                }
-                            }
-                            else if (mem.variableExists(v1))
-                            {
-                                if (op == Operators.Equal)
-                                {
-                                    while (mem.varNumber(v1) == stoi(v2))
-                                    {
-                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
-
-                                        if (State.Breaking)
-                                            break;
-                                    }
-
-                                    mem.clearWhile();
-
-                                    State.WhileLoopCount = 0;
-                                }
-                                else if (op == Operators.LessThan)
-                                {
-                                    while (mem.varNumber(v1) < stoi(v2))
-                                    {
-                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
-
-                                        if (State.Breaking)
-                                            break;
-                                    }
-
-                                    mem.clearWhile();
-
-                                    State.WhileLoopCount = 0;
-                                }
-                                else if (op == Operators.GreaterThan)
-                                {
-                                    while (mem.varNumber(v1) > stoi(v2))
-                                    {
-                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
-
-                                        if (State.Breaking)
-                                            break;
-                                    }
-
-                                    mem.clearWhile();
-
-                                    State.WhileLoopCount = 0;
-                                }
-                                else if (op == Operators.LessThanOrEqual)
-                                {
-                                    while (mem.varNumber(v1) <= stoi(v2))
-                                    {
-                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
-
-                                        if (State.Breaking)
-                                            break;
-                                    }
-
-                                    mem.clearWhile();
-
-                                    State.WhileLoopCount = 0;
-                                }
-                                else if (op == Operators.GreaterThanOrEqual)
-                                {
-                                    while (mem.varNumber(v1) >= stoi(v2))
-                                    {
-                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
-
-                                        if (State.Breaking)
-                                            break;
-                                    }
-
-                                    mem.clearWhile();
-
-                                    State.WhileLoopCount = 0;
-                                }
-                                else if (op == Operators.NotEqual)
-                                {
-                                    while (mem.varNumber(v1) != stoi(v2))
-                                    {
-                                        exec.executeWhileLoop(mem.getWhileLoop(mem.getWhileLoopCount() - 1));
-
-                                        if (State.Breaking)
-                                            break;
-                                    }
-
-                                    mem.clearWhile();
-
-                                    State.WhileLoopCount = 0;
-                                }
-                            }
-                        }
-                        else
-                            mem.getWhileLoop(mem.getWhileLoopCount() - 1).add(s);
-                    }
-                    else if (State.DefiningForLoop)
-                    {
-                        // TODO: I want to use `next` as `continue`. 
-                        // `next if {condition}` 
-                        // `next`
-                        if (command.at(0) == Keywords.Next || command.at(0) == Keywords.EndFor)
-                        {
-                            State.DefiningForLoop = false;
-
-                            for (int i = 0; i < mem.getForLoopCount(); i++)
-                                if (mem.getForLoop(i).isForLoop())
-                                    exec.executeForLoop(mem.getForLoop(i));
-
-                            mem.clearFor();
-
-                            State.ForLoopCount = 0;
-                        }
-                        else
-                        {
-                            mem.addLineToCurrentForLoop(s);
-                        }
-                    }
-                    else
-                    {
-                        if (size == 1)
-                        {
-                            if (unrecognized_0space(command.at(0)))
-                            {
-                                std::string before(before_dot(s)), after(after_dot(s));
-
-                                if (before.length() != 0 && after.length() != 0)
-                                {
-                                    if (mem.classExists(before) && after.length() != 0)
-                                    {
-                                        if (has_params(after))
-                                        {
-                                            s = subtract_char(s, '"');
-
-                                            if (mem.getClass(before).hasMethod(before_params(after)))
-                                                exec.executeTemplate(mem.getClass(before).getMethod(before_params(after)), parse_params(after));
-                                            else
-                                                Env::shellExec(s, command);
-                                        }
-                                        else if (mem.getClass(before).hasMethod(after))
-                                            exec.executeMethod(mem.getClass(before).getMethod(after));
-                                        else if (mem.getClass(before).hasVariable(after))
-                                        {
-                                            if (mem.getClass(before).getVariable(after).getString() != State.Null)
-                                                writeline(mem.getClass(before).getVariable(after).getString());
-                                            else if (mem.getClass(before).getVariable(after).getNumber() != State.NullNum)
-                                                writeline(dtos(mem.getClass(before).getVariable(after).getNumber()));
-                                            else
-                                                error(ErrorMessage::IS_NULL, "", false);
-                                        }
-                                        else if (after == Keywords.GC)
-                                            mem.getClass(before).clear();
-                                        else
-                                            error(ErrorMessage::UNDEFINED, "", false);
-                                    }
-                                    else
-                                    {
-                                        if (before == Keywords.Env)
-                                        {
-                                            internal_env_builtins("", after, 3);
-                                        }
-                                        else if (mem.variableExists(before))
-                                        {
-                                            if (after == Keywords.Clear)
-                                                parse(before + " = State.Null");
-                                        }
-                                        else if (mem.listExists(before))
-                                        {
-                                            // REFACTOR HERE
-                                            if (after == Keywords.Clear)
-                                                mem.getList(before).clear();
-                                            else if (after == Keywords.Sort)
-                                                mem.getList(before).sort();
-                                            else if (after == Keywords.Reverse)
-                                                mem.getList(before).reverse();
-                                            else if (after == Keywords.Revert)
-                                                mem.getList(before).revert();
-                                        }
-                                        else if (before == Keywords.Self)
-                                        {
-                                            if (State.ExecutedMethod)
-                                                exec.executeMethod(mem.getClass(State.CurrentMethodClass).getMethod(after));
-                                        }
-                                        else
-                                            Env::shellExec(s, command);
-                                    }
-                                }
-                                else if (ends_with(s, "::"))
-                                {
-                                    if (State.CurrentScript != "")
-                                    {
-                                        std::string newMark(s);
-                                        newMark = subtract_string(s, "::");
-                                        mem.getScript().addMark(newMark);
-                                    }
-                                }
-                                else if (mem.methodExists(s))
-                                    exec.executeMethod(mem.getMethod(s));
-                                else if (begins_with(s, "[") && ends_with(s, "]"))
-                                {
-                                    mem.createModule(s);
-                                }
-                                else
-                                {
-                                    s = subtract_char(s, '"');
-
-                                    if (mem.methodExists(before_params(s)))
-                                        exec.executeTemplate(mem.getMethod(before_params(s)), parse_params(s));
-                                    else
-                                        Env::shellExec(s, command);
-                                }
-                            }
-                            else
-                                zeroSpace(command.at(0), command);
-                        }
-                        else if (size == 2)
-                        {
-                            if (unrecognized_1space(command.at(0)))
-                                Env::shellExec(s, command);
-                            else
-                            {
-                                oneSpace(command.at(0), command.at(1), command);
-                            }
-                        }
-                        else if (size == 3)
-                        {
-                            // TODO: refactor
-                            if (unrecognized_2space(command.at(1)))
-                            {
-                                if (command.at(0) == Keywords.FileAppend)
-                                    FileIO::appendText(command.at(1), command.at(2), false);
-                                else if (command.at(0) == Keywords.FileAppendLine)
-                                    FileIO::appendText(command.at(1), command.at(2), true);
-                                else if ((command.at(0) == Keywords.FileWrite))
-                                    FileIO::writeText(command.at(1), command.at(2));
-                                else if (command.at(0) == Keywords.Redefine)
-                                    mem.redefine(command.at(1), command.at(2));
-                                else if (command.at(0) == Keywords.Loop)
-                                {
-                                    if (has_params(command.at(2)))
-                                    {
-                                        State.DefaultLoopSymbol = command.at(2);
-                                        State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, '(');
-                                        State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, ')');
-
-                                        oneSpace(command.at(0), command.at(1), command);
-                                        State.DefaultLoopSymbol = "$";
-                                    }
-                                    else
-                                        Env::shellExec(s, command);
-                                }
-                                else
-                                    Env::shellExec(s, command);
-                            }
-                            else
-                                twoSpace(command.at(0), command.at(1), command.at(2), command);
-                        }
-                        else if (size == 4)
-                            threeSpace(command.at(0), command.at(1), command.at(2), command.at(3), command);
-                        else if (size == 5)
-                        {
-                            // for var in
-                            if (command.at(0) == Keywords.For)
-                            {
-                                if (has_params(command.at(4)))
-                                {
-                                    State.DefaultLoopSymbol = command.at(4);
-                                    State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, '(');
-                                    State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, ')');
-
-                                    threeSpace(command.at(0), command.at(1), command.at(2), command.at(3), command);
-                                    State.DefaultLoopSymbol = "$";
-                                }
-                                else
-                                    Env::shellExec(s, command);
-                            }
-                            else
-                                Env::shellExec(s, command);
-                        }
-                        else
-                            Env::shellExec(s, command);
-                    }
-                }
-            }
-        }
-        else
-        {
-            stringContainer.add(bigString);
-
-            for (int i = 0; i < (int)stringContainer.get().size(); i++)
-                parse(stringContainer.at(i));
-        }
-    }
-    else
-    {
-        if (State.IsMultilineComment)
-        {
-            if (uncomment)
-            {
-                State.IsCommented = false;
-                State.IsMultilineComment = false;
-            }
-        }
-        else
-        {
-            if (uncomment)
-            {
-                State.IsCommented = false;
-                uncomment = false;
-
-                if (!broken)
-                {
-                    std::string commentString("");
-
-                    bool commentFound = false;
-
-                    for (int i = 0; i < (int)bigString.length(); i++)
-                    {
-                        if (bigString[i] == '#')
-                            commentFound = true;
-
-                        if (!commentFound)
-                            commentString.push_back(bigString[i]);
-                    }
-
-                    parse(ltrim_ws(commentString));
-                }
-                else
-                {
-                    std::string commentString("");
-
-                    bool commentFound = false;
-
-                    for (int i = 0; i < (int)bigString.length(); i++)
-                    {
-                        if (bigString[i] == '#')
-                            commentFound = true;
-
-                        if (!commentFound)
-                            commentString.push_back(bigString[i]);
-                    }
-
-                    stringContainer.add(ltrim_ws(commentString));
-
-                    for (int i = 0; i < (int)stringContainer.get().size(); i++)
-                        parse(stringContainer.at(i));
-                }
-            }
-        }
     }
 }
 
