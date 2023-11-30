@@ -65,6 +65,7 @@ struct
 
     std::string ErrorVarName;
     std::string LastError;
+    int LastErrorCode;
     bool ExecutedTryBlock;
     bool RaiseCatchBlock;
     bool SkipCatchBlock;

@@ -444,10 +444,12 @@ void error(int errorType, std::string errorInfo, bool quit)
     completeError.append(errorInfo);
     completeError.append("\n");
 
+    State.LastError = completeError;
+    State.LastErrorCode = errorType;
+
     if (State.ExecutedTryBlock)
     {
         State.RaiseCatchBlock = true;
-        State.LastError = completeError;
     }
     else
     {
@@ -460,7 +462,7 @@ void error(int errorType, std::string errorInfo, bool quit)
     if (quit)
     {
         mem.clearAll();
-        exit(0);
+        exit(errorType);
     }
 }
 
@@ -3320,7 +3322,8 @@ void initialize_state(std::string uslang)
     State.IfStatementCount = 0,
     State.ForLoopCount = 0,
     State.WhileLoopCount = 0,
-    State.ParamVarCount = 0;
+    State.ParamVarCount = 0,
+    State.LastErrorCode = 0;
     State.CaptureParse = false,
     State.IsCommented = false,
     State.UseCustomPrompt = false,
