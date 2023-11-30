@@ -130,14 +130,17 @@ public:
     void createModule(std::string s);
     void createClass(std::string className);
 
-    void addLineToCurrentForLoop(std::string line);
+    void addToCurrentForLoop(std::string line);
+    void addToCurrentMethod(std::string s);
+    void addToCurrentClassMethod(std::string s);
+
     void addItemToList(std::string listName, std::string value);
 };
 
 Memory::Memory() {}
 Memory::~Memory() {}
 
-void Memory::addLineToCurrentForLoop(std::string line)
+void Memory::addToCurrentForLoop(std::string line)
 {
     forLoops[forLoops.size() - 1].add(line);
 }
@@ -179,6 +182,9 @@ Method& Memory::getWhileLoop(int index) { return whileLoops.at(index); }
 int Memory::getArgCount() { return args.size(); }
 std::string Memory::getArg(int index) { return args.at(index); }
 void Memory::addArg(std::string arg) { args.push_back(arg); }
+
+void Memory::addToCurrentMethod(std::string s) { getMethod(getMethodCount() - 1).add(s); }
+void Memory::addToCurrentClassMethod(std::string s) { getClass(getClassCount() - 1).addToCurrentMethod(s); }
 
 void Memory::createClass(std::string className)
 {
