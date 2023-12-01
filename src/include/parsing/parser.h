@@ -1,4 +1,4 @@
-#include "prototypes.h"
+#include "../usl/prototypes.h"
 #ifndef PARSER_H
 #define PARSER_H
 
@@ -11,7 +11,7 @@ void parse(std::string s)
     State.CurrentLine = s; // store a copy of the current line
 
     StringContainer stringContainer; // contains separate commands
-    std::string bigString("");       // a string to build upon
+    std::string builder("");       // a string to build upon
 
     int length = s.length(), //	length of the line
         count = 0,           // command token counter
@@ -25,7 +25,7 @@ void parse(std::string s)
     // iterate each char in the initial string
     char prevChar = 'a';     // previous character in string
 
-    tokenize(length, s, parenthesis, quoted, command, count, prevChar, bigString, uncomment, broken, stringContainer);
+    tokenize(length, s, parenthesis, quoted, command, count, prevChar, builder, uncomment, broken, stringContainer);
 
     size = (int)command.size();
 
@@ -46,16 +46,16 @@ void parse(std::string s)
                 State.IsCommented = false;
                 uncomment = false;
 
-                std::string commentString("");
-                parse_commentstring(bigString, commentString);
+                std::string parseable("");
+                preparse_stripcomment(builder, parseable);
                 
                 if (!broken)
                 {
-                    parse(ltrim_ws(commentString));
+                    parse(ltrim_ws(parseable));
                 }
                 else
                 {
-                    stringContainer.add(ltrim_ws(commentString));
+                    stringContainer.add(ltrim_ws(parseable));
                     parse_stringcontainer(stringContainer);
                 }
             }
@@ -115,7 +115,7 @@ void parse(std::string s)
     }
     else
     {
-        stringContainer.add(bigString);
+        stringContainer.add(builder);
         parse_stringcontainer(stringContainer);
     }
 }
@@ -137,17 +137,82 @@ void parse_stringcontainer(StringContainer &stringContainer)
         parse(stringContainer.at(i));
 }
 
-void parse_commentstring(std::string &bigString, std::string &commentString)
+void preparse_stripcomment(std::string &inputString, std::string &result)
 {
-    bool commentFound = false;
-
-    for (int i = 0; i < (int)bigString.length(); i++)
+    for (int i = 0; i < (int)inputString.length(); i++)
     {
-        if (bigString[i] == '#')
-            commentFound = true;
+        if (inputString[i] == '#')
+            break;
 
-        if (!commentFound)
-            commentString.push_back(bigString[i]);
+        result.push_back(inputString[i]);
+    }
+}
+
+void parse_forloopmethod(Method &m, int iterVal)
+{
+    for (int z = 0; z < m.size(); z++)
+    {
+        std::string cleanString(""), tmp(m.at(z));
+        preparse_methodline(tmp, m, cleanString, itos(iterVal));
+
+        parse(cleanString);
+    }
+}
+
+void parse_forloopmethod(Method &m, std::string iterVal)
+{
+    for (int z = 0; z < m.size(); z++)
+    {
+        std::string cleanString(""), tmp(m.at(z));
+        preparse_methodline(tmp, m, cleanString, iterVal);
+
+        parse(cleanString);
+    }
+}
+
+void preparse_methodline(std::string &tmp, Method &m, std::string &cleanString, std::string iterValue)
+{
+    int l(tmp.length());
+    bool buildSymbol = false, almostBuild = false, ended = false;
+    std::string builder("");
+
+    for (int a = 0; a < l; a++)
+    {
+        if (almostBuild)
+        {
+            if (tmp[a] == '{')
+                buildSymbol = true;
+        }
+
+        if (buildSymbol)
+        {
+            if (tmp[a] == '}')
+            {
+                almostBuild = false,
+                buildSymbol = false;
+                ended = true;
+
+                builder = subtract_string(builder, "{");
+
+                if (builder == m.getSymbolString())
+                    cleanString.append(iterValue);
+
+                builder.clear();
+            }
+            else
+                builder.push_back(tmp[a]);
+        }
+
+        if (tmp[a] == '$')
+            almostBuild = true;
+
+        if (!almostBuild && !buildSymbol)
+        {
+            if (ended)
+                ended = false;
+            else
+                cleanString.push_back(tmp[a]);
+        }
     }
 }
 
@@ -816,7 +881,7 @@ void parse_whileloops()
     }
 }
 
-void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::vector<std::string> &command, int &count, char &prevChar, std::string &bigString, bool &uncomment, bool &broken, StringContainer &stringContainer)
+void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::vector<std::string> &command, int &count, char &prevChar, std::string &builder, bool &uncomment, bool &broken, StringContainer &stringContainer)
 {
     for (int i = 0; i < length; i++)
     {
@@ -842,7 +907,7 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::
                 }
             }
 
-            bigString.push_back(' ');
+            builder.push_back(' ');
             break;
 
         case '\"':
@@ -851,7 +916,7 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::
             {
                 command.at(count).push_back('\"');
             }
-            bigString.push_back('\"');
+            builder.push_back('\"');
             break;
 
         case '(':
@@ -860,7 +925,7 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::
 
             command.at(count).push_back('(');
 
-            bigString.push_back('(');
+            builder.push_back('(');
             break;
 
         case ')':
@@ -868,7 +933,7 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::
                 parenthesis = false;
 
             command.at(count).push_back(')');
-            bigString.push_back(')');
+            builder.push_back(')');
             break;
 
         case '\\':
@@ -878,7 +943,7 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::
                     command.at(count).push_back('\\');
             }
 
-            bigString.push_back('\\');
+            builder.push_back('\\');
             break;
 
         case '\'':
@@ -889,7 +954,7 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::
                 else
                     command.at(count).append("\"");
 
-                bigString.push_back('\'');
+                builder.push_back('\'');
             }
             break;
 
@@ -910,7 +975,7 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::
                 uncomment = true;
             }
 
-            bigString.push_back('#');
+            builder.push_back('#');
             break;
 
         case ';':
@@ -919,8 +984,8 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::
                 if (!State.IsCommented)
                 {
                     broken = true;
-                    stringContainer.add(bigString);
-                    bigString = "";
+                    stringContainer.add(builder);
+                    builder = "";
                     count = 0;
                     command.clear();
                     command.push_back("");
@@ -928,7 +993,7 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::
             }
             else
             {
-                bigString.push_back(';');
+                builder.push_back(';');
                 command.at(count).push_back(';');
             }
             break;
@@ -936,7 +1001,7 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::
         default:
             if (!State.IsCommented)
                 command.at(count).push_back(s[i]);
-            bigString.push_back(s[i]);
+            builder.push_back(s[i]);
             break;
         }
 
@@ -2724,8 +2789,9 @@ void handleErr(std::string &arg1)
             errorValue = dtos(mem.varNumber(arg1));
     }
     
-    IO::printerrln(errorValue);
     State.LastError = errorValue;
+
+    std::cerr << errorValue << std::endl;
 }
 
 void handlePrompt(std::string &arg1)
