@@ -2813,7 +2813,7 @@ void handlePrompt(std::string &arg1)
 void handleIfStatement(std::string &arg1)
 {
     std::string tmpValue("");
-    // if arg1 is a variable
+    
     if (mem.variableExists(arg1))
     {
         // can we can assume that arg1 belongs to an object?
@@ -2823,91 +2823,59 @@ void handleIfStatement(std::string &arg1)
             Variable tmpVar = mem.getClass(objName).getVariable(varName);
 
             if (mem.isString(tmpVar))
-            {
                 tmpValue = tmpVar.getString();
-            }
             else if (mem.isNumber(tmpVar))
-            {
                 tmpValue = dtos(tmpVar.getNumber());
-            }
-            else
-            {
-                // error(ErrorMessage::IS_NULL, arg1, true);
-            }
         }
         else
         {
             if (mem.isString(arg1))
-            {
                 tmpValue = mem.varString(arg1);
-            }
             else if (mem.isNumber(arg1))
-            {
                 tmpValue = mem.varNumber(arg1);
-            }
-            else
-            {
-                // error(ErrorMessage::IS_NULL, arg1, true);
-            }
         }
     }
+    else if (is_numeric(arg1) || is_truthy(arg1) || is_falsey(arg1))
+    {
+        tmpValue = arg1;
+    }   
     else
     {
-        if (is_numeric(arg1) || is_truthy(arg1) || is_falsey(arg1))
-        {
-            tmpValue = arg1;
-        }
-        else
-        {
-            std::string tmpCode("");
+        std::string tmpCode("");
 
-            if (begins_with(arg1, "(\"") && ends_with(arg1, "\")"))
-            {
-                tmpCode = substring(arg1, 2, arg1.length() - 3);
-            }
-            else
-            {
-                tmpCode = arg1;
-            }
-            tmpValue = get_parsed_stdout(tmpCode);
-        }
+        if (begins_with(arg1, "(\"") && ends_with(arg1, "\")"))
+            tmpCode = substring(arg1, 2, arg1.length() - 3);
+        else
+            tmpCode = arg1;
+
+        tmpValue = get_parsed_stdout(tmpCode);
     }
 
     if (is_truthy(tmpValue))
-    {
         mem.createIfStatement(true);
-    }
     else if (is_falsey(tmpValue))
-    {
         mem.createIfStatement(false);
-    }
-    else
-    {
-        // error(ErrorMessage::INVALID_OP, arg1, true);
-    }
 }
 
 void handleGoto(std::string &arg1)
 {
-    if (State.CurrentScript != "")
+    if (State.CurrentScript != "" && mem.getScript().markExists(arg1))
     {
-        if (mem.getScript().markExists(arg1))
-        {
-            State.GoTo = arg1;
-            State.GoToLabel = true;
-        }
+        State.GoTo = arg1;
+        State.GoToLabel = true;
     }
 }
 
 void handleSwitch(std::string &arg1)
 {
-    if (mem.variableExists(arg1))
+    if (!mem.variableExists(arg1))
     {
-        State.DefiningSwitchBlock = true;
-        State.SwitchVarName = arg1;
-    }
-    else
         error(ErrorMessage::VAR_UNDEFINED, arg1, false);
+        return;
+    }
+
+    State.DefiningSwitchBlock = true;
+    State.SwitchVarName = arg1;
 }
 
 #endif
