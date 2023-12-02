@@ -20,7 +20,7 @@
 #include "usl/prototypes.h"
 #include "usl/error.h"
 #include "usl/env.h"
-#include "usl/memory.h"
+#include "usl/engine.h"
 #include "usl/datetime.h"
 #include "usl/executor.h"
 #include "usl/components.h"
@@ -40,7 +40,7 @@ int uslang(int c, char **v)
     switch (c)
     {
         case 1:
-            mem.addArg(usl);
+            engine.addArg(usl);
             return load_repl();
 
         case 2:
@@ -48,8 +48,8 @@ int uslang(int c, char **v)
 
             if (is_script(opt))
             {
-                mem.addArg(opt);
-                mem.loadScript(opt);
+                engine.addArg(opt);
+                engine.loadScript(opt);
             }
             else if (is(opt, "h") || is(opt, "help"))
                 help(usl);
@@ -57,7 +57,7 @@ int uslang(int c, char **v)
                 show_version();
             else
             {
-                mem.addArg(opt);
+                engine.addArg(opt);
                 return load_repl();
             }
 
@@ -82,11 +82,11 @@ int uslang(int c, char **v)
             }
             else
             {
-                mem.addArg(opt);
-                mem.addArg(script);
+                engine.addArg(opt);
+                engine.addArg(script);
                     
                 if (is_script(opt))
-                    mem.loadScript(opt);
+                    engine.loadScript(opt);
                 else
                     return load_repl();
             }
@@ -105,11 +105,11 @@ int uslang(int c, char **v)
             for (int i = is_script(opt) ? 2 : 1; i < c; i++)
             {
                 std::string arg(v[i]);
-                mem.addArg(arg);
+                engine.addArg(arg);
             }
 
             if (is_script(opt))
-                mem.loadScript(opt);
+                engine.loadScript(opt);
             else
                 return load_repl();
 
