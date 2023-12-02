@@ -527,12 +527,12 @@ void parse_0space(std::vector<std::string> &command, std::string &s)
                     else if (engine.getClass(before).getVariable(after).getNumber() != State.NullNum)
                         writeline(dtos(engine.getClass(before).getVariable(after).getNumber()));
                     else
-                        error(ErrorMessage::IS_NULL, "", false);
+                        error(ErrorCode::IS_NULL, "", false);
                 }
                 else if (after == Keywords.GC)
                     engine.getClass(before).clear();
                 else
-                    error(ErrorMessage::UNDEFINED, "", false);
+                    error(ErrorCode::UNDEFINED, "", false);
             }
             else
             {
@@ -756,10 +756,10 @@ void parse_args(int size, std::vector<std::string> &command)
                         command.at(i) = engine.getArg(stoi(params.at(0)));
                 }
                 else
-                    error(ErrorMessage::OUT_OF_BOUNDS, command.at(i), false);
+                    error(ErrorCode::OUT_OF_BOUNDS, command.at(i), false);
             }
             else
-                error(ErrorMessage::OUT_OF_BOUNDS, command.at(i), false);
+                error(ErrorCode::OUT_OF_BOUNDS, command.at(i), false);
         }
     }
 }
@@ -1282,7 +1282,7 @@ void threeSpace(std::string arg0, std::string arg1, std::string arg2, std::strin
         }
         else
         {
-            error(ErrorMessage::INVALID_OP, arg0, false);
+            error(ErrorCode::INVALID_OP, arg0, false);
             engine.createFailedForLoop();
         }
     }
@@ -1320,7 +1320,7 @@ void handleLoopInit_For(std::string &arg1, std::string &arg2, std::string &arg3,
     }
     else
     {
-        error(ErrorMessage::CONV_ERR, arg0, false);
+        error(ErrorCode::CONV_ERR, arg0, false);
         engine.createFailedForLoop();
         failed = true;
     }
@@ -1386,13 +1386,13 @@ void handleLoopInit_ForIn(std::string &arg1, std::string &arg3, std::string &arg
                     }
                     else
                     {
-                        error(ErrorMessage::METHOD_UNDEFINED, after, false);
+                        error(ErrorCode::METHOD_UNDEFINED, after, false);
                         engine.createFailedForLoop();
                     }
                 }
                 else
                 {
-                    error(ErrorMessage::VAR_UNDEFINED, before, false);
+                    error(ErrorCode::VAR_UNDEFINED, before, false);
                     engine.createFailedForLoop();
                 }
             }
@@ -1402,7 +1402,7 @@ void handleLoopInit_ForIn(std::string &arg1, std::string &arg3, std::string &arg
                     engine.createForLoop(engine.getList(arg3));
                 else
                 {
-                    error(ErrorMessage::LIST_UNDEFINED, arg3, false);
+                    error(ErrorCode::LIST_UNDEFINED, arg3, false);
                     engine.createFailedForLoop();
                 }
             }
@@ -1469,13 +1469,13 @@ void handleLoopInit_ForIn(std::string &arg1, std::string &arg3, std::string &arg
                     }
                     else
                     {
-                        error(ErrorMessage::METHOD_UNDEFINED, _a, false);
+                        error(ErrorCode::METHOD_UNDEFINED, _a, false);
                         engine.createFailedForLoop();
                     }
                 }
                 else
                 {
-                    error(ErrorMessage::VAR_UNDEFINED, _b, false);
+                    error(ErrorCode::VAR_UNDEFINED, _b, false);
                     engine.createFailedForLoop();
                 }
             }
@@ -1483,7 +1483,7 @@ void handleLoopInit_ForIn(std::string &arg1, std::string &arg3, std::string &arg
     }
     else
     {
-        error(ErrorMessage::INVALID_OP, arg0, false);
+        error(ErrorCode::INVALID_OP, arg0, false);
         engine.createFailedForLoop();
     }
     retFlag = false;
@@ -1521,7 +1521,7 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
 
     if (!engine.variableExists(before) || !engine.isString(before))
     {
-        error(ErrorMessage::NULL_STRING, before, false);
+        error(ErrorCode::NULL_STRING, before, false);
         engine.createFailedForLoop();
         return;
     }
@@ -1532,7 +1532,7 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
 
     if (range.size() != 2)
     {
-        error(ErrorMessage::OUT_OF_BOUNDS, arg3, false);
+        error(ErrorCode::OUT_OF_BOUNDS, arg3, false);
         return;
     }
 
@@ -1540,7 +1540,7 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
 
     if ((rangeBegin.length() == 0 || rangeEnd.length() == 0) || !(is_numeric(rangeBegin) && is_numeric(rangeEnd)))
     {
-        error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
+        error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
         return;
     }
 
@@ -1564,7 +1564,7 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
             engine.removeList("&l&i&s&t&");
         }
         else
-            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
+            error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
     }
     else if (stoi(rangeBegin) > stoi(rangeEnd))
     {
@@ -1586,10 +1586,10 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
             engine.removeList("&l&i&s&t&");
         }
         else
-            error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
+            error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
     }
     else
-        error(ErrorMessage::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
+        error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
     retFlag = false;
 }
 
@@ -1660,7 +1660,7 @@ void handleLoopInit_Variable_FileRead(std::string &before)
         }
         else
         {
-            error(ErrorMessage::READ_FAIL, engine.varString(before), false);
+            error(ErrorCode::READ_FAIL, engine.varString(before), false);
             engine.createFailedForLoop();
         }
     }
@@ -1672,7 +1672,7 @@ void handleLoopInit_Variable_Files(std::string &before)
         engine.createForLoop(getDirectoryList(before, true));
     else
     {
-        error(ErrorMessage::READ_FAIL, engine.varString(before), false);
+        error(ErrorCode::READ_FAIL, engine.varString(before), false);
         engine.createFailedForLoop();
     }
 }
@@ -1683,7 +1683,7 @@ void handleLoopInit_Variable_Directories(std::string &before)
         engine.createForLoop(getDirectoryList(before, false));
     else
     {
-        error(ErrorMessage::READ_FAIL, engine.varString(before), false);
+        error(ErrorCode::READ_FAIL, engine.varString(before), false);
         engine.createFailedForLoop();
     }
 }
@@ -1748,13 +1748,13 @@ void handleLoopInit_While(std::string &arg1, std::string &arg3, std::string &arg
                 engine.createWhileLoop(arg1, arg2, arg3);
             else
             {
-                error(ErrorMessage::INVALID_OP, arg0, false);
+                error(ErrorCode::INVALID_OP, arg0, false);
                 engine.createFailedWhileLoop();
             }
         }
         else
         {
-            error(ErrorMessage::CONV_ERR, arg1 + arg2 + arg3, false);
+            error(ErrorCode::CONV_ERR, arg1 + arg2 + arg3, false);
             engine.createFailedWhileLoop();
         }
     }
@@ -1766,13 +1766,13 @@ void handleLoopInit_While(std::string &arg1, std::string &arg3, std::string &arg
                 engine.createWhileLoop(arg1, arg2, arg3);
             else
             {
-                error(ErrorMessage::INVALID_OP, arg0, false);
+                error(ErrorCode::INVALID_OP, arg0, false);
                 engine.createFailedWhileLoop();
             }
         }
         else
         {
-            error(ErrorMessage::CONV_ERR, arg1 + arg2 + arg3, false);
+            error(ErrorCode::CONV_ERR, arg1 + arg2 + arg3, false);
             engine.createFailedWhileLoop();
         }
     }
@@ -1782,13 +1782,13 @@ void handleLoopInit_While(std::string &arg1, std::string &arg3, std::string &arg
             engine.createWhileLoop(arg1, arg2, arg3);
         else
         {
-            error(ErrorMessage::INVALID_OP, arg0, false);
+            error(ErrorCode::INVALID_OP, arg0, false);
             engine.createFailedWhileLoop();
         }
     }
     else
     {
-        error(ErrorMessage::INVALID_OP, arg0, false);
+        error(ErrorCode::INVALID_OP, arg0, false);
         engine.createFailedWhileLoop();
     }
 }
@@ -1822,7 +1822,7 @@ void handleIfStatementDecl_Generic(std::string first, std::string second, std::s
         }
         else
         {
-            error(ErrorMessage::INVALID_OPERATOR, oper, false);
+            error(ErrorCode::INVALID_OPERATOR, oper, false);
             engine.createIfStatement(false);
         }
     }
@@ -1850,7 +1850,7 @@ void handleIfStatementDecl_Generic(std::string first, std::string second, std::s
         }
         else
         {
-            error(ErrorMessage::INVALID_OPERATOR, oper, false);
+            error(ErrorCode::INVALID_OPERATOR, oper, false);
             engine.createIfStatement(false);
         }
     }
@@ -1871,7 +1871,7 @@ void handleIfStatementDecl_Method(std::string arg1, std::string arg1Result, std:
             arg1Result = dtos(engine.varNumber(arg1));
         else
         {
-            error(ErrorMessage::IS_NULL, arg1, false);
+            error(ErrorCode::IS_NULL, arg1, false);
             engine.createIfStatement(false);
         }
     }
@@ -1891,7 +1891,7 @@ void handleIfStatementDecl_Method(std::string arg1, std::string arg1Result, std:
             arg3Result = dtos(engine.varNumber(arg3));
         else
         {
-            error(ErrorMessage::IS_NULL, arg3, false);
+            error(ErrorCode::IS_NULL, arg3, false);
             engine.createIfStatement(false);
         }
     }
@@ -1929,10 +1929,10 @@ void handleClassDecl(std::string arg1, std::string arg3, std::string arg2)
                 classMethods.clear();
             }
             else
-                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
+                error(ErrorCode::INVALID_OPERATOR, arg2, false);
         }
         else
-            error(ErrorMessage::CLS_METHOD_UNDEFINED, arg3, false);
+            error(ErrorCode::CLS_METHOD_UNDEFINED, arg3, false);
     }
 }
 
@@ -1989,11 +1989,11 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
             else if (arg2 == Operators.NotEqual)
                 engine.createIfStatement(false);
             else
-                error(ErrorMessage::INVALID_OPERATOR, arg2, false);
+                error(ErrorCode::INVALID_OPERATOR, arg2, false);
         }
         else
         {
-            error(ErrorMessage::CONV_ERR, arg2, false);
+            error(ErrorCode::CONV_ERR, arg2, false);
             engine.createIfStatement(false);
         }
     }
@@ -2009,7 +2009,7 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
                     engine.createIfStatement(false);
                 else
                 {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
+                    error(ErrorCode::INVALID_OPERATOR, arg2, false);
                     engine.createIfStatement(false);
                 }
             }
@@ -2028,7 +2028,7 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
                     engine.createIfStatement(false);
                 else
                 {
-                    error(ErrorMessage::INVALID_OPERATOR, arg2, false);
+                    error(ErrorCode::INVALID_OPERATOR, arg2, false);
                     engine.createIfStatement(false);
                 }
             }
@@ -2049,7 +2049,7 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
                         engine.createIfStatement(false);
                     else
                     {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
+                        error(ErrorCode::INVALID_OPERATOR, arg2, false);
                         engine.createIfStatement(false);
                     }
                 }
@@ -2060,7 +2060,7 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
             }
             else
             {
-                error(ErrorMessage::IS_NULL, arg1, false);
+                error(ErrorCode::IS_NULL, arg1, false);
                 engine.createIfStatement(false);
             }
         }
@@ -2076,7 +2076,7 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
                         engine.createIfStatement(false);
                     else
                     {
-                        error(ErrorMessage::INVALID_OPERATOR, arg2, false);
+                        error(ErrorCode::INVALID_OPERATOR, arg2, false);
                         engine.createIfStatement(false);
                     }
                 }
@@ -2087,7 +2087,7 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
             }
             else
             {
-                error(ErrorMessage::IS_NULL, arg1, false);
+                error(ErrorCode::IS_NULL, arg1, false);
                 engine.createIfStatement(false);
             }
         }
@@ -2131,11 +2131,11 @@ bool checkListForElement(const std::string listName, const std::string testStrin
             result = checkListContains(listName, testString);
         }
         else {
-            error(ErrorMessage::INVALID_OP, conditionType, false);
+            error(ErrorCode::INVALID_OP, conditionType, false);
         }
     }
     else {
-        error(ErrorMessage::LIST_UNDEFINED, listName, false);
+        error(ErrorCode::LIST_UNDEFINED, listName, false);
     }
 
     return result;
@@ -2167,7 +2167,7 @@ void checkVariableCondition(const std::string arg1, const std::string arg2, cons
         handleIfStatementDecl_Generic(dtos(engine.varNumber(arg1)), dtos(engine.varNumber(arg3)), arg2);
     }
     else {
-        error(ErrorMessage::CONV_ERR, arg1 + " " + arg2 + " " + arg3, false);
+        error(ErrorCode::CONV_ERR, arg1 + " " + arg2 + " " + arg3, false);
         engine.createIfStatement(false);
     }
 }
@@ -2201,7 +2201,7 @@ std::string getTestString(bool variableExists, const std::string variableName) {
         else if (engine.isNumber(variableName))
             testString = dtos(engine.varNumber(variableName));
         else
-            handleError(ErrorMessage::IS_NULL, variableName, false);
+            error(ErrorCode::IS_NULL, variableName, false);
     }
     else {
         testString = variableName;
@@ -2210,7 +2210,7 @@ std::string getTestString(bool variableExists, const std::string variableName) {
     return testString;
 }
 
-void handleError(int errorType, const std::string variableName, bool isMethod) {
+void handleError(ErrorCode errorType, const std::string variableName, bool isMethod) {
     error(errorType, variableName, isMethod);
     engine.createIfStatement(false);
 }
@@ -2268,7 +2268,7 @@ void handleInlineScriptDecl(std::string &arg1)
                 State.CurrentScriptName = engine.varString(arg1);
             }
             else
-                error(ErrorMessage::FILE_EXISTS, engine.varString(arg1), false);
+                error(ErrorCode::FILE_EXISTS, engine.varString(arg1), false);
         }
     }
     else if (!Env::fileExists(arg1))
@@ -2278,7 +2278,7 @@ void handleInlineScriptDecl(std::string &arg1)
         State.CurrentScriptName = arg1;
     }
     else
-        error(ErrorMessage::FILE_EXISTS, arg1, false);
+        error(ErrorCode::FILE_EXISTS, arg1, false);
 }
 
 void handleDirPop(std::string &arg1)
@@ -2290,17 +2290,17 @@ void handleDirPop(std::string &arg1)
             if (Env::directoryExists(engine.varString(arg1)))
                 Env::removeDirectory(engine.varString(arg1));
             else
-                error(ErrorMessage::DIR_NOT_FOUND, engine.varString(arg1), false);
+                error(ErrorCode::DIR_NOT_FOUND, engine.varString(arg1), false);
         }
         else
-            error(ErrorMessage::NULL_STRING, arg1, false);
+            error(ErrorCode::NULL_STRING, arg1, false);
     }
     else
     {
         if (Env::directoryExists(arg1))
             Env::removeDirectory(arg1);
         else
-            error(ErrorMessage::DIR_NOT_FOUND, arg1, false);
+            error(ErrorCode::DIR_NOT_FOUND, arg1, false);
     }
 }
 
@@ -2313,17 +2313,17 @@ void handleDirPush(std::string &arg1)
             if (!Env::directoryExists(engine.varString(arg1)))
                 Env::makeDirectory(engine.varString(arg1));
             else
-                error(ErrorMessage::DIR_EXISTS, engine.varString(arg1), false);
+                error(ErrorCode::DIR_EXISTS, engine.varString(arg1), false);
         }
         else
-            error(ErrorMessage::NULL_STRING, arg1, false);
+            error(ErrorCode::NULL_STRING, arg1, false);
     }
     else
     {
         if (!Env::directoryExists(arg1))
             Env::makeDirectory(arg1);
         else
-            error(ErrorMessage::DIR_EXISTS, arg1, false);
+            error(ErrorCode::DIR_EXISTS, arg1, false);
     }
 }
 
@@ -2336,17 +2336,17 @@ void handleFilePop(std::string &arg1)
             if (Env::fileExists(engine.varString(arg1)))
                 Env::removeFile(engine.varString(arg1));
             else
-                error(ErrorMessage::FILE_NOT_FOUND, engine.varString(arg1), false);
+                error(ErrorCode::FILE_NOT_FOUND, engine.varString(arg1), false);
         }
         else
-            error(ErrorMessage::NULL_STRING, arg1, false);
+            error(ErrorCode::NULL_STRING, arg1, false);
     }
     else
     {
         if (Env::fileExists(arg1))
             Env::removeFile(arg1);
         else
-            error(ErrorMessage::FILE_NOT_FOUND, arg1, false);
+            error(ErrorCode::FILE_NOT_FOUND, arg1, false);
     }
 }
 
@@ -2359,17 +2359,17 @@ void handleFilePush(std::string &arg1)
             if (!Env::fileExists(engine.varString(arg1)))
                 Env::createFile(engine.varString(arg1));
             else
-                error(ErrorMessage::FILE_EXISTS, engine.varString(arg1), false);
+                error(ErrorCode::FILE_EXISTS, engine.varString(arg1), false);
         }
         else
-            error(ErrorMessage::NULL_STRING, arg1, false);
+            error(ErrorCode::NULL_STRING, arg1, false);
     }
     else
     {
         if (!Env::fileExists(arg1))
             Env::createFile(arg1);
         else
-            error(ErrorMessage::FILE_EXISTS, arg1, false);
+            error(ErrorCode::FILE_EXISTS, arg1, false);
     }
 }
 
@@ -2392,7 +2392,7 @@ void handleLockAssignment(std::string &arg1)
 void handleTemplateDecl(std::string &arg1)
 {
     if (engine.methodExists(arg1))
-        error(ErrorMessage::METHOD_DEFINED, arg1, false);
+        error(ErrorCode::METHOD_DEFINED, arg1, false);
     else
     {
         if (has_params(arg1))
@@ -2418,7 +2418,7 @@ void handleStringInspect(std::string &before, std::string &after, std::string &a
                 State.LastValue = Keywords.False;
         }
         else
-            error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
+            error(ErrorCode::TARGET_UNDEFINED, arg1, false);
     }
     else
     {
@@ -2451,7 +2451,7 @@ void handleNumberInspect(std::string &before, std::string &after, std::string &a
                 State.LastValue = Keywords.False;
         }
         else
-            error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
+            error(ErrorCode::TARGET_UNDEFINED, arg1, false);
     }
     else
     {
@@ -2497,7 +2497,7 @@ void handleFileInspect(std::string &before, std::string &after, std::string &arg
                 State.LastValue = Keywords.False;
         }
         else
-            error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
+            error(ErrorCode::TARGET_UNDEFINED, arg1, false);
     }
     else
     {
@@ -2535,7 +2535,7 @@ void handleDirectoryInspect(std::string &before, std::string &after, std::string
                 State.LastValue = Keywords.False;
         }
         else
-            error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
+            error(ErrorCode::TARGET_UNDEFINED, arg1, false);
     }
     else
     {
@@ -2549,7 +2549,7 @@ void handleDirectoryInspect(std::string &before, std::string &after, std::string
                     State.LastValue = Keywords.False;
             }
             else
-                error(ErrorMessage::NULL_STRING, arg1, false);
+                error(ErrorCode::NULL_STRING, arg1, false);
         }
         else
         {
@@ -2625,10 +2625,10 @@ void handleInitialDir(std::string &arg1)
                 Env::changeDirectory(State.InitialDirectory);
             }
             else
-                error(ErrorMessage::READ_FAIL, State.InitialDirectory, false);
+                error(ErrorCode::READ_FAIL, State.InitialDirectory, false);
         }
         else
-            error(ErrorMessage::NULL_STRING, arg1, false);
+            error(ErrorCode::NULL_STRING, arg1, false);
     }
     else
     {
@@ -2644,7 +2644,7 @@ void handleInitialDir(std::string &arg1)
             Env::changeDirectory(State.InitialDirectory);
         }
         else
-            error(ErrorMessage::READ_FAIL, State.InitialDirectory, false);
+            error(ErrorCode::READ_FAIL, State.InitialDirectory, false);
     }
 }
 
@@ -2655,7 +2655,7 @@ void handleInlineShellExec(std::string &arg1, std::vector<std::string> &command)
         if (engine.isString(arg1))
             Env::shellExec(engine.varString(arg1), command);
         else
-            error(ErrorMessage::IS_NULL, arg1, false);
+            error(ErrorCode::IS_NULL, arg1, false);
     }
     else
         Env::shellExec(arg1, command);
@@ -2668,7 +2668,7 @@ void handleInlineParse(std::string &arg1)
         if (engine.isString(arg1))
             parse(engine.varString(arg1).c_str());
         else
-            error(ErrorMessage::IS_NULL, arg1, false);
+            error(ErrorCode::IS_NULL, arg1, false);
     }
     else
         parse(arg1.c_str());
@@ -2697,10 +2697,10 @@ void handleChangeDir(std::string &arg1)
             if (Env::directoryExists(engine.varString(arg1)))
                 Env::changeDirectory(engine.varString(arg1));
             else
-                error(ErrorMessage::READ_FAIL, engine.varString(arg1), false);
+                error(ErrorCode::READ_FAIL, engine.varString(arg1), false);
         }
         else
-            error(ErrorMessage::NULL_STRING, arg1, false);
+            error(ErrorCode::NULL_STRING, arg1, false);
     }
     else
     {
@@ -2724,7 +2724,7 @@ void handleLoad(std::string &arg1)
             exec.executeScript();
         }
         else
-            error(ErrorMessage::BAD_LOAD, arg1, true);
+            error(ErrorCode::BAD_LOAD, arg1, true);
     }
     else if (engine.moduleExists(arg1))
     {
@@ -2734,7 +2734,7 @@ void handleLoad(std::string &arg1)
             parse(lines.at(i));
     }
     else
-        error(ErrorMessage::BAD_LOAD, arg1, true);
+        error(ErrorCode::BAD_LOAD, arg1, true);
 }
 
 void handleRemove(std::string &arg1)
@@ -2754,7 +2754,7 @@ void handleRemove(std::string &arg1)
             else if (engine.methodExists(params.at(i)))
                 engine.removeMethod(params.at(i));
             else
-                error(ErrorMessage::TARGET_UNDEFINED, params.at(i), false);
+                error(ErrorCode::TARGET_UNDEFINED, params.at(i), false);
         }
     }
     else if (engine.variableExists(arg1))
@@ -2766,15 +2766,15 @@ void handleRemove(std::string &arg1)
     else if (engine.methodExists(arg1))
         engine.removeMethod(arg1);
     else
-        error(ErrorMessage::TARGET_UNDEFINED, arg1, false);
+        error(ErrorCode::TARGET_UNDEFINED, arg1, false);
 }
 
 void handleDelay(std::string &arg1)
 {
     if (is_numeric(arg1))
-        DT::delay(stoi(arg1));
+        Thread::sleep(stoi(arg1));
     else
-        error(ErrorMessage::CONV_ERR, arg1, false);
+        error(ErrorCode::CONV_ERR, arg1, false);
 }
 
 void handleErr(std::string &arg1)
@@ -2870,7 +2870,7 @@ void handleSwitch(std::string &arg1)
 {
     if (!engine.variableExists(arg1))
     {
-        error(ErrorMessage::VAR_UNDEFINED, arg1, false);
+        error(ErrorCode::VAR_UNDEFINED, arg1, false);
         return;
     }
 
