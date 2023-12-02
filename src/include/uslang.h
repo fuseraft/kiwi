@@ -12,15 +12,16 @@
 
 #include "debug/stacktrace.h"
 #include "parsing/keywords.h"
-#include "usl/state.h"
 #include "parsing/strings.h"
+#include "usl/state.h"
+#include "usl/thread.h"
+#include "usl/date.h"
 #include "usl/rng.h"
+#include "usl/error.h"
 #include "usl/objects.h"
 #include "usl/prototypes.h"
-#include "usl/error.h"
 #include "usl/env.h"
 #include "usl/engine.h"
-#include "usl/datetime.h"
 #include "usl/executor.h"
 #include "usl/components.h"
 #include "usl/fileio.h"
@@ -29,7 +30,7 @@
 
 int uslang(int c, char **v)
 {
-    RNG::seed();
+    RNG::getInstance();
 
     std::string usl(v[0]), opt(""), script("");
     initialize_state(usl);
