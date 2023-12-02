@@ -11,7 +11,6 @@
 #include <unistd.h>
 
 #include "debug/stacktrace.h"
-#include "usl/constants.h"
 #include "parsing/keywords.h"
 #include "usl/state.h"
 #include "parsing/strings.h"
