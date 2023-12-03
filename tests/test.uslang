@@ -12,7 +12,7 @@ println "\nLoop test."
 
 for @i to 20
   @counter += @n
-  println "Iteration: ${$}"
+  print "Iteration: ${$}, "
   println "Counter = #{@counter}"
 endfor
 

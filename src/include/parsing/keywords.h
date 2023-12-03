@@ -258,6 +258,8 @@ std::unordered_set<std::string> recognized_mathfunc_set = {
     Math.Tanh
 };
 
+std::unordered_set<char> stack_operators = {' ', '+', '-', '*', '/', '%', '^'};
+
 bool is_recognized_0space(const std::string& arg)
 {
     return recognized_0space_set.find(arg) != recognized_0space_set.end();
@@ -278,5 +280,10 @@ bool is_recognized_math_func(const std::string& arg)
     return recognized_mathfunc_set.find(arg) != recognized_mathfunc_set.end();
 }
 
+bool is_stack_op(char c) 
+{
+    std::unordered_set<char> operators = {'+', '-', '*', '/', '%', '^'};
+    return stack_operators.find(c) != stack_operators.end();
+}
 
 #endif
