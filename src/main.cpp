@@ -1,6 +1,7 @@
 /*
- * 	uslang: unorthodox scripting language
- *  hybrid-typed, object-oriented, repl shell, fuseraft
+ * 	uslang: an unorthodox scripting language 
+ *
+ *  hybrid-typed, object-oriented, interpreted
  */
 
 #include "include/uslang.h"
