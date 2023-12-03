@@ -64,9 +64,9 @@ struct
     const std::string Switch = "switch";
     const std::string Goto = "goto";
     const std::string Class = "class";
-    const std::string Method = "method";
+    const std::string Method = "def";
     const std::string List = "list";
-    const std::string LockedMethod = "[method]";
+    const std::string LockedMethod = "[def]";
     const std::string Lock = "lock";
     const std::string Unlock = "unlock";
     const std::string Template = "template";
