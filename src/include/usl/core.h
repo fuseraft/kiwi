@@ -412,12 +412,6 @@ void writeline()
     write("\n");
 }
 
-// TODO: ugh
-void show_version()
-{
-    writeline("uslang 0.1.1"); 
-}
-
 List getDirectoryList(std::string before, bool filesOnly)
 {
     List newList;
@@ -435,17 +429,15 @@ List getDirectoryList(std::string before, bool filesOnly)
 
 void error(ErrorCode errorType, std::string errorInfo, bool quit)
 {
-    std::string completeError("\nError: ");
-    completeError.append(Error::getErrorString(errorType));
-    completeError.append("\n- line: ");
-    completeError.append(itos(State.CurrentLineNumber));
-    completeError.append("\n- code: ");
-    completeError.append(State.CurrentLine);
-    completeError.append("\n- near: ");
-    completeError.append(errorInfo);
-    completeError.append("\n");
+    std::ostringstream completeError;
+    completeError << "\nError: " << Error::getErrorString(errorType)
+                << "\n- line: " << State.CurrentLineNumber
+                << "\n- code: " << State.CurrentLine
+                << "\n- near: " << errorInfo << "\n";
 
-    State.LastError = completeError;
+    std::string errorString = completeError.str();
+
+    State.LastError = errorString;
     State.LastErrorCode = (int)errorType;
 
     if (State.ExecutedTryBlock)
@@ -455,9 +447,9 @@ void error(ErrorCode errorType, std::string errorInfo, bool quit)
     else
     {
         if (State.CaptureParse)
-            State.ParsedOutput.append(completeError);
+            State.ParsedOutput.append(errorString);
         else
-            std::cerr << completeError;
+            std::cerr << errorString;
     }
 
     if (quit)
@@ -467,18 +459,35 @@ void error(ErrorCode errorType, std::string errorInfo, bool quit)
     }
 }
 
+void show_version()
+{
+    std::cout << uslang_name << " interpreter " << "v" << uslang_version << std::endl << std::endl;
+}
+
 void help(std::string app)
 {
-    writeline("uslang interpreter");
-    writeline();
-    writeline("usage:\t" + app + "\t\t\tstart the shell");
-    writeline("\t" + app + " {args}\t\t\tstart the shell with parameters");
-    writeline("\t" + app + " {script}\t\trun a script");
-    writeline("\t" + app + " {script} {args}\trun a script with parameters");
-    writeline("\t" + app + " -v, --version\t\tshow current version");
-    writeline("\t" + app + " -p, --parse\t\tparse a command");
-    writeline("\t" + app + " -h, --help\t\tshow this message");
-    writeline();
+    struct CommandInfo {
+        std::string command;
+        std::string description;
+    };
+
+    std::vector<CommandInfo> commands = {
+        {"", "start the shell"},
+        {"{args}", "start the shell with parameters"},
+        {"{script}", "run a script"},
+        {"{script} {args}", "run a script with parameters"},
+        {"-v, --version", "show current version"},
+        {"-p, --parse", "parse a command"},
+        {"-h, --help", "show this message"}
+    };
+
+    show_version();
+
+    for (const auto& cmd : commands) {
+        std::cout << std::left << std::setw(30) << (app + " " + cmd.command) << cmd.description << std::endl;
+    }
+
+    std::cout << std::endl;
 }
 
 int load_repl()

@@ -10,6 +10,9 @@
 #include <string.h>
 #include <unistd.h>
 
+const std::string uslang_name = "uslang";
+const std::string uslang_version = "0.1.2";
+
 #include "debug/stacktrace.h"
 #include "parsing/keywords.h"
 #include "parsing/strings.h"

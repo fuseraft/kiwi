@@ -17,13 +17,13 @@ endfor
 
 Loop with default iterator symbol `$`.
 ```
-for 1 < 10
+for 1 to 10
     println "${$}"
 endfor
 
 @start = 0
 @stop = 10
-for @start < @stop
+for @start to @stop
     println "${$}"
 endfor
 ```
