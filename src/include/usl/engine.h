@@ -690,7 +690,7 @@ void Engine::redefine(std::string target, std::string name)
 {
     if (variableExists(target))
     {
-        if (Env::fileExists(varString(target)) || Env::directoryExists(varString(target)))
+        if (FileIO::fileExists(varString(target)) || FileIO::directoryExists(varString(target)))
         {
             std::string old_name(varString(target)), new_name;
 
@@ -700,11 +700,11 @@ void Engine::redefine(std::string target, std::string name)
                 {
                     new_name = varString(name);
 
-                    if (Env::fileExists(old_name))
+                    if (FileIO::fileExists(old_name))
                     {
-                        if (!Env::fileExists(new_name))
+                        if (!FileIO::fileExists(new_name))
                         {
-                            if (Env::fileExists(old_name))
+                            if (FileIO::fileExists(old_name))
                                 rename(old_name.c_str(), new_name.c_str());
                             else
                                 error(ErrorCode::FILE_NOT_FOUND, old_name, false);
@@ -712,11 +712,11 @@ void Engine::redefine(std::string target, std::string name)
                         else
                             error(ErrorCode::FILE_EXISTS, new_name, false);
                     }
-                    else if (Env::directoryExists(old_name))
+                    else if (FileIO::directoryExists(old_name))
                     {
-                        if (!Env::directoryExists(new_name))
+                        if (!FileIO::directoryExists(new_name))
                         {
-                            if (Env::directoryExists(old_name))
+                            if (FileIO::directoryExists(old_name))
                                 rename(old_name.c_str(), new_name.c_str());
                             else
                                 error(ErrorCode::DIR_NOT_FOUND, old_name, false);
@@ -732,16 +732,16 @@ void Engine::redefine(std::string target, std::string name)
             }
             else
             {
-                if (Env::fileExists(old_name))
+                if (FileIO::fileExists(old_name))
                 {
-                    if (!Env::fileExists(name))
+                    if (!FileIO::fileExists(name))
                         rename(old_name.c_str(), name.c_str());
                     else
                         error(ErrorCode::FILE_EXISTS, name, false);
                 }
-                else if (Env::directoryExists(old_name))
+                else if (FileIO::directoryExists(old_name))
                 {
-                    if (!Env::directoryExists(name))
+                    if (!FileIO::directoryExists(name))
                         rename(old_name.c_str(), name.c_str());
                     else
                         error(ErrorCode::DIR_EXISTS, name, false);
@@ -784,7 +784,7 @@ void Engine::redefine(std::string target, std::string name)
         else
             error(ErrorCode::METHOD_DEFINED, name, false);
     }
-    else if (Env::fileExists(target) || Env::directoryExists(target))
+    else if (FileIO::fileExists(target) || FileIO::directoryExists(target))
         rename(target.c_str(), name.c_str());
     else
         error(ErrorCode::TARGET_UNDEFINED, target, false);

@@ -146,7 +146,7 @@ void init_classvar(std::string arg0, std::string arg1, std::string arg2, std::ve
 void init_const(std::string arg0, std::string arg1, std::string arg2);
 void parse_mathfunc(std::string arg0, std::string before, std::string after);
 void parse_mathfunc_assignfromvar(std::string arg0, std::string before, std::string after);
-
+void parse_targetandtext(const std::string &arg1, const std::string &arg2, std::string &target, std::string &text);
 void parse_assign(std::string arg0, std::string arg1, std::string arg2);
 void parseNumberStack(std::vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar);
 void parseStringStack(std::vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar);

@@ -13,79 +13,6 @@ public:
     Env() {}
     ~Env() {}
 
-    static bool directoryExists(std::string p)
-    {
-        DIR *pd;
-        if ((pd = opendir(p.c_str())) == NULL)
-            return false;
-        else
-        {
-            closedir(pd);
-            return true;
-        }
-    }
-
-    static bool fileExists(std::string p)
-    {
-        if (!directoryExists(p))
-        {
-            std::ifstream f(p.c_str());
-            if (f.is_open())
-            {
-                f.close();
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    static void createFile(std::string p)
-    {
-        std::ofstream f(p.c_str(), std::ios::out);
-
-        if (f.is_open())
-            f.close();
-        else
-            error(ErrorCode::CREATE_FILE_FAIL, p, true);
-    }
-
-    static void appendToFile(std::string p, std::string a)
-    {
-        std::ofstream f(p.c_str(), std::ios::out | std::ios::app);
-
-        if (!f.is_open())
-            error(ErrorCode::READ_FAIL, p, true);
-        else
-        {
-            std::string cleaned;
-            int l = a.length();
-
-            for (int i = 0; i < l; i++)
-            {
-                if (a[i] == '\\' && a[i + 1] == 'n')
-                    cleaned.push_back('\r');
-                else if (a[i] == 'n' && a[i - 1] == '\\')
-                    cleaned.push_back('\n');
-                else if (a[i] == 't' && a[i - 1] == '\\')
-                    cleaned.push_back('\t');
-                else if (a[i] == '\'' && a[i - 1] == '\\')
-                    cleaned.push_back('\"');
-                else if (a[i] == '\\' && a[i + 1] == 't')
-                {
-                }
-                else if (a[i] == '\\' && a[i + 1] == '\'')
-                {
-                }
-                else
-                    cleaned.push_back(a[i]);
-            }
-
-            f << cleaned;
-            f.close();
-        }
-    }
-
     static std::string getStdout(std::string cmd)
     {
         std::string data;
@@ -136,14 +63,14 @@ public:
 
                     if (filesOnly)
                     {
-                        if (Env::fileExists(tmp))
+                        if (FileIO::fileExists(tmp))
                         {
                             newList.push_back(tmp);
                         }
                     }
                     else
                     {
-                        if (Env::directoryExists(tmp))
+                        if (FileIO::directoryExists(tmp))
                         {
                             newList.push_back(tmp);
                         }
@@ -181,24 +108,6 @@ public:
             return std::string(cString);
         else
             return "[not_available]";
-    }
-
-    static void makeDirectory(std::string p)
-    {
-        if (mkdir(p.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
-            error(ErrorCode::MAKE_DIR_FAIL, p, false);
-    }
-
-    static void removeDirectory(std::string p)
-    {
-        if (rmdir(p.c_str()) != 0)
-            error(ErrorCode::REMOVE_DIR_FAIL, p, false);
-    }
-
-    static void removeFile(std::string p)
-    {
-        if (remove(p.c_str()) != 0)
-            error(ErrorCode::REMOVE_FILE_FAIL, p, false);
     }
 
     static std::string getUser()

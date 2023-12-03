@@ -98,4 +98,31 @@ public:
     }
 };
 
+// TODO: `quit` is obsolete.
+void error(ErrorCode errorType, std::string errorInfo, bool quit)
+{
+    std::ostringstream completeError;
+    completeError << "\nError: " << Error::getErrorString(errorType)
+                  << "\n- line: " << State.CurrentLineNumber
+                  << "\n- code: " << State.CurrentLine
+                  << "\n- near: " << errorInfo << "\n";
+
+    std::string errorString = completeError.str();
+
+    State.LastError = errorString;
+    State.LastErrorCode = (int)errorType;
+
+    if (State.ExecutedTryBlock)
+    {
+        State.RaiseCatchBlock = true;
+    }
+    else
+    {
+        if (State.CaptureParse)
+            State.ParsedOutput.append(errorString);
+        else
+            std::cerr << errorString;
+    }
+}
+
 #endif

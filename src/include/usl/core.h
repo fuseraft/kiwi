@@ -387,38 +387,6 @@ List getDirectoryList(std::string before, bool filesOnly)
     return newList;
 }
 
-void error(ErrorCode errorType, std::string errorInfo, bool quit)
-{
-    std::ostringstream completeError;
-    completeError << "\nError: " << Error::getErrorString(errorType)
-                  << "\n- line: " << State.CurrentLineNumber
-                  << "\n- code: " << State.CurrentLine
-                  << "\n- near: " << errorInfo << "\n";
-
-    std::string errorString = completeError.str();
-
-    State.LastError = errorString;
-    State.LastErrorCode = (int)errorType;
-
-    if (State.ExecutedTryBlock)
-    {
-        State.RaiseCatchBlock = true;
-    }
-    else
-    {
-        if (State.CaptureParse)
-            State.ParsedOutput.append(errorString);
-        else
-            std::cerr << errorString;
-    }
-
-    if (quit)
-    {
-        engine.clearAll();
-        exit((int)errorType);
-    }
-}
-
 void show_version()
 {
     std::cout << uslang_name << " interpreter "
@@ -1530,7 +1498,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                             return;
                         }
 
-                        if (!Env::fileExists(engine.varString(before)))
+                        if (!FileIO::fileExists(engine.varString(before)))
                         {
                             error(ErrorCode::FILE_NOT_FOUND, engine.varString(before), false);
                             return;
@@ -1541,7 +1509,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     }
                     else
                     {
-                        if (!Env::fileExists(before))
+                        if (!FileIO::fileExists(before))
                         {
                             error(ErrorCode::FILE_NOT_FOUND, before, false);
                             return;
@@ -1595,14 +1563,14 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                                 return;
                             }
 
-                            if (Env::fileExists(engine.varString(before)))
+                            if (FileIO::fileExists(engine.varString(before)))
                                 engine.setVariable(arg0, FileIO::getFileSize(engine.varString(before)));
                             else
                                 error(ErrorCode::READ_FAIL, engine.varString(before), false);
                         }
                         else
                         {
-                            if (Env::fileExists(before))
+                            if (FileIO::fileExists(before))
                                 engine.setVariable(arg0, FileIO::getFileSize(before));
                             else
                                 error(ErrorCode::READ_FAIL, before, false);
@@ -2304,7 +2272,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 return;
             }
 
-            if (!Env::fileExists(engine.varString(before)))
+            if (!FileIO::fileExists(engine.varString(before)))
             {
                 error(ErrorCode::READ_FAIL, engine.varString(before), false);
                 return;
@@ -2569,7 +2537,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
         {
             if (!engine.variableExists(before))
             {
-                if (Env::fileExists(before))
+                if (FileIO::fileExists(before))
                     engine.createVariable(arg0, FileIO::getFileSize(before));
                 else
                     error(ErrorCode::READ_FAIL, before, false);
@@ -2582,7 +2550,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 return;
             }
 
-            if (Env::fileExists(engine.varString(before)))
+            if (FileIO::fileExists(engine.varString(before)))
                 engine.createVariable(arg0, FileIO::getFileSize(engine.varString(before)));
             else
                 error(ErrorCode::READ_FAIL, engine.varString(before), false);
