@@ -10,7 +10,7 @@ public:
 
 void FileIO::appendText(std::string arg1, std::string arg2, bool newLine)
 {
-    std::string target(""), text("");
+    std::string target, text;
 
     if (engine.variableExists(arg1))
     {
@@ -83,7 +83,7 @@ void FileIO::appendText(std::string arg1, std::string arg2, bool newLine)
 
 void FileIO::writeText(std::string arg1, std::string arg2)
 {
-    std::string target(""), text("");
+    std::string target, text;
 
     if (engine.variableExists(arg1))
     {
