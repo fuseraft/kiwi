@@ -60,7 +60,7 @@ std::string get_prompt()
         return std::string("> ");
     }
 
-    std::string new_style("");
+    std::string new_style;
     int length = State.PromptStyle.length();
     char prevChar = 'a';
 
@@ -146,7 +146,7 @@ std::string clean_string(std::string builder)
     {
         // TODO: refactor
         std::string _beforeBrackets(before_brackets(builder)), afterBrackets(builder);
-        std::string rangeBegin(""), rangeEnd(""), _build("");
+        std::string rangeBegin, rangeEnd, _build;
 
         std::vector<std::string> listRange = parse_bracketrange(afterBrackets);
 
@@ -199,7 +199,7 @@ std::string clean_string(std::string builder)
 
                     if (stoi(rangeBegin) <= (int)tempString.length() - 1 && stoi(rangeBegin) >= 0)
                     {
-                        std::string _cstr("");
+                        std::string _cstr;
 
                         _cstr.push_back(tempString[stoi(rangeBegin)]);
 
@@ -309,7 +309,7 @@ std::string clean_string(std::string builder)
 
 std::string pre_parse(std::string st)
 {
-    std::string cleaned(""), builder("");
+    std::string cleaned, builder;
     int l = st.length();
     bool buildSymbol = false;
 
@@ -469,7 +469,7 @@ void help(std::string app)
 
 int load_repl()
 {
-    std::string s("");
+    std::string s;
     bool active = true;
 
     while (active)
@@ -515,7 +515,7 @@ bool stackReady(std::string arg2)
 
 bool isStringStack(std::string arg2)
 {
-    std::string tempArgTwo = arg2, temporaryBuild("");
+    std::string tempArgTwo = arg2, temporaryBuild;
     tempArgTwo = subtract_char(tempArgTwo, '(');
     tempArgTwo = subtract_char(tempArgTwo, ')');
 
@@ -689,11 +689,11 @@ bool isStringStack(std::string arg2)
 
 std::string getStringStack(std::string arg2)
 {
-    std::string tempArgTwo = arg2, temporaryBuild("");
+    std::string tempArgTwo = arg2, temporaryBuild;
     tempArgTwo = subtract_char(tempArgTwo, '(');
     tempArgTwo = subtract_char(tempArgTwo, ')');
 
-    std::string stackValue("");
+    std::string stackValue;
 
     std::vector<std::string> contents;
     std::vector<std::string> vars;
@@ -797,7 +797,7 @@ std::string getStringStack(std::string arg2)
 
 std::string getStackValue(std::string value)
 {
-    std::string stackValue("");
+    std::string stackValue;
 
     if (isStringStack(value))
         stackValue = getStringStack(value);
@@ -882,7 +882,7 @@ void parseStringStack(std::vector<std::string> &contents, std::vector<std::strin
 
 double getStack(std::string arg2)
 {
-    std::string tempArgTwo = arg2, temporaryBuild("");
+    std::string tempArgTwo = arg2, temporaryBuild;
     tempArgTwo = subtract_char(tempArgTwo, '(');
     tempArgTwo = subtract_char(tempArgTwo, ')');
 
@@ -1000,7 +1000,7 @@ double getStack(std::string arg2)
 
 std::string getSubString(std::string arg1, std::string arg2, std::string beforeBracket)
 {
-    std::string returnValue("");
+    std::string returnValue;
 
     if (engine.isString(beforeBracket))
     {
@@ -1084,7 +1084,7 @@ void setSubString(std::string arg1, std::string arg2, std::string beforeBracket)
         int beginIndex = stoi(rangeBegin),
             endIndex = stoi(rangeEnd);
 
-        std::string tempString("");
+        std::string tempString;
 
         if (beginIndex < endIndex && beginIndex >= 0 && endIndex <= (int)variableString.length() - 1)
         {
@@ -1118,7 +1118,7 @@ void setSubString(std::string arg1, std::string arg2, std::string beforeBracket)
             int beginIndex = stoi(rangeBegin);
             if ((int)variableString.length() - 1 >= beginIndex && beginIndex >= 0)
             {
-                std::string tmp_("");
+                std::string tmp_;
                 tmp_.push_back(variableString[beginIndex]);
 
                 if (engine.variableExists(arg1))
@@ -1134,7 +1134,7 @@ void setSubString(std::string arg1, std::string arg2, std::string beforeBracket)
 
 std::string getStringValue(std::string arg1, std::string op, std::string arg2)
 {
-    std::string firstValue(""), lastValue(""), returnValue("");
+    std::string firstValue, lastValue, returnValue;
 
     if (engine.variableExists(arg1) && engine.isString(arg1))
     {
@@ -1601,7 +1601,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     {
                         if (engine.isString(after))
                         {
-                            std::string line("");
+                            std::string line;
                             write(pre_parse(engine.varString(after)));
                             std::getline(std::cin, line, '\n');
 
@@ -1619,7 +1619,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                         }
                         else
                         {
-                            std::string line("");
+                            std::string line;
                             std::getline(std::cin, line, '\n');
 
                             if (engine.isNumber(arg0))
@@ -1637,7 +1637,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     }
                     else
                     {
-                        std::string line("");
+                        std::string line;
                         std::cout << pre_parse(after);
                         std::getline(std::cin, line, '\n');
 
@@ -1653,7 +1653,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     {
                         if (engine.isString(after))
                         {
-                            std::string line("");
+                            std::string line;
                             line = get_stdin_quiet(engine.varString(after));
 
                             if (engine.isNumber(arg0))
@@ -1672,7 +1672,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                         }
                         else
                         {
-                            std::string line("");
+                            std::string line;
                             line = get_stdin_quiet("");
 
                             if (engine.isNumber(arg0))
@@ -1692,7 +1692,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     }
                     else
                     {
-                        std::string line("");
+                        std::string line;
                         line = get_stdin_quiet(pre_parse(after));
 
                         if (is_numeric(line))
@@ -1729,7 +1729,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                                 if (Env::fileExists(engine.varString(before)))
                                 {
                                     std::ifstream file(engine.varString(before).c_str());
-                                    std::string line(""), bigString("");
+                                    std::string line, bigString;
 
                                     if (file.is_open())
                                     {
@@ -1757,7 +1757,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                             if (Env::fileExists(before))
                             {
                                 std::ifstream file(before.c_str());
-                                std::string line(""), bigString("");
+                                std::string line, bigString;
 
                                 if (file.is_open())
                                 {
@@ -1926,7 +1926,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                 {
                     if (arg2 == Keywords.Mask)
                     {
-                        std::string masked("");
+                        std::string masked;
                         masked = get_stdin_quiet("");
 
                         if (engine.isNumber(arg0))
@@ -1943,7 +1943,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     }
                     else
                     {
-                        std::string line("");
+                        std::string line;
                         std::getline(std::cin, line, '\n');
 
                         if (is_numeric(line))
@@ -2013,7 +2013,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
 
 void parse_assign(std::string arg0, std::string arg1, std::string arg2)
 {
-    std::string first(""), second("");
+    std::string first, second;
 
     bool arg0IsString = engine.isString(arg0),
          arg0IsNumber = engine.isNumber(arg0);
@@ -2560,7 +2560,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             }
 
             std::ifstream file(engine.varString(before).c_str());
-            std::string line(""), bigString("");
+            std::string line, bigString;
 
             if (!file.is_open())
             {
@@ -2693,7 +2693,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
         }
         else if (arg2 == Keywords.Mask || arg2 == Keywords.ReadLine)
         {
-            std::string line("");
+            std::string line;
             if (arg2 == Keywords.Mask)
             {
                 line = get_stdin_quiet("");
@@ -2721,7 +2721,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             {
                 if (engine.isString(after))
                 {
-                    std::string line("");
+                    std::string line;
                     std::cout << pre_parse(engine.varString(after));
                     std::getline(std::cin, line, '\n');
 
@@ -2732,7 +2732,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 }
                 else
                 {
-                    std::string line("");
+                    std::string line;
                     std::getline(std::cin, line, '\n');
 
                     if (is_numeric(line))
@@ -2743,7 +2743,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             }
             else
             {
-                std::string line("");
+                std::string line;
                 std::cout << pre_parse(after);
                 std::getline(std::cin, line, '\n');
 
@@ -2759,7 +2759,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             {
                 if (engine.isString(after))
                 {
-                    std::string line("");
+                    std::string line;
                     line = get_stdin_quiet(engine.varString(after));
 
                     if (is_numeric(line))
@@ -2771,7 +2771,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 }
                 else
                 {
-                    std::string line("");
+                    std::string line;
                     line = get_stdin_quiet("");
 
                     if (is_numeric(line))
@@ -2784,7 +2784,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             }
             else
             {
-                std::string line("");
+                std::string line;
                 line = get_stdin_quiet(pre_parse(after));
 
                 if (is_numeric(line))
@@ -3131,7 +3131,7 @@ void parse_clear(std::string &arg)
 //		2 = setLastValue
 void internal_env_builtins(std::string arg0, std::string after, int mode)
 {
-    std::string defaultValue("");
+    std::string defaultValue;
     std::string sValue(defaultValue);
     double dValue = 0;
 

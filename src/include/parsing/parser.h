@@ -11,13 +11,13 @@ void parse(std::string s)
     State.CurrentLine = s; // store a copy of the current line
 
     StringList stringList; // contains separate commands
-    std::string builder("");       // a string to build upon
+    std::string builder;       // a string to build upon
 
     int length = s.length(), //	length of the line
         count = 0,           // command token counter
         size = 0;            // final size of tokenized command container
     bool quoted = false,     // flag: parsing string literals
-        broken = false,      // flag: end of a command
+        endOfCommand = false,      // flag: end of a command
         uncomment = false,   // flag: end a command
         parenthesis = false; // flag: parsing contents within parentheses
 
@@ -25,7 +25,7 @@ void parse(std::string s)
     // iterate each char in the initial string
     char prevChar = 'a';     // previous character in string
 
-    tokenize(length, s, parenthesis, quoted, command, count, prevChar, builder, uncomment, broken, stringList);
+    tokenize(length, s, parenthesis, quoted, command, count, prevChar, builder, uncomment, endOfCommand, stringList);
 
     size = (int)command.size();
 
@@ -46,10 +46,10 @@ void parse(std::string s)
                 State.IsCommented = false;
                 uncomment = false;
 
-                std::string parseable("");
+                std::string parseable;
                 preparse_stripcomment(builder, parseable);
                 
-                if (!broken)
+                if (!endOfCommand)
                 {
                     parse(ltrim_ws(parseable));
                 }
@@ -61,7 +61,7 @@ void parse(std::string s)
             }
         }
     }
-    else if (!broken)
+    else if (!endOfCommand)
     {
         parse_args(size, command);
 
@@ -174,7 +174,7 @@ void preparse_methodline(std::string &tmp, Method &m, std::string &cleanString, 
 {
     int l(tmp.length());
     bool buildSymbol = false, almostBuild = false, ended = false;
-    std::string builder("");
+    std::string builder;
 
     for (int a = 0; a < l; a++)
     {
@@ -259,7 +259,7 @@ void parse_method_def(std::string &s)
         }
         else
         {
-            std::string freshLine("");
+            std::string freshLine;
             preparse_line_classdef(s, freshLine);
 
             if (State.DefiningClass)
@@ -622,7 +622,7 @@ void preparse_line_classdef(std::string &s, std::string &freshLine)
 {
     int _len = s.length();
     std::vector<std::string> words;
-    std::string word("");
+    std::string word;
 
     for (int z = 0; z < _len; z++)
     {
@@ -708,7 +708,7 @@ void parse_switchstatement(std::string &s, std::vector<std::string> &command)
         State.InDefaultCase = true;
     else if (s == Keywords.End)
     {
-        std::string switch_value("");
+        std::string switch_value;
 
         if (engine.isString(State.SwitchVarName))
             switch_value = engine.varString(State.SwitchVarName);
@@ -1546,7 +1546,7 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
 
             for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
             {
-                std::string tempString("");
+                std::string tempString;
                 tempString.push_back(tempVarString[i]);
                 newList.add(tempString);
             }
@@ -1568,7 +1568,7 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
 
             for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
             {
-                std::string tempString("");
+                std::string tempString;
                 tempString.push_back(tempVarString[i]);
                 newList.add(tempString);
             }
@@ -1634,7 +1634,7 @@ void handleLoopInit_Variable_FileRead(std::string &before)
         List newList;
 
         std::ifstream file(engine.varString(before).c_str());
-        std::string line("");
+        std::string line;
 
         if (file.is_open())
         {
@@ -1686,7 +1686,7 @@ void handleLoopInit_Variable_Length(std::string &before)
 
     for (int i = 0; i < len; i++)
     {
-        std::string tempStr("");
+        std::string tempStr;
         tempStr.push_back(tempVarStr[i]);
         newList.add(tempStr);
     }
@@ -2173,7 +2173,7 @@ void checkParamsCondition(const std::string arg1, const std::string arg2, const 
 }
 
 void checkMethodCondition(const std::string arg1, const std::string arg3, const std::string arg2) {
-    std::string arg1Result(""), arg3Result("");
+    std::string arg1Result, arg3Result;
     handleIfStatementDecl_Method(arg1, arg1Result, arg3, arg3Result);
     handleIfStatementDecl_Generic(arg1Result, arg3Result, arg2);
 }
@@ -2802,7 +2802,7 @@ void handlePrompt(std::string &arg1)
 
 void handleIfStatement(std::string &arg1)
 {
-    std::string tmpValue("");
+    std::string tmpValue;
     
     if (engine.variableExists(arg1))
     {
@@ -2831,7 +2831,7 @@ void handleIfStatement(std::string &arg1)
     }   
     else
     {
-        std::string tmpCode("");
+        std::string tmpCode;
 
         if (begins_with(arg1, "(\"") && ends_with(arg1, "\")"))
             tmpCode = substring(arg1, 2, arg1.length() - 3);

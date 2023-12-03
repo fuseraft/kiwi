@@ -58,7 +58,7 @@ public:
             error(ErrorCode::READ_FAIL, p, true);
         else
         {
-            std::string cleaned("");
+            std::string cleaned;
             int l = a.length();
 
             for (int i = 0; i < l; i++)
@@ -127,7 +127,7 @@ public:
             {
                 if (std::string(pe->d_name) != Keywords.Dot && std::string(pe->d_name) != Keywords.RangeSeparator)
                 {
-                    std::string tmp("");
+                    std::string tmp;
 
                     if (dir == PathSeparator)
                         dir = "";
