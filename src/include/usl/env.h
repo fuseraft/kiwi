@@ -38,67 +38,6 @@ public:
         return 0;
     }
 
-    static std::vector<std::string> getDirectoryContents(std::string path, bool filesOnly)
-    {
-        const std::string PathSeparator = "/";
-        std::vector<std::string> newList;
-
-        DIR *pd;
-        struct dirent *pe;
-
-        std::string dir = path;
-
-        if ((pd = opendir(dir.c_str())) != NULL)
-        {
-            while ((pe = readdir(pd)) != NULL)
-            {
-                if (std::string(pe->d_name) != Keywords.Dot && std::string(pe->d_name) != Keywords.RangeSeparator)
-                {
-                    std::string tmp;
-
-                    if (dir == PathSeparator)
-                        dir = "";
-
-                    tmp = dir + PathSeparator + std::string(pe->d_name);
-
-                    if (filesOnly)
-                    {
-                        if (FileIO::fileExists(tmp))
-                        {
-                            newList.push_back(tmp);
-                        }
-                    }
-                    else
-                    {
-                        if (FileIO::directoryExists(tmp))
-                        {
-                            newList.push_back(tmp);
-                        }
-                    }
-                }
-            }
-        }
-
-        closedir(pd);
-
-        return newList;
-    }
-
-    static std::string getCurrentDirectory()
-    {
-        char tmp[PATH_MAX];
-
-        return getcwd(tmp, PATH_MAX) ? std::string(tmp) : std::string("");
-    }
-
-    static void changeDirectory(std::string p)
-    {
-        if (p == Keywords.InitialDirectory)
-            changeDirectory(State.InitialDirectory);
-        else if (chdir(p.c_str()) != 0)
-            error(ErrorCode::READ_FAIL, p, false);
-    }
-
     static std::string getEnvironmentVariable(std::string s)
     {
         char *cString;
