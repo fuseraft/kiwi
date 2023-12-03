@@ -590,7 +590,7 @@ bool unrecognized_0space(std::string arg)
 
 bool unrecognized_1space(std::string arg)
 {
-    return !contains("!;?;__begin__;invoke!;gc!chdir;collect?;delay;directory?;dpush;dpop;err;error;file?;for;fpush;fpop;globalize!;goto;if;init_dir;directory?;file?;list?;method?;number?;class?;string?;variable?;list;list?;lock;loop;method;[method];class;print;println;prompt;remove;switch;template;unlock;", arg);
+    return !contains("!;?;__begin__;invoke!;gc!chdir;collect?;delay;directory?;dpush;dpop;err;error;file?;for;fpush;fpop;globalize!;goto;if;init_dir;directory?;file?;list?;method?;number?;class?;string?;variable?;list;list?;lock;loop;def;[def];class;print;println;prompt;remove;switch;template;unlock;", arg);
 }
 
 bool unrecognized_2space(std::string arg)

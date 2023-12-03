@@ -1,9 +1,9 @@
 # Methods
 
-Use the `method` keyword to define a method.
+Use the `def` keyword to define a method.
 
 ```
-method greet(name)
+def greet(name)
     println "Hello, #{@name}!"
 end
 
@@ -13,7 +13,7 @@ greet("world")
 The last assignment is the return value.
 
 ```
-method add_three(first, second, third)
+def add_three(first, second, third)
     @ret = (@first + @second + @third)
 end
 
