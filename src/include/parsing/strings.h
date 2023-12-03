@@ -103,7 +103,7 @@ bool valid_const_name(std::string in)
 
 std::string to_upper(std::string in)
 {
-    std::string builder("");
+    std::string builder;
     for (int i = 0; i < (int)in.length(); i++)
     {
         char c = in[i];
@@ -115,7 +115,7 @@ std::string to_upper(std::string in)
 
 std::string to_lower(std::string in)
 {
-    std::string builder("");
+    std::string builder;
     for (int i = 0; i < (int)in.length(); i++)
     {
         char c = in[i];
@@ -164,7 +164,7 @@ std::vector<std::string> parse_params(std::string s)
     int sl = s.length();
     bool start_push = false;
 
-    std::string new_name("");
+    std::string new_name;
 
     for (int i = 0; i < sl; i++)
     {
@@ -199,7 +199,7 @@ std::vector<std::string> parse_bracketrange(std::string s)
     int sl = s.length();
     bool start_push = false, almost_push = false;
 
-    std::string new_name("");
+    std::string new_name;
 
     for (int i = 0; i < sl; i++)
     {
@@ -239,7 +239,7 @@ std::vector<std::string> parse_range(std::string s)
     int sl = s.length();
     bool start_push = false, almost_push = false;
 
-    std::string new_name("");
+    std::string new_name;
 
     for (int i = 0; i < sl; i++)
     {
@@ -273,7 +273,7 @@ std::string before_params(std::string s)
 {
     int sl = s.length();
     bool stop_push = false;
-    std::string new_str("");
+    std::string new_str;
 
     for (int i = 0; i < sl; i++)
     {
@@ -291,7 +291,7 @@ std::string before_brackets(std::string s)
 {
     int sl = s.length();
     bool stop_push = false;
-    std::string new_str("");
+    std::string new_str;
 
     for (int i = 0; i < sl; i++)
     {
@@ -307,7 +307,7 @@ std::string before_brackets(std::string s)
 
 std::string after_brackets(std::string s)
 {
-    std::string var("");
+    std::string var;
     int sl = s.length();
     bool start_push = false;
 
@@ -326,7 +326,7 @@ std::string after_brackets(std::string s)
 
 std::string after_dot(std::string s)
 {
-    std::string var("");
+    std::string var;
     int sl = s.length();
     bool start_push = false;
 
@@ -343,7 +343,7 @@ std::string after_dot(std::string s)
 
 std::string before_dot(std::string s)
 {
-    std::string var("");
+    std::string var;
     int sl = s.length();
     bool start_push = true;
 
@@ -363,7 +363,7 @@ std::string before_dot(std::string s)
 
 std::string substring(std::string s, int left, int right)
 {
-    std::string inner("");
+    std::string inner;
     int len = s.length();
     if (left > len || right > len)
     {
@@ -390,7 +390,7 @@ std::string substring(std::string s, int left, int right)
 
 std::string multiply_string(std::string input, int factor)
 {
-    std::string output("");
+    std::string output;
 
     for (int i = 0; i < factor; i++)
         output.append(input);
@@ -400,7 +400,7 @@ std::string multiply_string(std::string input, int factor)
 
 std::string subtract_char(std::string s, char c)
 {
-    std::string r("");
+    std::string r;
     int len = s.length();
 
     for (int i = 0; i < len; i++)
@@ -414,13 +414,13 @@ std::string subtract_char(std::string s, char c)
 
 std::string subtract_string(std::string s1, std::string s2)
 {
-    std::string bs("");
+    std::string bs;
 
     int l1(s1.length()), l2(s2.length());
 
     for (int k = 0; k < l1; k++)
     {
-        std::string tmp("");
+        std::string tmp;
 
         for (int z = k; z < l2 + k; z++)
             tmp.push_back(s1[z]);
@@ -581,26 +581,6 @@ int get_ascii_num(char c)
 int get_alpha_num(char c)
 {
     return tolower(c) - 'a' + 1;
-}
-
-bool unrecognized_0space(std::string arg)
-{
-    return !contains("break;caught;else;end;exit;failif;parser;pass;private;public;try;", arg);
-}
-
-bool unrecognized_1space(std::string arg)
-{
-    return !contains("!;?;__begin__;invoke!;gc!chdir;collect?;delay;directory?;dpush;dpop;err;error;file?;for;fpush;fpop;globalize!;goto;if;init_dir;directory?;file?;list?;method?;number?;class?;string?;variable?;list;list?;lock;loop;method;[method];class;print;println;prompt;remove;switch;template;unlock;", arg);
-}
-
-bool unrecognized_2space(std::string arg)
-{
-    return !contains("=;+=;-=;*=;%=;/=;**=;+;-;*;**;/;%;++=;--=;?;!", arg);
-}
-
-bool recognized_mathfunc(std::string arg)
-{
-    return contains("sin;sinh;asin;tan;tanh;atan;cos;acos;cosh;log;sqrt;abs;floor;ceil;exp;", arg);
 }
 
 bool is(std::string s, std::string si)

@@ -11,13 +11,13 @@ void parse(std::string s)
     State.CurrentLine = s; // store a copy of the current line
 
     StringList stringList; // contains separate commands
-    std::string builder("");       // a string to build upon
+    std::string builder;       // a string to build upon
 
     int length = s.length(), //	length of the line
         count = 0,           // command token counter
         size = 0;            // final size of tokenized command container
     bool quoted = false,     // flag: parsing string literals
-        broken = false,      // flag: end of a command
+        endOfCommand = false,      // flag: end of a command
         uncomment = false,   // flag: end a command
         parenthesis = false; // flag: parsing contents within parentheses
 
@@ -25,7 +25,7 @@ void parse(std::string s)
     // iterate each char in the initial string
     char prevChar = 'a';     // previous character in string
 
-    tokenize(length, s, parenthesis, quoted, command, count, prevChar, builder, uncomment, broken, stringList);
+    tokenize(length, s, parenthesis, quoted, command, count, prevChar, builder, uncomment, endOfCommand, stringList);
 
     size = (int)command.size();
 
@@ -46,10 +46,10 @@ void parse(std::string s)
                 State.IsCommented = false;
                 uncomment = false;
 
-                std::string parseable("");
+                std::string parseable;
                 preparse_stripcomment(builder, parseable);
                 
-                if (!broken)
+                if (!endOfCommand)
                 {
                     parse(ltrim_ws(parseable));
                 }
@@ -61,7 +61,7 @@ void parse(std::string s)
             }
         }
     }
-    else if (!broken)
+    else if (!endOfCommand)
     {
         parse_args(size, command);
 
@@ -174,7 +174,7 @@ void preparse_methodline(std::string &tmp, Method &m, std::string &cleanString, 
 {
     int l(tmp.length());
     bool buildSymbol = false, almostBuild = false, ended = false;
-    std::string builder("");
+    std::string builder;
 
     for (int a = 0; a < l; a++)
     {
@@ -259,7 +259,7 @@ void parse_method_def(std::string &s)
         }
         else
         {
-            std::string freshLine("");
+            std::string freshLine;
             preparse_line_classdef(s, freshLine);
 
             if (State.DefiningClass)
@@ -457,143 +457,142 @@ void parse_3space(std::vector<std::string> &command)
 
 void parse_2space(std::vector<std::string> &command, std::string &s)
 {
-    // TODO: refactor
-    if (unrecognized_2space(command.at(1)))
+    if (is_recognized_2space(command.at(1)))
     {
-        if (command.at(0) == Keywords.FileAppend)
-            FileIO::appendText(command.at(1), command.at(2), false);
-        else if (command.at(0) == Keywords.FileAppendLine)
-            FileIO::appendText(command.at(1), command.at(2), true);
-        else if ((command.at(0) == Keywords.FileWrite))
-            FileIO::writeText(command.at(1), command.at(2));
-        else if (command.at(0) == Keywords.Redefine)
-            engine.redefine(command.at(1), command.at(2));
-        else if (command.at(0) == Keywords.Loop)
-        {
-            if (has_params(command.at(2)))
-            {
-                State.DefaultLoopSymbol = command.at(2);
-                State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, '(');
-                State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, ')');
+        twoSpace(command.at(0), command.at(1), command.at(2), command);
+        return;
+    }
 
-                oneSpace(command.at(0), command.at(1), command);
-                State.DefaultLoopSymbol = "$";
-            }
-            else
-                Env::shellExec(s, command);
+    if (command.at(0) == Keywords.FileAppend)
+        FileIO::appendText(command.at(1), command.at(2), false);
+    else if (command.at(0) == Keywords.FileAppendLine)
+        FileIO::appendText(command.at(1), command.at(2), true);
+    else if ((command.at(0) == Keywords.FileWrite))
+        FileIO::writeText(command.at(1), command.at(2));
+    else if (command.at(0) == Keywords.Redefine)
+        engine.redefine(command.at(1), command.at(2));
+    else if (command.at(0) == Keywords.Loop)
+    {
+        if (has_params(command.at(2)))
+        {
+            State.DefaultLoopSymbol = command.at(2);
+            State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, '(');
+            State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, ')');
+
+            oneSpace(command.at(0), command.at(1), command);
+            State.DefaultLoopSymbol = "$";
         }
         else
             Env::shellExec(s, command);
     }
     else
-        twoSpace(command.at(0), command.at(1), command.at(2), command);
+        Env::shellExec(s, command);
 }
 
 void parse_1space(std::vector<std::string> &command, std::string &s)
 {
-    if (unrecognized_1space(command.at(0)))
-        Env::shellExec(s, command);
-    else
-    {
+    if (is_recognized_1space(command.at(0)))
         oneSpace(command.at(0), command.at(1), command);
-    }
+    else
+        Env::shellExec(s, command);
 }
 
 void parse_0space(std::vector<std::string> &command, std::string &s)
 {
-    if (unrecognized_0space(command.at(0)))
+    if (is_recognized_0space(command.at(0)))
     {
-        std::string before(before_dot(s)), after(after_dot(s));
+        zeroSpace(command.at(0), command);
+        return;
+    }
 
-        if (before.length() != 0 && after.length() != 0)
+    std::string before(before_dot(s)), after(after_dot(s));
+
+    if (before.length() != 0 && after.length() != 0)
+    {
+        if (engine.classExists(before) && after.length() != 0)
         {
-            if (engine.classExists(before) && after.length() != 0)
+            if (has_params(after))
             {
-                if (has_params(after))
-                {
-                    s = subtract_char(s, '"');
+                s = subtract_char(s, '"');
 
-                    if (engine.getClass(before).hasMethod(before_params(after)))
-                        exec.executeTemplate(engine.getClass(before).getMethod(before_params(after)), parse_params(after));
-                    else
-                        Env::shellExec(s, command);
-                }
-                else if (engine.getClass(before).hasMethod(after))
-                    exec.executeMethod(engine.getClass(before).getMethod(after));
-                else if (engine.getClass(before).hasVariable(after))
-                {
-                    const auto &v = engine.getClassVariable(before, after);
-                    if (v.getType() == VariableType::String)
-                        writeline(v.getString());
-                    else if (v.getType() == VariableType::Double)
-                        writeline(dtos(v.getNumber()));
-                    else if (v.getType() == VariableType::Integer)
-                        writeline(itos(v.getNumber()));
-                }
-                else if (after == Keywords.GC)
-                    engine.getClass(before).clear();
-                else
-                    error(ErrorCode::UNDEFINED, "", false);
-            }
-            else
-            {
-                if (before == Keywords.Env)
-                {
-                    internal_env_builtins("", after, 3);
-                }
-                else if (engine.variableExists(before))
-                {
-                    if (after == Keywords.Clear)
-                        engine.getVar(before).clear();
-                }
-                else if (engine.listExists(before))
-                {
-                    // REFACTOR HERE
-                    if (after == Keywords.Clear)
-                        engine.getList(before).clear();
-                    else if (after == Keywords.Sort)
-                        engine.getList(before).sort();
-                    else if (after == Keywords.Reverse)
-                        engine.getList(before).reverse();
-                    else if (after == Keywords.Revert)
-                        engine.getList(before).revert();
-                }
-                else if (before == Keywords.Self)
-                {
-                    if (State.ExecutedMethod)
-                        exec.executeMethod(engine.getClass(State.CurrentMethodClass).getMethod(after));
-                }
+                if (engine.getClass(before).hasMethod(before_params(after)))
+                    exec.executeTemplate(engine.getClass(before).getMethod(before_params(after)), parse_params(after));
                 else
                     Env::shellExec(s, command);
             }
-        }
-        else if (ends_with(s, "::"))
-        {
-            if (State.CurrentScript != "")
+            else if (engine.getClass(before).hasMethod(after))
+                exec.executeMethod(engine.getClass(before).getMethod(after));
+            else if (engine.getClass(before).hasVariable(after))
             {
-                std::string newMark(s);
-                newMark = subtract_string(s, "::");
-                engine.getScript().addMark(newMark);
+                const auto &v = engine.getClassVariable(before, after);
+                if (v.getType() == VariableType::String)
+                    writeline(v.getString());
+                else if (v.getType() == VariableType::Double)
+                    writeline(dtos(v.getNumber()));
+                else if (v.getType() == VariableType::Integer)
+                    writeline(itos(v.getNumber()));
             }
-        }
-        else if (engine.methodExists(s))
-            exec.executeMethod(engine.getMethod(s));
-        else if (begins_with(s, "[") && ends_with(s, "]"))
-        {
-            engine.createModule(s);
+            else if (after == Keywords.GC)
+                engine.getClass(before).clear();
+            else
+                error(ErrorCode::UNDEFINED, "", false);
         }
         else
         {
-            s = subtract_char(s, '"');
-
-            if (engine.methodExists(before_params(s)))
-                exec.executeTemplate(engine.getMethod(before_params(s)), parse_params(s));
+            if (before == Keywords.Env)
+            {
+                internal_env_builtins("", after, 3);
+            }
+            else if (engine.variableExists(before))
+            {
+                if (after == Keywords.Clear)
+                    engine.getVar(before).clear();
+            }
+            else if (engine.listExists(before))
+            {
+                // REFACTOR HERE
+                if (after == Keywords.Clear)
+                    engine.getList(before).clear();
+                else if (after == Keywords.Sort)
+                    engine.getList(before).sort();
+                else if (after == Keywords.Reverse)
+                    engine.getList(before).reverse();
+                else if (after == Keywords.Revert)
+                    engine.getList(before).revert();
+            }
+            else if (before == Keywords.Self)
+            {
+                if (State.ExecutedMethod)
+                    exec.executeMethod(engine.getClass(State.CurrentMethodClass).getMethod(after));
+            }
             else
                 Env::shellExec(s, command);
         }
     }
+    else if (ends_with(s, "::"))
+    {
+        if (State.CurrentScript != "")
+        {
+            std::string newMark(s);
+            newMark = subtract_string(s, "::");
+            engine.getScript().addMark(newMark);
+        }
+    }
+    else if (engine.methodExists(s))
+        exec.executeMethod(engine.getMethod(s));
+    else if (begins_with(s, "[") && ends_with(s, "]"))
+    {
+        engine.createModule(s);
+    }
     else
-        zeroSpace(command.at(0), command);
+    {
+        s = subtract_char(s, '"');
+
+        if (engine.methodExists(before_params(s)))
+            exec.executeTemplate(engine.getMethod(before_params(s)), parse_params(s));
+        else
+            Env::shellExec(s, command);
+    }
 }
 
 void parse_ifstatement()
@@ -623,7 +622,7 @@ void preparse_line_classdef(std::string &s, std::string &freshLine)
 {
     int _len = s.length();
     std::vector<std::string> words;
-    std::string word("");
+    std::string word;
 
     for (int z = 0; z < _len; z++)
     {
@@ -709,7 +708,7 @@ void parse_switchstatement(std::string &s, std::vector<std::string> &command)
         State.InDefaultCase = true;
     else if (s == Keywords.End)
     {
-        std::string switch_value("");
+        std::string switch_value;
 
         if (engine.isString(State.SwitchVarName))
             switch_value = engine.varString(State.SwitchVarName);
@@ -1547,7 +1546,7 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
 
             for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
             {
-                std::string tempString("");
+                std::string tempString;
                 tempString.push_back(tempVarString[i]);
                 newList.add(tempString);
             }
@@ -1569,7 +1568,7 @@ void handleLoopInit_Brackets(std::string &arg3, std::string &arg1, bool &retFlag
 
             for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
             {
-                std::string tempString("");
+                std::string tempString;
                 tempString.push_back(tempVarString[i]);
                 newList.add(tempString);
             }
@@ -1635,7 +1634,7 @@ void handleLoopInit_Variable_FileRead(std::string &before)
         List newList;
 
         std::ifstream file(engine.varString(before).c_str());
-        std::string line("");
+        std::string line;
 
         if (file.is_open())
         {
@@ -1687,7 +1686,7 @@ void handleLoopInit_Variable_Length(std::string &before)
 
     for (int i = 0; i < len; i++)
     {
-        std::string tempStr("");
+        std::string tempStr;
         tempStr.push_back(tempVarStr[i]);
         newList.add(tempStr);
     }
@@ -2174,7 +2173,7 @@ void checkParamsCondition(const std::string arg1, const std::string arg2, const 
 }
 
 void checkMethodCondition(const std::string arg1, const std::string arg3, const std::string arg2) {
-    std::string arg1Result(""), arg3Result("");
+    std::string arg1Result, arg3Result;
     handleIfStatementDecl_Method(arg1, arg1Result, arg3, arg3Result);
     handleIfStatementDecl_Generic(arg1Result, arg3Result, arg2);
 }
@@ -2803,7 +2802,7 @@ void handlePrompt(std::string &arg1)
 
 void handleIfStatement(std::string &arg1)
 {
-    std::string tmpValue("");
+    std::string tmpValue;
     
     if (engine.variableExists(arg1))
     {
@@ -2832,7 +2831,7 @@ void handleIfStatement(std::string &arg1)
     }   
     else
     {
-        std::string tmpCode("");
+        std::string tmpCode;
 
         if (begins_with(arg1, "(\"") && ends_with(arg1, "\")"))
             tmpCode = substring(arg1, 2, arg1.length() - 3);

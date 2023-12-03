@@ -464,7 +464,7 @@ void Engine::createMethod(std::string arg0, std::string arg1)
 
 void Engine::loadScript(std::string script)
 {
-    std::string s("");
+    std::string s;
     std::ifstream f(script.c_str());
     State.CurrentScript = script;
 
@@ -672,7 +672,7 @@ void Engine::redefine(std::string target, std::string name)
     {
         if (Env::fileExists(varString(target)) || Env::directoryExists(varString(target)))
         {
-            std::string old_name(varString(target)), new_name("");
+            std::string old_name(varString(target)), new_name;
 
             if (variableExists(name))
             {
