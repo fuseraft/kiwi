@@ -455,6 +455,20 @@ void parse_3space(std::vector<std::string> &command)
     threeSpace(command.at(0), command.at(1), command.at(2), command.at(3), command);
 }
 
+void parse_targetandtext(const std::string &arg1, const std::string &arg2, std::string &target, std::string &text)
+{
+    if (engine.variableExists(arg1) && engine.isString(arg1))
+    {
+        target = engine.varString(arg1);
+        text = engine.variableExists(arg2) ? engine.getVariableValueAsString(arg2) : arg2;
+    }
+    else
+    {
+        target = arg1;
+        text = engine.variableExists(arg2) ? engine.getVariableValueAsString(arg2) : arg2;
+    }
+}
+
 void parse_2space(std::vector<std::string> &command, std::string &s)
 {
     if (is_recognized_2space(command.at(1)))
@@ -463,12 +477,15 @@ void parse_2space(std::vector<std::string> &command, std::string &s)
         return;
     }
 
+    std::string target, text;
+    parse_targetandtext(command.at(1), command.at(2), target, text);
+
     if (command.at(0) == Keywords.FileAppend)
-        FileIO::appendText(command.at(1), command.at(2), false);
+        FileIO::appendText(target, text, false);
     else if (command.at(0) == Keywords.FileAppendLine)
-        FileIO::appendText(command.at(1), command.at(2), true);
-    else if ((command.at(0) == Keywords.FileWrite))
-        FileIO::writeText(command.at(1), command.at(2));
+        FileIO::appendText(target, text, true);
+    else if ((command.at(0) == Keywords.FileWrite)) 
+        FileIO::writeText(target, text);
     else if (command.at(0) == Keywords.Redefine)
         engine.redefine(command.at(1), command.at(2));
     else if (command.at(0) == Keywords.Loop)
@@ -681,7 +698,7 @@ void parse_scriptdefinition(std::string &s)
         State.DefiningScript = false;
     }
     else
-        Env::appendToFile(State.CurrentScriptName, s + "\n");
+        FileIO::appendToFile(State.CurrentScriptName, s + "\n");
 }
 
 void parse_moduledefinition(std::string &s)
@@ -1613,7 +1630,7 @@ void handleLoopInit_Params(std::string &arg3, std::string &arg1)
 
 void handleLoopInit_Variable_FileRead(std::string &before)
 {
-    if (Env::fileExists(engine.varString(before)))
+    if (FileIO::fileExists(engine.varString(before)))
     {
         List newList;
 
@@ -1642,7 +1659,7 @@ void handleLoopInit_Variable_FileRead(std::string &before)
 
 void handleLoopInit_Variable_Files(std::string &before)
 {
-    if (Env::directoryExists(engine.varString(before)))
+    if (FileIO::directoryExists(engine.varString(before)))
         engine.createForLoop(getDirectoryList(before, true));
     else
     {
@@ -1653,7 +1670,7 @@ void handleLoopInit_Variable_Files(std::string &before)
 
 void handleLoopInit_Variable_Directories(std::string &before)
 {
-    if (Env::directoryExists(engine.varString(before)))
+    if (FileIO::directoryExists(engine.varString(before)))
         engine.createForLoop(getDirectoryList(before, false));
     else
     {
@@ -2013,7 +2030,7 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
                 return;
             }
 
-            if (Env::fileExists(engine.varString(arg1)))
+            if (FileIO::fileExists(engine.varString(arg1)))
             {
                 if (arg2 == Operators.Equal)
                     engine.createIfStatement(true);
@@ -2039,7 +2056,7 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
                 return;
             }
 
-            if (Env::directoryExists(engine.varString(arg1)))
+            if (FileIO::directoryExists(engine.varString(arg1)))
             {
                 if (arg2 == Operators.Equal)
                     engine.createIfStatement(true);
@@ -2223,18 +2240,18 @@ void handleInlineScriptDecl(std::string &arg1)
             return;
         }
 
-        if (!Env::fileExists(engine.varString(arg1)))
+        if (!FileIO::fileExists(engine.varString(arg1)))
         {
-            Env::createFile(engine.varString(arg1));
+            FileIO::createFile(engine.varString(arg1));
             State.DefiningScript = true;
             State.CurrentScriptName = engine.varString(arg1);
         }
         else
             error(ErrorCode::FILE_EXISTS, engine.varString(arg1), false);
     }
-    else if (!Env::fileExists(arg1))
+    else if (!FileIO::fileExists(arg1))
     {
-        Env::createFile(arg1);
+        FileIO::createFile(arg1);
         State.DefiningScript = true;
         State.CurrentScriptName = arg1;
     }
@@ -2252,15 +2269,15 @@ void handleDirPop(std::string &arg1)
             return;
         }
 
-        if (Env::directoryExists(engine.varString(arg1)))
-            Env::removeDirectory(engine.varString(arg1));
+        if (FileIO::directoryExists(engine.varString(arg1)))
+            FileIO::removeDirectory(engine.varString(arg1));
         else
             error(ErrorCode::DIR_NOT_FOUND, engine.varString(arg1), false);
     }
     else
     {
-        if (Env::directoryExists(arg1))
-            Env::removeDirectory(arg1);
+        if (FileIO::directoryExists(arg1))
+            FileIO::removeDirectory(arg1);
         else
             error(ErrorCode::DIR_NOT_FOUND, arg1, false);
     }
@@ -2276,15 +2293,15 @@ void handleDirPush(std::string &arg1)
             return;
         }
 
-        if (!Env::directoryExists(engine.varString(arg1)))
-            Env::makeDirectory(engine.varString(arg1));
+        if (!FileIO::directoryExists(engine.varString(arg1)))
+            FileIO::makeDirectory(engine.varString(arg1));
         else
             error(ErrorCode::DIR_EXISTS, engine.varString(arg1), false);
     }
     else
     {
-        if (!Env::directoryExists(arg1))
-            Env::makeDirectory(arg1);
+        if (!FileIO::directoryExists(arg1))
+            FileIO::makeDirectory(arg1);
         else
             error(ErrorCode::DIR_EXISTS, arg1, false);
     }
@@ -2300,15 +2317,15 @@ void handleFilePop(std::string &arg1)
             return;
         }
 
-        if (Env::fileExists(engine.varString(arg1)))
-            Env::removeFile(engine.varString(arg1));
+        if (FileIO::fileExists(engine.varString(arg1)))
+            FileIO::removeFile(engine.varString(arg1));
         else
             error(ErrorCode::FILE_NOT_FOUND, engine.varString(arg1), false);
     }
     else
     {
-        if (Env::fileExists(arg1))
-            Env::removeFile(arg1);
+        if (FileIO::fileExists(arg1))
+            FileIO::removeFile(arg1);
         else
             error(ErrorCode::FILE_NOT_FOUND, arg1, false);
     }
@@ -2324,15 +2341,15 @@ void handleFilePush(std::string &arg1)
             return;
         }
 
-        if (!Env::fileExists(engine.varString(arg1)))
-            Env::createFile(engine.varString(arg1));
+        if (!FileIO::fileExists(engine.varString(arg1)))
+            FileIO::createFile(engine.varString(arg1));
         else
             error(ErrorCode::FILE_EXISTS, engine.varString(arg1), false);
     }
     else
     {
-        if (!Env::fileExists(arg1))
-            Env::createFile(arg1);
+        if (!FileIO::fileExists(arg1))
+            FileIO::createFile(arg1);
         else
             error(ErrorCode::FILE_EXISTS, arg1, false);
     }
@@ -2450,13 +2467,13 @@ void handleFileInspect(std::string &before, std::string &after, std::string &arg
             return;
         }
         
-        State.LastValue = !Env::fileExists(engine.getClassVariable(before, after).getString()) ? Keywords.False : Keywords.True;
+        State.LastValue = !FileIO::fileExists(engine.getClassVariable(before, after).getString()) ? Keywords.False : Keywords.True;
     }
     else
     {
         if (!engine.variableExists(arg1))
         {
-            State.LastValue = !Env::fileExists(arg1) ? Keywords.False : Keywords.True;
+            State.LastValue = !FileIO::fileExists(arg1) ? Keywords.False : Keywords.True;
             return;
         }
 
@@ -2466,7 +2483,7 @@ void handleFileInspect(std::string &before, std::string &after, std::string &arg
             return;
         }
 
-        State.LastValue = !Env::fileExists(engine.varString(arg1)) ? Keywords.False : Keywords.True;
+        State.LastValue = !FileIO::fileExists(engine.varString(arg1)) ? Keywords.False : Keywords.True;
     }
 }
 
@@ -2480,13 +2497,13 @@ void handleDirectoryInspect(std::string &before, std::string &after, std::string
             return;
         }
 
-        State.LastValue = Env::directoryExists(engine.getClassVariable(before, after).getString()) ? Keywords.True : Keywords.False;
+        State.LastValue = FileIO::directoryExists(engine.getClassVariable(before, after).getString()) ? Keywords.True : Keywords.False;
     }
     else
     {
         if (!engine.variableExists(arg1))
         {
-            State.LastValue = Env::directoryExists(arg1) ? Keywords.True : Keywords.False;
+            State.LastValue = FileIO::directoryExists(arg1) ? Keywords.True : Keywords.False;
             return;
         }
 
@@ -2496,7 +2513,7 @@ void handleDirectoryInspect(std::string &before, std::string &after, std::string
             return;
         }
 
-        State.LastValue = Env::directoryExists(engine.varString(arg1)) ? Keywords.True : Keywords.False;
+        State.LastValue = FileIO::directoryExists(engine.varString(arg1)) ? Keywords.True : Keywords.False;
     }
 }
 
@@ -2562,7 +2579,7 @@ void handleInitialDir(std::string &arg1)
             return;
         }
 
-        if (!Env::directoryExists(engine.varString(arg1)))
+        if (!FileIO::directoryExists(engine.varString(arg1)))
         {
             error(ErrorCode::DIR_NOT_FOUND, engine.varString(arg1), false);
             return;
@@ -2573,7 +2590,7 @@ void handleInitialDir(std::string &arg1)
     }
     else
     {
-        if (!Env::directoryExists(arg1))
+        if (!FileIO::directoryExists(arg1))
         {
             error(ErrorCode::DIR_NOT_FOUND, arg1, false);
             return;
@@ -2643,7 +2660,7 @@ void handleChangeDir(std::string &arg1)
     {
         if (arg1 == Keywords.InitialDirectory)
             Env::changeDirectory(State.InitialDirectory);
-        else if (Env::directoryExists(arg1))
+        else if (FileIO::directoryExists(arg1))
             Env::changeDirectory(arg1);
         else
             Env::changeDirectory(arg1);
@@ -2657,7 +2674,7 @@ void handleChangeDir(std::string &arg1)
         return;
     }
 
-    if (!Env::directoryExists(engine.varString(arg1)))
+    if (!FileIO::directoryExists(engine.varString(arg1)))
     {
         error(ErrorCode::DIR_NOT_FOUND, engine.varString(arg1), false);
         return;
@@ -2668,7 +2685,7 @@ void handleChangeDir(std::string &arg1)
 
 void handleLoad(std::string &arg1)
 {
-    if (Env::fileExists(arg1))
+    if (FileIO::fileExists(arg1))
     {
         if (is_script(arg1))
         {
