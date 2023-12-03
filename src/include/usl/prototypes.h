@@ -147,8 +147,6 @@ void init_const(std::string arg0, std::string arg1, std::string arg2);
 void parse_mathfunc(std::string arg0, std::string before, std::string after);
 void parse_mathfunc_assignfromvar(std::string arg0, std::string before, std::string after);
 
-double get_filesize(std::string path);
-
 void parse_assign(std::string arg0, std::string arg1, std::string arg2);
 void parseNumberStack(std::vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar);
 void parseStringStack(std::vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar);

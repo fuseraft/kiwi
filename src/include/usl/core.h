@@ -1424,55 +1424,38 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                 }
                 else if (after == Keywords.ToNumber)
                 {
-                    if (engine.variableExists(before))
+                    if (!engine.variableExists(before))
                     {
-                        if (engine.isString(before))
-                            engine.setVariable(arg0, stod(engine.varString(before)));
-                        else
-                            error(ErrorCode::IS_NULL, before, false);
-                    }
-                    else
                         error(ErrorCode::VAR_UNDEFINED, before, false);
+                        return;
+                    }
+
+                    if (engine.isString(before))
+                        engine.setVariable(arg0, stod(engine.varString(before)));
+                    else
+                        error(ErrorCode::IS_NULL, before, false);
                 }
                 else if (before == Keywords.ReadLine)
                 {
                     if (engine.variableExists(after))
                     {
                         if (engine.isString(after))
-                        {
-                            std::string line;
                             write(pre_parse(engine.varString(after)));
-                            std::getline(std::cin, line, '\n');
 
-                            if (engine.isNumber(arg0))
-                            {
-                                if (is_numeric(line))
-                                    engine.setVariable(arg0, stod(line));
-                                else
-                                    error(ErrorCode::CONV_ERR, line, false);
-                            }
-                            else if (engine.isString(arg0))
-                                engine.setVariable(arg0, line);
-                            else
-                                error(ErrorCode::IS_NULL, arg0, false);
-                        }
-                        else
+                        std::string line;
+                        std::getline(std::cin, line, '\n');
+
+                        if (engine.isNumber(arg0))
                         {
-                            std::string line;
-                            std::getline(std::cin, line, '\n');
-
-                            if (engine.isNumber(arg0))
-                            {
-                                if (is_numeric(line))
-                                    engine.setVariable(arg0, stod(line));
-                                else
-                                    error(ErrorCode::CONV_ERR, line, false);
-                            }
-                            else if (engine.isString(arg0))
-                                engine.setVariable(arg0, line);
+                            if (is_numeric(line))
+                                engine.setVariable(arg0, stod(line));
                             else
-                                error(ErrorCode::IS_NULL, arg0, false);
+                                error(ErrorCode::CONV_ERR, line, false);
                         }
+                        else if (engine.isString(arg0))
+                            engine.setVariable(arg0, line);
+                        else
+                            error(ErrorCode::IS_NULL, arg0, false);
                     }
                     else
                     {
@@ -1521,112 +1504,76 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                         writeline();
                     }
                 }
-                else if (after == Keywords.ToLower)
+                else if (after == Keywords.ToLower && engine.variableExists(before))
                 {
-                    if (engine.variableExists(before))
+                    if (!engine.isString(arg0) || !engine.isString(before))
                     {
-                        if (engine.isString(arg0))
-                        {
-                            if (engine.isString(before))
-                                engine.setVariable(arg0, to_lower(engine.varString(before)));
-                            else
-                                error(ErrorCode::CONV_ERR, before, false);
-                        }
-                        else
-                            error(ErrorCode::IS_NULL, arg0, false);
+                        error(ErrorCode::CONV_ERR, before, false);
+                        return;
                     }
+
+                    engine.setVariable(arg0, to_lower(engine.varString(before)));
                 }
                 else if (after == Keywords.Read)
                 {
-                    if (engine.isString(arg0))
+                    if (!engine.isString(arg0))
                     {
-                        if (engine.variableExists(before))
-                        {
-                            if (engine.isString(before))
-                            {
-                                if (Env::fileExists(engine.varString(before)))
-                                {
-                                    std::ifstream file(engine.varString(before).c_str());
-                                    std::string line, bigString;
-
-                                    if (file.is_open())
-                                    {
-                                        while (!file.eof())
-                                        {
-                                            std::getline(file, line);
-                                            bigString.append(line + "\r\n");
-                                        }
-
-                                        file.close();
-
-                                        engine.setVariable(arg0, bigString);
-                                    }
-                                    else
-                                        error(ErrorCode::READ_FAIL, engine.varString(before), false);
-                                }
-                                else
-                                    error(ErrorCode::READ_FAIL, engine.varString(before), false);
-                            }
-                            else
-                                error(ErrorCode::NULL_STRING, before, false);
-                        }
-                        else
-                        {
-                            if (Env::fileExists(before))
-                            {
-                                std::ifstream file(before.c_str());
-                                std::string line, bigString;
-
-                                if (file.is_open())
-                                {
-                                    while (!file.eof())
-                                    {
-                                        std::getline(file, line);
-                                        bigString.append(line + "\r\n");
-                                    }
-
-                                    file.close();
-
-                                    engine.setVariable(arg0, bigString);
-                                }
-                                else
-                                    error(ErrorCode::READ_FAIL, before, false);
-                            }
-                            else
-                                error(ErrorCode::READ_FAIL, before, false);
-                        }
+                        error(ErrorCode::CONV_ERR, arg0, false);
+                        return;
                     }
-                    else
-                        error(ErrorCode::NULL_STRING, arg0, false);
-                }
-                else if (after == Keywords.ToUpper)
-                {
+
                     if (engine.variableExists(before))
                     {
-                        if (engine.isString(arg0))
+                        if (!engine.isString(before))
                         {
-                            if (engine.isString(before))
-                                engine.setVariable(arg0, to_upper(engine.varString(before)));
-                            else
-                                error(ErrorCode::CONV_ERR, before, false);
+                            error(ErrorCode::NULL_STRING, before, false);
+                            return;
                         }
-                        else
-                            error(ErrorCode::IS_NULL, arg0, false);
+
+                        if (!Env::fileExists(engine.varString(before)))
+                        {
+                            error(ErrorCode::FILE_NOT_FOUND, engine.varString(before), false);
+                            return;
+                        }
+
+                        std::string filePath = engine.varString(before);
+                        engine.setVariable(arg0, FileIO::readText(filePath));
                     }
+                    else
+                    {
+                        if (!Env::fileExists(before))
+                        {
+                            error(ErrorCode::FILE_NOT_FOUND, before, false);
+                            return;
+                        }
+
+                        engine.setVariable(arg0, FileIO::readText(before));
+                    }
+                }
+                else if (after == Keywords.ToUpper && engine.variableExists(before))
+                {
+                    if (!engine.isString(arg0) || !engine.isString(before))
+                    {
+                        error(ErrorCode::CONV_ERR, before, false);
+                        return;
+                    }
+
+                    engine.setVariable(arg0, to_upper(engine.varString(before)));
                 }
                 else if (after == Keywords.Size)
                 {
                     if (engine.variableExists(before))
                     {
-                        if (engine.isNumber(arg0))
+                        if (!engine.isNumber(arg0))
                         {
-                            if (engine.isString(before))
-                                engine.setVariable(arg0, (double)engine.varString(before).length());
-                            else
-                                error(ErrorCode::CONV_ERR, before, false);
-                        }
-                        else
                             error(ErrorCode::CONV_ERR, arg0, false);
+                            return;
+                        }
+
+                        if (engine.isString(before))
+                            engine.setVariable(arg0, (double)engine.varString(before).length());
+                        else
+                            error(ErrorCode::CONV_ERR, before, false);
                     }
                     else
                     {
@@ -1642,20 +1589,21 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     {
                         if (engine.variableExists(before))
                         {
-                            if (engine.isString(before))
+                            if (!engine.isString(before))
                             {
-                                if (Env::fileExists(engine.varString(before)))
-                                    engine.setVariable(arg0, get_filesize(engine.varString(before)));
-                                else
-                                    error(ErrorCode::READ_FAIL, engine.varString(before), false);
-                            }
-                            else
                                 error(ErrorCode::CONV_ERR, before, false);
+                                return;
+                            }
+
+                            if (Env::fileExists(engine.varString(before)))
+                                engine.setVariable(arg0, FileIO::getFileSize(engine.varString(before)));
+                            else
+                                error(ErrorCode::READ_FAIL, engine.varString(before), false);
                         }
                         else
                         {
                             if (Env::fileExists(before))
-                                engine.setVariable(arg0, get_filesize(before));
+                                engine.setVariable(arg0, FileIO::getFileSize(before));
                             else
                                 error(ErrorCode::READ_FAIL, before, false);
                         }
@@ -1774,17 +1722,12 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                 {
                     if (engine.methodExists(before_params(arg2)))
                     {
-                        // execute the method
                         exec.executeTemplate(engine.getMethod(before_params(arg2)), parse_params(arg2));
-                        // set the variable = last value
+
                         if (engine.isString(arg0))
-                        {
                             engine.setVariable(arg0, State.LastValue);
-                        }
                         else if (engine.isNumber(arg0))
-                        {
                             engine.setVariable(arg0, stod(State.LastValue));
-                        }
                     }
                     else if (isStringStack(arg2))
                     {
@@ -1845,17 +1788,7 @@ void parse_assign(std::string arg0, std::string arg1, std::string arg2)
     first = arg0IsString ? engine.varString(arg0) : dtos(engine.varNumber(arg0));
 
     if (engine.variableExists(arg2))
-    {
-        if (engine.isString(arg2))
-            second = engine.varString(arg2);
-        else if (engine.isNumber(arg2))
-            second = dtos(engine.varNumber(arg2));
-        else
-        {
-            error(ErrorCode::IS_NULL, arg2, false);
-            return;
-        }
-    }
+        second = engine.getVariableValueAsString(arg2);
     else
     {
         if (has_params(arg2))
@@ -2367,7 +2300,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
         {
             if (!engine.isString(before))
             {
-                error(ErrorCode::NULL_STRING, before, false);
+                error(ErrorCode::CONV_ERR, before, false);
                 return;
             }
 
@@ -2466,26 +2399,25 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 else if (engine.variableExists(s0) || engine.variableExists(s2))
                 {
                     if (engine.variableExists(s0))
-                    {
-                        if (engine.isNumber(s0))
-                            s0 = dtos(engine.varNumber(s0));
-                        else if (engine.isString(s0))
-                            s0 = engine.varString(s0);
-                    }
+                        s0 = engine.getVariableValueAsString(s0);
 
                     if (engine.variableExists(s2))
+                        s2 = engine.getVariableValueAsString(s2);
+
+                    if (!is_numeric(s0))
                     {
-                        if (engine.isNumber(s2))
-                            s2 = engine.varNumberString(s2);
-                        else if (engine.isString(s2))
-                            s2 = engine.varString(s2);
+                        error(ErrorCode::CONV_ERR, s0, false);
+                        return;
                     }
 
-                    if (is_numeric(s0) && is_numeric(s2))
+                    if (!is_numeric(s2))
                     {
-                        double n0 = stod(s0), n2 = stod(s2);
-                        engine.createVariable(arg0, (int)RNG::getInstance().random(n0, n2));
+                        error(ErrorCode::CONV_ERR, s2, false);
+                        return;
                     }
+
+                    double n0 = stod(s0), n2 = stod(s2);
+                    engine.createVariable(arg0, (int)RNG::getInstance().random(n0, n2));
                 }
                 else
                     error(ErrorCode::OUT_OF_BOUNDS, s0 + Keywords.RangeSeparator + s2, false);
@@ -2535,41 +2467,18 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             engine.createVariable(arg0, (double)engine.getArgCount());
         else if (before == Keywords.ReadLine)
         {
-            if (engine.variableExists(after))
-            {
-                if (engine.isString(after))
-                {
-                    std::string line;
-                    std::cout << pre_parse(engine.varString(after));
-                    std::getline(std::cin, line, '\n');
-
-                    if (is_numeric(line))
-                        engine.createVariable(arg0, stod(line));
-                    else
-                        engine.createVariable(arg0, line);
-                }
-                else
-                {
-                    std::string line;
-                    std::getline(std::cin, line, '\n');
-
-                    if (is_numeric(line))
-                        engine.createVariable(arg0, stod(line));
-                    else
-                        engine.createVariable(arg0, line);
-                }
-            }
+            if (engine.variableExists(after) && engine.isString(after))
+                std::cout << pre_parse(engine.varString(after));
             else
-            {
-                std::string line;
                 std::cout << pre_parse(after);
-                std::getline(std::cin, line, '\n');
 
-                if (is_numeric(line))
-                    engine.createVariable(arg0, stod(line));
-                else
-                    engine.createVariable(arg0, line);
-            }
+            std::string line;
+            std::getline(std::cin, line, '\n');
+
+            if (is_numeric(line))
+                engine.createVariable(arg0, stod(line));
+            else
+                engine.createVariable(arg0, line);
         }
         else if (before == Keywords.Mask)
         {
@@ -2661,7 +2570,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             if (!engine.variableExists(before))
             {
                 if (Env::fileExists(before))
-                    engine.createVariable(arg0, get_filesize(before));
+                    engine.createVariable(arg0, FileIO::getFileSize(before));
                 else
                     error(ErrorCode::READ_FAIL, before, false);
                 return;
@@ -2674,7 +2583,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             }
 
             if (Env::fileExists(engine.varString(before)))
-                engine.createVariable(arg0, get_filesize(engine.varString(before)));
+                engine.createVariable(arg0, FileIO::getFileSize(engine.varString(before)));
             else
                 error(ErrorCode::READ_FAIL, engine.varString(before), false);
         }
@@ -3008,8 +2917,11 @@ void internal_puts(std::string arg0, std::string arg1, bool newline)
     if (engine.variableExists(arg1))
     {
         // set the value
-        if (!is_dotless(arg1))
+        if (is_dotless(arg1))
         {
+            text = engine.getVariableValueAsString(arg1);
+        }
+        else {
             std::string className = before_dot(arg1), variableName = after_dot(arg1);
             Variable classVariable = engine.getClassVariable(className, variableName);
 
@@ -3023,49 +2935,12 @@ void internal_puts(std::string arg0, std::string arg1, bool newline)
                 return;
             }
         }
-        else
-        {
-            if (engine.isString(arg1))
-                text = engine.varString(arg1);
-            else if (engine.isNumber(arg1))
-                text = dtos(engine.varNumber(arg1));
-            else
-            {
-                error(ErrorCode::IS_NULL, arg1, false);
-                return;
-            }
-        }
     }
 
     if (newline)
         writeline(text);
     else
         write(text);
-}
-
-double get_filesize(std::string path)
-{
-    int bytes;
-
-    std::ifstream file(path.c_str());
-
-    if (!file.is_open())
-    {
-        error(ErrorCode::READ_FAIL, path, false);
-        return -DBL_MAX;
-    }
-
-    long begin, end;
-
-    begin = file.tellg();
-    file.seekg(0, std::ios::end);
-    end = file.tellg();
-
-    file.close();
-
-    bytes = (end - begin);
-
-    return bytes;
 }
 
 std::string get_stdin_quiet(std::string text)
