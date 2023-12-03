@@ -9,7 +9,7 @@
 #include "objects/module.h"
 #include "objects/class.h"
 #include "objects/script.h"
-#include "objects/string_container.h"
+#include "objects/stringlist.h"
 #include "objects/switch.h"
 
 #endif
