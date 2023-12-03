@@ -202,7 +202,7 @@ std::string Engine::getVariableValueAsString(std::string varName) {
     if (isString(varName))
         tmpValue = varString(varName);
     else if (isNumber(varName))
-        tmpValue = varNumber(varName);
+        tmpValue = varNumberString(varName);
     return tmpValue;
 }
 

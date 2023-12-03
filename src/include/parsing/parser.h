@@ -2217,17 +2217,20 @@ void handleInlineScriptDecl(std::string &arg1)
 {
     if (engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
+        if (!engine.isString(arg1))
         {
-            if (!Env::fileExists(engine.varString(arg1)))
-            {
-                Env::createFile(engine.varString(arg1));
-                State.DefiningScript = true;
-                State.CurrentScriptName = engine.varString(arg1);
-            }
-            else
-                error(ErrorCode::FILE_EXISTS, engine.varString(arg1), false);
+            error(ErrorCode::CONV_ERR, arg1, true);
+            return;
         }
+
+        if (!Env::fileExists(engine.varString(arg1)))
+        {
+            Env::createFile(engine.varString(arg1));
+            State.DefiningScript = true;
+            State.CurrentScriptName = engine.varString(arg1);
+        }
+        else
+            error(ErrorCode::FILE_EXISTS, engine.varString(arg1), false);
     }
     else if (!Env::fileExists(arg1))
     {
@@ -2243,15 +2246,16 @@ void handleDirPop(std::string &arg1)
 {
     if (engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
+        if (!engine.isString(arg1))
         {
-            if (Env::directoryExists(engine.varString(arg1)))
-                Env::removeDirectory(engine.varString(arg1));
-            else
-                error(ErrorCode::DIR_NOT_FOUND, engine.varString(arg1), false);
-        }
-        else
             error(ErrorCode::NULL_STRING, arg1, false);
+            return;
+        }
+
+        if (Env::directoryExists(engine.varString(arg1)))
+            Env::removeDirectory(engine.varString(arg1));
+        else
+            error(ErrorCode::DIR_NOT_FOUND, engine.varString(arg1), false);
     }
     else
     {
@@ -2266,15 +2270,16 @@ void handleDirPush(std::string &arg1)
 {
     if (engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
+        if (!engine.isString(arg1))
         {
-            if (!Env::directoryExists(engine.varString(arg1)))
-                Env::makeDirectory(engine.varString(arg1));
-            else
-                error(ErrorCode::DIR_EXISTS, engine.varString(arg1), false);
+            error(ErrorCode::CONV_ERR, arg1, false);
+            return;
         }
+
+        if (!Env::directoryExists(engine.varString(arg1)))
+            Env::makeDirectory(engine.varString(arg1));
         else
-            error(ErrorCode::NULL_STRING, arg1, false);
+            error(ErrorCode::DIR_EXISTS, engine.varString(arg1), false);
     }
     else
     {
@@ -2289,15 +2294,16 @@ void handleFilePop(std::string &arg1)
 {
     if (engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
+        if (!engine.isString(arg1))
         {
-            if (Env::fileExists(engine.varString(arg1)))
-                Env::removeFile(engine.varString(arg1));
-            else
-                error(ErrorCode::FILE_NOT_FOUND, engine.varString(arg1), false);
+            error(ErrorCode::CONV_ERR, arg1, false);
+            return;
         }
+
+        if (Env::fileExists(engine.varString(arg1)))
+            Env::removeFile(engine.varString(arg1));
         else
-            error(ErrorCode::NULL_STRING, arg1, false);
+            error(ErrorCode::FILE_NOT_FOUND, engine.varString(arg1), false);
     }
     else
     {
@@ -2312,15 +2318,16 @@ void handleFilePush(std::string &arg1)
 {
     if (engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
+        if (!engine.isString(arg1))
         {
-            if (!Env::fileExists(engine.varString(arg1)))
-                Env::createFile(engine.varString(arg1));
-            else
-                error(ErrorCode::FILE_EXISTS, engine.varString(arg1), false);
+            error(ErrorCode::CONV_ERR, arg1, true);
+            return;
         }
+
+        if (!Env::fileExists(engine.varString(arg1)))
+            Env::createFile(engine.varString(arg1));
         else
-            error(ErrorCode::NULL_STRING, arg1, false);
+            error(ErrorCode::FILE_EXISTS, engine.varString(arg1), false);
     }
     else
     {
@@ -2381,19 +2388,9 @@ void handleStringInspect(std::string &before, std::string &after, std::string &a
     else
     {
         if (engine.variableExists(arg1))
-        {
-            if (engine.isString(arg1))
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
-        }
+            State.LastValue = !engine.isString(arg1) ? Keywords.False : Keywords.True;
         else
-        {
-            if (is_numeric(arg1))
-                State.LastValue = Keywords.False;
-            else
-                State.LastValue = Keywords.True;
-        }
+            State.LastValue = is_numeric(arg1) ? Keywords.False : Keywords.True;
     }
 }
 
@@ -2447,37 +2444,29 @@ void handleFileInspect(std::string &before, std::string &after, std::string &arg
 {
     if (before.length() != 0 && after.length() != 0)
     {
-        if (engine.getClass(before).hasVariable(after))
+        if (!engine.getClass(before).hasVariable(after))
         {
-            if (Env::fileExists(engine.getClassVariable(before, after).getString()))
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
-        }
-        else
             error(ErrorCode::TARGET_UNDEFINED, arg1, false);
+            return;
+        }
+        
+        State.LastValue = !Env::fileExists(engine.getClassVariable(before, after).getString()) ? Keywords.False : Keywords.True;
     }
     else
     {
-        if (engine.variableExists(arg1))
+        if (!engine.variableExists(arg1))
         {
-            if (engine.isString(arg1))
-            {
-                if (Env::fileExists(engine.varString(arg1)))
-                    State.LastValue = Keywords.True;
-                else
-                    State.LastValue = Keywords.False;
-            }
-            else
-                State.LastValue = Keywords.False;
+            State.LastValue = !Env::fileExists(arg1) ? Keywords.False : Keywords.True;
+            return;
         }
-        else
+
+        if (!engine.isString(arg1))
         {
-            if (Env::fileExists(arg1))
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
+            State.LastValue = Keywords.False;
+            return;
         }
+
+        State.LastValue = !Env::fileExists(engine.varString(arg1)) ? Keywords.False : Keywords.True;
     }
 }
 
@@ -2485,37 +2474,29 @@ void handleDirectoryInspect(std::string &before, std::string &after, std::string
 {
     if (before.length() != 0 && after.length() != 0)
     {
-        if (engine.getClass(before).hasVariable(after))
+        if (!engine.getClass(before).hasVariable(after))
         {
-            if (Env::directoryExists(engine.getClassVariable(before, after).getString()))
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
-        }
-        else
             error(ErrorCode::TARGET_UNDEFINED, arg1, false);
+            return;
+        }
+
+        State.LastValue = Env::directoryExists(engine.getClassVariable(before, after).getString()) ? Keywords.True : Keywords.False;
     }
     else
     {
-        if (engine.variableExists(arg1))
+        if (!engine.variableExists(arg1))
         {
-            if (engine.isString(arg1))
-            {
-                if (Env::directoryExists(engine.varString(arg1)))
-                    State.LastValue = Keywords.True;
-                else
-                    State.LastValue = Keywords.False;
-            }
-            else
-                error(ErrorCode::NULL_STRING, arg1, false);
+            State.LastValue = Env::directoryExists(arg1) ? Keywords.True : Keywords.False;
+            return;
         }
-        else
+
+        if (!engine.isString(arg1))
         {
-            if (Env::directoryExists(arg1))
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
+            error(ErrorCode::CONV_ERR, arg1, false);
+            return;
         }
+
+        State.LastValue = Env::directoryExists(engine.varString(arg1)) ? Keywords.True : Keywords.False;
     }
 }
 
@@ -2575,92 +2556,90 @@ void handleInitialDir(std::string &arg1)
 {
     if (engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
+        if (!engine.isString(arg1))
         {
-            if (Env::directoryExists(engine.varString(arg1)))
-            {
-                State.InitialDirectory = engine.varString(arg1);
-                Env::changeDirectory(State.InitialDirectory);
-            }
-            else
-                error(ErrorCode::READ_FAIL, State.InitialDirectory, false);
+            error(ErrorCode::CONV_ERR, arg1, false);
+            return;
         }
-        else
-            error(ErrorCode::NULL_STRING, arg1, false);
+
+        if (!Env::directoryExists(engine.varString(arg1)))
+        {
+            error(ErrorCode::DIR_NOT_FOUND, engine.varString(arg1), false);
+            return;
+        }
+
+        State.InitialDirectory = engine.varString(arg1);
+        Env::changeDirectory(State.InitialDirectory);
     }
     else
     {
-        if (Env::directoryExists(arg1))
+        if (!Env::directoryExists(arg1))
         {
-            if (arg1 == Keywords.Dot)
-                State.InitialDirectory = Env::getCurrentDirectory();
-            else if (arg1 == Keywords.RangeSeparator)
-                State.InitialDirectory = Env::getCurrentDirectory() + "\\..";
-            else
-                State.InitialDirectory = arg1;
-
-            Env::changeDirectory(State.InitialDirectory);
+            error(ErrorCode::DIR_NOT_FOUND, arg1, false);
+            return;
         }
+
+        if (arg1 == Keywords.Dot)
+            State.InitialDirectory = Env::getCurrentDirectory();
+        else if (arg1 == Keywords.RangeSeparator)
+            State.InitialDirectory = Env::getCurrentDirectory() + "\\..";
         else
-            error(ErrorCode::READ_FAIL, State.InitialDirectory, false);
+            State.InitialDirectory = arg1;
+
+        Env::changeDirectory(State.InitialDirectory);
     }
 }
 
 void handleInlineShellExec(std::string &arg1, std::vector<std::string> &command)
 {
-    if (engine.variableExists(arg1))
+    if (!engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
-            Env::shellExec(engine.varString(arg1), command);
-        else
-            error(ErrorCode::IS_NULL, arg1, false);
-    }
-    else
         Env::shellExec(arg1, command);
+        return;
+    }
+    
+    if (!engine.isString(arg1))
+    {
+        error(ErrorCode::CONV_ERR, arg1, false);
+        return;
+    }
+    
+    Env::shellExec(engine.varString(arg1), command);
 }
 
 void handleInlineParse(std::string &arg1)
 {
-    if (engine.variableExists(arg1))
+    if (!engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
-            parse(engine.varString(arg1).c_str());
-        else
-            error(ErrorCode::IS_NULL, arg1, false);
-    }
-    else
         parse(arg1.c_str());
+        return;
+    }
+
+    if (!engine.isString(arg1)) 
+    {
+        error(ErrorCode::CONV_ERR, arg1, false);
+        return;
+    }
+
+    parse(engine.varString(arg1).c_str());
 }
 
 void handleListDecl(std::string &arg1)
 {
     if (engine.listExists(arg1))
-        engine.getList(arg1).clear();
-    else
     {
-        List newList(arg1);
-
-        newList.setCollectable(State.ExecutedTemplate || State.ExecutedMethod);
-
-        engine.addList(newList);
+        engine.getList(arg1).clear();
+        return;
     }
+
+    List newList(arg1);
+    newList.setCollectable(State.ExecutedTemplate || State.ExecutedMethod);
+    engine.addList(newList);
 }
 
 void handleChangeDir(std::string &arg1)
 {
-    if (engine.variableExists(arg1))
-    {
-        if (engine.isString(arg1))
-        {
-            if (Env::directoryExists(engine.varString(arg1)))
-                Env::changeDirectory(engine.varString(arg1));
-            else
-                error(ErrorCode::READ_FAIL, engine.varString(arg1), false);
-        }
-        else
-            error(ErrorCode::NULL_STRING, arg1, false);
-    }
-    else
+    if (!engine.variableExists(arg1))
     {
         if (arg1 == Keywords.InitialDirectory)
             Env::changeDirectory(State.InitialDirectory);
@@ -2668,7 +2647,23 @@ void handleChangeDir(std::string &arg1)
             Env::changeDirectory(arg1);
         else
             Env::changeDirectory(arg1);
+        
+        return;
     }
+
+    if (!engine.isString(arg1))
+    {
+        error(ErrorCode::CONV_ERR, arg1, false);
+        return;
+    }
+
+    if (!Env::directoryExists(engine.varString(arg1)))
+    {
+        error(ErrorCode::DIR_NOT_FOUND, engine.varString(arg1), false);
+        return;
+    }
+    
+    Env::changeDirectory(engine.varString(arg1));
 }
 
 void handleLoad(std::string &arg1)
@@ -2740,12 +2735,7 @@ void handleErr(std::string &arg1)
     std::string errorValue(arg1);
     
     if (engine.variableExists(arg1))
-    {
-        if (engine.isString(arg1))
-            errorValue = engine.varString(arg1);
-        else if (engine.isNumber(arg1))
-            errorValue = dtos(engine.varNumber(arg1));
-    }
+        errorValue = engine.getVariableValueAsString(arg1);
     
     State.LastError = errorValue;
 

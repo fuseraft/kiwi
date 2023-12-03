@@ -40,15 +40,11 @@ void setList(std::string listName, std::string methodName, std::vector<std::stri
             if (!engine.variableExists(params.at(i)))
             {
                 engine.addItemToList(listName, params.at(i));
-                return;
+                continue;
             }
 
-            if (engine.isString(params.at(i)))
-                engine.addItemToList(listName, engine.varString(params.at(i)));
-            else if (engine.isNumber(params.at(i)))
-                engine.addItemToList(listName, engine.varNumberString(params.at(i)));
-            else
-                error(ErrorCode::IS_NULL, params.at(i), false);
+            std::string value = engine.getVariableValueAsString(params.at(i));
+            engine.addItemToList(listName, value);
         }
     }
 }
@@ -106,14 +102,7 @@ std::string get_prompt()
 std::string clean_string(std::string builder)
 {
     if (engine.variableExists(builder) && is_dotless(builder))
-    {
-        if (engine.isString(builder))
-            State.LastValue = engine.varString(builder);
-        else if (engine.isNumber(builder))
-            State.LastValue = engine.varNumberString(builder);
-        else
-            State.LastValue = "";
-    }
+        State.LastValue = engine.getVariableValueAsString(builder);
     else if (engine.methodExists(builder))
         parse(builder);
     else if (has_params(builder))
@@ -523,166 +512,41 @@ bool isStringStack(std::string arg2)
     {
         if (tempArgTwo[i] == ' ' && temporaryBuild.length() != 0)
         {
-            if (engine.variableExists(temporaryBuild))
-            {
-                if (engine.isNumber(temporaryBuild))
-                    temporaryBuild.clear();
-                else if (engine.isString(temporaryBuild))
-                    return true;
-            }
-            else if (engine.methodExists(temporaryBuild))
-            {
-                parse(temporaryBuild);
-
-                if (is_numeric(State.LastValue))
-                    temporaryBuild.clear();
-                else
-                    return true;
-            }
-            else
-                temporaryBuild.clear();
+            if (is_stackable(temporaryBuild)) return true;
+            continue;
         }
-        else if (tempArgTwo[i] == '+')
-        {
-            if (engine.variableExists(temporaryBuild))
-            {
-                if (engine.isNumber(temporaryBuild))
-                    temporaryBuild.clear();
-                else if (engine.isString(temporaryBuild))
-                    return true;
-            }
-            else if (engine.methodExists(temporaryBuild))
-            {
-                parse(temporaryBuild);
-
-                if (is_numeric(State.LastValue))
-                    temporaryBuild.clear();
-                else
-                    return true;
-            }
-            else if (!is_numeric(temporaryBuild))
-                return true;
-            else
-                temporaryBuild.clear();
+        else if (is_stack_op(tempArgTwo[i])) {
+            if (is_stackable(temporaryBuild)) return true;
+            continue;
         }
-        else if (tempArgTwo[i] == '-')
-        {
-            if (engine.variableExists(temporaryBuild))
-            {
-                if (engine.isNumber(temporaryBuild))
-                    temporaryBuild.clear();
-                else if (engine.isString(temporaryBuild))
-                    return true;
-            }
-            else if (engine.methodExists(temporaryBuild))
-            {
-                parse(temporaryBuild);
-
-                if (is_numeric(State.LastValue))
-                    temporaryBuild.clear();
-                else
-                    return true;
-            }
-            else if (!is_numeric(temporaryBuild))
-                return true;
-            else
-                temporaryBuild.clear();
-        }
-        else if (tempArgTwo[i] == '*')
-        {
-            if (engine.variableExists(temporaryBuild))
-            {
-                if (engine.isNumber(temporaryBuild))
-                    temporaryBuild.clear();
-                else if (engine.isString(temporaryBuild))
-                    return true;
-            }
-            else if (engine.methodExists(temporaryBuild))
-            {
-                parse(temporaryBuild);
-
-                if (is_numeric(State.LastValue))
-                    temporaryBuild.clear();
-                else
-                    return true;
-            }
-            else if (!is_numeric(temporaryBuild))
-                return true;
-            else
-                temporaryBuild.clear();
-        }
-        else if (tempArgTwo[i] == '/')
-        {
-            if (engine.variableExists(temporaryBuild))
-            {
-                if (engine.isNumber(temporaryBuild))
-                    temporaryBuild.clear();
-                else if (engine.isString(temporaryBuild))
-                    return true;
-            }
-            else if (engine.methodExists(temporaryBuild))
-            {
-                parse(temporaryBuild);
-
-                if (is_numeric(State.LastValue))
-                    temporaryBuild.clear();
-                else
-                    return true;
-            }
-            else if (!is_numeric(temporaryBuild))
-                return true;
-            else
-                temporaryBuild.clear();
-        }
-        else if (tempArgTwo[i] == '%')
-        {
-            if (engine.variableExists(temporaryBuild))
-            {
-                if (engine.isNumber(temporaryBuild))
-                    temporaryBuild.clear();
-                else if (engine.isString(temporaryBuild))
-                    return true;
-            }
-            else if (engine.methodExists(temporaryBuild))
-            {
-                parse(temporaryBuild);
-
-                if (is_numeric(State.LastValue))
-                    temporaryBuild.clear();
-                else
-                    return true;
-            }
-            else if (!is_numeric(temporaryBuild))
-                return true;
-            else
-                temporaryBuild.clear();
-        }
-        else if (tempArgTwo[i] == '^')
-        {
-            if (engine.variableExists(temporaryBuild))
-            {
-                if (engine.isNumber(temporaryBuild))
-                    temporaryBuild.clear();
-                else if (engine.isString(temporaryBuild))
-                    return true;
-            }
-            else if (engine.methodExists(temporaryBuild))
-            {
-                parse(temporaryBuild);
-
-                if (is_numeric(State.LastValue))
-                    temporaryBuild.clear();
-                else
-                    return true;
-            }
-            else if (!is_numeric(temporaryBuild))
-                return true;
-            else
-                temporaryBuild.clear();
-        }
-        else
-            temporaryBuild.push_back(tempArgTwo[i]);
+        
+        temporaryBuild.push_back(tempArgTwo[i]);
     }
+
+    return false;
+}
+
+bool is_stackable(std::string &temporaryBuild)
+{
+    if (engine.variableExists(temporaryBuild))
+    {
+        if (engine.isNumber(temporaryBuild))
+            temporaryBuild.clear();
+        else if (engine.isString(temporaryBuild))
+            return true;
+    }
+    else if (engine.methodExists(temporaryBuild))
+    {
+        parse(temporaryBuild);
+        if (is_numeric(State.LastValue))
+            temporaryBuild.clear();
+        else
+            return true;
+    }
+    else if (!is_numeric(temporaryBuild))
+        return true;
+    else
+        temporaryBuild.clear();
 
     return false;
 }
