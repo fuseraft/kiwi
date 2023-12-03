@@ -155,6 +155,7 @@ void parseStringStack(std::vector<std::string> &contents, std::vector<std::strin
 std::string getStackValue(std::string value);
 double getStack(std::string arg2);
 bool isStringStack(std::string arg2);
+bool is_stackable(std::string &temporaryBuild);
 bool stackReady(std::string arg2);
 std::string getStringStack(std::string arg2);
 
