@@ -457,143 +457,142 @@ void parse_3space(std::vector<std::string> &command)
 
 void parse_2space(std::vector<std::string> &command, std::string &s)
 {
-    // TODO: refactor
-    if (unrecognized_2space(command.at(1)))
+    if (is_recognized_2space(command.at(1)))
     {
-        if (command.at(0) == Keywords.FileAppend)
-            FileIO::appendText(command.at(1), command.at(2), false);
-        else if (command.at(0) == Keywords.FileAppendLine)
-            FileIO::appendText(command.at(1), command.at(2), true);
-        else if ((command.at(0) == Keywords.FileWrite))
-            FileIO::writeText(command.at(1), command.at(2));
-        else if (command.at(0) == Keywords.Redefine)
-            engine.redefine(command.at(1), command.at(2));
-        else if (command.at(0) == Keywords.Loop)
-        {
-            if (has_params(command.at(2)))
-            {
-                State.DefaultLoopSymbol = command.at(2);
-                State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, '(');
-                State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, ')');
+        twoSpace(command.at(0), command.at(1), command.at(2), command);
+        return;
+    }
 
-                oneSpace(command.at(0), command.at(1), command);
-                State.DefaultLoopSymbol = "$";
-            }
-            else
-                Env::shellExec(s, command);
+    if (command.at(0) == Keywords.FileAppend)
+        FileIO::appendText(command.at(1), command.at(2), false);
+    else if (command.at(0) == Keywords.FileAppendLine)
+        FileIO::appendText(command.at(1), command.at(2), true);
+    else if ((command.at(0) == Keywords.FileWrite))
+        FileIO::writeText(command.at(1), command.at(2));
+    else if (command.at(0) == Keywords.Redefine)
+        engine.redefine(command.at(1), command.at(2));
+    else if (command.at(0) == Keywords.Loop)
+    {
+        if (has_params(command.at(2)))
+        {
+            State.DefaultLoopSymbol = command.at(2);
+            State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, '(');
+            State.DefaultLoopSymbol = subtract_char(State.DefaultLoopSymbol, ')');
+
+            oneSpace(command.at(0), command.at(1), command);
+            State.DefaultLoopSymbol = "$";
         }
         else
             Env::shellExec(s, command);
     }
     else
-        twoSpace(command.at(0), command.at(1), command.at(2), command);
+        Env::shellExec(s, command);
 }
 
 void parse_1space(std::vector<std::string> &command, std::string &s)
 {
-    if (unrecognized_1space(command.at(0)))
-        Env::shellExec(s, command);
-    else
-    {
+    if (is_recognized_1space(command.at(0)))
         oneSpace(command.at(0), command.at(1), command);
-    }
+    else
+        Env::shellExec(s, command);
 }
 
 void parse_0space(std::vector<std::string> &command, std::string &s)
 {
-    if (unrecognized_0space(command.at(0)))
+    if (is_recognized_0space(command.at(0)))
     {
-        std::string before(before_dot(s)), after(after_dot(s));
+        zeroSpace(command.at(0), command);
+        return;
+    }
 
-        if (before.length() != 0 && after.length() != 0)
+    std::string before(before_dot(s)), after(after_dot(s));
+
+    if (before.length() != 0 && after.length() != 0)
+    {
+        if (engine.classExists(before) && after.length() != 0)
         {
-            if (engine.classExists(before) && after.length() != 0)
+            if (has_params(after))
             {
-                if (has_params(after))
-                {
-                    s = subtract_char(s, '"');
+                s = subtract_char(s, '"');
 
-                    if (engine.getClass(before).hasMethod(before_params(after)))
-                        exec.executeTemplate(engine.getClass(before).getMethod(before_params(after)), parse_params(after));
-                    else
-                        Env::shellExec(s, command);
-                }
-                else if (engine.getClass(before).hasMethod(after))
-                    exec.executeMethod(engine.getClass(before).getMethod(after));
-                else if (engine.getClass(before).hasVariable(after))
-                {
-                    const auto &v = engine.getClassVariable(before, after);
-                    if (v.getType() == VariableType::String)
-                        writeline(v.getString());
-                    else if (v.getType() == VariableType::Double)
-                        writeline(dtos(v.getNumber()));
-                    else if (v.getType() == VariableType::Integer)
-                        writeline(itos(v.getNumber()));
-                }
-                else if (after == Keywords.GC)
-                    engine.getClass(before).clear();
-                else
-                    error(ErrorCode::UNDEFINED, "", false);
-            }
-            else
-            {
-                if (before == Keywords.Env)
-                {
-                    internal_env_builtins("", after, 3);
-                }
-                else if (engine.variableExists(before))
-                {
-                    if (after == Keywords.Clear)
-                        engine.getVar(before).clear();
-                }
-                else if (engine.listExists(before))
-                {
-                    // REFACTOR HERE
-                    if (after == Keywords.Clear)
-                        engine.getList(before).clear();
-                    else if (after == Keywords.Sort)
-                        engine.getList(before).sort();
-                    else if (after == Keywords.Reverse)
-                        engine.getList(before).reverse();
-                    else if (after == Keywords.Revert)
-                        engine.getList(before).revert();
-                }
-                else if (before == Keywords.Self)
-                {
-                    if (State.ExecutedMethod)
-                        exec.executeMethod(engine.getClass(State.CurrentMethodClass).getMethod(after));
-                }
+                if (engine.getClass(before).hasMethod(before_params(after)))
+                    exec.executeTemplate(engine.getClass(before).getMethod(before_params(after)), parse_params(after));
                 else
                     Env::shellExec(s, command);
             }
-        }
-        else if (ends_with(s, "::"))
-        {
-            if (State.CurrentScript != "")
+            else if (engine.getClass(before).hasMethod(after))
+                exec.executeMethod(engine.getClass(before).getMethod(after));
+            else if (engine.getClass(before).hasVariable(after))
             {
-                std::string newMark(s);
-                newMark = subtract_string(s, "::");
-                engine.getScript().addMark(newMark);
+                const auto &v = engine.getClassVariable(before, after);
+                if (v.getType() == VariableType::String)
+                    writeline(v.getString());
+                else if (v.getType() == VariableType::Double)
+                    writeline(dtos(v.getNumber()));
+                else if (v.getType() == VariableType::Integer)
+                    writeline(itos(v.getNumber()));
             }
-        }
-        else if (engine.methodExists(s))
-            exec.executeMethod(engine.getMethod(s));
-        else if (begins_with(s, "[") && ends_with(s, "]"))
-        {
-            engine.createModule(s);
+            else if (after == Keywords.GC)
+                engine.getClass(before).clear();
+            else
+                error(ErrorCode::UNDEFINED, "", false);
         }
         else
         {
-            s = subtract_char(s, '"');
-
-            if (engine.methodExists(before_params(s)))
-                exec.executeTemplate(engine.getMethod(before_params(s)), parse_params(s));
+            if (before == Keywords.Env)
+            {
+                internal_env_builtins("", after, 3);
+            }
+            else if (engine.variableExists(before))
+            {
+                if (after == Keywords.Clear)
+                    engine.getVar(before).clear();
+            }
+            else if (engine.listExists(before))
+            {
+                // REFACTOR HERE
+                if (after == Keywords.Clear)
+                    engine.getList(before).clear();
+                else if (after == Keywords.Sort)
+                    engine.getList(before).sort();
+                else if (after == Keywords.Reverse)
+                    engine.getList(before).reverse();
+                else if (after == Keywords.Revert)
+                    engine.getList(before).revert();
+            }
+            else if (before == Keywords.Self)
+            {
+                if (State.ExecutedMethod)
+                    exec.executeMethod(engine.getClass(State.CurrentMethodClass).getMethod(after));
+            }
             else
                 Env::shellExec(s, command);
         }
     }
+    else if (ends_with(s, "::"))
+    {
+        if (State.CurrentScript != "")
+        {
+            std::string newMark(s);
+            newMark = subtract_string(s, "::");
+            engine.getScript().addMark(newMark);
+        }
+    }
+    else if (engine.methodExists(s))
+        exec.executeMethod(engine.getMethod(s));
+    else if (begins_with(s, "[") && ends_with(s, "]"))
+    {
+        engine.createModule(s);
+    }
     else
-        zeroSpace(command.at(0), command);
+    {
+        s = subtract_char(s, '"');
+
+        if (engine.methodExists(before_params(s)))
+            exec.executeTemplate(engine.getMethod(before_params(s)), parse_params(s));
+        else
+            Env::shellExec(s, command);
+    }
 }
 
 void parse_ifstatement()

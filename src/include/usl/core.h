@@ -1533,7 +1533,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                 {
                     internal_env_builtins(arg0, after, 1);
                 }
-                else if (recognized_mathfunc(after))
+                else if (is_recognized_math_func(after))
                 {
                     parse_mathfunc_assignfromvar(arg0, before, after);
                 }
@@ -2004,10 +2004,10 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                 }
             }
         }
-        else if (!unrecognized_2space(arg1))
-        {
+        else if (is_recognized_2space(arg1))
             parse_assign(arg0, arg1, arg2);
-        }
+        else 
+            print_underconstruction();
     }
 }
 
@@ -2808,7 +2808,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             else
                 error(ErrorCode::CONV_ERR, before, false);
         }
-        else if (recognized_mathfunc(after))
+        else if (is_recognized_math_func(after))
         {
             parse_mathfunc(arg0, before, after);
         }
@@ -2954,35 +2954,35 @@ void parse_mathfunc_assignfromvar(std::string arg0, std::string before, std::str
 
     double value = engine.varNumber(before);
 
-    if (after == Keywords.MathCos)
+    if (after == Math.Cos)
         value = cos(value);
-    else if (after == Keywords.MathAcos)
+    else if (after == Math.Acos)
         value = acos(value);
-    else if (after == Keywords.MathCosh)
+    else if (after == Math.Cosh)
         value = cosh(value);
-    else if (after == Keywords.MathLog)
+    else if (after == Math.Log)
         value = log(value);
-    else if (after == Keywords.MathSqrt)
+    else if (after == Math.Sqrt)
         value = sqrt(value);
-    else if (after == Keywords.MathAbs)
+    else if (after == Math.Abs)
         value = abs(value);
-    else if (after == Keywords.MathFloor)
+    else if (after == Math.Floor)
         value = floor(value);
-    else if (after == Keywords.MathCeil)
+    else if (after == Math.Ceil)
         value = ceil(value);
-    else if (after == Keywords.MathExp)
+    else if (after == Math.Exp)
         value = exp(value);
-    else if (after == Keywords.MathSin)
+    else if (after == Math.Sin)
         value = sin(value);
-    else if (after == Keywords.MathSinh)
+    else if (after == Math.Sinh)
         value = sinh(value);
-    else if (after == Keywords.MathAsin)
+    else if (after == Math.Asin)
         value = asin(value);
-    else if (after == Keywords.MathTan)
+    else if (after == Math.Tan)
         value = tan(value);
-    else if (after == Keywords.MathTanh)
+    else if (after == Math.Tanh)
         value = tanh(value);
-    else if (after == Keywords.MathAtan)
+    else if (after == Math.Atan)
         value = atan(value);
 
     if (engine.isNumber(arg0))
@@ -3009,35 +3009,35 @@ void parse_mathfunc(std::string arg0, std::string before, std::string after)
 
     double value = engine.varNumber(before);
 
-    if (after == Keywords.MathSin)
+    if (after == Math.Sin)
         engine.createVariable(arg0, sin(value));
-    else if (after == Keywords.MathSinh)
+    else if (after == Math.Sinh)
         engine.createVariable(arg0, sinh(value));
-    else if (after == Keywords.MathAsin)
+    else if (after == Math.Asin)
         engine.createVariable(arg0, asin(value));
-    else if (after == Keywords.MathTan)
+    else if (after == Math.Tan)
         engine.createVariable(arg0, tan(value));
-    else if (after == Keywords.MathTanh)
+    else if (after == Math.Tanh)
         engine.createVariable(arg0, tanh(value));
-    else if (after == Keywords.MathAtan)
+    else if (after == Math.Atan)
         engine.createVariable(arg0, atan(value));
-    else if (after == Keywords.MathCos)
+    else if (after == Math.Cos)
         engine.createVariable(arg0, cos(value));
-    else if (after == Keywords.MathAcos)
+    else if (after == Math.Acos)
         engine.createVariable(arg0, acos(value));
-    else if (after == Keywords.MathCosh)
+    else if (after == Math.Cosh)
         engine.createVariable(arg0, cosh(value));
-    else if (after == Keywords.MathLog)
+    else if (after == Math.Log)
         engine.createVariable(arg0, log(value));
-    else if (after == Keywords.MathSqrt)
+    else if (after == Math.Sqrt)
         engine.createVariable(arg0, sqrt(value));
-    else if (after == Keywords.MathAbs)
+    else if (after == Math.Abs)
         engine.createVariable(arg0, abs(value));
-    else if (after == Keywords.MathFloor)
+    else if (after == Math.Floor)
         engine.createVariable(arg0, floor(value));
-    else if (after == Keywords.MathCeil)
+    else if (after == Math.Ceil)
         engine.createVariable(arg0, ceil(value));
-    else if (after == Keywords.MathExp)
+    else if (after == Math.Exp)
         engine.createVariable(arg0, exp(value));
 }
 
