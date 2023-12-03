@@ -10,7 +10,7 @@ void parse(std::string s)
     std::vector<std::string> command;  // a tokenized command container
     State.CurrentLine = s; // store a copy of the current line
 
-    StringContainer stringContainer; // contains separate commands
+    StringList stringList; // contains separate commands
     std::string builder("");       // a string to build upon
 
     int length = s.length(), //	length of the line
@@ -25,7 +25,7 @@ void parse(std::string s)
     // iterate each char in the initial string
     char prevChar = 'a';     // previous character in string
 
-    tokenize(length, s, parenthesis, quoted, command, count, prevChar, builder, uncomment, broken, stringContainer);
+    tokenize(length, s, parenthesis, quoted, command, count, prevChar, builder, uncomment, broken, stringList);
 
     size = (int)command.size();
 
@@ -55,8 +55,8 @@ void parse(std::string s)
                 }
                 else
                 {
-                    stringContainer.add(ltrim_ws(parseable));
-                    parse_stringcontainer(stringContainer);
+                    stringList.add(ltrim_ws(parseable));
+                    parse_StringList(stringList);
                 }
             }
         }
@@ -115,8 +115,8 @@ void parse(std::string s)
     }
     else
     {
-        stringContainer.add(builder);
-        parse_stringcontainer(stringContainer);
+        stringList.add(builder);
+        parse_StringList(stringList);
     }
 }
 
@@ -131,10 +131,10 @@ std::string get_parsed_stdout(std::string cmd)
     return ret.length() == 0 ? State.LastValue : ret;
 }
 
-void parse_stringcontainer(StringContainer &stringContainer)
+void parse_StringList(StringList &StringList)
 {
-    for (int i = 0; i < (int)stringContainer.get().size(); i++)
-        parse(stringContainer.at(i));
+    for (int i = 0; i < (int)StringList.get().size(); i++)
+        parse(StringList.at(i));
 }
 
 void preparse_stripcomment(std::string &inputString, std::string &result)
@@ -881,7 +881,7 @@ void parse_whileloops()
     }
 }
 
-void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::vector<std::string> &command, int &count, char &prevChar, std::string &builder, bool &uncomment, bool &broken, StringContainer &stringContainer)
+void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::vector<std::string> &command, int &count, char &prevChar, std::string &builder, bool &uncomment, bool &broken, StringList &StringList)
 {
     for (int i = 0; i < length; i++)
     {
@@ -984,7 +984,7 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::
                 if (!State.IsCommented)
                 {
                     broken = true;
-                    stringContainer.add(builder);
+                    StringList.add(builder);
                     builder = "";
                     count = 0;
                     command.clear();
@@ -1269,7 +1269,7 @@ void threeSpace(std::string arg0, std::string arg1, std::string arg2, std::strin
     }
     else if (arg0 == Keywords.For)
     {
-        if (arg2 == Operators.LessThan || arg2 == Operators.GreaterThan || arg2 == Operators.LessThanOrEqual || arg2 == Operators.GreaterThanOrEqual)
+        if (arg2 == Operators.To)
         {
             handleLoopInit_For(arg1, arg2, arg3, arg0);
         }
@@ -1327,13 +1327,7 @@ void handleLoopInit_For(std::string &arg1, std::string &arg2, std::string &arg3,
 
     if (failed) return;
 
-    if ((arg2 == Operators.LessThan && first < second)
-        || (arg2 == Operators.GreaterThan && first > second)
-        || (arg2 == Operators.LessThanOrEqual && first <= second)
-        || (arg2 == Operators.GreaterThanOrEqual && first >= second))
-        engine.createForLoop(first, second, arg2);
-    else
-        engine.createFailedForLoop();
+    engine.createForLoop(first, second);
 }
 
 void handleLoopInit_ForIn(std::string &arg1, std::string &arg3, std::string &arg0, bool &retFlag)
@@ -1599,42 +1593,38 @@ void handleLoopInit_Params(std::string &arg3, std::string &arg1)
 
     rangeSpecifiers = parse_range(arg3);
 
-    if (rangeSpecifiers.size() == 2)
+    if (rangeSpecifiers.size() != 2)
     {
-        std::string firstRangeSpecifier(rangeSpecifiers.at(0)), lastRangeSpecifier(rangeSpecifiers.at(1));
+        engine.createFailedForLoop();
+        return;
+    }
 
-        if (engine.variableExists(firstRangeSpecifier))
-        {
-            if (engine.isNumber(firstRangeSpecifier))
-                firstRangeSpecifier = engine.varNumberString(firstRangeSpecifier);
-            else
-                engine.createFailedForLoop();
-        }
+    std::string firstRangeSpecifier(rangeSpecifiers.at(0)), lastRangeSpecifier(rangeSpecifiers.at(1));
 
-        if (engine.variableExists(lastRangeSpecifier))
-        {
-            if (engine.isNumber(lastRangeSpecifier))
-                lastRangeSpecifier = engine.varNumberString(lastRangeSpecifier);
-            else
-                engine.createFailedForLoop();
-        }
-
-        if (is_numeric(firstRangeSpecifier) && is_numeric(lastRangeSpecifier))
-        {
-            State.DefaultLoopSymbol = arg1;
-
-            int ifrs = stoi(firstRangeSpecifier), ilrs(stoi(lastRangeSpecifier));
-
-            if (ifrs < ilrs)
-                engine.createForLoop(stod(firstRangeSpecifier), stod(lastRangeSpecifier), Operators.LessThanOrEqual);
-            else if (ifrs > ilrs)
-                engine.createForLoop(stod(firstRangeSpecifier), stod(lastRangeSpecifier), Operators.GreaterThanOrEqual);
-            else
-                engine.createFailedForLoop();
-        }
+    if (engine.variableExists(firstRangeSpecifier))
+    {
+        if (engine.isNumber(firstRangeSpecifier))
+            firstRangeSpecifier = engine.varNumberString(firstRangeSpecifier);
         else
             engine.createFailedForLoop();
     }
+
+    if (engine.variableExists(lastRangeSpecifier))
+    {
+        if (engine.isNumber(lastRangeSpecifier))
+            lastRangeSpecifier = engine.varNumberString(lastRangeSpecifier);
+        else
+            engine.createFailedForLoop();
+    }
+
+    if (is_numeric(firstRangeSpecifier) && is_numeric(lastRangeSpecifier))
+    {
+        State.DefaultLoopSymbol = arg1;
+        engine.createForLoop(stoi(firstRangeSpecifier), stoi(lastRangeSpecifier));
+    }
+    else
+        engine.createFailedForLoop();
+
 }
 
 void handleLoopInit_Variable_FileRead(std::string &before)
