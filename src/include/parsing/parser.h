@@ -522,12 +522,13 @@ void parse_0space(std::vector<std::string> &command, std::string &s)
                     exec.executeMethod(engine.getClass(before).getMethod(after));
                 else if (engine.getClass(before).hasVariable(after))
                 {
-                    if (engine.getClass(before).getVariable(after).getString() != State.Null)
-                        writeline(engine.getClass(before).getVariable(after).getString());
-                    else if (engine.getClass(before).getVariable(after).getNumber() != State.NullNum)
-                        writeline(dtos(engine.getClass(before).getVariable(after).getNumber()));
-                    else
-                        error(ErrorCode::IS_NULL, "", false);
+                    const auto &v = engine.getClassVariable(before, after);
+                    if (v.getType() == VariableType::String)
+                        writeline(v.getString());
+                    else if (v.getType() == VariableType::Double)
+                        writeline(dtos(v.getNumber()));
+                    else if (v.getType() == VariableType::Integer)
+                        writeline(itos(v.getNumber()));
                 }
                 else if (after == Keywords.GC)
                     engine.getClass(before).clear();
@@ -543,7 +544,7 @@ void parse_0space(std::vector<std::string> &command, std::string &s)
                 else if (engine.variableExists(before))
                 {
                     if (after == Keywords.Clear)
-                        parse(before + " = State.Null");
+                        engine.getVar(before).clear();
                 }
                 else if (engine.listExists(before))
                 {
@@ -2402,7 +2403,7 @@ void handleStringInspect(std::string &before, std::string &after, std::string &a
     {
         if (engine.getClass(before).hasVariable(after))
         {
-            if (engine.getClass(before).getVariable(after).getString() != State.Null)
+            if (engine.getClassVariable(before, after).getType() == VariableType::String)
                 State.LastValue = Keywords.True;
             else
                 State.LastValue = Keywords.False;
@@ -2435,7 +2436,7 @@ void handleNumberInspect(std::string &before, std::string &after, std::string &a
     {
         if (engine.getClass(before).hasVariable(after))
         {
-            if (engine.getClass(before).getVariable(after).getNumber() != State.NullNum)
+            if (engine.getClassVariable(before, after).getType() == VariableType::Double)
                 State.LastValue = Keywords.True;
             else
                 State.LastValue = Keywords.False;
@@ -2481,7 +2482,7 @@ void handleFileInspect(std::string &before, std::string &after, std::string &arg
     {
         if (engine.getClass(before).hasVariable(after))
         {
-            if (Env::fileExists(engine.getClass(before).getVariable(after).getString()))
+            if (Env::fileExists(engine.getClassVariable(before, after).getString()))
                 State.LastValue = Keywords.True;
             else
                 State.LastValue = Keywords.False;
@@ -2519,7 +2520,7 @@ void handleDirectoryInspect(std::string &before, std::string &after, std::string
     {
         if (engine.getClass(before).hasVariable(after))
         {
-            if (Env::directoryExists(engine.getClass(before).getVariable(after).getString()))
+            if (Env::directoryExists(engine.getClassVariable(before, after).getString()))
                 State.LastValue = Keywords.True;
             else
                 State.LastValue = Keywords.False;

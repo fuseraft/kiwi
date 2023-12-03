@@ -4,7 +4,7 @@ Use the `method` keyword to define a method.
 
 ```
 method greet(name)
-    println "Hello, \{@name}!"
+    println "Hello, #{@name}!"
 end
 
 greet("world")

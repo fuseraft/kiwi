@@ -128,7 +128,7 @@ public:
 
     void addVariable(Variable variable)
     {
-        if (!variable.isNull())
+        if (!variable.isBad())
             variables.push_back(variable);
     }
 

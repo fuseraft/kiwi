@@ -115,7 +115,7 @@ public:
         return isPublic_;
     }
 
-    bool isPrivate()
+    bool isPrivate() const
     {
         return isPrivate_;
     }

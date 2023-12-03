@@ -7,7 +7,7 @@ An unorthodox scripting language written in C++.
 @project_name = "uslang"
 @description = "hybrid-typed, object-oriented, interpreted"
 
-say "\{@project_name} is a \{@description} scripting language."
+say "#{@project_name} is a #{@description} scripting language."
 ```
 
 ### History
