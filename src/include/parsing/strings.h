@@ -583,26 +583,6 @@ int get_alpha_num(char c)
     return tolower(c) - 'a' + 1;
 }
 
-bool unrecognized_0space(std::string arg)
-{
-    return !contains("break;caught;else;end;exit;failif;parser;pass;private;public;try;", arg);
-}
-
-bool unrecognized_1space(std::string arg)
-{
-    return !contains("!;?;__begin__;invoke!;gc!chdir;collect?;delay;directory?;dpush;dpop;err;error;file?;for;fpush;fpop;globalize!;goto;if;init_dir;directory?;file?;list?;method?;number?;class?;string?;variable?;list;list?;lock;loop;def;[def];class;print;println;prompt;remove;switch;template;unlock;", arg);
-}
-
-bool unrecognized_2space(std::string arg)
-{
-    return !contains("=;+=;-=;*=;%=;/=;**=;+;-;*;**;/;%;++=;--=;?;!", arg);
-}
-
-bool recognized_mathfunc(std::string arg)
-{
-    return contains("sin;sinh;asin;tan;tanh;atan;cos;acos;cosh;log;sqrt;abs;floor;ceil;exp;", arg);
-}
-
 bool is(std::string s, std::string si)
 {
     return s == (Operators.Subtract + si) || s == ("--" + si) || s == ("/" + si);

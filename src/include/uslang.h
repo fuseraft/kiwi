@@ -13,6 +13,10 @@
 const std::string uslang_name = "uslang";
 const std::string uslang_version = "0.1.2";
 
+void print_underconstruction() {
+    std::cout << "under construction" << std::endl;
+}
+
 #include "debug/stacktrace.h"
 #include "parsing/keywords.h"
 #include "parsing/strings.h"
