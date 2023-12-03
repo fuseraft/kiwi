@@ -155,6 +155,7 @@ struct {
     const std::string Multiply = "*";
     const std::string Modulus = "%";
     const std::string Exponent = "^";
+    const std::string To = "to";
 } Operators;
 
 #endif

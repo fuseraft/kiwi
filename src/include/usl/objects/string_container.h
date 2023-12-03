@@ -1,36 +1,35 @@
-class StringContainer
+#include <vector>
+#include <stdexcept>
+
+class StringList
 {
 private:
     std::vector<std::string> strings;
 
 public:
-    StringContainer() {}
-
-    ~StringContainer()
-    {
-        clear();
-    }
+    StringList() = default;
+    ~StringList() = default;
 
     void clear()
     {
         strings.clear();
     }
 
-    void add(std::string line)
+    void add(const std::string& line)
     {
         strings.push_back(line);
     }
 
-    std::vector<std::string> get()
+    const std::vector<std::string>& get() const
     {
         return strings;
     }
 
-    std::string at(int index)
+    std::string at(int index) const
     {
-        if (index < (int)strings.size())
-            return strings.at(index);
+        if (index < 0 || index >= static_cast<int>(strings.size()))
+            throw std::out_of_range("Index out of bounds");
 
-        return "[no_line]";
+        return strings.at(index);
     }
 };

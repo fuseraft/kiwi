@@ -68,7 +68,7 @@ public:
 
     void createFailedForLoop();
     void createForLoop();
-    void createForLoop(double a, double b, std::string op);
+    void createForLoop(int a, int b);
     void createForLoop(List list);
 
     void createVariable(std::string name, double value);
@@ -516,17 +516,14 @@ void Engine::createForLoop(List list)
     State.SuccessFlag = true;
 }
 
-void Engine::createForLoop(double a, double b, std::string op)
+void Engine::createForLoop(int a, int b)
 {
     Method forMethod("[for#" + itos(State.ForLoopCount) + "]");
     forMethod.setFor(true);
     forMethod.setSymbol(State.DefaultLoopSymbol);
 
-    if (op == Operators.LessThanOrEqual || op == Operators.GreaterThanOrEqual)
-        forMethod.setForValues((int)a, (int)b);
-    else if (op == Operators.LessThan || op == Operators.GreaterThan)
-        forMethod.setForValues((int)a, (int)b - 1);
-
+    forMethod.setForValues(a, b);
+    
     State.DefiningForLoop = true;
     forLoops.push_back(forMethod);
     State.ForLoopCount++;

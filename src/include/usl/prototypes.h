@@ -58,7 +58,7 @@ std::string get_parsed_stdout(std::string cmd);
 std::string getTestString(bool variableExists, const std::string variableName);
 
 void parse(std::string s);
-void parse_stringcontainer(StringContainer &stringContainer);
+void parse_StringList(StringList &StringList);
 void preparse_stripcomment(std::string &bigString, std::string &commentString);
 void parse_method_def(std::string &s);
 void parse_ifstatement_def(std::vector<std::string> &command, std::string &s, int size);
@@ -80,7 +80,7 @@ void parse_moduledefinition(std::string &s);
 void parse_switchstatement(std::string &s, std::vector<std::string> &command);
 void parse_args(int size, std::vector<std::string> &command);
 void parse_forloop();
-void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::vector<std::string> &command, int &count, char &prevChar, std::string &bigString, bool &uncomment, bool &broken, StringContainer &stringContainer);
+void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::vector<std::string> &command, int &count, char &prevChar, std::string &bigString, bool &uncomment, bool &broken, StringList &StringList);
 void zeroSpace(std::string arg0, std::vector<std::string> command);
 void oneSpace(std::string arg0, std::string arg1, std::vector<std::string> command);
 void twoSpace(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command);
