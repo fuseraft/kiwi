@@ -42,7 +42,7 @@ int uslang(int c, char **v)
     std::string usl(v[0]), opt, script;
     initialize_state(usl);
 
-    State.InitialDirectory = Env::getCurrentDirectory();
+    State.InitialDirectory = FileIO::getCurrentDirectory();
 
     switch (c)
     {

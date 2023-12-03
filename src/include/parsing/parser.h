@@ -2586,7 +2586,7 @@ void handleInitialDir(std::string &arg1)
         }
 
         State.InitialDirectory = engine.varString(arg1);
-        Env::changeDirectory(State.InitialDirectory);
+        FileIO::changeDirectory(State.InitialDirectory);
     }
     else
     {
@@ -2597,13 +2597,13 @@ void handleInitialDir(std::string &arg1)
         }
 
         if (arg1 == Keywords.Dot)
-            State.InitialDirectory = Env::getCurrentDirectory();
+            State.InitialDirectory = FileIO::getCurrentDirectory();
         else if (arg1 == Keywords.RangeSeparator)
-            State.InitialDirectory = Env::getCurrentDirectory() + "\\..";
+            State.InitialDirectory = FileIO::getCurrentDirectory() + "\\..";
         else
             State.InitialDirectory = arg1;
 
-        Env::changeDirectory(State.InitialDirectory);
+        FileIO::changeDirectory(State.InitialDirectory);
     }
 }
 
@@ -2659,11 +2659,11 @@ void handleChangeDir(std::string &arg1)
     if (!engine.variableExists(arg1))
     {
         if (arg1 == Keywords.InitialDirectory)
-            Env::changeDirectory(State.InitialDirectory);
+            FileIO::changeDirectory(State.InitialDirectory);
         else if (FileIO::directoryExists(arg1))
-            Env::changeDirectory(arg1);
+            FileIO::changeDirectory(arg1);
         else
-            Env::changeDirectory(arg1);
+            FileIO::changeDirectory(arg1);
         
         return;
     }
@@ -2680,7 +2680,7 @@ void handleChangeDir(std::string &arg1)
         return;
     }
     
-    Env::changeDirectory(engine.varString(arg1));
+    FileIO::changeDirectory(engine.varString(arg1));
 }
 
 void handleLoad(std::string &arg1)

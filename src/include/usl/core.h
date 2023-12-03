@@ -80,7 +80,7 @@ std::string get_prompt()
 
         case 'w':
             if (prevChar == '\\')
-                new_style.append(Env::getCurrentDirectory());
+                new_style.append(FileIO::getCurrentDirectory());
             else
                 new_style.push_back('w');
             break;
@@ -375,7 +375,7 @@ void writeline()
 List getDirectoryList(std::string before, bool filesOnly)
 {
     List newList;
-    std::vector<std::string> dirList = Env::getDirectoryContents(engine.varString(before), filesOnly);
+    std::vector<std::string> dirList = FileIO::getDirectoryContents(engine.varString(before), filesOnly);
     for (unsigned int i = 0; i < dirList.size(); i++)
     {
         newList.add(dirList.at(i));
@@ -2831,7 +2831,7 @@ void internal_env_builtins(std::string arg0, std::string after, int mode)
     double dValue = 0;
 
     if (after == Keywords.CurrentDirectory)
-        sValue = Env::getCurrentDirectory();
+        sValue = FileIO::getCurrentDirectory();
     else if (after == Keywords.UslangApp)
         sValue = State.Application;
     else if (after == Keywords.CurrentUser)
