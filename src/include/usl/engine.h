@@ -103,6 +103,8 @@ public:
     std::string varNumberString(std::string s);
     double varNumber(std::string s);
     std::string varString(std::string s);
+    std::string getVariableValueAsString(Variable var);
+    std::string getVariableValueAsString(std::string varName);
 
     int getMethodCount();
     int getVariableCount();
@@ -185,6 +187,24 @@ void Engine::addArg(std::string arg) { args.push_back(arg); }
 
 void Engine::addToCurrentMethod(std::string s) { getMethod(getMethodCount() - 1).add(s); }
 void Engine::addToCurrentClassMethod(std::string s) { getClass(getClassCount() - 1).addToCurrentMethod(s); }
+
+std::string Engine::getVariableValueAsString(Variable var) {
+    std::string tmpValue;
+    if (isString(var))
+        tmpValue = var.getString();
+    else if (isNumber(var))
+        tmpValue = dtos(var.getNumber());
+    return tmpValue;
+}
+
+std::string Engine::getVariableValueAsString(std::string varName) {
+    std::string tmpValue;
+    if (isString(varName))
+        tmpValue = varString(varName);
+    else if (isNumber(varName))
+        tmpValue = varNumber(varName);
+    return tmpValue;
+}
 
 void Engine::createClass(std::string className)
 {
@@ -748,21 +768,21 @@ void Engine::redefine(std::string target, std::string name)
         if (!listExists(name))
             getList(name).setName(name);
         else
-            error(ErrorCode::LIST_UNDEFINED, name, false);
+            error(ErrorCode::LIST_DEFINED, name, false);
     }
     else if (classExists(target))
     {
         if (!classExists(name))
             getClass(target).setName(name);
         else
-            error(ErrorCode::CLS_METHOD_UNDEFINED, name, false);
+            error(ErrorCode::CLS_METHOD_DEFINED, name, false);
     }
     else if (methodExists(target))
     {
         if (!methodExists(name))
             getMethod(target).setName(name);
         else
-            error(ErrorCode::METHOD_UNDEFINED, name, false);
+            error(ErrorCode::METHOD_DEFINED, name, false);
     }
     else if (Env::fileExists(target) || Env::directoryExists(target))
         rename(target.c_str(), name.c_str());

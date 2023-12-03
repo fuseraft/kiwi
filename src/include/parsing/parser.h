@@ -640,12 +640,7 @@ void preparse_line_classdef(std::string &s, std::string &freshLine)
     for (int z = 0; z < (int)words.size(); z++)
     {
         if (engine.variableExists(words.at(z)))
-        {
-            if (engine.isString(words.at(z)))
-                freshLine.append(engine.varString(words.at(z)));
-            else if (engine.isNumber(words.at(z)))
-                freshLine.append(engine.varNumberString(words.at(z)));
-        }
+            freshLine.append(engine.getVariableValueAsString(words.at(z)));
         else
             freshLine.append(words.at(z));
 
@@ -708,15 +703,7 @@ void parse_switchstatement(std::string &s, std::vector<std::string> &command)
         State.InDefaultCase = true;
     else if (s == Keywords.End)
     {
-        std::string switch_value;
-
-        if (engine.isString(State.SwitchVarName))
-            switch_value = engine.varString(State.SwitchVarName);
-        else if (engine.isNumber(State.SwitchVarName))
-            switch_value = engine.varNumberString(State.SwitchVarName);
-        else
-            switch_value = "";
-
+        std::string switch_value = engine.getVariableValueAsString(State.SwitchVarName);
         Container rightCase = engine.getMainSwitch().rightCase(switch_value);
 
         State.InDefaultCase = false;
@@ -1256,9 +1243,6 @@ void twoSpace(std::string arg0, std::string arg1, std::string arg2, std::vector<
 
 void threeSpace(std::string arg0, std::string arg1, std::string arg2, std::string arg3, std::vector<std::string> command)
 {
-    // isNumber(arg3)
-    // isString(arg3)
-
     if (arg0 == Keywords.Class)
     {
         handleClassDecl(arg1, arg3, arg2);
@@ -1855,11 +1839,9 @@ void handleIfStatementDecl_Method(std::string arg1, std::string arg1Result, std:
     }
     else if (engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
-            arg1Result = engine.varString(arg1);
-        else if (engine.isNumber(arg1))
-            arg1Result = dtos(engine.varNumber(arg1));
-        else
+        arg1Result = engine.getVariableValueAsString(arg1);
+        
+        if (!is_numeric(arg1Result))
         {
             error(ErrorCode::IS_NULL, arg1, false);
             engine.createIfStatement(false);
@@ -1875,12 +1857,9 @@ void handleIfStatementDecl_Method(std::string arg1, std::string arg1Result, std:
     }
     else if (engine.variableExists(arg3))
     {
-        if (engine.isString(arg3))
-            arg3Result = engine.varString(arg3);
-        else if (engine.isNumber(arg3))
-            arg3Result = dtos(engine.varNumber(arg3));
-        else
-        {
+        arg3Result = engine.getVariableValueAsString(arg3);
+
+        if (!is_numeric(arg3Result)) {
             error(ErrorCode::IS_NULL, arg3, false);
             engine.createIfStatement(false);
         }
@@ -1991,26 +1970,50 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
     {
         if (arg3 == Keywords.IsString)
         {
-            if (engine.isString(arg1))
-            {
-                if (arg2 == Operators.Equal)
-                    engine.createIfStatement(true);
-                else if (arg2 == Operators.NotEqual)
-                    engine.createIfStatement(false);
-                else
-                {
-                    error(ErrorCode::INVALID_OPERATOR, arg2, false);
-                    engine.createIfStatement(false);
-                }
-            }
-            else
+            if (!engine.isString(arg1))
             {
                 engine.createIfStatement(arg2 == Operators.NotEqual);
+                return;
+            }
+
+            if (arg2 == Operators.Equal)
+                engine.createIfStatement(true);
+            else if (arg2 == Operators.NotEqual)
+                engine.createIfStatement(false);
+            else
+            {
+                error(ErrorCode::INVALID_OPERATOR, arg2, false);
+                engine.createIfStatement(false);
             }
         }
         else if (arg3 == Keywords.IsNumber)
         {
-            if (engine.isNumber(arg1))
+            if (!engine.isNumber(arg1))
+            {
+                engine.createIfStatement(arg2 == Operators.NotEqual);
+                return;
+            }
+
+            if (arg2 == Operators.Equal)
+                engine.createIfStatement(true);
+            else if (arg2 == Operators.NotEqual)
+                engine.createIfStatement(false);
+            else
+            {
+                error(ErrorCode::INVALID_OPERATOR, arg2, false);
+                engine.createIfStatement(false);
+            }
+        }
+        else if (arg3 == Keywords.IsFile)
+        {
+            if (!engine.isString(arg1))
+            {
+                error(ErrorCode::IS_NULL, arg1, false);
+                engine.createIfStatement(false);
+                return;
+            }
+
+            if (Env::fileExists(engine.varString(arg1)))
             {
                 if (arg2 == Operators.Equal)
                     engine.createIfStatement(true);
@@ -2027,58 +2030,30 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
                 engine.createIfStatement(arg2 == Operators.NotEqual);
             }
         }
-        else if (arg3 == Keywords.IsFile)
-        {
-            if (engine.isString(arg1))
-            {
-                if (Env::fileExists(engine.varString(arg1)))
-                {
-                    if (arg2 == Operators.Equal)
-                        engine.createIfStatement(true);
-                    else if (arg2 == Operators.NotEqual)
-                        engine.createIfStatement(false);
-                    else
-                    {
-                        error(ErrorCode::INVALID_OPERATOR, arg2, false);
-                        engine.createIfStatement(false);
-                    }
-                }
-                else
-                {
-                    engine.createIfStatement(arg2 == Operators.NotEqual);
-                }
-            }
-            else
-            {
-                error(ErrorCode::IS_NULL, arg1, false);
-                engine.createIfStatement(false);
-            }
-        }
         else if (arg3 == Keywords.IsDirectory)
         {
-            if (engine.isString(arg1))
+            if (!engine.isString(arg1))
             {
-                if (Env::directoryExists(engine.varString(arg1)))
-                {
-                    if (arg2 == Operators.Equal)
-                        engine.createIfStatement(true);
-                    else if (arg2 == Operators.NotEqual)
-                        engine.createIfStatement(false);
-                    else
-                    {
-                        error(ErrorCode::INVALID_OPERATOR, arg2, false);
-                        engine.createIfStatement(false);
-                    }
-                }
+                error(ErrorCode::IS_NULL, arg1, false);
+                engine.createIfStatement(false);
+                return;
+            }
+
+            if (Env::directoryExists(engine.varString(arg1)))
+            {
+                if (arg2 == Operators.Equal)
+                    engine.createIfStatement(true);
+                else if (arg2 == Operators.NotEqual)
+                    engine.createIfStatement(false);
                 else
                 {
-                    engine.createIfStatement(arg2 == Operators.NotEqual);
+                    error(ErrorCode::INVALID_OPERATOR, arg2, false);
+                    engine.createIfStatement(false);
                 }
             }
             else
             {
-                error(ErrorCode::IS_NULL, arg1, false);
-                engine.createIfStatement(false);
+                engine.createIfStatement(arg2 == Operators.NotEqual);
             }
         }
         else
@@ -2185,17 +2160,10 @@ void checkGenericCondition(const std::string arg1, const std::string arg3, const
 std::string getTestString(bool variableExists, const std::string variableName) {
     std::string testString("[none]");
 
-    if (variableExists) {
-        if (engine.isString(variableName))
-            testString = engine.varString(variableName);
-        else if (engine.isNumber(variableName))
-            testString = dtos(engine.varNumber(variableName));
-        else
-            error(ErrorCode::IS_NULL, variableName, false);
-    }
-    else {
+    if (variableExists)
+        testString = engine.getVariableValueAsString(variableName);
+    else
         testString = variableName;
-    }
 
     return testString;
 }
@@ -2811,19 +2779,10 @@ void handleIfStatement(std::string &arg1)
         {
             std::string objName(before_dot(arg1)), varName(after_dot(arg1));
             Variable tmpVar = engine.getClass(objName).getVariable(varName);
-
-            if (engine.isString(tmpVar))
-                tmpValue = tmpVar.getString();
-            else if (engine.isNumber(tmpVar))
-                tmpValue = dtos(tmpVar.getNumber());
+            tmpValue = engine.getVariableValueAsString(tmpVar);
         }
         else
-        {
-            if (engine.isString(arg1))
-                tmpValue = engine.varString(arg1);
-            else if (engine.isNumber(arg1))
-                tmpValue = engine.varNumber(arg1);
-        }
+            tmpValue = engine.getVariableValueAsString(arg1);
     }
     else if (is_numeric(arg1) || is_truthy(arg1) || is_falsey(arg1))
     {
