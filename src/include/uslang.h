@@ -39,7 +39,7 @@ int uslang(int c, char **v)
 {
     RNG::getInstance();
 
-    std::string usl(v[0]), opt(""), script("");
+    std::string usl(v[0]), opt, script;
     initialize_state(usl);
 
     State.InitialDirectory = Env::getCurrentDirectory();
@@ -75,7 +75,7 @@ int uslang(int c, char **v)
 
             if (is(opt, "p") || is(opt, "parse"))
             {
-                std::string code("");
+                std::string code;
 
                 for (int i = 0; i < (int)script.length(); i++)
                 {

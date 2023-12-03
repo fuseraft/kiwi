@@ -99,7 +99,7 @@ void Executor::executeSimpleStatement(std::string left, std::string oper, std::s
                 return;
             }
 
-            std::string bigstr("");
+            std::string bigstr;
             for (int i = 0; i < stoi(right); i++)
             {
                 bigstr.append(left);
@@ -154,7 +154,7 @@ void Executor::executeTemplate(Method m, std::vector<std::string> strings)
 
     for (int i = 0; i < (int)m.size(); i++)
     {
-        std::string line = m.at(i), word("");
+        std::string line = m.at(i), word;
         int len = line.length();
         std::vector<std::string> words;
 
@@ -194,7 +194,7 @@ void Executor::executeTemplate(Method m, std::vector<std::string> strings)
                 newWords.push_back(words.at(x));
         }
 
-        std::string freshLine("");
+        std::string freshLine;
 
         for (int b = 0; b < (int)newWords.size(); b++)
         {
@@ -275,7 +275,7 @@ void Executor::executeMethod(Method m)
 
         for (int i = 0; i < (int)m.size(); i++)
         {
-            std::string line = m.at(i), word("");
+            std::string line = m.at(i), word;
             int len = line.length();
             std::vector<std::string> words;
 
@@ -327,7 +327,7 @@ void Executor::executeMethod(Method m)
                     newWords.push_back(words.at(x));
             }
 
-            std::string freshLine("");
+            std::string freshLine;
 
             for (int b = 0; b < (int)newWords.size(); b++)
             {
