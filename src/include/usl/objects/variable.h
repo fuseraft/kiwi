@@ -1,54 +1,79 @@
-// TODO: refactor this.
+#ifndef VARIABLE_H
+#define VARIABLE_H
+
+#include <variant>
+#include <limits>
+#include <string>
+
+enum class VariableType {
+    None,
+    Integer,
+    Double,
+    String,
+    Boolean
+};
+
 class Variable : public Collectable
 {
 private:
-    double numericValue;
-    std::string stringValue,
-        variableName;
+    std::variant<int, double, std::string, bool> value;
+    std::string variableName;
+    VariableType variableType;
 
-    bool collectable,
-        isPrivate_,
-        isPublic_,
-        isIndestructible,
-        _isBad,
-        waitToAssign;
+    bool collectable;
+    bool _isPrivate;
+    bool _isPublic;
+    bool isIndestructible;
+    bool _isBad;
 
-    void setAll(double numValue, std::string strValue)
+    void setDefaults()
     {
-        setVariable(numValue);
-        setVariable(strValue);
+        value = std::numeric_limits<double>::quiet_NaN();
+        variableName = "";
+        variableType = VariableType::None;
         collectable = false;
+        _isPrivate = false;
+        _isPublic = false;
+        isIndestructible = false;
+        _isBad = false;
     }
 
 public:
-    Variable()
+    Variable() : Collectable()
     {
-        setAll(-DBL_MAX, "[null]");
+        setDefaults();
     }
 
-    Variable(std::string name)
-    {
+    Variable(std::string name) : Collectable() {
         initialize(name);
-        setAll(-DBL_MAX, "[null]");
+        setDefaults();
     }
 
-    Variable(std::string name, std::string value)
-    {
+    Variable(std::string name, const std::string& v) : Collectable() {
         initialize(name);
 
-        if (value == "null")
+        if (v == "null")
         {
-            setAll(-DBL_MAX, "[null]");
-            waitToAssign = true;
+            setDefaults();
+            variableType = VariableType::None;
         }
         else
-            setAll(-DBL_MAX, value);
+            setVariable(v);
     }
 
-    Variable(std::string name, double value)
-    {
+    Variable(std::string name, double v) : Collectable() {
         initialize(name);
-        setAll(value, "[null]");
+        setVariable(v);
+    }
+
+    Variable(std::string name, int v) : Collectable() {
+        initialize(name);
+        setVariable(v);
+    }
+
+    Variable(std::string name, bool v) : Collectable() {
+        initialize(name);
+        setVariable(v);
     }
 
     ~Variable() {}
@@ -68,104 +93,91 @@ public:
         _isBad = value;
     }
 
-    bool isBad()
+    bool isBad() const
     {
         return _isBad;
     }
 
     void clear()
     {
-        setAll(0, "");
+        setDefaults();
     }
 
     void setNull()
     {
-        setAll(-DBL_MAX, "[null]");
-        waitToAssign = true;
+        setDefaults();
     }
 
-    void setName(std::string name)
+    void setName(const std::string &name)
     {
         variableName = name;
     }
 
-    bool waiting()
-    {
-        return waitToAssign;
+    VariableType getType() const {
+        return variableType;
     }
 
-    void stopWait()
-    {
-        waitToAssign = false;
+    void setVariable(const std::string& v) {
+        value = v;
+        variableType = VariableType::String;
     }
 
-    void setVariable(double value)
-    {
-        if (waiting())
-        {
-            numericValue = value;
-            stringValue = "[null]";
-            waitToAssign = false;
-        }
-        else
-        {
-            numericValue = 0.0;
-            numericValue = value;
-        }
+    void setVariable(double v) {
+        value = v;
+        variableType = VariableType::Double;
     }
 
-    void setVariable(std::string value)
-    {
-        if (waiting())
-        {
-            stringValue = value;
-            numericValue = -DBL_MAX;
-            waitToAssign = false;
-        }
-        else
-        {
-            stringValue = value;
-        }
+    void setVariable(int v) {
+        value = v;
+        variableType = VariableType::Integer;
+    }
+
+    void setVariable(bool v) {
+        value = v;
+        variableType = VariableType::Boolean;
     }
 
     void setPrivate()
     {
-        isPrivate_ = true;
-        isPublic_ = false;
+        _isPrivate = true;
+        _isPublic = false;
     }
 
     void setPublic()
     {
-        isPublic_ = true;
-        isPrivate_ = false;
+        _isPublic = true;
+        _isPrivate = false;
     }
 
-    bool isPublic()
+    bool isPublic() const
     {
-        return isPublic_;
+        return _isPublic;
     }
 
-    bool isPrivate()
+    bool isPrivate() const
     {
-        return isPrivate_;
+        return _isPrivate;
     }
 
-    double getNumber()
+    double getInteger() const
     {
-        return numericValue;
+        return std::get<int>(value);
     }
 
-    std::string getString()
+    double getNumber() const
     {
-        return stringValue;
+        return std::get<double>(value);
     }
 
-    void initialize(std::string name)
+    std::string getString() const
     {
+        return std::get<std::string>(value);
+    }
+
+    void initialize(const std::string &name)
+    {
+        setDefaults();
         variableName = name;
-        collectable = false,
-        isIndestructible = false,
-        waitToAssign = false;
     }
 
     void setIndestructible(bool value)
@@ -173,28 +185,15 @@ public:
         isIndestructible = value;
     }
 
-    bool indestructible()
+    bool indestructible() const
     {
         return isIndestructible;
     }
 
-    bool isNullString()
-    {
-        if (getString() == "[null]" && getNumber() == -DBL_MAX)
-            return true;
-
-        return false;
-    }
-    bool isNull()
-    {
-        if (getNumber() == -DBL_MAX && getString() == "[null]")
-            return true;
-
-        return false;
-    }
-
-    std::string name()
+    std::string name() const
     {
         return variableName;
     }
 };
+
+#endif

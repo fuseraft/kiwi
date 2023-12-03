@@ -327,9 +327,9 @@ void Engine::createMethod(std::string arg0, std::string arg1)
                     return;
                 }
 
-                if (getClass(before).getVariable(after).getString() != State.Null)
+                if (getClass(before).getVariable(after).getType() == VariableType::String)
                     method.addMethodVariable(getClass(before).getVariable(after).getString(), after);
-                else if (getClass(before).getVariable(after).getNumber() != State.NullNum)
+                else if (getClass(before).getVariable(after).getType() == VariableType::Double)
                     method.addMethodVariable(getClass(before).getVariable(after).getNumber(), after);
                 else
                     error(ErrorCode::IS_NULL, params.at(i), false);
@@ -404,9 +404,9 @@ void Engine::createMethod(std::string arg0, std::string arg1)
                             {
                                 if (getClass(before).hasVariable(after))
                                 {
-                                    if (getClass(before).getVariable(after).getString() != State.Null)
+                                    if (getClass(before).getVariable(after).getType() == VariableType::String)
                                         method.addMethodVariable(getClass(before).getVariable(after).getString(), after);
-                                    else if (getClass(before).getVariable(after).getNumber() != State.NullNum)
+                                    else if (getClass(before).getVariable(after).getType() == VariableType::Double)
                                         method.addMethodVariable(getClass(before).getVariable(after).getNumber(), after);
                                     else
                                         error(ErrorCode::IS_NULL, params.at(i), false);
@@ -559,10 +559,10 @@ void Engine::createFailedWhileLoop()
     whileLoops.push_back(whileMethod);
 }
 
-bool Engine::isNumber(std::string s) { return varNumber(s) != State.NullNum; }
-bool Engine::isNumber(Variable var) { return var.getNumber() != State.NullNum; }
-bool Engine::isString(std::string s) { return varString(s) != State.Null; }
-bool Engine::isString(Variable var) { return var.getString() != State.Null; }
+bool Engine::isNumber(std::string s) { return getVar(s).getType() == VariableType::Double; }
+bool Engine::isNumber(Variable var) { return var.getType() == VariableType::Double; }
+bool Engine::isString(std::string s) { return getVar(s).getType() == VariableType::String; }
+bool Engine::isString(Variable var) { return var.getType() == VariableType::String; }
 
 int Engine::indexOfConstant(std::string s)
 {
@@ -660,7 +660,9 @@ void Engine::removeModule(std::string s) { modules.erase(modules.begin() + index
 void Engine::removeClass(std::string s) { classes.erase(classes.begin() + indexOfClass(s)); }
 void Engine::removeVariable(std::string s) { variables.erase(variables.begin() + indexOfVariable(s)); }
 
-std::string Engine::varString(std::string s) { return getVar(s).getString(); }
+std::string Engine::varString(std::string s) {
+    return getVar(s).getString();
+}
 double Engine::varNumber(std::string s) { return getVar(s).getNumber(); }
 std::string Engine::varNumberString(std::string s) { return dtos(varNumber(s)); }
 
@@ -814,18 +816,7 @@ void Engine::setVariable(std::string name, std::string value)
 
 void Engine::setVariable(std::string name, double value)
 {
-    if (varString(name) != State.Null)
-        getVar(name).setVariable(dtos(value));
-    else if (varNumber(name) != State.NullNum)
-        getVar(name).setVariable(value);
-    else
-    {
-        if (getVar(name).waiting())
-            getVar(name).stopWait();
-
-        getVar(name).setVariable(value);
-    }
-
+    getVar(name).setVariable(value);
     State.LastValue = dtos(value);
 }
 

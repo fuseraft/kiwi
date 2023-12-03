@@ -307,18 +307,18 @@ void Executor::executeMethod(Method m)
                     {
                         found = true;
 
-                        if (m.getMethodVariables().at(a).getString() != State.Null)
+                        if (m.getMethodVariables().at(a).getType() == VariableType::String)
                             newWords.push_back(m.getMethodVariables().at(a).getString());
-                        else if (m.getMethodVariables().at(a).getNumber() != State.NullNum)
+                        else if (m.getMethodVariables().at(a).getType() == VariableType::Double)
                             newWords.push_back(dtos(m.getMethodVariables().at(a).getNumber()));
                     }
                     else if (words.at(x) == variableString)
                     {
                         found = true;
 
-                        if (m.getMethodVariables().at(a).getString() != State.Null)
+                        if (m.getMethodVariables().at(a).getType() == VariableType::String)
                             newWords.push_back(m.getMethodVariables().at(a).getString());
-                        else if (m.getMethodVariables().at(a).getNumber() != State.NullNum)
+                        else if (m.getMethodVariables().at(a).getType() == VariableType::Double)
                             newWords.push_back(dtos(m.getMethodVariables().at(a).getNumber()));
                     }
                 }

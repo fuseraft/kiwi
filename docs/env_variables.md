@@ -7,6 +7,6 @@ You can access environment variables using `env.{VARIABLE_NAME}`.
 @search = "/home"
 
 if @path contains @search
-    say "found `\{@search}` in `\{@path}`"
+    say "found `#{@search}` in `#{@path}`"
 endif
 ```
