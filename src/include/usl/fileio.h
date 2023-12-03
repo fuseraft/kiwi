@@ -15,7 +15,71 @@ public:
     static void makeDirectory(const std::string &p);
     static void removeDirectory(const std::string &p);
     static void removeFile(const std::string &p);
+    static std::vector<std::string> getDirectoryContents(const std::string &path, bool filesOnly);
+    static void changeDirectory(const std::string &p);
+    static std::string getCurrentDirectory();
 };
+
+std::string FileIO::getCurrentDirectory()
+{
+    char tmp[PATH_MAX];
+
+    return getcwd(tmp, PATH_MAX) ? std::string(tmp) : std::string("");
+}
+
+void FileIO::changeDirectory(const std::string &p)
+{
+    if (p == Keywords.InitialDirectory)
+        changeDirectory(State.InitialDirectory);
+    else if (chdir(p.c_str()) != 0)
+        error(ErrorCode::READ_FAIL, p, false);
+}
+
+std::vector<std::string> FileIO::getDirectoryContents(const std::string &path, bool filesOnly)
+{
+    const std::string PathSeparator = "/";
+    std::vector<std::string> newList;
+
+    DIR *pd;
+    struct dirent *pe;
+
+    std::string dir = path;
+
+    if ((pd = opendir(dir.c_str())) != NULL)
+    {
+        while ((pe = readdir(pd)) != NULL)
+        {
+            if (std::string(pe->d_name) != Keywords.Dot && std::string(pe->d_name) != Keywords.RangeSeparator)
+            {
+                std::string tmp;
+
+                if (dir == PathSeparator)
+                    dir = "";
+
+                tmp = dir + PathSeparator + std::string(pe->d_name);
+
+                if (filesOnly)
+                {
+                    if (FileIO::fileExists(tmp))
+                    {
+                        newList.push_back(tmp);
+                    }
+                }
+                else
+                {
+                    if (FileIO::directoryExists(tmp))
+                    {
+                        newList.push_back(tmp);
+                    }
+                }
+            }
+        }
+    }
+
+    closedir(pd);
+
+    return newList;
+}
 
 double FileIO::getFileSize(const std::string& path) {
     std::ifstream file(path, std::ios::binary);
