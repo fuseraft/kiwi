@@ -146,15 +146,14 @@ void init_classvar(std::string arg0, std::string arg1, std::string arg2, std::ve
 void init_const(std::string arg0, std::string arg1, std::string arg2);
 void parse_mathfunc(std::string arg0, std::string before, std::string after);
 void parse_mathfunc_assignfromvar(std::string arg0, std::string before, std::string after);
-
-double get_filesize(std::string path);
-
+void parse_targetandtext(const std::string &arg1, const std::string &arg2, std::string &target, std::string &text);
 void parse_assign(std::string arg0, std::string arg1, std::string arg2);
 void parseNumberStack(std::vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar);
 void parseStringStack(std::vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar);
 std::string getStackValue(std::string value);
 double getStack(std::string arg2);
 bool isStringStack(std::string arg2);
+bool is_stackable(std::string &temporaryBuild);
 bool stackReady(std::string arg2);
 std::string getStringStack(std::string arg2);
 

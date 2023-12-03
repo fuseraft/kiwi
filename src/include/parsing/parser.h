@@ -455,6 +455,20 @@ void parse_3space(std::vector<std::string> &command)
     threeSpace(command.at(0), command.at(1), command.at(2), command.at(3), command);
 }
 
+void parse_targetandtext(const std::string &arg1, const std::string &arg2, std::string &target, std::string &text)
+{
+    if (engine.variableExists(arg1) && engine.isString(arg1))
+    {
+        target = engine.varString(arg1);
+        text = engine.variableExists(arg2) ? engine.getVariableValueAsString(arg2) : arg2;
+    }
+    else
+    {
+        target = arg1;
+        text = engine.variableExists(arg2) ? engine.getVariableValueAsString(arg2) : arg2;
+    }
+}
+
 void parse_2space(std::vector<std::string> &command, std::string &s)
 {
     if (is_recognized_2space(command.at(1)))
@@ -463,12 +477,15 @@ void parse_2space(std::vector<std::string> &command, std::string &s)
         return;
     }
 
+    std::string target, text;
+    parse_targetandtext(command.at(1), command.at(2), target, text);
+
     if (command.at(0) == Keywords.FileAppend)
-        FileIO::appendText(command.at(1), command.at(2), false);
+        FileIO::appendText(target, text, false);
     else if (command.at(0) == Keywords.FileAppendLine)
-        FileIO::appendText(command.at(1), command.at(2), true);
-    else if ((command.at(0) == Keywords.FileWrite))
-        FileIO::writeText(command.at(1), command.at(2));
+        FileIO::appendText(target, text, true);
+    else if ((command.at(0) == Keywords.FileWrite)) 
+        FileIO::writeText(target, text);
     else if (command.at(0) == Keywords.Redefine)
         engine.redefine(command.at(1), command.at(2));
     else if (command.at(0) == Keywords.Loop)
@@ -640,12 +657,7 @@ void preparse_line_classdef(std::string &s, std::string &freshLine)
     for (int z = 0; z < (int)words.size(); z++)
     {
         if (engine.variableExists(words.at(z)))
-        {
-            if (engine.isString(words.at(z)))
-                freshLine.append(engine.varString(words.at(z)));
-            else if (engine.isNumber(words.at(z)))
-                freshLine.append(engine.varNumberString(words.at(z)));
-        }
+            freshLine.append(engine.getVariableValueAsString(words.at(z)));
         else
             freshLine.append(words.at(z));
 
@@ -686,7 +698,7 @@ void parse_scriptdefinition(std::string &s)
         State.DefiningScript = false;
     }
     else
-        Env::appendToFile(State.CurrentScriptName, s + "\n");
+        FileIO::appendToFile(State.CurrentScriptName, s + "\n");
 }
 
 void parse_moduledefinition(std::string &s)
@@ -708,15 +720,7 @@ void parse_switchstatement(std::string &s, std::vector<std::string> &command)
         State.InDefaultCase = true;
     else if (s == Keywords.End)
     {
-        std::string switch_value;
-
-        if (engine.isString(State.SwitchVarName))
-            switch_value = engine.varString(State.SwitchVarName);
-        else if (engine.isNumber(State.SwitchVarName))
-            switch_value = engine.varNumberString(State.SwitchVarName);
-        else
-            switch_value = "";
-
+        std::string switch_value = engine.getVariableValueAsString(State.SwitchVarName);
         Container rightCase = engine.getMainSwitch().rightCase(switch_value);
 
         State.InDefaultCase = false;
@@ -1256,9 +1260,6 @@ void twoSpace(std::string arg0, std::string arg1, std::string arg2, std::vector<
 
 void threeSpace(std::string arg0, std::string arg1, std::string arg2, std::string arg3, std::vector<std::string> command)
 {
-    // isNumber(arg3)
-    // isString(arg3)
-
     if (arg0 == Keywords.Class)
     {
         handleClassDecl(arg1, arg3, arg2);
@@ -1629,7 +1630,7 @@ void handleLoopInit_Params(std::string &arg3, std::string &arg1)
 
 void handleLoopInit_Variable_FileRead(std::string &before)
 {
-    if (Env::fileExists(engine.varString(before)))
+    if (FileIO::fileExists(engine.varString(before)))
     {
         List newList;
 
@@ -1658,7 +1659,7 @@ void handleLoopInit_Variable_FileRead(std::string &before)
 
 void handleLoopInit_Variable_Files(std::string &before)
 {
-    if (Env::directoryExists(engine.varString(before)))
+    if (FileIO::directoryExists(engine.varString(before)))
         engine.createForLoop(getDirectoryList(before, true));
     else
     {
@@ -1669,7 +1670,7 @@ void handleLoopInit_Variable_Files(std::string &before)
 
 void handleLoopInit_Variable_Directories(std::string &before)
 {
-    if (Env::directoryExists(engine.varString(before)))
+    if (FileIO::directoryExists(engine.varString(before)))
         engine.createForLoop(getDirectoryList(before, false));
     else
     {
@@ -1855,11 +1856,9 @@ void handleIfStatementDecl_Method(std::string arg1, std::string arg1Result, std:
     }
     else if (engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
-            arg1Result = engine.varString(arg1);
-        else if (engine.isNumber(arg1))
-            arg1Result = dtos(engine.varNumber(arg1));
-        else
+        arg1Result = engine.getVariableValueAsString(arg1);
+        
+        if (!is_numeric(arg1Result))
         {
             error(ErrorCode::IS_NULL, arg1, false);
             engine.createIfStatement(false);
@@ -1875,12 +1874,9 @@ void handleIfStatementDecl_Method(std::string arg1, std::string arg1Result, std:
     }
     else if (engine.variableExists(arg3))
     {
-        if (engine.isString(arg3))
-            arg3Result = engine.varString(arg3);
-        else if (engine.isNumber(arg3))
-            arg3Result = dtos(engine.varNumber(arg3));
-        else
-        {
+        arg3Result = engine.getVariableValueAsString(arg3);
+
+        if (!is_numeric(arg3Result)) {
             error(ErrorCode::IS_NULL, arg3, false);
             engine.createIfStatement(false);
         }
@@ -1991,26 +1987,50 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
     {
         if (arg3 == Keywords.IsString)
         {
-            if (engine.isString(arg1))
-            {
-                if (arg2 == Operators.Equal)
-                    engine.createIfStatement(true);
-                else if (arg2 == Operators.NotEqual)
-                    engine.createIfStatement(false);
-                else
-                {
-                    error(ErrorCode::INVALID_OPERATOR, arg2, false);
-                    engine.createIfStatement(false);
-                }
-            }
-            else
+            if (!engine.isString(arg1))
             {
                 engine.createIfStatement(arg2 == Operators.NotEqual);
+                return;
+            }
+
+            if (arg2 == Operators.Equal)
+                engine.createIfStatement(true);
+            else if (arg2 == Operators.NotEqual)
+                engine.createIfStatement(false);
+            else
+            {
+                error(ErrorCode::INVALID_OPERATOR, arg2, false);
+                engine.createIfStatement(false);
             }
         }
         else if (arg3 == Keywords.IsNumber)
         {
-            if (engine.isNumber(arg1))
+            if (!engine.isNumber(arg1))
+            {
+                engine.createIfStatement(arg2 == Operators.NotEqual);
+                return;
+            }
+
+            if (arg2 == Operators.Equal)
+                engine.createIfStatement(true);
+            else if (arg2 == Operators.NotEqual)
+                engine.createIfStatement(false);
+            else
+            {
+                error(ErrorCode::INVALID_OPERATOR, arg2, false);
+                engine.createIfStatement(false);
+            }
+        }
+        else if (arg3 == Keywords.IsFile)
+        {
+            if (!engine.isString(arg1))
+            {
+                error(ErrorCode::IS_NULL, arg1, false);
+                engine.createIfStatement(false);
+                return;
+            }
+
+            if (FileIO::fileExists(engine.varString(arg1)))
             {
                 if (arg2 == Operators.Equal)
                     engine.createIfStatement(true);
@@ -2027,58 +2047,30 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
                 engine.createIfStatement(arg2 == Operators.NotEqual);
             }
         }
-        else if (arg3 == Keywords.IsFile)
-        {
-            if (engine.isString(arg1))
-            {
-                if (Env::fileExists(engine.varString(arg1)))
-                {
-                    if (arg2 == Operators.Equal)
-                        engine.createIfStatement(true);
-                    else if (arg2 == Operators.NotEqual)
-                        engine.createIfStatement(false);
-                    else
-                    {
-                        error(ErrorCode::INVALID_OPERATOR, arg2, false);
-                        engine.createIfStatement(false);
-                    }
-                }
-                else
-                {
-                    engine.createIfStatement(arg2 == Operators.NotEqual);
-                }
-            }
-            else
-            {
-                error(ErrorCode::IS_NULL, arg1, false);
-                engine.createIfStatement(false);
-            }
-        }
         else if (arg3 == Keywords.IsDirectory)
         {
-            if (engine.isString(arg1))
+            if (!engine.isString(arg1))
             {
-                if (Env::directoryExists(engine.varString(arg1)))
-                {
-                    if (arg2 == Operators.Equal)
-                        engine.createIfStatement(true);
-                    else if (arg2 == Operators.NotEqual)
-                        engine.createIfStatement(false);
-                    else
-                    {
-                        error(ErrorCode::INVALID_OPERATOR, arg2, false);
-                        engine.createIfStatement(false);
-                    }
-                }
+                error(ErrorCode::IS_NULL, arg1, false);
+                engine.createIfStatement(false);
+                return;
+            }
+
+            if (FileIO::directoryExists(engine.varString(arg1)))
+            {
+                if (arg2 == Operators.Equal)
+                    engine.createIfStatement(true);
+                else if (arg2 == Operators.NotEqual)
+                    engine.createIfStatement(false);
                 else
                 {
-                    engine.createIfStatement(arg2 == Operators.NotEqual);
+                    error(ErrorCode::INVALID_OPERATOR, arg2, false);
+                    engine.createIfStatement(false);
                 }
             }
             else
             {
-                error(ErrorCode::IS_NULL, arg1, false);
-                engine.createIfStatement(false);
+                engine.createIfStatement(arg2 == Operators.NotEqual);
             }
         }
         else
@@ -2185,17 +2177,10 @@ void checkGenericCondition(const std::string arg1, const std::string arg3, const
 std::string getTestString(bool variableExists, const std::string variableName) {
     std::string testString("[none]");
 
-    if (variableExists) {
-        if (engine.isString(variableName))
-            testString = engine.varString(variableName);
-        else if (engine.isNumber(variableName))
-            testString = dtos(engine.varNumber(variableName));
-        else
-            error(ErrorCode::IS_NULL, variableName, false);
-    }
-    else {
+    if (variableExists)
+        testString = engine.getVariableValueAsString(variableName);
+    else
         testString = variableName;
-    }
 
     return testString;
 }
@@ -2249,21 +2234,24 @@ void handleInlineScriptDecl(std::string &arg1)
 {
     if (engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
+        if (!engine.isString(arg1))
         {
-            if (!Env::fileExists(engine.varString(arg1)))
-            {
-                Env::createFile(engine.varString(arg1));
-                State.DefiningScript = true;
-                State.CurrentScriptName = engine.varString(arg1);
-            }
-            else
-                error(ErrorCode::FILE_EXISTS, engine.varString(arg1), false);
+            error(ErrorCode::CONV_ERR, arg1, true);
+            return;
         }
+
+        if (!FileIO::fileExists(engine.varString(arg1)))
+        {
+            FileIO::createFile(engine.varString(arg1));
+            State.DefiningScript = true;
+            State.CurrentScriptName = engine.varString(arg1);
+        }
+        else
+            error(ErrorCode::FILE_EXISTS, engine.varString(arg1), false);
     }
-    else if (!Env::fileExists(arg1))
+    else if (!FileIO::fileExists(arg1))
     {
-        Env::createFile(arg1);
+        FileIO::createFile(arg1);
         State.DefiningScript = true;
         State.CurrentScriptName = arg1;
     }
@@ -2275,20 +2263,21 @@ void handleDirPop(std::string &arg1)
 {
     if (engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
+        if (!engine.isString(arg1))
         {
-            if (Env::directoryExists(engine.varString(arg1)))
-                Env::removeDirectory(engine.varString(arg1));
-            else
-                error(ErrorCode::DIR_NOT_FOUND, engine.varString(arg1), false);
-        }
-        else
             error(ErrorCode::NULL_STRING, arg1, false);
+            return;
+        }
+
+        if (FileIO::directoryExists(engine.varString(arg1)))
+            FileIO::removeDirectory(engine.varString(arg1));
+        else
+            error(ErrorCode::DIR_NOT_FOUND, engine.varString(arg1), false);
     }
     else
     {
-        if (Env::directoryExists(arg1))
-            Env::removeDirectory(arg1);
+        if (FileIO::directoryExists(arg1))
+            FileIO::removeDirectory(arg1);
         else
             error(ErrorCode::DIR_NOT_FOUND, arg1, false);
     }
@@ -2298,20 +2287,21 @@ void handleDirPush(std::string &arg1)
 {
     if (engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
+        if (!engine.isString(arg1))
         {
-            if (!Env::directoryExists(engine.varString(arg1)))
-                Env::makeDirectory(engine.varString(arg1));
-            else
-                error(ErrorCode::DIR_EXISTS, engine.varString(arg1), false);
+            error(ErrorCode::CONV_ERR, arg1, false);
+            return;
         }
+
+        if (!FileIO::directoryExists(engine.varString(arg1)))
+            FileIO::makeDirectory(engine.varString(arg1));
         else
-            error(ErrorCode::NULL_STRING, arg1, false);
+            error(ErrorCode::DIR_EXISTS, engine.varString(arg1), false);
     }
     else
     {
-        if (!Env::directoryExists(arg1))
-            Env::makeDirectory(arg1);
+        if (!FileIO::directoryExists(arg1))
+            FileIO::makeDirectory(arg1);
         else
             error(ErrorCode::DIR_EXISTS, arg1, false);
     }
@@ -2321,20 +2311,21 @@ void handleFilePop(std::string &arg1)
 {
     if (engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
+        if (!engine.isString(arg1))
         {
-            if (Env::fileExists(engine.varString(arg1)))
-                Env::removeFile(engine.varString(arg1));
-            else
-                error(ErrorCode::FILE_NOT_FOUND, engine.varString(arg1), false);
+            error(ErrorCode::CONV_ERR, arg1, false);
+            return;
         }
+
+        if (FileIO::fileExists(engine.varString(arg1)))
+            FileIO::removeFile(engine.varString(arg1));
         else
-            error(ErrorCode::NULL_STRING, arg1, false);
+            error(ErrorCode::FILE_NOT_FOUND, engine.varString(arg1), false);
     }
     else
     {
-        if (Env::fileExists(arg1))
-            Env::removeFile(arg1);
+        if (FileIO::fileExists(arg1))
+            FileIO::removeFile(arg1);
         else
             error(ErrorCode::FILE_NOT_FOUND, arg1, false);
     }
@@ -2344,20 +2335,21 @@ void handleFilePush(std::string &arg1)
 {
     if (engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
+        if (!engine.isString(arg1))
         {
-            if (!Env::fileExists(engine.varString(arg1)))
-                Env::createFile(engine.varString(arg1));
-            else
-                error(ErrorCode::FILE_EXISTS, engine.varString(arg1), false);
+            error(ErrorCode::CONV_ERR, arg1, true);
+            return;
         }
+
+        if (!FileIO::fileExists(engine.varString(arg1)))
+            FileIO::createFile(engine.varString(arg1));
         else
-            error(ErrorCode::NULL_STRING, arg1, false);
+            error(ErrorCode::FILE_EXISTS, engine.varString(arg1), false);
     }
     else
     {
-        if (!Env::fileExists(arg1))
-            Env::createFile(arg1);
+        if (!FileIO::fileExists(arg1))
+            FileIO::createFile(arg1);
         else
             error(ErrorCode::FILE_EXISTS, arg1, false);
     }
@@ -2413,19 +2405,9 @@ void handleStringInspect(std::string &before, std::string &after, std::string &a
     else
     {
         if (engine.variableExists(arg1))
-        {
-            if (engine.isString(arg1))
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
-        }
+            State.LastValue = !engine.isString(arg1) ? Keywords.False : Keywords.True;
         else
-        {
-            if (is_numeric(arg1))
-                State.LastValue = Keywords.False;
-            else
-                State.LastValue = Keywords.True;
-        }
+            State.LastValue = is_numeric(arg1) ? Keywords.False : Keywords.True;
     }
 }
 
@@ -2479,37 +2461,29 @@ void handleFileInspect(std::string &before, std::string &after, std::string &arg
 {
     if (before.length() != 0 && after.length() != 0)
     {
-        if (engine.getClass(before).hasVariable(after))
+        if (!engine.getClass(before).hasVariable(after))
         {
-            if (Env::fileExists(engine.getClassVariable(before, after).getString()))
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
-        }
-        else
             error(ErrorCode::TARGET_UNDEFINED, arg1, false);
+            return;
+        }
+        
+        State.LastValue = !FileIO::fileExists(engine.getClassVariable(before, after).getString()) ? Keywords.False : Keywords.True;
     }
     else
     {
-        if (engine.variableExists(arg1))
+        if (!engine.variableExists(arg1))
         {
-            if (engine.isString(arg1))
-            {
-                if (Env::fileExists(engine.varString(arg1)))
-                    State.LastValue = Keywords.True;
-                else
-                    State.LastValue = Keywords.False;
-            }
-            else
-                State.LastValue = Keywords.False;
+            State.LastValue = !FileIO::fileExists(arg1) ? Keywords.False : Keywords.True;
+            return;
         }
-        else
+
+        if (!engine.isString(arg1))
         {
-            if (Env::fileExists(arg1))
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
+            State.LastValue = Keywords.False;
+            return;
         }
+
+        State.LastValue = !FileIO::fileExists(engine.varString(arg1)) ? Keywords.False : Keywords.True;
     }
 }
 
@@ -2517,37 +2491,29 @@ void handleDirectoryInspect(std::string &before, std::string &after, std::string
 {
     if (before.length() != 0 && after.length() != 0)
     {
-        if (engine.getClass(before).hasVariable(after))
+        if (!engine.getClass(before).hasVariable(after))
         {
-            if (Env::directoryExists(engine.getClassVariable(before, after).getString()))
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
-        }
-        else
             error(ErrorCode::TARGET_UNDEFINED, arg1, false);
+            return;
+        }
+
+        State.LastValue = FileIO::directoryExists(engine.getClassVariable(before, after).getString()) ? Keywords.True : Keywords.False;
     }
     else
     {
-        if (engine.variableExists(arg1))
+        if (!engine.variableExists(arg1))
         {
-            if (engine.isString(arg1))
-            {
-                if (Env::directoryExists(engine.varString(arg1)))
-                    State.LastValue = Keywords.True;
-                else
-                    State.LastValue = Keywords.False;
-            }
-            else
-                error(ErrorCode::NULL_STRING, arg1, false);
+            State.LastValue = FileIO::directoryExists(arg1) ? Keywords.True : Keywords.False;
+            return;
         }
-        else
+
+        if (!engine.isString(arg1))
         {
-            if (Env::directoryExists(arg1))
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
+            error(ErrorCode::CONV_ERR, arg1, false);
+            return;
         }
+
+        State.LastValue = FileIO::directoryExists(engine.varString(arg1)) ? Keywords.True : Keywords.False;
     }
 }
 
@@ -2607,105 +2573,119 @@ void handleInitialDir(std::string &arg1)
 {
     if (engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
+        if (!engine.isString(arg1))
         {
-            if (Env::directoryExists(engine.varString(arg1)))
-            {
-                State.InitialDirectory = engine.varString(arg1);
-                Env::changeDirectory(State.InitialDirectory);
-            }
-            else
-                error(ErrorCode::READ_FAIL, State.InitialDirectory, false);
+            error(ErrorCode::CONV_ERR, arg1, false);
+            return;
         }
-        else
-            error(ErrorCode::NULL_STRING, arg1, false);
+
+        if (!FileIO::directoryExists(engine.varString(arg1)))
+        {
+            error(ErrorCode::DIR_NOT_FOUND, engine.varString(arg1), false);
+            return;
+        }
+
+        State.InitialDirectory = engine.varString(arg1);
+        Env::changeDirectory(State.InitialDirectory);
     }
     else
     {
-        if (Env::directoryExists(arg1))
+        if (!FileIO::directoryExists(arg1))
         {
-            if (arg1 == Keywords.Dot)
-                State.InitialDirectory = Env::getCurrentDirectory();
-            else if (arg1 == Keywords.RangeSeparator)
-                State.InitialDirectory = Env::getCurrentDirectory() + "\\..";
-            else
-                State.InitialDirectory = arg1;
-
-            Env::changeDirectory(State.InitialDirectory);
+            error(ErrorCode::DIR_NOT_FOUND, arg1, false);
+            return;
         }
+
+        if (arg1 == Keywords.Dot)
+            State.InitialDirectory = Env::getCurrentDirectory();
+        else if (arg1 == Keywords.RangeSeparator)
+            State.InitialDirectory = Env::getCurrentDirectory() + "\\..";
         else
-            error(ErrorCode::READ_FAIL, State.InitialDirectory, false);
+            State.InitialDirectory = arg1;
+
+        Env::changeDirectory(State.InitialDirectory);
     }
 }
 
 void handleInlineShellExec(std::string &arg1, std::vector<std::string> &command)
 {
-    if (engine.variableExists(arg1))
+    if (!engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
-            Env::shellExec(engine.varString(arg1), command);
-        else
-            error(ErrorCode::IS_NULL, arg1, false);
-    }
-    else
         Env::shellExec(arg1, command);
+        return;
+    }
+    
+    if (!engine.isString(arg1))
+    {
+        error(ErrorCode::CONV_ERR, arg1, false);
+        return;
+    }
+    
+    Env::shellExec(engine.varString(arg1), command);
 }
 
 void handleInlineParse(std::string &arg1)
 {
-    if (engine.variableExists(arg1))
+    if (!engine.variableExists(arg1))
     {
-        if (engine.isString(arg1))
-            parse(engine.varString(arg1).c_str());
-        else
-            error(ErrorCode::IS_NULL, arg1, false);
-    }
-    else
         parse(arg1.c_str());
+        return;
+    }
+
+    if (!engine.isString(arg1)) 
+    {
+        error(ErrorCode::CONV_ERR, arg1, false);
+        return;
+    }
+
+    parse(engine.varString(arg1).c_str());
 }
 
 void handleListDecl(std::string &arg1)
 {
     if (engine.listExists(arg1))
-        engine.getList(arg1).clear();
-    else
     {
-        List newList(arg1);
-
-        newList.setCollectable(State.ExecutedTemplate || State.ExecutedMethod);
-
-        engine.addList(newList);
+        engine.getList(arg1).clear();
+        return;
     }
+
+    List newList(arg1);
+    newList.setCollectable(State.ExecutedTemplate || State.ExecutedMethod);
+    engine.addList(newList);
 }
 
 void handleChangeDir(std::string &arg1)
 {
-    if (engine.variableExists(arg1))
-    {
-        if (engine.isString(arg1))
-        {
-            if (Env::directoryExists(engine.varString(arg1)))
-                Env::changeDirectory(engine.varString(arg1));
-            else
-                error(ErrorCode::READ_FAIL, engine.varString(arg1), false);
-        }
-        else
-            error(ErrorCode::NULL_STRING, arg1, false);
-    }
-    else
+    if (!engine.variableExists(arg1))
     {
         if (arg1 == Keywords.InitialDirectory)
             Env::changeDirectory(State.InitialDirectory);
-        else if (Env::directoryExists(arg1))
+        else if (FileIO::directoryExists(arg1))
             Env::changeDirectory(arg1);
         else
             Env::changeDirectory(arg1);
+        
+        return;
     }
+
+    if (!engine.isString(arg1))
+    {
+        error(ErrorCode::CONV_ERR, arg1, false);
+        return;
+    }
+
+    if (!FileIO::directoryExists(engine.varString(arg1)))
+    {
+        error(ErrorCode::DIR_NOT_FOUND, engine.varString(arg1), false);
+        return;
+    }
+    
+    Env::changeDirectory(engine.varString(arg1));
 }
 
 void handleLoad(std::string &arg1)
 {
-    if (Env::fileExists(arg1))
+    if (FileIO::fileExists(arg1))
     {
         if (is_script(arg1))
         {
@@ -2772,12 +2752,7 @@ void handleErr(std::string &arg1)
     std::string errorValue(arg1);
     
     if (engine.variableExists(arg1))
-    {
-        if (engine.isString(arg1))
-            errorValue = engine.varString(arg1);
-        else if (engine.isNumber(arg1))
-            errorValue = dtos(engine.varNumber(arg1));
-    }
+        errorValue = engine.getVariableValueAsString(arg1);
     
     State.LastError = errorValue;
 
@@ -2811,19 +2786,10 @@ void handleIfStatement(std::string &arg1)
         {
             std::string objName(before_dot(arg1)), varName(after_dot(arg1));
             Variable tmpVar = engine.getClass(objName).getVariable(varName);
-
-            if (engine.isString(tmpVar))
-                tmpValue = tmpVar.getString();
-            else if (engine.isNumber(tmpVar))
-                tmpValue = dtos(tmpVar.getNumber());
+            tmpValue = engine.getVariableValueAsString(tmpVar);
         }
         else
-        {
-            if (engine.isString(arg1))
-                tmpValue = engine.varString(arg1);
-            else if (engine.isNumber(arg1))
-                tmpValue = engine.varNumber(arg1);
-        }
+            tmpValue = engine.getVariableValueAsString(arg1);
     }
     else if (is_numeric(arg1) || is_truthy(arg1) || is_falsey(arg1))
     {
