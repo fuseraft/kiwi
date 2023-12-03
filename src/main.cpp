@@ -1,8 +1,7 @@
-/*
- * 	uslang: an unorthodox scripting language 
- *
+/**
+ *  uslang: an unorthodox scripting language 
  *  hybrid-typed, object-oriented, interpreted
- */
+ **/
 
 #include "include/uslang.h"
 
