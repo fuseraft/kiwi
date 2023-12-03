@@ -1,0 +1,26 @@
+# Simple string interpolation
+@desc = "hybrid-typed, object-oriented, interpreted"
+println "uslang is a \{@desc} scripting language.\n"
+
+# First test: loops
+println "\nLoop test."
+
+@i = 0
+@n = 5
+@counter = 0
+
+for @i to @n
+  @counter += 5
+  println "Iteration: ${$}"
+  println "Counter = \{@counter}"
+endfor
+
+print "\nTest results: "
+
+if @counter == 30
+  println "pass"
+else
+  println "fail"
+endif
+
+# TODO: add more tests

@@ -1,8 +1,9 @@
 #!/bin/bash
-g++ -rdynamic -o usl -Wall src/main.cpp
+mkdir -p ./bin
+g++ -rdynamic -o ./bin/usl -Wall ./src/main.cpp
 
 if [ $? -eq 0 ]; then
-    ./usl test.uslang
+    ./bin/usl ./tests/test.uslang
 else
     echo "Failed to compile."
 fi

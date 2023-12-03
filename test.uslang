@@ -1,2 +1,0 @@
-@desc = "hybrid-typed, object-oriented, interpreted"
-println "uslang is a \{@desc} scripting language."
