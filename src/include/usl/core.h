@@ -139,67 +139,64 @@ std::string clean_string(std::string builder)
 
         std::vector<std::string> listRange = parse_bracketrange(afterBrackets);
 
-        if (engine.variableExists(_beforeBrackets))
+        if (engine.variableExists(_beforeBrackets) && engine.isString(_beforeBrackets))
         {
-            if (engine.isString(_beforeBrackets))
+            std::string tempString(engine.varString(_beforeBrackets));
+
+            if (listRange.size() == 2)
             {
-                std::string tempString(engine.varString(_beforeBrackets));
+                rangeBegin = listRange.at(0), rangeEnd = listRange.at(1);
 
-                if (listRange.size() == 2)
+                if (is_numeric(rangeBegin) && is_numeric(rangeEnd))
                 {
-                    rangeBegin = listRange.at(0), rangeEnd = listRange.at(1);
-
-                    if (is_numeric(rangeBegin) && is_numeric(rangeEnd))
+                    if (stoi(rangeBegin) < stoi(rangeEnd))
                     {
-                        if (stoi(rangeBegin) < stoi(rangeEnd))
+                        if ((int)tempString.length() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)
                         {
-                            if ((int)tempString.length() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)
-                            {
-                                for (int z = stoi(rangeBegin); z <= stoi(rangeEnd); z++)
-                                    _build.push_back(tempString[z]);
+                            for (int z = stoi(rangeBegin); z <= stoi(rangeEnd); z++)
+                                _build.push_back(tempString[z]);
 
-                                State.LastValue = _build;
-                            }
-                            else
-                                error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
-                        }
-                        else if (stoi(rangeBegin) > stoi(rangeEnd))
-                        {
-                            if ((int)tempString.length() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)
-                            {
-                                for (int z = stoi(rangeBegin); z >= stoi(rangeEnd); z--)
-                                    _build.push_back(tempString[z]);
-
-                                State.LastValue = _build;
-                            }
-                            else
-                                error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
+                            State.LastValue = _build;
                         }
                         else
                             error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
                     }
-                }
-                else if (listRange.size() == 1)
-                {
-                    rangeBegin = listRange.at(0);
-
-                    if (!is_numeric(rangeBegin))
-                        error(ErrorCode::OUT_OF_BOUNDS, afterBrackets, false);
-
-                    if (stoi(rangeBegin) <= (int)tempString.length() - 1 && stoi(rangeBegin) >= 0)
+                    else if (stoi(rangeBegin) > stoi(rangeEnd))
                     {
-                        std::string _cstr;
+                        if ((int)tempString.length() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)
+                        {
+                            for (int z = stoi(rangeBegin); z >= stoi(rangeEnd); z--)
+                                _build.push_back(tempString[z]);
 
-                        _cstr.push_back(tempString[stoi(rangeBegin)]);
-
-                        State.LastValue = _cstr;
+                            State.LastValue = _build;
+                        }
+                        else
+                            error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
                     }
                     else
-                        error(ErrorCode::OUT_OF_BOUNDS, afterBrackets, false);
+                        error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
+                }
+            }
+            else if (listRange.size() == 1)
+            {
+                rangeBegin = listRange.at(0);
+
+                if (!is_numeric(rangeBegin))
+                    error(ErrorCode::OUT_OF_BOUNDS, afterBrackets, false);
+
+                if (stoi(rangeBegin) <= (int)tempString.length() - 1 && stoi(rangeBegin) >= 0)
+                {
+                    std::string _cstr;
+
+                    _cstr.push_back(tempString[stoi(rangeBegin)]);
+
+                    State.LastValue = _cstr;
                 }
                 else
                     error(ErrorCode::OUT_OF_BOUNDS, afterBrackets, false);
             }
+            else
+                error(ErrorCode::OUT_OF_BOUNDS, afterBrackets, false);
         }
         else if (engine.listExists(_beforeBrackets))
         {
@@ -598,18 +595,10 @@ std::string getStringStack(std::string arg2)
 
     if (engine.variableExists(temporaryBuild))
     {
-        if (engine.isNumber(temporaryBuild))
-        {
-            vars.push_back(temporaryBuild);
-            contents.push_back(dtos(engine.varNumber(temporaryBuild)));
-            temporaryBuild.clear();
-        }
-        else if (engine.isString(temporaryBuild))
-        {
-            vars.push_back(temporaryBuild);
-            contents.push_back(engine.varString(temporaryBuild));
-            temporaryBuild.clear();
-        }
+        std::string value = engine.getVariableValueAsString(temporaryBuild);
+        vars.push_back(temporaryBuild);
+        contents.push_back(value);
+        temporaryBuild.clear();
     }
     else
     {
@@ -707,18 +696,10 @@ void parseStringStack(std::vector<std::string> &contents, std::vector<std::strin
 {
     if (engine.variableExists(temporaryBuild))
     {
-        if (engine.isNumber(temporaryBuild))
-        {
-            vars.push_back(temporaryBuild);
-            contents.push_back(dtos(engine.varNumber(temporaryBuild)));
-            temporaryBuild.clear();
-        }
-        else if (engine.isString(temporaryBuild))
-        {
-            vars.push_back(temporaryBuild);
-            contents.push_back(engine.varString(temporaryBuild));
-            temporaryBuild.clear();
-        }
+        std::string value = engine.getVariableValueAsString(temporaryBuild);
+        vars.push_back(temporaryBuild);
+        contents.push_back(value);
+        temporaryBuild.clear();
     }
     else if (engine.methodExists(temporaryBuild))
     {
@@ -866,60 +847,61 @@ std::string getSubString(std::string arg1, std::string arg2, std::string beforeB
 {
     std::string returnValue;
 
-    if (engine.isString(beforeBracket))
+    if (!engine.isString(beforeBracket))
     {
-        std::vector<std::string> listRange = parse_bracketrange(arg2);
-        std::string variableString = engine.varString(beforeBracket);
+        error(ErrorCode::NULL_STRING, beforeBracket, false);
+        return returnValue;
+    }
 
-        if (listRange.size() < 1 || listRange.size() > 2)
+    std::vector<std::string> listRange = parse_bracketrange(arg2);
+    std::string variableString = engine.varString(beforeBracket);
+
+    if (listRange.size() < 1 || listRange.size() > 2)
+    {
+        error(ErrorCode::OUT_OF_BOUNDS, arg2, false);
+    }
+    else if (listRange.size() == 1)
+    {
+        std::string rangeBegin(listRange.at(0));
+
+        if (rangeBegin.length() != 0 && is_numeric(rangeBegin))
         {
-            error(ErrorCode::OUT_OF_BOUNDS, arg2, false);
-        }
-        else if (listRange.size() == 1)
-        {
-            std::string rangeBegin(listRange.at(0));
+            int beginIndex = stoi(rangeBegin);
 
-            if (rangeBegin.length() != 0 && is_numeric(rangeBegin))
+            if ((int)variableString.length() - 1 >= beginIndex && beginIndex >= 0)
             {
-                int beginIndex = stoi(rangeBegin);
-
-                if ((int)variableString.length() - 1 >= beginIndex && beginIndex >= 0)
-                {
-                    returnValue = "" + variableString[beginIndex];
-                }
-            }
-        }
-        else if (listRange.size() == 2)
-        {
-            std::string rangeBegin(listRange.at(0)), rangeEnd(listRange.at(1));
-
-            if (!(rangeBegin.length() != 0 && rangeEnd.length() != 0) || !((is_numeric(rangeBegin) && is_numeric(rangeEnd)) || !((int)variableString.length() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0) || !((int)variableString.length() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)))
-            {
-                error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
-                return returnValue;
-            }
-
-            int beginIndex = stoi(rangeBegin),
-                endIndex = stoi(rangeEnd);
-
-            if (beginIndex < endIndex)
-            {
-                for (int i = beginIndex; i <= endIndex; i++)
-                {
-                    returnValue.push_back(variableString[i]);
-                }
-            }
-            else if (beginIndex > endIndex)
-            {
-                for (int i = beginIndex; i >= endIndex; i--)
-                {
-                    returnValue.push_back(variableString[i]);
-                }
+                returnValue = "" + variableString[beginIndex];
             }
         }
     }
-    else
-        error(ErrorCode::NULL_STRING, beforeBracket, false);
+    else if (listRange.size() == 2)
+    {
+        std::string rangeBegin(listRange.at(0)), rangeEnd(listRange.at(1));
+
+        if (!(rangeBegin.length() != 0 && rangeEnd.length() != 0) || !((is_numeric(rangeBegin) && is_numeric(rangeEnd)) || !((int)variableString.length() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0) || !((int)variableString.length() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)))
+        {
+            error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
+            return returnValue;
+        }
+
+        int beginIndex = stoi(rangeBegin),
+            endIndex = stoi(rangeEnd);
+
+        if (beginIndex < endIndex)
+        {
+            for (int i = beginIndex; i <= endIndex; i++)
+            {
+                returnValue.push_back(variableString[i]);
+            }
+        }
+        else if (beginIndex > endIndex)
+        {
+            for (int i = beginIndex; i >= endIndex; i--)
+            {
+                returnValue.push_back(variableString[i]);
+            }
+        }
+    }
 
     return returnValue;
 }
@@ -928,7 +910,7 @@ void setSubString(std::string arg1, std::string arg2, std::string beforeBracket)
 {
     if (!engine.isString(beforeBracket))
     {
-        error(ErrorCode::NULL_STRING, beforeBracket, false);
+        error(ErrorCode::CONV_ERR, beforeBracket, false);
         return;
     }
 
@@ -1001,17 +983,10 @@ std::string getStringValue(std::string arg1, std::string op, std::string arg2)
     std::string firstValue, lastValue, returnValue;
 
     if (engine.variableExists(arg1) && engine.isString(arg1))
-    {
         firstValue = engine.varString(arg1);
-    }
 
     if (engine.variableExists(arg2))
-    {
-        if (engine.isString(arg2))
-            lastValue = engine.varString(arg2);
-        else if (engine.isNumber(arg2))
-            lastValue = dtos(engine.varNumber(arg2));
-    }
+        lastValue = engine.getVariableValueAsString(arg2);
     else if (engine.methodExists(arg2))
     {
         parse(arg2);
@@ -1249,17 +1224,17 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
 
                             if (is_numeric(listValue))
                             {
-                                if (engine.isNumber(arg0))
-                                    engine.setVariable(arg0, stod(listValue));
-                                else
+                                if (!engine.isNumber(arg0))
                                     error(ErrorCode::CONV_ERR, arg0, false);
+                                else
+                                    engine.setVariable(arg0, stod(listValue));
                             }
                             else
                             {
-                                if (engine.isString(arg0))
-                                    engine.setVariable(arg0, listValue);
-                                else
+                                if (!engine.isString(arg0))
                                     error(ErrorCode::CONV_ERR, arg0, false);
+                                else
+                                    engine.setVariable(arg0, listValue);
                             }
                         }
                     }
@@ -1515,44 +1490,23 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                 {
                     if (engine.variableExists(after))
                     {
-                        if (engine.isString(after))
+                        std::string prompt = engine.isString(after) ? engine.varString(after) : "";
+                        std::string line;
+                        line = get_stdin_quiet(prompt);
+
+                        if (engine.isNumber(arg0))
                         {
-                            std::string line;
-                            line = get_stdin_quiet(engine.varString(after));
-
-                            if (engine.isNumber(arg0))
-                            {
-                                if (is_numeric(line))
-                                    engine.setVariable(arg0, stod(line));
-                                else
-                                    error(ErrorCode::CONV_ERR, line, false);
-                            }
-                            else if (engine.isString(arg0))
-                                engine.setVariable(arg0, line);
+                            if (is_numeric(line))
+                                engine.setVariable(arg0, stod(line));
                             else
-                                error(ErrorCode::IS_NULL, arg0, false);
-
-                            writeline();
+                                error(ErrorCode::CONV_ERR, line, false);
                         }
+                        else if (engine.isString(arg0))
+                            engine.setVariable(arg0, line);
                         else
-                        {
-                            std::string line;
-                            line = get_stdin_quiet("");
+                            error(ErrorCode::IS_NULL, arg0, false);
 
-                            if (engine.isNumber(arg0))
-                            {
-                                if (is_numeric(line))
-                                    engine.setVariable(arg0, stod(line));
-                                else
-                                    error(ErrorCode::CONV_ERR, line, false);
-                            }
-                            else if (engine.isString(arg0))
-                                engine.setVariable(arg0, line);
-                            else
-                                error(ErrorCode::IS_NULL, arg0, false);
-
-                            writeline();
-                        }
+                        writeline();
                     }
                     else
                     {
