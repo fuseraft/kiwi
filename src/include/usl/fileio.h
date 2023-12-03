@@ -6,7 +6,46 @@ class FileIO
 public:
     static void appendText(std::string arg1, std::string arg2, bool newLine);
     static void writeText(std::string arg1, std::string arg2);
+    static std::string readText(const std::string& filePath);
+    static double getFileSize(const std::string& path);
 };
+
+double FileIO::getFileSize(const std::string& path) {
+    std::ifstream file(path, std::ios::binary);
+
+    if (!file.is_open()) {
+        // Throw an exception or handle the error appropriately
+        std::cerr << "Error opening file: " << path << std::endl;
+        return -std::numeric_limits<double>::max();
+    }
+
+    file.seekg(0, std::ios::end);
+    long fileSize = file.tellg();
+    file.close();
+
+    if (fileSize == -1) {
+        // Handle error when getting file size
+        std::cerr << "Error getting file size for: " << path << std::endl;
+        return -std::numeric_limits<double>::max();
+    }
+
+    return static_cast<double>(fileSize);
+}
+
+std::string FileIO::readText(const std::string& filePath) {
+    std::ifstream file(filePath, std::ios::in | std::ios::binary);
+
+    if (!file) {
+        error(ErrorCode::READ_FAIL, filePath, true);
+        return "";
+    }
+
+    std::ostringstream content;
+    content << file.rdbuf();
+    file.close();
+
+    return content.str();
+}
 
 void FileIO::appendText(std::string arg1, std::string arg2, bool newLine)
 {
@@ -95,51 +134,16 @@ void FileIO::writeText(std::string arg1, std::string arg2)
         }
 
         target = engine.varString(arg1);
-
-        if (!engine.variableExists(arg2))
-        {
-            text = arg2;
-        }
-        else
-        {
-            if (engine.isString(arg2))
-            {
-                text = engine.varString(arg2);
-            }
-            else if (engine.isNumber(arg2))
-            {
-                text = engine.varNumberString(arg2);
-            }
-            else
-            {
-                error(ErrorCode::IS_NULL, arg2, false);
-                State.LastValue = "-1";
-            }
-        }
+        text = engine.variableExists(arg2) ? engine.getVariableValueAsString(arg2) : arg2;
     }
     else
     {
-        if (!engine.variableExists(arg2))
+        if (engine.variableExists(arg2))
+            text = engine.getVariableValueAsString(arg2);
+        else
         {
             target = arg1;
             text = arg2;
-        }
-        else
-        {
-            if (engine.isString(arg2))
-            {
-                text = engine.varString(arg2);
-            }
-            else if (engine.isNumber(arg2))
-            {
-                text = engine.varNumberString(arg2);
-            }
-            else
-            {
-                error(ErrorCode::IS_NULL, arg2, false);
-                State.LastValue = "-1";
-                return;
-            }
         }
     }
 
