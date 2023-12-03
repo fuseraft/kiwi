@@ -13,6 +13,10 @@
 const std::string uslang_name = "uslang";
 const std::string uslang_version = "0.1.2";
 
+void print_underconstruction() {
+    std::cout << "under construction" << std::endl;
+}
+
 #include "debug/stacktrace.h"
 #include "parsing/keywords.h"
 #include "parsing/strings.h"
@@ -35,7 +39,7 @@ int uslang(int c, char **v)
 {
     RNG::getInstance();
 
-    std::string usl(v[0]), opt(""), script("");
+    std::string usl(v[0]), opt, script;
     initialize_state(usl);
 
     State.InitialDirectory = Env::getCurrentDirectory();
@@ -71,7 +75,7 @@ int uslang(int c, char **v)
 
             if (is(opt, "p") || is(opt, "parse"))
             {
-                std::string code("");
+                std::string code;
 
                 for (int i = 0; i < (int)script.length(); i++)
                 {
