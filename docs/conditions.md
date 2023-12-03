@@ -10,9 +10,9 @@ Each `if` statement ends with an `endif`.
 @b = 1
 
 if @a < @b
-    say "\{@a} is less than \{@b}"
+    say "#{@a} is less than #{@b}"
 elsif @a > @b
-    say "\{@a} is greater than \{@b}"
+    say "#{@a} is greater than #{@b}"
 endif
 ```
 
