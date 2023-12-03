@@ -6,18 +6,19 @@ println "uslang is a \{@desc} scripting language.\n"
 println "\nLoop test."
 
 @i = 0
-@n = 5
+@n = 2
 @counter = 0
+@answer = 42
 
-for @i to @n
-  @counter += 5
+for @i to 20
+  @counter += @n
   println "Iteration: ${$}"
   println "Counter = \{@counter}"
 endfor
 
 print "\nTest results: "
 
-if @counter == 30
+if @counter == @answer
   println "pass"
 else
   println "fail"
