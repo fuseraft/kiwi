@@ -45,7 +45,7 @@ void handleClassDecl(std::string arg1, std::string arg3, std::string arg2);
 
 void checkGenericCondition(const std::string arg1, const std::string arg3, const std::string arg2);
 void checkMethodCondition(const std::string arg1, const std::string arg3, const std::string arg2);
-void checkParamsCondition(const std::string arg1, const std::string arg2, const std::string arg3);
+void checkParamsCondition(const std::string& arg1, const std::string& arg2, const std::string& arg3);
 void checkVariableCondition(const std::string arg1, const std::string arg2, const std::string arg3);
 void checkListContainsCondition(const std::string listName, const std::string condition, const std::string testValue);
 void checkListInCondition(const std::string listName, const std::string condition, const std::string testValue);

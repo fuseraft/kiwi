@@ -34,10 +34,7 @@ public:
 
     std::string at(int index)
     {
-        if (index < (int)lines.size())
-            return lines.at(index);
-
-        return "[no_line]";
+        return lines.at(index);
     }
 
     int size()

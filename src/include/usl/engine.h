@@ -129,7 +129,7 @@ public:
     std::string getArg(int index);
 
     void createIfStatement(bool value);
-    void createModule(std::string s);
+    void createModule(std::string moduleName);
     void createClass(std::string className);
 
     void addToCurrentForLoop(std::string line);
@@ -223,12 +223,8 @@ void Engine::createClass(std::string className)
     }
 }
 
-void Engine::createModule(std::string s)
+void Engine::createModule(std::string moduleName)
 {
-    std::string moduleName = s;
-    moduleName = subtract_string(moduleName, "[");
-    moduleName = subtract_string(moduleName, "]");
-
     Module newModule(moduleName);
     addModule(newModule);
 
@@ -387,23 +383,24 @@ void Engine::createMethod(std::string arg0, std::string arg1)
             {
                 std::string before(before_dot(arg1)), after(after_dot(arg1));
 
-                if (classExists(before))
+                if (!classExists(before))
                 {
-                    Method method(after);
-
-                    if (State.DefiningPublicCode)
-                        method.setPublic();
-                    else if (State.DefiningPrivateCode)
-                        method.setPrivate();
-
-                    method.setClass(before);
-                    getClass(before).addMethod(method);
-                    getClass(before).setCurrentMethod(after);
-                    State.DefiningMethod = true;
-                    State.DefiningClassMethod = true;
-                }
-                else
                     error(ErrorCode::CLS_UNDEFINED, "", false);
+                    return;
+                }
+                
+                Method method(after);
+
+                if (State.DefiningPublicCode)
+                    method.setPublic();
+                else if (State.DefiningPrivateCode)
+                    method.setPrivate();
+
+                method.setClass(before);
+                getClass(before).addMethod(method);
+                getClass(before).setCurrentMethod(after);
+                State.DefiningMethod = true;
+                State.DefiningClassMethod = true;
             }
             else if (has_params(arg1))
             {
@@ -420,22 +417,24 @@ void Engine::createMethod(std::string arg0, std::string arg1)
                         {
                             std::string before(before_dot(params.at(i))), after(after_dot(params.at(i)));
 
-                            if (classExists(before))
+                            if (!classExists(before))
                             {
-                                if (getClass(before).hasVariable(after))
-                                {
-                                    if (getClass(before).getVariable(after).getType() == VariableType::String)
-                                        method.addMethodVariable(getClass(before).getVariable(after).getString(), after);
-                                    else if (getClass(before).getVariable(after).getType() == VariableType::Double)
-                                        method.addMethodVariable(getClass(before).getVariable(after).getNumber(), after);
-                                    else
-                                        error(ErrorCode::IS_NULL, params.at(i), false);
-                                }
-                                else
-                                    error(ErrorCode::CLS_VAR_UNDEFINED, after, false);
+                                error(ErrorCode::CLS_UNDEFINED, before, false);
+                                return;
                             }
+
+                            if (!getClass(before).hasVariable(after))
+                            {
+                                error(ErrorCode::CLS_VAR_UNDEFINED, after, false);
+                                return;
+                            }
+
+                            if (getClass(before).getVariable(after).getType() == VariableType::String)
+                                method.addMethodVariable(getClass(before).getVariable(after).getString(), after);
+                            else if (getClass(before).getVariable(after).getType() == VariableType::Double)
+                                method.addMethodVariable(getClass(before).getVariable(after).getNumber(), after);
                             else
-                                error(ErrorCode::CLS_METHOD_UNDEFINED, before, false);
+                                error(ErrorCode::IS_NULL, params.at(i), false);
                         }
                         else
                         {
@@ -449,20 +448,10 @@ void Engine::createMethod(std::string arg0, std::string arg1)
                     }
                     else
                     {
-                        if (is_alpha(params.at(i)))
-                        {
-                            Variable newVariable("@" + params.at(i), "");
-                            newVariable.setNull();
-                            method.addMethodVariable(newVariable);
-                            State.ParamVarCount++;
-                        }
-                        else
-                        {
-                            Variable newVariable("@" + params.at(i), 0);
-                            newVariable.setNull();
-                            method.addMethodVariable(newVariable);
-                            State.ParamVarCount++;
-                        }
+                        Variable newVariable("@" + params.at(i));
+                        newVariable.setNull();
+                        method.addMethodVariable(newVariable);
+                        State.ParamVarCount++;
                     }
                 }
 

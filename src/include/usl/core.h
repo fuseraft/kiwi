@@ -798,13 +798,10 @@ double getStack(std::string arg2)
             else if (contents.at(i) == Operators.Exponent)
                 powerNext = true;
         }
-        else
+        else if (is_numeric(contents.at(i)))
         {
-            if (is_numeric(contents.at(i)))
-            {
-                startOperating = true;
-                stackValue = stod(contents.at(i));
-            }
+            startOperating = true;
+            stackValue = stod(contents.at(i));
         }
     }
 
