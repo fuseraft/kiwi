@@ -276,14 +276,7 @@ std::string clean_string(std::string builder)
         if (engine.getClass(before).hasMethod(after))
             parse(before + Keywords.Dot + after);
         else if (engine.getClass(before).hasVariable(after))
-        {
-            if (engine.getClassVariable(before, after).getType() == VariableType::String)
-                State.LastValue = engine.getClassVariable(before, after).getString();
-            else if (engine.getClassVariable(before, after).getType() == VariableType::Double)
-                State.LastValue = dtos(engine.getClassVariable(before, after).getNumber());
-            else
-                State.LastValue = "";
-        }
+            State.LastValue = engine.getClassVariableValueAsString(before, after);
         else
             error(ErrorCode::VAR_UNDEFINED, before + Keywords.Dot + after, false);
     }
@@ -1138,7 +1131,7 @@ void initializeTemporaryVariable(std::string arg1, std::string arg2, std::vector
 
 void initializeTemporaryString(std::string arg1, std::string arg2, std::vector<std::string> command, std::string tempClassVariableName, std::string className, std::string variableName)
 {
-    engine.createVariable(tempClassVariableName, engine.getClassVariable(className, variableName).getString());
+    engine.createVariable(tempClassVariableName, engine.getClassVariableValueAsString(className, variableName));
     initializeTemporaryVariable(arg1, arg2, command, tempClassVariableName, className, variableName);
 }
 
@@ -1286,10 +1279,11 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                 {
                     if (engine.getClass(before).hasVariable(after))
                     {
-                        if (engine.getClassVariable(before, after).getType() == VariableType::String)
-                            engine.setVariable(arg0, engine.getClassVariable(before, after).getString());
-                        else if (engine.getClassVariable(before, after).getType() == VariableType::Double)
-                            engine.setVariable(arg0, engine.getClassVariable(before, after).getNumber());
+                        const auto classVariable = engine.getClassVariable(before, after);
+                        if (classVariable.getType() == VariableType::String)
+                            engine.setVariable(arg0, classVariable.getString());
+                        else if (classVariable.getType() == VariableType::Double)
+                            engine.setVariable(arg0, classVariable.getNumber());
                         else
                             error(ErrorCode::IS_NULL, arg2, false);
                     }
@@ -2253,12 +2247,14 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             }
             else if (engine.getClass(before).hasVariable(after))
             {
-                if (engine.getClassVariable(before, after).getType() == VariableType::String)
-                    engine.createVariable(arg0, engine.getClassVariable(before, after).getString());
-                else if (engine.getClassVariable(before, after).getType() == VariableType::Double)
-                    engine.createVariable(arg0, engine.getClassVariable(before, after).getNumber());
+                const auto classVariable = engine.getClassVariable(before, after);
+                
+                if (classVariable.getType() == VariableType::String)
+                    engine.createVariable(arg0, classVariable.getString());
+                else if (classVariable.getType() == VariableType::Double)
+                    engine.createVariable(arg0, classVariable.getNumber());
                 else
-                    error(ErrorCode::IS_NULL, engine.getClassVariable(before, after).name(), false);
+                    error(ErrorCode::IS_NULL, classVariable.name(), false);
             }
         }
         else if (engine.variableExists(before) && after == Keywords.Read)
@@ -2883,23 +2879,9 @@ void internal_puts(std::string arg0, std::string arg1, bool newline)
     {
         // set the value
         if (is_dotless(arg1))
-        {
             text = engine.getVariableValueAsString(arg1);
-        }
-        else {
-            std::string className = before_dot(arg1), variableName = after_dot(arg1);
-            Variable classVariable = engine.getClassVariable(className, variableName);
-
-            if (classVariable.getType() == VariableType::String)
-                text = classVariable.getString();
-            else if (classVariable.getType() == VariableType::Double)
-                text = dtos(classVariable.getNumber());
-            else
-            {
-                error(ErrorCode::IS_NULL, arg1, false);
-                return;
-            }
-        }
+        else
+            text = engine.getClassVariableValueAsString(before_dot(arg1), after_dot(arg1));
     }
 
     if (newline)
