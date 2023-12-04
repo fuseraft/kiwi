@@ -210,9 +210,10 @@ void Executor::executeTemplate(Method m, std::vector<std::string> strings)
     for (int i = 0; i < (int)methodLines.size(); i++)
         parse(methodLines.at(i));
 
-    State.ExecutedTemplate = false, State.DontCollectMethodVars = false;
+    State.ExecutedTemplate = false,
+    State.DontCollectMethodVars = false;
 
-    mem.gc(); // if (!State.DontCollectMethodVars)
+    mem.gc();
 }
 
 void Executor::executeNest(Container n)
@@ -222,7 +223,7 @@ void Executor::executeNest(Container n)
 
     for (int i = 0; i < n.size(); i++)
     {
-        if (State.FailedNest == false)
+        if (!State.FailedNest)
             parse(n.at(i));
         else
             break;

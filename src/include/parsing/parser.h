@@ -379,7 +379,7 @@ void parse_nestedif_def(std::vector<std::string> &command, std::string &s)
     if (command.at(0) == Keywords.Endif)
         exec.executeNest(engine.getIfStatement(engine.getIfStatementCount() - 1).getNest());
     else
-        engine.getIfStatement(engine.getIfStatementCount() - 1).inNest(s);
+        engine.getIfStatement(engine.getIfStatementCount() - 1).addToNest(s);
 }
 
 void parse_whileloop_def(std::vector<std::string> &command, std::string &s)
@@ -597,10 +597,6 @@ void parse_0space(std::vector<std::string> &command, std::string &s)
     }
     else if (engine.methodExists(s))
         exec.executeMethod(engine.getMethod(s));
-    else if (begins_with(s, "[") && ends_with(s, "]"))
-    {
-        engine.createModule(s);
-    }
     else
     {
         s = subtract_char(s, '"');
@@ -623,7 +619,7 @@ void parse_ifstatement()
         {
             exec.executeMethod(engine.getIfStatement(i));
 
-            if (State.FailedIfStatement == false)
+            if (!State.FailedIfStatement)
                 break;
         }
     }
@@ -703,7 +699,7 @@ void parse_scriptdefinition(std::string &s)
 
 void parse_moduledefinition(std::string &s)
 {
-    if (s == ("[/" + State.CurrentModule + "]"))
+    if (State.DefiningModule && s == Keywords.End)
     {
         State.DefiningModule = false;
         State.CurrentModule = "";
@@ -744,23 +740,24 @@ void parse_args(int size, std::vector<std::string> &command)
 {
     for (int i = 0; i < size; i++)
     {
-        // handle arguments
+        // parse arguments
         // args[0], args[1], ..., args[n-1]
         if (contains(command.at(i), Keywords.Args) && command.at(i) != Keywords.ArgValues)
         {
             std::vector<std::string> params = parse_bracketrange(command.at(i));
 
-            if (is_numeric(params.at(0)))
+            if (!is_numeric(params.at(0)))
             {
-                if (engine.getArgCount() - 1 >= stoi(params.at(0)) && stoi(params.at(0)) >= 0)
-                {
-                    if (params.at(0) == "0")
-                        command.at(i) = State.CurrentScript;
-                    else
-                        command.at(i) = engine.getArg(stoi(params.at(0)));
-                }
+                error(ErrorCode::CONV_ERR, command.at(i), false);
+                return;
+            }
+            
+            if (engine.getArgCount() - 1 >= stoi(params.at(0)) && stoi(params.at(0)) >= 0)
+            {
+                if (params.at(0) == "0")
+                    command.at(i) = State.CurrentScript;
                 else
-                    error(ErrorCode::OUT_OF_BOUNDS, command.at(i), false);
+                    command.at(i) = engine.getArg(stoi(params.at(0)));
             }
             else
                 error(ErrorCode::OUT_OF_BOUNDS, command.at(i), false);
@@ -965,15 +962,15 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted, std::
         case '#':
             if (quoted || parenthesis)
                 command.at(count).push_back('#');
-            else if (prevChar == '#' && State.IsMultilineComment == false)
+            else if (prevChar == '#' && !State.IsMultilineComment)
             {
                 State.IsMultilineComment = true;
                 State.IsCommented = true;
                 uncomment = false;
             }
-            else if (prevChar == '#' && State.IsMultilineComment == true)
+            else if (prevChar == '#' && State.IsMultilineComment)
                 uncomment = true;
-            else if (prevChar != '#' && State.IsMultilineComment == false)
+            else if (prevChar != '#' && !State.IsMultilineComment)
             {
                 State.IsCommented = true;
                 uncomment = true;
@@ -1194,6 +1191,10 @@ void oneSpace(std::string arg0, std::string arg1, std::vector<std::string> comma
     else if (arg0 == Keywords.Class)
     {
         engine.createClass(arg1);
+    }
+    else if (arg0 == Keywords.Module)
+    {
+        engine.createModule(arg1);
     }
     else if (arg0 == Keywords.CreateFile)
     {
@@ -2082,12 +2083,12 @@ void checkNumericStringFileDirCondition(std::string arg1, std::string arg2, std:
 
 void checkListInCondition(const std::string listName, const std::string condition, const std::string testValue) {
     std::string testString = getTestString(engine.variableExists(testValue), listName);
-    if (testString == "[none]") {
-        engine.createIfStatement(false);
-    }
-    else {
+    if (testString == listName) {
         bool elementFound = checkListForElement(listName, testString, condition);
         engine.createIfStatement(!elementFound);
+    }
+    else {
+        engine.createIfStatement(false);
     }
 }
 
@@ -2105,20 +2106,17 @@ void checkListContainsCondition(const std::string listName, const std::string co
 bool checkListForElement(const std::string listName, const std::string testString, const std::string conditionType) {
     bool result = false;
 
-    if (engine.listExists(listName)) {
-        if (conditionType == Keywords.In) {
-            result = checkListContains(listName, testString);
-        }
-        else if (conditionType == Keywords.Contains && testString != Keywords.IsList) {
-            result = checkListContains(listName, testString);
-        }
-        else {
-            error(ErrorCode::INVALID_OP, conditionType, false);
-        }
-    }
-    else {
+    if (!engine.listExists(listName)) {
         error(ErrorCode::LIST_UNDEFINED, listName, false);
+        return result;
     }
+
+    if (conditionType == Keywords.In)
+        result = checkListContains(listName, testString);
+    else if (conditionType == Keywords.Contains && testString != Keywords.IsList)
+        result = checkListContains(listName, testString);
+    else
+        error(ErrorCode::INVALID_OP, conditionType, false);
 
     return result;
 }
@@ -2154,14 +2152,26 @@ void checkVariableCondition(const std::string arg1, const std::string arg2, cons
     }
 }
 
-// Continue with other conditions...
+void checkParamsCondition(const std::string& arg1, const std::string& arg2, const std::string& arg3)
+{
+    if (!arg1.empty() && !arg2.empty() && !arg3.empty())
+    {
+        double val1 = getStack(arg1);
+        double val3 = getStack(arg3);
 
-void checkParamsCondition(const std::string arg1, const std::string arg2, const std::string arg3) {
-    // Implement the logic for conditions with parameters
-    // ...
-
-    // Example:
-    // handleIfStatementDecl_Generic(arg1Result, arg3Result, arg2);
+        if (arg2 == Operators.Equal)
+            engine.createIfStatement(val1 == val3);
+        else if (arg2 == Operators.NotEqual)
+            engine.createIfStatement(val1 != val3);
+        else if (arg2 == Operators.LessThan)
+            engine.createIfStatement(val1 < val3);
+        else if (arg2 == Operators.LessThanOrEqual)
+            engine.createIfStatement(val1 <= val3);
+        else if (arg2 == Operators.GreaterThan)
+            engine.createIfStatement(val1 > val3);
+        else if (arg2 == Operators.GreaterThanOrEqual)
+            engine.createIfStatement(val1 >= val3);
+    }
 }
 
 void checkMethodCondition(const std::string arg1, const std::string arg3, const std::string arg2) {
@@ -2175,7 +2185,7 @@ void checkGenericCondition(const std::string arg1, const std::string arg3, const
 }
 
 std::string getTestString(bool variableExists, const std::string variableName) {
-    std::string testString("[none]");
+    std::string testString;
 
     if (variableExists)
         testString = engine.getVariableValueAsString(variableName);
@@ -2392,15 +2402,13 @@ void handleStringInspect(std::string &before, std::string &after, std::string &a
 {
     if (before.length() != 0 && after.length() != 0)
     {
-        if (engine.getClass(before).hasVariable(after))
+        if (!engine.getClass(before).hasVariable(after))
         {
-            if (engine.getClassVariable(before, after).getType() == VariableType::String)
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
-        }
-        else
             error(ErrorCode::TARGET_UNDEFINED, arg1, false);
+            return;
+        }
+
+        State.LastValue = engine.getClassVariable(before, after).getType() == VariableType::String ? Keywords.True : Keywords.False;
     }
     else
     {
@@ -2415,46 +2423,32 @@ void handleNumberInspect(std::string &before, std::string &after, std::string &a
 {
     if (before.length() != 0 && after.length() != 0)
     {
-        if (engine.getClass(before).hasVariable(after))
+        if (!engine.getClass(before).hasVariable(after))
         {
-            if (engine.getClassVariable(before, after).getType() == VariableType::Double)
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
-        }
-        else
             error(ErrorCode::TARGET_UNDEFINED, arg1, false);
+            return;
+        }
+        
+        State.LastValue = engine.getClassVariable(before, after).getType() == VariableType::Double ? Keywords.True : Keywords.False;
     }
     else
     {
         if (engine.variableExists(arg1))
-        {
-            if (engine.isNumber(arg1))
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
-        }
+            State.LastValue = engine.isNumber(arg1) ? Keywords.True : Keywords.False;
         else
-        {
-            if (is_numeric(arg1))
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
-        }
+            State.LastValue = is_numeric(arg1) ? Keywords.True : Keywords.False;
     }
 }
 
 void handleCollectInspect(std::string &arg1)
 {
-    if (engine.variableExists(arg1))
+    if (!engine.variableExists(arg1))
     {
-        if (engine.getVar(arg1).isCollectable())
-            State.LastValue = Keywords.True;
-        else
-            State.LastValue = Keywords.False;
+        error(ErrorCode::TARGET_UNDEFINED, arg1, true);
+        return;
     }
-    else
-        writeline("under construction...");
+
+    State.LastValue = engine.getVar(arg1).isCollectable() ? Keywords.True : Keywords.False;
 }
 
 void handleFileInspect(std::string &before, std::string &after, std::string &arg1)
@@ -2519,54 +2513,28 @@ void handleDirectoryInspect(std::string &before, std::string &after, std::string
 
 void handleListInspect(std::string &arg1)
 {
-    if (engine.listExists(arg1))
-        State.LastValue = Keywords.True;
-    else
-        State.LastValue = Keywords.False;
+    State.LastValue = engine.listExists(arg1) ? Keywords.True : Keywords.False;
 }
 
 void handleVariableInspect(std::string &before, std::string &after, std::string &arg1)
 {
     if (before.length() != 0 && after.length() != 0)
-    {
-        if (engine.getClass(before).hasVariable(after))
-            State.LastValue = Keywords.True;
-        else
-            State.LastValue = Keywords.False;
-    }
+        State.LastValue = engine.getClass(before).hasVariable(after) ? Keywords.True : Keywords.False;
     else
-    {
-        if (engine.variableExists(arg1))
-            State.LastValue = Keywords.True;
-        else
-            State.LastValue = Keywords.False;
-    }
+        State.LastValue = engine.variableExists(arg1) ? Keywords.True : Keywords.False;
 }
 
 void handleClassInspect(std::string &arg1)
 {
-    if (engine.classExists(arg1))
-        State.LastValue = Keywords.True;
-    else
-        State.LastValue = Keywords.False;
+    State.LastValue = engine.classExists(arg1) ? Keywords.True : Keywords.False;
 }
 
 void handleMethodInspect(std::string &before, std::string &after, std::string &arg1)
 {
     if (before.length() != 0 && after.length() != 0)
-    {
-        if (engine.getClass(before).hasMethod(after))
-            State.LastValue = Keywords.True;
-        else
-            State.LastValue = Keywords.False;
-    }
+        State.LastValue = engine.getClass(before).hasMethod(after) ? Keywords.True : Keywords.False;
     else
-    {
-        if (engine.methodExists(arg1))
-            State.LastValue = Keywords.True;
-        else
-            State.LastValue = Keywords.False;
-    }
+        State.LastValue = engine.methodExists(arg1) ? Keywords.True : Keywords.False;
 }
 
 void handleInitialDir(std::string &arg1)
