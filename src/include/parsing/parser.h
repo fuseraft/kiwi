@@ -2402,15 +2402,13 @@ void handleStringInspect(std::string &before, std::string &after, std::string &a
 {
     if (before.length() != 0 && after.length() != 0)
     {
-        if (engine.getClass(before).hasVariable(after))
+        if (!engine.getClass(before).hasVariable(after))
         {
-            if (engine.getClassVariable(before, after).getType() == VariableType::String)
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
-        }
-        else
             error(ErrorCode::TARGET_UNDEFINED, arg1, false);
+            return;
+        }
+
+        State.LastValue = engine.getClassVariable(before, after).getType() == VariableType::String ? Keywords.True : Keywords.False;
     }
     else
     {
@@ -2425,46 +2423,32 @@ void handleNumberInspect(std::string &before, std::string &after, std::string &a
 {
     if (before.length() != 0 && after.length() != 0)
     {
-        if (engine.getClass(before).hasVariable(after))
+        if (!engine.getClass(before).hasVariable(after))
         {
-            if (engine.getClassVariable(before, after).getType() == VariableType::Double)
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
-        }
-        else
             error(ErrorCode::TARGET_UNDEFINED, arg1, false);
+            return;
+        }
+        
+        State.LastValue = engine.getClassVariable(before, after).getType() == VariableType::Double ? Keywords.True : Keywords.False;
     }
     else
     {
         if (engine.variableExists(arg1))
-        {
-            if (engine.isNumber(arg1))
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
-        }
+            State.LastValue = engine.isNumber(arg1) ? Keywords.True : Keywords.False;
         else
-        {
-            if (is_numeric(arg1))
-                State.LastValue = Keywords.True;
-            else
-                State.LastValue = Keywords.False;
-        }
+            State.LastValue = is_numeric(arg1) ? Keywords.True : Keywords.False;
     }
 }
 
 void handleCollectInspect(std::string &arg1)
 {
-    if (engine.variableExists(arg1))
+    if (!engine.variableExists(arg1))
     {
-        if (engine.getVar(arg1).isCollectable())
-            State.LastValue = Keywords.True;
-        else
-            State.LastValue = Keywords.False;
+        error(ErrorCode::TARGET_UNDEFINED, arg1, true);
+        return;
     }
-    else
-        writeline("under construction...");
+
+    State.LastValue = engine.getVar(arg1).isCollectable() ? Keywords.True : Keywords.False;
 }
 
 void handleFileInspect(std::string &before, std::string &after, std::string &arg1)
@@ -2529,54 +2513,28 @@ void handleDirectoryInspect(std::string &before, std::string &after, std::string
 
 void handleListInspect(std::string &arg1)
 {
-    if (engine.listExists(arg1))
-        State.LastValue = Keywords.True;
-    else
-        State.LastValue = Keywords.False;
+    State.LastValue = engine.listExists(arg1) ? Keywords.True : Keywords.False;
 }
 
 void handleVariableInspect(std::string &before, std::string &after, std::string &arg1)
 {
     if (before.length() != 0 && after.length() != 0)
-    {
-        if (engine.getClass(before).hasVariable(after))
-            State.LastValue = Keywords.True;
-        else
-            State.LastValue = Keywords.False;
-    }
+        State.LastValue = engine.getClass(before).hasVariable(after) ? Keywords.True : Keywords.False;
     else
-    {
-        if (engine.variableExists(arg1))
-            State.LastValue = Keywords.True;
-        else
-            State.LastValue = Keywords.False;
-    }
+        State.LastValue = engine.variableExists(arg1) ? Keywords.True : Keywords.False;
 }
 
 void handleClassInspect(std::string &arg1)
 {
-    if (engine.classExists(arg1))
-        State.LastValue = Keywords.True;
-    else
-        State.LastValue = Keywords.False;
+    State.LastValue = engine.classExists(arg1) ? Keywords.True : Keywords.False;
 }
 
 void handleMethodInspect(std::string &before, std::string &after, std::string &arg1)
 {
     if (before.length() != 0 && after.length() != 0)
-    {
-        if (engine.getClass(before).hasMethod(after))
-            State.LastValue = Keywords.True;
-        else
-            State.LastValue = Keywords.False;
-    }
+        State.LastValue = engine.getClass(before).hasMethod(after) ? Keywords.True : Keywords.False;
     else
-    {
-        if (engine.methodExists(arg1))
-            State.LastValue = Keywords.True;
-        else
-            State.LastValue = Keywords.False;
-    }
+        State.LastValue = engine.methodExists(arg1) ? Keywords.True : Keywords.False;
 }
 
 void handleInitialDir(std::string &arg1)

@@ -105,6 +105,7 @@ public:
     std::string varString(std::string s);
     std::string getVariableValueAsString(Variable var);
     std::string getVariableValueAsString(std::string varName);
+    std::string getClassVariableValueAsString(std::string className, std::string varName);
 
     int getMethodCount();
     int getVariableCount();
@@ -187,6 +188,18 @@ void Engine::addArg(std::string arg) { args.push_back(arg); }
 
 void Engine::addToCurrentMethod(std::string s) { getMethod(getMethodCount() - 1).add(s); }
 void Engine::addToCurrentClassMethod(std::string s) { getClass(getClassCount() - 1).addToCurrentMethod(s); }
+
+std::string Engine::getClassVariableValueAsString(std::string className, std::string varName) {
+    std::string text;
+    Variable classVariable = getClassVariable(className, varName);
+
+    if (classVariable.getType() == VariableType::String)
+        text = classVariable.getString();
+    else if (classVariable.getType() == VariableType::Double)
+        text = dtos(classVariable.getNumber());
+
+    return text;
+}
 
 std::string Engine::getVariableValueAsString(Variable var) {
     std::string tmpValue;
@@ -928,9 +941,8 @@ void Engine::gc()
     std::vector<std::string> garbageVars;
 
     for (unsigned i = 0; i < variables.size(); ++i)
-        if (variables.at(i).isCollectable() && !State.ExecutedIfStatement)
-            if (!State.DontCollectMethodVars)
-                garbageVars.push_back(variables.at(i).name());
+        if (variables.at(i).isCollectable() && !State.ExecutedIfStatement && !State.DontCollectMethodVars)
+            garbageVars.push_back(variables.at(i).name());
 
     for (unsigned i = 0; i < garbageVars.size(); ++i)
         removeVariable(garbageVars.at(i));
