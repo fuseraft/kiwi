@@ -81,6 +81,7 @@ struct
     const std::string Mask = "mask";
     const std::string Method = "def";
     const std::string Methods = "methods";
+    const std::string Module = "module";
     const std::string Next = "next";
     const std::string Parser = "parser";
     const std::string Pass = "pass";
@@ -210,6 +211,7 @@ std::unordered_set<std::string> recognized_1space_set = {
     Keywords.LockedMethod,
     Keywords.Loop,
     Keywords.Method,
+    Keywords.Module,
     Keywords.Print,
     Keywords.PrintLn,
     Keywords.Prompt,

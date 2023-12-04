@@ -46,7 +46,7 @@ public:
         if (cString != NULL)
             return std::string(cString);
         else
-            return "[not_available]";
+            return "";
     }
 
     static std::string getUser()
