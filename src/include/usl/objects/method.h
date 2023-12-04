@@ -176,17 +176,9 @@ public:
         return nest;
     }
 
-    void inNest(std::string line)
+    void addToNest(std::string line)
     {
         nest.add(line);
-    }
-
-    std::string nestAt(int index)
-    {
-        if (index < nest.size())
-            return nest.at(index);
-        else
-            return "nothing!!!";
     }
 
     void clear()
