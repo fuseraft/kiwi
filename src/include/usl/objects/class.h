@@ -1,6 +1,5 @@
-class Class : public Collectable
-{
-private:
+class Class : public Collectable {
+  private:
     std::vector<Method> methods;
     std::vector<Variable> variables;
 
@@ -9,83 +8,51 @@ private:
 
     bool collectable;
 
-public:
+  public:
     Class() {}
 
-    Class(std::string name)
-    {
+    Class(std::string name) {
         initialize(name);
         currentMethod = "";
     }
 
-    ~Class()
-    {
-        clear();
-    }
+    ~Class() { clear(); }
 
-    void initialize(std::string name)
-    {
-        currentMethod = "",
-        className = name;
-    }
+    void initialize(std::string name) { currentMethod = "", className = name; }
 
-    void setName(std::string name)
-    {
-        className = name;
-    }
+    void setName(std::string name) { className = name; }
 
-    void setCollectable(bool value) override
-    {
-        collectable = true;
-    }
+    void setCollectable(bool value) override { collectable = true; }
 
-    bool isCollectable() const override
-    {
-        return collectable;
-    }
+    bool isCollectable() const override { return collectable; }
 
-    Method getCurrentMethod()
-    {
-        return getMethod(currentMethod);
-    }
+    Method getCurrentMethod() { return getMethod(currentMethod); }
 
-    void setCurrentMethod(std::string methodName)
-    {
+    void setCurrentMethod(std::string methodName) {
         currentMethod = methodName;
     }
 
-    void setPublic()
-    {
+    void setPublic() {
         if (hasMethod(currentMethod))
             methods.at(methodAt(currentMethod)).setPublic();
     }
 
-    void setPrivate()
-    {
+    void setPrivate() {
         if (hasMethod(currentMethod))
             methods.at(methodAt(currentMethod)).setPrivate();
     }
 
-    void addToCurrentMethod(std::string line)
-    {
+    void addToCurrentMethod(std::string line) {
         if (hasMethod(currentMethod))
             methods.at(methodAt(currentMethod)).add(line);
     }
 
-    int methodSize()
-    {
-        return (int)methods.size();
-    }
+    int methodSize() { return (int)methods.size(); }
 
-    int variableSize()
-    {
-        return (int)variables.size();
-    }
+    int variableSize() { return (int)variables.size(); }
 
-    int methodAt(std::string methodName)
-    {
-        for (int i = 0; i < methodSize(); i++)
-        {
+    int methodAt(std::string methodName) {
+        for (int i = 0; i < methodSize(); i++) {
             if (methods.at(i).name() == methodName)
                 return i;
         }
@@ -93,10 +60,8 @@ public:
         return -1;
     }
 
-    int variableAt(std::string variableName)
-    {
-        for (int i = 0; i < variableSize(); i++)
-        {
+    int variableAt(std::string variableName) {
+        for (int i = 0; i < variableSize(); i++) {
             if (variables.at(i).name() == variableName)
                 return i;
         }
@@ -104,52 +69,40 @@ public:
         return -1;
     }
 
-    std::string getMethodName(int index)
-    {
+    std::string getMethodName(int index) {
         if (index < (int)methods.size())
             return methods.at(index).name();
 
         return "[undefined]";
     }
 
-    std::string getVariableName(int index)
-    {
+    std::string getVariableName(int index) {
         if (index < (int)variables.size())
             return variables.at(index).name();
 
         return "[undefined]";
     }
 
-    void addMethod(Method method)
-    {
+    void addMethod(Method method) {
         if (!method.isBad())
             methods.push_back(method);
     }
 
-    void addVariable(Variable variable)
-    {
+    void addVariable(Variable variable) {
         if (!variable.isBad())
             variables.push_back(variable);
     }
 
-    void clear()
-    {
+    void clear() {
         clearMethods();
         clearVariables();
     }
 
-    void clearMethods()
-    {
-        methods.clear();
-    }
+    void clearMethods() { methods.clear(); }
 
-    void clearVariables()
-    {
-        variables.clear();
-    }
+    void clearVariables() { variables.clear(); }
 
-    void removeVariable(std::string variableName)
-    {
+    void removeVariable(std::string variableName) {
         std::vector<Variable> oldVariables = getVariables();
 
         clearVariables();
@@ -159,8 +112,7 @@ public:
                 variables.push_back(oldVariables.at(i));
     }
 
-    Method getMethod(std::string methodName)
-    {
+    Method getMethod(std::string methodName) {
         for (int i = 0; i < (int)methods.size(); i++)
             if (methods.at(i).name() == methodName)
                 return methods.at(i);
@@ -170,13 +122,9 @@ public:
         return badMethod;
     }
 
-    std::vector<Method> getMethods()
-    {
-        return methods;
-    }
+    std::vector<Method> getMethods() { return methods; }
 
-    Variable getVariable(std::string variableName)
-    {
+    Variable getVariable(std::string variableName) {
         for (int i = 0; i < (int)variables.size(); i++)
             if (variables.at(i).name() == variableName)
                 return variables.at(i);
@@ -186,13 +134,9 @@ public:
         return badVariable;
     }
 
-    std::vector<Variable> getVariables()
-    {
-        return variables;
-    }
+    std::vector<Variable> getVariables() { return variables; }
 
-    bool hasMethod(std::string methodName)
-    {
+    bool hasMethod(std::string methodName) {
         for (int i = 0; i < (int)methods.size(); i++)
             if (methods.at(i).name() == methodName)
                 return true;
@@ -200,13 +144,9 @@ public:
         return false;
     }
 
-    std::string name()
-    {
-        return className;
-    }
+    std::string name() { return className; }
 
-    bool hasVariable(std::string variableName)
-    {
+    bool hasVariable(std::string variableName) {
         for (int i = 0; i < (int)variables.size(); i++)
             if (variables.at(i).name() == variableName)
                 return true;

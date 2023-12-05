@@ -1,42 +1,41 @@
 #ifndef NOCTIS_FILEIO_H
 #define NOCTIS_FILEIO_H
 
-class FileIO
-{
-public:
-    static void appendText(const std::string &target, const std::string &text, bool newLine);
+class FileIO {
+  public:
+    static void appendText(const std::string &target, const std::string &text,
+                           bool newLine);
     static void writeText(const std::string &target, const std::string &text);
-    static std::string readText(const std::string& filePath);
-    static double getFileSize(const std::string& path);
-    static bool directoryExists(const std::string& p);
+    static std::string readText(const std::string &filePath);
+    static double getFileSize(const std::string &path);
+    static bool directoryExists(const std::string &p);
     static bool fileExists(const std::string &p);
     static void appendToFile(const std::string &p, const std::string &a);
     static void createFile(const std::string &p);
     static void makeDirectory(const std::string &p);
     static void removeDirectory(const std::string &p);
     static void removeFile(const std::string &p);
-    static std::vector<std::string> getDirectoryContents(const std::string &path, bool filesOnly);
+    static std::vector<std::string>
+    getDirectoryContents(const std::string &path, bool filesOnly);
     static void changeDirectory(const std::string &p);
     static std::string getCurrentDirectory();
 };
 
-std::string FileIO::getCurrentDirectory()
-{
+std::string FileIO::getCurrentDirectory() {
     char tmp[PATH_MAX];
 
     return getcwd(tmp, PATH_MAX) ? std::string(tmp) : std::string("");
 }
 
-void FileIO::changeDirectory(const std::string &p)
-{
+void FileIO::changeDirectory(const std::string &p) {
     if (p == Keywords.InitialDirectory)
         changeDirectory(State.InitialDirectory);
     else if (chdir(p.c_str()) != 0)
         error(ErrorCode::READ_FAIL, p, false);
 }
 
-std::vector<std::string> FileIO::getDirectoryContents(const std::string &path, bool filesOnly)
-{
+std::vector<std::string> FileIO::getDirectoryContents(const std::string &path,
+                                                      bool filesOnly) {
     const std::string PathSeparator = "/";
     std::vector<std::string> newList;
 
@@ -45,12 +44,10 @@ std::vector<std::string> FileIO::getDirectoryContents(const std::string &path, b
 
     std::string dir = path;
 
-    if ((pd = opendir(dir.c_str())) != NULL)
-    {
-        while ((pe = readdir(pd)) != NULL)
-        {
-            if (std::string(pe->d_name) != Keywords.Dot && std::string(pe->d_name) != Keywords.RangeSeparator)
-            {
+    if ((pd = opendir(dir.c_str())) != NULL) {
+        while ((pe = readdir(pd)) != NULL) {
+            if (std::string(pe->d_name) != Keywords.Dot &&
+                std::string(pe->d_name) != Keywords.RangeSeparator) {
                 std::string tmp;
 
                 if (dir == PathSeparator)
@@ -58,17 +55,12 @@ std::vector<std::string> FileIO::getDirectoryContents(const std::string &path, b
 
                 tmp = dir + PathSeparator + std::string(pe->d_name);
 
-                if (filesOnly)
-                {
-                    if (FileIO::fileExists(tmp))
-                    {
+                if (filesOnly) {
+                    if (FileIO::fileExists(tmp)) {
                         newList.push_back(tmp);
                     }
-                }
-                else
-                {
-                    if (FileIO::directoryExists(tmp))
-                    {
+                } else {
+                    if (FileIO::directoryExists(tmp)) {
                         newList.push_back(tmp);
                     }
                 }
@@ -81,7 +73,7 @@ std::vector<std::string> FileIO::getDirectoryContents(const std::string &path, b
     return newList;
 }
 
-double FileIO::getFileSize(const std::string& path) {
+double FileIO::getFileSize(const std::string &path) {
     std::ifstream file(path, std::ios::binary);
 
     if (!file.is_open()) {
@@ -101,7 +93,7 @@ double FileIO::getFileSize(const std::string& path) {
     return static_cast<double>(fileSize);
 }
 
-std::string FileIO::readText(const std::string& filePath) {
+std::string FileIO::readText(const std::string &filePath) {
     std::ifstream file(filePath, std::ios::in | std::ios::binary);
 
     if (!file) {
@@ -116,10 +108,9 @@ std::string FileIO::readText(const std::string& filePath) {
     return content.str();
 }
 
-void FileIO::appendText(const std::string &target, const std::string &text, bool newLine)
-{
-    if (!fileExists(target))
-    {
+void FileIO::appendText(const std::string &target, const std::string &text,
+                        bool newLine) {
+    if (!fileExists(target)) {
         error(ErrorCode::READ_FAIL, target, false);
         return;
     }
@@ -130,43 +121,35 @@ void FileIO::appendText(const std::string &target, const std::string &text, bool
         appendToFile(target, text);
 }
 
-void FileIO::makeDirectory(const std::string &p)
-{
+void FileIO::makeDirectory(const std::string &p) {
     if (mkdir(p.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
         error(ErrorCode::MAKE_DIR_FAIL, p, false);
 }
 
-void FileIO::removeDirectory(const std::string &p)
-{
+void FileIO::removeDirectory(const std::string &p) {
     if (rmdir(p.c_str()) != 0)
         error(ErrorCode::REMOVE_DIR_FAIL, p, false);
 }
 
-void FileIO::removeFile(const std::string &p)
-{
+void FileIO::removeFile(const std::string &p) {
     if (remove(p.c_str()) != 0)
         error(ErrorCode::REMOVE_FILE_FAIL, p, false);
 }
 
-bool FileIO::directoryExists(const std::string &p)
-{
+bool FileIO::directoryExists(const std::string &p) {
     DIR *pd;
     if ((pd = opendir(p.c_str())) == NULL)
         return false;
-    else
-    {
+    else {
         closedir(pd);
         return true;
     }
 }
 
-bool FileIO::fileExists(const std::string &p)
-{
-    if (!directoryExists(p))
-    {
+bool FileIO::fileExists(const std::string &p) {
+    if (!directoryExists(p)) {
         std::ifstream f(p.c_str());
-        if (f.is_open())
-        {
+        if (f.is_open()) {
             f.close();
             return true;
         }
@@ -175,8 +158,7 @@ bool FileIO::fileExists(const std::string &p)
     return false;
 }
 
-void FileIO::createFile(const std::string &p)
-{
+void FileIO::createFile(const std::string &p) {
     std::ofstream f(p.c_str(), std::ios::out);
 
     if (f.is_open())
@@ -185,12 +167,10 @@ void FileIO::createFile(const std::string &p)
         error(ErrorCode::CREATE_FILE_FAIL, p, true);
 }
 
-void FileIO::appendToFile(const std::string &p, const std::string &a)
-{
+void FileIO::appendToFile(const std::string &p, const std::string &a) {
     std::ofstream f(p.c_str(), std::ios::out | std::ios::app);
 
-    if (!f.is_open())
-    {
+    if (!f.is_open()) {
         error(ErrorCode::READ_FAIL, p, true);
         return;
     }
@@ -198,8 +178,7 @@ void FileIO::appendToFile(const std::string &p, const std::string &a)
     std::string cleaned;
     int l = a.length();
 
-    for (int i = 0; i < l; i++)
-    {
+    for (int i = 0; i < l; i++) {
         if (a[i] == '\\' && a[i + 1] == 'n')
             cleaned.push_back('\r');
         else if (a[i] == 'n' && a[i - 1] == '\\')
@@ -208,13 +187,9 @@ void FileIO::appendToFile(const std::string &p, const std::string &a)
             cleaned.push_back('\t');
         else if (a[i] == '\'' && a[i - 1] == '\\')
             cleaned.push_back('\"');
-        else if (a[i] == '\\' && a[i + 1] == 't')
-        {
-        }
-        else if (a[i] == '\\' && a[i + 1] == '\'')
-        {
-        }
-        else
+        else if (a[i] == '\\' && a[i + 1] == 't') {
+        } else if (a[i] == '\\' && a[i + 1] == '\'') {
+        } else
             cleaned.push_back(a[i]);
     }
 
@@ -222,15 +197,11 @@ void FileIO::appendToFile(const std::string &p, const std::string &a)
     f.close();
 }
 
-void FileIO::writeText(const std::string &target, const std::string &text)
-{
-    if (fileExists(target))
-    {
+void FileIO::writeText(const std::string &target, const std::string &text) {
+    if (fileExists(target)) {
         appendToFile(target, text + "\r\n");
         State.LastValue = "0";
-    }
-    else
-    {
+    } else {
         createFile(target);
         appendToFile(target, text + "\r\n");
         State.LastValue = "1";

@@ -1,93 +1,45 @@
-class Container
-{
-private:
+class Container {
+  private:
     std::vector<std::string> lines;
-    std::string containerName,
-        value;
+    std::string containerName, value;
     bool isNestedIF;
     bool _isBad;
 
-public:
+  public:
     Container() {}
 
-    Container(std::string name)
-    {
-        initialize(name);
-    }
+    Container(std::string name) { initialize(name); }
 
-    ~Container()
-    {
-        clear();
-    }
+    ~Container() { clear(); }
 
-    void setName(std::string name)
-    {
-        containerName = name;
-    }
+    void setName(std::string name) { containerName = name; }
 
-    void add(std::string line)
-    {
-        lines.push_back(line);
-    }
+    void add(std::string line) { lines.push_back(line); }
 
-    void setValue(std::string val)
-    {
-        value = val;
-    }
+    void setValue(std::string val) { value = val; }
 
-    std::string getCase()
-    {
-        return value;
-    }
+    std::string getCase() { return value; }
 
-    std::string at(int index)
-    {
-        return lines.at(index);
-    }
+    std::string at(int index) { return lines.at(index); }
 
-    void clear()
-    {
-        lines.clear();
-    }
+    void clear() { lines.clear(); }
 
-    std::vector<std::string> getLines()
-    {
-        return lines;
-    }
+    std::vector<std::string> getLines() { return lines; }
 
-    void initialize(std::string name)
-    {
+    void initialize(std::string name) {
         containerName = name;
         isNestedIF = false;
     }
 
-    std::string name()
-    {
-        return containerName;
-    }
+    std::string name() { return containerName; }
 
-    int size()
-    {
-        return (int)lines.size();
-    }
+    int size() { return (int)lines.size(); }
 
-    bool isIF()
-    {
-        return isNestedIF;
-    }
+    bool isIF() { return isNestedIF; }
 
-    void setBool(bool b)
-    {
-        isNestedIF = b;
-    }
+    void setBool(bool b) { isNestedIF = b; }
 
-    bool isBad()
-    {
-        return _isBad;
-    }
+    bool isBad() { return _isBad; }
 
-    void setIsBad(bool value)
-    {
-        _isBad = value;
-    }
+    void setIsBad(bool value) { _isBad = value; }
 };

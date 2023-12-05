@@ -1,32 +1,17 @@
 #include "variable.h"
 
-class Method
-{
-private:
+class Method {
+  private:
     std::vector<Variable> methodVariables;
     std::vector<std::string> lines;
 
-    std::string logicOperatorValue,
-        methodName,
-        className,
-        symbolString,
-        valueOne_,
-        valueTwo_;
+    std::string logicOperatorValue, methodName, className, symbolString,
+        valueOne_, valueTwo_;
 
-    bool isForLoop_,
-        isIF_,
-        isIndestructible,
-        isInfinite_,
-        isListLoop_,
-        isPrivate_,
-        isPublic_,
-        isTemplate_,
-        isWhileLoop_,
-        isBad_;
+    bool isForLoop_, isIF_, isIndestructible, isInfinite_, isListLoop_,
+        isPrivate_, isPublic_, isTemplate_, isWhileLoop_, isBad_;
 
-    int startValue,
-        stopValue,
-        templateClasses;
+    int startValue, stopValue, templateClasses;
 
     List list;
 
@@ -34,312 +19,158 @@ private:
 
     char defaultSymbol;
 
-public:
+  public:
     Method() {}
 
-    Method(std::string name)
-    {
-        initialize(name);
-    }
+    Method(std::string name) { initialize(name); }
 
-    Method(std::string name, bool isTemplate)
-    {
+    Method(std::string name, bool isTemplate) {
         initialize(name);
         isTemplate_ = isTemplate;
     }
 
-    ~Method()
-    {
-    }
+    ~Method() {}
 
-    void setClass(std::string name)
-    {
-        className = name;
-    }
+    void setClass(std::string name) { className = name; }
 
-    void setIndestructible(bool value)
-    {
-        isIndestructible = value;
-    }
+    void setIndestructible(bool value) { isIndestructible = value; }
 
-    bool indestructible()
-    {
-        return isIndestructible;
-    }
+    bool indestructible() { return isIndestructible; }
 
-    std::string getClass()
-    {
-        return className;
-    }
+    std::string getClass() { return className; }
 
     /**
      * symbol is the variable containing the current iteration value.
      */
-    void setSymbol(std::string symbol)
-    {
-        symbolString = symbol;
-    }
+    void setSymbol(std::string symbol) { symbolString = symbol; }
 
     /**
      * symbol is the variable containing the current iteration value.
      */
-    void setDefaultSymbol(std::string symbol)
-    {
-        defaultSymbol = symbol[0];
-    }
+    void setDefaultSymbol(std::string symbol) { defaultSymbol = symbol[0]; }
 
-    std::string getSymbolString()
-    {
-        return symbolString;
-    }
+    std::string getSymbolString() { return symbolString; }
 
-    char getDefaultSymbol()
-    {
-        return defaultSymbol;
-    }
+    char getDefaultSymbol() { return defaultSymbol; }
 
-    void setPrivate()
-    {
+    void setPrivate() {
         isPrivate_ = true;
         isPublic_ = false;
     }
 
-    void setPublic()
-    {
+    void setPublic() {
         isPublic_ = true;
         isPrivate_ = false;
     }
 
-    bool isPublic()
-    {
-        return isPublic_;
-    }
+    bool isPublic() { return isPublic_; }
 
-    bool isPrivate() const
-    {
-        return isPrivate_;
-    }
+    bool isPrivate() const { return isPrivate_; }
 
-    bool isTemplate()
-    {
-        return isTemplate_;
-    }
+    bool isTemplate() { return isTemplate_; }
 
-    std::vector<Variable> getMethodVariables()
-    {
-        return methodVariables;
-    }
+    std::vector<Variable> getMethodVariables() { return methodVariables; }
 
-    void setName(std::string name)
-    {
-        methodName = name;
-    }
+    void setName(std::string name) { methodName = name; }
 
-    void add(std::string line)
-    {
-        lines.push_back(line);
-    }
+    void add(std::string line) { lines.push_back(line); }
 
-    void addMethodVariable(std::string value, std::string variableName)
-    {
+    void addMethodVariable(std::string value, std::string variableName) {
         Variable newVariable(variableName, value);
         methodVariables.push_back(newVariable);
     }
 
-    void addMethodVariable(double value, std::string variableName)
-    {
+    void addMethodVariable(double value, std::string variableName) {
         Variable newVariable(variableName, value);
         methodVariables.push_back(newVariable);
     }
 
-    void addMethodVariable(Variable variable)
-    {
+    void addMethodVariable(Variable variable) {
         methodVariables.push_back(variable);
     }
 
-    std::string at(int index)
-    {
+    std::string at(int index) {
         if (index < (int)lines.size())
             return lines.at(index);
 
         return "#!=no_line";
     }
 
-    void buildNest()
-    {
+    void buildNest() {
         Container newNest(methodName + "<nest>");
         nest = newNest;
     }
 
-    Container getNest()
-    {
-        return nest;
-    }
+    Container getNest() { return nest; }
 
-    void addToNest(std::string line)
-    {
-        nest.add(line);
-    }
+    void addToNest(std::string line) { nest.add(line); }
 
-    void clear()
-    {
+    void clear() {
         lines.clear();
         methodVariables.clear();
     }
 
-    std::vector<std::string> getLines()
-    {
-        return lines;
-    }
+    std::vector<std::string> getLines() { return lines; }
 
-    void initialize(std::string name)
-    {
+    void initialize(std::string name) {
         defaultSymbol = '$';
-        logicOperatorValue = "",
-        methodName = name,
-        className = "",
-        symbolString = "$",
-        valueOne_ = "",
-        valueTwo_ = "";
-        isForLoop_ = false,
-        isIF_ = false,
-        isIndestructible = false,
-        isInfinite_ = false,
-        isListLoop_ = false,
-        isPublic_ = false,
-        isPrivate_ = false,
-        isTemplate_ = false,
-        isWhileLoop_ = false;
-        startValue = 0,
-        stopValue = 0,
-        templateClasses = 0;
+        logicOperatorValue = "", methodName = name, className = "",
+        symbolString = "$", valueOne_ = "", valueTwo_ = "";
+        isForLoop_ = false, isIF_ = false, isIndestructible = false,
+        isInfinite_ = false, isListLoop_ = false, isPublic_ = false,
+        isPrivate_ = false, isTemplate_ = false, isWhileLoop_ = false;
+        startValue = 0, stopValue = 0, templateClasses = 0;
     }
 
-    void setIsBad(bool value)
-    {
-        isBad_ = value;
+    void setIsBad(bool value) { isBad_ = value; }
+
+    bool isBad() { return isBad_; }
+
+    std::string name() { return methodName; }
+
+    void setTemplateSize(int size) { templateClasses = size; }
+
+    int getTemplateSize() { return templateClasses; }
+
+    int size() { return (int)lines.size(); }
+
+    bool isIF() { return isIF_; }
+
+    bool isForLoop() { return isForLoop_; }
+
+    bool isWhileLoop() { return isWhileLoop_; }
+
+    bool isInfinite() { return isInfinite_; }
+
+    int start() { return startValue; }
+
+    int stop() { return stopValue; }
+
+    std::string valueOne() { return valueOne_; }
+
+    std::string valueTwo() { return valueTwo_; }
+
+    std::string logicOperator() { return logicOperatorValue; }
+
+    void setInfinite() { isInfinite_ = true; }
+
+    void setBool(bool b) { isIF_ = b; }
+
+    void setFor(bool b) { isForLoop_ = b; }
+
+    void setWhile(bool b) { isWhileLoop_ = b; }
+
+    void setWhileValues(std::string v1, std::string op, std::string v2) {
+        valueOne_ = v1, logicOperatorValue = op, valueTwo_ = v2;
     }
 
-    bool isBad()
-    {
-        return isBad_;
-    }
+    void setForValues(int a, int b) { startValue = a, stopValue = b; }
 
-    std::string name()
-    {
-        return methodName;
-    }
+    void setForList(List l) { list = l; }
 
-    void setTemplateSize(int size)
-    {
-        templateClasses = size;
-    }
+    bool isListLoop() { return isListLoop_; }
 
-    int getTemplateSize()
-    {
-        return templateClasses;
-    }
+    void setListLoop() { isListLoop_ = true; }
 
-    int size()
-    {
-        return (int)lines.size();
-    }
-
-    bool isIF()
-    {
-        return isIF_;
-    }
-
-    bool isForLoop()
-    {
-        return isForLoop_;
-    }
-
-    bool isWhileLoop()
-    {
-        return isWhileLoop_;
-    }
-
-    bool isInfinite()
-    {
-        return isInfinite_;
-    }
-
-    int start()
-    {
-        return startValue;
-    }
-
-    int stop()
-    {
-        return stopValue;
-    }
-
-    std::string valueOne()
-    {
-        return valueOne_;
-    }
-
-    std::string valueTwo()
-    {
-        return valueTwo_;
-    }
-
-    std::string logicOperator()
-    {
-        return logicOperatorValue;
-    }
-
-    void setInfinite()
-    {
-        isInfinite_ = true;
-    }
-
-    void setBool(bool b)
-    {
-        isIF_ = b;
-    }
-
-    void setFor(bool b)
-    {
-        isForLoop_ = b;
-    }
-
-    void setWhile(bool b)
-    {
-        isWhileLoop_ = b;
-    }
-
-    void setWhileValues(std::string v1, std::string op, std::string v2)
-    {
-        valueOne_ = v1,
-        logicOperatorValue = op,
-        valueTwo_ = v2;
-    }
-
-    void setForValues(int a, int b)
-    {
-        startValue = a,
-        stopValue = b;
-    }
-
-    void setForList(List l)
-    {
-        list = l;
-    }
-
-    bool isListLoop()
-    {
-        return isListLoop_;
-    }
-
-    void setListLoop()
-    {
-        isListLoop_ = true;
-    }
-
-    List getList()
-    {
-        return list;
-    }
+    List getList() { return list; }
 };
