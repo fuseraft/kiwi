@@ -31,8 +31,7 @@ void handleClassInspect(std::string &arg1);
 void handleMethodInspect(std::string &before, std::string &after,
                          std::string &arg1);
 void handleInitialDir(std::string &arg1);
-void handleInlineShellExec(std::string &arg1,
-                           std::vector<std::string> &command);
+void handleInlineShellExec(std::string &arg1);
 void handleInlineParse(std::string &arg1);
 void handleListDecl(std::string &arg1);
 void handleChangeDir(std::string &arg1);
@@ -45,8 +44,7 @@ void handleIfStatement(std::string &arg1);
 void handleGoto(std::string &arg1);
 void handleSwitch(std::string &arg1);
 void interp_clear_command(std::string &arg);
-void handleError(ErrorCode errorType, const std::string variableName,
-                 bool isMethod);
+void handleError(ErrorCode errorType, const std::string variableName);
 void handleIfStatementDecl_Generic(std::string first, std::string second,
                                    std::string oper);
 void handleIfStatementDecl_Method(std::string arg1, std::string arg1Result,
@@ -110,13 +108,12 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
               std::vector<std::string> &command, int &count, char &prevChar,
               std::string &bigString, bool &uncomment, bool &broken,
               StringList &StringList);
-void zeroSpace(std::string arg0, std::vector<std::string> command);
-void oneSpace(std::string arg0, std::string arg1,
-              std::vector<std::string> command);
+void zeroSpace(std::string arg0);
+void oneSpace(std::string arg0, std::string arg1);
 void twoSpace(std::string arg0, std::string arg1, std::string arg2,
               std::vector<std::string> command);
 void threeSpace(std::string arg0, std::string arg1, std::string arg2,
-                std::string arg3, std::vector<std::string> command);
+                std::string arg3);
 
 template <typename condition>
 void interp_whileloop(std::string v1, std::string v2, condition cond);
@@ -127,7 +124,7 @@ void interp_forloopmethod(Method &m, std::string iterVal);
 void preparse_methodline(std::string &tmp, Method &m, std::string &cleanString,
                          std::string iterVal);
 
-void handleLoopInit_For(std::string &arg1, std::string &arg2, std::string &arg3,
+void handleLoopInit_For(std::string &arg1, std::string &arg3,
                         std::string &arg0);
 
 void handleLoopInit_ForIn(std::string &arg1, std::string &arg3,
@@ -161,7 +158,7 @@ int load_repl();
 std::string get_prompt();
 
 void interp_env_rhs(std::string arg1, std::string after, int mode);
-void interp_internal_puts(std::string arg0, std::string arg1, bool newline);
+void interp_internal_puts(std::string arg1, bool newline);
 
 std::string pre_parse(std::string st);
 
@@ -176,16 +173,13 @@ void writeline(std::string st);
 void setList(std::string listName, std::string methodName,
              std::vector<std::string> params);
 
-void interp_class_clone(std::string arg0, std::string arg1, std::string arg2,
-                        std::vector<std::string> command);
+void interp_class_clone(std::string arg0, std::string arg1, std::string arg2);
 void initializeVariable(std::string arg0, std::string arg1, std::string arg2,
                         std::vector<std::string> command);
-void init_listvalues(std::string arg0, std::string arg1, std::string arg2,
-                     std::vector<std::string> command);
+void init_listvalues(std::string arg0, std::string arg1, std::string arg2);
 void init_globalvar(std::string arg0, std::string arg1, std::string arg2,
                     std::vector<std::string> command);
-void interp_init_classvar(std::string arg0, std::string arg1, std::string arg2,
-                          std::vector<std::string> command);
+void interp_init_classvar(std::string arg0, std::string arg1, std::string arg2);
 void interp_init_const(std::string arg0, std::string arg1, std::string arg2);
 void interp_mathfunc(std::string arg0, std::string before, std::string after);
 void interp_mathfunc_assignfromvar(std::string arg0, std::string before,
@@ -206,6 +200,6 @@ bool is_stackable(std::string &temporaryBuild);
 bool stackReady(std::string arg2);
 std::string getStringStack(std::string arg2);
 
-void error(ErrorCode errorType, std::string errorInfo, bool quit);
+void error(ErrorCode errorType, std::string errorInfo);
 
 #endif
