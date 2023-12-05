@@ -1,27 +1,27 @@
 #ifndef NOCTIS_RNG_H
 #define NOCTIS_RNG_H
 
+#include <ctime>
 #include <iostream>
 #include <random>
-#include <ctime>
 
 class RNG {
-public:
-    static RNG& getInstance();
+  public:
+    static RNG &getInstance();
     double random(double from, double to);
 
-private:
+  private:
     RNG();
     std::mt19937 generator; // Mersenne Twister engine
 };
 
-RNG& RNG::getInstance() {
+RNG &RNG::getInstance() {
     static RNG instance;
     return instance;
 }
 
 RNG::RNG() {
-    std::seed_seq seed{ static_cast<unsigned>(std::time(0)) };
+    std::seed_seq seed{static_cast<unsigned>(std::time(0))};
     generator.seed(seed);
 }
 

@@ -35,8 +35,7 @@ void print_underconstruction() {
 #include "parsing/parser.h"
 #include "usl/core.h"
 
-int uslang(int c, char **v)
-{
+int uslang(int c, char **v) {
     RNG::getInstance();
 
     std::string usl(v[0]), opt, script;
@@ -44,87 +43,76 @@ int uslang(int c, char **v)
 
     State.InitialDirectory = FileIO::getCurrentDirectory();
 
-    switch (c)
-    {
-        case 1:
-            engine.addArg(usl);
+    switch (c) {
+    case 1:
+        engine.addArg(usl);
+        return load_repl();
+
+    case 2:
+        opt = v[1];
+
+        if (is_script(opt)) {
+            engine.addArg(opt);
+            engine.loadScript(opt);
+        } else if (is(opt, "h") || is(opt, "help"))
+            help(usl);
+        else if (is(opt, "v") || is(opt, "version"))
+            show_version();
+        else {
+            engine.addArg(opt);
+            return load_repl();
+        }
+
+        break;
+
+    case 3:
+        opt = v[1], script = v[2];
+
+        if (is(opt, "p") || is(opt, "parse")) {
+            std::string code;
+
+            for (int i = 0; i < (int)script.length(); i++) {
+                if (script[i] == '\'')
+                    code.push_back('\"');
+                else
+                    code.push_back(script[i]);
+            }
+
+            parse(code);
+        } else {
+            engine.addArg(opt);
+            engine.addArg(script);
+
+            if (is_script(opt))
+                engine.loadScript(opt);
+            else
+                return load_repl();
+        }
+
+        break;
+
+    default:
+        if (c < 3) {
+            help(usl);
+            break;
+        }
+
+        opt = v[1];
+
+        for (int i = is_script(opt) ? 2 : 1; i < c; i++) {
+            std::string arg(v[i]);
+            engine.addArg(arg);
+        }
+
+        if (is_script(opt))
+            engine.loadScript(opt);
+        else
             return load_repl();
 
-        case 2:
-            opt = v[1];
-
-            if (is_script(opt))
-            {
-                engine.addArg(opt);
-                engine.loadScript(opt);
-            }
-            else if (is(opt, "h") || is(opt, "help"))
-                help(usl);
-            else if (is(opt, "v") || is(opt, "version"))
-                show_version();
-            else
-            {
-                engine.addArg(opt);
-                return load_repl();
-            }
-
-            break;
-
-        case 3:
-            opt = v[1], script = v[2];
-
-            if (is(opt, "p") || is(opt, "parse"))
-            {
-                std::string code;
-
-                for (int i = 0; i < (int)script.length(); i++)
-                {
-                    if (script[i] == '\'')
-                        code.push_back('\"');
-                    else
-                        code.push_back(script[i]);
-                }
-
-                parse(code);
-            }
-            else
-            {
-                engine.addArg(opt);
-                engine.addArg(script);
-                    
-                if (is_script(opt))
-                    engine.loadScript(opt);
-                else
-                    return load_repl();
-            }
-
-            break;
-
-        default:
-            if (c < 3)
-            {
-                help(usl);
-                break;
-            }
-            
-            opt = v[1];
-
-            for (int i = is_script(opt) ? 2 : 1; i < c; i++)
-            {
-                std::string arg(v[i]);
-                engine.addArg(arg);
-            }
-
-            if (is_script(opt))
-                engine.loadScript(opt);
-            else
-                return load_repl();
-
-            break;
+        break;
     }
 
-    if (State.CurrentScript != usl)
-    {
+    if (State.CurrentScript != usl) {
         exec.executeScript();
     }
 

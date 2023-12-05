@@ -1,8 +1,7 @@
 #ifndef NOCTIS_STATE_H
 #define NOCTIS_STATE_H
 
-struct
-{
+struct {
     std::string InitialDirectory;
     bool CaptureParse;
     std::string ParsedOutput;

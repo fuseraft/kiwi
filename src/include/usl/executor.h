@@ -3,48 +3,44 @@
 
 #include "memory.h"
 
-class Executor
-{
-private:
+class Executor {
+  private:
     Engine &mem;
 
-public:
+  public:
     Executor(Engine &mem_) : mem(mem_) {}
     ~Executor();
 
     void executeWhileLoop(Method m);
     void executeMethod(Method m);
-    void executeMethod(std::string methodName, std::string className, std::string classMethodName);
+    void executeMethod(std::string methodName, std::string className,
+                       std::string classMethodName);
     void executeNest(Container n);
     void executeForLoop(Method m);
-    void executeTemplate(Method m, std::vector<std::string> vs);
-    void executeSimpleStatement(std::string left, std::string oper, std::string right);
+    void executeTemplate(Method m, std::vector<std::string> strings);
+    void executeSimpleStatement(std::string left, std::string oper,
+                                std::string right);
     void executeScript();
 };
 
 Executor::~Executor() {}
 
-void Executor::executeScript()
-{
+void Executor::executeScript() {
     Script script = mem.getScript();
 
-    for (int i = 0; i < script.size(); i++)
-    {
+    for (int i = 0; i < script.size(); i++) {
         State.CurrentLineNumber = i + 1;
 
         if (!State.GoToLabel)
             parse(script.at(i));
-        else
-        {
+        else {
             bool startParsing = false;
             State.DefiningIfStatement = false;
             State.DefiningForLoop = false;
             State.GoToLabel = false;
 
-            for (int z = 0; z < mem.getScript().size(); z++)
-            {
-                if (ends_with(mem.getScript().at(z), "::"))
-                {
+            for (int z = 0; z < mem.getScript().size(); z++) {
+                if (ends_with(mem.getScript().at(z), "::")) {
                     std::string s(mem.getScript().at(z));
                     s = subtract_string(s, "::");
 
@@ -61,10 +57,9 @@ void Executor::executeScript()
     State.CurrentScript = State.PreviousScript;
 }
 
-void Executor::executeSimpleStatement(std::string left, std::string oper, std::string right)
-{
-    if (is_numeric(left) && is_numeric(right))
-    {
+void Executor::executeSimpleStatement(std::string left, std::string oper,
+                                      std::string right) {
+    if (is_numeric(left) && is_numeric(right)) {
         if (oper == Operators.Add)
             writeline(dtos(stod(left) + stod(right)));
         else if (oper == Operators.Subtract)
@@ -75,48 +70,40 @@ void Executor::executeSimpleStatement(std::string left, std::string oper, std::s
             writeline(dtos(stod(left) / stod(right)));
         else if (oper == Operators.Exponent)
             writeline(dtos(pow(stod(left), stod(right))));
-        else if (oper == Operators.Modulus)
-        {
+        else if (oper == Operators.Modulus) {
             if ((int)stod(right) == 0)
-                error(ErrorCode::DIVIDED_BY_ZERO, left + " " + oper + " " + right, false);
+                error(ErrorCode::DIVIDED_BY_ZERO,
+                      left + " " + oper + " " + right, false);
             else
                 writeline(dtos((int)stod(left) % (int)stod(right)));
-        }
-        else
+        } else
             error(ErrorCode::INVALID_OPERATOR, oper, false);
-    }
-    else
-    {
+    } else {
         if (oper == Operators.Add)
             writeline(left + right);
         else if (oper == Operators.Subtract)
             writeline(subtract_string(left, right));
-        else if (oper == Operators.Multiply)
-        {
-            if (is_numberless(right))
-            {
+        else if (oper == Operators.Multiply) {
+            if (is_numberless(right)) {
                 error(ErrorCode::INVALID_OP, oper, false);
                 return;
             }
 
             std::string bigstr;
-            for (int i = 0; i < stoi(right); i++)
-            {
+            for (int i = 0; i < stoi(right); i++) {
                 bigstr.append(left);
                 write(left);
             }
 
             State.LastValue = bigstr;
-        }
-        else if (oper == Operators.Divide)
+        } else if (oper == Operators.Divide)
             writeline(subtract_string(left, right));
         else
             error(ErrorCode::INVALID_OPERATOR, oper, false);
     }
 }
 
-void Executor::executeTemplate(Method m, std::vector<std::string> strings)
-{
+void Executor::executeTemplate(Method m, std::vector<std::string> strings) {
     std::vector<std::string> methodLines;
 
     State.ExecutedTemplate = true;
@@ -125,47 +112,42 @@ void Executor::executeTemplate(Method m, std::vector<std::string> strings)
 
     std::vector<Variable> methodVariables = m.getMethodVariables();
 
-    for (int i = 0; i < (int)methodVariables.size(); i++)
-    {
-        if (mem.variableExists(strings.at(i)))
-        {
+    for (int i = 0; i < (int)methodVariables.size(); i++) {
+        if (mem.variableExists(strings.at(i))) {
             if (mem.isString(strings.at(i)))
-                mem.createVariable(methodVariables.at(i).name(), mem.varString(strings.at(i)));
+                mem.createVariable(methodVariables.at(i).name(),
+                                   mem.varString(strings.at(i)));
             else if (mem.isNumber(strings.at(i)))
-                mem.createVariable(methodVariables.at(i).name(), mem.varNumber(strings.at(i)));
-        }
-        else if (mem.methodExists(strings.at(i)))
-        {
+                mem.createVariable(methodVariables.at(i).name(),
+                                   mem.varNumber(strings.at(i)));
+        } else if (mem.methodExists(strings.at(i))) {
             parse(strings.at(i));
 
             if (is_numeric(State.LastValue))
-                mem.createVariable(methodVariables.at(i).name(), stod(State.LastValue));
+                mem.createVariable(methodVariables.at(i).name(),
+                                   stod(State.LastValue));
             else
-                mem.createVariable(methodVariables.at(i).name(), State.LastValue);
-        }
-        else
-        {
+                mem.createVariable(methodVariables.at(i).name(),
+                                   State.LastValue);
+        } else {
             if (is_numeric(strings.at(i)))
-                mem.createVariable(methodVariables.at(i).name(), stod(strings.at(i)));
+                mem.createVariable(methodVariables.at(i).name(),
+                                   stod(strings.at(i)));
             else
                 mem.createVariable(methodVariables.at(i).name(), strings.at(i));
         }
     }
 
-    for (int i = 0; i < (int)m.size(); i++)
-    {
+    for (int i = 0; i < (int)m.size(); i++) {
         std::string line = m.at(i), word;
         int len = line.length();
         std::vector<std::string> words;
 
-        for (int x = 0; x < len; x++)
-        {
-            if (line[x] == ' ')
-            {
+        for (int x = 0; x < len; x++) {
+            if (line[x] == ' ') {
                 words.push_back(word);
                 word.clear();
-            }
-            else
+            } else
                 word.push_back(line[x]);
         }
 
@@ -173,17 +155,14 @@ void Executor::executeTemplate(Method m, std::vector<std::string> strings)
 
         std::vector<std::string> newWords;
 
-        for (int x = 0; x < (int)words.size(); x++)
-        {
+        for (int x = 0; x < (int)words.size(); x++) {
             bool found = false;
 
-            for (int a = 0; a < (int)strings.size(); a++)
-            {
+            for (int a = 0; a < (int)strings.size(); a++) {
                 std::string variableString("$");
                 variableString.append(itos(a));
 
-                if (words.at(x) == variableString)
-                {
+                if (words.at(x) == variableString) {
                     found = true;
 
                     newWords.push_back(strings.at(a));
@@ -196,8 +175,7 @@ void Executor::executeTemplate(Method m, std::vector<std::string> strings)
 
         std::string freshLine;
 
-        for (int b = 0; b < (int)newWords.size(); b++)
-        {
+        for (int b = 0; b < (int)newWords.size(); b++) {
             freshLine.append(newWords.at(b));
 
             if (b != (int)newWords.size() - 1)
@@ -210,19 +188,16 @@ void Executor::executeTemplate(Method m, std::vector<std::string> strings)
     for (int i = 0; i < (int)methodLines.size(); i++)
         parse(methodLines.at(i));
 
-    State.ExecutedTemplate = false,
-    State.DontCollectMethodVars = false;
+    State.ExecutedTemplate = false, State.DontCollectMethodVars = false;
 
     mem.gc();
 }
 
-void Executor::executeNest(Container n)
-{
+void Executor::executeNest(Container n) {
     State.DefiningNest = false;
     State.DefiningIfStatement = false;
 
-    for (int i = 0; i < n.size(); i++)
-    {
+    for (int i = 0; i < n.size(); i++) {
         if (!State.FailedNest)
             parse(n.at(i));
         else
@@ -232,21 +207,19 @@ void Executor::executeNest(Container n)
     State.DefiningIfStatement = true;
 }
 
-void Executor::executeMethod(std::string methodName, std::string className, std::string classMethodName)
-{
-    if (State.DefiningClass)
-    {
+void Executor::executeMethod(std::string methodName, std::string className,
+                             std::string classMethodName) {
+    if (State.DefiningClass) {
         if (mem.getClass(State.CurrentClass).hasMethod(methodName))
-            executeMethod(mem.getClass(State.CurrentClass).getMethod(methodName));
+            executeMethod(
+                mem.getClass(State.CurrentClass).getMethod(methodName));
         else
             error(ErrorCode::METHOD_UNDEFINED, methodName, false);
         return;
     }
 
-    if (className.length() != 0 && classMethodName.length() != 0)
-    {
-        if (!mem.classExists(className))
-        {
+    if (className.length() != 0 && classMethodName.length() != 0) {
+        if (!mem.classExists(className)) {
             error(ErrorCode::CLS_METHOD_UNDEFINED, className, true);
             return;
         }
@@ -255,9 +228,7 @@ void Executor::executeMethod(std::string methodName, std::string className, std:
             executeMethod(mem.getClass(className).getMethod(classMethodName));
         else
             error(ErrorCode::METHOD_UNDEFINED, methodName, false);
-    }
-    else
-    {
+    } else {
         if (mem.methodExists(methodName))
             executeMethod(mem.getMethod(methodName));
         else
@@ -265,29 +236,23 @@ void Executor::executeMethod(std::string methodName, std::string className, std:
     }
 }
 
-void Executor::executeMethod(Method m)
-{
+void Executor::executeMethod(Method m) {
     State.ExecutedMethod = true;
     State.CurrentMethodClass = m.getClass();
 
-    if (State.DefiningParameterizedMethod)
-    {
+    if (State.DefiningParameterizedMethod) {
         std::vector<std::string> methodLines;
 
-        for (int i = 0; i < (int)m.size(); i++)
-        {
+        for (int i = 0; i < (int)m.size(); i++) {
             std::string line = m.at(i), word;
             int len = line.length();
             std::vector<std::string> words;
 
-            for (int x = 0; x < len; x++)
-            {
-                if (line[x] == ' ')
-                {
+            for (int x = 0; x < len; x++) {
+                if (line[x] == ' ') {
                     words.push_back(word);
                     word.clear();
-                }
-                else
+                } else
                     word.push_back(line[x]);
             }
 
@@ -295,32 +260,35 @@ void Executor::executeMethod(Method m)
 
             std::vector<std::string> newWords;
 
-            for (int x = 0; x < (int)words.size(); x++)
-            {
+            for (int x = 0; x < (int)words.size(); x++) {
                 bool found = false;
 
-                for (int a = 0; a < (int)m.getMethodVariables().size(); a++)
-                {
+                for (int a = 0; a < (int)m.getMethodVariables().size(); a++) {
                     std::string variableString("$");
                     variableString.append(itos(a));
 
-                    if (words.at(x) == m.getMethodVariables().at(a).name())
-                    {
+                    if (words.at(x) == m.getMethodVariables().at(a).name()) {
                         found = true;
 
-                        if (m.getMethodVariables().at(a).getType() == VariableType::String)
-                            newWords.push_back(m.getMethodVariables().at(a).getString());
-                        else if (m.getMethodVariables().at(a).getType() == VariableType::Double)
-                            newWords.push_back(dtos(m.getMethodVariables().at(a).getNumber()));
-                    }
-                    else if (words.at(x) == variableString)
-                    {
+                        if (m.getMethodVariables().at(a).getType() ==
+                            VariableType::String)
+                            newWords.push_back(
+                                m.getMethodVariables().at(a).getString());
+                        else if (m.getMethodVariables().at(a).getType() ==
+                                 VariableType::Double)
+                            newWords.push_back(
+                                dtos(m.getMethodVariables().at(a).getNumber()));
+                    } else if (words.at(x) == variableString) {
                         found = true;
 
-                        if (m.getMethodVariables().at(a).getType() == VariableType::String)
-                            newWords.push_back(m.getMethodVariables().at(a).getString());
-                        else if (m.getMethodVariables().at(a).getType() == VariableType::Double)
-                            newWords.push_back(dtos(m.getMethodVariables().at(a).getNumber()));
+                        if (m.getMethodVariables().at(a).getType() ==
+                            VariableType::String)
+                            newWords.push_back(
+                                m.getMethodVariables().at(a).getString());
+                        else if (m.getMethodVariables().at(a).getType() ==
+                                 VariableType::Double)
+                            newWords.push_back(
+                                dtos(m.getMethodVariables().at(a).getNumber()));
                     }
                 }
 
@@ -330,8 +298,7 @@ void Executor::executeMethod(Method m)
 
             std::string freshLine;
 
-            for (int b = 0; b < (int)newWords.size(); b++)
-            {
+            for (int b = 0; b < (int)newWords.size(); b++) {
                 freshLine.append(newWords.at(b));
 
                 if (b != (int)newWords.size() - 1)
@@ -343,8 +310,7 @@ void Executor::executeMethod(Method m)
 
         for (int i = 0; i < (int)methodLines.size(); i++)
             parse(methodLines.at(i));
-    }
-    else
+    } else
         for (int i = 0; i < m.size(); i++)
             parse(m.at(i));
 
@@ -353,10 +319,8 @@ void Executor::executeMethod(Method m)
     mem.gc();
 }
 
-void Executor::executeWhileLoop(Method m)
-{
-    for (int i = 0; i < m.size(); ++i)
-    {
+void Executor::executeWhileLoop(Method m) {
+    for (int i = 0; i < m.size(); ++i) {
         if (m.at(i) == Keywords.Break)
             State.Breaking = true;
         else
@@ -364,54 +328,41 @@ void Executor::executeWhileLoop(Method m)
     }
 }
 
-void Executor::executeForLoop(Method m)
-{
+void Executor::executeForLoop(Method m) {
     State.DefaultLoopSymbol = "$";
     int i = m.start(), limit = m.stop();
 
-    if (m.isListLoop())
-    {
+    if (m.isListLoop()) {
         limit = m.getList().size();
 
-        while (i < limit)
-        {
-            parse_forloopmethod(m, m.getList().at(i));
+        while (i < limit) {
+            interp_forloopmethod(m, m.getList().at(i));
 
             if (State.Breaking)
                 break;
 
             ++i;
         }
-    }
-    else
-    {
-        if (m.isInfinite())
-        {
-            while (true)
-            {
-                parse_forloopmethod(m, i);
+    } else {
+        if (m.isInfinite()) {
+            while (true) {
+                interp_forloopmethod(m, i);
 
                 if (State.Breaking)
                     break;
             }
-        }
-        else if (i < limit)
-        {
-            while (i <= limit)
-            {
-                parse_forloopmethod(m, i);
+        } else if (i < limit) {
+            while (i <= limit) {
+                interp_forloopmethod(m, i);
 
                 ++i;
 
                 if (State.Breaking)
                     break;
             }
-        }
-        else if (i > limit)
-        {
-            while (i >= limit)
-            {
-                parse_forloopmethod(m, i);
+        } else if (i > limit) {
+            while (i >= limit) {
+                interp_forloopmethod(m, i);
 
                 --i;
 
