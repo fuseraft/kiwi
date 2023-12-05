@@ -27,7 +27,7 @@ class Env {
 
     static void exec(std::string cmd) { system(cmd.c_str()); }
 
-    static int shellExec(std::string s, std::vector<std::string> command) {
+    static int shellExec(std::string s) {
         exec(pre_parse(s));
         return 0;
     }
