@@ -1,11 +1,10 @@
 #ifndef NOCTIS_KW_H
 #define NOCTIS_KW_H
 
-#include <unordered_set>
 #include <string>
+#include <unordered_set>
 
-struct
-{
+struct {
     const std::string All = "all";
     const std::string Args = "args";
     const std::string ArgValues = "args.values";
@@ -132,7 +131,7 @@ struct {
     const std::string DivideAssign = "/=";
     const std::string Equal = "==";
     const std::string Exponent = "^";
-    const std::string ExponentAssign  = "^=";
+    const std::string ExponentAssign = "^=";
     const std::string GreaterThan = ">";
     const std::string GreaterThanOrEqual = ">=";
     const std::string LessThan = "<";
@@ -166,18 +165,9 @@ struct {
 } Math;
 
 std::unordered_set<std::string> recognized_0space_set = {
-    Keywords.Break, 
-    Keywords.Caught, 
-    Keywords.Else, 
-    Keywords.End, 
-    Keywords.Exit, 
-    Keywords.Failif, 
-    Keywords.Parser, 
-    Keywords.Pass, 
-    Keywords.Private, 
-    Keywords.Public, 
-    Keywords.Try
-};
+    Keywords.Break,   Keywords.Caught, Keywords.Else,   Keywords.End,
+    Keywords.Exit,    Keywords.Failif, Keywords.Parser, Keywords.Pass,
+    Keywords.Private, Keywords.Public, Keywords.Try};
 
 std::unordered_set<std::string> recognized_1space_set = {
     Keywords.BeginInlineScript,
@@ -221,69 +211,39 @@ std::unordered_set<std::string> recognized_1space_set = {
     Keywords.ShellExec,
     Keywords.Switch,
     Keywords.Template,
-    Keywords.Unlock
-};
+    Keywords.Unlock};
 
 std::unordered_set<std::string> recognized_2space_set = {
-    Keywords.InlineParse,
-    Keywords.ShellExec,
-    Operators.Add,
-    Operators.AddAssign,
-    Operators.Assign,
-    Operators.Divide,
-    Operators.DivideAssign,
-    Operators.Exponent,
-    Operators.ExponentAssign,
-    Operators.ModuloAssign,
-    Operators.Modulus,
-    Operators.Multiply,
-    Operators.MultiplyAssign,
-    Operators.Subtract,
-    Operators.SubtractAssign
-};
+    Keywords.InlineParse,     Keywords.ShellExec, Operators.Add,
+    Operators.AddAssign,      Operators.Assign,   Operators.Divide,
+    Operators.DivideAssign,   Operators.Exponent, Operators.ExponentAssign,
+    Operators.ModuloAssign,   Operators.Modulus,  Operators.Multiply,
+    Operators.MultiplyAssign, Operators.Subtract, Operators.SubtractAssign};
 
 std::unordered_set<std::string> recognized_mathfunc_set = {
-    Math.Abs,
-    Math.Acos,
-    Math.Asin,
-    Math.Atan,
-    Math.Ceil,
-    Math.Cos,
-    Math.Cosh,
-    Math.Exp,
-    Math.Floor,
-    Math.Log,
-    Math.Sin,
-    Math.Sinh,
-    Math.Sqrt,
-    Math.Tan,
-    Math.Tanh
-};
+    Math.Abs, Math.Acos, Math.Asin, Math.Atan,  Math.Ceil,
+    Math.Cos, Math.Cosh, Math.Exp,  Math.Floor, Math.Log,
+    Math.Sin, Math.Sinh, Math.Sqrt, Math.Tan,   Math.Tanh};
 
 std::unordered_set<char> stack_operators = {' ', '+', '-', '*', '/', '%', '^'};
 
-bool is_recognized_0space(const std::string& arg)
-{
+bool is_recognized_0space(const std::string &arg) {
     return recognized_0space_set.find(arg) != recognized_0space_set.end();
 }
 
-bool is_recognized_1space(const std::string& arg)
-{
+bool is_recognized_1space(const std::string &arg) {
     return recognized_1space_set.find(arg) != recognized_1space_set.end();
 }
 
-bool is_recognized_2space(const std::string& arg)
-{
+bool is_recognized_2space(const std::string &arg) {
     return recognized_2space_set.find(arg) != recognized_2space_set.end();
 }
 
-bool is_recognized_math_func(const std::string& arg)
-{
+bool is_recognized_math_func(const std::string &arg) {
     return recognized_mathfunc_set.find(arg) != recognized_mathfunc_set.end();
 }
 
-bool is_stack_op(char c) 
-{
+bool is_stack_op(char c) {
     std::unordered_set<char> operators = {'+', '-', '*', '/', '%', '^'};
     return stack_operators.find(c) != stack_operators.end();
 }
