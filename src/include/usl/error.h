@@ -45,7 +45,7 @@ enum class ErrorCode {
 };
 
 class ErrorMessage {
-public:
+  public:
     static const std::unordered_map<ErrorCode, std::string> messages;
 };
 
@@ -84,11 +84,10 @@ const std::unordered_map<ErrorCode, std::string> ErrorMessage::messages = {
     {ErrorCode::CREATE_FILE_FAIL, "could not create file"},
     {ErrorCode::REMOVE_DIR_FAIL, "could not remove directory"},
     {ErrorCode::REMOVE_FILE_FAIL, "could not remove file"},
-    {ErrorCode::UNKNOWN, "unknown error"}
-};
+    {ErrorCode::UNKNOWN, "unknown error"}};
 
 class Error {
-public:
+  public:
     static std::string getErrorString(ErrorCode errorType) {
         auto it = ErrorMessage::messages.find(errorType);
         if (it != ErrorMessage::messages.end()) {
@@ -99,8 +98,7 @@ public:
 };
 
 // TODO: `quit` is obsolete.
-void error(ErrorCode errorType, std::string errorInfo, bool quit)
-{
+void error(ErrorCode errorType, std::string errorInfo, bool quit) {
     std::ostringstream completeError;
     completeError << "\nError: " << Error::getErrorString(errorType)
                   << "\n- line: " << State.CurrentLineNumber
@@ -112,12 +110,9 @@ void error(ErrorCode errorType, std::string errorInfo, bool quit)
     State.LastError = errorString;
     State.LastErrorCode = (int)errorType;
 
-    if (State.ExecutedTryBlock)
-    {
+    if (State.ExecutedTryBlock) {
         State.RaiseCatchBlock = true;
-    }
-    else
-    {
+    } else {
         if (State.CaptureParse)
             State.ParsedOutput.append(errorString);
         else
