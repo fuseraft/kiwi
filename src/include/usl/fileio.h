@@ -31,7 +31,7 @@ void FileIO::changeDirectory(const std::string &p) {
     if (p == Keywords.InitialDirectory)
         changeDirectory(State.InitialDirectory);
     else if (chdir(p.c_str()) != 0)
-        error(ErrorCode::READ_FAIL, p, false);
+        error(ErrorCode::READ_FAIL, p);
 }
 
 std::vector<std::string> FileIO::getDirectoryContents(const std::string &path,
@@ -77,7 +77,7 @@ double FileIO::getFileSize(const std::string &path) {
     std::ifstream file(path, std::ios::binary);
 
     if (!file.is_open()) {
-        error(ErrorCode::READ_FAIL, path, true);
+        error(ErrorCode::READ_FAIL, path);
         return -std::numeric_limits<double>::max();
     }
 
@@ -86,7 +86,7 @@ double FileIO::getFileSize(const std::string &path) {
     file.close();
 
     if (fileSize == -1) {
-        error(ErrorCode::READ_FAIL, path, true);
+        error(ErrorCode::READ_FAIL, path);
         return -std::numeric_limits<double>::max();
     }
 
@@ -97,7 +97,7 @@ std::string FileIO::readText(const std::string &filePath) {
     std::ifstream file(filePath, std::ios::in | std::ios::binary);
 
     if (!file) {
-        error(ErrorCode::READ_FAIL, filePath, true);
+        error(ErrorCode::READ_FAIL, filePath);
         return "";
     }
 
@@ -111,7 +111,7 @@ std::string FileIO::readText(const std::string &filePath) {
 void FileIO::appendText(const std::string &target, const std::string &text,
                         bool newLine) {
     if (!fileExists(target)) {
-        error(ErrorCode::READ_FAIL, target, false);
+        error(ErrorCode::READ_FAIL, target);
         return;
     }
 
@@ -123,17 +123,17 @@ void FileIO::appendText(const std::string &target, const std::string &text,
 
 void FileIO::makeDirectory(const std::string &p) {
     if (mkdir(p.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
-        error(ErrorCode::MAKE_DIR_FAIL, p, false);
+        error(ErrorCode::MAKE_DIR_FAIL, p);
 }
 
 void FileIO::removeDirectory(const std::string &p) {
     if (rmdir(p.c_str()) != 0)
-        error(ErrorCode::REMOVE_DIR_FAIL, p, false);
+        error(ErrorCode::REMOVE_DIR_FAIL, p);
 }
 
 void FileIO::removeFile(const std::string &p) {
     if (remove(p.c_str()) != 0)
-        error(ErrorCode::REMOVE_FILE_FAIL, p, false);
+        error(ErrorCode::REMOVE_FILE_FAIL, p);
 }
 
 bool FileIO::directoryExists(const std::string &p) {
@@ -164,14 +164,14 @@ void FileIO::createFile(const std::string &p) {
     if (f.is_open())
         f.close();
     else
-        error(ErrorCode::CREATE_FILE_FAIL, p, true);
+        error(ErrorCode::CREATE_FILE_FAIL, p);
 }
 
 void FileIO::appendToFile(const std::string &p, const std::string &a) {
     std::ofstream f(p.c_str(), std::ios::out | std::ios::app);
 
     if (!f.is_open()) {
-        error(ErrorCode::READ_FAIL, p, true);
+        error(ErrorCode::READ_FAIL, p);
         return;
     }
 

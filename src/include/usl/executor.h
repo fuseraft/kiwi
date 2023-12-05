@@ -73,11 +73,11 @@ void Executor::executeSimpleStatement(std::string left, std::string oper,
         else if (oper == Operators.Modulus) {
             if ((int)stod(right) == 0)
                 error(ErrorCode::DIVIDED_BY_ZERO,
-                      left + " " + oper + " " + right, false);
+                      left + " " + oper + " " + right);
             else
                 writeline(dtos((int)stod(left) % (int)stod(right)));
         } else
-            error(ErrorCode::INVALID_OPERATOR, oper, false);
+            error(ErrorCode::INVALID_OPERATOR, oper);
     } else {
         if (oper == Operators.Add)
             writeline(left + right);
@@ -85,7 +85,7 @@ void Executor::executeSimpleStatement(std::string left, std::string oper,
             writeline(subtract_string(left, right));
         else if (oper == Operators.Multiply) {
             if (is_numberless(right)) {
-                error(ErrorCode::INVALID_OP, oper, false);
+                error(ErrorCode::INVALID_OP, oper);
                 return;
             }
 
@@ -99,7 +99,7 @@ void Executor::executeSimpleStatement(std::string left, std::string oper,
         } else if (oper == Operators.Divide)
             writeline(subtract_string(left, right));
         else
-            error(ErrorCode::INVALID_OPERATOR, oper, false);
+            error(ErrorCode::INVALID_OPERATOR, oper);
     }
 }
 
@@ -214,25 +214,25 @@ void Executor::executeMethod(std::string methodName, std::string className,
             executeMethod(
                 mem.getClass(State.CurrentClass).getMethod(methodName));
         else
-            error(ErrorCode::METHOD_UNDEFINED, methodName, false);
+            error(ErrorCode::METHOD_UNDEFINED, methodName);
         return;
     }
 
     if (className.length() != 0 && classMethodName.length() != 0) {
         if (!mem.classExists(className)) {
-            error(ErrorCode::CLS_METHOD_UNDEFINED, className, true);
+            error(ErrorCode::CLS_METHOD_UNDEFINED, className);
             return;
         }
 
         if (mem.getClass(className).hasMethod(classMethodName))
             executeMethod(mem.getClass(className).getMethod(classMethodName));
         else
-            error(ErrorCode::METHOD_UNDEFINED, methodName, false);
+            error(ErrorCode::METHOD_UNDEFINED, methodName);
     } else {
         if (mem.methodExists(methodName))
             executeMethod(mem.getMethod(methodName));
         else
-            error(ErrorCode::METHOD_UNDEFINED, methodName, true);
+            error(ErrorCode::METHOD_UNDEFINED, methodName);
     }
 }
 

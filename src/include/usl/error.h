@@ -98,7 +98,7 @@ class Error {
 };
 
 // TODO: `quit` is obsolete.
-void error(ErrorCode errorType, std::string errorInfo, bool quit) {
+void error(ErrorCode errorType, std::string errorInfo) {
     std::ostringstream completeError;
     completeError << "\nError: " << Error::getErrorString(errorType)
                   << "\n- line: " << State.CurrentLineNumber

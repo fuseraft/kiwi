@@ -22,7 +22,7 @@ class Class : public Collectable {
 
     void setName(std::string name) { className = name; }
 
-    void setCollectable(bool value) override { collectable = true; }
+    void setCollectable(bool value) override { collectable = value; }
 
     bool isCollectable() const override { return collectable; }
 
