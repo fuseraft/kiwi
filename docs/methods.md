@@ -23,3 +23,22 @@ if @ans == 12
   println "5 + 4 + 3 = 12"
 endif
 ```
+
+### Scope
+
+You can access all global variables from within a method.
+
+```uslang
+@counter = 0
+
+def uptick
+  @counter += 1
+end
+
+for 1 to 5
+  uptick
+endfor
+
+# 5
+println @counter
+```
