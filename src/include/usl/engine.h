@@ -286,7 +286,7 @@ void Engine::createMethod(std::string arg0, std::string arg1) {
 
     if (State.DefiningClass) {
         if (getClass(State.CurrentClass).hasMethod(arg1)) {
-            error(ErrorCode::METHOD_DEFINED, arg1, false);
+            error(ErrorCode::METHOD_DEFINED, arg1);
             return;
         }
 
@@ -327,7 +327,7 @@ void Engine::createMethod(std::string arg0, std::string arg1) {
                         method.addMethodVariable(varNumber(params.at(i)),
                                                  getVar(params.at(i)).name());
                     else
-                        error(ErrorCode::IS_NULL, params.at(i), false);
+                        error(ErrorCode::IS_NULL, params.at(i));
                     return;
                 }
 
@@ -335,12 +335,12 @@ void Engine::createMethod(std::string arg0, std::string arg1) {
                     after(after_dot(params.at(i)));
 
                 if (!classExists(before)) {
-                    error(ErrorCode::CLS_METHOD_UNDEFINED, before, false);
+                    error(ErrorCode::CLS_METHOD_UNDEFINED, before);
                     return;
                 }
 
                 if (!getClass(before).hasVariable(after)) {
-                    error(ErrorCode::CLS_VAR_UNDEFINED, after, false);
+                    error(ErrorCode::CLS_VAR_UNDEFINED, after);
                     return;
                 }
 
@@ -353,7 +353,7 @@ void Engine::createMethod(std::string arg0, std::string arg1) {
                     method.addMethodVariable(
                         getClass(before).getVariable(after).getNumber(), after);
                 else
-                    error(ErrorCode::IS_NULL, params.at(i), false);
+                    error(ErrorCode::IS_NULL, params.at(i));
             } else {
                 if (is_alpha(params.at(i))) {
                     Variable newVariable("@[pm#" + itos(State.ParamVarCount) +
@@ -378,13 +378,13 @@ void Engine::createMethod(std::string arg0, std::string arg1) {
         State.DefiningClassMethod = true;
     } else {
         if (methodExists(arg1))
-            error(ErrorCode::METHOD_DEFINED, arg1, false);
+            error(ErrorCode::METHOD_DEFINED, arg1);
         else {
             if (!is_dotless(arg1)) {
                 std::string before(before_dot(arg1)), after(after_dot(arg1));
 
                 if (!classExists(before)) {
-                    error(ErrorCode::CLS_UNDEFINED, "", false);
+                    error(ErrorCode::CLS_UNDEFINED, "");
                     return;
                 }
 
@@ -413,13 +413,12 @@ void Engine::createMethod(std::string arg0, std::string arg1) {
                                 after(after_dot(params.at(i)));
 
                             if (!classExists(before)) {
-                                error(ErrorCode::CLS_UNDEFINED, before, false);
+                                error(ErrorCode::CLS_UNDEFINED, before);
                                 return;
                             }
 
                             if (!getClass(before).hasVariable(after)) {
-                                error(ErrorCode::CLS_VAR_UNDEFINED, after,
-                                      false);
+                                error(ErrorCode::CLS_VAR_UNDEFINED, after);
                                 return;
                             }
 
@@ -437,7 +436,7 @@ void Engine::createMethod(std::string arg0, std::string arg1) {
                                                              .getNumber(),
                                                          after);
                             else
-                                error(ErrorCode::IS_NULL, params.at(i), false);
+                                error(ErrorCode::IS_NULL, params.at(i));
                         } else {
                             if (isString(params.at(i)))
                                 method.addMethodVariable(
@@ -448,7 +447,7 @@ void Engine::createMethod(std::string arg0, std::string arg1) {
                                     varNumber(params.at(i)),
                                     getVar(params.at(i)).name());
                             else
-                                error(ErrorCode::IS_NULL, params.at(i), false);
+                                error(ErrorCode::IS_NULL, params.at(i));
                         }
                     } else {
                         Variable newVariable("@" + params.at(i));
@@ -692,71 +691,69 @@ void Engine::redefine(std::string target, std::string name) {
                             if (FileIO::fileExists(old_name))
                                 rename(old_name.c_str(), new_name.c_str());
                             else
-                                error(ErrorCode::FILE_NOT_FOUND, old_name,
-                                      false);
+                                error(ErrorCode::FILE_NOT_FOUND, old_name);
                         } else
-                            error(ErrorCode::FILE_EXISTS, new_name, false);
+                            error(ErrorCode::FILE_EXISTS, new_name);
                     } else if (FileIO::directoryExists(old_name)) {
                         if (!FileIO::directoryExists(new_name)) {
                             if (FileIO::directoryExists(old_name))
                                 rename(old_name.c_str(), new_name.c_str());
                             else
-                                error(ErrorCode::DIR_NOT_FOUND, old_name,
-                                      false);
+                                error(ErrorCode::DIR_NOT_FOUND, old_name);
                         } else
-                            error(ErrorCode::DIR_EXISTS, new_name, false);
+                            error(ErrorCode::DIR_EXISTS, new_name);
                     } else
-                        error(ErrorCode::TARGET_UNDEFINED, old_name, false);
+                        error(ErrorCode::TARGET_UNDEFINED, old_name);
                 } else
-                    error(ErrorCode::NULL_STRING, name, false);
+                    error(ErrorCode::NULL_STRING, name);
             } else {
                 if (FileIO::fileExists(old_name)) {
                     if (!FileIO::fileExists(name))
                         rename(old_name.c_str(), name.c_str());
                     else
-                        error(ErrorCode::FILE_EXISTS, name, false);
+                        error(ErrorCode::FILE_EXISTS, name);
                 } else if (FileIO::directoryExists(old_name)) {
                     if (!FileIO::directoryExists(name))
                         rename(old_name.c_str(), name.c_str());
                     else
-                        error(ErrorCode::DIR_EXISTS, name, false);
+                        error(ErrorCode::DIR_EXISTS, name);
                 } else
-                    error(ErrorCode::TARGET_UNDEFINED, old_name, false);
+                    error(ErrorCode::TARGET_UNDEFINED, old_name);
             }
         } else {
             if (begins_with(name, "@")) {
                 if (!variableExists(name))
                     getVar(target).setName(name);
                 else
-                    error(ErrorCode::VAR_DEFINED, name, false);
+                    error(ErrorCode::VAR_DEFINED, name);
             } else
-                error(ErrorCode::INVALID_VAR_DECL, name, false);
+                error(ErrorCode::INVALID_VAR_DECL, name);
         }
     } else if (listExists(target)) {
         if (!listExists(name))
             getList(name).setName(name);
         else
-            error(ErrorCode::LIST_DEFINED, name, false);
+            error(ErrorCode::LIST_DEFINED, name);
     } else if (classExists(target)) {
         if (!classExists(name))
             getClass(target).setName(name);
         else
-            error(ErrorCode::CLS_METHOD_DEFINED, name, false);
+            error(ErrorCode::CLS_METHOD_DEFINED, name);
     } else if (methodExists(target)) {
         if (!methodExists(name))
             getMethod(target).setName(name);
         else
-            error(ErrorCode::METHOD_DEFINED, name, false);
+            error(ErrorCode::METHOD_DEFINED, name);
     } else if (FileIO::fileExists(target) || FileIO::directoryExists(target))
         rename(target.c_str(), name.c_str());
     else
-        error(ErrorCode::TARGET_UNDEFINED, target, false);
+        error(ErrorCode::TARGET_UNDEFINED, target);
 }
 
 void Engine::globalize(std::string arg1) {
     if (!(contains(arg1, Keywords.Dot) && methodExists(arg1) &&
           !methodExists(after_dot(arg1)))) {
-        error(ErrorCode::CLS_METHOD_UNDEFINED, arg1, false);
+        error(ErrorCode::CLS_METHOD_UNDEFINED, arg1);
         return;
     }
 
