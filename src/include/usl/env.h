@@ -7,14 +7,12 @@ std::string pre_parse(std::string st);
 std::string get_parsed_stdout(std::string cmd);
 std::string get_stdin_quiet(std::string text);
 
-class Env
-{
-public:
+class Env {
+  public:
     Env() {}
     ~Env() {}
 
-    static std::string getStdout(std::string cmd)
-    {
+    static std::string getStdout(std::string cmd) {
         std::string data;
         FILE *stream;
         char buffer[MAX_BUFFER];
@@ -27,19 +25,14 @@ public:
         return trim(data);
     }
 
-    static void exec(std::string cmd)
-    {
-        system(cmd.c_str());
-    }
+    static void exec(std::string cmd) { system(cmd.c_str()); }
 
-    static int shellExec(std::string s, std::vector<std::string> command)
-    {
+    static int shellExec(std::string s, std::vector<std::string> command) {
         exec(pre_parse(s));
         return 0;
     }
 
-    static std::string getEnvironmentVariable(std::string s)
-    {
+    static std::string getEnvironmentVariable(std::string s) {
         char *cString;
         cString = getenv(s.c_str());
 
@@ -49,8 +42,7 @@ public:
             return "";
     }
 
-    static std::string getUser()
-    {
+    static std::string getUser() {
         char *pUser;
         pUser = getenv("USER");
 
@@ -60,8 +52,7 @@ public:
         return "";
     }
 
-    static std::string getMachine()
-    {
+    static std::string getMachine() {
         const int MAXHOSTNAMELEN = 1024;
         char name[MAXHOSTNAMELEN];
         size_t namelen = MAXHOSTNAMELEN;

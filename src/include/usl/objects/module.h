@@ -1,49 +1,24 @@
-class Module
-{
-private:
+class Module {
+  private:
     std::vector<std::string> lines;
     std::string moduleName;
 
-public:
+  public:
     Module() {}
 
-    Module(std::string name)
-    {
-        moduleName = name;
-    }
+    Module(std::string name) { moduleName = name; }
 
-    ~Module()
-    {
-        clear();
-    }
+    ~Module() { clear(); }
 
-    void clear()
-    {
-        lines.clear();
-    }
+    void clear() { lines.clear(); }
 
-    void add(std::string line)
-    {
-        lines.push_back(line);
-    }
+    void add(std::string line) { lines.push_back(line); }
 
-    std::vector<std::string> get()
-    {
-        return lines;
-    }
+    std::vector<std::string> get() { return lines; }
 
-    std::string at(int index)
-    {
-        return lines.at(index);
-    }
+    std::string at(int index) { return lines.at(index); }
 
-    int size()
-    {
-        return get().size();
-    }
+    int size() { return get().size(); }
 
-    std::string name()
-    {
-        return moduleName;
-    }
+    std::string name() { return moduleName; }
 };

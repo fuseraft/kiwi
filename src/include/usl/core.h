@@ -1,44 +1,39 @@
 #ifndef CORE_H
 #define CORE_H
 
-void setList(std::string listName, std::string methodName, std::vector<std::string> params)
-{
-    if (engine.methodExists(before_params(methodName)))
-    {
-        exec.executeTemplate(engine.getMethod(before_params(methodName)), params);
+void setList(std::string listName, std::string methodName,
+             std::vector<std::string> params) {
+    if (engine.methodExists(before_params(methodName))) {
+        exec.executeTemplate(engine.getMethod(before_params(methodName)),
+                             params);
 
-        if (!has_params(State.LastValue))
-        {
+        if (!has_params(State.LastValue)) {
             engine.addItemToList(listName, State.LastValue);
             return;
         }
 
-        std::vector<std::string> last_params = parse_params(State.LastValue);
+        std::vector<std::string> last_params = interp_params(State.LastValue);
 
         for (int i = 0; i < (int)last_params.size(); i++)
             engine.addItemToList(listName, last_params.at(i));
-    }
-    else if (engine.classExists(before_dot(before_params(methodName))))
-    {
-        exec.executeTemplate(engine.getClass(before_dot(before_params(methodName))).getMethod(after_dot(before_params(methodName))), params);
+    } else if (engine.classExists(before_dot(before_params(methodName)))) {
+        exec.executeTemplate(
+            engine.getClass(before_dot(before_params(methodName)))
+                .getMethod(after_dot(before_params(methodName))),
+            params);
 
-        if (!has_params(State.LastValue))
-        {
+        if (!has_params(State.LastValue)) {
             engine.addItemToList(listName, State.LastValue);
             return;
         }
 
-        std::vector<std::string> last_params = parse_params(State.LastValue);
+        std::vector<std::string> last_params = interp_params(State.LastValue);
 
         for (int i = 0; i < (int)last_params.size(); i++)
             engine.addItemToList(listName, last_params.at(i));
-    }
-    else
-    {
-        for (int i = 0; i < (int)params.size(); i++)
-        {
-            if (!engine.variableExists(params.at(i)))
-            {
+    } else {
+        for (int i = 0; i < (int)params.size(); i++) {
+            if (!engine.variableExists(params.at(i))) {
                 engine.addItemToList(listName, params.at(i));
                 continue;
             }
@@ -49,10 +44,8 @@ void setList(std::string listName, std::string methodName, std::vector<std::stri
     }
 }
 
-std::string get_prompt()
-{
-    if (!State.UseCustomPrompt || State.PromptStyle == "empty")
-    {
+std::string get_prompt() {
+    if (!State.UseCustomPrompt || State.PromptStyle == "empty") {
         return std::string("> ");
     }
 
@@ -60,10 +53,8 @@ std::string get_prompt()
     int length = State.PromptStyle.length();
     char prevChar = 'a';
 
-    for (int i = 0; i < length; i++)
-    {
-        switch (State.PromptStyle[i])
-        {
+    for (int i = 0; i < length; i++) {
+        switch (State.PromptStyle[i]) {
         case 'u':
             if (prevChar == '\\')
                 new_style.append(Env::getUser());
@@ -99,124 +90,122 @@ std::string get_prompt()
     return new_style;
 }
 
-std::string clean_string(std::string builder)
-{
+std::string clean_string(std::string builder) {
     if (engine.variableExists(builder) && is_dotless(builder))
         State.LastValue = engine.getVariableValueAsString(builder);
     else if (engine.methodExists(builder))
         parse(builder);
-    else if (has_params(builder))
-    {
-        if (stackReady(builder))
-        {
+    else if (has_params(builder)) {
+        if (stackReady(builder)) {
             if (isStringStack(builder))
                 State.LastValue = getStringStack(builder);
             else
                 State.LastValue = dtos(getStack(builder));
-        }
-        else if (!is_dotless(builder))
-        {
+        } else if (!is_dotless(builder)) {
             std::string before(before_dot(builder)), after(after_dot(builder));
 
             if (!engine.classExists(before))
                 error(ErrorCode::CLS_METHOD_UNDEFINED, before, false);
 
             if (!engine.getClass(before).hasMethod(before_params(after)))
-                error(ErrorCode::METHOD_UNDEFINED, before + Keywords.Dot + before_params(after), false);
+                error(ErrorCode::METHOD_UNDEFINED,
+                      before + Keywords.Dot + before_params(after), false);
 
-            exec.executeTemplate(engine.getClass(before).getMethod(before_params(after)), parse_params(after));
-        }
-        else if (engine.methodExists(before_params(builder)))
-            exec.executeTemplate(engine.getMethod(before_params(builder)), parse_params(builder));
+            exec.executeTemplate(
+                engine.getClass(before).getMethod(before_params(after)),
+                interp_params(after));
+        } else if (engine.methodExists(before_params(builder)))
+            exec.executeTemplate(engine.getMethod(before_params(builder)),
+                                 interp_params(builder));
         else
             State.LastValue = "";
-    }
-    else if (has_brackets(builder))
-    {
+    } else if (has_brackets(builder)) {
         // TODO: refactor
-        std::string _beforeBrackets(before_brackets(builder)), afterBrackets(builder);
+        std::string _beforeBrackets(before_brackets(builder)),
+            afterBrackets(builder);
         std::string rangeBegin, rangeEnd, _build;
 
-        std::vector<std::string> listRange = parse_bracketrange(afterBrackets);
+        std::vector<std::string> listRange = interp_bracketrange(afterBrackets);
 
-        if (engine.variableExists(_beforeBrackets) && engine.isString(_beforeBrackets))
-        {
+        if (engine.variableExists(_beforeBrackets) &&
+            engine.isString(_beforeBrackets)) {
             std::string tempString(engine.varString(_beforeBrackets));
 
-            if (listRange.size() == 2)
-            {
+            if (listRange.size() == 2) {
                 rangeBegin = listRange.at(0), rangeEnd = listRange.at(1);
 
-                if (is_numeric(rangeBegin) && is_numeric(rangeEnd))
-                {
-                    if (stoi(rangeBegin) < stoi(rangeEnd))
-                    {
-                        if ((int)tempString.length() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)
-                        {
-                            for (int z = stoi(rangeBegin); z <= stoi(rangeEnd); z++)
+                if (is_numeric(rangeBegin) && is_numeric(rangeEnd)) {
+                    if (stoi(rangeBegin) < stoi(rangeEnd)) {
+                        if ((int)tempString.length() - 1 >= stoi(rangeEnd) &&
+                            stoi(rangeBegin) >= 0) {
+                            for (int z = stoi(rangeBegin); z <= stoi(rangeEnd);
+                                 z++)
                                 _build.push_back(tempString[z]);
 
                             State.LastValue = _build;
-                        }
-                        else
-                            error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
-                    }
-                    else if (stoi(rangeBegin) > stoi(rangeEnd))
-                    {
-                        if ((int)tempString.length() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)
-                        {
-                            for (int z = stoi(rangeBegin); z >= stoi(rangeEnd); z--)
+                        } else
+                            error(ErrorCode::OUT_OF_BOUNDS,
+                                  rangeBegin + Keywords.RangeSeparator +
+                                      rangeEnd,
+                                  false);
+                    } else if (stoi(rangeBegin) > stoi(rangeEnd)) {
+                        if ((int)tempString.length() - 1 >= stoi(rangeEnd) &&
+                            stoi(rangeBegin) >= 0) {
+                            for (int z = stoi(rangeBegin); z >= stoi(rangeEnd);
+                                 z--)
                                 _build.push_back(tempString[z]);
 
                             State.LastValue = _build;
-                        }
-                        else
-                            error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
-                    }
-                    else
-                        error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
+                        } else
+                            error(ErrorCode::OUT_OF_BOUNDS,
+                                  rangeBegin + Keywords.RangeSeparator +
+                                      rangeEnd,
+                                  false);
+                    } else
+                        error(ErrorCode::OUT_OF_BOUNDS,
+                              rangeBegin + Keywords.RangeSeparator + rangeEnd,
+                              false);
                 }
-            }
-            else if (listRange.size() == 1)
-            {
+            } else if (listRange.size() == 1) {
                 rangeBegin = listRange.at(0);
 
                 if (!is_numeric(rangeBegin))
                     error(ErrorCode::OUT_OF_BOUNDS, afterBrackets, false);
 
-                if (stoi(rangeBegin) <= (int)tempString.length() - 1 && stoi(rangeBegin) >= 0)
-                {
+                if (stoi(rangeBegin) <= (int)tempString.length() - 1 &&
+                    stoi(rangeBegin) >= 0) {
                     std::string _cstr;
 
                     _cstr.push_back(tempString[stoi(rangeBegin)]);
 
                     State.LastValue = _cstr;
-                }
-                else
+                } else
                     error(ErrorCode::OUT_OF_BOUNDS, afterBrackets, false);
-            }
-            else
+            } else
                 error(ErrorCode::OUT_OF_BOUNDS, afterBrackets, false);
-        }
-        else if (engine.listExists(_beforeBrackets))
-        {
-            if (listRange.size() == 2)
-            {
+        } else if (engine.listExists(_beforeBrackets)) {
+            if (listRange.size() == 2) {
                 rangeBegin = listRange.at(0), rangeEnd = listRange.at(1);
 
                 if (!(is_numeric(rangeBegin) && is_numeric(rangeEnd)))
-                    error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
+                    error(ErrorCode::OUT_OF_BOUNDS,
+                          rangeBegin + Keywords.RangeSeparator + rangeEnd,
+                          false);
 
-                if (stoi(rangeBegin) < stoi(rangeEnd))
-                {
-                    if (!(engine.getList(_beforeBrackets).size() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0))
-                        error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
+                if (stoi(rangeBegin) < stoi(rangeEnd)) {
+                    if (!(engine.getList(_beforeBrackets).size() - 1 >=
+                              stoi(rangeEnd) &&
+                          stoi(rangeBegin) >= 0))
+                        error(ErrorCode::OUT_OF_BOUNDS,
+                              rangeBegin + Keywords.RangeSeparator + rangeEnd,
+                              false);
 
                     std::string bigString("(");
 
-                    for (int z = stoi(rangeBegin); z <= stoi(rangeEnd); z++)
-                    {
-                        bigString.append("\"" + engine.getList(_beforeBrackets).at(z) + "\"");
+                    for (int z = stoi(rangeBegin); z <= stoi(rangeEnd); z++) {
+                        bigString.append("\"" +
+                                         engine.getList(_beforeBrackets).at(z) +
+                                         "\"");
 
                         if (z < stoi(rangeEnd))
                             bigString.push_back(',');
@@ -225,20 +214,22 @@ std::string clean_string(std::string builder)
                     bigString.push_back(')');
 
                     State.LastValue = bigString;
-                }
-                else if (stoi(rangeBegin) > stoi(rangeEnd))
-                {
-                    if (!(engine.getList(_beforeBrackets).size() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0))
-                    {
-                        error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
+                } else if (stoi(rangeBegin) > stoi(rangeEnd)) {
+                    if (!(engine.getList(_beforeBrackets).size() - 1 >=
+                              stoi(rangeEnd) &&
+                          stoi(rangeBegin) >= 0)) {
+                        error(ErrorCode::OUT_OF_BOUNDS,
+                              rangeBegin + Keywords.RangeSeparator + rangeEnd,
+                              false);
                         State.LastValue = "";
                     }
 
                     std::string bigString("(");
 
-                    for (int z = stoi(rangeBegin); z >= stoi(rangeEnd); z--)
-                    {
-                        bigString.append("\"" + engine.getList(_beforeBrackets).at(z) + "\"");
+                    for (int z = stoi(rangeBegin); z >= stoi(rangeEnd); z--) {
+                        bigString.append("\"" +
+                                         engine.getList(_beforeBrackets).at(z) +
+                                         "\"");
 
                         if (z > stoi(rangeEnd))
                             bigString.push_back(',');
@@ -247,27 +238,26 @@ std::string clean_string(std::string builder)
                     bigString.push_back(')');
 
                     State.LastValue = bigString;
-                }
-                else
-                    error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
-            }
-            else if (listRange.size() == 1)
-            {
+                } else
+                    error(ErrorCode::OUT_OF_BOUNDS,
+                          rangeBegin + Keywords.RangeSeparator + rangeEnd,
+                          false);
+            } else if (listRange.size() == 1) {
                 rangeBegin = listRange.at(0);
 
-                if (!is_numeric(rangeBegin) || (!(stoi(rangeBegin) <= (int)engine.getList(_beforeBrackets).size() - 1 && stoi(rangeBegin) >= 0)))
+                if (!is_numeric(rangeBegin) ||
+                    (!(stoi(rangeBegin) <=
+                           (int)engine.getList(_beforeBrackets).size() - 1 &&
+                       stoi(rangeBegin) >= 0)))
                     error(ErrorCode::OUT_OF_BOUNDS, afterBrackets, false);
 
-                State.LastValue = engine.getList(_beforeBrackets).at(stoi(rangeBegin));
-            }
-            else
+                State.LastValue =
+                    engine.getList(_beforeBrackets).at(stoi(rangeBegin));
+            } else
                 error(ErrorCode::OUT_OF_BOUNDS, afterBrackets, false);
-        }
-        else
+        } else
             State.LastValue = "";
-    }
-    else if (!is_dotless(builder))
-    {
+    } else if (!is_dotless(builder)) {
         std::string before(before_dot(builder)), after(after_dot(builder));
 
         if (!engine.classExists(before))
@@ -276,43 +266,36 @@ std::string clean_string(std::string builder)
         if (engine.getClass(before).hasMethod(after))
             parse(before + Keywords.Dot + after);
         else if (engine.getClass(before).hasVariable(after))
-            State.LastValue = engine.getClassVariableValueAsString(before, after);
+            State.LastValue =
+                engine.getClassVariableValueAsString(before, after);
         else
-            error(ErrorCode::VAR_UNDEFINED, before + Keywords.Dot + after, false);
-    }
-    else
+            error(ErrorCode::VAR_UNDEFINED, before + Keywords.Dot + after,
+                  false);
+    } else
         State.LastValue = builder;
 
     return State.LastValue;
 }
 
-std::string pre_parse(std::string st)
-{
+std::string pre_parse(std::string st) {
     std::string cleaned, builder;
     int l = st.length();
     bool buildSymbol = false;
 
-    for (int i = 0; i < l; i++)
-    {
-        char curr = st[i], 
-            prev = st[i > 0 ? i - 1 : 0], 
-            next = st[i + 1 > l ? l : i + 1];
+    for (int i = 0; i < l; i++) {
+        char curr = st[i], prev = st[i > 0 ? i - 1 : 0],
+             next = st[i + 1 > l ? l : i + 1];
 
-        if (buildSymbol)
-        {
-            if (curr == '}')
-            {
+        if (buildSymbol) {
+            if (curr == '}') {
                 builder = subtract_char(builder, '{');
                 cleaned += clean_string(builder);
                 builder.clear();
 
                 buildSymbol = false;
-            }
-            else
+            } else
                 builder.push_back(curr);
-        }
-        else
-        {
+        } else {
             // REFACTOR HERE
             if (curr == '\\' && next == 'n') // begin new-line
                 cleaned.push_back('\r');
@@ -327,15 +310,11 @@ std::string pre_parse(std::string st)
             else if (curr == '#' && next == '{') // begin symbol
             {
                 buildSymbol = true;
-            }
-            else if (curr == '\\' && next == 't')
-            {
+            } else if (curr == '\\' && next == 't') {
             } // begin tab
-            else if (curr == '\\' && next == ';')
-            {
+            else if (curr == '\\' && next == ';') {
             } // begin semi-colon
-            else if (curr == '\\' && next == '\'')
-            {
+            else if (curr == '\\' && next == '\'') {
             } // begin apostrophe
             else
                 cleaned.push_back(curr);
@@ -345,8 +324,7 @@ std::string pre_parse(std::string st)
     return cleaned;
 }
 
-void write(std::string st)
-{
+void write(std::string st) {
     if (State.CaptureParse)
         State.ParsedOutput.append(pre_parse(st));
     else
@@ -355,42 +333,31 @@ void write(std::string st)
     State.LastValue = st;
 }
 
-void writeline(std::string st)
-{
-    write(st + "\n");
-}
+void writeline(std::string st) { write(st + "\n"); }
 
-void writeline()
-{
-    write("\n");
-}
+void writeline() { write("\n"); }
 
-List getDirectoryList(std::string before, bool filesOnly)
-{
+List getDirectoryList(std::string before, bool filesOnly) {
     List newList;
-    std::vector<std::string> dirList = FileIO::getDirectoryContents(engine.varString(before), filesOnly);
-    for (unsigned int i = 0; i < dirList.size(); i++)
-    {
+    std::vector<std::string> dirList =
+        FileIO::getDirectoryContents(engine.varString(before), filesOnly);
+    for (unsigned int i = 0; i < dirList.size(); i++) {
         newList.add(dirList.at(i));
     }
-    if (newList.size() == 0)
-    {
+    if (newList.size() == 0) {
         State.DefiningForLoop = false;
     }
     return newList;
 }
 
-void show_version()
-{
+void show_version() {
     std::cout << uslang_name << " interpreter "
               << "v" << uslang_version << std::endl
               << std::endl;
 }
 
-void help(std::string app)
-{
-    struct CommandInfo
-    {
+void help(std::string app) {
+    struct CommandInfo {
         std::string command;
         std::string description;
     };
@@ -406,37 +373,32 @@ void help(std::string app)
 
     show_version();
 
-    for (const auto &cmd : commands)
-    {
-        std::cout << std::left << std::setw(30) << (app + " " + cmd.command) << cmd.description << std::endl;
+    for (const auto &cmd : commands) {
+        std::cout << std::left << std::setw(30) << (app + " " + cmd.command)
+                  << cmd.description << std::endl;
     }
 
     std::cout << std::endl;
 }
 
-int load_repl()
-{
+int load_repl() {
     std::string s;
     bool active = true;
 
-    while (active)
-    {
-        try
-        {
+    while (active) {
+        try {
             std::cout << get_prompt();
 
             s.clear();
             std::getline(std::cin, s);
             ++State.CurrentLineNumber;
 
-            if (s != Keywords.Exit)
-            {
+            if (s != Keywords.Exit) {
                 parse(ltrim_ws(s));
                 continue;
             }
 
-            if (State.DefiningClass || State.DefiningMethod)
-            {
+            if (State.DefiningClass || State.DefiningMethod) {
                 parse(s);
                 continue;
             }
@@ -444,9 +406,7 @@ int load_repl()
             active = false;
             engine.clearAll();
             break;
-        }
-        catch (const std::exception &e)
-        {
+        } catch (const std::exception &e) {
             print_error(e);
             return -1;
         }
@@ -455,53 +415,50 @@ int load_repl()
     return 0;
 }
 
-bool stackReady(std::string arg2)
-{
-    return contains(arg2, Operators.Add) || contains(arg2, Operators.Subtract) || contains(arg2, Operators.Multiply) || contains(arg2, Operators.Divide) || contains(arg2, Operators.Modulus) || contains(arg2, Operators.Exponent);
+bool stackReady(std::string arg2) {
+    return contains(arg2, Operators.Add) ||
+           contains(arg2, Operators.Subtract) ||
+           contains(arg2, Operators.Multiply) ||
+           contains(arg2, Operators.Divide) ||
+           contains(arg2, Operators.Modulus) ||
+           contains(arg2, Operators.Exponent);
 }
 
-bool isStringStack(std::string arg2)
-{
+bool isStringStack(std::string arg2) {
     std::string tempArgTwo = arg2, temporaryBuild;
     tempArgTwo = subtract_char(tempArgTwo, '(');
     tempArgTwo = subtract_char(tempArgTwo, ')');
 
-    for (int i = 0; i < (int)tempArgTwo.length(); i++)
-    {
-        if (tempArgTwo[i] == ' ' && temporaryBuild.length() != 0)
-        {
-            if (is_stackable(temporaryBuild)) return true;
+    for (int i = 0; i < (int)tempArgTwo.length(); i++) {
+        if (tempArgTwo[i] == ' ' && temporaryBuild.length() != 0) {
+            if (is_stackable(temporaryBuild))
+                return true;
+            continue;
+        } else if (is_stack_op(tempArgTwo[i])) {
+            if (is_stackable(temporaryBuild))
+                return true;
             continue;
         }
-        else if (is_stack_op(tempArgTwo[i])) {
-            if (is_stackable(temporaryBuild)) return true;
-            continue;
-        }
-        
+
         temporaryBuild.push_back(tempArgTwo[i]);
     }
 
     return false;
 }
 
-bool is_stackable(std::string &temporaryBuild)
-{
-    if (engine.variableExists(temporaryBuild))
-    {
+bool is_stackable(std::string &temporaryBuild) {
+    if (engine.variableExists(temporaryBuild)) {
         if (engine.isNumber(temporaryBuild))
             temporaryBuild.clear();
         else if (engine.isString(temporaryBuild))
             return true;
-    }
-    else if (engine.methodExists(temporaryBuild))
-    {
+    } else if (engine.methodExists(temporaryBuild)) {
         parse(temporaryBuild);
         if (is_numeric(State.LastValue))
             temporaryBuild.clear();
         else
             return true;
-    }
-    else if (!is_numeric(temporaryBuild))
+    } else if (!is_numeric(temporaryBuild))
         return true;
     else
         temporaryBuild.clear();
@@ -509,8 +466,7 @@ bool is_stackable(std::string &temporaryBuild)
     return false;
 }
 
-std::string getStringStack(std::string arg2)
-{
+std::string getStringStack(std::string arg2) {
     std::string tempArgTwo = arg2, temporaryBuild;
     tempArgTwo = subtract_char(tempArgTwo, '(');
     tempArgTwo = subtract_char(tempArgTwo, ')');
@@ -522,25 +478,18 @@ std::string getStringStack(std::string arg2)
 
     bool quoted = false;
 
-    for (int i = 0; i < (int)tempArgTwo.length(); i++)
-    {
-        if (tempArgTwo[i] == '\"')
-        {
+    for (int i = 0; i < (int)tempArgTwo.length(); i++) {
+        if (tempArgTwo[i] == '\"') {
             quoted = !quoted;
-            if (!quoted)
-            {
+            if (!quoted) {
                 contents.push_back(temporaryBuild);
                 temporaryBuild.clear();
             }
-        }
-        else if (tempArgTwo[i] == ' ' && temporaryBuild.length() != 0 && !quoted)
-        {
+        } else if (tempArgTwo[i] == ' ' && temporaryBuild.length() != 0 &&
+                   !quoted) {
             parseStringStack(contents, vars, temporaryBuild, tempArgTwo[i]);
-        }
-        else
-        {
-            switch (tempArgTwo[i])
-            {
+        } else {
+            switch (tempArgTwo[i]) {
             case '+':
             case '-':
             case '*':
@@ -554,40 +503,28 @@ std::string getStringStack(std::string arg2)
         }
     }
 
-    if (engine.variableExists(temporaryBuild))
-    {
+    if (engine.variableExists(temporaryBuild)) {
         std::string value = engine.getVariableValueAsString(temporaryBuild);
         vars.push_back(temporaryBuild);
         contents.push_back(value);
         temporaryBuild.clear();
-    }
-    else
-    {
+    } else {
         contents.push_back(temporaryBuild);
         temporaryBuild.clear();
     }
 
-    bool startOperating = false,
-         addNext = false,
-         subtractNext = false,
+    bool startOperating = false, addNext = false, subtractNext = false,
          multiplyNext = false;
 
-    for (int i = 0; i < (int)contents.size(); i++)
-    {
-        if (startOperating)
-        {
-            if (addNext)
-            {
+    for (int i = 0; i < (int)contents.size(); i++) {
+        if (startOperating) {
+            if (addNext) {
                 stackValue.append(contents.at(i));
                 addNext = false;
-            }
-            else if (subtractNext)
-            {
+            } else if (subtractNext) {
                 stackValue = subtract_string(stackValue, contents.at(i));
                 subtractNext = false;
-            }
-            else if (multiplyNext && is_numeric(contents.at(i)))
-            {
+            } else if (multiplyNext && is_numeric(contents.at(i))) {
                 stackValue = multiply_string(stackValue, stoi(contents.at(i)));
                 multiplyNext = false;
             }
@@ -598,9 +535,7 @@ std::string getStringStack(std::string arg2)
                 subtractNext = true;
             else if (contents.at(i) == Operators.Multiply)
                 multiplyNext = true;
-        }
-        else
-        {
+        } else {
             startOperating = true;
             stackValue = contents.at(i);
         }
@@ -609,8 +544,7 @@ std::string getStringStack(std::string arg2)
     return stackValue;
 }
 
-std::string getStackValue(std::string value)
-{
+std::string getStackValue(std::string value) {
     std::string stackValue;
 
     if (isStringStack(value))
@@ -623,57 +557,47 @@ std::string getStackValue(std::string value)
     return stackValue;
 }
 
-void parseNumberStack(std::vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar)
-{
-    if (engine.variableExists(temporaryBuild) && engine.isNumber(temporaryBuild))
-    {
+void parseNumberStack(std::vector<std::string> &contents,
+                      std::vector<std::string> vars,
+                      std::string &temporaryBuild, char currentChar) {
+    if (engine.variableExists(temporaryBuild) &&
+        engine.isNumber(temporaryBuild)) {
         vars.push_back(temporaryBuild);
         contents.push_back(dtos(engine.varNumber(temporaryBuild)));
         temporaryBuild.clear();
-    }
-    else if (engine.methodExists(temporaryBuild))
-    {
+    } else if (engine.methodExists(temporaryBuild)) {
         parse(temporaryBuild);
 
-        if (is_numeric(State.LastValue))
-        {
+        if (is_numeric(State.LastValue)) {
             contents.push_back(State.LastValue);
             temporaryBuild.clear();
         }
-    }
-    else
-    {
+    } else {
         contents.push_back(temporaryBuild);
         temporaryBuild.clear();
     }
 
-    if (currentChar != ' ')
-    {
+    if (currentChar != ' ') {
         contents.push_back("" + currentChar);
     }
 }
 
-void parseStringStack(std::vector<std::string> &contents, std::vector<std::string> vars, std::string &temporaryBuild, char currentChar)
-{
-    if (engine.variableExists(temporaryBuild))
-    {
+void parseStringStack(std::vector<std::string> &contents,
+                      std::vector<std::string> vars,
+                      std::string &temporaryBuild, char currentChar) {
+    if (engine.variableExists(temporaryBuild)) {
         std::string value = engine.getVariableValueAsString(temporaryBuild);
         vars.push_back(temporaryBuild);
         contents.push_back(value);
         temporaryBuild.clear();
-    }
-    else if (engine.methodExists(temporaryBuild))
-    {
+    } else if (engine.methodExists(temporaryBuild)) {
         parse(temporaryBuild);
 
-        if (is_numeric(State.LastValue))
-        {
+        if (is_numeric(State.LastValue)) {
             contents.push_back(State.LastValue);
             temporaryBuild.clear();
         }
-    }
-    else
-    {
+    } else {
         contents.push_back(temporaryBuild);
         temporaryBuild.clear();
     }
@@ -686,8 +610,7 @@ void parseStringStack(std::vector<std::string> &contents, std::vector<std::strin
         contents.push_back(Operators.Multiply);
 }
 
-double getStack(std::string arg2)
-{
+double getStack(std::string arg2) {
     std::string tempArgTwo = arg2, temporaryBuild;
     tempArgTwo = subtract_char(tempArgTwo, '(');
     tempArgTwo = subtract_char(tempArgTwo, ')');
@@ -697,16 +620,11 @@ double getStack(std::string arg2)
     std::vector<std::string> contents;
     std::vector<std::string> vars;
 
-    for (int i = 0; i < (int)tempArgTwo.length(); i++)
-    {
-        if (tempArgTwo[i] == ' ' && temporaryBuild.length() != 0)
-        {
+    for (int i = 0; i < (int)tempArgTwo.length(); i++) {
+        if (tempArgTwo[i] == ' ' && temporaryBuild.length() != 0) {
             parseNumberStack(contents, vars, temporaryBuild, ' ');
-        }
-        else
-        {
-            switch (tempArgTwo[i])
-            {
+        } else {
+            switch (tempArgTwo[i]) {
             case '+':
             case '-':
             case '*':
@@ -723,57 +641,38 @@ double getStack(std::string arg2)
         }
     }
 
-    if (engine.variableExists(temporaryBuild) && engine.isNumber(temporaryBuild))
-    {
+    if (engine.variableExists(temporaryBuild) &&
+        engine.isNumber(temporaryBuild)) {
         vars.push_back(temporaryBuild);
         contents.push_back(dtos(engine.varNumber(temporaryBuild)));
         temporaryBuild.clear();
-    }
-    else
-    {
+    } else {
         contents.push_back(temporaryBuild);
         temporaryBuild.clear();
     }
 
-    bool startOperating = false,
-         addNext = false,
-         subtractNext = false,
-         multiplyNext = false,
-         divideNext = false,
-         moduloNext = false,
+    bool startOperating = false, addNext = false, subtractNext = false,
+         multiplyNext = false, divideNext = false, moduloNext = false,
          powerNext = false;
 
-    for (int i = 0; i < (int)contents.size(); i++)
-    {
-        if (startOperating)
-        {
-            if (addNext)
-            {
+    for (int i = 0; i < (int)contents.size(); i++) {
+        if (startOperating) {
+            if (addNext) {
                 stackValue += stod(contents.at(i));
                 addNext = false;
-            }
-            else if (subtractNext)
-            {
+            } else if (subtractNext) {
                 stackValue -= stod(contents.at(i));
                 subtractNext = false;
-            }
-            else if (multiplyNext)
-            {
+            } else if (multiplyNext) {
                 stackValue *= stod(contents.at(i));
                 multiplyNext = false;
-            }
-            else if (divideNext)
-            {
+            } else if (divideNext) {
                 stackValue /= stod(contents.at(i));
                 divideNext = false;
-            }
-            else if (moduloNext)
-            {
+            } else if (moduloNext) {
                 stackValue = ((int)stackValue % (int)stod(contents.at(i)));
                 moduloNext = false;
-            }
-            else if (powerNext)
-            {
+            } else if (powerNext) {
                 stackValue = pow(stackValue, (int)stod(contents.at(i)));
                 powerNext = false;
             }
@@ -790,9 +689,7 @@ double getStack(std::string arg2)
                 moduloNext = true;
             else if (contents.at(i) == Operators.Exponent)
                 powerNext = true;
-        }
-        else if (is_numeric(contents.at(i)))
-        {
+        } else if (is_numeric(contents.at(i))) {
             startOperating = true;
             stackValue = stod(contents.at(i));
         }
@@ -801,61 +698,53 @@ double getStack(std::string arg2)
     return stackValue;
 }
 
-std::string getSubString(std::string arg1, std::string arg2, std::string beforeBracket)
-{
+std::string getSubString(std::string arg1, std::string arg2,
+                         std::string beforeBracket) {
     std::string returnValue;
 
-    if (!engine.isString(beforeBracket))
-    {
+    if (!engine.isString(beforeBracket)) {
         error(ErrorCode::NULL_STRING, beforeBracket, false);
         return returnValue;
     }
 
-    std::vector<std::string> listRange = parse_bracketrange(arg2);
+    std::vector<std::string> listRange = interp_bracketrange(arg2);
     std::string variableString = engine.varString(beforeBracket);
 
-    if (listRange.size() < 1 || listRange.size() > 2)
-    {
+    if (listRange.size() < 1 || listRange.size() > 2) {
         error(ErrorCode::OUT_OF_BOUNDS, arg2, false);
-    }
-    else if (listRange.size() == 1)
-    {
+    } else if (listRange.size() == 1) {
         std::string rangeBegin(listRange.at(0));
 
-        if (rangeBegin.length() != 0 && is_numeric(rangeBegin))
-        {
+        if (rangeBegin.length() != 0 && is_numeric(rangeBegin)) {
             int beginIndex = stoi(rangeBegin);
 
-            if ((int)variableString.length() - 1 >= beginIndex && beginIndex >= 0)
-            {
+            if ((int)variableString.length() - 1 >= beginIndex &&
+                beginIndex >= 0) {
                 returnValue = "" + variableString[beginIndex];
             }
         }
-    }
-    else if (listRange.size() == 2)
-    {
+    } else if (listRange.size() == 2) {
         std::string rangeBegin(listRange.at(0)), rangeEnd(listRange.at(1));
 
-        if (!(rangeBegin.length() != 0 && rangeEnd.length() != 0) || !((is_numeric(rangeBegin) && is_numeric(rangeEnd)) || !((int)variableString.length() - 1 >= stoi(rangeEnd) && stoi(rangeBegin) >= 0) || !((int)variableString.length() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0)))
-        {
-            error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
+        if (!(rangeBegin.length() != 0 && rangeEnd.length() != 0) ||
+            !((is_numeric(rangeBegin) && is_numeric(rangeEnd)) ||
+              !((int)variableString.length() - 1 >= stoi(rangeEnd) &&
+                stoi(rangeBegin) >= 0) ||
+              !((int)variableString.length() >= stoi(rangeEnd) &&
+                stoi(rangeBegin) >= 0))) {
+            error(ErrorCode::OUT_OF_BOUNDS,
+                  rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
             return returnValue;
         }
 
-        int beginIndex = stoi(rangeBegin),
-            endIndex = stoi(rangeEnd);
+        int beginIndex = stoi(rangeBegin), endIndex = stoi(rangeEnd);
 
-        if (beginIndex < endIndex)
-        {
-            for (int i = beginIndex; i <= endIndex; i++)
-            {
+        if (beginIndex < endIndex) {
+            for (int i = beginIndex; i <= endIndex; i++) {
                 returnValue.push_back(variableString[i]);
             }
-        }
-        else if (beginIndex > endIndex)
-        {
-            for (int i = beginIndex; i >= endIndex; i--)
-            {
+        } else if (beginIndex > endIndex) {
+            for (int i = beginIndex; i >= endIndex; i--) {
                 returnValue.push_back(variableString[i]);
             }
         }
@@ -864,34 +753,32 @@ std::string getSubString(std::string arg1, std::string arg2, std::string beforeB
     return returnValue;
 }
 
-void setSubString(std::string arg1, std::string arg2, std::string beforeBracket)
-{
-    if (!engine.isString(beforeBracket))
-    {
+void setSubString(std::string arg1, std::string arg2,
+                  std::string beforeBracket) {
+    if (!engine.isString(beforeBracket)) {
         error(ErrorCode::CONV_ERR, beforeBracket, false);
         return;
     }
 
-    std::vector<std::string> listRange = parse_bracketrange(arg2);
+    std::vector<std::string> listRange = interp_bracketrange(arg2);
     std::string variableString = engine.varString(beforeBracket);
 
-    if (listRange.size() == 2)
-    {
+    if (listRange.size() == 2) {
         std::string rangeBegin(listRange.at(0)), rangeEnd(listRange.at(1));
 
-        if (rangeBegin.length() == 0 || rangeEnd.length() == 0 || !(is_numeric(rangeBegin) && is_numeric(rangeEnd)))
-        {
-            error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
+        if (rangeBegin.length() == 0 || rangeEnd.length() == 0 ||
+            !(is_numeric(rangeBegin) && is_numeric(rangeEnd))) {
+            error(ErrorCode::OUT_OF_BOUNDS,
+                  rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
             return;
         }
 
-        int beginIndex = stoi(rangeBegin),
-            endIndex = stoi(rangeEnd);
+        int beginIndex = stoi(rangeBegin), endIndex = stoi(rangeEnd);
 
         std::string tempString;
 
-        if (beginIndex < endIndex && beginIndex >= 0 && endIndex <= (int)variableString.length() - 1)
-        {
+        if (beginIndex < endIndex && beginIndex >= 0 &&
+            endIndex <= (int)variableString.length() - 1) {
             for (int i = beginIndex; i <= endIndex; i++)
                 tempString.push_back(variableString[i]);
 
@@ -899,9 +786,8 @@ void setSubString(std::string arg1, std::string arg2, std::string beforeBracket)
                 engine.setVariable(arg1, tempString);
             else
                 engine.createVariable(arg1, tempString);
-        }
-        else if (beginIndex > endIndex && beginIndex >= 0 && endIndex <= (int)variableString.length())
-        {
+        } else if (beginIndex > endIndex && beginIndex >= 0 &&
+                   endIndex <= (int)variableString.length()) {
             for (int i = beginIndex; i >= endIndex; i--)
                 tempString.push_back(variableString[i]);
 
@@ -909,19 +795,16 @@ void setSubString(std::string arg1, std::string arg2, std::string beforeBracket)
                 engine.setVariable(arg1, tempString);
             else
                 engine.createVariable(arg1, tempString);
-        }
-        else
-            error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
-    }
-    else if (listRange.size() == 1)
-    {
+        } else
+            error(ErrorCode::OUT_OF_BOUNDS,
+                  rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
+    } else if (listRange.size() == 1) {
         std::string rangeBegin(listRange.at(0));
 
-        if (rangeBegin.length() != 0 && is_numeric(rangeBegin))
-        {
+        if (rangeBegin.length() != 0 && is_numeric(rangeBegin)) {
             int beginIndex = stoi(rangeBegin);
-            if ((int)variableString.length() - 1 >= beginIndex && beginIndex >= 0)
-            {
+            if ((int)variableString.length() - 1 >= beginIndex &&
+                beginIndex >= 0) {
                 std::string tmp_;
                 tmp_.push_back(variableString[beginIndex]);
 
@@ -931,13 +814,11 @@ void setSubString(std::string arg1, std::string arg2, std::string beforeBracket)
                     engine.createVariable(arg1, tmp_);
             }
         }
-    }
-    else
+    } else
         error(ErrorCode::OUT_OF_BOUNDS, arg2, false);
 }
 
-std::string getStringValue(std::string arg1, std::string op, std::string arg2)
-{
+std::string getStringValue(std::string arg1, std::string op, std::string arg2) {
     std::string firstValue, lastValue, returnValue;
 
     if (engine.variableExists(arg1) && engine.isString(arg1))
@@ -945,83 +826,65 @@ std::string getStringValue(std::string arg1, std::string op, std::string arg2)
 
     if (engine.variableExists(arg2))
         lastValue = engine.getVariableValueAsString(arg2);
-    else if (engine.methodExists(arg2))
-    {
+    else if (engine.methodExists(arg2)) {
         parse(arg2);
         lastValue = State.LastValue;
-    }
-    else if (!is_dotless(arg2))
-    {
+    } else if (!is_dotless(arg2)) {
         std::string _beforeDot(before_dot(arg2)), _afterDot(after_dot(arg2));
 
-        if (_beforeDot == Keywords.Env)
-        {
-            internal_env_builtins("", _afterDot, 2);
-        }
-        else if (_beforeDot == Keywords.Args && _afterDot == Keywords.Size)
-        {
+        if (_beforeDot == Keywords.Env) {
+            interp_env_rhs("", _afterDot, 2);
+        } else if (_beforeDot == Keywords.Args && _afterDot == Keywords.Size) {
             lastValue = itos(engine.getArgCount());
-        }
-        else if (engine.classExists(_beforeDot))
-        {
-            exec.executeTemplate(engine.getClass(_beforeDot).getMethod(_afterDot), parse_params(_afterDot));
+        } else if (engine.classExists(_beforeDot)) {
+            exec.executeTemplate(
+                engine.getClass(_beforeDot).getMethod(_afterDot),
+                interp_params(_afterDot));
             lastValue = State.LastValue;
-        }
-        else
+        } else
             lastValue = arg2;
-    }
-    else if (has_brackets(arg2))
-    {
-        std::string _beforeBrackets(before_brackets(arg2)), _afterBrackets(after_brackets(arg2));
+    } else if (has_brackets(arg2)) {
+        std::string _beforeBrackets(before_brackets(arg2)),
+            _afterBrackets(after_brackets(arg2));
 
-        if (_beforeBrackets == Keywords.Args)
-        {
-            std::vector<std::string> params = parse_bracketrange(_afterBrackets);
+        if (_beforeBrackets == Keywords.Args) {
+            std::vector<std::string> params =
+                interp_bracketrange(_afterBrackets);
             int index = stoi(params.at(0));
 
-            if (is_numeric(params.at(0)) && engine.getArgCount() - 1 >= index && index >= 0)
-            {
+            if (is_numeric(params.at(0)) && engine.getArgCount() - 1 >= index &&
+                index >= 0) {
                 if (params.at(0) == "0")
                     lastValue = State.CurrentScript;
                 else
                     lastValue = engine.getArg(index);
             }
-        }
-        else if (engine.listExists(_beforeBrackets))
-        {
+        } else if (engine.listExists(_beforeBrackets)) {
             _afterBrackets = subtract_string(_afterBrackets, "]");
             int index = stoi(_afterBrackets);
 
-            if (engine.getList(_beforeBrackets).size() >= index && index >= 0)
-            {
+            if (engine.getList(_beforeBrackets).size() >= index && index >= 0) {
                 lastValue = engine.getList(_beforeBrackets).at(index);
             }
         }
-    }
-    else if (has_params(arg2))
-    {
-        if (before_params(arg2).length() != 0)
-        {
-            exec.executeTemplate(engine.getMethod(arg2), parse_params(arg2));
+    } else if (has_params(arg2)) {
+        if (before_params(arg2).length() != 0) {
+            exec.executeTemplate(engine.getMethod(arg2), interp_params(arg2));
             lastValue = State.LastValue;
-        }
-        else if (isStringStack(arg2))
+        } else if (isStringStack(arg2))
             lastValue = getStringStack(arg2);
         else if (stackReady(arg2))
             lastValue = dtos(getStack(arg2));
-    }
-    else
+    } else
         lastValue = arg2;
 
     if (op == Operators.AddAssign)
         returnValue = (firstValue + lastValue);
     else if (op == Operators.SubtractAssign)
         returnValue = subtract_string(firstValue, lastValue);
-    else if (op == Operators.MultiplyAssign && is_numeric(lastValue))
-    {
+    else if (op == Operators.MultiplyAssign && is_numeric(lastValue)) {
         returnValue = multiply_string(firstValue, stoi(lastValue));
-    }
-    else if (op == Operators.DivideAssign)
+    } else if (op == Operators.DivideAssign)
         returnValue = subtract_string(firstValue, lastValue);
     else if (op == Operators.ExponentAssign)
         returnValue = dtos(pow(stod(firstValue), stod(lastValue)));
@@ -1032,75 +895,55 @@ std::string getStringValue(std::string arg1, std::string op, std::string arg2)
     return returnValue;
 }
 
-double getNumberValue(std::string arg1, std::string op, std::string arg2)
-{
+double getNumberValue(std::string arg1, std::string op, std::string arg2) {
     double firstValue = 0, lastValue = 0, returnValue = 0;
 
-    if (engine.variableExists(arg1) && engine.isNumber(arg1))
-    {
+    if (engine.variableExists(arg1) && engine.isNumber(arg1)) {
         firstValue = engine.varNumber(arg1);
     }
 
-    if (engine.variableExists(arg2) && engine.isNumber(arg2))
-    {
+    if (engine.variableExists(arg2) && engine.isNumber(arg2)) {
         lastValue = engine.varNumber(arg2);
-    }
-    else if (engine.methodExists(arg2))
-    {
+    } else if (engine.methodExists(arg2)) {
         parse(arg2);
         lastValue = is_numeric(State.LastValue) ? stod(State.LastValue) : 0;
-    }
-    else if (!is_dotless(arg2))
-    {
+    } else if (!is_dotless(arg2)) {
         std::string _beforeDot(before_dot(arg2)), _afterDot(after_dot(arg2));
-        if (_beforeDot == Keywords.Env)
-        {
-            internal_env_builtins("", _afterDot, 2);
-        }
-        else if (_beforeDot == Keywords.Args && _afterDot == Keywords.Size)
-        {
+        if (_beforeDot == Keywords.Env) {
+            interp_env_rhs("", _afterDot, 2);
+        } else if (_beforeDot == Keywords.Args && _afterDot == Keywords.Size) {
             lastValue = stod(itos(engine.getArgCount()));
-        }
-        else if (engine.classExists(_beforeDot))
-        {
-            exec.executeTemplate(engine.getClass(_beforeDot).getMethod(_afterDot), parse_params(_afterDot));
+        } else if (engine.classExists(_beforeDot)) {
+            exec.executeTemplate(
+                engine.getClass(_beforeDot).getMethod(_afterDot),
+                interp_params(_afterDot));
             lastValue = is_numeric(State.LastValue) ? stod(State.LastValue) : 0;
-        }
-        else if (is_numeric(State.LastValue))
+        } else if (is_numeric(State.LastValue))
             lastValue = stod(arg2);
-    }
-    else if (has_brackets(arg2))
-    {
-        std::string _beforeBrackets(before_brackets(arg2)), _afterBrackets(after_brackets(arg2));
+    } else if (has_brackets(arg2)) {
+        std::string _beforeBrackets(before_brackets(arg2)),
+            _afterBrackets(after_brackets(arg2));
 
-        if (engine.listExists(_beforeBrackets))
-        {
+        if (engine.listExists(_beforeBrackets)) {
             _afterBrackets = subtract_string(_afterBrackets, "]");
             int index = stoi(_afterBrackets);
 
-            if (engine.getList(_beforeBrackets).size() >= index)
-            {
-                if (index >= 0 && is_numeric(engine.getList(_beforeBrackets).at(index)))
-                {
+            if (engine.getList(_beforeBrackets).size() >= index) {
+                if (index >= 0 &&
+                    is_numeric(engine.getList(_beforeBrackets).at(index))) {
                     lastValue = stod(engine.getList(_beforeBrackets).at(index));
                 }
             }
         }
-    }
-    else if (has_params(arg2))
-    {
-        if (before_params(arg2).length() != 0)
-        {
-            exec.executeTemplate(engine.getMethod(arg2), parse_params(arg2));
+    } else if (has_params(arg2)) {
+        if (before_params(arg2).length() != 0) {
+            exec.executeTemplate(engine.getMethod(arg2), interp_params(arg2));
             if (is_numeric(State.LastValue))
                 lastValue = stod(State.LastValue);
-        }
-        else if (stackReady(arg2))
-        {
+        } else if (stackReady(arg2)) {
             lastValue = getStack(arg2);
         }
-    }
-    else if (is_numeric(arg2))
+    } else if (is_numeric(arg2))
         lastValue = stod(arg2);
 
     if (op == Operators.AddAssign)
@@ -1120,8 +963,11 @@ double getNumberValue(std::string arg1, std::string op, std::string arg2)
     return returnValue;
 }
 
-void initializeTemporaryVariable(std::string arg1, std::string arg2, std::vector<std::string> command, std::string tempClassVariableName, std::string className, std::string variableName)
-{
+void initializeTemporaryVariable(std::string arg1, std::string arg2,
+                                 std::vector<std::string> command,
+                                 std::string tempClassVariableName,
+                                 std::string className,
+                                 std::string variableName) {
     twoSpace(tempClassVariableName, arg1, arg2, command);
     engine.getVar(tempClassVariableName).setName(variableName);
     engine.getClass(className).removeVariable(variableName);
@@ -1129,66 +975,80 @@ void initializeTemporaryVariable(std::string arg1, std::string arg2, std::vector
     engine.removeVariable(variableName);
 }
 
-void initializeTemporaryString(std::string arg1, std::string arg2, std::vector<std::string> command, std::string tempClassVariableName, std::string className, std::string variableName)
-{
-    engine.createVariable(tempClassVariableName, engine.getClassVariableValueAsString(className, variableName));
-    initializeTemporaryVariable(arg1, arg2, command, tempClassVariableName, className, variableName);
+void initializeTemporaryString(std::string arg1, std::string arg2,
+                               std::vector<std::string> command,
+                               std::string tempClassVariableName,
+                               std::string className,
+                               std::string variableName) {
+    engine.createVariable(
+        tempClassVariableName,
+        engine.getClassVariableValueAsString(className, variableName));
+    initializeTemporaryVariable(arg1, arg2, command, tempClassVariableName,
+                                className, variableName);
 }
 
-void initializeTemporaryNumber(std::string arg1, std::string arg2, std::vector<std::string> command, std::string tempClassVariableName, std::string className, std::string variableName)
-{
-    engine.createVariable(tempClassVariableName, engine.getClass(before_dot(className)).getVariable(after_dot(className)).getNumber());
-    initializeTemporaryVariable(arg1, arg2, command, tempClassVariableName, className, variableName);
+void initializeTemporaryNumber(std::string arg1, std::string arg2,
+                               std::vector<std::string> command,
+                               std::string tempClassVariableName,
+                               std::string className,
+                               std::string variableName) {
+    engine.createVariable(tempClassVariableName,
+                          engine.getClass(before_dot(className))
+                              .getVariable(after_dot(className))
+                              .getNumber());
+    initializeTemporaryVariable(arg1, arg2, command, tempClassVariableName,
+                                className, variableName);
 }
 
-void initializeVariable(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command)
-{
+void initializeVariable(std::string arg0, std::string arg1, std::string arg2,
+                        std::vector<std::string> command) {
     std::string tmpObjName = before_dot(arg0), tmpVarName = after_dot(arg0);
     bool tmpObjExists = engine.classExists(tmpObjName);
-    if (tmpObjExists || begins_with(arg0, "@"))
-    {
-        if (tmpObjExists)
-        {
-            if (engine.getClass(tmpObjName).getVariable(tmpVarName).getType() == VariableType::String)
-            {
-                std::string tempClassVariableName("@ " + tmpObjName + tmpVarName + "_string");
-                initializeTemporaryString(arg1, arg2, command, tempClassVariableName, tmpObjName, tmpVarName);
+    if (tmpObjExists || begins_with(arg0, "@")) {
+        if (tmpObjExists) {
+            if (engine.getClass(tmpObjName).getVariable(tmpVarName).getType() ==
+                VariableType::String) {
+                std::string tempClassVariableName("@ " + tmpObjName +
+                                                  tmpVarName + "_string");
+                initializeTemporaryString(arg1, arg2, command,
+                                          tempClassVariableName, tmpObjName,
+                                          tmpVarName);
+            } else if (engine.getClass(tmpObjName)
+                           .getVariable(tmpVarName)
+                           .getType() == VariableType::Double) {
+                std::string tempClassVariableName("@____" + tmpObjName + "___" +
+                                                  tmpVarName + "_number");
+                initializeTemporaryNumber(arg1, arg2, command,
+                                          tempClassVariableName, tmpObjName,
+                                          tmpVarName);
             }
-            else if (engine.getClass(tmpObjName).getVariable(tmpVarName).getType() == VariableType::Double)
-            {
-                std::string tempClassVariableName("@____" + tmpObjName + "___" + tmpVarName + "_number");
-                initializeTemporaryNumber(arg1, arg2, command, tempClassVariableName, tmpObjName, tmpVarName);
-            }
-        }
-        else if (arg1 == Operators.Assign)
-        {
+        } else if (arg1 == Operators.Assign) {
             std::string before(before_dot(arg2)), after(after_dot(arg2));
 
-            if (has_brackets(arg2) && (engine.variableExists(before_brackets(arg2)) || engine.listExists(before_brackets(arg2))))
-            {
-                std::string beforeBracket(before_brackets(arg2)), afterBracket(after_brackets(arg2));
+            if (has_brackets(arg2) &&
+                (engine.variableExists(before_brackets(arg2)) ||
+                 engine.listExists(before_brackets(arg2)))) {
+                std::string beforeBracket(before_brackets(arg2)),
+                    afterBracket(after_brackets(arg2));
 
                 afterBracket = subtract_string(afterBracket, "]");
 
-                if (engine.listExists(beforeBracket))
-                {
-                    if (engine.getList(beforeBracket).size() >= stoi(afterBracket))
-                    {
-                        if (engine.getList(beforeBracket).at(stoi(afterBracket)) == "#!=no_line")
+                if (engine.listExists(beforeBracket)) {
+                    if (engine.getList(beforeBracket).size() >=
+                        stoi(afterBracket)) {
+                        if (engine.getList(beforeBracket)
+                                .at(stoi(afterBracket)) == "#!=no_line")
                             error(ErrorCode::OUT_OF_BOUNDS, arg2, false);
-                        else
-                        {
-                            std::string listValue(engine.getList(beforeBracket).at(stoi(afterBracket)));
+                        else {
+                            std::string listValue(engine.getList(beforeBracket)
+                                                      .at(stoi(afterBracket)));
 
-                            if (is_numeric(listValue))
-                            {
+                            if (is_numeric(listValue)) {
                                 if (!engine.isNumber(arg0))
                                     error(ErrorCode::CONV_ERR, arg0, false);
                                 else
                                     engine.setVariable(arg0, stod(listValue));
-                            }
-                            else
-                            {
+                            } else {
                                 if (!engine.isString(arg0))
                                     error(ErrorCode::CONV_ERR, arg0, false);
                                 else
@@ -1196,29 +1056,22 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                             }
                         }
                     }
-                }
-                else if (engine.isString(beforeBracket))
+                } else if (engine.isString(beforeBracket))
                     setSubString(arg0, arg2, beforeBracket);
                 else
                     error(ErrorCode::LIST_UNDEFINED, beforeBracket, false);
-            }
-            else if (before.length() != 0 && after.length() != 0)
-            {
-                if (has_params(arg2))
-                {
-                    if (before_params(arg2) == Keywords.Random)
-                    {
-                        if (!contains(arg2, Keywords.RangeSeparator))
-                        {
+            } else if (before.length() != 0 && after.length() != 0) {
+                if (has_params(arg2)) {
+                    if (before_params(arg2) == Keywords.Random) {
+                        if (!contains(arg2, Keywords.RangeSeparator)) {
                             error(ErrorCode::INVALID_SEQ_SEP, arg2, false);
                             return;
                         }
 
-                        std::vector<std::string> range = parse_range(arg2);
+                        std::vector<std::string> range = interp_range(arg2);
                         std::string s0(range.at(0)), s2(range.at(1));
 
-                        if (is_numeric(s0) && is_numeric(s2))
-                        {
+                        if (is_numeric(s0) && is_numeric(s2)) {
                             double n0 = stod(s0), n2 = stod(s2);
                             int rand = (int)RNG::getInstance().random(n0, n2);
 
@@ -1226,93 +1079,88 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                                 engine.setVariable(arg0, rand);
                             else if (engine.isString(arg0))
                                 engine.setVariable(arg0, itos(rand));
-                        }
-                        else if (engine.variableExists(s0) || engine.variableExists(s2))
-                        {
-                            if (engine.variableExists(s0))
-                            {
+                        } else if (engine.variableExists(s0) ||
+                                   engine.variableExists(s2)) {
+                            if (engine.variableExists(s0)) {
                                 if (engine.isNumber(s0))
                                     s0 = dtos(engine.varNumber(s0));
                                 else if (engine.isString(s0))
                                     s0 = engine.varString(s0);
                             }
 
-                            if (engine.variableExists(s2))
-                            {
+                            if (engine.variableExists(s2)) {
                                 if (engine.isNumber(s2))
                                     s2 = engine.varNumberString(s2);
                                 else if (engine.isString(s2))
                                     s2 = engine.varString(s2);
                             }
 
-                            if (is_numeric(s0) && is_numeric(s2))
-                            {
+                            if (is_numeric(s0) && is_numeric(s2)) {
                                 double n0 = stod(s0), n2 = stod(s2);
-                                int rand = (int)RNG::getInstance().random(n0, n2);
+                                int rand =
+                                    (int)RNG::getInstance().random(n0, n2);
                                 if (engine.isNumber(arg0))
                                     engine.setVariable(arg0, rand);
                                 else if (engine.isString(arg0))
                                     engine.setVariable(arg0, itos(rand));
                             }
-                        }
-                        else
+                        } else
                             error(ErrorCode::INVALID_SEQ, s0 + "_" + s2, false);
                     }
-                }
-                else if (engine.listExists(before) && after == Keywords.Size)
-                {
+                } else if (engine.listExists(before) &&
+                           after == Keywords.Size) {
                     if (engine.isNumber(arg0))
-                        engine.setVariable(arg0, stod(itos(engine.getList(before).size())));
+                        engine.setVariable(
+                            arg0, stod(itos(engine.getList(before).size())));
                     else if (engine.isString(arg0))
-                        engine.setVariable(arg0, itos(engine.getList(before).size()));
+                        engine.setVariable(arg0,
+                                           itos(engine.getList(before).size()));
                     else
                         error(ErrorCode::IS_NULL, arg0, false);
-                }
-                else if (before == Keywords.Self)
-                {
+                } else if (before == Keywords.Self) {
                     if (engine.classExists(State.CurrentMethodClass))
-                        twoSpace(arg0, arg1, (State.CurrentMethodClass + Keywords.Dot + after), command);
+                        twoSpace(
+                            arg0, arg1,
+                            (State.CurrentMethodClass + Keywords.Dot + after),
+                            command);
                     else
                         twoSpace(arg0, arg1, after, command);
-                }
-                else if (engine.classExists(before))
-                {
-                    if (engine.getClass(before).hasVariable(after))
-                    {
-                        const auto classVariable = engine.getClassVariable(before, after);
+                } else if (engine.classExists(before)) {
+                    if (engine.getClass(before).hasVariable(after)) {
+                        const auto classVariable =
+                            engine.getClassVariable(before, after);
                         if (classVariable.getType() == VariableType::String)
                             engine.setVariable(arg0, classVariable.getString());
-                        else if (classVariable.getType() == VariableType::Double)
+                        else if (classVariable.getType() ==
+                                 VariableType::Double)
                             engine.setVariable(arg0, classVariable.getNumber());
                         else
                             error(ErrorCode::IS_NULL, arg2, false);
-                    }
-                    else if (engine.getClass(before).hasMethod(after) && !has_params(after))
-                    {
+                    } else if (engine.getClass(before).hasMethod(after) &&
+                               !has_params(after)) {
                         parse(arg2);
 
                         if (engine.isString(arg0))
                             engine.setVariable(arg0, State.LastValue);
                         else if (engine.isNumber(arg0))
                             engine.setVariable(arg0, stod(State.LastValue));
-                    }
-                    else if (has_params(after))
-                    {
-                        if (engine.getClass(before).hasMethod(before_params(after)))
-                        {
-                            exec.executeTemplate(engine.getClass(before).getMethod(before_params(after)), parse_params(after));
+                    } else if (has_params(after)) {
+                        if (engine.getClass(before).hasMethod(
+                                before_params(after))) {
+                            exec.executeTemplate(
+                                engine.getClass(before).getMethod(
+                                    before_params(after)),
+                                interp_params(after));
 
-                            if (is_numeric(State.LastValue))
-                            {
+                            if (is_numeric(State.LastValue)) {
                                 if (engine.isString(arg0))
                                     engine.setVariable(arg0, State.LastValue);
                                 else if (engine.isNumber(arg0))
-                                    engine.setVariable(arg0, stod(State.LastValue));
+                                    engine.setVariable(arg0,
+                                                       stod(State.LastValue));
                                 else
                                     error(ErrorCode::IS_NULL, arg0, false);
-                            }
-                            else
-                            {
+                            } else {
                                 if (engine.isString(arg0))
                                     engine.setVariable(arg0, State.LastValue);
                                 else if (engine.isNumber(arg0))
@@ -1320,104 +1168,76 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                                 else
                                     error(ErrorCode::IS_NULL, arg0, false);
                             }
-                        }
-                        else
+                        } else
                             Env::shellExec(arg0, command);
-                    }
-                    else
+                    } else
                         error(ErrorCode::VAR_UNDEFINED, arg2, false);
-                }
-                else if (before == Keywords.Env)
-                {
-                    internal_env_builtins(arg0, after, 1);
-                }
-                else if (is_recognized_math_func(after))
-                {
-                    parse_mathfunc_assignfromvar(arg0, before, after);
-                }
-                else if (after == Keywords.ToInteger)
-                {
-                    if (engine.variableExists(before))
-                    {
+                } else if (before == Keywords.Env) {
+                    interp_env_rhs(arg0, after, 1);
+                } else if (is_recognized_math_func(after)) {
+                    interp_mathfunc_assignfromvar(arg0, before, after);
+                } else if (after == Keywords.ToInteger) {
+                    if (engine.variableExists(before)) {
                         if (engine.isString(before))
-                            engine.setVariable(arg0, (int)engine.varString(before)[0]);
-                        else if (engine.isNumber(before))
-                        {
+                            engine.setVariable(
+                                arg0, (int)engine.varString(before)[0]);
+                        else if (engine.isNumber(before)) {
                             int i = (int)engine.varNumber(before);
                             engine.setVariable(arg0, (double)i);
-                        }
-                        else
+                        } else
                             error(ErrorCode::IS_NULL, before, false);
-                    }
-                    else
+                    } else
                         error(ErrorCode::VAR_UNDEFINED, before, false);
-                }
-                else if (after == Keywords.ToDouble)
-                {
-                    if (engine.variableExists(before))
-                    {
+                } else if (after == Keywords.ToDouble) {
+                    if (engine.variableExists(before)) {
                         if (engine.isString(before))
-                            engine.setVariable(arg0, (double)engine.varString(before)[0]);
-                        else if (engine.isNumber(before))
-                        {
+                            engine.setVariable(
+                                arg0, (double)engine.varString(before)[0]);
+                        else if (engine.isNumber(before)) {
                             double i = engine.varNumber(before);
                             engine.setVariable(arg0, (double)i);
-                        }
-                        else
+                        } else
                             error(ErrorCode::IS_NULL, before, false);
-                    }
-                    else
+                    } else
                         error(ErrorCode::VAR_UNDEFINED, before, false);
-                }
-                else if (after == Keywords.ToString)
-                {
-                    if (engine.variableExists(before))
-                    {
+                } else if (after == Keywords.ToString) {
+                    if (engine.variableExists(before)) {
                         if (engine.isNumber(before))
-                            engine.setVariable(arg0, dtos(engine.varNumber(before)));
+                            engine.setVariable(arg0,
+                                               dtos(engine.varNumber(before)));
                         else
                             error(ErrorCode::IS_NULL, before, false);
-                    }
-                    else
+                    } else
                         error(ErrorCode::VAR_UNDEFINED, before, false);
-                }
-                else if (after == Keywords.ToNumber)
-                {
-                    if (!engine.variableExists(before))
-                    {
+                } else if (after == Keywords.ToNumber) {
+                    if (!engine.variableExists(before)) {
                         error(ErrorCode::VAR_UNDEFINED, before, false);
                         return;
                     }
 
                     if (engine.isString(before))
-                        engine.setVariable(arg0, stod(engine.varString(before)));
+                        engine.setVariable(arg0,
+                                           stod(engine.varString(before)));
                     else
                         error(ErrorCode::IS_NULL, before, false);
-                }
-                else if (before == Keywords.ReadLine)
-                {
-                    if (engine.variableExists(after))
-                    {
+                } else if (before == Keywords.ReadLine) {
+                    if (engine.variableExists(after)) {
                         if (engine.isString(after))
                             write(pre_parse(engine.varString(after)));
 
                         std::string line;
                         std::getline(std::cin, line, '\n');
 
-                        if (engine.isNumber(arg0))
-                        {
+                        if (engine.isNumber(arg0)) {
                             if (is_numeric(line))
                                 engine.setVariable(arg0, stod(line));
                             else
                                 error(ErrorCode::CONV_ERR, line, false);
-                        }
-                        else if (engine.isString(arg0))
+                        } else if (engine.isString(arg0))
                             engine.setVariable(arg0, line);
                         else
                             error(ErrorCode::IS_NULL, arg0, false);
-                    }
-                    else
-                    {
+                    } else {
                         std::string line;
                         std::cout << pre_parse(after);
                         std::getline(std::cin, line, '\n');
@@ -1427,31 +1247,26 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                         else
                             engine.setVariable(arg0, line);
                     }
-                }
-                else if (before == Keywords.Mask)
-                {
-                    if (engine.variableExists(after))
-                    {
-                        std::string prompt = engine.isString(after) ? engine.varString(after) : "";
+                } else if (before == Keywords.Mask) {
+                    if (engine.variableExists(after)) {
+                        std::string prompt = engine.isString(after)
+                                                 ? engine.varString(after)
+                                                 : "";
                         std::string line;
                         line = get_stdin_quiet(prompt);
 
-                        if (engine.isNumber(arg0))
-                        {
+                        if (engine.isNumber(arg0)) {
                             if (is_numeric(line))
                                 engine.setVariable(arg0, stod(line));
                             else
                                 error(ErrorCode::CONV_ERR, line, false);
-                        }
-                        else if (engine.isString(arg0))
+                        } else if (engine.isString(arg0))
                             engine.setVariable(arg0, line);
                         else
                             error(ErrorCode::IS_NULL, arg0, false);
 
                         writeline();
-                    }
-                    else
-                    {
+                    } else {
                         std::string line;
                         line = get_stdin_quiet(pre_parse(after));
 
@@ -1462,212 +1277,171 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
 
                         writeline();
                     }
-                }
-                else if (after == Keywords.ToLower && engine.variableExists(before))
-                {
-                    if (!engine.isString(arg0) || !engine.isString(before))
-                    {
+                } else if (after == Keywords.ToLower &&
+                           engine.variableExists(before)) {
+                    if (!engine.isString(arg0) || !engine.isString(before)) {
                         error(ErrorCode::CONV_ERR, before, false);
                         return;
                     }
 
-                    engine.setVariable(arg0, to_lower(engine.varString(before)));
-                }
-                else if (after == Keywords.Read)
-                {
-                    if (!engine.isString(arg0))
-                    {
+                    engine.setVariable(arg0,
+                                       to_lower(engine.varString(before)));
+                } else if (after == Keywords.Read) {
+                    if (!engine.isString(arg0)) {
                         error(ErrorCode::CONV_ERR, arg0, false);
                         return;
                     }
 
-                    if (engine.variableExists(before))
-                    {
-                        if (!engine.isString(before))
-                        {
+                    if (engine.variableExists(before)) {
+                        if (!engine.isString(before)) {
                             error(ErrorCode::NULL_STRING, before, false);
                             return;
                         }
 
-                        if (!FileIO::fileExists(engine.varString(before)))
-                        {
-                            error(ErrorCode::FILE_NOT_FOUND, engine.varString(before), false);
+                        if (!FileIO::fileExists(engine.varString(before))) {
+                            error(ErrorCode::FILE_NOT_FOUND,
+                                  engine.varString(before), false);
                             return;
                         }
 
                         std::string filePath = engine.varString(before);
                         engine.setVariable(arg0, FileIO::readText(filePath));
-                    }
-                    else
-                    {
-                        if (!FileIO::fileExists(before))
-                        {
+                    } else {
+                        if (!FileIO::fileExists(before)) {
                             error(ErrorCode::FILE_NOT_FOUND, before, false);
                             return;
                         }
 
                         engine.setVariable(arg0, FileIO::readText(before));
                     }
-                }
-                else if (after == Keywords.ToUpper && engine.variableExists(before))
-                {
-                    if (!engine.isString(arg0) || !engine.isString(before))
-                    {
+                } else if (after == Keywords.ToUpper &&
+                           engine.variableExists(before)) {
+                    if (!engine.isString(arg0) || !engine.isString(before)) {
                         error(ErrorCode::CONV_ERR, before, false);
                         return;
                     }
 
-                    engine.setVariable(arg0, to_upper(engine.varString(before)));
-                }
-                else if (after == Keywords.Size)
-                {
-                    if (engine.variableExists(before))
-                    {
-                        if (!engine.isNumber(arg0))
-                        {
+                    engine.setVariable(arg0,
+                                       to_upper(engine.varString(before)));
+                } else if (after == Keywords.Size) {
+                    if (engine.variableExists(before)) {
+                        if (!engine.isNumber(arg0)) {
                             error(ErrorCode::CONV_ERR, arg0, false);
                             return;
                         }
 
                         if (engine.isString(before))
-                            engine.setVariable(arg0, (double)engine.varString(before).length());
+                            engine.setVariable(
+                                arg0,
+                                (double)engine.varString(before).length());
                         else
                             error(ErrorCode::CONV_ERR, before, false);
-                    }
-                    else
-                    {
+                    } else {
                         if (engine.isNumber(arg0))
                             engine.setVariable(arg0, (double)before.length());
                         else
                             error(ErrorCode::CONV_ERR, arg0, false);
                     }
-                }
-                else if (after == Keywords.FileSize)
-                {
-                    if (engine.isNumber(arg0))
-                    {
-                        if (engine.variableExists(before))
-                        {
-                            if (!engine.isString(before))
-                            {
+                } else if (after == Keywords.FileSize) {
+                    if (engine.isNumber(arg0)) {
+                        if (engine.variableExists(before)) {
+                            if (!engine.isString(before)) {
                                 error(ErrorCode::CONV_ERR, before, false);
                                 return;
                             }
 
                             if (FileIO::fileExists(engine.varString(before)))
-                                engine.setVariable(arg0, FileIO::getFileSize(engine.varString(before)));
+                                engine.setVariable(
+                                    arg0, FileIO::getFileSize(
+                                              engine.varString(before)));
                             else
-                                error(ErrorCode::READ_FAIL, engine.varString(before), false);
-                        }
-                        else
-                        {
+                                error(ErrorCode::READ_FAIL,
+                                      engine.varString(before), false);
+                        } else {
                             if (FileIO::fileExists(before))
-                                engine.setVariable(arg0, FileIO::getFileSize(before));
+                                engine.setVariable(arg0,
+                                                   FileIO::getFileSize(before));
                             else
                                 error(ErrorCode::READ_FAIL, before, false);
                         }
-                    }
-                    else
+                    } else
                         error(ErrorCode::CONV_ERR, arg0, false);
-                }
-                else
-                {
-                    if (engine.isNumber(arg0))
-                    {
+                } else {
+                    if (engine.isNumber(arg0)) {
                         if (is_numeric(arg2))
                             engine.setVariable(arg0, stod(arg2));
                         else
                             engine.setVariable(arg0, arg2);
-                    }
-                    else if (engine.isString(arg0))
+                    } else if (engine.isString(arg0))
                         engine.setVariable(arg0, arg2);
                     else
                         error(ErrorCode::IS_NULL, arg0, false);
                 }
-            }
-            else
-            {
-                if (arg2 == "null")
-                {
+            } else {
+                if (arg2 == "null") {
                     if (engine.isString(arg0))
                         engine.getVar(arg0).setNull();
                     else if (engine.isNumber(arg0))
                         engine.getVar(arg0).setNull();
                     else
                         error(ErrorCode::IS_NULL, arg0, false);
-                }
-                else if (engine.constantExists(arg2))
-                {
-                    if (engine.isString(arg0))
-                    {
+                } else if (engine.constantExists(arg2)) {
+                    if (engine.isString(arg0)) {
                         if (engine.getConstant(arg2).ConstNumber())
-                            engine.setVariable(arg0, dtos(engine.getConstant(arg2).getNumber()));
+                            engine.setVariable(
+                                arg0,
+                                dtos(engine.getConstant(arg2).getNumber()));
                         else if (engine.getConstant(arg2).ConstString())
-                            engine.setVariable(arg0, engine.getConstant(arg2).getString());
-                    }
-                    else if (engine.isNumber(arg0))
-                    {
+                            engine.setVariable(
+                                arg0, engine.getConstant(arg2).getString());
+                    } else if (engine.isNumber(arg0)) {
                         if (engine.getConstant(arg2).ConstNumber())
-                            engine.setVariable(arg0, engine.getConstant(arg2).getNumber());
+                            engine.setVariable(
+                                arg0, engine.getConstant(arg2).getNumber());
                         else
                             error(ErrorCode::CONV_ERR, arg2, false);
-                    }
-                    else
+                    } else
                         error(ErrorCode::IS_NULL, arg0, false);
-                }
-                else if (engine.methodExists(arg2))
-                {
+                } else if (engine.methodExists(arg2)) {
                     parse(arg2);
 
                     if (engine.isString(arg0))
                         engine.setVariable(arg0, State.LastValue);
                     else if (engine.isNumber(arg0))
                         engine.setVariable(arg0, stod(State.LastValue));
-                }
-                else if (engine.variableExists(arg2))
-                {
-                    if (engine.isString(arg2))
-                    {
+                } else if (engine.variableExists(arg2)) {
+                    if (engine.isString(arg2)) {
                         if (engine.isString(arg0))
                             engine.setVariable(arg0, engine.varString(arg2));
                         else if (engine.isNumber(arg0))
                             error(ErrorCode::CONV_ERR, arg2, false);
                         else
                             error(ErrorCode::IS_NULL, arg0, false);
-                    }
-                    else if (engine.isNumber(arg2))
-                    {
+                    } else if (engine.isNumber(arg2)) {
                         if (engine.isString(arg0))
-                            engine.setVariable(arg0, dtos(engine.varNumber(arg2)));
+                            engine.setVariable(arg0,
+                                               dtos(engine.varNumber(arg2)));
                         else if (engine.isNumber(arg0))
                             engine.setVariable(arg0, engine.varNumber(arg2));
                         else
                             error(ErrorCode::IS_NULL, arg0, false);
-                    }
-                    else
+                    } else
                         error(ErrorCode::IS_NULL, arg2, false);
-                }
-                else if (arg2 == Keywords.Mask || arg2 == Keywords.ReadLine)
-                {
-                    if (arg2 == Keywords.Mask)
-                    {
+                } else if (arg2 == Keywords.Mask || arg2 == Keywords.ReadLine) {
+                    if (arg2 == Keywords.Mask) {
                         std::string masked;
                         masked = get_stdin_quiet("");
 
-                        if (engine.isNumber(arg0))
-                        {
+                        if (engine.isNumber(arg0)) {
                             if (is_numeric(masked))
                                 engine.setVariable(arg0, stod(masked));
                             else
                                 error(ErrorCode::CONV_ERR, masked, false);
-                        }
-                        else if (engine.isString(arg0))
+                        } else if (engine.isString(arg0))
                             engine.setVariable(arg0, masked);
                         else
                             engine.setVariable(arg0, masked);
-                    }
-                    else
-                    {
+                    } else {
                         std::string line;
                         std::getline(std::cin, line, '\n');
 
@@ -1676,27 +1450,22 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                         else
                             engine.createVariable(arg0, line);
                     }
-                }
-                else if (has_params(arg2))
-                {
-                    if (engine.methodExists(before_params(arg2)))
-                    {
-                        exec.executeTemplate(engine.getMethod(before_params(arg2)), parse_params(arg2));
+                } else if (has_params(arg2)) {
+                    if (engine.methodExists(before_params(arg2))) {
+                        exec.executeTemplate(
+                            engine.getMethod(before_params(arg2)),
+                            interp_params(arg2));
 
                         if (engine.isString(arg0))
                             engine.setVariable(arg0, State.LastValue);
                         else if (engine.isNumber(arg0))
                             engine.setVariable(arg0, stod(State.LastValue));
-                    }
-                    else if (isStringStack(arg2))
-                    {
+                    } else if (isStringStack(arg2)) {
                         if (engine.isString(arg0))
                             engine.setVariable(arg0, getStringStack(arg2));
                         else
                             error(ErrorCode::CONV_ERR, arg0, false);
-                    }
-                    else if (stackReady(arg2))
-                    {
+                    } else if (stackReady(arg2)) {
                         if (engine.isString(arg0))
                             engine.setVariable(arg0, dtos(getStack(arg2)));
                         else if (engine.isNumber(arg0))
@@ -1704,18 +1473,13 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                         else
                             error(ErrorCode::IS_NULL, arg0, false);
                     }
-                }
-                else
-                {
-                    if (is_numeric(arg2))
-                    {
+                } else {
+                    if (is_numeric(arg2)) {
                         if (engine.isNumber(arg0))
                             engine.setVariable(arg0, stod(arg2));
                         else if (engine.isString(arg0))
                             engine.setVariable(arg0, arg2);
-                    }
-                    else
-                    {
+                    } else {
                         if (engine.isNumber(arg0))
                             error(ErrorCode::CONV_ERR, arg0, false);
                         else if (engine.isString(arg0))
@@ -1723,65 +1487,50 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2, st
                     }
                 }
             }
-        }
-        else if (is_recognized_2space(arg1))
-            parse_assign(arg0, arg1, arg2);
-        else 
+        } else if (is_recognized_2space(arg1))
+            interp_assign(arg0, arg1, arg2);
+        else
             print_underconstruction();
     }
 }
 
-void parse_assign(std::string arg0, std::string arg1, std::string arg2)
-{
+void interp_assign(std::string arg0, std::string arg1, std::string arg2) {
     std::string first, second;
 
     bool arg0IsString = engine.isString(arg0),
          arg0IsNumber = engine.isNumber(arg0);
 
-    if (!arg0IsString && !arg0IsNumber)
-    {
+    if (!arg0IsString && !arg0IsNumber) {
         error(ErrorCode::IS_NULL, arg2, false);
         return;
     }
 
-    first = arg0IsString ? engine.varString(arg0) : dtos(engine.varNumber(arg0));
+    first =
+        arg0IsString ? engine.varString(arg0) : dtos(engine.varNumber(arg0));
 
     if (engine.variableExists(arg2))
         second = engine.getVariableValueAsString(arg2);
-    else
-    {
-        if (has_params(arg2))
-        {
-            if (isStringStack(arg2) && engine.isString(arg0))
-            {
+    else {
+        if (has_params(arg2)) {
+            if (isStringStack(arg2) && engine.isString(arg0)) {
                 second = getStringStack(arg2);
-            }
-            else if (stackReady(arg2) && engine.isNumber(arg0))
-            {
+            } else if (stackReady(arg2) && engine.isNumber(arg0)) {
                 second = dtos(getStack(arg2));
-            }
-            else if (engine.methodExists(before_params(arg2)))
-            {
-                exec.executeTemplate(engine.getMethod(before_params(arg2)), parse_params(arg2));
+            } else if (engine.methodExists(before_params(arg2))) {
+                exec.executeTemplate(engine.getMethod(before_params(arg2)),
+                                     interp_params(arg2));
+                second = State.LastValue;
+            } else if (engine.classExists(before_dot(arg2))) {
+                exec.executeTemplate(engine.getMethod(before_params(arg2)),
+                                     interp_params(arg2));
                 second = State.LastValue;
             }
-            else if (engine.classExists(before_dot(arg2)))
-            {
-                exec.executeTemplate(engine.getMethod(before_params(arg2)), parse_params(arg2));
-                second = State.LastValue;
-            }
-        }
-        else if (engine.methodExists(arg2))
-        {
+        } else if (engine.methodExists(arg2)) {
             parse(arg2);
             second = State.LastValue;
-        }
-        else if (is_numeric(arg2))
-        {
+        } else if (is_numeric(arg2)) {
             second = arg2;
-        }
-        else
-        {
+        } else {
             second = pre_parse(arg2);
         }
     }
@@ -1791,8 +1540,7 @@ void parse_assign(std::string arg0, std::string arg1, std::string arg2)
     double firstNumber = firstIsNumeric ? stod(first) : 0,
            secondNumber = secondIsNumeric ? stod(second) : 0;
 
-    if (firstIsNumeric && secondIsNumeric)
-    {
+    if (firstIsNumeric && secondIsNumeric) {
         double result = 0;
         if (arg1 == Operators.Assign)
             result = secondNumber;
@@ -1808,16 +1556,13 @@ void parse_assign(std::string arg0, std::string arg1, std::string arg2)
             result = pow(firstNumber, secondNumber);
         else if (arg1 == Operators.DivideAssign)
             result = firstNumber / secondNumber;
-        else
-        {
+        else {
             error(ErrorCode::INVALID_OP, arg1, true);
             return;
         }
 
         engine.setVariable(arg0, result);
-    }
-    else if (!firstIsNumeric && secondIsNumeric)
-    {
+    } else if (!firstIsNumeric && secondIsNumeric) {
         std::string result(first);
         if (arg1 == Operators.Assign)
             result = dtos(secondNumber);
@@ -1827,16 +1572,13 @@ void parse_assign(std::string arg0, std::string arg1, std::string arg2)
             result = subtract_string(result, second);
         else if (arg1 == Operators.MultiplyAssign)
             result = multiply_string(result, (int)secondNumber);
-        else
-        {
+        else {
             error(ErrorCode::INVALID_OP, arg1, true);
             return;
         }
 
         engine.setVariable(arg0, result);
-    }
-    else if (!firstIsNumeric && !secondIsNumeric)
-    {
+    } else if (!firstIsNumeric && !secondIsNumeric) {
         std::string result(first);
         if (arg1 == Operators.Assign)
             result = second;
@@ -1846,167 +1588,142 @@ void parse_assign(std::string arg0, std::string arg1, std::string arg2)
             result = Env::getStdout(second.c_str());
         else if (arg1 == Keywords.InlineParse)
             result = get_parsed_stdout(second.c_str());
-        else
-        {
+        else {
             error(ErrorCode::INVALID_OP, arg1, true);
             return;
         }
 
         engine.setVariable(arg0, result);
-    }
-    else
-    {
+    } else {
         error(ErrorCode::CONV_ERR, "parseAssignment", true);
     }
 }
 
-void init_listvalues(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command)
-{
-    std::string _b(before_dot(arg2)), _a(after_dot(arg2)), __b(before_params(arg2));
+void init_listvalues(std::string arg0, std::string arg1, std::string arg2,
+                     std::vector<std::string> command) {
+    std::string _b(before_dot(arg2)), _a(after_dot(arg2)),
+        __b(before_params(arg2));
 
-    if (has_brackets(arg0))
-    {
+    if (has_brackets(arg0)) {
         std::string after(after_brackets(arg0)), before(before_brackets(arg0));
         after = subtract_string(after, "]");
 
-        if (engine.getList(before).size() >= stoi(after))
-        {
-            if (stoi(after) == 0)
-            {
-                if (arg1 == Operators.Assign)
-                {
-                    if (engine.variableExists(arg2))
-                    {
+        if (engine.getList(before).size() >= stoi(after)) {
+            if (stoi(after) == 0) {
+                if (arg1 == Operators.Assign) {
+                    if (engine.variableExists(arg2)) {
                         if (engine.isString(arg2))
-                            engine.replaceElement(before, after, engine.varString(arg2));
+                            engine.replaceElement(before, after,
+                                                  engine.varString(arg2));
                         else if (engine.isNumber(arg2))
-                            engine.replaceElement(before, after, dtos(engine.varNumber(arg2)));
+                            engine.replaceElement(before, after,
+                                                  dtos(engine.varNumber(arg2)));
                         else
                             error(ErrorCode::IS_NULL, arg2, false);
-                    }
-                    else
+                    } else
                         engine.replaceElement(before, after, arg2);
                 }
-            }
-            else if (engine.getList(before).at(stoi(after)) == "#!=no_line")
+            } else if (engine.getList(before).at(stoi(after)) == "#!=no_line")
                 error(ErrorCode::OUT_OF_BOUNDS, arg0, false);
-            else
-            {
-                if (arg1 == Operators.Assign)
-                {
-                    if (engine.variableExists(arg2))
-                    {
+            else {
+                if (arg1 == Operators.Assign) {
+                    if (engine.variableExists(arg2)) {
                         if (engine.isString(arg2))
-                            engine.replaceElement(before, after, engine.varString(arg2));
+                            engine.replaceElement(before, after,
+                                                  engine.varString(arg2));
                         else if (engine.isNumber(arg2))
-                            engine.replaceElement(before, after, dtos(engine.varNumber(arg2)));
+                            engine.replaceElement(before, after,
+                                                  dtos(engine.varNumber(arg2)));
                         else
                             error(ErrorCode::IS_NULL, arg2, false);
-                    }
-                    else
+                    } else
                         engine.replaceElement(before, after, arg2);
                 }
             }
-        }
-        else
+        } else
             error(ErrorCode::OUT_OF_BOUNDS, arg2, false);
-    }
-    else if (has_brackets(arg2)) // INITIALIZE LIST FROM RANGE
+    } else if (has_brackets(arg2)) // INITIALIZE LIST FROM RANGE
     {
         std::string listName(before_brackets(arg2));
 
-        if (!engine.listExists(listName))
-        {
+        if (!engine.listExists(listName)) {
             error(ErrorCode::LIST_UNDEFINED, listName, false);
             return;
         }
 
-        std::vector<std::string> listRange = parse_bracketrange(arg2);
+        std::vector<std::string> listRange = interp_bracketrange(arg2);
 
-        if (listRange.size() != 2)
-        {
+        if (listRange.size() != 2) {
             error(ErrorCode::OUT_OF_BOUNDS, arg2, false);
             return;
         }
 
         std::string rangeBegin(listRange.at(0)), rangeEnd(listRange.at(1));
 
-        if (!(rangeBegin.length() != 0 && rangeEnd.length() != 0))
-        {
-            error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
+        if (!(rangeBegin.length() != 0 && rangeEnd.length() != 0)) {
+            error(ErrorCode::OUT_OF_BOUNDS,
+                  rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
             return;
         }
 
-        if (!(is_numeric(rangeBegin) && is_numeric(rangeEnd)))
-        {
-            error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
+        if (!(is_numeric(rangeBegin) && is_numeric(rangeEnd))) {
+            error(ErrorCode::OUT_OF_BOUNDS,
+                  rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
             return;
         }
 
-        if (stoi(rangeBegin) < stoi(rangeEnd))
-        {
-            if (!(engine.getList(listName).size() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0) || !(stoi(rangeBegin) >= 0))
-            {
+        if (stoi(rangeBegin) < stoi(rangeEnd)) {
+            if (!(engine.getList(listName).size() >= stoi(rangeEnd) &&
+                  stoi(rangeBegin) >= 0) ||
+                !(stoi(rangeBegin) >= 0)) {
                 error(ErrorCode::OUT_OF_BOUNDS, rangeEnd, false);
                 return;
             }
 
-            if (arg1 == Operators.AddAssign)
-            {
+            if (arg1 == Operators.AddAssign) {
                 for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
                     engine.addItemToList(arg0, engine.getList(listName).at(i));
-            }
-            else if (arg1 == Operators.Assign)
-            {
+            } else if (arg1 == Operators.Assign) {
                 engine.getList(arg0).clear();
 
                 for (int i = stoi(rangeBegin); i <= stoi(rangeEnd); i++)
                     engine.addItemToList(arg0, engine.getList(listName).at(i));
-            }
-            else
+            } else
                 error(ErrorCode::INVALID_OPERATOR, arg1, false);
-        }
-        else if (stoi(rangeBegin) > stoi(rangeEnd))
-        {
-            if (!(engine.getList(listName).size() >= stoi(rangeEnd) && stoi(rangeBegin) >= 0) || !(stoi(rangeBegin) >= 0))
-            {
+        } else if (stoi(rangeBegin) > stoi(rangeEnd)) {
+            if (!(engine.getList(listName).size() >= stoi(rangeEnd) &&
+                  stoi(rangeBegin) >= 0) ||
+                !(stoi(rangeBegin) >= 0)) {
                 error(ErrorCode::OUT_OF_BOUNDS, rangeEnd, false);
                 return;
             }
 
-            if (arg1 == Operators.AddAssign)
-            {
+            if (arg1 == Operators.AddAssign) {
                 for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
                     engine.addItemToList(arg0, engine.getList(listName).at(i));
-            }
-            else if (arg1 == Operators.Assign)
-            {
+            } else if (arg1 == Operators.Assign) {
                 engine.getList(arg0).clear();
 
                 for (int i = stoi(rangeBegin); i >= stoi(rangeEnd); i--)
                     engine.addItemToList(arg0, engine.getList(listName).at(i));
-            }
-            else
+            } else
                 error(ErrorCode::INVALID_OPERATOR, arg1, false);
-        }
-        else
-            error(ErrorCode::OUT_OF_BOUNDS, rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
-    }
-    else if (engine.variableExists(_b) && contains(_a, Keywords.Split) && arg1 == Operators.Assign)
-    {
-        if (!engine.isString(_b))
-        {
+        } else
+            error(ErrorCode::OUT_OF_BOUNDS,
+                  rangeBegin + Keywords.RangeSeparator + rangeEnd, false);
+    } else if (engine.variableExists(_b) && contains(_a, Keywords.Split) &&
+               arg1 == Operators.Assign) {
+        if (!engine.isString(_b)) {
             error(ErrorCode::NULL_STRING, _b, false);
             return;
         }
 
-        std::vector<std::string> params = parse_params(_a);
+        std::vector<std::string> params = interp_params(_a);
         std::vector<std::string> elements;
 
         if (params.at(0) == "")
             elements = split(engine.varString(_b), ' ');
-        else
-        {
+        else {
             if (params.at(0)[0] == ';')
                 elements = split(engine.varString(_b), ';');
             else
@@ -2017,93 +1734,74 @@ void init_listvalues(std::string arg0, std::string arg1, std::string arg2, std::
 
         for (int i = 0; i < (int)elements.size(); i++)
             engine.addItemToList(arg0, elements.at(i));
-    }
-    else if (has_params(arg2)) // ADD/REMOVE ARRAY FROM LIST
+    } else if (has_params(arg2)) // ADD/REMOVE ARRAY FROM LIST
     {
-        std::vector<std::string> params = parse_params(arg2);
+        std::vector<std::string> params = interp_params(arg2);
 
-        if (arg1 == Operators.Assign)
-        {
+        if (arg1 == Operators.Assign) {
             engine.getList(arg0).clear();
             setList(arg0, arg2, params);
-        }
-        else if (arg1 == Operators.AddAssign)
+        } else if (arg1 == Operators.AddAssign)
             setList(arg0, arg2, params);
-        else if (arg1 == Operators.SubtractAssign)
-        {
-            for (int i = 0; i < (int)params.size(); i++)
-            {
-                if (engine.variableExists(params.at(i)))
-                {
+        else if (arg1 == Operators.SubtractAssign) {
+            for (int i = 0; i < (int)params.size(); i++) {
+                if (engine.variableExists(params.at(i))) {
                     if (engine.isString(params.at(i)))
-                        engine.getList(arg0).remove(engine.varString(params.at(i)));
+                        engine.getList(arg0).remove(
+                            engine.varString(params.at(i)));
                     else if (engine.isNumber(params.at(i)))
-                        engine.getList(arg0).remove(dtos(engine.varNumber(params.at(i))));
+                        engine.getList(arg0).remove(
+                            dtos(engine.varNumber(params.at(i))));
                     else
                         error(ErrorCode::IS_NULL, params.at(i), false);
-                }
-                else
+                } else
                     engine.getList(arg0).remove(params.at(i));
             }
-        }
-        else
+        } else
             error(ErrorCode::INVALID_OPERATOR, arg1, false);
-    }
-    else if (engine.variableExists(arg2)) // ADD/REMOVE VARIABLE VALUE TO/FROM LIST
+    } else if (engine.variableExists(
+                   arg2)) // ADD/REMOVE VARIABLE VALUE TO/FROM LIST
     {
-        if (arg1 == Operators.AddAssign)
-        {
+        if (arg1 == Operators.AddAssign) {
             if (engine.isString(arg2))
                 engine.addItemToList(arg0, engine.varString(arg2));
             else if (engine.isNumber(arg2))
                 engine.addItemToList(arg0, dtos(engine.varNumber(arg2)));
             else
                 error(ErrorCode::CONV_ERR, arg2, false);
-        }
-        else if (arg1 == Operators.SubtractAssign)
-        {
+        } else if (arg1 == Operators.SubtractAssign) {
             if (engine.isString(arg2))
                 engine.getList(arg0).remove(engine.varString(arg2));
             else if (engine.isNumber(arg2))
                 engine.getList(arg0).remove(dtos(engine.varNumber(arg2)));
             else
                 error(ErrorCode::CONV_ERR, arg2, false);
-        }
-        else
+        } else
             error(ErrorCode::INVALID_OPERATOR, arg1, false);
-    }
-    else if (engine.methodExists(arg2)) // INITIALIZE LIST FROM METHOD RETURN
+    } else if (engine.methodExists(arg2)) // INITIALIZE LIST FROM METHOD RETURN
     {
         parse(arg2);
 
-        std::vector<std::string> _p = parse_params(State.LastValue);
+        std::vector<std::string> _p = interp_params(State.LastValue);
 
-        if (arg1 == Operators.Assign)
-        {
+        if (arg1 == Operators.Assign) {
             engine.getList(arg0).clear();
 
             for (int i = 0; i < (int)_p.size(); i++)
                 engine.addItemToList(arg0, _p.at(i));
-        }
-        else if (arg1 == Operators.AddAssign)
-        {
+        } else if (arg1 == Operators.AddAssign) {
             for (int i = 0; i < (int)_p.size(); i++)
                 engine.addItemToList(arg0, _p.at(i));
-        }
-        else
+        } else
             error(ErrorCode::INVALID_OPERATOR, arg1, false);
-    }
-    else // ADD/REMOVE STRING TO/FROM LIST
+    } else // ADD/REMOVE STRING TO/FROM LIST
     {
-        if (arg1 == Operators.AddAssign)
-        {
+        if (arg1 == Operators.AddAssign) {
             if (arg2.length() != 0)
                 engine.addItemToList(arg0, arg2);
             else
                 error(ErrorCode::IS_EMPTY, arg2, false);
-        }
-        else if (arg1 == Operators.SubtractAssign)
-        {
+        } else if (arg1 == Operators.SubtractAssign) {
             if (arg2.length() != 0)
                 engine.getList(arg0).remove(arg2);
             else
@@ -2112,91 +1810,79 @@ void init_listvalues(std::string arg0, std::string arg1, std::string arg2, std::
     }
 }
 
-void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command)
-{
-    if (arg1 == Operators.Assign)
-    {
+void init_globalvar(std::string arg0, std::string arg1, std::string arg2,
+                    std::vector<std::string> command) {
+    if (arg1 == Operators.Assign) {
         std::string before(before_dot(arg2)), after(after_dot(arg2));
 
-        if (has_brackets(arg2) && (engine.variableExists(before_brackets(arg2)) || engine.listExists(before_brackets(arg2))))
-        {
-            std::string beforeBracket(before_brackets(arg2)), afterBracket(after_brackets(arg2));
+        if (has_brackets(arg2) &&
+            (engine.variableExists(before_brackets(arg2)) ||
+             engine.listExists(before_brackets(arg2)))) {
+            std::string beforeBracket(before_brackets(arg2)),
+                afterBracket(after_brackets(arg2));
 
             afterBracket = subtract_string(afterBracket, "]");
 
-            if (engine.listExists(beforeBracket))
-            {
-                if (engine.getList(beforeBracket).size() >= stoi(afterBracket))
-                {
-                    if (engine.getList(beforeBracket).at(stoi(afterBracket)) == "#!=no_line")
+            if (engine.listExists(beforeBracket)) {
+                if (engine.getList(beforeBracket).size() >=
+                    stoi(afterBracket)) {
+                    if (engine.getList(beforeBracket).at(stoi(afterBracket)) ==
+                        "#!=no_line")
                         error(ErrorCode::OUT_OF_BOUNDS, arg2, false);
-                    else
-                    {
-                        std::string listValue(engine.getList(beforeBracket).at(stoi(afterBracket)));
+                    else {
+                        std::string listValue(engine.getList(beforeBracket)
+                                                  .at(stoi(afterBracket)));
 
                         if (is_numeric(listValue))
                             engine.createVariable(arg0, stod(listValue));
                         else
                             engine.createVariable(arg0, listValue);
                     }
-                }
-                else
+                } else
                     error(ErrorCode::OUT_OF_BOUNDS, arg2, false);
-            }
-            else if (engine.variableExists(beforeBracket))
+            } else if (engine.variableExists(beforeBracket))
                 setSubString(arg0, arg2, beforeBracket);
             else
                 error(ErrorCode::LIST_UNDEFINED, beforeBracket, false);
-        }
-        else if (engine.listExists(before) && after == Keywords.Size)
-            engine.createVariable(arg0, stod(itos(engine.getList(before).size())));
-        else if (before == Keywords.Self)
-        {
+        } else if (engine.listExists(before) && after == Keywords.Size)
+            engine.createVariable(arg0,
+                                  stod(itos(engine.getList(before).size())));
+        else if (before == Keywords.Self) {
             if (engine.classExists(State.CurrentMethodClass))
-                twoSpace(arg0, arg1, (State.CurrentMethodClass + Keywords.Dot + after), command);
+                twoSpace(arg0, arg1,
+                         (State.CurrentMethodClass + Keywords.Dot + after),
+                         command);
             else
                 twoSpace(arg0, arg1, after, command);
-        }
-        else if (after == Keywords.ToInteger)
-        {
-            if (!engine.variableExists(before))
-            {
+        } else if (after == Keywords.ToInteger) {
+            if (!engine.variableExists(before)) {
                 error(ErrorCode::VAR_UNDEFINED, before, false);
                 return;
             }
 
             if (engine.isString(before))
                 engine.createVariable(arg0, (int)engine.varString(before)[0]);
-            else if (engine.isNumber(before))
-            {
+            else if (engine.isNumber(before)) {
                 int i = (int)engine.varNumber(before);
                 engine.createVariable(arg0, (double)i);
-            }
-            else
+            } else
                 error(ErrorCode::IS_NULL, before, false);
-        }
-        else if (after == Keywords.ToDouble)
-        {
-            if (!engine.variableExists(before))
-            {
+        } else if (after == Keywords.ToDouble) {
+            if (!engine.variableExists(before)) {
                 error(ErrorCode::VAR_UNDEFINED, before, false);
                 return;
             }
 
             if (engine.isString(before))
-                engine.createVariable(arg0, (double)engine.varString(before)[0]);
-            else if (engine.isNumber(before))
-            {
+                engine.createVariable(arg0,
+                                      (double)engine.varString(before)[0]);
+            else if (engine.isNumber(before)) {
                 double i = engine.varNumber(before);
                 engine.createVariable(arg0, (double)i);
-            }
-            else
+            } else
                 error(ErrorCode::IS_NULL, before, false);
-        }
-        else if (after == Keywords.ToString)
-        {
-            if (!engine.variableExists(before))
-            {
+        } else if (after == Keywords.ToString) {
+            if (!engine.variableExists(before)) {
                 error(ErrorCode::VAR_UNDEFINED, before, false);
                 return;
             }
@@ -2205,11 +1891,8 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 engine.createVariable(arg0, dtos(engine.varNumber(before)));
             else
                 error(ErrorCode::IS_NULL, before, false);
-        }
-        else if (after == Keywords.ToNumber)
-        {
-            if (!engine.variableExists(before))
-            {
+        } else if (after == Keywords.ToNumber) {
+            if (!engine.variableExists(before)) {
                 error(ErrorCode::VAR_UNDEFINED, before, false);
                 return;
             }
@@ -2218,37 +1901,33 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 engine.createVariable(arg0, stod(engine.varString(before)));
             else
                 error(ErrorCode::IS_NULL, before, false);
-        }
-        else if (engine.classExists(before))
-        {
-            if (engine.getClass(before).hasMethod(after) && !has_params(after))
-            {
+        } else if (engine.classExists(before)) {
+            if (engine.getClass(before).hasMethod(after) &&
+                !has_params(after)) {
                 parse(arg2);
 
                 if (is_numeric(State.LastValue))
                     engine.createVariable(arg0, stod(State.LastValue));
                 else
                     engine.createVariable(arg0, State.LastValue);
-            }
-            else if (has_params(after))
-            {
-                if (!engine.getClass(before).hasMethod(before_params(after)))
-                {
+            } else if (has_params(after)) {
+                if (!engine.getClass(before).hasMethod(before_params(after))) {
                     Env::shellExec(arg0, command);
                     return;
                 }
 
-                exec.executeTemplate(engine.getClass(before).getMethod(before_params(after)), parse_params(after));
+                exec.executeTemplate(
+                    engine.getClass(before).getMethod(before_params(after)),
+                    interp_params(after));
 
                 if (is_numeric(State.LastValue))
                     engine.createVariable(arg0, stod(State.LastValue));
                 else
                     engine.createVariable(arg0, State.LastValue);
-            }
-            else if (engine.getClass(before).hasVariable(after))
-            {
-                const auto classVariable = engine.getClassVariable(before, after);
-                
+            } else if (engine.getClass(before).hasVariable(after)) {
+                const auto classVariable =
+                    engine.getClassVariable(before, after);
+
                 if (classVariable.getType() == VariableType::String)
                     engine.createVariable(arg0, classVariable.getString());
                 else if (classVariable.getType() == VariableType::Double)
@@ -2256,17 +1935,13 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 else
                     error(ErrorCode::IS_NULL, classVariable.name(), false);
             }
-        }
-        else if (engine.variableExists(before) && after == Keywords.Read)
-        {
-            if (!engine.isString(before))
-            {
+        } else if (engine.variableExists(before) && after == Keywords.Read) {
+            if (!engine.isString(before)) {
                 error(ErrorCode::CONV_ERR, before, false);
                 return;
             }
 
-            if (!FileIO::fileExists(engine.varString(before)))
-            {
+            if (!FileIO::fileExists(engine.varString(before))) {
                 error(ErrorCode::READ_FAIL, engine.varString(before), false);
                 return;
             }
@@ -2274,14 +1949,12 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             std::ifstream file(engine.varString(before).c_str());
             std::string line, bigString;
 
-            if (!file.is_open())
-            {
+            if (!file.is_open()) {
                 error(ErrorCode::READ_FAIL, engine.varString(before), false);
                 return;
             }
 
-            while (!file.eof())
-            {
+            while (!file.eof()) {
                 std::getline(file, line);
                 bigString.append(line + "\r\n");
             }
@@ -2289,11 +1962,8 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             file.close();
 
             engine.createVariable(arg0, bigString);
-        }
-        else if (State.DefiningClass)
-        {
-            if (is_numeric(arg2))
-            {
+        } else if (State.DefiningClass) {
+            if (is_numeric(arg2)) {
                 Variable newVariable(arg0, stod(arg2));
 
                 if (State.DefiningPrivateCode)
@@ -2302,9 +1972,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                     newVariable.setPublic();
 
                 engine.getClass(State.CurrentClass).addVariable(newVariable);
-            }
-            else
-            {
+            } else {
                 Variable newVariable(arg0, arg2);
 
                 if (State.DefiningPrivateCode)
@@ -2314,108 +1982,93 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
 
                 engine.getClass(State.CurrentClass).addVariable(newVariable);
             }
-        }
-        else if (arg2 == "null")
+        } else if (arg2 == "null")
             engine.createVariable(arg0, arg2);
-        else if (engine.methodExists(arg2))
-        {
+        else if (engine.methodExists(arg2)) {
             parse(arg2);
 
             if (is_numeric(State.LastValue))
                 engine.createVariable(arg0, stod(State.LastValue));
             else
                 engine.createVariable(arg0, State.LastValue);
-        }
-        else if (engine.constantExists(arg2))
-        {
+        } else if (engine.constantExists(arg2)) {
             if (engine.getConstant(arg2).ConstNumber())
-                engine.createVariable(arg0, engine.getConstant(arg2).getNumber());
+                engine.createVariable(arg0,
+                                      engine.getConstant(arg2).getNumber());
             else if (engine.getConstant(arg2).ConstString())
-                engine.createVariable(arg0, engine.getConstant(arg2).getString());
+                engine.createVariable(arg0,
+                                      engine.getConstant(arg2).getString());
             else
                 error(ErrorCode::CONV_ERR, arg2, false);
-        }
-        else if (has_params(arg2))
-        {
+        } else if (has_params(arg2)) {
             if (isStringStack(arg2))
                 engine.createVariable(arg0, getStringStack(arg2));
             else if (stackReady(arg2))
                 engine.createVariable(arg0, getStack(arg2));
-            else if (before_params(arg2) == Keywords.Random)
-            {
-                if (!contains(arg2, Keywords.RangeSeparator))
-                {
+            else if (before_params(arg2) == Keywords.Random) {
+                if (!contains(arg2, Keywords.RangeSeparator)) {
                     error(ErrorCode::INVALID_RANGE_SEP, arg2, false);
                     return;
                 }
 
-                std::vector<std::string> range = parse_range(arg2);
+                std::vector<std::string> range = interp_range(arg2);
                 std::string s0(range.at(0)), s2(range.at(1));
 
-                if (is_numeric(s0) && is_numeric(s2))
-                {
+                if (is_numeric(s0) && is_numeric(s2)) {
                     double n0 = stod(s0), n2 = stod(s2);
-                    engine.createVariable(arg0, (int)RNG::getInstance().random(std::min(n0, n2), std::max(n0, n2)));
-                }
-                else if (engine.variableExists(s0) || engine.variableExists(s2))
-                {
+                    engine.createVariable(
+                        arg0, (int)RNG::getInstance().random(std::min(n0, n2),
+                                                             std::max(n0, n2)));
+                } else if (engine.variableExists(s0) ||
+                           engine.variableExists(s2)) {
                     if (engine.variableExists(s0))
                         s0 = engine.getVariableValueAsString(s0);
 
                     if (engine.variableExists(s2))
                         s2 = engine.getVariableValueAsString(s2);
 
-                    if (!is_numeric(s0))
-                    {
+                    if (!is_numeric(s0)) {
                         error(ErrorCode::CONV_ERR, s0, false);
                         return;
                     }
 
-                    if (!is_numeric(s2))
-                    {
+                    if (!is_numeric(s2)) {
                         error(ErrorCode::CONV_ERR, s2, false);
                         return;
                     }
 
                     double n0 = stod(s0), n2 = stod(s2);
-                    engine.createVariable(arg0, (int)RNG::getInstance().random(n0, n2));
-                }
-                else
-                    error(ErrorCode::OUT_OF_BOUNDS, s0 + Keywords.RangeSeparator + s2, false);
-            }
-            else
-            {
-                exec.executeTemplate(engine.getMethod(before_params(arg2)), parse_params(arg2));
+                    engine.createVariable(
+                        arg0, (int)RNG::getInstance().random(n0, n2));
+                } else
+                    error(ErrorCode::OUT_OF_BOUNDS,
+                          s0 + Keywords.RangeSeparator + s2, false);
+            } else {
+                exec.executeTemplate(engine.getMethod(before_params(arg2)),
+                                     interp_params(arg2));
 
                 if (is_numeric(State.LastValue))
                     engine.createVariable(arg0, stod(State.LastValue));
                 else
                     engine.createVariable(arg0, State.LastValue);
             }
-        }
-        else if (engine.variableExists(arg2))
-        {
+        } else if (engine.variableExists(arg2)) {
             if (engine.isNumber(arg2))
                 engine.createVariable(arg0, engine.varNumber(arg2));
             else if (engine.isString(arg2))
                 engine.createVariable(arg0, engine.varString(arg2));
             else
                 engine.createVariable(arg0, State.Null);
-        }
-        else if (arg2 == Keywords.Mask || arg2 == Keywords.ReadLine)
-        {
+        } else if (arg2 == Keywords.Mask || arg2 == Keywords.ReadLine) {
             std::string line;
-            if (arg2 == Keywords.Mask)
-            {
+            if (arg2 == Keywords.Mask) {
                 line = get_stdin_quiet("");
 
                 if (is_numeric(line))
                     engine.createVariable(arg0, stod(line));
                 else
                     engine.createVariable(arg0, line);
-            }
-            else
-            {
+            } else {
                 std::getline(std::cin, line, '\n');
 
                 if (is_numeric(line))
@@ -2423,11 +2076,9 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 else
                     engine.createVariable(arg0, line);
             }
-        }
-        else if (arg2 == "args.size")
+        } else if (arg2 == "args.size")
             engine.createVariable(arg0, (double)engine.getArgCount());
-        else if (before == Keywords.ReadLine)
-        {
+        else if (before == Keywords.ReadLine) {
             if (engine.variableExists(after) && engine.isString(after))
                 std::cout << pre_parse(engine.varString(after));
             else
@@ -2440,13 +2091,9 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 engine.createVariable(arg0, stod(line));
             else
                 engine.createVariable(arg0, line);
-        }
-        else if (before == Keywords.Mask)
-        {
-            if (engine.variableExists(after))
-            {
-                if (engine.isString(after))
-                {
+        } else if (before == Keywords.Mask) {
+            if (engine.variableExists(after)) {
+                if (engine.isString(after)) {
                     std::string line;
                     line = get_stdin_quiet(engine.varString(after));
 
@@ -2456,9 +2103,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                         engine.createVariable(arg0, line);
 
                     writeline();
-                }
-                else
-                {
+                } else {
                     std::string line;
                     line = get_stdin_quiet("");
 
@@ -2469,9 +2114,7 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
 
                     writeline();
                 }
-            }
-            else
-            {
+            } else {
                 std::string line;
                 line = get_stdin_quiet(pre_parse(after));
 
@@ -2482,28 +2125,21 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
 
                 writeline();
             }
-        }
-        else if (after == Keywords.Size)
-        {
-            if (!engine.variableExists(before))
-            {
+        } else if (after == Keywords.Size) {
+            if (!engine.variableExists(before)) {
                 engine.createVariable(arg0, (double)before.length());
                 return;
             }
 
             if (engine.isString(before))
-                engine.createVariable(arg0, (double)engine.varString(before).length());
+                engine.createVariable(
+                    arg0, (double)engine.varString(before).length());
             else
                 error(ErrorCode::CONV_ERR, before, false);
-        }
-        else if (is_recognized_math_func(after))
-        {
-            parse_mathfunc(arg0, before, after);
-        }
-        else if (after == Keywords.ToUpper)
-        {
-            if (!engine.variableExists(before))
-            {
+        } else if (is_recognized_math_func(after)) {
+            interp_mathfunc(arg0, before, after);
+        } else if (after == Keywords.ToUpper) {
+            if (!engine.variableExists(before)) {
                 error(ErrorCode::VAR_UNDEFINED, before, false);
                 return;
             }
@@ -2512,11 +2148,8 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 engine.createVariable(arg0, to_upper(engine.varString(before)));
             else
                 error(ErrorCode::CONV_ERR, before, false);
-        }
-        else if (after == Keywords.ToLower)
-        {
-            if (!engine.variableExists(before))
-            {
+        } else if (after == Keywords.ToLower) {
+            if (!engine.variableExists(before)) {
                 error(ErrorCode::VAR_UNDEFINED, before, false);
                 return;
             }
@@ -2525,11 +2158,8 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 engine.createVariable(arg0, to_lower(engine.varString(before)));
             else
                 error(ErrorCode::CONV_ERR, before, false);
-        }
-        else if (after == Keywords.FileSize)
-        {
-            if (!engine.variableExists(before))
-            {
+        } else if (after == Keywords.FileSize) {
+            if (!engine.variableExists(before)) {
                 if (FileIO::fileExists(before))
                     engine.createVariable(arg0, FileIO::getFileSize(before));
                 else
@@ -2537,69 +2167,52 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
                 return;
             }
 
-            if (!engine.isString(before))
-            {
+            if (!engine.isString(before)) {
                 error(ErrorCode::CONV_ERR, before, false);
                 return;
             }
 
             if (FileIO::fileExists(engine.varString(before)))
-                engine.createVariable(arg0, FileIO::getFileSize(engine.varString(before)));
+                engine.createVariable(
+                    arg0, FileIO::getFileSize(engine.varString(before)));
             else
                 error(ErrorCode::READ_FAIL, engine.varString(before), false);
-        }
-        else if (before == Keywords.Env)
-        {
-            internal_env_builtins(arg0, after, 0);
-        }
-        else
-        {
+        } else if (before == Keywords.Env) {
+            interp_env_rhs(arg0, after, 0);
+        } else {
             if (is_numeric(arg2))
                 engine.createVariable(arg0, stod(arg2));
             else
                 engine.createVariable(arg0, pre_parse(arg2));
         }
-    }
-    else if (arg1 == Operators.AddAssign)
-    {
-        if (engine.variableExists(arg2))
-        {
+    } else if (arg1 == Operators.AddAssign) {
+        if (engine.variableExists(arg2)) {
             if (engine.isString(arg2))
                 engine.createVariable(arg0, engine.varString(arg2));
             else if (engine.isNumber(arg2))
                 engine.createVariable(arg0, engine.varNumber(arg2));
             else
                 engine.createVariable(arg0, State.Null);
-        }
-        else
-        {
+        } else {
             if (is_numeric(arg2))
                 engine.createVariable(arg0, stod(arg2));
             else
                 engine.createVariable(arg0, pre_parse(arg2));
         }
-    }
-    else if (arg1 == Operators.SubtractAssign)
-    {
-        if (engine.variableExists(arg2))
-        {
+    } else if (arg1 == Operators.SubtractAssign) {
+        if (engine.variableExists(arg2)) {
             if (engine.isNumber(arg2))
                 engine.createVariable(arg0, 0 - engine.varNumber(arg2));
             else
                 engine.createVariable(arg0, State.Null);
-        }
-        else
-        {
+        } else {
             if (is_numeric(arg2))
                 engine.createVariable(arg0, stod(arg2));
             else
                 engine.createVariable(arg0, pre_parse(arg2));
         }
-    }
-    else if (arg1 == Keywords.ShellExec)
-    {
-        if (!engine.variableExists(arg2))
-        {
+    } else if (arg1 == Keywords.ShellExec) {
+        if (!engine.variableExists(arg2)) {
             engine.createVariable(arg0, Env::getStdout(pre_parse(arg2)));
             return;
         }
@@ -2608,34 +2221,29 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2, std::v
             engine.createVariable(arg0, Env::getStdout(engine.varString(arg2)));
         else
             error(ErrorCode::CONV_ERR, arg2, false);
-    }
-    else if (arg1 == Keywords.InlineParse)
-    {
-        if (!engine.variableExists(arg2))
-        {
+    } else if (arg1 == Keywords.InlineParse) {
+        if (!engine.variableExists(arg2)) {
             engine.createVariable(arg0, get_parsed_stdout(pre_parse(arg2)));
             return;
         }
 
         if (engine.isString(arg2))
-            engine.createVariable(arg0, get_parsed_stdout(engine.varString(arg2)));
+            engine.createVariable(arg0,
+                                  get_parsed_stdout(engine.varString(arg2)));
         else
             error(ErrorCode::CONV_ERR, arg2, false);
-    }
-    else
+    } else
         error(ErrorCode::INVALID_OPERATOR, arg2, false);
 }
 
-void parse_mathfunc_assignfromvar(std::string arg0, std::string before, std::string after)
-{
-    if (!engine.variableExists(before))
-    {
+void interp_mathfunc_assignfromvar(std::string arg0, std::string before,
+                                   std::string after) {
+    if (!engine.variableExists(before)) {
         error(ErrorCode::VAR_UNDEFINED, before, false);
         return;
     }
 
-    if (!engine.isNumber(before))
-    {
+    if (!engine.isNumber(before)) {
         error(ErrorCode::CONV_ERR, before, false);
         return;
     }
@@ -2681,16 +2289,13 @@ void parse_mathfunc_assignfromvar(std::string arg0, std::string before, std::str
         error(ErrorCode::IS_NULL, arg0, false);
 }
 
-void parse_mathfunc(std::string arg0, std::string before, std::string after)
-{
-    if (!engine.variableExists(before))
-    {
+void interp_mathfunc(std::string arg0, std::string before, std::string after) {
+    if (!engine.variableExists(before)) {
         error(ErrorCode::VAR_UNDEFINED, before, false);
         return;
     }
 
-    if (!engine.isNumber(before))
-    {
+    if (!engine.isNumber(before)) {
         error(ErrorCode::CONV_ERR, before, false);
         return;
     }
@@ -2729,16 +2334,14 @@ void parse_mathfunc(std::string arg0, std::string before, std::string after)
         engine.createVariable(arg0, exp(value));
 }
 
-void init_classvar(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command)
-{
-    std::string className = before_dot(arg2),
-                variableName = after_dot(arg2);
+void interp_init_classvar(std::string arg0, std::string arg1, std::string arg2,
+                          std::vector<std::string> command) {
+    std::string className = before_dot(arg2), variableName = after_dot(arg2);
 
-    if (engine.classExists(className))
-    {
-        if (arg1 == Operators.Assign)
-        {
-            Variable classVariable = engine.getClassVariable(className, variableName);
+    if (engine.classExists(className)) {
+        if (arg1 == Operators.Assign) {
+            Variable classVariable =
+                engine.getClassVariable(className, variableName);
             if (classVariable.getType() == VariableType::String)
                 engine.createVariable(arg0, classVariable.getString());
             else if (classVariable.getType() == VariableType::Double)
@@ -2747,17 +2350,17 @@ void init_classvar(std::string arg0, std::string arg1, std::string arg2, std::ve
     }
 }
 
-void copy_class(std::string arg0, std::string arg1, std::string arg2, std::vector<std::string> command)
-{
-    if (arg1 == Operators.Assign)
-    {
+void interp_class_clone(std::string arg0, std::string arg1, std::string arg2,
+                        std::vector<std::string> command) {
+    if (arg1 == Operators.Assign) {
         std::vector<Method> classMethods = engine.getClass(arg2).getMethods();
         Class newClass(arg0);
 
         for (int i = 0; i < (int)classMethods.size(); i++)
             newClass.addMethod(classMethods.at(i));
 
-        std::vector<Variable> classVariables = engine.getClass(arg2).getVariables();
+        std::vector<Variable> classVariables =
+            engine.getClass(arg2).getVariables();
 
         for (int i = 0; i < (int)classVariables.size(); i++)
             newClass.addVariable(classVariables.at(i));
@@ -2771,21 +2374,17 @@ void copy_class(std::string arg0, std::string arg1, std::string arg2, std::vecto
 
         newClass.clear();
         classMethods.clear();
-    }
-    else
+    } else
         error(ErrorCode::INVALID_OPERATOR, arg1, false);
 }
 
-void init_const(std::string arg0, std::string arg1, std::string arg2)
-{
-    if (engine.constantExists(arg0))
-    {
+void interp_init_const(std::string arg0, std::string arg1, std::string arg2) {
+    if (engine.constantExists(arg0)) {
         error(ErrorCode::CONST_DEFINED, arg0, false);
         return;
     }
 
-    if (arg1 != Operators.Assign)
-    {
+    if (arg1 != Operators.Assign) {
         error(ErrorCode::INVALID_OPERATOR, arg1, false);
         return;
     }
@@ -2796,8 +2395,7 @@ void init_const(std::string arg0, std::string arg1, std::string arg2)
         engine.addConstant(Constant(arg0, arg2));
 }
 
-void parse_clear(std::string &arg)
-{
+void interp_clear_command(std::string &arg) {
     if (arg == Keywords.Methods)
         engine.clearMethods();
     else if (arg == Keywords.Classes)
@@ -2817,8 +2415,7 @@ void parse_clear(std::string &arg)
 //		0 = createVariable
 //		1 = setVariable
 //		2 = setLastValue
-void internal_env_builtins(std::string arg0, std::string after, int mode)
-{
+void interp_env_rhs(std::string arg0, std::string after, int mode) {
     std::string defaultValue;
     std::string sValue(defaultValue);
     double dValue = 0;
@@ -2841,8 +2438,7 @@ void internal_env_builtins(std::string arg0, std::string after, int mode)
         sValue = Env::getEnvironmentVariable(after);
 
     // TODO: refactor into three different functions.
-    switch (mode)
-    {
+    switch (mode) {
     case 0:
         if (sValue != defaultValue)
             engine.createVariable(arg0, sValue);
@@ -2870,18 +2466,17 @@ void internal_env_builtins(std::string arg0, std::string after, int mode)
 }
 
 // TODO: refactor
-void internal_puts(std::string arg0, std::string arg1, bool newline)
-{
+void interp_internal_puts(std::string arg0, std::string arg1, bool newline) {
     std::string text(arg1);
 
     // if parameter is variable, get it's value
-    if (engine.variableExists(arg1))
-    {
+    if (engine.variableExists(arg1)) {
         // set the value
         if (is_dotless(arg1))
             text = engine.getVariableValueAsString(arg1);
         else
-            text = engine.getClassVariableValueAsString(before_dot(arg1), after_dot(arg1));
+            text = engine.getClassVariableValueAsString(before_dot(arg1),
+                                                        after_dot(arg1));
     }
 
     if (newline)
@@ -2890,70 +2485,40 @@ void internal_puts(std::string arg0, std::string arg1, bool newline)
         write(text);
 }
 
-std::string get_stdin_quiet(std::string text)
-{
+std::string get_stdin_quiet(std::string text) {
     char *s = getpass(pre_parse(text).c_str());
     return s;
 }
 
-void initialize_state(std::string uslang)
-{
-    State.BadMethodCount = 0,
-    State.BadClassCount = 0,
-    State.BadVarCount = 0,
-    State.CurrentLineNumber = 0,
-    State.IfStatementCount = 0,
-    State.ForLoopCount = 0,
-    State.WhileLoopCount = 0,
-    State.ParamVarCount = 0,
+void initialize_state(std::string uslang) {
+    State.BadMethodCount = 0, State.BadClassCount = 0, State.BadVarCount = 0,
+    State.CurrentLineNumber = 0, State.IfStatementCount = 0,
+    State.ForLoopCount = 0, State.WhileLoopCount = 0, State.ParamVarCount = 0,
     State.LastErrorCode = 0;
-    State.CaptureParse = false,
-    State.IsCommented = false,
-    State.UseCustomPrompt = false,
-    State.DontCollectMethodVars = false,
-    State.FailedIfStatement = false,
-    State.GoToLabel = false,
-    State.ExecutedIfStatement = false,
-    State.InDefaultCase = false,
-    State.ExecutedMethod = false,
-    State.DefiningSwitchBlock = false,
-    State.DefiningIfStatement = false,
-    State.DefiningForLoop = false,
-    State.DefiningWhileLoop = false,
-    State.DefiningModule = false,
-    State.DefiningPrivateCode = false,
-    State.DefiningPublicCode = false,
+    State.CaptureParse = false, State.IsCommented = false,
+    State.UseCustomPrompt = false, State.DontCollectMethodVars = false,
+    State.FailedIfStatement = false, State.GoToLabel = false,
+    State.ExecutedIfStatement = false, State.InDefaultCase = false,
+    State.ExecutedMethod = false, State.DefiningSwitchBlock = false,
+    State.DefiningIfStatement = false, State.DefiningForLoop = false,
+    State.DefiningWhileLoop = false, State.DefiningModule = false,
+    State.DefiningPrivateCode = false, State.DefiningPublicCode = false,
     State.DefiningScript = false,
     State.ExecutedTemplate = false, // remove
-    State.ExecutedTryBlock = false,
-    State.Breaking = false,
-    State.DefiningMethod = false,
-    State.IsMultilineComment = false,
-    State.FailedNest = false,
-    State.DefiningNest = false,
-    State.DefiningClass = false,
-    State.DefiningClassMethod = false,
-    State.DefiningParameterizedMethod = false,
-    State.SkipCatchBlock = false,
-    State.RaiseCatchBlock = false,
-    State.DefiningLocalSwitchBlock = false,
-    State.DefiningLocalWhileLoop = false,
-    State.DefiningLocalForLoop = false;
+        State.ExecutedTryBlock = false, State.Breaking = false,
+    State.DefiningMethod = false, State.IsMultilineComment = false,
+    State.FailedNest = false, State.DefiningNest = false,
+    State.DefiningClass = false, State.DefiningClassMethod = false,
+    State.DefiningParameterizedMethod = false, State.SkipCatchBlock = false,
+    State.RaiseCatchBlock = false, State.DefiningLocalSwitchBlock = false,
+    State.DefiningLocalWhileLoop = false, State.DefiningLocalForLoop = false;
 
-    State.CurrentClass = "",
-    State.CurrentMethodClass = "",
-    State.CurrentModule = "",
-    State.CurrentScript = "",
-    State.ErrorVarName = "",
-    State.GoTo = "",
-    State.LastError = "",
-    State.LastValue = "",
-    State.ParsedOutput = "",
-    State.PreviousScript = "",
-    State.CurrentScriptName = "",
-    State.SwitchVarName = "",
-    State.CurrentLine = "",
-    State.DefaultLoopSymbol = "$";
+    State.CurrentClass = "", State.CurrentMethodClass = "",
+    State.CurrentModule = "", State.CurrentScript = "", State.ErrorVarName = "",
+    State.GoTo = "", State.LastError = "", State.LastValue = "",
+    State.ParsedOutput = "", State.PreviousScript = "",
+    State.CurrentScriptName = "", State.SwitchVarName = "",
+    State.CurrentLine = "", State.DefaultLoopSymbol = "$";
 
     State.Null = "";
     State.NullNum = -DBL_MAX;
