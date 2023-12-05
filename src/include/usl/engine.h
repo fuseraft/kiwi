@@ -1,9 +1,8 @@
 #ifndef NOCTIS_ENGINE_H
 #define NOCTIS_ENGINE_H
 
-class Engine
-{
-private:
+class Engine {
+  private:
     std::vector<Method> methods;
     std::vector<Class> classes;
     std::vector<Variable> variables;
@@ -17,7 +16,7 @@ private:
     std::vector<Script> scripts;
     Switch mainSwitch;
 
-public:
+  public:
     Engine();
     ~Engine();
 
@@ -43,23 +42,23 @@ public:
     int indexOfScript(std::string s);
     int indexOfVariable(std::string s);
 
-    Constant& getConstant(int index);
-    Constant& getConstant(std::string s);
-    List& getList(int index);
-    List& getList(std::string s);
-    Method& getMethod(int index);
-    Method& getMethod(std::string s);
-    Module& getModule(std::string s);
-    Class& getClass(int index);
-    Class& getClass(std::string s);
+    Constant &getConstant(int index);
+    Constant &getConstant(std::string s);
+    List &getList(int index);
+    List &getList(std::string s);
+    Method &getMethod(int index);
+    Method &getMethod(std::string s);
+    Module &getModule(std::string s);
+    Class &getClass(int index);
+    Class &getClass(std::string s);
     Variable getClassVariable(std::string className, std::string variableName);
-    Script& getScript();
-    Variable& getVar(int index);
-    Variable& getVar(std::string s);
-    Switch& getMainSwitch();
-    Method& getIfStatement(int index);
-    Method& getForLoop(int index);
-    Method& getWhileLoop(int index);
+    Script &getScript();
+    Variable &getVar(int index);
+    Variable &getVar(std::string s);
+    Switch &getMainSwitch();
+    Method &getIfStatement(int index);
+    Method &getForLoop(int index);
+    Method &getWhileLoop(int index);
 
     void createMethod(std::string arg0, std::string arg1);
 
@@ -75,7 +74,8 @@ public:
     void createVariable(std::string name, std::string value);
     void setVariable(std::string name, double value);
     void setVariable(std::string name, std::string value);
-    void replaceElement(std::string before, std::string after, std::string replacement);
+    void replaceElement(std::string before, std::string after,
+                        std::string replacement);
 
     bool isNumber(std::string s);
     bool isNumber(Variable var);
@@ -105,7 +105,8 @@ public:
     std::string varString(std::string s);
     std::string getVariableValueAsString(Variable var);
     std::string getVariableValueAsString(std::string varName);
-    std::string getClassVariableValueAsString(std::string className, std::string varName);
+    std::string getClassVariableValueAsString(std::string className,
+                                              std::string varName);
 
     int getMethodCount();
     int getVariableCount();
@@ -124,7 +125,7 @@ public:
     int getIfStatementCount();
     int getForLoopCount();
     int getWhileLoopCount();
-    
+
     void addArg(std::string arg);
     int getArgCount();
     std::string getArg(int index);
@@ -143,13 +144,11 @@ public:
 Engine::Engine() {}
 Engine::~Engine() {}
 
-void Engine::addToCurrentForLoop(std::string line)
-{
+void Engine::addToCurrentForLoop(std::string line) {
     forLoops[forLoops.size() - 1].add(line);
 }
 
-void Engine::addItemToList(std::string listName, std::string value)
-{
+void Engine::addItemToList(std::string listName, std::string value) {
     this->getList(listName).add(value);
 }
 
@@ -160,7 +159,9 @@ void Engine::addModule(Module m) { modules.push_back(m); }
 void Engine::addClass(Class c) { classes.push_back(c); }
 void Engine::addVariable(Variable v) { variables.push_back(v); }
 
-void Engine::addIfStatement(Method ifStatement) { ifStatements.push_back(ifStatement); }
+void Engine::addIfStatement(Method ifStatement) {
+    ifStatements.push_back(ifStatement);
+}
 int Engine::getIfStatementCount() { return ifStatements.size(); }
 
 int Engine::getMethodCount() { return methods.size(); }
@@ -170,26 +171,31 @@ int Engine::getListCount() { return lists.size(); }
 int Engine::getConstantCount() { return constants.size(); }
 int Engine::getForLoopCount() { return forLoops.size(); }
 
-Method& Engine::getMethod(int index) { return methods.at(index); }
-Variable& Engine::getVar(int index) { return variables.at(index); }
-Class& Engine::getClass(int index) { return classes.at(index); }
-List& Engine::getList(int index) { return lists.at(index); }
-Constant& Engine::getConstant(int index) { return constants.at(index); }
+Method &Engine::getMethod(int index) { return methods.at(index); }
+Variable &Engine::getVar(int index) { return variables.at(index); }
+Class &Engine::getClass(int index) { return classes.at(index); }
+List &Engine::getList(int index) { return lists.at(index); }
+Constant &Engine::getConstant(int index) { return constants.at(index); }
 
-Method& Engine::getIfStatement(int index) { return ifStatements.at(index); }
-Method& Engine::getForLoop(int index) { return forLoops.at(index); }
+Method &Engine::getIfStatement(int index) { return ifStatements.at(index); }
+Method &Engine::getForLoop(int index) { return forLoops.at(index); }
 
 int Engine::getWhileLoopCount() { return whileLoops.size(); }
-Method& Engine::getWhileLoop(int index) { return whileLoops.at(index); }
+Method &Engine::getWhileLoop(int index) { return whileLoops.at(index); }
 
 int Engine::getArgCount() { return args.size(); }
 std::string Engine::getArg(int index) { return args.at(index); }
 void Engine::addArg(std::string arg) { args.push_back(arg); }
 
-void Engine::addToCurrentMethod(std::string s) { getMethod(getMethodCount() - 1).add(s); }
-void Engine::addToCurrentClassMethod(std::string s) { getClass(getClassCount() - 1).addToCurrentMethod(s); }
+void Engine::addToCurrentMethod(std::string s) {
+    getMethod(getMethodCount() - 1).add(s);
+}
+void Engine::addToCurrentClassMethod(std::string s) {
+    getClass(getClassCount() - 1).addToCurrentMethod(s);
+}
 
-std::string Engine::getClassVariableValueAsString(std::string className, std::string varName) {
+std::string Engine::getClassVariableValueAsString(std::string className,
+                                                  std::string varName) {
     std::string text;
     Variable classVariable = getClassVariable(className, varName);
 
@@ -219,15 +225,11 @@ std::string Engine::getVariableValueAsString(std::string varName) {
     return tmpValue;
 }
 
-void Engine::createClass(std::string className)
-{
-    if (classExists(className))
-    {
+void Engine::createClass(std::string className) {
+    if (classExists(className)) {
         State.DefiningClass = true;
         State.CurrentClass = className;
-    }
-    else
-    {
+    } else {
         Class newClass(className);
         State.CurrentClass = className;
         newClass.setCollectable(false);
@@ -236,8 +238,7 @@ void Engine::createClass(std::string className)
     }
 }
 
-void Engine::createModule(std::string moduleName)
-{
+void Engine::createModule(std::string moduleName) {
     Module newModule(moduleName);
     addModule(newModule);
 
@@ -245,14 +246,11 @@ void Engine::createModule(std::string moduleName)
     State.CurrentModule = moduleName;
 }
 
-void Engine::createIfStatement(bool value)
-{
-    if (!value)
-    {
+void Engine::createIfStatement(bool value) {
+    if (!value) {
         State.LastValue = Keywords.False;
 
-        if (!State.DefiningNest)
-        {
+        if (!State.DefiningNest) {
             Method ifMethod("[failif]");
             ifMethod.setBool(false);
             addIfStatement(ifMethod);
@@ -260,8 +258,7 @@ void Engine::createIfStatement(bool value)
             State.DefiningIfStatement = true;
             State.FailedIfStatement = true;
             State.FailedNest = true;
-        }
-        else
+        } else
             State.FailedNest = true;
 
         return;
@@ -269,13 +266,10 @@ void Engine::createIfStatement(bool value)
 
     State.LastValue = Keywords.True;
 
-    if (State.DefiningNest)
-    {
+    if (State.DefiningNest) {
         getIfStatement(getIfStatementCount() - 1).buildNest();
         State.FailedNest = false;
-    }
-    else
-    {
+    } else {
         Method ifMethod("[if#" + itos(State.IfStatementCount) + "]");
         ifMethod.setBool(true);
         State.DefiningIfStatement = true;
@@ -287,20 +281,16 @@ void Engine::createIfStatement(bool value)
     }
 }
 
-void Engine::createMethod(std::string arg0, std::string arg1)
-{
+void Engine::createMethod(std::string arg0, std::string arg1) {
     bool indestructable = arg0 == Keywords.LockedMethod;
 
-    if (State.DefiningClass)
-    {
-        if (getClass(State.CurrentClass).hasMethod(arg1))
-        {
+    if (State.DefiningClass) {
+        if (getClass(State.CurrentClass).hasMethod(arg1)) {
             error(ErrorCode::METHOD_DEFINED, arg1, false);
             return;
         }
 
-        if (!has_params(arg1))
-        {
+        if (!has_params(arg1)) {
             Method method(arg1);
 
             if (State.DefiningPublicCode)
@@ -316,7 +306,7 @@ void Engine::createMethod(std::string arg0, std::string arg1)
             return;
         }
 
-        std::vector<std::string> params = parse_params(arg1);
+        std::vector<std::string> params = interp_params(arg1);
 
         Method method(before_params(arg1));
 
@@ -327,53 +317,54 @@ void Engine::createMethod(std::string arg0, std::string arg1)
 
         method.setClass(State.CurrentClass);
 
-        for (int i = 0; i < (int)params.size(); i++)
-        {
-            if (variableExists(params.at(i)))
-            {
-                if (is_dotless(params.at(i)))
-                {
+        for (int i = 0; i < (int)params.size(); i++) {
+            if (variableExists(params.at(i))) {
+                if (is_dotless(params.at(i))) {
                     if (isString(params.at(i)))
-                        method.addMethodVariable(varString(params.at(i)), getVar(params.at(i)).name());
+                        method.addMethodVariable(varString(params.at(i)),
+                                                 getVar(params.at(i)).name());
                     else if (isNumber(params.at(i)))
-                        method.addMethodVariable(varNumber(params.at(i)), getVar(params.at(i)).name());
+                        method.addMethodVariable(varNumber(params.at(i)),
+                                                 getVar(params.at(i)).name());
                     else
                         error(ErrorCode::IS_NULL, params.at(i), false);
                     return;
                 }
 
-                std::string before(before_dot(params.at(i))), after(after_dot(params.at(i)));
+                std::string before(before_dot(params.at(i))),
+                    after(after_dot(params.at(i)));
 
-                if (!classExists(before))
-                {
+                if (!classExists(before)) {
                     error(ErrorCode::CLS_METHOD_UNDEFINED, before, false);
                     return;
                 }
 
-                if (!getClass(before).hasVariable(after))
-                {
+                if (!getClass(before).hasVariable(after)) {
                     error(ErrorCode::CLS_VAR_UNDEFINED, after, false);
                     return;
                 }
 
-                if (getClass(before).getVariable(after).getType() == VariableType::String)
-                    method.addMethodVariable(getClass(before).getVariable(after).getString(), after);
-                else if (getClass(before).getVariable(after).getType() == VariableType::Double)
-                    method.addMethodVariable(getClass(before).getVariable(after).getNumber(), after);
+                if (getClass(before).getVariable(after).getType() ==
+                    VariableType::String)
+                    method.addMethodVariable(
+                        getClass(before).getVariable(after).getString(), after);
+                else if (getClass(before).getVariable(after).getType() ==
+                         VariableType::Double)
+                    method.addMethodVariable(
+                        getClass(before).getVariable(after).getNumber(), after);
                 else
                     error(ErrorCode::IS_NULL, params.at(i), false);
-            }
-            else
-            {
-                if (is_alpha(params.at(i)))
-                {
-                    Variable newVariable("@[pm#" + itos(State.ParamVarCount) + "]", params.at(i));
+            } else {
+                if (is_alpha(params.at(i))) {
+                    Variable newVariable("@[pm#" + itos(State.ParamVarCount) +
+                                             "]",
+                                         params.at(i));
                     method.addMethodVariable(newVariable);
                     State.ParamVarCount++;
-                }
-                else
-                {
-                    Variable newVariable("@[pm#" + itos(State.ParamVarCount) + "]", stod(params.at(i)));
+                } else {
+                    Variable newVariable("@[pm#" + itos(State.ParamVarCount) +
+                                             "]",
+                                         stod(params.at(i)));
                     method.addMethodVariable(newVariable);
                     State.ParamVarCount++;
                 }
@@ -385,23 +376,18 @@ void Engine::createMethod(std::string arg0, std::string arg1)
         State.DefiningMethod = true;
         State.DefiningParameterizedMethod = true;
         State.DefiningClassMethod = true;
-    }
-    else
-    {
+    } else {
         if (methodExists(arg1))
             error(ErrorCode::METHOD_DEFINED, arg1, false);
-        else
-        {
-            if (!is_dotless(arg1))
-            {
+        else {
+            if (!is_dotless(arg1)) {
                 std::string before(before_dot(arg1)), after(after_dot(arg1));
 
-                if (!classExists(before))
-                {
+                if (!classExists(before)) {
                     error(ErrorCode::CLS_UNDEFINED, "", false);
                     return;
                 }
-                
+
                 Method method(after);
 
                 if (State.DefiningPublicCode)
@@ -414,53 +400,57 @@ void Engine::createMethod(std::string arg0, std::string arg1)
                 getClass(before).setCurrentMethod(after);
                 State.DefiningMethod = true;
                 State.DefiningClassMethod = true;
-            }
-            else if (has_params(arg1))
-            {
-                std::vector<std::string> params = parse_params(arg1);
+            } else if (has_params(arg1)) {
+                std::vector<std::string> params = interp_params(arg1);
 
                 Method method(before_params(arg1));
                 method.setIndestructible(indestructable);
 
-                for (int i = 0; i < (int)params.size(); i++)
-                {
-                    if (variableExists(params.at(i)))
-                    {
-                        if (!is_dotless(params.at(i)))
-                        {
-                            std::string before(before_dot(params.at(i))), after(after_dot(params.at(i)));
+                for (int i = 0; i < (int)params.size(); i++) {
+                    if (variableExists(params.at(i))) {
+                        if (!is_dotless(params.at(i))) {
+                            std::string before(before_dot(params.at(i))),
+                                after(after_dot(params.at(i)));
 
-                            if (!classExists(before))
-                            {
+                            if (!classExists(before)) {
                                 error(ErrorCode::CLS_UNDEFINED, before, false);
                                 return;
                             }
 
-                            if (!getClass(before).hasVariable(after))
-                            {
-                                error(ErrorCode::CLS_VAR_UNDEFINED, after, false);
+                            if (!getClass(before).hasVariable(after)) {
+                                error(ErrorCode::CLS_VAR_UNDEFINED, after,
+                                      false);
                                 return;
                             }
 
-                            if (getClass(before).getVariable(after).getType() == VariableType::String)
-                                method.addMethodVariable(getClass(before).getVariable(after).getString(), after);
-                            else if (getClass(before).getVariable(after).getType() == VariableType::Double)
-                                method.addMethodVariable(getClass(before).getVariable(after).getNumber(), after);
+                            if (getClass(before).getVariable(after).getType() ==
+                                VariableType::String)
+                                method.addMethodVariable(getClass(before)
+                                                             .getVariable(after)
+                                                             .getString(),
+                                                         after);
+                            else if (getClass(before)
+                                         .getVariable(after)
+                                         .getType() == VariableType::Double)
+                                method.addMethodVariable(getClass(before)
+                                                             .getVariable(after)
+                                                             .getNumber(),
+                                                         after);
                             else
                                 error(ErrorCode::IS_NULL, params.at(i), false);
-                        }
-                        else
-                        {
+                        } else {
                             if (isString(params.at(i)))
-                                method.addMethodVariable(varString(params.at(i)), getVar(params.at(i)).name());
+                                method.addMethodVariable(
+                                    varString(params.at(i)),
+                                    getVar(params.at(i)).name());
                             else if (isNumber(params.at(i)))
-                                method.addMethodVariable(varNumber(params.at(i)), getVar(params.at(i)).name());
+                                method.addMethodVariable(
+                                    varNumber(params.at(i)),
+                                    getVar(params.at(i)).name());
                             else
                                 error(ErrorCode::IS_NULL, params.at(i), false);
                         }
-                    }
-                    else
-                    {
+                    } else {
                         Variable newVariable("@" + params.at(i));
                         newVariable.setNull();
                         method.addMethodVariable(newVariable);
@@ -471,9 +461,7 @@ void Engine::createMethod(std::string arg0, std::string arg1)
                 methods.push_back(method);
                 State.DefiningMethod = true;
                 State.DefiningParameterizedMethod = true;
-            }
-            else
-            {
+            } else {
                 Method method(arg1);
                 method.setIndestructible(indestructable);
 
@@ -484,8 +472,7 @@ void Engine::createMethod(std::string arg0, std::string arg1)
     }
 }
 
-void Engine::loadScript(std::string script)
-{
+void Engine::loadScript(std::string script) {
     std::string s;
     std::ifstream f(script.c_str());
     State.CurrentScript = script;
@@ -494,14 +481,11 @@ void Engine::loadScript(std::string script)
 
     Script newScript(script);
 
-    if (f.is_open())
-    {
-        while (!f.eof())
-        {
+    if (f.is_open()) {
+        while (!f.eof()) {
             std::getline(f, s);
 
-            if (s.length() > 0)
-            {
+            if (s.length() > 0) {
                 newScript.add(ltrim_ws(s));
             }
         }
@@ -510,13 +494,9 @@ void Engine::loadScript(std::string script)
     scripts.push_back(newScript);
 }
 
-Switch& Engine::getMainSwitch()
-{
-    return mainSwitch;
-}
+Switch &Engine::getMainSwitch() { return mainSwitch; }
 
-void Engine::createWhileLoop(std::string v1, std::string op, std::string v2)
-{
+void Engine::createWhileLoop(std::string v1, std::string op, std::string v2) {
     Method whileMethod("[while#" + itos(State.WhileLoopCount) + "]");
     whileMethod.setWhile(true);
     whileMethod.setWhileValues(v1, op, v2);
@@ -525,8 +505,7 @@ void Engine::createWhileLoop(std::string v1, std::string op, std::string v2)
     State.WhileLoopCount++;
 }
 
-void Engine::createForLoop(List list)
-{
+void Engine::createForLoop(List list) {
     Method forMethod("[for#" + itos(State.ForLoopCount) + "]");
     forMethod.setFor(true);
     forMethod.setForList(list);
@@ -538,22 +517,20 @@ void Engine::createForLoop(List list)
     State.SuccessFlag = true;
 }
 
-void Engine::createForLoop(int a, int b)
-{
+void Engine::createForLoop(int a, int b) {
     Method forMethod("[for#" + itos(State.ForLoopCount) + "]");
     forMethod.setFor(true);
     forMethod.setSymbol(State.DefaultLoopSymbol);
 
     forMethod.setForValues(a, b);
-    
+
     State.DefiningForLoop = true;
     forLoops.push_back(forMethod);
     State.ForLoopCount++;
     State.SuccessFlag = true;
 }
 
-void Engine::createForLoop()
-{
+void Engine::createForLoop() {
     Method forMethod("[for#" + itos(State.ForLoopCount) + "]");
     forMethod.setFor(true);
     forMethod.setInfinite();
@@ -563,8 +540,7 @@ void Engine::createForLoop()
     State.SuccessFlag = true;
 }
 
-void Engine::createFailedForLoop()
-{
+void Engine::createFailedForLoop() {
     Method forMethod("[for#" + itos(State.ForLoopCount) + "]");
     forMethod.setFor(false);
     State.DefiningForLoop = true;
@@ -573,23 +549,28 @@ void Engine::createFailedForLoop()
     State.SuccessFlag = false;
 }
 
-void Engine::createFailedWhileLoop()
-{
+void Engine::createFailedWhileLoop() {
     Method whileMethod("[while#" + itos(State.WhileLoopCount) + "]");
     whileMethod.setWhile(false);
     State.DefiningWhileLoop = true;
     whileLoops.push_back(whileMethod);
 }
 
-bool Engine::isNumber(std::string s) { return getVar(s).getType() == VariableType::Double; }
-bool Engine::isNumber(Variable var) { return var.getType() == VariableType::Double; }
-bool Engine::isString(std::string s) { return getVar(s).getType() == VariableType::String; }
-bool Engine::isString(Variable var) { return var.getType() == VariableType::String; }
+bool Engine::isNumber(std::string s) {
+    return getVar(s).getType() == VariableType::Double;
+}
+bool Engine::isNumber(Variable var) {
+    return var.getType() == VariableType::Double;
+}
+bool Engine::isString(std::string s) {
+    return getVar(s).getType() == VariableType::String;
+}
+bool Engine::isString(Variable var) {
+    return var.getType() == VariableType::String;
+}
 
-int Engine::indexOfConstant(std::string s)
-{
-    for (unsigned i = 0; i < constants.size(); ++i)
-    {
+int Engine::indexOfConstant(std::string s) {
+    for (unsigned i = 0; i < constants.size(); ++i) {
         if (constants.at(i).name() == s)
             return i;
     }
@@ -597,10 +578,8 @@ int Engine::indexOfConstant(std::string s)
     return -1;
 }
 
-int Engine::indexOfList(std::string s)
-{
-    for (unsigned i = 0; i < lists.size(); ++i)
-    {
+int Engine::indexOfList(std::string s) {
+    for (unsigned i = 0; i < lists.size(); ++i) {
         if (lists.at(i).name() == s)
             return i;
     }
@@ -608,10 +587,8 @@ int Engine::indexOfList(std::string s)
     return -1;
 }
 
-int Engine::indexOfMethod(std::string s)
-{
-    for (unsigned i = 0; i < methods.size(); ++i)
-    {
+int Engine::indexOfMethod(std::string s) {
+    for (unsigned i = 0; i < methods.size(); ++i) {
         if (methods.at(i).name() == s)
             return i;
     }
@@ -619,10 +596,8 @@ int Engine::indexOfMethod(std::string s)
     return -1;
 }
 
-int Engine::indexOfModule(std::string s)
-{
-    for (unsigned i = 0; i < modules.size(); ++i)
-    {
+int Engine::indexOfModule(std::string s) {
+    for (unsigned i = 0; i < modules.size(); ++i) {
         if (modules.at(i).name() == s)
             return i;
     }
@@ -630,10 +605,8 @@ int Engine::indexOfModule(std::string s)
     return -1;
 }
 
-int Engine::indexOfClass(std::string s)
-{
-    for (unsigned i = 0; i < classes.size(); ++i)
-    {
+int Engine::indexOfClass(std::string s) {
+    for (unsigned i = 0; i < classes.size(); ++i) {
         if (classes.at(i).name() == s)
             return i;
     }
@@ -641,10 +614,8 @@ int Engine::indexOfClass(std::string s)
     return -1;
 }
 
-int Engine::indexOfScript(std::string s)
-{
-    for (unsigned i = 0; i < scripts.size(); ++i)
-    {
+int Engine::indexOfScript(std::string s) {
+    for (unsigned i = 0; i < scripts.size(); ++i) {
         if (scripts.at(i).name() == s)
             return i;
     }
@@ -652,10 +623,8 @@ int Engine::indexOfScript(std::string s)
     return -1;
 }
 
-int Engine::indexOfVariable(std::string s)
-{
-    for (unsigned i = 0; i < variables.size(); ++i)
-    {
+int Engine::indexOfVariable(std::string s) {
+    for (unsigned i = 0; i < variables.size(); ++i) {
         if (variables.at(i).name() == s)
             return i;
     }
@@ -663,146 +632,138 @@ int Engine::indexOfVariable(std::string s)
     return -1;
 }
 
-Constant& Engine::getConstant(std::string s) { return constants.at(indexOfConstant(s)); }
-List& Engine::getList(std::string s) { return lists.at(indexOfList(s)); }
-Method& Engine::getMethod(std::string s) { return methods.at(indexOfMethod(s)); }
-Module& Engine::getModule(std::string s) { return modules.at(indexOfModule(s)); }
-Class& Engine::getClass(std::string s) { return classes.at(indexOfClass(s)); }
-Script& Engine::getScript() { return scripts.at(0); }
-Variable& Engine::getVar(std::string s) { return variables.at(indexOfVariable(s)); }
-Variable Engine::getClassVariable(std::string className, std::string variableName)
-{
+Constant &Engine::getConstant(std::string s) {
+    return constants.at(indexOfConstant(s));
+}
+List &Engine::getList(std::string s) { return lists.at(indexOfList(s)); }
+Method &Engine::getMethod(std::string s) {
+    return methods.at(indexOfMethod(s));
+}
+Module &Engine::getModule(std::string s) {
+    return modules.at(indexOfModule(s));
+}
+Class &Engine::getClass(std::string s) { return classes.at(indexOfClass(s)); }
+Script &Engine::getScript() { return scripts.at(0); }
+Variable &Engine::getVar(std::string s) {
+    return variables.at(indexOfVariable(s));
+}
+Variable Engine::getClassVariable(std::string className,
+                                  std::string variableName) {
     return getClass(className).getVariable(variableName);
 }
 
-void Engine::removeConstant(std::string s) { constants.erase(constants.begin() + indexOfConstant(s)); }
-void Engine::removeList(std::string s) { lists.erase(lists.begin() + indexOfList(s)); }
-void Engine::removeMethod(std::string s) { methods.erase(methods.begin() + indexOfMethod(s)); }
-void Engine::removeModule(std::string s) { modules.erase(modules.begin() + indexOfModule(s)); }
-void Engine::removeClass(std::string s) { classes.erase(classes.begin() + indexOfClass(s)); }
-void Engine::removeVariable(std::string s) { variables.erase(variables.begin() + indexOfVariable(s)); }
-
-std::string Engine::varString(std::string s) {
-    return getVar(s).getString();
+void Engine::removeConstant(std::string s) {
+    constants.erase(constants.begin() + indexOfConstant(s));
 }
-double Engine::varNumber(std::string s) { return getVar(s).getNumber(); }
-std::string Engine::varNumberString(std::string s) { return dtos(varNumber(s)); }
+void Engine::removeList(std::string s) {
+    lists.erase(lists.begin() + indexOfList(s));
+}
+void Engine::removeMethod(std::string s) {
+    methods.erase(methods.begin() + indexOfMethod(s));
+}
+void Engine::removeModule(std::string s) {
+    modules.erase(modules.begin() + indexOfModule(s));
+}
+void Engine::removeClass(std::string s) {
+    classes.erase(classes.begin() + indexOfClass(s));
+}
+void Engine::removeVariable(std::string s) {
+    variables.erase(variables.begin() + indexOfVariable(s));
+}
 
-void Engine::redefine(std::string target, std::string name)
-{
-    if (variableExists(target))
-    {
-        if (FileIO::fileExists(varString(target)) || FileIO::directoryExists(varString(target)))
-        {
+std::string Engine::varString(std::string s) { return getVar(s).getString(); }
+double Engine::varNumber(std::string s) { return getVar(s).getNumber(); }
+std::string Engine::varNumberString(std::string s) {
+    return dtos(varNumber(s));
+}
+
+void Engine::redefine(std::string target, std::string name) {
+    if (variableExists(target)) {
+        if (FileIO::fileExists(varString(target)) ||
+            FileIO::directoryExists(varString(target))) {
             std::string old_name(varString(target)), new_name;
 
-            if (variableExists(name))
-            {
-                if (isString(name))
-                {
+            if (variableExists(name)) {
+                if (isString(name)) {
                     new_name = varString(name);
 
-                    if (FileIO::fileExists(old_name))
-                    {
-                        if (!FileIO::fileExists(new_name))
-                        {
+                    if (FileIO::fileExists(old_name)) {
+                        if (!FileIO::fileExists(new_name)) {
                             if (FileIO::fileExists(old_name))
                                 rename(old_name.c_str(), new_name.c_str());
                             else
-                                error(ErrorCode::FILE_NOT_FOUND, old_name, false);
-                        }
-                        else
+                                error(ErrorCode::FILE_NOT_FOUND, old_name,
+                                      false);
+                        } else
                             error(ErrorCode::FILE_EXISTS, new_name, false);
-                    }
-                    else if (FileIO::directoryExists(old_name))
-                    {
-                        if (!FileIO::directoryExists(new_name))
-                        {
+                    } else if (FileIO::directoryExists(old_name)) {
+                        if (!FileIO::directoryExists(new_name)) {
                             if (FileIO::directoryExists(old_name))
                                 rename(old_name.c_str(), new_name.c_str());
                             else
-                                error(ErrorCode::DIR_NOT_FOUND, old_name, false);
-                        }
-                        else
+                                error(ErrorCode::DIR_NOT_FOUND, old_name,
+                                      false);
+                        } else
                             error(ErrorCode::DIR_EXISTS, new_name, false);
-                    }
-                    else
+                    } else
                         error(ErrorCode::TARGET_UNDEFINED, old_name, false);
-                }
-                else
+                } else
                     error(ErrorCode::NULL_STRING, name, false);
-            }
-            else
-            {
-                if (FileIO::fileExists(old_name))
-                {
+            } else {
+                if (FileIO::fileExists(old_name)) {
                     if (!FileIO::fileExists(name))
                         rename(old_name.c_str(), name.c_str());
                     else
                         error(ErrorCode::FILE_EXISTS, name, false);
-                }
-                else if (FileIO::directoryExists(old_name))
-                {
+                } else if (FileIO::directoryExists(old_name)) {
                     if (!FileIO::directoryExists(name))
                         rename(old_name.c_str(), name.c_str());
                     else
                         error(ErrorCode::DIR_EXISTS, name, false);
-                }
-                else
+                } else
                     error(ErrorCode::TARGET_UNDEFINED, old_name, false);
             }
-        }
-        else
-        {
-            if (begins_with(name, "@"))
-            {
+        } else {
+            if (begins_with(name, "@")) {
                 if (!variableExists(name))
                     getVar(target).setName(name);
                 else
                     error(ErrorCode::VAR_DEFINED, name, false);
-            }
-            else
+            } else
                 error(ErrorCode::INVALID_VAR_DECL, name, false);
         }
-    }
-    else if (listExists(target))
-    {
+    } else if (listExists(target)) {
         if (!listExists(name))
             getList(name).setName(name);
         else
             error(ErrorCode::LIST_DEFINED, name, false);
-    }
-    else if (classExists(target))
-    {
+    } else if (classExists(target)) {
         if (!classExists(name))
             getClass(target).setName(name);
         else
             error(ErrorCode::CLS_METHOD_DEFINED, name, false);
-    }
-    else if (methodExists(target))
-    {
+    } else if (methodExists(target)) {
         if (!methodExists(name))
             getMethod(target).setName(name);
         else
             error(ErrorCode::METHOD_DEFINED, name, false);
-    }
-    else if (FileIO::fileExists(target) || FileIO::directoryExists(target))
+    } else if (FileIO::fileExists(target) || FileIO::directoryExists(target))
         rename(target.c_str(), name.c_str());
     else
         error(ErrorCode::TARGET_UNDEFINED, target, false);
 }
 
-void Engine::globalize(std::string arg1)
-{
-    if (!(contains(arg1, Keywords.Dot) && methodExists(arg1) && !methodExists(after_dot(arg1))))
-    {
+void Engine::globalize(std::string arg1) {
+    if (!(contains(arg1, Keywords.Dot) && methodExists(arg1) &&
+          !methodExists(after_dot(arg1)))) {
         error(ErrorCode::CLS_METHOD_UNDEFINED, arg1, false);
         return;
     }
 
     Method method(after_dot(arg1));
 
-    std::vector<std::string> lines = getClass(before_dot(arg1)).getMethod(after_dot(arg1)).getLines();
+    std::vector<std::string> lines =
+        getClass(before_dot(arg1)).getMethod(after_dot(arg1)).getLines();
 
     for (int i = 0; i < (int)lines.size(); i++)
         method.add(lines[i]);
@@ -810,12 +771,11 @@ void Engine::globalize(std::string arg1)
     methods.push_back(method);
 }
 
-void Engine::replaceElement(std::string before, std::string after, std::string replacement)
-{
+void Engine::replaceElement(std::string before, std::string after,
+                            std::string replacement) {
     std::vector<std::string> newList;
 
-    for (int i = 0; i < (int)getList(before).size(); i++)
-    {
+    for (int i = 0; i < (int)getList(before).size(); i++) {
         if (i == stoi(after))
             newList.push_back(replacement);
         else
@@ -830,40 +790,37 @@ void Engine::replaceElement(std::string before, std::string after, std::string r
     newList.clear();
 }
 
-void Engine::setVariable(std::string name, std::string value)
-{
+void Engine::setVariable(std::string name, std::string value) {
     getVar(name).setVariable(value);
     State.LastValue = value;
 }
 
-void Engine::setVariable(std::string name, double value)
-{
+void Engine::setVariable(std::string name, double value) {
     getVar(name).setVariable(value);
     State.LastValue = dtos(value);
 }
 
-void Engine::createVariable(std::string name, std::string value)
-{
+void Engine::createVariable(std::string name, std::string value) {
     Variable newVariable(name, value);
 
-    newVariable.setCollectable(State.ExecutedTemplate || State.ExecutedMethod || State.ExecutedTryBlock);
+    newVariable.setCollectable(State.ExecutedTemplate || State.ExecutedMethod ||
+                               State.ExecutedTryBlock);
 
     variables.push_back(newVariable);
     State.LastValue = value;
 }
 
-void Engine::createVariable(std::string name, double value)
-{
+void Engine::createVariable(std::string name, double value) {
     Variable newVariable(name, value);
 
-    newVariable.setCollectable(State.ExecutedTemplate || State.ExecutedMethod || State.ExecutedTryBlock);
+    newVariable.setCollectable(State.ExecutedTemplate || State.ExecutedMethod ||
+                               State.ExecutedTryBlock);
 
     variables.push_back(newVariable);
     State.LastValue = dtos(value);
 }
 
-void Engine::clearAll()
-{
+void Engine::clearAll() {
     clearMethods();
     clearClasses();
     clearVariables();
@@ -875,38 +832,19 @@ void Engine::clearAll()
     clearConstants();
 }
 
-void Engine::clearConstants()
-{
-    constants.clear();
-}
+void Engine::clearConstants() { constants.clear(); }
 
-void Engine::clearArgs()
-{
-    args.clear();
-}
+void Engine::clearArgs() { args.clear(); }
 
-void Engine::clearFor()
-{
-    forLoops.clear();
-}
+void Engine::clearFor() { forLoops.clear(); }
 
-void Engine::clearWhile()
-{
-    whileLoops.clear();
-}
+void Engine::clearWhile() { whileLoops.clear(); }
 
-void Engine::clearIf()
-{
-    ifStatements.clear();
-}
+void Engine::clearIf() { ifStatements.clear(); }
 
-void Engine::clearLists()
-{
-    lists.clear();
-}
+void Engine::clearLists() { lists.clear(); }
 
-void Engine::clearMethods()
-{
+void Engine::clearMethods() {
     std::vector<Method> indestructibleMethods;
 
     for (unsigned i = 0; i < methods.size(); ++i)
@@ -922,8 +860,7 @@ void Engine::clearMethods()
 // TODO: Implement indestructible objects?
 void Engine::clearClasses() { classes.clear(); }
 
-void Engine::clearVariables()
-{
+void Engine::clearVariables() {
     std::vector<Variable> indestructibleVariables;
 
     for (unsigned i = 0; i < variables.size(); ++i)
@@ -936,12 +873,12 @@ void Engine::clearVariables()
         variables.push_back(indestructibleVariables[i]);
 }
 
-void Engine::gc()
-{
+void Engine::gc() {
     std::vector<std::string> garbageVars;
 
     for (unsigned i = 0; i < variables.size(); ++i)
-        if (variables.at(i).isCollectable() && !State.ExecutedIfStatement && !State.DontCollectMethodVars)
+        if (variables.at(i).isCollectable() && !State.ExecutedIfStatement &&
+            !State.DontCollectMethodVars)
             garbageVars.push_back(variables.at(i).name());
 
     for (unsigned i = 0; i < garbageVars.size(); ++i)
@@ -966,8 +903,7 @@ void Engine::gc()
         removeClass(garbageClasses.at(i));
 }
 
-bool Engine::listExists(std::string s)
-{
+bool Engine::listExists(std::string s) {
     for (unsigned i = 0; i < lists.size(); ++i)
         if (lists.at(i).name() == s)
             return true;
@@ -975,10 +911,8 @@ bool Engine::listExists(std::string s)
     return false;
 }
 
-bool Engine::methodExists(std::string s)
-{
-    if (!is_dotless(s) && classExists(before_dot(s)))
-    {
+bool Engine::methodExists(std::string s) {
+    if (!is_dotless(s) && classExists(before_dot(s))) {
         return getClass(before_dot(s)).hasMethod(after_dot(s));
     }
 
@@ -989,8 +923,7 @@ bool Engine::methodExists(std::string s)
     return false;
 }
 
-bool Engine::classExists(std::string s)
-{
+bool Engine::classExists(std::string s) {
     for (unsigned i = 0; i < classes.size(); ++i)
         if (classes.at(i).name() == s)
             return true;
@@ -998,10 +931,8 @@ bool Engine::classExists(std::string s)
     return false;
 }
 
-bool Engine::variableExists(std::string s)
-{
-    if (!is_dotless(s))
-    {
+bool Engine::variableExists(std::string s) {
+    if (!is_dotless(s)) {
         std::string before(before_dot(s)), after(after_dot(s));
         return classExists(before) && getClass(before).hasVariable(after);
     }
@@ -1013,8 +944,7 @@ bool Engine::variableExists(std::string s)
     return false;
 }
 
-bool Engine::moduleExists(std::string s)
-{
+bool Engine::moduleExists(std::string s) {
     for (unsigned i = 0; i < modules.size(); ++i)
         if (modules.at(i).name() == s)
             return true;
@@ -1022,8 +952,7 @@ bool Engine::moduleExists(std::string s)
     return false;
 }
 
-bool Engine::constantExists(std::string s)
-{
+bool Engine::constantExists(std::string s) {
     for (unsigned i = 0; i < constants.size(); ++i)
         if (constants.at(i).name() == s)
             return true;
@@ -1031,10 +960,8 @@ bool Engine::constantExists(std::string s)
     return false;
 }
 
-bool Engine::notClassMethod(std::string s)
-{
-    if (!is_dotless(s))
-    {
+bool Engine::notClassMethod(std::string s) {
+    if (!is_dotless(s)) {
         std::string before(before_dot(s));
         return !classExists(before);
     }
