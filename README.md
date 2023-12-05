@@ -11,7 +11,7 @@ say "#{@proj} is a #{@desc} scripting language."
 
 ## Overview
 
-A really old project I am bringing back to life.
+An old passion project I am bringing back to life.
 
 ## Build Instructions
 
