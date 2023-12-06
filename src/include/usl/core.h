@@ -998,7 +998,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2,
     if (tmpObjExists || begins_with(arg0, "@")) {
         if (tmpObjExists) {
             if (engine.getClass(tmpObjName).getVariable(tmpVarName).getType() ==
-                VariableType::String) {
+                ValueType::String) {
                 std::string tempClassVariableName("@ " + tmpObjName +
                                                   tmpVarName + "_string");
                 initializeTemporaryString(arg1, arg2, command,
@@ -1006,7 +1006,7 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2,
                                           tmpVarName);
             } else if (engine.getClass(tmpObjName)
                            .getVariable(tmpVarName)
-                           .getType() == VariableType::Double) {
+                           .getType() == ValueType::Double) {
                 std::string tempClassVariableName("@____" + tmpObjName + "___" +
                                                   tmpVarName + "_number");
                 initializeTemporaryNumber(arg1, arg2, command,
@@ -1120,10 +1120,9 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2,
                     if (engine.getClass(before).hasVariable(after)) {
                         const auto classVariable =
                             engine.getClassVariable(before, after);
-                        if (classVariable.getType() == VariableType::String)
+                        if (classVariable.getType() == ValueType::String)
                             engine.setVariable(arg0, classVariable.getString());
-                        else if (classVariable.getType() ==
-                                 VariableType::Double)
+                        else if (classVariable.getType() == ValueType::Double)
                             engine.setVariable(arg0, classVariable.getNumber());
                         else
                             error(ErrorCode::IS_NULL, arg2);
@@ -1378,15 +1377,18 @@ void initializeVariable(std::string arg0, std::string arg1, std::string arg2,
                         error(ErrorCode::IS_NULL, arg0);
                 } else if (engine.constantExists(arg2)) {
                     if (engine.isString(arg0)) {
-                        if (engine.getConstant(arg2).ConstNumber())
+                        if (engine.getConstant(arg2).getType() ==
+                            ValueType::Double)
                             engine.setVariable(
                                 arg0,
                                 dtos(engine.getConstant(arg2).getNumber()));
-                        else if (engine.getConstant(arg2).ConstString())
+                        else if (engine.getConstant(arg2).getType() ==
+                                 ValueType::String)
                             engine.setVariable(
                                 arg0, engine.getConstant(arg2).getString());
                     } else if (engine.isNumber(arg0)) {
-                        if (engine.getConstant(arg2).ConstNumber())
+                        if (engine.getConstant(arg2).getType() ==
+                            ValueType::Double)
                             engine.setVariable(
                                 arg0, engine.getConstant(arg2).getNumber());
                         else
@@ -1917,9 +1919,9 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2,
                 const auto classVariable =
                     engine.getClassVariable(before, after);
 
-                if (classVariable.getType() == VariableType::String)
+                if (classVariable.getType() == ValueType::String)
                     engine.createVariable(arg0, classVariable.getString());
-                else if (classVariable.getType() == VariableType::Double)
+                else if (classVariable.getType() == ValueType::Double)
                     engine.createVariable(arg0, classVariable.getNumber());
                 else
                     error(ErrorCode::IS_NULL, classVariable.name());
@@ -1981,10 +1983,10 @@ void init_globalvar(std::string arg0, std::string arg1, std::string arg2,
             else
                 engine.createVariable(arg0, State.LastValue);
         } else if (engine.constantExists(arg2)) {
-            if (engine.getConstant(arg2).ConstNumber())
+            if (engine.getConstant(arg2).getType() == ValueType::Double)
                 engine.createVariable(arg0,
                                       engine.getConstant(arg2).getNumber());
-            else if (engine.getConstant(arg2).ConstString())
+            else if (engine.getConstant(arg2).getType() == ValueType::String)
                 engine.createVariable(arg0,
                                       engine.getConstant(arg2).getString());
             else
@@ -2331,9 +2333,9 @@ void interp_init_classvar(std::string arg0, std::string arg1,
         if (arg1 == Operators.Assign) {
             Variable classVariable =
                 engine.getClassVariable(className, variableName);
-            if (classVariable.getType() == VariableType::String)
+            if (classVariable.getType() == ValueType::String)
                 engine.createVariable(arg0, classVariable.getString());
-            else if (classVariable.getType() == VariableType::Double)
+            else if (classVariable.getType() == ValueType::Double)
                 engine.createVariable(arg0, classVariable.getNumber());
         }
     }
@@ -2484,6 +2486,7 @@ void initialize_state(std::string uslang) {
     State.ForLoopCount = 0, State.WhileLoopCount = 0, State.ParamVarCount = 0,
     State.LastErrorCode = 0;
     State.CaptureParse = false, State.IsCommented = false,
+    State.CommentPosition = std::numeric_limits<int>::max();
     State.UseCustomPrompt = false, State.DontCollectMethodVars = false,
     State.FailedIfStatement = false, State.GoToLabel = false,
     State.ExecutedIfStatement = false, State.InDefaultCase = false,

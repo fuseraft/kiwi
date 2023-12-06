@@ -1,5 +1,5 @@
-#ifndef NOCTIS_KW_H
-#define NOCTIS_KW_H
+#ifndef KW_H
+#define KW_H
 
 #include <string>
 #include <unordered_set>

@@ -1,27 +1,32 @@
+#include <variant>
+#include "valuetype.h"
+
 class Constant {
   private:
-    std::string stringValue, constantName;
-    double numericValue;
-    bool isNumber_, isString_;
+    std::string constantName;
+    std::variant<int, double, std::string, bool> value;
+    ValueType valueType;
 
   public:
     Constant(std::string name, std::string val) {
-        constantName = name, stringValue = val;
-        isString_ = true, isNumber_ = false;
+        constantName = name;
+        value = val;
+        valueType = ValueType::String;
     }
 
     Constant(std::string name, double val) {
-        constantName = name, numericValue = val;
-        isNumber_ = true, isString_ = false;
+        constantName = name;
+        value = val;
+        valueType = ValueType::Double;
     }
 
-    bool ConstNumber() { return isNumber_; }
+    ValueType getType() const { return valueType; }
 
-    bool ConstString() { return isString_; }
+    double getInteger() const { return std::get<int>(value); }
 
-    std::string getString() { return stringValue; }
+    double getNumber() const { return std::get<double>(value); }
 
-    double getNumber() { return numericValue; }
+    std::string getString() const { return std::get<std::string>(value); }
 
     std::string name() { return constantName; }
 };
