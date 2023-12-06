@@ -112,9 +112,8 @@ int uslang(int c, char **v) {
         break;
     }
 
-    if (State.CurrentScript != usl) {
+    if (State.CurrentScript != usl)
         exec.executeScript();
-    }
 
     return State.LastErrorCode;
 }

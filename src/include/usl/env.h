@@ -1,5 +1,5 @@
-#ifndef NOCTIS_ENVIRONMENT_H
-#define NOCTIS_ENVIRONMENT_H
+#ifndef ENVIRONMENT_H
+#define ENVIRONMENT_H
 
 #include "error.h"
 

@@ -1,6 +1,7 @@
 #ifndef OBJECTS_H
 #define OBJECTS_H
 
+#include "objects/valuetype.h"
 #include "objects/gc/collectable.h"
 #include "objects/constant.h"
 #include "objects/container.h"
