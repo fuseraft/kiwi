@@ -24,4 +24,20 @@ else
   println "fail"
 endif
 
+println "\nMethod test."
+
+def add(a, b)
+  @r = (@a + @b)
+end
+
+@c = add(40, 2)
+
+print "\nTest results: "
+
+if @c == @answer
+  println "pass"
+else
+  println "fail"
+endif
+
 # TODO: add more tests

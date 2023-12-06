@@ -570,7 +570,9 @@ void parseNumberStack(std::vector<std::string> &contents,
     }
 
     if (currentChar != ' ') {
-        contents.push_back("" + currentChar);
+        std::string content;
+        content = currentChar;
+        contents.push_back(content);
     }
 }
 
@@ -711,7 +713,7 @@ std::string getSubString(std::string arg2, std::string beforeBracket) {
 
             if ((int)variableString.length() - 1 >= beginIndex &&
                 beginIndex >= 0) {
-                returnValue = "" + variableString[beginIndex];
+                returnValue = variableString[beginIndex];
             }
         }
     } else if (listRange.size() == 2) {
