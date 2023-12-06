@@ -1,5 +1,5 @@
-#ifndef NOCTIS_ENGINE_H
-#define NOCTIS_ENGINE_H
+#ifndef ENGINE_H
+#define ENGINE_H
 
 class Engine {
   private:
@@ -199,9 +199,9 @@ std::string Engine::getClassVariableValueAsString(std::string className,
     std::string text;
     Variable classVariable = getClassVariable(className, varName);
 
-    if (classVariable.getType() == VariableType::String)
+    if (classVariable.getType() == ValueType::String)
         text = classVariable.getString();
-    else if (classVariable.getType() == VariableType::Double)
+    else if (classVariable.getType() == ValueType::Double)
         text = dtos(classVariable.getNumber());
 
     return text;
@@ -345,11 +345,11 @@ void Engine::createMethod(std::string arg0, std::string arg1) {
                 }
 
                 if (getClass(before).getVariable(after).getType() ==
-                    VariableType::String)
+                    ValueType::String)
                     method.addMethodVariable(
                         getClass(before).getVariable(after).getString(), after);
                 else if (getClass(before).getVariable(after).getType() ==
-                         VariableType::Double)
+                         ValueType::Double)
                     method.addMethodVariable(
                         getClass(before).getVariable(after).getNumber(), after);
                 else
@@ -423,14 +423,14 @@ void Engine::createMethod(std::string arg0, std::string arg1) {
                             }
 
                             if (getClass(before).getVariable(after).getType() ==
-                                VariableType::String)
+                                ValueType::String)
                                 method.addMethodVariable(getClass(before)
                                                              .getVariable(after)
                                                              .getString(),
                                                          after);
                             else if (getClass(before)
                                          .getVariable(after)
-                                         .getType() == VariableType::Double)
+                                         .getType() == ValueType::Double)
                                 method.addMethodVariable(getClass(before)
                                                              .getVariable(after)
                                                              .getNumber(),
@@ -556,16 +556,16 @@ void Engine::createFailedWhileLoop() {
 }
 
 bool Engine::isNumber(std::string s) {
-    return getVar(s).getType() == VariableType::Double;
+    return getVar(s).getType() == ValueType::Double;
 }
 bool Engine::isNumber(Variable var) {
-    return var.getType() == VariableType::Double;
+    return var.getType() == ValueType::Double;
 }
 bool Engine::isString(std::string s) {
-    return getVar(s).getType() == VariableType::String;
+    return getVar(s).getType() == ValueType::String;
 }
 bool Engine::isString(Variable var) {
-    return var.getType() == VariableType::String;
+    return var.getType() == ValueType::String;
 }
 
 int Engine::indexOfConstant(std::string s) {

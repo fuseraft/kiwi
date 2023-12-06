@@ -1,5 +1,5 @@
-#ifndef NOCTIS_RNG_H
-#define NOCTIS_RNG_H
+#ifndef RNG_H
+#define RNG_H
 
 #include <ctime>
 #include <iostream>

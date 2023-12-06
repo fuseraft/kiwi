@@ -1,5 +1,5 @@
-#ifndef NOCTIS_ERROR_H
-#define NOCTIS_ERROR_H
+#ifndef ERROR_H
+#define ERROR_H
 
 #include <iostream>
 #include <unordered_map>

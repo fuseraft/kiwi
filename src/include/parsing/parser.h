@@ -2,11 +2,16 @@
 #define PARSER_H
 
 /**
-    The heart of it all. Parse a string and send for interpretation.
+    The heart of it all.
 **/
 void parse(std::string s) {
-    std::vector<std::string> command; // a tokenized command container
-    State.CurrentLine = s;            // store a copy of the current line
+    if (s.empty())
+        return;
+    
+    s = trim(s);
+
+    std::vector<std::string> tokens;
+    State.CurrentLine = s; // store a copy of the current line
 
     StringList stringList; // contains separate commands
     std::string builder;   // a string to build upon
@@ -19,41 +24,36 @@ void parse(std::string s) {
         uncomment = false,    // flag: end a command
         parenthesis = false;  // flag: parsing contents within parentheses
 
-    command.push_back(""); // push back an empty string to begin.
+    // tokens.push_back(""); // push back an empty string to begin.
     // iterate each char in the initial string
     char prevChar = 'a'; // previous character in string
 
-    tokenize(length, s, parenthesis, quoted, command, count, prevChar, builder,
+    tokenize(length, s, parenthesis, quoted, tokens, count, prevChar, builder,
              uncomment, endOfCommand, stringList);
 
-    size = (int)command.size();
+    size = (int)tokens.size();
 
     if (State.IsCommented) {
-        if (State.IsMultilineComment) {
-            if (uncomment) {
-                State.IsCommented = false;
-                State.IsMultilineComment = false;
-            }
-        } else {
-            if (uncomment) {
-                State.IsCommented = false;
-                uncomment = false;
+        if (State.IsMultilineComment && uncomment) {
+            State.IsCommented = false;
+            State.IsMultilineComment = false;
+        } else if (uncomment) {
+            State.IsCommented = false;
+            uncomment = false;
 
-                builder = preparse_stripcomment(builder);
+            builder = preparse_stripcomment(builder);
 
-                if (!endOfCommand) {
-                    parse(ltrim_ws(builder));
-                } else {
-                    stringList.add(ltrim_ws(builder));
-                    interp_StringList(stringList);
-                }
-            }
+            if (endOfCommand) {
+                stringList.add(builder);
+                interp_StringList(stringList);
+            } else
+                parse(builder);
         }
     } else if (!endOfCommand) {
-        interp_args(size, command);
+        interp_args(size, tokens);
 
         if (State.DefiningSwitchBlock)
-            interp_switchstatement(s, command);
+            interp_switchstatement(s, tokens);
         else if (State.DefiningModule)
             interp_moduledefinition(s);
         else if (State.DefiningScript)
@@ -69,13 +69,13 @@ void parse(std::string s) {
         } else if (State.DefiningMethod)
             interp_method_def(s);
         else if (State.DefiningIfStatement)
-            interp_ifstatement_def(command, s, size);
+            interp_ifstatement_def(tokens, s, size);
         else if (State.DefiningWhileLoop)
-            interp_whileloop_def(command, s);
+            interp_whileloop_def(tokens, s);
         else if (State.DefiningForLoop)
-            interp_forloop_def(command, s);
+            interp_forloop_def(tokens, s);
         else
-            interp_default(size, command, s);
+            interp_default(size, tokens, s);
     } else {
         stringList.add(builder);
         interp_StringList(stringList);
@@ -100,11 +100,12 @@ void interp_StringList(StringList &StringList) {
 std::string preparse_stripcomment(std::string &inputString) {
     std::string result;
     for (int i = 0; i < (int)inputString.length(); i++) {
-        if (inputString[i] == '#')
+        if (i == State.CommentPosition)
             break;
 
         result.push_back(inputString[i]);
     }
+    State.CommentPosition = std::numeric_limits<int>::max();
     return result;
 }
 
@@ -419,11 +420,11 @@ void interp_0space(std::vector<std::string> &command, std::string &s) {
                 exec.executeMethod(engine.getClass(before).getMethod(after));
             else if (engine.getClass(before).hasVariable(after)) {
                 const auto &v = engine.getClassVariable(before, after);
-                if (v.getType() == VariableType::String)
+                if (v.getType() == ValueType::String)
                     writeline(v.getString());
-                else if (v.getType() == VariableType::Double)
+                else if (v.getType() == ValueType::Double)
                     writeline(dtos(v.getNumber()));
-                else if (v.getType() == VariableType::Integer)
+                else if (v.getType() == ValueType::Integer)
                     writeline(itos(v.getNumber()));
             } else if (after == Keywords.GC)
                 engine.getClass(before).clear();
@@ -698,21 +699,26 @@ void interp_whileloops() {
 }
 
 void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
-              std::vector<std::string> &command, int &count, char &prevChar,
+              std::vector<std::string> &tokens, int &count, char &prevChar,
               std::string &builder, bool &uncomment, bool &broken,
-              StringList &StringList) {
+              StringList &stringList) {
+    // TODO: fix this
+    tokens.push_back("");
     for (int i = 0; i < length; i++) {
+        if (State.IsCommented) {
+            builder.push_back(s[i]);
+            continue;
+        }
+
         switch (s[i]) {
         case ' ':
             if (!State.IsCommented) {
                 if ((!parenthesis && quoted) || (parenthesis && quoted)) {
-                    command.at(count).push_back(' ');
+                    tokens.at(count).push_back(' ');
                 } else if (parenthesis && !quoted) {
-                } else {
-                    if (prevChar != ' ') {
-                        command.push_back("");
-                        count++;
-                    }
+                } else if (prevChar != ' ') {
+                    tokens.push_back("");
+                    count++;
                 }
             }
 
@@ -722,7 +728,7 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
         case '\"':
             quoted = !quoted;
             if (parenthesis) {
-                command.at(count).push_back('\"');
+                tokens.at(count).push_back('\"');
             }
             builder.push_back('\"');
             break;
@@ -731,7 +737,7 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
             if (!parenthesis)
                 parenthesis = true;
 
-            command.at(count).push_back('(');
+            tokens.at(count).push_back('(');
 
             builder.push_back('(');
             break;
@@ -740,14 +746,14 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
             if (parenthesis)
                 parenthesis = false;
 
-            command.at(count).push_back(')');
+            tokens.at(count).push_back(')');
             builder.push_back(')');
             break;
 
         case '\\':
             if (quoted || parenthesis) {
                 if (!State.IsCommented)
-                    command.at(count).push_back('\\');
+                    tokens.at(count).push_back('\\');
             }
 
             builder.push_back('\\');
@@ -756,9 +762,9 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
         case '\'':
             if (quoted || parenthesis) {
                 if (prevChar == '\\')
-                    command.at(count).append("\'");
+                    tokens.at(count).append("\'");
                 else
-                    command.at(count).append("\"");
+                    tokens.at(count).append("\"");
 
                 builder.push_back('\'');
             }
@@ -766,7 +772,7 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
 
         case '#':
             if (quoted || parenthesis)
-                command.at(count).push_back('#');
+                tokens.at(count).push_back('#');
             else if (prevChar == '#' && !State.IsMultilineComment) {
                 State.IsMultilineComment = true;
                 State.IsCommented = true;
@@ -774,8 +780,15 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
             } else if (prevChar == '#' && State.IsMultilineComment)
                 uncomment = true;
             else if (prevChar != '#' && !State.IsMultilineComment) {
+                if (State.CommentPosition == std::numeric_limits<int>::max())
+                    State.CommentPosition = i;
                 State.IsCommented = true;
                 uncomment = true;
+
+                // TODO: fix this, you can reproduce with: println "foo bar" #
+                // baz qux
+                if (tokens.back().empty())
+                    tokens.pop_back();
             }
 
             builder.push_back('#');
@@ -785,21 +798,21 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
             if (!quoted) {
                 if (!State.IsCommented) {
                     broken = true;
-                    StringList.add(builder);
+                    stringList.add(builder);
                     builder = "";
                     count = 0;
-                    command.clear();
-                    command.push_back("");
+                    tokens.clear();
+                    tokens.push_back("");
                 }
             } else {
                 builder.push_back(';');
-                command.at(count).push_back(';');
+                tokens.at(count).push_back(';');
             }
             break;
 
         default:
             if (!State.IsCommented)
-                command.at(count).push_back(s[i]);
+                tokens.at(count).push_back(s[i]);
             builder.push_back(s[i]);
             break;
         }
@@ -1890,7 +1903,7 @@ void handleStringInspect(std::string &before, std::string &after,
         }
 
         State.LastValue = engine.getClassVariable(before, after).getType() ==
-                                  VariableType::String
+                                  ValueType::String
                               ? Keywords.True
                               : Keywords.False;
     } else {
@@ -1911,7 +1924,7 @@ void handleNumberInspect(std::string &before, std::string &after,
         }
 
         State.LastValue = engine.getClassVariable(before, after).getType() ==
-                                  VariableType::Double
+                                  ValueType::Double
                               ? Keywords.True
                               : Keywords.False;
     } else {

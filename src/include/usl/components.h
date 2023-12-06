@@ -1,5 +1,5 @@
-#ifndef NOCTIS_COMP_H
-#define NOCTIS_COMP_H
+#ifndef COMP_H
+#define COMP_H
 
 Engine engine;
 Executor exec(engine);
