@@ -7,7 +7,7 @@
 void parse(std::string s) {
     if (s.empty())
         return;
-    
+
     s = trim(s);
 
     std::vector<std::string> tokens;
