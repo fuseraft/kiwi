@@ -19,7 +19,6 @@ class Variable : public Collectable {
 
     void setDefaults() {
         value = std::numeric_limits<double>::quiet_NaN();
-        variableName = "";
         variableType = ValueType::None;
         collectable = false;
         _isPrivate = false;
