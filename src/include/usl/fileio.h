@@ -1,5 +1,5 @@
-#ifndef NOCTIS_FILEIO_H
-#define NOCTIS_FILEIO_H
+#ifndef FILEIO_H
+#define FILEIO_H
 
 class FileIO {
   public:

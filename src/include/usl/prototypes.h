@@ -105,9 +105,9 @@ void interp_switchstatement(std::string &s, std::vector<std::string> &command);
 void interp_args(int size, std::vector<std::string> &command);
 void interp_forloop();
 void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
-              std::vector<std::string> &command, int &count, char &prevChar,
+              std::vector<std::string> &tokens, int &count, char &prevChar,
               std::string &bigString, bool &uncomment, bool &broken,
-              StringList &StringList);
+              StringList &stringList);
 void zeroSpace(std::string arg0);
 void oneSpace(std::string arg0, std::string arg1);
 void twoSpace(std::string arg0, std::string arg1, std::string arg2,

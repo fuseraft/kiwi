@@ -5,13 +5,11 @@
 #include <string>
 #include <variant>
 
-enum class VariableType { None, Integer, Double, String, Boolean };
-
 class Variable : public Collectable {
   private:
     std::variant<int, double, std::string, bool> value;
     std::string variableName;
-    VariableType variableType;
+    ValueType variableType;
 
     bool collectable;
     bool _isPrivate;
@@ -22,7 +20,7 @@ class Variable : public Collectable {
     void setDefaults() {
         value = std::numeric_limits<double>::quiet_NaN();
         variableName = "";
-        variableType = VariableType::None;
+        variableType = ValueType::None;
         collectable = false;
         _isPrivate = false;
         _isPublic = false;
@@ -43,7 +41,7 @@ class Variable : public Collectable {
 
         if (v == "null") {
             setDefaults();
-            variableType = VariableType::None;
+            variableType = ValueType::None;
         } else
             setVariable(v);
     }
@@ -79,26 +77,26 @@ class Variable : public Collectable {
 
     void setName(const std::string &name) { variableName = name; }
 
-    VariableType getType() const { return variableType; }
+    ValueType getType() const { return variableType; }
 
     void setVariable(const std::string &v) {
         value = v;
-        variableType = VariableType::String;
+        variableType = ValueType::String;
     }
 
     void setVariable(double v) {
         value = v;
-        variableType = VariableType::Double;
+        variableType = ValueType::Double;
     }
 
     void setVariable(int v) {
         value = v;
-        variableType = VariableType::Integer;
+        variableType = ValueType::Integer;
     }
 
     void setVariable(bool v) {
         value = v;
-        variableType = VariableType::Boolean;
+        variableType = ValueType::Boolean;
     }
 
     void setPrivate() {
