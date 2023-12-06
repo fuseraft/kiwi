@@ -1,5 +1,5 @@
-#ifndef NOCTIS_STATE_H
-#define NOCTIS_STATE_H
+#ifndef STATE_H
+#define STATE_H
 
 struct {
     std::string InitialDirectory;
@@ -33,6 +33,7 @@ struct {
 
     bool IsCommented;
     bool IsMultilineComment;
+    int CommentPosition;
 
     bool Breaking;
     bool DefiningIfStatement;
