@@ -840,7 +840,7 @@ void oneSpace(std::string arg0, std::string arg1) {
     }
 
     DotSep dotsep(arg1);
-    std::string before(dotsep.getBeforeDot(), dotsep.getAfterDot());
+    std::string before(dotsep.getBeforeDot()), after(dotsep.getAfterDot());
 
     if (arg0 == Keywords.GC)
         interp_clear_command(arg1);
