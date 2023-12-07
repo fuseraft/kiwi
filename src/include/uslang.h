@@ -17,6 +17,7 @@ void print_underconstruction() {
     std::cout << "under construction" << std::endl;
 }
 
+#include "parsing/dotsep.h"
 #include "debug/stacktrace.h"
 #include "parsing/keywords.h"
 #include "parsing/strings.h"
