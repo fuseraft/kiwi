@@ -374,19 +374,7 @@ void interp_2space(std::vector<std::string> &command, std::string &s) {
         FileIO::writeText(target, text);
     else if (command.at(0) == Keywords.Redefine)
         engine.redefine(command.at(1), command.at(2));
-    else if (command.at(0) == Keywords.Loop) {
-        if (has_params(command.at(2))) {
-            State.DefaultLoopSymbol = command.at(2);
-            State.DefaultLoopSymbol =
-                subtract_char(State.DefaultLoopSymbol, '(');
-            State.DefaultLoopSymbol =
-                subtract_char(State.DefaultLoopSymbol, ')');
-
-            oneSpace(command.at(0), command.at(1));
-            State.DefaultLoopSymbol = "$";
-        } else
-            Env::shellExec(s);
-    } else
+    else
         Env::shellExec(s);
 }
 
@@ -403,10 +391,11 @@ void interp_0space(std::vector<std::string> &command, std::string &s) {
         return;
     }
 
-    std::string before(before_dot(s)), after(after_dot(s));
+    DotSep dotsep(s);
+    std::string before(dotsep.getBeforeDot()), after(dotsep.getAfterDot());
 
-    if (before.length() != 0 && after.length() != 0) {
-        if (engine.classExists(before) && after.length() != 0) {
+    if (dotsep.hasDot()) {
+        if (engine.classExists(before)) {
             if (has_params(after)) {
                 s = subtract_char(s, '"');
 
@@ -430,19 +419,17 @@ void interp_0space(std::vector<std::string> &command, std::string &s) {
                 engine.getClass(before).clear();
             else
                 error(ErrorCode::UNDEFINED, after);
-        } else {
-            if (before == Keywords.Env)
-                interp_env_rhs("", after, 3);
-            else if (engine.variableExists(before) && after == Keywords.Clear)
-                engine.getVar(before).clear();
-            else if (engine.listExists(before))
-                interp_list_rhs(after, before);
-            else if (before == Keywords.Self && State.ExecutedMethod)
-                exec.executeMethod(
-                    engine.getClass(State.CurrentMethodClass).getMethod(after));
-            else
-                Env::shellExec(s);
-        }
+        } else if (before == Keywords.Env)
+            interp_env_rhs("", after, 3);
+        else if (engine.variableExists(before) && after == Keywords.Clear)
+            engine.getVar(before).clear();
+        else if (engine.listExists(before))
+            interp_list_rhs(after, before);
+        else if (before == Keywords.Self && State.ExecutedMethod)
+            exec.executeMethod(
+                engine.getClass(State.CurrentMethodClass).getMethod(after));
+        else
+            Env::shellExec(s);
     } else if (ends_with(s, "::")) {
         if (State.CurrentScript != "") {
             std::string newMark(s);
@@ -847,92 +834,91 @@ void zeroSpace(std::string arg0) {
 }
 
 void oneSpace(std::string arg0, std::string arg1) {
-    std::string before(before_dot(arg1)), after(after_dot(arg1));
-
     // Refactor
     if (contains(arg1, Keywords.SelfDot)) {
         arg1 = replace(arg1, Keywords.Self, State.CurrentMethodClass);
     }
 
-    if (arg0 == Keywords.GC) {
+    DotSep dotsep(arg1);
+    std::string before(dotsep.getBeforeDot()), after(dotsep.getAfterDot());
+
+    if (arg0 == Keywords.GC)
         interp_clear_command(arg1);
-    } else if (arg0 == Keywords.Switch) {
+    else if (arg0 == Keywords.Switch)
         handleSwitch(arg1);
-    } else if (arg0 == Keywords.Goto) {
+    else if (arg0 == Keywords.Goto)
         handleGoto(arg1);
-    } else if (arg0 == Keywords.If) {
+    else if (arg0 == Keywords.If)
         handleIfStatement(arg1);
-    } else if (arg0 == Keywords.Prompt) {
+    else if (arg0 == Keywords.Prompt)
         handlePrompt(arg1);
-    } else if (arg0 == Keywords.Err) {
+    else if (arg0 == Keywords.Err)
         handleErr(arg1);
-    } else if (arg0 == Keywords.Delay) {
+    else if (arg0 == Keywords.Delay)
         handleDelay(arg1);
-    } else if (arg0 == Keywords.Loop)
-        threeSpace(Keywords.For, Keywords.Each, Keywords.In, arg1);
     else if (arg0 == Keywords.For && arg1 == Keywords.Infinity)
         engine.createForLoop();
-    else if (arg0 == Keywords.Remove) {
+    else if (arg0 == Keywords.Remove)
         handleRemove(arg1);
-    } else if (arg0 == Keywords.BeginInlineScript) {
+    else if (arg0 == Keywords.BeginInlineScript)
         handleInlineScriptDecl(arg1);
-    } else if (arg0 == Keywords.Globalize) {
+    else if (arg0 == Keywords.Globalize)
         engine.globalize(arg1);
-    } else if (arg0 == Keywords.Load) {
+    else if (arg0 == Keywords.Load)
         handleLoad(arg1);
-    } else if (arg0 == Keywords.Print || arg0 == Keywords.PrintLn) {
+    else if (arg0 == Keywords.Print || arg0 == Keywords.PrintLn)
         interp_internal_puts(arg1, arg0 == Keywords.PrintLn);
-    } else if (arg0 == Keywords.ChangeDirectory) {
+    else if (arg0 == Keywords.ChangeDirectory)
         handleChangeDir(arg1);
-    } else if (arg0 == Keywords.List) {
+    else if (arg0 == Keywords.List)
         handleListDecl(arg1);
-    } else if (arg0 == Keywords.InlineParse) {
+    else if (arg0 == Keywords.InlineParse)
         handleInlineParse(arg1);
-    } else if (arg0 == Keywords.ShellExec) {
+    else if (arg0 == Keywords.ShellExec)
         handleInlineShellExec(arg1);
-    } else if (arg0 == Keywords.InitialDirectory) {
+    else if (arg0 == Keywords.InitialDirectory)
         handleInitialDir(arg1);
-    } else if (arg0 == Keywords.IsMethod) {
+    else if (arg0 == Keywords.IsMethod)
         handleMethodInspect(before, after, arg1);
-    } else if (arg0 == Keywords.IsClass) {
+    else if (arg0 == Keywords.IsClass)
         handleClassInspect(arg1);
-    } else if (arg0 == Keywords.IsVariable) {
+    else if (arg0 == Keywords.IsVariable)
         handleVariableInspect(before, after, arg1);
-    } else if (arg0 == Keywords.IsList) {
+    else if (arg0 == Keywords.IsList)
         handleListInspect(arg1);
-    } else if (arg0 == Keywords.IsDirectory) {
+    else if (arg0 == Keywords.IsDirectory)
         handleDirectoryInspect(before, after, arg1);
-    } else if (arg0 == Keywords.IsFile) {
+    else if (arg0 == Keywords.IsFile)
         handleFileInspect(before, after, arg1);
-    } else if (arg0 == Keywords.IsCollectable) {
+    else if (arg0 == Keywords.IsCollectable)
         handleCollectInspect(arg1);
-    } else if (arg0 == Keywords.IsNumber) {
+    else if (arg0 == Keywords.IsNumber)
         handleNumberInspect(before, after, arg1);
-    } else if (arg0 == Keywords.IsString) {
+    else if (arg0 == Keywords.IsString)
         handleStringInspect(before, after, arg1);
-    } else if (arg0 == Keywords.Template) {
+    else if (arg0 == Keywords.Template)
         handleTemplateDecl(arg1);
-    } else if (arg0 == Keywords.Lock) {
+    else if (arg0 == Keywords.Lock)
         handleLockAssignment(arg1);
-    } else if (arg0 == Keywords.Unlock) {
+    else if (arg0 == Keywords.Unlock)
         handleUnlockAssignment(arg1);
-    } else if (arg0 == Keywords.Method || arg0 == Keywords.LockedMethod) {
-        engine.createMethod(arg0, arg1);
-    } else if (arg0 == Keywords.InvokeMethod) {
+    else if (arg0 == Keywords.Method || arg0 == Keywords.LockedMethod)
+        engine.createMethod(arg1, arg0 == Keywords.LockedMethod);
+    else if (arg0 == Keywords.InvokeMethod)
         exec.executeMethod(arg1, before, after);
-    } else if (arg0 == Keywords.Class) {
+    else if (arg0 == Keywords.Class)
         engine.createClass(arg1);
-    } else if (arg0 == Keywords.Module) {
+    else if (arg0 == Keywords.Module)
         engine.createModule(arg1);
-    } else if (arg0 == Keywords.CreateFile) {
+    else if (arg0 == Keywords.CreateFile)
         handleFilePush(arg1);
-    } else if (arg0 == Keywords.RemoveFile) {
+    else if (arg0 == Keywords.RemoveFile)
         handleFilePop(arg1);
-    } else if (arg0 == Keywords.CreateDirectory) {
+    else if (arg0 == Keywords.CreateDirectory)
         handleDirPush(arg1);
-    } else if (arg0 == Keywords.RemoveDirectory) {
+    else if (arg0 == Keywords.RemoveDirectory)
         handleDirPop(arg1);
-    } else
+    else
         Env::shellExec(arg0);
 }
 

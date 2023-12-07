@@ -5,12 +5,12 @@ println "uslang is a #{@desc} scripting language.\n"
 # First test: loops
 println "\nLoop test."
 
-@i = 0
-@n = 2
+@i = 1
+@n = 21
 @counter = 0
 @answer = 42
 
-for @i to 20
+for @i to 2
   @counter += @n
   print "Iteration: ${$}, "
   println "Counter = #{@counter}"
