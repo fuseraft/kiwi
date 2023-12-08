@@ -825,9 +825,9 @@ std::string getStringValue(std::string arg1, std::string op, std::string arg2) {
     } else if (!is_dotless(arg2)) {
         std::string _beforeDot(before_dot(arg2)), _afterDot(after_dot(arg2));
 
-        if (_beforeDot == Keywords.Env) {
+        if (_beforeDot == Keywords.Env)
             interp_env_rhs("", _afterDot, 2);
-        } else if (_beforeDot == Keywords.Args && _afterDot == Keywords.Size) {
+        else if (_beforeDot == Keywords.Args && _afterDot == Keywords.Size) {
             lastValue = itos(engine.getArgCount());
         } else if (engine.classExists(_beforeDot)) {
             exec.executeTemplate(
@@ -856,9 +856,8 @@ std::string getStringValue(std::string arg1, std::string op, std::string arg2) {
             _afterBrackets = subtract_string(_afterBrackets, "]");
             int index = stoi(_afterBrackets);
 
-            if (engine.getList(_beforeBrackets).size() >= index && index >= 0) {
+            if (engine.getList(_beforeBrackets).size() >= index && index >= 0)
                 lastValue = engine.getList(_beforeBrackets).at(index);
-            }
         }
     } else if (has_params(arg2)) {
         if (before_params(arg2).length() != 0) {
@@ -875,9 +874,9 @@ std::string getStringValue(std::string arg1, std::string op, std::string arg2) {
         returnValue = (firstValue + lastValue);
     else if (op == Operators.SubtractAssign)
         returnValue = subtract_string(firstValue, lastValue);
-    else if (op == Operators.MultiplyAssign && is_numeric(lastValue)) {
+    else if (op == Operators.MultiplyAssign && is_numeric(lastValue))
         returnValue = multiply_string(firstValue, stoi(lastValue));
-    } else if (op == Operators.DivideAssign)
+    else if (op == Operators.DivideAssign)
         returnValue = subtract_string(firstValue, lastValue);
     else if (op == Operators.ExponentAssign)
         returnValue = dtos(pow(stod(firstValue), stod(lastValue)));
@@ -2487,7 +2486,7 @@ void initialize_state(std::string uslang) {
     State.CurrentLineNumber = 0, State.IfStatementCount = 0,
     State.ForLoopCount = 0, State.WhileLoopCount = 0, State.ParamVarCount = 0,
     State.LastErrorCode = 0;
-    State.CaptureParse = false, State.IsCommented = false,
+    State.CaptureParse = false, State.IsCommented = false, State.Uncomment = false,
     State.CommentPosition = std::numeric_limits<int>::max();
     State.UseCustomPrompt = false, State.DontCollectMethodVars = false,
     State.FailedIfStatement = false, State.GoToLabel = false,

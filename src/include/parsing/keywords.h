@@ -76,7 +76,6 @@ struct {
     const std::string Load = "load!";
     const std::string Lock = "lock";
     const std::string LockedMethod = "[def]";
-    const std::string Loop = "loop";
     const std::string Mask = "mask";
     const std::string Method = "def";
     const std::string Methods = "methods";
@@ -199,7 +198,6 @@ std::unordered_set<std::string> recognized_1space_set = {
     Keywords.List,
     Keywords.Lock,
     Keywords.LockedMethod,
-    Keywords.Loop,
     Keywords.Method,
     Keywords.Module,
     Keywords.Print,

@@ -33,6 +33,9 @@ struct {
 
     bool IsCommented;
     bool IsMultilineComment;
+    bool Uncomment;
+    bool ParsingStringLiteral;
+    bool ParsingParentheses;
     int CommentPosition;
 
     bool Breaking;

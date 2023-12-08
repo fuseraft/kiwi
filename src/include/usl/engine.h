@@ -60,7 +60,11 @@ class Engine {
     Method &getForLoop(int index);
     Method &getWhileLoop(int index);
 
-    void createMethod(std::string arg0, std::string arg1);
+    void createMethod(std::string name, bool locked);
+    void handleBasicMethodDefinition(std::string &name, bool locked);
+    void handleParameterizedMethodDefinition(std::string &name, bool locked);
+    void handleInlineClassMethodDefinition(std::string &name);
+    void handleClassMethodDefinition(std::string &name);
 
     void createFailedWhileLoop();
     void createWhileLoop(std::string v1, std::string op, std::string v2);
@@ -281,61 +285,42 @@ void Engine::createIfStatement(bool value) {
     }
 }
 
-void Engine::createMethod(std::string arg0, std::string arg1) {
-    bool indestructable = arg0 == Keywords.LockedMethod;
+void Engine::createMethod(std::string name, bool locked) {
+    if (State.DefiningClass)
+        handleClassMethodDefinition(name);
+    else if (methodExists(name))
+        error(ErrorCode::METHOD_DEFINED, name);
+    else if (!is_dotless(name))
+        handleInlineClassMethodDefinition(name);
+    else if (has_params(name))
+        handleParameterizedMethodDefinition(name, locked);
+    else
+        handleBasicMethodDefinition(name, locked);
+}
 
-    if (State.DefiningClass) {
-        if (getClass(State.CurrentClass).hasMethod(arg1)) {
-            error(ErrorCode::METHOD_DEFINED, arg1);
-            return;
-        }
+void Engine::handleBasicMethodDefinition(std::string &name, bool locked) {
+    Method method(name);
+    method.setIndestructible(locked);
 
-        if (!has_params(arg1)) {
-            Method method(arg1);
+    methods.push_back(method);
+    State.DefiningMethod = true;
+}
 
-            if (State.DefiningPublicCode)
-                method.setPublic();
-            else if (State.DefiningPrivateCode)
-                method.setPrivate();
+void Engine::handleParameterizedMethodDefinition(std::string &name, bool locked) {
+    std::vector<std::string> params = interp_params(name);
 
-            method.setClass(State.CurrentClass);
-            getClass(State.CurrentClass).addMethod(method);
-            getClass(State.CurrentClass).setCurrentMethod(arg1);
-            State.DefiningMethod = true;
-            State.DefiningClassMethod = true;
-            return;
-        }
+    Method method(before_params(name));
+    method.setIndestructible(locked);
 
-        std::vector<std::string> params = interp_params(arg1);
-
-        Method method(before_params(arg1));
-
-        if (State.DefiningPublicCode)
-            method.setPublic();
-        else if (State.DefiningPrivateCode)
-            method.setPrivate();
-
-        method.setClass(State.CurrentClass);
-
-        for (int i = 0; i < (int)params.size(); i++) {
-            if (variableExists(params.at(i))) {
-                if (is_dotless(params.at(i))) {
-                    if (isString(params.at(i)))
-                        method.addMethodVariable(varString(params.at(i)),
-                                                 getVar(params.at(i)).name());
-                    else if (isNumber(params.at(i)))
-                        method.addMethodVariable(varNumber(params.at(i)),
-                                                 getVar(params.at(i)).name());
-                    else
-                        error(ErrorCode::IS_NULL, params.at(i));
-                    return;
-                }
-
-                std::string before(before_dot(params.at(i))),
-                    after(after_dot(params.at(i)));
+    for (int i = 0; i < (int)params.size(); i++) {
+        std::string param = params.at(i);
+        if (variableExists(param)) {
+            if (!is_dotless(param)) {
+                std::string before(before_dot(param)),
+                    after(after_dot(param));
 
                 if (!classExists(before)) {
-                    error(ErrorCode::CLS_METHOD_UNDEFINED, before);
+                    error(ErrorCode::CLS_UNDEFINED, before);
                     return;
                 }
 
@@ -344,131 +329,138 @@ void Engine::createMethod(std::string arg0, std::string arg1) {
                     return;
                 }
 
-                if (getClass(before).getVariable(after).getType() ==
-                    ValueType::String)
-                    method.addMethodVariable(
-                        getClass(before).getVariable(after).getString(), after);
-                else if (getClass(before).getVariable(after).getType() ==
-                         ValueType::Double)
-                    method.addMethodVariable(
-                        getClass(before).getVariable(after).getNumber(), after);
+                Variable classVar = getClassVariable(before, after);
+
+                if (classVar.getType() == ValueType::String)
+                    method.addVariable(after, classVar.getString());
+                else if (classVar.getType() == ValueType::Double)
+                    method.addVariable(after, classVar.getNumber());
                 else
-                    error(ErrorCode::IS_NULL, params.at(i));
-            } else {
-                if (is_alpha(params.at(i))) {
-                    Variable newVariable("@[pm#" + itos(State.ParamVarCount) +
-                                             "]",
-                                         params.at(i));
-                    method.addMethodVariable(newVariable);
-                    State.ParamVarCount++;
-                } else {
-                    Variable newVariable("@[pm#" + itos(State.ParamVarCount) +
-                                             "]",
-                                         stod(params.at(i)));
-                    method.addMethodVariable(newVariable);
-                    State.ParamVarCount++;
-                }
-            }
-        }
-
-        getClass(State.CurrentClass).addMethod(method);
-        getClass(State.CurrentClass).setCurrentMethod(before_params(arg1));
-        State.DefiningMethod = true;
-        State.DefiningParameterizedMethod = true;
-        State.DefiningClassMethod = true;
-    } else {
-        if (methodExists(arg1))
-            error(ErrorCode::METHOD_DEFINED, arg1);
-        else {
-            if (!is_dotless(arg1)) {
-                std::string before(before_dot(arg1)), after(after_dot(arg1));
-
-                if (!classExists(before)) {
-                    error(ErrorCode::CLS_UNDEFINED, "");
-                    return;
-                }
-
-                Method method(after);
-
-                if (State.DefiningPublicCode)
-                    method.setPublic();
-                else if (State.DefiningPrivateCode)
-                    method.setPrivate();
-
-                method.setClass(before);
-                getClass(before).addMethod(method);
-                getClass(before).setCurrentMethod(after);
-                State.DefiningMethod = true;
-                State.DefiningClassMethod = true;
-            } else if (has_params(arg1)) {
-                std::vector<std::string> params = interp_params(arg1);
-
-                Method method(before_params(arg1));
-                method.setIndestructible(indestructable);
-
-                for (int i = 0; i < (int)params.size(); i++) {
-                    if (variableExists(params.at(i))) {
-                        if (!is_dotless(params.at(i))) {
-                            std::string before(before_dot(params.at(i))),
-                                after(after_dot(params.at(i)));
-
-                            if (!classExists(before)) {
-                                error(ErrorCode::CLS_UNDEFINED, before);
-                                return;
-                            }
-
-                            if (!getClass(before).hasVariable(after)) {
-                                error(ErrorCode::CLS_VAR_UNDEFINED, after);
-                                return;
-                            }
-
-                            if (getClass(before).getVariable(after).getType() ==
-                                ValueType::String)
-                                method.addMethodVariable(getClass(before)
-                                                             .getVariable(after)
-                                                             .getString(),
-                                                         after);
-                            else if (getClass(before)
-                                         .getVariable(after)
-                                         .getType() == ValueType::Double)
-                                method.addMethodVariable(getClass(before)
-                                                             .getVariable(after)
-                                                             .getNumber(),
-                                                         after);
-                            else
-                                error(ErrorCode::IS_NULL, params.at(i));
-                        } else {
-                            if (isString(params.at(i)))
-                                method.addMethodVariable(
-                                    varString(params.at(i)),
-                                    getVar(params.at(i)).name());
-                            else if (isNumber(params.at(i)))
-                                method.addMethodVariable(
-                                    varNumber(params.at(i)),
-                                    getVar(params.at(i)).name());
-                            else
-                                error(ErrorCode::IS_NULL, params.at(i));
-                        }
-                    } else {
-                        Variable newVariable("@" + params.at(i));
-                        newVariable.setNull();
-                        method.addMethodVariable(newVariable);
-                        State.ParamVarCount++;
-                    }
-                }
-
-                methods.push_back(method);
-                State.DefiningMethod = true;
-                State.DefiningParameterizedMethod = true;
-            } else {
-                Method method(arg1);
-                method.setIndestructible(indestructable);
-
-                methods.push_back(method);
-                State.DefiningMethod = true;
-            }
+                    error(ErrorCode::IS_NULL, param);
+            } else if (isString(param))
+                method.addVariable(getVar(param).name(), varString(param));
+            else if (isNumber(param))
+                method.addVariable(getVar(param).name(), varNumber(param));
+            else
+                error(ErrorCode::IS_NULL, param);
+        } else {
+            Variable newVariable("@" + param);
+            method.addVariable(newVariable);
+            State.ParamVarCount++;
         }
     }
+
+    methods.push_back(method);
+    State.DefiningMethod = true;
+    State.DefiningParameterizedMethod = true;
+}
+
+void Engine::handleInlineClassMethodDefinition(std::string &name) {
+    std::string before(before_dot(name)), after(after_dot(name));
+
+    if (!classExists(before)) {
+        error(ErrorCode::CLS_UNDEFINED, "");
+        return;
+    }
+
+    Method method(after);
+
+    if (State.DefiningPublicCode)
+        method.setPublic();
+    else if (State.DefiningPrivateCode)
+        method.setPrivate();
+
+    method.setClass(before);
+    getClass(before).addMethod(method);
+    getClass(before).setCurrentMethod(after);
+    State.DefiningMethod = true;
+    State.DefiningClassMethod = true;
+}
+
+void Engine::handleClassMethodDefinition(std::string &name) {
+    if (getClass(State.CurrentClass).hasMethod(name)) {
+        error(ErrorCode::METHOD_DEFINED, name);
+        return;
+    }
+
+    if (!has_params(name)) {
+        Method method(name);
+
+        if (State.DefiningPublicCode)
+            method.setPublic();
+        else if (State.DefiningPrivateCode)
+            method.setPrivate();
+
+        method.setClass(State.CurrentClass);
+        getClass(State.CurrentClass).addMethod(method);
+        getClass(State.CurrentClass).setCurrentMethod(name);
+        State.DefiningMethod = true;
+        State.DefiningClassMethod = true;
+        return;
+    }
+
+    std::vector<std::string> params = interp_params(name);
+
+    Method method(before_params(name));
+
+    if (State.DefiningPublicCode)
+        method.setPublic();
+    else if (State.DefiningPrivateCode)
+        method.setPrivate();
+
+    method.setClass(State.CurrentClass);
+
+    for (int i = 0; i < (int)params.size(); i++) {
+        std::string param = params.at(i);
+        if (variableExists(param)) {
+            if (is_dotless(param)) {
+                if (isString(param))
+                    method.addVariable(getVar(param).name(), varString(param));
+                else if (isNumber(param))
+                    method.addVariable(getVar(param).name(), varNumber(param));
+                else
+                    error(ErrorCode::UNKNOWN, param);
+                return;
+            }
+
+            std::string before(before_dot(param)), after(after_dot(param));
+
+            if (!classExists(before)) {
+                error(ErrorCode::CLS_METHOD_UNDEFINED, before);
+                return;
+            }
+
+            if (!getClass(before).hasVariable(after)) {
+                error(ErrorCode::CLS_VAR_UNDEFINED, after);
+                return;
+            }
+
+            Variable classVar = getClassVariable(before, after);
+
+            if (classVar.getType() == ValueType::String)
+                method.addVariable(after, classVar.getString());
+            else if (classVar.getType() == ValueType::Double)
+                method.addVariable(after, classVar.getNumber());
+            else
+                error(ErrorCode::UNKNOWN, param);
+        } else if (is_alpha(param)) {
+            Variable newVariable("@[pm#" + itos(State.ParamVarCount) + "]",
+                                 param);
+            method.addVariable(newVariable);
+            State.ParamVarCount++;
+        } else {
+            Variable newVariable("@[pm#" + itos(State.ParamVarCount) + "]",
+                                 stod(param));
+            method.addVariable(newVariable);
+            State.ParamVarCount++;
+        }
+    }
+
+    getClass(State.CurrentClass).addMethod(method);
+    getClass(State.CurrentClass).setCurrentMethod(before_params(name));
+    State.DefiningMethod = true;
+    State.DefiningParameterizedMethod = true;
+    State.DefiningClassMethod = true;
 }
 
 void Engine::loadScript(std::string script) {
