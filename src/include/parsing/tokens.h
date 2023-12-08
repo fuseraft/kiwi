@@ -4,15 +4,6 @@
 #include <variant>
 #include <string>
 
-enum class ValueType {
-    None,
-    Unknown,
-    Integer,
-    Double,
-    Boolean,
-    String,
-};
-
 ValueType get_value_type(std::variant<int, double, bool, std::string> v) {
     ValueType type = ValueType::None;
     std::visit([&](auto&& arg) {
@@ -51,7 +42,30 @@ struct Token {
     Token(TokenType t, const std::variant<int, double, bool, std::string>& v) : type(t), value(v) {
         value_type = get_value_type(v);
     }
-};
 
+    std::string toString() {
+        if (value_type != ValueType::String)
+            throw new std::runtime_error("Value type is not a `String`.");
+        return std::get<std::string>(value);
+    }
+
+    int toInteger() {
+        if (value_type != ValueType::Integer)
+            throw new std::runtime_error("Value type is not an `Integer`.");
+        return std::get<int>(value);
+    }
+
+    bool toBoolean() {
+        if (value_type != ValueType::Boolean)
+            throw new std::runtime_error("Value type is not a `Boolean`.");
+        return std::get<bool>(value);
+    }
+
+    double toDouble() {
+        if (value_type != ValueType::Double)
+            throw new std::runtime_error("Value type is not a `Double`.");
+        return std::get<double>(value);
+    }
+};
 
 #endif

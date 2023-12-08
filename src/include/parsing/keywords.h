@@ -4,6 +4,16 @@
 #include <string>
 #include <unordered_set>
 
+// TODO: find a better home for this.
+enum class ValueType {
+    None,
+    Unknown,
+    Integer,
+    Double,
+    Boolean,
+    String,
+};
+
 struct {
     const std::string All = "all";
     const std::string Args = "args";
@@ -85,9 +95,7 @@ struct {
     const std::string Pass = "pass";
     const std::string Print = "print";
     const std::string PrintLn = "println";
-    const std::string Private = "private";
     const std::string Prompt = "prompt";
-    const std::string Public = "public";
     const std::string Random = "random";
     const std::string RangeSeparator = "..";
     const std::string Read = "read";
@@ -121,6 +129,12 @@ struct {
     const std::string Variables = "variables";
     const std::string While = "while";
 } Keywords;
+
+struct {
+    const std::string Public = "public";
+    const std::string Private = "private";
+    const std::string Protected = "protected";
+} AccessModifiers;
 
 struct {
     const std::string Add = "+";
@@ -166,7 +180,7 @@ struct {
 std::unordered_set<std::string> recognized_0space_set = {
     Keywords.Break,   Keywords.Caught, Keywords.Else,   Keywords.End,
     Keywords.Exit,    Keywords.Failif, Keywords.Parser, Keywords.Pass,
-    Keywords.Private, Keywords.Public, Keywords.Try};
+    AccessModifiers.Private, AccessModifiers.Public, Keywords.Try};
 
 std::unordered_set<std::string> recognized_1space_set = {
     Keywords.BeginInlineScript,

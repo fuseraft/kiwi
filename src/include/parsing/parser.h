@@ -821,9 +821,9 @@ void zeroSpace(std::string arg0) {
         handleEnd();
     else if (arg0 == Keywords.Parser)
         load_repl();
-    else if (arg0 == Keywords.Private)
+    else if (arg0 == AccessModifiers.Private)
         handlePrivateDecl();
-    else if (arg0 == Keywords.Public)
+    else if (arg0 == AccessModifiers.Public)
         handlePublicDecl();
     else if (arg0 == Keywords.Try)
         State.ExecutedTryBlock = true;
@@ -1723,11 +1723,19 @@ void handleError(ErrorCode errorType, const std::string variableName) {
 
 void handlePublicDecl() {
     State.DefiningPrivateCode = false;
+    State.DefiningProtectedCode = false;
     State.DefiningPublicCode = true;
 }
 
 void handlePrivateDecl() {
     State.DefiningPrivateCode = true;
+    State.DefiningProtectedCode = false;
+    State.DefiningPublicCode = false;
+}
+
+void handleProtectedDecl() {
+    State.DefiningPrivateCode = false;
+    State.DefiningProtectedCode = true;
     State.DefiningPublicCode = false;
 }
 
