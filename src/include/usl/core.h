@@ -2486,7 +2486,7 @@ void initialize_state(std::string uslang) {
     State.CurrentLineNumber = 0, State.IfStatementCount = 0,
     State.ForLoopCount = 0, State.WhileLoopCount = 0, State.ParamVarCount = 0,
     State.LastErrorCode = 0;
-    State.CaptureParse = false, State.IsCommented = false,
+    State.CaptureParse = false, State.IsCommented = false, State.Uncomment = false,
     State.CommentPosition = std::numeric_limits<int>::max();
     State.UseCustomPrompt = false, State.DontCollectMethodVars = false,
     State.FailedIfStatement = false, State.GoToLabel = false,
