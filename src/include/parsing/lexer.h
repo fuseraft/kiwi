@@ -11,9 +11,8 @@ public:
     Token getNextToken() {
         skipWhitespace();
 
-        if (currentPosition >= source.length()) {
+        if (currentPosition >= source.length())
             return Token(TokenType::ENDOFFILE, 0);
-        }
 
         char currentChar = source[currentPosition++];
 
@@ -52,46 +51,40 @@ public:
 
 private:
     void skipWhitespace() {
-        while (currentPosition < source.length() && isspace(source[currentPosition])) {
+        while (currentPosition < source.length() && isspace(source[currentPosition]))
             currentPosition++;
-        }
     }
 
     Token parseIdentifier(char initialChar) {
         std::string identifier(1, initialChar);
-        while (currentPosition < source.length() && isalnum(source[currentPosition])) {
+        while (currentPosition < source.length() && isalnum(source[currentPosition]))
             identifier += source[currentPosition++];
-        }
         return Token(TokenType::IDENTIFIER, identifier);
     }
 
     Token parseLiteral(char initialChar) {
         std::string literal(1, initialChar);
-        while (currentPosition < source.length() && (isdigit(source[currentPosition]) || source[currentPosition] == '.')) {
+        while (currentPosition < source.length() && (isdigit(source[currentPosition]) || source[currentPosition] == '.'))
             literal += source[currentPosition++];
-        }
 
-        if (literal.find('.') != std::string::npos) {
+        if (literal.find('.') != std::string::npos)
             return Token(TokenType::LITERAL, std::stod(literal));
-        } else {
+        else
             return Token(TokenType::LITERAL, std::stoi(literal));
-        }
     }
 
     Token parseString() {
         std::string str;
-        while (currentPosition < source.length() && source[currentPosition] != '"') {
+        while (currentPosition < source.length() && source[currentPosition] != '"')
             str += source[currentPosition++];
-        }
         currentPosition++; // skip closing quote
         return Token(TokenType::STRING, str);
     }
 
     Token parseComment() {
         std::string comment;
-        while (currentPosition < source.length() && source[currentPosition] != '\n') {
+        while (currentPosition < source.length() && source[currentPosition] != '\n')
             comment += source[currentPosition++];
-        }
         return Token(TokenType::COMMENT, comment);
     }
 

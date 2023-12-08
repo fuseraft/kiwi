@@ -2,7 +2,7 @@
 
 class Method {
   private:
-    std::vector<Variable> methodVariables;
+    std::vector<Variable> variables;
     std::vector<std::string> lines;
 
     std::string logicOperatorValue, methodName, className, symbolString,
@@ -39,14 +39,8 @@ class Method {
 
     std::string getClass() { return className; }
 
-    /**
-     * symbol is the variable containing the current iteration value.
-     */
-    void setSymbol(std::string symbol) { symbolString = symbol; }
+    void setIterationSymbol(std::string symbol) { symbolString = symbol; }
 
-    /**
-     * symbol is the variable containing the current iteration value.
-     */
     void setDefaultSymbol(std::string symbol) { defaultSymbol = symbol[0]; }
 
     std::string getSymbolString() { return symbolString; }
@@ -69,7 +63,7 @@ class Method {
 
     bool isTemplate() { return isTemplate_; }
 
-    std::vector<Variable> getMethodVariables() { return methodVariables; }
+    std::vector<Variable> getMethodVariables() { return variables; }
 
     void setName(std::string name) { methodName = name; }
 
@@ -77,16 +71,16 @@ class Method {
 
     void addVariable(std::string variableName, double value) {
         Variable newVariable(variableName, value);
-        methodVariables.push_back(newVariable);
+        variables.push_back(newVariable);
     }
 
     void addVariable(std::string variableName, std::string value) {
         Variable newVariable(variableName, value);
-        methodVariables.push_back(newVariable);
+        variables.push_back(newVariable);
     }
 
     void addVariable(Variable variable) {
-        methodVariables.push_back(variable);
+        variables.push_back(variable);
     }
 
     std::string at(int index) {
@@ -107,7 +101,7 @@ class Method {
 
     void clear() {
         lines.clear();
-        methodVariables.clear();
+        variables.clear();
     }
 
     std::vector<std::string> getLines() { return lines; }
