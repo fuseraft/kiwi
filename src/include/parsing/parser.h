@@ -700,10 +700,10 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
         switch (s[i]) {
         case ' ':
             if (!State.IsCommented) {
-                if ((!parenthesis && quoted) || (parenthesis && quoted)) {
+                if ((!parenthesis && quoted) || (parenthesis && quoted))
                     tokens.at(count).push_back(' ');
-                } else if (parenthesis && !quoted) {
-                } else if (prevChar != ' ') {
+                else if (parenthesis && !quoted) {} 
+                else if (prevChar != ' ') {
                     tokens.push_back("");
                     count++;
                 }
@@ -809,35 +809,34 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
 }
 
 void zeroSpace(std::string arg0) {
-    if (arg0 == Keywords.Pass) {
+    if (arg0 == Keywords.Pass)
         return;
-    } else if (arg0 == Keywords.Caught) {
+    else if (arg0 == Keywords.Caught)
         handleCaught();
-    } else if (arg0 == Keywords.Exit) {
+    else if (arg0 == Keywords.Exit)
         handleExit();
-    } else if (arg0 == Keywords.Break)
+    else if (arg0 == Keywords.Break)
         State.Breaking = true;
-    else if (arg0 == Keywords.End) {
+    else if (arg0 == Keywords.End)
         handleEnd();
-    } else if (arg0 == Keywords.Parser)
+    else if (arg0 == Keywords.Parser)
         load_repl();
-    else if (arg0 == Keywords.Private) {
+    else if (arg0 == Keywords.Private)
         handlePrivateDecl();
-    } else if (arg0 == Keywords.Public) {
+    else if (arg0 == Keywords.Public)
         handlePublicDecl();
-    } else if (arg0 == Keywords.Try)
+    else if (arg0 == Keywords.Try)
         State.ExecutedTryBlock = true;
-    else if (arg0 == Keywords.Failif) {
+    else if (arg0 == Keywords.Failif)
         handleFailedIfStatement();
-    } else
+    else
         Env::shellExec(arg0);
 }
 
 void oneSpace(std::string arg0, std::string arg1) {
     // Refactor
-    if (contains(arg1, Keywords.SelfDot)) {
+    if (contains(arg1, Keywords.SelfDot))
         arg1 = replace(arg1, Keywords.Self, State.CurrentMethodClass);
-    }
 
     DotSep dotsep(arg1);
     std::string before(dotsep.getBeforeDot()), after(dotsep.getAfterDot());
