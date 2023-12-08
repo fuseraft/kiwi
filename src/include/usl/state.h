@@ -52,6 +52,7 @@ struct {
     bool DefiningParameterizedMethod;
     bool DefiningPrivateCode;
     bool DefiningPublicCode;
+    bool DefiningProtectedCode;
     bool DefiningScript;
     bool DefiningSwitchBlock;
     bool DefiningWhileLoop;

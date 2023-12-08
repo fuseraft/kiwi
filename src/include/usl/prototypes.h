@@ -4,6 +4,7 @@
 void handleFailedIfStatement();
 void handlePublicDecl();
 void handlePrivateDecl();
+void handleProtectedDecl();
 void handleEnd();
 void handleExit();
 void handleCaught();
