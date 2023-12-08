@@ -104,10 +104,9 @@ void interp_moduledefinition(std::string &s);
 void interp_switchstatement(std::string &s, std::vector<std::string> &command);
 void interp_args(int size, std::vector<std::string> &command);
 void interp_forloop();
-void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
-              std::vector<std::string> &tokens, int &count, char &prevChar,
-              std::string &bigString, bool &uncomment, bool &broken,
-              StringList &stringList);
+void tokenize(std::string &s, std::vector<std::string> &tokens,
+              std::string &bigString, bool &endOfCommand, StringList &stringList);
+void legacy_interpreter(std::string s);
 void zeroSpace(std::string arg0);
 void oneSpace(std::string arg0, std::string arg1);
 void twoSpace(std::string arg0, std::string arg1, std::string arg2,
