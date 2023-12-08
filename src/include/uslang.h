@@ -36,6 +36,9 @@ void print_underconstruction() {
 #include "parsing/parser.h"
 #include "usl/core.h"
 
+// The new interpreter
+#include "parsing/interp.h"
+
 int uslang(int c, char **v) {
     RNG::getInstance();
 

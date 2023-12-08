@@ -501,7 +501,7 @@ void Engine::createForLoop(List list) {
     forMethod.setFor(true);
     forMethod.setForList(list);
     forMethod.setListLoop();
-    forMethod.setSymbol(State.DefaultLoopSymbol);
+    forMethod.setIterationSymbol(State.DefaultLoopSymbol);
     State.DefiningForLoop = true;
     forLoops.push_back(forMethod);
     State.ForLoopCount++;
@@ -511,7 +511,7 @@ void Engine::createForLoop(List list) {
 void Engine::createForLoop(int a, int b) {
     Method forMethod("[for#" + itos(State.ForLoopCount) + "]");
     forMethod.setFor(true);
-    forMethod.setSymbol(State.DefaultLoopSymbol);
+    forMethod.setIterationSymbol(State.DefaultLoopSymbol);
 
     forMethod.setForValues(a, b);
 

@@ -1,5 +1,4 @@
 #include <variant>
-#include "valuetype.h"
 
 class Constant {
   private:
