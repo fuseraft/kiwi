@@ -486,10 +486,6 @@ std::string dtos(double i) {
     return ss.str();
 }
 
-int get_ascii_num(char c) { return (int)c; }
-
-int get_alpha_num(char c) { return tolower(c) - 'a' + 1; }
-
 bool is(std::string s, std::string si) {
     return s == (Operators.Subtract + si) || s == ("--" + si) ||
            s == ("/" + si);

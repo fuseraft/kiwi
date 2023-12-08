@@ -5,41 +5,36 @@
     The heart of it all.
 **/
 void parse(std::string s) {
+    legacy_interpreter(s);
+}
+
+void legacy_interpreter(std::string s) {
     if (s.empty())
         return;
 
     s = trim(s);
 
-    std::vector<std::string> tokens;
     State.CurrentLine = s; // store a copy of the current line
 
+    std::vector<std::string> tokens;
     StringList stringList; // contains separate commands
     std::string builder;   // a string to build upon
 
-    int length = s.length(),  //	length of the line
-        count = 0,            // command token counter
-        size = 0;             // final size of tokenized command container
-    bool quoted = false,      // flag: parsing string literals
-        endOfCommand = false, // flag: end of a command
-        uncomment = false,    // flag: end a command
-        parenthesis = false;  // flag: parsing contents within parentheses
+    // final size of tokenized command container
+    int size; 
+    bool endOfCommand = false; // flag: end of a command
 
-    // tokens.push_back(""); // push back an empty string to begin.
-    // iterate each char in the initial string
-    char prevChar = 'a'; // previous character in string
-
-    tokenize(length, s, parenthesis, quoted, tokens, count, prevChar, builder,
-             uncomment, endOfCommand, stringList);
+    tokenize(s, tokens, builder, endOfCommand, stringList);
 
     size = (int)tokens.size();
 
     if (State.IsCommented) {
-        if (State.IsMultilineComment && uncomment) {
+        if (State.IsMultilineComment && State.Uncomment) {
             State.IsCommented = false;
             State.IsMultilineComment = false;
-        } else if (uncomment) {
+        } else if (State.Uncomment) {
             State.IsCommented = false;
-            uncomment = false;
+            State.Uncomment = false;
 
             builder = preparse_stripcomment(builder);
 
@@ -374,19 +369,7 @@ void interp_2space(std::vector<std::string> &command, std::string &s) {
         FileIO::writeText(target, text);
     else if (command.at(0) == Keywords.Redefine)
         engine.redefine(command.at(1), command.at(2));
-    else if (command.at(0) == Keywords.Loop) {
-        if (has_params(command.at(2))) {
-            State.DefaultLoopSymbol = command.at(2);
-            State.DefaultLoopSymbol =
-                subtract_char(State.DefaultLoopSymbol, '(');
-            State.DefaultLoopSymbol =
-                subtract_char(State.DefaultLoopSymbol, ')');
-
-            oneSpace(command.at(0), command.at(1));
-            State.DefaultLoopSymbol = "$";
-        } else
-            Env::shellExec(s);
-    } else
+    else
         Env::shellExec(s);
 }
 
@@ -403,10 +386,11 @@ void interp_0space(std::vector<std::string> &command, std::string &s) {
         return;
     }
 
-    std::string before(before_dot(s)), after(after_dot(s));
+    DotSep dotsep(s);
+    std::string before(dotsep.getBeforeDot()), after(dotsep.getAfterDot());
 
-    if (before.length() != 0 && after.length() != 0) {
-        if (engine.classExists(before) && after.length() != 0) {
+    if (dotsep.hasDot()) {
+        if (engine.classExists(before)) {
             if (has_params(after)) {
                 s = subtract_char(s, '"');
 
@@ -430,19 +414,17 @@ void interp_0space(std::vector<std::string> &command, std::string &s) {
                 engine.getClass(before).clear();
             else
                 error(ErrorCode::UNDEFINED, after);
-        } else {
-            if (before == Keywords.Env)
-                interp_env_rhs("", after, 3);
-            else if (engine.variableExists(before) && after == Keywords.Clear)
-                engine.getVar(before).clear();
-            else if (engine.listExists(before))
-                interp_list_rhs(after, before);
-            else if (before == Keywords.Self && State.ExecutedMethod)
-                exec.executeMethod(
-                    engine.getClass(State.CurrentMethodClass).getMethod(after));
-            else
-                Env::shellExec(s);
-        }
+        } else if (before == Keywords.Env)
+            interp_env_rhs("", after, 3);
+        else if (engine.variableExists(before) && after == Keywords.Clear)
+            engine.getVar(before).clear();
+        else if (engine.listExists(before))
+            interp_list_rhs(after, before);
+        else if (before == Keywords.Self && State.ExecutedMethod)
+            exec.executeMethod(
+                engine.getClass(State.CurrentMethodClass).getMethod(after));
+        else
+            Env::shellExec(s);
     } else if (ends_with(s, "::")) {
         if (State.CurrentScript != "") {
             std::string newMark(s);
@@ -698,10 +680,15 @@ void interp_whileloops() {
     }
 }
 
-void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
-              std::vector<std::string> &tokens, int &count, char &prevChar,
-              std::string &builder, bool &uncomment, bool &broken,
+void tokenize(std::string &s, std::vector<std::string> &tokens,
+              std::string &builder, bool &endOfCommand,
               StringList &stringList) {
+    int length = s.length();  // length of the line
+    int count = 0;            // token counter
+
+    // iterate each char in the initial string
+    char prevChar = 'a';      // previous character in string
+
     // TODO: fix this
     tokens.push_back("");
     for (int i = 0; i < length; i++) {
@@ -713,10 +700,10 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
         switch (s[i]) {
         case ' ':
             if (!State.IsCommented) {
-                if ((!parenthesis && quoted) || (parenthesis && quoted)) {
+                if (State.ParsingStringLiteral)
                     tokens.at(count).push_back(' ');
-                } else if (parenthesis && !quoted) {
-                } else if (prevChar != ' ') {
+                else if (State.ParsingParentheses && !State.ParsingStringLiteral) { /* collapse */} 
+                else if (prevChar != ' ') {
                     tokens.push_back("");
                     count++;
                 }
@@ -726,16 +713,16 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
             break;
 
         case '\"':
-            quoted = !quoted;
-            if (parenthesis) {
+            State.ParsingStringLiteral = !State.ParsingStringLiteral;
+            if (State.ParsingParentheses)
                 tokens.at(count).push_back('\"');
-            }
+
             builder.push_back('\"');
             break;
 
         case '(':
-            if (!parenthesis)
-                parenthesis = true;
+            if (!State.ParsingParentheses)
+                State.ParsingParentheses = true;
 
             tokens.at(count).push_back('(');
 
@@ -743,15 +730,15 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
             break;
 
         case ')':
-            if (parenthesis)
-                parenthesis = false;
+            if (State.ParsingParentheses)
+                State.ParsingParentheses = false;
 
             tokens.at(count).push_back(')');
             builder.push_back(')');
             break;
 
         case '\\':
-            if (quoted || parenthesis) {
+            if (State.ParsingStringLiteral || State.ParsingParentheses) {
                 if (!State.IsCommented)
                     tokens.at(count).push_back('\\');
             }
@@ -760,7 +747,7 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
             break;
 
         case '\'':
-            if (quoted || parenthesis) {
+            if (State.ParsingStringLiteral || State.ParsingParentheses) {
                 if (prevChar == '\\')
                     tokens.at(count).append("\'");
                 else
@@ -771,19 +758,19 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
             break;
 
         case '#':
-            if (quoted || parenthesis)
+            if (State.ParsingStringLiteral || State.ParsingParentheses)
                 tokens.at(count).push_back('#');
             else if (prevChar == '#' && !State.IsMultilineComment) {
                 State.IsMultilineComment = true;
                 State.IsCommented = true;
-                uncomment = false;
+                State.Uncomment = false;
             } else if (prevChar == '#' && State.IsMultilineComment)
-                uncomment = true;
+                State.Uncomment = true;
             else if (prevChar != '#' && !State.IsMultilineComment) {
                 if (State.CommentPosition == std::numeric_limits<int>::max())
                     State.CommentPosition = i;
                 State.IsCommented = true;
-                uncomment = true;
+                State.Uncomment = true;
 
                 // TODO: fix this, you can reproduce with: println "foo bar" #
                 // baz qux
@@ -795,9 +782,9 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
             break;
 
         case ';':
-            if (!quoted) {
+            if (!State.ParsingStringLiteral) {
                 if (!State.IsCommented) {
-                    broken = true;
+                    endOfCommand = true;
                     stringList.add(builder);
                     builder = "";
                     count = 0;
@@ -822,117 +809,115 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
 }
 
 void zeroSpace(std::string arg0) {
-    if (arg0 == Keywords.Pass) {
+    if (arg0 == Keywords.Pass)
         return;
-    } else if (arg0 == Keywords.Caught) {
+    else if (arg0 == Keywords.Caught)
         handleCaught();
-    } else if (arg0 == Keywords.Exit) {
+    else if (arg0 == Keywords.Exit)
         handleExit();
-    } else if (arg0 == Keywords.Break)
+    else if (arg0 == Keywords.Break)
         State.Breaking = true;
-    else if (arg0 == Keywords.End) {
+    else if (arg0 == Keywords.End)
         handleEnd();
-    } else if (arg0 == Keywords.Parser)
+    else if (arg0 == Keywords.Parser)
         load_repl();
-    else if (arg0 == Keywords.Private) {
+    else if (arg0 == Keywords.Private)
         handlePrivateDecl();
-    } else if (arg0 == Keywords.Public) {
+    else if (arg0 == Keywords.Public)
         handlePublicDecl();
-    } else if (arg0 == Keywords.Try)
+    else if (arg0 == Keywords.Try)
         State.ExecutedTryBlock = true;
-    else if (arg0 == Keywords.Failif) {
+    else if (arg0 == Keywords.Failif)
         handleFailedIfStatement();
-    } else
+    else
         Env::shellExec(arg0);
 }
 
 void oneSpace(std::string arg0, std::string arg1) {
-    std::string before(before_dot(arg1)), after(after_dot(arg1));
-
     // Refactor
-    if (contains(arg1, Keywords.SelfDot)) {
+    if (contains(arg1, Keywords.SelfDot))
         arg1 = replace(arg1, Keywords.Self, State.CurrentMethodClass);
-    }
 
-    if (arg0 == Keywords.GC) {
+    DotSep dotsep(arg1);
+    std::string before(dotsep.getBeforeDot()), after(dotsep.getAfterDot());
+
+    if (arg0 == Keywords.GC)
         interp_clear_command(arg1);
-    } else if (arg0 == Keywords.Switch) {
+    else if (arg0 == Keywords.Switch)
         handleSwitch(arg1);
-    } else if (arg0 == Keywords.Goto) {
+    else if (arg0 == Keywords.Goto)
         handleGoto(arg1);
-    } else if (arg0 == Keywords.If) {
+    else if (arg0 == Keywords.If)
         handleIfStatement(arg1);
-    } else if (arg0 == Keywords.Prompt) {
+    else if (arg0 == Keywords.Prompt)
         handlePrompt(arg1);
-    } else if (arg0 == Keywords.Err) {
+    else if (arg0 == Keywords.Err)
         handleErr(arg1);
-    } else if (arg0 == Keywords.Delay) {
+    else if (arg0 == Keywords.Delay)
         handleDelay(arg1);
-    } else if (arg0 == Keywords.Loop)
-        threeSpace(Keywords.For, Keywords.Each, Keywords.In, arg1);
     else if (arg0 == Keywords.For && arg1 == Keywords.Infinity)
         engine.createForLoop();
-    else if (arg0 == Keywords.Remove) {
+    else if (arg0 == Keywords.Remove)
         handleRemove(arg1);
-    } else if (arg0 == Keywords.BeginInlineScript) {
+    else if (arg0 == Keywords.BeginInlineScript)
         handleInlineScriptDecl(arg1);
-    } else if (arg0 == Keywords.Globalize) {
+    else if (arg0 == Keywords.Globalize)
         engine.globalize(arg1);
-    } else if (arg0 == Keywords.Load) {
+    else if (arg0 == Keywords.Load)
         handleLoad(arg1);
-    } else if (arg0 == Keywords.Print || arg0 == Keywords.PrintLn) {
+    else if (arg0 == Keywords.Print || arg0 == Keywords.PrintLn)
         interp_internal_puts(arg1, arg0 == Keywords.PrintLn);
-    } else if (arg0 == Keywords.ChangeDirectory) {
+    else if (arg0 == Keywords.ChangeDirectory)
         handleChangeDir(arg1);
-    } else if (arg0 == Keywords.List) {
+    else if (arg0 == Keywords.List)
         handleListDecl(arg1);
-    } else if (arg0 == Keywords.InlineParse) {
+    else if (arg0 == Keywords.InlineParse)
         handleInlineParse(arg1);
-    } else if (arg0 == Keywords.ShellExec) {
+    else if (arg0 == Keywords.ShellExec)
         handleInlineShellExec(arg1);
-    } else if (arg0 == Keywords.InitialDirectory) {
+    else if (arg0 == Keywords.InitialDirectory)
         handleInitialDir(arg1);
-    } else if (arg0 == Keywords.IsMethod) {
+    else if (arg0 == Keywords.IsMethod)
         handleMethodInspect(before, after, arg1);
-    } else if (arg0 == Keywords.IsClass) {
+    else if (arg0 == Keywords.IsClass)
         handleClassInspect(arg1);
-    } else if (arg0 == Keywords.IsVariable) {
+    else if (arg0 == Keywords.IsVariable)
         handleVariableInspect(before, after, arg1);
-    } else if (arg0 == Keywords.IsList) {
+    else if (arg0 == Keywords.IsList)
         handleListInspect(arg1);
-    } else if (arg0 == Keywords.IsDirectory) {
+    else if (arg0 == Keywords.IsDirectory)
         handleDirectoryInspect(before, after, arg1);
-    } else if (arg0 == Keywords.IsFile) {
+    else if (arg0 == Keywords.IsFile)
         handleFileInspect(before, after, arg1);
-    } else if (arg0 == Keywords.IsCollectable) {
+    else if (arg0 == Keywords.IsCollectable)
         handleCollectInspect(arg1);
-    } else if (arg0 == Keywords.IsNumber) {
+    else if (arg0 == Keywords.IsNumber)
         handleNumberInspect(before, after, arg1);
-    } else if (arg0 == Keywords.IsString) {
+    else if (arg0 == Keywords.IsString)
         handleStringInspect(before, after, arg1);
-    } else if (arg0 == Keywords.Template) {
+    else if (arg0 == Keywords.Template)
         handleTemplateDecl(arg1);
-    } else if (arg0 == Keywords.Lock) {
+    else if (arg0 == Keywords.Lock)
         handleLockAssignment(arg1);
-    } else if (arg0 == Keywords.Unlock) {
+    else if (arg0 == Keywords.Unlock)
         handleUnlockAssignment(arg1);
-    } else if (arg0 == Keywords.Method || arg0 == Keywords.LockedMethod) {
-        engine.createMethod(arg0, arg1);
-    } else if (arg0 == Keywords.InvokeMethod) {
+    else if (arg0 == Keywords.Method || arg0 == Keywords.LockedMethod)
+        engine.createMethod(arg1, arg0 == Keywords.LockedMethod);
+    else if (arg0 == Keywords.InvokeMethod)
         exec.executeMethod(arg1, before, after);
-    } else if (arg0 == Keywords.Class) {
+    else if (arg0 == Keywords.Class)
         engine.createClass(arg1);
-    } else if (arg0 == Keywords.Module) {
+    else if (arg0 == Keywords.Module)
         engine.createModule(arg1);
-    } else if (arg0 == Keywords.CreateFile) {
+    else if (arg0 == Keywords.CreateFile)
         handleFilePush(arg1);
-    } else if (arg0 == Keywords.RemoveFile) {
+    else if (arg0 == Keywords.RemoveFile)
         handleFilePop(arg1);
-    } else if (arg0 == Keywords.CreateDirectory) {
+    else if (arg0 == Keywords.CreateDirectory)
         handleDirPush(arg1);
-    } else if (arg0 == Keywords.RemoveDirectory) {
+    else if (arg0 == Keywords.RemoveDirectory)
         handleDirPop(arg1);
-    } else
+    else
         Env::shellExec(arg0);
 }
 

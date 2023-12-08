@@ -75,17 +75,17 @@ class Method {
 
     void add(std::string line) { lines.push_back(line); }
 
-    void addMethodVariable(std::string value, std::string variableName) {
+    void addVariable(std::string variableName, double value) {
         Variable newVariable(variableName, value);
         methodVariables.push_back(newVariable);
     }
 
-    void addMethodVariable(double value, std::string variableName) {
+    void addVariable(std::string variableName, std::string value) {
         Variable newVariable(variableName, value);
         methodVariables.push_back(newVariable);
     }
 
-    void addMethodVariable(Variable variable) {
+    void addVariable(Variable variable) {
         methodVariables.push_back(variable);
     }
 
