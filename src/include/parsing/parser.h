@@ -5,41 +5,36 @@
     The heart of it all.
 **/
 void parse(std::string s) {
+    legacy_interpreter(s);
+}
+
+void legacy_interpreter(std::string s) {
     if (s.empty())
         return;
 
     s = trim(s);
 
-    std::vector<std::string> tokens;
     State.CurrentLine = s; // store a copy of the current line
 
+    std::vector<std::string> tokens;
     StringList stringList; // contains separate commands
     std::string builder;   // a string to build upon
 
-    int length = s.length(),  //	length of the line
-        count = 0,            // command token counter
-        size = 0;             // final size of tokenized command container
-    bool quoted = false,      // flag: parsing string literals
-        endOfCommand = false, // flag: end of a command
-        uncomment = false,    // flag: end a command
-        parenthesis = false;  // flag: parsing contents within parentheses
+    // final size of tokenized command container
+    int size; 
+    bool endOfCommand = false; // flag: end of a command
 
-    // tokens.push_back(""); // push back an empty string to begin.
-    // iterate each char in the initial string
-    char prevChar = 'a'; // previous character in string
-
-    tokenize(length, s, parenthesis, quoted, tokens, count, prevChar, builder,
-             uncomment, endOfCommand, stringList);
+    tokenize(s, tokens, builder, endOfCommand, stringList);
 
     size = (int)tokens.size();
 
     if (State.IsCommented) {
-        if (State.IsMultilineComment && uncomment) {
+        if (State.IsMultilineComment && State.Uncomment) {
             State.IsCommented = false;
             State.IsMultilineComment = false;
-        } else if (uncomment) {
+        } else if (State.Uncomment) {
             State.IsCommented = false;
-            uncomment = false;
+            State.Uncomment = false;
 
             builder = preparse_stripcomment(builder);
 
@@ -685,10 +680,15 @@ void interp_whileloops() {
     }
 }
 
-void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
-              std::vector<std::string> &tokens, int &count, char &prevChar,
-              std::string &builder, bool &uncomment, bool &broken,
+void tokenize(std::string &s, std::vector<std::string> &tokens,
+              std::string &builder, bool &endOfCommand,
               StringList &stringList) {
+    int length = s.length();  // length of the line
+    int count = 0;            // token counter
+
+    // iterate each char in the initial string
+    char prevChar = 'a';      // previous character in string
+
     // TODO: fix this
     tokens.push_back("");
     for (int i = 0; i < length; i++) {
@@ -700,10 +700,10 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
         switch (s[i]) {
         case ' ':
             if (!State.IsCommented) {
-                if ((!parenthesis && quoted) || (parenthesis && quoted)) {
+                if (State.ParsingStringLiteral)
                     tokens.at(count).push_back(' ');
-                } else if (parenthesis && !quoted) {
-                } else if (prevChar != ' ') {
+                else if (State.ParsingParentheses && !State.ParsingStringLiteral) { /* collapse */} 
+                else if (prevChar != ' ') {
                     tokens.push_back("");
                     count++;
                 }
@@ -713,16 +713,16 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
             break;
 
         case '\"':
-            quoted = !quoted;
-            if (parenthesis) {
+            State.ParsingStringLiteral = !State.ParsingStringLiteral;
+            if (State.ParsingParentheses)
                 tokens.at(count).push_back('\"');
-            }
+
             builder.push_back('\"');
             break;
 
         case '(':
-            if (!parenthesis)
-                parenthesis = true;
+            if (!State.ParsingParentheses)
+                State.ParsingParentheses = true;
 
             tokens.at(count).push_back('(');
 
@@ -730,15 +730,15 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
             break;
 
         case ')':
-            if (parenthesis)
-                parenthesis = false;
+            if (State.ParsingParentheses)
+                State.ParsingParentheses = false;
 
             tokens.at(count).push_back(')');
             builder.push_back(')');
             break;
 
         case '\\':
-            if (quoted || parenthesis) {
+            if (State.ParsingStringLiteral || State.ParsingParentheses) {
                 if (!State.IsCommented)
                     tokens.at(count).push_back('\\');
             }
@@ -747,7 +747,7 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
             break;
 
         case '\'':
-            if (quoted || parenthesis) {
+            if (State.ParsingStringLiteral || State.ParsingParentheses) {
                 if (prevChar == '\\')
                     tokens.at(count).append("\'");
                 else
@@ -758,19 +758,19 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
             break;
 
         case '#':
-            if (quoted || parenthesis)
+            if (State.ParsingStringLiteral || State.ParsingParentheses)
                 tokens.at(count).push_back('#');
             else if (prevChar == '#' && !State.IsMultilineComment) {
                 State.IsMultilineComment = true;
                 State.IsCommented = true;
-                uncomment = false;
+                State.Uncomment = false;
             } else if (prevChar == '#' && State.IsMultilineComment)
-                uncomment = true;
+                State.Uncomment = true;
             else if (prevChar != '#' && !State.IsMultilineComment) {
                 if (State.CommentPosition == std::numeric_limits<int>::max())
                     State.CommentPosition = i;
                 State.IsCommented = true;
-                uncomment = true;
+                State.Uncomment = true;
 
                 // TODO: fix this, you can reproduce with: println "foo bar" #
                 // baz qux
@@ -782,9 +782,9 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
             break;
 
         case ';':
-            if (!quoted) {
+            if (!State.ParsingStringLiteral) {
                 if (!State.IsCommented) {
-                    broken = true;
+                    endOfCommand = true;
                     stringList.add(builder);
                     builder = "";
                     count = 0;
@@ -809,35 +809,34 @@ void tokenize(int length, std::string &s, bool &parenthesis, bool &quoted,
 }
 
 void zeroSpace(std::string arg0) {
-    if (arg0 == Keywords.Pass) {
+    if (arg0 == Keywords.Pass)
         return;
-    } else if (arg0 == Keywords.Caught) {
+    else if (arg0 == Keywords.Caught)
         handleCaught();
-    } else if (arg0 == Keywords.Exit) {
+    else if (arg0 == Keywords.Exit)
         handleExit();
-    } else if (arg0 == Keywords.Break)
+    else if (arg0 == Keywords.Break)
         State.Breaking = true;
-    else if (arg0 == Keywords.End) {
+    else if (arg0 == Keywords.End)
         handleEnd();
-    } else if (arg0 == Keywords.Parser)
+    else if (arg0 == Keywords.Parser)
         load_repl();
-    else if (arg0 == Keywords.Private) {
+    else if (arg0 == Keywords.Private)
         handlePrivateDecl();
-    } else if (arg0 == Keywords.Public) {
+    else if (arg0 == Keywords.Public)
         handlePublicDecl();
-    } else if (arg0 == Keywords.Try)
+    else if (arg0 == Keywords.Try)
         State.ExecutedTryBlock = true;
-    else if (arg0 == Keywords.Failif) {
+    else if (arg0 == Keywords.Failif)
         handleFailedIfStatement();
-    } else
+    else
         Env::shellExec(arg0);
 }
 
 void oneSpace(std::string arg0, std::string arg1) {
     // Refactor
-    if (contains(arg1, Keywords.SelfDot)) {
+    if (contains(arg1, Keywords.SelfDot))
         arg1 = replace(arg1, Keywords.Self, State.CurrentMethodClass);
-    }
 
     DotSep dotsep(arg1);
     std::string before(dotsep.getBeforeDot()), after(dotsep.getAfterDot());
