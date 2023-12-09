@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <regex>
 #include <dirent.h>
 #include <algorithm>
 #include <cfloat>
@@ -47,74 +48,68 @@ int uslang(int c, char **v) {
 
     State.InitialDirectory = FileIO::getCurrentDirectory();
 
-    switch (c) {
-    case 1:
-        engine.addArg(usl);
-        return load_repl();
+    // WIP: new interpreter logic
+    InterpSession session;
+    bool xmode = false, startxrepl = false;
+    std::regex xargPattern("-X(.*?)=");
 
-    case 2:
-        opt = v[1];
+    for (int i = 0; i < c; ++i) {
+        opt = v[i];
 
-        if (is_script(opt)) {
-            engine.addArg(opt);
-            engine.loadScript(opt);
-        } else if (is(opt, "h") || is(opt, "help"))
+        if (is(opt, "h") || is(opt, "help")) {
             help(usl);
-        else if (is(opt, "v") || is(opt, "version"))
+            return 0;
+        } else if (is(opt, "v") || is(opt, "version")) {
             show_version();
-        else {
-            engine.addArg(opt);
+            return 0;
+        } else if (is(opt, "x") || is(opt, "experimental")) {
+            xmode = true;
+        } else if (is(opt, "xr") || is(opt, "x-repl")) {
+            xmode = true;
+            startxrepl = true;
+        } else if (is(opt, "r") || is(opt, "repl")) {
+            if (xmode) continue;
             return load_repl();
-        }
-
-        break;
-
-    case 3:
-        opt = v[1], script = v[2];
-
-        if (is(opt, "p") || is(opt, "parse")) {
-            std::string code;
-
-            for (int i = 0; i < (int)script.length(); i++) {
-                if (script[i] == '\'')
-                    code.push_back('\"');
-                else
-                    code.push_back(script[i]);
+        } else if (is(opt, "p") || is(opt, "parse")) {
+            if (xmode) continue;
+            if (i + 1 > c) {
+                help(usl);
+                break;   
             }
 
-            parse(code);
-        } else {
-            engine.addArg(opt);
-            engine.addArg(script);
-
-            if (is_script(opt))
-                engine.loadScript(opt);
-            else
-                return load_repl();
+            script = v[i + 1];
+            parse(script);
+            return State.LastErrorCode;
         }
+        else if (is_script(opt)) {
+            if (xmode) {
+                session.registerScript(opt);
+                continue;
+            }
 
-        break;
-
-    default:
-        if (c < 3) {
-            help(usl);
+            engine.addArg(opt);
+            engine.loadScript(opt);
             break;
         }
+        else if (xmode && begins_with(opt, "-X") && contains(opt, "=")) {
+            std::string xargName, xargValue;
+            std::smatch match;
+            if (std::regex_search(opt, match, xargPattern))
+                xargName = match[1].str();
 
-        opt = v[1];
+            size_t equalSignPos = opt.find('=');
+            if (equalSignPos != std::string::npos)
+                xargValue = opt.substr(equalSignPos + 1);
 
-        for (int i = is_script(opt) ? 2 : 1; i < c; i++) {
-            std::string arg(v[i]);
-            engine.addArg(arg);
+            if (!xargName.empty() && !xargValue.empty())
+                session.registerArg(xargName, xargValue);
         }
-
-        if (is_script(opt))
-            engine.loadScript(opt);
-        else
-            return load_repl();
-
-        break;
+        else if (!xmode)
+            engine.addArg(opt);
     }
+
+    if (xmode)
+        return session.start(startxrepl);
 
     if (State.CurrentScript != usl)
         exec.executeScript();

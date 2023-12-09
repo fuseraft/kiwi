@@ -355,15 +355,17 @@ void help(std::string app) {
     };
 
     std::vector<CommandInfo> commands = {
-        {"", "start the shell"},
-        {"{args}", "start the shell with parameters"},
-        {"{script}", "run a script"},
-        {"{script} {args}", "run a script with parameters"},
         {"-v, --version", "show current version"},
-        {"-p, --parse", "parse a command"},
-        {"-h, --help", "show this message"}};
+        {"-p, --parse \"{code}\"", "parse a command"},
+        {"-h, --help", "show this message"},
+        {"-r, --repl", "start the REPL"},
+        {"-x, --experimental", "use experimental interpeter"},
+        {"-xr, --x-repl", "start experimental REPL"}};
 
     show_version();
+
+    std::cout << "Usage: usl [--flags] <script|args>" << std::endl
+        << "Options:" << std::endl;
 
     for (const auto &cmd : commands) {
         std::cout << std::left << std::setw(30) << (app + " " + cmd.command)
