@@ -472,16 +472,19 @@ void Engine::loadScript(std::string script) {
 
     Script newScript(script);
 
-    if (f.is_open()) {
-        while (!f.eof()) {
-            std::getline(f, s);
-
-            if (s.length() > 0) {
-                newScript.add(ltrim_ws(s));
-            }
-        }
+    if (!f.is_open()) {
+        error(ErrorCode::READ_FAIL, script);
+        return;
     }
 
+    while (!f.eof()) {
+        std::getline(f, s);
+
+        if (s.length() > 0)
+            newScript.add(ltrim_ws(s));
+    }
+
+    f.close();
     scripts.push_back(newScript);
 }
 
