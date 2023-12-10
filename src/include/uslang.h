@@ -57,8 +57,18 @@ int uslang(int c, char **v) {
     bool xmode = false, startxrepl = false;
     std::regex xargPattern("-X(.*?)=");
 
+    bool debug = false;
+
+    if (debug) {
+        xmode = true;
+        c = 1;
+    }
+
     for (int i = 0; i < c; ++i) {
-        opt = v[i];
+        if (debug)
+            opt = "/home/scott/work/usl/uslang/tests/test.uslang";
+        else
+            opt = v[i];
 
         if (is(opt, "h") || is(opt, "help")) {
             help(usl);

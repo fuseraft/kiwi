@@ -31,15 +31,17 @@ enum TokenType {
     LITERAL,
     STRING,
     NEWLINE,
+    ESCAPED,
     ENDOFFILE
 };
 
 struct Token {
     TokenType type;
-    ValueType value_type;
+    std::string text;
     std::variant<int, double, bool, std::string> value;
+    ValueType value_type;
 
-    Token(TokenType t, const std::variant<int, double, bool, std::string>& v) : type(t), value(v) {
+    Token(TokenType t, std::string text, const std::variant<int, double, bool, std::string>& v) : type(t), text(text), value(v) {
         value_type = get_value_type(v);
     }
 
