@@ -38,7 +38,10 @@ void print_underconstruction() {
 #include "usl/core.h"
 
 // The new interpreter
-#include "parsing/interp.h"
+#include "parsing/interp_session.h"
+
+void handle_xarg(std::string &opt, std::__cxx11::regex &xargPattern,
+                 InterpSession &session);
 
 int uslang(int c, char **v) {
     RNG::getInstance();
@@ -62,9 +65,9 @@ int uslang(int c, char **v) {
         } else if (is(opt, "v") || is(opt, "version")) {
             show_version();
             return 0;
-        } else if (is(opt, "x") || is(opt, "experimental")) {
+        } else if (is(opt, "x") || is(opt, "experimental"))
             xmode = true;
-        } else if (is(opt, "xr") || is(opt, "x-repl")) {
+        else if (is(opt, "xr") || is(opt, "x-repl")) {
             xmode = true;
             startxrepl = true;
         } else if (is(opt, "r") || is(opt, "repl")) {
@@ -91,28 +94,34 @@ int uslang(int c, char **v) {
             engine.loadScript(opt);
             break;
         }
-        else if (xmode && begins_with(opt, "-X") && contains(opt, "=")) {
-            std::string xargName, xargValue;
-            std::smatch match;
-            if (std::regex_search(opt, match, xargPattern))
-                xargName = match[1].str();
-
-            size_t equalSignPos = opt.find('=');
-            if (equalSignPos != std::string::npos)
-                xargValue = opt.substr(equalSignPos + 1);
-
-            if (!xargName.empty() && !xargValue.empty())
-                session.registerArg(xargName, xargValue);
-        }
+        else if (xmode && begins_with(opt, "-X") && contains(opt, "="))
+            handle_xarg(opt, xargPattern, session);
         else if (!xmode)
             engine.addArg(opt);
     }
 
+    // Start with the new interpreter.
     if (xmode)
         return session.start(startxrepl);
 
+    // Start with the legacy interpreter.
     if (State.CurrentScript != usl)
         exec.executeScript();
 
     return State.LastErrorCode;
+}
+
+void handle_xarg(std::string &opt, std::__cxx11::regex &xargPattern,
+                 InterpSession &session) {
+    std::string xargName, xargValue;
+    std::smatch match;
+    if (std::regex_search(opt, match, xargPattern))
+        xargName = match[1].str();
+
+    size_t equalSignPos = opt.find('=');
+    if (equalSignPos != std::string::npos)
+        xargValue = opt.substr(equalSignPos + 1);
+
+    if (!xargName.empty() && !xargValue.empty())
+        session.registerArg(xargName, xargValue);
 }
