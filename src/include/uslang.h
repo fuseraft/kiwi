@@ -38,6 +38,7 @@ void print_underconstruction() {
 #include "usl/core.h"
 
 // The new interpreter
+#include "logging/logger.h"
 #include "parsing/interp_session.h"
 
 void handle_xarg(std::string &opt, std::__cxx11::regex &xargPattern,
@@ -83,8 +84,7 @@ int uslang(int c, char **v) {
             script = v[i + 1];
             parse(script);
             return State.LastErrorCode;
-        }
-        else if (is_script(opt)) {
+        } else if (is_script(opt)) {
             if (xmode) {
                 session.registerScript(opt);
                 continue;
