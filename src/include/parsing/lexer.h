@@ -6,13 +6,14 @@
 
 class Lexer {
 public:
-    Lexer(const std::string& source) : source(source), currentPosition(0) {}
+    Lexer(const std::string& source, bool skipWhitespace = true) : source(source), currentPosition(0), _skipWhitespace(skipWhitespace) {}
 
     Token getNextToken() {
-        skipWhitespace();
+        if (_skipWhitespace)
+            skipWhitespace();
 
         if (currentPosition >= source.length())
-            return Token(TokenType::ENDOFFILE, 0);
+            return Token(TokenType::ENDOFFILE, "", 0);
 
         char currentChar = source[currentPosition++];
 
@@ -25,15 +26,27 @@ public:
         else if (currentChar == '#')
             return parseComment();
         else if (currentChar == '@')
-            return Token(TokenType::KEYWORD, "@");
+            return Token(TokenType::KEYWORD, "@", "@");
         else if (currentChar == '$')
-            return Token(TokenType::OPERATOR, "$");
+            return Token(TokenType::OPERATOR, "$", "$");
         else if (currentChar == '\n')
-            return Token(TokenType::NEWLINE, "\n");
+            return Token(TokenType::NEWLINE, "\n", "\n");
+        else if (currentChar == '\\') {
+            if (currentPosition < source.length()) {
+                char nextChar = source[currentPosition];
+                switch (nextChar) {
+                    case 't':
+                        return Token(TokenType::ESCAPED, "\t", "\t");                    
+                    case 'n':
+                        return Token(TokenType::ESCAPED, "\n", "\n");
+                }
+            }
+            return Token(TokenType::IDENTIFIER, "\\", "\\");
+        }
         else {
             std::string s;
             s = currentChar;
-            return Token(TokenType::OPERATOR, s);
+            return Token(TokenType::OPERATOR, s, s);
         }
     }
 
@@ -50,6 +63,10 @@ public:
     }
 
 private:
+    std::string source;
+    size_t currentPosition;
+    bool _skipWhitespace;
+
     void skipWhitespace() {
         while (currentPosition < source.length() && isspace(source[currentPosition]))
             currentPosition++;
@@ -59,7 +76,7 @@ private:
         std::string identifier(1, initialChar);
         while (currentPosition < source.length() && isalnum(source[currentPosition]))
             identifier += source[currentPosition++];
-        return Token(TokenType::IDENTIFIER, identifier);
+        return Token(TokenType::IDENTIFIER, identifier, identifier);
     }
 
     Token parseLiteral(char initialChar) {
@@ -68,9 +85,9 @@ private:
             literal += source[currentPosition++];
 
         if (literal.find('.') != std::string::npos)
-            return Token(TokenType::LITERAL, std::stod(literal));
+            return Token(TokenType::LITERAL, literal, std::stod(literal));
         else
-            return Token(TokenType::LITERAL, std::stoi(literal));
+            return Token(TokenType::LITERAL, literal, std::stoi(literal));
     }
 
     Token parseString() {
@@ -78,18 +95,15 @@ private:
         while (currentPosition < source.length() && source[currentPosition] != '"')
             str += source[currentPosition++];
         currentPosition++; // skip closing quote
-        return Token(TokenType::STRING, str);
+        return Token(TokenType::STRING, str, str);
     }
 
     Token parseComment() {
         std::string comment;
         while (currentPosition < source.length() && source[currentPosition] != '\n')
             comment += source[currentPosition++];
-        return Token(TokenType::COMMENT, comment);
+        return Token(TokenType::COMMENT, comment, comment);
     }
-
-    std::string source;
-    size_t currentPosition;
 };
 
 #endif
