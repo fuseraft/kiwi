@@ -11,7 +11,7 @@ class Interpreter {
     public:
         Interpreter() : variables() {}
 
-        void interpret(std::vector<Token> &tokens) {
+        void interpret(std::vector<Token> tokens) {
             for (auto &token : tokens) {
                 if (token.type == TokenType::KEYWORD && token.toString() == "@") {
                     // interpretAssignment(tokens);
@@ -24,34 +24,6 @@ class Interpreter {
 
     private:
         std::map<std::string, std::variant<std::string, int, double, bool>> variables;
-};
-
-class InterpSession {
-    public:
-        InterpSession() : interp(), scripts(), args() {}
-
-        void registerScript(const std::string &scriptPath) {
-            scripts.push_back(scriptPath);
-        }
-
-        void registerArg(const std::string &name, const std::string &value) {
-            args[name] = value;
-        }
-
-        int start(bool replMode) {
-            // TODO: parse scripts vector
-
-            if (replMode) {
-                // TODO: return repl()
-            }
-
-            return 0;
-        }
-
-    private:
-        Interpreter interp;
-        std::vector<std::string> scripts;
-        std::map<std::string, std::string> args;
 };
 
 #endif

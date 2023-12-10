@@ -360,7 +360,8 @@ void help(std::string app) {
         {"-h, --help", "show this message"},
         {"-r, --repl", "start the REPL"},
         {"-x, --experimental", "use experimental interpeter"},
-        {"-xr, --x-repl", "start experimental REPL"}};
+        {"-xr, --x-repl", "start experimental REPL"},
+        {"-X{arg_name}={arg_value}", "pass an argument as key-value pair"}};
 
     show_version();
 
