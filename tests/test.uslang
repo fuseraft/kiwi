@@ -21,7 +21,7 @@ print "\nTest results: "
 if @counter == @answer
   println "pass"
 else
-  println "fail"
+  err "fail"
 endif
 
 println "\nMethod test."
@@ -37,7 +37,12 @@ print "\nTest results: "
 if @c == @answer
   println "pass"
 else
-  println "fail"
+  err "fail"
 endif
+
+##
+err "Oops!"
+err "Multiline comments are not working."
+##
 
 # TODO: add more tests
