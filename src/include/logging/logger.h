@@ -13,10 +13,16 @@ enum class LogLevel {
     ERROR
 };
 
+enum class LogMode {
+    CONSOLE,
+    FILE
+};
+
 class Logger {
 public:
-    Logger(LogLevel minLogLevel = LogLevel::DEBUG) : minLogLevel(minLogLevel) {}
+    Logger(LogLevel minLogLevel = LogLevel::DEBUG, LogMode logMode = LogMode::CONSOLE) : minLogLevel(minLogLevel), logMode(logMode) {}
 
+    // TODO: it would be great to have a descriptor to describe log output/formatting
     void log(LogLevel level, const std::string& message) const {
         if (level < minLogLevel) {
             return;
@@ -24,26 +30,34 @@ public:
 
         std::time_t now = std::time(nullptr);
         std::tm localTime;
-        localtime_r(&now, &localTime);  // Use localtime_r for thread-safe version
+        localtime_r(&now, &localTime);
 
         char timestamp[20];
         std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", &localTime);
 
-        std::cout << "[" << timestamp << "] [" << logLevelToString(level) << "] " << message << std::endl;
-
-        /* TODO: implement
-        std::string logpath("logfile.txt");
-        std::ofstream logfile(logpath, std::ios::app);
-        if (logfile.is_open()) {
-            logfile << "[" << timestamp << "] [" << logLevelToString(level) << "] " << message << std::endl;
-            logfile.close();
+        switch (logMode) {
+            case LogMode::CONSOLE:
+                std::cout << "[" << timestamp << "] [" << logLevelToString(level) << "] " << message << std::endl;
+            break;
+            case LogMode::FILE:
+                std::ofstream file(logFilePath, std::ios::app);
+                if (file.is_open()) {
+                    file << "[" << timestamp << "] [" << logLevelToString(level) << "] " << message << std::endl;
+                    file.close();
+                }
+            break;
         }
-        */
     }
 
+    void setLogFilePath(const std::string &filePath) {
+        // TODO: add validation
+        logFilePath = filePath;
+    }
 
 private:
     LogLevel minLogLevel;
+    LogMode logMode;
+    std::string logFilePath;
 
     std::string logLevelToString(LogLevel level) const {
         switch (level) {

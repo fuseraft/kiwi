@@ -299,7 +299,7 @@ std::string pre_parse(std::string st) {
                 cleaned.push_back(';');
             else if (curr == '\'' && prev == '\\') // end apostrophe
                 cleaned.push_back('\'');
-            else if (curr == '#' && next == '{') // begin symbol
+            else if (curr == '$' && next == '{') // begin symbol
             {
                 buildSymbol = true;
             } else if (curr == '\\' && next == 't') {
