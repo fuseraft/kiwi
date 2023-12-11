@@ -4,6 +4,7 @@
 #include <limits>
 #include <string>
 #include <variant>
+#include "../../parsing/value_type.h"
 
 class Variable : public Collectable {
   private:

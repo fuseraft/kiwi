@@ -3,6 +3,7 @@
 
 #include <variant>
 #include <string>
+#include "value_type.h"
 
 ValueType get_value_type(std::variant<int, double, bool, std::string> v) {
     ValueType type = ValueType::None;
@@ -23,6 +24,26 @@ ValueType get_value_type(std::variant<int, double, bool, std::string> v) {
     return type;
 }
 
+std::string get_value_type_string(ValueType vt) {
+    switch (vt) {
+        case ValueType::Boolean:
+            return "Boolean";
+        case ValueType::String:
+            return "String";
+        case ValueType::Integer:
+            return "Integer";
+        case ValueType::Double:
+            return "Double";
+        case ValueType::Unknown:
+            return "Unknown";
+        case ValueType::None:
+            return "None";
+    }
+    std::ostringstream error;
+    error << "Cannot determine value type `" << static_cast<int>(vt) << "`.";
+    throw std::runtime_error(error.str());
+}
+
 enum TokenType {
     IDENTIFIER,
     COMMENT,
@@ -32,6 +53,8 @@ enum TokenType {
     STRING,
     NEWLINE,
     ESCAPED,
+    OPEN_PAREN,
+    CLOSE_PAREN,
     ENDOFFILE
 };
 
