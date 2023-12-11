@@ -4,16 +4,6 @@
 #include <string>
 #include <unordered_set>
 
-// TODO: find a better home for this.
-enum class ValueType {
-    None,
-    Unknown,
-    Integer,
-    Double,
-    Boolean,
-    String,
-};
-
 struct {
     const std::string All = "all";
     const std::string Args = "args";
@@ -129,6 +119,15 @@ struct {
     const std::string Variables = "variables";
     const std::string While = "while";
 } Keywords;
+
+struct {
+    const std::string DeclVar = "@";
+    const std::string OpenCurlyBrace = "{";
+    const std::string CloseCurlyBrace = "}";
+    const std::string OpenParenthesis = "(";
+    const std::string CloseParenthesis = ")";
+    const std::string Interpolate = "$";
+} Symbols;
 
 struct {
     const std::string Public = "public";
