@@ -31,6 +31,10 @@ public:
             return Token(TokenType::OPERATOR, "$", "$");
         else if (currentChar == '\n')
             return Token(TokenType::NEWLINE, "\n", "\n");
+        else if (currentChar == '(')
+            return Token(TokenType::OPEN_PAREN, "(", "(");
+        else if (currentChar == ')')
+            return Token(TokenType::CLOSE_PAREN, ")", ")");
         else if (currentChar == '\\') {
             if (currentPosition < source.length()) {
                 char nextChar = source[currentPosition];
