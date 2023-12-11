@@ -57,6 +57,7 @@ int uslang(int c, char **v) {
     bool xmode = false, startxrepl = false;
     std::regex xargPattern("-X(.*?)=");
 
+    // TODO: remove this after swapping the old interpreter with the new.
     bool debug = false;
 
     if (debug) {

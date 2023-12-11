@@ -2,6 +2,7 @@
 #define EXEC_H
 
 #include "memory.h"
+#include "../parsing/value_type.h"
 
 class Executor {
   private:

@@ -1,4 +1,5 @@
 #include <variant>
+#include "../../parsing/value_type.h"
 
 class Constant {
   private:

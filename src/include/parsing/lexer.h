@@ -31,9 +31,14 @@ public:
             return Token(TokenType::OPERATOR, "$", "$");
         else if (currentChar == '\n')
             return Token(TokenType::NEWLINE, "\n", "\n");
+        else if (currentChar == '(')
+            return Token(TokenType::OPEN_PAREN, "(", "(");
+        else if (currentChar == ')')
+            return Token(TokenType::CLOSE_PAREN, ")", ")");
         else if (currentChar == '\\') {
             if (currentPosition < source.length()) {
                 char nextChar = source[currentPosition];
+                ++currentPosition;
                 switch (nextChar) {
                     case 't':
                         return Token(TokenType::ESCAPED, "\t", "\t");                    
@@ -41,6 +46,7 @@ public:
                         return Token(TokenType::ESCAPED, "\n", "\n");
                 }
             }
+            ++currentPosition;
             return Token(TokenType::IDENTIFIER, "\\", "\\");
         }
         else {
