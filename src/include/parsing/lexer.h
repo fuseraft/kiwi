@@ -34,6 +34,7 @@ public:
         else if (currentChar == '\\') {
             if (currentPosition < source.length()) {
                 char nextChar = source[currentPosition];
+                ++currentPosition;
                 switch (nextChar) {
                     case 't':
                         return Token(TokenType::ESCAPED, "\t", "\t");                    
@@ -41,6 +42,7 @@ public:
                         return Token(TokenType::ESCAPED, "\n", "\n");
                 }
             }
+            ++currentPosition;
             return Token(TokenType::IDENTIFIER, "\\", "\\");
         }
         else {
