@@ -6,7 +6,7 @@ An unorthodox scripting language written in C++.
 @proj = "uslang"
 @desc = "hybrid-typed, object-oriented"
 
-println "#{@proj} is a #{@desc} scripting language."
+println "${proj} is a ${desc} scripting language."
 ```
 
 ## Overview
