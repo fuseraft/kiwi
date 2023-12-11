@@ -38,14 +38,19 @@ class InterpSession {
             std::string input;
 
             while (true) {
-                std::cout << "> ";
-                std::getline(std::cin, input);
+                try {
+                    std::cout << "> ";
+                    std::getline(std::cin, input);
 
-                if (input == Keywords.Exit)
-                    break;
+                    if (input == Keywords.Exit)
+                        break;
 
-                Lexer lexer(input);
-                interp.interpret(lexer.getAllTokens());
+                    Lexer lexer(input);
+                    interp.interpret(lexer.getAllTokens());
+                } catch (const std::exception &e) {
+                    print_error(e);
+                    return 1;
+                }
             }
 
             return 0;

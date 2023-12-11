@@ -1,6 +1,8 @@
 #ifndef CORE_H
 #define CORE_H
 
+#include "../parsing/value_type.h"
+
 void setList(std::string listName, std::string methodName,
              std::vector<std::string> params) {
     if (engine.methodExists(before_params(methodName))) {
