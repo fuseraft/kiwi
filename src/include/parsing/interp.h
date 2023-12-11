@@ -110,7 +110,6 @@ class Interpreter {
                 else if (token.type == TokenType::ESCAPED)
                 {
                     string << token.text;
-                    ++position;
                     continue;
                 }
 
