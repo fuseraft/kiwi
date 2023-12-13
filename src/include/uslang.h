@@ -52,18 +52,25 @@ int uslang(int c, char **v) {
 
     State.InitialDirectory = FileIO::getCurrentDirectory();
 
-    // WIP: new interpreter logic
-    InterpSession session;
     bool xmode = false, startxrepl = false;
     std::regex xargPattern("-X(.*?)=");
 
     // TODO: remove this after swapping the old interpreter with the new.
     bool debug = false;
-
     if (debug) {
         xmode = true;
         c = 1;
     }
+
+    // TODO: add command-line argument to configure interpreter logger.
+    Logger logger(debug ? LogLevel::DEBUG : LogLevel::INFO,
+                  debug ? LogMode::FILE : LogMode::CONSOLE);
+    if (debug)
+        logger.setLogFilePath("/home/scott/work/usl/logs/log.txt");
+
+    // WIP: new interpreter logic
+    Interpreter interp(logger);
+    InterpSession session(logger, interp);
 
     for (int i = 0; i < c; ++i) {
         if (debug)
@@ -83,13 +90,15 @@ int uslang(int c, char **v) {
             xmode = true;
             startxrepl = true;
         } else if (is(opt, "r") || is(opt, "repl")) {
-            if (xmode) continue;
+            if (xmode)
+                continue;
             return load_repl();
         } else if (is(opt, "p") || is(opt, "parse")) {
-            if (xmode) continue;
+            if (xmode)
+                continue;
             if (i + 1 > c) {
                 help(usl);
-                break;   
+                break;
             }
 
             script = v[i + 1];
@@ -104,8 +113,7 @@ int uslang(int c, char **v) {
             engine.addArg(opt);
             engine.loadScript(opt);
             break;
-        }
-        else if (xmode && begins_with(opt, "-X") && contains(opt, "="))
+        } else if (xmode && begins_with(opt, "-X") && contains(opt, "="))
             handle_xarg(opt, xargPattern, session);
         else if (!xmode)
             engine.addArg(opt);

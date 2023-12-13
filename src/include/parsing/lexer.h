@@ -3,14 +3,40 @@
 
 #include <vector>
 #include "tokens.h"
+#include "../logging/logger.h"
 
 class Lexer {
 public:
-    Lexer(const std::string& source, bool skipWhitespace = true) : source(source), currentPosition(0), _skipWhitespace(skipWhitespace) {}
+    Lexer(Logger& logger, const std::string& source, bool skipWhitespace = true) : logger(logger), source(source), currentPosition(0), _skipWhitespace(skipWhitespace) {}
 
     Token getNextToken() {
-        if (_skipWhitespace)
-            skipWhitespace();
+        logger.debug("", "Lexer::getNextToken");
+        Token token = _getNextToken();
+        logger.debug(token.info(), "Lexer::getNextToken");
+        return token;
+    }
+
+    std::vector<Token> getAllTokens() {
+        logger.debug("", "Lexer::getAllTokens");
+        std::vector<Token> tokens;
+        while (true) {
+            Token token = getNextToken();
+            if (token.type == TokenType::ENDOFFILE)
+                break;
+            tokens.push_back(token);
+        }
+
+        return tokens;
+    }
+
+private:
+    Logger& logger;
+    std::string source;
+    size_t currentPosition;
+    bool _skipWhitespace;
+
+    Token _getNextToken() {
+        skipWhitespace();
 
         if (currentPosition >= source.length())
             return Token(TokenType::ENDOFFILE, "", 0);
@@ -56,39 +82,29 @@ public:
         }
     }
 
-    std::vector<Token> getAllTokens() {
-        std::vector<Token> tokens;
-        while (true) {
-            Token token = getNextToken();
-            if (token.type == TokenType::ENDOFFILE)
-                break;
-            tokens.push_back(token);
-        }
-
-        return tokens;
-    }
-
-private:
-    std::string source;
-    size_t currentPosition;
-    bool _skipWhitespace;
-
     void skipWhitespace() {
+        if (!_skipWhitespace)
+            return;
+        logger.debug("", "Lexer::skipWhitespace");
         while (currentPosition < source.length() && isspace(source[currentPosition]))
             currentPosition++;
     }
 
     Token parseIdentifier(char initialChar) {
+        logger.debug("", "Lexer::parseIdentifier");
         std::string identifier(1, initialChar);
         while (currentPosition < source.length() && isalnum(source[currentPosition]))
             identifier += source[currentPosition++];
+        logger.debug(identifier, "Lexer::parseIdentifier");
         return Token(TokenType::IDENTIFIER, identifier, identifier);
     }
 
     Token parseLiteral(char initialChar) {
+        logger.debug("", "Lexer::parseLiteral");
         std::string literal(1, initialChar);
         while (currentPosition < source.length() && (isdigit(source[currentPosition]) || source[currentPosition] == '.'))
             literal += source[currentPosition++];
+        logger.debug(literal, "Lexer::parseLiteral");
 
         if (literal.find('.') != std::string::npos)
             return Token(TokenType::LITERAL, literal, std::stod(literal));
@@ -97,17 +113,21 @@ private:
     }
 
     Token parseString() {
+        logger.debug("", "Lexer::parseString");
         std::string str;
         while (currentPosition < source.length() && source[currentPosition] != '"')
             str += source[currentPosition++];
+        logger.debug(str, "Lexer::parseString");
         currentPosition++; // skip closing quote
         return Token(TokenType::STRING, str, str);
     }
 
     Token parseComment() {
+        logger.debug("", "Lexer::parseComment");
         std::string comment;
         while (currentPosition < source.length() && source[currentPosition] != '\n')
             comment += source[currentPosition++];
+        logger.debug(comment, "Lexer::parseComment");
         return Token(TokenType::COMMENT, comment, comment);
     }
 };
