@@ -5,90 +5,95 @@
 #include <sstream>
 #include <stdexcept>
 #include "interp.h"
+#include "../logging/logger.h"
 
 class InterpSession {
-    public:
-        InterpSession() : interp(), scripts(), args() {}
+  public:
+    InterpSession(Logger &logger, Interpreter &interp)
+        : logger(logger), interp(interp), scripts(), args() {}
 
-        void registerScript(const std::string &scriptPath) {
-            scripts.push_back(scriptPath);
-        }
+    void registerScript(const std::string &scriptPath) {
+        logger.debug("", "InterpSession::registerScript");
+        scripts.push_back(scriptPath);
+    }
 
-        void registerArg(const std::string &name, const std::string &value) {
-            args[name] = value;
-        }
+    void registerArg(const std::string &name, const std::string &value) {
+        logger.debug("", "InterpSession::registerArg");
+        args[name] = value;
+    }
 
-        int start(bool replMode) {
-            // Load any scripts first.
-            int ret = loadScripts();
+    int start(bool replMode) {
+        logger.debug("", "InterpSession::start");
+        // Load any scripts first.
+        int ret = loadScripts();
 
-            // Optionally, load REPL.
-            if (replMode)
-                return loadRepl();
+        // Optionally, load REPL.
+        if (replMode)
+            return loadRepl();
 
-            return ret;
-        }
+        return ret;
+    }
 
-    private:
-        Interpreter interp;
-        std::vector<std::string> scripts;
-        std::map<std::string, std::string> args;
+  private:
+    Logger &logger;
+    Interpreter &interp;
+    std::vector<std::string> scripts;
+    std::map<std::string, std::string> args;
 
-        int loadRepl() {
-            std::string input;
+    int loadRepl() {
+        logger.debug("", "InterpSession::loadRepl");
+        std::string input;
 
-            while (true) {
-                try {
-                    std::cout << "> ";
-                    std::getline(std::cin, input);
-
-                    if (input == Keywords.Exit)
-                        break;
-
-                    Lexer lexer(input);
-                    interp.interpret(lexer.getAllTokens());
-                } catch (const std::exception &e) {
-                    print_error(e);
-                    return 1;
-                }
-            }
-
-            return 0;
-        }
-
-        int loadScripts() {
+        while (true) {
             try {
-                for (const std::string &script : scripts) {
-                    std::string content = readFile(script);
-                    if (content.empty())
-                        continue;
+                std::cout << "> ";
+                std::getline(std::cin, input);
 
-                    Lexer lexer(content);
-                    interp.interpret(lexer.getAllTokens());
-                }
-            }
-            catch (const std::exception &e) {
+                if (input == Keywords.Exit)
+                    break;
+
+                Lexer lexer(logger, input);
+                interp.interpret(lexer.getAllTokens());
+            } catch (const std::exception &e) {
                 print_error(e);
                 return 1;
             }
-
-            return 0;
         }
 
-        std::string readFile(const std::string &filePath) {
-            std::ifstream file(filePath);
+        return 0;
+    }
 
-            if (!file.is_open())
-                throw std::ios_base::failure("Cannot open file: " + filePath);
+    int loadScripts() {
+        logger.debug("", "InterpSession::loadScripts");
+        try {
+            for (const std::string &script : scripts) {
+                std::string content = readFile(script);
+                if (content.empty())
+                    continue;
 
-            std::ostringstream string;
-            string << file.rdbuf();
-            
-            std::string content = string.str();
-            file.close();
-
-            return content;
+                Lexer lexer(logger, content);
+                interp.interpret(lexer.getAllTokens());
+            }
+        } catch (const std::exception &e) {
+            print_error(e);
+            return 1;
         }
+
+        return 0;
+    }
+
+    std::string readFile(const std::string &filePath) {
+        logger.debug("", "InterpSession::readFile");
+        std::ifstream file(filePath);
+
+        if (!file.is_open())
+            throw std::ios_base::failure("Cannot open file: " + filePath);
+
+        std::ostringstream string;
+        string << file.rdbuf();
+
+        return string.str();
+    }
 };
 
 #endif
