@@ -363,7 +363,8 @@ void help(std::string app) {
         {"-r, --repl", "start the REPL"},
         {"-x, --experimental", "use experimental interpeter"},
         {"-xr, --x-repl", "start experimental REPL"},
-        {"-X{arg_name}={arg_value}", "pass an argument as key-value pair"}};
+        {"-X{arg_name}={arg_value}", "pass an argument as key-value pair"},
+        {"-c, --config {.uslconfig}", "use a configuration file"}};
 
     show_version();
 
