@@ -17,6 +17,26 @@ class Logger {
            LogMode logMode = LogMode::CONSOLE)
         : minLogLevel(minLogLevel), logMode(logMode) {}
 
+    static LogLevel loglevel_from_string(const std::string logLevel) {
+        if (logLevel == "DEBUG")
+            return LogLevel::DEBUG;
+        else if (logLevel == "INFO")
+            return LogLevel::INFO;
+        else if (logLevel == "WARNING")
+            return LogLevel::WARNING;
+        else if (logLevel == "ERROR")
+            return LogLevel::ERROR;
+        else
+            return LogLevel::SILENT;
+    }
+
+    static LogMode logmode_from_string(const std::string mode) {
+        if (mode == "FILE")
+            return LogMode::FILE;
+        else
+            return LogMode::CONSOLE;
+    }
+
     void error(const std::string &message,
                const std::string &source = "") const {
         log(LogLevel::ERROR, message, source);
@@ -35,6 +55,14 @@ class Logger {
     void debug(const std::string &message,
                const std::string &source = "") const {
         log(LogLevel::DEBUG, message, source);
+    }
+
+    void setMinimumLogLevel(LogLevel level) {
+        minLogLevel = level;
+    }
+
+    void setLogMode(LogMode mode) {
+        logMode = mode;
     }
 
     void setLogFilePath(const std::string &filePath) {

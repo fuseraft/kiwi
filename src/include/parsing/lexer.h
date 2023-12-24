@@ -10,14 +10,12 @@ public:
     Lexer(Logger& logger, const std::string& source, bool skipWhitespace = true) : logger(logger), source(source), currentPosition(0), _skipWhitespace(skipWhitespace) {}
 
     Token getNextToken() {
-        logger.debug("", "Lexer::getNextToken");
         Token token = _getNextToken();
         logger.debug(token.info(), "Lexer::getNextToken");
         return token;
     }
 
     std::vector<Token> getAllTokens() {
-        logger.debug("", "Lexer::getAllTokens");
         std::vector<Token> tokens;
         while (true) {
             Token token = getNextToken();
@@ -85,13 +83,11 @@ private:
     void skipWhitespace() {
         if (!_skipWhitespace)
             return;
-        logger.debug("", "Lexer::skipWhitespace");
         while (currentPosition < source.length() && isspace(source[currentPosition]))
             currentPosition++;
     }
 
     Token parseIdentifier(char initialChar) {
-        logger.debug("", "Lexer::parseIdentifier");
         std::string identifier(1, initialChar);
         while (currentPosition < source.length() && isalnum(source[currentPosition]))
             identifier += source[currentPosition++];
@@ -100,7 +96,6 @@ private:
     }
 
     Token parseLiteral(char initialChar) {
-        logger.debug("", "Lexer::parseLiteral");
         std::string literal(1, initialChar);
         while (currentPosition < source.length() && (isdigit(source[currentPosition]) || source[currentPosition] == '.'))
             literal += source[currentPosition++];
@@ -113,7 +108,6 @@ private:
     }
 
     Token parseString() {
-        logger.debug("", "Lexer::parseString");
         std::string str;
         while (currentPosition < source.length() && source[currentPosition] != '"')
             str += source[currentPosition++];
@@ -123,7 +117,6 @@ private:
     }
 
     Token parseComment() {
-        logger.debug("", "Lexer::parseComment");
         std::string comment;
         while (currentPosition < source.length() && source[currentPosition] != '\n')
             comment += source[currentPosition++];
