@@ -13,18 +13,17 @@ class InterpSession {
         : logger(logger), interp(interp), scripts(), args() {}
 
     void registerScript(const std::string &scriptPath) {
-        logger.debug("", "InterpSession::registerScript");
+        logger.debug(scriptPath, "InterpSession::registerScript");
         scripts.push_back(scriptPath);
     }
 
     void registerArg(const std::string &name, const std::string &value) {
-        logger.debug("", "InterpSession::registerArg");
+        logger.debug(name + "=" + value, "InterpSession::registerArg");
         args[name] = value;
     }
 
     int start(bool replMode) {
-        logger.debug("", "InterpSession::start");
-        // Load any scripts first.
+        // Load any registered scripts first.
         int ret = loadScripts();
 
         // Optionally, load REPL.
@@ -41,7 +40,6 @@ class InterpSession {
     std::map<std::string, std::string> args;
 
     int loadRepl() {
-        logger.debug("", "InterpSession::loadRepl");
         std::string input;
 
         while (true) {
@@ -64,7 +62,6 @@ class InterpSession {
     }
 
     int loadScripts() {
-        logger.debug("", "InterpSession::loadScripts");
         try {
             for (const std::string &script : scripts) {
                 std::string content = readFile(script);
@@ -83,11 +80,13 @@ class InterpSession {
     }
 
     std::string readFile(const std::string &filePath) {
-        logger.debug("", "InterpSession::readFile");
+        logger.debug(filePath, "InterpSession::readFile");
         std::ifstream file(filePath);
 
-        if (!file.is_open())
+        if (!file.is_open()) {
+            logger.error("Cannot open file: " + filePath, "InterpSession::readFile");
             throw std::ios_base::failure("Cannot open file: " + filePath);
+        }
 
         std::ostringstream string;
         string << file.rdbuf();

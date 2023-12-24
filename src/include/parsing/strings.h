@@ -487,7 +487,7 @@ std::string dtos(double i) {
 }
 
 bool is(std::string s, std::string si) {
-    return s == (Operators.Subtract + si) || s == ("--" + si) ||
+    return s == ("-" + si) || s == ("--" + si) ||
            s == ("/" + si);
 }
 
