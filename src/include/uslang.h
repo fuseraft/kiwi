@@ -22,71 +22,78 @@ const std::string uslang_version = "1.0.0";
 #include "parsing/keywords.h"
 #include "parsing/strings.h"
 
-void handle_xarg(
-    std::string &opt, std::__cxx11::regex &xargPattern, InterpSession &session);
-
+void handle_xarg(std::string &opt, std::__cxx11::regex &xargPattern, InterpSession &session);
 void configure_usl(Config &config, Logger &logger, InterpSession &session);
-
-int show_version();
-int help(std::string app);
+int print_version();
+int print_help();
 
 int uslang(int c, std::vector<std::string> v) {
     RNG::getInstance();
 
-    std::string usl(v.at(0)), opt, script;
+    std::string opt;
 
     std::regex xargPattern("-X(.*?)=");
-    bool       startxrepl = false;
+    bool replMode = false;
 
     Config config;
     Logger logger;
 
     // WIP: new interpreter logic
-    Interpreter   interp(logger);
+    Interpreter interp(logger);
     InterpSession session(logger, interp);
+    
+    for (int i = 1; i < c; ++i) {
+        opt = v.at(i);
 
-    for (int i = 0; i < c; ++i) {
         if (i == 0) {
             session.registerArg("USL", opt);
+            continue;
         }
-
-        opt = v.at(i);
 
         if (begins_with(opt, "-X") && contains(opt, "=")) {
             handle_xarg(opt, xargPattern, session);
-        } else if (is_flag(opt, "h", "help")) {
-            return help(usl);
-        } else if (is_flag(opt, "v", "version")) {
-            return show_version();
-        } else if (is_flag(opt, "R", "repl")) {
-            startxrepl = true;
-        } else if (is_flag(opt, "C", "config")) {
-            if (i + 1 > c)
-                return help(usl);
+        }
+        else if (is_flag(opt, "h", "help")) {
+            return print_help();
+        }
+        else if (is_flag(opt, "v", "version")) {
+            return print_version();
+        }
+        else if (is_flag(opt, "R", "repl")) {
+            replMode = true;
+        }
+        else if (is_flag(opt, "C", "config")) {
+            if (i + 1 > c) {
+                return print_help();
+            }
 
-            std::string configFilePath = v[i + 1];
+            std::string conf = v[i + 1];
 
-            if (!ends_with(configFilePath, ".conf")) {
+            if (!is_conf(conf)) {
                 logger.error("I can be configured with a `.conf` file.");
-            } else if (!config.read(configFilePath)) {
-                logger.error("I cannot read `" + configFilePath + "`.");
-            } else {
+            } 
+            else if (!config.read(conf)) {
+                logger.error("I cannot read `" + conf + "`.");
+            } 
+            else {
                 configure_usl(config, logger, session);
             }
-        } else if (is_script(opt)) {
+        } 
+        else if (is_script(opt)) {
             session.registerScript(opt);
-        } else {
+        } 
+        else {
             logger.debug("Unknown option: " + opt);
         }
     }
 
-    return session.start(startxrepl);
+    return session.start(replMode);
 }
 
 void configure_usl(Config &config, Logger &logger, InterpSession &session) {
-    std::string logPath    = config.get("LOGGER_PATH");
-    std::string logMode    = config.get("LOGGER_MODE");
-    std::string logLevel   = config.get("LOGGER_LEVEL");
+    std::string logPath = config.get("LOGGER_PATH");
+    std::string logMode = config.get("LOGGER_MODE");
+    std::string logLevel = config.get("LOGGER_LEVEL");
     std::string scriptPath = config.get("SCRIPT_PATH");
 
     if (!logPath.empty()) {
@@ -106,11 +113,10 @@ void configure_usl(Config &config, Logger &logger, InterpSession &session) {
     }
 }
 
-void handle_xarg(
-    std::string &opt, std::__cxx11::regex &xargPattern,
-    InterpSession &session) {
+void handle_xarg(std::string &opt, std::__cxx11::regex &xargPattern, InterpSession &session) {
     std::string name, value;
     std::smatch match;
+
     if (std::regex_search(opt, match, xargPattern)) {
         name = match[1].str();
     }
@@ -125,34 +131,33 @@ void handle_xarg(
     }
 }
 
-int show_version() {
+int print_version() {
     std::cout << uslang_name << " interpreter "
               << "v" << uslang_version << std::endl
               << std::endl;
     return 0;
 }
 
-int help(std::string app) {
+int print_help() {
     struct CommandInfo {
         std::string command;
         std::string description;
     };
 
     std::vector<CommandInfo> commands = {
-        {"-h, --help", "show this message"},
-        {"-v, --version", "show current version"},
-        {"-C, --config <.uslconfig>", "use a configuration file"},
-        {"-R, --repl", "start the REPL"},
-        {"-X<arg_key>=<arg_value>", "pass an argument as key-value pair"}};
+        {"-R, --repl", "start REPL mode"},
+        {"-h, --help", "print this message"},
+        {"-v, --version", "print the current version"},
+        {"-C, --config <conf>", "specify a configuration file"},
+        {"-X<arg_key>=<arg_value>", "specify an argument as a key-value pair"}};
 
-    show_version();
+    print_version();
 
     std::cout << "Usage: usl [--flags] <script|args>" << std::endl
               << "Options:" << std::endl;
 
     for (const auto &cmd : commands) {
-        std::cout << std::left << std::setw(30) << (app + " " + cmd.command)
-                  << cmd.description << std::endl;
+        std::cout << std::left << std::setw(30) << ("usl " + cmd.command) << cmd.description << std::endl;
     }
 
     std::cout << std::endl;

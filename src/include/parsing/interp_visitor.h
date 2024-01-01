@@ -13,7 +13,7 @@ struct {
         else if (type == ValueType::Integer) {
             return std::get<int>(v) == 0;
         }
-        
+
         return false;
     }
 
@@ -199,6 +199,7 @@ struct DivideVisitor {
     std::variant<int, double, bool, std::string> operator()(std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) const {
         ValueType vtleft = get_value_type(left);
         ValueType vtright = get_value_type(right);
+
         if (vtright == ValueType::Integer || vtright == ValueType::Double) {
             if (MathImpl.is_zero(vtright, right)) {
                 throw std::runtime_error("Division by zero.");
@@ -217,6 +218,7 @@ struct PowerVisitor {
     std::variant<int, double, bool, std::string> operator()(std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) const {
         ValueType vtleft = get_value_type(left);
         ValueType vtright = get_value_type(right);
+        
         if (vtright == ValueType::Integer || vtright == ValueType::Double) {
             return MathImpl.do_exponentiation(vtleft, vtright, left, right);
         }

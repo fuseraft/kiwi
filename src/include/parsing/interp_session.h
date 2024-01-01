@@ -89,8 +89,7 @@ private:
         std::ifstream file(filePath);
 
         if (!file.is_open()) {
-            logger.error(
-                "Cannot open file: " + filePath, "InterpSession::readFile");
+            logger.error("Cannot open file: " + filePath, "InterpSession::readFile");
             throw std::ios_base::failure("Cannot open file: " + filePath);
         }
 
