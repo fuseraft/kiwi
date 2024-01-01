@@ -14,7 +14,7 @@ enum class LogMode { CONSOLE, FILE };
 class Logger {
 public:
     Logger(
-        LogLevel minLogLevel = LogLevel::DEBUG,
+        LogLevel minLogLevel = LogLevel::INFO,
         LogMode  logMode     = LogMode::CONSOLE)
         : minLogLevel(minLogLevel), logMode(logMode) {}
 
