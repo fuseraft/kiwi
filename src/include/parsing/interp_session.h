@@ -1,14 +1,15 @@
 #ifndef INTERP_SESSION_H
 #define INTERP_SESSION_H
 
+#include "../logging/logger.h"
+#include "interp.h"
+#include "keywords.h"
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
-#include "interp.h"
-#include "../logging/logger.h"
 
 class InterpSession {
-  public:
+public:
     InterpSession(Logger &logger, Interpreter &interp)
         : logger(logger), interp(interp), scripts(), args() {}
 
@@ -26,14 +27,14 @@ class InterpSession {
         // Load any registered scripts first.
         int ret = loadScripts();
 
-        // Optionally, load REPL.
-        if (replMode)
+        if (replMode) {
             return loadRepl();
+        }
 
         return ret;
     }
 
-  private:
+private:
     Logger &logger;
     Interpreter &interp;
     std::vector<std::string> scripts;
@@ -47,12 +48,14 @@ class InterpSession {
                 std::cout << "> ";
                 std::getline(std::cin, input);
 
-                if (input == Keywords.Exit)
+                if (input == Keywords.Exit) {
                     break;
+                }
 
                 Lexer lexer(logger, input);
                 interp.interpret(lexer.getAllTokens());
-            } catch (const std::exception &e) {
+            } 
+            catch (const std::exception &e) {
                 print_error(e);
                 return 1;
             }
@@ -65,13 +68,15 @@ class InterpSession {
         try {
             for (const std::string &script : scripts) {
                 std::string content = readFile(script);
-                if (content.empty())
+                if (content.empty()) {
                     continue;
+                }
 
                 Lexer lexer(logger, content);
                 interp.interpret(lexer.getAllTokens());
             }
-        } catch (const std::exception &e) {
+        } 
+        catch (const std::exception &e) {
             print_error(e);
             return 1;
         }

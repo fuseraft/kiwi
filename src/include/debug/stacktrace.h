@@ -7,7 +7,7 @@
 #include <iostream>
 
 void print_stacktrace() {
-    void *array[5];
+    void  *array[5];
     size_t size;
 
     size = backtrace(array, 5);
@@ -19,10 +19,10 @@ void print_stacktrace() {
         std::cout << i << ": " << messages[i] << std::endl;
 
         // Demangle C++ function names
-        size_t sz = 256; // just a guess, could be too small, too large?
-        char *function = static_cast<char *>(malloc(sz));
-        int status = 0;
-        char *demangled =
+        size_t sz       = 256; // just a guess, could be too small, too large?
+        char  *function = static_cast<char *>(malloc(sz));
+        int    status   = 0;
+        char  *demangled =
             abi::__cxa_demangle(messages[i], function, &sz, &status);
         if (status == 0) {
             std::cout << "    " << demangled << std::endl;

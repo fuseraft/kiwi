@@ -1,10 +1,10 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#include <iostream>
+#include <ctime>
 #include <fstream>
 #include <iomanip>
-#include <ctime>
+#include <iostream>
 #include <string>
 
 enum class LogLevel { DEBUG, INFO, WARNING, ERROR, SILENT };
@@ -12,9 +12,10 @@ enum class LogLevel { DEBUG, INFO, WARNING, ERROR, SILENT };
 enum class LogMode { CONSOLE, FILE };
 
 class Logger {
-  public:
-    Logger(LogLevel minLogLevel = LogLevel::DEBUG,
-           LogMode logMode = LogMode::CONSOLE)
+public:
+    Logger(
+        LogLevel minLogLevel = LogLevel::DEBUG,
+        LogMode  logMode     = LogMode::CONSOLE)
         : minLogLevel(minLogLevel), logMode(logMode) {}
 
     static LogLevel loglevel_from_string(const std::string logLevel) {
@@ -37,33 +38,29 @@ class Logger {
             return LogMode::CONSOLE;
     }
 
-    void error(const std::string &message,
-               const std::string &source = "") const {
+    void
+    error(const std::string &message, const std::string &source = "") const {
         log(LogLevel::ERROR, message, source);
     }
 
-    void info(const std::string &message,
-              const std::string &source = "") const {
+    void
+    info(const std::string &message, const std::string &source = "") const {
         log(LogLevel::INFO, message, source);
     }
 
-    void warn(const std::string &message,
-              const std::string &source = "") const {
+    void
+    warn(const std::string &message, const std::string &source = "") const {
         log(LogLevel::WARNING, message, source);
     }
 
-    void debug(const std::string &message,
-               const std::string &source = "") const {
+    void
+    debug(const std::string &message, const std::string &source = "") const {
         log(LogLevel::DEBUG, message, source);
     }
 
-    void setMinimumLogLevel(LogLevel level) {
-        minLogLevel = level;
-    }
+    void setMinimumLogLevel(LogLevel level) { minLogLevel = level; }
 
-    void setLogMode(LogMode mode) {
-        logMode = mode;
-    }
+    void setLogMode(LogMode mode) { logMode = mode; }
 
     void setLogFilePath(const std::string &filePath) {
         try {
@@ -87,60 +84,61 @@ class Logger {
         }
     }
 
-  private:
-    LogLevel minLogLevel;
-    LogMode logMode;
+private:
+    LogLevel    minLogLevel;
+    LogMode     logMode;
     std::string logFilePath;
 
     // TODO: it would be great to have a descriptor to describe log
     // output/formatting
-    void log(LogLevel level, const std::string &message,
-             const std::string &source) const {
+    void
+    log(LogLevel level, const std::string &message,
+        const std::string &source) const {
         if (level < minLogLevel)
             return;
 
         std::time_t now = std::time(nullptr);
-        std::tm localTime;
+        std::tm     localTime;
         localtime_r(&now, &localTime);
 
         char timestamp[20];
-        std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S",
-                      &localTime);
+        std::strftime(
+            timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", &localTime);
 
         switch (logMode) {
-        case LogMode::CONSOLE:
-            std::cout << "[" << timestamp << "] [" << logLevelToString(level)
-                      << "] ";
-            if (!source.empty())
-                std::cout << "[" << source << "] ";
-            std::cout << message << std::endl;
-            break;
-        case LogMode::FILE:
-            std::ofstream file(logFilePath, std::ios::app);
-            if (file.is_open()) {
-                file << "[" << timestamp << "] [" << logLevelToString(level)
-                     << "] ";
+            case LogMode::CONSOLE:
+                std::cout << "[" << timestamp << "] ["
+                          << logLevelToString(level) << "] ";
                 if (!source.empty())
-                    file << "[" << source << "] ";
-                file << message << std::endl;
-                file.close();
-            }
-            break;
+                    std::cout << "[" << source << "] ";
+                std::cout << message << std::endl;
+                break;
+            case LogMode::FILE:
+                std::ofstream file(logFilePath, std::ios::app);
+                if (file.is_open()) {
+                    file << "[" << timestamp << "] [" << logLevelToString(level)
+                         << "] ";
+                    if (!source.empty())
+                        file << "[" << source << "] ";
+                    file << message << std::endl;
+                    file.close();
+                }
+                break;
         }
     }
 
     std::string logLevelToString(LogLevel level) const {
         switch (level) {
-        case LogLevel::DEBUG:
-            return "DEBUG";
-        case LogLevel::INFO:
-            return "INFO";
-        case LogLevel::WARNING:
-            return "WARNING";
-        case LogLevel::ERROR:
-            return "ERROR";
-        default:
-            return "UNKNOWN";
+            case LogLevel::DEBUG:
+                return "DEBUG";
+            case LogLevel::INFO:
+                return "INFO";
+            case LogLevel::WARNING:
+                return "WARNING";
+            case LogLevel::ERROR:
+                return "ERROR";
+            default:
+                return "UNKNOWN";
         }
     }
 };

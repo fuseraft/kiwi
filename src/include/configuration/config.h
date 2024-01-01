@@ -1,19 +1,20 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <iostream>
 #include <fstream>
-#include <string>
+#include <iostream>
 #include <map>
+#include <string>
 
 class Config {
 public:
     Config() {}
 
-    bool read(const std::string& filename) {
+    bool read(const std::string &filename) {
         std::ifstream file(filename);
         if (!file.is_open()) {
-            std::cerr << "Failed to open the configuration file: " << filename << std::endl;
+            std::cerr << "Failed to open the configuration file: " << filename
+                      << std::endl;
             return false;
         }
 
@@ -21,9 +22,9 @@ public:
         while (std::getline(file, line)) {
             size_t pos = line.find('=');
             if (pos != std::string::npos) {
-                std::string key = line.substr(0, pos);
+                std::string key   = line.substr(0, pos);
                 std::string value = line.substr(pos + 1);
-                config_[key] = value;
+                config_[key]      = value;
             }
         }
 
@@ -31,7 +32,7 @@ public:
         return true;
     }
 
-    std::string get(const std::string& key) const {
+    std::string get(const std::string &key) const {
         auto it = config_.find(key);
         if (it != config_.end()) {
             return it->second;
@@ -44,18 +45,5 @@ public:
 private:
     std::map<std::string, std::string> config_;
 };
-
-/*
-int main() {
-    Config config("config.txt");
-
-    if (config.read()) {
-        std::string value1 = config.get("key1");
-        std::string value2 = config.get("key2");        
-    }
-
-    return 0;
-}
-*/
 
 #endif
