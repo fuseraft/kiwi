@@ -1,175 +1,160 @@
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <regex>
-#include <dirent.h>
 #include <algorithm>
 #include <cfloat>
-#include <vector>
-#include <sys/stat.h>
 #include <cmath>
+#include <dirent.h>
+#include <fstream>
+#include <iostream>
+#include <regex>
+#include <sstream>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
+#include <vector>
 
-const std::string uslang_name = "uslang";
-const std::string uslang_version = "0.1.2";
+const std::string uslang_name    = "uslang";
+const std::string uslang_version = "1.0.0";
 
-void print_underconstruction() {
-    std::cout << "under construction" << std::endl;
-}
-
-#include "parsing/dotsep.h"
+#include "configuration/config.h"
 #include "debug/stacktrace.h"
+#include "logging/logger.h"
+#include "math/rng.h"
+#include "parsing/interp_session.h"
 #include "parsing/keywords.h"
 #include "parsing/strings.h"
-#include "usl/state.h"
-#include "usl/thread.h"
-#include "usl/date.h"
-#include "usl/rng.h"
-#include "usl/error.h"
-#include "usl/fileio.h"
-#include "usl/objects.h"
-#include "usl/prototypes.h"
-#include "usl/env.h"
-#include "usl/engine.h"
-#include "usl/executor.h"
-#include "usl/components.h"
-#include "parsing/parser.h"
-#include "usl/core.h"
 
-// The new interpreter
-#include "configuration/config.h"
-#include "logging/logger.h"
-#include "parsing/interp_session.h"
+void handle_xarg(
+    std::string &opt, std::__cxx11::regex &xargPattern, InterpSession &session);
 
-void handle_xarg(std::string &opt, std::__cxx11::regex &xargPattern,
-                 InterpSession &session);
+void configure_usl(Config &config, Logger &logger, InterpSession &session);
 
-void configure_usl(Config &config, bool &xmode, Logger &logger,
-                   InterpSession &session);
+int show_version();
+int help(std::string app);
 
 int uslang(int c, std::vector<std::string> v) {
     RNG::getInstance();
 
     std::string usl(v.at(0)), opt, script;
-    initialize_state(usl);
 
-    State.InitialDirectory = FileIO::getCurrentDirectory();
-
-    bool xmode = false, startxrepl = false;
     std::regex xargPattern("-X(.*?)=");
+    bool       startxrepl = false;
 
     Config config;
     Logger logger;
 
     // WIP: new interpreter logic
-    Interpreter interp(logger);
+    Interpreter   interp(logger);
     InterpSession session(logger, interp);
 
     for (int i = 0; i < c; ++i) {
-        if (i == 0)
+        if (i == 0) {
             session.registerArg("USL", opt);
+        }
 
         opt = v.at(i);
 
-        if (is(opt, "c") || is(opt, "config")) {
-            if (i + 1 > c) {
-                help(usl);
-                break;
-            }
+        if (begins_with(opt, "-X") && contains(opt, "=")) {
+            handle_xarg(opt, xargPattern, session);
+        } else if (is_flag(opt, "h", "help")) {
+            return help(usl);
+        } else if (is_flag(opt, "v", "version")) {
+            return show_version();
+        } else if (is_flag(opt, "R", "repl")) {
+            startxrepl = true;
+        } else if (is_flag(opt, "C", "config")) {
+            if (i + 1 > c)
+                return help(usl);
 
             std::string configFilePath = v[i + 1];
 
-            if (ends_with(configFilePath, ".uslconfig") && config.read(configFilePath)) {
-                configure_usl(config, xmode, logger, session);
-                break;
+            if (!ends_with(configFilePath, ".conf")) {
+                logger.error("I can be configured with a `.conf` file.");
+            } else if (!config.read(configFilePath)) {
+                logger.error("I cannot read `" + configFilePath + "`.");
+            } else {
+                configure_usl(config, logger, session);
             }
-        } else if (is(opt, "h") || is(opt, "help")) {
-            help(usl);
-            return 0;
-        } else if (is(opt, "v") || is(opt, "version")) {
-            show_version();
-            return 0;
-        } else if (is(opt, "x") || is(opt, "experimental"))
-            xmode = true;
-        else if (is(opt, "xr") || is(opt, "x-repl")) {
-            xmode = true;
-            startxrepl = true;
-        } else if (is(opt, "r") || is(opt, "repl")) {
-            if (xmode)
-                continue;
-            return load_repl();
-        } else if (is(opt, "p") || is(opt, "parse")) {
-            if (xmode)
-                continue;
-            if (i + 1 > c) {
-                help(usl);
-                break;
-            }
-
-            script = v[i + 1];
-            parse(script);
-            return State.LastErrorCode;
         } else if (is_script(opt)) {
-            if (xmode) {
-                session.registerScript(opt);
-                continue;
-            }
-
-            engine.addArg(opt);
-            engine.loadScript(opt);
-            break;
-        } else if (xmode && begins_with(opt, "-X") && contains(opt, "="))
-            handle_xarg(opt, xargPattern, session);
-        else if (!xmode)
-            engine.addArg(opt);
+            session.registerScript(opt);
+        } else {
+            logger.debug("Unknown option: " + opt);
+        }
     }
 
-    // Start with the new interpreter.
-    if (xmode)
-        return session.start(startxrepl);
-
-    // Start with the legacy interpreter.
-    if (State.CurrentScript != usl)
-        exec.executeScript();
-
-    return State.LastErrorCode;
+    return session.start(startxrepl);
 }
 
-void configure_usl(Config &config, bool &xmode, Logger &logger,
-                   InterpSession &session) {
-    std::string logPath = config.get("LOGGER_PATH");
-    std::string logMode = config.get("LOGGER_MODE");
-    std::string logLevel = config.get("LOGGER_LEVEL");
+void configure_usl(Config &config, Logger &logger, InterpSession &session) {
+    std::string logPath    = config.get("LOGGER_PATH");
+    std::string logMode    = config.get("LOGGER_MODE");
+    std::string logLevel   = config.get("LOGGER_LEVEL");
     std::string scriptPath = config.get("SCRIPT_PATH");
 
-    // #FILDIL
-    xmode = true;
-
-    if (!logPath.empty())
+    if (!logPath.empty()) {
         logger.setLogFilePath(logPath);
+    }
 
-    if (!logMode.empty())
+    if (!logMode.empty()) {
         logger.setLogMode(Logger::logmode_from_string(logMode));
+    }
 
-    if (!logLevel.empty())
+    if (!logLevel.empty()) {
         logger.setMinimumLogLevel(Logger::loglevel_from_string(logLevel));
+    }
 
-    if (!scriptPath.empty())
+    if (!scriptPath.empty()) {
         session.registerScript(scriptPath);
+    }
 }
 
-void handle_xarg(std::string &opt, std::__cxx11::regex &xargPattern,
-                 InterpSession &session) {
-    std::string xargName, xargValue;
+void handle_xarg(
+    std::string &opt, std::__cxx11::regex &xargPattern,
+    InterpSession &session) {
+    std::string name, value;
     std::smatch match;
-    if (std::regex_search(opt, match, xargPattern))
-        xargName = match[1].str();
+    if (std::regex_search(opt, match, xargPattern)) {
+        name = match[1].str();
+    }
 
-    size_t equalSignPos = opt.find('=');
-    if (equalSignPos != std::string::npos)
-        xargValue = opt.substr(equalSignPos + 1);
+    size_t pos = opt.find('=');
+    if (pos != std::string::npos) {
+        value = opt.substr(pos + 1);
+    }
 
-    if (!xargName.empty() && !xargValue.empty())
-        session.registerArg(xargName, xargValue);
+    if (!name.empty() && !value.empty()) {
+        session.registerArg(name, value);
+    }
+}
+
+int show_version() {
+    std::cout << uslang_name << " interpreter "
+              << "v" << uslang_version << std::endl
+              << std::endl;
+    return 0;
+}
+
+int help(std::string app) {
+    struct CommandInfo {
+        std::string command;
+        std::string description;
+    };
+
+    std::vector<CommandInfo> commands = {
+        {"-h, --help", "show this message"},
+        {"-v, --version", "show current version"},
+        {"-C, --config <.uslconfig>", "use a configuration file"},
+        {"-R, --repl", "start the REPL"},
+        {"-X<arg_key>=<arg_value>", "pass an argument as key-value pair"}};
+
+    show_version();
+
+    std::cout << "Usage: usl [--flags] <script|args>" << std::endl
+              << "Options:" << std::endl;
+
+    for (const auto &cmd : commands) {
+        std::cout << std::left << std::setw(30) << (app + " " + cmd.command)
+                  << cmd.description << std::endl;
+    }
+
+    std::cout << std::endl;
+    return 0;
 }

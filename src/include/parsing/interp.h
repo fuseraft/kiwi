@@ -1,58 +1,65 @@
 #ifndef INTERP_H
 #define INTERP_H
 
+#include "../logging/logger.h"
+#include "value_type.h"
+#include "interp_visitor.h"
+#include "lexer.h"
+#include "tokens.h"
+#include "keywords.h"
 #include <map>
 #include <variant>
-#include "tokens.h"
-#include "lexer.h"
-#include "interp_visitor.h"
-#include "../logging/logger.h"
 
 class Interpreter {
     // WIP: this is the new interpreter.
-  public:
+public:
     Interpreter(Logger &logger) : logger(logger), variables() {}
 
     void interpret(std::vector<Token> tokens) {
         setTokens(tokens);
         while (_position < _end) {
-            if (_position + 1 == _end)
+            if (_position + 1 == _end) {
                 break;
+            }
 
             next();
 
             // Don't parse comments.
-            if (current().type == TokenType::COMMENT)
+            if (current().type == TokenType::COMMENT) {
                 continue;
+            }
 
-            if (current().type == TokenType::KEYWORD && current().text == Symbols.DeclVar)
+            if (current().type == TokenType::KEYWORD && current().text == Symbols.DeclVar) {
                 interpretAssignment();
-            else if (current().type == TokenType::IDENTIFIER && current().text == Keywords.PrintLn)
-                interpretPrint(true);
-            else if (current().type == TokenType::IDENTIFIER && current().text == Keywords.Print)
-                interpretPrint();
-            else
-                logger.debug("Unhandled token " + current().info(), "Interpreter::interpret");
+            }
+            else if (current().type == TokenType::IDENTIFIER && (current().text == Keywords.PrintLn || current().text == Keywords.Print)) {
+                interpretPrint(current().text == Keywords.PrintLn);
+            }
+            else {
+                logger.debug(
+                    "Unhandled token " + current().info(),
+                    "Interpreter::interpret");
+            }
         }
     }
 
-  private:
+private:
     Logger &logger;
-    std::map<std::string, std::variant<int, double, bool, std::string>>
-        variables;
+    std::map<std::string, std::variant<int, double, bool, std::string>> variables;
     std::vector<Token> _tokens;
     int _position;
     int _end;
 
-    Token current() {
-        return _tokens[_position];
-    }
+    Token current() { return _tokens[_position]; }
 
     Token next() {
         if (_position + 1 < _end) {
-            logger.debug("Next token: " + _tokens[_position + 1].info(), "Interpreter::next");
+            logger.debug(
+                "Next token: " + _tokens[_position + 1].info(),
+                "Interpreter::next");
             ++_position;
         }
+
         return _tokens[_position];
     }
 
@@ -60,6 +67,7 @@ class Interpreter {
         if (_position + 1 < _end) {
             return _tokens[_position + 1];
         }
+
         return _tokens[_position];
     }
 
@@ -73,8 +81,9 @@ class Interpreter {
         std::string output;
 
         // TODO: an error should occur here.
-        if (current().value_type != ValueType::String)
+        if (current().value_type != ValueType::String) {
             return output;
+        }
 
         std::string input = current().toString();
 
@@ -85,6 +94,7 @@ class Interpreter {
         std::ostringstream string;
         int position = -1;
         int end = eval.size();
+
         while (position + 1 < end) {
             ++position;
             Token token = eval[position];
@@ -92,22 +102,24 @@ class Interpreter {
             if (token.text == Symbols.Interpolate && position + 1 < end && eval[position + 1].text == Symbols.OpenCurlyBrace) {
                 evaluateStringInterpolation(position, token, eval, string);
                 continue;
-            } else if (token.type == TokenType::ESCAPED) {
+            } 
+            else if (token.type == TokenType::ESCAPED) {
                 string << token.text;
                 continue;
             }
 
             string << token.text;
         }
+
         output = string.str();
         logger.debug(output, "Interpreter::evaluateString");
 
         return output;
     }
 
-    void evaluateStringInterpolation(int &position, Token &token,
-                                     std::vector<Token> &eval,
-                                     std::ostringstream &string) {
+    void evaluateStringInterpolation(
+        int &position, Token &token, std::vector<Token> &eval,
+        std::ostringstream &string) {
         position += 2; // Skip "${"
 
         token = eval[position];
@@ -115,26 +127,41 @@ class Interpreter {
         while (token.text != Symbols.CloseCurlyBrace) {
             if (token.text == Symbols.DeclVar) {
                 token = eval[++position];
+
                 if (variables.find(token.text) != variables.end()) {
-                    auto v = variables[token.text];
+                    auto v  = variables[token.text];
                     ValueType vt = get_value_type(v);
-                    if (vt == ValueType::Integer)
+
+                    if (vt == ValueType::Integer) {
                         string << std::get<int>(v);
-                    else if (vt == ValueType::Double)
+                    }
+                    else if (vt == ValueType::Double) {
                         string << std::get<double>(v);
-                    else if (vt == ValueType::Boolean)
+                    }
+                    else if (vt == ValueType::Boolean) {
                         string << std::boolalpha << std::get<bool>(v);
-                    else if (vt == ValueType::String)
+                    }
+                    else if (vt == ValueType::String) {
                         string << std::get<std::string>(v);
-                    else
-                        logger.debug("Unhandled value type: " + token.info(), "Interpreter::evaluateStringInterpolation");
+                    }
+                    else {
+                        logger.debug(
+                            "Unhandled value type: " + token.info(),
+                            "Interpreter::evaluateStringInterpolation");
+                    }
+                } 
+                else {
+                    logger.debug(
+                        "Variable undefined: " + token.info(),
+                        "Interpreter::evaluateStringInterpolation");
                 }
-                else
-                    logger.debug("Variable undefined: " + token.info(), "Interpreter::evaluateStringInterpolation");
+            } 
+            else {
+                logger.debug(
+                    "Unhandled token: " + token.info(),
+                    "Interpreter::evaluateStringInterpolation");
             }
-            else
-                logger.debug("Unhandled token: " + token.info(), "Interpreter::evaluateStringInterpolation");
-            
+
             token = eval[++position];
         }
     }
@@ -142,29 +169,44 @@ class Interpreter {
     void interpretPrint(bool printNewLine = false) {
         next(); // skip the "print"
 
-        if (current().type == TokenType::STRING && current().value_type == ValueType::String)
+        if (current().type == TokenType::STRING && current().value_type == ValueType::String) {
             std::cout << evaluateString();
+        }
         else if (current().type == TokenType::KEYWORD && current().text == Symbols.DeclVar) {
             next();
             std::string name = current().text;
+
             if (variables.find(name) != variables.end()) {
-                std::variant<int, double, bool, std::string> value = interpretExpression();
+                std::variant<int, double, bool, std::string> value =
+                    interpretExpression();
                 ValueType vtype = get_value_type(value);
-                if (vtype == ValueType::Integer)
+
+                if (vtype == ValueType::Integer) {
                     std::cout << std::get<int>(value);
-                else if (vtype == ValueType::Double)
+                }
+                else if (vtype == ValueType::Double) {
                     std::cout << std::get<double>(value);
-                else if (vtype == ValueType::Boolean)
+                }
+                else if (vtype == ValueType::Boolean) {
                     std::cout << std::boolalpha << std::get<bool>(value);
-                else if (vtype == ValueType::String)
+                }
+                else if (vtype == ValueType::String) {
                     std::cout << std::get<std::string>(value);
-                else
-                    logger.debug("Unhandled value type: " +  current().info(), "Interpreter::interpretPrint");
-            } else {
-                logger.error("Unknown term `" + name + "`", "Interpreter::interpretPrint");
+                }
+                else {
+                    logger.debug(
+                        "Unhandled value type: " + current().info(),
+                        "Interpreter::interpretPrint");
+                }
+            }
+            else {
+                logger.error(
+                    "Unknown term `" + name + "`",
+                    "Interpreter::interpretPrint");
                 throw std::runtime_error("Unknown term `" + name + "`");
             }
-        } else {
+        }
+        else {
             std::ostringstream error;
             error << "Not implemented `" << Keywords.Print << "`|`"
                   << Keywords.PrintLn << "` for type `"
@@ -174,54 +216,80 @@ class Interpreter {
             throw std::runtime_error(error.str());
         }
 
-        if (printNewLine)
+        if (printNewLine) {
             std::cout << std::endl;
+        }
     }
 
     void interpretAssignment() {
         next(); // Skip the "@"
 
-        if (current().type == TokenType::IDENTIFIER && current().value_type == ValueType::String) {
+        if (current().type == TokenType::IDENTIFIER
+            && current().value_type == ValueType::String) {
             std::string name = current().toString();
             next();
 
-            if (current().type == TokenType::OPERATOR && current().value_type == ValueType::String) {
+            if (current().type == TokenType::OPERATOR
+                && current().value_type == ValueType::String) {
                 std::string op = current().toString();
                 next();
 
                 if (op == Operators.Assign) {
-                    std::variant<int, double, bool, std::string> value = interpretExpression();
+                    std::variant<int, double, bool, std::string> value =
+                        interpretExpression();
                     variables[name] = value;
-                } else
-                    logger.debug("Unknown operator `" + op + "`", "Interpreter::interpretAssignment");
-            } else
-                logger.debug("Unimplemented token `" + current().info() + "`", "Interpreter::interpretAssignment");
-        } else
-            logger.debug("Unimplemented token `" + current().info() + "`", "Interpreter::interpretAssignment");
+                } 
+                else {
+                    logger.debug(
+                        "Unknown operator `" + op + "`",
+                        "Interpreter::interpretAssignment");
+                }
+            } 
+            else {
+                logger.debug(
+                    "Unimplemented token `" + current().info() + "`",
+                    "Interpreter::interpretAssignment");
+            }
+        } 
+        else {
+            logger.debug(
+                "Unimplemented token `" + current().info() + "`",
+                "Interpreter::interpretAssignment");
+        }
     }
 
     // WIP: expression interpreter
     std::variant<int, double, bool, std::string> interpretExpression() {
         std::variant<int, double, bool, std::string> result = interpretTerm();
 
-        while (current().type == TokenType::OPERATOR && current().value_type == ValueType::String) {
+        while (current().type == TokenType::OPERATOR
+               && current().value_type == ValueType::String) {
             std::string op = current().toString();
             next();
 
-            std::variant<int, double, bool, std::string> nextTerm = interpretTerm();
+            std::variant<int, double, bool, std::string> nextTerm =
+                interpretTerm();
 
-            if (op == Operators.Add)
+            if (op == Operators.Add) {
                 result = std::visit(AddVisitor(), result, nextTerm);
-            else if (op == Operators.Subtract)
+            }
+            else if (op == Operators.Subtract) {
                 result = std::visit(SubtractVisitor(), result, nextTerm);
-            else if (op == Operators.Multiply)
+            }
+            else if (op == Operators.Multiply) {
                 result = std::visit(MultiplyVisitor(), result, nextTerm);
-            else if (op == Operators.Divide)
+            }
+            else if (op == Operators.Divide) {
                 result = std::visit(DivideVisitor(), result, nextTerm);
-            else if (op == Operators.Exponent)
+            }
+            else if (op == Operators.Exponent) {
                 result = std::visit(PowerVisitor(), result, nextTerm);
-            else
-                logger.debug("Unimplemented operator `" + op + "`", "Interpreter::interpretExpression");
+            }
+            else {
+                logger.debug(
+                    "Unimplemented operator `" + op + "`",
+                    "Interpreter::interpretExpression");
+            }
         }
 
         return result;
@@ -230,28 +298,36 @@ class Interpreter {
     std::variant<int, double, bool, std::string> interpretTerm() {
         if (current().type == TokenType::OPEN_PAREN) {
             next(); // Skip the '('
-            std::variant<int, double, bool, std::string> result = interpretExpression();
+            std::variant<int, double, bool, std::string> result =
+                interpretExpression();
             next(); // Skip the ')'
             return result;
-        } else if (current().type == TokenType::IDENTIFIER) {
+        }
+        else if (current().type == TokenType::IDENTIFIER) {
             std::string variableName = current().toString();
             next();
-            if (variables.find(variableName) != variables.end())
+            if (variables.find(variableName) != variables.end()) {
                 return variables[variableName];
-        } else if (current().value_type == ValueType::Double) {
+            }
+        } 
+        else if (current().value_type == ValueType::Double) {
             double doubleValue = current().toDouble();
             next();
             return doubleValue;
-        } else if (current().value_type == ValueType::Integer) {
+        } 
+        else if (current().value_type == ValueType::Integer) {
             int intValue = current().toInteger();
             next();
             return intValue;
-        } else if (current().value_type == ValueType::String) {
+        } 
+        else if (current().value_type == ValueType::String) {
             std::string stringValue = evaluateString();
             return stringValue;
         }
-        
-        logger.debug("Unimplemented value type `" + current().info() + "`", "Interpreter::interpretTerm");
+
+        logger.debug(
+            "Unimplemented value type `" + current().info() + "`",
+            "Interpreter::interpretTerm");
 
         return 0; // Placeholder for unsupported types
     }
