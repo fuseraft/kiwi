@@ -41,14 +41,11 @@ int uslang(int c, std::vector<std::string> v) {
     // WIP: new interpreter logic
     Interpreter interp(logger);
     InterpSession session(logger, interp);
+
+    session.registerArg("USL", v.at(0));
     
     for (int i = 1; i < c; ++i) {
         opt = v.at(i);
-
-        if (i == 0) {
-            session.registerArg("USL", opt);
-            continue;
-        }
 
         if (begins_with(opt, "-X") && contains(opt, "=")) {
             handle_xarg(opt, xargPattern, session);
@@ -77,6 +74,7 @@ int uslang(int c, std::vector<std::string> v) {
             } 
             else {
                 configure_usl(config, logger, session);
+                ++i;
             }
         } 
         else if (is_script(opt)) {
