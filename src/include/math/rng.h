@@ -6,11 +6,11 @@
 #include <random>
 
 class RNG {
-  public:
+public:
     static RNG &getInstance();
-    double random(double from, double to);
+    double      random(double from, double to);
 
-  private:
+private:
     RNG();
     std::mt19937 generator; // Mersenne Twister engine
 };
