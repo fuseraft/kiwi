@@ -11,7 +11,7 @@
 #include <unistd.h>
 #include <vector>
 
-const std::string uslang_name    = "uslang";
+const std::string uslang_name    = "Unorthodox Scripting Language";
 const std::string uslang_version = "1.0.0";
 
 #include "configuration/config.h"
@@ -121,7 +121,7 @@ void handle_xarg(std::string &opt, std::__cxx11::regex &xargPattern, InterpSessi
         name = match[1].str();
     }
 
-    size_t pos = opt.find('=');
+    size_t pos = opt.find(':');
     if (pos != std::string::npos) {
         value = opt.substr(pos + 1);
     }
@@ -132,9 +132,7 @@ void handle_xarg(std::string &opt, std::__cxx11::regex &xargPattern, InterpSessi
 }
 
 int print_version() {
-    std::cout << uslang_name << " interpreter "
-              << "v" << uslang_version << std::endl
-              << std::endl;
+    std::cout << uslang_name << " v" << uslang_version << std::endl << std::endl;
     return 0;
 }
 
@@ -148,8 +146,8 @@ int print_help() {
         {"-R, --repl", "start REPL mode"},
         {"-h, --help", "print this message"},
         {"-v, --version", "print the current version"},
-        {"-C, --config <conf>", "specify a configuration file"},
-        {"-X<arg_key>=<arg_value>", "specify an argument as a key-value pair"}};
+        {"-C, --config <conf_path>", "configure with a `.conf` file"},
+        {"-X<key>:<value>", "specify an argument as a key-value pair"}};
 
     print_version();
 
@@ -157,7 +155,7 @@ int print_help() {
               << "Options:" << std::endl;
 
     for (const auto &cmd : commands) {
-        std::cout << std::left << std::setw(30) << ("usl " + cmd.command) << cmd.description << std::endl;
+        std::cout << "  " << std::left << std::setw(40) << cmd.command << cmd.description << std::endl;
     }
 
     std::cout << std::endl;
