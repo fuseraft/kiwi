@@ -13,7 +13,8 @@ enum class ValueType {
 };
 
 ValueType get_value_type(std::variant<int, double, bool, std::string> v) {
-    ValueType type = ValueType::None;
+    ValueType type = ValueType::None; // TODO: Handle this.
+
     std::visit(
         [&](auto &&arg) {
             using T = std::decay_t<decltype(arg)>;
@@ -34,6 +35,7 @@ ValueType get_value_type(std::variant<int, double, bool, std::string> v) {
                 type = ValueType::Unknown;
             }
         }, v);
+
     return type;
 }
 
@@ -52,6 +54,7 @@ std::string get_value_type_string(ValueType vt) {
         case ValueType::None:
             return "None";
     }
+
     std::ostringstream error;
     error << "Cannot determine value type `" << static_cast<int>(vt) << "`.";
     throw std::runtime_error(error.str());

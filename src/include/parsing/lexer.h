@@ -7,9 +7,8 @@
 
 class Lexer {
 public:
-    Lexer(Logger &logger, const std::string &source, bool skipWhitespace = true)
-        : logger(logger), source(source), currentPosition(0),
-          _skipWhitespace(skipWhitespace) {}
+    Lexer(Logger &logger, const std::string &source, bool skipWhitespace = true) 
+        : logger(logger), source(source), currentPosition(0), _skipWhitespace(skipWhitespace) {}
 
     Token getNextToken() {
         Token token = _getNextToken();
@@ -19,11 +18,14 @@ public:
 
     std::vector<Token> getAllTokens() {
         std::vector<Token> tokens;
+
         while (true) {
             Token token = getNextToken();
+            
             if (token.type == TokenType::ENDOFFILE) {
                 break;
             }
+
             tokens.push_back(token);
         }
 
@@ -39,8 +41,9 @@ private:
     Token _getNextToken() {
         skipWhitespace();
 
-        if (currentPosition >= source.length())
+        if (currentPosition >= source.length()) {
             return Token(TokenType::ENDOFFILE, "", 0);
+        }
 
         char currentChar = source[currentPosition++];
 
@@ -73,8 +76,8 @@ private:
         }
         else if (currentChar == '\\') {
             if (currentPosition < source.length()) {
-                char nextChar = source[currentPosition];
-                ++currentPosition;
+                char nextChar = source[currentPosition++];
+
                 switch (nextChar) {
                     case 't':
                         return Token(TokenType::ESCAPED, "\t", "\t");
@@ -82,7 +85,9 @@ private:
                         return Token(TokenType::ESCAPED, "\n", "\n");
                 }
             }
+
             ++currentPosition;
+
             return Token(TokenType::IDENTIFIER, "\\", "\\");
         } 
         else {

@@ -36,9 +36,7 @@ public:
                 interpretPrint(current().text == Keywords.PrintLn);
             }
             else {
-                logger.debug(
-                    "Unhandled token " + current().info(),
-                    "Interpreter::interpret");
+                logger.debug("Unhandled token " + current().info(), "Interpreter::interpret");
             }
         }
     }
@@ -54,9 +52,7 @@ private:
 
     Token next() {
         if (_position + 1 < _end) {
-            logger.debug(
-                "Next token: " + _tokens[_position + 1].info(),
-                "Interpreter::next");
+            logger.debug("Next token: " + _tokens[_position + 1].info(), "Interpreter::next");
             ++_position;
         }
 
@@ -145,21 +141,15 @@ private:
                         string << std::get<std::string>(v);
                     }
                     else {
-                        logger.debug(
-                            "Unhandled value type: " + token.info(),
-                            "Interpreter::evaluateStringInterpolation");
+                        logger.debug("Unhandled value type: " + token.info(), "Interpreter::evaluateStringInterpolation");
                     }
                 } 
                 else {
-                    logger.debug(
-                        "Variable undefined: " + token.info(),
-                        "Interpreter::evaluateStringInterpolation");
+                    logger.debug("Variable undefined: " + token.info(), "Interpreter::evaluateStringInterpolation");
                 }
             } 
             else {
-                logger.debug(
-                    "Unhandled token: " + token.info(),
-                    "Interpreter::evaluateStringInterpolation");
+                logger.debug("Unhandled token: " + token.info(), "Interpreter::evaluateStringInterpolation");
             }
 
             token = eval[++position];
@@ -194,15 +184,11 @@ private:
                     std::cout << std::get<std::string>(value);
                 }
                 else {
-                    logger.debug(
-                        "Unhandled value type: " + current().info(),
-                        "Interpreter::interpretPrint");
+                    logger.debug("Unhandled value type: " + current().info(), "Interpreter::interpretPrint");
                 }
             }
             else {
-                logger.error(
-                    "Unknown term `" + name + "`",
-                    "Interpreter::interpretPrint");
+                logger.error("Unknown term `" + name + "`", "Interpreter::interpretPrint");
                 throw std::runtime_error("Unknown term `" + name + "`");
             }
         }
@@ -224,37 +210,28 @@ private:
     void interpretAssignment() {
         next(); // Skip the "@"
 
-        if (current().type == TokenType::IDENTIFIER
-            && current().value_type == ValueType::String) {
+        if (current().type == TokenType::IDENTIFIER && current().value_type == ValueType::String) {
             std::string name = current().toString();
             next();
 
-            if (current().type == TokenType::OPERATOR
-                && current().value_type == ValueType::String) {
+            if (current().type == TokenType::OPERATOR && current().value_type == ValueType::String) {
                 std::string op = current().toString();
                 next();
 
                 if (op == Operators.Assign) {
-                    std::variant<int, double, bool, std::string> value =
-                        interpretExpression();
+                    std::variant<int, double, bool, std::string> value = interpretExpression();
                     variables[name] = value;
                 } 
                 else {
-                    logger.debug(
-                        "Unknown operator `" + op + "`",
-                        "Interpreter::interpretAssignment");
+                    logger.debug("Unknown operator `" + op + "`", "Interpreter::interpretAssignment");
                 }
             } 
             else {
-                logger.debug(
-                    "Unimplemented token `" + current().info() + "`",
-                    "Interpreter::interpretAssignment");
+                logger.debug("Unimplemented token `" + current().info() + "`", "Interpreter::interpretAssignment");
             }
         } 
         else {
-            logger.debug(
-                "Unimplemented token `" + current().info() + "`",
-                "Interpreter::interpretAssignment");
+            logger.debug("Unimplemented token `" + current().info() + "`", "Interpreter::interpretAssignment");
         }
     }
 
@@ -262,13 +239,11 @@ private:
     std::variant<int, double, bool, std::string> interpretExpression() {
         std::variant<int, double, bool, std::string> result = interpretTerm();
 
-        while (current().type == TokenType::OPERATOR
-               && current().value_type == ValueType::String) {
+        while (current().type == TokenType::OPERATOR && current().value_type == ValueType::String) {
             std::string op = current().toString();
             next();
 
-            std::variant<int, double, bool, std::string> nextTerm =
-                interpretTerm();
+            std::variant<int, double, bool, std::string> nextTerm = interpretTerm();
 
             if (op == Operators.Add) {
                 result = std::visit(AddVisitor(), result, nextTerm);
@@ -286,9 +261,7 @@ private:
                 result = std::visit(PowerVisitor(), result, nextTerm);
             }
             else {
-                logger.debug(
-                    "Unimplemented operator `" + op + "`",
-                    "Interpreter::interpretExpression");
+                logger.debug("Unimplemented operator `" + op + "`", "Interpreter::interpretExpression");
             }
         }
 
@@ -298,8 +271,7 @@ private:
     std::variant<int, double, bool, std::string> interpretTerm() {
         if (current().type == TokenType::OPEN_PAREN) {
             next(); // Skip the '('
-            std::variant<int, double, bool, std::string> result =
-                interpretExpression();
+            std::variant<int, double, bool, std::string> result = interpretExpression();
             next(); // Skip the ')'
             return result;
         }
@@ -325,9 +297,7 @@ private:
             return stringValue;
         }
 
-        logger.debug(
-            "Unimplemented value type `" + current().info() + "`",
-            "Interpreter::interpretTerm");
+        logger.debug("Unimplemented value type `" + current().info() + "`", "Interpreter::interpretTerm");
 
         return 0; // Placeholder for unsupported types
     }
