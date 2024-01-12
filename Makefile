@@ -18,12 +18,19 @@ EXECUTABLE := $(BIN_DIR)/usl
 
 TEST_FILE := $(TEST_DIR)/test.uslang
 
-.PHONY: all clean test format
+.PHONY: clean test
 
 format:
 	find . -iname "*.cpp" -o -iname "*.h" | xargs clang-format -i --style=file
 
 all: format $(EXECUTABLE)
+
+test: $(EXECUTABLE)
+	@echo "Running tests..."
+	$(EXECUTABLE) $(TEST_FILE)
+
+clean:
+	rm -rf $(BUILD_DIR) $(BIN_DIR)
 
 $(EXECUTABLE): $(OBJ_FILES)
 	@mkdir -p $(BIN_DIR)
@@ -33,11 +40,4 @@ $(EXECUTABLE): $(OBJ_FILES)
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp $(INCLUDE_FILES)
 	@mkdir -p $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
-
-test: $(EXECUTABLE)
-	@echo "Running tests..."
-	$(EXECUTABLE) $(TEST_FILE)
-
-clean:
-	rm -rf $(BUILD_DIR) $(BIN_DIR)
 
