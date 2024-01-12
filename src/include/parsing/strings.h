@@ -23,14 +23,6 @@ bool is_flag(const std::string &s, const std::string &shortFlag, const std::stri
     return false;
 }
 
-bool is_script(std::string path) {
-    return ends_with(path, ".usl") || ends_with(path, ".uslang");
-}
-
-bool is_conf(std::string path) {
-    return ends_with(path, ".conf");
-}
-
 bool contains(std::string s, std::string search) {
     if (search == "") {
         return false;
