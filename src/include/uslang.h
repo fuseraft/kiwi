@@ -22,6 +22,8 @@ const std::string uslang_version = "1.0.0";
 #include "parsing/keywords.h"
 #include "parsing/strings.h"
 
+bool has_script_extension(std::string path);
+bool has_conf_extension(std::string path);
 void handle_xarg(std::string &opt, std::__cxx11::regex &xargPattern, InterpSession &session);
 void configure_usl(Config &config, Logger &logger, InterpSession &session);
 int print_version();
@@ -66,7 +68,7 @@ int uslang(int c, std::vector<std::string> v) {
 
             std::string conf = v[i + 1];
 
-            if (!is_conf(conf)) {
+            if (!has_conf_extension(conf)) {
                 logger.error("I can be configured with a `.conf` file.");
             } 
             else if (!config.read(conf)) {
@@ -77,7 +79,7 @@ int uslang(int c, std::vector<std::string> v) {
                 ++i;
             }
         } 
-        else if (is_script(opt)) {
+        else if (has_script_extension(opt)) {
             session.registerScript(opt);
         } 
         else {
@@ -128,6 +130,15 @@ void handle_xarg(std::string &opt, std::__cxx11::regex &xargPattern, InterpSessi
         session.registerArg(name, value);
     }
 }
+
+bool has_script_extension(std::string path) {
+    return ends_with(path, ".usl") || ends_with(path, ".uslang");
+}
+
+bool has_conf_extension(std::string path) {
+    return ends_with(path, ".conf");
+}
+
 
 int print_version() {
     std::cout << uslang_name << " v" << uslang_version << std::endl << std::endl;

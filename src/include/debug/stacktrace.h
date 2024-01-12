@@ -36,7 +36,7 @@ void print_stacktrace() {
 }
 
 void print_error(const std::exception &e) {
-    std::cerr << "Exception caught: " << e.what() << std::endl;
+    std::cerr << "Error: " << e.what() << std::endl;
     print_stacktrace();
 }
 
