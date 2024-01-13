@@ -16,28 +16,36 @@ public:
     Interpreter(Logger &logger) : logger(logger), variables() {}
 
     void interpret(std::vector<Token> tokens) {
+        if (tokens.size() == 0) {
+            return;
+        }
+
         setTokens(tokens);
+
         while (_position < _end) {
             if (_position + 1 == _end) {
                 break;
             }
 
-            next();
-
             // Don't parse comments.
             if (current().type == TokenType::COMMENT) {
+                next();
                 continue;
             }
 
             if (current().type == TokenType::KEYWORD && current().text == Symbols.DeclVar) {
                 interpretAssignment();
+                continue;
             }
-            else if (current().type == TokenType::IDENTIFIER && (current().text == Keywords.PrintLn || current().text == Keywords.Print)) {
+            
+            if (current().type == TokenType::IDENTIFIER && (current().text == Keywords.PrintLn || current().text == Keywords.Print)) {
                 interpretPrint(current().text == Keywords.PrintLn);
             }
             else {
                 logger.debug("Unhandled token " + current().info(), "Interpreter::interpret");
             }
+
+            next();
         }
     }
 
@@ -69,7 +77,7 @@ private:
 
     void setTokens(const std::vector<Token> tokens) {
         _tokens = tokens;
-        _position = -1;
+        _position = 0;
         _end = _tokens.size();
     }
 
@@ -239,7 +247,7 @@ private:
     std::variant<int, double, bool, std::string> interpretExpression() {
         std::variant<int, double, bool, std::string> result = interpretTerm();
 
-        while (current().type == TokenType::OPERATOR && current().value_type == ValueType::String) {
+        while (current().type == TokenType::OPERATOR) {
             std::string op = current().toString();
             next();
 
@@ -269,6 +277,10 @@ private:
     }
 
     std::variant<int, double, bool, std::string> interpretTerm() {
+        if (current().text == Symbols.DeclVar) {
+            next();
+        }
+
         if (current().type == TokenType::OPEN_PAREN) {
             next(); // Skip the '('
             std::variant<int, double, bool, std::string> result = interpretExpression();
@@ -277,19 +289,17 @@ private:
         }
         else if (current().type == TokenType::IDENTIFIER) {
             std::string variableName = current().toString();
-            next();
             if (variables.find(variableName) != variables.end()) {
+                next();
                 return variables[variableName];
             }
-        } 
+        }
         else if (current().value_type == ValueType::Double) {
             double doubleValue = current().toDouble();
-            next();
             return doubleValue;
         } 
         else if (current().value_type == ValueType::Integer) {
             int intValue = current().toInteger();
-            next();
             return intValue;
         } 
         else if (current().value_type == ValueType::String) {

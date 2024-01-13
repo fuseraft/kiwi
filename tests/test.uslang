@@ -3,14 +3,15 @@
 println "uslang is a ${@desc} scripting language.\n"
 
 @a = 5
-println "a = ${@a}"
 @b = 3
-println "b = ${@b}"
 @c = 4
-println "c = ${@c}"
 @r = (@a + @b) / @c
-println "r = ${@r}"
 @d = "(${@a} + ${@b}) / ${@c} = ${@r}"
-println @d
+
+println "a = ${@a}"
+println "b = ${@b}"
+println "c = ${@c}"
+println "r = ${@r}"
+println "${@d}"
 
 # TODO: adding tests will help me build the interpreter.

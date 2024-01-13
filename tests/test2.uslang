@@ -1,0 +1,5 @@
+@five = 5
+@three = 3
+@four = 4
+@two = (@five + @three) / @four
+println "${@two}"
