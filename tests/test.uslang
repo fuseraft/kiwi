@@ -1,6 +1,4 @@
-# Simple string interpolation
-@desc = "hybrid-typed, object-oriented, interpreted"
-println "\n\n\nuslang is a ${@desc} scripting language.\n"
+# arithmetic and string interpolation
 
 @a = 5
 @b = 3
@@ -25,8 +23,18 @@ println "r/3 = ${@e}"
 @c = 5.0
 println "c = ${@c}"
 
-# @c /= 2
-# println "c/2 = ${@c}"
+@c /= 2
+println "c/2 = ${@c}\n"
 
+# string concatenation
+
+@s = "Hello"
+@s += " World!"
+println "${@s}"
+println "\n"
+
+# string multiplication
+@s *= 2
+println "${@s}"
 
 # TODO: adding tests will help me build the interpreter.
