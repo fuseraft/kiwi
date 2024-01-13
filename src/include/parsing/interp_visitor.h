@@ -30,10 +30,11 @@ struct {
             result = static_cast<double>(std::get<int>(left)) + std::get<double>(right);
         }
         else if (vtleft == ValueType::Double && vtright == ValueType::Integer) {
-            result = std::get<double>(left) + static_cast<double>(std::get<double>(right));
+            result = std::get<double>(left) + static_cast<double>(std::get<int>(right));
         }
         else if (vtleft == ValueType::String) {
             std::ostringstream build;
+            build << std::get<std::string>(left);
 
             if (vtright == ValueType::Integer) {
                 build << std::get<int>(right);
@@ -70,7 +71,7 @@ struct {
             result = static_cast<double>(std::get<int>(left)) - std::get<double>(right);
         }
         else if (vtleft == ValueType::Double && vtright == ValueType::Integer) {
-            result = std::get<double>(left) - static_cast<double>(std::get<double>(right));
+            result = std::get<double>(left) - static_cast<double>(std::get<int>(right));
         }
         else {
             throw std::runtime_error("Conversion error.");
@@ -89,10 +90,10 @@ struct {
             result = pow(std::get<double>(left), std::get<double>(right));
         }
         else if (vtleft == ValueType::Integer && vtright == ValueType::Double) {
-            result = static_cast<int>(pow(static_cast<double>(std::get<int>(left)), std::get<double>(right)));
+            result = pow(static_cast<double>(std::get<int>(left)), std::get<double>(right));
         }
         else if (vtleft == ValueType::Double && vtright == ValueType::Integer) {
-            result = pow(std::get<double>(left), static_cast<double>(std::get<double>(right)));
+            result = pow(std::get<double>(left), static_cast<double>(std::get<int>(right)));
         }
         else {
             throw std::runtime_error("Conversion error.");
@@ -114,7 +115,7 @@ struct {
             result = static_cast<double>(std::get<int>(left)) / std::get<double>(right);
         }
         else if (vtleft == ValueType::Double && vtright == ValueType::Integer) {
-            result = std::get<double>(left) / static_cast<double>(std::get<double>(right));
+            result = std::get<double>(left) / static_cast<double>(std::get<int>(right));
         }
         else {
             throw std::runtime_error("Conversion error.");
@@ -136,7 +137,7 @@ struct {
             result = static_cast<double>(std::get<int>(left)) * std::get<double>(right);
         }
         else if (vtleft == ValueType::Double && vtright == ValueType::Integer) {
-            result = std::get<double>(left) * static_cast<double>(std::get<double>(right));
+            result = std::get<double>(left) * static_cast<double>(std::get<int>(right));
         }
         else if (vtleft == ValueType::String && vtright == ValueType::Integer) {
             std::string string = std::get<std::string>(left);
