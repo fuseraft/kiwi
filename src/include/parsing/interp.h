@@ -1,14 +1,14 @@
 #ifndef INTERP_H
 #define INTERP_H
 
+#include <map>
+#include <variant>
 #include "../logging/logger.h"
-#include "value_type.h"
-#include "interp_visitor.h"
+#include "../typing/value_type.h"
+#include "math/math_visitor.h"
 #include "lexer.h"
 #include "tokens.h"
 #include "keywords.h"
-#include <map>
-#include <variant>
 
 class Interpreter {
     // WIP: this is the new interpreter.

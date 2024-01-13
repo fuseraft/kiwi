@@ -1,9 +1,9 @@
-#ifndef INTERP_VISITOR_H
-#define INTERP_VISITOR_H
+#ifndef MATH_VISITOR_H
+#define MATH_VISITOR_H
 
 #include <variant>
 #include <cmath>
-#include "value_type.h"
+#include "../typing/value_type.h"
 
 struct {
     bool is_zero(ValueType type, std::variant<int, double, bool, std::string> v) {
