@@ -16,6 +16,7 @@ enum TokenType {
     ESCAPED,
     OPEN_PAREN,
     CLOSE_PAREN,
+    CONDITIONAL,
     ENDOFFILE
 };
 
@@ -41,6 +42,8 @@ std::string get_token_type_string(TokenType tt) {
             return "OPEN_PAREN";
         case TokenType::CLOSE_PAREN:
             return "CLOSE_PAREN";
+        case TokenType::CONDITIONAL:
+            return "CONDITIONAL";
         case TokenType::ENDOFFILE:
             return "ENDOFFILE";
     }
