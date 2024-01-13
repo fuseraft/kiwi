@@ -215,6 +215,39 @@ private:
         }
     }
 
+    void handleAssignment(std::string& name, std::string& op) {
+        std::variant<int, double, bool, std::string> value = interpretExpression();
+
+        if (op == Operators.Assign) {
+            variables[name] = value;
+            return;
+        }
+
+        if (variables.find(name) == variables.end()) {
+            throw std::runtime_error("Variable undefined: `" + name + "`");
+        }
+
+        std::variant<int, double, bool, std::string> currentValue = variables[name];
+        
+        if (op == Operators.AddAssign) {
+            currentValue = std::visit(AddVisitor(), currentValue, value);
+        }
+        else if (op == Operators.SubtractAssign) {
+            currentValue = std::visit(SubtractVisitor(), currentValue, value);
+        }
+        else if (op == Operators.MultiplyAssign) {
+            currentValue = std::visit(MultiplyVisitor(), currentValue, value);
+        }
+        else if (op == Operators.DivideAssign) {
+            currentValue = std::visit(DivideVisitor(), currentValue, value);
+        }
+        else if (op == Operators.ExponentAssign) {
+            currentValue = std::visit(PowerVisitor(), currentValue, value);
+        }
+
+        variables[name] = currentValue;
+    }
+
     void interpretAssignment() {
         next(); // Skip the "@"
 
@@ -226,10 +259,9 @@ private:
                 std::string op = current().toString();
                 next();
 
-                if (op == Operators.Assign) {
-                    std::variant<int, double, bool, std::string> value = interpretExpression();
-                    variables[name] = value;
-                } 
+                if (Operators.is_assignment_operator(op)) {
+                    handleAssignment(name, op);
+                }
                 else {
                     logger.debug("Unknown operator `" + op + "`", "Interpreter::interpretAssignment");
                 }
