@@ -3,7 +3,7 @@
 
 #include <string>
 #include <variant>
-#include "value_type.h"
+#include "../typing/value_type.h"
 
 enum TokenType {
     IDENTIFIER,
