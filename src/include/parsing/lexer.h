@@ -3,6 +3,7 @@
 
 #include "../logging/logger.h"
 #include "tokens.h"
+#include "keywords.h"
 #include <vector>
 
 class Lexer {
@@ -93,6 +94,16 @@ private:
         else {
             std::string s;
             s = currentChar;
+
+            if (Operators.is_arithmetic_operator_char(currentChar) && currentPosition < source.length()) {
+                char nextChar = source[currentPosition];
+
+                if (nextChar == '=') {
+                    s += nextChar;
+                    ++currentPosition;
+                }
+            }
+
             return Token(TokenType::OPERATOR, s, s);
         }
     }

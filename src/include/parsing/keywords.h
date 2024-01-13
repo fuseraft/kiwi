@@ -156,6 +156,21 @@ struct {
     const std::string Subtract           = "-";
     const std::string SubtractAssign     = "-=";
     const std::string To                 = "to";
+
+    std::unordered_set<std::string> assignment_operators = {
+        Assign, AddAssign, SubtractAssign, 
+        MultiplyAssign, DivideAssign, ExponentAssign
+    };
+
+    std::unordered_set<char> arithmetic_operator_chars = { '+', '-', '/', '*', '^', '%' };
+
+    bool is_assignment_operator(std::string& arg) {
+        return assignment_operators.find(arg) != assignment_operators.end();
+    }
+
+    bool is_arithmetic_operator_char(char arg) {
+        return arithmetic_operator_chars.find(arg) != arithmetic_operator_chars.end();
+    }
 } Operators;
 
 struct {
@@ -174,90 +189,16 @@ struct {
     const std::string Floor = "floor";
     const std::string Ceil  = "ceil";
     const std::string Exp   = "exp";
+
+    std::unordered_set<std::string> math_functions = {
+        Abs, Acos, Asin, Atan, Ceil,
+        Cos, Cosh, Exp, Floor, Log,
+        Sin, Sinh, Sqrt, Tan, Tanh
+    };
+    
+    bool is_math_function(const std::string &arg) {
+        return math_functions.find(arg) != math_functions.end();
+    }
 } Math;
-
-std::unordered_set<std::string> recognized_0space_set = {
-    Keywords.Break,         Keywords.Caught, Keywords.Else,
-    Keywords.End,           Keywords.Exit,   Keywords.Failif,
-    Keywords.Parser,        Keywords.Pass,   AccessModifiers.Private,
-    AccessModifiers.Public, Keywords.Try};
-
-std::unordered_set<std::string> recognized_1space_set = {
-    Keywords.BeginInlineScript,
-    Keywords.ChangeDirectory,
-    Keywords.Class,
-    Keywords.CreateDirectory,
-    Keywords.CreateFile,
-    Keywords.Delay,
-    Keywords.Err,
-    Keywords.For,
-    Keywords.GC,
-    Keywords.Globalize,
-    Keywords.Goto,
-    Keywords.If,
-    Keywords.InitialDirectory,
-    Keywords.InlineParse,
-    Keywords.InvokeMethod,
-    Keywords.IsClass,
-    Keywords.IsCollectable,
-    Keywords.IsDirectory,
-    Keywords.IsDirectory,
-    Keywords.IsFile,
-    Keywords.IsList,
-    Keywords.IsList,
-    Keywords.IsMethod,
-    Keywords.IsNumber,
-    Keywords.IsString,
-    Keywords.IsVariable,
-    Keywords.List,
-    Keywords.Lock,
-    Keywords.LockedMethod,
-    Keywords.Method,
-    Keywords.Module,
-    Keywords.Print,
-    Keywords.PrintLn,
-    Keywords.Prompt,
-    Keywords.Remove,
-    Keywords.RemoveDirectory,
-    Keywords.RemoveFile,
-    Keywords.ShellExec,
-    Keywords.Switch,
-    Keywords.Template,
-    Keywords.Unlock};
-
-std::unordered_set<std::string> recognized_2space_set = {
-    Keywords.InlineParse,     Keywords.ShellExec, Operators.Add,
-    Operators.AddAssign,      Operators.Assign,   Operators.Divide,
-    Operators.DivideAssign,   Operators.Exponent, Operators.ExponentAssign,
-    Operators.ModuloAssign,   Operators.Modulus,  Operators.Multiply,
-    Operators.MultiplyAssign, Operators.Subtract, Operators.SubtractAssign};
-
-std::unordered_set<std::string> recognized_mathfunc_set = {
-    Math.Abs, Math.Acos, Math.Asin, Math.Atan,  Math.Ceil,
-    Math.Cos, Math.Cosh, Math.Exp,  Math.Floor, Math.Log,
-    Math.Sin, Math.Sinh, Math.Sqrt, Math.Tan,   Math.Tanh};
-
-std::unordered_set<char> stack_operators = {' ', '+', '-', '*', '/', '%', '^'};
-
-bool is_recognized_0space(const std::string &arg) {
-    return recognized_0space_set.find(arg) != recognized_0space_set.end();
-}
-
-bool is_recognized_1space(const std::string &arg) {
-    return recognized_1space_set.find(arg) != recognized_1space_set.end();
-}
-
-bool is_recognized_2space(const std::string &arg) {
-    return recognized_2space_set.find(arg) != recognized_2space_set.end();
-}
-
-bool is_recognized_math_func(const std::string &arg) {
-    return recognized_mathfunc_set.find(arg) != recognized_mathfunc_set.end();
-}
-
-bool is_stack_op(char c) {
-    std::unordered_set<char> operators = {'+', '-', '*', '/', '%', '^'};
-    return stack_operators.find(c) != stack_operators.end();
-}
 
 #endif

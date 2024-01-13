@@ -15,9 +15,6 @@ int main(int c, char **v) {
             args.push_back(v[i]);
         }
 
-        // args.push_back("--config");
-        // args.push_back("/home/scott/work/usl/uslang/usl.conf");
-
         exit = uslang(args.size(), args);
     } 
     catch (const std::exception &e) {

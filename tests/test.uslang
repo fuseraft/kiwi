@@ -1,6 +1,6 @@
 # Simple string interpolation
 @desc = "hybrid-typed, object-oriented, interpreted"
-println "uslang is a ${@desc} scripting language.\n"
+println "\n\n\nuslang is a ${@desc} scripting language.\n"
 
 @a = 5
 @b = 3
@@ -12,6 +12,21 @@ println "a = ${@a}"
 println "b = ${@b}"
 println "c = ${@c}"
 println "r = ${@r}"
-println "${@d}"
+println "${@d}\n"
+
+@r *= 2
+println "r*2 = ${@r}"
+@r *= 10
+println "r*10 = ${@r}"
+
+@e = @r / 3
+println "r/3 = ${@e}"
+
+@c = 5.0
+println "c = ${@c}"
+
+# @c /= 2
+# println "c/2 = ${@c}"
+
 
 # TODO: adding tests will help me build the interpreter.
