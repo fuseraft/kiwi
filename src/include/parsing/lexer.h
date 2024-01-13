@@ -118,11 +118,25 @@ private:
         }
     }
 
+    Token parseKeyword(std::string& identifier) {
+        TokenType tokenType;
+
+        if (Keywords.is_conditional_keyword(identifier)) {
+            tokenType = TokenType::CONDITIONAL;
+        }
+
+        return Token(tokenType, identifier, identifier);
+    }
+
     Token parseIdentifier(char initialChar) {
         std::string identifier(1, initialChar);
 
         while (currentPosition < source.length() && isalnum(source[currentPosition])) {
             identifier += source[currentPosition++];
+        }
+
+        if (Keywords.is_keyword(identifier)) {
+            return parseKeyword(identifier);
         }
 
         logger.debug(identifier, "Lexer::parseIdentifier");

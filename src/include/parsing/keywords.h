@@ -118,6 +118,22 @@ struct {
     const std::string Values            = "values";
     const std::string Variables         = "variables";
     const std::string While             = "while";
+
+    std::unordered_set<std::string> keywords = {
+        If, Else, Elsif, Endif
+    };
+
+    std::unordered_set<std::string> conditional_keywords = {
+        If, Else, Elsif, Endif
+    };
+
+    bool is_keyword(std::string& arg) {
+        return keywords.find(arg) != keywords.end();
+    }
+
+    bool is_conditional_keyword(std::string& arg) {
+        return conditional_keywords.find(arg) != conditional_keywords.end();
+    }
 } Keywords;
 
 struct {
