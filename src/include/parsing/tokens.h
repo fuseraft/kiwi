@@ -20,8 +20,8 @@ enum TokenType {
     ENDOFFILE
 };
 
-std::string get_token_type_string(TokenType tt) {
-    switch (tt) {
+std::string get_token_type_string(TokenType tokenType) {
+    switch (tokenType) {
         case TokenType::IDENTIFIER:
             return "IDENTIFIER";
         case TokenType::COMMENT:
@@ -49,21 +49,20 @@ std::string get_token_type_string(TokenType tt) {
     }
 
     std::ostringstream error;
-    error << "Cannot determine token type `" << static_cast<int>(tt) << "`.";
+    error << "Cannot determine token type `" << static_cast<int>(tokenType) << "`.";
     throw std::runtime_error(error.str());
 }
 
-struct Token {
-    TokenType                                    type;
-    std::string                                  text;
-    std::variant<int, double, bool, std::string> value;
-    ValueType                                    value_type;
+class Token {
+public:
+    static Token create(TokenType t, std::string text, const int& lineNumber, const int& linePosition) {
+        Token token(t, text, text, lineNumber, linePosition);
+        return token;
+    }
 
-    Token(
-        TokenType t, std::string text,
-        const std::variant<int, double, bool, std::string> &v)
-        : type(t), text(text), value(v) {
-        value_type = get_value_type(v);
+    static Token create(TokenType t, std::string text, const std::variant<int, double, bool, std::string> &v, const int& lineNumber, const int& linePosition) {
+        Token token(t, text, v, lineNumber, linePosition);
+        return token;
     }
 
     std::string info() {
@@ -74,7 +73,7 @@ struct Token {
     }
 
     std::string toString() {
-        if (value_type != ValueType::String) {
+        if (valueType != ValueType::String) {
             throw new std::runtime_error("Value type is not a `String`.");
         }
 
@@ -82,7 +81,7 @@ struct Token {
     }
 
     int toInteger() {
-        if (value_type != ValueType::Integer) {
+        if (valueType != ValueType::Integer) {
             throw new std::runtime_error("Value type is not an `Integer`.");
         }
 
@@ -90,7 +89,7 @@ struct Token {
     }
 
     bool toBoolean() {
-        if (value_type != ValueType::Boolean) {
+        if (valueType != ValueType::Boolean) {
             throw new std::runtime_error("Value type is not a `Boolean`.");
         }
 
@@ -98,11 +97,50 @@ struct Token {
     }
 
     double toDouble() {
-        if (value_type != ValueType::Double) {
+        if (valueType != ValueType::Double) {
             throw new std::runtime_error("Value type is not a `Double`.");
         }
         
         return std::get<double>(value);
+    }
+
+    std::string getText() const {
+        return text;
+    }
+
+    const int& getLineNumber() const {
+        return _lineNumber;
+    }
+
+    const int& getLinePosition() const {
+        return _linePosition;
+    }
+
+    TokenType getType() {
+        return type;
+    }
+
+    std::variant<int, double, bool, std::string> getValue() {
+        return value;
+    }
+
+    ValueType getValueType() {
+        return valueType;
+    }
+
+private:
+    TokenType                                    type;
+    std::string                                  text;
+    std::variant<int, double, bool, std::string> value;
+    ValueType                                    valueType;
+    int                                          _lineNumber;
+    int                                          _linePosition;
+
+    Token(TokenType t, std::string text, const std::variant<int, double, bool, std::string> &v, const int& lineNumber, const int& linePosition)
+        : type(t), text(text), value(v) {
+        valueType = get_value_type(v);
+        _lineNumber = lineNumber;
+        _linePosition = linePosition;
     }
 };
 
