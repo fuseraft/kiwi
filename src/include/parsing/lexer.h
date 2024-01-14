@@ -146,6 +146,10 @@ private:
         if (Keywords.is_conditional_keyword(identifier)) {
             tokenType = TokenType::CONDITIONAL;
         }
+        else if (Keywords.is_boolean(identifier)) {
+            tokenType = TokenType::LITERAL;
+            return Token::createBoolean(identifier, lineNumber, linePosition);
+        }
 
         return Token::create(tokenType, identifier, lineNumber, linePosition);
     }
