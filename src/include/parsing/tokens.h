@@ -55,14 +55,18 @@ std::string get_token_type_string(TokenType tokenType) {
 
 class Token {
 public:
-    static Token create(TokenType t, std::string text, const int& lineNumber, const int& linePosition) {
-        Token token(t, text, text, lineNumber, linePosition);
-        return token;
-    }
-
     static Token create(TokenType t, std::string text, const std::variant<int, double, bool, std::string> &v, const int& lineNumber, const int& linePosition) {
         Token token(t, text, v, lineNumber, linePosition);
         return token;
+    }
+
+    static Token create(TokenType t, std::string text, const int& lineNumber, const int& linePosition) {
+        return create(t, text, text, lineNumber, linePosition);
+    }
+
+    static Token createBoolean(std::string text, const int& lineNumber, const int& linePosition) {
+        bool value = text == Keywords.True;
+        return create(TokenType::LITERAL, text, value, lineNumber, linePosition);
     }
 
     std::string info() {
