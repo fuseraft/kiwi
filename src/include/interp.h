@@ -252,17 +252,17 @@ private:
                 return variables[variableName];
             }
         }
+        else if (current().getValueType() == ValueType::Boolean) {
+            return current().toBoolean();
+        }
         else if (current().getValueType() == ValueType::Double) {
-            double doubleValue = current().toDouble();
-            return doubleValue;
+            return current().toDouble();
         } 
         else if (current().getValueType() == ValueType::Integer) {
-            int intValue = current().toInteger();
-            return intValue;
+            return current().toInteger();
         } 
         else if (current().getValueType() == ValueType::String) {
-            std::string stringValue = evaluateString();
-            return stringValue;
+            return evaluateString();
         }
 
         return 0; // Placeholder for unsupported types
