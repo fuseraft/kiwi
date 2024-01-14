@@ -28,7 +28,9 @@ println "c = c/2 = ${@c}\n"
 
 # divide by zero
 @zero = 0
-@thrower = @zero / @zero
+@one = 1
+# @one /= @zero
+@thrower = @zero / @one
 
 # string concatenation
 

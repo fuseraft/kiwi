@@ -120,7 +120,7 @@ struct {
     const std::string While             = "while";
 
     std::unordered_set<std::string> keywords = {
-        If, Else, Elsif, Endif
+        If, Else, Elsif, Endif, True, False
     };
 
     std::unordered_set<std::string> conditional_keywords = {
@@ -129,6 +129,10 @@ struct {
 
     bool is_keyword(std::string& arg) {
         return keywords.find(arg) != keywords.end();
+    }
+
+    bool is_boolean(std::string& arg) {
+        return arg == True || arg == False;
     }
 
     bool is_conditional_keyword(std::string& arg) {
