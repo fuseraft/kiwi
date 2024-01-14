@@ -10,6 +10,12 @@ class Lexer {
 public:
     Lexer(Logger &logger, const std::string &source, bool skipWhitespace = true) 
         : logger(logger), source(source), currentPosition(0), _skipWhitespace(skipWhitespace) {
+        std::istringstream stream(source);
+        std::string line;
+
+        while (std::getline(stream, line)) {
+            lines.push_back(line);
+        }
     }
 
     std::vector<Token> getAllTokens() {
@@ -42,16 +48,12 @@ private:
     int         lineNumber;
     int         linePosition;
     std::vector<std::string> lines;
-    std::string line;
 
     char getCurrentChar() {
         char c = source[currentPosition++];
-        line += c;
         if (c == '\n') {
             lineNumber++;
             linePosition = 0;
-            lines.push_back(line);
-            line.clear();
         }
         else {
             linePosition++;
