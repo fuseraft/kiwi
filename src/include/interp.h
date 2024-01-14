@@ -90,7 +90,8 @@ private:
         }
         std::cerr << "Location:  Line " << 1 + lineNumber << ", Column " << linePosition << "." << std::endl;
         std::cerr << "Code: " << std::endl 
-            << "```" << std::endl << line;
+            << "```" << std::endl 
+            << line << std::endl;
 
         for (int i = 0; i < length; ++i) {
             std::cerr << (i == linePosition - 1 ? "^" : " ");
@@ -202,38 +203,41 @@ private:
 
     // WIP: expression interpreter
     std::variant<int, double, bool, std::string> interpretExpression() {
-        std::variant<int, double, bool, std::string> result = interpretTerm();
+        Token tokenTerm = current();
+        std::variant<int, double, bool, std::string> result = interpretTerm(tokenTerm);
 
         while (current().getType() == TokenType::OPERATOR) {
             std::string op = current().toString();
             next();
 
-            std::variant<int, double, bool, std::string> nextTerm = interpretTerm();
+            std::variant<int, double, bool, std::string> nextTerm = interpretTerm(tokenTerm);
 
             if (op == Operators.Add) {
-                result = std::visit(AddVisitor(current()), result, nextTerm);
+                result = std::visit(AddVisitor(tokenTerm), result, nextTerm);
             }
             else if (op == Operators.Subtract) {
-                result = std::visit(SubtractVisitor(current()), result, nextTerm);
+                result = std::visit(SubtractVisitor(tokenTerm), result, nextTerm);
             }
             else if (op == Operators.Multiply) {
-                result = std::visit(MultiplyVisitor(current()), result, nextTerm);
+                result = std::visit(MultiplyVisitor(tokenTerm), result, nextTerm);
             }
             else if (op == Operators.Divide) {
-                result = std::visit(DivideVisitor(current()), result, nextTerm);
+                result = std::visit(DivideVisitor(tokenTerm), result, nextTerm);
             }
             else if (op == Operators.Exponent) {
-                result = std::visit(PowerVisitor(current()), result, nextTerm);
+                result = std::visit(PowerVisitor(tokenTerm), result, nextTerm);
             }
         }
 
         return result;
     }
 
-    std::variant<int, double, bool, std::string> interpretTerm() {
+    std::variant<int, double, bool, std::string> interpretTerm(Token& termToken) {
         if (current().getText() == Symbols.DeclVar) {
             next();
         }
+        
+        termToken = current();
 
         if (current().getType() == TokenType::OPEN_PAREN) {
             next(); // Skip the '('
@@ -356,7 +360,7 @@ private:
         }
 
         std::variant<int, double, bool, std::string> currentValue = variables[name];
-        
+
         if (op == Operators.AddAssign) {
             currentValue = std::visit(AddVisitor(current()), currentValue, value);
         }
