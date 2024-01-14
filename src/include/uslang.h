@@ -18,7 +18,7 @@ const std::string uslang_version = "1.0.0";
 #include "debug/stacktrace.h"
 #include "logging/logger.h"
 #include "math/rng.h"
-#include "parsing/interp_session.h"
+#include "interp_session.h"
 #include "parsing/keywords.h"
 #include "parsing/strings.h"
 
