@@ -150,6 +150,11 @@ private:
         if (current().getText() != Keywords.If) {
             throw SyntaxError(current());
         }
+    
+        next();
+        std::variant<int, double, bool, std::string> value = interpretExpression();
+
+        std::cout << "current: " << get_value_string(value) << std::endl;
     }
 
     void interpretPrint(bool printNewLine = false) {
@@ -162,30 +167,14 @@ private:
             next();
             std::string name = current().getText();
 
-            if (variables.find(name) != variables.end()) {
-                std::variant<int, double, bool, std::string> value =
-                    interpretExpression();
-                ValueType vtype = get_value_type(value);
-
-                if (vtype == ValueType::Integer) {
-                    std::cout << std::get<int>(value);
-                }
-                else if (vtype == ValueType::Double) {
-                    std::cout << std::get<double>(value);
-                }
-                else if (vtype == ValueType::Boolean) {
-                    std::cout << std::boolalpha << std::get<bool>(value);
-                }
-                else if (vtype == ValueType::String) {
-                    std::cout << std::get<std::string>(value);
-                }
-                else {
-                    throw UslangError(current(), "Unhandled value type: " + current().info());
-                }
-            }
-            else {
+            if (variables.find(name) == variables.end()) {
                 throw UslangError(current(), "Unknown term `" + name + "`");
             }
+
+            std::variant<int, double, bool, std::string> value =
+                interpretExpression();
+            
+            std::cout << get_value_string(value);
         }
         else {
             std::ostringstream error;
@@ -226,6 +215,9 @@ private:
             }
             else if (op == Operators.Exponent) {
                 result = std::visit(PowerVisitor(tokenTerm), result, nextTerm);
+            }
+            else if (op == Operators.Equal) {
+                result = std::visit(EqualityVisitor(tokenTerm), result, nextTerm);
             }
         }
 

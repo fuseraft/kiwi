@@ -39,6 +39,12 @@ ValueType get_value_type(std::variant<int, double, bool, std::string> v) {
     return type;
 }
 
+void throw_valuetype_error(ValueType vt) {
+    std::ostringstream error;
+    error << "Unhandled value type `" << static_cast<int>(vt) << "`.";
+    throw std::runtime_error(error.str());
+}
+
 std::string get_value_type_string(ValueType vt) {
     switch (vt) {
         case ValueType::Boolean:
@@ -55,9 +61,31 @@ std::string get_value_type_string(ValueType vt) {
             return "None";
     }
 
-    std::ostringstream error;
-    error << "Cannot determine value type `" << static_cast<int>(vt) << "`.";
-    throw std::runtime_error(error.str());
+    throw_valuetype_error(vt);
+    return "";
+}
+
+std::string get_value_string(std::variant<int, double, bool, std::string> v) {
+    ValueType vt = get_value_type(v);
+    std::ostringstream sv;
+
+    if (vt == ValueType::Integer) {
+        sv << std::get<int>(v);
+    }
+    else if (vt == ValueType::Double) {
+        sv << std::get<double>(v);
+    }
+    else if (vt == ValueType::Boolean) {
+        sv << std::boolalpha << std::get<bool>(v);
+    }
+    else if (vt == ValueType::String) {
+        sv << std::get<std::string>(v);
+    }
+    else {
+        throw_valuetype_error(vt);
+    }
+
+    return sv.str();
 }
 
 #endif

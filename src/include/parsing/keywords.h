@@ -184,12 +184,18 @@ struct {
 
     std::unordered_set<char> arithmetic_operator_chars = { '+', '-', '/', '*', '^', '%' };
 
+    std::unordered_set<char> boolean_operator_chars = { '=', '!', '<', '>' };
+
     bool is_assignment_operator(std::string& arg) {
         return assignment_operators.find(arg) != assignment_operators.end();
     }
 
     bool is_arithmetic_operator_char(char arg) {
         return arithmetic_operator_chars.find(arg) != arithmetic_operator_chars.end();
+    }
+
+    bool is_boolean_operator_char(char arg) {
+        return boolean_operator_chars.find(arg) != boolean_operator_chars.end();
     }
 } Operators;
 
