@@ -3,19 +3,15 @@
 An unorthodox scripting language written in C++.
 
 ```uslang
-@proj = "uslang"
+@proj = "Unorthodox Scripting Language"
 @desc = "hybrid-typed, object-oriented"
 
 println "${proj} is a ${desc} scripting language."
 ```
 
-## Overview
-
-An old passion project I am bringing back to life.
-
 ## Build Instructions
 
-To build, open a terminal and run:
+To build, open a terminal, navigate to the source code, and run:
 
 ```bash
 make all
