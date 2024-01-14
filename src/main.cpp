@@ -15,7 +15,8 @@ int main(int c, char **v) {
             args.push_back(v[i]);
         }
 
-        exit = uslang(args.size(), args);
+        unsigned int size = args.size();
+        exit = uslang(size, args);
     } 
     catch (const std::exception &e) {
         print_error(e);
