@@ -117,10 +117,13 @@ private:
             std::string s;
             s = currentChar;
 
-            if (Operators.is_arithmetic_operator_char(currentChar) && currentPosition < source.length()) {
+            if (currentPosition < source.length()) {
                 char nextChar = source[currentPosition];
+                bool appendNextChar = (nextChar == '='
+                    && (Operators.is_arithmetic_operator_char(currentChar) 
+                        || Operators.is_boolean_operator_char(currentChar)));
 
-                if (nextChar == '=') {
+                if (appendNextChar) {
                     s += nextChar;
                     getCurrentChar();
                 }
