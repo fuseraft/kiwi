@@ -3,6 +3,8 @@
 
 #include <variant>
 #include <cmath>
+#include "../errors/error.h"
+#include "../parsing/tokens.h"
 #include "../typing/value_type.h"
 
 struct {
@@ -17,7 +19,7 @@ struct {
         return false;
     }
 
-    std::variant<int, double, bool, std::string> do_addition(ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
+    std::variant<int, double, bool, std::string> do_addition(const Token& token, ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
         std::variant<int, double, bool, std::string> result;
 
         if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
@@ -52,13 +54,13 @@ struct {
             result = build.str();
         }
         else {
-            throw std::runtime_error("Conversion error.");
+            throw ConversionError(token);
         }
 
         return result;
     }
 
-    std::variant<int, double, bool, std::string> do_subtraction(ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
+    std::variant<int, double, bool, std::string> do_subtraction(const Token& token, ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
         std::variant<int, double, bool, std::string> result;
 
         if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
@@ -74,13 +76,13 @@ struct {
             result = std::get<double>(left) - static_cast<double>(std::get<int>(right));
         }
         else {
-            throw std::runtime_error("Conversion error.");
+            throw ConversionError(token);
         }
 
         return result;
     }
 
-    std::variant<int, double, bool, std::string> do_exponentiation(ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
+    std::variant<int, double, bool, std::string> do_exponentiation(const Token& token, ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
         std::variant<int, double, bool, std::string> result;
 
         if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
@@ -96,35 +98,51 @@ struct {
             result = pow(std::get<double>(left), static_cast<double>(std::get<int>(right)));
         }
         else {
-            throw std::runtime_error("Conversion error.");
+            throw ConversionError(token);
         }
 
         return result;
     }
 
-    std::variant<int, double, bool, std::string> do_division(ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
+    std::variant<int, double, bool, std::string> do_division(const Token& token, ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
         std::variant<int, double, bool, std::string> result;
 
         if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
-            result = std::get<int>(left) / std::get<int>(right);
+            int rhs = std::get<int>(right);
+            if (rhs == 0) {
+                throw DivideByZeroError(token);
+            }
+            result = std::get<int>(left) / rhs;
         }
         else if (vtleft == ValueType::Double && vtright == ValueType::Double) {
-            result = std::get<double>(left) / std::get<double>(right);
+            double rhs = std::get<double>(right);
+            if (rhs == 0.0) {
+                throw DivideByZeroError(token);
+            }
+            result = std::get<double>(left) / rhs;
         }
         else if (vtleft == ValueType::Integer && vtright == ValueType::Double) {
-            result = static_cast<double>(std::get<int>(left)) / std::get<double>(right);
+            double rhs = std::get<double>(right);
+            if (rhs == 0.0) {
+                throw DivideByZeroError(token);
+            }
+            result = static_cast<double>(std::get<int>(left)) / rhs;
         }
         else if (vtleft == ValueType::Double && vtright == ValueType::Integer) {
-            result = std::get<double>(left) / static_cast<double>(std::get<int>(right));
+            double rhs = static_cast<double>(std::get<int>(right));
+            if (rhs == 0.0) {
+                throw DivideByZeroError(token);
+            }
+            result = std::get<double>(left) / rhs;
         }
         else {
-            throw std::runtime_error("Conversion error.");
+            throw ConversionError(token);
         }
 
         return result;
     }
 
-    std::variant<int, double, bool, std::string> do_multiplication(ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
+    std::variant<int, double, bool, std::string> do_multiplication(const Token& token, ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
         std::variant<int, double, bool, std::string> result;
         
         if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
@@ -144,7 +162,7 @@ struct {
             int multiplier = std::get<int>(right);
             
             if (multiplier < 1) {
-                throw std::runtime_error("String multiplier must be a positive non-zero integer.");
+                throw SyntaxError(token, "String multiplier must be a positive non-zero integer.");
             }
             
             std::ostringstream build;
@@ -157,7 +175,7 @@ struct {
             result = build.str();
         }
         else {
-            throw std::runtime_error("Conversion error.");
+            throw ConversionError(token);
         }
 
         return result;
@@ -165,66 +183,86 @@ struct {
 } MathImpl;
 
 struct AddVisitor {
+    const Token& token;
+
+    AddVisitor(const Token& token) : token(token) {}
+
     std::variant<int, double, bool, std::string> operator()(std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) const {
         ValueType vtleft = get_value_type(left);
         ValueType vtright = get_value_type(right);
         
-        return MathImpl.do_addition(vtleft, vtright, left, right);
+        return MathImpl.do_addition(token, vtleft, vtright, left, right);
     }
 };
 
 struct SubtractVisitor {
+    const Token& token;
+
+    SubtractVisitor(const Token& token) : token(token) {}
+
     std::variant<int, double, bool, std::string> operator()(std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) const {
         ValueType vtleft = get_value_type(left);
         ValueType vtright = get_value_type(right);
         
         if (vtright == ValueType::Integer || vtright == ValueType::Double) {
-            return MathImpl.do_subtraction(vtleft, vtright, left, right);
+            return MathImpl.do_subtraction(token, vtleft, vtright, left, right);
         }
         else {
-            throw std::runtime_error("Conversion error.");
+            throw ConversionError(token);
         }
     }
 };
 
 struct MultiplyVisitor {
+    const Token& token;
+
+    MultiplyVisitor(const Token& token) : token(token) {}
+
     std::variant<int, double, bool, std::string> operator()(std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) const {
         ValueType vtleft = get_value_type(left);
         ValueType vtright = get_value_type(right);
         
-        return MathImpl.do_multiplication(vtleft, vtright, left, right);
+        return MathImpl.do_multiplication(token, vtleft, vtright, left, right);
     }
 };
 
 struct DivideVisitor {
+    const Token& token;
+
+    DivideVisitor(const Token& token) : token(token) {}
+
     std::variant<int, double, bool, std::string> operator()(std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) const {
         ValueType vtleft = get_value_type(left);
         ValueType vtright = get_value_type(right);
 
         if (vtright == ValueType::Integer || vtright == ValueType::Double) {
             if (MathImpl.is_zero(vtright, right)) {
-                throw std::runtime_error("Division by zero.");
+                throw DivideByZeroError(token);
             }
             else {
-                return MathImpl.do_division(vtleft, vtright, left, right);
+                return MathImpl.do_division(token, vtleft, vtright, left, right);
             }
         } 
         else {
-            throw std::runtime_error("Conversion error.");
+            throw ConversionError(token);
         }
     }
 };
 
 struct PowerVisitor {
+    const Token& token;
+
+    PowerVisitor(const Token& token) : token(token) {}
+
     std::variant<int, double, bool, std::string> operator()(std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) const {
         ValueType vtleft = get_value_type(left);
         ValueType vtright = get_value_type(right);
         
         if (vtright == ValueType::Integer || vtright == ValueType::Double) {
-            return MathImpl.do_exponentiation(vtleft, vtright, left, right);
+            return MathImpl.do_exponentiation(token, vtleft, vtright, left, right);
         }
         else {
-            throw std::runtime_error("Conversion error.");
+            throw ConversionError(token);
         }
     }
 };
