@@ -1,4 +1,18 @@
 @a = true
 @b = false
+
+# throws a syntax error
+# else @a
+
+# throws a syntax error
+# endif
+
+@c = @a == @b
+@d = @a == @a
+@e = @b == @b
+
 println "a = ${@a}"
 println "b = ${@b}"
+println "c = (a == b) = ${@c}"
+println "d = (a == a) = ${@d}"
+println "e = (b == b) = ${@e}"
