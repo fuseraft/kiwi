@@ -1,46 +1,4 @@
-# arithmetic and string interpolation
-
-@a = 5
-@b = 3
-@c = 4
-
+@a = true
+@b = false
 println "a = ${@a}"
 println "b = ${@b}"
-println "c = ${@c}"
-
-@r = (@a + @b) / @c
-@d = "r = (${@a} + ${@b}) / ${@c} = ${@r}"
-println "${@d}\n"
-
-@r *= 2
-println "r = r*2 = ${@r}"
-@r *= 10
-println "r = r*10 = ${@r}"
-
-@e = @r / 3
-println "e = r/3 = ${@e}"
-
-@c = 5.0
-println "c = ${@c}"
-
-@c /= 2
-println "c = c/2 = ${@c}\n"
-
-# divide by zero
-@zero = 0
-@one = 1
-# @one /= @zero
-@thrower = @zero / @one
-
-# string concatenation
-
-@s = "Hello"
-@s += " World!"
-println "${@s}"
-println "\n"
-
-# string multiplication
-@s *= 2
-println "${@s}"
-
-# TODO: adding tests will help me build the interpreter.
