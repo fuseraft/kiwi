@@ -1,12 +1,12 @@
 #ifndef INTERP_SESSION_H
 #define INTERP_SESSION_H
 
-#include "../logging/logger.h"
-#include "interp.h"
-#include "keywords.h"
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
+#include "logging/logger.h"
+#include "parsing/keywords.h"
+#include "interp.h"
 
 class InterpSession {
 public:
@@ -53,7 +53,7 @@ private:
                 }
 
                 Lexer lexer(logger, input);
-                interp.interpret(lexer.getAllTokens());
+                interp.interpret(lexer);
             } 
             catch (const std::exception &e) {
                 print_error(e);
@@ -65,6 +65,8 @@ private:
     }
 
     int loadScripts() {
+        int returnCode = 0;
+
         try {
             for (const std::string &script : scripts) {
                 std::string content = readFile(script);
@@ -73,7 +75,12 @@ private:
                 }
 
                 Lexer lexer(logger, content);
-                interp.interpret(lexer.getAllTokens());
+                returnCode = interp.interpret(lexer);
+
+                // If one script fails, we need to stop here.
+                if (returnCode != 0) {
+                    break;
+                }
             }
         } 
         catch (const std::exception &e) {
@@ -81,7 +88,7 @@ private:
             return 1;
         }
 
-        return 0;
+        return returnCode;
     }
 
     std::string readFile(const std::string &filePath) {
