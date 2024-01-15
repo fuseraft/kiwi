@@ -181,7 +181,7 @@ struct {
         return result;
     }
 
-    std::variant<int, double, bool, std::string> do_equality_comparison(const Token& token, ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
+    std::variant<int, double, bool, std::string> do_eq_comparison(const Token& token, ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
         std::variant<int, double, bool, std::string> result;
         
         if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
@@ -201,6 +201,122 @@ struct {
         }
         else if (vtleft == ValueType::Boolean && vtright == ValueType::Boolean) {
             result = std::get<bool>(left) == std::get<bool>(right);
+        }
+        else {
+            throw ConversionError(token);
+        }
+
+        return result;
+    }
+
+    std::variant<int, double, bool, std::string> do_neq_comparison(const Token& token, ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
+        std::variant<int, double, bool, std::string> result;
+        
+        if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
+            result = std::get<int>(left) != std::get<int>(right);
+        }
+        else if (vtleft == ValueType::Double && vtright == ValueType::Double) {
+            result = std::get<double>(left) != std::get<double>(right);
+        }
+        else if (vtleft == ValueType::Integer && vtright == ValueType::Double) {
+            result = static_cast<double>(std::get<int>(left)) != std::get<double>(right);
+        }
+        else if (vtleft == ValueType::Double && vtright == ValueType::Integer) {
+            result = std::get<double>(left) != static_cast<double>(std::get<int>(right));
+        }
+        else if (vtleft == ValueType::String && vtright == ValueType::String) {
+            result = std::get<std::string>(left) != std::get<std::string>(right);
+        }
+        else if (vtleft == ValueType::Boolean && vtright == ValueType::Boolean) {
+            result = std::get<bool>(left) != std::get<bool>(right);
+        }
+        else {
+            throw ConversionError(token);
+        }
+
+        return result;
+    }
+
+    std::variant<int, double, bool, std::string> do_lt_comparison(const Token& token, ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
+        std::variant<int, double, bool, std::string> result;
+        
+        if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
+            result = std::get<int>(left) < std::get<int>(right);
+        }
+        else if (vtleft == ValueType::Double && vtright == ValueType::Double) {
+            result = std::get<double>(left) < std::get<double>(right);
+        }
+        else if (vtleft == ValueType::Integer && vtright == ValueType::Double) {
+            result = static_cast<double>(std::get<int>(left)) < std::get<double>(right);
+        }
+        else if (vtleft == ValueType::Double && vtright == ValueType::Integer) {
+            result = std::get<double>(left) < static_cast<double>(std::get<int>(right));
+        }
+        else {
+            throw ConversionError(token);
+        }
+
+        return result;
+    }
+
+    std::variant<int, double, bool, std::string> do_lte_comparison(const Token& token, ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
+        std::variant<int, double, bool, std::string> result;
+        
+        if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
+            result = std::get<int>(left) <= std::get<int>(right);
+        }
+        else if (vtleft == ValueType::Double && vtright == ValueType::Double) {
+            result = std::get<double>(left) <= std::get<double>(right);
+        }
+        else if (vtleft == ValueType::Integer && vtright == ValueType::Double) {
+            result = static_cast<double>(std::get<int>(left)) <= std::get<double>(right);
+        }
+        else if (vtleft == ValueType::Double && vtright == ValueType::Integer) {
+            result = std::get<double>(left) <= static_cast<double>(std::get<int>(right));
+        }
+        else {
+            throw ConversionError(token);
+        }
+
+        return result;
+    }
+
+    std::variant<int, double, bool, std::string> do_gt_comparison(const Token& token, ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
+        std::variant<int, double, bool, std::string> result;
+        
+        if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
+            result = std::get<int>(left) > std::get<int>(right);
+        }
+        else if (vtleft == ValueType::Double && vtright == ValueType::Double) {
+            result = std::get<double>(left) > std::get<double>(right);
+        }
+        else if (vtleft == ValueType::Integer && vtright == ValueType::Double) {
+            result = static_cast<double>(std::get<int>(left)) > std::get<double>(right);
+        }
+        else if (vtleft == ValueType::Double && vtright == ValueType::Integer) {
+            result = std::get<double>(left) > static_cast<double>(std::get<int>(right));
+        }
+        else {
+            throw ConversionError(token);
+        }
+
+        return result;
+    }
+
+    std::variant<int, double, bool, std::string> do_gte_comparison(const Token& token, ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
+        std::variant<int, double, bool, std::string> result;
+        
+        if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
+            result = std::get<int>(left) >= std::get<int>(right);
+        }
+        else if (vtleft == ValueType::Double && vtright == ValueType::Double) {
+            result = std::get<double>(left) >= std::get<double>(right);
+        }
+        else if (vtleft == ValueType::Integer && vtright == ValueType::Double) {
+            result = static_cast<double>(std::get<int>(left)) >= std::get<double>(right);
+        }
+        else if (vtleft == ValueType::Double && vtright == ValueType::Integer) {
+            result = std::get<double>(left) >= static_cast<double>(std::get<int>(right));
         }
         else {
             throw ConversionError(token);
@@ -304,7 +420,72 @@ struct EqualityVisitor {
         ValueType vtleft = get_value_type(left);
         ValueType vtright = get_value_type(right);
         
-        return MathImpl.do_equality_comparison(token, vtleft, vtright, left, right);
+        return MathImpl.do_eq_comparison(token, vtleft, vtright, left, right);
+    }
+};
+
+struct InequalityVisitor {
+    const Token& token;
+
+    InequalityVisitor(const Token& token) : token(token) {}
+
+    std::variant<int, double, bool, std::string> operator()(std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) const {
+        ValueType vtleft = get_value_type(left);
+        ValueType vtright = get_value_type(right);
+        
+        return MathImpl.do_neq_comparison(token, vtleft, vtright, left, right);
+    }
+};
+
+struct LessThanVisitor {
+    const Token& token;
+
+    LessThanVisitor(const Token& token) : token(token) {}
+
+    std::variant<int, double, bool, std::string> operator()(std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) const {
+        ValueType vtleft = get_value_type(left);
+        ValueType vtright = get_value_type(right);
+        
+        return MathImpl.do_lt_comparison(token, vtleft, vtright, left, right);
+    }
+};
+
+struct LessThanOrEqualVisitor {
+    const Token& token;
+
+    LessThanOrEqualVisitor(const Token& token) : token(token) {}
+
+    std::variant<int, double, bool, std::string> operator()(std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) const {
+        ValueType vtleft = get_value_type(left);
+        ValueType vtright = get_value_type(right);
+        
+        return MathImpl.do_lte_comparison(token, vtleft, vtright, left, right);
+    }
+};
+
+struct GreaterThanVisitor {
+    const Token& token;
+
+    GreaterThanVisitor(const Token& token) : token(token) {}
+
+    std::variant<int, double, bool, std::string> operator()(std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) const {
+        ValueType vtleft = get_value_type(left);
+        ValueType vtright = get_value_type(right);
+        
+        return MathImpl.do_gt_comparison(token, vtleft, vtright, left, right);
+    }
+};
+
+struct GreaterThanOrEqualVisitor {
+    const Token& token;
+
+    GreaterThanOrEqualVisitor(const Token& token) : token(token) {}
+
+    std::variant<int, double, bool, std::string> operator()(std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) const {
+        ValueType vtleft = get_value_type(left);
+        ValueType vtright = get_value_type(right);
+        
+        return MathImpl.do_gte_comparison(token, vtleft, vtright, left, right);
     }
 };
 
