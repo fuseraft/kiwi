@@ -7,9 +7,11 @@
 #include "logging/logger.h"
 #include "typing/value_type.h"
 #include "math/math_visitor.h"
+#include "math/boolexpr.h"
 #include "parsing/lexer.h"
 #include "parsing/tokens.h"
 #include "parsing/keywords.h"
+#include "globals.h"
 
 class Interpreter {
     // WIP: this is the new interpreter.
@@ -21,6 +23,14 @@ public:
         _lines = lexer.getLines();
         _position = 0;
         _end = _tokens.size();
+
+        if (DEBUG) {
+            int i = 0;
+            for (Token t : _tokens) {
+                std::cout << i++ << ": " << t.getText() << " -> " << get_token_type_string(t.getType()) << std::endl;
+            }
+            _end = 0;
+        }
 
         if (_end == 0) {
             return 0;
@@ -152,7 +162,12 @@ private:
         }
     
         next();
-        std::variant<int, double, bool, std::string> value = interpretExpression();
+        
+        BooleanExpressionBuilder booleanExpression;
+        std::variant<int, double, bool, std::string> value = interpretExpression(booleanExpression);
+        if (booleanExpression.isSet()) {
+            value = booleanExpression.evaluate();
+        }
 
         std::cout << "current: " << get_value_string(value) << std::endl;
     }
@@ -171,8 +186,11 @@ private:
                 throw UslangError(current(), "Unknown term `" + name + "`");
             }
 
-            std::variant<int, double, bool, std::string> value =
-                interpretExpression();
+            BooleanExpressionBuilder booleanExpression;
+            std::variant<int, double, bool, std::string> value = interpretExpression(booleanExpression);
+            if (booleanExpression.isSet()) {
+                value = booleanExpression.evaluate();
+            }
             
             std::cout << get_value_string(value);
         }
@@ -190,41 +208,119 @@ private:
         }
     }
 
+    void ensureBooleanExpressionHasRoot(Token& tokenTerm, BooleanExpressionBuilder& booleanExpression, std::variant<int, double, bool, std::string> value) {
+        if (booleanExpression.isSet()) {
+            return;
+        }
+        
+        // We can't use non-boolean values in our expression.
+        ValueType vt = get_value_type(value);
+        if (vt != ValueType::Boolean) {
+            throw ConversionError(tokenTerm);
+        }
+
+        bool booleanValue = std::get<bool>(value);
+        booleanExpression.value(booleanValue);
+    }
+
+    void interpretBooleanExpression(Token& tokenTerm, BooleanExpressionBuilder& booleanExpression, std::string& op) {
+        std::variant<int, double, bool, std::string> nextTerm = interpretExpression(booleanExpression);
+        
+        // Check if the last term is valueless.
+        if (nextTerm.valueless_by_exception()) {
+            throw SyntaxError(tokenTerm);
+        }
+
+        // We can't use non-boolean values in our expression.
+        ValueType vt = get_value_type(nextTerm);
+        if (vt != ValueType::Boolean) {
+            throw ConversionError(tokenTerm);
+        }
+
+        bool nextTermValue = std::get<bool>(nextTerm);
+
+        if (op == Operators.And) {
+            booleanExpression.andOperation(std::make_shared<ValueNode>(nextTermValue));
+        }
+        else if (op == Operators.Or) {
+            booleanExpression.orOperation(std::make_shared<ValueNode>(nextTermValue));
+        }
+    }
+
+    void interpretRelationalExpression(Token& tokenTerm, BooleanExpressionBuilder& booleanExpression, std::string& op, std::variant<int, double, bool, std::string>& result, std::variant<int, double, bool, std::string> nextTerm) {
+        if (op == Operators.Equal) {
+            result = std::visit(EqualityVisitor(tokenTerm), result, nextTerm);
+        }
+        else if (op == Operators.NotEqual) {
+            result = std::visit(InequalityVisitor(tokenTerm), result, nextTerm);
+        }
+        else if (op == Operators.LessThan) {
+            result = std::visit(LessThanVisitor(tokenTerm), result, nextTerm);
+        }
+        else if (op == Operators.LessThanOrEqual) {
+            result = std::visit(LessThanOrEqualVisitor(tokenTerm), result, nextTerm);
+        }
+        else if (op == Operators.GreaterThan) {
+            result = std::visit(GreaterThanVisitor(tokenTerm), result, nextTerm);
+        }
+        else if (op == Operators.GreaterThanOrEqual) {
+            result = std::visit(GreaterThanOrEqualVisitor(tokenTerm), result, nextTerm);
+        }
+
+        ensureBooleanExpressionHasRoot(tokenTerm, booleanExpression, result);
+    }
+
+    void interpretArithmeticExpression(Token& tokenTerm, std::string& op, std::variant<int, double, bool, std::string>& result, std::variant<int, double, bool, std::string> nextTerm) {
+        if (op == Operators.Add) {
+            result = std::visit(AddVisitor(tokenTerm), result, nextTerm);
+        }
+        else if (op == Operators.Subtract) {
+            result = std::visit(SubtractVisitor(tokenTerm), result, nextTerm);
+        }
+        else if (op == Operators.Multiply) {
+            result = std::visit(MultiplyVisitor(tokenTerm), result, nextTerm);
+        }
+        else if (op == Operators.Divide) {
+            result = std::visit(DivideVisitor(tokenTerm), result, nextTerm);
+        }
+        else if (op == Operators.Exponent) {
+            result = std::visit(PowerVisitor(tokenTerm), result, nextTerm);
+        }
+    }
+
     // WIP: expression interpreter
-    std::variant<int, double, bool, std::string> interpretExpression() {
+    std::variant<int, double, bool, std::string> interpretExpression(BooleanExpressionBuilder& booleanExpression) {
         Token tokenTerm = current();
-        std::variant<int, double, bool, std::string> result = interpretTerm(tokenTerm);
+        std::variant<int, double, bool, std::string> result = interpretTerm(tokenTerm, booleanExpression);
+        std::variant<int, double, bool, std::string> lastTerm;
 
         while (current().getType() == TokenType::OPERATOR) {
             std::string op = current().toString();
             next();
 
-            std::variant<int, double, bool, std::string> nextTerm = interpretTerm(tokenTerm);
+            if (Operators.is_logical_operator(op)) {
+                ensureBooleanExpressionHasRoot(tokenTerm, booleanExpression, result);
+                interpretBooleanExpression(tokenTerm, booleanExpression, op);
+                result = booleanExpression.evaluate();
+                break;
+            }
 
-            if (op == Operators.Add) {
-                result = std::visit(AddVisitor(tokenTerm), result, nextTerm);
+            std::variant<int, double, bool, std::string> nextTerm = interpretTerm(tokenTerm, booleanExpression);
+
+            if (Operators.is_arithmetic_operator(op)) {
+                interpretArithmeticExpression(tokenTerm, op, result, nextTerm);
             }
-            else if (op == Operators.Subtract) {
-                result = std::visit(SubtractVisitor(tokenTerm), result, nextTerm);
+            else if (Operators.is_relational_operator(op)) {
+                interpretRelationalExpression(tokenTerm, booleanExpression, op, result, nextTerm);
             }
-            else if (op == Operators.Multiply) {
-                result = std::visit(MultiplyVisitor(tokenTerm), result, nextTerm);
-            }
-            else if (op == Operators.Divide) {
-                result = std::visit(DivideVisitor(tokenTerm), result, nextTerm);
-            }
-            else if (op == Operators.Exponent) {
-                result = std::visit(PowerVisitor(tokenTerm), result, nextTerm);
-            }
-            else if (op == Operators.Equal) {
-                result = std::visit(EqualityVisitor(tokenTerm), result, nextTerm);
-            }
+
+            lastTerm = result;
         }
 
         return result;
     }
 
-    std::variant<int, double, bool, std::string> interpretTerm(Token& termToken) {
+    std::variant<int, double, bool, std::string> interpretTerm(Token& termToken, BooleanExpressionBuilder& booleanExpression) {
         if (current().getText() == Symbols.DeclVar) {
             next();
         }
@@ -233,7 +329,7 @@ private:
 
         if (current().getType() == TokenType::OPEN_PAREN) {
             next(); // Skip the '('
-            std::variant<int, double, bool, std::string> result = interpretExpression();
+            std::variant<int, double, bool, std::string> result = interpretExpression(booleanExpression);
             next(); // Skip the ')'
             return result;
         }
@@ -340,9 +436,17 @@ private:
     }
 
     void handleAssignment(std::string& name, std::string& op) {
-        std::variant<int, double, bool, std::string> value = interpretExpression();
+        if (name == "aabb") {
+            std::cout << "debug" << std::endl;
+        }
+
+        BooleanExpressionBuilder booleanExpression;
+        std::variant<int, double, bool, std::string> value = interpretExpression(booleanExpression);
 
         if (op == Operators.Assign) {
+            if (booleanExpression.isSet()) {
+                value = booleanExpression.evaluate();
+            }
             variables[name] = value;
             return;
         }

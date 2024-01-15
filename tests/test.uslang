@@ -1,18 +1,164 @@
+println "Arithmetic"
+
+# addition
+@a = 10
+@b = 20
+@ab = @a + @b
+println "${@a} + ${@b} = ${@ab}"
+
+# subtraction
+@a = 10
+@b = 20
+@ab = @a - @b
+println "${@a} - ${@b} = ${@ab}"
+
+# multiplication
+@a = 10
+@b = 20
+@ab = @a * @b
+println "${@a} * ${@b} = ${@ab}"
+
+# division
+@a = 10.0
+@b = 20
+@ab = @a / @b
+println "${@a} / ${@b} = ${@ab}"
+
+println "\nArithmetic Expression"
+@a = 10.0
+@b = 20.0
+@c = (((@a * 2) / @b) + 9)
+println "((${@a} * 2) / ${@b}) + 9 = ${@c}"
+
+println "\nString Concatenation"
+# simple concatenation
+@a = "Hello"
+@b = " World"
+@c = @a + @b
+println "'${@a}' + '${@b}' = '${@c}'"
+
+# concatenation expression
+@a = "Hello"
+@b = "World"
+@c = (@a + " " + @b)
+println "'${@a}' + ' ' + '${@b}' = '${@c}'"
+
+# string multiplication
+@a = "Hello"
+@b = 5
+@c = @a * @b
+println "'${@a}' * ${@b} = '${@c}'"
+
+println "\nLogical OR"
+
+@a = false
+@b = false
+@c = @a || @b
+println "${@a} || ${@b} = ${@c}"
+
+@a = false
+@b = true
+@c = @a || @b
+println "${@a} || ${@b} = ${@c}"
+
 @a = true
 @b = false
+@c = @a || @b
+println "${@a} || ${@b} = ${@c}"
 
-# throws a syntax error
-# else @a
+@a = true
+@b = true
+@c = @a || @b
+println "${@a} || ${@b} = ${@c}"
 
-# throws a syntax error
-# endif
+println "\nLogical AND"
 
+@a = false
+@b = false
+@c = @a && @b
+println "${@a} && ${@b} = ${@c}"
+
+@a = false
+@b = true
+@c = @a && @b
+println "${@a} && ${@b} = ${@c}"
+
+@a = true
+@b = false
+@c = @a && @b
+println "${@a} && ${@b} = ${@c}"
+
+@a = true
+@b = true
+@c = @a && @b
+println "${@a} && ${@b} = ${@c}"
+
+println "\nRelational Logic"
+
+@a = 10
+@b = 20
+@c = @a < @b
+println "${@a} < ${@b} = ${@c}"
+@a = 10
+@b = 10
+@c = @a < @b
+println "${@a} < ${@b} = ${@c}"
+@a = 20
+@b = 10
+@c = @a < @b
+println "${@a} < ${@b} = ${@c}"
+@a = 10
+@b = 10
+@c = @a <= @b
+println "${@a} <= ${@b} = ${@c}"
+@a = 20
+@b = 10
+@c = @a <= @b
+println "${@a} <= ${@b} = ${@c}"
+
+@a = 10
+@b = 20
+@c = @a > @b
+println "${@a} > ${@b} = ${@c}"
+@a = 10
+@b = 10
+@c = @a > @b
+println "${@a} > ${@b} = ${@c}"
+@a = 20
+@b = 10
+@c = @a > @b
+println "${@a} > ${@b} = ${@c}"
+@a = 10
+@b = 10
+@c = @a >= @b
+println "${@a} >= ${@b} = ${@c}"
+@a = 20
+@b = 10
+@c = @a >= @b
+println "${@a} >= ${@b} = ${@c}"
+
+@a = 10
+@b = 20
+@c = @a != @b
+println "${@a} != ${@b} = ${@c}"
+@a = 10
+@b = 10
+@c = @a != @b
+println "${@a} != ${@b} = ${@c}"
+@a = 20
+@b = 10
+@c = @a != @b
+println "${@a} != ${@b} = ${@c}"
+
+@a = 10
+@b = 20
 @c = @a == @b
-@d = @a == @a
-@e = @b == @b
-
-println "a = ${@a}"
-println "b = ${@b}"
-println "c = (a == b) = ${@c}"
-println "d = (a == a) = ${@d}"
-println "e = (b == b) = ${@e}"
+println "${@a} == ${@b} = ${@c}"
+@a = 10
+@b = 10
+@c = @a == @b
+println "${@a} == ${@b} = ${@c}"
+@a = 20
+@b = 10
+@c = @a == @b
+println "${@a} == ${@b} = ${@c}"
