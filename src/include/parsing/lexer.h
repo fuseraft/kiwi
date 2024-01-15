@@ -119,9 +119,12 @@ private:
 
             if (currentPosition < source.length()) {
                 char nextChar = source[currentPosition];
-                bool appendNextChar = (nextChar == '='
-                    && (Operators.is_arithmetic_operator_char(currentChar) 
-                        || Operators.is_boolean_operator_char(currentChar)));
+                bool isArithmeticOpChar = Operators.is_arithmetic_operator_char(currentChar);
+                bool isBooleanOpChar = Operators.is_boolean_operator_char(currentChar);
+                bool isArithmeticOp = nextChar == '=' && (isArithmeticOpChar  || isBooleanOpChar);
+                bool isBooleanOp = (nextChar == '|' || nextChar == '&') && isBooleanOpChar;
+
+                bool appendNextChar = isArithmeticOp || isBooleanOp;
 
                 if (appendNextChar) {
                     s += nextChar;
