@@ -163,10 +163,10 @@ struct {
     const std::string Dot               = ".";
     const std::string Each              = "each";
     const std::string Else              = "else";
-    const std::string Elsif             = "elsif";
+    const std::string ElseIf            = "elsif";
     const std::string End               = "end";
     const std::string EndFor            = "endfor";
-    const std::string Endif             = "endif";
+    const std::string EndIf             = "endif";
     const std::string EndInlineScript   = "__end__";
     const std::string EndsWith          = "ends_with";
     const std::string Env               = "env";
@@ -253,11 +253,11 @@ struct {
     const std::string While             = "while";
 
     std::unordered_set<std::string> keywords = {
-        If, Else, Elsif, Endif, True, False
+        If, Else, ElseIf, EndIf, True, False
     };
 
     std::unordered_set<std::string> conditional_keywords = {
-        If, Else, Elsif, Endif
+        If, Else, ElseIf, EndIf
     };
 
     bool is_keyword(std::string& arg) {

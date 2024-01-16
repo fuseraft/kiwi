@@ -83,6 +83,10 @@ public:
         return _isSet;
     }
 
+    void reset() {
+        _isSet = true;
+    }
+
     bool evaluate() const {
         return root->evaluate();
     }
