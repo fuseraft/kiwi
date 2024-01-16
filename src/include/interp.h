@@ -5,12 +5,13 @@
 #include <variant>
 #include "errors/error.h"
 #include "logging/logger.h"
-#include "typing/value_type.h"
 #include "math/math_visitor.h"
 #include "math/boolexpr.h"
+#include "objects/conditional.h"
 #include "parsing/lexer.h"
 #include "parsing/tokens.h"
 #include "parsing/keywords.h"
+#include "typing/value_type.h"
 #include "globals.h"
 
 class Interpreter {
@@ -23,14 +24,6 @@ public:
         _lines = lexer.getLines();
         _position = 0;
         _end = _tokens.size();
-
-        if (DEBUG) {
-            int i = 0;
-            for (Token t : _tokens) {
-                std::cout << i++ << ": " << t.getText() << " -> " << get_token_type_string(t.getType()) << std::endl;
-            }
-            _end = 0;
-        }
 
         if (_end == 0) {
             return 0;
@@ -58,6 +51,7 @@ public:
                 }
                 else if (current().getType() == TokenType::CONDITIONAL) {
                     interpretConditional();
+                    continue;
                 }
                 else {
                     logger.debug("Unhandled token " + current().info(), "Interpreter::interpret");
@@ -161,15 +155,106 @@ private:
             throw SyntaxError(current());
         }
     
-        next();
-        
-        BooleanExpressionBuilder booleanExpression;
-        std::variant<int, double, bool, std::string> value = interpretExpression(booleanExpression);
-        if (booleanExpression.isSet()) {
-            value = booleanExpression.evaluate();
+        next(); // Skip "if"
+
+        Conditional conditional;
+        int ifCount = 1;
+        bool ifValue = false;
+        std::string building = Keywords.If;
+
+        // Eagerly evaluate the If conditions.
+        BooleanExpressionBuilder ifExpression;
+        std::variant<int, double, bool, std::string> value = interpretExpression(ifExpression);
+        if (ifExpression.isSet()) {
+            value = ifExpression.evaluate();
         }
 
-        std::cout << "current: " << get_value_string(value) << std::endl;
+        if (get_value_type(value) == ValueType::Boolean) {
+            ifValue = std::get<bool>(value);
+            conditional.getIfStatement().setEvaluation(ifValue);
+        }
+        else {
+            throw ConversionError(current());
+        }
+
+        while (ifCount == 1 && current().getText() != Keywords.EndIf) {
+            std::string tokenText = current().getText();
+
+            if (current().getText() == Keywords.If) {
+                ++ifCount;
+            }
+            else if (current().getText() == Keywords.EndIf && ifCount > 1) {
+                --ifCount;
+            }
+            else if (current().getText() == Keywords.Else && ifCount == 1) {
+                building = Keywords.Else;
+                next();
+            }
+            else if (current().getText() == Keywords.ElseIf && ifCount == 1) {
+                building = Keywords.ElseIf;
+                next();
+                
+                // Eagerly evaluate ElseIf conditions.
+                BooleanExpressionBuilder elseIfExpression;
+                value = interpretExpression(elseIfExpression);
+                
+                if (elseIfExpression.isSet()) {
+                    value = elseIfExpression.evaluate();
+                }
+
+                if (get_value_type(value) == ValueType::Boolean) {
+                    bool elseIfValue = std::get<bool>(value);
+                    conditional.addElseIfStatement();
+                    conditional.getElseIfStatement().setEvaluation(elseIfValue);
+                }
+                else {
+                    throw ConversionError(current());
+                }
+            }
+            
+            // Distribute tokens to be executed.
+            if (building == Keywords.If) {
+                Token bodyToken = current();
+                conditional.getIfStatement().addToken(bodyToken);
+            }
+            else if (building == Keywords.Else) {
+                Token bodyToken = current();
+                conditional.getElseStatement().addToken(bodyToken);
+            }
+            else if (building == Keywords.ElseIf) {
+                Token bodyToken = current();
+                conditional.getElseIfStatement().addToken(bodyToken);
+            }
+
+            next();
+        }
+
+        // Evaluate the Conditional object.
+        std::vector<Token> executableTokens;
+
+        if (conditional.getIfStatement().isExecutable()) {
+            executableTokens = conditional.getIfStatement().getCode();
+        }
+        else if (conditional.canExecuteElseIf()) {
+            for (ElseIfStatement elseIf : conditional.getElseIfStatements()) {
+                if (elseIf.isExecutable()) {
+                    executableTokens = elseIf.getCode();
+                    break;
+                }
+            }
+        }
+        else {
+            executableTokens = conditional.getElseStatement().getCode();
+        }
+
+        next(); // Skip "endif"
+
+        // Insert the tokens so they will be interpreted.
+        if (!executableTokens.empty()) {
+            auto it = _tokens.begin() + _position;
+            _tokens.insert(it, executableTokens.begin(), executableTokens.end());
+            _end = _tokens.size();
+        }
     }
 
     void interpretPrint(bool printNewLine = false) {
