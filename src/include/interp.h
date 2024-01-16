@@ -245,6 +245,10 @@ private:
         else if (op == Operators.Or) {
             booleanExpression.orOperation(std::make_shared<ValueNode>(nextTermValue));
         }
+        else if (op == Operators.Not) {
+            ensureBooleanExpressionHasRoot(tokenTerm, booleanExpression, nextTerm);
+            booleanExpression.notOperation();
+        }
     }
 
     void interpretRelationalExpression(Token& tokenTerm, BooleanExpressionBuilder& booleanExpression, std::string& op, std::variant<int, double, bool, std::string>& result, std::variant<int, double, bool, std::string> nextTerm) {
@@ -339,6 +343,11 @@ private:
                 next();
                 return variables[variableName];
             }
+        }
+        else if (current().getType() == TokenType::OPERATOR) {
+            std::string op = current().toString();
+            next();
+            interpretBooleanExpression(termToken, booleanExpression, op);
         }
         else if (current().getValueType() == ValueType::Boolean) {
             return current().toBoolean();
@@ -436,10 +445,6 @@ private:
     }
 
     void handleAssignment(std::string& name, std::string& op) {
-        if (name == "aabb") {
-            std::cout << "debug" << std::endl;
-        }
-
         BooleanExpressionBuilder booleanExpression;
         std::variant<int, double, bool, std::string> value = interpretExpression(booleanExpression);
 
