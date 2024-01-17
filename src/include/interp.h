@@ -160,6 +160,7 @@ private:
         Conditional conditional;
         int ifCount = 1;
         bool ifValue = false;
+        bool hasTrueElseIfEvaluation = false; // An optimization to prevent unnecessary evaluation.
         std::string building = Keywords.If;
 
         // Eagerly evaluate the If conditions.
@@ -177,14 +178,20 @@ private:
             throw ConversionError(current());
         }
 
-        while (ifCount == 1 && current().getText() != Keywords.EndIf) {
+        while (ifCount > 0) {
             std::string tokenText = current().getText();
 
             if (current().getText() == Keywords.If) {
                 ++ifCount;
             }
-            else if (current().getText() == Keywords.EndIf && ifCount > 1) {
+            else if (current().getText() == Keywords.EndIf && ifCount > 0) {
                 --ifCount;
+
+                // Stop here.
+                if (ifCount == 0) {
+                    next();
+                    continue;
+                }
             }
             else if (current().getText() == Keywords.Else && ifCount == 1) {
                 building = Keywords.Else;
@@ -194,21 +201,27 @@ private:
                 building = Keywords.ElseIf;
                 next();
                 
-                // Eagerly evaluate ElseIf conditions.
-                BooleanExpressionBuilder elseIfExpression;
-                value = interpretExpression(elseIfExpression);
-                
-                if (elseIfExpression.isSet()) {
-                    value = elseIfExpression.evaluate();
-                }
+                // No need to evaluate if the previous condition is true.
+                if (!ifValue && !hasTrueElseIfEvaluation) {
+                    // Eagerly evaluate ElseIf conditions.
+                    BooleanExpressionBuilder elseIfExpression;
+                    value = interpretExpression(elseIfExpression);
+                    
+                    if (elseIfExpression.isSet()) {
+                        value = elseIfExpression.evaluate();
+                    }
 
-                if (get_value_type(value) == ValueType::Boolean) {
-                    bool elseIfValue = std::get<bool>(value);
-                    conditional.addElseIfStatement();
-                    conditional.getElseIfStatement().setEvaluation(elseIfValue);
-                }
-                else {
-                    throw ConversionError(current());
+                    if (get_value_type(value) == ValueType::Boolean) {
+                        bool elseIfValue = std::get<bool>(value);
+                        if (elseIfValue) {
+                            hasTrueElseIfEvaluation = true;
+                        }
+                        conditional.addElseIfStatement();
+                        conditional.getElseIfStatement().setEvaluation(elseIfValue);
+                    }
+                    else {
+                        throw ConversionError(current());
+                    }
                 }
             }
             
