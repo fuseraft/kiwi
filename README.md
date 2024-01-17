@@ -306,4 +306,34 @@ elsif @b == @a
 else
     println "baz"
 endif
+
+@a = true
+@b = true
+
+##################################################
+
+println "\n"
+println "+---------------------+"
+println "| Nested Conditionals |"
+println "+---------------------+"
+
+##################################################
+
+if @a == @b
+    # should print
+    println "hello world"
+
+    if @a != @b
+        println "foo"
+    elsif @b == @a
+        # should print
+        println "bar"
+    else
+        println "baz"
+    endif
+elsif @a != @b
+    println "hello"
+else
+    println "world"
+endif
 ```
