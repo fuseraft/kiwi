@@ -4,8 +4,10 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
+#include "errors/error.h"
 #include "logging/logger.h"
 #include "parsing/keywords.h"
+#include "system/fileio.h"
 #include "interp.h"
 
 class InterpSession {
@@ -14,8 +16,17 @@ public:
         : logger(logger), interp(interp), scripts(), args() {}
 
     void registerScript(const std::string &scriptPath) {
-        logger.debug(scriptPath, "InterpSession::registerScript");
-        scripts.push_back(scriptPath);
+        if (!FileIO::fileExists(scriptPath)) {
+            throw FileNotFoundError(scriptPath);
+        }
+
+        std::string absolutePath = FileIO::getAbsolutePath(scriptPath);
+
+        if (scripts.find(absolutePath) != scripts.end()) {
+            return;
+        }
+
+        scripts.insert(absolutePath);
     }
 
     void registerArg(const std::string &name, const std::string &value) {
@@ -37,7 +48,7 @@ public:
 private:
     Logger &logger;
     Interpreter &interp;
-    std::vector<std::string> scripts;
+    std::unordered_set<std::string> scripts;
     std::map<std::string, std::string> args;
 
     int loadRepl() {
@@ -56,7 +67,7 @@ private:
                 interp.interpret(lexer);
             } 
             catch (const std::exception &e) {
-                print_error(e);
+                ErrorHandler::printError(e);
                 return 1;
             }
         }
@@ -69,7 +80,7 @@ private:
 
         try {
             for (const std::string &script : scripts) {
-                std::string content = readFile(script);
+                std::string content = FileIO::readFile(script);
                 if (content.empty()) {
                     continue;
                 }
@@ -84,26 +95,11 @@ private:
             }
         } 
         catch (const std::exception &e) {
-            print_error(e);
+            ErrorHandler::printError(e);
             return 1;
         }
 
         return returnCode;
-    }
-
-    std::string readFile(const std::string &filePath) {
-        logger.debug(filePath, "InterpSession::readFile");
-        std::ifstream file(filePath);
-
-        if (!file.is_open()) {
-            logger.error("Cannot open file: " + filePath, "InterpSession::readFile");
-            throw std::ios_base::failure("Cannot open file: " + filePath);
-        }
-
-        std::ostringstream string;
-        string << file.rdbuf();
-
-        return string.str();
     }
 };
 
