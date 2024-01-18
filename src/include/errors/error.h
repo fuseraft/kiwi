@@ -52,11 +52,6 @@ public:
     VariableUndefinedError(const Token& token, std::string name) : UslangError(token, "VariableUndefined", "Variable `" + name + "` is undefined.") {}
 };
 
-class ValueTypeError : public UslangError {
-public:
-    ValueTypeError(std::string message = "") : UslangError(Token::createEmpty(), "ValueTypeError", message) {}
-};
-
 class FileNotFoundError : public UslangError {
 public:
     FileNotFoundError(std::string path) 
