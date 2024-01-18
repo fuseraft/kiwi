@@ -7,7 +7,7 @@
 #include "include/uslang.h"
 #include "include/globals.h"
 
-bool DEBUG = true;
+bool DEBUG = false;
 
 int main(int c, char **v) {
     int exit = 0;
