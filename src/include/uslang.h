@@ -12,15 +12,16 @@
 #include <vector>
 
 const std::string uslang_name    = "Unorthodox Scripting Language";
-const std::string uslang_version = "1.0.0";
+const std::string uslang_version = "1.0.1";
 
 #include "configuration/config.h"
-#include "debug/stacktrace.h"
+#include "errors/error.h"
+#include "errors/error_handler.h"
 #include "logging/logger.h"
 #include "math/rng.h"
-#include "interp_session.h"
 #include "parsing/keywords.h"
 #include "parsing/strings.h"
+#include "interp_session.h"
 
 bool has_script_extension(std::string path);
 bool has_conf_extension(std::string path);
@@ -37,57 +38,60 @@ int uslang(int c, std::vector<std::string> v) {
     std::regex xargPattern("-X(.*?)=");
     bool replMode = false;
 
-    Config config;
     Logger logger;
-
-    // WIP: new interpreter logic
     Interpreter interp(logger);
     InterpSession session(logger, interp);
+    Config config;
 
-    session.registerArg("USL", v.at(0));
-    
-    for (int i = 1; i < c; ++i) {
-        opt = v.at(i);
+    try {
+        session.registerArg("USL", v.at(0));
+        
+        for (int i = 1; i < c; ++i) {
+            opt = v.at(i);
 
-        if (begins_with(opt, "-X") && contains(opt, "=")) {
-            handle_xarg(opt, xargPattern, session);
-        }
-        else if (is_flag(opt, "h", "help")) {
-            return print_help();
-        }
-        else if (is_flag(opt, "v", "version")) {
-            return print_version();
-        }
-        else if (is_flag(opt, "R", "repl")) {
-            replMode = true;
-        }
-        else if (is_flag(opt, "C", "config")) {
-            if (i + 1 > c) {
+            if (begins_with(opt, "-X") && contains(opt, "=")) {
+                handle_xarg(opt, xargPattern, session);
+            }
+            else if (is_flag(opt, "h", "help")) {
                 return print_help();
             }
+            else if (is_flag(opt, "v", "version")) {
+                return print_version();
+            }
+            else if (is_flag(opt, "R", "repl")) {
+                replMode = true;
+            }
+            else if (is_flag(opt, "C", "config")) {
+                if (i + 1 > c) {
+                    return print_help();
+                }
 
-            std::string conf = v[i + 1];
+                std::string conf = v[i + 1];
 
-            if (!has_conf_extension(conf)) {
-                logger.error("I can be configured with a `.conf` file.");
+                if (!has_conf_extension(conf)) {
+                    logger.error("I can be configured with a `.conf` file.");
+                } 
+                else if (!config.read(conf)) {
+                    logger.error("I cannot read `" + conf + "`.");
+                } 
+                else {
+                    configure_usl(config, logger, session);
+                    ++i;
+                }
             } 
-            else if (!config.read(conf)) {
-                logger.error("I cannot read `" + conf + "`.");
+            else if (has_script_extension(opt)) {
+                session.registerScript(opt);
             } 
             else {
-                configure_usl(config, logger, session);
-                ++i;
+                logger.debug("Unknown option: " + opt);
             }
-        } 
-        else if (has_script_extension(opt)) {
-            session.registerScript(opt);
-        } 
-        else {
-            logger.debug("Unknown option: " + opt);
         }
-    }
 
-    return session.start(replMode);
+        return session.start(replMode);
+    }
+    catch (const UslangError &e) {
+        return ErrorHandler::handleError(e);
+    }
 }
 
 void configure_usl(Config &config, Logger &logger, InterpSession &session) {

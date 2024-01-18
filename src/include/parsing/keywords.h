@@ -160,6 +160,7 @@ struct {
     const std::string CurrentUser       = "user";
     const std::string Default           = "default";
     const std::string Delay             = "delay";
+    const std::string Do                = "do";
     const std::string Dot               = ".";
     const std::string Each              = "each";
     const std::string Else              = "else";
@@ -253,11 +254,16 @@ struct {
     const std::string While             = "while";
 
     std::unordered_set<std::string> keywords = {
-        If, Else, ElseIf, EndIf, True, False
+        If, Else, ElseIf, EndIf, True, False,
+        While, End
     };
 
     std::unordered_set<std::string> conditional_keywords = {
         If, Else, ElseIf, EndIf
+    };
+
+    std::unordered_set<std::string> loop_keywords = {
+        While, For
     };
 
     bool is_keyword(std::string& arg) {
@@ -270,6 +276,10 @@ struct {
 
     bool is_conditional_keyword(std::string& arg) {
         return conditional_keywords.find(arg) != conditional_keywords.end();
+    }
+
+    bool is_loop_keyword(const std::string& arg) {
+        return loop_keywords.find(arg) != loop_keywords.end();
     }
 } Keywords;
 
