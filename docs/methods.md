@@ -1,5 +1,7 @@
 # Methods
 
+*Under construction in new interpreter.*
+
 Use the `def` keyword to define a method.
 
 ```

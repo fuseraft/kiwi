@@ -4,10 +4,13 @@
 #include <map>
 #include <variant>
 #include "errors/error.h"
+#include "errors/error_handler.h"
 #include "logging/logger.h"
-#include "math/math_visitor.h"
 #include "math/boolexpr.h"
+#include "math/math_visitor.h"
+#include "math/rng.h"
 #include "objects/conditional.h"
+#include "objects/loops/while_loop.h"
 #include "parsing/lexer.h"
 #include "parsing/tokens.h"
 #include "parsing/keywords.h"
@@ -25,12 +28,32 @@ public:
         _position = 0;
         _end = _tokens.size();
 
+        /*if (DEBUG) {
+            int i = 0;
+            for (Token t : _tokens) {
+                std::cout << i++ << ": " << t.getText() << std::endl;
+            }
+            _end = 0;
+        }*/
+
         if (_end == 0) {
             return 0;
         }
 
-        while (_position < _end) {
-            if (_position + 1 == _end) {
+        return interpret();
+    }
+
+private:
+    Logger &logger;
+    std::map<std::string, std::variant<int, double, bool, std::string>> variables;
+    std::vector<Token> _tokens;
+    std::vector<std::string> _lines;
+    int _position;
+    int _end;
+
+    int interpret(int end = -1) {
+        while (_position < ((end < 0) ? _end : end)) {
+            if (_position + 1 == ((end < 0) ? _end : end)) {
                 break;
             }
 
@@ -41,8 +64,13 @@ public:
                     continue;
                 }
 
-                if (current().getType() == TokenType::KEYWORD && current().getText() == Symbols.DeclVar) {
-                    interpretAssignment();
+                if (current().getType() == TokenType::KEYWORD) {
+                    if (current().getText() == Symbols.DeclVar) {
+                        interpretAssignment();
+                    }
+                    else if (Keywords.is_loop_keyword(current().getText())) {
+                        interpretLoop();
+                    }
                     continue;
                 }
                 
@@ -60,7 +88,7 @@ public:
                 next();   
             }
             catch (const UslangError &e) {
-                return handleError(e);
+                return ErrorHandler::handleError(e, _lines);
             }
             catch (const std::exception &e) {
                 throw;
@@ -68,41 +96,6 @@ public:
         }
 
         return 0;
-    }
-
-private:
-    Logger &logger;
-    std::map<std::string, std::variant<int, double, bool, std::string>> variables;
-    std::vector<Token> _tokens;
-    std::vector<std::string> _lines;
-    int _position;
-    int _end;
-    
-    int handleError(const UslangError &e) {
-        const Token& token = e.getToken();
-        std::string message = e.getMessage();
-        std::string tokenText = token.getText();
-        int lineNumber = token.getLineNumber();
-        int linePosition = token.getLinePosition();
-
-        std::string line = _lines.at(lineNumber);
-        int length = line.length();
-        
-        std::cerr << "Exception: " << e.getError() << std::endl;
-        if (!message.empty()) {
-            std::cerr << "Message:   " << e.getMessage() << std::endl;
-        }
-        std::cerr << "Location:  Line " << 1 + lineNumber << ", Column " << linePosition << "." << std::endl;
-        std::cerr << "Code: " << std::endl 
-            << "```" << std::endl 
-            << line << std::endl;
-
-        for (int i = 0; i < length; ++i) {
-            std::cerr << (i == linePosition - 1 ? "^" : " ");
-        }
-        std::cerr << std::endl << "```" << std::endl << std::endl;
-
-        return 1;
     }
 
     Token current() { return _tokens.at(_position); }
@@ -121,6 +114,93 @@ private:
         }
 
         return _tokens.at(_position);
+    }
+
+    std::string getTemporaryId() {
+        std::string tempId = "temporary_" + RNG::getInstance().random16();
+        return tempId;
+    }
+
+    std::vector<Token> getTemporaryAssignment(const std::string& tempId) {
+        std::vector<Token> tokens;
+
+        tokens.push_back(Token::create(TokenType::KEYWORD, Symbols.DeclVar, 0, 0));
+        tokens.push_back(Token::create(TokenType::IDENTIFIER, tempId, 0, 0));
+        tokens.push_back(Token::create(TokenType::OPERATOR, Operators.Assign, 0, 0));
+
+        return tokens;
+    }
+
+    void interpretWhileLoop() {
+        WhileLoop loop;
+        while (current().getText() != Keywords.Do) {
+            Token t = current();
+            loop.addConditionToken(t);
+            next();
+        }
+
+        next(); // Skip "do"
+
+        int loops = 1;
+        while (loops != 0) {
+            if (Keywords.is_loop_keyword(current().getText())) {
+                ++loops;
+            }
+            else if (current().getText() == Keywords.End) {
+                --loops;
+
+                // Stop here.
+                if (loops == 0) {
+                    next();
+                    continue;
+                }
+            }
+
+            Token t = current();
+            loop.addToken(t);
+            next();
+        }
+
+        std::string tempId = getTemporaryId();
+        std::vector<Token> tempAssignment = getTemporaryAssignment(tempId);
+        while (true) {
+            std::vector<Token> condition = loop.getCondition();
+
+            auto it = condition.begin() + 0;
+            condition.insert(it, tempAssignment.begin(), tempAssignment.end());
+
+            injectTokens(condition);
+            interpretAssignment();
+
+            if (variables.find(tempId) == variables.end()) {
+                throw SyntaxError(current());
+            }
+            
+            std::variant<int, double, bool, std::string> value = variables[tempId];
+            ValueType vt = get_value_type(value);
+
+            if (vt != ValueType::Boolean) {
+                throw ConversionError(current());
+            }
+
+            // Stop here.
+            if (!std::get<bool>(value)) {
+                break;
+            }
+
+            std::vector<Token> code = loop.getCode();
+            injectTokens(code);
+            interpret(_position + static_cast<int>(code.size()));
+        }
+    }
+
+    void interpretLoop() {
+        std::string loop = current().getText();
+        next(); // Skip "while"|"for"
+
+        if (loop == Keywords.While) {
+            interpretWhileLoop();
+        }
     }
 
     void interpretAssignment() {
@@ -263,11 +343,17 @@ private:
         next(); // Skip "endif"
 
         // Insert the tokens so they will be interpreted.
-        if (!executableTokens.empty()) {
-            auto it = _tokens.begin() + _position;
-            _tokens.insert(it, executableTokens.begin(), executableTokens.end());
-            _end = _tokens.size();
+        injectTokens(executableTokens);
+    }
+
+    void injectTokens(std::vector<Token> &executableTokens) {
+        if (executableTokens.empty()) {
+            return;
         }
+
+        auto it = _tokens.begin() + _position;
+        _tokens.insert(it, executableTokens.begin(), executableTokens.end());
+        _end = _tokens.size();
     }
 
     void interpretPrint(bool printNewLine = false) {

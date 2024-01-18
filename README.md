@@ -47,26 +47,22 @@ println "+------------+"
 ##################################################
 
 # addition
-@a = 10
-@b = 20
+@a = 10, @b = 20
 @c = @a + @b
 println "${@a} + ${@b} = ${@c}"
 
 # subtraction
-@a = 10
-@b = 20
+@a = 10, @b = 20
 @c = @a - @b
 println "${@a} - ${@b} = ${@c}"
 
 # multiplication
-@a = 10
-@b = 20
+@a = 10, @b = 20
 @c = @a * @b
 println "${@a} * ${@b} = ${@c}"
 
 # division
-@a = 10.0
-@b = 20
+@a = 10.0, @b = 20
 @c = @a / @b
 println "${@a} / ${@b} = ${@c}"
 
@@ -78,9 +74,7 @@ println "+-----------------------+"
 
 ##################################################
 
-@a = 10.0
-@b = 20.0
-@c = (((@a * 2) / @b) + 9)
+@a = 10.0, @b = 20.0, @c = (((@a * 2) / @b) + 9)
 println "((${@a} * 2) / ${@b}) + 9 = ${@c}"
 
 ##################################################
@@ -111,29 +105,55 @@ println "'${@a}' * ${@b} = '${@c}'"
 
 ##################################################
 
+println "\n+-------------+"
+println "| While Loops |"
+println "+-------------+"
+
+##################################################
+
+@i = 0
+@test_sum = 0
+
+while @i < 10 do
+    @i += 1
+    @j = 0
+    
+    # println "Loop iteration ${@i}"
+
+    while @j < 10 do
+        @j += 1
+        # println "  Sub loop iteration ${@j}"
+        @test_sum += 1
+    end
+end
+
+if @test_sum == 100
+    println "While loop test passed!"
+else
+    println "While loop test failed!"
+endif
+
+##################################################
+
 println "\n+------------+"
 println "| Logical OR |"
 println "+------------+"
 
 ##################################################
 
-@a = false
-@b = false
+@a = false, @b = false
 @c = @a || @b
 println "${@a} || ${@b} = ${@c}"
 
-@a = false
-@b = true
+@a = false, @b = true
 @c = @a || @b
 println "${@a} || ${@b} = ${@c}"
 
-@a = true
-@b = false
+@a = true, @b = false
 @c = @a || @b
 println "${@a} || ${@b} = ${@c}"
 
-@a = true
-@b = true
+@a = true, @b = true
 @c = @a || @b
 println "${@a} || ${@b} = ${@c}"
 
@@ -145,23 +165,19 @@ println "+-------------+"
 
 ##################################################
 
-@a = false
-@b = false
+@a = false, @b = false
 @c = @a && @b
 println "${@a} && ${@b} = ${@c}"
 
-@a = false
-@b = true
+@a = false, @b = true
 @c = @a && @b
 println "${@a} && ${@b} = ${@c}"
 
-@a = true
-@b = false
+@a = true, @b = false
 @c = @a && @b
 println "${@a} && ${@b} = ${@c}"
 
-@a = true
-@b = true
+@a = true, @b = true
 @c = @a && @b
 println "${@a} && ${@b} = ${@c}"
 
@@ -174,15 +190,13 @@ println "+-------------+"
 
 ##################################################
 
-@a = true
-@b = !@a
+@a = true, @b = !@a
 println "!${@a} = ${@b}"
 
 @a = !@b
 println "!${@b} = ${@a}"
 
-@a = true
-@b = true
+@a = true, @b = true
 @c = !(@a == @b)
 @d = !(@a != @b)
 println "!(${@a} == ${@b}) = ${@c}"
@@ -197,71 +211,55 @@ println "+------------------+"
 
 ##################################################
 
-@a = 10
-@b = 20
+@a = 10, @b = 20
 @c = @a < @b
 println "${@a} < ${@b} = ${@c}"
-@a = 10
-@b = 10
+@a = 10, @b = 10
 @c = @a < @b
 println "${@a} < ${@b} = ${@c}"
-@a = 20
-@b = 10
+@a = 20, @b = 10
 @c = @a < @b
 println "${@a} < ${@b} = ${@c}"
-@a = 10
-@b = 10
+@a = 10, @b = 10
 @c = @a <= @b
 println "${@a} <= ${@b} = ${@c}"
-@a = 20
-@b = 10
+@a = 20, @b = 10
 @c = @a <= @b
 println "${@a} <= ${@b} = ${@c}"
 
-@a = 10
-@b = 20
+@a = 10, @b = 20
 @c = @a > @b
 println "${@a} > ${@b} = ${@c}"
-@a = 10
-@b = 10
+@a = 10, @b = 10
 @c = @a > @b
 println "${@a} > ${@b} = ${@c}"
-@a = 20
-@b = 10
+@a = 20, @b = 10
 @c = @a > @b
 println "${@a} > ${@b} = ${@c}"
-@a = 10
-@b = 10
+@a = 10, @b = 10
 @c = @a >= @b
 println "${@a} >= ${@b} = ${@c}"
-@a = 20
-@b = 10
+@a = 20, @b = 10
 @c = @a >= @b
 println "${@a} >= ${@b} = ${@c}"
 
-@a = 10
-@b = 20
+@a = 10, @b = 20
 @c = @a != @b
 println "${@a} != ${@b} = ${@c}"
-@a = 10
-@b = 10
+@a = 10, @b = 10
 @c = @a != @b
 println "${@a} != ${@b} = ${@c}"
-@a = 20
-@b = 10
+@a = 20, @b = 10
 @c = @a != @b
 println "${@a} != ${@b} = ${@c}"
 
-@a = 10
-@b = 20
+@a = 10, @b = 20
 @c = @a == @b
 println "${@a} == ${@b} = ${@c}"
-@a = 10
-@b = 10
+@a = 10, @b = 10
 @c = @a == @b
 println "${@a} == ${@b} = ${@c}"
-@a = 20
-@b = 10
+@a = 20, @b = 10
 @c = @a == @b
 println "${@a} == ${@b} = ${@c}"
 
@@ -274,8 +272,7 @@ println "+--------------+"
 
 ##################################################
 
-@a = true
-@b = true
+@a = true, @b = true
 
 if @a == @b
     println "foo"
@@ -285,8 +282,7 @@ else
     println "baz"
 endif
 
-@a = true
-@b = false
+@a = true, @b = false
 
 if @a == @b
     println "foo"
@@ -296,8 +292,7 @@ else
     println "baz"
 endif
 
-@a = true
-@b = false
+@a = true, @b = false
 
 if @a == @b
     println "foo"
@@ -336,4 +331,16 @@ elsif @a != @b
 else
     println "world"
 endif
+
+##################################################
+
+# def hello(@name = "World")
+#     println "Hello, ${@name}!"
+# end
+
+# def add(@a, @b)
+#     return @a + @b
+# end
+
+# println add(5, 4)
 ```

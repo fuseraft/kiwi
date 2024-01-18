@@ -1,10 +1,24 @@
 # Loops
 
+*Under construction in new interpreter. Only `while` is supported for now*
+
 There are a handful of ways to loop so far.
 
 1. `for`
 2. `loop`
 3. `while`
+
+### `while`
+
+Loop based on a condition. *See the test script for a better example with nesting.*
+```
+@i = 0
+while @i < 10 do
+    @i += 1
+end
+
+println @i
+```
 
 ### `for`
 

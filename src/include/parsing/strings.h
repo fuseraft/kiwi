@@ -14,6 +14,7 @@ bool begins_with(std::string s, std::string beginning) {
 bool is_flag(const std::string &s, const std::string &shortFlag, const std::string &longFlag) {
     std::string flags[] = {shortFlag, longFlag};
 
+    // For funsies.
     for (const std::string &flag : flags) {
         if (s == ("-" + flag) || s == ("--" + flag) || s == ("/" + flag)) {
             return true;

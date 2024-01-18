@@ -52,4 +52,13 @@ public:
     VariableUndefinedError(const Token& token, std::string name) : UslangError(token, "VariableUndefined", "Variable `" + name + "` is undefined.") {}
 };
 
+class FileNotFoundError : public UslangError {
+public:
+    FileNotFoundError(std::string path) 
+        : UslangError(Token::createEmpty(), "FileNotFoundError", "File not found: " + path) {}
+
+    FileNotFoundError(const Token& token, std::string path) 
+        : UslangError(token, "FileNotFoundError", "File not found: " + path) {}
+};
+
 #endif
