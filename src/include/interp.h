@@ -164,6 +164,7 @@ private:
         std::string tempId = getTemporaryId();
         std::vector<Token> tempAssignment = getTemporaryAssignment(tempId);
         while (true) {
+            // Interpret the condition.
             std::vector<Token> condition = loop.getCondition();
 
             auto it = condition.begin() + 0;
@@ -188,9 +189,15 @@ private:
                 break;
             }
 
+            // Interpret the loop code.
             std::vector<Token> code = loop.getCode();
             injectTokens(code);
             interpret(_position + static_cast<int>(code.size()));
+        }
+
+        // Cleanup temporary variable.
+        if (variables.find(tempId) != variables.end()) {
+            variables.erase(tempId);
         }
     }
 
