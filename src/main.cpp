@@ -7,7 +7,7 @@
 #include "include/uslang.h"
 #include "include/globals.h"
 
-bool DEBUG = false;
+bool DEBUG = true;
 
 int main(int c, char **v) {
     int exit = 0;
@@ -27,8 +27,8 @@ int main(int c, char **v) {
         exit = uslang(size, args);
     } 
     catch (const std::exception &e) {
-        print_error(e);
-        exit = -1;
+        std::cerr << e.what() << std::endl;
+        exit = 1;
     }
 
     return exit;
