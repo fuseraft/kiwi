@@ -3,20 +3,21 @@
 I have removed `unless` for now. I am currently refactoring condition and loop logic at the moment.
 
 ## If Statements
-Each `if` statement ends with an `endif`.
+Each `if` statement ends with an `endif`. *See the test script for a better example with nesting.*
 
 ```
-@a = 0
-@b = 1
+@a = 0, @b = 1
 
 if @a < @b
-    println "${a} is less than ${b}"
+    println "${@a} is less than ${@b}"
 elsif @a > @b
-    println "${a} is greater than ${b}"
+    println "${@a} is greater than ${@b}"
 endif
 ```
 
 ## Switch Statements
+
+*Under construction in new interpreter.*
 
 ```
 @n = 5
