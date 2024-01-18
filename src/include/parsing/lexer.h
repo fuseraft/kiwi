@@ -70,7 +70,7 @@ private:
 
         char currentChar = getCurrentChar();
 
-        if (isalpha(currentChar)) {
+        if (isalpha(currentChar) || currentChar == '_') {
             return parseIdentifier(currentChar);
         }
         else if (isdigit(currentChar)) {
@@ -156,6 +156,9 @@ private:
             tokenType = TokenType::LITERAL;
             return Token::createBoolean(identifier, lineNumber, linePosition);
         }
+        else {
+            tokenType = TokenType::KEYWORD;
+        }
 
         return Token::create(tokenType, identifier, lineNumber, linePosition);
     }
@@ -163,7 +166,7 @@ private:
     Token parseIdentifier(char initialChar) {
         std::string identifier(1, initialChar);
 
-        while (currentPosition < source.length() && isalnum(source[currentPosition])) {
+        while (currentPosition < source.length() && (isalnum(source[currentPosition]) || source[currentPosition] == '_')) {
             identifier += getCurrentChar();
         }
 
