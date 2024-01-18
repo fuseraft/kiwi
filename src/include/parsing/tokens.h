@@ -3,6 +3,7 @@
 
 #include <string>
 #include <variant>
+#include "../parsing/keywords.h"
 #include "../typing/value_type.h"
 
 enum TokenType {
@@ -67,6 +68,10 @@ public:
     static Token createBoolean(std::string text, const int& lineNumber, const int& linePosition) {
         bool value = text == Keywords.True;
         return create(TokenType::LITERAL, text, value, lineNumber, linePosition);
+    }
+
+    static Token createEmpty() {
+        return create(TokenType::ENDOFFILE, "", 0, 0);
     }
 
     std::string info() {

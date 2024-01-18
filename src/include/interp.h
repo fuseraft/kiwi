@@ -4,6 +4,7 @@
 #include <map>
 #include <variant>
 #include "errors/error.h"
+#include "errors/error_handler.h"
 #include "logging/logger.h"
 #include "math/math_visitor.h"
 #include "math/boolexpr.h"
@@ -24,6 +25,14 @@ public:
         _lines = lexer.getLines();
         _position = 0;
         _end = _tokens.size();
+
+        /*if (DEBUG) {
+            int i = 0;
+            for (Token t : _tokens) {
+                std::cout << i++ << ": " << t.getText() << std::endl;
+            }
+            _end = 0;
+        }*/
 
         if (_end == 0) {
             return 0;
@@ -60,7 +69,7 @@ public:
                 next();   
             }
             catch (const UslangError &e) {
-                return handleError(e);
+                return ErrorHandler::handleError(e, _lines);
             }
             catch (const std::exception &e) {
                 throw;
@@ -77,33 +86,6 @@ private:
     std::vector<std::string> _lines;
     int _position;
     int _end;
-    
-    int handleError(const UslangError &e) {
-        const Token& token = e.getToken();
-        std::string message = e.getMessage();
-        std::string tokenText = token.getText();
-        int lineNumber = token.getLineNumber();
-        int linePosition = token.getLinePosition();
-
-        std::string line = _lines.at(lineNumber);
-        int length = line.length();
-        
-        std::cerr << "Exception: " << e.getError() << std::endl;
-        if (!message.empty()) {
-            std::cerr << "Message:   " << e.getMessage() << std::endl;
-        }
-        std::cerr << "Location:  Line " << 1 + lineNumber << ", Column " << linePosition << "." << std::endl;
-        std::cerr << "Code: " << std::endl 
-            << "```" << std::endl 
-            << line << std::endl;
-
-        for (int i = 0; i < length; ++i) {
-            std::cerr << (i == linePosition - 1 ? "^" : " ");
-        }
-        std::cerr << std::endl << "```" << std::endl << std::endl;
-
-        return 1;
-    }
 
     Token current() { return _tokens.at(_position); }
 
