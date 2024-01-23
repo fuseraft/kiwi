@@ -20,7 +20,7 @@ int main(int c, char** v) {
 
     if (DEBUG) {
       args.push_back("-C");
-      args.push_back("/home/scott/work/usl/uslang/usl.conf");
+      args.push_back("/home/scott/work/usl/uslang/config/usl.conf");
     }
 
     unsigned int size = args.size();
