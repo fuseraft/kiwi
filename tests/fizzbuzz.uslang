@@ -1,0 +1,15 @@
+println "fizzbuzz.uslang"
+
+@i = 0
+
+while @i < 100 do @i += 1
+    if @i % 15 == 0
+        println "fizzbuzz"
+    elsif @i % 3 == 0
+        println "fizz"
+    elsif @i % 5 == 0
+        println "buzz"
+    else
+        println "${@i}"
+    endif
+end

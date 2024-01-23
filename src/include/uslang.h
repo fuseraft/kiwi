@@ -83,7 +83,7 @@ int uslang(int c, std::vector<std::string> v) {
                 session.registerScript(opt);
             } 
             else {
-                logger.debug("Unknown option: " + opt);
+                // logger.debug("Unknown option: " + opt);
             }
         }
 

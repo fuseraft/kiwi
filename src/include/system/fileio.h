@@ -16,6 +16,19 @@ public:
         return absolutePath.string();
     }
 
+    static std::string getParentPath(const std::string& filePath) {
+        fs::path path(filePath);
+        fs::path parentPath = path.parent_path();
+        return parentPath.string();
+    }
+
+    static std::string joinPath(const std::string& directoryPath, const std::string& filePath) {
+        fs::path dir(directoryPath);
+        fs::path file(filePath);
+        fs::path fullPath = dir / file;
+        return fullPath.string();
+    }
+
     static std::string readFile(const std::string& filePath) {
         std::ifstream input_file(filePath, std::ios::binary);
 
