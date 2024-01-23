@@ -1,14 +1,4 @@
-#include <algorithm>
-#include <cfloat>
-#include <cmath>
-#include <dirent.h>
-#include <fstream>
-#include <iostream>
 #include <regex>
-#include <sstream>
-#include <string.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <vector>
 
 const std::string uslang_name = "Unorthodox Scripting Language";
