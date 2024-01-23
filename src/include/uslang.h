@@ -18,6 +18,9 @@ bool has_conf_extension(std::string path);
 void handle_xarg(std::string& opt, std::__cxx11::regex& xargPattern,
                  InterpSession& session);
 void configure_usl(Config& config, Logger& logger, InterpSession& session);
+int process_args(int c, std::string& opt, std::vector<std::string>& v,
+                 std::__cxx11::regex& xargPattern, InterpSession& session,
+                 bool& replMode, Logger& logger, Config& config, bool& retFlag);
 int print_version();
 int print_help();
 
@@ -37,43 +40,57 @@ int uslang(int c, std::vector<std::string> v) {
   try {
     session.registerArg("USL", v.at(0));
 
-    for (int i = 1; i < c; ++i) {
-      opt = v.at(i);
-
-      if (begins_with(opt, "-X") && contains(opt, "=")) {
-        handle_xarg(opt, xargPattern, session);
-      } else if (is_flag(opt, "h", "help")) {
-        return print_help();
-      } else if (is_flag(opt, "v", "version")) {
-        return print_version();
-      } else if (is_flag(opt, "R", "repl")) {
-        replMode = true;
-      } else if (is_flag(opt, "C", "config")) {
-        if (i + 1 > c) {
-          return print_help();
-        }
-
-        std::string conf = v[i + 1];
-
-        if (!has_conf_extension(conf)) {
-          logger.error("I can be configured with a `.conf` file.");
-        } else if (!config.read(conf)) {
-          logger.error("I cannot read `" + conf + "`.");
-        } else {
-          configure_usl(config, logger, session);
-          ++i;
-        }
-      } else if (has_script_extension(opt)) {
-        session.registerScript(opt);
-      } else {
-        // logger.debug("Unknown option: " + opt);
-      }
-    }
+    bool retFlag;
+    int retVal = process_args(c, opt, v, xargPattern, session, replMode, logger,
+                              config, retFlag);
+    if (retFlag)
+      return retVal;
 
     return session.start(replMode);
   } catch (const UslangError& e) {
     return ErrorHandler::handleError(e);
   }
+}
+
+int process_args(int c, std::string& opt, std::vector<std::string>& v,
+                 std::__cxx11::regex& xargPattern, InterpSession& session,
+                 bool& replMode, Logger& logger, Config& config,
+                 bool& retFlag) {
+  retFlag = true;
+  for (int i = 1; i < c; ++i) {
+    opt = v.at(i);
+
+    if (begins_with(opt, "-X") && contains(opt, "=")) {
+      handle_xarg(opt, xargPattern, session);
+    } else if (is_flag(opt, "h", "help")) {
+      return print_help();
+    } else if (is_flag(opt, "v", "version")) {
+      return print_version();
+    } else if (is_flag(opt, "R", "repl")) {
+      replMode = true;
+    } else if (is_flag(opt, "C", "config")) {
+      if (i + 1 > c) {
+        return print_help();
+      }
+
+      std::string conf = v[i + 1];
+
+      if (!has_conf_extension(conf)) {
+        logger.error("I can be configured with a `.conf` file.");
+      } else if (!config.read(conf)) {
+        logger.error("I cannot read `" + conf + "`.");
+      } else {
+        configure_usl(config, logger, session);
+        ++i;
+      }
+    } else if (has_script_extension(opt)) {
+      session.registerScript(opt);
+    } else {
+      // logger.debug("Unknown option: " + opt);
+    }
+  }
+  retFlag = false;
+  return {};
 }
 
 void configure_usl(Config& config, Logger& logger, InterpSession& session) {
