@@ -30,7 +30,6 @@ public:
     }
 
     void registerArg(const std::string &name, const std::string &value) {
-        logger.debug(name + "=" + value, "InterpSession::registerArg");
         args[name] = value;
     }
 
@@ -85,8 +84,10 @@ private:
                     continue;
                 }
 
+                std::string parentPath = FileIO::getParentPath(script);
+
                 Lexer lexer(logger, content);
-                returnCode = interp.interpret(lexer);
+                returnCode = interp.interpret(lexer, parentPath);
 
                 // If one script fails, we need to stop here.
                 if (returnCode != 0) {
