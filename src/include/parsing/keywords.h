@@ -65,7 +65,7 @@ struct {
     };
 
     std::unordered_set<std::string> arithmetic_operators = {
-        Add, Subtract, Multiply, Divide, Exponent
+        Add, Subtract, Multiply, Divide, Exponent, Modulus
     };
 
     std::unordered_set<std::string> relational_operators = {
@@ -187,6 +187,7 @@ struct {
     const std::string Globalize         = "globalize!";
     const std::string Goto              = "goto";
     const std::string If                = "if";
+    const std::string Import            = "import";
     const std::string In                = "in";
     const std::string Infinity          = "inf";
     const std::string InitialDirectory  = "init_dir";
@@ -207,7 +208,6 @@ struct {
     const std::string LastValue         = "last_value";
     const std::string List              = "list";
     const std::string Lists             = "lists";
-    const std::string Load              = "load!";
     const std::string Lock              = "lock";
     const std::string LockedMethod      = "[def]";
     const std::string Mask              = "mask";

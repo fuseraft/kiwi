@@ -1,0 +1,13 @@
+println "logical_not.uslang"
+
+@a = true, @b = !@a
+println "!${@a} = ${@b}"
+
+@a = !@b
+println "!${@b} = ${@a}"
+
+@a = true, @b = true
+@c = !(@a == @b)
+@d = !(@a != @b)
+println "!(${@a} == ${@b}) = ${@c}"
+println "!(${@a} != ${@b}) = ${@d}"
