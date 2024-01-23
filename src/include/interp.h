@@ -22,11 +22,12 @@ class Interpreter {
 public:
     Interpreter(Logger &logger) : logger(logger), variables() {}
 
-    int interpret(Lexer &lexer) {
+    int interpret(Lexer &lexer, std::string parentPath = "") {
         _tokens = lexer.getAllTokens();
         _lines = lexer.getLines();
         _position = 0;
         _end = _tokens.size();
+        _parentPath = parentPath;
 
         /*if (DEBUG) {
             int i = 0;
@@ -50,11 +51,19 @@ private:
     std::vector<std::string> _lines;
     int _position;
     int _end;
+    bool _errorState = false;
+    bool _caught = false;
+    std::string _parentPath;
 
     int interpret(int end = -1) {
         while (_position < ((end < 0) ? _end : end)) {
             if (_position + 1 == ((end < 0) ? _end : end)) {
                 break;
+            }
+
+            // WIP: implement "try-catch"
+            if (_errorState && !_caught) {
+                exit(1);
             }
 
             try {
@@ -77,20 +86,26 @@ private:
                 if (current().getType() == TokenType::IDENTIFIER && (current().getText() == Keywords.PrintLn || current().getText() == Keywords.Print)) {
                     interpretPrint(current().getText() == Keywords.PrintLn);
                 }
+                else if (current().getType() == TokenType::IDENTIFIER && current().getText() == Keywords.Import) {
+                    interpretImport();
+                    continue;
+                }
                 else if (current().getType() == TokenType::CONDITIONAL) {
                     interpretConditional();
                     continue;
                 }
                 else {
-                    logger.debug("Unhandled token " + current().info(), "Interpreter::interpret");
+                    // logger.debug("Unhandled token " + current().info(), "Interpreter::interpret");
                 }
 
                 next();   
             }
             catch (const UslangError &e) {
+                _errorState = true;
                 return ErrorHandler::handleError(e, _lines);
             }
             catch (const std::exception &e) {
+                _errorState = true;
                 throw;
             }
         }
@@ -163,14 +178,15 @@ private:
 
         std::string tempId = getTemporaryId();
         std::vector<Token> tempAssignment = getTemporaryAssignment(tempId);
+                    // Interpret the condition.
         while (true) {
-            // Interpret the condition.
             std::vector<Token> condition = loop.getCondition();
 
             auto it = condition.begin() + 0;
             condition.insert(it, tempAssignment.begin(), tempAssignment.end());
 
             injectTokens(condition);
+
             interpretAssignment();
 
             if (variables.find(tempId) == variables.end()) {
@@ -189,9 +205,10 @@ private:
                 break;
             }
 
-            // Interpret the loop code.
             std::vector<Token> code = loop.getCode();
             injectTokens(code);
+
+            // Interpret the loop code.
             interpret(_position + static_cast<int>(code.size()));
         }
 
@@ -225,15 +242,15 @@ private:
                     handleAssignment(name, op);
                 }
                 else {
-                    logger.debug("Unknown operator `" + op + "`", "Interpreter::interpretAssignment");
+                    // logger.debug("Unknown operator `" + op + "`", "Interpreter::interpretAssignment");
                 }
             } 
             else {
-                logger.debug("Unimplemented token `" + current().info() + "`", "Interpreter::interpretAssignment");
+                // logger.debug("Unimplemented token `" + current().info() + "`", "Interpreter::interpretAssignment");
             }
         } 
         else {
-            logger.debug("Unimplemented token `" + current().info() + "`", "Interpreter::interpretAssignment");
+            // logger.debug("Unimplemented token `" + current().info() + "`", "Interpreter::interpretAssignment");
         }
     }
 
@@ -287,6 +304,8 @@ private:
             else if (current().getText() == Keywords.ElseIf && ifCount == 1) {
                 building = Keywords.ElseIf;
                 next();
+
+                conditional.addElseIfStatement();
                 
                 // No need to evaluate if the previous condition is true.
                 if (!ifValue && !hasTrueElseIfEvaluation) {
@@ -303,27 +322,26 @@ private:
                         if (elseIfValue) {
                             hasTrueElseIfEvaluation = true;
                         }
-                        conditional.addElseIfStatement();
                         conditional.getElseIfStatement().setEvaluation(elseIfValue);
+                        next();
                     }
                     else {
                         throw ConversionError(current());
                     }
                 }
+                continue;
             }
             
             // Distribute tokens to be executed.
+            Token bodyToken = current();
             if (building == Keywords.If) {
-                Token bodyToken = current();
                 conditional.getIfStatement().addToken(bodyToken);
             }
-            else if (building == Keywords.Else) {
-                Token bodyToken = current();
-                conditional.getElseStatement().addToken(bodyToken);
-            }
             else if (building == Keywords.ElseIf) {
-                Token bodyToken = current();
                 conditional.getElseIfStatement().addToken(bodyToken);
+            }
+            else if (building == Keywords.Else) {
+                conditional.getElseStatement().addToken(bodyToken);
             }
 
             next();
@@ -347,10 +365,10 @@ private:
             executableTokens = conditional.getElseStatement().getCode();
         }
 
-        next(); // Skip "endif"
-
-        // Insert the tokens so they will be interpreted.
+        // Execute
         injectTokens(executableTokens);
+        int executePosition = _position + static_cast<int>(executableTokens.size());
+        interpret(executePosition);
     }
 
     void injectTokens(std::vector<Token> &executableTokens) {
@@ -361,6 +379,25 @@ private:
         auto it = _tokens.begin() + _position;
         _tokens.insert(it, executableTokens.begin(), executableTokens.end());
         _end = _tokens.size();
+    }
+
+    void interpretImport() {
+        next(); // skip the "import"
+
+        std::string scriptName = current().getText() + ".uslang";
+        std::string scriptPath = FileIO::joinPath(_parentPath, scriptName);
+        if (!FileIO::fileExists(scriptPath)) {
+            throw FileNotFoundError(scriptPath);
+        }
+        
+        std::string content = FileIO::readFile(scriptPath);
+        if (content.empty()) {
+            return;
+        }
+
+        Lexer lexer(logger, content);
+        std::vector<Token> tokens = lexer.getAllTokens();
+        injectTokens(tokens);
     }
 
     void interpretPrint(bool printNewLine = false) {
@@ -481,6 +518,10 @@ private:
         else if (op == Operators.Exponent) {
             result = std::visit(PowerVisitor(tokenTerm), result, nextTerm);
         }
+        else if (op == Operators.Modulus) {
+            result = std::visit(ModuloVisitor(tokenTerm), result, nextTerm);
+            // next();
+        }
     }
 
     // WIP: expression interpreter
@@ -504,8 +545,15 @@ private:
 
             if (Operators.is_arithmetic_operator(op)) {
                 interpretArithmeticExpression(tokenTerm, op, result, nextTerm);
+                std::string peekNext = peek().getText();
+                if (current().getType() == TokenType::LITERAL 
+                    && (Operators.is_relational_operator(peekNext) 
+                        || Operators.is_logical_operator(peekNext))) {
+                    next();
+                }
             }
-            else if (Operators.is_relational_operator(op)) {
+            
+            if (Operators.is_relational_operator(op)) {
                 interpretRelationalExpression(tokenTerm, booleanExpression, op, result, nextTerm);
             }
 
@@ -624,11 +672,11 @@ private:
                     }
                 } 
                 else {
-                    logger.debug("Variable undefined: " + token.info(), "Interpreter::evaluateStringInterpolation");
+                    // logger.debug("Variable undefined: " + token.info(), "Interpreter::evaluateStringInterpolation");
                 }
             } 
             else {
-                logger.debug("Unhandled token: " + token.info(), "Interpreter::evaluateStringInterpolation");
+                // logger.debug("Unhandled token: " + token.info(), "Interpreter::evaluateStringInterpolation");
             }
 
             token = eval.at(++position);
@@ -667,6 +715,9 @@ private:
         }
         else if (op == Operators.ExponentAssign) {
             currentValue = std::visit(PowerVisitor(current()), currentValue, value);
+        }
+        else if (op == Operators.ModuloAssign) {
+            currentValue = std::visit(ModuloVisitor(current()), currentValue, value);
         }
 
         variables[name] = currentValue;
