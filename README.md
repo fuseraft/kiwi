@@ -3,10 +3,21 @@
 An unorthodox scripting language written in C++.
 
 ```uslang
-@proj = "Unorthodox Scripting Language"
-@desc = "hybrid-typed, object-oriented"
+@i = 0
 
-println "${proj} is a ${desc} scripting language."
+while @i < 100 do
+    @i += 1
+    
+    if @i % 15 == 0
+        println "FizzBuzz"
+    elsif @i % 3 == 0
+        println "Fizz"
+    elsif @i % 5 == 0
+        println "Buzz"
+    else
+        println "${@i}"
+    endif
+end
 ```
 
 ## Build Instructions
@@ -17,6 +28,17 @@ To build, open a terminal, navigate to the source code, and run:
 make all
 ```
 
+## Testing
+
+To run the test scripts, use:
+```shell
+make test
+```
+
+## Test Code
+
+Please see the `tests` directory for a list of test scripts.
+
 ## History
 
 I began writing this scripting language as a junior in high school.
@@ -26,16 +48,3 @@ It began as a side project to build an alternative shell for Linux and evolved i
 ## TODO
 
 Stay tuned for updates and additions to this README.
-
-## Testing
-
-Below is the test script I am using to test the language features with each commit.
-
-To execute it, use:
-```shell
-make test
-```
-
-## Test Code
-
-Please see the `tests` directory for a list of test scripts.
