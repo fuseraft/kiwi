@@ -7,211 +7,217 @@
 #include <vector>
 
 class Lexer {
-public:
-    Lexer(Logger &logger, const std::string &source, bool skipWhitespace = true) 
-        : logger(logger), source(source), currentPosition(0), _skipWhitespace(skipWhitespace) {
-        std::istringstream stream(source);
-        std::string line;
+ public:
+  Lexer(Logger& logger, const std::string& source, bool skipWhitespace = true)
+      : logger(logger),
+        source(source),
+        currentPosition(0),
+        _skipWhitespace(skipWhitespace) {
+    std::istringstream stream(source);
+    std::string line;
 
-        while (std::getline(stream, line)) {
-            lines.push_back(line);
-        }
+    while (std::getline(stream, line)) {
+      lines.push_back(line);
+    }
+  }
+
+  std::vector<Token> getAllTokens() {
+    std::vector<Token> tokens;
+    lineNumber = 0;
+    linePosition = 0;
+
+    while (true) {
+      Token token = _getNextToken();
+
+      if (token.getType() == TokenType::ENDOFFILE) {
+        break;
+      }
+
+      tokens.push_back(token);
     }
 
-    std::vector<Token> getAllTokens() {
-        std::vector<Token> tokens;
-        lineNumber = 0;
-        linePosition = 0;
+    return tokens;
+  }
 
-        while (true) {
-            Token token = _getNextToken();
-            
-            if (token.getType() == TokenType::ENDOFFILE) {
-                break;
-            }
+  std::vector<std::string> getLines() { return lines; }
 
-            tokens.push_back(token);
-        }
+ private:
+  Logger& logger;
+  std::string source;
+  size_t currentPosition;
+  bool _skipWhitespace;
+  int lineNumber;
+  int linePosition;
+  std::vector<std::string> lines;
 
-        return tokens;
+  char getCurrentChar() {
+    char c = source[currentPosition++];
+    if (c == '\n') {
+      lineNumber++;
+      linePosition = 0;
+    } else {
+      linePosition++;
+    }
+    return c;
+  }
+
+  Token _getNextToken() {
+    skipWhitespace();
+
+    if (currentPosition >= source.length()) {
+      return Token::create(TokenType::ENDOFFILE, "", 0, lineNumber,
+                           linePosition);
     }
 
-    std::vector<std::string> getLines() {
-        return lines;
+    char currentChar = getCurrentChar();
+
+    if (isalpha(currentChar) || currentChar == '_') {
+      return parseIdentifier(currentChar);
+    } else if (isdigit(currentChar)) {
+      return parseLiteral(currentChar);
+    } else if (currentChar == '"') {
+      return parseString();
+    } else if (currentChar == '#') {
+      return parseComment();
+    } else if (currentChar == '@') {
+      return Token::create(TokenType::KEYWORD, "@", lineNumber, linePosition);
+    } else if (currentChar == '$') {
+      return Token::create(TokenType::OPERATOR, "$", lineNumber, linePosition);
+    } else if (currentChar == '\n') {
+      return Token::create(TokenType::NEWLINE, "\n", lineNumber, linePosition);
+    } else if (currentChar == '(') {
+      return Token::create(TokenType::OPEN_PAREN, "(", lineNumber,
+                           linePosition);
+    } else if (currentChar == ')') {
+      return Token::create(TokenType::CLOSE_PAREN, ")", lineNumber,
+                           linePosition);
+    } else if (currentChar == '\\') {
+      if (currentPosition < source.length()) {
+        char nextChar = getCurrentChar();
+
+        switch (nextChar) {
+          case 't':
+            return Token::create(TokenType::ESCAPED, "\t", lineNumber,
+                                 linePosition);
+          case 'n':
+            return Token::create(TokenType::ESCAPED, "\n", lineNumber,
+                                 linePosition);
+        }
+      }
+
+      getCurrentChar();
+
+      return Token::create(TokenType::IDENTIFIER, "\\", lineNumber,
+                           linePosition);
+    } else {
+      std::string s;
+      s = currentChar;
+
+      if (currentPosition < source.length()) {
+        char nextChar = source[currentPosition];
+        bool isArithmeticOpChar =
+            Operators.is_arithmetic_operator_char(currentChar);
+        bool isBooleanOpChar = Operators.is_boolean_operator_char(currentChar);
+        bool isArithmeticOp =
+            nextChar == '=' && (isArithmeticOpChar || isBooleanOpChar);
+        bool isBooleanOp =
+            (nextChar == '|' || nextChar == '&') && isBooleanOpChar;
+
+        bool appendNextChar = isArithmeticOp || isBooleanOp;
+
+        if (appendNextChar) {
+          s += nextChar;
+          getCurrentChar();
+        }
+      }
+
+      return Token::create(TokenType::OPERATOR, s, lineNumber, linePosition);
+    }
+  }
+
+  void skipWhitespace() {
+    if (!_skipWhitespace) {
+      return;
     }
 
-private:
-    Logger     &logger;
-    std::string source;
-    size_t      currentPosition;
-    bool        _skipWhitespace;
-    int         lineNumber;
-    int         linePosition;
-    std::vector<std::string> lines;
+    while (currentPosition < source.length() &&
+           isspace(source[currentPosition])) {
+      getCurrentChar();
+    }
+  }
 
-    char getCurrentChar() {
-        char c = source[currentPosition++];
-        if (c == '\n') {
-            lineNumber++;
-            linePosition = 0;
-        }
-        else {
-            linePosition++;
-        }
-        return c;
+  Token parseKeyword(std::string& identifier) {
+    TokenType tokenType;
+
+    if (Keywords.is_conditional_keyword(identifier)) {
+      tokenType = TokenType::CONDITIONAL;
+    } else if (Keywords.is_boolean(identifier)) {
+      tokenType = TokenType::LITERAL;
+      return Token::createBoolean(identifier, lineNumber, linePosition);
+    } else {
+      tokenType = TokenType::KEYWORD;
     }
 
-    Token _getNextToken() {
-        skipWhitespace();
+    return Token::create(tokenType, identifier, lineNumber, linePosition);
+  }
 
-        if (currentPosition >= source.length()) {
-            return Token::create(TokenType::ENDOFFILE, "", 0, lineNumber, linePosition);
-        }
+  Token parseIdentifier(char initialChar) {
+    std::string identifier(1, initialChar);
 
-        char currentChar = getCurrentChar();
-
-        if (isalpha(currentChar) || currentChar == '_') {
-            return parseIdentifier(currentChar);
-        }
-        else if (isdigit(currentChar)) {
-            return parseLiteral(currentChar);
-        }
-        else if (currentChar == '"') {
-            return parseString();
-        }
-        else if (currentChar == '#') {
-            return parseComment();
-        }
-        else if (currentChar == '@') {
-            return Token::create(TokenType::KEYWORD, "@", lineNumber, linePosition);
-        }
-        else if (currentChar == '$') {
-            return Token::create(TokenType::OPERATOR, "$", lineNumber, linePosition);
-        }
-        else if (currentChar == '\n') {
-            return Token::create(TokenType::NEWLINE, "\n", lineNumber, linePosition);
-        }
-        else if (currentChar == '(') {
-            return Token::create(TokenType::OPEN_PAREN, "(", lineNumber, linePosition);
-        }
-        else if (currentChar == ')') {
-            return Token::create(TokenType::CLOSE_PAREN, ")", lineNumber, linePosition);
-        }
-        else if (currentChar == '\\') {
-            if (currentPosition < source.length()) {
-                char nextChar = getCurrentChar();
-
-                switch (nextChar) {
-                    case 't':
-                        return Token::create(TokenType::ESCAPED, "\t", lineNumber, linePosition);
-                    case 'n':
-                        return Token::create(TokenType::ESCAPED, "\n", lineNumber, linePosition);
-                }
-            }
-
-            getCurrentChar();
-
-            return Token::create(TokenType::IDENTIFIER, "\\", lineNumber, linePosition);
-        } 
-        else {
-            std::string s;
-            s = currentChar;
-
-            if (currentPosition < source.length()) {
-                char nextChar = source[currentPosition];
-                bool isArithmeticOpChar = Operators.is_arithmetic_operator_char(currentChar);
-                bool isBooleanOpChar = Operators.is_boolean_operator_char(currentChar);
-                bool isArithmeticOp = nextChar == '=' && (isArithmeticOpChar  || isBooleanOpChar);
-                bool isBooleanOp = (nextChar == '|' || nextChar == '&') && isBooleanOpChar;
-
-                bool appendNextChar = isArithmeticOp || isBooleanOp;
-
-                if (appendNextChar) {
-                    s += nextChar;
-                    getCurrentChar();
-                }
-            }
-
-            return Token::create(TokenType::OPERATOR, s, lineNumber, linePosition);
-        }
+    while (
+        currentPosition < source.length() &&
+        (isalnum(source[currentPosition]) || source[currentPosition] == '_')) {
+      identifier += getCurrentChar();
     }
 
-    void skipWhitespace() {
-        if (!_skipWhitespace) {
-            return;
-        }
-
-        while (currentPosition < source.length() && isspace(source[currentPosition])) {
-            getCurrentChar();
-        }
+    if (Keywords.is_keyword(identifier)) {
+      return parseKeyword(identifier);
     }
 
-    Token parseKeyword(std::string& identifier) {
-        TokenType tokenType;
+    return Token::create(TokenType::IDENTIFIER, identifier, lineNumber,
+                         linePosition);
+  }
 
-        if (Keywords.is_conditional_keyword(identifier)) {
-            tokenType = TokenType::CONDITIONAL;
-        }
-        else if (Keywords.is_boolean(identifier)) {
-            tokenType = TokenType::LITERAL;
-            return Token::createBoolean(identifier, lineNumber, linePosition);
-        }
-        else {
-            tokenType = TokenType::KEYWORD;
-        }
+  Token parseLiteral(char initialChar) {
+    std::string literal(1, initialChar);
 
-        return Token::create(tokenType, identifier, lineNumber, linePosition);
+    while (
+        currentPosition < source.length() &&
+        (isdigit(source[currentPosition]) || source[currentPosition] == '.')) {
+      literal += getCurrentChar();
     }
 
-    Token parseIdentifier(char initialChar) {
-        std::string identifier(1, initialChar);
+    if (literal.find('.') != std::string::npos) {
+      return Token::create(TokenType::LITERAL, literal, std::stod(literal),
+                           lineNumber, linePosition);
+    } else {
+      return Token::create(TokenType::LITERAL, literal, std::stoi(literal),
+                           lineNumber, linePosition);
+    }
+  }
 
-        while (currentPosition < source.length() && (isalnum(source[currentPosition]) || source[currentPosition] == '_')) {
-            identifier += getCurrentChar();
-        }
+  Token parseString() {
+    std::string str;
 
-        if (Keywords.is_keyword(identifier)) {
-            return parseKeyword(identifier);
-        }
-
-        return Token::create(TokenType::IDENTIFIER, identifier, lineNumber, linePosition);
+    while (currentPosition < source.length() &&
+           source[currentPosition] != '"') {
+      str += getCurrentChar();
     }
 
-    Token parseLiteral(char initialChar) {
-        std::string literal(1, initialChar);
+    getCurrentChar();  // skip closing quote
+    return Token::create(TokenType::STRING, str, lineNumber, linePosition);
+  }
 
-        while (currentPosition < source.length() && (isdigit(source[currentPosition]) || source[currentPosition] == '.')) {
-            literal += getCurrentChar();
-        }
+  Token parseComment() {
+    std::string comment;
 
-        if (literal.find('.') != std::string::npos) {
-            return Token::create(TokenType::LITERAL, literal, std::stod(literal), lineNumber, linePosition);
-        }
-        else {
-            return Token::create(TokenType::LITERAL, literal, std::stoi(literal), lineNumber, linePosition);
-        }
+    while (currentPosition < source.length() &&
+           source[currentPosition] != '\n') {
+      comment += getCurrentChar();
     }
 
-    Token parseString() {
-        std::string str;
-
-        while (currentPosition < source.length() && source[currentPosition] != '"') {
-            str += getCurrentChar();
-        }
-
-        getCurrentChar(); // skip closing quote
-        return Token::create(TokenType::STRING, str, lineNumber, linePosition);
-    }
-
-    Token parseComment() {
-        std::string comment;
-        
-        while (currentPosition < source.length() && source[currentPosition] != '\n') {
-            comment += getCurrentChar();
-        }
-        
-        return Token::create(TokenType::COMMENT, comment, lineNumber, linePosition);
-    }
+    return Token::create(TokenType::COMMENT, comment, lineNumber, linePosition);
+  }
 };
 
 #endif
