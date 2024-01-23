@@ -104,6 +104,44 @@ struct {
         return result;
     }
 
+    std::variant<int, double, bool, std::string> do_modulus(const Token& token, ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
+        std::variant<int, double, bool, std::string> result;
+
+        if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
+            int rhs = std::get<int>(right);
+            if (rhs == 0) {
+                throw DivideByZeroError(token);
+            }
+            result = std::get<int>(left) % std::get<int>(right);
+        }
+        else if (vtleft == ValueType::Double && vtright == ValueType::Double) {
+            double rhs = std::get<double>(right);
+            if (rhs == 0.0) {
+                throw DivideByZeroError(token);
+            }
+            result = fmod(std::get<double>(left), rhs);
+        }
+        else if (vtleft == ValueType::Integer && vtright == ValueType::Double) {
+            double rhs = std::get<double>(right);
+            if (rhs == 0.0) {
+                throw DivideByZeroError(token);
+            }
+            result = fmod(std::get<int>(left), rhs);
+        }
+        else if (vtleft == ValueType::Double && vtright == ValueType::Integer) {
+            double rhs = static_cast<double>(std::get<int>(right));
+            if (rhs == 0) {
+                throw DivideByZeroError(token);
+            }
+            result = fmod(std::get<double>(left), rhs);
+        }
+        else {
+            throw ConversionError(token);
+        }
+
+        return result;
+    }
+
     std::variant<int, double, bool, std::string> do_division(const Token& token, ValueType vtleft, ValueType vtright, std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) {
         std::variant<int, double, bool, std::string> result;
 
@@ -404,6 +442,24 @@ struct PowerVisitor {
         
         if (vtright == ValueType::Integer || vtright == ValueType::Double) {
             return MathImpl.do_exponentiation(token, vtleft, vtright, left, right);
+        }
+        else {
+            throw ConversionError(token);
+        }
+    }
+};
+
+struct ModuloVisitor {
+    const Token& token;
+
+    ModuloVisitor(const Token& token) : token(token) {}
+
+    std::variant<int, double, bool, std::string> operator()(std::variant<int, double, bool, std::string> left, std::variant<int, double, bool, std::string> right) const {
+        ValueType vtleft = get_value_type(left);
+        ValueType vtright = get_value_type(right);
+        
+        if (vtright == ValueType::Integer || vtright == ValueType::Double) {
+            return MathImpl.do_modulus(token, vtleft, vtright, left, right);
         }
         else {
             throw ConversionError(token);
