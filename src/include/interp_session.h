@@ -11,97 +11,95 @@
 #include "interp.h"
 
 class InterpSession {
-public:
-    InterpSession(Logger &logger, Interpreter &interp)
-        : logger(logger), interp(interp), scripts(), args() {}
+ public:
+  InterpSession(Logger& logger, Interpreter& interp)
+      : logger(logger), interp(interp), scripts(), args() {}
 
-    void registerScript(const std::string &scriptPath) {
-        if (!FileIO::fileExists(scriptPath)) {
-            throw FileNotFoundError(scriptPath);
-        }
-
-        std::string absolutePath = FileIO::getAbsolutePath(scriptPath);
-
-        if (scripts.find(absolutePath) != scripts.end()) {
-            return;
-        }
-
-        scripts.insert(absolutePath);
+  void registerScript(const std::string& scriptPath) {
+    if (!FileIO::fileExists(scriptPath)) {
+      throw FileNotFoundError(scriptPath);
     }
 
-    void registerArg(const std::string &name, const std::string &value) {
-        args[name] = value;
+    std::string absolutePath = FileIO::getAbsolutePath(scriptPath);
+
+    if (scripts.find(absolutePath) != scripts.end()) {
+      return;
     }
 
-    int start(bool replMode) {
-        // Load any registered scripts first.
-        int ret = loadScripts();
+    scripts.insert(absolutePath);
+  }
 
-        if (replMode) {
-            return loadRepl();
+  void registerArg(const std::string& name, const std::string& value) {
+    args[name] = value;
+  }
+
+  int start(bool replMode) {
+    // Load any registered scripts first.
+    int ret = loadScripts();
+
+    if (replMode) {
+      return loadRepl();
+    }
+
+    return ret;
+  }
+
+ private:
+  Logger& logger;
+  Interpreter& interp;
+  std::unordered_set<std::string> scripts;
+  std::map<std::string, std::string> args;
+
+  int loadRepl() {
+    std::string input;
+
+    while (true) {
+      try {
+        std::cout << "> ";
+        std::getline(std::cin, input);
+
+        if (input == Keywords.Exit) {
+          break;
         }
 
-        return ret;
+        Lexer lexer(logger, input);
+        interp.interpret(lexer);
+      } catch (const std::exception& e) {
+        ErrorHandler::printError(e);
+        return 1;
+      }
     }
 
-private:
-    Logger &logger;
-    Interpreter &interp;
-    std::unordered_set<std::string> scripts;
-    std::map<std::string, std::string> args;
+    return 0;
+  }
 
-    int loadRepl() {
-        std::string input;
+  int loadScripts() {
+    int returnCode = 0;
 
-        while (true) {
-            try {
-                std::cout << "> ";
-                std::getline(std::cin, input);
-
-                if (input == Keywords.Exit) {
-                    break;
-                }
-
-                Lexer lexer(logger, input);
-                interp.interpret(lexer);
-            } 
-            catch (const std::exception &e) {
-                ErrorHandler::printError(e);
-                return 1;
-            }
+    try {
+      for (const std::string& script : scripts) {
+        std::string content = FileIO::readFile(script);
+        if (content.empty()) {
+          continue;
         }
 
-        return 0;
-    }
+        std::string parentPath = FileIO::getParentPath(script);
 
-    int loadScripts() {
-        int returnCode = 0;
+        Lexer lexer(logger, content);
+        returnCode = interp.interpret(lexer, parentPath);
 
-        try {
-            for (const std::string &script : scripts) {
-                std::string content = FileIO::readFile(script);
-                if (content.empty()) {
-                    continue;
-                }
-
-                std::string parentPath = FileIO::getParentPath(script);
-
-                Lexer lexer(logger, content);
-                returnCode = interp.interpret(lexer, parentPath);
-
-                // If one script fails, we need to stop here.
-                if (returnCode != 0) {
-                    break;
-                }
-            }
-        } 
-        catch (const std::exception &e) {
-            ErrorHandler::printError(e);
-            return 1;
+        // If one script fails, we need to stop here.
+        if (returnCode != 0) {
+          break;
         }
-
-        return returnCode;
+      }
+    } catch (const std::exception& e) {
+      ErrorHandler::printError(e);
+      return 1;
     }
+
+    return returnCode;
+  }
 };
 
 #endif
