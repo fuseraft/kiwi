@@ -1,4 +1,6 @@
-println "relational_logic.uslang"
+println "==========================="
+println "= relational_logic.uslang ="
+println "==========================="
 
 @a = 10, @b = 20
 @c = @a < @b
@@ -52,3 +54,4 @@ println "${@a} == ${@b} = ${@c}"
 @c = @a == @b
 println "${@a} == ${@b} = ${@c}"
 
+println ""

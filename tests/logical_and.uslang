@@ -1,4 +1,6 @@
-println "logical_and.uslang"
+println "======================"
+println "= logical_and.uslang ="
+println "======================"
 
 @a = false, @b = false
 @c = @a && @b
@@ -15,3 +17,5 @@ println "${@a} && ${@b} = ${@c}"
 @a = true, @b = true
 @c = @a && @b
 println "${@a} && ${@b} = ${@c}"
+
+println ""

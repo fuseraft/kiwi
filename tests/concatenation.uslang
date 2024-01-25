@@ -1,4 +1,6 @@
-println "concatenation.uslang"
+println "========================"
+println "= concatenation.uslang ="
+println "========================"
 
 # simple concatenation
 @a = "Hello"
@@ -17,3 +19,5 @@ println "'${@a}' + ' ' + '${@b}' = '${@c}'"
 @b = 5
 @c = @a * @b
 println "'${@a}' * ${@b} = '${@c}'"
+
+println ""

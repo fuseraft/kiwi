@@ -29,14 +29,6 @@ class Interpreter {
     _end = _tokens.size();
     _parentPath = parentPath;
 
-    /*if (DEBUG) {
-            int i = 0;
-            for (Token t : _tokens) {
-                std::cout << i++ << ": " << t.getText() << std::endl;
-            }
-            _end = 0;
-        }*/
-
     if (_end == 0) {
       return 0;
     }
@@ -56,8 +48,8 @@ class Interpreter {
   std::string _parentPath;
 
   int interpret(int end = -1) {
-    while (_position < ((end < 0) ? _end : end)) {
-      if (_position + 1 == ((end < 0) ? _end : end)) {
+    while ((end < 0 && _position < _end) || (end >= 0 && _position <= end)) {
+      if (end < 0 && _position + 1 == _end) {
         break;
       }
 
@@ -183,7 +175,6 @@ class Interpreter {
       condition.insert(it, tempAssignment.begin(), tempAssignment.end());
 
       injectTokens(condition);
-
       interpretAssignment();
 
       if (variables.find(tempId) == variables.end()) {
@@ -317,6 +308,8 @@ class Interpreter {
               hasTrueElseIfEvaluation = true;
             }
             conditional.getElseIfStatement().setEvaluation(elseIfValue);
+            Token bodyToken = current();
+            conditional.getElseIfStatement().addToken(bodyToken);
             next();
           } else {
             throw ConversionError(current());
@@ -378,6 +371,8 @@ class Interpreter {
     if (!FileIO::fileExists(scriptPath)) {
       throw FileNotFoundError(scriptPath);
     }
+
+    next();
 
     std::string content = FileIO::readFile(scriptPath);
     if (content.empty()) {

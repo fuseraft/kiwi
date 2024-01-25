@@ -1,4 +1,6 @@
-println "logical_not.uslang"
+println "======================"
+println "= logical_not.uslang ="
+println "======================"
 
 @a = true, @b = !@a
 println "!${@a} = ${@b}"
@@ -11,3 +13,5 @@ println "!${@b} = ${@a}"
 @d = !(@a != @b)
 println "!(${@a} == ${@b}) = ${@c}"
 println "!(${@a} != ${@b}) = ${@d}"
+
+println ""

@@ -1,4 +1,6 @@
-println "while_loops.uslang"
+println "======================"
+println "= while_loops.uslang ="
+println "======================"
 
 @i = 0
 @test_sum = 0
@@ -21,3 +23,5 @@ if @test_sum == 100
 else
     println "While loop test failed!"
 endif
+
+println ""

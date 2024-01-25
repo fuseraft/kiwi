@@ -1,4 +1,6 @@
-println "arithmetic.uslang"
+println "====================="
+println "= arithmetic.uslang ="
+println "====================="
 
 # addition
 @a = 10, @b = 20
@@ -23,3 +25,5 @@ println "${@a} / ${@b} = ${@c}"
 # complex expression
 @a = 10.0, @b = 20.0, @c = (((@a * 2) / @b) + 9)
 println "((${@a} * 2) / ${@b}) + 9 = ${@c}"
+
+println ""
