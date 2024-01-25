@@ -1,6 +1,9 @@
-println "conditionals.uslang"
+println "======================="
+println "= conditionals.uslang ="
+println "======================="
 
 @a = true, @b = true
+println "${@a}, ${@b}"
 
 if @a == @b
     println "foo"
@@ -11,6 +14,7 @@ else
 endif
 
 @a = true, @b = false
+println "${@a}, ${@b}"
 
 if @a == @b
     println "foo"
@@ -21,6 +25,7 @@ else
 endif
 
 @a = true, @b = false
+println "${@a}, ${@b}"
 
 if @a == @b
     println "foo"
@@ -29,3 +34,5 @@ elsif @b == @a
 else
     println "baz"
 endif
+
+println ""
