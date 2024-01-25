@@ -43,12 +43,6 @@ while @i <= 15 do
 end
 ```
 
-## History
-
-I began writing this scripting language as a junior in high school.
-
-It began as a side project to build an alternative shell for Linux and evolved into what it is today.
-
 ## TODO
 
 Stay tuned for updates and additions to this README.
