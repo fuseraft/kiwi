@@ -2,7 +2,7 @@
 
 An unorthodox scripting language written in C++.
 
-## Build Instructions
+### Build Instructions
 
 To build, open a terminal, navigate to the source code, and run:
 
@@ -10,18 +10,18 @@ To build, open a terminal, navigate to the source code, and run:
 make all
 ```
 
-## Testing
+### Testing
 
 To run the test scripts, use:
 ```shell
 make test
 ```
 
-## Test Code
+### Test Code
 
 Please see the `tests` directory for a list of test scripts.
 
-## Example Code
+### Example Code
 
 Here's a FizzBuzz in USL.
 
@@ -43,6 +43,6 @@ while @i <= 15 do
 end
 ```
 
-## TODO
+### TODO
 
 Stay tuned for updates and additions to this README.
