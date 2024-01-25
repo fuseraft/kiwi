@@ -1,12 +1,18 @@
-import "arithmetic"
-import "concatenation"
-import "conditionals"
-import "conditionals_nested"
-import "logical_and"
-import "logical_not"
-import "logical_or"
-import "relational_logic"
-import "while_loops"
-import "fizzbuzz"
+@debug = false
+
+if !@debug
+    import "arithmetic"
+    import "concatenation"
+    import "conditionals"
+    import "conditionals_nested"
+    import "logical_and"
+    import "logical_not"
+    import "logical_or"
+    import "relational_logic"
+    import "while_loops"
+    import "fizzbuzz"
+else
+    import "methods"
+endif
 
 println "Done!"
