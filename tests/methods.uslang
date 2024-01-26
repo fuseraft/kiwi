@@ -2,3 +2,26 @@ println "=================="
 println "= methods.uslang ="
 println "=================="
 
+def add(@n, @m)
+    println "invoked add(n = ${@n}, m = ${@m})"
+
+    if @m < 0
+        println "  m is negative"
+    else
+        println "  m is non-negative"
+    endif
+    
+    @i = 0
+
+    while @i <= 2 do
+        @n += @m
+        println "    i = ${@i}"
+        println "    n = ${@n}"
+        @i += 1
+    end
+
+    println "end n = ${@n}"
+end
+
+add(@n = 1, @m = 2)
+add(@n = 1, @m = 2)
