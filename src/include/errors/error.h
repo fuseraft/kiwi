@@ -46,8 +46,16 @@ class DivideByZeroError : public UslangError {
 class VariableUndefinedError : public UslangError {
  public:
   VariableUndefinedError(const Token& token, std::string name)
-      : UslangError(token, "VariableUndefined",
+      : UslangError(token, "VariableUndefinedError",
                     "Variable `" + name + "` is undefined.") {}
+};
+
+// TODO: refine this. 
+class IllegalNameError : public UslangError {
+ public:
+  IllegalNameError(const Token& token, std::string name)
+      : UslangError(token, "IllegalNameError",
+                    "The name `" + name + "` is illegal.") {}
 };
 
 class FileNotFoundError : public UslangError {

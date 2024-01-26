@@ -259,12 +259,15 @@ struct {
   const std::string While = "while";
 
   std::unordered_set<std::string> keywords = {If,   Else,  ElseIf, EndIf,
-                                              True, False, While,  End};
+                                              True, False, While,  End,
+                                              Method};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           EndIf};
 
   std::unordered_set<std::string> loop_keywords = {While, For};
+
+  std::unordered_set<std::string> required_end_keywords = {While, For, Method};
 
   bool is_keyword(std::string& arg) {
     return keywords.find(arg) != keywords.end();
@@ -278,6 +281,10 @@ struct {
 
   bool is_loop_keyword(const std::string& arg) {
     return loop_keywords.find(arg) != loop_keywords.end();
+  }
+
+  bool is_required_end_keyword(const std::string& arg) {
+    return required_end_keywords.find(arg) != required_end_keywords.end();
   }
 } Keywords;
 
