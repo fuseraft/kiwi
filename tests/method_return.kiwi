@@ -1,0 +1,12 @@
+println "======================"
+println "= method_return.kiwi ="
+println "======================"
+
+def get_greeting(@_name)
+    return "Hello, ${@_name}"
+end
+
+@name = "World!"
+@greeting = get_greeting(@_name = @name)
+
+println "Greeting: ${@greeting}"
