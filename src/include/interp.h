@@ -52,10 +52,11 @@ class Interpreter {
   bool _errorState = false;
   bool _caught = false;
   std::string _parentPath;
+  std::variant<int, double, bool, std::string> returnValue;
 
   int interpret(int end = -1) {
     while ((end < 0 && _position < _end) || (end >= 0 && _position <= end)) {
-      if (_position + 1 == _end) {
+      if (_position + 1 == _end || (end > 0 && _position == end)) {
         break;
       }
 
@@ -78,6 +79,9 @@ class Interpreter {
             interpretLoop();
           } else if (current().getText() == Keywords.Method) {
             interpretMethodDefinition();
+          } else if (current().getText() == Keywords.Return) {
+            interpretReturn();
+            next();
           } else {
             next();
           }
@@ -100,7 +104,6 @@ class Interpreter {
           if (methods.find(tokenText) != methods.end()) {
             interpretMethodInvocation(tokenText);
           }
-          // logger.debug("Unhandled token " + current().info(), "Interpreter::interpret");
         }
 
         next();
@@ -319,6 +322,19 @@ class Interpreter {
     }
 
     methods[name] = method;
+  }
+
+  void interpretReturn() {
+    next(); // Skip "return"
+
+    BooleanExpressionBuilder ifExpression;
+    std::variant<int, double, bool, std::string> value =
+        interpretExpression(ifExpression);
+    if (ifExpression.isSet()) {
+      value = ifExpression.evaluate();
+    }
+
+    returnValue = value;
   }
 
   std::string interpretAssignment() {
@@ -621,6 +637,13 @@ class Interpreter {
   std::variant<int, double, bool, std::string> interpretExpression(
       BooleanExpressionBuilder& booleanExpression) {
     Token tokenTerm = current();
+
+    std::string tokenText = tokenTerm.getText();
+    if (methods.find(tokenText) != methods.end()) {
+      interpretMethodInvocation(tokenText);
+      return returnValue;
+    }
+
     std::variant<int, double, bool, std::string> result =
         interpretTerm(tokenTerm, booleanExpression);
     std::variant<int, double, bool, std::string> lastTerm;

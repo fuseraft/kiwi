@@ -1,4 +1,4 @@
-@debug = true
+@debug = false
 
 if !@debug
     import "arithmetic"
@@ -12,8 +12,9 @@ if !@debug
     import "while_loops"
     import "fizzbuzz"
     import "methods"
+    import "method_return"
 else
-    import "fizzbuzz"
+    println "Add an import below to debug a specific script."
 endif
 
 println "Done!"

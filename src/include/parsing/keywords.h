@@ -233,6 +233,7 @@ struct {
   const std::string Remove = "remove";
   const std::string RemoveDirectory = "dpop";
   const std::string RemoveFile = "fpop";
+  const std::string Return = "return";
   const std::string Reverse = "reverse";
   const std::string Revert = "revert";
   const std::string Self = "self";
@@ -260,7 +261,7 @@ struct {
 
   std::unordered_set<std::string> keywords = {If,   Else,  ElseIf, EndIf,
                                               True, False, While,  End,
-                                              Method};
+                                              Method, Return};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           EndIf};
