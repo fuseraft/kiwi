@@ -26,21 +26,25 @@ Please see the `tests` directory for a list of test scripts.
 Here's a FizzBuzz in USL.
 
 ```uslang
-@i = 0
+def fizzbuzz(@n)
+    @i = 1
 
-while @i <= 15 do
-    @i += 1
-    
-    if @i % 15 == 0
-        println "FizzBuzz"
-    elsif @i % 3 == 0
-        println "Fizz"
-    elsif @i % 5 == 0
-        println "Buzz"
-    else
-        println "${@i}"
-    endif
+    while @i <= @n do    
+        if @i % 15 == 0
+            println "FizzBuzz"
+        elsif @i % 3 == 0
+            println "Fizz"
+        elsif @i % 5 == 0
+            println "Buzz"
+        else
+            println "${@i}"
+        endif
+
+        @i += 1
+    end
 end
+
+fizzbuzz(@n = 15)
 ```
 
 ### TODO

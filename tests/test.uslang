@@ -11,8 +11,9 @@ if !@debug
     import "relational_logic"
     import "while_loops"
     import "fizzbuzz"
-else
     import "methods"
+else
+    import "fizzbuzz"
 endif
 
 println "Done!"
