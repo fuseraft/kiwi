@@ -10,18 +10,16 @@ end
 greet(@name = "world")
 ```
 
-The last assignment is the return value.
+Use the `return` keyword to return a value from a method.
 
 ```
-def add_three(@a, @b, @c)
-    @ret = (@a + @b + @c)
+def get_greeting(@name)
+    return "Hello, ${@name}"
 end
 
-@ans = add_three(@a = 5, @b = 4, @c = 3)
+@greeting = get_greeting(@name = "World!")
 
-if @ans == 12
-  println "Pass!"
-endif
+println @greeting
 ```
 
 ### Scope
