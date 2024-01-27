@@ -24,14 +24,13 @@ class Interpreter {
   Interpreter(Logger& logger) : logger(logger), variables() {}
 
   int interpret(Lexer& lexer, std::string parentPath = "") {
-    return interpret(lexer.getAllTokens(), lexer.getLines(), parentPath);
+    files[lexer.getFile()] = lexer.getLines();
+    return interpret(lexer.getAllTokens(), parentPath);
   }
 
-  int interpret(std::vector<Token> tokens, std::vector<std::string> lines, std::string parentPath = "") {
+  int interpret(std::vector<Token> tokens, std::string parentPath = "") {
     _tokens = tokens;
-    _lines = lines;
     _position = 0;
-    _scope = 0;
     _end = _tokens.size();
     _parentPath = parentPath;
 
@@ -44,13 +43,12 @@ class Interpreter {
 
  private:
   Logger& logger;
-  std::map<int, std::map<std::string, std::variant<int, double, bool, std::string>>> variables;
+  std::map<std::string, std::variant<int, double, bool, std::string>> variables;
+  std::map<std::string, std::vector<std::string>> files;
   std::map<std::string, Method> methods;
   std::vector<Token> _tokens;
-  std::vector<std::string> _lines;
   int _position;
   int _end;
-  int _scope;
   bool _errorState = false;
   bool _caught = false;
   std::string _parentPath;
@@ -108,7 +106,8 @@ class Interpreter {
         next();
       } catch (const UslangError& e) {
         _errorState = true;
-        return ErrorHandler::handleError(e, _lines);
+        std::vector<std::string> lines = files[e.getToken().getFile()];
+        return ErrorHandler::handleError(e, lines);
       } catch (const std::exception& e) {
         _errorState = true;
         throw;
@@ -143,11 +142,11 @@ class Interpreter {
 
   std::vector<Token> getTemporaryAssignment(const std::string& tempId) {
     std::vector<Token> tokens;
-
-    tokens.push_back(Token::create(TokenType::KEYWORD, Symbols.DeclVar, 0, 0));
-    tokens.push_back(Token::create(TokenType::IDENTIFIER, tempId, 0, 0));
+    std::string file = current().getFile();
+    tokens.push_back(Token::create(TokenType::KEYWORD, file, Symbols.DeclVar, 0, 0));
+    tokens.push_back(Token::create(TokenType::IDENTIFIER, file, tempId, 0, 0));
     tokens.push_back(
-        Token::create(TokenType::OPERATOR, Operators.Assign, 0, 0));
+        Token::create(TokenType::OPERATOR, file, Operators.Assign, 0, 0));
 
     return tokens;
   }
@@ -164,7 +163,7 @@ class Interpreter {
 
     int loops = 1;
     while (loops != 0) {
-      if (Keywords.is_loop_keyword(current().getText())) {
+      if (Keywords.is_required_end_keyword(current().getText())) {
         ++loops;
       } else if (current().getText() == Keywords.End) {
         --loops;
@@ -186,18 +185,18 @@ class Interpreter {
     // Interpret the condition.
     while (true) {
       std::vector<Token> condition = loop.getCondition();
-
       auto it = condition.begin() + 0;
       condition.insert(it, tempAssignment.begin(), tempAssignment.end());
+      condition.push_back(Token::createNoOp());
 
       injectTokens(condition);
       interpretAssignment();
 
-      if (variables[_scope].find(tempId) == variables[_scope].end()) {
+      if (variables.find(tempId) == variables.end()) {
         throw SyntaxError(current());
       }
 
-      std::variant<int, double, bool, std::string> value = variables[_scope][tempId];
+      std::variant<int, double, bool, std::string> value = variables[tempId];
       ValueType vt = get_value_type(value);
 
       if (vt != ValueType::Boolean) {
@@ -217,8 +216,8 @@ class Interpreter {
     }
 
     // Cleanup temporary variable.
-    if (variables[_scope].find(tempId) != variables[_scope].end()) {
-      variables[_scope].erase(tempId);
+    if (variables.find(tempId) != variables.end()) {
+      variables.erase(tempId);
     }
   }
 
@@ -235,27 +234,35 @@ class Interpreter {
     next(); // Skip the name.
     Method method = methods[name];
 
+    Token tokenTerm = current();
     if (current().getType() != TokenType::OPEN_PAREN) {
-      Token tokenTerm = current();
       throw SyntaxError(tokenTerm);
     }
     next(); // Skip "("
 
     // Interpret parameters.
+    std::vector<std::string> parametersPassed;
+    std::vector<Token> parameters = method.getParameters();
     std::vector<Token> code = method.getCode();
-    ++_scope;
+
     while (current().getType() != TokenType::CLOSE_PAREN) {
-      interpretAssignment();
+      std::string parameterName = interpretAssignment();
+      parametersPassed.push_back(parameterName);
     }
     next(); // Skip ")"
+    
+    for (Token t : parameters) {
+      std::string parameterName = t.getText();
+      if (std::find(parametersPassed.begin(), parametersPassed.end(), parameterName) == parametersPassed.end()) {
+        throw ParameterMissingError(tokenTerm, parameterName);
+      }
+    }
 
     injectTokens(code);
     int executePosition = _position + static_cast<int>(code.size());
     interpret(executePosition);
 
     // Cleanup.
-    variables.erase(_scope);
-    --_scope;
   }
 
   void interpretMethodParameters(Method& method) {
@@ -267,7 +274,9 @@ class Interpreter {
 
     while (current().getType() != TokenType::CLOSE_PAREN) {
       Token parameterToken = current();
-      method.addParameterToken(parameterToken);
+      if (parameterToken.getType() == TokenType::IDENTIFIER) {
+        method.addParameterToken(parameterToken);
+      }
       next();
     }
 
@@ -292,8 +301,7 @@ class Interpreter {
 
     int counter = 1;
     while (counter > 0) {
-      std::string tokenText = current().getText();
-      if (tokenText == Keywords.End) {
+      if (current().getText() == Keywords.End) {
         --counter;
 
         // Stop here.
@@ -301,7 +309,7 @@ class Interpreter {
           break;
         }
       }
-      else if (Keywords.is_required_end_keyword(tokenText)) {
+      else if (Keywords.is_required_end_keyword(current().getText())) {
         ++counter;
       }
 
@@ -313,12 +321,13 @@ class Interpreter {
     methods[name] = method;
   }
 
-  void interpretAssignment() {
+  std::string interpretAssignment() {
+    std::string name;
     next();  // Skip the "@"
 
     if (current().getType() == TokenType::IDENTIFIER &&
         current().getValueType() == ValueType::String) {
-      std::string name = current().toString();
+      name = current().toString();
       next();
 
       if (current().getType() == TokenType::OPERATOR &&
@@ -337,6 +346,8 @@ class Interpreter {
     } else {
       // logger.debug("Unimplemented token `" + current().info() + "`", "Interpreter::interpretAssignment");
     }
+
+    return name;
   }
 
   void interpretConditional() {
@@ -369,8 +380,6 @@ class Interpreter {
     }
 
     while (ifCount > 0) {
-      std::string tokenText = current().getText();
-
       if (current().getText() == Keywords.If) {
         ++ifCount;
       } else if (current().getText() == Keywords.EndIf && ifCount > 0) {
@@ -477,7 +486,8 @@ class Interpreter {
       return;
     }
 
-    Lexer lexer(logger, content);
+    Lexer lexer(logger, scriptPath, content);
+    files[scriptPath] = lexer.getLines();
     std::vector<Token> tokens = lexer.getAllTokens();
     injectTokens(tokens);
   }
@@ -493,7 +503,7 @@ class Interpreter {
       next();
       std::string name = current().getText();
 
-      if (variables[_scope].find(name) == variables[_scope].end()) {
+      if (variables.find(name) == variables.end()) {
         throw UslangError(current(), "Unknown term `" + name + "`");
       }
 
@@ -666,9 +676,9 @@ class Interpreter {
       return result;
     } else if (current().getType() == TokenType::IDENTIFIER) {
       std::string variableName = current().toString();
-      if (variables[_scope].find(variableName) != variables[_scope].end()) {
+      if (variables.find(variableName) != variables.end()) {
         next();
-        return variables[_scope][variableName];
+        return variables[variableName];
       }
     } else if (current().getType() == TokenType::OPERATOR) {
       std::string op = current().toString();
@@ -688,6 +698,7 @@ class Interpreter {
   }
 
   std::string evaluateString() {
+    const std::string methodName = "evaluateString";
     std::string output;
 
     // TODO: an error should occur here.
@@ -698,7 +709,7 @@ class Interpreter {
     std::string input = current().toString();
 
     // Don't skip whitespace.
-    Lexer lexer(logger, input, false);
+    Lexer lexer(logger, methodName, input, false);
     std::vector<Token> eval = lexer.getAllTokens();
 
     std::ostringstream string;
@@ -737,8 +748,8 @@ class Interpreter {
       if (token.getText() == Symbols.DeclVar) {
         token = eval.at(++position);
 
-        if (variables[_scope].find(token.getText()) != variables[_scope].end()) {
-          auto v = variables[_scope][token.getText()];
+        if (variables.find(token.getText()) != variables.end()) {
+          auto v = variables[token.getText()];
           ValueType vt = get_value_type(v);
 
           if (vt == ValueType::Integer) {
@@ -770,15 +781,15 @@ class Interpreter {
       if (booleanExpression.isSet()) {
         value = booleanExpression.evaluate();
       }
-      variables[_scope][name] = value;
+      variables[name] = value;
       return;
     }
 
-    if (variables[_scope].find(name) == variables[_scope].end()) {
+    if (variables.find(name) == variables.end()) {
       throw VariableUndefinedError(current(), name);
     }
 
-    std::variant<int, double, bool, std::string> currentValue = variables[_scope][name];
+    std::variant<int, double, bool, std::string> currentValue = variables[name];
 
     if (op == Operators.AddAssign) {
       currentValue = std::visit(AddVisitor(current()), currentValue, value);
@@ -796,7 +807,7 @@ class Interpreter {
       currentValue = std::visit(ModuloVisitor(current()), currentValue, value);
     }
 
-    variables[_scope][name] = currentValue;
+    variables[name] = currentValue;
   }
 };
 

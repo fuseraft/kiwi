@@ -30,6 +30,13 @@ class SyntaxError : public UslangError {
       : UslangError(token, "SyntaxError", message) {}
 };
 
+class ParameterMissingError : public UslangError {
+ public:
+  ParameterMissingError(const Token& token, std::string name)
+      : UslangError(token, "ParameterMissingError",
+                    "The parameter `" + name + "` was expected but missing.") {}
+};
+
 class ConversionError : public UslangError {
  public:
   ConversionError(const Token& token)
@@ -50,7 +57,7 @@ class VariableUndefinedError : public UslangError {
                     "Variable `" + name + "` is undefined.") {}
 };
 
-// TODO: refine this. 
+// TODO: refine this.
 class IllegalNameError : public UslangError {
  public:
   IllegalNameError(const Token& token, std::string name)

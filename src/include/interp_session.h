@@ -51,6 +51,7 @@ class InterpSession {
   std::map<std::string, std::string> args;
 
   int loadRepl() {
+    const std::string repl = "repl";
     std::string input;
 
     while (true) {
@@ -62,7 +63,7 @@ class InterpSession {
           break;
         }
 
-        Lexer lexer(logger, input);
+        Lexer lexer(logger, repl, input);
         interp.interpret(lexer);
       } catch (const std::exception& e) {
         ErrorHandler::printError(e);
@@ -84,8 +85,9 @@ class InterpSession {
         }
 
         std::string parentPath = FileIO::getParentPath(script);
+        std::string absolutePath = FileIO::getAbsolutePath(script);
 
-        Lexer lexer(logger, content);
+        Lexer lexer(logger, absolutePath, content);
         returnCode = interp.interpret(lexer, parentPath);
 
         // If one script fails, we need to stop here.

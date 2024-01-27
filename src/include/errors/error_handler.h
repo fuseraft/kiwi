@@ -31,6 +31,7 @@ class ErrorHandler {
     std::string line = lines.at(lineNumber);
     int length = line.length();
 
+    std::cerr << "File: " << token.getFile() << std::endl;
     std::cerr << "Location:  Line " << 1 + lineNumber << ", Column "
               << linePosition << "." << std::endl;
     std::cerr << "Code: " << std::endl;
