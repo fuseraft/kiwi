@@ -1,5 +1,5 @@
 println "=============================="
-println "= conditionals_nested.uslang ="
+println "= conditionals_nested.kiwi ="
 println "=============================="
 
 @a = true, @b = true

@@ -14,9 +14,9 @@ MAIN_FILE := $(SRC_DIR)/main.cpp
 
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
-EXECUTABLE := $(BIN_DIR)/usl
+EXECUTABLE := $(BIN_DIR)/kiwi
 
-TEST_FILE := $(TEST_DIR)/test.uslang
+TEST_FILE := $(TEST_DIR)/test.kiwi
 
 .PHONY: clean test
 

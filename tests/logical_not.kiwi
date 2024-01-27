@@ -1,5 +1,5 @@
 println "======================"
-println "= logical_not.uslang ="
+println "= logical_not.kiwi ="
 println "======================"
 
 @a = true, @b = !@a

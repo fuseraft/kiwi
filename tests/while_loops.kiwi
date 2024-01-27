@@ -1,5 +1,5 @@
 println "======================"
-println "= while_loops.uslang ="
+println "= while_loops.kiwi ="
 println "======================"
 
 @i = 0

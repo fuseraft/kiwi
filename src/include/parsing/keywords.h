@@ -253,7 +253,7 @@ struct {
   const std::string TruthyOne = "1";
   const std::string Try = "try";
   const std::string Unlock = "unlock";
-  const std::string UslangApp = "usl";
+  const std::string kiwiApp = "kiwi";
   const std::string Values = "values";
   const std::string Variables = "variables";
   const std::string While = "while";
