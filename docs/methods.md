@@ -1,28 +1,26 @@
 # Methods
 
-*Under construction in new interpreter.*
-
 Use the `def` keyword to define a method.
 
 ```
-def greet(name)
-    println "Hello, ${name}!"
+def greet(@name)
+    println "Hello, ${@name}!"
 end
 
-greet("world")
+greet(@name = "world")
 ```
 
 The last assignment is the return value.
 
 ```
-def add_three(first, second, third)
-    @ret = (@first + @second + @third)
+def add_three(@a, @b, @c)
+    @ret = (@a + @b + @c)
 end
 
-@ans = add_three(5, 4, 3)
+@ans = add_three(@a = 5, @b = 4, @c = 3)
 
 if @ans == 12
-  println "5 + 4 + 3 = 12"
+  println "Pass!"
 endif
 ```
 
@@ -37,8 +35,10 @@ def uptick
   @counter += 1
 end
 
-for 1 to 5
+@i = 1
+while @i <= 5
   uptick
+  @i += 1
 endfor
 
 # 5
