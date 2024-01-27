@@ -13,10 +13,9 @@ def add(@n, @m)
     
     @i = 0
 
-    while @i <= 2 do
+    while @i <= @m do
         @n += @m
-        println "    i = ${@i}"
-        println "    n = ${@n}"
+        println "    i = ${@i}, n = ${@n}"
         @i += 1
     end
 
@@ -24,4 +23,4 @@ def add(@n, @m)
 end
 
 add(@n = 1, @m = 2)
-add(@n = 1, @m = 2)
+add(@n = 1, @m = 4)

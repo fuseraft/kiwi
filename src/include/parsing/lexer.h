@@ -8,8 +8,9 @@
 
 class Lexer {
  public:
-  Lexer(Logger& logger, const std::string& source, bool skipWhitespace = true)
+  Lexer(Logger& logger, const std::string& file, const std::string& source, bool skipWhitespace = true)
       : logger(logger),
+        file(file),
         source(source),
         currentPosition(0),
         _skipWhitespace(skipWhitespace) {
@@ -41,8 +42,11 @@ class Lexer {
 
   std::vector<std::string> getLines() { return lines; }
 
+  std::string getFile() { return file; }
+
  private:
   Logger& logger;
+  std::string file;
   std::string source;
   size_t currentPosition;
   bool _skipWhitespace;
@@ -65,7 +69,7 @@ class Lexer {
     skipWhitespace();
 
     if (currentPosition >= source.length()) {
-      return Token::create(TokenType::ENDOFFILE, "", 0, lineNumber,
+      return Token::create(TokenType::ENDOFFILE, file, "", 0, lineNumber,
                            linePosition);
     }
 
@@ -80,16 +84,16 @@ class Lexer {
     } else if (currentChar == '#') {
       return parseComment();
     } else if (currentChar == '@') {
-      return Token::create(TokenType::KEYWORD, "@", lineNumber, linePosition);
+      return Token::create(TokenType::KEYWORD, file, "@", lineNumber, linePosition);
     } else if (currentChar == '$') {
-      return Token::create(TokenType::OPERATOR, "$", lineNumber, linePosition);
+      return Token::create(TokenType::OPERATOR, file, "$", lineNumber, linePosition);
     } else if (currentChar == '\n') {
-      return Token::create(TokenType::NEWLINE, "\n", lineNumber, linePosition);
+      return Token::create(TokenType::NEWLINE, file, "\n", lineNumber, linePosition);
     } else if (currentChar == '(') {
-      return Token::create(TokenType::OPEN_PAREN, "(", lineNumber,
+      return Token::create(TokenType::OPEN_PAREN, file, "(", lineNumber,
                            linePosition);
     } else if (currentChar == ')') {
-      return Token::create(TokenType::CLOSE_PAREN, ")", lineNumber,
+      return Token::create(TokenType::CLOSE_PAREN, file, ")", lineNumber,
                            linePosition);
     } else if (currentChar == '\\') {
       if (currentPosition < source.length()) {
@@ -97,17 +101,17 @@ class Lexer {
 
         switch (nextChar) {
           case 't':
-            return Token::create(TokenType::ESCAPED, "\t", lineNumber,
+            return Token::create(TokenType::ESCAPED, file, "\t", lineNumber,
                                  linePosition);
           case 'n':
-            return Token::create(TokenType::ESCAPED, "\n", lineNumber,
+            return Token::create(TokenType::ESCAPED, file, "\n", lineNumber,
                                  linePosition);
         }
       }
 
       getCurrentChar();
 
-      return Token::create(TokenType::IDENTIFIER, "\\", lineNumber,
+      return Token::create(TokenType::IDENTIFIER, file, "\\", lineNumber,
                            linePosition);
     } else {
       std::string s;
@@ -131,7 +135,7 @@ class Lexer {
         }
       }
 
-      return Token::create(TokenType::OPERATOR, s, lineNumber, linePosition);
+      return Token::create(TokenType::OPERATOR, file, s, lineNumber, linePosition);
     }
   }
 
@@ -153,12 +157,12 @@ class Lexer {
       tokenType = TokenType::CONDITIONAL;
     } else if (Keywords.is_boolean(identifier)) {
       tokenType = TokenType::LITERAL;
-      return Token::createBoolean(identifier, lineNumber, linePosition);
+      return Token::createBoolean(file, identifier, lineNumber, linePosition);
     } else {
       tokenType = TokenType::KEYWORD;
     }
 
-    return Token::create(tokenType, identifier, lineNumber, linePosition);
+    return Token::create(tokenType, file, identifier, lineNumber, linePosition);
   }
 
   Token parseIdentifier(char initialChar) {
@@ -174,7 +178,7 @@ class Lexer {
       return parseKeyword(identifier);
     }
 
-    return Token::create(TokenType::IDENTIFIER, identifier, lineNumber,
+    return Token::create(TokenType::IDENTIFIER, file, identifier, lineNumber,
                          linePosition);
   }
 
@@ -188,10 +192,10 @@ class Lexer {
     }
 
     if (literal.find('.') != std::string::npos) {
-      return Token::create(TokenType::LITERAL, literal, std::stod(literal),
+      return Token::create(TokenType::LITERAL, file, literal, std::stod(literal),
                            lineNumber, linePosition);
     } else {
-      return Token::create(TokenType::LITERAL, literal, std::stoi(literal),
+      return Token::create(TokenType::LITERAL, file, literal, std::stoi(literal),
                            lineNumber, linePosition);
     }
   }
@@ -205,7 +209,7 @@ class Lexer {
     }
 
     getCurrentChar();  // skip closing quote
-    return Token::create(TokenType::STRING, str, lineNumber, linePosition);
+    return Token::create(TokenType::STRING, file, str, lineNumber, linePosition);
   }
 
   Token parseComment() {
@@ -216,7 +220,7 @@ class Lexer {
       comment += getCurrentChar();
     }
 
-    return Token::create(TokenType::COMMENT, comment, lineNumber, linePosition);
+    return Token::create(TokenType::COMMENT, file, comment, lineNumber, linePosition);
   }
 };
 

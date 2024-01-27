@@ -18,6 +18,7 @@ enum TokenType {
   OPEN_PAREN,
   CLOSE_PAREN,
   CONDITIONAL,
+  NOOP,
   ENDOFFILE
 };
 
@@ -45,6 +46,8 @@ std::string get_token_type_string(TokenType tokenType) {
       return "CLOSE_PAREN";
     case TokenType::CONDITIONAL:
       return "CONDITIONAL";
+    case TokenType::NOOP:
+      return "NOOP";
     case TokenType::ENDOFFILE:
       return "ENDOFFILE";
   }
@@ -57,31 +60,37 @@ std::string get_token_type_string(TokenType tokenType) {
 
 class Token {
  public:
-  static Token create(TokenType t, std::string text,
+  static Token create(TokenType t, std::string file, std::string text,
                       const std::variant<int, double, bool, std::string>& v,
                       const int& lineNumber, const int& linePosition) {
-    Token token(t, text, v, lineNumber, linePosition);
+    Token token(t, file, text, v, lineNumber, linePosition);
     return token;
   }
 
-  static Token create(TokenType t, std::string text, const int& lineNumber,
+  static Token create(TokenType t, std::string file, std::string text, const int& lineNumber,
                       const int& linePosition) {
-    return create(t, text, text, lineNumber, linePosition);
+    return create(t, file, text, text, lineNumber, linePosition);
   }
 
-  static Token createBoolean(std::string text, const int& lineNumber,
+  static Token createBoolean(const std::string& file, std::string text, const int& lineNumber,
                              const int& linePosition) {
     bool value = text == Keywords.True;
-    return create(TokenType::LITERAL, text, value, lineNumber, linePosition);
+    return create(TokenType::LITERAL, file, text, value, lineNumber, linePosition);
   }
 
-  static Token createEmpty() { return create(TokenType::ENDOFFILE, "", 0, 0); }
+  static Token createNoOp() { return create(TokenType::NOOP, "", "", 0, 0); }
+
+  static Token createEmpty() { return create(TokenType::ENDOFFILE, "", "", 0, 0); }
 
   std::string info() {
     std::ostringstream info;
     info << "type: " << get_token_type_string(type) << ", "
          << "text: " << text;
     return info.str();
+  }
+
+  std::string getFile() const {
+    return file;
   }
 
   std::string toString() {
@@ -130,16 +139,17 @@ class Token {
 
  private:
   TokenType type;
+  std::string file;
   std::string text;
   std::variant<int, double, bool, std::string> value;
   ValueType valueType;
   int _lineNumber;
   int _linePosition;
 
-  Token(TokenType t, std::string text,
+  Token(TokenType t, std::string file, std::string text,
         const std::variant<int, double, bool, std::string>& v,
         const int& lineNumber, const int& linePosition)
-      : type(t), text(text), value(v) {
+      : type(t), file(file), text(text), value(v) {
     valueType = get_value_type(v);
     _lineNumber = lineNumber;
     _linePosition = linePosition;
