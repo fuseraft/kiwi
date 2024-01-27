@@ -5,9 +5,9 @@
 #include <exception>
 #include "../parsing/tokens.h"
 
-class UslangError : public std::exception {
+class KiwiError : public std::exception {
  public:
-  UslangError(Token token, std::string error, std::string message = "")
+  KiwiError(Token token, std::string error, std::string message = "")
       : token(token), error(error), message(message) {}
 
   const char* what() const noexcept override { return message.c_str(); }
@@ -24,55 +24,55 @@ class UslangError : public std::exception {
   std::string message;
 };
 
-class SyntaxError : public UslangError {
+class SyntaxError : public KiwiError {
  public:
   SyntaxError(const Token& token, std::string message = "Invalid syntax.")
-      : UslangError(token, "SyntaxError", message) {}
+      : KiwiError(token, "SyntaxError", message) {}
 };
 
-class ParameterMissingError : public UslangError {
+class ParameterMissingError : public KiwiError {
  public:
   ParameterMissingError(const Token& token, std::string name)
-      : UslangError(token, "ParameterMissingError",
+      : KiwiError(token, "ParameterMissingError",
                     "The parameter `" + name + "` was expected but missing.") {}
 };
 
-class ConversionError : public UslangError {
+class ConversionError : public KiwiError {
  public:
   ConversionError(const Token& token)
-      : UslangError(token, "ConversionError", "A conversion error occurred.") {}
+      : KiwiError(token, "ConversionError", "A conversion error occurred.") {}
 };
 
-class DivideByZeroError : public UslangError {
+class DivideByZeroError : public KiwiError {
  public:
   DivideByZeroError(const Token& token)
-      : UslangError(token, "DivideByZeroError",
+      : KiwiError(token, "DivideByZeroError",
                     "Attempted to divide by zero.") {}
 };
 
-class VariableUndefinedError : public UslangError {
+class VariableUndefinedError : public KiwiError {
  public:
   VariableUndefinedError(const Token& token, std::string name)
-      : UslangError(token, "VariableUndefinedError",
+      : KiwiError(token, "VariableUndefinedError",
                     "Variable `" + name + "` is undefined.") {}
 };
 
 // TODO: refine this.
-class IllegalNameError : public UslangError {
+class IllegalNameError : public KiwiError {
  public:
   IllegalNameError(const Token& token, std::string name)
-      : UslangError(token, "IllegalNameError",
+      : KiwiError(token, "IllegalNameError",
                     "The name `" + name + "` is illegal.") {}
 };
 
-class FileNotFoundError : public UslangError {
+class FileNotFoundError : public KiwiError {
  public:
   FileNotFoundError(std::string path)
-      : UslangError(Token::createEmpty(), "FileNotFoundError",
+      : KiwiError(Token::createEmpty(), "FileNotFoundError",
                     "File not found: " + path) {}
 
   FileNotFoundError(const Token& token, std::string path)
-      : UslangError(token, "FileNotFoundError", "File not found: " + path) {}
+      : KiwiError(token, "FileNotFoundError", "File not found: " + path) {}
 };
 
 #endif

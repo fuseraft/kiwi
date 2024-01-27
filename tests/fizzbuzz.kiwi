@@ -1,5 +1,5 @@
 println "==================="
-println "= fizzbuzz.uslang ="
+println "= fizzbuzz.kiwi ="
 println "==================="
 
 def fizzbuzz(@n)

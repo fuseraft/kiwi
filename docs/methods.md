@@ -30,7 +30,7 @@ endif
 
 You can access all global variables from within a method.
 
-```uslang
+```kiwi
 @counter = 0
 
 def uptick

@@ -1,8 +1,8 @@
 #include <regex>
 #include <vector>
 
-const std::string uslang_name = "Unorthodox Scripting Language";
-const std::string uslang_version = "1.0.1";
+const std::string kiwi_name = "Unorthodox Scripting Language";
+const std::string kiwi_version = "1.0.1";
 
 #include "configuration/config.h"
 #include "errors/error.h"
@@ -17,14 +17,14 @@ bool has_script_extension(std::string path);
 bool has_conf_extension(std::string path);
 void handle_xarg(std::string& opt, std::__cxx11::regex& xargPattern,
                  InterpSession& session);
-void configure_usl(Config& config, Logger& logger, InterpSession& session);
+void configure_kiwi(Config& config, Logger& logger, InterpSession& session);
 int process_args(int c, std::string& opt, std::vector<std::string>& v,
                  std::__cxx11::regex& xargPattern, InterpSession& session,
                  bool& replMode, Logger& logger, Config& config, bool& retFlag);
 int print_version();
 int print_help();
 
-int uslang(int c, std::vector<std::string> v) {
+int kiwi(int c, std::vector<std::string> v) {
   RNG::getInstance();
 
   std::string opt;
@@ -38,7 +38,7 @@ int uslang(int c, std::vector<std::string> v) {
   Config config;
 
   try {
-    session.registerArg("USL", v.at(0));
+    session.registerArg("kiwi", v.at(0));
 
     bool retFlag;
     int retVal = process_args(c, opt, v, xargPattern, session, replMode, logger,
@@ -47,7 +47,7 @@ int uslang(int c, std::vector<std::string> v) {
       return retVal;
 
     return session.start(replMode);
-  } catch (const UslangError& e) {
+  } catch (const KiwiError& e) {
     return ErrorHandler::handleError(e);
   }
 }
@@ -80,7 +80,7 @@ int process_args(int c, std::string& opt, std::vector<std::string>& v,
       } else if (!config.read(conf)) {
         logger.error("I cannot read `" + conf + "`.");
       } else {
-        configure_usl(config, logger, session);
+        configure_kiwi(config, logger, session);
         ++i;
       }
     } else if (has_script_extension(opt)) {
@@ -93,7 +93,7 @@ int process_args(int c, std::string& opt, std::vector<std::string>& v,
   return {};
 }
 
-void configure_usl(Config& config, Logger& logger, InterpSession& session) {
+void configure_kiwi(Config& config, Logger& logger, InterpSession& session) {
   std::string logPath = config.get("LOGGER_PATH");
   std::string logMode = config.get("LOGGER_MODE");
   std::string logLevel = config.get("LOGGER_LEVEL");
@@ -136,7 +136,7 @@ void handle_xarg(std::string& opt, std::__cxx11::regex& xargPattern,
 }
 
 bool has_script_extension(std::string path) {
-  return ends_with(path, ".usl") || ends_with(path, ".uslang");
+  return ends_with(path, ".kiwi") || ends_with(path, ".kiwi");
 }
 
 bool has_conf_extension(std::string path) {
@@ -144,7 +144,7 @@ bool has_conf_extension(std::string path) {
 }
 
 int print_version() {
-  std::cout << uslang_name << " v" << uslang_version << std::endl << std::endl;
+  std::cout << kiwi_name << " v" << kiwi_version << std::endl << std::endl;
   return 0;
 }
 
@@ -163,7 +163,7 @@ int print_help() {
 
   print_version();
 
-  std::cout << "Usage: usl [--flags] <script|args>" << std::endl
+  std::cout << "Usage: kiwi [--flags] <script|args>" << std::endl
             << "Options:" << std::endl;
 
   for (const auto& cmd : commands) {

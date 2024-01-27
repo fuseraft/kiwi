@@ -9,7 +9,7 @@
 
 class ErrorHandler {
  public:
-  static int handleError(const UslangError& e) {
+  static int handleError(const KiwiError& e) {
     const Token& token = e.getToken();
     std::string message = e.getMessage();
 
@@ -21,7 +21,7 @@ class ErrorHandler {
     return 1;
   }
 
-  static int handleError(const UslangError& e, std::vector<std::string> lines) {
+  static int handleError(const KiwiError& e, std::vector<std::string> lines) {
     handleError(e);
 
     const Token& token = e.getToken();

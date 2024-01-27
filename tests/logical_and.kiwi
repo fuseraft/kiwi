@@ -1,5 +1,5 @@
 println "======================"
-println "= logical_and.uslang ="
+println "= logical_and.kiwi ="
 println "======================"
 
 @a = false, @b = false

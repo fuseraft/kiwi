@@ -1,5 +1,5 @@
 println "=================="
-println "= methods.uslang ="
+println "= methods.kiwi ="
 println "=================="
 
 def add(@n, @m)

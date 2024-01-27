@@ -104,7 +104,7 @@ class Interpreter {
         }
 
         next();
-      } catch (const UslangError& e) {
+      } catch (const KiwiError& e) {
         _errorState = true;
         std::vector<std::string> lines = files[e.getToken().getFile()];
         return ErrorHandler::handleError(e, lines);
@@ -473,7 +473,7 @@ class Interpreter {
   void interpretImport() {
     next();  // skip the "import"
 
-    std::string scriptName = current().getText() + ".uslang";
+    std::string scriptName = current().getText() + ".kiwi";
     std::string scriptPath = FileIO::joinPath(_parentPath, scriptName);
     if (!FileIO::fileExists(scriptPath)) {
       throw FileNotFoundError(scriptPath);
@@ -504,7 +504,7 @@ class Interpreter {
       std::string name = current().getText();
 
       if (variables.find(name) == variables.end()) {
-        throw UslangError(current(), "Unknown term `" + name + "`");
+        throw KiwiError(current(), "Unknown term `" + name + "`");
       }
 
       BooleanExpressionBuilder booleanExpression;
@@ -521,7 +521,7 @@ class Interpreter {
             << Keywords.PrintLn << "` for type `"
             << get_value_type_string(current().getValueType()) << std::endl
             << "Value: `" << current().getText() << "`";
-      throw UslangError(current(), error.str());
+      throw KiwiError(current(), error.str());
     }
 
     if (printNewLine) {

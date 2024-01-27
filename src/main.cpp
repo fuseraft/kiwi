@@ -1,10 +1,10 @@
 /**
- *  uslang: an unorthodox scripting language
+ *  kiwi: an unorthodox scripting language
  *  hybrid-typed, object-oriented, interpreted
  **/
 
 #include <vector>
-#include "include/uslang.h"
+#include "include/kiwi.h"
 #include "include/globals.h"
 
 bool DEBUG = false;
@@ -20,11 +20,11 @@ int main(int c, char** v) {
 
     if (DEBUG) {
       args.push_back("-C");
-      args.push_back("/home/scott/work/usl/uslang/config/usl.conf");
+      args.push_back("/home/scott/work/kiwi/kiwi/config/kiwi.conf");
     }
 
     unsigned int size = args.size();
-    exit = uslang(size, args);
+    exit = kiwi(size, args);
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;
     exit = 1;

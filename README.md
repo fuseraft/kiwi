@@ -1,4 +1,4 @@
-# uslang
+# kiwi
 
 An unorthodox scripting language written in C++.
 
@@ -23,9 +23,9 @@ Please see the `tests` directory for a list of test scripts.
 
 ### Example Code
 
-Here's a FizzBuzz in USL.
+Here's a FizzBuzz in kiwi.
 
-```uslang
+```kiwi
 def fizzbuzz(@n)
     @i = 1
 
