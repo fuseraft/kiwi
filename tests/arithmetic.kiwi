@@ -1,6 +1,6 @@
-println "====================="
+println "==================="
 println "= arithmetic.kiwi ="
-println "====================="
+println "==================="
 
 # addition
 @a = 10, @b = 20

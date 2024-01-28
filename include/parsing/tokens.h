@@ -89,9 +89,10 @@ class Token {
     return info.str();
   }
 
-  std::string getFile() const {
-    return file;
-  }
+  void setOwner(std::string value) { owner = value; }
+  std::string getOwner() { return owner; }
+
+  std::string getFile() const { return file; }
 
   std::string toString() {
     if (valueType != ValueType::String) {
@@ -145,6 +146,7 @@ class Token {
   ValueType valueType;
   int _lineNumber;
   int _linePosition;
+  std::string owner;
 
   Token(TokenType t, std::string file, std::string text,
         const std::variant<int, double, bool, std::string>& v,
@@ -153,6 +155,7 @@ class Token {
     valueType = get_value_type(v);
     _lineNumber = lineNumber;
     _linePosition = linePosition;
+    owner = "";
   }
 };
 

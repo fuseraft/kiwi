@@ -15,6 +15,7 @@
 #include "parsing/lexer.h"
 #include "parsing/tokens.h"
 #include "parsing/keywords.h"
+#include "system/fileio.h"
 #include "typing/valuetype.h"
 #include "globals.h"
 
@@ -264,8 +265,6 @@ class Interpreter {
     injectTokens(code);
     int executePosition = _position + static_cast<int>(code.size());
     interpret(executePosition);
-
-    // Cleanup.
   }
 
   void interpretMethodParameters(Method& method) {
@@ -318,6 +317,10 @@ class Interpreter {
 
       Token codeToken = current();
       method.addToken(codeToken);
+      next();
+    }
+
+    if (current().getText() == Keywords.End) {
       next();
     }
 

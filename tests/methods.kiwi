@@ -1,6 +1,6 @@
-println "=================="
+println "================"
 println "= methods.kiwi ="
-println "=================="
+println "================"
 
 def add(@n, @m)
     println "invoked add(n = ${@n}, m = ${@m})"

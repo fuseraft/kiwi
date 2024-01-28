@@ -1,6 +1,6 @@
-println "======================="
+println "====================="
 println "= conditionals.kiwi ="
-println "======================="
+println "====================="
 
 @a = true, @b = true
 println "${@a}, ${@b}"
