@@ -3,7 +3,7 @@ CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic
 LDFLAGS :=
 
 SRC_DIR := src
-INCLUDE_DIR := $(SRC_DIR)/include
+INCLUDE_DIR := include
 BUILD_DIR := build
 BIN_DIR := bin
 TEST_DIR := tests
