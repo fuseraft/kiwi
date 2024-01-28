@@ -1,8 +1,8 @@
 #include <regex>
 #include <vector>
 
-const std::string kiwi_name = "Unorthodox Scripting Language";
-const std::string kiwi_version = "1.0.1";
+const std::string kiwi_name = "The Kiwi Programming Language";
+const std::string kiwi_version = "1.0.2";
 
 #include "configuration/config.h"
 #include "errors/error.h"
