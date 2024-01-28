@@ -17,8 +17,9 @@ if !@debug
     import "fizzbuzz"
     import "methods"
     import "method_return"
+    import "bitwise"
 else
-    println "Add an import below to debug a specific script."
+    # Set @debug = true, and add an import below to debug a specific script.
 endif
 
 println "Done!"

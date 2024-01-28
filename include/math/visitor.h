@@ -207,4 +207,92 @@ struct GreaterThanOrEqualVisitor {
   }
 };
 
+struct BitwiseAndVisitor {
+  const Token& token;
+
+  BitwiseAndVisitor(const Token& token) : token(token) {}
+
+  std::variant<int, double, bool, std::string> operator()(
+      std::variant<int, double, bool, std::string> left,
+      std::variant<int, double, bool, std::string> right) const {
+    ValueType vtleft = get_value_type(left);
+    ValueType vtright = get_value_type(right);
+
+    return MathImpl.do_bitwise_and(token, vtleft, vtright, left, right);
+  }
+};
+
+struct BitwiseOrVisitor {
+  const Token& token;
+
+  BitwiseOrVisitor(const Token& token) : token(token) {}
+
+  std::variant<int, double, bool, std::string> operator()(
+      std::variant<int, double, bool, std::string> left,
+      std::variant<int, double, bool, std::string> right) const {
+    ValueType vtleft = get_value_type(left);
+    ValueType vtright = get_value_type(right);
+
+    return MathImpl.do_bitwise_or(token, vtleft, vtright, left, right);
+  }
+};
+
+struct BitwiseXorVisitor {
+  const Token& token;
+
+  BitwiseXorVisitor(const Token& token) : token(token) {}
+
+  std::variant<int, double, bool, std::string> operator()(
+      std::variant<int, double, bool, std::string> left,
+      std::variant<int, double, bool, std::string> right) const {
+    ValueType vtleft = get_value_type(left);
+    ValueType vtright = get_value_type(right);
+
+    return MathImpl.do_bitwise_xor(token, vtleft, vtright, left, right);
+  }
+};
+
+struct BitwiseNotVisitor {
+  const Token& token;
+
+  BitwiseNotVisitor(const Token& token) : token(token) {}
+
+  std::variant<int, double, bool, std::string> operator()(
+      std::variant<int, double, bool, std::string> left) const {
+    ValueType vtleft = get_value_type(left);
+    
+    return MathImpl.do_bitwise_not(token, vtleft, left);
+  }
+};
+
+struct BitwiseLeftShiftVisitor {
+  const Token& token;
+
+  BitwiseLeftShiftVisitor(const Token& token) : token(token) {}
+
+  std::variant<int, double, bool, std::string> operator()(
+      std::variant<int, double, bool, std::string> left,
+      std::variant<int, double, bool, std::string> right) const {
+    ValueType vtleft = get_value_type(left);
+    ValueType vtright = get_value_type(right);
+
+    return MathImpl.do_bitwise_lshift(token, vtleft, vtright, left, right);
+  }
+};
+
+struct BitwiseRightShiftVisitor {
+  const Token& token;
+
+  BitwiseRightShiftVisitor(const Token& token) : token(token) {}
+
+  std::variant<int, double, bool, std::string> operator()(
+      std::variant<int, double, bool, std::string> left,
+      std::variant<int, double, bool, std::string> right) const {
+    ValueType vtleft = get_value_type(left);
+    ValueType vtright = get_value_type(right);
+
+    return MathImpl.do_bitwise_rshift(token, vtleft, vtright, left, right);
+  }
+};
+
 #endif

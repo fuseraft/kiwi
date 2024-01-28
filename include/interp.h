@@ -595,6 +595,22 @@ class Interpreter {
     }
   }
 
+  void interpretBitwiseExpression(Token& tokenTerm, std::string& op, 
+      std::variant<int, double, bool, std::string>& result,
+      std::variant<int, double, bool, std::string> nextTerm) {
+    if (op == Operators.BitwiseAnd) {
+      result = std::visit(BitwiseAndVisitor(tokenTerm), result, nextTerm);
+    } else if (op == Operators.BitwiseOr) {
+      result = std::visit(BitwiseOrVisitor(tokenTerm), result, nextTerm);
+    } else if (op == Operators.BitwiseXor) {
+      result = std::visit(BitwiseXorVisitor(tokenTerm), result, nextTerm);
+    } else if (op == Operators.BitwiseLeftShift) {
+      result = std::visit(BitwiseLeftShiftVisitor(tokenTerm), result, nextTerm);
+    } else if (op == Operators.BitwiseRightShift) {
+      result = std::visit(BitwiseRightShiftVisitor(tokenTerm), result, nextTerm);
+    }
+  }
+
   void interpretRelationalExpression(
       Token& tokenTerm, BooleanExpressionBuilder& booleanExpression,
       std::string& op, std::variant<int, double, bool, std::string>& result,
@@ -680,6 +696,10 @@ class Interpreter {
                                       nextTerm);
       }
 
+      if (Operators.is_bitwise_operator(op)) {
+        interpretBitwiseExpression(tokenTerm, op, result, nextTerm);
+      }
+
       lastTerm = result;
     }
 
@@ -709,7 +729,16 @@ class Interpreter {
     } else if (current().getType() == TokenType::OPERATOR) {
       std::string op = current().toString();
       next();
-      interpretBooleanExpression(termToken, booleanExpression, op);
+      if (op == Operators.BitwiseNot) {
+        std::variant<int, double, bool, std::string> bitwiseResult =
+          interpretExpression(booleanExpression);
+        bitwiseResult = std::visit(BitwiseNotVisitor(current()), bitwiseResult);
+        return bitwiseResult;
+      }
+      else {
+        // We can assume it's a boolean expression.
+        interpretBooleanExpression(termToken, booleanExpression, op);
+      }
     } else if (current().getValueType() == ValueType::Boolean) {
       return current().toBoolean();
     } else if (current().getValueType() == ValueType::Double) {
@@ -831,6 +860,18 @@ class Interpreter {
       currentValue = std::visit(PowerVisitor(current()), currentValue, value);
     } else if (op == Operators.ModuloAssign) {
       currentValue = std::visit(ModuloVisitor(current()), currentValue, value);
+    } else if (op == Operators.BitwiseAndAssign) {
+      currentValue = std::visit(BitwiseAndVisitor(current()), currentValue, value);
+    } else if (op == Operators.BitwiseOrAssign) {
+      currentValue = std::visit(BitwiseOrVisitor(current()), currentValue, value);
+    } else if (op == Operators.BitwiseXorAssign) {
+      currentValue = std::visit(BitwiseXorVisitor(current()), currentValue, value);
+    } else if (op == Operators.BitwiseLeftShiftAssign) {
+      currentValue = std::visit(BitwiseLeftShiftVisitor(current()), currentValue, value);
+    } else if (op == Operators.BitwiseRightShiftAssign) {
+      currentValue = std::visit(BitwiseRightShiftVisitor(current()), currentValue, value);
+    } else if (op == Operators.BitwiseNotAssign) {
+      currentValue = std::visit(BitwiseNotVisitor(current()), value);
     }
 
     variables[name] = currentValue;
