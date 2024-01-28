@@ -75,15 +75,15 @@ int process_args(int c, std::vector<std::string>& v,
 
       std::string conf = v[i + 1];
 
-      if (!has_conf_extension(conf)) {
-        logger.error("I can be configured with a `.conf` file.");
+      if (!ends_with(conf, ".conf")) {
+        throw KiwiError::create("I can be configured with a `.conf` file.");
       } else if (!config.read(conf)) {
-        logger.error("I cannot read `" + conf + "`.");
+        throw KiwiError::create("I cannot read `" + conf + "`.");
       } else {
         configure_kiwi(config, logger, session);
         ++i;
       }
-    } else if (has_script_extension(opt)) {
+    } else if (ends_with(opt, ".kiwi")) {
       session.registerScript(opt);
     } else {
       // logger.debug("Unknown option: " + opt);
@@ -133,14 +133,6 @@ void handle_xarg(std::string& opt, std::__cxx11::regex& xargPattern,
   if (!name.empty() && !value.empty()) {
     session.registerArg(name, value);
   }
-}
-
-bool has_script_extension(std::string path) {
-  return ends_with(path, ".kiwi") || ends_with(path, ".kiwi");
-}
-
-bool has_conf_extension(std::string path) {
-  return ends_with(path, ".conf");
 }
 
 int print_version() {

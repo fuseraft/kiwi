@@ -18,6 +18,10 @@ class KiwiError : public std::exception {
 
   const std::string getMessage() const { return message; }
 
+  static KiwiError create(std::string message = "") {
+    return KiwiError(Token::createEmpty(), "KiwiError", message);
+  }
+
  private:
   Token token;
   std::string error;
