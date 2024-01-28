@@ -6,14 +6,17 @@
             "command": "/usr/bin/g++",
             "args": [
                 "-fdiagnostics-color=always",
+                "-Wall",
+                "-Wextra",
+                "-pedantic",
+                "-I${workspaceFolder}/include",
                 "-g",
-                "${file}",
+                "${workspaceFolder}/src/main.cpp",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}",
-                "-std=c++17"
+                "${workspaceFolder}/bin/kiwi"
             ],
             "options": {
-                "cwd": "${fileDirname}"
+                "cwd": "${workspaceFolder}"
             },
             "problemMatcher": [
                 "$gcc"

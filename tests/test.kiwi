@@ -1,3 +1,7 @@
+println "============="
+println "= test.kiwi ="
+println "============="
+
 @debug = false
 
 if !@debug

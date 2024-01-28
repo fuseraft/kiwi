@@ -1,6 +1,6 @@
-println "======================"
+println "===================="
 println "= logical_and.kiwi ="
-println "======================"
+println "===================="
 
 @a = false, @b = false
 @c = @a && @b

@@ -1,6 +1,6 @@
-println "=============================="
+println "============================"
 println "= conditionals_nested.kiwi ="
-println "=============================="
+println "============================"
 
 @a = true, @b = true
 

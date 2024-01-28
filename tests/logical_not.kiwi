@@ -1,6 +1,6 @@
-println "======================"
+println "===================="
 println "= logical_not.kiwi ="
-println "======================"
+println "===================="
 
 @a = true, @b = !@a
 println "!${@a} = ${@b}"

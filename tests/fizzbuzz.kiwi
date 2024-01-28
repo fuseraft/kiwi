@@ -1,6 +1,6 @@
-println "==================="
+println "================="
 println "= fizzbuzz.kiwi ="
-println "==================="
+println "================="
 
 def fizzbuzz(@n)
     @i = 1

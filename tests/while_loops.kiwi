@@ -1,6 +1,6 @@
-println "======================"
+println "===================="
 println "= while_loops.kiwi ="
-println "======================"
+println "===================="
 
 @i = 0
 @test_sum = 0

@@ -1,6 +1,6 @@
-println "========================"
+println "======================"
 println "= concatenation.kiwi ="
-println "========================"
+println "======================"
 
 # simple concatenation
 @a = "Hello"

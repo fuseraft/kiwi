@@ -1,6 +1,6 @@
-println "====================="
+println "==================="
 println "= logical_or.kiwi ="
-println "====================="
+println "==================="
 
 @a = false, @b = false
 @c = @a || @b
