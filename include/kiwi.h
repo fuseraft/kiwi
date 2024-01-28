@@ -18,44 +18,44 @@ bool has_conf_extension(std::string path);
 void handle_xarg(std::string& opt, std::__cxx11::regex& xargPattern,
                  InterpSession& session);
 void configure_kiwi(Config& config, Logger& logger, InterpSession& session);
-int process_args(int c, std::string& opt, std::vector<std::string>& v,
-                 std::__cxx11::regex& xargPattern, InterpSession& session,
-                 bool& replMode, Logger& logger, Config& config, bool& retFlag);
+int process_args(int c, std::vector<std::string>& v, InterpSession& session, Logger& logger, bool& retFlag);
 int print_version();
 int print_help();
 
-int kiwi(int c, std::vector<std::string> v) {
+int kiwi(std::vector<std::string>& v) {
   RNG::getInstance();
-
-  std::string opt;
-
-  std::regex xargPattern("-X(.*?)=");
-  bool replMode = false;
 
   Logger logger;
   Interpreter interp(logger);
   InterpSession session(logger, interp);
-  Config config;
+
+  if (DEBUG) {
+    v.push_back("-C");
+    v.push_back("/home/scott/work/kiwi/kiwi/kiwi/config/kiwi.conf");
+  }
+  
+  size_t size = v.size();
 
   try {
     session.registerArg("kiwi", v.at(0));
 
     bool retFlag;
-    int retVal = process_args(c, opt, v, xargPattern, session, replMode, logger,
-                              config, retFlag);
+    int retVal = process_args(size, v, session, logger, retFlag);
     if (retFlag)
       return retVal;
 
-    return session.start(replMode);
+    return session.start();
   } catch (const KiwiError& e) {
     return ErrorHandler::handleError(e);
   }
 }
 
-int process_args(int c, std::string& opt, std::vector<std::string>& v,
-                 std::__cxx11::regex& xargPattern, InterpSession& session,
-                 bool& replMode, Logger& logger, Config& config,
-                 bool& retFlag) {
+int process_args(int c, std::vector<std::string>& v,
+                 InterpSession& session, Logger& logger, bool& retFlag) {
+  std::regex xargPattern("-X(.*?)=");
+  std::string opt;
+  Config config;
+
   retFlag = true;
   for (int i = 1; i < c; ++i) {
     opt = v.at(i);
@@ -67,7 +67,7 @@ int process_args(int c, std::string& opt, std::vector<std::string>& v,
     } else if (is_flag(opt, "v", "version")) {
       return print_version();
     } else if (is_flag(opt, "R", "repl")) {
-      replMode = true;
+      session.setReplMode(true);
     } else if (is_flag(opt, "C", "config")) {
       if (i + 1 > c) {
         return print_help();
