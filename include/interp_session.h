@@ -13,7 +13,9 @@
 class InterpSession {
  public:
   InterpSession(Logger& logger, Interpreter& interp)
-      : logger(logger), interp(interp), scripts(), args() {}
+      : logger(logger), interp(interp), scripts(), args() {
+    setReplMode(false);
+  }
 
   void registerScript(const std::string& scriptPath) {
     if (!FileIO::fileExists(scriptPath)) {
@@ -33,8 +35,10 @@ class InterpSession {
     args[name] = value;
   }
 
-  int start(bool replMode) {
-    // Load any registered scripts first.
+  void setReplMode(bool value) { replMode = value; }
+  bool getReplMode() { return replMode; }
+
+  int start() {
     int ret = loadScripts();
 
     if (replMode) {
@@ -49,6 +53,7 @@ class InterpSession {
   Interpreter& interp;
   std::unordered_set<std::string> scripts;
   std::map<std::string, std::string> args;
+  bool replMode;
 
   int loadRepl() {
     const std::string repl = "repl";
