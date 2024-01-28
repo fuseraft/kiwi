@@ -1,5 +1,5 @@
-#ifndef SYS_IO_H
-#define SYS_IO_H
+#ifndef KIWI_SYSTEM_FILEIO_H
+#define KIWI_SYSTEM_FILEIO_H
 
 #include <fstream>
 #include <filesystem>

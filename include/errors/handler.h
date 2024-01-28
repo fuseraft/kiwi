@@ -1,11 +1,12 @@
-#ifndef ERROR_HANDLER_H
-#define ERROR_HANDLER_H
+#ifndef KIWI_ERRORS_HANDLER_H
+#define KIWI_ERRORS_HANDLER_H
 
+#include <vector>
 #include <cstdlib>
 #include <cxxabi.h>
 #include <execinfo.h>
 #include "error.h"
-#include "../parsing/tokens.h"
+#include "parsing/tokens.h"
 
 class ErrorHandler {
  public:

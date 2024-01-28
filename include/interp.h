@@ -1,21 +1,21 @@
-#ifndef INTERP_H
-#define INTERP_H
+#ifndef KIWI_INTERP_H
+#define KIWI_INTERP_H
 
 #include <map>
 #include <variant>
 #include "errors/error.h"
-#include "errors/error_handler.h"
+#include "errors/handler.h"
 #include "logging/logger.h"
 #include "math/boolexpr.h"
-#include "math/math_visitor.h"
+#include "math/visitor.h"
 #include "math/rng.h"
 #include "objects/conditional.h"
-#include "objects/loops/while_loop.h"
+#include "objects/loops/while.h"
 #include "objects/method.h"
 #include "parsing/lexer.h"
 #include "parsing/tokens.h"
 #include "parsing/keywords.h"
-#include "typing/value_type.h"
+#include "typing/valuetype.h"
 #include "globals.h"
 
 class Interpreter {

@@ -1,8 +1,8 @@
-#ifndef METHOD_H
-#define METHOD_H
+#ifndef KIWI_OBJECTS_METHOD_H
+#define KIWI_OBJECTS_METHOD_H
 
 #include <vector>
-#include "../parsing/tokens.h"
+#include "parsing/tokens.h"
 
 class Method {
  public:

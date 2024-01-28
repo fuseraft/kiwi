@@ -1,5 +1,5 @@
-#ifndef INTERP_SESSION_H
-#define INTERP_SESSION_H
+#ifndef KIWI_INTERPSESSION_H
+#define KIWI_INTERPSESSION_H
 
 #include <fstream>
 #include <sstream>

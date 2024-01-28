@@ -1,7 +1,7 @@
-#ifndef LEXER_H
-#define LEXER_H
+#ifndef KIWI_PARSING_LEXER_H
+#define KIWI_PARSING_LEXER_H
 
-#include "../logging/logger.h"
+#include "logging/logger.h"
 #include "tokens.h"
 #include "keywords.h"
 #include <vector>

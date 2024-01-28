@@ -1,10 +1,10 @@
-#ifndef TOKENS_H
-#define TOKENS_H
+#ifndef KIWI_PARSING_TOKENS_H
+#define KIWI_PARSING_TOKENS_H
 
 #include <string>
 #include <variant>
-#include "../parsing/keywords.h"
-#include "../typing/value_type.h"
+#include "parsing/keywords.h"
+#include "typing/valuetype.h"
 
 enum TokenType {
   IDENTIFIER,

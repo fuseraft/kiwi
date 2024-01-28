@@ -1,5 +1,5 @@
-#ifndef STRINGS_H
-#define STRINGS_H
+#ifndef KIWI_PARSING_STRINGS_H
+#define KIWI_PARSING_STRINGS_H
 
 #include <string>
 

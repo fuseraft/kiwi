@@ -1,7 +1,10 @@
-#ifndef VALUE_TYPE_H
-#define VALUE_TYPE_H
+#ifndef KIWI_TYPING_VALUETYPE_H
+#define KIWI_TYPING_VALUETYPE_H
 
 #include <variant>
+#include <stdexcept>
+#include <sstream>
+#include <string>
 
 enum class ValueType {
   None,

@@ -1,5 +1,8 @@
-#ifndef WHILE_LOOP_H
-#define WHILE_LOOP_H
+#ifndef KIWI_OBJECTS_LOOPS_WHILE_H
+#define KIWI_OBJECTS_LOOPS_WHILE_H
+
+#include <vector>
+#include "parsing/tokens.h"
 
 class WhileLoop {
  public:

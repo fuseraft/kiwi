@@ -1,5 +1,5 @@
-#ifndef BOOL_EXPR_H
-#define BOOL_EXPR_H
+#ifndef KIWI_MATH_BOOLEXPR_H
+#define KIWI_MATH_BOOLEXPR_H
 
 #include <iostream>
 #include <memory>

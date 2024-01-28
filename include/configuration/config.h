@@ -1,5 +1,5 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef KIWI_CONFIGURATION_CONFIG_H
+#define KIWI_CONFIGURATION_CONFIG_H
 
 #include <fstream>
 #include <iostream>
