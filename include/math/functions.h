@@ -362,6 +362,96 @@ struct {
 
     return result;
   }
+
+  std::variant<int, double, bool, std::string> do_bitwise_and(
+      const Token& token, ValueType vtleft, ValueType vtright,
+      std::variant<int, double, bool, std::string> left,
+      std::variant<int, double, bool, std::string> right) {
+    std::variant<int, double, bool, std::string> result;
+
+    if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
+      result = std::get<int>(left) & std::get<int>(right);
+    } else {
+      throw ConversionError(token);
+    }
+
+    return result;
+  }
+
+  std::variant<int, double, bool, std::string> do_bitwise_or(
+      const Token& token, ValueType vtleft, ValueType vtright,
+      std::variant<int, double, bool, std::string> left,
+      std::variant<int, double, bool, std::string> right) {
+    std::variant<int, double, bool, std::string> result;
+
+    if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
+      result = std::get<int>(left) | std::get<int>(right);
+    } else {
+      throw ConversionError(token);
+    }
+
+    return result;
+  }
+
+  std::variant<int, double, bool, std::string> do_bitwise_xor(
+      const Token& token, ValueType vtleft, ValueType vtright,
+      std::variant<int, double, bool, std::string> left,
+      std::variant<int, double, bool, std::string> right) {
+    std::variant<int, double, bool, std::string> result;
+
+    if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
+      result = std::get<int>(left) ^ std::get<int>(right);
+    } else {
+      throw ConversionError(token);
+    }
+
+    return result;
+  }
+
+  std::variant<int, double, bool, std::string> do_bitwise_not(
+      const Token& token, ValueType vtleft,
+      std::variant<int, double, bool, std::string> left) {
+    std::variant<int, double, bool, std::string> result;
+
+    if (vtleft == ValueType::Integer) {
+      result = ~std::get<int>(left);
+    } else {
+      throw ConversionError(token);
+    }
+
+    return result;
+  }
+
+  std::variant<int, double, bool, std::string> do_bitwise_lshift(
+      const Token& token, ValueType vtleft, ValueType vtright,
+      std::variant<int, double, bool, std::string> left,
+      std::variant<int, double, bool, std::string> right) {
+    std::variant<int, double, bool, std::string> result;
+
+    if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
+      result = std::get<int>(left) << std::get<int>(right);
+    } else {
+      throw ConversionError(token);
+    }
+
+    return result;
+  }
+
+  std::variant<int, double, bool, std::string> do_bitwise_rshift(
+      const Token& token, ValueType vtleft, ValueType vtright,
+      std::variant<int, double, bool, std::string> left,
+      std::variant<int, double, bool, std::string> right) {
+    std::variant<int, double, bool, std::string> result;
+
+    if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
+      result = std::get<int>(left) >> std::get<int>(right);
+    } else {
+      throw ConversionError(token);
+    }
+
+    return result;
+  }
+
 } MathImpl;
 
 #endif

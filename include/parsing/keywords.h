@@ -20,8 +20,8 @@ struct {
   const std::string Divide = "/";
   const std::string DivideAssign = "/=";
   const std::string Equal = "==";
-  const std::string Exponent = "^";
-  const std::string ExponentAssign = "^=";
+  const std::string Exponent = "**";
+  const std::string ExponentAssign = "**=";
   const std::string GreaterThan = ">";
   const std::string GreaterThanOrEqual = ">=";
   const std::string LessThan = "<";
@@ -51,11 +51,17 @@ struct {
   const std::string BitwiseRightShift = ">>";
   const std::string BitwiseRightShiftAssign = ">>=";
 
+  std::unordered_set<std::string> large_operators = {
+    Exponent, Or, And, BitwiseLeftShift, BitwiseRightShift
+  };
+
   std::unordered_set<char> arithmetic_operator_chars = {'+', '-', '/',
-                                                        '*', '^', '%'};
+                                                        '*', '%'};
 
   std::unordered_set<char> boolean_operator_chars = {'=', '!', '<',
                                                      '>', '|', '&'};
+
+  std::unordered_set<char> bitwise_operator_chars = {'^', '~', '&', '|'};
 
   std::unordered_set<std::string> assignment_operators = {
       Assign,
@@ -86,6 +92,10 @@ struct {
       BitwiseAnd, BitwiseOr,        BitwiseXor,
       BitwiseNot, BitwiseLeftShift, BitwiseRightShift};
 
+  bool is_large_operator(std::string& arg) {
+    return large_operators.find(arg) != large_operators.end();
+  }
+
   bool is_assignment_operator(std::string& arg) {
     return assignment_operators.find(arg) != assignment_operators.end();
   }
@@ -93,6 +103,11 @@ struct {
   bool is_arithmetic_operator_char(char arg) {
     return arithmetic_operator_chars.find(arg) !=
            arithmetic_operator_chars.end();
+  }
+
+  bool is_bitwise_operator_char(char arg) {
+    return bitwise_operator_chars.find(arg) !=
+           bitwise_operator_chars.end();
   }
 
   bool is_boolean_operator_char(char arg) {

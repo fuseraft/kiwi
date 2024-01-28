@@ -123,15 +123,24 @@ class Lexer {
             Operators.is_arithmetic_operator_char(currentChar);
         bool isBooleanOpChar = Operators.is_boolean_operator_char(currentChar);
         bool isArithmeticOp =
-            nextChar == '=' && (isArithmeticOpChar || isBooleanOpChar);
+            (nextChar == '=' && (isArithmeticOpChar || isBooleanOpChar))
+            || (currentChar == '*' && nextChar == '*');
         bool isBooleanOp =
             (nextChar == '|' || nextChar == '&') && isBooleanOpChar;
+        bool isBitwiseOp = (Operators.is_bitwise_operator_char(currentChar) && nextChar == '=')
+            || (currentChar == '<' && nextChar == '<') || (currentChar == '>' && nextChar == '>');
 
-        bool appendNextChar = isArithmeticOp || isBooleanOp;
+        bool appendNextChar = isArithmeticOp || isBooleanOp || isBitwiseOp;
 
         if (appendNextChar) {
           s += nextChar;
           getCurrentChar();
+        
+          nextChar = source[currentPosition];
+          if (nextChar == '=' && Operators.is_large_operator(s)) {
+            s += nextChar;
+            getCurrentChar();
+          }
         }
       }
 
