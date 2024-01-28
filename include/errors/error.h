@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <exception>
-#include "../parsing/tokens.h"
+#include "parsing/tokens.h"
 
 class KiwiError : public std::exception {
  public:

@@ -1,3 +1,6 @@
+#ifndef KIWI_H
+#define KIWI_H
+
 #include <regex>
 #include <vector>
 
@@ -6,7 +9,7 @@ const std::string kiwi_version = "1.0.2";
 
 #include "configuration/config.h"
 #include "errors/error.h"
-#include "errors/error_handler.h"
+#include "errors/handler.h"
 #include "logging/logger.h"
 #include "math/rng.h"
 #include "parsing/keywords.h"
@@ -166,3 +169,5 @@ int print_help() {
   std::cout << std::endl;
   return 0;
 }
+
+#endif

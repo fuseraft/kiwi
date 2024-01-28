@@ -1,8 +1,8 @@
-#ifndef CONDITIONAL_H
-#define CONDITIONAL_H
+#ifndef KIWI_OBJECTS_CONDITIONAL_H
+#define KIWI_OBJECTS_CONDITIONAL_H
 
 #include <vector>
-#include "../parsing/tokens.h"
+#include "parsing/tokens.h"
 
 class IfStatement {
  public:

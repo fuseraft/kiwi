@@ -1,5 +1,5 @@
-#ifndef LOGGER_H
-#define LOGGER_H
+#ifndef KIWI_LOGGING_LOGGER_H
+#define KIWI_LOGGING_LOGGER_H
 
 #include <ctime>
 #include <fstream>
