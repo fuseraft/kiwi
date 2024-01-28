@@ -81,7 +81,7 @@ class Interpreter {
             interpretMethodDefinition();
           } else if (current().getText() == Keywords.Return) {
             interpretReturn();
-            next();
+            break;
           } else {
             next();
           }
