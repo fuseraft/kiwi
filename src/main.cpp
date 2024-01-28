@@ -4,8 +4,8 @@
  **/
 
 #include <vector>
-#include "include/kiwi.h"
-#include "include/globals.h"
+#include "kiwi.h"
+#include "globals.h"
 
 bool DEBUG = false;
 
@@ -20,7 +20,7 @@ int main(int c, char** v) {
 
     if (DEBUG) {
       args.push_back("-C");
-      args.push_back("/home/scott/work/kiwi/kiwi/config/kiwi.conf");
+      args.push_back("/home/scott/work/kiwi/kiwi/kiwi/config/kiwi.conf");
     }
 
     unsigned int size = args.size();
