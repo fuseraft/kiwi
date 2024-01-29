@@ -44,7 +44,7 @@ def fizzbuzz(@n)
     end
 end
 
-fizzbuzz(@n = 15)
+fizzbuzz(15)
 ```
 
 ### TODO
