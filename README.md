@@ -1,6 +1,6 @@
 # kiwi 🥝
 
-An unorthodox scripting language written in C++.
+A general purpose scripting language written in C++.
 
 ### Build Instructions
 
