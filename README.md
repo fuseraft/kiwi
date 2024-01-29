@@ -1,4 +1,4 @@
-# kiwi
+# kiwi 🥝
 
 An unorthodox scripting language written in C++.
 
