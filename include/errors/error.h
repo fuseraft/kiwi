@@ -28,6 +28,20 @@ class KiwiError : public std::exception {
   std::string message;
 };
 
+class UnknownIdentifierError : public KiwiError {
+ public:
+  UnknownIdentifierError(const Token& token, std::string name)
+      : KiwiError(token, "UnknownIdentifierError",
+                  "The identifier `" + name + "` is unknown.") {}
+};
+
+class UnrecognizedTokenError : public KiwiError {
+ public:
+  UnrecognizedTokenError(const Token& token,
+                         std::string message = "Unrecognized token.")
+      : KiwiError(token, "UnrecognizedTokenError", message) {}
+};
+
 class SyntaxError : public KiwiError {
  public:
   SyntaxError(const Token& token, std::string message = "Invalid syntax.")
@@ -38,7 +52,7 @@ class ParameterMissingError : public KiwiError {
  public:
   ParameterMissingError(const Token& token, std::string name)
       : KiwiError(token, "ParameterMissingError",
-                    "The parameter `" + name + "` was expected but missing.") {}
+                  "The parameter `" + name + "` was expected but missing.") {}
 };
 
 class ConversionError : public KiwiError {
@@ -50,15 +64,14 @@ class ConversionError : public KiwiError {
 class DivideByZeroError : public KiwiError {
  public:
   DivideByZeroError(const Token& token)
-      : KiwiError(token, "DivideByZeroError",
-                    "Attempted to divide by zero.") {}
+      : KiwiError(token, "DivideByZeroError", "Attempted to divide by zero.") {}
 };
 
 class VariableUndefinedError : public KiwiError {
  public:
   VariableUndefinedError(const Token& token, std::string name)
       : KiwiError(token, "VariableUndefinedError",
-                    "Variable `" + name + "` is undefined.") {}
+                  "Variable `" + name + "` is undefined.") {}
 };
 
 // TODO: refine this.
@@ -66,14 +79,14 @@ class IllegalNameError : public KiwiError {
  public:
   IllegalNameError(const Token& token, std::string name)
       : KiwiError(token, "IllegalNameError",
-                    "The name `" + name + "` is illegal.") {}
+                  "The name `" + name + "` is illegal.") {}
 };
 
 class FileNotFoundError : public KiwiError {
  public:
   FileNotFoundError(std::string path)
       : KiwiError(Token::createEmpty(), "FileNotFoundError",
-                    "File not found: " + path) {}
+                  "File not found: " + path) {}
 
   FileNotFoundError(const Token& token, std::string path)
       : KiwiError(token, "FileNotFoundError", "File not found: " + path) {}

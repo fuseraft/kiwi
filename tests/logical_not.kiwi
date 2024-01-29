@@ -9,9 +9,9 @@ println "!${@a} = ${@b}"
 println "!${@b} = ${@a}"
 
 @a = true, @b = true
-@c = !(@a == @b)
+@cc = !(@a == @b)
 @d = !(@a != @b)
-println "!(${@a} == ${@b}) = ${@c}"
+println "!(${@a} == ${@b}) = ${@cc}"
 println "!(${@a} != ${@b}) = ${@d}"
 
 println ""
