@@ -8,7 +8,8 @@
 
 class Lexer {
  public:
-  Lexer(Logger& logger, const std::string& file, const std::string& source, bool skipWhitespace = true)
+  Lexer(Logger& logger, const std::string& file, const std::string& source,
+        bool skipWhitespace = true)
       : logger(logger),
         file(file),
         source(source),
@@ -90,29 +91,26 @@ class Lexer {
     } else if (currentChar == '\n') {
       return Token::create(TokenType::NEWLINE, file, "\n", lineNumber, linePosition);
     } else if (currentChar == '(') {
-      return Token::create(TokenType::OPEN_PAREN, file, "(", lineNumber,
-                           linePosition);
+      return Token::create(TokenType::OPEN_PAREN, file, "(", lineNumber, linePosition);
     } else if (currentChar == ')') {
-      return Token::create(TokenType::CLOSE_PAREN, file, ")", lineNumber,
-                           linePosition);
+      return Token::create(TokenType::CLOSE_PAREN, file, ")", lineNumber, linePosition);
+    } else if (currentChar == ',') {
+      return Token::create(TokenType::COMMA, file, ",", lineNumber, linePosition);
     } else if (currentChar == '\\') {
       if (currentPosition < source.length()) {
         char nextChar = getCurrentChar();
 
         switch (nextChar) {
           case 't':
-            return Token::create(TokenType::ESCAPED, file, "\t", lineNumber,
-                                 linePosition);
+            return Token::create(TokenType::ESCAPED, file, "\t", lineNumber, linePosition);
           case 'n':
-            return Token::create(TokenType::ESCAPED, file, "\n", lineNumber,
-                                 linePosition);
+            return Token::create(TokenType::ESCAPED, file, "\n", lineNumber, linePosition);
         }
       }
 
       getCurrentChar();
 
-      return Token::create(TokenType::IDENTIFIER, file, "\\", lineNumber,
-                           linePosition);
+      return Token::create(TokenType::IDENTIFIER, file, "\\", lineNumber, linePosition);
     } else {
       std::string s;
       s = currentChar;
@@ -123,19 +121,20 @@ class Lexer {
             Operators.is_arithmetic_operator_char(currentChar);
         bool isBooleanOpChar = Operators.is_boolean_operator_char(currentChar);
         bool isArithmeticOp =
-            (nextChar == '=' && (isArithmeticOpChar || isBooleanOpChar))
+            (nextChar == '=' && (isArithmeticOpChar || isBooleanOpChar)) 
             || (currentChar == '*' && nextChar == '*');
         bool isBooleanOp =
             (nextChar == '|' || nextChar == '&') && isBooleanOpChar;
-        bool isBitwiseOp = (Operators.is_bitwise_operator_char(currentChar) && nextChar == '=')
-            || (currentChar == '<' && nextChar == '<') || (currentChar == '>' && nextChar == '>');
+        bool isBitwiseOp = (Operators.is_bitwise_operator_char(currentChar) && nextChar == '=') 
+            || (currentChar == '<' && nextChar == '<') 
+            || (currentChar == '>' && nextChar == '>');
 
         bool appendNextChar = isArithmeticOp || isBooleanOp || isBitwiseOp;
 
         if (appendNextChar) {
           s += nextChar;
           getCurrentChar();
-        
+
           nextChar = source[currentPosition];
           if (nextChar == '=' && Operators.is_large_operator(s)) {
             s += nextChar;
@@ -201,11 +200,11 @@ class Lexer {
     }
 
     if (literal.find('.') != std::string::npos) {
-      return Token::create(TokenType::LITERAL, file, literal, std::stod(literal),
-                           lineNumber, linePosition);
+      return Token::create(TokenType::LITERAL, file, literal,
+                           std::stod(literal), lineNumber, linePosition);
     } else {
-      return Token::create(TokenType::LITERAL, file, literal, std::stoi(literal),
-                           lineNumber, linePosition);
+      return Token::create(TokenType::LITERAL, file, literal,
+                           std::stoi(literal), lineNumber, linePosition);
     }
   }
 
@@ -218,7 +217,8 @@ class Lexer {
     }
 
     getCurrentChar();  // skip closing quote
-    return Token::create(TokenType::STRING, file, str, lineNumber, linePosition);
+    return Token::create(TokenType::STRING, file, str, lineNumber,
+                         linePosition);
   }
 
   Token parseComment() {
@@ -229,7 +229,8 @@ class Lexer {
       comment += getCurrentChar();
     }
 
-    return Token::create(TokenType::COMMENT, file, comment, lineNumber, linePosition);
+    return Token::create(TokenType::COMMENT, file, comment, lineNumber,
+                         linePosition);
   }
 };
 
