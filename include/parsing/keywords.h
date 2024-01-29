@@ -52,11 +52,10 @@ struct {
   const std::string BitwiseRightShiftAssign = ">>=";
 
   std::unordered_set<std::string> large_operators = {
-    Exponent, Or, And, BitwiseLeftShift, BitwiseRightShift
-  };
+      Exponent, Or, And, BitwiseLeftShift, BitwiseRightShift};
 
-  std::unordered_set<char> arithmetic_operator_chars = {'+', '-', '/',
-                                                        '*', '%'};
+  std::unordered_set<char> arithmetic_operator_chars = {'+', '-', '/', '*',
+                                                        '%'};
 
   std::unordered_set<char> boolean_operator_chars = {'=', '!', '<',
                                                      '>', '|', '&'};
@@ -106,8 +105,7 @@ struct {
   }
 
   bool is_bitwise_operator_char(char arg) {
-    return bitwise_operator_chars.find(arg) !=
-           bitwise_operator_chars.end();
+    return bitwise_operator_chars.find(arg) != bitwise_operator_chars.end();
   }
 
   bool is_boolean_operator_char(char arg) {
@@ -274,9 +272,9 @@ struct {
   const std::string Variables = "variables";
   const std::string While = "while";
 
-  std::unordered_set<std::string> keywords = {If,   Else,  ElseIf, EndIf,
-                                              True, False, While,  End,
-                                              Method, Return};
+  std::unordered_set<std::string> keywords = {
+      If, Else, ElseIf, EndIf, True, False, While, End, Method, Return,
+      Import, Print, PrintLn};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           EndIf};

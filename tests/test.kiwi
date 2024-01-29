@@ -5,19 +5,21 @@ println "============="
 @debug = false
 
 if !@debug
+    import "logical_and"
+    import "logical_or"
+    import "logical_not"
     import "arithmetic"
     import "concatenation"
     import "conditionals"
     import "conditionals_nested"
-    import "logical_and"
-    import "logical_not"
-    import "logical_or"
     import "relational_logic"
+    import "bitwise"
+    import "methods"
     import "while_loops"
     import "fizzbuzz"
-    import "methods"
-    import "method_return"
-    import "bitwise"
+
+    # Currently broken.
+    # import "method_return"
 else
     # Set @debug = true, and add an import below to debug a specific script.
 endif

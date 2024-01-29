@@ -21,7 +21,8 @@ bool has_conf_extension(std::string path);
 void handle_xarg(std::string& opt, std::__cxx11::regex& xargPattern,
                  InterpSession& session);
 void configure_kiwi(Config& config, Logger& logger, InterpSession& session);
-int process_args(int c, std::vector<std::string>& v, InterpSession& session, Logger& logger, bool& retFlag);
+int process_args(int c, std::vector<std::string>& v, InterpSession& session,
+                 Logger& logger, bool& retFlag);
 int print_version();
 int print_help();
 
@@ -36,7 +37,7 @@ int kiwi(std::vector<std::string>& v) {
     v.push_back("-C");
     v.push_back("/home/scott/work/kiwi/kiwi/kiwi/config/kiwi.conf");
   }
-  
+
   size_t size = v.size();
 
   try {
@@ -53,8 +54,8 @@ int kiwi(std::vector<std::string>& v) {
   }
 }
 
-int process_args(int c, std::vector<std::string>& v,
-                 InterpSession& session, Logger& logger, bool& retFlag) {
+int process_args(int c, std::vector<std::string>& v, InterpSession& session,
+                 Logger& logger, bool& retFlag) {
   std::regex xargPattern("-X(.*?)=");
   std::string opt;
   Config config;

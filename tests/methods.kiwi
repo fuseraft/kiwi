@@ -22,7 +22,7 @@ def add(@n, @m)
     println "end n = ${@n}"
 end
 
-add(@n = 1, @m = 2)
-add(@n = 1, @m = 4)
+add(1, 2)
+add(1, 4)
 
 println ""
