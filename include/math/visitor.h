@@ -260,7 +260,7 @@ struct BitwiseNotVisitor {
   std::variant<int, double, bool, std::string> operator()(
       std::variant<int, double, bool, std::string> left) const {
     ValueType vtleft = get_value_type(left);
-    
+
     return MathImpl.do_bitwise_not(token, vtleft, left);
   }
 };

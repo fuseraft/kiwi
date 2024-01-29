@@ -20,6 +20,7 @@ def fizzbuzz(@n)
     end
 end
 
-fizzbuzz(@n = 15)
+@value = 15
+fizzbuzz(@value)
 
 println ""

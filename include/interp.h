@@ -2,6 +2,7 @@
 #define KIWI_INTERP_H
 
 #include <map>
+#include <stack>
 #include <variant>
 #include "errors/error.h"
 #include "errors/handler.h"
@@ -18,11 +19,12 @@
 #include "system/fileio.h"
 #include "typing/valuetype.h"
 #include "globals.h"
+#include "stackframe.h"
 
 class Interpreter {
   // WIP: this is the new interpreter.
  public:
-  Interpreter(Logger& logger) : logger(logger), variables() {}
+  Interpreter(Logger& logger) : logger(logger) {}
 
   int interpret(Lexer& lexer, std::string parentPath = "") {
     files[lexer.getFile()] = lexer.getLines();
@@ -34,6 +36,8 @@ class Interpreter {
     _position = 0;
     _end = _tokens.size();
     _parentPath = parentPath;
+    CallStackFrame mainFrame(_tokens);
+    callStack.push(mainFrame);
 
     if (_end == 0) {
       return 0;
@@ -44,7 +48,6 @@ class Interpreter {
 
  private:
   Logger& logger;
-  std::map<std::string, std::variant<int, double, bool, std::string>> variables;
   std::map<std::string, std::vector<std::string>> files;
   std::map<std::string, Method> methods;
   std::vector<Token> _tokens;
@@ -54,89 +57,114 @@ class Interpreter {
   bool _caught = false;
   std::string _parentPath;
   std::variant<int, double, bool, std::string> returnValue;
+  std::stack<CallStackFrame> callStack;
 
-  int interpret(int end = -1) {
-    while ((end < 0 && _position < _end) || (end >= 0 && _position <= end)) {
-      if (_position + 1 == _end || (end > 0 && _position == end)) {
-        break;
+  int interpret() {
+    if (callStack.empty()) {
+      throw std::runtime_error("Call stack is empty");
+    }
+
+    while (!callStack.empty()) {
+      auto& frame = callStack.top();
+      while (frame.position < frame.tokens.size()) {
+        try {
+          const Token& token = current(frame);
+          interpretToken(token, frame);
+
+          // Move to the next token
+          if (current(frame).getType() != TokenType::KEYWORD) {
+            frame.position++;
+          }
+        } catch (const KiwiError& e) {
+          _errorState = true;
+          std::vector<std::string> lines = files[e.getToken().getFile()];
+          // callStack.pop();  // WIP: unwind callstack
+          return ErrorHandler::handleError(e, lines);
+        } catch (const std::exception& e) {
+          std::cerr << e.what() << std::endl;
+          _errorState = true;
+          // callStack.pop();  // WIP: unwind callstack
+          exit(1);
+        }
       }
 
-      // WIP: implement "try-catch"
-      if (_errorState && !_caught) {
-        exit(1);
-      }
-
-      try {
-        // Don't parse comments.
-        if (current().getType() == TokenType::COMMENT) {
-          next();
-          continue;
+      if (!callStack.empty()) {
+        if (callStack.size() < 2) {
+          // There needs to be at least two frames to update the next frame
+          return 0;
         }
 
-        if (current().getType() == TokenType::KEYWORD) {
-          if (current().getText() == Symbols.DeclVar) {
-            interpretAssignment();
-          } else if (Keywords.is_loop_keyword(current().getText())) {
-            interpretLoop();
-          } else if (current().getText() == Keywords.Method) {
-            interpretMethodDefinition();
-          } else if (current().getText() == Keywords.Return) {
-            interpretReturn();
-            break;
-          } else {
-            next();
-          }
-          continue;
-        }
+        auto topVariables = frame.variables;
+        callStack.pop();
+        CallStackFrame& nextFrame = callStack.top();
 
-        if (current().getType() == TokenType::IDENTIFIER &&
-            (current().getText() == Keywords.PrintLn ||
-             current().getText() == Keywords.Print)) {
-          interpretPrint(current().getText() == Keywords.PrintLn);
-        } else if (current().getType() == TokenType::IDENTIFIER &&
-                   current().getText() == Keywords.Import) {
-          interpretImport();
-          continue;
-        } else if (current().getType() == TokenType::CONDITIONAL) {
-          interpretConditional();
-          continue;
-        } else {
-          std::string tokenText = current().getText();
-          if (methods.find(tokenText) != methods.end()) {
-            interpretMethodInvocation(tokenText);
+        for (const auto& var : topVariables) {
+          std::string varName = var.first;
+          if (shouldUpdateFrameVariables(varName, nextFrame)) {
+            std::variant<int, double, bool, std::string> varValue = var.second;
+            nextFrame.variables[varName] = varValue;
           }
         }
-
-        next();
-      } catch (const KiwiError& e) {
-        _errorState = true;
-        std::vector<std::string> lines = files[e.getToken().getFile()];
-        return ErrorHandler::handleError(e, lines);
-      } catch (const std::exception& e) {
-        _errorState = true;
-        throw;
       }
     }
 
-    return 0;
+    return 0;  // Or appropriate return value
   }
 
-  Token current() { return _tokens.at(_position); }
+  bool shouldUpdateFrameVariables(const std::string& varName, CallStackFrame& nextFrame) {
+    return nextFrame.variables.find(varName) != nextFrame.variables.end();
+  }
+
+  Token current(CallStackFrame& frame) {
+    if (frame.position >= frame.tokens.size()) {
+      throw std::runtime_error(
+          "Current position is out of bounds in the frame's token stream");
+    }
+    return frame.tokens[frame.position];
+  }
+
+  void next(CallStackFrame& frame) {
+    if (frame.position < frame.tokens.size()) {
+      frame.position++;
+    } else {
+      throw std::runtime_error(
+          "Next position is out of bounds in the frame's token stream");
+    }
+  }
+
+  Token current() {
+    if (callStack.empty()) {
+      throw std::runtime_error("Call stack is empty");
+    }
+    CallStackFrame& topFrame = callStack.top();
+    if (topFrame.position >= topFrame.tokens.size()) {
+      throw std::runtime_error("No more tokens in the current frame");
+    }
+    return topFrame.tokens[topFrame.position];
+  }
 
   Token next() {
-    if (_position + 1 < _end) {
-      ++_position;
+    if (callStack.empty()) {
+      throw std::runtime_error("Call stack is empty");
     }
-
-    return _tokens.at(_position);
+    CallStackFrame& topFrame = callStack.top();
+    topFrame.position++;
+    if (topFrame.position >= topFrame.tokens.size()) {
+      return Token::createEndOfFrame();
+    }
+    return topFrame.tokens[topFrame.position];
   }
 
-  Token peek() {
-    if (_position + 1 < _end) {
-      return _tokens.at(_position + 1);
+  Token peek(CallStackFrame& frame) {
+    size_t nextPosition = frame.position + 1;
+    if (nextPosition < frame.tokens.size()) {
+      return frame.tokens[nextPosition];
+    } else {
+      // Handle the situation when peeking beyond the last token.
+      // This could be returning a special token or throwing an exception.
+      throw std::runtime_error(
+          "Peek position is out of bounds in the frame's token stream");
     }
-
-    return _tokens.at(_position);
   }
 
   std::string getTemporaryId() {
@@ -144,10 +172,11 @@ class Interpreter {
     return tempId;
   }
 
-  std::vector<Token> getTemporaryAssignment(const std::string& tempId) {
+  std::vector<Token> getTemporaryAssignment(Token& tokenTerm, const std::string& tempId) {
     std::vector<Token> tokens;
-    std::string file = current().getFile();
-    tokens.push_back(Token::create(TokenType::KEYWORD, file, Symbols.DeclVar, 0, 0));
+    std::string file = tokenTerm.getFile();
+    tokens.push_back(
+        Token::create(TokenType::KEYWORD, file, Symbols.DeclVar, 0, 0));
     tokens.push_back(Token::create(TokenType::IDENTIFIER, file, tempId, 0, 0));
     tokens.push_back(
         Token::create(TokenType::OPERATOR, file, Operators.Assign, 0, 0));
@@ -155,37 +184,39 @@ class Interpreter {
     return tokens;
   }
 
-  void interpretWhileLoop() {
+  void interpretWhileLoop(CallStackFrame& frame) {
     WhileLoop loop;
-    while (current().getText() != Keywords.Do) {
-      Token t = current();
+    while (current(frame).getText() != Keywords.Do) {
+      Token t = current(frame);
       loop.addConditionToken(t);
-      next();
+      next(frame);
     }
 
-    next();  // Skip "do"
+    next(frame);  // Skip "do"
+    Token tokenTerm = current(frame);
 
     int loops = 1;
     while (loops != 0) {
-      if (Keywords.is_required_end_keyword(current().getText())) {
+      if (Keywords.is_required_end_keyword(current(frame).getText())) {
         ++loops;
-      } else if (current().getText() == Keywords.End) {
+      } else if (current(frame).getText() == Keywords.End) {
         --loops;
 
         // Stop here.
         if (loops == 0) {
-          next();
+          next(frame);
           continue;
         }
       }
 
-      Token t = current();
+      Token t = current(frame);
       loop.addToken(t);
-      next();
+      next(frame);
     }
 
+    CallStackFrame oldFrame = frame;
     std::string tempId = getTemporaryId();
-    std::vector<Token> tempAssignment = getTemporaryAssignment(tempId);
+    std::vector<Token> tempAssignment = getTemporaryAssignment(tokenTerm, tempId);
     // Interpret the condition.
     while (true) {
       std::vector<Token> condition = loop.getCondition();
@@ -193,18 +224,23 @@ class Interpreter {
       condition.insert(it, tempAssignment.begin(), tempAssignment.end());
       condition.push_back(Token::createNoOp());
 
-      injectTokens(condition);
-      interpretAssignment();
-
-      if (variables.find(tempId) == variables.end()) {
-        throw SyntaxError(current());
+      CallStackFrame conditionFrame(condition);
+      for (const auto& pair : frame.variables) {
+        conditionFrame.variables[pair.first] = pair.second;
       }
 
-      std::variant<int, double, bool, std::string> value = variables[tempId];
+      callStack.push(conditionFrame);
+      interpretAssignment(conditionFrame);
+
+      if (conditionFrame.variables.find(tempId) == conditionFrame.variables.end()) {
+        throw SyntaxError(current(frame));
+      }
+
+      std::variant<int, double, bool, std::string> value = getVariable(tempId, conditionFrame);
       ValueType vt = get_value_type(value);
 
       if (vt != ValueType::Boolean) {
-        throw ConversionError(current());
+        throw ConversionError(current(frame));
       }
 
       // Stop here.
@@ -213,126 +249,286 @@ class Interpreter {
       }
 
       std::vector<Token> code = loop.getCode();
-      injectTokens(code);
+      CallStackFrame codeFrame(code);
+      for (const auto& pair : frame.variables) {
+        codeFrame.variables[pair.first] = pair.second;
+      }
+
+      callStack.push(codeFrame);
 
       // Interpret the loop code.
-      interpret(_position + static_cast<int>(code.size()));
+      interpretMethod();
+      frame = callStack.top();
     }
 
-    // Cleanup temporary variable.
-    if (variables.find(tempId) != variables.end()) {
-      variables.erase(tempId);
-    }
-  }
-
-  void interpretLoop() {
-    std::string loop = current().getText();
-    next();  // Skip "while"|"for"
-
-    if (loop == Keywords.While) {
-      interpretWhileLoop();
-    }
-  }
-
-  void interpretMethodInvocation(const std::string& name) {
-    next(); // Skip the name.
-    Method method = methods[name];
-
-    Token tokenTerm = current();
-    if (current().getType() != TokenType::OPEN_PAREN) {
-      throw SyntaxError(tokenTerm);
-    }
-    next(); // Skip "("
-
-    // Interpret parameters.
-    std::vector<std::string> parametersPassed;
-    std::vector<Token> parameters = method.getParameters();
-    std::vector<Token> code = method.getCode();
-
-    while (current().getType() != TokenType::CLOSE_PAREN) {
-      std::string parameterName = interpretAssignment();
-      parametersPassed.push_back(parameterName);
-    }
-    next(); // Skip ")"
-    
-    for (Token t : parameters) {
-      std::string parameterName = t.getText();
-      if (std::find(parametersPassed.begin(), parametersPassed.end(), parameterName) == parametersPassed.end()) {
-        throw ParameterMissingError(tokenTerm, parameterName);
+    for (const auto& pair : frame.variables) {
+      if (shouldUpdateFrameVariables(pair.first, oldFrame)) {
+        oldFrame.variables[pair.first] = pair.second;
       }
     }
 
-    injectTokens(code);
-    int executePosition = _position + static_cast<int>(code.size());
-    interpret(executePosition);
+    frame = oldFrame;
   }
 
-  void interpretMethodParameters(Method& method) {
-    if (current().getType() != TokenType::OPEN_PAREN) {
-      Token tokenTerm = current();
+  void interpretLoop(CallStackFrame& frame) {
+    std::string loop = current(frame).getText();
+    next(frame);  // Skip "while"|"for"
+
+    if (loop == Keywords.While) {
+      interpretWhileLoop(frame);
+    }
+  }
+
+  void interpretKeyword(const Token& token, CallStackFrame& frame) {
+    const std::string& keyword = token.getText();
+    if (keyword == Keywords.If) {
+      interpretConditional(frame);
+    } else if (keyword == Symbols.DeclVar) {
+      interpretAssignment(frame);
+    } else if (Keywords.is_loop_keyword(keyword)) {
+      interpretLoop(frame);
+    } else if (keyword == Keywords.Method) {
+      interpretMethodDefinition(frame);
+    } else if (keyword == Keywords.Return) {
+      interpretReturn(frame);
+    } else if (keyword == Keywords.PrintLn || keyword == Keywords.Print) {
+      interpretPrint(frame, keyword == Keywords.PrintLn);
+    } else if (keyword == Keywords.Import) {
+      interpretImport(frame);
+    } else {
+      throw UnrecognizedTokenError(token);
+    }
+  }
+
+  void interpretIdentifier(CallStackFrame& frame) {
+    Token token = current(frame);
+    std::string tokenText = token.getText();
+    
+    if (methods.find(tokenText) != methods.end()) {
+      interpretMethodInvocation(tokenText, frame);
+    } else if (hasVariable(tokenText, frame)) {
+      // Skip it.
+    } else {
+      throw UnknownIdentifierError(token, tokenText);
+    }
+  }
+
+  void interpretToken(const Token& token, CallStackFrame& frame) {
+    switch (token.getType()) {
+      case TokenType::COMMENT:
+      case TokenType::COMMA:
+      case TokenType::NOOP:
+        break;
+
+      case TokenType::KEYWORD:
+        interpretKeyword(token, frame);
+        break;
+
+      case TokenType::IDENTIFIER:
+        interpretIdentifier(frame);
+        break;
+
+      case TokenType::CONDITIONAL:
+        interpretConditional(frame);
+        break;
+
+      default:
+        throw UnrecognizedTokenError(token);
+    }
+  }
+
+  void interpretMethod() {
+    auto& frame = callStack.top();
+    while (frame.position < frame.tokens.size()) {
+      // Interpret each token in the context of the current method
+      auto& token = frame.tokens[frame.position];
+      interpretToken(token, frame);
+      if (frame.position < frame.tokens.size()) {
+        token = frame.tokens[frame.position];
+      }
+      if ((token.getType() != TokenType::KEYWORD && token.getType() != TokenType::CONDITIONAL) || token.getText() == Keywords.End) {
+        if (methods.find(token.getText()) != methods.end()) {
+          continue;
+        }
+        ++frame.position;
+      }
+    }
+    
+    if (callStack.size() < 2) {
+      return;
+    }
+
+    auto topVariables = frame.variables;
+    callStack.pop();
+    auto& nextFrame = callStack.top();
+
+    for (const auto& var : topVariables) {
+      std::string varName = var.first;
+      if (shouldUpdateFrameVariables(varName, nextFrame)) {
+        std::variant<int, double, bool, std::string> varValue = var.second;
+        nextFrame.variables[varName] = varValue;
+      }
+    }
+  }
+
+  bool hasVariable(const std::string& name, CallStackFrame& frame) {
+    if (frame.variables.find(name) != frame.variables.end()) {
+      return true; // Found in the current frame
+    }
+
+    // Check in outer frames
+    std::stack<CallStackFrame> tempStack(callStack); // Copy the call stack
+    while (!tempStack.empty()) {
+      CallStackFrame& outerFrame = tempStack.top();
+      if (outerFrame.variables.find(name) != outerFrame.variables.end()) {
+        return true; // Found in an outer frame
+      }
+      tempStack.pop();
+    }
+
+    return false; // Not found in any scope
+  }
+
+  std::variant<int, double, bool, std::string> getVariable(const std::string& name, CallStackFrame& frame) {
+    // Check in the current frame
+    if (frame.variables.find(name) != frame.variables.end()) {
+      return frame.variables[name];
+    }
+
+    // Check in outer frames
+    std::stack<CallStackFrame> tempStack(callStack); // Copy the call stack
+    while (!tempStack.empty()) {
+      CallStackFrame& outerFrame = tempStack.top();
+      if (outerFrame.variables.find(name) != outerFrame.variables.end()) {
+        return outerFrame.variables[name]; // Found in an outer frame
+      }
+      tempStack.pop();
+    }
+
+    throw VariableUndefinedError(current(frame), name);
+  }
+
+  void interpretMethodInvocation(const std::string& name, CallStackFrame& frame) {
+    next(frame);  // Skip the name.
+    Method method = methods[name];
+
+    Token tokenTerm = current(frame);
+    if (current(frame).getType() != TokenType::OPEN_PAREN) {
       throw SyntaxError(tokenTerm);
     }
-    next(); // Skip "("
+    next(frame);  // Skip "("
 
-    while (current().getType() != TokenType::CLOSE_PAREN) {
-      Token parameterToken = current();
+    // Interpret parameters.
+    std::vector<Token> parameters = method.getParameters();
+    int paramIndex = 0;
+
+    bool closeParenthesisFound = false;
+    while (current(frame).getType() != TokenType::CLOSE_PAREN) {
+      if (current(frame).getType() == TokenType::COMMA) {
+        next(frame);
+        continue;
+      }
+
+      std::string paramName = parameters.at(paramIndex++).getText();
+      BooleanExpressionBuilder booleanExpression;
+      tokenTerm = current(frame);
+      std::variant<int, double, bool, std::string> paramValue = interpretTerm(tokenTerm, booleanExpression, frame);
+      if (peek(frame).getType() == TokenType::CLOSE_PAREN) {
+        next(frame);
+        closeParenthesisFound = true;
+      }
+      method.addParameterValue(paramName, paramValue);
+      if (!closeParenthesisFound) {
+        next(frame);
+      }
+    }
+    next(frame);  // Skip ")"
+
+    CallStackFrame codeFrame(method.getCode());
+    for (const auto& pair : frame.variables) {
+      codeFrame.variables[pair.first] = pair.second;
+    }
+
+    // Check all parameters are passed.
+    for (Token t : parameters) {
+      std::string parameterName = t.getText();
+      if (!method.hasParameter(parameterName)) {
+        throw ParameterMissingError(tokenTerm, parameterName);
+      } else {
+        codeFrame.variables[parameterName] = method.getParameterValue(parameterName);
+      }
+    }
+    callStack.push(codeFrame);
+
+    // Now interpret the method in its own context
+    interpretMethod();
+  }
+
+  void interpretMethodParameters(Method& method, CallStackFrame& frame) {
+    if (current(frame).getType() != TokenType::OPEN_PAREN) {
+      Token tokenTerm = current(frame);
+      throw SyntaxError(tokenTerm);
+    }
+    next(frame);  // Skip "("
+
+    while (current(frame).getType() != TokenType::CLOSE_PAREN) {
+      Token parameterToken = current(frame);
       if (parameterToken.getType() == TokenType::IDENTIFIER) {
         method.addParameterToken(parameterToken);
       }
-      next();
+      next(frame);
     }
 
-    next(); // Skip ")"
+    next(frame);  // Skip ")"
   }
 
-  void interpretMethodDefinition() {
-    next(); // Skip "def"
+  void interpretMethodDefinition(CallStackFrame& frame) {
+    next(frame);  // Skip "def"
 
     Method method;
 
-    std::string name = current().getText();
+    std::string name = current(frame).getText();
     method.setName(name);
 
     if (Keywords.is_keyword(name)) {
-      Token tokenTerm = current();
+      Token tokenTerm = current(frame);
       throw IllegalNameError(tokenTerm, name);
     }
 
-    next(); // Skip the name.
-    interpretMethodParameters(method);
+    next(frame);  // Skip the name.
+    interpretMethodParameters(method, frame);
 
     int counter = 1;
     while (counter > 0) {
-      if (current().getText() == Keywords.End) {
+      if (current(frame).getText() == Keywords.End) {
         --counter;
 
         // Stop here.
         if (counter == 0) {
           break;
         }
-      }
-      else if (Keywords.is_required_end_keyword(current().getText())) {
+      } else if (Keywords.is_required_end_keyword(current(frame).getText())) {
         ++counter;
       }
 
-      Token codeToken = current();
+      Token codeToken = current(frame);
       method.addToken(codeToken);
-      next();
+      next(frame);
     }
 
-    if (current().getText() == Keywords.End) {
-      next();
+    if (current(frame).getText() == Keywords.End) {
+      //next(frame);
     }
 
     methods[name] = method;
   }
 
-  void interpretReturn() {
-    next(); // Skip "return"
+  void interpretReturn(CallStackFrame& frame) {
+    next(frame);  // Skip "return"
 
     BooleanExpressionBuilder ifExpression;
     std::variant<int, double, bool, std::string> value =
-        interpretExpression(ifExpression);
+        interpretExpression(ifExpression, frame);
     if (ifExpression.isSet()) {
       value = ifExpression.evaluate();
     }
@@ -340,41 +536,41 @@ class Interpreter {
     returnValue = value;
   }
 
-  std::string interpretAssignment() {
+  std::string interpretAssignment(CallStackFrame& frame) {
     std::string name;
-    next();  // Skip the "@"
+    next(frame);  // Skip the "@"
 
-    if (current().getType() == TokenType::IDENTIFIER &&
-        current().getValueType() == ValueType::String) {
-      name = current().toString();
-      next();
+    if (current(frame).getType() == TokenType::IDENTIFIER &&
+        current(frame).getValueType() == ValueType::String) {
+      name = current(frame).toString();
+      next(frame);
 
-      if (current().getType() == TokenType::OPERATOR &&
-          current().getValueType() == ValueType::String) {
-        std::string op = current().toString();
-        next();
+      if (current(frame).getType() == TokenType::OPERATOR &&
+          current(frame).getValueType() == ValueType::String) {
+        std::string op = current(frame).toString();
+        next(frame);
 
         if (Operators.is_assignment_operator(op)) {
-          handleAssignment(name, op);
+          handleAssignment(name, op, frame);
         } else {
           // logger.debug("Unknown operator `" + op + "`", "Interpreter::interpretAssignment");
         }
       } else {
-        // logger.debug("Unimplemented token `" + current().info() + "`", "Interpreter::interpretAssignment");
+        // logger.debug("Unimplemented token `" + current(frame).info() + "`", "Interpreter::interpretAssignment");
       }
     } else {
-      // logger.debug("Unimplemented token `" + current().info() + "`", "Interpreter::interpretAssignment");
+      // logger.debug("Unimplemented token `" + current(frame).info() + "`", "Interpreter::interpretAssignment");
     }
 
     return name;
   }
 
-  void interpretConditional() {
-    if (current().getText() != Keywords.If) {
-      throw SyntaxError(current());
+  void interpretConditional(CallStackFrame& frame) {
+    if (current(frame).getText() != Keywords.If) {
+      throw SyntaxError(current(frame));
     }
 
-    next();  // Skip "if"
+    next(frame);  // Skip "if"
 
     Conditional conditional;
     int ifCount = 1;
@@ -385,8 +581,7 @@ class Interpreter {
 
     // Eagerly evaluate the If conditions.
     BooleanExpressionBuilder ifExpression;
-    std::variant<int, double, bool, std::string> value =
-        interpretExpression(ifExpression);
+    std::variant<int, double, bool, std::string> value = interpretExpression(ifExpression, frame);
     if (ifExpression.isSet()) {
       value = ifExpression.evaluate();
     }
@@ -394,27 +589,28 @@ class Interpreter {
     if (get_value_type(value) == ValueType::Boolean) {
       ifValue = std::get<bool>(value);
       conditional.getIfStatement().setEvaluation(ifValue);
+      next(frame);
     } else {
-      throw ConversionError(current());
+      throw ConversionError(current(frame));
     }
 
     while (ifCount > 0) {
-      if (current().getText() == Keywords.If) {
+      if (current(frame).getText() == Keywords.If) {
         ++ifCount;
-      } else if (current().getText() == Keywords.EndIf && ifCount > 0) {
+      } else if (current(frame).getText() == Keywords.EndIf && ifCount > 0) {
         --ifCount;
 
         // Stop here.
         if (ifCount == 0) {
-          next();
+          next(frame);
           continue;
         }
-      } else if (current().getText() == Keywords.Else && ifCount == 1) {
+      } else if (current(frame).getText() == Keywords.Else && ifCount == 1) {
         building = Keywords.Else;
-        next();
-      } else if (current().getText() == Keywords.ElseIf && ifCount == 1) {
+        next(frame);
+      } else if (current(frame).getText() == Keywords.ElseIf && ifCount == 1) {
         building = Keywords.ElseIf;
-        next();
+        next(frame);
 
         conditional.addElseIfStatement();
 
@@ -422,7 +618,7 @@ class Interpreter {
         if (!ifValue && !hasTrueElseIfEvaluation) {
           // Eagerly evaluate ElseIf conditions.
           BooleanExpressionBuilder elseIfExpression;
-          value = interpretExpression(elseIfExpression);
+          value = interpretExpression(elseIfExpression, frame);
 
           if (elseIfExpression.isSet()) {
             value = elseIfExpression.evaluate();
@@ -434,18 +630,21 @@ class Interpreter {
               hasTrueElseIfEvaluation = true;
             }
             conditional.getElseIfStatement().setEvaluation(elseIfValue);
-            Token bodyToken = current();
-            conditional.getElseIfStatement().addToken(bodyToken);
-            next();
+            Token bodyToken = current(frame);
+            if (bodyToken.getType() == TokenType::IDENTIFIER || bodyToken.getType() == TokenType::LITERAL) {
+              next(frame);
+            } else {
+              conditional.getElseIfStatement().addToken(bodyToken);
+            }
           } else {
-            throw ConversionError(current());
+            throw ConversionError(current(frame));
           }
         }
         continue;
       }
 
       // Distribute tokens to be executed.
-      Token bodyToken = current();
+      Token bodyToken = current(frame);
       if (building == Keywords.If) {
         conditional.getIfStatement().addToken(bodyToken);
       } else if (building == Keywords.ElseIf) {
@@ -454,7 +653,7 @@ class Interpreter {
         conditional.getElseStatement().addToken(bodyToken);
       }
 
-      next();
+      next(frame);
     }
 
     // Evaluate the Conditional object.
@@ -474,31 +673,26 @@ class Interpreter {
     }
 
     // Execute
-    injectTokens(executableTokens);
-    int executePosition = _position + static_cast<int>(executableTokens.size());
-    interpret(executePosition);
-  }
-
-  void injectTokens(std::vector<Token>& executableTokens) {
-    if (executableTokens.empty()) {
-      return;
+    if (!executableTokens.empty()) {
+      CallStackFrame executableFrame(executableTokens);
+      for (const auto& pair : frame.variables) {
+        executableFrame.variables[pair.first] = pair.second;
+      }
+      callStack.push(executableFrame);
+      interpretMethod();
     }
-
-    auto it = _tokens.begin() + _position;
-    _tokens.insert(it, executableTokens.begin(), executableTokens.end());
-    _end = _tokens.size();
   }
 
-  void interpretImport() {
-    next();  // skip the "import"
+  void interpretImport(CallStackFrame& frame) {
+    next(frame);  // skip the "import"
 
-    std::string scriptName = current().getText() + ".kiwi";
+    std::string scriptName = current(frame).getText() + ".kiwi";
     std::string scriptPath = FileIO::joinPath(_parentPath, scriptName);
     if (!FileIO::fileExists(scriptPath)) {
       throw FileNotFoundError(scriptPath);
     }
 
-    next();
+    next(frame);
 
     std::string content = FileIO::readFile(scriptPath);
     if (content.empty()) {
@@ -508,27 +702,33 @@ class Interpreter {
     Lexer lexer(logger, scriptPath, content);
     files[scriptPath] = lexer.getLines();
     std::vector<Token> tokens = lexer.getAllTokens();
-    injectTokens(tokens);
+    CallStackFrame scriptFrame(tokens);
+    for (const auto& pair : frame.variables) {
+      scriptFrame.variables[pair.first] = pair.second;
+    }
+    
+    callStack.push(scriptFrame);
+    interpretMethod();
   }
 
-  void interpretPrint(bool printNewLine = false) {
-    next();  // skip the "print"
+  void interpretPrint(CallStackFrame& frame, bool printNewLine = false) {
+    next(frame);  // skip the "print"
 
-    if (current().getType() == TokenType::STRING &&
-        current().getValueType() == ValueType::String) {
-      std::cout << evaluateString();
-    } else if (current().getType() == TokenType::KEYWORD &&
-               current().getText() == Symbols.DeclVar) {
-      next();
-      std::string name = current().getText();
+    if (current(frame).getType() == TokenType::STRING &&
+        current(frame).getValueType() == ValueType::String) {
+      std::cout << evaluateString(frame);
+    } else if (current(frame).getType() == TokenType::KEYWORD &&
+               current(frame).getText() == Symbols.DeclVar) {
+      next(frame);
+      std::string name = current(frame).getText();
 
-      if (variables.find(name) == variables.end()) {
-        throw KiwiError(current(), "Unknown term `" + name + "`");
+      if (!hasVariable(name, frame)) {
+        throw KiwiError(current(frame), "Unknown term `" + name + "`");
       }
 
       BooleanExpressionBuilder booleanExpression;
       std::variant<int, double, bool, std::string> value =
-          interpretExpression(booleanExpression);
+          interpretExpression(booleanExpression, frame);
       if (booleanExpression.isSet()) {
         value = booleanExpression.evaluate();
       }
@@ -538,9 +738,9 @@ class Interpreter {
       std::ostringstream error;
       error << "Not implemented `" << Keywords.Print << "`|`"
             << Keywords.PrintLn << "` for type `"
-            << get_value_type_string(current().getValueType()) << std::endl
-            << "Value: `" << current().getText() << "`";
-      throw KiwiError(current(), error.str());
+            << get_value_type_string(current(frame).getValueType()) << std::endl
+            << "Value: `" << current(frame).getText() << "`";
+      throw KiwiError(current(frame), error.str());
     }
 
     if (printNewLine) {
@@ -567,9 +767,9 @@ class Interpreter {
 
   void interpretBooleanExpression(Token& tokenTerm,
                                   BooleanExpressionBuilder& booleanExpression,
-                                  std::string& op) {
+                                  std::string& op, CallStackFrame& frame) {
     std::variant<int, double, bool, std::string> nextTerm =
-        interpretExpression(booleanExpression);
+        interpretExpression(booleanExpression, frame);
 
     // Check if the last term is valueless.
     if (nextTerm.valueless_by_exception()) {
@@ -595,7 +795,8 @@ class Interpreter {
     }
   }
 
-  void interpretBitwiseExpression(Token& tokenTerm, std::string& op, 
+  void interpretBitwiseExpression(
+      Token& tokenTerm, std::string& op,
       std::variant<int, double, bool, std::string>& result,
       std::variant<int, double, bool, std::string> nextTerm) {
     if (op == Operators.BitwiseAnd) {
@@ -607,7 +808,8 @@ class Interpreter {
     } else if (op == Operators.BitwiseLeftShift) {
       result = std::visit(BitwiseLeftShiftVisitor(tokenTerm), result, nextTerm);
     } else if (op == Operators.BitwiseRightShift) {
-      result = std::visit(BitwiseRightShiftVisitor(tokenTerm), result, nextTerm);
+      result =
+          std::visit(BitwiseRightShiftVisitor(tokenTerm), result, nextTerm);
     }
   }
 
@@ -654,40 +856,45 @@ class Interpreter {
 
   // WIP: expression interpreter
   std::variant<int, double, bool, std::string> interpretExpression(
-      BooleanExpressionBuilder& booleanExpression) {
-    Token tokenTerm = current();
+      BooleanExpressionBuilder& booleanExpression, CallStackFrame& frame) {
+
+    Token tokenTerm = current(frame);
 
     std::string tokenText = tokenTerm.getText();
     if (methods.find(tokenText) != methods.end()) {
-      interpretMethodInvocation(tokenText);
-      return returnValue;
+      interpretMethodInvocation(tokenText, frame);
+      return frame.returnValue;  // Assume returnValue is part of the frame
     }
 
     std::variant<int, double, bool, std::string> result =
-        interpretTerm(tokenTerm, booleanExpression);
+        interpretTerm(tokenTerm, booleanExpression, frame);
     std::variant<int, double, bool, std::string> lastTerm;
 
-    while (current().getType() == TokenType::OPERATOR) {
-      std::string op = current().toString();
-      next();
+    while (current(frame).getType() == TokenType::OPERATOR) {
+      std::string op = current(frame).toString();
+      next(frame);
 
       if (Operators.is_logical_operator(op)) {
         ensureBooleanExpressionHasRoot(tokenTerm, booleanExpression, result);
-        interpretBooleanExpression(tokenTerm, booleanExpression, op);
+        interpretBooleanExpression(tokenTerm, booleanExpression, op, frame);
         result = booleanExpression.evaluate();
         break;
       }
 
       std::variant<int, double, bool, std::string> nextTerm =
-          interpretTerm(tokenTerm, booleanExpression);
+          interpretTerm(tokenTerm, booleanExpression, frame, false);
 
       if (Operators.is_arithmetic_operator(op)) {
         interpretArithmeticExpression(tokenTerm, op, result, nextTerm);
-        std::string peekNext = peek().getText();
-        if (current().getType() == TokenType::LITERAL &&
+        std::string peekNext = peek(frame).getText();
+        if (current(frame).getType() == TokenType::LITERAL &&
             (Operators.is_relational_operator(peekNext) ||
              Operators.is_logical_operator(peekNext))) {
-          next();
+          next(frame);
+        }
+
+        if (peekNext == Symbols.CloseParenthesis || Operators.is_arithmetic_operator(peekNext)) {
+          next(frame);
         }
       }
 
@@ -707,61 +914,73 @@ class Interpreter {
   }
 
   std::variant<int, double, bool, std::string> interpretTerm(
-      Token& termToken, BooleanExpressionBuilder& booleanExpression) {
-    if (current().getText() == Symbols.DeclVar) {
-      next();
+      Token& termToken, BooleanExpressionBuilder& booleanExpression,
+      CallStackFrame& frame, bool skipOnRetrieval = true) {
+    if (current(frame).getText() == Symbols.DeclVar) {
+      next(frame);
     }
 
-    termToken = current();
+    termToken = current(frame);
 
-    if (current().getType() == TokenType::OPEN_PAREN) {
-      next();  // Skip the '('
+    if (current(frame).getType() == TokenType::OPEN_PAREN) {
+      next(frame);  // Skip the '('
       std::variant<int, double, bool, std::string> result =
-          interpretExpression(booleanExpression);
-      next();  // Skip the ')'
-      return result;
-    } else if (current().getType() == TokenType::IDENTIFIER) {
-      std::string variableName = current().toString();
-      if (variables.find(variableName) != variables.end()) {
-        next();
-        return variables[variableName];
+          interpretExpression(booleanExpression, frame);
+      if (current(frame).getType() == TokenType::CLOSE_PAREN) {
+        Token nextToken = peek(frame);
+        if (nextToken.getType() == TokenType::OPERATOR) {
+          next(frame);
+        }
       }
-    } else if (current().getType() == TokenType::OPERATOR) {
-      std::string op = current().toString();
-      next();
+      return result;
+    } else if (current(frame).getType() == TokenType::IDENTIFIER) {
+      std::string variableName = current(frame).toString();
+      if (hasVariable(variableName, frame)) {
+        if (skipOnRetrieval) { 
+          Token nextToken = peek(frame);
+          if (nextToken.getType() == TokenType::OPERATOR) {
+            next(frame);
+          }
+        }
+        return getVariable(variableName, frame);
+      }
+    } else if (current(frame).getType() == TokenType::OPERATOR) {
+      std::string op = current(frame).toString();
+      next(frame);
       if (op == Operators.BitwiseNot) {
         std::variant<int, double, bool, std::string> bitwiseResult =
-          interpretExpression(booleanExpression);
-        bitwiseResult = std::visit(BitwiseNotVisitor(current()), bitwiseResult);
+            interpretExpression(booleanExpression, frame);
+        bitwiseResult =
+            std::visit(BitwiseNotVisitor(current(frame)), bitwiseResult);
         return bitwiseResult;
-      }
-      else {
+      } else {
         // We can assume it's a boolean expression.
-        interpretBooleanExpression(termToken, booleanExpression, op);
+        interpretBooleanExpression(termToken, booleanExpression, op, frame);
+        return booleanExpression.evaluate();
       }
-    } else if (current().getValueType() == ValueType::Boolean) {
-      return current().toBoolean();
-    } else if (current().getValueType() == ValueType::Double) {
-      return current().toDouble();
-    } else if (current().getValueType() == ValueType::Integer) {
-      return current().toInteger();
-    } else if (current().getValueType() == ValueType::String) {
-      return evaluateString();
+    } else if (current(frame).getValueType() == ValueType::Boolean) {
+      return current(frame).toBoolean();
+    } else if (current(frame).getValueType() == ValueType::Double) {
+      return current(frame).toDouble();
+    } else if (current(frame).getValueType() == ValueType::Integer) {
+      return current(frame).toInteger();
+    } else if (current(frame).getValueType() == ValueType::String) {
+      return evaluateString(frame);
     }
 
     return 0;  // Placeholder for unsupported types
   }
 
-  std::string evaluateString() {
+  std::string evaluateString(CallStackFrame& frame) {
     const std::string methodName = "evaluateString";
     std::string output;
 
     // TODO: an error should occur here.
-    if (current().getValueType() != ValueType::String) {
+    if (current(frame).getValueType() != ValueType::String) {
       return output;
     }
 
-    std::string input = current().toString();
+    std::string input = current(frame).toString();
 
     // Don't skip whitespace.
     Lexer lexer(logger, methodName, input, false);
@@ -777,7 +996,7 @@ class Interpreter {
 
       if (token.getText() == Symbols.Interpolate && position + 1 < end &&
           eval.at(position + 1).getText() == Symbols.OpenCurlyBrace) {
-        evaluateStringInterpolation(position, token, eval, string);
+        evaluateStringInterpolation(position, token, eval, string, frame);
         continue;
       } else if (token.getType() == TokenType::ESCAPED) {
         string << token.getText();
@@ -794,7 +1013,7 @@ class Interpreter {
 
   void evaluateStringInterpolation(int& position, Token& token,
                                    std::vector<Token>& eval,
-                                   std::ostringstream& string) {
+                                   std::ostringstream& string, CallStackFrame& frame) {
     position += 2;  // Skip "${"
 
     token = eval.at(position);
@@ -803,8 +1022,8 @@ class Interpreter {
       if (token.getText() == Symbols.DeclVar) {
         token = eval.at(++position);
 
-        if (variables.find(token.getText()) != variables.end()) {
-          auto v = variables[token.getText()];
+        if (hasVariable(token.getText(), frame)) {
+          auto v = getVariable(token.getText(), frame);
           ValueType vt = get_value_type(v);
 
           if (vt == ValueType::Integer) {
@@ -827,54 +1046,68 @@ class Interpreter {
     }
   }
 
-  void handleAssignment(std::string& name, std::string& op) {
+  void handleAssignment(std::string& name, std::string& op,
+                        CallStackFrame& frame) {
     BooleanExpressionBuilder booleanExpression;
     std::variant<int, double, bool, std::string> value =
-        interpretExpression(booleanExpression);
+        interpretExpression(booleanExpression, frame);
 
     if (op == Operators.Assign) {
       if (booleanExpression.isSet()) {
         value = booleanExpression.evaluate();
       }
-      variables[name] = value;
+      frame.variables[name] = value;
+      Token nextToken = peek(frame);
+      if (nextToken.getType() == TokenType::CLOSE_PAREN) {
+        next(frame);
+      }
       return;
     }
 
-    if (variables.find(name) == variables.end()) {
-      throw VariableUndefinedError(current(), name);
+    if (!hasVariable(name, frame)) {
+      throw VariableUndefinedError(current(frame), name);
     }
 
-    std::variant<int, double, bool, std::string> currentValue = variables[name];
+    std::variant<int, double, bool, std::string> currentValue = getVariable(name, frame);
 
     if (op == Operators.AddAssign) {
-      currentValue = std::visit(AddVisitor(current()), currentValue, value);
+      currentValue =
+          std::visit(AddVisitor(current(frame)), currentValue, value);
     } else if (op == Operators.SubtractAssign) {
       currentValue =
-          std::visit(SubtractVisitor(current()), currentValue, value);
+          std::visit(SubtractVisitor(current(frame)), currentValue, value);
     } else if (op == Operators.MultiplyAssign) {
       currentValue =
-          std::visit(MultiplyVisitor(current()), currentValue, value);
+          std::visit(MultiplyVisitor(current(frame)), currentValue, value);
     } else if (op == Operators.DivideAssign) {
-      currentValue = std::visit(DivideVisitor(current()), currentValue, value);
+      currentValue =
+          std::visit(DivideVisitor(current(frame)), currentValue, value);
     } else if (op == Operators.ExponentAssign) {
-      currentValue = std::visit(PowerVisitor(current()), currentValue, value);
+      currentValue =
+          std::visit(PowerVisitor(current(frame)), currentValue, value);
     } else if (op == Operators.ModuloAssign) {
-      currentValue = std::visit(ModuloVisitor(current()), currentValue, value);
+      currentValue =
+          std::visit(ModuloVisitor(current(frame)), currentValue, value);
     } else if (op == Operators.BitwiseAndAssign) {
-      currentValue = std::visit(BitwiseAndVisitor(current()), currentValue, value);
+      currentValue =
+          std::visit(BitwiseAndVisitor(current(frame)), currentValue, value);
     } else if (op == Operators.BitwiseOrAssign) {
-      currentValue = std::visit(BitwiseOrVisitor(current()), currentValue, value);
+      currentValue =
+          std::visit(BitwiseOrVisitor(current(frame)), currentValue, value);
     } else if (op == Operators.BitwiseXorAssign) {
-      currentValue = std::visit(BitwiseXorVisitor(current()), currentValue, value);
+      currentValue =
+          std::visit(BitwiseXorVisitor(current(frame)), currentValue, value);
     } else if (op == Operators.BitwiseLeftShiftAssign) {
-      currentValue = std::visit(BitwiseLeftShiftVisitor(current()), currentValue, value);
+      currentValue = std::visit(BitwiseLeftShiftVisitor(current(frame)),
+                                currentValue, value);
     } else if (op == Operators.BitwiseRightShiftAssign) {
-      currentValue = std::visit(BitwiseRightShiftVisitor(current()), currentValue, value);
+      currentValue = std::visit(BitwiseRightShiftVisitor(current(frame)),
+                                currentValue, value);
     } else if (op == Operators.BitwiseNotAssign) {
-      currentValue = std::visit(BitwiseNotVisitor(current()), value);
+      currentValue = std::visit(BitwiseNotVisitor(current(frame)), value);
     }
 
-    variables[name] = currentValue;
+    frame.variables[name] = currentValue;
   }
 };
 

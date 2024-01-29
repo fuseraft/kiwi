@@ -9,6 +9,7 @@
 enum TokenType {
   IDENTIFIER,
   COMMENT,
+  COMMA,
   KEYWORD,
   OPERATOR,
   LITERAL,
@@ -19,6 +20,7 @@ enum TokenType {
   CLOSE_PAREN,
   CONDITIONAL,
   NOOP,
+  ENDOFFRAME,
   ENDOFFILE
 };
 
@@ -28,6 +30,8 @@ std::string get_token_type_string(TokenType tokenType) {
       return "IDENTIFIER";
     case TokenType::COMMENT:
       return "COMMENT";
+    case TokenType::COMMA:
+      return "COMMA";
     case TokenType::KEYWORD:
       return "KEYWORD";
     case TokenType::OPERATOR:
@@ -48,6 +52,8 @@ std::string get_token_type_string(TokenType tokenType) {
       return "CONDITIONAL";
     case TokenType::NOOP:
       return "NOOP";
+    case TokenType::ENDOFFRAME:
+      return "ENDOFFRAME";
     case TokenType::ENDOFFILE:
       return "ENDOFFILE";
   }
@@ -67,20 +73,27 @@ class Token {
     return token;
   }
 
-  static Token create(TokenType t, std::string file, std::string text, const int& lineNumber,
-                      const int& linePosition) {
+  static Token create(TokenType t, std::string file, std::string text,
+                      const int& lineNumber, const int& linePosition) {
     return create(t, file, text, text, lineNumber, linePosition);
   }
 
-  static Token createBoolean(const std::string& file, std::string text, const int& lineNumber,
-                             const int& linePosition) {
+  static Token createBoolean(const std::string& file, std::string text,
+                             const int& lineNumber, const int& linePosition) {
     bool value = text == Keywords.True;
-    return create(TokenType::LITERAL, file, text, value, lineNumber, linePosition);
+    return create(TokenType::LITERAL, file, text, value, lineNumber,
+                  linePosition);
   }
 
   static Token createNoOp() { return create(TokenType::NOOP, "", "", 0, 0); }
 
-  static Token createEmpty() { return create(TokenType::ENDOFFILE, "", "", 0, 0); }
+  static Token createEmpty() {
+    return create(TokenType::ENDOFFILE, "", "", 0, 0);
+  }
+
+  static Token createEndOfFrame() {
+    return create(TokenType::ENDOFFRAME, "", "", 0, 0);
+  }
 
   std::string info() {
     std::ostringstream info;
@@ -132,7 +145,7 @@ class Token {
 
   const int& getLinePosition() const { return _linePosition; }
 
-  TokenType getType() { return type; }
+  TokenType getType() const { return type; }
 
   std::variant<int, double, bool, std::string> getValue() { return value; }
 
