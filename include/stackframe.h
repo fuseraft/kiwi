@@ -12,8 +12,12 @@ struct CallStackFrame {
   size_t position = 0;        // Current position in the token stream.
   std::map<std::string, std::variant<int, double, bool, std::string>> variables;
   std::variant<int, double, bool, std::string> returnValue;
+  bool returnFlag = false;
 
   CallStackFrame(const std::vector<Token>& tokens) : tokens(tokens) {}
+  
+  void setReturnFlag() { returnFlag = true; }
+  bool isReturnFlagSet() const { return returnFlag; }
 };
 
 #endif

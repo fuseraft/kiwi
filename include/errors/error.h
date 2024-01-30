@@ -64,6 +64,13 @@ class DivideByZeroError : public KiwiError {
       : KiwiError(token, "DivideByZeroError", "Attempted to divide by zero.") {}
 };
 
+class MethodUndefinedError : public KiwiError {
+ public:
+  MethodUndefinedError(const Token& token, std::string name)
+      : KiwiError(token, "MethodUndefinedError",
+                  "Method `" + name + "` is undefined.") {}
+};
+
 class VariableUndefinedError : public KiwiError {
  public:
   VariableUndefinedError(const Token& token, std::string name)
