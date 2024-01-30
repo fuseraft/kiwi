@@ -22,8 +22,7 @@
 #include "stackframe.h"
 
 class Interpreter {
-  // WIP: this is the new interpreter.
- public:
+public:
   Interpreter(Logger& logger) : logger(logger) {}
 
   int interpret(Lexer& lexer, std::string parentPath = "") {
@@ -105,7 +104,7 @@ class Interpreter {
       }
     }
 
-    return 0;  // Or appropriate return value
+    return 0;
   }
 
   bool shouldUpdateFrameVariables(const std::string& varName, CallStackFrame& nextFrame) {
@@ -114,8 +113,7 @@ class Interpreter {
 
   Token current(CallStackFrame& frame) {
     if (frame.position >= frame.tokens.size()) {
-      throw std::runtime_error(
-          "Current position is out of bounds in the frame's token stream");
+      return Token::createEndOfFrame();
     }
     return frame.tokens[frame.position];
   }
@@ -124,8 +122,7 @@ class Interpreter {
     if (frame.position < frame.tokens.size()) {
       frame.position++;
     } else {
-      throw std::runtime_error(
-          "Next position is out of bounds in the frame's token stream");
+      // 
     }
   }
 
@@ -135,7 +132,7 @@ class Interpreter {
     }
     CallStackFrame& topFrame = callStack.top();
     if (topFrame.position >= topFrame.tokens.size()) {
-      throw std::runtime_error("No more tokens in the current frame");
+      return Token::createEndOfFrame();
     }
     return topFrame.tokens[topFrame.position];
   }
@@ -157,10 +154,7 @@ class Interpreter {
     if (nextPosition < frame.tokens.size()) {
       return frame.tokens[nextPosition];
     } else {
-      // Handle the situation when peeking beyond the last token.
-      // This could be returning a special token or throwing an exception.
-      throw std::runtime_error(
-          "Peek position is out of bounds in the frame's token stream");
+      return Token::createEndOfFrame();
     }
   }
 
