@@ -35,7 +35,7 @@ int kiwi(std::vector<std::string>& v) {
 
   if (DEBUG) {
     v.push_back("-C");
-    v.push_back("/home/scott/work/kiwi/kiwi/kiwi/config/kiwi.conf");
+    v.push_back("/home/scott/work/kiwi/kiwi/config/kiwi.conf");
   }
 
   size_t size = v.size();

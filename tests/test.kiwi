@@ -15,11 +15,11 @@ if !@debug
     import "relational_logic"
     import "bitwise"
     import "methods"
+    import "method_return"
     import "while_loops"
     import "fizzbuzz"
 
     # Currently broken.
-    # import "method_return"
 else
     # Set @debug = true, and add an import below to debug a specific script.
 endif
