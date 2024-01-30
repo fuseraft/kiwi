@@ -20,10 +20,12 @@ if !@debug
     import "method_early_return"
     import "method_invoked_in_conditional"
     import "fizzbuzz"
+    import "modules"
 
     # Currently broken.
 else
     # Set @debug = true, and add an import below to debug a specific script.
+    import "playground"
 endif
 
 println "Done!"

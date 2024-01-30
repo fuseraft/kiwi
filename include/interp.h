@@ -13,6 +13,7 @@
 #include "objects/conditional.h"
 #include "objects/loops/while.h"
 #include "objects/method.h"
+#include "objects/module.h"
 #include "parsing/builtins.h"
 #include "parsing/lexer.h"
 #include "parsing/tokens.h"
@@ -49,11 +50,13 @@ class Interpreter {
   Logger& logger;
   std::map<std::string, std::vector<std::string>> files;
   std::map<std::string, Method> methods;
+  std::map<std::string, Module> modules;
   std::vector<Token> _tokens;
   bool _errorState = false;
   bool _caught = false;
   std::string _parentPath;
   std::stack<CallStackFrame> callStack;
+  std::stack<std::string> moduleStack;
 
   int interpret() {
     if (callStack.empty()) {
@@ -253,7 +256,7 @@ class Interpreter {
       callStack.push(codeFrame);
 
       // Interpret the loop code.
-      interpretMethod();
+      interpretStackFrame();
       frame = callStack.top();
     }
 
@@ -291,6 +294,8 @@ class Interpreter {
       interpretPrint(frame, keyword == Keywords.PrintLn);
     } else if (keyword == Keywords.Import) {
       interpretImport(frame);
+    } else if (keyword == Keywords.Module) {
+      interpretModuleDefinition(frame);
     } else {
       throw UnrecognizedTokenError(token);
     }
@@ -300,10 +305,21 @@ class Interpreter {
     Token token = current(frame);
     std::string tokenText = token.getText();
 
+    Token nextToken = peek(frame);
+    if (nextToken.getType() == TokenType::QUALIFIER) {
+      if (!hasModule(tokenText)) {
+        throw ModuleUndefinedError(token, tokenText);
+      }
+      next(frame); // Skip the identifier.
+      next(frame); // Skip the qualifier.
+      token = current(frame);
+      tokenText = tokenText + Symbols.Qualifier + token.getText();
+    }
+
     if (hasMethod(tokenText)) {
       interpretMethodInvocation(tokenText, frame);
     } else if (hasVariable(tokenText, frame)) {
-      // Skip it.
+      // Skip it (for now).
     } else {
       throw UnknownIdentifierError(token, tokenText);
     }
@@ -333,7 +349,7 @@ class Interpreter {
     }
   }
 
-  void interpretMethod() {
+  void interpretStackFrame() {
     auto& frame = callStack.top();
     while (frame.position < frame.tokens.size()) {
       auto& token = frame.tokens[frame.position];
@@ -351,6 +367,10 @@ class Interpreter {
         if (methods.find(token.getText()) != methods.end()) {
           continue;
         }
+        if (peek(frame).getType() == TokenType::OPEN_PAREN || peek(frame).getType() == TokenType::QUALIFIER) {
+          continue;
+        }
+
         if (!frame.isReturnFlagSet()) {
           ++frame.position;
         }
@@ -400,6 +420,10 @@ class Interpreter {
     }
   }
 
+  bool hasModule(const std::string& name) {
+    return modules.find(name) != modules.end();
+  }
+
   bool hasMethod(const std::string& name) {
     return methods.find(name) != methods.end();
   }
@@ -420,6 +444,14 @@ class Interpreter {
     }
 
     return false;  // Not found in any scope
+  }
+
+  Module getModule(const std::string& name, CallStackFrame& frame) {
+    if (hasModule(name)) {
+      return modules[name];
+    }
+
+    throw ModuleUndefinedError(current(frame), name);
   }
 
   Method getMethod(const std::string& name, CallStackFrame& frame) {
@@ -448,6 +480,17 @@ class Interpreter {
     }
 
     throw VariableUndefinedError(current(frame), name);
+  }
+
+  void interpretModuleImport(const std::string& name, CallStackFrame& frame) {
+    next(frame);  // Skip the name.
+    moduleStack.push(name);
+    Module module = getModule(name, frame);
+
+    CallStackFrame codeFrame(module.getCode());
+    callStack.push(codeFrame);
+    interpretStackFrame();
+    moduleStack.pop();
   }
 
   void interpretMethodInvocation(const std::string& name,
@@ -507,7 +550,7 @@ class Interpreter {
     callStack.push(codeFrame);
 
     // Now interpret the method in its own context
-    interpretMethod();
+    interpretStackFrame();
   }
 
   void interpretMethodParameters(Method& method, CallStackFrame& frame) {
@@ -533,13 +576,23 @@ class Interpreter {
 
     Method method;
 
+    std::string moduleName;
+    if (!moduleStack.empty()) {
+      moduleName = moduleStack.top();
+    }
+
     std::string name = current(frame).getText();
-    method.setName(name);
 
     if (Keywords.is_keyword(name)) {
       Token tokenTerm = current(frame);
       throw IllegalNameError(tokenTerm, name);
     }
+
+    if (!moduleName.empty()) {
+      name = moduleName + Symbols.Qualifier + name;
+    }
+
+    method.setName(name);
 
     next(frame);  // Skip the name.
     interpretMethodParameters(method, frame);
@@ -612,14 +665,8 @@ class Interpreter {
 
         if (Operators.is_assignment_operator(op)) {
           handleAssignment(name, op, frame);
-        } else {
-          // logger.debug("Unknown operator `" + op + "`", "Interpreter::interpretAssignment");
         }
-      } else {
-        // logger.debug("Unimplemented token `" + current(frame).info() + "`", "Interpreter::interpretAssignment");
       }
-    } else {
-      // logger.debug("Unimplemented token `" + current(frame).info() + "`", "Interpreter::interpretAssignment");
     }
 
     return name;
@@ -744,19 +791,53 @@ class Interpreter {
       }
 
       callStack.push(executableFrame);
-      interpretMethod();
+      interpretStackFrame();
     }
   }
 
-  void interpretImport(CallStackFrame& frame) {
-    next(frame);  // skip the "import"
+  void interpretModuleDefinition(CallStackFrame& frame) {
+    next(frame); // Skip "module"
 
-    std::string scriptName = current(frame).getText() + ".kiwi";
+    std::string name = current(frame).getText();
+    if (hasModule(name)) {
+      // WIP: Mixins?
+    }
+
+    next(frame); // Skip the module name.
+
+    Module module;
+    int counter = 1;
+    while (counter > 0) {
+      if (current(frame).getText() == Keywords.End) {
+        --counter;
+
+        // Stop here.
+        if (counter == 0) {
+          break;
+        }
+      } else if (Keywords.is_required_end_keyword(current(frame).getText())) {
+        ++counter;
+      }
+
+      Token codeToken = current(frame);
+      module.addToken(codeToken);
+      next(frame);
+    }
+
+    if (current(frame).getText() == Keywords.End) {
+      //next(frame);
+    }
+
+    modules[name] = module;
+  }
+
+  void interpretExternalImport(std::string name, CallStackFrame& frame) {
+    std::string scriptName = name + ".kiwi";
     std::string scriptPath = FileIO::joinPath(_parentPath, scriptName);
     if (!FileIO::fileExists(scriptPath)) {
       throw FileNotFoundError(scriptPath);
     }
-
+    
     next(frame);
 
     std::string content = FileIO::readFile(scriptPath);
@@ -773,7 +854,18 @@ class Interpreter {
     }
 
     callStack.push(scriptFrame);
-    interpretMethod();
+    interpretStackFrame();
+  }
+
+  void interpretImport(CallStackFrame& frame) {
+    next(frame); // skip the "import"
+
+    std::string tokenText = current(frame).getText();
+    if (hasModule(tokenText)) {
+      interpretModuleImport(tokenText, frame);
+    } else {
+      interpretExternalImport(tokenText, frame);
+    }
   }
 
   void interpretPrint(CallStackFrame& frame, bool printNewLine = false) {
@@ -1102,11 +1194,7 @@ class Interpreter {
           } else if (vt == ValueType::String) {
             string << std::get<std::string>(v);
           }
-        } else {
-          // logger.debug("Variable undefined: " + token.info(), "Interpreter::evaluateStringInterpolation");
         }
-      } else {
-        // logger.debug("Unhandled token: " + token.info(), "Interpreter::evaluateStringInterpolation");
       }
 
       token = eval.at(++position);

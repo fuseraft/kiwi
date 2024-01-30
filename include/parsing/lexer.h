@@ -4,6 +4,8 @@
 #include "logging/logger.h"
 #include "tokens.h"
 #include "keywords.h"
+#include <sstream>
+#include <string>
 #include <vector>
 
 class Lexer {
@@ -120,6 +122,20 @@ class Lexer {
 
       return Token::create(TokenType::IDENTIFIER, file, "\\", lineNumber,
                            linePosition);
+    } else if (currentChar == ':') {
+      std::string s;
+      s = currentChar;
+
+      if (currentPosition < source.length()) {
+        char nextChar = source[currentPosition];
+        if (nextChar == ':') {
+          s += nextChar;
+          getCurrentChar();
+          return Token::create(TokenType::QUALIFIER, file, s, lineNumber, linePosition);
+        }
+      }
+
+      return Token::create(TokenType::OPERATOR, file, s, lineNumber, linePosition);
     } else {
       std::string s;
       s = currentChar;

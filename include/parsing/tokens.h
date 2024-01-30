@@ -21,48 +21,9 @@ enum TokenType {
   CONDITIONAL,
   NOOP,
   ENDOFFRAME,
+  QUALIFIER,
   ENDOFFILE
 };
-
-std::string get_token_type_string(TokenType tokenType) {
-  switch (tokenType) {
-    case TokenType::IDENTIFIER:
-      return "IDENTIFIER";
-    case TokenType::COMMENT:
-      return "COMMENT";
-    case TokenType::COMMA:
-      return "COMMA";
-    case TokenType::KEYWORD:
-      return "KEYWORD";
-    case TokenType::OPERATOR:
-      return "OPERATOR";
-    case TokenType::LITERAL:
-      return "LITERAL";
-    case TokenType::STRING:
-      return "STRING";
-    case TokenType::NEWLINE:
-      return "NEWLINE";
-    case TokenType::ESCAPED:
-      return "ESCAPED";
-    case TokenType::OPEN_PAREN:
-      return "OPEN_PAREN";
-    case TokenType::CLOSE_PAREN:
-      return "CLOSE_PAREN";
-    case TokenType::CONDITIONAL:
-      return "CONDITIONAL";
-    case TokenType::NOOP:
-      return "NOOP";
-    case TokenType::ENDOFFRAME:
-      return "ENDOFFRAME";
-    case TokenType::ENDOFFILE:
-      return "ENDOFFILE";
-  }
-
-  std::ostringstream error;
-  error << "Cannot determine token type `" << static_cast<int>(tokenType)
-        << "`.";
-  throw std::runtime_error(error.str());
-}
 
 class Token {
  public:
@@ -93,13 +54,6 @@ class Token {
 
   static Token createEndOfFrame() {
     return create(TokenType::ENDOFFRAME, "", "", 0, 0);
-  }
-
-  std::string info() {
-    std::ostringstream info;
-    info << "type: " << get_token_type_string(type) << ", "
-         << "text: " << text;
-    return info.str();
   }
 
   void setOwner(std::string value) { owner = value; }

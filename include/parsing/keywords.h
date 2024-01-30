@@ -11,6 +11,7 @@ struct {
   const std::string OpenParenthesis = "(";
   const std::string CloseParenthesis = ")";
   const std::string Interpolate = "$";
+  const std::string Qualifier = "::";
 } Symbols;
 
 struct {
@@ -199,14 +200,14 @@ struct {
 
   std::unordered_set<std::string> keywords = {
       If,  Else,   ElseIf, EndIf,  True,  False,  While,
-      End, Method, Return, Import, Print, PrintLn};
+      End, Module, Method, Return, Import, Print, PrintLn};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           EndIf};
 
   std::unordered_set<std::string> loop_keywords = {While, For};
 
-  std::unordered_set<std::string> required_end_keywords = {While, For, Method};
+  std::unordered_set<std::string> required_end_keywords = {While, For, Method, Module};
 
   bool is_keyword(std::string& arg) {
     return keywords.find(arg) != keywords.end();
