@@ -13,6 +13,7 @@
 #include "objects/conditional.h"
 #include "objects/loops/while.h"
 #include "objects/method.h"
+#include "parsing/builtins.h"
 #include "parsing/lexer.h"
 #include "parsing/tokens.h"
 #include "parsing/keywords.h"
@@ -184,7 +185,7 @@ class Interpreter {
       next(frame);
     }
 
-    next(frame); // Skip "do"
+    next(frame);  // Skip "do"
     Token tokenTerm = current(frame);
 
     int loops = 1;
@@ -267,7 +268,7 @@ class Interpreter {
 
   void interpretLoop(CallStackFrame& frame) {
     std::string loop = current(frame).getText();
-    next(frame); // Skip "while"|"for"
+    next(frame);  // Skip "while"|"for"
 
     if (loop == Keywords.While) {
       interpretWhileLoop(frame);
@@ -360,7 +361,7 @@ class Interpreter {
           // Handle the return value in the caller frame
           auto returnValue = frame.returnValue;
           auto topVariables = frame.variables;
-          callStack.pop(); // Pop the current frame
+          callStack.pop();  // Pop the current frame
           auto& callerFrame = callStack.top();
           callerFrame.returnValue = returnValue;
           if (callerFrame.isSubFrame()) {
@@ -386,7 +387,10 @@ class Interpreter {
     updateVariablesInCallerFrame(topVariables, callerFrame);
   }
 
-  void updateVariablesInCallerFrame(std::map<std::string, std::variant<int, double, bool, std::string>> variables, CallStackFrame& callerFrame) {
+  void updateVariablesInCallerFrame(
+      std::map<std::string, std::variant<int, double, bool, std::string>>
+          variables,
+      CallStackFrame& callerFrame) {
     for (const auto& var : variables) {
       std::string varName = var.first;
       if (shouldUpdateFrameVariables(varName, callerFrame)) {
@@ -402,20 +406,20 @@ class Interpreter {
 
   bool hasVariable(const std::string& name, CallStackFrame& frame) {
     if (frame.variables.find(name) != frame.variables.end()) {
-      return true; // Found in the current frame
+      return true;  // Found in the current frame
     }
 
     // Check in outer frames
-    std::stack<CallStackFrame> tempStack(callStack); // Copy the call stack
+    std::stack<CallStackFrame> tempStack(callStack);  // Copy the call stack
     while (!tempStack.empty()) {
       CallStackFrame& outerFrame = tempStack.top();
       if (outerFrame.variables.find(name) != outerFrame.variables.end()) {
-        return true; // Found in an outer frame
+        return true;  // Found in an outer frame
       }
       tempStack.pop();
     }
 
-    return false; // Not found in any scope
+    return false;  // Not found in any scope
   }
 
   Method getMethod(const std::string& name, CallStackFrame& frame) {
@@ -434,11 +438,11 @@ class Interpreter {
     }
 
     // Check in outer frames
-    std::stack<CallStackFrame> tempStack(callStack); // Copy the call stack
+    std::stack<CallStackFrame> tempStack(callStack);  // Copy the call stack
     while (!tempStack.empty()) {
       CallStackFrame& outerFrame = tempStack.top();
       if (outerFrame.variables.find(name) != outerFrame.variables.end()) {
-        return outerFrame.variables[name]; // Found in an outer frame
+        return outerFrame.variables[name];  // Found in an outer frame
       }
       tempStack.pop();
     }
@@ -448,14 +452,14 @@ class Interpreter {
 
   void interpretMethodInvocation(const std::string& name,
                                  CallStackFrame& frame) {
-    next(frame); // Skip the name.
+    next(frame);  // Skip the name.
     Method method = getMethod(name, frame);
 
     Token tokenTerm = current(frame);
     if (current(frame).getType() != TokenType::OPEN_PAREN) {
       throw SyntaxError(tokenTerm);
     }
-    next(frame); // Skip "("
+    next(frame);  // Skip "("
 
     // Interpret parameters.
     std::vector<Token> parameters = method.getParameters();
@@ -482,7 +486,7 @@ class Interpreter {
         next(frame);
       }
     }
-    next(frame); // Skip ")"
+    next(frame);  // Skip ")"
 
     CallStackFrame codeFrame(method.getCode());
     for (const auto& pair : frame.variables) {
@@ -511,7 +515,7 @@ class Interpreter {
       Token tokenTerm = current(frame);
       throw SyntaxError(tokenTerm);
     }
-    next(frame); // Skip "("
+    next(frame);  // Skip "("
 
     while (current(frame).getType() != TokenType::CLOSE_PAREN) {
       Token parameterToken = current(frame);
@@ -521,11 +525,11 @@ class Interpreter {
       next(frame);
     }
 
-    next(frame); // Skip ")"
+    next(frame);  // Skip ")"
   }
 
   void interpretMethodDefinition(CallStackFrame& frame) {
-    next(frame); // Skip "def"
+    next(frame);  // Skip "def"
 
     Method method;
 
@@ -537,7 +541,7 @@ class Interpreter {
       throw IllegalNameError(tokenTerm, name);
     }
 
-    next(frame); // Skip the name.
+    next(frame);  // Skip the name.
     interpretMethodParameters(method, frame);
 
     int counter = 1;
@@ -577,7 +581,7 @@ class Interpreter {
 
   void interpretReturn(CallStackFrame& frame) {
     bool hasValue = hasReturnValue(frame);
-    next(frame); // Skip "return"
+    next(frame);  // Skip "return"
 
     std::variant<int, double, bool, std::string> returnValue;
     BooleanExpressionBuilder ifExpression;
@@ -594,7 +598,7 @@ class Interpreter {
 
   std::string interpretAssignment(CallStackFrame& frame) {
     std::string name;
-    next(frame); // Skip the "@"
+    next(frame);  // Skip the "@"
 
     if (current(frame).getType() == TokenType::IDENTIFIER &&
         current(frame).getValueType() == ValueType::String) {
@@ -626,13 +630,13 @@ class Interpreter {
       throw SyntaxError(current(frame));
     }
 
-    next(frame); // Skip "if"
+    next(frame);  // Skip "if"
 
     Conditional conditional;
     int ifCount = 1;
     bool ifValue = false;
     bool hasTrueElseIfEvaluation =
-        false; // An optimization to prevent unnecessary evaluation.
+        false;  // An optimization to prevent unnecessary evaluation.
     std::string building = Keywords.If;
 
     // Eagerly evaluate the If conditions.
@@ -745,7 +749,7 @@ class Interpreter {
   }
 
   void interpretImport(CallStackFrame& frame) {
-    next(frame); // skip the "import"
+    next(frame);  // skip the "import"
 
     std::string scriptName = current(frame).getText() + ".kiwi";
     std::string scriptPath = FileIO::joinPath(_parentPath, scriptName);
@@ -773,7 +777,7 @@ class Interpreter {
   }
 
   void interpretPrint(CallStackFrame& frame, bool printNewLine = false) {
-    next(frame); // skip the "print"
+    next(frame);  // skip the "print"
 
     if (current(frame).getType() == TokenType::STRING &&
         current(frame).getValueType() == ValueType::String) {
@@ -924,7 +928,7 @@ class Interpreter {
     std::string tokenText = tokenTerm.getText();
     if (hasMethod(tokenText)) {
       interpretMethodInvocation(tokenText, frame);
-      return frame.returnValue; // Assume returnValue is part of the frame
+      return frame.returnValue;  // Assume returnValue is part of the frame
     }
 
     std::variant<int, double, bool, std::string> result =
@@ -985,7 +989,7 @@ class Interpreter {
     termToken = current(frame);
 
     if (current(frame).getType() == TokenType::OPEN_PAREN) {
-      next(frame); // Skip the '('
+      next(frame);  // Skip the '('
       std::variant<int, double, bool, std::string> result =
           interpretExpression(booleanExpression, frame);
       if (current(frame).getType() == TokenType::CLOSE_PAREN) {
@@ -1030,7 +1034,7 @@ class Interpreter {
       return evaluateString(frame);
     }
 
-    return 0; // Placeholder for unsupported types
+    return 0;  // Placeholder for unsupported types
   }
 
   std::string evaluateString(CallStackFrame& frame) {
@@ -1077,7 +1081,7 @@ class Interpreter {
                                    std::vector<Token>& eval,
                                    std::ostringstream& string,
                                    CallStackFrame& frame) {
-    position += 2; // Skip "${"
+    position += 2;  // Skip "${"
 
     token = eval.at(position);
     // loop to the end
