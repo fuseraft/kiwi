@@ -1,0 +1,23 @@
+println "================"
+println "= modules.kiwi ="
+println "================"
+
+module greeter
+    def greet(@name)
+        println "Hello, ${@name}."
+    end
+end
+
+module excited_greeter
+    def greet(@name)
+        println "Hello, ${@name}!"
+    end
+end
+
+import "greeter"
+import "excited_greeter"
+
+greeter::greet("World")
+excited_greeter::greet("World")
+
+println ""
