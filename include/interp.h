@@ -361,6 +361,9 @@ class Interpreter {
           callStack.pop(); // Pop the current frame
           auto& callerFrame = callStack.top();
           callerFrame.returnValue = returnValue;
+          if (callerFrame.isSubFrame()) {
+            callerFrame.setReturnFlag();
+          }
           updateVariablesInCallerFrame(topVariables, callerFrame);
         } else {
           // If this is the main frame, just pop it
@@ -494,6 +497,7 @@ class Interpreter {
             method.getParameterValue(parameterName);
       }
     }
+    codeFrame.setSubFrame();
     callStack.push(codeFrame);
 
     // Now interpret the method in its own context
@@ -730,6 +734,7 @@ class Interpreter {
       for (const auto& pair : frame.variables) {
         executableFrame.variables[pair.first] = pair.second;
       }
+
       callStack.push(executableFrame);
       interpretMethod();
     }

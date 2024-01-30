@@ -17,6 +17,7 @@ if !@debug
     import "methods"
     import "method_return"
     import "while_loops"
+    import "method_early_return"
     import "fizzbuzz"
 
     # Currently broken.
