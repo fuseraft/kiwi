@@ -1,0 +1,22 @@
+println "======================================"
+println "= method_invoked_in_conditional.kiwi ="
+println "======================================"
+
+def is_even(@n)
+    return (@n % 2 == 0)
+end
+
+@i = 0
+while @i < 10 do
+    #@is_even = is_even(@i)
+
+    if is_even(@i)
+        println "${@i} is even"
+    else
+        println "${@i} is odd"
+    endif
+
+    @i += 1
+end
+
+println ""

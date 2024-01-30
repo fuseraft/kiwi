@@ -350,7 +350,9 @@ class Interpreter {
         if (methods.find(token.getText()) != methods.end()) {
           continue;
         }
-        ++frame.position;
+        if (!frame.isReturnFlagSet()) {
+          ++frame.position;
+        }
       }
 
       if (frame.isReturnFlagSet()) {
@@ -644,7 +646,9 @@ class Interpreter {
     if (get_value_type(value) == ValueType::Boolean) {
       ifValue = std::get<bool>(value);
       conditional.getIfStatement().setEvaluation(ifValue);
-      next(frame);
+      if (current(frame).getType() != TokenType::KEYWORD) {
+        next(frame);
+      }
     } else {
       throw ConversionError(current(frame));
     }
