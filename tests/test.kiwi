@@ -18,6 +18,7 @@ if !@debug
     import "method_return"
     import "while_loops"
     import "method_early_return"
+    import "method_invoked_in_conditional"
     import "fizzbuzz"
 
     # Currently broken.
