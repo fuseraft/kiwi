@@ -33,15 +33,14 @@ class Interpreter {
 
   int interpret(std::vector<Token> tokens, std::string parentPath = "") {
     _tokens = tokens;
-    _position = 0;
-    _end = _tokens.size();
     _parentPath = parentPath;
-    CallStackFrame mainFrame(_tokens);
-    callStack.push(mainFrame);
 
-    if (_end == 0) {
+    if (_tokens.empty()) {
       return 0;
     }
+    
+    CallStackFrame mainFrame(_tokens);
+    callStack.push(mainFrame);
 
     return interpret();
   }
@@ -51,8 +50,6 @@ class Interpreter {
   std::map<std::string, std::vector<std::string>> files;
   std::map<std::string, Method> methods;
   std::vector<Token> _tokens;
-  int _position;
-  int _end;
   bool _errorState = false;
   bool _caught = false;
   std::string _parentPath;
