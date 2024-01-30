@@ -13,10 +13,13 @@ struct CallStackFrame {
   std::map<std::string, std::variant<int, double, bool, std::string>> variables;
   std::variant<int, double, bool, std::string> returnValue;
   bool returnFlag = false;
+  bool subFrame = false;
 
   CallStackFrame(const std::vector<Token>& tokens) : tokens(tokens) {}
   
+  void setSubFrame() { subFrame = true; }
   void setReturnFlag() { returnFlag = true; }
+  bool isSubFrame() const { return subFrame; }
   bool isReturnFlagSet() const { return returnFlag; }
 };
 
