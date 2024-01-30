@@ -16,7 +16,7 @@ struct CallStackFrame {
   bool subFrame = false;
 
   CallStackFrame(const std::vector<Token>& tokens) : tokens(tokens) {}
-  
+
   void setSubFrame() { subFrame = true; }
   void setReturnFlag() { returnFlag = true; }
   bool isSubFrame() const { return subFrame; }
