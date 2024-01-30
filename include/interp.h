@@ -22,7 +22,7 @@
 #include "stackframe.h"
 
 class Interpreter {
-public:
+ public:
   Interpreter(Logger& logger) : logger(logger) {}
 
   int interpret(Lexer& lexer, std::string parentPath = "") {
@@ -37,7 +37,7 @@ public:
     if (_tokens.empty()) {
       return 0;
     }
-    
+
     CallStackFrame mainFrame(_tokens);
     callStack.push(mainFrame);
 
@@ -107,7 +107,8 @@ public:
     return 0;
   }
 
-  bool shouldUpdateFrameVariables(const std::string& varName, CallStackFrame& nextFrame) {
+  bool shouldUpdateFrameVariables(const std::string& varName,
+                                  CallStackFrame& nextFrame) {
     return nextFrame.variables.find(varName) != nextFrame.variables.end();
   }
 
@@ -122,7 +123,7 @@ public:
     if (frame.position < frame.tokens.size()) {
       frame.position++;
     } else {
-      // 
+      //
     }
   }
 
@@ -163,7 +164,8 @@ public:
     return tempId;
   }
 
-  std::vector<Token> getTemporaryAssignment(Token& tokenTerm, const std::string& tempId) {
+  std::vector<Token> getTemporaryAssignment(Token& tokenTerm,
+                                            const std::string& tempId) {
     std::vector<Token> tokens;
     std::string file = tokenTerm.getFile();
     tokens.push_back(
@@ -207,7 +209,8 @@ public:
 
     CallStackFrame oldFrame = frame;
     std::string tempId = getTemporaryId();
-    std::vector<Token> tempAssignment = getTemporaryAssignment(tokenTerm, tempId);
+    std::vector<Token> tempAssignment =
+        getTemporaryAssignment(tokenTerm, tempId);
     // Interpret the condition.
     while (true) {
       std::vector<Token> condition = loop.getCondition();
@@ -223,11 +226,13 @@ public:
       callStack.push(conditionFrame);
       interpretAssignment(conditionFrame);
 
-      if (conditionFrame.variables.find(tempId) == conditionFrame.variables.end()) {
+      if (conditionFrame.variables.find(tempId) ==
+          conditionFrame.variables.end()) {
         throw SyntaxError(current(frame));
       }
 
-      std::variant<int, double, bool, std::string> value = getVariable(tempId, conditionFrame);
+      std::variant<int, double, bool, std::string> value =
+          getVariable(tempId, conditionFrame);
       ValueType vt = get_value_type(value);
 
       if (vt != ValueType::Boolean) {
@@ -294,7 +299,7 @@ public:
   void interpretIdentifier(CallStackFrame& frame) {
     Token token = current(frame);
     std::string tokenText = token.getText();
-    
+
     if (methods.find(tokenText) != methods.end()) {
       interpretMethodInvocation(tokenText, frame);
     } else if (hasVariable(tokenText, frame)) {
@@ -337,14 +342,16 @@ public:
       if (frame.position < frame.tokens.size()) {
         token = frame.tokens[frame.position];
       }
-      if ((token.getType() != TokenType::KEYWORD && token.getType() != TokenType::CONDITIONAL) || token.getText() == Keywords.End) {
+      if ((token.getType() != TokenType::KEYWORD &&
+           token.getType() != TokenType::CONDITIONAL) ||
+          token.getText() == Keywords.End) {
         if (methods.find(token.getText()) != methods.end()) {
           continue;
         }
         ++frame.position;
       }
     }
-    
+
     if (callStack.size() < 2) {
       return;
     }
@@ -364,34 +371,35 @@ public:
 
   bool hasVariable(const std::string& name, CallStackFrame& frame) {
     if (frame.variables.find(name) != frame.variables.end()) {
-      return true; // Found in the current frame
+      return true;  // Found in the current frame
     }
 
     // Check in outer frames
-    std::stack<CallStackFrame> tempStack(callStack); // Copy the call stack
+    std::stack<CallStackFrame> tempStack(callStack);  // Copy the call stack
     while (!tempStack.empty()) {
       CallStackFrame& outerFrame = tempStack.top();
       if (outerFrame.variables.find(name) != outerFrame.variables.end()) {
-        return true; // Found in an outer frame
+        return true;  // Found in an outer frame
       }
       tempStack.pop();
     }
 
-    return false; // Not found in any scope
+    return false;  // Not found in any scope
   }
 
-  std::variant<int, double, bool, std::string> getVariable(const std::string& name, CallStackFrame& frame) {
+  std::variant<int, double, bool, std::string> getVariable(
+      const std::string& name, CallStackFrame& frame) {
     // Check in the current frame
     if (frame.variables.find(name) != frame.variables.end()) {
       return frame.variables[name];
     }
 
     // Check in outer frames
-    std::stack<CallStackFrame> tempStack(callStack); // Copy the call stack
+    std::stack<CallStackFrame> tempStack(callStack);  // Copy the call stack
     while (!tempStack.empty()) {
       CallStackFrame& outerFrame = tempStack.top();
       if (outerFrame.variables.find(name) != outerFrame.variables.end()) {
-        return outerFrame.variables[name]; // Found in an outer frame
+        return outerFrame.variables[name];  // Found in an outer frame
       }
       tempStack.pop();
     }
@@ -399,7 +407,8 @@ public:
     throw VariableUndefinedError(current(frame), name);
   }
 
-  void interpretMethodInvocation(const std::string& name, CallStackFrame& frame) {
+  void interpretMethodInvocation(const std::string& name,
+                                 CallStackFrame& frame) {
     next(frame);  // Skip the name.
     Method method = methods[name];
 
@@ -423,7 +432,8 @@ public:
       std::string paramName = parameters.at(paramIndex++).getText();
       BooleanExpressionBuilder booleanExpression;
       tokenTerm = current(frame);
-      std::variant<int, double, bool, std::string> paramValue = interpretTerm(tokenTerm, booleanExpression, frame);
+      std::variant<int, double, bool, std::string> paramValue =
+          interpretTerm(tokenTerm, booleanExpression, frame);
       if (peek(frame).getType() == TokenType::CLOSE_PAREN) {
         next(frame);
         closeParenthesisFound = true;
@@ -446,7 +456,8 @@ public:
       if (!method.hasParameter(parameterName)) {
         throw ParameterMissingError(tokenTerm, parameterName);
       } else {
-        codeFrame.variables[parameterName] = method.getParameterValue(parameterName);
+        codeFrame.variables[parameterName] =
+            method.getParameterValue(parameterName);
       }
     }
     callStack.push(codeFrame);
@@ -572,7 +583,8 @@ public:
 
     // Eagerly evaluate the If conditions.
     BooleanExpressionBuilder ifExpression;
-    std::variant<int, double, bool, std::string> value = interpretExpression(ifExpression, frame);
+    std::variant<int, double, bool, std::string> value =
+        interpretExpression(ifExpression, frame);
     if (ifExpression.isSet()) {
       value = ifExpression.evaluate();
     }
@@ -622,7 +634,8 @@ public:
             }
             conditional.getElseIfStatement().setEvaluation(elseIfValue);
             Token bodyToken = current(frame);
-            if (bodyToken.getType() == TokenType::IDENTIFIER || bodyToken.getType() == TokenType::LITERAL) {
+            if (bodyToken.getType() == TokenType::IDENTIFIER ||
+                bodyToken.getType() == TokenType::LITERAL) {
               next(frame);
             } else {
               conditional.getElseIfStatement().addToken(bodyToken);
@@ -697,7 +710,7 @@ public:
     for (const auto& pair : frame.variables) {
       scriptFrame.variables[pair.first] = pair.second;
     }
-    
+
     callStack.push(scriptFrame);
     interpretMethod();
   }
@@ -884,7 +897,8 @@ public:
           next(frame);
         }
 
-        if (peekNext == Symbols.CloseParenthesis || Operators.is_arithmetic_operator(peekNext)) {
+        if (peekNext == Symbols.CloseParenthesis ||
+            Operators.is_arithmetic_operator(peekNext)) {
           next(frame);
         }
       }
@@ -927,7 +941,7 @@ public:
     } else if (current(frame).getType() == TokenType::IDENTIFIER) {
       std::string variableName = current(frame).toString();
       if (hasVariable(variableName, frame)) {
-        if (skipOnRetrieval) { 
+        if (skipOnRetrieval) {
           Token nextToken = peek(frame);
           if (nextToken.getType() == TokenType::OPERATOR) {
             next(frame);
@@ -1004,7 +1018,8 @@ public:
 
   void evaluateStringInterpolation(int& position, Token& token,
                                    std::vector<Token>& eval,
-                                   std::ostringstream& string, CallStackFrame& frame) {
+                                   std::ostringstream& string,
+                                   CallStackFrame& frame) {
     position += 2;  // Skip "${"
 
     token = eval.at(position);
@@ -1059,7 +1074,8 @@ public:
       throw VariableUndefinedError(current(frame), name);
     }
 
-    std::variant<int, double, bool, std::string> currentValue = getVariable(name, frame);
+    std::variant<int, double, bool, std::string> currentValue =
+        getVariable(name, frame);
 
     if (op == Operators.AddAssign) {
       currentValue =

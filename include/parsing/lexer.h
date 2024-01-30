@@ -85,32 +85,41 @@ class Lexer {
     } else if (currentChar == '#') {
       return parseComment();
     } else if (currentChar == '@') {
-      return Token::create(TokenType::KEYWORD, file, "@", lineNumber, linePosition);
+      return Token::create(TokenType::KEYWORD, file, "@", lineNumber,
+                           linePosition);
     } else if (currentChar == '$') {
-      return Token::create(TokenType::OPERATOR, file, "$", lineNumber, linePosition);
+      return Token::create(TokenType::OPERATOR, file, "$", lineNumber,
+                           linePosition);
     } else if (currentChar == '\n') {
-      return Token::create(TokenType::NEWLINE, file, "\n", lineNumber, linePosition);
+      return Token::create(TokenType::NEWLINE, file, "\n", lineNumber,
+                           linePosition);
     } else if (currentChar == '(') {
-      return Token::create(TokenType::OPEN_PAREN, file, "(", lineNumber, linePosition);
+      return Token::create(TokenType::OPEN_PAREN, file, "(", lineNumber,
+                           linePosition);
     } else if (currentChar == ')') {
-      return Token::create(TokenType::CLOSE_PAREN, file, ")", lineNumber, linePosition);
+      return Token::create(TokenType::CLOSE_PAREN, file, ")", lineNumber,
+                           linePosition);
     } else if (currentChar == ',') {
-      return Token::create(TokenType::COMMA, file, ",", lineNumber, linePosition);
+      return Token::create(TokenType::COMMA, file, ",", lineNumber,
+                           linePosition);
     } else if (currentChar == '\\') {
       if (currentPosition < source.length()) {
         char nextChar = getCurrentChar();
 
         switch (nextChar) {
           case 't':
-            return Token::create(TokenType::ESCAPED, file, "\t", lineNumber, linePosition);
+            return Token::create(TokenType::ESCAPED, file, "\t", lineNumber,
+                                 linePosition);
           case 'n':
-            return Token::create(TokenType::ESCAPED, file, "\n", lineNumber, linePosition);
+            return Token::create(TokenType::ESCAPED, file, "\n", lineNumber,
+                                 linePosition);
         }
       }
 
       getCurrentChar();
 
-      return Token::create(TokenType::IDENTIFIER, file, "\\", lineNumber, linePosition);
+      return Token::create(TokenType::IDENTIFIER, file, "\\", lineNumber,
+                           linePosition);
     } else {
       std::string s;
       s = currentChar;
@@ -121,13 +130,14 @@ class Lexer {
             Operators.is_arithmetic_operator_char(currentChar);
         bool isBooleanOpChar = Operators.is_boolean_operator_char(currentChar);
         bool isArithmeticOp =
-            (nextChar == '=' && (isArithmeticOpChar || isBooleanOpChar)) 
-            || (currentChar == '*' && nextChar == '*');
+            (nextChar == '=' && (isArithmeticOpChar || isBooleanOpChar)) ||
+            (currentChar == '*' && nextChar == '*');
         bool isBooleanOp =
             (nextChar == '|' || nextChar == '&') && isBooleanOpChar;
-        bool isBitwiseOp = (Operators.is_bitwise_operator_char(currentChar) && nextChar == '=') 
-            || (currentChar == '<' && nextChar == '<') 
-            || (currentChar == '>' && nextChar == '>');
+        bool isBitwiseOp = (Operators.is_bitwise_operator_char(currentChar) &&
+                            nextChar == '=') ||
+                           (currentChar == '<' && nextChar == '<') ||
+                           (currentChar == '>' && nextChar == '>');
 
         bool appendNextChar = isArithmeticOp || isBooleanOp || isBitwiseOp;
 
@@ -143,7 +153,8 @@ class Lexer {
         }
       }
 
-      return Token::create(TokenType::OPERATOR, file, s, lineNumber, linePosition);
+      return Token::create(TokenType::OPERATOR, file, s, lineNumber,
+                           linePosition);
     }
   }
 
