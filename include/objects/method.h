@@ -12,13 +12,15 @@ class Method {
   void addToken(Token& t) { code.push_back(t); }
   void addParameterToken(Token& t) { parameters.push_back(t); }
   void setName(const std::string& name) { _name = name; }
-  void addParameterValue(std::string paramName, std::variant<int, double, bool, std::string> value) {
+  void addParameterValue(std::string paramName,
+                         std::variant<int, double, bool, std::string> value) {
     parameterKVP[paramName] = value;
   }
   bool hasParameter(std::string& paramName) {
-    return parameterKVP.find(paramName) != parameterKVP.end(); 
+    return parameterKVP.find(paramName) != parameterKVP.end();
   }
-  std::variant<int, double, bool, std::string> getParameterValue(std::string& paramName) {
+  std::variant<int, double, bool, std::string> getParameterValue(
+      std::string& paramName) {
     return parameterKVP[paramName];
   }
 
@@ -30,7 +32,8 @@ class Method {
   std::vector<Token> parameters;
   std::vector<Token> code;
   std::string _name;
-  std::map<std::string, std::variant<int, double, bool, std::string>> parameterKVP;
+  std::map<std::string, std::variant<int, double, bool, std::string>>
+      parameterKVP;
 };
 
 #endif
