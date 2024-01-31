@@ -6,10 +6,9 @@ def is_even(@n)
     return (@n % 2 == 0)
 end
 
-@i = 0
-while @i < 10 do
-    #@is_even = is_even(@i)
+@i = 0, @stop_at = 25
 
+while @i <= @stop_at do
     if is_even(@i)
         println "${@i} is even"
     else
