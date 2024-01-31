@@ -4,7 +4,7 @@ A general-purpose object-oriented scripting language influenced by Ruby.
 
 ## Getting Started
 
-To get started with Kiwi, clone the repository and build the source as follows:
+To get started with Kiwi, clone the repository and build the source:
 
 ```bash
 git clone https://github.com/fuseraft/kiwi.git
