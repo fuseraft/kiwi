@@ -2,3 +2,5 @@ cleanup.rb
 .vscode/settings.json
 src/main
 bin/kiwi
+build
+bin
