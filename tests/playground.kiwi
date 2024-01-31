@@ -2,5 +2,21 @@ println "==================="
 println "= playground.kiwi ="
 println "==================="
 
+@path = "hello.txt"
+
+println "creating file `${@path}`"
+__createfile__(@path)
+
+@exists = __fileexists__(@path)
+
+if @exists
+    println "created `${@path}` successfully"
+endif
+
+@exists = __fileexists__(@path)
+if @exists
+    println "deleting `${@path}`"
+    __deletefile__(@path)
+endif
 
 println ""

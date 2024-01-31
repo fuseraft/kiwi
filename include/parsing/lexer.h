@@ -131,11 +131,13 @@ class Lexer {
         if (nextChar == ':') {
           s += nextChar;
           getCurrentChar();
-          return Token::create(TokenType::QUALIFIER, file, s, lineNumber, linePosition);
+          return Token::create(TokenType::QUALIFIER, file, s, lineNumber,
+                               linePosition);
         }
       }
 
-      return Token::create(TokenType::OPERATOR, file, s, lineNumber, linePosition);
+      return Token::create(TokenType::OPERATOR, file, s, lineNumber,
+                           linePosition);
     } else {
       std::string s;
       s = currentChar;

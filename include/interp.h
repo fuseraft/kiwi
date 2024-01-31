@@ -21,6 +21,7 @@
 #include "system/fileio.h"
 #include "typing/valuetype.h"
 #include "globals.h"
+#include "interp_builtin.h"
 #include "stackframe.h"
 
 class Interpreter {
@@ -301,25 +302,32 @@ class Interpreter {
     }
   }
 
-  void interpretIdentifier(CallStackFrame& frame) {
-    Token token = current(frame);
-    std::string tokenText = token.getText();
-
+  void interpretQualifiedIdentifier(Token& token, std::string& tokenText,
+                                    CallStackFrame& frame) {
     Token nextToken = peek(frame);
     if (nextToken.getType() == TokenType::QUALIFIER) {
       if (!hasModule(tokenText)) {
         throw ModuleUndefinedError(token, tokenText);
       }
-      next(frame); // Skip the identifier.
-      next(frame); // Skip the qualifier.
+      next(frame);  // Skip the identifier.
+      next(frame);  // Skip the qualifier.
       token = current(frame);
       tokenText = tokenText + Symbols.Qualifier + token.getText();
     }
+  }
+
+  void interpretIdentifier(CallStackFrame& frame) {
+    Token token = current(frame);
+    std::string tokenText = token.getText();
+
+    interpretQualifiedIdentifier(token, tokenText, frame);
 
     if (hasMethod(tokenText)) {
       interpretMethodInvocation(tokenText, frame);
     } else if (hasVariable(tokenText, frame)) {
       // Skip it (for now).
+    } else if (FileIOBuiltIns.is_builtin(tokenText)) {
+      interpretBuiltin(tokenText, frame);
     } else {
       throw UnknownIdentifierError(token, tokenText);
     }
@@ -367,7 +375,8 @@ class Interpreter {
         if (methods.find(token.getText()) != methods.end()) {
           continue;
         }
-        if (peek(frame).getType() == TokenType::OPEN_PAREN || peek(frame).getType() == TokenType::QUALIFIER) {
+        if (peek(frame).getType() == TokenType::OPEN_PAREN ||
+            peek(frame).getType() == TokenType::QUALIFIER) {
           continue;
         }
 
@@ -491,6 +500,46 @@ class Interpreter {
     callStack.push(codeFrame);
     interpretStackFrame();
     moduleStack.pop();
+  }
+
+  void interpretBuiltin(const std::string& name, CallStackFrame& frame) {
+    Token tokenTerm = current(frame);
+    next(frame);  // Skip the name.
+
+    if (current(frame).getType() != TokenType::OPEN_PAREN) {
+      throw SyntaxError(current(frame));
+    }
+    next(frame);  // Skip "("
+
+    // Interpret parameters.
+    std::vector<std::variant<int, double, bool, std::string>> parameters;
+
+    bool closeParenthesisFound = false;
+    while (current(frame).getType() != TokenType::CLOSE_PAREN) {
+      if (current(frame).getType() == TokenType::COMMA) {
+        next(frame);
+        continue;
+      }
+
+      BooleanExpressionBuilder booleanExpression;
+      Token subTokenTerm = current(frame);
+      std::variant<int, double, bool, std::string> paramValue =
+          interpretTerm(subTokenTerm, booleanExpression, frame);
+      if (peek(frame).getType() == TokenType::CLOSE_PAREN) {
+        next(frame);
+        closeParenthesisFound = true;
+      }
+
+      parameters.push_back(paramValue);
+
+      if (!closeParenthesisFound) {
+        next(frame);
+      }
+    }
+    next(frame);  // Skip ")"
+
+    frame.returnValue =
+        BuiltinInterpreter::execute(tokenTerm, name, parameters);
   }
 
   void interpretMethodInvocation(const std::string& name,
@@ -796,14 +845,14 @@ class Interpreter {
   }
 
   void interpretModuleDefinition(CallStackFrame& frame) {
-    next(frame); // Skip "module"
+    next(frame);  // Skip "module"
 
     std::string name = current(frame).getText();
     if (hasModule(name)) {
       // WIP: Mixins?
     }
 
-    next(frame); // Skip the module name.
+    next(frame);  // Skip the module name.
 
     Module module;
     int counter = 1;
@@ -837,7 +886,7 @@ class Interpreter {
     if (!FileIO::fileExists(scriptPath)) {
       throw FileNotFoundError(scriptPath);
     }
-    
+
     next(frame);
 
     std::string content = FileIO::readFile(scriptPath);
@@ -858,7 +907,7 @@ class Interpreter {
   }
 
   void interpretImport(CallStackFrame& frame) {
-    next(frame); // skip the "import"
+    next(frame);  // skip the "import"
 
     std::string tokenText = current(frame).getText();
     if (hasModule(tokenText)) {
@@ -1016,11 +1065,15 @@ class Interpreter {
       BooleanExpressionBuilder& booleanExpression, CallStackFrame& frame) {
 
     Token tokenTerm = current(frame);
-
     std::string tokenText = tokenTerm.getText();
+    interpretQualifiedIdentifier(tokenTerm, tokenText, frame);
+
     if (hasMethod(tokenText)) {
       interpretMethodInvocation(tokenText, frame);
-      return frame.returnValue;  // Assume returnValue is part of the frame
+      return frame.returnValue;
+    } else if (FileIOBuiltIns.is_builtin(tokenText)) {
+      interpretBuiltin(tokenText, frame);
+      return frame.returnValue;
     }
 
     std::variant<int, double, bool, std::string> result =

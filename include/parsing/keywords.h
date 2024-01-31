@@ -199,7 +199,7 @@ struct {
   const std::string While = "while";
 
   std::unordered_set<std::string> keywords = {
-      If,  Else,   ElseIf, EndIf,  True,  False,  While,
+      If,  Else,   ElseIf, EndIf,  True,   False, While,
       End, Module, Method, Return, Import, Print, PrintLn};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
@@ -207,7 +207,8 @@ struct {
 
   std::unordered_set<std::string> loop_keywords = {While, For};
 
-  std::unordered_set<std::string> required_end_keywords = {While, For, Method, Module};
+  std::unordered_set<std::string> required_end_keywords = {While, For, Method,
+                                                           Module};
 
   bool is_keyword(std::string& arg) {
     return keywords.find(arg) != keywords.end();
