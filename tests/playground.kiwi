@@ -2,21 +2,40 @@ println "==================="
 println "= playground.kiwi ="
 println "==================="
 
+module fileio
+    def create(@_path)
+        @_retval = __createfile__(@_path)
+        return @_retval
+    end
+
+    def exists(@_path)
+        @_retval = __fileexists__(@_path)
+        return @_retval
+    end
+
+    def delete(@_path)
+        @_retval = __deletefile__(@_path)
+        return @_retval
+    end
+end
+
+import "fileio"
+
 @path = "hello.txt"
 
 println "creating file `${@path}`"
-__createfile__(@path)
+fileio::create(@path)
 
-@exists = __fileexists__(@path)
+@exists = fileio::exists(@path)
 
 if @exists
     println "created `${@path}` successfully"
 endif
 
-@exists = __fileexists__(@path)
+@exists = fileio::exists(@path)
 if @exists
     println "deleting `${@path}`"
-    __deletefile__(@path)
+    fileio::delete(@path)
 endif
 
 println ""
