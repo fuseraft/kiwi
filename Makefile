@@ -7,6 +7,7 @@ INCLUDE_DIR := include
 BUILD_DIR := build
 BIN_DIR := bin
 TEST_DIR := tests
+LIB_DIR := kiwilib
 
 SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 INCLUDE_FILES := $(wildcard $(INCLUDE_DIR)/*.h)
@@ -17,8 +18,9 @@ OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC_FILES))
 EXECUTABLE := $(BIN_DIR)/kiwi
 
 TEST_FILE := $(TEST_DIR)/test.kiwi
+LIB_TEST := $(LIB_DIR)/test.kiwi
 
-.PHONY: clean test
+.PHONY: clean test testlib
 
 format:
 	find . -iname "*.cpp" -o -iname "*.h" | xargs clang-format -i --style=file
@@ -28,6 +30,10 @@ all: format $(EXECUTABLE)
 test: $(EXECUTABLE)
 	@echo "Running tests..."
 	$(EXECUTABLE) $(TEST_FILE)
+
+testlib: $(EXECUTABLE)
+	@echo "================================"
+	$(EXECUTABLE) $(LIB_TEST)
 
 clean:
 	rm -rf $(BUILD_DIR) $(BIN_DIR)
