@@ -2,7 +2,7 @@ println "============="
 println "= test.kiwi ="
 println "============="
 
-@debug = true
+@debug = false
 
 if !@debug
     import "logical_and"

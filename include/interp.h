@@ -89,7 +89,7 @@ class Interpreter {
     }
   }
 
-    void interpretStackFrame() {
+  void interpretStackFrame() {
     auto& frame = callStack.top();
     while (frame.position < frame.tokens.size()) {
       auto& token = frame.tokens[frame.position];
@@ -604,7 +604,8 @@ class Interpreter {
     bool isString = tokenType == TokenType::STRING;
     bool isIdentifier = tokenType == TokenType::IDENTIFIER;
     bool isParenthesis = tokenType == TokenType::OPEN_PAREN;
-    bool isVariable = tokenType == TokenType::KEYWORD && nextToken.getText() == Symbols.DeclVar;
+    bool isVariable = tokenType == TokenType::KEYWORD &&
+                      nextToken.getText() == Symbols.DeclVar;
     return isString || isLiteral || isIdentifier || isParenthesis || isVariable;
   }
 
