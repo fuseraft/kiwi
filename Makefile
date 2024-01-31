@@ -28,7 +28,7 @@ format:
 all: format $(EXECUTABLE)
 
 test: $(EXECUTABLE)
-	@echo "Running tests..."
+	@echo "================================"
 	$(EXECUTABLE) $(TEST_FILE)
 
 testlib: $(EXECUTABLE)
