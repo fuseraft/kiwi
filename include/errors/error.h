@@ -25,6 +25,13 @@ class KiwiError : public std::exception {
   std::string message;
 };
 
+class UnknownBuiltinError : public KiwiError {
+ public:
+  UnknownBuiltinError(const Token& token, std::string name)
+      : KiwiError(token, "UnknownBuiltinError",
+                  "The builtin `" + name + "` is unknown.") {}
+};
+
 class UnknownIdentifierError : public KiwiError {
  public:
   UnknownIdentifierError(const Token& token, std::string name)
@@ -50,6 +57,13 @@ class ParameterMissingError : public KiwiError {
   ParameterMissingError(const Token& token, std::string name)
       : KiwiError(token, "ParameterMissingError",
                   "The parameter `" + name + "` was expected but missing.") {}
+};
+
+class BuiltinUnexpectedArgumentError : public KiwiError {
+ public:
+  BuiltinUnexpectedArgumentError(const Token& token, std::string name)
+      : KiwiError(token, "BuiltinUnexpectedArgumentError",
+                  "Unexpected argument count for builtin `" + name + "`.") {}
 };
 
 class ConversionError : public KiwiError {

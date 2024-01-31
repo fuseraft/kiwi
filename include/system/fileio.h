@@ -7,8 +7,27 @@ namespace fs = std::filesystem;
 
 class FileIO {
  public:
+  static bool createFile(const std::string& filePath) {
+    std::ofstream outputFile(filePath);
+    bool isSuccess = outputFile.is_open();
+    outputFile.close();
+    return isSuccess;
+  }
+
   static bool fileExists(const std::string& filePath) {
     return fs::exists(filePath);
+  }
+
+  static bool deleteFile(const std::string& filePath) {
+    try {
+      if (!fileExists(filePath)) {
+        return false;
+      }
+
+      return fs::remove(filePath);
+    } catch (const fs::filesystem_error&) {
+      return false;
+    }
   }
 
   static std::string getAbsolutePath(const std::string& filePath) {
@@ -31,20 +50,20 @@ class FileIO {
   }
 
   static std::string readFile(const std::string& filePath) {
-    std::ifstream input_file(filePath, std::ios::binary);
+    std::ifstream inputFile(filePath, std::ios::binary);
 
-    if (!input_file.is_open()) {
+    if (!inputFile.is_open()) {
       throw std::runtime_error("Cannot open file: " + filePath);
     }
 
-    input_file.seekg(0, std::ios::end);
-    size_t size = input_file.tellg();
-    input_file.seekg(0);
+    inputFile.seekg(0, std::ios::end);
+    size_t size = inputFile.tellg();
+    inputFile.seekg(0);
 
     std::string buffer;
     buffer.resize(size);
 
-    input_file.read(&buffer[0], size);
+    inputFile.read(&buffer[0], size);
 
     return buffer;
   }
