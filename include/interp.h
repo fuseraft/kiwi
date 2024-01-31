@@ -44,7 +44,8 @@ class Interpreter {
     CallStackFrame mainFrame(_tokens);
     callStack.push(mainFrame);
 
-    return interpret();
+    interpretStackFrame();
+    return 0;
   }
 
  private:
@@ -58,58 +59,6 @@ class Interpreter {
   std::string _parentPath;
   std::stack<CallStackFrame> callStack;
   std::stack<std::string> moduleStack;
-
-  int interpret() {
-    if (callStack.empty()) {
-      throw std::runtime_error("Call stack is empty");
-    }
-
-    while (!callStack.empty()) {
-      auto& frame = callStack.top();
-      while (frame.position < frame.tokens.size()) {
-        try {
-          const Token& token = current(frame);
-          interpretToken(token, frame);
-
-          // Move to the next token
-          if (current(frame).getType() != TokenType::KEYWORD) {
-            frame.position++;
-          }
-        } catch (const KiwiError& e) {
-          _errorState = true;
-          std::vector<std::string> lines = files[e.getToken().getFile()];
-          // callStack.pop(); // WIP: unwind callstack
-          return ErrorHandler::handleError(e, lines);
-        } catch (const std::exception& e) {
-          std::cerr << e.what() << std::endl;
-          _errorState = true;
-          // callStack.pop(); // WIP: unwind callstack
-          exit(1);
-        }
-      }
-
-      if (!callStack.empty()) {
-        if (callStack.size() < 2) {
-          // There needs to be at least two frames to update the next frame
-          return 0;
-        }
-
-        auto topVariables = frame.variables;
-        callStack.pop();
-        CallStackFrame& nextFrame = callStack.top();
-
-        for (const auto& var : topVariables) {
-          std::string varName = var.first;
-          if (shouldUpdateFrameVariables(varName, nextFrame)) {
-            std::variant<int, double, bool, std::string> varValue = var.second;
-            nextFrame.variables[varName] = varValue;
-          }
-        }
-      }
-    }
-
-    return 0;
-  }
 
   bool shouldUpdateFrameVariables(const std::string& varName,
                                   CallStackFrame& nextFrame) {
@@ -131,29 +80,6 @@ class Interpreter {
     }
   }
 
-  Token current() {
-    if (callStack.empty()) {
-      throw std::runtime_error("Call stack is empty");
-    }
-    CallStackFrame& topFrame = callStack.top();
-    if (topFrame.position >= topFrame.tokens.size()) {
-      return Token::createEndOfFrame();
-    }
-    return topFrame.tokens[topFrame.position];
-  }
-
-  Token next() {
-    if (callStack.empty()) {
-      throw std::runtime_error("Call stack is empty");
-    }
-    CallStackFrame& topFrame = callStack.top();
-    topFrame.position++;
-    if (topFrame.position >= topFrame.tokens.size()) {
-      return Token::createEndOfFrame();
-    }
-    return topFrame.tokens[topFrame.position];
-  }
-
   Token peek(CallStackFrame& frame) {
     size_t nextPosition = frame.position + 1;
     if (nextPosition < frame.tokens.size()) {
@@ -161,6 +87,65 @@ class Interpreter {
     } else {
       return Token::createEndOfFrame();
     }
+  }
+
+    void interpretStackFrame() {
+    auto& frame = callStack.top();
+    while (frame.position < frame.tokens.size()) {
+      auto& token = frame.tokens[frame.position];
+      interpretToken(token, frame);
+
+      // WIP: clean this up.
+      if (frame.position < frame.tokens.size()) {
+        token = frame.tokens[frame.position];
+      }
+
+      // WIP: clean this up.
+      if ((token.getType() != TokenType::KEYWORD &&
+           token.getType() != TokenType::CONDITIONAL) ||
+          token.getText() == Keywords.End) {
+        if (methods.find(token.getText()) != methods.end()) {
+          continue;
+        }
+        if (peek(frame).getType() == TokenType::OPEN_PAREN ||
+            peek(frame).getType() == TokenType::QUALIFIER) {
+          continue;
+        }
+
+        if (!frame.isReturnFlagSet()) {
+          ++frame.position;
+        }
+      }
+
+      if (frame.isReturnFlagSet()) {
+        if (callStack.size() > 1) {
+          // Handle the return value in the caller frame
+          auto returnValue = frame.returnValue;
+          auto topVariables = frame.variables;
+          callStack.pop();  // Pop the current frame
+          auto& callerFrame = callStack.top();
+          callerFrame.returnValue = returnValue;
+          if (callerFrame.isSubFrame()) {
+            callerFrame.setReturnFlag();
+          }
+          updateVariablesInCallerFrame(topVariables, callerFrame);
+        } else {
+          // If this is the main frame, just pop it
+          callStack.pop();
+        }
+
+        return;
+      }
+    }
+
+    if (callStack.size() < 2) {
+      return;
+    }
+
+    auto topVariables = frame.variables;
+    callStack.pop();
+    auto& callerFrame = callStack.top();
+    updateVariablesInCallerFrame(topVariables, callerFrame);
   }
 
   std::string getTemporaryId() {
@@ -355,65 +340,6 @@ class Interpreter {
       default:
         throw UnrecognizedTokenError(token);
     }
-  }
-
-  void interpretStackFrame() {
-    auto& frame = callStack.top();
-    while (frame.position < frame.tokens.size()) {
-      auto& token = frame.tokens[frame.position];
-      interpretToken(token, frame);
-
-      // WIP: clean this up.
-      if (frame.position < frame.tokens.size()) {
-        token = frame.tokens[frame.position];
-      }
-
-      // WIP: clean this up.
-      if ((token.getType() != TokenType::KEYWORD &&
-           token.getType() != TokenType::CONDITIONAL) ||
-          token.getText() == Keywords.End) {
-        if (methods.find(token.getText()) != methods.end()) {
-          continue;
-        }
-        if (peek(frame).getType() == TokenType::OPEN_PAREN ||
-            peek(frame).getType() == TokenType::QUALIFIER) {
-          continue;
-        }
-
-        if (!frame.isReturnFlagSet()) {
-          ++frame.position;
-        }
-      }
-
-      if (frame.isReturnFlagSet()) {
-        if (callStack.size() > 1) {
-          // Handle the return value in the caller frame
-          auto returnValue = frame.returnValue;
-          auto topVariables = frame.variables;
-          callStack.pop();  // Pop the current frame
-          auto& callerFrame = callStack.top();
-          callerFrame.returnValue = returnValue;
-          if (callerFrame.isSubFrame()) {
-            callerFrame.setReturnFlag();
-          }
-          updateVariablesInCallerFrame(topVariables, callerFrame);
-        } else {
-          // If this is the main frame, just pop it
-          callStack.pop();
-        }
-
-        return;
-      }
-    }
-
-    if (callStack.size() < 2) {
-      return;
-    }
-
-    auto topVariables = frame.variables;
-    callStack.pop();
-    auto& callerFrame = callStack.top();
-    updateVariablesInCallerFrame(topVariables, callerFrame);
   }
 
   void updateVariablesInCallerFrame(
