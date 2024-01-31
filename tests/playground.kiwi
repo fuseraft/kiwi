@@ -26,14 +26,11 @@ import "fileio"
 println "creating file `${@path}`"
 fileio::create(@path)
 
-@exists = fileio::exists(@path)
-
-if @exists
+if fileio::exists(@path)
     println "created `${@path}` successfully"
 endif
 
-@exists = fileio::exists(@path)
-if @exists
+if fileio::exists(@path)
     println "deleting `${@path}`"
     fileio::delete(@path)
 endif
