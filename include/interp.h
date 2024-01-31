@@ -598,13 +598,14 @@ class Interpreter {
   }
 
   bool hasReturnValue(CallStackFrame& frame) {
-    Token nextToken = peek(frame);
-    TokenType tokenType = nextToken.getType();
+    const Token nextToken = peek(frame);
+    const TokenType tokenType = nextToken.getType();
     bool isLiteral = tokenType == TokenType::LITERAL;
     bool isString = tokenType == TokenType::STRING;
     bool isIdentifier = tokenType == TokenType::IDENTIFIER;
     bool isParenthesis = tokenType == TokenType::OPEN_PAREN;
-    return isString || isLiteral || isIdentifier || isParenthesis;
+    bool isVariable = tokenType == TokenType::KEYWORD && nextToken.getText() == Symbols.DeclVar;
+    return isString || isLiteral || isIdentifier || isParenthesis || isVariable;
   }
 
   void interpretReturn(CallStackFrame& frame) {
@@ -632,6 +633,11 @@ class Interpreter {
         current(frame).getValueType() == ValueType::String) {
       name = current(frame).toString();
       next(frame);
+
+      // WIP: add other conditions to exclude.
+      if (Keywords.is_keyword(name)) {
+        throw IllegalNameError(current(frame), name);
+      }
 
       if (current(frame).getType() == TokenType::OPERATOR &&
           current(frame).getValueType() == ValueType::String) {
