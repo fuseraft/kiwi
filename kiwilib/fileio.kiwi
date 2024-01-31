@@ -1,18 +1,18 @@
 module fileio
-    def create(@_path)
-        @_retval = __createfile__(@_path)
-        return @_retval
-    end
+  def create(@_path)
+    @_retval = __createfile__(@_path)
+    return @_retval
+  end
 
-    def exists(@_path)
-        @_retval = __fileexists__(@_path)
-        return @_retval
-    end
+  def exists(@_path)
+    @_retval = __fileexists__(@_path)
+    return @_retval
+  end
 
-    def delete(@_path)
-        @_retval = __deletefile__(@_path)
-        return @_retval
-    end
+  def delete(@_path)
+    @_retval = __deletefile__(@_path)
+    return @_retval
+  end
 end
 
 import "fileio"

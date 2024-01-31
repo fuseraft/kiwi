@@ -6,10 +6,10 @@ println "creating file `${@path}`"
 fileio::create(@path)
 
 if fileio::exists(@path)
-    println "created `${@path}` successfully"
+  println "created `${@path}` successfully"
 endif
 
 if fileio::exists(@path)
-    println "deleting `${@path}`"
-    fileio::delete(@path)
+  println "deleting `${@path}`"
+  fileio::delete(@path)
 endif
