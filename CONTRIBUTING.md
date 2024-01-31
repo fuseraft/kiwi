@@ -47,6 +47,7 @@ Here's how to submit a pull request:
 
 ### Git Commit Messages
 
+- **Note**: I'm pretty relaxed on this.
 - Try to use the present tense ("Add feature" not "Added feature").
 - Try to use the imperative mood ("Move cursor to..." not "Moves cursor to...").
 - Limit the first line to 72 characters or less.
