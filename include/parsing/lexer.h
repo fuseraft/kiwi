@@ -251,15 +251,32 @@ class Lexer {
   }
 
   Token parseComment() {
-    std::string comment;
+    if (currentPosition + 1 < source.length() && source[currentPosition] == '#') {
+      // It's a multi-line comment.
+      std::string comment;
+      currentPosition++;  // Skip the "##"
 
-    while (currentPosition < source.length() &&
-           source[currentPosition] != '\n') {
-      comment += getCurrentChar();
+      while (currentPosition + 1 < source.length()) {
+        char currentChar = getCurrentChar();
+        if (currentChar == '#' && source[currentPosition] == '#') {
+          currentPosition++;  // Skip the "##"
+          break;
+        } else {
+          comment += currentChar;
+        }
+      }
+
+      return Token::create(TokenType::COMMENT, file, comment, lineNumber, linePosition);
+    } else {
+      // It's a single-line comment
+      std::string comment;
+
+      while (currentPosition < source.length() && source[currentPosition] != '\n') {
+        comment += getCurrentChar();
+      }
+
+      return Token::create(TokenType::COMMENT, file, comment, lineNumber, linePosition);
     }
-
-    return Token::create(TokenType::COMMENT, file, comment, lineNumber,
-                         linePosition);
   }
 };
 

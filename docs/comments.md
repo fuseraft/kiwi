@@ -11,8 +11,6 @@ println "hello"
 
 ## Multi-line comments
 
-*Under construction in new interpreter.*
-
 Multiline comments begin and end with `##`.
 
 ```
