@@ -33,6 +33,14 @@ class BuiltinInterpreter {
       return executeFileExists(tokenTerm, args);
     } else if (functionName == FileIOBuiltIns.DeleteFile) {
       return executeDeleteFile(tokenTerm, args);
+    } else if (functionName == FileIOBuiltIns.GetFileExtension) {
+      return executeGetFileExtension(tokenTerm, args);
+    } else if (functionName == FileIOBuiltIns.FileName) {
+      return executeGetFileName(tokenTerm, args);
+    } else if (functionName == FileIOBuiltIns.GetFilePath) {
+      return executeGetFilePath(tokenTerm, args);
+    } else if (functionName == FileIOBuiltIns.GetFileAbsolutePath) {
+      return executeGetFileAbsolutePath(tokenTerm, args);
     } else {
       throw UnknownBuiltinError(tokenTerm, functionName);
     }
@@ -72,6 +80,42 @@ class BuiltinInterpreter {
     return FileIO::deleteFile(fileName);
   }
 
+  static std::string executeGetFileExtension(
+      const Token& tokenTerm,
+      const std::vector<std::variant<int, double, bool, std::string>>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm,
+                                           FileIOBuiltIns.GetFileExtension);
+    }
+
+    std::string fileName = getString(tokenTerm, args.at(0));
+    return FileIO::getFileExtension(fileName);
+  }
+
+  static std::string executeGetFileAbsolutePath(
+      const Token& tokenTerm,
+      const std::vector<std::variant<int, double, bool, std::string>>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm,
+                                           FileIOBuiltIns.GetFileAbsolutePath);
+    }
+
+    std::string fileName = getString(tokenTerm, args.at(0));
+    return FileIO::getAbsolutePath(fileName);
+  }
+
+  static std::string executeGetFilePath(
+      const Token& tokenTerm,
+      const std::vector<std::variant<int, double, bool, std::string>>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm,
+                                           FileIOBuiltIns.GetFilePath);
+    }
+
+    std::string fileName = getString(tokenTerm, args.at(0));
+    return FileIO::getParentPath(fileName);
+  }
+
   static bool executeFileExists(
       const Token& tokenTerm,
       const std::vector<std::variant<int, double, bool, std::string>>& args) {
@@ -82,6 +126,18 @@ class BuiltinInterpreter {
 
     std::string fileName = getString(tokenTerm, args.at(0));
     return FileIO::fileExists(fileName);
+  }
+
+  static std::string executeGetFileName(
+      const Token& tokenTerm,
+      const std::vector<std::variant<int, double, bool, std::string>>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm,
+                                           FileIOBuiltIns.FileName);
+    }
+
+    std::string fileName = getString(tokenTerm, args.at(0));
+    return FileIO::getFileName(fileName);
   }
 };
 

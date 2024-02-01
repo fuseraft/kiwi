@@ -14,6 +14,16 @@ class FileIO {
     return isSuccess;
   }
 
+  static std::string getFileExtension(const std::string& filePath) {
+    fs::path path(filePath);
+    return path.extension().string();
+  }
+
+  static std::string getFileName(const std::string& filePath) {
+    fs::path path(filePath);
+    return path.filename().string();
+  }
+
   static bool fileExists(const std::string& filePath) {
     return fs::exists(filePath);
   }
