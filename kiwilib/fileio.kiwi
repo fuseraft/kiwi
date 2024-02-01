@@ -1,4 +1,19 @@
 module fileio
+  def abspath(@_path)
+    @_retval = __fileabspath__(@_path)
+    return @_retval
+  end
+
+  def append(@_path, @_text)
+    @_retval = __appendtext__(@_path, @_text)
+    return @_retval
+  end
+
+  def copy(@_source, @_dest)
+    @_retval = __copyfile__(@_source, @_dest)
+    return @_retval
+  end
+
   def create(@_path)
     @_retval = __createfile__(@_path)
     return @_retval
@@ -24,13 +39,33 @@ module fileio
     return @_retval
   end
 
+  def filesize(@_path)
+    @_retval = __filesize__(@_path)
+    return @_retval
+  end
+
+  def move(@_source, @_dest)
+    @_retval = __movefile__(@_source, @_dest)
+    return @_retval
+  end
+
   def parentdir(@_path)
     @_retval = __filepath__(@_path)
     return @_retval
   end
 
-  def abspath(@_path)
-    @_retval = __fileabspath__(@_path)
+  def read(@_path)
+    @_retval = __readfile__(@_path)
+    return @_retval
+  end
+
+  def write(@_path, @_text)
+    @_retval = __writetext__(@_path, @_text)
+    return @_retval
+  end
+
+  def writeln(@_path, @_text)
+    @_retval = __writeline__(@_path, @_text)
     return @_retval
   end
 end

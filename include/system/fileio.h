@@ -3,6 +3,9 @@
 
 #include <fstream>
 #include <filesystem>
+#include <string>
+#include <variant>
+
 namespace fs = std::filesystem;
 
 class FileIO {
@@ -38,6 +41,73 @@ class FileIO {
     } catch (const fs::filesystem_error&) {
       return false;
     }
+  }
+
+  static bool copyFile(const std::string& sourcePath,
+                       const std::string& destinationPath,
+                       bool overwrite = true) {
+    try {
+      fs::copy_options options = overwrite
+                                     ? fs::copy_options::overwrite_existing
+                                     : fs::copy_options::none;
+      fs::copy_file(sourcePath, destinationPath, options);
+      return true;
+    } catch (const fs::filesystem_error& e) {
+      throw;
+    } catch (const std::exception& e) {
+      throw;
+    }
+    return false;
+  }
+
+  static bool moveFile(const std::string& sourcePath,
+                       const std::string& destinationPath) {
+    try {
+      fs::rename(sourcePath, destinationPath);
+      return true;
+    } catch (const fs::filesystem_error& e) {
+      throw;
+    } catch (const std::exception& e) {
+      throw;
+    }
+    return false;
+  }
+
+  static double getFileSize(const std::string& filePath) {
+    try {
+      if (!fileExists(filePath)) {
+        throw std::runtime_error("File does not exist.");
+      }
+      auto size = fs::file_size(filePath);
+      return static_cast<double>(size);
+    } catch (const fs::filesystem_error& e) {
+      throw;
+    } catch (const std::exception& e) {
+      throw;
+    }
+  }
+
+  static bool writeToFile(const std::string& filePath,
+                          std::variant<int, double, bool, std::string>& value,
+                          bool appendMode, bool addNewLine) {
+    std::ios_base::openmode mode = appendMode ? std::ios::app : std::ios::out;
+    std::ofstream file(filePath, mode);
+
+    if (!file.is_open()) {
+      throw std::runtime_error("Unable to open file for writing.");
+    }
+
+    std::visit(
+        [&file, &addNewLine](auto&& arg) {
+          file << arg;
+          if (addNewLine) {
+            file << std::endl;
+          }
+        },
+        value);
+
+    file.close();
+    return true;
   }
 
   static std::string getAbsolutePath(const std::string& filePath) {
