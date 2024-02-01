@@ -22,6 +22,6 @@ if @test_sum == 100
     println "While loop test passed!"
 else
     println "While loop test failed!"
-endif
+end
 
 println ""

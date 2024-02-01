@@ -10,5 +10,5 @@ You can access environment variables using `env.{VARIABLE_NAME}`.
 
 if @path.include? @search
     println "found `${@search}` in `${@path}`"
-endif
+end
 ```

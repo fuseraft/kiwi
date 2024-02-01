@@ -82,7 +82,7 @@ def sieveOfEratosthenes(@limit)
         @isPrime[@multiple] = false
         @multiple += @p
       end
-    endif
+    end
 
     @p += 1
   end
@@ -92,7 +92,7 @@ def sieveOfEratosthenes(@limit)
   for @i in [0..@limit] do
     if @isPrime[@i]
       @primes << (@i)
-    endif
+    end
   end
 
   return @primes

@@ -687,9 +687,9 @@ class Interpreter {
     }
 
     while (ifCount > 0) {
-      if (current(frame).getText() == Keywords.If) {
+      if (Keywords.is_required_end_keyword(current(frame).getText())) {
         ++ifCount;
-      } else if (current(frame).getText() == Keywords.EndIf && ifCount > 0) {
+      } else if (current(frame).getText() == Keywords.End && ifCount > 0) {
         --ifCount;
 
         // Stop here.

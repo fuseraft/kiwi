@@ -22,6 +22,6 @@ if !@debug
 else
     # Set @debug = true, and add an import below to debug a specific script.
     import "playground"
-endif
+end
 
 println "Done!"

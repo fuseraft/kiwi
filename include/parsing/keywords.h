@@ -170,7 +170,6 @@ struct {
   const std::string Else = "else";
   const std::string ElseIf = "elsif";
   const std::string End = "end";
-  const std::string EndIf = "endif";
   const std::string Env = "env";
   const std::string Err = "err";
   const std::string Exit = "exit";
@@ -199,16 +198,16 @@ struct {
   const std::string While = "while";
 
   std::unordered_set<std::string> keywords = {
-      If,  Else,   ElseIf, EndIf,  True,   False, While,
-      End, Module, Method, Return, Import, Print, PrintLn};
+      If,     Else,   ElseIf, True,   False, While,  End,
+      Module, Method, Return, Import, Print, PrintLn};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
-                                                          EndIf};
+                                                          End};
 
   std::unordered_set<std::string> loop_keywords = {While, For};
 
   std::unordered_set<std::string> required_end_keywords = {While, For, Method,
-                                                           Module};
+                                                           If, Module};
 
   bool is_keyword(std::string& arg) {
     return keywords.find(arg) != keywords.end();

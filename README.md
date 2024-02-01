@@ -55,7 +55,7 @@ def fizzbuzz(@n)
       println "Buzz"
     else
       println "${@i}"
-    endif
+    end
 
     @i += 1
   end

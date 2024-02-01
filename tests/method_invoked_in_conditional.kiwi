@@ -13,7 +13,7 @@ while @i <= @stop_at do
         println "${@i} is even"
     else
         println "${@i} is odd"
-    endif
+    end
 
     @i += 1
 end

@@ -9,7 +9,7 @@ def add(@n, @m)
         println "  m is negative"
     else
         println "  m is non-negative"
-    endif
+    end
     
     @i = 0
 
