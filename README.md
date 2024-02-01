@@ -66,7 +66,7 @@ fizzbuzz(15)
 
 ## Contributions
 
-We welcome contributions to the Kiwi project! Here's how you can contribute:
+I welcome and appreciate any and all contributions to the Kiwi project! Here's how you can contribute:
 
 1. **Fork the Repository**: Fork the project to your GitHub account.
 2. **Clone the Forked Repository**: Clone it to your machine.
