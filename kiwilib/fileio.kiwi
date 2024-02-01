@@ -1,69 +1,162 @@
+##
+Summary: A module containing functionality for working with files and directories.
+##
 module fileio
+
+  ##
+  Summary: Get the absolute path of a file.
+  Params:
+    - @_path: The path to a file or a filename.
+  Returns: String
+  ##
   def abspath(@_path)
     @_retval = __fileabspath__(@_path)
     return @_retval
   end
 
+  ##
+  Summary: Append text to a file.
+  Params:
+    - @_path: The path to a file or a filename.
+    - @_text: The text to append.
+  Returns: Boolean
+  ##
   def append(@_path, @_text)
     @_retval = __appendtext__(@_path, @_text)
     return @_retval
   end
 
+  ##
+  Summary: Copy a file.
+  Params:
+    - @_source: The source path.
+    - @_dest: The destination path.
+  Returns: Boolean
+  ##
   def copy(@_source, @_dest)
     @_retval = __copyfile__(@_source, @_dest)
     return @_retval
   end
 
+  ##
+  Summary: Create an empty file.
+  Params:
+    - @_path: The path to a file or a filename.
+  Returns: Boolean
+  ##
   def create(@_path)
     @_retval = __createfile__(@_path)
     return @_retval
   end
 
+  ##
+  Summary: Delete a file.
+  Params:
+    - @_path: The path to a file or a filename.
+  Returns: Boolean
+  ##
   def delete(@_path)
     @_retval = __deletefile__(@_path)
     return @_retval
   end
 
+  ##
+  Summary: Check if a file exists.
+  Params:
+    - @_path: The path to a file or a filename.
+  Returns: Boolean
+  ##
   def exists(@_path)
     @_retval = __fileexists__(@_path)
     return @_retval
   end
 
+  ##
+  Summary: Get a file extension.
+  Params:
+    - @_path: The path to a file or a filename.
+  Returns: String
+  ##
   def getext(@_path)
     @_retval = __fileext__(@_path)
     return @_retval
   end
 
+  ##
+  Summary: Get the filename from a file path.
+  Params:
+    - @_path: The path to a file or a filename.
+  Returns: String
+  ##
   def filename(@_path)
     @_retval = __filename__(@_path)
     return @_retval
   end
 
+  ##
+  Summary: Get size of a file in bytes.
+  Params:
+    - @_path: The path to a file or a filename.
+  Returns: Double
+  ##
   def filesize(@_path)
     @_retval = __filesize__(@_path)
     return @_retval
   end
 
+  ##
+  Summary: Move or rename a file.
+  Params:
+    - @_source: The source path.
+    - @_dest: The destination path.
+  Returns: Boolean
+  ##
   def move(@_source, @_dest)
     @_retval = __movefile__(@_source, @_dest)
     return @_retval
   end
 
+  ##
+  Summary: Get the parent directory of an absolute path.
+  Params:
+    - @_path: The path to a file.
+  Returns: String
+  ##
   def parentdir(@_path)
     @_retval = __filepath__(@_path)
     return @_retval
   end
 
+  ##
+  Summary: Get the content of a file as a string.
+  Params:
+    - @_path: The path to a file.
+  Returns: String
+  ##
   def read(@_path)
     @_retval = __readfile__(@_path)
     return @_retval
   end
 
+  ##
+  Summary: Write text to a file. This overwrites the file if it exists.
+  Params:
+    - @_path: The path to a file or a filename.
+    - @_text: The text to write.
+  Returns: Boolean
+  ##
   def write(@_path, @_text)
     @_retval = __writetext__(@_path, @_text)
     return @_retval
   end
 
+  ##
+  Summary: Write a line of text to a file. This always appends to a file.
+  Params:
+    - @_path: The path to a file or a filename.
+    - @_text: The text to append.
+  Returns: Boolean
+  ##
   def writeln(@_path, @_text)
     @_retval = __writeline__(@_path, @_text)
     return @_retval
