@@ -5,7 +5,7 @@ I have removed `unless` for now. I am currently refactoring condition and loop l
 ## If Statements
 Each `if` statement ends with an `endif`. *See the test script for a better example with nesting.*
 
-```
+```ruby
 @a = 0, @b = 1
 
 if @a < @b
@@ -19,7 +19,7 @@ endif
 
 *Under construction in new interpreter.*
 
-```
+```ruby
 @n = 5
 switch @n
     case 5

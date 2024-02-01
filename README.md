@@ -42,7 +42,7 @@ Please see the **tests** directory for a list of test scripts.
 
 Here's an example of FizzBuzz implemented in Kiwi:
 
-```kiwi
+```ruby
 def fizzbuzz(@n)
   @i = 1
 

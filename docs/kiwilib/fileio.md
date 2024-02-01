@@ -6,7 +6,7 @@ The `fileio` module contains functionality for working with files and directorie
 
 To use the `fileio` module, import it at the beginning of your Kiwi script.
 
-```kiwi
+```ruby
 import "fileio"
 ```
 
