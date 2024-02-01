@@ -36,7 +36,7 @@ make testlib
 
 ## Test Code
 
-Please see the **tests** directory for a list of test scripts.
+Please see the [tests](tests) directory for a list of test scripts.
 
 ## Example: FizzBuzz in Kiwi
 
