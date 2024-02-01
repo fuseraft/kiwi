@@ -4,7 +4,7 @@
 
 Comments should be on their own line.
 
-```
+```ruby
 # this will print "hello"
 println "hello"
 ```

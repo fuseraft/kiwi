@@ -4,7 +4,7 @@ Use the `module` keyword to define a module. Use the `import` keyword to import 
 
 Methods defined in a module can only be accessed using a fully qualified name.
 
-```
+```ruby
 # Defining modules.
 module greeter
     def greet(@name)
