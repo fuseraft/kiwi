@@ -6,7 +6,7 @@ import "fileio"
 # Create the file
 # =============================
 
-println "creating file: ${@path}"
+println "=> creating file: ${@path}"
 fileio::create(@path)
 
 # =============================
@@ -14,43 +14,103 @@ fileio::create(@path)
 # =============================
 
 if fileio::exists(@path)
-  println "created file: ${@path}"
+  println "=> created file: ${@path}"
 endif
+
+# =============================
+# Write text to file
+# =============================
+
+println "=> writing text to file: ${@path}"
+fileio::write(@path, "")
+fileio::writeln(@path, "Hello, World!")
+fileio::append(@path, "This is Kiwi!")
+
+# =============================
+# Read text from file
+# =============================
+
+println "=> reading text from file: ${@path}"
+@text = fileio::read(@path)
+println "=> file text:\n${@text}"
+
+# =============================
+# Copy the file
+# =============================
+
+@dest = "hello-copy.txt"
+println "=> copying file: ${@path}"
+println "=> copying to: ${@dest}"
+@text = fileio::copy(@path, @dest)
+
+# =============================
+# Read text from copied file
+# =============================
+
+println "=> reading text from file: ${@dest}"
+@text = fileio::read(@dest)
+println "=> file text:\n${@text}"
+
+# =============================
+# Delete copied file
+# =============================
+
+println "=> deleting file: ${@dest}"
+fileio::delete(@dest)
+
+# =============================
+# Read file size of file
+# =============================
+
+println "=> getting file size: ${@path}"
+@size = fileio::filesize(@path)
+println "=> file size: ${@size} bytes"
 
 # =============================
 # Get the absolute path
 # =============================
 
 @abspath = fileio::abspath(@path)
-println "absolute path: ${@abspath}"
+println "=> absolute path: ${@abspath}"
 
 # =============================
 # Get the parent directory
 # =============================
 
 @parent = fileio::parentdir(@abspath)
-println "parent directory: ${@parent}"
+println "=> parent directory: ${@parent}"
 
 # =============================
 # Get the filename
 # =============================
 
 @name = fileio::filename(@abspath)
-println "file name: ${@name}"
+println "=> file name: ${@name}"
 
 # =============================
 # Get the file extension
 # =============================
 
 @ext = fileio::getext(@path)
-println "file extension: ${@ext}"
+println "=> file extension: ${@ext}"
+
+# =============================
+# Move/Rename the file
+# =============================
+
+@dest = "hello-moved.txt"
+println "=> moving file: ${@path}"
+println "=> moving to: ${@dest}"
+fileio::move(@path, @dest)
+
+@path = @dest
 
 # =============================
 # Delete the file if it exists
 # =============================
 
 if fileio::exists(@path)
-  println "deleting file: ${@path}"
+  println "=> deleting file: ${@path}"
   fileio::delete(@path)
 endif
 
@@ -59,5 +119,5 @@ endif
 # =============================
 
 if !fileio::exists(@path)
-  println "deleted file: ${@path}"
+  println "=> deleted file: ${@path}"
 endif
