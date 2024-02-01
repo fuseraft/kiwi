@@ -15,7 +15,7 @@ fileio::create(@path)
 
 if fileio::exists(@path)
   println "=> created file: ${@path}"
-endif
+end
 
 # =============================
 # Write text to file
@@ -112,7 +112,7 @@ fileio::move(@path, @dest)
 if fileio::exists(@path)
   println "=> deleting file: ${@path}"
   fileio::delete(@path)
-endif
+end
 
 # =============================
 # Check if the file exists
@@ -120,4 +120,4 @@ endif
 
 if !fileio::exists(@path)
   println "=> deleted file: ${@path}"
-endif
+end

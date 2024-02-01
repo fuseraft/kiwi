@@ -5,7 +5,7 @@ println "============================"
 def is_old(@age)
     if @age >= 70
         return true
-    endif
+    end
 
     return false
 end
@@ -19,7 +19,7 @@ while @i <= 80 do
         println "${@i} is old."
     else
         println "${@i} is not old."
-    endif
+    end
 
     @i += 1
 end

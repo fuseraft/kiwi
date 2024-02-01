@@ -11,7 +11,7 @@ elsif @a != @b
     println "bar"
 else
     println "baz"
-endif
+end
 
 @a = true, @b = false
 println "${@a}, ${@b}"
@@ -22,7 +22,7 @@ elsif @a != @b
     println "bar"
 else
     println "baz"
-endif
+end
 
 @a = true, @b = false
 println "${@a}, ${@b}"
@@ -33,6 +33,6 @@ elsif @b == @a
     println "bar"
 else
     println "baz"
-endif
+end
 
 println ""

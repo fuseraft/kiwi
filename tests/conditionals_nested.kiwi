@@ -15,11 +15,11 @@ if @a == @b
         println "bar"
     else
         println "baz"
-    endif
+    end
 elsif @a != @b
     println "hello"
 else
     println "world"
-endif
+end
 
 println ""
