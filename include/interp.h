@@ -874,12 +874,7 @@ class Interpreter {
 
       std::cout << get_value_string(value);
     } else {
-      std::ostringstream error;
-      error << "Not implemented `" << Keywords.Print << "`|`"
-            << Keywords.PrintLn << "` for type `"
-            << get_value_type_string(current(frame).getValueType()) << std::endl
-            << "Value: `" << current(frame).getText() << "`";
-      throw KiwiError(current(frame), error.str());
+      throw ConversionError(current(frame));
     }
 
     if (printNewLine) {
