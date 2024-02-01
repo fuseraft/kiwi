@@ -4,13 +4,33 @@ module fileio
     return @_retval
   end
 
+  def delete(@_path)
+    @_retval = __deletefile__(@_path)
+    return @_retval
+  end
+
   def exists(@_path)
     @_retval = __fileexists__(@_path)
     return @_retval
   end
 
-  def delete(@_path)
-    @_retval = __deletefile__(@_path)
+  def getext(@_path)
+    @_retval = __fileext__(@_path)
+    return @_retval
+  end
+
+  def filename(@_path)
+    @_retval = __filename__(@_path)
+    return @_retval
+  end
+
+  def parentdir(@_path)
+    @_retval = __filepath__(@_path)
+    return @_retval
+  end
+
+  def abspath(@_path)
+    @_retval = __fileabspath__(@_path)
     return @_retval
   end
 end

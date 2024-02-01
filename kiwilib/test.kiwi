@@ -2,14 +2,62 @@ import "fileio"
 
 @path = "hello.txt"
 
-println "creating file `${@path}`"
+# =============================
+# Create the file
+# =============================
+
+println "creating file: ${@path}"
 fileio::create(@path)
 
-if fileio::exists(@path)
-  println "created `${@path}` successfully"
-endif
+# =============================
+# Check if the file exists
+# =============================
 
 if fileio::exists(@path)
-  println "deleting `${@path}`"
+  println "created file: ${@path}"
+endif
+
+# =============================
+# Get the absolute path
+# =============================
+
+@abspath = fileio::abspath(@path)
+println "absolute path: ${@abspath}"
+
+# =============================
+# Get the parent directory
+# =============================
+
+@parent = fileio::parentdir(@abspath)
+println "parent directory: ${@parent}"
+
+# =============================
+# Get the filename
+# =============================
+
+@name = fileio::filename(@abspath)
+println "file name: ${@name}"
+
+# =============================
+# Get the file extension
+# =============================
+
+@ext = fileio::getext(@path)
+println "file extension: ${@ext}"
+
+# =============================
+# Delete the file if it exists
+# =============================
+
+if fileio::exists(@path)
+  println "deleting file: ${@path}"
   fileio::delete(@path)
+endif
+
+# =============================
+# Check if the file exists
+# =============================
+
+if !fileio::exists(@path)
+  println "deleted file: ${@path}"
 endif

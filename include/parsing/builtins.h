@@ -8,17 +8,18 @@ struct {
   // File operations
   const std::string AppendFile = "__appendfile__";
   const std::string CopyFile = "__copyfile__";
-  const std::string CreateFile = "__createfile__";
-  const std::string DeleteFile = "__deletefile__";
+  const std::string CreateFile = "__createfile__";       // Done
+  const std::string DeleteFile = "__deletefile__";       // Done
   const std::string MoveFile = "__movefile__";
   const std::string ReadFile = "__readfile__";
   const std::string RenameFile = "__renamefile__";
   const std::string WriteFile = "__writefile__";
-  const std::string FileExists = "__fileexists__";
-  const std::string FileName = "__filename__";
+  const std::string FileExists = "__fileexists__";       // Done
+  const std::string GetFileExtension = "__fileext__";    // Done
+  const std::string FileName = "__filename__";           // Done
   const std::string FileSize = "__filesize__";
-  const std::string GetFileExtension = "__fileext__";
-  const std::string GetFilePath = "__filepath__";
+  const std::string GetFilePath = "__filepath__";        // Done
+  const std::string GetFileAbsolutePath = "__fileabspath__";
   const std::string GetFileAttributes = "__fileattrs__";
 
   // Directory operations
@@ -38,7 +39,8 @@ struct {
       FileExists,    FileName,          FileSize,           GetFileExtension,
       GetFilePath,   GetFileAttributes, DirectoryExists,    DirectoryName,
       ListDirectory, MakeDirectory,     MakeDirectoryP,     RemoveDirectory,
-      IsDirectory,   ChangeDirectory,   GetCurrentDirectory};
+      IsDirectory,   ChangeDirectory,   GetCurrentDirectory, 
+      GetFileAbsolutePath};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
