@@ -3,5 +3,6 @@ println "= playground.kiwi ="
 println "==================="
 
 # Add Kiwi here!
+@a = [1, 3, "hello", [5, "asdf", true], [2, 4]]
 
 println ""

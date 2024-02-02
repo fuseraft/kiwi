@@ -669,7 +669,12 @@ class Interpreter {
       auto value = interpretExpression(booleanExpression, frame);
       list->elements.push_back(value);
 
-      if (current(frame).getType() == TokenType::COMMA) {
+      if (peek(frame).getType() == TokenType::COMMA) {
+        next(frame); // Skip current value
+        next(frame); // Skip the comma
+      } else if (current(frame).getType() == TokenType::COMMA) {
+        next(frame);
+      } else if (peek(frame).getType() == TokenType::CLOSE_BRACKET) {
         next(frame);
       }
     }
