@@ -17,8 +17,7 @@ if !@debug
     import "method_invoked_in_conditional"
     import "fizzbuzz"
     import "modules"
-
-    # Currently broken.
+    import "lists"
 else
     # Set @debug = true, and add an import below to debug a specific script.
     import "playground"

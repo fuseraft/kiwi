@@ -3,14 +3,5 @@ println "= playground.kiwi ="
 println "==================="
 
 # Add Kiwi here!
-@a = [1, 3, "hello, world!", [5, "asdf", true], [2, 4]]
-@b = [1, 2, 3, 4]
-@c = @b[1:2]
-
-println "a = ${@a}"
-println "b = ${@b}"
-
-@b = @b[::-1]
-println "b = ${@b}"
 
 println ""
