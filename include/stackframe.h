@@ -14,8 +14,19 @@ struct CallStackFrame {
   Value returnValue;
   bool returnFlag = false;
   bool subFrame = false;
+  bool loopBreak = false;
+  bool loopContinue = false;
 
   CallStackFrame(const std::vector<Token>& tokens) : tokens(tokens) {}
+
+  // Methods to control the flags
+  void setBreak() { loopBreak = true; }
+  void clearBreak() { loopBreak = false; }
+  bool isBreakSet() const { return loopBreak; }
+
+  void setContinue() { loopContinue = true; }
+  void clearContinue() { loopContinue = false; }
+  bool isContinueSet() const { return loopContinue; }
 
   void setSubFrame() { subFrame = true; }
   void setReturnFlag() { returnFlag = true; }

@@ -1,14 +1,12 @@
-println "==================="
-println "= playground.kiwi ="
-println "==================="
+println "======================"
+println "= loop_controls.kiwi ="
+println "======================"
 
-# Add Kiwi here!
 def loopy(@stop)
   @i = 0
 
   while @i < 100 do
     @i += 1
-
     if (@i > 10 && @stop)
       break
     elsif @i > 10
