@@ -10,8 +10,11 @@
 struct CallStackFrame {
   std::vector<Token> tokens;  // The tokens of the current method or scope.
   size_t position = 0;        // Current position in the token stream.
-  std::map<std::string, std::variant<int, double, bool, std::string>> variables;
-  std::variant<int, double, bool, std::string> returnValue;
+  std::map<std::string,
+           std::variant<int, double, bool, std::string, std::shared_ptr<List>>>
+      variables;
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+      returnValue;
   bool returnFlag = false;
   bool subFrame = false;
 

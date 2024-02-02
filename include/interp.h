@@ -220,8 +220,8 @@ class Interpreter {
         throw SyntaxError(current(frame));
       }
 
-      std::variant<int, double, bool, std::string> value =
-          getVariable(tempId, conditionFrame);
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          value = getVariable(tempId, conditionFrame);
       ValueType vt = get_value_type(value);
 
       if (vt != ValueType::Boolean) {
@@ -343,13 +343,15 @@ class Interpreter {
   }
 
   void updateVariablesInCallerFrame(
-      std::map<std::string, std::variant<int, double, bool, std::string>>
+      std::map<std::string, std::variant<int, double, bool, std::string,
+                                         std::shared_ptr<List>>>
           variables,
       CallStackFrame& callerFrame) {
     for (const auto& var : variables) {
       std::string varName = var.first;
       if (shouldUpdateFrameVariables(varName, callerFrame)) {
-        std::variant<int, double, bool, std::string> varValue = var.second;
+        std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+            varValue = var.second;
         callerFrame.variables[varName] = varValue;
       }
     }
@@ -397,8 +399,8 @@ class Interpreter {
     throw MethodUndefinedError(current(frame), name);
   }
 
-  std::variant<int, double, bool, std::string> getVariable(
-      const std::string& name, CallStackFrame& frame) {
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  getVariable(const std::string& name, CallStackFrame& frame) {
     // Check in the current frame
     if (frame.variables.find(name) != frame.variables.end()) {
       return frame.variables[name];
@@ -438,7 +440,9 @@ class Interpreter {
     next(frame);  // Skip "("
 
     // Interpret parameters.
-    std::vector<std::variant<int, double, bool, std::string>> parameters;
+    std::vector<
+        std::variant<int, double, bool, std::string, std::shared_ptr<List>>>
+        parameters;
 
     bool closeParenthesisFound = false;
     while (current(frame).getType() != TokenType::CLOSE_PAREN) {
@@ -449,8 +453,8 @@ class Interpreter {
 
       BooleanExpressionBuilder booleanExpression;
       Token subTokenTerm = current(frame);
-      std::variant<int, double, bool, std::string> paramValue =
-          interpretTerm(subTokenTerm, booleanExpression, frame);
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          paramValue = interpretTerm(subTokenTerm, booleanExpression, frame);
       if (peek(frame).getType() == TokenType::CLOSE_PAREN) {
         next(frame);
         closeParenthesisFound = true;
@@ -493,8 +497,8 @@ class Interpreter {
       std::string paramName = parameters.at(paramIndex++).getText();
       BooleanExpressionBuilder booleanExpression;
       tokenTerm = current(frame);
-      std::variant<int, double, bool, std::string> paramValue =
-          interpretTerm(tokenTerm, booleanExpression, frame);
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          paramValue = interpretTerm(tokenTerm, booleanExpression, frame);
       if (peek(frame).getType() == TokenType::CLOSE_PAREN) {
         next(frame);
         closeParenthesisFound = true;
@@ -613,7 +617,8 @@ class Interpreter {
     bool hasValue = hasReturnValue(frame);
     next(frame);  // Skip "return"
 
-    std::variant<int, double, bool, std::string> returnValue;
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+        returnValue;
     BooleanExpressionBuilder ifExpression;
     if (hasValue) {
       returnValue = interpretExpression(ifExpression, frame);
@@ -654,6 +659,26 @@ class Interpreter {
     return name;
   }
 
+  std::shared_ptr<List> interpretList(
+      BooleanExpressionBuilder& booleanExpression, CallStackFrame& frame) {
+    std::shared_ptr<List> list = std::make_shared<List>();
+
+    next(frame);  // Skip the "["
+
+    while (current(frame).getType() != TokenType::CLOSE_BRACKET) {
+      auto value = interpretExpression(booleanExpression, frame);
+      list->elements.push_back(value);
+
+      if (current(frame).getType() == TokenType::COMMA) {
+        next(frame);
+      }
+    }
+
+    next(frame);  // Skip the "]"
+
+    return list;
+  }
+
   void interpretConditional(CallStackFrame& frame) {
     if (current(frame).getText() != Keywords.If) {
       throw SyntaxError(current(frame));
@@ -670,7 +695,7 @@ class Interpreter {
 
     // Eagerly evaluate the If conditions.
     BooleanExpressionBuilder ifExpression;
-    std::variant<int, double, bool, std::string> value =
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> value =
         interpretExpression(ifExpression, frame);
     if (ifExpression.isSet()) {
       value = ifExpression.evaluate();
@@ -866,8 +891,8 @@ class Interpreter {
       }
 
       BooleanExpressionBuilder booleanExpression;
-      std::variant<int, double, bool, std::string> value =
-          interpretExpression(booleanExpression, frame);
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          value = interpretExpression(booleanExpression, frame);
       if (booleanExpression.isSet()) {
         value = booleanExpression.evaluate();
       }
@@ -884,7 +909,8 @@ class Interpreter {
 
   void ensureBooleanExpressionHasRoot(
       Token& tokenTerm, BooleanExpressionBuilder& booleanExpression,
-      std::variant<int, double, bool, std::string> value) {
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          value) {
     if (booleanExpression.isSet()) {
       return;
     }
@@ -902,8 +928,8 @@ class Interpreter {
   void interpretBooleanExpression(Token& tokenTerm,
                                   BooleanExpressionBuilder& booleanExpression,
                                   std::string& op, CallStackFrame& frame) {
-    std::variant<int, double, bool, std::string> nextTerm =
-        interpretExpression(booleanExpression, frame);
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+        nextTerm = interpretExpression(booleanExpression, frame);
 
     // Check if the last term is valueless.
     if (nextTerm.valueless_by_exception()) {
@@ -931,8 +957,10 @@ class Interpreter {
 
   void interpretBitwiseExpression(
       Token& tokenTerm, std::string& op,
-      std::variant<int, double, bool, std::string>& result,
-      std::variant<int, double, bool, std::string> nextTerm) {
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>&
+          result,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          nextTerm) {
     if (op == Operators.BitwiseAnd) {
       result = std::visit(BitwiseAndVisitor(tokenTerm), result, nextTerm);
     } else if (op == Operators.BitwiseOr) {
@@ -949,8 +977,11 @@ class Interpreter {
 
   void interpretRelationalExpression(
       Token& tokenTerm, BooleanExpressionBuilder& booleanExpression,
-      std::string& op, std::variant<int, double, bool, std::string>& result,
-      std::variant<int, double, bool, std::string> nextTerm) {
+      std::string& op,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>&
+          result,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          nextTerm) {
     if (op == Operators.Equal) {
       result = std::visit(EqualityVisitor(tokenTerm), result, nextTerm);
     } else if (op == Operators.NotEqual) {
@@ -971,8 +1002,10 @@ class Interpreter {
 
   void interpretArithmeticExpression(
       Token& tokenTerm, std::string& op,
-      std::variant<int, double, bool, std::string>& result,
-      std::variant<int, double, bool, std::string> nextTerm) {
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>&
+          result,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          nextTerm) {
     if (op == Operators.Add) {
       result = std::visit(AddVisitor(tokenTerm), result, nextTerm);
     } else if (op == Operators.Subtract) {
@@ -989,11 +1022,16 @@ class Interpreter {
   }
 
   // WIP: expression interpreter
-  std::variant<int, double, bool, std::string> interpretExpression(
-      BooleanExpressionBuilder& booleanExpression, CallStackFrame& frame) {
-
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  interpretExpression(BooleanExpressionBuilder& booleanExpression,
+                      CallStackFrame& frame) {
     Token tokenTerm = current(frame);
     std::string tokenText = tokenTerm.getText();
+
+    if (current(frame).getType() == TokenType::OPEN_BRACKET) {
+      return interpretList(booleanExpression, frame);
+    }
+
     interpretQualifiedIdentifier(tokenTerm, tokenText, frame);
 
     if (hasMethod(tokenText)) {
@@ -1004,9 +1042,10 @@ class Interpreter {
       return frame.returnValue;
     }
 
-    std::variant<int, double, bool, std::string> result =
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result =
         interpretTerm(tokenTerm, booleanExpression, frame);
-    std::variant<int, double, bool, std::string> lastTerm;
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+        lastTerm;
 
     while (current(frame).getType() == TokenType::OPERATOR) {
       std::string op = current(frame).toString();
@@ -1019,8 +1058,8 @@ class Interpreter {
         break;
       }
 
-      std::variant<int, double, bool, std::string> nextTerm =
-          interpretTerm(tokenTerm, booleanExpression, frame, false);
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          nextTerm = interpretTerm(tokenTerm, booleanExpression, frame, false);
 
       if (Operators.is_arithmetic_operator(op)) {
         interpretArithmeticExpression(tokenTerm, op, result, nextTerm);
@@ -1052,9 +1091,9 @@ class Interpreter {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> interpretTerm(
-      Token& termToken, BooleanExpressionBuilder& booleanExpression,
-      CallStackFrame& frame, bool skipOnRetrieval = true) {
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  interpretTerm(Token& termToken, BooleanExpressionBuilder& booleanExpression,
+                CallStackFrame& frame, bool skipOnRetrieval = true) {
     if (current(frame).getText() == Symbols.DeclVar) {
       next(frame);
     }
@@ -1063,8 +1102,8 @@ class Interpreter {
 
     if (current(frame).getType() == TokenType::OPEN_PAREN) {
       next(frame);  // Skip the '('
-      std::variant<int, double, bool, std::string> result =
-          interpretExpression(booleanExpression, frame);
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          result = interpretExpression(booleanExpression, frame);
       if (current(frame).getType() == TokenType::CLOSE_PAREN) {
         Token nextToken = peek(frame);
         if (nextToken.getType() == TokenType::OPERATOR) {
@@ -1087,8 +1126,8 @@ class Interpreter {
       std::string op = current(frame).toString();
       next(frame);
       if (op == Operators.BitwiseNot) {
-        std::variant<int, double, bool, std::string> bitwiseResult =
-            interpretExpression(booleanExpression, frame);
+        std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+            bitwiseResult = interpretExpression(booleanExpression, frame);
         bitwiseResult =
             std::visit(BitwiseNotVisitor(current(frame)), bitwiseResult);
         return bitwiseResult;
@@ -1185,7 +1224,7 @@ class Interpreter {
   void handleAssignment(std::string& name, std::string& op,
                         CallStackFrame& frame) {
     BooleanExpressionBuilder booleanExpression;
-    std::variant<int, double, bool, std::string> value =
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> value =
         interpretExpression(booleanExpression, frame);
 
     if (op == Operators.Assign) {
@@ -1204,8 +1243,8 @@ class Interpreter {
       throw VariableUndefinedError(current(frame), name);
     }
 
-    std::variant<int, double, bool, std::string> currentValue =
-        getVariable(name, frame);
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+        currentValue = getVariable(name, frame);
 
     if (op == Operators.AddAssign) {
       currentValue =

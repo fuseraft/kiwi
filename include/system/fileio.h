@@ -88,7 +88,8 @@ class FileIO {
   }
 
   static bool writeToFile(const std::string& filePath,
-                          std::variant<int, double, bool, std::string>& value,
+                          std::variant<int, double, bool, std::string,
+                                       std::shared_ptr<List>>& value,
                           bool appendMode, bool addNewLine) {
     std::ios_base::openmode mode = appendMode ? std::ios::app : std::ios::out;
     std::ofstream file(filePath, mode);
