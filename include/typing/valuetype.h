@@ -26,8 +26,7 @@ enum class ValueType {
   String,
 };
 
-ValueType get_value_type(
-    std::variant<int, double, bool, std::string, std::shared_ptr<List>> v) {
+ValueType get_value_type(Value v) {
   ValueType type = ValueType::None;  // TODO: Handle this.
 
   std::visit(
@@ -51,8 +50,7 @@ ValueType get_value_type(
   return type;
 }
 
-std::string get_value_string(
-    std::variant<int, double, bool, std::string, std::shared_ptr<List>> v) {
+std::string get_value_string(Value v) {
   ValueType vt = get_value_type(v);
   std::ostringstream sv;
 

@@ -66,6 +66,13 @@ class BuiltinUnexpectedArgumentError : public KiwiError {
                   "Unexpected argument count for builtin `" + name + "`.") {}
 };
 
+class InvalidOperationError : public KiwiError {
+ public:
+  InvalidOperationError(const Token& token,
+                        std::string message = "Invalid operation.")
+      : KiwiError(token, "InvalidOperationError", message) {}
+};
+
 class ConversionError : public KiwiError {
  public:
   ConversionError(const Token& token)

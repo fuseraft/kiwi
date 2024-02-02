@@ -51,6 +51,7 @@ struct {
   const std::string BitwiseLeftShiftAssign = "<<=";
   const std::string BitwiseRightShift = ">>";
   const std::string BitwiseRightShiftAssign = ">>=";
+  const std::string ListAppend = "<<";
 
   std::unordered_set<std::string> large_operators = {
       Exponent, Or, And, BitwiseLeftShift, BitwiseRightShift};

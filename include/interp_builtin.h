@@ -2,7 +2,6 @@
 #define KIWI_INTERPBUILTIN_H
 
 #include <string>
-#include <variant>
 #include <vector>
 #include "errors/error.h"
 #include "parsing/builtins.h"
@@ -12,10 +11,8 @@
 
 class BuiltinInterpreter {
  public:
-  static std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  execute(const Token& tokenTerm, const std::string& builtin,
-          const std::vector<std::variant<int, double, bool, std::string,
-                                         std::shared_ptr<List>>>& args) {
+  static Value execute(const Token& tokenTerm, const std::string& builtin,
+                       const std::vector<Value>& args) {
     if (FileIOBuiltIns.is_builtin(builtin)) {
       return executeFileIOBuiltin(tokenTerm, builtin, args);
     }
@@ -24,11 +21,9 @@ class BuiltinInterpreter {
   }
 
  private:
-  static std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  executeFileIOBuiltin(
-      const Token& tokenTerm, const std::string& builtin,
-      const std::vector<std::variant<int, double, bool, std::string,
-                                     std::shared_ptr<List>>>& args) {
+  static Value executeFileIOBuiltin(const Token& tokenTerm,
+                                    const std::string& builtin,
+                                    const std::vector<Value>& args) {
     if (builtin == FileIOBuiltIns.CreateFile) {
       return executeCreateFile(tokenTerm, args);
     } else if (builtin == FileIOBuiltIns.FileExists) {
@@ -62,10 +57,7 @@ class BuiltinInterpreter {
     }
   }
 
-  static std::string getString(
-      const Token& tokenTerm,
-      const std::variant<int, double, bool, std::string, std::shared_ptr<List>>&
-          arg) {
+  static std::string getString(const Token& tokenTerm, const Value& arg) {
     ValueType vt = get_value_type(arg);
     if (vt != ValueType::String) {
       throw ConversionError(tokenTerm);
@@ -73,25 +65,20 @@ class BuiltinInterpreter {
     return std::get<std::string>(arg);
   }
 
-  static bool executeAppendText(
-      const Token& tokenTerm,
-      const std::vector<std::variant<int, double, bool, std::string,
-                                     std::shared_ptr<List>>>& args) {
+  static bool executeAppendText(const Token& tokenTerm,
+                                const std::vector<Value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(tokenTerm,
                                            FileIOBuiltIns.AppendText);
     }
 
     std::string fileName = getString(tokenTerm, args.at(0));
-    std::variant<int, double, bool, std::string, std::shared_ptr<List>> value =
-        args.at(1);
+    Value value = args.at(1);
     return FileIO::writeToFile(fileName, value, true, false);
   }
 
-  static bool executeCopyFile(
-      const Token& tokenTerm,
-      const std::vector<std::variant<int, double, bool, std::string,
-                                     std::shared_ptr<List>>>& args) {
+  static bool executeCopyFile(const Token& tokenTerm,
+                              const std::vector<Value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.CopyFile);
     }
@@ -101,10 +88,8 @@ class BuiltinInterpreter {
     return FileIO::copyFile(sourcePath, destinationPath);
   }
 
-  static bool executeCreateFile(
-      const Token& tokenTerm,
-      const std::vector<std::variant<int, double, bool, std::string,
-                                     std::shared_ptr<List>>>& args) {
+  static bool executeCreateFile(const Token& tokenTerm,
+                                const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(tokenTerm,
                                            FileIOBuiltIns.CreateFile);
@@ -114,10 +99,8 @@ class BuiltinInterpreter {
     return FileIO::createFile(fileName);
   }
 
-  static bool executeDeleteFile(
-      const Token& tokenTerm,
-      const std::vector<std::variant<int, double, bool, std::string,
-                                     std::shared_ptr<List>>>& args) {
+  static bool executeDeleteFile(const Token& tokenTerm,
+                                const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(tokenTerm,
                                            FileIOBuiltIns.DeleteFile);
@@ -127,10 +110,8 @@ class BuiltinInterpreter {
     return FileIO::deleteFile(fileName);
   }
 
-  static double executeGetFileSize(
-      const Token& tokenTerm,
-      const std::vector<std::variant<int, double, bool, std::string,
-                                     std::shared_ptr<List>>>& args) {
+  static double executeGetFileSize(const Token& tokenTerm,
+                                   const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.FileSize);
     }
@@ -139,10 +120,8 @@ class BuiltinInterpreter {
     return FileIO::getFileSize(fileName);
   }
 
-  static bool executeFileExists(
-      const Token& tokenTerm,
-      const std::vector<std::variant<int, double, bool, std::string,
-                                     std::shared_ptr<List>>>& args) {
+  static bool executeFileExists(const Token& tokenTerm,
+                                const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(tokenTerm,
                                            FileIOBuiltIns.FileExists);
@@ -153,9 +132,7 @@ class BuiltinInterpreter {
   }
 
   static std::string executeGetFileAbsolutePath(
-      const Token& tokenTerm,
-      const std::vector<std::variant<int, double, bool, std::string,
-                                     std::shared_ptr<List>>>& args) {
+      const Token& tokenTerm, const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(tokenTerm,
                                            FileIOBuiltIns.GetFileAbsolutePath);
@@ -165,10 +142,8 @@ class BuiltinInterpreter {
     return FileIO::getAbsolutePath(fileName);
   }
 
-  static std::string executeGetFileExtension(
-      const Token& tokenTerm,
-      const std::vector<std::variant<int, double, bool, std::string,
-                                     std::shared_ptr<List>>>& args) {
+  static std::string executeGetFileExtension(const Token& tokenTerm,
+                                             const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(tokenTerm,
                                            FileIOBuiltIns.GetFileExtension);
@@ -178,10 +153,8 @@ class BuiltinInterpreter {
     return FileIO::getFileExtension(fileName);
   }
 
-  static std::string executeGetFileName(
-      const Token& tokenTerm,
-      const std::vector<std::variant<int, double, bool, std::string,
-                                     std::shared_ptr<List>>>& args) {
+  static std::string executeGetFileName(const Token& tokenTerm,
+                                        const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.FileName);
     }
@@ -190,10 +163,8 @@ class BuiltinInterpreter {
     return FileIO::getFileName(fileName);
   }
 
-  static std::string executeGetFilePath(
-      const Token& tokenTerm,
-      const std::vector<std::variant<int, double, bool, std::string,
-                                     std::shared_ptr<List>>>& args) {
+  static std::string executeGetFilePath(const Token& tokenTerm,
+                                        const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(tokenTerm,
                                            FileIOBuiltIns.GetFilePath);
@@ -203,10 +174,8 @@ class BuiltinInterpreter {
     return FileIO::getParentPath(fileName);
   }
 
-  static bool executeMoveFile(
-      const Token& tokenTerm,
-      const std::vector<std::variant<int, double, bool, std::string,
-                                     std::shared_ptr<List>>>& args) {
+  static bool executeMoveFile(const Token& tokenTerm,
+                              const std::vector<Value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.MoveFile);
     }
@@ -216,10 +185,8 @@ class BuiltinInterpreter {
     return FileIO::moveFile(sourcePath, destinationPath);
   }
 
-  static std::string executeReadFile(
-      const Token& tokenTerm,
-      const std::vector<std::variant<int, double, bool, std::string,
-                                     std::shared_ptr<List>>>& args) {
+  static std::string executeReadFile(const Token& tokenTerm,
+                                     const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.ReadFile);
     }
@@ -228,31 +195,25 @@ class BuiltinInterpreter {
     return FileIO::readFile(fileName);
   }
 
-  static bool executeWriteLine(
-      const Token& tokenTerm,
-      const std::vector<std::variant<int, double, bool, std::string,
-                                     std::shared_ptr<List>>>& args) {
+  static bool executeWriteLine(const Token& tokenTerm,
+                               const std::vector<Value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.WriteLine);
     }
 
     std::string fileName = getString(tokenTerm, args.at(0));
-    std::variant<int, double, bool, std::string, std::shared_ptr<List>> value =
-        args.at(1);
+    Value value = args.at(1);
     return FileIO::writeToFile(fileName, value, true, true);
   }
 
-  static bool executeWriteText(
-      const Token& tokenTerm,
-      const std::vector<std::variant<int, double, bool, std::string,
-                                     std::shared_ptr<List>>>& args) {
+  static bool executeWriteText(const Token& tokenTerm,
+                               const std::vector<Value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.WriteText);
     }
 
     std::string fileName = getString(tokenTerm, args.at(0));
-    std::variant<int, double, bool, std::string, std::shared_ptr<List>> value =
-        args.at(1);
+    Value value = args.at(1);
     return FileIO::writeToFile(fileName, value, false, false);
   }
 };
