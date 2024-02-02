@@ -75,7 +75,7 @@ class Interpreter {
     if (frame.position < frame.tokens.size()) {
       frame.position++;
     } else {
-      //
+      // To complete the frame, or not to complete the frame, that is the question;
     }
   }
 
@@ -649,7 +649,7 @@ class Interpreter {
   }
 
   void interpretAppendToList(CallStackFrame& frame,
-                                          const std::string& listVariableName) {
+                             const std::string& listVariableName) {
     Token tokenTerm = current(frame);
 
     Value variableValue;
@@ -664,7 +664,7 @@ class Interpreter {
                                   "`" + listVariableName + "` is not a list.");
     }
 
-    next(frame);
+    // next(frame);
     BooleanExpressionBuilder booleanExpression;
     auto valueToAppend = interpretExpression(booleanExpression, frame);
 
@@ -1237,6 +1237,11 @@ class Interpreter {
 
     if (!hasVariable(name, frame)) {
       throw VariableUndefinedError(current(frame), name);
+    }
+
+    if (op == Operators.ListAppend) {
+      interpretAppendToList(frame, name);
+      return;
     }
 
     Value currentValue = getVariable(name, frame);
