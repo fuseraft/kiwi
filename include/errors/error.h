@@ -75,8 +75,9 @@ class InvalidOperationError : public KiwiError {
 
 class ConversionError : public KiwiError {
  public:
-  ConversionError(const Token& token)
-      : KiwiError(token, "ConversionError", "A conversion error occurred.") {}
+  ConversionError(const Token& token,
+                  std::string message = "A conversion error occurred.")
+      : KiwiError(token, "ConversionError", message) {}
 };
 
 class DivideByZeroError : public KiwiError {

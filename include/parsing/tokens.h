@@ -23,6 +23,7 @@ enum TokenType {
   NOOP,
   ENDOFFRAME,
   QUALIFIER,
+  COLON,
   ENDOFFILE
 };
 

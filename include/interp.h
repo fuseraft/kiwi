@@ -648,6 +648,71 @@ class Interpreter {
     return name;
   }
 
+  std::shared_ptr<List> interpretSlice(CallStackFrame& frame,
+                                       const std::string& listVariableName) {
+    Value listValue = getVariable(listVariableName, frame);
+    if (!std::holds_alternative<std::shared_ptr<List>>(listValue)) {
+      throw InvalidOperationError(current(frame),
+                                  "`" + listVariableName + "` is not a list.");
+    }
+
+    auto listPtr = std::get<std::shared_ptr<List>>(listValue);
+    Value startIndex = 0,
+          stopIndex = static_cast<int>(listPtr->elements.size()), stepValue = 1;
+
+    if (current(frame).getType() != TokenType::OPEN_BRACKET) {
+      throw SyntaxError(current(frame),
+                        "Missing open-bracket, `[`, in list indexer.");
+    }
+    next(frame);
+
+    BooleanExpressionBuilder booleanExpression;
+
+    if (current(frame).getType() != TokenType::COLON) {
+      startIndex = interpretExpression(booleanExpression, frame);
+      next(frame);
+    }
+
+    if (current(frame).getType() == TokenType::COLON) {
+      next(frame);  // Skip the ":"
+      if (current(frame).getType() != TokenType::COLON &&
+          current(frame).getType() != TokenType::CLOSE_BRACKET) {
+        stopIndex = interpretExpression(booleanExpression, frame);
+        next(frame);
+      }
+    }
+
+    if (current(frame).getType() == TokenType::COLON) {
+      next(frame);  // Skip the ":"
+      if (current(frame).getType() != TokenType::CLOSE_BRACKET) {
+        stepValue = interpretExpression(booleanExpression, frame);
+      }
+    }
+
+    if (current(frame).getType() != TokenType::CLOSE_BRACKET) {
+      throw SyntaxError(current(frame),
+                        "Missing close-bracket, `]`, in list indexer.");
+    }
+
+    if (get_value_type(startIndex) != ValueType::Integer) {
+      throw ConversionError(current(frame), "Start index must be an integer.");
+    } else if (get_value_type(stopIndex) != ValueType::Integer) {
+      throw ConversionError(current(frame), "Stop index must be an integer.");
+    } else if (get_value_type(stepValue) != ValueType::Integer) {
+      throw ConversionError(current(frame), "Step value must be an integer.");
+    }
+
+    int start = std::get<int>(startIndex), stop = std::get<int>(stopIndex),
+        step = std::get<int>(stepValue), listSize = listPtr->elements.size();
+
+    auto slicedList = std::make_shared<List>();
+    for (int i = start; i < stop && i < listSize; i += step) {
+      slicedList->elements.push_back(listPtr->elements[i]);
+    }
+
+    return slicedList;
+  }
+
   void interpretAppendToList(CallStackFrame& frame,
                              const std::string& listVariableName) {
     Token tokenTerm = current(frame);
@@ -1098,6 +1163,13 @@ class Interpreter {
     }
 
     termToken = current(frame);
+
+    if (termToken.getType() == TokenType::IDENTIFIER &&
+        peek(frame).getType() == TokenType::OPEN_BRACKET) {
+      std::string variableName = termToken.getText();
+      next(frame);  // Skip the identifier.
+      return interpretSlice(frame, variableName);
+    }
 
     if (current(frame).getType() == TokenType::OPEN_PAREN) {
       next(frame);  // Skip the '('
