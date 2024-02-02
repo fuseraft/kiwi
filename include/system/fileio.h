@@ -4,7 +4,7 @@
 #include <fstream>
 #include <filesystem>
 #include <string>
-#include <variant>
+#include "typing/valuetype.h"
 
 namespace fs = std::filesystem;
 
@@ -87,9 +87,7 @@ class FileIO {
     }
   }
 
-  static bool writeToFile(const std::string& filePath,
-                          std::variant<int, double, bool, std::string,
-                                       std::shared_ptr<List>>& value,
+  static bool writeToFile(const std::string& filePath, Value& value,
                           bool appendMode, bool addNewLine) {
     std::ios_base::openmode mode = appendMode ? std::ios::app : std::ios::out;
     std::ofstream file(filePath, mode);

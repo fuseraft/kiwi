@@ -3,18 +3,15 @@
 
 #include <map>
 #include <string>
-#include <variant>
 #include <vector>
 #include "parsing/tokens.h"
+#include "typing/valuetype.h"
 
 struct CallStackFrame {
   std::vector<Token> tokens;  // The tokens of the current method or scope.
   size_t position = 0;        // Current position in the token stream.
-  std::map<std::string,
-           std::variant<int, double, bool, std::string, std::shared_ptr<List>>>
-      variables;
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-      returnValue;
+  std::map<std::string, Value> variables;
+  Value returnValue;
   bool returnFlag = false;
   bool subFrame = false;
 

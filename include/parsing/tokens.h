@@ -2,7 +2,6 @@
 #define KIWI_PARSING_TOKENS_H
 
 #include <string>
-#include <variant>
 #include "parsing/keywords.h"
 #include "typing/valuetype.h"
 
@@ -30,9 +29,8 @@ enum TokenType {
 class Token {
  public:
   static Token create(TokenType t, std::string file, std::string text,
-                      const std::variant<int, double, bool, std::string,
-                                         std::shared_ptr<List>>& v,
-                      const int& lineNumber, const int& linePosition) {
+                      const Value& v, const int& lineNumber,
+                      const int& linePosition) {
     Token token(t, file, text, v, lineNumber, linePosition);
     return token;
   }
@@ -104,10 +102,7 @@ class Token {
 
   TokenType getType() const { return type; }
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  getValue() {
-    return value;
-  }
+  Value getValue() { return value; }
 
   ValueType getValueType() { return valueType; }
 
@@ -115,15 +110,13 @@ class Token {
   TokenType type;
   std::string file;
   std::string text;
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>> value;
+  Value value;
   ValueType valueType;
   int _lineNumber;
   int _linePosition;
   std::string owner;
 
-  Token(TokenType t, std::string file, std::string text,
-        const std::variant<int, double, bool, std::string,
-                           std::shared_ptr<List>>& v,
+  Token(TokenType t, std::string file, std::string text, const Value& v,
         const int& lineNumber, const int& linePosition)
       : type(t), file(file), text(text), value(v) {
     valueType = get_value_type(v);

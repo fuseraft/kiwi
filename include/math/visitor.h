@@ -1,7 +1,6 @@
 #ifndef KIWI_MATH_VISITOR_H
 #define KIWI_MATH_VISITOR_H
 
-#include <variant>
 #include "errors/error.h"
 #include "parsing/tokens.h"
 #include "typing/valuetype.h"
@@ -12,11 +11,7 @@ struct AddVisitor {
 
   AddVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> right)
-      const {
+  Value operator()(Value left, Value right) const {
     ValueType vtleft = get_value_type(left);
     ValueType vtright = get_value_type(right);
 
@@ -29,11 +24,7 @@ struct SubtractVisitor {
 
   SubtractVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> right)
-      const {
+  Value operator()(Value left, Value right) const {
     ValueType vtleft = get_value_type(left);
     ValueType vtright = get_value_type(right);
 
@@ -50,11 +41,7 @@ struct MultiplyVisitor {
 
   MultiplyVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> right)
-      const {
+  Value operator()(Value left, Value right) const {
     ValueType vtleft = get_value_type(left);
     ValueType vtright = get_value_type(right);
 
@@ -67,11 +54,7 @@ struct DivideVisitor {
 
   DivideVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> right)
-      const {
+  Value operator()(Value left, Value right) const {
     ValueType vtleft = get_value_type(left);
     ValueType vtright = get_value_type(right);
 
@@ -92,11 +75,7 @@ struct PowerVisitor {
 
   PowerVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> right)
-      const {
+  Value operator()(Value left, Value right) const {
     ValueType vtleft = get_value_type(left);
     ValueType vtright = get_value_type(right);
 
@@ -113,11 +92,7 @@ struct ModuloVisitor {
 
   ModuloVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> right)
-      const {
+  Value operator()(Value left, Value right) const {
     ValueType vtleft = get_value_type(left);
     ValueType vtright = get_value_type(right);
 
@@ -134,11 +109,7 @@ struct EqualityVisitor {
 
   EqualityVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> right)
-      const {
+  Value operator()(Value left, Value right) const {
     ValueType vtleft = get_value_type(left);
     ValueType vtright = get_value_type(right);
 
@@ -151,11 +122,7 @@ struct InequalityVisitor {
 
   InequalityVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> right)
-      const {
+  Value operator()(Value left, Value right) const {
     ValueType vtleft = get_value_type(left);
     ValueType vtright = get_value_type(right);
 
@@ -168,11 +135,7 @@ struct LessThanVisitor {
 
   LessThanVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> right)
-      const {
+  Value operator()(Value left, Value right) const {
     ValueType vtleft = get_value_type(left);
     ValueType vtright = get_value_type(right);
 
@@ -185,11 +148,7 @@ struct LessThanOrEqualVisitor {
 
   LessThanOrEqualVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> right)
-      const {
+  Value operator()(Value left, Value right) const {
     ValueType vtleft = get_value_type(left);
     ValueType vtright = get_value_type(right);
 
@@ -202,11 +161,7 @@ struct GreaterThanVisitor {
 
   GreaterThanVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> right)
-      const {
+  Value operator()(Value left, Value right) const {
     ValueType vtleft = get_value_type(left);
     ValueType vtright = get_value_type(right);
 
@@ -219,11 +174,7 @@ struct GreaterThanOrEqualVisitor {
 
   GreaterThanOrEqualVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> right)
-      const {
+  Value operator()(Value left, Value right) const {
     ValueType vtleft = get_value_type(left);
     ValueType vtright = get_value_type(right);
 
@@ -236,11 +187,7 @@ struct BitwiseAndVisitor {
 
   BitwiseAndVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> right)
-      const {
+  Value operator()(Value left, Value right) const {
     ValueType vtleft = get_value_type(left);
     ValueType vtright = get_value_type(right);
 
@@ -253,11 +200,7 @@ struct BitwiseOrVisitor {
 
   BitwiseOrVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> right)
-      const {
+  Value operator()(Value left, Value right) const {
     ValueType vtleft = get_value_type(left);
     ValueType vtright = get_value_type(right);
 
@@ -270,11 +213,7 @@ struct BitwiseXorVisitor {
 
   BitwiseXorVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> right)
-      const {
+  Value operator()(Value left, Value right) const {
     ValueType vtleft = get_value_type(left);
     ValueType vtright = get_value_type(right);
 
@@ -287,9 +226,7 @@ struct BitwiseNotVisitor {
 
   BitwiseNotVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-                 left) const {
+  Value operator()(Value left) const {
     ValueType vtleft = get_value_type(left);
 
     return MathImpl.do_bitwise_not(token, vtleft, left);
@@ -301,11 +238,7 @@ struct BitwiseLeftShiftVisitor {
 
   BitwiseLeftShiftVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> right)
-      const {
+  Value operator()(Value left, Value right) const {
     ValueType vtleft = get_value_type(left);
     ValueType vtright = get_value_type(right);
 
@@ -318,11 +251,7 @@ struct BitwiseRightShiftVisitor {
 
   BitwiseRightShiftVisitor(const Token& token) : token(token) {}
 
-  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
-  operator()(
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
-      std::variant<int, double, bool, std::string, std::shared_ptr<List>> right)
-      const {
+  Value operator()(Value left, Value right) const {
     ValueType vtleft = get_value_type(left);
     ValueType vtright = get_value_type(right);
 
