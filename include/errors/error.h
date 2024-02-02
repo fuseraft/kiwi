@@ -52,6 +52,18 @@ class SyntaxError : public KiwiError {
       : KiwiError(token, "SyntaxError", message) {}
 };
 
+class RangeError : public KiwiError {
+ public:
+  RangeError(const Token& token, std::string message = "Invalid range.")
+      : KiwiError(token, "RangeError", message) {}
+};
+
+class IndexError : public KiwiError {
+ public:
+  IndexError(const Token& token, std::string message = "Invalid index.")
+      : KiwiError(token, "IndexError", message) {}
+};
+
 class ParameterMissingError : public KiwiError {
  public:
   ParameterMissingError(const Token& token, std::string name)
