@@ -107,9 +107,6 @@ class Lexer {
     } else if (currentChar == ']') {
       return Token::create(TokenType::CLOSE_BRACKET, file, "]", lineNumber,
                            linePosition);
-    } else if (currentChar == ':') {
-      return Token::create(TokenType::COLON, file, ":", lineNumber,
-                           linePosition);
     } else if (currentChar == ',') {
       return Token::create(TokenType::COMMA, file, ",", lineNumber,
                            linePosition);
@@ -145,8 +142,7 @@ class Lexer {
         }
       }
 
-      return Token::create(TokenType::OPERATOR, file, s, lineNumber,
-                           linePosition);
+      return Token::create(TokenType::COLON, file, s, lineNumber, linePosition);
     } else {
       std::string s;
       s = currentChar;

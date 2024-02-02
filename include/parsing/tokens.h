@@ -64,7 +64,7 @@ class Token {
   std::string getFile() const { return file; }
 
   std::string toString() {
-    if (valueType != ValueType::String) {
+    if (!std::holds_alternative<std::string>(value)) {
       throw new std::runtime_error("Value type is not a `String`.");
     }
 
@@ -72,7 +72,7 @@ class Token {
   }
 
   int toInteger() {
-    if (valueType != ValueType::Integer) {
+    if (!std::holds_alternative<int>(value)) {
       throw new std::runtime_error("Value type is not an `Integer`.");
     }
 
@@ -80,7 +80,7 @@ class Token {
   }
 
   bool toBoolean() {
-    if (valueType != ValueType::Boolean) {
+    if (!std::holds_alternative<bool>(value)) {
       throw new std::runtime_error("Value type is not a `Boolean`.");
     }
 
@@ -88,7 +88,7 @@ class Token {
   }
 
   double toDouble() {
-    if (valueType != ValueType::Double) {
+    if (!std::holds_alternative<double>(value)) {
       throw new std::runtime_error("Value type is not a `Double`.");
     }
 

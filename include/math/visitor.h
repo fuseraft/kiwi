@@ -12,10 +12,7 @@ struct AddVisitor {
   AddVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left, Value right) const {
-    ValueType vtleft = get_value_type(left);
-    ValueType vtright = get_value_type(right);
-
-    return MathImpl.do_addition(token, vtleft, vtright, left, right);
+    return MathImpl.do_addition(token, left, right);
   }
 };
 
@@ -25,14 +22,7 @@ struct SubtractVisitor {
   SubtractVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left, Value right) const {
-    ValueType vtleft = get_value_type(left);
-    ValueType vtright = get_value_type(right);
-
-    if (vtright == ValueType::Integer || vtright == ValueType::Double) {
-      return MathImpl.do_subtraction(token, vtleft, vtright, left, right);
-    } else {
-      throw ConversionError(token);
-    }
+    return MathImpl.do_subtraction(token, left, right);
   }
 };
 
@@ -42,10 +32,7 @@ struct MultiplyVisitor {
   MultiplyVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left, Value right) const {
-    ValueType vtleft = get_value_type(left);
-    ValueType vtright = get_value_type(right);
-
-    return MathImpl.do_multiplication(token, vtleft, vtright, left, right);
+    return MathImpl.do_multiplication(token, left, right);
   }
 };
 
@@ -55,17 +42,10 @@ struct DivideVisitor {
   DivideVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left, Value right) const {
-    ValueType vtleft = get_value_type(left);
-    ValueType vtright = get_value_type(right);
-
-    if (vtright == ValueType::Integer || vtright == ValueType::Double) {
-      if (MathImpl.is_zero(vtright, right)) {
-        throw DivideByZeroError(token);
-      } else {
-        return MathImpl.do_division(token, vtleft, vtright, left, right);
-      }
+    if (MathImpl.is_zero(token, right)) {
+      throw DivideByZeroError(token);
     } else {
-      throw ConversionError(token);
+      return MathImpl.do_division(token, left, right);
     }
   }
 };
@@ -76,14 +56,7 @@ struct PowerVisitor {
   PowerVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left, Value right) const {
-    ValueType vtleft = get_value_type(left);
-    ValueType vtright = get_value_type(right);
-
-    if (vtright == ValueType::Integer || vtright == ValueType::Double) {
-      return MathImpl.do_exponentiation(token, vtleft, vtright, left, right);
-    } else {
-      throw ConversionError(token);
-    }
+    return MathImpl.do_exponentiation(token, left, right);
   }
 };
 
@@ -93,14 +66,7 @@ struct ModuloVisitor {
   ModuloVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left, Value right) const {
-    ValueType vtleft = get_value_type(left);
-    ValueType vtright = get_value_type(right);
-
-    if (vtright == ValueType::Integer || vtright == ValueType::Double) {
-      return MathImpl.do_modulus(token, vtleft, vtright, left, right);
-    } else {
-      throw ConversionError(token);
-    }
+    return MathImpl.do_modulus(token, left, right);
   }
 };
 
@@ -110,10 +76,7 @@ struct EqualityVisitor {
   EqualityVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left, Value right) const {
-    ValueType vtleft = get_value_type(left);
-    ValueType vtright = get_value_type(right);
-
-    return MathImpl.do_eq_comparison(token, vtleft, vtright, left, right);
+    return MathImpl.do_eq_comparison(token, left, right);
   }
 };
 
@@ -123,10 +86,7 @@ struct InequalityVisitor {
   InequalityVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left, Value right) const {
-    ValueType vtleft = get_value_type(left);
-    ValueType vtright = get_value_type(right);
-
-    return MathImpl.do_neq_comparison(token, vtleft, vtright, left, right);
+    return MathImpl.do_neq_comparison(token, left, right);
   }
 };
 
@@ -136,10 +96,7 @@ struct LessThanVisitor {
   LessThanVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left, Value right) const {
-    ValueType vtleft = get_value_type(left);
-    ValueType vtright = get_value_type(right);
-
-    return MathImpl.do_lt_comparison(token, vtleft, vtright, left, right);
+    return MathImpl.do_lt_comparison(token, left, right);
   }
 };
 
@@ -149,10 +106,7 @@ struct LessThanOrEqualVisitor {
   LessThanOrEqualVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left, Value right) const {
-    ValueType vtleft = get_value_type(left);
-    ValueType vtright = get_value_type(right);
-
-    return MathImpl.do_lte_comparison(token, vtleft, vtright, left, right);
+    return MathImpl.do_lte_comparison(token, left, right);
   }
 };
 
@@ -162,10 +116,7 @@ struct GreaterThanVisitor {
   GreaterThanVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left, Value right) const {
-    ValueType vtleft = get_value_type(left);
-    ValueType vtright = get_value_type(right);
-
-    return MathImpl.do_gt_comparison(token, vtleft, vtright, left, right);
+    return MathImpl.do_gt_comparison(token, left, right);
   }
 };
 
@@ -175,10 +126,7 @@ struct GreaterThanOrEqualVisitor {
   GreaterThanOrEqualVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left, Value right) const {
-    ValueType vtleft = get_value_type(left);
-    ValueType vtright = get_value_type(right);
-
-    return MathImpl.do_gte_comparison(token, vtleft, vtright, left, right);
+    return MathImpl.do_gte_comparison(token, left, right);
   }
 };
 
@@ -188,10 +136,7 @@ struct BitwiseAndVisitor {
   BitwiseAndVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left, Value right) const {
-    ValueType vtleft = get_value_type(left);
-    ValueType vtright = get_value_type(right);
-
-    return MathImpl.do_bitwise_and(token, vtleft, vtright, left, right);
+    return MathImpl.do_bitwise_and(token, left, right);
   }
 };
 
@@ -201,10 +146,7 @@ struct BitwiseOrVisitor {
   BitwiseOrVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left, Value right) const {
-    ValueType vtleft = get_value_type(left);
-    ValueType vtright = get_value_type(right);
-
-    return MathImpl.do_bitwise_or(token, vtleft, vtright, left, right);
+    return MathImpl.do_bitwise_or(token, left, right);
   }
 };
 
@@ -214,10 +156,7 @@ struct BitwiseXorVisitor {
   BitwiseXorVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left, Value right) const {
-    ValueType vtleft = get_value_type(left);
-    ValueType vtright = get_value_type(right);
-
-    return MathImpl.do_bitwise_xor(token, vtleft, vtright, left, right);
+    return MathImpl.do_bitwise_xor(token, left, right);
   }
 };
 
@@ -227,9 +166,7 @@ struct BitwiseNotVisitor {
   BitwiseNotVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left) const {
-    ValueType vtleft = get_value_type(left);
-
-    return MathImpl.do_bitwise_not(token, vtleft, left);
+    return MathImpl.do_bitwise_not(token, left);
   }
 };
 
@@ -239,10 +176,7 @@ struct BitwiseLeftShiftVisitor {
   BitwiseLeftShiftVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left, Value right) const {
-    ValueType vtleft = get_value_type(left);
-    ValueType vtright = get_value_type(right);
-
-    return MathImpl.do_bitwise_lshift(token, vtleft, vtright, left, right);
+    return MathImpl.do_bitwise_lshift(token, left, right);
   }
 };
 
@@ -252,10 +186,7 @@ struct BitwiseRightShiftVisitor {
   BitwiseRightShiftVisitor(const Token& token) : token(token) {}
 
   Value operator()(Value left, Value right) const {
-    ValueType vtleft = get_value_type(left);
-    ValueType vtright = get_value_type(right);
-
-    return MathImpl.do_bitwise_rshift(token, vtleft, vtright, left, right);
+    return MathImpl.do_bitwise_rshift(token, left, right);
   }
 };
 

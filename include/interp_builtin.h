@@ -58,8 +58,7 @@ class BuiltinInterpreter {
   }
 
   static std::string getString(const Token& tokenTerm, const Value& arg) {
-    ValueType vt = get_value_type(arg);
-    if (vt != ValueType::String) {
+    if (!std::holds_alternative<std::string>(arg)) {
       throw ConversionError(tokenTerm);
     }
     return std::get<std::string>(arg);

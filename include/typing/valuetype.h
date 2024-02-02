@@ -17,17 +17,10 @@ struct List {
   std::vector<Value> elements;
 };
 
-enum class ValueType {
-  None,
-  Unknown,
-  Integer,
-  Double,
-  Boolean,
-  String,
-};
+enum class ValueType { None, Unknown, Integer, Double, Boolean, String, List };
 
 ValueType get_value_type(Value v) {
-  ValueType type = ValueType::None;  // TODO: Handle this.
+  ValueType type = ValueType::None;
 
   std::visit(
       [&](auto&& arg) {
@@ -41,6 +34,8 @@ ValueType get_value_type(Value v) {
           type = ValueType::Boolean;
         } else if constexpr (std::is_same_v<T, std::string>) {
           type = ValueType::String;
+        } else if constexpr (std::is_same_v<T, std::shared_ptr<List>>) {
+          type = ValueType::List;
         } else {
           type = ValueType::Unknown;
         }
@@ -50,20 +45,52 @@ ValueType get_value_type(Value v) {
   return type;
 }
 
+std::string list_to_string(const std::shared_ptr<List>& list);
+
 std::string get_value_string(Value v) {
-  ValueType vt = get_value_type(v);
   std::ostringstream sv;
 
-  if (vt == ValueType::Integer) {
-    sv << std::get<int>(v);
-  } else if (vt == ValueType::Double) {
-    sv << std::get<double>(v);
-  } else if (vt == ValueType::Boolean) {
-    sv << std::boolalpha << std::get<bool>(v);
-  } else if (vt == ValueType::String) {
-    sv << std::get<std::string>(v);
+  switch (get_value_type(v)) {
+    case ValueType::Integer:
+      sv << std::get<int>(v);
+      break;
+    case ValueType::Double:
+      sv << std::get<double>(v);
+      break;
+    case ValueType::Boolean:
+      sv << std::boolalpha << std::get<bool>(v);
+      break;
+    case ValueType::String:
+      sv << std::get<std::string>(v);
+      break;
+    case ValueType::List:
+      sv << list_to_string(std::get<std::shared_ptr<List>>(v));
+      break;
+    default:
+      // WIP: handle ValueType::None
+      break;
   }
 
+  return sv.str();
+}
+
+std::string list_to_string(const std::shared_ptr<List>& list) {
+  std::ostringstream sv;
+  sv << "[";
+
+  for (auto it = list->elements.begin(); it != list->elements.end(); ++it) {
+    if (it != list->elements.begin()) {
+      sv << ", ";
+    }
+
+    if (get_value_type(*it) == ValueType::String) {
+      sv << "\"" << get_value_string(*it) << "\"";
+    } else {
+      sv << get_value_string(*it);
+    }
+  }
+
+  sv << "]";
   return sv.str();
 }
 
