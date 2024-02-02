@@ -716,6 +716,7 @@ class Interpreter {
       int listSize = static_cast<int>(listPtr->elements.size());
       start = (start < 0) ? std::max(start + listSize, 0) : start;
       stop = (stop < 0) ? stop + listSize : std::min(stop, listSize);
+      if (step < 0 && stop == listSize) stop = -1; // Adjust stop for reverse slicing
 
       auto slicedList = std::make_shared<List>();
       if (step < 0) {
