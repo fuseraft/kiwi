@@ -1,10 +1,21 @@
 #ifndef KIWI_TYPING_VALUETYPE_H
 #define KIWI_TYPING_VALUETYPE_H
 
-#include <variant>
+#include <memory>
 #include <stdexcept>
 #include <sstream>
 #include <string>
+#include <variant>
+#include <vector>
+
+struct List;
+
+using Value =
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>>;
+
+struct List {
+  std::vector<Value> elements;
+};
 
 enum class ValueType {
   None,
@@ -15,7 +26,8 @@ enum class ValueType {
   String,
 };
 
-ValueType get_value_type(std::variant<int, double, bool, std::string> v) {
+ValueType get_value_type(
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> v) {
   ValueType type = ValueType::None;  // TODO: Handle this.
 
   std::visit(
@@ -39,7 +51,8 @@ ValueType get_value_type(std::variant<int, double, bool, std::string> v) {
   return type;
 }
 
-std::string get_value_string(std::variant<int, double, bool, std::string> v) {
+std::string get_value_string(
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> v) {
   ValueType vt = get_value_type(v);
   std::ostringstream sv;
 

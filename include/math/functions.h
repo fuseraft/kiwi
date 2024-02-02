@@ -9,7 +9,9 @@
 #include "typing/valuetype.h"
 
 struct {
-  bool is_zero(ValueType type, std::variant<int, double, bool, std::string> v) {
+  bool is_zero(
+      ValueType type,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> v) {
     if (type == ValueType::Double) {
       return std::get<double>(v) == 0.0;
     } else if (type == ValueType::Integer) {
@@ -19,11 +21,13 @@ struct {
     return false;
   }
 
-  std::variant<int, double, bool, std::string> do_addition(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_addition(
       const Token& token, ValueType vtleft, ValueType vtright,
-      std::variant<int, double, bool, std::string> left,
-      std::variant<int, double, bool, std::string> right) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          right) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
       result = std::get<int>(left) + std::get<int>(right);
@@ -57,11 +61,13 @@ struct {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> do_subtraction(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_subtraction(
       const Token& token, ValueType vtleft, ValueType vtright,
-      std::variant<int, double, bool, std::string> left,
-      std::variant<int, double, bool, std::string> right) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          right) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
       result = std::get<int>(left) - std::get<int>(right);
@@ -80,11 +86,13 @@ struct {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> do_exponentiation(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_exponentiation(
       const Token& token, ValueType vtleft, ValueType vtright,
-      std::variant<int, double, bool, std::string> left,
-      std::variant<int, double, bool, std::string> right) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          right) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
       result = static_cast<int>(pow(std::get<int>(left), std::get<int>(right)));
@@ -103,11 +111,13 @@ struct {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> do_modulus(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_modulus(
       const Token& token, ValueType vtleft, ValueType vtright,
-      std::variant<int, double, bool, std::string> left,
-      std::variant<int, double, bool, std::string> right) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          right) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
       int rhs = std::get<int>(right);
@@ -140,11 +150,13 @@ struct {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> do_division(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_division(
       const Token& token, ValueType vtleft, ValueType vtright,
-      std::variant<int, double, bool, std::string> left,
-      std::variant<int, double, bool, std::string> right) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          right) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
       int rhs = std::get<int>(right);
@@ -177,11 +189,13 @@ struct {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> do_multiplication(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_multiplication(
       const Token& token, ValueType vtleft, ValueType vtright,
-      std::variant<int, double, bool, std::string> left,
-      std::variant<int, double, bool, std::string> right) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          right) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
       result = std::get<int>(left) * std::get<int>(right);
@@ -217,11 +231,13 @@ struct {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> do_eq_comparison(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_eq_comparison(
       const Token& token, ValueType vtleft, ValueType vtright,
-      std::variant<int, double, bool, std::string> left,
-      std::variant<int, double, bool, std::string> right) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          right) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
       result = std::get<int>(left) == std::get<int>(right);
@@ -244,11 +260,13 @@ struct {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> do_neq_comparison(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_neq_comparison(
       const Token& token, ValueType vtleft, ValueType vtright,
-      std::variant<int, double, bool, std::string> left,
-      std::variant<int, double, bool, std::string> right) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          right) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
       result = std::get<int>(left) != std::get<int>(right);
@@ -271,11 +289,13 @@ struct {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> do_lt_comparison(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_lt_comparison(
       const Token& token, ValueType vtleft, ValueType vtright,
-      std::variant<int, double, bool, std::string> left,
-      std::variant<int, double, bool, std::string> right) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          right) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
       result = std::get<int>(left) < std::get<int>(right);
@@ -294,11 +314,13 @@ struct {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> do_lte_comparison(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_lte_comparison(
       const Token& token, ValueType vtleft, ValueType vtright,
-      std::variant<int, double, bool, std::string> left,
-      std::variant<int, double, bool, std::string> right) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          right) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
       result = std::get<int>(left) <= std::get<int>(right);
@@ -317,11 +339,13 @@ struct {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> do_gt_comparison(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_gt_comparison(
       const Token& token, ValueType vtleft, ValueType vtright,
-      std::variant<int, double, bool, std::string> left,
-      std::variant<int, double, bool, std::string> right) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          right) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
       result = std::get<int>(left) > std::get<int>(right);
@@ -340,11 +364,13 @@ struct {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> do_gte_comparison(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_gte_comparison(
       const Token& token, ValueType vtleft, ValueType vtright,
-      std::variant<int, double, bool, std::string> left,
-      std::variant<int, double, bool, std::string> right) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          right) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
       result = std::get<int>(left) >= std::get<int>(right);
@@ -363,11 +389,13 @@ struct {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> do_bitwise_and(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_bitwise_and(
       const Token& token, ValueType vtleft, ValueType vtright,
-      std::variant<int, double, bool, std::string> left,
-      std::variant<int, double, bool, std::string> right) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          right) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
       result = std::get<int>(left) & std::get<int>(right);
@@ -378,11 +406,13 @@ struct {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> do_bitwise_or(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_bitwise_or(
       const Token& token, ValueType vtleft, ValueType vtright,
-      std::variant<int, double, bool, std::string> left,
-      std::variant<int, double, bool, std::string> right) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          right) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
       result = std::get<int>(left) | std::get<int>(right);
@@ -393,11 +423,13 @@ struct {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> do_bitwise_xor(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_bitwise_xor(
       const Token& token, ValueType vtleft, ValueType vtright,
-      std::variant<int, double, bool, std::string> left,
-      std::variant<int, double, bool, std::string> right) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          right) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
       result = std::get<int>(left) ^ std::get<int>(right);
@@ -408,10 +440,12 @@ struct {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> do_bitwise_not(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_bitwise_not(
       const Token& token, ValueType vtleft,
-      std::variant<int, double, bool, std::string> left) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          left) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer) {
       result = ~std::get<int>(left);
@@ -422,11 +456,13 @@ struct {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> do_bitwise_lshift(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_bitwise_lshift(
       const Token& token, ValueType vtleft, ValueType vtright,
-      std::variant<int, double, bool, std::string> left,
-      std::variant<int, double, bool, std::string> right) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          right) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
       result = std::get<int>(left) << std::get<int>(right);
@@ -437,11 +473,13 @@ struct {
     return result;
   }
 
-  std::variant<int, double, bool, std::string> do_bitwise_rshift(
+  std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+  do_bitwise_rshift(
       const Token& token, ValueType vtleft, ValueType vtright,
-      std::variant<int, double, bool, std::string> left,
-      std::variant<int, double, bool, std::string> right) {
-    std::variant<int, double, bool, std::string> result;
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>> left,
+      std::variant<int, double, bool, std::string, std::shared_ptr<List>>
+          right) {
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>> result;
 
     if (vtleft == ValueType::Integer && vtright == ValueType::Integer) {
       result = std::get<int>(left) >> std::get<int>(right);
