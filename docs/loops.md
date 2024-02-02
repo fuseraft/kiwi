@@ -30,7 +30,7 @@ end
 
 Loop indefinitely.
 ```ruby
-while true
+while true do
     println "Press Ctrl+C to exit."
 end
 ```
