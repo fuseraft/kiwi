@@ -17,6 +17,16 @@ struct List {
   std::vector<Value> elements;
 };
 
+std::shared_ptr<List> convert_value_to_list(Value& rhsValues) {
+  if (std::holds_alternative<std::shared_ptr<List>>(rhsValues)) {
+    return std::get<std::shared_ptr<List>>(rhsValues);
+  } else {
+    auto newList = std::make_shared<List>();
+    newList->elements.push_back(rhsValues);
+    return newList;
+  }
+}
+
 enum class ValueType { None, Unknown, Integer, Double, Boolean, String, List };
 
 ValueType get_value_type(Value v) {
