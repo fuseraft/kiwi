@@ -22,7 +22,7 @@ This section guides you through submitting an enhancement suggestion for Kiwi, i
 
 ### Your First Code Contribution
 
-Unsure where to begin contributing to Kiwi? You can start by looking through `beginner` and `help-wanted` issues:
+Unsure where to begin contributing to Kiwi? You can start by looking through `beginner` and `help wanted` issues:
 
 - **Beginner issues** - issues which should only require a few lines of code, and a test or two.
 - **Help wanted issues** - issues which should be a bit more involved than `beginner` issues.
@@ -62,6 +62,8 @@ This section lists the labels we use to help us track and manage issues and pull
 - **bug** - Issues that are bugs.
 - **enhancement** - Issues that are feature requests.
 - **good first issue** - Good for newcomers.
+- **help wanted** - I would like an extra brain on this.
+- **beginner** - Get your feet wet!
 
 ## Questions?
 
