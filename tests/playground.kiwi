@@ -3,5 +3,10 @@ println "= playground.kiwi ="
 println "==================="
 
 # Add Kiwi here!
+@list = ["The", "Kiwi", "Programming", "Language"]
+@string = @list.join(" ")
+@chars = @string.chars()
+
+println @chars
 
 println ""
