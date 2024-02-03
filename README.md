@@ -22,21 +22,13 @@ make all
 
 ## Testing
 
-To run the test scripts, use:
+Please see the [tests](tests) directory for a list of test scripts.
+
+To run the test suite, use:
 
 ```shell
 make test
 ```
-
-To test the Kiwi Common Library, use:
-
-```shell
-make testlib
-```
-
-## Test Code
-
-Please see the [tests](tests) directory for a list of test scripts.
 
 ## Example: FizzBuzz in Kiwi
 
