@@ -139,6 +139,17 @@ module fileio
   end
 
   ##
+  Summary: Get the content of a file as a list of strings.
+  Params:
+    - @_path: The path to a file.
+  Returns: List
+  ##
+  def readlines(@_path)
+    @_retval = __readlines__(@_path)
+    return @_retval
+  end
+
+  ##
   Summary: Write text to a file. This overwrites the file if it exists.
   Params:
     - @_path: The path to a file or a filename.

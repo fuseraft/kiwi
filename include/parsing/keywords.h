@@ -52,6 +52,7 @@ struct {
   const std::string BitwiseRightShift = ">>";
   const std::string BitwiseRightShiftAssign = ">>=";
   const std::string ListAppend = "<<";
+  const std::string ListInsert = "<<=";
 
   std::unordered_set<std::string> large_operators = {
       Exponent, Or, And, BitwiseLeftShift, BitwiseRightShift};
@@ -199,8 +200,8 @@ struct {
   const std::string While = "while";
 
   std::unordered_set<std::string> keywords = {
-      If,     Else,   ElseIf, True,   False, While,  End,
-      Module, Method, Return, Import, Print, PrintLn};
+      If,     Else,   ElseIf, True,    False, While, End, Module, Method,
+      Return, Import, Print,  PrintLn, For,   In,    Do,  Next,   Break};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           End};

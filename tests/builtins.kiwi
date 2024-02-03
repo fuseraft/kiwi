@@ -1,0 +1,29 @@
+println "================="
+println "= builtins.kiwi ="
+println "================="
+
+@list = [1, 2, 3]
+@string = "31337"
+@integer = @string.to_i()
+@double = @string.to_d()
+@list << [@string, @integer, @double]
+
+println "list = ${@list}"
+@size = @list.size()
+println "list size = ${@size}"
+
+@list = ["The", "Kiwi", "Programming", "Language"]
+@joined = @list.join(" ")
+println "joined: ${@joined}"
+
+@joined = @list.join("-")
+println "joined: ${@joined}"
+
+# These are functionally equivalent.
+@joined = @list.join("")
+println "joined: ${@joined}"
+
+@joined = @list.join()
+println "joined: ${@joined}"
+
+println ""

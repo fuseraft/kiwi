@@ -12,6 +12,7 @@ struct {
   const std::string DeleteFile = "__deletefile__";
   const std::string MoveFile = "__movefile__";
   const std::string ReadFile = "__readfile__";
+  const std::string ReadLines = "__readlines__";
   const std::string WriteLine = "__writeline__";
   const std::string WriteText = "__writetext__";
   const std::string FileExists = "__fileexists__";
@@ -33,34 +34,35 @@ struct {
   const std::string ChangeDirectory = "__chdir__";
   const std::string GetCurrentDirectory = "__getcwd__";
 
-  std::unordered_set<std::string> builtins = {AppendText,
-                                              CopyFile,
-                                              CreateFile,
-                                              DeleteFile,
-                                              MoveFile,
-                                              ReadFile,
-                                              WriteText,
-                                              WriteLine,
-                                              FileExists,
-                                              FileName,
-                                              FileSize,
-                                              GetFileExtension,
-                                              GetFilePath,
-                                              GetFileAttributes,
-                                              DirectoryExists,
-                                              DirectoryName,
-                                              ListDirectory,
-                                              MakeDirectory,
-                                              MakeDirectoryP,
-                                              RemoveDirectory,
-                                              IsDirectory,
-                                              ChangeDirectory,
-                                              GetCurrentDirectory,
-                                              GetFileAbsolutePath};
+  std::unordered_set<std::string> builtins = {
+      AppendText,         CopyFile,      CreateFile,        DeleteFile,
+      MoveFile,           ReadFile,      ReadLines,         WriteText,
+      WriteLine,          FileExists,    FileName,          FileSize,
+      GetFileExtension,   GetFilePath,   GetFileAttributes, DirectoryExists,
+      DirectoryName,      ListDirectory, MakeDirectory,     MakeDirectoryP,
+      RemoveDirectory,    IsDirectory,   ChangeDirectory,   GetCurrentDirectory,
+      GetFileAbsolutePath};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 } FileIOBuiltIns;
+
+struct {
+  const std::string Chars = "chars";
+  const std::string IsA = "is_a?";
+  const std::string Join = "join";
+  const std::string Size = "size";
+  const std::string ToD = "to_d";
+  const std::string ToI = "to_i";
+  const std::string ToS = "to_s";
+
+  std::unordered_set<std::string> builtins = {Chars, IsA, Join, Size,
+                                              ToD,   ToI, ToS};
+
+  bool is_builtin(const std::string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+} KiwiBuiltins;
 
 #endif
