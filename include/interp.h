@@ -106,6 +106,9 @@ class Interpreter {
         if (methods.find(token.getText()) != methods.end()) {
           continue;
         }
+        if (modules.find(token.getText()) != modules.end()) {
+          continue;
+        }
         if (peek(frame).getType() == TokenType::OPEN_PAREN ||
             peek(frame).getType() == TokenType::QUALIFIER) {
           continue;
@@ -320,7 +323,7 @@ class Interpreter {
         frame.clearContinue();
         continue;
       }
-      
+
       std::vector<Token> condition = conditionTokens;
       auto it = condition.begin() + 0;
       condition.insert(it, tempAssignment.begin(), tempAssignment.end());
@@ -645,7 +648,6 @@ class Interpreter {
 
     // Now interpret the method in its own context
     interpretStackFrame();
-    std::cout << "";
   }
 
   void interpretMethodParameters(Method& method, CallStackFrame& frame) {
@@ -1094,7 +1096,11 @@ class Interpreter {
       ifValue = std::get<bool>(value);
       conditional.getIfStatement().setEvaluation(ifValue);
       if (current(frame).getType() != TokenType::KEYWORD) {
-        next(frame);
+        if (current(frame).getType() == TokenType::LITERAL) {
+          next(frame);
+        } else if (current(frame).getType() == TokenType::IDENTIFIER && !hasModule(current(frame).getText())) {
+          next(frame);
+        }
       }
     } else {
       throw ConversionError(current(frame));
@@ -1416,8 +1422,8 @@ class Interpreter {
       return frame.returnValue;
     }
 
+    Token lastTerm = tokenTerm;
     Value result = interpretTerm(tokenTerm, booleanExpression, frame);
-    Value lastTerm;
 
     if (peek(frame).getType() == TokenType::OPERATOR) {
       next(frame);
@@ -1434,6 +1440,7 @@ class Interpreter {
         break;
       }
 
+      lastTerm = current(frame);
       Value nextTerm =
           interpretTerm(tokenTerm, booleanExpression, frame, false);
 
@@ -1460,8 +1467,6 @@ class Interpreter {
       if (Operators.is_bitwise_operator(op)) {
         interpretBitwiseExpression(tokenTerm, op, result, nextTerm);
       }
-
-      lastTerm = result;
     }
 
     return result;

@@ -200,9 +200,8 @@ struct {
   const std::string While = "while";
 
   std::unordered_set<std::string> keywords = {
-      If,     Else,   ElseIf, True,  False,   While, End, Module,
-      Method, Return, Import, Print, PrintLn, For,   In,  Do,
-      Next,   Break};
+      If,     Else,   ElseIf, True,    False, While, End, Module, Method,
+      Return, Import, Print,  PrintLn, For,   In,    Do,  Next,   Break};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           End};

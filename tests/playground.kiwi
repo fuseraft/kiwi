@@ -3,26 +3,5 @@ println "= playground.kiwi ="
 println "==================="
 
 # Add Kiwi here!
-def loopy(@stop)
-  @i = 0
-
-  while @i < 100 do
-    @i += 1
-
-    if (@i > 10 && @stop)
-      break
-    elsif @i > 10
-      next
-    end
-  end
-
-  return @i
-end
-
-@retval = loopy(true)
-println "loop ended on ${@retval}"
-
-@retval = loopy(false)
-println "loop ended on ${@retval}"
 
 println ""
