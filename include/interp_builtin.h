@@ -52,6 +52,8 @@ class BuiltinInterpreter {
       return executeCopyFile(tokenTerm, args);
     } else if (builtin == FileIOBuiltIns.MoveFile) {
       return executeMoveFile(tokenTerm, args);
+    } else if (builtin == FileIOBuiltIns.ReadLines) {
+      return executeReadLines(tokenTerm, args);
     } else {
       throw UnknownBuiltinError(tokenTerm, builtin);
     }
@@ -192,6 +194,15 @@ class BuiltinInterpreter {
 
     std::string fileName = getString(tokenTerm, args.at(0));
     return FileIO::readFile(fileName);
+  }
+
+  static std::shared_ptr<List> executeReadLines(
+      const Token& tokenTerm, const std::vector<Value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.ReadFile);
+    }
+    std::string fileName = getString(tokenTerm, args.at(0));
+    return FileIO::readLines(fileName);
   }
 
   static bool executeWriteLine(const Token& tokenTerm,

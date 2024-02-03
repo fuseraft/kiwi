@@ -23,4 +23,33 @@ println "loop ended on ${@retval}"
 @retval = loopy(false)
 println "loop ended on ${@retval}"
 
+@list = []
+@i = 1
+while @i <= 10 do
+  @list << "Item ${@i}"
+  @i += 1
+end
+
+@counter = 0
+for @item, @index in @list do
+  @counter += 1
+  if @index == 5
+    next
+  end
+  println "${@item}"
+end
+
+println "counter = ${@counter}\n"
+
+@counter = 0
+for @item, @index in @list do
+  @counter += 1
+  if @index == 5
+    break
+  end
+  println "${@item}"
+end
+
+println "counter = ${@counter}"
+
 println ""
