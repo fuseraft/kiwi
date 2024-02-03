@@ -1594,7 +1594,8 @@ class Interpreter {
     return 0;  // Placeholder for unsupported types
   }
 
-  std::string evaluateString(CallStackFrame& frame, bool handleDotNotation = false) {
+  std::string evaluateString(CallStackFrame& frame,
+                             bool handleDotNotation = false) {
     const std::string methodName = "evaluateString";
     std::string output;
 
@@ -1609,7 +1610,7 @@ class Interpreter {
       if (!handleDotNotation) {
         return input;
       }
-      
+
       Value currentValue = input;
       auto value = interpretDotNotation(currentValue, frame);
       if (std::holds_alternative<std::string>(value)) {
