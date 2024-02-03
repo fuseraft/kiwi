@@ -107,12 +107,12 @@ class BuiltinInterpreter {
       throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.Chars);
     }
 
-    std::shared_ptr<List> charList;
+    auto newList = std::make_shared<List>();
     std::string stringValue = getString(tokenTerm, value);
     for (char c : stringValue) {
-      charList->elements.push_back(std::string(1, c));
+      newList->elements.push_back(std::string(1, c));
     }
-    return charList;
+    return newList;
   }
 
   static std::string executeJoin(const Token& tokenTerm, const Value& value,
@@ -120,7 +120,7 @@ class BuiltinInterpreter {
     int argSize = args.size();
 
     if (argSize != 0 && argSize != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.Chars);
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.Join);
     }
 
     if (!std::holds_alternative<std::shared_ptr<List>>(value)) {
@@ -166,7 +166,7 @@ class BuiltinInterpreter {
   static double executeToDouble(const Token& tokenTerm, const Value& value,
                                 const std::vector<Value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.Size);
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.ToD);
     }
 
     if (std::holds_alternative<std::string>(value)) {
@@ -194,7 +194,7 @@ class BuiltinInterpreter {
   static int executeToInteger(const Token& tokenTerm, const Value& value,
                               const std::vector<Value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.Size);
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.ToI);
     }
 
     if (std::holds_alternative<std::string>(value)) {
@@ -222,7 +222,7 @@ class BuiltinInterpreter {
   static std::string executeToString(const Token& tokenTerm, const Value& value,
                                      const std::vector<Value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.Size);
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.ToS);
     }
 
     return get_value_string(value);
@@ -361,7 +361,7 @@ class BuiltinInterpreter {
   static std::shared_ptr<List> executeReadLines(
       const Token& tokenTerm, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.ReadFile);
+      throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.ReadLines);
     }
     std::string fileName = getString(tokenTerm, args.at(0));
     return FileIO::readLines(fileName);
