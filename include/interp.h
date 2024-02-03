@@ -1065,7 +1065,9 @@ class Interpreter {
 
       if (peek(frame).getType() == TokenType::COMMA) {
         next(frame);  // Skip current value
-        next(frame);  // Skip the comma
+        if (current(frame).getType() == TokenType::COMMA) {
+          next(frame);
+        }
       } else if (current(frame).getType() == TokenType::COMMA) {
         next(frame);
       } else if (peek(frame).getType() == TokenType::CLOSE_BRACKET) {
@@ -1286,7 +1288,7 @@ class Interpreter {
     next(frame);  // skip the "print"
 
     if (current(frame).getType() == TokenType::STRING) {
-      std::cout << evaluateString(frame);
+      std::cout << evaluateString(frame, true);
     } else if (current(frame).getType() == TokenType::KEYWORD &&
                current(frame).getText() == Symbols.DeclVar) {
       next(frame);
@@ -1302,6 +1304,13 @@ class Interpreter {
         value = booleanExpression.evaluate();
       }
 
+      std::cout << get_value_string(value);
+    } else if (current(frame).getType() == TokenType::OPEN_BRACKET) {
+      BooleanExpressionBuilder booleanExpression;
+      Value value = interpretList(booleanExpression, frame);
+      if (current(frame).getType() == TokenType::DOT) {
+        value = interpretDotNotation(value, frame);
+      }
       std::cout << get_value_string(value);
     } else {
       throw ConversionError(current(frame));
@@ -1496,6 +1505,20 @@ class Interpreter {
     return result;
   }
 
+  Value interpretValueType(CallStackFrame& frame) {
+    if (current(frame).getValueType() == ValueType::Boolean) {
+      return current(frame).toBoolean();
+    } else if (current(frame).getValueType() == ValueType::Double) {
+      return current(frame).toDouble();
+    } else if (current(frame).getValueType() == ValueType::Integer) {
+      return current(frame).toInteger();
+    } else if (current(frame).getValueType() == ValueType::String) {
+      return evaluateString(frame);
+    }
+
+    throw ConversionError(current(frame));
+  }
+
   Value interpretTerm(Token& termToken,
                       BooleanExpressionBuilder& booleanExpression,
                       CallStackFrame& frame, bool skipOnRetrieval = true) {
@@ -1561,20 +1584,17 @@ class Interpreter {
         interpretBooleanExpression(termToken, booleanExpression, op, frame);
         return booleanExpression.evaluate();
       }
-    } else if (current(frame).getValueType() == ValueType::Boolean) {
-      return current(frame).toBoolean();
-    } else if (current(frame).getValueType() == ValueType::Double) {
-      return current(frame).toDouble();
-    } else if (current(frame).getValueType() == ValueType::Integer) {
-      return current(frame).toInteger();
-    } else if (current(frame).getValueType() == ValueType::String) {
-      return evaluateString(frame);
+    } else if (peek(frame).getType() == TokenType::DOT) {
+      Value value = interpretValueType(frame);
+      return interpretDotNotation(value, frame);
+    } else {
+      return interpretValueType(frame);
     }
 
     return 0;  // Placeholder for unsupported types
   }
 
-  std::string evaluateString(CallStackFrame& frame) {
+  std::string evaluateString(CallStackFrame& frame, bool handleDotNotation = false) {
     const std::string methodName = "evaluateString";
     std::string output;
 
@@ -1584,6 +1604,20 @@ class Interpreter {
     }
 
     std::string input = current(frame).toString();
+
+    if (peek(frame).getType() == TokenType::DOT) {
+      if (!handleDotNotation) {
+        return input;
+      }
+      
+      Value currentValue = input;
+      auto value = interpretDotNotation(currentValue, frame);
+      if (std::holds_alternative<std::string>(value)) {
+        return std::get<std::string>(value);
+      } else {
+        return get_value_string(value);
+      }
+    }
 
     // Don't skip whitespace.
     Lexer lexer(logger, methodName, input, false);
@@ -1621,7 +1655,8 @@ class Interpreter {
     position += 2;  // Skip "${"
 
     token = eval.at(position);
-    // loop to the end
+
+    // WIP: fix this.
     while (token.getText() != Symbols.CloseCurlyBrace) {
       if (token.getText() == Symbols.DeclVar) {
         token = eval.at(++position);
@@ -1640,6 +1675,10 @@ class Interpreter {
                         CallStackFrame& frame) {
     BooleanExpressionBuilder booleanExpression;
     Value value = interpretExpression(booleanExpression, frame);
+
+    if (current(frame).getType() == TokenType::DOT) {
+      value = interpretDotNotation(value, frame);
+    }
 
     if (op == Operators.Assign) {
       if (booleanExpression.isSet()) {
