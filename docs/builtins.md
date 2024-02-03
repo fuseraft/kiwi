@@ -49,7 +49,7 @@ Converts a numeric value to a double.
 println @tau # 6.28318
 ```
 
-### `.to_i`
+### `.to_i()`
 
 Converts a numeric value to an integer.
 
@@ -72,7 +72,7 @@ Converts a value to a string.
 println @s  # prints: [100, "100"]
 ```
 
-### `.is_a?`
+### `.is_a?(type_name)`
 
 *Under construction in new interpreter*
 
