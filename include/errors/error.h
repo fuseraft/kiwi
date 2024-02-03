@@ -71,6 +71,13 @@ class ParameterMissingError : public KiwiError {
                   "The parameter `" + name + "` was expected but missing.") {}
 };
 
+class UnrecognizedBuiltinError : public KiwiError {
+ public:
+  UnrecognizedBuiltinError(const Token& token, std::string name)
+      : KiwiError(token, "UnrecognizedBuiltinError",
+                  "Unrecognized builtin `" + name + "`.") {}
+};
+
 class BuiltinUnexpectedArgumentError : public KiwiError {
  public:
   BuiltinUnexpectedArgumentError(const Token& token, std::string name)

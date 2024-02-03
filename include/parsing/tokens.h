@@ -24,6 +24,7 @@ enum TokenType {
   ENDOFFRAME,
   QUALIFIER,
   COLON,
+  DOT,
   ENDOFFILE
 };
 

@@ -48,4 +48,21 @@ struct {
   }
 } FileIOBuiltIns;
 
+struct {
+  const std::string Chars = "chars";
+  const std::string IsA = "is_a?";
+  const std::string Join = "join";
+  const std::string Size = "size";
+  const std::string ToD = "to_d";
+  const std::string ToI = "to_i";
+  const std::string ToS = "to_s";
+
+  std::unordered_set<std::string> builtins = {Chars, IsA, Join, Size,
+                                              ToD,   ToI, ToS};
+
+  bool is_builtin(const std::string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+} KiwiBuiltins;
+
 #endif
