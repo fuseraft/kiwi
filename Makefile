@@ -31,6 +31,8 @@ all: format $(EXECUTABLE)
 test: $(EXECUTABLE)
 	@echo "================================"
 	$(EXECUTABLE) $(TEST_FILE)
+	@echo "================================"
+	$(EXECUTABLE) $(LIB_TEST)
 
 testlib: $(EXECUTABLE)
 	@echo "================================"
