@@ -552,17 +552,13 @@ class Interpreter {
     moduleStack.pop();
   }
 
-  void interpretBuiltin(const std::string& name, CallStackFrame& frame) {
-    Token tokenTerm = current(frame);
-    next(frame);  // Skip the name.
+  std::vector<Value> interpretParameters(CallStackFrame& frame) {
+    std::vector<Value> parameters;
 
     if (current(frame).getType() != TokenType::OPEN_PAREN) {
       throw SyntaxError(current(frame));
     }
     next(frame);  // Skip "("
-
-    // Interpret parameters.
-    std::vector<Value> parameters;
 
     bool closeParenthesisFound = false;
     while (current(frame).getType() != TokenType::CLOSE_PAREN) {
@@ -586,6 +582,14 @@ class Interpreter {
       }
     }
     next(frame);  // Skip ")"
+    return parameters;
+  }
+
+  void interpretBuiltin(const std::string& name, CallStackFrame& frame) {
+    Token tokenTerm = current(frame);
+    next(frame);  // Skip the name.
+
+    auto parameters = interpretParameters(frame);
 
     frame.returnValue =
         BuiltinInterpreter::execute(tokenTerm, name, parameters);
@@ -1022,7 +1026,7 @@ class Interpreter {
     }
   }
 
-  void interpretAppendToList(CallStackFrame& frame,
+  void interpretAppendToList(CallStackFrame& frame, Value& listValue,
                              const std::string& listVariableName) {
     Token tokenTerm = current(frame);
 
@@ -1038,12 +1042,15 @@ class Interpreter {
                                   "`" + listVariableName + "` is not a list.");
     }
 
-    // next(frame);
-    BooleanExpressionBuilder booleanExpression;
-    auto valueToAppend = interpretExpression(booleanExpression, frame);
-
     auto& listPtr = std::get<std::shared_ptr<List>>(variableValue);
-    listPtr->elements.push_back(valueToAppend);
+
+    if (std::holds_alternative<std::shared_ptr<List>>(listValue)) {
+      listPtr->elements.push_back(listValue);
+    } else {
+      BooleanExpressionBuilder booleanExpression;
+      auto valueToAppend = interpretExpression(booleanExpression, frame);
+      listPtr->elements.push_back(valueToAppend);
+    }
   }
 
   std::shared_ptr<List> interpretList(
@@ -1098,7 +1105,8 @@ class Interpreter {
       if (current(frame).getType() != TokenType::KEYWORD) {
         if (current(frame).getType() == TokenType::LITERAL) {
           next(frame);
-        } else if (current(frame).getType() == TokenType::IDENTIFIER && !hasModule(current(frame).getText())) {
+        } else if (current(frame).getType() == TokenType::IDENTIFIER &&
+                   !hasModule(current(frame).getText())) {
           next(frame);
         }
       }
@@ -1402,6 +1410,20 @@ class Interpreter {
     }
   }
 
+  Value interpretDotNotation(Value& value, CallStackFrame& frame) {
+    if (peek(frame).getType() == TokenType::DOT) {
+      next(frame);
+    }
+    if (current(frame).getType() == TokenType::DOT) {
+      next(frame);
+    }
+    std::string op = current(frame).getText();
+    next(frame);
+    auto parameters = interpretParameters(frame);
+
+    return BuiltinInterpreter::execute(current(frame), op, value, parameters);
+  }
+
   // WIP: expression interpreter
   Value interpretExpression(BooleanExpressionBuilder& booleanExpression,
                             CallStackFrame& frame) {
@@ -1427,6 +1449,8 @@ class Interpreter {
 
     if (peek(frame).getType() == TokenType::OPERATOR) {
       next(frame);
+    } else if (peek(frame).getType() == TokenType::DOT) {
+      return interpretDotNotation(result, frame);
     }
 
     while (current(frame).getType() == TokenType::OPERATOR) {
@@ -1635,7 +1659,7 @@ class Interpreter {
     }
 
     if (op == Operators.ListAppend) {
-      interpretAppendToList(frame, name);
+      interpretAppendToList(frame, value, name);
       return;
     }
 

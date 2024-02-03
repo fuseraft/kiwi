@@ -17,8 +17,9 @@ OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
 EXECUTABLE := $(BIN_DIR)/kiwi
 
-TEST_FILE := $(TEST_DIR)/test.kiwi
 LIB_TEST := $(LIB_DIR)/test.kiwi
+PLAY := $(TEST_DIR)/playground.kiwi
+TEST_FILE := $(TEST_DIR)/test.kiwi
 
 .PHONY: clean test testlib
 
@@ -34,6 +35,10 @@ test: $(EXECUTABLE)
 testlib: $(EXECUTABLE)
 	@echo "================================"
 	$(EXECUTABLE) $(LIB_TEST)
+
+play: $(EXECUTABLE)
+	@echo "================================"
+	$(EXECUTABLE) $(PLAY)
 
 clean:
 	rm -rf $(BUILD_DIR) $(BIN_DIR)

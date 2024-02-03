@@ -110,6 +110,8 @@ class Lexer {
     } else if (currentChar == ',') {
       return Token::create(TokenType::COMMA, file, ",", lineNumber,
                            linePosition);
+    } else if (currentChar == '.') {
+      return Token::create(TokenType::DOT, file, ".", lineNumber, linePosition);
     } else if (currentChar == '\\') {
       if (currentPosition < source.length()) {
         char nextChar = getCurrentChar();
