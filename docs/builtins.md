@@ -41,18 +41,20 @@ println @list.size()
 
 ### `.to_d()`
 
-Converts a numeric type to a double.
+Converts a numeric value to a double.
 
 ```ruby
-@i = 100
+@pi = "3.14159".to_d()
+@tau = @pi * 2
+println @tau # 6.28318
 ```
 
 ### `.to_i`
 
-Converts a numeric type to an integer.
+Converts a numeric value to an integer.
 
 ```ruby
-@n = 100
+@n = "100".to_i()
 @n += 0.5
 println @n # 100.5
 
@@ -60,7 +62,15 @@ println @n # 100.5
 println @n # 100
 ```
 
-### `.to_s`
+### `.to_s()`
+
+Converts a value to a string.
+
+```ruby
+@n = 100
+@s = [@n, @n.to_s()]
+println @s  # prints: [100, "100"]
+```
 
 ### `.is_a?`
 

@@ -5,9 +5,14 @@ println "==================="
 # Add Kiwi here!
 
 @pi = "3.14159".to_d()
-println "pi = ${@pi}"
-
 @tau = @pi * 2
+
+println "pi = ${@pi}"
 println "tau = ${@tau}"
+
+@n = 100
+@s = [@n, @n.to_s()]
+
+println @s
 
 println ""
