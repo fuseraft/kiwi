@@ -121,3 +121,28 @@ end
 if !fileio::exists(@path)
   println "=> deleted file: ${@path}"
 end
+
+@path = "file.txt"
+println "creating file: ${@path}"
+fileio::create(@path)
+@i = 1
+
+println "writing to file: ${@path}"
+while @i <= 10 do
+  fileio::writeln(@path, "Item ${@i}")
+  @i += 1
+end
+
+println "reading lines from: ${@path}"
+@lines = fileio::readlines(@path)
+for @line, @index in @lines do
+  println "${@index}: ${@line}"
+end
+
+if fileio::exists(@path)
+  fileio::delete(@path)
+end
+
+if !fileio::exists(@path)
+  println "deleted file: ${@path}"
+end

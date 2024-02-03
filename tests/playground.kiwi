@@ -4,4 +4,10 @@ println "==================="
 
 # Add Kiwi here!
 
+@pi = "3.14159".to_d()
+@tau = @pi * 2
+
+println "pi = ${@pi}"
+println "tau = ${@tau}"
+
 println ""

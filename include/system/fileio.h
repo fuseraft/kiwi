@@ -146,6 +146,21 @@ class FileIO {
 
     return buffer;
   }
+
+  static std::shared_ptr<List> readLines(const std::string& filePath) {
+    std::ifstream inputFile(filePath);
+    if (!inputFile.is_open()) {
+      throw std::runtime_error("Cannot open file: " + filePath);
+    }
+
+    std::shared_ptr<List> list = std::make_shared<List>();
+    std::string line;
+    while (getline(inputFile, line)) {
+      list->elements.push_back(Value(line));
+    }
+
+    return list;
+  }
 };
 
 #endif

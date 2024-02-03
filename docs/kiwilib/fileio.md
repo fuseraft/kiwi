@@ -99,6 +99,13 @@ import "fileio"
   - `@_path`: The path to a file.
 - **Returns**: String containing the file content.
 
+### `readlines(@_path)`
+
+- **Summary**: Get the content of a file as a list of strings.
+- **Parameters**:
+  - `@_path`: The path to a file.
+- **Returns**: List containing the file content.
+
 ### `write(@_path, @_text)`
 
 - **Summary**: Write text to a file. This overwrites the file if it exists.
