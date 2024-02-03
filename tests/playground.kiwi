@@ -10,9 +10,4 @@ println "==================="
 println "pi = ${@pi}"
 println "tau = ${@tau}"
 
-@n = 100
-@s = [@n, @n.to_s()]
-
-println @s
-
 println ""
