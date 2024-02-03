@@ -12,14 +12,6 @@ cd kiwi
 make all
 ```
 
-## Build Instructions
-
-To build Kiwi, open a terminal, navigate to the source code, and run:
-
-```
-make all
-```
-
 ## Testing
 
 Please see the [tests](tests) directory for a list of test scripts.
