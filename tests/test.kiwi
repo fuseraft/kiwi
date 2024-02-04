@@ -23,6 +23,7 @@ if !@debug
     import "loop_controls"
     import "builtins"
     import "prime_numbers"
+    import "fibonacci"
 else
     # Set @debug = true, and add an import below to debug a specific script.
     import "playground"
