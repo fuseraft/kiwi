@@ -619,9 +619,11 @@ class Interpreter {
       std::string paramName = parameters.at(paramIndex++).getText();
       BooleanExpressionBuilder booleanExpression;
       tokenTerm = current(frame);
-      Value paramValue = interpretTerm(tokenTerm, booleanExpression, frame);
+      Value paramValue = interpretExpression(booleanExpression, frame);
       if (peek(frame).getType() == TokenType::CLOSE_PAREN) {
         next(frame);
+        closeParenthesisFound = true;
+      } else if (current(frame).getType() == TokenType::CLOSE_PAREN) {
         closeParenthesisFound = true;
       }
       method.addParameterValue(paramName, paramValue);
@@ -1679,6 +1681,8 @@ class Interpreter {
           }
         }
         return getVariable(variableName, frame);
+      } else {
+        std::cout << "";
       }
     } else if (current(frame).getType() == TokenType::OPERATOR) {
       std::string op = current(frame).toString();
