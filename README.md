@@ -22,9 +22,7 @@ To run the test suite, use:
 make test
 ```
 
-## Example: FizzBuzz in Kiwi
-
-Here's an example of FizzBuzz implemented in Kiwi:
+## Example: FizzBuzz
 
 ```ruby
 def fizzbuzz(@n)
@@ -46,6 +44,51 @@ def fizzbuzz(@n)
 end
 
 fizzbuzz(15)
+```
+
+## Example: Sieve of Eratosthenes
+
+```ruby
+def sieve_of_eratosthenes(@limit)
+  @isPrime = []
+  for @i in [0..@limit] do
+     @isPrime << true
+  end
+
+  @isPrime[0] = false
+  @isPrime[1] = false
+
+  @p = 2
+
+  while @p * @p <= @limit do
+    # If @p is not changed, then it is a prime
+    if @isPrime[@p]
+      # Update all multiples of @p
+      @multiple = @p * 2
+      
+      while @multiple <= @limit do
+        @isPrime[@multiple] = false
+        @multiple += @p
+      end
+    end
+
+    @p += 1
+  end
+
+  # Collect all prime numbers
+  @primes = []
+  for @i in [0..@limit] do
+    if @isPrime[@i]
+      @primes << @i
+    end
+  end
+
+  return @primes
+end
+
+for @prime, @index in sieve_of_eratosthenes(30) do
+  println "${@index}:\t${@prime}"
+end
 ```
 
 ## Contributions

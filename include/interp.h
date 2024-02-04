@@ -94,15 +94,16 @@ class Interpreter {
       auto& token = frame.tokens[frame.position];
       interpretToken(token, frame);
 
-      // WIP: clean this up.
+      bool tokenChange = false;
+
       if (frame.position < frame.tokens.size()) {
         token = frame.tokens[frame.position];
+        tokenChange = true;
       }
 
-      // WIP: clean this up.
-      if ((token.getType() != TokenType::KEYWORD &&
-           token.getType() != TokenType::CONDITIONAL) ||
-          token.getText() == Keywords.End) {
+      if (tokenChange && ((token.getType() != TokenType::KEYWORD &&
+                           token.getType() != TokenType::CONDITIONAL) ||
+                          token.getText() == Keywords.End)) {
         if (methods.find(token.getText()) != methods.end()) {
           continue;
         }
@@ -327,7 +328,6 @@ class Interpreter {
       std::vector<Token> condition = conditionTokens;
       auto it = condition.begin() + 0;
       condition.insert(it, tempAssignment.begin(), tempAssignment.end());
-      condition.push_back(Token::createNoOp());
 
       CallStackFrame conditionFrame(condition);
       for (const auto& pair : frame.variables) {
@@ -449,7 +449,6 @@ class Interpreter {
     switch (token.getType()) {
       case TokenType::COMMENT:
       case TokenType::COMMA:
-      case TokenType::NOOP:
         break;
 
       case TokenType::KEYWORD:
@@ -732,7 +731,9 @@ class Interpreter {
     bool isParenthesis = tokenType == TokenType::OPEN_PAREN;
     bool isVariable = tokenType == TokenType::KEYWORD &&
                       nextToken.getText() == Symbols.DeclVar;
-    return isString || isLiteral || isIdentifier || isParenthesis || isVariable;
+    bool isBracketed = tokenType == TokenType::OPEN_BRACKET;
+    return isString || isLiteral || isIdentifier || isParenthesis ||
+           isVariable || isBracketed;
   }
 
   void interpretReturn(CallStackFrame& frame) {
@@ -774,24 +775,10 @@ class Interpreter {
           handleAssignment(name, op, frame);
         }
       } else if (current(frame).getType() == TokenType::OPEN_BRACKET) {
-        // Look ahead to determine if it's a slice assignment or a simple list access.
-        size_t lookAheadPos = frame.position;
-        bool isSliceAssignment = false;
-        Token lookAheadToken = frame.tokens[lookAheadPos];
-        while (lookAheadPos < frame.tokens.size()) {
-          if (lookAheadToken.getType() == TokenType::COLON ||
-              (lookAheadToken.getType() == TokenType::OPERATOR)) {
-            isSliceAssignment = true;
-            break;
-          }
-          ++lookAheadPos;
-          lookAheadToken = frame.tokens[lookAheadPos];
+        if (!isSliceAssignmentExpression(frame)) {
+          throw SyntaxError(current(frame));
         }
-
-        if (isSliceAssignment) {
-          interpretSliceAssignment(frame, name);
-          return name;
-        }
+        interpretSliceAssignment(frame, name);
       }
     }
 
@@ -826,8 +813,7 @@ class Interpreter {
     Value rhsValues = interpretExpression(booleanExpression, frame);
 
     // Get the target list to update
-    Value targetListValue = getVariable(listVariableName, frame);
-    auto targetListPtr = std::get<std::shared_ptr<List>>(targetListValue);
+    auto targetListPtr = std::get<std::shared_ptr<List>>(listValue);
 
     auto rhsList = convert_value_to_list(rhsValues);
     updateListSlice(frame, insertOp, targetListPtr, slice, rhsList);
@@ -1053,6 +1039,56 @@ class Interpreter {
     }
   }
 
+  std::shared_ptr<List> interpretRange(
+      BooleanExpressionBuilder& booleanExpression, CallStackFrame& frame) {
+    std::shared_ptr<List> list = std::make_shared<List>();
+
+    next(frame);  // Skip the "["
+
+    auto startValue = interpretExpression(booleanExpression, frame);
+
+    if (peek(frame).getType() != TokenType::RANGE) {
+      throw RangeError(current(frame),
+                       "Expected range separator, `..`, in range expression.");
+    } else {
+      next(frame);
+    }
+
+    next(frame);
+
+    auto stopValue = interpretExpression(booleanExpression, frame);
+
+    if (peek(frame).getType() != TokenType::CLOSE_BRACKET) {
+      throw RangeError(current(frame),
+                       "Expected close-bracket, `]`, in range expression.");
+    } else {
+      next(frame);
+    }
+
+    next(frame);  // Skip the "]"
+
+    if (!std::holds_alternative<int>(startValue)) {
+      throw RangeError(current(frame),
+                       "A range start value must be an integer.");
+    }
+
+    if (!std::holds_alternative<int>(stopValue)) {
+      throw RangeError(current(frame),
+                       "A range stop value must be an integer.");
+    }
+
+    int start = std::get<int>(startValue), stop = std::get<int>(stopValue);
+    int step = stop < start ? -1 : 1;
+    int i = start;
+
+    for (; i != stop; i += step) {
+      list->elements.push_back(i);
+    }
+    list->elements.push_back(i);
+
+    return list;
+  }
+
   std::shared_ptr<List> interpretList(
       BooleanExpressionBuilder& booleanExpression, CallStackFrame& frame) {
     std::shared_ptr<List> list = std::make_shared<List>();
@@ -1116,7 +1152,8 @@ class Interpreter {
       throw ConversionError(current(frame));
     }
 
-    if (current(frame).getType() == TokenType::CLOSE_PAREN) {
+    while (current(frame).getType() == TokenType::CLOSE_PAREN ||
+           current(frame).getType() == TokenType::CLOSE_BRACKET) {
       next(frame);
     }
 
@@ -1307,10 +1344,11 @@ class Interpreter {
       std::cout << get_value_string(value);
     } else if (current(frame).getType() == TokenType::OPEN_BRACKET) {
       BooleanExpressionBuilder booleanExpression;
-      Value value = interpretList(booleanExpression, frame);
-      if (current(frame).getType() == TokenType::DOT) {
-        value = interpretDotNotation(value, frame);
-      }
+      Value value = interpretBracketExpression(booleanExpression, frame);
+      std::cout << get_value_string(value);
+    } else if (current(frame).getType() == TokenType::IDENTIFIER) {
+      BooleanExpressionBuilder booleanExpression;
+      Value value = interpretExpression(booleanExpression, frame);
       std::cout << get_value_string(value);
     } else {
       throw ConversionError(current(frame));
@@ -1335,6 +1373,20 @@ class Interpreter {
 
     bool booleanValue = std::get<bool>(value);
     booleanExpression.value(booleanValue);
+  }
+
+  Value interpretBracketExpression(BooleanExpressionBuilder& booleanExpression,
+                                   CallStackFrame& frame) {
+    Value value;
+    if (isListExpression(frame)) {
+      value = interpretList(booleanExpression, frame);
+    } else if (isRangeExpression(frame)) {
+      value = interpretRange(booleanExpression, frame);
+    }
+    if (current(frame).getType() == TokenType::DOT) {
+      value = interpretDotNotation(value, frame);
+    }
+    return value;
   }
 
   void interpretBooleanExpression(Token& tokenTerm,
@@ -1433,14 +1485,64 @@ class Interpreter {
     return BuiltinInterpreter::execute(current(frame), op, value, parameters);
   }
 
-  // WIP: expression interpreter
+  bool isSliceAssignmentExpression(CallStackFrame& frame) {
+    size_t pos = frame.position;
+    bool isSliceAssignment = false;
+    Token token = frame.tokens[pos];
+    while (pos < frame.tokens.size()) {
+      if (token.getType() == TokenType::COLON ||
+          token.getType() == TokenType::OPERATOR) {
+        isSliceAssignment = true;
+        break;
+      }
+      token = frame.tokens[++pos];
+    }
+    return isSliceAssignment;
+  }
+
+  bool isListExpression(CallStackFrame& frame) {
+    size_t position = frame.position;
+    Token token = frame.tokens[position];
+
+    if (token.getType() != TokenType::OPEN_BRACKET) {
+      return false;
+    }
+
+    token = frame.tokens[++position];
+
+    while (position < frame.tokens.size() &&
+           token.getType() != TokenType::CLOSE_BRACKET) {
+      if (token.getType() == TokenType::COLON ||
+          token.getType() == TokenType::RANGE) {
+        return false;
+      }
+      token = frame.tokens[++position];
+    }
+
+    return true;
+  }
+
+  bool isRangeExpression(CallStackFrame& frame) {
+    size_t pos = frame.position;
+    bool isRange = false;
+    Token token = frame.tokens[pos];
+    while (pos < frame.tokens.size()) {
+      if (token.getType() == TokenType::RANGE) {
+        isRange = true;
+        break;
+      }
+      token = frame.tokens[++pos];
+    }
+    return isRange;
+  }
+
   Value interpretExpression(BooleanExpressionBuilder& booleanExpression,
                             CallStackFrame& frame) {
     Token tokenTerm = current(frame);
     std::string tokenText = tokenTerm.getText();
 
     if (current(frame).getType() == TokenType::OPEN_BRACKET) {
-      return interpretList(booleanExpression, frame);
+      return interpretBracketExpression(booleanExpression, frame);
     }
 
     interpretQualifiedIdentifier(tokenTerm, tokenText, frame);
@@ -1480,7 +1582,8 @@ class Interpreter {
       if (Operators.is_arithmetic_operator(op)) {
         interpretArithmeticExpression(tokenTerm, op, result, nextTerm);
         std::string peekNext = peek(frame).getText();
-        if (current(frame).getType() == TokenType::LITERAL &&
+        if ((current(frame).getType() == TokenType::LITERAL ||
+             current(frame).getType() == TokenType::IDENTIFIER) &&
             (Operators.is_relational_operator(peekNext) ||
              Operators.is_logical_operator(peekNext))) {
           next(frame);
@@ -1489,6 +1592,12 @@ class Interpreter {
         if (peekNext == Symbols.CloseParenthesis ||
             Operators.is_arithmetic_operator(peekNext)) {
           next(frame);
+        }
+
+        if (current(frame).getType() == TokenType::CLOSE_PAREN) {
+          if (peek(frame).getType() == TokenType::OPERATOR) {
+            next(frame);
+          }
         }
       }
 
