@@ -22,6 +22,7 @@ if !@debug
     import "for_loops"
     import "loop_controls"
     import "builtins"
+    import "prime_numbers"
 else
     # Set @debug = true, and add an import below to debug a specific script.
     import "playground"

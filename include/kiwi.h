@@ -5,7 +5,7 @@
 #include <vector>
 
 const std::string kiwi_name = "The Kiwi Programming Language";
-const std::string kiwi_version = "1.0.6";
+const std::string kiwi_version = "1.0.7";
 
 #include "configuration/config.h"
 #include "errors/error.h"

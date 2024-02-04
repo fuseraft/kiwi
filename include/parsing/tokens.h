@@ -20,9 +20,9 @@ enum TokenType {
   OPEN_BRACKET,
   CLOSE_BRACKET,
   CONDITIONAL,
-  NOOP,
   ENDOFFRAME,
   QUALIFIER,
+  RANGE,
   COLON,
   DOT,
   ENDOFFILE
@@ -48,8 +48,6 @@ class Token {
     return create(TokenType::LITERAL, file, text, value, lineNumber,
                   linePosition);
   }
-
-  static Token createNoOp() { return create(TokenType::NOOP, "", "", 0, 0); }
 
   static Token createEmpty() {
     return create(TokenType::ENDOFFILE, "", "", 0, 0);

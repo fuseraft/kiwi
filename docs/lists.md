@@ -1,7 +1,5 @@
 # Lists
 
-*Under construction in new interpreter.*
-
 Lists in Kiwi look and behave a lot like lists in other languages.
 
 ### Defining a List
@@ -61,23 +59,22 @@ You can define a list using a range.
 ### An Example
 
 ```ruby
-def sieveOfEratosthenes(@limit)
+def sieve_of_eratosthenes(@limit)
   @isPrime = []
-  for @i in [0..@limit]
+  for @i in [0..@limit] do
      @isPrime << true
   end
 
-  @isPrime[0] = false  # 0 is not a prime
-  @isPrime[1] = false  # 1 is not a prime
-  
-  @p = 2  # The first prime number
-  
+  @isPrime[0] = false
+  @isPrime[1] = false
+
+  @p = 2
+
   while @p * @p <= @limit do
     # If @p is not changed, then it is a prime
     if @isPrime[@p]
       # Update all multiples of @p
       @multiple = @p * 2
-      
       while @multiple <= @limit do
         @isPrime[@multiple] = false
         @multiple += @p
@@ -87,18 +84,18 @@ def sieveOfEratosthenes(@limit)
     @p += 1
   end
 
-  # Collecting all prime numbers
+  # Collect all prime numbers
   @primes = []
   for @i in [0..@limit] do
     if @isPrime[@i]
-      @primes << (@i)
+      @primes << @i
     end
   end
 
   return @primes
 end
 
-for @prime, @i in sieveOfEratosthenes(30) do
-  println "${@i}:\t${@prime}"
+for @prime, @index in sieve_of_eratosthenes(30) do
+  println "${@index}:\t${@prime}"
 end
 ```
