@@ -65,6 +65,7 @@ def sieve_of_eratosthenes(@limit)
     if @isPrime[@p]
       # Update all multiples of @p
       @multiple = @p * 2
+      
       while @multiple <= @limit do
         @isPrime[@multiple] = false
         @multiple += @p
