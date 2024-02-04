@@ -111,75 +111,13 @@ class Lexer {
       return Token::create(TokenType::COMMA, file, ",", lineNumber,
                            linePosition);
     } else if (currentChar == '.') {
-      return Token::create(TokenType::DOT, file, ".", lineNumber, linePosition);
+      return parseDot(currentChar);
     } else if (currentChar == '\\') {
-      if (currentPosition < source.length()) {
-        char nextChar = getCurrentChar();
-
-        switch (nextChar) {
-          case 't':
-            return Token::create(TokenType::ESCAPED, file, "\t", lineNumber,
-                                 linePosition);
-          case 'n':
-            return Token::create(TokenType::ESCAPED, file, "\n", lineNumber,
-                                 linePosition);
-        }
-      }
-
-      getCurrentChar();
-
-      return Token::create(TokenType::IDENTIFIER, file, "\\", lineNumber,
-                           linePosition);
+      return parseEscapeCharacter();
     } else if (currentChar == ':') {
-      std::string s;
-      s = currentChar;
-
-      if (currentPosition < source.length()) {
-        char nextChar = source[currentPosition];
-        if (nextChar == ':') {
-          s += nextChar;
-          getCurrentChar();
-          return Token::create(TokenType::QUALIFIER, file, s, lineNumber,
-                               linePosition);
-        }
-      }
-
-      return Token::create(TokenType::COLON, file, s, lineNumber, linePosition);
+      return parseColon(currentChar);
     } else {
-      std::string s;
-      s = currentChar;
-
-      if (currentPosition < source.length()) {
-        char nextChar = source[currentPosition];
-        bool isArithmeticOpChar =
-            Operators.is_arithmetic_operator_char(currentChar);
-        bool isBooleanOpChar = Operators.is_boolean_operator_char(currentChar);
-        bool isArithmeticOp =
-            (nextChar == '=' && (isArithmeticOpChar || isBooleanOpChar)) ||
-            (currentChar == '*' && nextChar == '*');
-        bool isBooleanOp =
-            (nextChar == '|' || nextChar == '&') && isBooleanOpChar;
-        bool isBitwiseOp = (Operators.is_bitwise_operator_char(currentChar) &&
-                            nextChar == '=') ||
-                           (currentChar == '<' && nextChar == '<') ||
-                           (currentChar == '>' && nextChar == '>');
-
-        bool appendNextChar = isArithmeticOp || isBooleanOp || isBitwiseOp;
-
-        if (appendNextChar) {
-          s += nextChar;
-          getCurrentChar();
-
-          nextChar = source[currentPosition];
-          if (nextChar == '=' && Operators.is_large_operator(s)) {
-            s += nextChar;
-            getCurrentChar();
-          }
-        }
-      }
-
-      return Token::create(TokenType::OPERATOR, file, s, lineNumber,
-                           linePosition);
+      return parseUnspecified(currentChar);
     }
   }
 
@@ -209,6 +147,92 @@ class Lexer {
     return Token::create(tokenType, file, identifier, lineNumber, linePosition);
   }
 
+  Token parseUnspecified(char initialChar) {
+    std::string s(1, initialChar);
+
+    if (currentPosition < source.length()) {
+      char nextChar = source[currentPosition];
+      bool isArithmeticOpChar =
+          Operators.is_arithmetic_operator_char(initialChar);
+      bool isBooleanOpChar = Operators.is_boolean_operator_char(initialChar);
+      bool isArithmeticOp =
+          (nextChar == '=' && (isArithmeticOpChar || isBooleanOpChar)) ||
+          (initialChar == '*' && nextChar == '*');
+      bool isBooleanOp =
+          (nextChar == '|' || nextChar == '&') && isBooleanOpChar;
+      bool isBitwiseOp = (Operators.is_bitwise_operator_char(initialChar) &&
+                          nextChar == '=') ||
+                         (initialChar == '<' && nextChar == '<') ||
+                         (initialChar == '>' && nextChar == '>');
+
+      if (isArithmeticOp || isBooleanOp || isBitwiseOp) {
+        s += nextChar;
+        getCurrentChar();
+
+        nextChar = source[currentPosition];
+        if (nextChar == '=' && Operators.is_large_operator(s)) {
+          s += nextChar;
+          getCurrentChar();
+        }
+      }
+    }
+
+    return Token::create(TokenType::OPERATOR, file, s, lineNumber,
+                         linePosition);
+  }
+
+  Token parseColon(char initialChar) {
+    std::string s(1, initialChar);
+
+    if (currentPosition < source.length()) {
+      char nextChar = source[currentPosition];
+      if (nextChar == ':') {
+        s += nextChar;
+        getCurrentChar();
+        return Token::create(TokenType::QUALIFIER, file, s, lineNumber,
+                             linePosition);
+      }
+    }
+
+    return Token::create(TokenType::COLON, file, s, lineNumber, linePosition);
+  }
+
+  Token parseEscapeCharacter() {
+    if (currentPosition < source.length()) {
+      char nextChar = getCurrentChar();
+
+      switch (nextChar) {
+        case 't':
+          return Token::create(TokenType::ESCAPED, file, "\t", lineNumber,
+                               linePosition);
+        case 'n':
+          return Token::create(TokenType::ESCAPED, file, "\n", lineNumber,
+                               linePosition);
+      }
+    }
+
+    getCurrentChar();
+
+    return Token::create(TokenType::IDENTIFIER, file, "\\", lineNumber,
+                         linePosition);
+  }
+
+  Token parseDot(char initialChar) {
+    std::string s(1, initialChar);
+
+    if (currentPosition < source.length()) {
+      char nextChar = source[currentPosition];
+      if (nextChar == '.') {
+        s += nextChar;
+        getCurrentChar();
+        return Token::create(TokenType::RANGE, file, s, lineNumber,
+                             linePosition);
+      }
+    }
+
+    return Token::create(TokenType::DOT, file, ".", lineNumber, linePosition);
+  }
+
   Token parseIdentifier(char initialChar) {
     std::string identifier(1, initialChar);
 
@@ -228,10 +252,18 @@ class Lexer {
 
   Token parseLiteral(char initialChar) {
     std::string literal(1, initialChar);
+    char lastChar = initialChar;
 
     while (
         currentPosition < source.length() &&
         (isdigit(source[currentPosition]) || source[currentPosition] == '.')) {
+      if (source[currentPosition] == '.' && lastChar == '.') {
+        literal.pop_back();
+        --currentPosition;
+        break;
+      }
+
+      lastChar = source[currentPosition];
       literal += getCurrentChar();
     }
 
