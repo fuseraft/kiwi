@@ -15,7 +15,7 @@ println [1..5]
 println @range 
 # [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
 
-@range = [20..19]
+@range = [20..18]
 println @range
 # [20, 19, 18]
 ```
