@@ -5,7 +5,12 @@ println "==================="
 # Add Kiwi here!
 import "../kiwilib/time"
 
-@ts = time::current_timestamp()
-println "Current timestamp: ${@ts}"
+@i = 0
+while @i < 10 do
+  @ts = time::current_timestamp()
+  println "Current timestamp: ${@ts}"
+  time::delay(1000)
+  @i += 1
+end
 
 println ""
