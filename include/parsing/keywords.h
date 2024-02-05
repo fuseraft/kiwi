@@ -134,32 +134,6 @@ struct {
 } Operators;
 
 struct {
-  const std::string Sin = "sin";
-  const std::string Sinh = "sinh";
-  const std::string Asin = "asin";
-  const std::string Tan = "tan";
-  const std::string Tanh = "tanh";
-  const std::string Atan = "atan";
-  const std::string Cos = "cos";
-  const std::string Acos = "acos";
-  const std::string Cosh = "cosh";
-  const std::string Log = "log";
-  const std::string Sqrt = "sqrt";
-  const std::string Abs = "abs";
-  const std::string Floor = "floor";
-  const std::string Ceil = "ceil";
-  const std::string Exp = "exp";
-
-  std::unordered_set<std::string> math_functions = {
-      Abs,   Acos, Asin, Atan, Ceil, Cos, Cosh, Exp,
-      Floor, Log,  Sin,  Sinh, Sqrt, Tan, Tanh};
-
-  bool is_math_function(const std::string& arg) {
-    return math_functions.find(arg) != math_functions.end();
-  }
-} Math;
-
-struct {
   const std::string Break = "break";
   const std::string Case = "case";
   const std::string Catch = "catch";

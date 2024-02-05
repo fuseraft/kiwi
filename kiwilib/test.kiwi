@@ -1,5 +1,6 @@
 import "fileio"
 import "time"
+import "math"
 
 @path = "hello.txt"
 
@@ -148,19 +149,18 @@ if !fileio::exists(@path)
   println "deleted file: ${@path}"
 end
 
+# =============================
 # Time tests
+# =============================
 
-@year = time::year()
-@month = time::month()
-@day = time::day()
-@hour = time::hour()
-@minute = time::minute()
-@second = time::second()
-@ampm = time::ampm()
+@ts = time::current_timestamp()
+println "Current timestamp: ${@ts}"
 
-if @hour > 12 @hour -= 12 end
-if @minute < 10 @minute = "0${@minute}" end
-if @day < 10 @day = "0${@day}" end
-if @month < 10 @month = "0${@month}" end
+# =============================
+# Math tests
+# =============================
 
-println "Current timestamp: ${@year}/${@month}/${@day} ${@hour}:${@minute}:${@second} ${@ampm}"
+println math::sin(0)
+println math::cos(0)
+println math::tan(0)
+println math::epsilon()
