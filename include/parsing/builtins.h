@@ -74,6 +74,62 @@ struct {
 } TimeBuiltins;
 
 struct {
+  const std::string Sin = "__sin__";
+  const std::string Tan = "__tan__";
+  const std::string Asin = "__asin__";
+  const std::string Acos = "__acos__";
+  const std::string Atan = "__atan__";
+  const std::string Atan2 = "__atan2__";
+  const std::string Sinh = "__sinh__";
+  const std::string Cosh = "__cosh__";
+  const std::string Tanh = "__tanh__";
+  const std::string Cos = "__cos__";
+  const std::string Log = "__log__";
+  const std::string Log2 = "__log2__";
+  const std::string Log10 = "__log10__";
+  const std::string Log1P = "__log1p__";
+  const std::string Fmod = "__fmod__";
+  const std::string Hypot = "__hypot__";
+  const std::string IsFinite = "__isfinite__";
+  const std::string IsInf = "__isinf__";
+  const std::string IsNaN = "__isnan__";
+  const std::string IsNormal = "__isnormal__";
+  const std::string Sqrt = "__sqrt__";
+  const std::string Cbrt = "__cbrt__";
+  const std::string Abs = "__abs__";
+  const std::string Floor = "__floor__";
+  const std::string Ceil = "__ceil__";
+  const std::string Round = "__round__";
+  const std::string Trunc = "__trunc__";
+  const std::string Remainder = "__remainder__";
+  const std::string Exp = "__exp__";
+  const std::string ExpM1 = "__expm1__";
+  const std::string Erf = "__erf__";
+  const std::string ErfC = "__erfc__";
+  const std::string LGamma = "__lgamma__";
+  const std::string TGamma = "__tgamma__";
+  const std::string FMax = "__fmax__";
+  const std::string FMin = "__fmin__";
+  const std::string FDim = "__fdim__";
+  const std::string CopySign = "__copysign__";
+  const std::string NextAfter = "__nextafter__";
+  const std::string Pow = "__pow__";
+  const std::string Epsilon = "__eps__";
+
+  std::unordered_set<std::string> builtins = {
+      Sin,  Tan,   Asin,     Acos,      Atan,   Atan2,    Sinh,
+      Cosh, Tanh,  Cos,      Log,       Log2,   Log10,    Log1P,
+      Fmod, Hypot, IsFinite, IsInf,     IsNaN,  IsNormal, Sqrt,
+      Cbrt, Abs,   Floor,    Ceil,      Round,  Trunc,    Remainder,
+      Exp,  ExpM1, Erf,      ErfC,      LGamma, TGamma,   FMax,
+      FMin, FDim,  CopySign, NextAfter, Pow,    Epsilon};
+
+  bool is_builtin(const std::string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+} MathBuiltins;
+
+struct {
   const std::string Chars = "chars";
   const std::string IsA = "is_a?";
   const std::string Join = "join";
@@ -90,7 +146,8 @@ struct {
   }
 
   bool is_builtin_method(const std::string& arg) {
-    return TimeBuiltins.is_builtin(arg) || FileIOBuiltIns.is_builtin(arg);
+    return TimeBuiltins.is_builtin(arg) || FileIOBuiltIns.is_builtin(arg) ||
+           MathBuiltins.is_builtin(arg);
   }
 } KiwiBuiltins;
 

@@ -1,0 +1,467 @@
+##
+Summary: A module containing functionality for working with time and date information.
+##
+module math
+  ##
+  Summary: Gets the smallest difference from 1.0 that a FP type can accurately represent.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def epsilon()
+    @_retval = __eps__()
+    return @_retval
+  end
+
+  ##
+  Summary: Computes the sine of a number.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def sin(@_value)
+    @_retval = __sin__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes the cosine of a number.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def cos(@_value)
+    @_retval = __cos__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes the tangent of a number.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def tan(@_value)
+    @_retval = __tan__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes the arc sine of a number.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def asin(@_value)
+    @_retval = __asin__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes the arc cosine of a number.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def acos(@_value)
+    @_retval = __acos__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes the arc tangent of a number.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def atan(@_value)
+    @_retval = __atan__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes the arc tangent of y / x, handling quadrants correctly.
+  Params:
+    - @_valueX: The number x.
+    - @_valueY: The number y.
+  Returns: Double
+  ##
+  def atan2(@_valueY, @_valueX)
+    @_retval = __atan2__(@_valueY, @_valueX)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes the hyperbolic sine of a number.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def sinh(@_value)
+    @_retval = __sinh__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes the hyperbolic cosine of a number.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def cosh(@_value)
+    @_retval = __cosh__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes the hyperbolic tangent of a number.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def tanh(@_value)
+    @_retval = __tanh__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes the natural logarithm (base e) of a number.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def log(@_value)
+    @_retval = __log__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes the logarithm to base 2 of a number.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def log2(@_value)
+    @_retval = __log2__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes the logarithm to base 10 of a number.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def log10(@_value)
+    @_retval = __log10__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes log(1 + x).
+  Params:
+    - @_value: The number x.
+  Returns: Double
+  ##
+  def log1p(@_value)
+    @_retval = __log1p__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes the square root of a number.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def sqrt(@_value)
+    @_retval = __sqrt__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes the cube root of a number.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def cbrt(@_value)
+    @_retval = __cbrt__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Gets the FP remainder of x / y.
+  Params:
+    - @_valueX: The number x.
+    - @_valueY: The number y.
+  Returns: Double
+  ##
+  def fmod(@_valueX, @_valueY)
+    @_retval = __fmod__(@_valueX, @_valueY)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes sqrt(x**2 + y**2) without undue overflow or underflow.
+  Params:
+    - @_valueX: The number x.
+    - @_valueY: The number y.
+  Returns: Double
+  ##
+  def hypot(@_valueX, @_valueY)
+    @_retval = __hypot__(@_valueX, @_valueY)
+    return @_retval
+  end
+
+  ##
+  Summary: Checks if x is a finite value.
+  Params:
+    - @_value: The number x.
+  Returns: Double
+  ##
+  def isfinite(@_value)
+    @_retval = __isfinite__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Checks if x is a finite value.
+  Params:
+    - @_value: The number x.
+  Returns: Double
+  ##
+  def isinf(@_value)
+    @_retval = __isinf__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Checks if x is NaN.
+  Params:
+    - @_value: The number x.
+  Returns: Double
+  ##
+  def isnan(@_value)
+    @_retval = __isnan__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Checks if x is a normal FP number.
+  Params:
+    - @_value: The number x.
+  Returns: Double
+  ##
+  def isnormal(@_value)
+    @_retval = __isnormal__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Rounds x to the nearest integer, away from zero in halfway cases.
+  Params:
+    - @_value: The number x.
+  Returns: Double
+  ##
+  def floor(@_value)
+    @_retval = __floor__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Rounds x to the largest integer not greater than x.
+  Params:
+    - @_value: The number x.
+  Returns: Double
+  ##
+  def ceil(@_value)
+    @_retval = __ceil__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Rounds x to the nearest integer, away from zero in halfway cases.
+  Params:
+    - @_value: The number x.
+  Returns: Double
+  ##
+  def round(@_value)
+    @_retval = __round__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Truncates x to the integer part, towards zero.
+  Params:
+    - @_value: The number x.
+  Returns: Double
+  ##
+  def trunc(@_value)
+    @_retval = __trunc__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: IEEE 754 FP remainder of x / y.
+  Params:
+    - @_valueX: The number x.
+    - @_valueY: The number y.
+  Returns: Double
+  ##
+  def remainder(@_valueX, @_valueY)
+    @_retval = __remainder__(@_valueX, @_valueY)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes e**x.
+  Params:
+    - @_value: The number x.
+  Returns: Double
+  ##
+  def exp(@_value)
+    @_retval = __exp__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Computes e**x - 1.
+  Params:
+    - @_value: The number x.
+  Returns: Double
+  ##
+  def expm1(@_value)
+    @_retval = __expm1__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Error function.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def erf(@_value)
+    @_retval = __erf__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Complementary error function.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def erfc(@_value)
+    @_retval = __erfc__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: The natural logarithm of the absolute value of the gamma function.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def lgamma(@_value)
+    @_retval = __lgamma__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: The gamma function.
+  Params:
+    - @_value: The number.
+  Returns: Double
+  ##
+  def tgamma(@_value)
+    @_retval = __tgamma__(@_value)
+    return @_retval
+  end
+
+  ##
+  Summary: Copies the sign of y to x.
+  Params:
+    - @_valueX: The number x.
+    - @_valueY: The number y.
+  Returns: Double
+  ##
+  def copysign(@_valueX, @_valueY)
+    @_retval = __copysign__(@_valueX, @_valueY)
+    return @_retval
+  end
+
+  ##
+  Summary: Get the next representable value after x towards y.
+  Params:
+    - @_valueX: The number x.
+    - @_valueY: The number y.
+  Returns: Double
+  ##
+  def nextafter(@_valueX, @_valueY)
+    @_retval = __nextafter__(@_valueX, @_valueY)
+    return @_retval
+  end
+
+  ##
+  Summary: Get the maximum of x and y.
+  Params:
+    - @_valueX: The number x.
+    - @_valueY: The number y.
+  Returns: Double
+  ##
+  def fmax(@_valueX, @_valueY)
+    @_retval = __fmax__(@_valueX, @_valueY)
+    return @_retval
+  end
+
+  ##
+  Summary: Get the minimum of x and y.
+  Params:
+    - @_valueX: The number x.
+    - @_valueY: The number y.
+  Returns: Double
+  ##
+  def fmin(@_valueX, @_valueY)
+    @_retval = __fmin__(@_valueX, @_valueY)
+    return @_retval
+  end
+
+  ##
+  Summary: Get the positive difference between x and y.
+  Params:
+    - @_valueX: The number x.
+    - @_valueY: The number y.
+  Returns: Double
+  ##
+  def fdim(@_valueX, @_valueY)
+    @_retval = __fdim__(@_valueX, @_valueY)
+    return @_retval
+  end
+
+  ##
+  Summary: Get x raised to the power of y.
+  Params:
+    - @_valueX: The number x.
+    - @_valueY: The number y.
+  Returns: Double
+  ##
+  def pow(@_valueX, @_valueY)
+    @_retval = __pow__(@_valueX, @_valueY)
+    return @_retval
+  end
+
+  ##
+  Summary: Get the absolute value of a number.
+  Params:
+    - @_value: The number.
+  Returns: Integer|Double
+  ##
+  def abs(@_value)
+    @_retval = __abs__(@_value)
+    return @_retval
+  end
+end
+
+import "math"
