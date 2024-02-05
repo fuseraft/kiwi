@@ -9,6 +9,7 @@
 #include "parsing/builtins.h"
 #include "parsing/tokens.h"
 #include "system/fileio.h"
+#include "system/time.h"
 #include "typing/valuetype.h"
 
 class BuiltinInterpreter {
@@ -17,6 +18,8 @@ class BuiltinInterpreter {
                        const std::vector<Value>& args) {
     if (FileIOBuiltIns.is_builtin(builtin)) {
       return executeFileIOBuiltin(tokenTerm, builtin, args);
+    } else if (TimeBuiltins.is_builtin(builtin)) {
+      return executeTimeBuiltin(tokenTerm, builtin, args);
     }
 
     throw UnknownBuiltinError(tokenTerm, builtin);
@@ -50,6 +53,40 @@ class BuiltinInterpreter {
       return executeToInteger(tokenTerm, value, args);
     } else if (builtin == KiwiBuiltins.ToS) {
       return executeToString(tokenTerm, value, args);
+    }
+
+    throw UnknownBuiltinError(tokenTerm, builtin);
+  }
+
+  static Value executeTimeBuiltin(const Token& tokenTerm,
+                                  const std::string& builtin,
+                                  const std::vector<Value>& args) {
+    if (builtin == TimeBuiltins.Delay) {
+      return executeDelay(tokenTerm, args);
+    } else if (builtin == TimeBuiltins.EpochMilliseconds) {
+      return executeEpochMilliseconds(tokenTerm, args);
+    } else if (builtin == TimeBuiltins.Hour) {
+      return executeCurrentHour(tokenTerm, args);
+    } else if (builtin == TimeBuiltins.IsDST) {
+      return executeIsDST(tokenTerm, args);
+    } else if (builtin == TimeBuiltins.Minute) {
+      return executeCurrentMinute(tokenTerm, args);
+    } else if (builtin == TimeBuiltins.Month) {
+      return executeCurrentMonth(tokenTerm, args);
+    } else if (builtin == TimeBuiltins.MonthDay) {
+      return executeCurrentMonthDay(tokenTerm, args);
+    } else if (builtin == TimeBuiltins.Second) {
+      return executeCurrentSecond(tokenTerm, args);
+    } else if (builtin == TimeBuiltins.Ticks) {
+      return executeTicks(tokenTerm, args);
+    } else if (builtin == TimeBuiltins.WeekDay) {
+      return executeCurrentWeekDay(tokenTerm, args);
+    } else if (builtin == TimeBuiltins.Year) {
+      return executeCurrentYear(tokenTerm, args);
+    } else if (builtin == TimeBuiltins.YearDay) {
+      return executeCurrentYearDay(tokenTerm, args);
+    } else if (builtin == TimeBuiltins.AMPM) {
+      return executeAMPM(tokenTerm, args);
     }
 
     throw UnknownBuiltinError(tokenTerm, builtin);
@@ -98,6 +135,142 @@ class BuiltinInterpreter {
       throw ConversionError(tokenTerm);
     }
     return std::get<std::string>(arg);
+  }
+
+  static int getInteger(const Token& tokenTerm, const Value& arg) {
+    if (!std::holds_alternative<int>(arg)) {
+      throw ConversionError(tokenTerm);
+    }
+    return std::get<int>(arg);
+  }
+
+  static double getIntegerOrDouble(const Token& tokenTerm, const Value& arg) {
+    if (std::holds_alternative<int>(arg)) {
+      return std::get<int>(arg);
+    } else if (std::holds_alternative<double>(arg)) {
+      return std::get<double>(arg);
+    }
+
+    throw ConversionError(tokenTerm);
+  }
+
+  static int executeDelay(const Token& tokenTerm,
+                          const std::vector<Value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.Delay);
+    }
+
+    int ms = static_cast<int>(getIntegerOrDouble(tokenTerm, args.at(0)));
+    return Time::delay(ms);
+  }
+
+  static double executeEpochMilliseconds(const Token& tokenTerm,
+                                         const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm,
+                                           TimeBuiltins.EpochMilliseconds);
+    }
+
+    return Time::epochMilliseconds();
+  }
+
+  static int executeCurrentHour(const Token& tokenTerm,
+                                const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.Hour);
+    }
+
+    return Time::currentHour();
+  }
+
+  static int executeCurrentMinute(const Token& tokenTerm,
+                                  const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.Minute);
+    }
+
+    return Time::currentMinute();
+  }
+
+  static std::string executeAMPM(const Token& tokenTerm,
+                                const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.AMPM);
+    }
+
+    return Time::getAMPM();
+  }
+
+  static int executeCurrentMonth(const Token& tokenTerm,
+                                 const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.Month);
+    }
+
+    return Time::currentMonth();
+  }
+
+  static int executeCurrentMonthDay(const Token& tokenTerm,
+                                    const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.MonthDay);
+    }
+
+    return Time::currentMonthDay();
+  }
+
+  static int executeCurrentSecond(const Token& tokenTerm,
+                                  const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.Second);
+    }
+
+    return Time::currentSecond();
+  }
+
+  static int executeCurrentWeekDay(const Token& tokenTerm,
+                                   const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.WeekDay);
+    }
+
+    return Time::currentWeekDay();
+  }
+
+  static int executeCurrentYear(const Token& tokenTerm,
+                                const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.Year);
+    }
+
+    return Time::currentYear();
+  }
+
+  static int executeCurrentYearDay(const Token& tokenTerm,
+                                   const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.YearDay);
+    }
+
+    return Time::currentYearDay();
+  }
+
+  static double executeTicks(const Token& tokenTerm,
+                             const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.Ticks);
+    }
+
+    return Time::getTicks();
+  }
+
+  static bool executeIsDST(const Token& tokenTerm,
+                           const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.IsDST);
+    }
+
+    return Time::isDST();
   }
 
   static std::shared_ptr<List> executeChars(const Token& tokenTerm,

@@ -1,0 +1,147 @@
+##
+Summary: A module containing functionality for working with files and directories.
+##
+module time
+  ##
+  Summary: Get hours since midnight (0 to 23).
+  Returns: Integer
+  ##
+  def hour()
+    @_retval = __hour__()
+    return @_retval
+  end
+
+  ##
+  Summary: Get minutes after the hour (0 to 59).
+  Returns: Integer
+  ##
+  def minute()
+    @_retval = __min__()
+    return @_retval
+  end
+
+  ##
+  Summary: Get seconds after the minute (0 to 60).
+  Returns: Integer
+  ##
+  def second()
+    @_retval = __sec__()
+    return @_retval
+  end
+
+  ##
+  Summary: Get time of day designation for 12 hour clocks as "AM" or "PM".
+  Returns: String
+  ##
+  def ampm()
+    @_retval = __ampm__()
+    return @_retval
+  end
+
+  ##
+  Summary: Get current timestamp in YYYY/mm/dd hh:mm:ss tt format.
+  Returns: String
+  ##
+  def current_timestamp()
+    @year = __year__()
+    @month = __mon__()
+    @day = __mday__()
+    @hour = __hour__()
+    @minute = __min__()
+    @second = __sec__()
+    @ampm = __ampm__()
+
+    if @hour > 12 @hour -= 12 end
+    if @minute < 10 @minute = "0${@minute}" end
+    if @day < 10 @day = "0${@day}" end
+    if @month < 10 @month = "0${@month}" end
+    if @second < 10 @second = "0${@second}" end
+
+    return "${@year}/${@month}/${@day} ${@hour}:${@minute}:${@second} ${@ampm}"
+  end
+
+  ##
+  Summary: Get the day of the month (1 to 31).
+  Returns: Integer
+  ##
+  def day()
+    @_retval = __mday__()
+    return @_retval
+  end
+
+  ##
+  Summary: Get months since January (1 to 12).
+  Returns: Integer
+  ##
+  def month()
+    @_retval = __mon__()
+    return @_retval
+  end
+
+  ##
+  Summary: Get the current year.
+  Returns: Integer
+  ##
+  def year()
+    @_retval = __year__()
+    return @_retval
+  end
+
+  ##
+  Summary: Get the day of the week (1 to 7).
+  Returns: Integer
+  ##
+  def weekday()
+    @_retval = __wday__()
+    return @_retval
+  end
+
+  ##
+  Summary: Get the day of the year (0 to 365). December 31st is 364 on leap years.
+  Returns: Integer
+  ##
+  def yearday()
+    @_retval = __yday__()
+    return @_retval
+  end
+
+  ##
+  Summary: Get boolean indicating whether it is Daylight Savings Time.
+  Returns: Boolean
+  ##
+  def isdst()
+    @_retval = __isdst__()
+    return @_retval
+  end
+
+  ##
+  Summary: Get milliseconds since January 1st, 1970.
+  Returns: Double
+  ##
+  def epochms()
+    @_retval = __epochms__()
+    return @_retval
+  end
+
+  ##
+  Summary: Get nanoseconds since January 1st, 1970.
+  Returns: Double
+  ##
+  def ticks()
+    @_retval = __ticks__()
+    return @_retval
+  end
+
+  ##
+  Summary: Sleep for a specified duration in milliseconds.
+  Params:
+    - @_ms: The duration in milliseconds.
+  Returns: Double
+  ##
+  def delay(@_ms)
+    @_retval = __delay__(@_ms)
+    return @_retval
+  end
+end
+
+import "time"

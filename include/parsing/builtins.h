@@ -49,6 +49,31 @@ struct {
 } FileIOBuiltIns;
 
 struct {
+  const std::string Hour = "__hour__";
+  const std::string Minute = "__min__";
+  const std::string Second = "__sec__";
+  const std::string MonthDay = "__mday__";
+  const std::string WeekDay = "__wday__";
+  const std::string YearDay = "__yday__";
+  const std::string Month = "__mon__";
+  const std::string Year = "__year__";
+  const std::string EpochMilliseconds = "__epochms__";
+  const std::string Delay = "__delay__";
+  const std::string IsDST = "__isdst__";
+  const std::string Ticks = "__ticks__";
+  const std::string AMPM = "__ampm__";
+
+  std::unordered_set<std::string> builtins = {
+      Hour,    Minute, Second, MonthDay,          WeekDay,
+      YearDay, Month,  Year,   EpochMilliseconds, Delay,
+      IsDST,   Ticks,  AMPM};
+
+  bool is_builtin(const std::string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+} TimeBuiltins;
+
+struct {
   const std::string Chars = "chars";
   const std::string IsA = "is_a?";
   const std::string Join = "join";
@@ -62,6 +87,10 @@ struct {
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
+  }
+
+  bool is_builtin_method(const std::string& arg) {
+    return TimeBuiltins.is_builtin(arg) || FileIOBuiltIns.is_builtin(arg);
   }
 } KiwiBuiltins;
 

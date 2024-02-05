@@ -438,7 +438,7 @@ class Interpreter {
       interpretMethodInvocation(tokenText, frame);
     } else if (hasVariable(tokenText, frame)) {
       // Skip it (for now).
-    } else if (FileIOBuiltIns.is_builtin(tokenText)) {
+    } else if (KiwiBuiltins.is_builtin_method(tokenText)) {
       interpretBuiltin(tokenText, frame);
     } else {
       throw UnknownIdentifierError(token, tokenText);
@@ -1543,27 +1543,41 @@ class Interpreter {
     Token tokenTerm = current(frame);
     std::string tokenText = tokenTerm.getText();
 
+    Value value;
+    bool valueSet = false;
+
     if (current(frame).getType() == TokenType::OPEN_BRACKET) {
-      return interpretBracketExpression(booleanExpression, frame);
+      value = interpretBracketExpression(booleanExpression, frame);
+      valueSet = true;
     }
 
-    interpretQualifiedIdentifier(tokenTerm, tokenText, frame);
+    if (!valueSet) {
+      interpretQualifiedIdentifier(tokenTerm, tokenText, frame);
+    }
 
-    if (hasMethod(tokenText)) {
+    if (!valueSet && hasMethod(tokenText)) {
       interpretMethodInvocation(tokenText, frame);
-      return frame.returnValue;
-    } else if (FileIOBuiltIns.is_builtin(tokenText)) {
+      value = frame.returnValue;
+      frame.returnFlag = false;
+      valueSet = true;
+    } else if (!valueSet && KiwiBuiltins.is_builtin_method(tokenText)) {
       interpretBuiltin(tokenText, frame);
-      return frame.returnValue;
+      value = frame.returnValue;
+      valueSet = true;
     }
 
     Token lastTerm = tokenTerm;
-    Value result = interpretTerm(tokenTerm, booleanExpression, frame);
+
+    if (!valueSet) {
+      value = interpretTerm(tokenTerm, booleanExpression, frame);
+      valueSet = true;
+    }
 
     if (peek(frame).getType() == TokenType::OPERATOR) {
       next(frame);
     } else if (peek(frame).getType() == TokenType::DOT) {
-      return interpretDotNotation(result, frame);
+      value = interpretDotNotation(value, frame);
+      valueSet = true;
     }
 
     while (current(frame).getType() == TokenType::OPERATOR) {
@@ -1571,9 +1585,9 @@ class Interpreter {
       next(frame);
 
       if (Operators.is_logical_operator(op)) {
-        ensureBooleanExpressionHasRoot(tokenTerm, booleanExpression, result);
+        ensureBooleanExpressionHasRoot(tokenTerm, booleanExpression, value);
         interpretBooleanExpression(tokenTerm, booleanExpression, op, frame);
-        result = booleanExpression.evaluate();
+        value = booleanExpression.evaluate();
         break;
       }
 
@@ -1582,7 +1596,7 @@ class Interpreter {
           interpretTerm(tokenTerm, booleanExpression, frame, false);
 
       if (Operators.is_arithmetic_operator(op)) {
-        interpretArithmeticExpression(tokenTerm, op, result, nextTerm);
+        interpretArithmeticExpression(tokenTerm, op, value, nextTerm);
         std::string peekNext = peek(frame).getText();
         if ((current(frame).getType() == TokenType::LITERAL ||
              current(frame).getType() == TokenType::IDENTIFIER) &&
@@ -1604,16 +1618,16 @@ class Interpreter {
       }
 
       if (Operators.is_relational_operator(op)) {
-        interpretRelationalExpression(tokenTerm, booleanExpression, op, result,
+        interpretRelationalExpression(tokenTerm, booleanExpression, op, value,
                                       nextTerm);
       }
 
       if (Operators.is_bitwise_operator(op)) {
-        interpretBitwiseExpression(tokenTerm, op, result, nextTerm);
+        interpretBitwiseExpression(tokenTerm, op, value, nextTerm);
       }
     }
 
-    return result;
+    return value;
   }
 
   Value interpretValueType(CallStackFrame& frame) {
@@ -1673,16 +1687,16 @@ class Interpreter {
       }
       return result;
     } else if (current(frame).getType() == TokenType::IDENTIFIER) {
-      std::string variableName = current(frame).toString();
-      if (hasVariable(variableName, frame)) {
+      std::string identifier = current(frame).toString();
+      if (hasVariable(identifier, frame)) {
         if (skipOnRetrieval) {
           if (peek(frame).getType() == TokenType::OPERATOR) {
             next(frame);
           }
         }
-        return getVariable(variableName, frame);
+        return getVariable(identifier, frame);
       } else {
-        std::cout << "";
+        return interpretExpression(booleanExpression, frame);
       }
     } else if (current(frame).getType() == TokenType::OPERATOR) {
       std::string op = current(frame).toString();
@@ -1788,6 +1802,7 @@ class Interpreter {
   void handleAssignment(std::string& name, std::string& op,
                         CallStackFrame& frame) {
     BooleanExpressionBuilder booleanExpression;
+
     Value value = interpretExpression(booleanExpression, frame);
 
     if (current(frame).getType() == TokenType::DOT) {
