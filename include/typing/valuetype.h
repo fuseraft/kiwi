@@ -27,7 +27,16 @@ std::shared_ptr<List> convert_value_to_list(Value& rhsValues) {
   }
 }
 
-enum class ValueType { None, Unknown, Integer, Double, Boolean, String, List };
+enum class ValueType {
+  None,
+  Unknown,
+  Integer,
+  Double,
+  Boolean,
+  String,
+  List,
+  LongLong
+};
 
 ValueType get_value_type(Value v) {
   ValueType type = ValueType::None;
