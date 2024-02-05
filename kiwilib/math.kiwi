@@ -1,5 +1,5 @@
 ##
-Summary: A module containing functionality for working with time and date information.
+Summary: A module containing functionality for working with common math operations.
 ##
 module math
   ##
