@@ -206,6 +206,22 @@ struct {
 } Keywords;
 
 struct {
+  const std::string Integer = "Integer";
+  const std::string Double = "Double";
+  const std::string Boolean = "Boolean";
+  const std::string String = "String";
+  const std::string List = "List";
+  const std::string Hash = "Hash";
+
+  std::unordered_set<std::string> typenames = {Integer, Double, Boolean,
+                                               String,  List,   Hash};
+
+  bool is_typename(const std::string& arg) {
+    return typenames.find(arg) != typenames.end();
+  }
+} TypeNames;
+
+struct {
   const std::string Public = "public";
   const std::string Private = "private";
   const std::string Protected = "protected";

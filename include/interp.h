@@ -566,9 +566,16 @@ class Interpreter {
         continue;
       }
 
-      BooleanExpressionBuilder booleanExpression;
       Token subTokenTerm = current(frame);
-      Value paramValue = interpretTerm(subTokenTerm, booleanExpression, frame);
+      Value paramValue;
+
+      if (subTokenTerm.getType() == TokenType::TYPENAME) {
+        paramValue = subTokenTerm.getText();
+      } else {
+        BooleanExpressionBuilder booleanExpression;
+        paramValue = interpretTerm(subTokenTerm, booleanExpression, frame);
+      }
+
       if (peek(frame).getType() == TokenType::CLOSE_PAREN) {
         next(frame);
         closeParenthesisFound = true;
@@ -1091,6 +1098,32 @@ class Interpreter {
     return list;
   }
 
+  std::shared_ptr<Hash> interpretHash(
+      BooleanExpressionBuilder& booleanExpression, CallStackFrame& frame) {
+    std::shared_ptr<Hash> hash = std::make_shared<Hash>();
+    next(frame);  // Skip the "{"
+
+    while (current(frame).getType() != TokenType::CLOSE_BRACKET) {
+      auto value = interpretExpression(booleanExpression, frame);
+      // list->elements.push_back(value);
+
+      if (peek(frame).getType() == TokenType::COMMA) {
+        next(frame);  // Skip current value
+        if (current(frame).getType() == TokenType::COMMA) {
+          next(frame);
+        }
+      } else if (current(frame).getType() == TokenType::COMMA) {
+        next(frame);
+      } else if (peek(frame).getType() == TokenType::CLOSE_BRACKET) {
+        next(frame);
+      }
+    }
+
+    next(frame);  // Skip the "}"
+
+    return hash;
+  }
+
   std::shared_ptr<List> interpretList(
       BooleanExpressionBuilder& booleanExpression, CallStackFrame& frame) {
     std::shared_ptr<List> list = std::make_shared<List>();
@@ -1327,7 +1360,7 @@ class Interpreter {
     next(frame);  // skip the "print"
 
     if (current(frame).getType() == TokenType::STRING) {
-      std::cout << evaluateString(frame, true);
+      std::cout << interpolateString(frame);
     } else if (current(frame).getType() == TokenType::KEYWORD &&
                current(frame).getText() == Symbols.DeclVar) {
       next(frame);
@@ -1557,9 +1590,11 @@ class Interpreter {
 
     if (!valueSet && hasMethod(tokenText)) {
       interpretMethodInvocation(tokenText, frame);
-      value = frame.returnValue;
-      frame.returnFlag = false;
-      valueSet = true;
+      if (!callStack.empty()) {
+        value = callStack.top().returnValue;
+        frame.returnFlag = false;
+        valueSet = true;
+      }
     } else if (!valueSet && KiwiBuiltins.is_builtin_method(tokenText)) {
       interpretBuiltin(tokenText, frame);
       value = frame.returnValue;
@@ -1638,7 +1673,7 @@ class Interpreter {
     } else if (current(frame).getValueType() == ValueType::Integer) {
       return current(frame).toInteger();
     } else if (current(frame).getValueType() == ValueType::String) {
-      return evaluateString(frame);
+      return interpolateString(frame);
     }
 
     throw ConversionError(current(frame));
@@ -1711,9 +1746,6 @@ class Interpreter {
         interpretBooleanExpression(termToken, booleanExpression, op, frame);
         return booleanExpression.evaluate();
       }
-    } else if (peek(frame).getType() == TokenType::DOT) {
-      Value value = interpretValueType(frame);
-      return interpretDotNotation(value, frame);
     } else {
       return interpretValueType(frame);
     }
@@ -1721,88 +1753,126 @@ class Interpreter {
     return 0;  // Placeholder for unsupported types
   }
 
-  std::string evaluateString(CallStackFrame& frame,
-                             bool handleDotNotation = false) {
-    const std::string methodName = "evaluateString";
-    std::string output;
-
-    // TODO: an error should occur here.
-    if (current(frame).getValueType() != ValueType::String) {
-      return output;
-    }
-
-    std::string input = current(frame).toString();
-
-    if (peek(frame).getType() == TokenType::DOT) {
-      if (!handleDotNotation) {
-        return input;
-      }
-
-      Value currentValue = input;
-      auto value = interpretDotNotation(currentValue, frame);
-      if (std::holds_alternative<std::string>(value)) {
-        return std::get<std::string>(value);
-      } else {
-        return get_value_string(value);
+  Value interpolateString(CallStackFrame& frame, std::string& input) {
+    if (input[0] == '@') {
+      std::string name = input.substr(1);
+      if (hasVariable(name, frame)) {
+        return getVariable(name, frame);
       }
     }
 
-    // Don't skip whitespace.
-    Lexer lexer(logger, methodName, input, false);
-    std::vector<Token> eval = lexer.getAllTokens();
-
-    std::ostringstream string;
-    int position = -1;
-    int end = eval.size();
-
-    while (position + 1 < end) {
-      ++position;
-      Token token = eval.at(position);
-
-      if (token.getText() == Symbols.Interpolate && position + 1 < end &&
-          eval.at(position + 1).getText() == Symbols.OpenCurlyBrace) {
-        evaluateStringInterpolation(position, token, eval, string, frame);
-        continue;
-      } else if (token.getType() == TokenType::ESCAPED) {
-        string << token.getText();
-        continue;
-      }
-
-      string << token.getText();
+    Token tempToken = Token::createEmpty();
+    std::string tempId = getTemporaryId();
+    std::vector<Token> tempAssignment =
+        getTemporaryAssignment(tempToken, tempId);
+    Lexer lexer(logger, "", input);
+    for (Token t : lexer.getAllTokens()) {
+      tempAssignment.push_back(t);
     }
 
-    output = string.str();
+    std::string line;
+    for (Token t : tempAssignment) {
+      line += t.getText();
+    }
 
-    return output;
+    CallStackFrame tempFrame(tempAssignment);
+    interpretAssignment(tempFrame);
+
+    if (tempFrame.variables.find(tempId) == tempFrame.variables.end()) {
+      throw SyntaxError(current(frame));
+    }
+
+    Value value = getVariable(tempId, tempFrame);
+
+    if (callStack.size() > 1) {
+      callStack.pop();
+    }
+
+    return value;
   }
 
-  void evaluateStringInterpolation(int& position, Token& token,
-                                   std::vector<Token>& eval,
-                                   std::ostringstream& string,
-                                   CallStackFrame& frame) {
-    position += 2;  // Skip "${"
+  std::string interpolateString(CallStackFrame& frame) {
+    std::ostringstream sv;
+    std::string input = current(frame).getText();
+    std::string builder;
+    int i = 0, size = input.length();
+    char c = '\0', next = '\0';
+    bool canPeek = false;
+    int interpCount = 0;
 
-    token = eval.at(position);
+    while (i < size) {
+      canPeek = i + 1 < size;
+      c = input[i];
+      next = canPeek ? input[i + 1] : '\0';
 
-    // WIP: fix this.
-    while (token.getText() != Symbols.CloseCurlyBrace) {
-      if (token.getText() == Symbols.DeclVar) {
-        token = eval.at(++position);
+      switch (c) {
+        case '$':
+          if (canPeek && next == '{') {
+            ++interpCount;
+            i += 2;  // Skip "${"
+            continue;
+          }
+          break;
 
-        if (hasVariable(token.getText(), frame)) {
-          auto v = getVariable(token.getText(), frame);
-          string << get_value_string(v);
-        }
+        case '}':
+          if (interpCount > 0) {
+            --interpCount;
+
+            if (interpCount > 0) {
+              throw SyntaxError(
+                  current(frame),
+                  "Invalid syntax in string interpolation: `" + input + "`");
+            }
+
+            if (!builder.empty()) {
+              Value interpolatedValue = interpolateString(frame, builder);
+              sv << get_value_string(interpolatedValue);
+              builder.clear();
+              ++i;
+            }
+
+            continue;
+          }
+          break;
+
+        case '\\':
+          if (canPeek) {
+            if (next == 't') {
+              sv << "\t";
+              i += 2;
+              continue;
+            } else if (next == 'n') {
+              sv << "\n";
+              i += 2;
+              continue;
+            }
+          }
+          break;
       }
 
-      token = eval.at(++position);
+      if (interpCount == 0) {
+        sv << c;
+      } else {
+        builder += c;
+      }
+
+      ++i;
     }
+
+    std::string output = sv.str();
+
+    if (peek(frame).getType() == TokenType::DOT) {
+      Value v = output;
+      v = interpretDotNotation(v, frame);
+      output = get_value_string(v);
+    }
+
+    return output;
   }
 
   void handleAssignment(std::string& name, std::string& op,
                         CallStackFrame& frame) {
     BooleanExpressionBuilder booleanExpression;
-
     Value value = interpretExpression(booleanExpression, frame);
 
     if (current(frame).getType() == TokenType::DOT) {

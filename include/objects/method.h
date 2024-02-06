@@ -24,6 +24,7 @@ class Method {
 
   std::vector<Token> getCode() const { return code; }
   std::vector<Token> getParameters() const { return parameters; }
+  int getParameterCount() const { return parameters.size(); }
   std::string getName() { return _name; }
 
  private:

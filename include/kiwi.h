@@ -6,6 +6,7 @@
 
 const std::string kiwi_name = "The Kiwi Programming Language";
 const std::string kiwi_version = "1.0.7";
+const std::string kiwi_arg = "kiwi";
 
 #include "configuration/config.h"
 #include "errors/error.h"
@@ -35,13 +36,13 @@ int kiwi(std::vector<std::string>& v) {
 
   if (DEBUG) {
     v.push_back("-C");
-    v.push_back("/home/scott/work/kiwi/kiwi/config/kiwi.conf");
+    v.push_back("/home/scs/kiwi/config/kiwi.conf");
   }
 
   size_t size = v.size();
 
   try {
-    session.registerArg("kiwi", v.at(0));
+    session.registerArg(kiwi_arg, v.at(0));
 
     bool retFlag;
     int retVal = process_args(size, v, session, logger, retFlag);

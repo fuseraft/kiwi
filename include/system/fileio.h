@@ -111,7 +111,7 @@ class FileIO {
 
   static std::string getAbsolutePath(const std::string& filePath) {
     fs::path absolutePath = fs::absolute(filePath);
-    return absolutePath.string();
+    return absolutePath.lexically_normal().string();
   }
 
   static std::string getParentPath(const std::string& filePath) {

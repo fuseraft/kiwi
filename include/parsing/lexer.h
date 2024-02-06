@@ -107,6 +107,12 @@ class Lexer {
     } else if (currentChar == ']') {
       return Token::create(TokenType::CLOSE_BRACKET, file, "]", lineNumber,
                            linePosition);
+    } else if (currentChar == '{') {
+      return Token::create(TokenType::OPEN_BRACE, file, "{", lineNumber,
+                           linePosition);
+    } else if (currentChar == '}') {
+      return Token::create(TokenType::CLOSE_BRACE, file, "}", lineNumber,
+                           linePosition);
     } else if (currentChar == ',') {
       return Token::create(TokenType::COMMA, file, ",", lineNumber,
                            linePosition);
@@ -244,6 +250,9 @@ class Lexer {
 
     if (Keywords.is_keyword(identifier)) {
       return parseKeyword(identifier);
+    } else if (TypeNames.is_typename(identifier)) {
+      return Token::create(TokenType::TYPENAME, file, identifier, lineNumber,
+                           linePosition);
     }
 
     return Token::create(TokenType::IDENTIFIER, file, identifier, lineNumber,

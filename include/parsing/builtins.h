@@ -115,6 +115,7 @@ struct {
   const std::string NextAfter = "__nextafter__";
   const std::string Pow = "__pow__";
   const std::string Epsilon = "__eps__";
+  const std::string Random = "__random__";
 
   std::unordered_set<std::string> builtins = {
       Sin,  Tan,   Asin,     Acos,      Atan,   Atan2,    Sinh,
@@ -122,7 +123,7 @@ struct {
       Fmod, Hypot, IsFinite, IsInf,     IsNaN,  IsNormal, Sqrt,
       Cbrt, Abs,   Floor,    Ceil,      Round,  Trunc,    Remainder,
       Exp,  ExpM1, Erf,      ErfC,      LGamma, TGamma,   FMax,
-      FMin, FDim,  CopySign, NextAfter, Pow,    Epsilon};
+      FMin, FDim,  CopySign, NextAfter, Pow,    Epsilon,  Random};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
@@ -131,15 +132,24 @@ struct {
 
 struct {
   const std::string Chars = "chars";
-  const std::string IsA = "is_a?";
+  const std::string IsA = "is_a";
   const std::string Join = "join";
   const std::string Size = "size";
   const std::string ToD = "to_d";
   const std::string ToI = "to_i";
   const std::string ToS = "to_s";
+  const std::string Replace = "replace";
+  const std::string Contains = "contains";
+  const std::string BeginsWith = "begins_with";
+  const std::string EndsWith = "ends_with";
+  const std::string IndexOf = "index_of";
+  const std::string Upcase = "upcase";
+  const std::string Downcase = "downcase";
 
-  std::unordered_set<std::string> builtins = {Chars, IsA, Join, Size,
-                                              ToD,   ToI, ToS};
+  std::unordered_set<std::string> builtins = {
+      Chars,      IsA,      Join,    Size,    ToD,
+      ToI,        ToS,      Replace, Replace, Contains,
+      BeginsWith, EndsWith, IndexOf, Upcase,  Downcase};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();

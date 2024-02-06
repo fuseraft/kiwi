@@ -3,14 +3,11 @@ println "= playground.kiwi ="
 println "==================="
 
 # Add Kiwi here!
-import "../kiwilib/time"
 
-@i = 0
-while @i < 10 do
-  @ts = time::current_timestamp()
-  println "Current timestamp: ${@ts}"
-  time::delay(1000)
-  @i += 1
-end
+@a = 1
+
+println @a.is_a(Integer)
+println @a.is_a(String)
+#println @a.is_a(Zebra) # segfault
 
 println ""

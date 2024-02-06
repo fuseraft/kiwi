@@ -18,6 +18,13 @@ import "math"
 - **Parameters**: None.
 - **Returns**: Double representing the epsilon value.
 
+### `random(@_valueX, @_valueY)`
+- **Summary**: Returns a random number between x and y.
+- **Parameters**: 
+  - `@_valueX` - The number x.
+  - `@_valueY` - The number y.
+- **Returns**: Integer or double random number.
+
 ### `sin(@_value)`
 - **Summary**: Computes the sine of a number.
 - **Parameters**: `@_value` - The angle in radians.

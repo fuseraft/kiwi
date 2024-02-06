@@ -8,6 +8,7 @@
 #include "errors/error.h"
 #include "math/functions.h"
 #include "parsing/builtins.h"
+#include "parsing/strings.h"
 #include "parsing/tokens.h"
 #include "system/fileio.h"
 #include "system/time.h"
@@ -45,7 +46,7 @@ class BuiltinInterpreter {
     if (builtin == KiwiBuiltins.Chars) {
       return executeChars(tokenTerm, value, args);
     } else if (builtin == KiwiBuiltins.IsA) {
-
+      return executeIsA(tokenTerm, value, args);
     } else if (builtin == KiwiBuiltins.Join) {
       return executeJoin(tokenTerm, value, args);
     } else if (builtin == KiwiBuiltins.Size) {
@@ -56,6 +57,20 @@ class BuiltinInterpreter {
       return executeToInteger(tokenTerm, value, args);
     } else if (builtin == KiwiBuiltins.ToS) {
       return executeToString(tokenTerm, value, args);
+    } else if (builtin == KiwiBuiltins.BeginsWith) {
+      return executeBeginsWith(tokenTerm, value, args);
+    } else if (builtin == KiwiBuiltins.Contains) {
+      return executeContains(tokenTerm, value, args);
+    } else if (builtin == KiwiBuiltins.EndsWith) {
+      return executeEndsWith(tokenTerm, value, args);
+    } else if (builtin == KiwiBuiltins.Replace) {
+      return executeReplace(tokenTerm, value, args);
+    } else if (builtin == KiwiBuiltins.IndexOf) {
+      return executeIndexOf(tokenTerm, value, args);
+    } else if (builtin == KiwiBuiltins.Upcase) {
+      return executeUpcase(tokenTerm, value, args);
+    } else if (builtin == KiwiBuiltins.Downcase) {
+      return executeDowncase(tokenTerm, value, args);
     }
 
     throw UnknownBuiltinError(tokenTerm, builtin);
@@ -146,6 +161,8 @@ class BuiltinInterpreter {
       return executePow(tokenTerm, args);
     } else if (builtin == MathBuiltins.Epsilon) {
       return executeEpsilon(tokenTerm, args);
+    } else if (builtin == MathBuiltins.Random) {
+      return executeRandom(tokenTerm, args);
     }
 
     throw UnknownBuiltinError(tokenTerm, builtin);
@@ -221,30 +238,6 @@ class BuiltinInterpreter {
     } else {
       throw UnknownBuiltinError(tokenTerm, builtin);
     }
-  }
-
-  static std::string getString(const Token& tokenTerm, const Value& arg) {
-    if (!std::holds_alternative<std::string>(arg)) {
-      throw ConversionError(tokenTerm);
-    }
-    return std::get<std::string>(arg);
-  }
-
-  static int getInteger(const Token& tokenTerm, const Value& arg) {
-    if (!std::holds_alternative<int>(arg)) {
-      throw ConversionError(tokenTerm);
-    }
-    return std::get<int>(arg);
-  }
-
-  static double getIntegerOrDouble(const Token& tokenTerm, const Value& arg) {
-    if (std::holds_alternative<int>(arg)) {
-      return std::get<int>(arg);
-    } else if (std::holds_alternative<double>(arg)) {
-      return std::get<double>(arg);
-    }
-
-    throw ConversionError(tokenTerm);
   }
 
   static Value executeSin(const Token& tokenTerm,
@@ -615,13 +608,22 @@ class BuiltinInterpreter {
     return MathImpl.epsilon();
   }
 
+  static Value executeRandom(const Token& tokenTerm,
+                             const std::vector<Value>& args) {
+    if (args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Random);
+    }
+
+    return MathImpl.do_random(tokenTerm, args.at(0), args.at(1));
+  }
+
   static int executeDelay(const Token& tokenTerm,
                           const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.Delay);
     }
 
-    int ms = static_cast<int>(getIntegerOrDouble(tokenTerm, args.at(0)));
+    int ms = static_cast<int>(get_integer_or_double(tokenTerm, args.at(0)));
     return Time::delay(ms);
   }
 
@@ -742,7 +744,7 @@ class BuiltinInterpreter {
     }
 
     auto newList = std::make_shared<List>();
-    std::string stringValue = getString(tokenTerm, value);
+    std::string stringValue = get_string(tokenTerm, value);
     for (char c : stringValue) {
       newList->elements.push_back(std::string(1, c));
     }
@@ -766,7 +768,7 @@ class BuiltinInterpreter {
     std::string joiner;
 
     if (argSize == 1) {
-      joiner = getString(tokenTerm, args.at(0));
+      joiner = get_string(tokenTerm, args.at(0));
     }
 
     for (auto it = list->elements.begin(); it != list->elements.end(); ++it) {
@@ -862,6 +864,107 @@ class BuiltinInterpreter {
     return get_value_string(value);
   }
 
+  static bool executeBeginsWith(const Token& tokenTerm, const Value& value,
+                                const std::vector<Value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.BeginsWith);
+    }
+
+    auto str = get_string(tokenTerm, value);
+    auto search = get_string(tokenTerm, args.at(0));
+    return begins_with(str, search);
+  }
+
+  static bool executeContains(const Token& tokenTerm, const Value& value,
+                              const std::vector<Value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.Contains);
+    }
+
+    auto str = get_string(tokenTerm, value);
+    auto search = get_string(tokenTerm, args.at(0));
+    return contains(str, search);
+  }
+
+  static bool executeEndsWith(const Token& tokenTerm, const Value& value,
+                              const std::vector<Value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.Contains);
+    }
+
+    auto str = get_string(tokenTerm, value);
+    auto search = get_string(tokenTerm, args.at(0));
+    return ends_with(str, search);
+  }
+
+  static bool executeIsA(const Token& tokenTerm, const Value& value,
+                         const std::vector<Value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.Contains);
+    }
+
+    auto typeName = get_string(tokenTerm, args.at(0));
+    if (!TypeNames.is_typename(typeName)) {
+      throw InvalidTypeNameError(tokenTerm, typeName);
+    }
+
+    return (typeName == TypeNames.Boolean &&
+            std::holds_alternative<bool>(value)) ||
+           (typeName == TypeNames.Double &&
+            std::holds_alternative<double>(value)) ||
+           (typeName == TypeNames.Hash &&
+            std::holds_alternative<std::shared_ptr<Hash>>(value)) ||
+           (typeName == TypeNames.Integer &&
+            std::holds_alternative<int>(value)) ||
+           (typeName == TypeNames.List &&
+            std::holds_alternative<std::shared_ptr<List>>(value)) ||
+           (typeName == TypeNames.String &&
+            std::holds_alternative<std::string>(value));
+  }
+
+  static std::string executeReplace(const Token& tokenTerm, const Value& value,
+                                    const std::vector<Value>& args) {
+    if (args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.Replace);
+    }
+
+    auto str = get_string(tokenTerm, value);
+    auto search = get_string(tokenTerm, args.at(0));
+    auto replacement = get_string(tokenTerm, args.at(1));
+    return replace(str, search, replacement);
+  }
+
+  static int executeIndexOf(const Token& tokenTerm, const Value& value,
+                            const std::vector<Value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.IndexOf);
+    }
+
+    auto str = get_string(tokenTerm, value);
+    auto search = get_string(tokenTerm, args.at(0));
+    return index_of(str, search);
+  }
+
+  static std::string executeUpcase(const Token& tokenTerm, const Value& value,
+                                   const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.Upcase);
+    }
+
+    auto str = get_string(tokenTerm, value);
+    return upcase(str);
+  }
+
+  static std::string executeDowncase(const Token& tokenTerm, const Value& value,
+                                     const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.Downcase);
+    }
+
+    auto str = get_string(tokenTerm, value);
+    return downcase(str);
+  }
+
   static bool executeAppendText(const Token& tokenTerm,
                                 const std::vector<Value>& args) {
     if (args.size() != 2) {
@@ -869,7 +972,7 @@ class BuiltinInterpreter {
                                            FileIOBuiltIns.AppendText);
     }
 
-    std::string fileName = getString(tokenTerm, args.at(0));
+    std::string fileName = get_string(tokenTerm, args.at(0));
     Value value = args.at(1);
     return FileIO::writeToFile(fileName, value, true, false);
   }
@@ -880,8 +983,8 @@ class BuiltinInterpreter {
       throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.CopyFile);
     }
 
-    std::string sourcePath = getString(tokenTerm, args.at(0));
-    std::string destinationPath = getString(tokenTerm, args.at(1));
+    std::string sourcePath = get_string(tokenTerm, args.at(0));
+    std::string destinationPath = get_string(tokenTerm, args.at(1));
     return FileIO::copyFile(sourcePath, destinationPath);
   }
 
@@ -892,7 +995,7 @@ class BuiltinInterpreter {
                                            FileIOBuiltIns.CreateFile);
     }
 
-    std::string fileName = getString(tokenTerm, args.at(0));
+    std::string fileName = get_string(tokenTerm, args.at(0));
     return FileIO::createFile(fileName);
   }
 
@@ -903,7 +1006,7 @@ class BuiltinInterpreter {
                                            FileIOBuiltIns.DeleteFile);
     }
 
-    std::string fileName = getString(tokenTerm, args.at(0));
+    std::string fileName = get_string(tokenTerm, args.at(0));
     return FileIO::deleteFile(fileName);
   }
 
@@ -913,7 +1016,7 @@ class BuiltinInterpreter {
       throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.FileSize);
     }
 
-    std::string fileName = getString(tokenTerm, args.at(0));
+    std::string fileName = get_string(tokenTerm, args.at(0));
     return FileIO::getFileSize(fileName);
   }
 
@@ -924,7 +1027,7 @@ class BuiltinInterpreter {
                                            FileIOBuiltIns.FileExists);
     }
 
-    std::string fileName = getString(tokenTerm, args.at(0));
+    std::string fileName = get_string(tokenTerm, args.at(0));
     return FileIO::fileExists(fileName);
   }
 
@@ -935,7 +1038,7 @@ class BuiltinInterpreter {
                                            FileIOBuiltIns.GetFileAbsolutePath);
     }
 
-    std::string fileName = getString(tokenTerm, args.at(0));
+    std::string fileName = get_string(tokenTerm, args.at(0));
     return FileIO::getAbsolutePath(fileName);
   }
 
@@ -946,7 +1049,7 @@ class BuiltinInterpreter {
                                            FileIOBuiltIns.GetFileExtension);
     }
 
-    std::string fileName = getString(tokenTerm, args.at(0));
+    std::string fileName = get_string(tokenTerm, args.at(0));
     return FileIO::getFileExtension(fileName);
   }
 
@@ -956,7 +1059,7 @@ class BuiltinInterpreter {
       throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.FileName);
     }
 
-    std::string fileName = getString(tokenTerm, args.at(0));
+    std::string fileName = get_string(tokenTerm, args.at(0));
     return FileIO::getFileName(fileName);
   }
 
@@ -967,7 +1070,7 @@ class BuiltinInterpreter {
                                            FileIOBuiltIns.GetFilePath);
     }
 
-    std::string fileName = getString(tokenTerm, args.at(0));
+    std::string fileName = get_string(tokenTerm, args.at(0));
     return FileIO::getParentPath(fileName);
   }
 
@@ -977,8 +1080,8 @@ class BuiltinInterpreter {
       throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.MoveFile);
     }
 
-    std::string sourcePath = getString(tokenTerm, args.at(0));
-    std::string destinationPath = getString(tokenTerm, args.at(1));
+    std::string sourcePath = get_string(tokenTerm, args.at(0));
+    std::string destinationPath = get_string(tokenTerm, args.at(1));
     return FileIO::moveFile(sourcePath, destinationPath);
   }
 
@@ -988,7 +1091,7 @@ class BuiltinInterpreter {
       throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.ReadFile);
     }
 
-    std::string fileName = getString(tokenTerm, args.at(0));
+    std::string fileName = get_string(tokenTerm, args.at(0));
     return FileIO::readFile(fileName);
   }
 
@@ -997,7 +1100,7 @@ class BuiltinInterpreter {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.ReadLines);
     }
-    std::string fileName = getString(tokenTerm, args.at(0));
+    std::string fileName = get_string(tokenTerm, args.at(0));
     return FileIO::readLines(fileName);
   }
 
@@ -1007,7 +1110,7 @@ class BuiltinInterpreter {
       throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.WriteLine);
     }
 
-    std::string fileName = getString(tokenTerm, args.at(0));
+    std::string fileName = get_string(tokenTerm, args.at(0));
     Value value = args.at(1);
     return FileIO::writeToFile(fileName, value, true, true);
   }
@@ -1018,7 +1121,7 @@ class BuiltinInterpreter {
       throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.WriteText);
     }
 
-    std::string fileName = getString(tokenTerm, args.at(0));
+    std::string fileName = get_string(tokenTerm, args.at(0));
     Value value = args.at(1);
     return FileIO::writeToFile(fileName, value, false, false);
   }
