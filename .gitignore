@@ -4,3 +4,4 @@ src/main
 bin/kiwi
 build
 bin
+logs
