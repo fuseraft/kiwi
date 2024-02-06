@@ -92,6 +92,13 @@ class InvalidOperationError : public KiwiError {
       : KiwiError(token, "InvalidOperationError", message) {}
 };
 
+class InvalidTypeNameError : public KiwiError {
+ public:
+  InvalidTypeNameError(const Token& token, std::string name)
+      : KiwiError(token, "InvalidTypeNameError",
+                  "Invalid type name `" + name + "`") {}
+};
+
 class ConversionError : public KiwiError {
  public:
   ConversionError(const Token& token,

@@ -9,6 +9,7 @@ class RNG {
  public:
   static RNG& getInstance();
   double random(double from, double to);
+  int random(int from, int to);
   std::string random16();
 
  private:
@@ -28,6 +29,11 @@ RNG::RNG() {
 
 double RNG::random(double from, double to) {
   std::uniform_real_distribution<double> distribution(from, to);
+  return distribution(generator);
+}
+
+int RNG::random(int from, int to) {
+  std::uniform_int_distribution<int> distribution(from, to);
   return distribution(generator);
 }
 

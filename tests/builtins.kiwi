@@ -26,4 +26,17 @@ println "joined: ${@joined}"
 @joined = @list.join()
 println "joined: ${@joined}"
 
+@a = "foobar".upcase()
+println @a
+
+@a = @a.downcase()
+println @a
+
+println @a.index_of("bar")
+println @a.chars()
+println "foobar".replace("foo", "food")
+println @a.begins_with("food")
+println "foobar".ends_with("bar")
+println "foobar".ends_with("bark")
+
 println ""

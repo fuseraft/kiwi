@@ -72,8 +72,69 @@ Converts a value to a string.
 println @s  # prints: [100, "100"]
 ```
 
-### `.is_a?(type_name)`
+### `.index_of(str)`
 
-*Under construction in new interpreter*
+Returns the index of a string.
+
+```ruby
+println "foobar".index_of("bar")  # prints: 3
+```
+
+### `.begins_with(str)`
+
+Returns true if the string begins with a given string.
+
+```ruby
+println "foobar".begins_with("foo")   # prints: true
+println "foobar".begins_with("food")  # prints: false
+```
+
+### `.contains(str)`
+
+Returns true if the string contains a given string.
+
+```ruby
+println "foobar".contains("bar")   # prints: true
+println "foobar".contains("bark")  # prints: false
+```
+
+### `.ends_with(str)`
+
+Returns true if the string ends with a given string.
+
+```ruby
+println "foobar".ends_with("bar")   # prints: true
+println "foobar".ends_with("bark")  # prints: false
+```
+
+### `.upcase(str)`
+
+Returns the uppercase value of a string.
+
+```ruby
+println "foobar".upcase()   # prints: FOOBAR
+```
+
+### `.downcase(str)`
+
+Returns the lowercase value of a string.
+
+```ruby
+println "FOOBAR".downcase()   # prints: foobar
+```
+
+### `.replace(search, replacement)`
+
+Search for a string and replace with a given string.
+
+```ruby
+println "foobar".replace("foo", "food")   # prints: foodbar
+```
+
+### `.is_a(type_name)`
 
 Used for type-checking.
+
+```ruby
+println "foobar".is_a(String) # prints: true
+```

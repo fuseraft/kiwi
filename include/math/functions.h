@@ -7,6 +7,34 @@
 #include "errors/error.h"
 #include "parsing/tokens.h"
 #include "typing/valuetype.h"
+#include "rng.h"
+
+static std::string get_string(const Token& tokenTerm, const Value& arg) {
+  if (!std::holds_alternative<std::string>(arg)) {
+    throw ConversionError(tokenTerm);
+  }
+  return std::get<std::string>(arg);
+}
+
+static int get_integer(const Token& tokenTerm, const Value& arg) {
+  if (std::holds_alternative<double>(arg)) {
+    return static_cast<int>(std::get<double>(arg));
+  }
+  if (!std::holds_alternative<int>(arg)) {
+    throw ConversionError(tokenTerm);
+  }
+  return std::get<int>(arg);
+}
+
+static double get_integer_or_double(const Token& tokenTerm, const Value& arg) {
+  if (std::holds_alternative<int>(arg)) {
+    return std::get<int>(arg);
+  } else if (std::holds_alternative<double>(arg)) {
+    return std::get<double>(arg);
+  }
+
+  throw ConversionError(tokenTerm);
+}
 
 struct {
   bool is_zero(Token tokenTerm, Value v) {
@@ -636,6 +664,21 @@ struct {
       return abs(static_cast<int>(std::get<int>(value)));
     } else if (std::holds_alternative<double>(value)) {
       return fabs(std::get<double>(value));
+    }
+
+    throw ConversionError(token);
+  }
+
+  Value do_random(const Token& token, Value valueX, Value valueY) {
+    if (std::holds_alternative<double>(valueX) ||
+        std::holds_alternative<double>(valueY)) {
+      double x = get_integer_or_double(token, valueX),
+             y = get_integer_or_double(token, valueY);
+      return RNG::getInstance().random(x, y);
+    } else if (std::holds_alternative<int>(valueX) ||
+               std::holds_alternative<int>(valueY)) {
+      int x = get_integer(token, valueX), y = get_integer(token, valueY);
+      return RNG::getInstance().random(x, y);
     }
 
     throw ConversionError(token);

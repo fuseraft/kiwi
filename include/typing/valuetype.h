@@ -5,16 +5,23 @@
 #include <stdexcept>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <variant>
 #include <vector>
+#include "errors/error.h"
 
+struct Hash;
 struct List;
 
-using Value =
-    std::variant<int, double, bool, std::string, std::shared_ptr<List>>;
+using Value = std::variant<int, double, bool, std::string,
+                           std::shared_ptr<List>, std::shared_ptr<Hash>>;
 
 struct List {
   std::vector<Value> elements;
+};
+
+struct Hash {
+  std::unordered_map<std::string, Value> kvp;
 };
 
 std::shared_ptr<List> convert_value_to_list(Value& rhsValues) {
@@ -27,16 +34,7 @@ std::shared_ptr<List> convert_value_to_list(Value& rhsValues) {
   }
 }
 
-enum class ValueType {
-  None,
-  Unknown,
-  Integer,
-  Double,
-  Boolean,
-  String,
-  List,
-  LongLong
-};
+enum class ValueType { None, Unknown, Integer, Double, Boolean, String, List };
 
 ValueType get_value_type(Value v) {
   ValueType type = ValueType::None;
