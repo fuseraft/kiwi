@@ -64,7 +64,7 @@ import "time"
 - **Returns**: Double representing nanoseconds since the epoch.
 
 ### `delay(@_ms)`
-- **Params**:
+- **Parameters**:
   - `@_ms`: The duration to sleep in milliseconds.
 - **Summary**: Pauses execution for a specified duration in milliseconds.
 - **Returns**: Double representing the duration paused.
