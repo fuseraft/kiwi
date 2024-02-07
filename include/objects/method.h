@@ -25,13 +25,28 @@ class Method {
   std::vector<Token> getCode() const { return code; }
   std::vector<Token> getParameters() const { return parameters; }
   int getParameterCount() const { return parameters.size(); }
-  std::string getName() { return _name; }
+  std::string getName() const { return _name; }
+  void setAbstract() { abstractMark = true; }
+  bool isAbstract() const { return abstractMark; }
+  void setPrivate() { privateMark = true; }
+  bool isPrivate() const { return privateMark; }
+  void setStatic() { staticMark = true; }
+  bool isStatic() const { return staticMark; }
+  void setOverride() { overrideMark = true; }
+  bool isOverride() const { return overrideMark; }
+  void setCtor() { ctorMark = true; }
+  bool isCtor() const { return ctorMark; }
 
  private:
   std::vector<Token> parameters;
   std::vector<Token> code;
   std::string _name;
   std::map<std::string, Value> parameterKVP;
+  bool abstractMark = false;
+  bool privateMark = false;
+  bool overrideMark = false;
+  bool staticMark = false;
+  bool ctorMark = false;
 };
 
 #endif

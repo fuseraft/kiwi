@@ -10,6 +10,7 @@
 #include "math/boolexpr.h"
 #include "math/visitor.h"
 #include "math/rng.h"
+#include "objects/class.h"
 #include "objects/conditional.h"
 #include "objects/method.h"
 #include "objects/module.h"
@@ -54,6 +55,7 @@ class Interpreter {
   std::map<std::string, std::vector<std::string>> files;
   std::map<std::string, Method> methods;
   std::map<std::string, Module> modules;
+  std::map<std::string, Class> classes;
   std::vector<Token> _tokens;
   bool _errorState = false;
   bool _caught = false;
@@ -428,6 +430,8 @@ class Interpreter {
       interpretModuleDefinition(frame);
     } else if (keyword == Keywords.Delete) {
       interpretDelete(frame);
+    } else if (keyword == Keywords.Abstract || keyword == Keywords.Class) {
+      interpretClassDefinition(frame);
     } else if (keyword == Keywords.Break) {
       frame.setBreak();
     } else if (keyword == Keywords.Next) {
@@ -594,6 +598,10 @@ class Interpreter {
     return modules.find(name) != modules.end();
   }
 
+  bool hasClass(const std::string& name) {
+    return classes.find(name) != classes.end();
+  }
+
   bool hasMethod(const std::string& name) {
     return methods.find(name) != methods.end();
   }
@@ -712,12 +720,8 @@ class Interpreter {
         BuiltinInterpreter::execute(tokenTerm, name, parameters);
   }
 
-  void interpretMethodInvocation(const std::string& name,
-                                 CallStackFrame& frame) {
-    next(frame);  // Skip the name.
-    Method method = getMethod(name, frame);
-
-    Token tokenTerm = current(frame);
+  std::vector<Token> collectMethodParameters(Token& tokenTerm, Method& method,
+                                             CallStackFrame& frame) {
     if (current(frame).getType() != TokenType::OPEN_PAREN) {
       throw SyntaxError(tokenTerm);
     }
@@ -751,6 +755,15 @@ class Interpreter {
     }
     next(frame);  // Skip ")"
 
+    return parameters;
+  }
+
+  CallStackFrame buildMethodInvocationStackFrame(Token& tokenTerm,
+                                                 Method& method,
+                                                 CallStackFrame& frame) {
+    std::vector<Token> parameters =
+        collectMethodParameters(tokenTerm, method, frame);
+
     CallStackFrame codeFrame(method.getCode());
     for (const auto& pair : frame.variables) {
       codeFrame.variables[pair.first] = pair.second;
@@ -767,6 +780,57 @@ class Interpreter {
       }
     }
     codeFrame.setSubFrame();
+    return codeFrame;
+  }
+
+  void interpretClassMethodInvocation(const std::string& className,
+                                      CallStackFrame& frame) {
+    next(frame);  // Skip the "."
+    std::string methodName = current(frame).getText();
+    next(frame);  // Skip the method name.
+    Class clazz = classes[className];
+    Token tokenTerm = current(frame);
+
+    if (methodName == Keywords.New) {
+      if (clazz.isAbstract()) {
+        throw InvalidOperationError(tokenTerm,
+                                    "Cannot instantiate an abstract class.");
+      }
+
+      if (!clazz.hasMethod(Keywords.Ctor)) {
+        throw UnimplementedMethodError(tokenTerm, className, Keywords.Ctor);
+      }
+
+      methodName = Keywords.Ctor;
+    } else if (!clazz.hasMethod(methodName)) {
+      throw UnimplementedMethodError(tokenTerm, className, methodName);
+    }
+
+    Method method = clazz.getMethod(methodName);
+    if (!method.isStatic() && !method.isCtor()) {
+      throw InvalidOperationError(
+          tokenTerm, "The method `" + methodName +
+                         "` can only be invoked on an instance of class `" +
+                         className + "`.");
+    }
+
+    CallStackFrame codeFrame =
+        buildMethodInvocationStackFrame(tokenTerm, method, frame);
+    callStack.push(codeFrame);
+
+    // Now interpret the method in its own context
+    interpretStackFrame();
+  }
+
+  void interpretMethodInvocation(const std::string& name,
+                                 CallStackFrame& frame) {
+    next(frame);  // Skip the name.
+    Method method = getMethod(name, frame);
+
+    Token tokenTerm = current(frame);
+
+    CallStackFrame codeFrame =
+        buildMethodInvocationStackFrame(tokenTerm, method, frame);
     callStack.push(codeFrame);
 
     // Now interpret the method in its own context
@@ -791,33 +855,33 @@ class Interpreter {
     next(frame);  // Skip ")"
   }
 
-  void interpretMethodDefinition(CallStackFrame& frame) {
-    next(frame);  // Skip "def"
-
+  Method interpretMethodDeclaration(CallStackFrame& frame) {
     Method method;
 
-    std::string moduleName;
-    if (!moduleStack.empty()) {
-      moduleName = moduleStack.top();
+    while (current(frame).getText() != Keywords.Method) {
+      if (current(frame).getText() == Keywords.Abstract) {
+        method.setAbstract();
+      } else if (current(frame).getText() == Keywords.Override) {
+        method.setOverride();
+      } else if (current(frame).getText() == Keywords.Private) {
+        method.setPrivate();
+      } else if (current(frame).getText() == Keywords.Static) {
+        method.setStatic();
+      }
+      next(frame);
     }
+    next(frame);  // Skip "def"
 
     std::string name = current(frame).getText();
-
-    if (Keywords.is_keyword(name)) {
-      Token tokenTerm = current(frame);
-      throw IllegalNameError(tokenTerm, name);
-    }
-
-    if (!moduleName.empty()) {
-      name = moduleName + Symbols.Qualifier + name;
-    }
-
     method.setName(name);
-
     next(frame);  // Skip the name.
     interpretMethodParameters(method, frame);
-
     int counter = 1;
+
+    if (method.isAbstract()) {
+      return method;
+    }
+
     while (counter > 0) {
       if (current(frame).getText() == Keywords.End) {
         --counter;
@@ -835,10 +899,28 @@ class Interpreter {
       next(frame);
     }
 
-    if (current(frame).getText() == Keywords.End) {
-      //next(frame);
+    return method;
+  }
+
+  void interpretMethodDefinition(CallStackFrame& frame) {
+    Method method = interpretMethodDeclaration(frame);
+    std::string name = method.getName();
+    std::string moduleName;
+
+    if (!moduleStack.empty()) {
+      moduleName = moduleStack.top();
     }
 
+    if (!moduleName.empty()) {
+      name = moduleName + Symbols.Qualifier + name;
+    }
+
+    if (Keywords.is_keyword(name)) {
+      Token tokenTerm = current(frame);
+      throw IllegalNameError(tokenTerm, name);
+    }
+
+    method.setName(name);
     methods[name] = method;
   }
 
@@ -1525,6 +1607,128 @@ class Interpreter {
     }
   }
 
+  std::string interpretBaseClass(CallStackFrame& frame) {
+    std::string baseClassName;
+    if (current(frame).getType() == TokenType::OPERATOR) {
+      if (current(frame).getText() != Operators.LessThan) {
+        throw SyntaxError(
+            current(frame),
+            "Expected inheritance operator, `<`, in class definition.");
+      }
+      next(frame);
+
+      if (current(frame).getType() != TokenType::IDENTIFIER) {
+        throw SyntaxError(current(frame), "Expected base class name.");
+      }
+
+      baseClassName = current(frame).getText();
+      next(frame);  // Skip base class.
+    }
+    return baseClassName;
+  }
+
+  void interpretClassDefinition(CallStackFrame& frame) {
+    bool isAbstract = current(frame).getText() == Keywords.Abstract;
+    std::string moduleName;
+    if (!moduleStack.empty()) {
+      moduleName = moduleStack.top();
+    }
+
+    while (current(frame).getText() != Keywords.Class) {
+      next(frame);
+    }
+    next(frame);  // Skip "class"
+
+    Token tokenTerm = current(frame);
+    std::string className = current(frame).getText();
+    next(frame);  // Skip class name.
+
+    if (classes.find(className) != classes.end()) {
+      throw ClassRedefinitionError(tokenTerm, className);
+    }
+
+    std::string baseClassName = interpretBaseClass(frame);
+
+    Class clazz;
+    if (isAbstract) {
+      clazz.setAbstract();
+    }
+    clazz.setClassName(className);
+    clazz.setBaseClassName(baseClassName);
+
+    if (!baseClassName.empty()) {
+      if (classes.find(baseClassName) == classes.end()) {
+        throw ClassUndefinedError(tokenTerm, baseClassName);
+      }
+
+      // inherit methods from base class.
+      Class baseClass = classes[baseClassName];
+      for (auto& pair : baseClass.getMethods()) {
+        clazz.addMethod(pair.second);
+      }
+    }
+
+    int counter = 1;
+    while (counter > 0) {
+      std::string tokenText = current(frame).getText();
+      if (tokenText == Keywords.End) {
+        --counter;
+
+        // Stop here.
+        if (counter == 0) {
+          break;
+        }
+      } else if (tokenText == Keywords.Abstract ||
+                 tokenText == Keywords.Override ||
+                 tokenText == Keywords.Method ||
+                 tokenText == Keywords.Private) {
+        Method method = interpretMethodDeclaration(frame);
+        if (current(frame).getText() == Keywords.End) {
+          next(frame);
+        }
+
+        if (method.getName() == Keywords.Ctor) {
+          method.setCtor();
+        }
+
+        if (clazz.hasMethod(method.getName())) {
+          Method classMethod = clazz.getMethod(method.getName());
+          if (!method.isOverride() && classMethod.isAbstract()) {
+            throw SyntaxError(current(frame),
+                              "The class, `" + className +
+                                  "` has an abstract definition for `" +
+                                  method.getName() +
+                                  "` and the `override` keyword is missing.");
+          }
+        }
+
+        clazz.addMethod(method);
+        continue;
+      }
+
+      next(frame);
+    }
+
+    if (current(frame).getText() != Keywords.End) {
+      throw SyntaxError(tokenTerm,
+                        "Expected `end` keyword at end of class definition.");
+    }
+
+    // Check for unimplemented abstract methods.
+    if (!clazz.isAbstract()) {
+      for (const auto& pair : clazz.getMethods()) {
+        if (pair.second.isAbstract()) {
+          throw UnimplementedMethodError(current(frame), className,
+                                         pair.second.getName());
+        }
+      }
+    }
+
+    classes[className] = clazz;
+
+    std::cout << "";
+  }
+
   void interpretModuleDefinition(CallStackFrame& frame) {
     next(frame);  // Skip "module"
 
@@ -1892,8 +2096,18 @@ class Interpreter {
       interpretQualifiedIdentifier(tokenTerm, tokenText, frame);
     }
 
-    if (!valueSet && hasMethod(tokenText)) {
-      interpretMethodInvocation(tokenText, frame);
+    bool methodFound = hasMethod(tokenText), classFound = hasClass(tokenText);
+    if (!valueSet && (methodFound || classFound)) {
+      if (classFound) {
+        if (peek(frame).getType() != TokenType::DOT) {
+          throw SyntaxError(current(frame),
+                            "Invalid syntax near `" + tokenText + "`");
+        }
+        interpretClassMethodInvocation(tokenText, frame);
+      } else if (methodFound) {
+        interpretMethodInvocation(tokenText, frame);
+      }
+
       if (!callStack.empty()) {
         value = callStack.top().returnValue;
         frame.returnFlag = false;

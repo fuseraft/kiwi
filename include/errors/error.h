@@ -85,6 +85,30 @@ class UnrecognizedBuiltinError : public KiwiError {
                   "Unrecognized builtin `" + name + "`.") {}
 };
 
+class ClassRedefinitionError : public KiwiError {
+ public:
+  ClassRedefinitionError(const Token& token, std::string name)
+      : KiwiError(token, "ClassRedefinitionError",
+                  "Attempted to redefine class already defined class `" + name +
+                      "`.") {}
+};
+
+class ClassUndefinedError : public KiwiError {
+ public:
+  ClassUndefinedError(const Token& token, std::string name)
+      : KiwiError(token, "ClassUndefinedError",
+                  "The class `" + name + "` is undefined.") {}
+};
+
+class UnimplementedMethodError : public KiwiError {
+ public:
+  UnimplementedMethodError(const Token& token, std::string className,
+                           std::string methodName)
+      : KiwiError(token, "UnimplementedMethodError",
+                  "The class `" + className +
+                      "` has an unimplemented method `" + methodName + "`") {}
+};
+
 class BuiltinUnexpectedArgumentError : public KiwiError {
  public:
   BuiltinUnexpectedArgumentError(const Token& token, std::string name)
