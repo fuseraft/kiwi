@@ -5,6 +5,7 @@
 #include <stack>
 #include "errors/error.h"
 #include "errors/handler.h"
+#include "errors/state.h"
 #include "logging/logger.h"
 #include "math/boolexpr.h"
 #include "math/visitor.h"
@@ -93,7 +94,24 @@ class Interpreter {
     auto& frame = callStack.top();
     while (frame.position < frame.tokens.size()) {
       auto& token = frame.tokens[frame.position];
-      interpretToken(token, frame);
+
+      try {
+        interpretToken(token, frame);
+      } catch (const KiwiError& e) {
+        if (frame.isInTry()) {
+          frame.setErrorState(e);
+        } else {
+          ErrorHandler::handleError(e);
+          exit(1);
+        }
+      } catch (const std::exception& e) {
+        ErrorHandler::handleFatalError(e);
+      }
+
+      if (frame.isErrorStateSet()) {
+        ++frame.position;
+        continue;
+      }
 
       bool tokenChange = false;
 
@@ -104,7 +122,8 @@ class Interpreter {
 
       if (tokenChange && ((token.getType() != TokenType::KEYWORD &&
                            token.getType() != TokenType::CONDITIONAL) ||
-                          token.getText() == Keywords.End)) {
+                          (token.getText() == Keywords.End ||
+                           token.getText() == Keywords.Try))) {
         if (methods.find(token.getText()) != methods.end()) {
           continue;
         }
@@ -407,12 +426,16 @@ class Interpreter {
       interpretImport(frame);
     } else if (keyword == Keywords.Module) {
       interpretModuleDefinition(frame);
+    } else if (keyword == Keywords.Delete) {
+      interpretDelete(frame);
     } else if (keyword == Keywords.Break) {
       frame.setBreak();
     } else if (keyword == Keywords.Next) {
       frame.setContinue();
-    } else if (keyword == Keywords.Delete) {
-      interpretDelete(frame);
+    } else if (keyword == Keywords.Try) {
+      frame.setTry();
+    } else if (keyword == Keywords.Pass) {
+      // skip
     } else {
       throw UnrecognizedTokenError(token);
     }
@@ -448,7 +471,92 @@ class Interpreter {
     }
   }
 
+  void interpretParameterizedCatch(CallStackFrame& frame,
+                                   std::string& errorVariableName,
+                                   Value& errorValue) {
+    next(frame);  // Skip "("
+
+    if (current(frame).getType() != TokenType::KEYWORD &&
+        current(frame).getText() != Symbols.DeclVar) {
+      throw SyntaxError(current(frame),
+                        "Syntax error in catch variable declaration.");
+    }
+    next(frame);  // Skip "@"
+
+    if (current(frame).getType() != TokenType::IDENTIFIER) {
+      throw SyntaxError(
+          current(frame),
+          "Syntax error in catch variable declaration. Missing identifier.");
+    }
+
+    errorVariableName = current(frame).getText();
+    next(frame);  // Skip the identifier.
+
+    if (current(frame).getType() != TokenType::CLOSE_PAREN) {
+      throw SyntaxError(current(frame),
+                        "Syntax error in catch variable declaration.");
+    }
+    next(frame);  // Skip ")"
+
+    errorValue = frame.getErrorMessage();
+  }
+
+  void interpretCatch(CallStackFrame& frame) {
+    next(frame);  // SKip "catch"
+
+    std::string errorVariableName;
+    Value errorValue;
+
+    if (current(frame).getType() == TokenType::OPEN_PAREN) {
+      interpretParameterizedCatch(frame, errorVariableName, errorValue);
+    }
+
+    std::vector<Token> catchTokens;
+    int count = 1;
+    while (count != 0) {
+      if (current(frame).getText() == Keywords.End) {
+        --count;
+
+        // Stop here.
+        if (count == 0) {
+          break;
+        }
+      } else if (Keywords.is_required_end_keyword(current(frame).getText())) {
+        ++count;
+      }
+
+      catchTokens.push_back(current(frame));
+      next(frame);
+    }
+
+    CallStackFrame catchFrame(catchTokens);
+
+    for (const auto& pair : frame.variables) {
+      catchFrame.variables[pair.first] = pair.second;
+    }
+
+    if (!errorVariableName.empty() &&
+        std::holds_alternative<std::string>(errorValue)) {
+      catchFrame.variables[errorVariableName] = errorValue;
+    }
+
+    callStack.push(catchFrame);
+    interpretStackFrame();
+    frame.clearTry();
+    frame.clearErrorState();
+
+    std::cout << "";
+  }
+
   void interpretToken(const Token& token, CallStackFrame& frame) {
+    if (frame.isErrorStateSet()) {
+      if (token.getType() == TokenType::KEYWORD &&
+          token.getText() == Keywords.Catch) {
+        interpretCatch(frame);
+      }
+      return;
+    }
+
     switch (token.getType()) {
       case TokenType::COMMENT:
       case TokenType::COMMA:
@@ -772,11 +880,6 @@ class Interpreter {
     if (current(frame).getType() == TokenType::IDENTIFIER) {
       name = current(frame).toString();
       next(frame);
-
-      // WIP: add other conditions to exclude.
-      if (Keywords.is_keyword(name)) {
-        throw IllegalNameError(current(frame), name);
-      }
 
       if (current(frame).getType() == TokenType::OPERATOR) {
         std::string op = current(frame).toString();
