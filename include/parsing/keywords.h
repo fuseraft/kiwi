@@ -134,10 +134,12 @@ struct {
 } Operators;
 
 struct {
+  const std::string Abstract = "abstract";
   const std::string Break = "break";
   const std::string Case = "case";
   const std::string Catch = "catch";
   const std::string Class = "class";
+  const std::string Ctor = "initialize";
   const std::string Default = "default";
   const std::string Delay = "delay";
   const std::string Delete = "delete";
@@ -156,22 +158,27 @@ struct {
   const std::string In = "in";
   const std::string Method = "def";
   const std::string Module = "module";
+  const std::string New = "new";
   const std::string Next = "next";
+  const std::string Override = "override";
   const std::string Pass = "pass";
   const std::string Print = "print";
   const std::string PrintLn = "println";
+  const std::string Private = "private";
   const std::string Return = "return";
-  const std::string Self = "self";
+  const std::string Static = "static";
   const std::string Switch = "switch";
+  const std::string This = "this";
   const std::string True = "true";
   const std::string Try = "try";
   const std::string kiwiApp = "kiwi";
   const std::string While = "while";
 
   std::unordered_set<std::string> keywords = {
-      If,     Else,   ElseIf, True,  False,   While, End, Module,
-      Method, Return, Import, Print, PrintLn, For,   In,  Do,
-      Next,   Break,  Delete, Pass,  Try,     Catch};
+      If,     Else,     ElseIf, True,     False,   While,   End,
+      Module, Method,   Return, Import,   Print,   PrintLn, For,
+      In,     Do,       Next,   Break,    Delete,  Pass,    Try,
+      Catch,  Abstract, Class,  Override, Private, This};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           End};
@@ -215,11 +222,5 @@ struct {
     return typenames.find(arg) != typenames.end();
   }
 } TypeNames;
-
-struct {
-  const std::string Public = "public";
-  const std::string Private = "private";
-  const std::string Protected = "protected";
-} AccessModifiers;
 
 #endif

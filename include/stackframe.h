@@ -6,6 +6,7 @@
 #include <vector>
 #include "errors/error.h"
 #include "errors/state.h"
+#include "objects/object.h"
 #include "parsing/tokens.h"
 #include "typing/valuetype.h"
 
@@ -15,6 +16,7 @@ struct CallStackFrame {
   std::map<std::string, Value> variables;
   Value returnValue;
   ErrorState errorState;
+  Object objectContext;
 
   bool returnFlag = false;
   bool subFrame = false;
