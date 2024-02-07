@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "errors/error.h"
+#include "errors/state.h"
 #include "parsing/tokens.h"
 #include "typing/valuetype.h"
 
@@ -12,10 +14,13 @@ struct CallStackFrame {
   size_t position = 0;        // Current position in the token stream.
   std::map<std::string, Value> variables;
   Value returnValue;
+  ErrorState errorState;
+
   bool returnFlag = false;
   bool subFrame = false;
   bool loopBreak = false;
   bool loopContinue = false;
+  bool inTry = false;
 
   CallStackFrame(const std::vector<Token>& tokens) : tokens(tokens) {}
 
@@ -23,6 +28,16 @@ struct CallStackFrame {
   void setBreak() { loopBreak = true; }
   void clearBreak() { loopBreak = false; }
   bool isBreakSet() const { return loopBreak; }
+
+  void setTry() { inTry = true; }
+  void clearTry() { inTry = false; }
+  bool isInTry() const { return inTry; }
+
+  void setErrorState(const KiwiError& e) { errorState.setError(e); }
+  bool isErrorStateSet() const { return errorState.isErrorSet(); }
+  ErrorState getErrorState() const { return errorState; }
+  std::string getErrorMessage() const { return errorState.error.getMessage(); }
+  void clearErrorState() { errorState.clearError(); }
 
   void setContinue() { loopContinue = true; }
   void clearContinue() { loopContinue = false; }

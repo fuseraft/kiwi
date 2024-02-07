@@ -137,13 +137,11 @@ struct {
   const std::string Break = "break";
   const std::string Case = "case";
   const std::string Catch = "catch";
-  const std::string Caught = "caught";
   const std::string Class = "class";
   const std::string Default = "default";
   const std::string Delay = "delay";
   const std::string Delete = "delete";
   const std::string Do = "do";
-  const std::string Dot = ".";
   const std::string Each = "each";
   const std::string Else = "else";
   const std::string ElseIf = "elsif";
@@ -156,17 +154,12 @@ struct {
   const std::string If = "if";
   const std::string Import = "import";
   const std::string In = "in";
-  const std::string Infinity = "inf";
   const std::string Method = "def";
   const std::string Module = "module";
   const std::string Next = "next";
   const std::string Pass = "pass";
   const std::string Print = "print";
   const std::string PrintLn = "println";
-  const std::string Random = "random";
-  const std::string RangeSeparator = "..";
-  const std::string Read = "read";
-  const std::string ReadLine = "readline";
   const std::string Return = "return";
   const std::string Self = "self";
   const std::string Switch = "switch";
@@ -176,16 +169,17 @@ struct {
   const std::string While = "while";
 
   std::unordered_set<std::string> keywords = {
-      If,     Else,  ElseIf,  True, False, While, End,  Module, Method, Return,
-      Import, Print, PrintLn, For,  In,    Do,    Next, Break,  Delete};
+      If,     Else,   ElseIf, True,  False,   While, End, Module,
+      Method, Return, Import, Print, PrintLn, For,   In,  Do,
+      Next,   Break,  Delete, Pass,  Try,     Catch};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           End};
 
   std::unordered_set<std::string> loop_keywords = {While, For};
 
-  std::unordered_set<std::string> required_end_keywords = {While, For, Method,
-                                                           If, Module};
+  std::unordered_set<std::string> required_end_keywords = {
+      While, For, Method, If, Module, Try};
 
   bool is_keyword(std::string& arg) {
     return keywords.find(arg) != keywords.end();
