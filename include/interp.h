@@ -1509,7 +1509,8 @@ class Interpreter {
     return value;
   }
 
-  void interpretDeleteHashKey(CallStackFrame& frame, const std::string&name, Value& value) {
+  void interpretDeleteHashKey(CallStackFrame& frame, const std::string& name,
+                              Value& value) {
     std::string key = interpretKey(frame);
     std::shared_ptr<Hash> hash = std::get<std::shared_ptr<Hash>>(value);
 
@@ -1521,10 +1522,11 @@ class Interpreter {
     frame.variables[name] = hash;
   }
 
-  void interpretDeleteListIndex(CallStackFrame& frame, const std::string& name, Value& value) {
+  void interpretDeleteListIndex(CallStackFrame& frame, const std::string& name,
+                                Value& value) {
     int index = interpretIndex(frame);
     std::shared_ptr<List> list = std::get<std::shared_ptr<List>>(value);
-    
+
     if (index < 0 || index >= static_cast<int>(list->elements.size())) {
       throw RangeError(current(frame), "List index out of range.");
     }
@@ -1534,9 +1536,10 @@ class Interpreter {
   }
 
   void interpretDelete(CallStackFrame& frame) {
-    next(frame); // Skip "delete"
+    next(frame);  // Skip "delete"
 
-    if (current(frame).getType() == TokenType::KEYWORD && current(frame).getText() == Symbols.DeclVar) {
+    if (current(frame).getType() == TokenType::KEYWORD &&
+        current(frame).getText() == Symbols.DeclVar) {
       next(frame);
       std::string name = current(frame).getText();
 
@@ -1555,7 +1558,8 @@ class Interpreter {
       return;
     }
 
-    throw SyntaxError(current(frame), "Cannot delete from a non-variable value.");
+    throw SyntaxError(current(frame),
+                      "Cannot delete from a non-variable value.");
   }
 
   void interpretPrint(CallStackFrame& frame, bool printNewLine = false) {
