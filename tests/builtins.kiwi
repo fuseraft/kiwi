@@ -39,4 +39,10 @@ println @a.begins_with("food")
 println "foobar".ends_with("bar")
 println "foobar".ends_with("bark")
 
+@a = 1
+
+println @a.is_a(Integer) # prints: true
+println @a.is_a(String)  # prints: false
+#println @a.is_a(Zebra)  # throws UnknownIdentifierError
+
 println ""

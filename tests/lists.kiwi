@@ -27,4 +27,11 @@ while @i < 5 do
   @i += 1
 end
 
+@list = "abcdefgh".chars()
+
+while @list.size() > 0 do
+  println @list
+  delete @list[0]
+end
+
 println ""

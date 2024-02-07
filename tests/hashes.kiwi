@@ -1,4 +1,6 @@
-# Add Kiwi here!
+println "==============="
+println "= hashes.kiwi ="
+println "==============="
 
 @hash = {
   "key1": true, 
@@ -14,10 +16,6 @@ end
 
 println @otherHash
 
-@keys = @otherHash.keys()
-println @keys
-
-delete @otherHash["key2"]
 @keys = @otherHash.keys()
 println @keys
 

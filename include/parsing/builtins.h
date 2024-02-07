@@ -145,11 +145,12 @@ struct {
   const std::string IndexOf = "index_of";
   const std::string Upcase = "upcase";
   const std::string Downcase = "downcase";
+  const std::string Keys = "keys";
 
   std::unordered_set<std::string> builtins = {
-      Chars,      IsA,      Join,    Size,    ToD,
-      ToI,        ToS,      Replace, Replace, Contains,
-      BeginsWith, EndsWith, IndexOf, Upcase,  Downcase};
+      Chars,   IsA,     Join,     Size,     ToD,        ToI,
+      ToS,     Replace, Replace,  Contains, BeginsWith, EndsWith,
+      IndexOf, Upcase,  Downcase, Keys};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();

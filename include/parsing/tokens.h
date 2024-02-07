@@ -3,6 +3,7 @@
 
 #include <string>
 #include "parsing/keywords.h"
+#include "typing/serializer.h"
 #include "typing/valuetype.h"
 
 enum TokenType {
@@ -122,7 +123,7 @@ class Token {
   Token(TokenType t, std::string file, std::string text, const Value& v,
         const int& lineNumber, const int& linePosition)
       : type(t), file(file), text(text), value(v) {
-    valueType = get_value_type(v);
+    valueType = Serializer::get_value_type(v);
     _lineNumber = lineNumber;
     _linePosition = linePosition;
     owner = "";

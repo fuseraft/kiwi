@@ -58,7 +58,7 @@ println "=> file text:\n${@text}"
 # =============================
 
 println "=> deleting file: ${@dest}"
-fileio::delete(@dest)
+fileio::remove(@dest)
 
 # =============================
 # Read file size of file
@@ -113,7 +113,7 @@ fileio::move(@path, @dest)
 
 if fileio::exists(@path)
   println "=> deleting file: ${@path}"
-  fileio::delete(@path)
+  fileio::remove(@path)
 end
 
 # =============================
@@ -142,7 +142,7 @@ for @line, @index in @lines do
 end
 
 if fileio::exists(@path)
-  fileio::delete(@path)
+  fileio::remove(@path)
 end
 
 if !fileio::exists(@path)

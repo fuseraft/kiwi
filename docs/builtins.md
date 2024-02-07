@@ -138,3 +138,17 @@ Used for type-checking.
 ```ruby
 println "foobar".is_a(String) # prints: true
 ```
+
+### `.keys()`
+
+Returns a list of keys from a hash.
+
+```ruby
+@hash = {
+  "key1": true, 
+  "key2": 1, 
+  "key3": ["a", "b", "c"]
+}
+
+println @hash.keys() # prints: ["key1", "key2", "key3"]
+```
