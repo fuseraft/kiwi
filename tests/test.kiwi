@@ -24,6 +24,7 @@ if !@debug
     import "builtins"
     import "prime_numbers"
     import "fibonacci"
+    import "hashes"
 else
     # Set @debug = true, and add an import below to debug a specific script.
     import "playground"

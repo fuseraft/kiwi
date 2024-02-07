@@ -1,13 +1,24 @@
-println "==================="
-println "= playground.kiwi ="
-println "==================="
-
 # Add Kiwi here!
 
-@a = 1
+@hash = {
+  "key1": true, 
+  "key2": 1, 
+  "key3": ["a", "b", "c"]
+}
 
-println @a.is_a(Integer)
-println @a.is_a(String)
-#println @a.is_a(Zebra) # segfault
+@otherHash = {}
+
+for @key in @hash.keys() do
+  @otherHash[@key] = @hash[@key]
+end
+
+println @otherHash
+
+@keys = @otherHash.keys()
+println @keys
+
+delete @otherHash["key2"]
+@keys = @otherHash.keys()
+println @keys
 
 println ""

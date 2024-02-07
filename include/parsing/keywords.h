@@ -141,6 +141,7 @@ struct {
   const std::string Class = "class";
   const std::string Default = "default";
   const std::string Delay = "delay";
+  const std::string Delete = "delete";
   const std::string Do = "do";
   const std::string Dot = ".";
   const std::string Each = "each";
@@ -175,8 +176,8 @@ struct {
   const std::string While = "while";
 
   std::unordered_set<std::string> keywords = {
-      If,     Else,   ElseIf, True,    False, While, End, Module, Method,
-      Return, Import, Print,  PrintLn, For,   In,    Do,  Next,   Break};
+      If,     Else,  ElseIf,  True, False, While, End,  Module, Method, Return,
+      Import, Print, PrintLn, For,  In,    Do,    Next, Break,  Delete};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           End};

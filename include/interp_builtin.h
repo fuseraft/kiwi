@@ -12,6 +12,7 @@
 #include "parsing/tokens.h"
 #include "system/fileio.h"
 #include "system/time.h"
+#include "typing/serializer.h"
 #include "typing/valuetype.h"
 
 class BuiltinInterpreter {
@@ -71,6 +72,8 @@ class BuiltinInterpreter {
       return executeUpcase(tokenTerm, value, args);
     } else if (builtin == KiwiBuiltins.Downcase) {
       return executeDowncase(tokenTerm, value, args);
+    } else if (builtin == KiwiBuiltins.Keys) {
+      return executeKeys(tokenTerm, value, args);
     }
 
     throw UnknownBuiltinError(tokenTerm, builtin);
@@ -775,7 +778,7 @@ class BuiltinInterpreter {
       if (it != list->elements.begin()) {
         sv << joiner;
       }
-      sv << get_value_string(*it);
+      sv << Serializer::get_value_string(*it);
     }
 
     return sv.str();
@@ -793,6 +796,10 @@ class BuiltinInterpreter {
     } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
       auto list = std::get<std::shared_ptr<List>>(value);
       int size = list->elements.size();
+      return size;
+    } else if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
+      auto hash = std::get<std::shared_ptr<Hash>>(value);
+      int size = hash->kvp.size();
       return size;
     } else {
       throw ConversionError(tokenTerm);
@@ -861,7 +868,24 @@ class BuiltinInterpreter {
       throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.ToS);
     }
 
-    return get_value_string(value);
+    return Serializer::get_value_string(value);
+  }
+
+  static std::shared_ptr<List> executeKeys(const Token& tokenTerm,
+                                           const Value& value,
+                                           const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.Keys);
+    }
+
+    if (!std::holds_alternative<std::shared_ptr<Hash>>(value)) {
+      throw InvalidOperationError(
+          tokenTerm, "Attempted to retrieve keys from non-Hash type.");
+    }
+
+    auto hash = std::get<std::shared_ptr<Hash>>(value);
+
+    return Serializer::get_hash_keys_list(hash);
   }
 
   static bool executeBeginsWith(const Token& tokenTerm, const Value& value,

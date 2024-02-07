@@ -55,7 +55,7 @@ module fileio
     - @_path: The path to a file or a filename.
   Returns: Boolean
   ##
-  def delete(@_path)
+  def remove(@_path)
     @_retval = __deletefile__(@_path)
     return @_retval
   end

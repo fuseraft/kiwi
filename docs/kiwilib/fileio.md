@@ -42,7 +42,7 @@ import "fileio"
   - `@_path`: The path to a file or a filename.
 - **Returns**: Boolean indicating success or failure.
 
-### `delete(@_path)`
+### `remove(@_path)`
 
 - **Summary**: Delete a file.
 - **Parameters**:

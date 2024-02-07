@@ -18,6 +18,7 @@
 #include "parsing/tokens.h"
 #include "parsing/keywords.h"
 #include "system/fileio.h"
+#include "typing/serializer.h"
 #include "typing/valuetype.h"
 #include "globals.h"
 #include "interp_builtin.h"
@@ -410,6 +411,8 @@ class Interpreter {
       frame.setBreak();
     } else if (keyword == Keywords.Next) {
       frame.setContinue();
+    } else if (keyword == Keywords.Delete) {
+      interpretDelete(frame);
     } else {
       throw UnrecognizedTokenError(token);
     }
@@ -784,9 +787,14 @@ class Interpreter {
           handleAssignment(name, op, frame);
         }
       } else if (current(frame).getType() == TokenType::OPEN_BRACKET) {
+        if (!hasVariable(name, frame)) {
+          throw VariableUndefinedError(current(frame), name);
+        }
+
         if (!isSliceAssignmentExpression(frame)) {
           throw SyntaxError(current(frame));
         }
+
         interpretSliceAssignment(frame, name);
       }
     }
@@ -794,16 +802,80 @@ class Interpreter {
     return name;
   }
 
-  void interpretSliceAssignment(CallStackFrame& frame,
-                                const std::string& listVariableName) {
-    Value listValue = getVariable(listVariableName, frame);
-    if (!std::holds_alternative<std::shared_ptr<List>>(listValue)) {
+  void interpretHashElementAssignment(CallStackFrame& frame,
+                                      const std::string& name, Value& value) {
+    std::string key;
+
+    if (current(frame).getType() != TokenType::OPEN_BRACKET) {
+      throw SyntaxError(
+          current(frame),
+          "Expected open-bracket, `[`, in hash element assignment.");
+    }
+    next(frame);  // Skip "["
+
+    BooleanExpressionBuilder booleanExpression;
+    Value keyValue = interpretExpression(booleanExpression, frame);
+
+    if (!std::holds_alternative<std::string>(keyValue)) {
+      throw SyntaxError(current(frame), "Hash key must be a string value.");
+    }
+    key = std::get<std::string>(keyValue);
+
+    if (peek(frame).getType() == TokenType::CLOSE_BRACKET) {
+      next(frame);
+    }
+
+    if (current(frame).getType() != TokenType::CLOSE_BRACKET) {
+      throw SyntaxError(
+          current(frame),
+          "Expected close-bracket, `]`, in hash element assignment.");
+    }
+    next(frame);
+
+    std::string op = "";
+    if (current(frame).getType() == TokenType::OPERATOR) {
+      op = current(frame).getText();
+      next(frame);
+    }
+
+    if (op != Operators.Assign) {
       throw InvalidOperationError(current(frame),
-                                  "`" + listVariableName + "` is not a list.");
+                                  "Expected assignment operator.");
+    }
+
+    Value elementValue = interpretExpression(booleanExpression, frame);
+
+    /*if (std::holds_alternative<std::shared_ptr<Hash>>(elementValue)) {
+      std::shared_ptr<Hash> newHashElementValue = std::make_shared<Hash>();
+      std::shared_ptr<Hash> hashElementValue = std::get<std::shared_ptr<Hash>>(elementValue);
+      for (const auto& kvp : hashElementValue->kvp) {
+        newHashElementValue->kvp[kvp.first] = kvp.second;
+      }
+      elementValue = hashElementValue;
+    }*/
+
+    std::shared_ptr<Hash> hashValue = std::get<std::shared_ptr<Hash>>(value);
+    hashValue->kvp[key] = elementValue;
+
+    frame.variables[name] = hashValue;
+  }
+
+  void interpretSliceAssignment(CallStackFrame& frame,
+                                const std::string& name) {
+    Value value = getVariable(name, frame);
+
+    if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
+      interpretHashElementAssignment(frame, name, value);
+      return;
+    }
+
+    if (!std::holds_alternative<std::shared_ptr<List>>(value)) {
+      throw InvalidOperationError(current(frame),
+                                  "`" + name + "` is not a list.");
     }
 
     // Parse slice parameters (start:stop:step)
-    SliceIndex slice = interpretSliceIndex(frame, listValue);
+    SliceIndex slice = interpretSliceIndex(frame, value);
 
     if (peek(frame).getType() == TokenType::OPERATOR) {
       next(frame);
@@ -822,9 +894,9 @@ class Interpreter {
     Value rhsValues = interpretExpression(booleanExpression, frame);
 
     // Get the target list to update
-    auto targetListPtr = std::get<std::shared_ptr<List>>(listValue);
+    auto targetListPtr = std::get<std::shared_ptr<List>>(value);
 
-    auto rhsList = convert_value_to_list(rhsValues);
+    auto rhsList = Serializer::convert_value_to_list(rhsValues);
     updateListSlice(frame, insertOp, targetListPtr, slice, rhsList);
   }
 
@@ -959,16 +1031,69 @@ class Interpreter {
     return slice;
   }
 
-  Value interpretSlice(CallStackFrame& frame,
-                       const std::string& listVariableName) {
-    Value listValue = getVariable(listVariableName, frame);
-    if (!std::holds_alternative<std::shared_ptr<List>>(listValue)) {
-      throw InvalidOperationError(current(frame),
-                                  "`" + listVariableName + "` is not a list.");
+  Value interpretKeyOrIndex(CallStackFrame& frame) {
+    if (current(frame).getType() != TokenType::OPEN_BRACKET) {
+      throw SyntaxError(current(frame),
+                        "Expected open-bracket, `[`, in key or index access.");
+    }
+    next(frame);  // Skip "["
+
+    BooleanExpressionBuilder booleanExpression;
+    Value output = interpretExpression(booleanExpression, frame);
+
+    if (peek(frame).getType() != TokenType::CLOSE_BRACKET) {
+      throw SyntaxError(current(frame),
+                        "Expected close-bracket, `]`, in key or index access.");
+    }
+    next(frame);
+    return output;
+  }
+
+  std::string interpretKey(CallStackFrame& frame) {
+    Value output = interpretKeyOrIndex(frame);
+
+    if (!std::holds_alternative<std::string>(output)) {
+      throw SyntaxError(current(frame), "Hash key must be a string value.");
     }
 
-    SliceIndex slice = interpretSliceIndex(frame, listValue);
-    auto listPtr = std::get<std::shared_ptr<List>>(listValue);
+    return std::get<std::string>(output);
+  }
+
+  int interpretIndex(CallStackFrame& frame) {
+    Value output = interpretKeyOrIndex(frame);
+
+    if (!std::holds_alternative<int>(output)) {
+      throw SyntaxError(current(frame), "List index must be an integer value.");
+    }
+
+    return std::get<int>(output);
+  }
+
+  Value interpretHashElementAccess(CallStackFrame& frame, Value& value) {
+    Token tokenTerm = current(frame);
+
+    std::string key = interpretKey(frame);
+    std::shared_ptr<Hash> hash = std::get<std::shared_ptr<Hash>>(value);
+    if (hash->kvp.find(key) == hash->kvp.end()) {
+      throw HashKeyError(current(frame), key);
+    }
+
+    return hash->kvp[key];
+  }
+
+  Value interpretSlice(CallStackFrame& frame, const std::string& name) {
+    Value value = getVariable(name, frame);
+    if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
+      return interpretHashElementAccess(frame, value);
+    }
+
+    if (!std::holds_alternative<std::shared_ptr<List>>(value)) {
+      throw InvalidOperationError(current(frame),
+                                  "`" + name + "` is not a list.");
+    }
+
+    SliceIndex slice = interpretSliceIndex(frame, value);
+    auto listPtr = std::get<std::shared_ptr<List>>(value);
 
     if (slice.isSlice) {
       if (!std::holds_alternative<int>(slice.indexOrStart)) {
@@ -1103,18 +1228,32 @@ class Interpreter {
     std::shared_ptr<Hash> hash = std::make_shared<Hash>();
     next(frame);  // Skip the "{"
 
-    while (current(frame).getType() != TokenType::CLOSE_BRACKET) {
-      auto value = interpretExpression(booleanExpression, frame);
-      // list->elements.push_back(value);
+    while (current(frame).getType() != TokenType::CLOSE_BRACE) {
+      auto keyValue = interpretExpression(booleanExpression, frame);
+      if (!std::holds_alternative<std::string>(keyValue)) {
+        throw SyntaxError(current(frame), "Hash key must be a string value.");
+      }
+      std::string key = std::get<std::string>(keyValue);
+
+      if (peek(frame).getType() == TokenType::COLON) {
+        next(frame);
+      }
+
+      if (current(frame).getType() == TokenType::COLON) {
+        next(frame);  // Skip the ":"
+        auto value = interpretExpression(booleanExpression, frame);
+        hash->kvp[key] = value;
+      }
 
       if (peek(frame).getType() == TokenType::COMMA) {
         next(frame);  // Skip current value
-        if (current(frame).getType() == TokenType::COMMA) {
-          next(frame);
-        }
-      } else if (current(frame).getType() == TokenType::COMMA) {
+      }
+
+      if (current(frame).getType() == TokenType::COMMA) {
         next(frame);
-      } else if (peek(frame).getType() == TokenType::CLOSE_BRACKET) {
+      }
+
+      if (peek(frame).getType() == TokenType::CLOSE_BRACE) {
         next(frame);
       }
     }
@@ -1356,35 +1495,90 @@ class Interpreter {
     }
   }
 
+  Value interpretVariableValue(std::string name, CallStackFrame& frame) {
+    if (!hasVariable(name, frame)) {
+      throw KiwiError(current(frame), "Unknown variable `" + name + "`");
+    }
+
+    BooleanExpressionBuilder booleanExpression;
+    Value value = interpretExpression(booleanExpression, frame);
+    if (booleanExpression.isSet()) {
+      value = booleanExpression.evaluate();
+    }
+
+    return value;
+  }
+
+  void interpretDeleteHashKey(CallStackFrame& frame, const std::string&name, Value& value) {
+    std::string key = interpretKey(frame);
+    std::shared_ptr<Hash> hash = std::get<std::shared_ptr<Hash>>(value);
+
+    if (hash->kvp.find(key) == hash->kvp.end()) {
+      throw HashKeyError(current(frame), key);
+    }
+
+    hash->kvp.erase(key);
+    frame.variables[name] = hash;
+  }
+
+  void interpretDeleteListIndex(CallStackFrame& frame, const std::string& name, Value& value) {
+    int index = interpretIndex(frame);
+    std::shared_ptr<List> list = std::get<std::shared_ptr<List>>(value);
+    
+    if (index < 0 || index >= static_cast<int>(list->elements.size())) {
+      throw RangeError(current(frame), "List index out of range.");
+    }
+
+    list->elements.erase(list->elements.begin() + index);
+    frame.variables[name] = list;
+  }
+
+  void interpretDelete(CallStackFrame& frame) {
+    next(frame); // Skip "delete"
+
+    if (current(frame).getType() == TokenType::KEYWORD && current(frame).getText() == Symbols.DeclVar) {
+      next(frame);
+      std::string name = current(frame).getText();
+
+      if (!hasVariable(name, frame)) {
+        throw VariableUndefinedError(current(frame), name);
+      }
+      Value value = getVariable(name, frame);
+      next(frame);
+
+      if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
+        interpretDeleteHashKey(frame, name, value);
+      } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
+        interpretDeleteListIndex(frame, name, value);
+      }
+
+      return;
+    }
+
+    throw SyntaxError(current(frame), "Cannot delete from a non-variable value.");
+  }
+
   void interpretPrint(CallStackFrame& frame, bool printNewLine = false) {
     next(frame);  // skip the "print"
+    BooleanExpressionBuilder booleanExpression;
 
     if (current(frame).getType() == TokenType::STRING) {
-      std::cout << interpolateString(frame);
+      Value v = interpretExpression(booleanExpression, frame);
+      std::cout << Serializer::get_value_string(v);
     } else if (current(frame).getType() == TokenType::KEYWORD &&
                current(frame).getText() == Symbols.DeclVar) {
       next(frame);
       std::string name = current(frame).getText();
 
-      if (!hasVariable(name, frame)) {
-        throw KiwiError(current(frame), "Unknown term `" + name + "`");
-      }
+      Value value = interpretVariableValue(name, frame);
 
-      BooleanExpressionBuilder booleanExpression;
-      Value value = interpretExpression(booleanExpression, frame);
-      if (booleanExpression.isSet()) {
-        value = booleanExpression.evaluate();
-      }
-
-      std::cout << get_value_string(value);
+      std::cout << Serializer::get_value_string(value);
     } else if (current(frame).getType() == TokenType::OPEN_BRACKET) {
-      BooleanExpressionBuilder booleanExpression;
       Value value = interpretBracketExpression(booleanExpression, frame);
-      std::cout << get_value_string(value);
+      std::cout << Serializer::get_value_string(value);
     } else if (current(frame).getType() == TokenType::IDENTIFIER) {
-      BooleanExpressionBuilder booleanExpression;
       Value value = interpretExpression(booleanExpression, frame);
-      std::cout << get_value_string(value);
+      std::cout << Serializer::get_value_string(value);
     } else {
       throw ConversionError(current(frame));
     }
@@ -1582,6 +1776,9 @@ class Interpreter {
     if (current(frame).getType() == TokenType::OPEN_BRACKET) {
       value = interpretBracketExpression(booleanExpression, frame);
       valueSet = true;
+    } else if (current(frame).getType() == TokenType::OPEN_BRACE) {
+      value = interpretHash(booleanExpression, frame);
+      valueSet = true;
     }
 
     if (!valueSet) {
@@ -1731,7 +1928,7 @@ class Interpreter {
         }
         return getVariable(identifier, frame);
       } else {
-        return interpretExpression(booleanExpression, frame);
+        throw UnknownIdentifierError(current(frame), identifier);
       }
     } else if (current(frame).getType() == TokenType::OPERATOR) {
       std::string op = current(frame).toString();
@@ -1826,7 +2023,7 @@ class Interpreter {
 
             if (!builder.empty()) {
               Value interpolatedValue = interpolateString(frame, builder);
-              sv << get_value_string(interpolatedValue);
+              sv << Serializer::get_value_string(interpolatedValue);
               builder.clear();
               ++i;
             }
@@ -1860,12 +2057,6 @@ class Interpreter {
     }
 
     std::string output = sv.str();
-
-    if (peek(frame).getType() == TokenType::DOT) {
-      Value v = output;
-      v = interpretDotNotation(v, frame);
-      output = get_value_string(v);
-    }
 
     return output;
   }
