@@ -66,9 +66,9 @@ class IndexError : public KiwiError {
 
 class HashKeyError : public KiwiError {
  public:
-  HashKeyError(const Token& token,
-               std::string key)
-      : KiwiError(token, "HashKeyError", "The key `" + key + "` does not exist in the hash.") {}
+  HashKeyError(const Token& token, std::string key)
+      : KiwiError(token, "HashKeyError",
+                  "The key `" + key + "` does not exist in the hash.") {}
 };
 
 class ParameterMissingError : public KiwiError {
