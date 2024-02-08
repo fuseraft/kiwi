@@ -63,11 +63,6 @@ class Interpreter {
   std::stack<CallStackFrame> callStack;
   std::stack<std::string> moduleStack;
 
-  bool shouldUpdateFrameVariables(const std::string& varName,
-                                  CallStackFrame& nextFrame) {
-    return nextFrame.variables.find(varName) != nextFrame.variables.end();
-  }
-
   Token current(CallStackFrame& frame) {
     if (frame.position >= frame.tokens.size()) {
       return Token::createEndOfFrame();
@@ -136,6 +131,9 @@ class Interpreter {
             peek(frame).getType() == TokenType::QUALIFIER) {
           continue;
         }
+        if (peek(frame).getType() == TokenType::DOT) {
+          continue;
+        }
 
         if (!frame.isReturnFlagSet()) {
           ++frame.position;
@@ -183,9 +181,17 @@ class Interpreter {
     }
 
     Value returnValue = frame.returnValue;
+    bool inObjectContext = frame.inObjectContext();
+    if (inObjectContext) {
+      returnValue = frame.objectContext;
+    }
     auto topVariables = frame.variables;
     callStack.pop();
     auto& callerFrame = callStack.top();
+
+    if (inObjectContext) {
+      callerFrame.returnValue = returnValue;
+    }
     updateVariablesInCallerFrame(topVariables, callerFrame);
   }
 
@@ -357,7 +363,7 @@ class Interpreter {
       }
 
       callStack.push(conditionFrame);
-      interpretAssignment(conditionFrame);
+      interpretAssignment(conditionFrame, true);
 
       if (conditionFrame.variables.find(tempId) ==
           conditionFrame.variables.end()) {
@@ -432,6 +438,8 @@ class Interpreter {
       interpretDelete(frame);
     } else if (keyword == Keywords.Abstract || keyword == Keywords.Class) {
       interpretClassDefinition(frame);
+    } else if (keyword == Keywords.This) {
+      interpretSelfInvocation(frame);
     } else if (keyword == Keywords.Break) {
       frame.setBreak();
     } else if (keyword == Keywords.Next) {
@@ -464,12 +472,14 @@ class Interpreter {
 
     interpretQualifiedIdentifier(token, tokenText, frame);
 
-    if (hasMethod(tokenText)) {
+    if (hasMethod(tokenText, frame)) {
       interpretMethodInvocation(tokenText, frame);
     } else if (hasVariable(tokenText, frame)) {
       // Skip it (for now).
     } else if (KiwiBuiltins.is_builtin_method(tokenText)) {
       interpretBuiltin(tokenText, frame);
+    } else if (hasClass(tokenText)) {
+      interpretClassMethodInvocation(tokenText, frame);
     } else {
       throw UnknownIdentifierError(token, tokenText);
     }
@@ -548,8 +558,6 @@ class Interpreter {
     interpretStackFrame();
     frame.clearTry();
     frame.clearErrorState();
-
-    std::cout << "";
   }
 
   void interpretToken(const Token& token, CallStackFrame& frame) {
@@ -583,6 +591,11 @@ class Interpreter {
     }
   }
 
+  bool shouldUpdateFrameVariables(const std::string& varName,
+                                  CallStackFrame& nextFrame) {
+    return nextFrame.variables.find(varName) != nextFrame.variables.end();
+  }
+
   void updateVariablesInCallerFrame(std::map<std::string, Value> variables,
                                     CallStackFrame& callerFrame) {
     for (const auto& var : variables) {
@@ -602,13 +615,27 @@ class Interpreter {
     return classes.find(name) != classes.end();
   }
 
-  bool hasMethod(const std::string& name) {
+  bool hasMethod(const std::string& name, CallStackFrame& frame) {
+    if (frame.inObjectContext()) {
+      Class clazz = classes[frame.getObjectContext()->className];
+      if (clazz.hasMethod(name)) {
+        return true;
+      }
+    }
+
     return methods.find(name) != methods.end();
   }
 
   bool hasVariable(const std::string& name, CallStackFrame& frame) {
     if (frame.variables.find(name) != frame.variables.end()) {
       return true;  // Found in the current frame
+    }
+
+    if (frame.inObjectContext()) {
+      if (frame.getObjectContext()->instanceVariables.find(name) !=
+          frame.getObjectContext()->instanceVariables.end()) {
+        return true;
+      }
     }
 
     // Check in outer frames
@@ -633,7 +660,13 @@ class Interpreter {
   }
 
   Method getMethod(const std::string& name, CallStackFrame& frame) {
-    if (hasMethod(name)) {
+    if (hasMethod(name, frame)) {
+      if (frame.inObjectContext()) {
+        Class clazz = classes[frame.getObjectContext()->className];
+        if (clazz.hasMethod(name)) {
+          return clazz.getMethod(name);
+        }
+      }
       return methods[name];
     }
 
@@ -644,6 +677,13 @@ class Interpreter {
     // Check in the current frame
     if (frame.variables.find(name) != frame.variables.end()) {
       return frame.variables[name];
+    }
+
+    if (frame.inObjectContext()) {
+      if (frame.getObjectContext()->instanceVariables.find(name) !=
+          frame.getObjectContext()->instanceVariables.end()) {
+        return frame.getObjectContext()->instanceVariables[name];
+      }
     }
 
     // Check in outer frames
@@ -785,11 +825,15 @@ class Interpreter {
 
   void interpretClassMethodInvocation(const std::string& className,
                                       CallStackFrame& frame) {
+    next(frame);  // Skip class name
     next(frame);  // Skip the "."
+
     std::string methodName = current(frame).getText();
     next(frame);  // Skip the method name.
     Class clazz = classes[className];
     Token tokenTerm = current(frame);
+    std::shared_ptr<Object> context = std::make_shared<Object>();
+    bool isInstantiation = false;
 
     if (methodName == Keywords.New) {
       if (clazz.isAbstract()) {
@@ -802,6 +846,7 @@ class Interpreter {
       }
 
       methodName = Keywords.Ctor;
+      isInstantiation = true;
     } else if (!clazz.hasMethod(methodName)) {
       throw UnimplementedMethodError(tokenTerm, className, methodName);
     }
@@ -814,11 +859,114 @@ class Interpreter {
                          className + "`.");
     }
 
+    if (method.isPrivate()) {
+      if (!frame.inObjectContext() ||
+          frame.getObjectContext()->className != className) {
+        throw InvalidOperationError(
+            current(frame),
+            "Cannot invoke private method outside of object context.");
+      }
+    }
+
     CallStackFrame codeFrame =
         buildMethodInvocationStackFrame(tokenTerm, method, frame);
+    if (isInstantiation) {
+      context->className = className;
+      codeFrame.setObjectContext(context);
+    }
     callStack.push(codeFrame);
 
     // Now interpret the method in its own context
+    interpretStackFrame();
+  }
+
+  Value interpretInstanceMethodInvocation(std::shared_ptr<Object>& object,
+                                          const std::string& methodName,
+                                          std::vector<Value>& parameters,
+                                          CallStackFrame& frame) {
+    if (!hasClass(object->className)) {
+      throw ClassUndefinedError(current(frame), object->className);
+    }
+
+    Class clazz = classes[object->className];
+    if (!clazz.hasMethod(methodName)) {
+      throw UnimplementedMethodError(current(frame), object->className,
+                                     methodName);
+    }
+
+    Method method = clazz.getMethod(methodName);
+
+    if (method.isPrivate() && !frame.inObjectContext()) {
+      throw InvalidOperationError(
+          current(frame),
+          "Cannot invoke private method outside of object context.");
+    }
+
+    CallStackFrame codeFrame(method.getCode());
+    for (const auto& pair : frame.variables) {
+      codeFrame.variables[pair.first] = pair.second;
+    }
+
+    if (static_cast<int>(parameters.size()) != method.getParameterCount()) {
+      throw ParameterCountMismatchError(current(frame), methodName);
+    }
+
+    // Check all parameters are passed.
+    int parameterIndex = 0;
+    for (Token t : method.getParameters()) {
+      std::string parameterName = t.getText();
+      codeFrame.variables[parameterName] = parameters.at(parameterIndex++);
+    }
+    codeFrame.setSubFrame();
+    codeFrame.setObjectContext(object);
+    callStack.push(codeFrame);
+
+    interpretStackFrame();
+
+    Value value;
+    if (!callStack.empty()) {
+      value = callStack.top().returnValue;
+      frame.returnFlag = false;
+    }
+
+    return value;
+  }
+
+  void interpretInstanceMethodInvocation(const std::string& instanceName,
+                                         CallStackFrame& frame) {
+    next(frame);  // Skip the "."
+    if (current(frame).getType() != TokenType::IDENTIFIER) {
+      throw SyntaxError(current(frame));
+    }
+    Token tokenTerm = current(frame);
+    std::string methodName = tokenTerm.getText();
+    next(frame);  // Skip the method name.
+
+    Value instanceValue = getVariable(instanceName, frame);
+    std::shared_ptr<Object> object =
+        std::get<std::shared_ptr<Object>>(instanceValue);
+
+    if (!hasClass(object->className)) {
+      throw ClassUndefinedError(tokenTerm, object->className);
+    }
+
+    Class clazz = classes[object->className];
+    if (!clazz.hasMethod(methodName)) {
+      throw UnimplementedMethodError(tokenTerm, object->className, methodName);
+    }
+
+    Method method = clazz.getMethod(methodName);
+
+    if (method.isPrivate() && !frame.inObjectContext()) {
+      throw InvalidOperationError(
+          tokenTerm, "Cannot invoke private method outside of object context.");
+    }
+
+    CallStackFrame codeFrame =
+        buildMethodInvocationStackFrame(tokenTerm, method, frame);
+    codeFrame.setObjectContext(object);
+    callStack.push(codeFrame);
+
     interpretStackFrame();
   }
 
@@ -831,9 +979,11 @@ class Interpreter {
 
     CallStackFrame codeFrame =
         buildMethodInvocationStackFrame(tokenTerm, method, frame);
+    if (frame.inObjectContext()) {
+      codeFrame.setObjectContext(frame.getObjectContext());
+    }
     callStack.push(codeFrame);
 
-    // Now interpret the method in its own context
     interpretStackFrame();
   }
 
@@ -872,6 +1022,8 @@ class Interpreter {
     }
     next(frame);  // Skip "def"
 
+    Token tokenTerm = current(frame);
+
     std::string name = current(frame).getText();
     method.setName(name);
     next(frame);  // Skip the name.
@@ -897,6 +1049,10 @@ class Interpreter {
       Token codeToken = current(frame);
       method.addToken(codeToken);
       next(frame);
+
+      if (current(frame).getType() == TokenType::ENDOFFRAME) {
+        throw SyntaxError(tokenTerm, "Invalid method declaration `" + name + "`");
+      }
     }
 
     return method;
@@ -934,8 +1090,10 @@ class Interpreter {
     bool isVariable = tokenType == TokenType::KEYWORD &&
                       nextToken.getText() == Symbols.DeclVar;
     bool isBracketed = tokenType == TokenType::OPEN_BRACKET;
+    bool isInstanceInvocation =
+        tokenType == TokenType::KEYWORD && nextToken.getText() == Keywords.This;
     return isString || isLiteral || isIdentifier || isParenthesis ||
-           isVariable || isBracketed;
+           isVariable || isBracketed || isInstanceInvocation;
   }
 
   void interpretReturn(CallStackFrame& frame) {
@@ -955,7 +1113,8 @@ class Interpreter {
     frame.setReturnFlag();
   }
 
-  std::string interpretAssignment(CallStackFrame& frame) {
+  std::string interpretAssignment(CallStackFrame& frame,
+                                  bool isTemporary = false) {
     std::string name;
     next(frame);  // Skip the "@"
 
@@ -969,7 +1128,7 @@ class Interpreter {
 
         if (Operators.is_assignment_operator(op) ||
             op == Operators.ListAppend) {
-          handleAssignment(name, op, frame);
+          handleAssignment(name, op, frame, isTemporary);
         }
       } else if (current(frame).getType() == TokenType::OPEN_BRACKET) {
         if (!hasVariable(name, frame)) {
@@ -981,6 +1140,19 @@ class Interpreter {
         }
 
         interpretSliceAssignment(frame, name);
+      } else if (current(frame).getType() == TokenType::DOT) {
+        if (hasVariable(name, frame)) {
+          Value value = getVariable(name, frame);
+          if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
+            interpretInstanceMethodInvocation(name, frame);
+            return name;
+          } else {
+            throw InvalidOperationError(
+                current(frame), "Unsupported operation on `" + name + "`");
+          }
+        }
+
+        throw VariableUndefinedError(current(frame), name);
       }
     }
 
@@ -1627,6 +1799,33 @@ class Interpreter {
     return baseClassName;
   }
 
+  /*// TODO: implement this.
+  void interpretSuperInvocation(CallStackFrame& frame) {
+    
+  }
+*/
+
+  void interpretSelfInvocation(CallStackFrame& frame) {
+    if (!frame.inObjectContext()) {
+      throw InvalidOperationError(current(frame),
+                                  "Invalid context for keyword `this`.");
+    }
+
+    next(frame);  // Skip "this"
+    if (current(frame).getType() != TokenType::DOT) {
+      throw SyntaxError(current(frame), "Invalid syntax near keyword `this`.");
+    }
+    next(frame);  // Skip "."
+
+    if (current(frame).getType() == TokenType::KEYWORD &&
+        current(frame).getText() == Symbols.DeclVar) {
+      interpretAssignment(frame);
+    } else if (current(frame).getType() == TokenType::IDENTIFIER &&
+               peek(frame).getType() == TokenType::OPEN_PAREN) {
+      interpretMethodInvocation(current(frame).getText(), frame);
+    }
+  }
+
   void interpretClassDefinition(CallStackFrame& frame) {
     bool isAbstract = current(frame).getText() == Keywords.Abstract;
     std::string moduleName;
@@ -1681,9 +1880,10 @@ class Interpreter {
       } else if (tokenText == Keywords.Abstract ||
                  tokenText == Keywords.Override ||
                  tokenText == Keywords.Method ||
-                 tokenText == Keywords.Private) {
+                 tokenText == Keywords.Private ||
+                 tokenText == Keywords.Static) {
         Method method = interpretMethodDeclaration(frame);
-        if (current(frame).getText() == Keywords.End) {
+        if (!method.isAbstract() && current(frame).getText() == Keywords.End) {
           next(frame);
         }
 
@@ -1725,8 +1925,6 @@ class Interpreter {
     }
 
     classes[className] = clazz;
-
-    std::cout << "";
   }
 
   void interpretModuleDefinition(CallStackFrame& frame) {
@@ -1890,6 +2088,10 @@ class Interpreter {
     } else if (current(frame).getType() == TokenType::IDENTIFIER) {
       Value value = interpretExpression(booleanExpression, frame);
       std::cout << Serializer::get_value_string(value);
+    } else if (current(frame).getType() == TokenType::KEYWORD &&
+               current(frame).getText() == Keywords.This) {
+      Value value = interpretExpression(booleanExpression, frame);
+      std::cout << Serializer::get_value_string(value);
     } else {
       throw ConversionError(current(frame));
     }
@@ -2022,6 +2224,11 @@ class Interpreter {
     next(frame);
     auto parameters = interpretParameters(frame);
 
+    if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
+      std::shared_ptr<Object> object = std::get<std::shared_ptr<Object>>(value);
+      return interpretInstanceMethodInvocation(object, op, parameters, frame);
+    }
+
     return BuiltinInterpreter::execute(current(frame), op, value, parameters);
   }
 
@@ -2084,6 +2291,31 @@ class Interpreter {
     Value value;
     bool valueSet = false;
 
+    if (tokenText == Keywords.This) {
+      if (!frame.inObjectContext()) {
+        throw InvalidOperationError(current(frame),
+                                    "Invalid context for keyword `this`.");
+      }
+
+      if (peek(frame).getType() != TokenType::DOT) {
+        value = frame.getObjectContext();
+        valueSet = true;
+      } else {
+        next(frame);  // Skip to "."
+        next(frame);  // Skip the "."
+
+        tokenTerm = current(frame);
+        tokenText = tokenTerm.getText();
+
+        if (tokenTerm.getType() != TokenType::IDENTIFIER &&
+            (tokenTerm.getType() != TokenType::KEYWORD &&
+             tokenText != Symbols.DeclVar)) {
+          throw InvalidOperationError(
+              current(frame), "Syntax error near `this`. Missing identifier.");
+        }
+      }
+    }
+
     if (current(frame).getType() == TokenType::OPEN_BRACKET) {
       value = interpretBracketExpression(booleanExpression, frame);
       valueSet = true;
@@ -2096,7 +2328,8 @@ class Interpreter {
       interpretQualifiedIdentifier(tokenTerm, tokenText, frame);
     }
 
-    bool methodFound = hasMethod(tokenText), classFound = hasClass(tokenText);
+    bool methodFound = hasMethod(tokenText, frame),
+         classFound = hasClass(tokenText);
     if (!valueSet && (methodFound || classFound)) {
       if (classFound) {
         if (peek(frame).getType() != TokenType::DOT) {
@@ -2197,6 +2430,51 @@ class Interpreter {
     throw ConversionError(current(frame));
   }
 
+  Value interpretSelfInvocationTerm(CallStackFrame& frame) {
+    if (!frame.inObjectContext()) {
+      throw InvalidOperationError(current(frame),
+                                  "Invalid context for keyword `this`.");
+    }
+
+    if (peek(frame).getType() == TokenType::DOT) {
+      next(frame);
+    }
+
+    if (current(frame).getType() != TokenType::DOT) {
+      return frame.getObjectContext();
+    }
+    next(frame);  // Skip the "."
+
+    if (current(frame).getType() == TokenType::KEYWORD &&
+        current(frame).getText() == Symbols.DeclVar) {
+      next(frame);  // Skip the "@"
+    }
+
+    if (current(frame).getType() != TokenType::IDENTIFIER) {
+      throw InvalidOperationError(
+          current(frame), "Syntax error near `this`. Missing identifier.");
+    }
+    std::string identifier = current(frame).getText();
+    next(frame);  // Skip the identifier
+
+    Class clazz = classes[frame.getObjectContext()->className];
+
+    if (clazz.hasMethod(identifier)) {
+      interpretInstanceMethodInvocation(frame.getObjectContext()->identifier,
+                                        frame);
+
+      if (!callStack.empty()) {
+        return callStack.top().returnValue;
+      }
+    } else if (frame.getObjectContext()->instanceVariables.find(identifier) !=
+               frame.getObjectContext()->instanceVariables.end()) {
+      return frame.getObjectContext()->instanceVariables[identifier];
+    }
+
+    throw UnimplementedMethodError(current(frame), clazz.getClassName(),
+                                   identifier);
+  }
+
   Value interpretTerm(Token& termToken,
                       BooleanExpressionBuilder& booleanExpression,
                       CallStackFrame& frame, bool skipOnRetrieval = true) {
@@ -2264,6 +2542,9 @@ class Interpreter {
         interpretBooleanExpression(termToken, booleanExpression, op, frame);
         return booleanExpression.evaluate();
       }
+    } else if (current(frame).getType() == TokenType::KEYWORD &&
+               current(frame).getText() == Keywords.This) {
+      return interpretSelfInvocationTerm(frame);
     } else {
       return interpretValueType(frame);
     }
@@ -2294,7 +2575,10 @@ class Interpreter {
     }
 
     CallStackFrame tempFrame(tempAssignment);
-    interpretAssignment(tempFrame);
+    if (frame.inObjectContext()) {
+      tempFrame.setObjectContext(frame.getObjectContext());
+    }
+    interpretAssignment(tempFrame, true);
 
     if (tempFrame.variables.find(tempId) == tempFrame.variables.end()) {
       throw SyntaxError(current(frame));
@@ -2383,7 +2667,7 @@ class Interpreter {
   }
 
   void handleAssignment(std::string& name, std::string& op,
-                        CallStackFrame& frame) {
+                        CallStackFrame& frame, bool isTemporary = false) {
     BooleanExpressionBuilder booleanExpression;
     Value value = interpretExpression(booleanExpression, frame);
 
@@ -2395,7 +2679,17 @@ class Interpreter {
       if (booleanExpression.isSet()) {
         value = booleanExpression.evaluate();
       }
-      frame.variables[name] = value;
+      if (!isTemporary && frame.inObjectContext()) {
+        frame.getObjectContext()->instanceVariables[name] = value;
+      } else {
+        if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
+          std::shared_ptr<Object> object =
+              std::get<std::shared_ptr<Object>>(value);
+          object->identifier = name;
+          value = object;
+        }
+        frame.variables[name] = value;
+      }
       Token nextToken = peek(frame);
       if (nextToken.getType() == TokenType::CLOSE_PAREN ||
           nextToken.getType() == TokenType::CLOSE_BRACKET) {

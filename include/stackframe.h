@@ -1,12 +1,12 @@
 #ifndef KIWI_STACKFRAME_H
 #define KIWI_STACKFRAME_H
 
+#include <memory>
 #include <map>
 #include <string>
 #include <vector>
 #include "errors/error.h"
 #include "errors/state.h"
-#include "objects/object.h"
 #include "parsing/tokens.h"
 #include "typing/valuetype.h"
 
@@ -16,13 +16,14 @@ struct CallStackFrame {
   std::map<std::string, Value> variables;
   Value returnValue;
   ErrorState errorState;
-  Object objectContext;
+  std::shared_ptr<Object> objectContext;
 
   bool returnFlag = false;
   bool subFrame = false;
   bool loopBreak = false;
   bool loopContinue = false;
   bool inTry = false;
+  bool inObject = false;
 
   CallStackFrame(const std::vector<Token>& tokens) : tokens(tokens) {}
 
@@ -40,6 +41,13 @@ struct CallStackFrame {
   ErrorState getErrorState() const { return errorState; }
   std::string getErrorMessage() const { return errorState.error.getMessage(); }
   void clearErrorState() { errorState.clearError(); }
+
+  void setObjectContext(const std::shared_ptr<Object>& object) {
+    objectContext = object;
+    inObject = true;
+  }
+  bool inObjectContext() const { return inObject; }
+  std::shared_ptr<Object>& getObjectContext() { return objectContext; }
 
   void setContinue() { loopContinue = true; }
   void clearContinue() { loopContinue = false; }

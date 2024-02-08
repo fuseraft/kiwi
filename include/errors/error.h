@@ -78,6 +78,14 @@ class ParameterMissingError : public KiwiError {
                   "The parameter `" + name + "` was expected but missing.") {}
 };
 
+class ParameterCountMismatchError : public KiwiError {
+ public:
+  ParameterCountMismatchError(const Token& token, std::string name)
+      : KiwiError(token, "ParameterCountMismatchError",
+                  "The parameter count for method `" + name +
+                      "` does not match parameters passed.") {}
+};
+
 class UnrecognizedBuiltinError : public KiwiError {
  public:
   UnrecognizedBuiltinError(const Token& token, std::string name)
