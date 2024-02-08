@@ -54,6 +54,26 @@ class MyClass
 end
 ```
 
+## Overriding `to_s()`
+
+The `override` keyword is not required to override `to_s()`.
+
+```ruby
+class KiwiClass
+  def initialize()
+  end
+
+  def to_s()
+    return "I am a Kiwi class"
+  end
+end
+
+@instance = KiwiClass.new()
+@string_repr = @instance.to_s()
+println @instance # prints: I am a Kiwi class
+println @string_repr # prints: I am a Kiwi class
+```
+
 ## Static Method Definition
 
 Methods declared as static can be invoked directly through the class and cannot be invoked through an instance.

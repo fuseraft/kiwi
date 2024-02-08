@@ -2070,30 +2070,33 @@ class Interpreter {
   void interpretPrint(CallStackFrame& frame, bool printNewLine = false) {
     next(frame);  // skip the "print"
     BooleanExpressionBuilder booleanExpression;
-
+    
+    Value value;
+    
     if (current(frame).getType() == TokenType::STRING) {
-      Value v = interpretExpression(booleanExpression, frame);
-      std::cout << Serializer::get_value_string(v);
+      value = interpretExpression(booleanExpression, frame);
     } else if (current(frame).getType() == TokenType::KEYWORD &&
                current(frame).getText() == Symbols.DeclVar) {
       next(frame);
       std::string name = current(frame).getText();
 
-      Value value = interpretVariableValue(name, frame);
+      value = interpretVariableValue(name, frame);
 
-      std::cout << Serializer::get_value_string(value);
     } else if (current(frame).getType() == TokenType::OPEN_BRACKET) {
-      Value value = interpretBracketExpression(booleanExpression, frame);
-      std::cout << Serializer::get_value_string(value);
+      value = interpretBracketExpression(booleanExpression, frame);
     } else if (current(frame).getType() == TokenType::IDENTIFIER) {
-      Value value = interpretExpression(booleanExpression, frame);
-      std::cout << Serializer::get_value_string(value);
+      value = interpretExpression(booleanExpression, frame);
     } else if (current(frame).getType() == TokenType::KEYWORD &&
                current(frame).getText() == Keywords.This) {
-      Value value = interpretExpression(booleanExpression, frame);
-      std::cout << Serializer::get_value_string(value);
+      value = interpretExpression(booleanExpression, frame);
     } else {
       throw ConversionError(current(frame));
+    }
+
+    if (!std::holds_alternative<std::shared_ptr<Object>>(value)) {
+      std::cout << Serializer::serialize(value);
+    } else {
+      std::cout << interpolateObject(value, frame);
     }
 
     if (printNewLine) {
@@ -2593,6 +2596,22 @@ class Interpreter {
     return value;
   }
 
+  std::string interpolateObject(Value& value, CallStackFrame& frame) {
+    std::shared_ptr<Object> object = std::get<std::shared_ptr<Object>>(value);
+    Class clazz = classes[object->className];
+
+    if (!clazz.hasMethod(KiwiBuiltins.ToS)) {
+      return Serializer::basic_serialize_object(object);
+    }
+
+    Method toString = clazz.getMethod(KiwiBuiltins.ToS);
+    std::vector<Value> parameters;
+    Value returnValue = interpretInstanceMethodInvocation(object, KiwiBuiltins.ToS, parameters, frame);
+
+    // Should probably check that an overridden to_s() actually returns a string.
+    return Serializer::serialize(returnValue);
+  }
+
   std::string interpolateString(CallStackFrame& frame) {
     std::ostringstream sv;
     std::string input = current(frame).getText();
@@ -2628,7 +2647,11 @@ class Interpreter {
 
             if (!builder.empty()) {
               Value interpolatedValue = interpolateString(frame, builder);
-              sv << Serializer::get_value_string(interpolatedValue);
+              if (!std::holds_alternative<std::shared_ptr<Object>>(interpolatedValue)) {
+                sv << Serializer::serialize(interpolatedValue);
+              } else {
+                sv << interpolateObject(interpolatedValue, frame);
+              }
               builder.clear();
               ++i;
             }

@@ -778,7 +778,7 @@ class BuiltinInterpreter {
       if (it != list->elements.begin()) {
         sv << joiner;
       }
-      sv << Serializer::get_value_string(*it);
+      sv << Serializer::serialize(*it);
     }
 
     return sv.str();
@@ -868,7 +868,7 @@ class BuiltinInterpreter {
       throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.ToS);
     }
 
-    return Serializer::get_value_string(value);
+    return Serializer::serialize(value);
   }
 
   static std::shared_ptr<List> executeKeys(const Token& tokenTerm,
