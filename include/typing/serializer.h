@@ -113,8 +113,10 @@ struct Serializer {
     return keys;
   }
 
-  static std::string basic_serialize_object(const std::shared_ptr<Object>& object) {
-    return "[Object(class=" + object->className + ", identifier=@" + object->identifier + ")]";
+  static std::string basic_serialize_object(
+      const std::shared_ptr<Object>& object) {
+    return "[Object(class=" + object->className + ", identifier=@" +
+           object->identifier + ")]";
   }
 
   static std::string serialize_hash(const std::shared_ptr<Hash>& hash) {

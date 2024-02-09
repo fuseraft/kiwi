@@ -2,7 +2,7 @@ println "=============="
 println "= timer.kiwi ="
 println "=============="
 
-import "../kiwilib/time"
+import "kiwilib/time"
 
 @i = 0
 while @i < 10 do

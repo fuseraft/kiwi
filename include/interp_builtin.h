@@ -200,6 +200,8 @@ class BuiltinInterpreter {
       return executeCurrentYearDay(tokenTerm, args);
     } else if (builtin == TimeBuiltins.AMPM) {
       return executeAMPM(tokenTerm, args);
+    } else if (builtin == TimeBuiltins.TicksToMilliseconds) {
+      return executeTicksToMilliseconds(tokenTerm, args);
     }
 
     throw UnknownBuiltinError(tokenTerm, builtin);
@@ -216,12 +218,16 @@ class BuiltinInterpreter {
       return executeDeleteFile(tokenTerm, args);
     } else if (builtin == FileIOBuiltIns.GetFileExtension) {
       return executeGetFileExtension(tokenTerm, args);
+    } else if (builtin == FileIOBuiltIns.GetCurrentDirectory) {
+      return executeGetCurrentDirectory(tokenTerm, args);
     } else if (builtin == FileIOBuiltIns.FileName) {
       return executeGetFileName(tokenTerm, args);
     } else if (builtin == FileIOBuiltIns.GetFilePath) {
       return executeGetFilePath(tokenTerm, args);
     } else if (builtin == FileIOBuiltIns.GetFileAbsolutePath) {
       return executeGetFileAbsolutePath(tokenTerm, args);
+    } else if (builtin == FileIOBuiltIns.Glob) {
+      return executeGlob(tokenTerm, args);
     } else if (builtin == FileIOBuiltIns.AppendText) {
       return executeAppendText(tokenTerm, args);
     } else if (builtin == FileIOBuiltIns.WriteText) {
@@ -667,6 +673,16 @@ class BuiltinInterpreter {
     return Time::getAMPM();
   }
 
+  static double executeTicksToMilliseconds(const Token& tokenTerm, const std::vector<Value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.TicksToMilliseconds);
+    }
+
+    double ticks = get_integer_or_double(tokenTerm, args.at(0));
+
+    return Time::ticksToMilliseconds(ticks);
+  }
+
   static int executeCurrentMonth(const Token& tokenTerm,
                                  const std::vector<Value>& args) {
     if (args.size() != 0) {
@@ -1087,6 +1103,16 @@ class BuiltinInterpreter {
     return FileIO::getFileName(fileName);
   }
 
+  static std::string executeGetCurrentDirectory(
+      const Token& tokenTerm, const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm,
+                                           FileIOBuiltIns.GetCurrentDirectory);
+    }
+
+    return FileIO::getCurrentWorkingDirectory();
+  }
+
   static std::string executeGetFilePath(const Token& tokenTerm,
                                         const std::vector<Value>& args) {
     if (args.size() != 1) {
@@ -1096,6 +1122,24 @@ class BuiltinInterpreter {
 
     std::string fileName = get_string(tokenTerm, args.at(0));
     return FileIO::getParentPath(fileName);
+  }
+
+  static std::shared_ptr<List> executeGlob(const Token& tokenTerm,
+                                           const std::vector<Value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, FileIOBuiltIns.Glob);
+    }
+
+    std::string glob = get_string(tokenTerm, args.at(0));
+    auto matchedFiles = FileIO::expandGlob(glob);
+
+    std::shared_ptr<List> matchList = std::make_shared<List>();
+
+    for (const auto& file : matchedFiles) {
+      matchList->elements.push_back(file);
+    }
+
+    return matchList;
   }
 
   static bool executeMoveFile(const Token& tokenTerm,

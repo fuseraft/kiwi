@@ -22,6 +22,7 @@ struct {
   const std::string GetFilePath = "__filepath__";
   const std::string GetFileAbsolutePath = "__fileabspath__";
   const std::string GetFileAttributes = "__fileattrs__";  // TODO
+  const std::string Glob = "__glob__";                    // I <3 Ruby.
 
   // Directory operations
   const std::string DirectoryExists = "__direxists__";
@@ -32,16 +33,34 @@ struct {
   const std::string RemoveDirectory = "__rmdir__";
   const std::string IsDirectory = "__isdir__";
   const std::string ChangeDirectory = "__chdir__";
-  const std::string GetCurrentDirectory = "__getcwd__";
+  const std::string GetCurrentDirectory = "__cwd__";
 
-  std::unordered_set<std::string> builtins = {
-      AppendText,         CopyFile,      CreateFile,        DeleteFile,
-      MoveFile,           ReadFile,      ReadLines,         WriteText,
-      WriteLine,          FileExists,    FileName,          FileSize,
-      GetFileExtension,   GetFilePath,   GetFileAttributes, DirectoryExists,
-      DirectoryName,      ListDirectory, MakeDirectory,     MakeDirectoryP,
-      RemoveDirectory,    IsDirectory,   ChangeDirectory,   GetCurrentDirectory,
-      GetFileAbsolutePath};
+  std::unordered_set<std::string> builtins = {AppendText,
+                                              CopyFile,
+                                              CreateFile,
+                                              DeleteFile,
+                                              MoveFile,
+                                              ReadFile,
+                                              ReadLines,
+                                              WriteText,
+                                              WriteLine,
+                                              FileExists,
+                                              FileName,
+                                              FileSize,
+                                              GetFileExtension,
+                                              GetFilePath,
+                                              GetFileAttributes,
+                                              DirectoryExists,
+                                              DirectoryName,
+                                              ListDirectory,
+                                              MakeDirectory,
+                                              MakeDirectoryP,
+                                              RemoveDirectory,
+                                              IsDirectory,
+                                              ChangeDirectory,
+                                              GetCurrentDirectory,
+                                              GetFileAbsolutePath,
+                                              Glob};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
@@ -61,12 +80,13 @@ struct {
   const std::string Delay = "__delay__";
   const std::string IsDST = "__isdst__";
   const std::string Ticks = "__ticks__";
+  const std::string TicksToMilliseconds = "__ticksms__";
   const std::string AMPM = "__ampm__";
 
   std::unordered_set<std::string> builtins = {
-      Hour,    Minute, Second, MonthDay,          WeekDay,
-      YearDay, Month,  Year,   EpochMilliseconds, Delay,
-      IsDST,   Ticks,  AMPM};
+      Hour,    Minute, Second, MonthDay,           WeekDay,
+      YearDay, Month,  Year,   EpochMilliseconds,  Delay,
+      IsDST,   Ticks,  AMPM,   TicksToMilliseconds};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();

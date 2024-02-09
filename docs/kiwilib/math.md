@@ -13,7 +13,7 @@ import "math"
 
 ## Module Functions
 
-### `epsilon`
+### `epsilon()`
 - **Summary**: Gets the smallest difference from 1.0 that a floating-point type can accurately represent.
 - **Parameters**: None.
 - **Returns**: Double representing the epsilon value.
