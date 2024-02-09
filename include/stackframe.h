@@ -4,11 +4,37 @@
 #include <memory>
 #include <map>
 #include <string>
+#include <type_traits>
 #include <vector>
 #include "errors/error.h"
 #include "errors/state.h"
 #include "parsing/tokens.h"
 #include "typing/valuetype.h"
+
+enum class FrameFlags : uint8_t {
+  None = 0,
+  ReturnFlag = 1 << 0,
+  SubFrame = 1 << 1,
+  LoopBreak = 1 << 2,
+  LoopContinue = 1 << 3,
+  InTry = 1 << 4,
+  InObject = 1 << 5,
+};
+
+inline FrameFlags operator|(FrameFlags a, FrameFlags b) {
+  return static_cast<FrameFlags>(
+      static_cast<std::underlying_type<FrameFlags>::type>(a) |
+      static_cast<std::underlying_type<FrameFlags>::type>(b));
+}
+inline FrameFlags operator&(FrameFlags a, FrameFlags b) {
+  return static_cast<FrameFlags>(
+      static_cast<std::underlying_type<FrameFlags>::type>(a) &
+      static_cast<std::underlying_type<FrameFlags>::type>(b));
+}
+inline FrameFlags operator~(FrameFlags a) {
+  return static_cast<FrameFlags>(
+      ~static_cast<std::underlying_type_t<FrameFlags>>(a));
+}
 
 struct CallStackFrame {
   std::vector<Token> tokens;  // The tokens of the current method or scope.
@@ -17,24 +43,13 @@ struct CallStackFrame {
   Value returnValue;
   ErrorState errorState;
   std::shared_ptr<Object> objectContext;
-
-  bool returnFlag = false;
-  bool subFrame = false;
-  bool loopBreak = false;
-  bool loopContinue = false;
-  bool inTry = false;
-  bool inObject = false;
+  FrameFlags flags = FrameFlags::None;
 
   CallStackFrame(const std::vector<Token>& tokens) : tokens(tokens) {}
-
-  // Methods to control the flags
-  void setBreak() { loopBreak = true; }
-  void clearBreak() { loopBreak = false; }
-  bool isBreakSet() const { return loopBreak; }
-
-  void setTry() { inTry = true; }
-  void clearTry() { inTry = false; }
-  bool isInTry() const { return inTry; }
+  ~CallStackFrame() {
+    tokens.clear();
+    variables.clear();
+  }
 
   void setErrorState(const KiwiError& e) { errorState.setError(e); }
   bool isErrorStateSet() const { return errorState.isErrorSet(); }
@@ -44,19 +59,14 @@ struct CallStackFrame {
 
   void setObjectContext(const std::shared_ptr<Object>& object) {
     objectContext = object;
-    inObject = true;
+    setFlag(FrameFlags::InObject);
   }
-  bool inObjectContext() const { return inObject; }
+  bool inObjectContext() const { return isFlagSet(FrameFlags::InObject); }
   std::shared_ptr<Object>& getObjectContext() { return objectContext; }
 
-  void setContinue() { loopContinue = true; }
-  void clearContinue() { loopContinue = false; }
-  bool isContinueSet() const { return loopContinue; }
-
-  void setSubFrame() { subFrame = true; }
-  void setReturnFlag() { returnFlag = true; }
-  bool isSubFrame() const { return subFrame; }
-  bool isReturnFlagSet() const { return returnFlag; }
+  void setFlag(FrameFlags flag) { flags = flags | flag; }
+  void clearFlag(FrameFlags flag) { flags = flags & ~flag; }
+  bool isFlagSet(FrameFlags flag) const { return (flags & flag) == flag; }
 };
 
 #endif

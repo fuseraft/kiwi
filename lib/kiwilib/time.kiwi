@@ -2,6 +2,8 @@
 Summary: A module containing functionality for working with time and date information.
 ##
 module time
+  __home__("kiwi")
+
   ##
   Summary: Get hours since midnight (0 to 23).
   Returns: Integer

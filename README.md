@@ -39,8 +39,8 @@ Iterate through all the recorded runtimes per script and print the details of ea
 I really hope you enjoy Kiwi as much as I do! :)
 ##
 
-import "kiwilib/fileio"
-import "kiwilib/time"
+import "@kiwi/fileio"
+import "@kiwi/time"
 
 @runtimes = []
 

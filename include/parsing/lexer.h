@@ -43,7 +43,7 @@ class Lexer {
     return tokens;
   }
 
-  std::vector<std::string> getLines() { return lines; }
+  std::vector<std::string> getLines() { return std::move(lines); }
 
   std::string getFile() { return file; }
 

@@ -1,7 +1,8 @@
 ##
 Summary: A module containing functionality for working with files and directories.
 ##
-module fileio
+module fileio 
+  __home__("kiwi")
 
   ##
   Summary: Get the absolute path of a file.

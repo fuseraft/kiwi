@@ -68,6 +68,16 @@ struct {
 } FileIOBuiltIns;
 
 struct {
+  const std::string Home = "__home__";
+
+  std::unordered_set<std::string> builtins = {Home};
+
+  bool is_builtin(const std::string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+} ModuleBuiltins;
+
+struct {
   const std::string Hour = "__hour__";
   const std::string Minute = "__min__";
   const std::string Second = "__sec__";
@@ -178,7 +188,7 @@ struct {
 
   bool is_builtin_method(const std::string& arg) {
     return TimeBuiltins.is_builtin(arg) || FileIOBuiltIns.is_builtin(arg) ||
-           MathBuiltins.is_builtin(arg);
+           MathBuiltins.is_builtin(arg) || ModuleBuiltins.is_builtin(arg);
   }
 } KiwiBuiltins;
 

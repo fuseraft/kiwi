@@ -24,10 +24,7 @@ class Time {
     return static_cast<double>(now_ms.count());
   }
 
-  static double ticksToMilliseconds(double ticks) {
-    return ticks / 1000000.0;
-  }
-
+  static double ticksToMilliseconds(double ticks) { return ticks / 1000000.0; }
 
   static int currentHour() { return getLocalTime()->tm_hour; }
 

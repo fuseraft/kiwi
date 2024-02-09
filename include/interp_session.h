@@ -14,8 +14,7 @@
 class InterpSession {
  public:
   InterpSession(Logger& logger, Interpreter& interp)
-      : logger(logger), interp(interp), scripts(), args() {
-  }
+      : logger(logger), interp(interp), scripts(), args() {}
 
   void registerScript(const std::string& scriptPath) {
     if (!FileIO::fileExists(scriptPath)) {
@@ -23,6 +22,9 @@ class InterpSession {
     }
 
     std::string absolutePath = FileIO::getAbsolutePath(scriptPath);
+    if (!FileIO::fileExists(absolutePath)) {
+      throw FileNotFoundError(absolutePath);
+    }
 
     if (scripts.find(absolutePath) != scripts.end()) {
       return;
@@ -36,6 +38,9 @@ class InterpSession {
   }
 
   int start() {
+    // Always try to load kiwilib.
+    loadKiwiLibrary();
+
     // Start REPL if no scripts are supplied.
     if (scripts.empty()) {
       return loadRepl();
@@ -51,13 +56,31 @@ class InterpSession {
   std::map<std::string, std::string> args;
   bool replMode;
 
+  void loadKiwiLibrary() {
+    try {
+      std::string kiwilibPath = FileIO::getKiwiLibraryPath();
+
+      if (!kiwilibPath.empty()) {
+        auto kiwilib = FileIO::expandGlob(kiwilibPath + "/**/*.kiwi");
+        for (const auto& script : kiwilib) {
+          loadScript(script);
+        }
+      }
+    } catch (const std::exception& e) {
+      ErrorHandler::printError(e);
+    }
+  }
+
   int loadRepl() {
     const std::string repl = "repl";
     std::vector<std::string> lines;
     std::string input;
 
-    std::cout << kiwi_name << " v" << kiwi_version << " REPL" << std::endl << std::endl;
-    std::cout << "Use `go` to execute, `exit` to end the REPL session." << std::endl << std::endl;
+    std::cout << kiwi_name << " v" << kiwi_version << " REPL" << std::endl
+              << std::endl;
+    std::cout << "Use `go` to execute, `exit` to end the REPL session."
+              << std::endl
+              << std::endl;
 
     while (true) {
       try {
@@ -71,7 +94,7 @@ class InterpSession {
         if (input == Keywords.Go) {
           std::string kiwiCode;
           for (size_t i = 0; i < lines.size(); ++i) {
-              kiwiCode += lines[i] + "\n";
+            kiwiCode += lines[i] + "\n";
           }
 
           if (!kiwiCode.empty()) {
@@ -98,20 +121,11 @@ class InterpSession {
 
     try {
       for (const std::string& script : scripts) {
-        std::string content = FileIO::readFile(script);
-        if (content.empty()) {
-          continue;
-        }
-
-        std::string parentPath = FileIO::getParentPath(script);
-        std::string absolutePath = FileIO::getAbsolutePath(script);
-
-        Lexer lexer(logger, absolutePath, content);
-        returnCode = interp.interpret(lexer, parentPath);
+        returnCode = loadScript(script);
 
         // If one script fails, we need to stop here.
         if (returnCode != 0) {
-          break;
+          return returnCode;
         }
       }
     } catch (const std::exception& e) {
@@ -120,6 +134,19 @@ class InterpSession {
     }
 
     return returnCode;
+  }
+
+  int loadScript(const std::string& script) {
+    std::string content = FileIO::readFile(script);
+    if (content.empty()) {
+      return -1;
+    }
+
+    std::string parentPath = FileIO::getParentPath(script);
+    std::string absolutePath = FileIO::getAbsolutePath(script);
+
+    Lexer lexer(logger, absolutePath, content);
+    return interp.interpret(lexer, parentPath);
   }
 };
 

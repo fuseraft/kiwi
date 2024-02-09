@@ -48,6 +48,11 @@ class Interpreter {
     callStack.push(mainFrame);
 
     interpretStackFrame();
+
+    if (callStack.size() == 1) {
+      callStack.pop();
+    }
+
     return 0;
   }
 
@@ -96,7 +101,7 @@ class Interpreter {
       try {
         interpretToken(token, frame);
       } catch (const KiwiError& e) {
-        if (frame.isInTry()) {
+        if (frame.isFlagSet(FrameFlags::InTry)) {
           frame.setErrorState(e);
         } else {
           ErrorHandler::handleError(e);
@@ -136,36 +141,41 @@ class Interpreter {
           continue;
         }
 
-        if (!frame.isReturnFlagSet()) {
+        if (!frame.isFlagSet(FrameFlags::ReturnFlag)) {
           ++frame.position;
         }
       }
 
-      if (frame.isBreakSet() || frame.isContinueSet()) {
+      if (frame.isFlagSet(FrameFlags::LoopBreak) ||
+          frame.isFlagSet(FrameFlags::LoopContinue)) {
         if (callStack.size() > 1) {
           // Pop and propagate to the top frame to be used in the next iteration.
-          bool loopBreak = frame.loopBreak;
-          bool loopContinue = frame.loopContinue;
-          auto topVariables = frame.variables;
+          bool loopBreak = frame.isFlagSet(FrameFlags::LoopBreak);
+          bool loopContinue = frame.isFlagSet(FrameFlags::LoopContinue);
+          auto topVariables = std::move(frame.variables);
           callStack.pop();
           auto& callerFrame = callStack.top();
           updateVariablesInCallerFrame(topVariables, callerFrame);
-          callerFrame.loopBreak = loopBreak;
-          callerFrame.loopContinue = loopContinue;
+          if (loopBreak) {
+            callerFrame.setFlag(FrameFlags::LoopBreak);
+          }
+          if (loopContinue) {
+            callerFrame.setFlag(FrameFlags::LoopContinue);
+          }
           return;
         }
       }
 
-      if (frame.isReturnFlagSet()) {
+      if (frame.isFlagSet(FrameFlags::ReturnFlag)) {
         if (callStack.size() > 1) {
           // Handle the return value in the caller frame
-          auto returnValue = frame.returnValue;
-          auto topVariables = frame.variables;
+          auto returnValue = std::move(frame.returnValue);
+          auto topVariables = std::move(frame.variables);
           callStack.pop();  // Pop the current frame
           auto& callerFrame = callStack.top();
           callerFrame.returnValue = returnValue;
-          if (callerFrame.isSubFrame()) {
-            callerFrame.setReturnFlag();
+          if (callerFrame.isFlagSet(FrameFlags::SubFrame)) {
+            callerFrame.setFlag(FrameFlags::ReturnFlag);
           }
           updateVariablesInCallerFrame(topVariables, callerFrame);
         } else {
@@ -181,12 +191,12 @@ class Interpreter {
       return;
     }
 
-    Value returnValue = frame.returnValue;
+    Value returnValue = std::move(frame.returnValue);
     bool inObjectContext = frame.inObjectContext();
     if (inObjectContext) {
-      returnValue = frame.objectContext;
+      returnValue = std::move(frame.objectContext);
     }
-    auto topVariables = frame.variables;
+    auto topVariables = std::move(frame.variables);
     callStack.pop();
     auto& callerFrame = callStack.top();
 
@@ -294,12 +304,12 @@ class Interpreter {
     // Execute the loop
     size_t index = 0;
     for (const auto& item : collection->elements) {
-      if (frame.loopBreak) {
+      if (frame.isFlagSet(FrameFlags::LoopBreak)) {
         break;
       }
 
-      if (frame.loopContinue) {
-        frame.clearContinue();
+      if (frame.isFlagSet(FrameFlags::LoopContinue)) {
+        frame.clearFlag(FrameFlags::LoopContinue);
         continue;
       }
 
@@ -321,8 +331,8 @@ class Interpreter {
 
       index++;
     }
-    frame.clearBreak();
-    frame.clearContinue();
+    frame.clearFlag(FrameFlags::LoopBreak);
+    frame.clearFlag(FrameFlags::LoopContinue);
   }
 
   void interpretWhileLoop(CallStackFrame& frame) {
@@ -345,12 +355,12 @@ class Interpreter {
         getTemporaryAssignment(tokenTerm, tempId);
     // Interpret the condition.
     while (true) {
-      if (frame.loopBreak) {
+      if (frame.isFlagSet(FrameFlags::LoopBreak)) {
         break;
       }
 
-      if (frame.loopContinue) {
-        frame.clearContinue();
+      if (frame.isFlagSet(FrameFlags::LoopContinue)) {
+        frame.clearFlag(FrameFlags::LoopContinue);
         continue;
       }
 
@@ -394,8 +404,8 @@ class Interpreter {
       interpretStackFrame();
       frame = callStack.top();
     }
-    frame.clearBreak();
-    frame.clearContinue();
+    frame.clearFlag(FrameFlags::LoopBreak);
+    frame.clearFlag(FrameFlags::LoopContinue);
 
     for (const auto& pair : frame.variables) {
       if (shouldUpdateFrameVariables(pair.first, oldFrame)) {
@@ -442,11 +452,11 @@ class Interpreter {
     } else if (keyword == Keywords.This) {
       interpretSelfInvocation(frame);
     } else if (keyword == Keywords.Break) {
-      frame.setBreak();
+      frame.setFlag(FrameFlags::LoopBreak);
     } else if (keyword == Keywords.Next) {
-      frame.setContinue();
+      frame.setFlag(FrameFlags::LoopContinue);
     } else if (keyword == Keywords.Try) {
-      frame.setTry();
+      frame.setFlag(FrameFlags::InTry);
     } else if (keyword == Keywords.Pass) {
       // skip
     } else {
@@ -557,7 +567,7 @@ class Interpreter {
 
     callStack.push(catchFrame);
     interpretStackFrame();
-    frame.clearTry();
+    frame.clearFlag(FrameFlags::InTry);
     frame.clearErrorState();
   }
 
@@ -608,6 +618,18 @@ class Interpreter {
     }
   }
 
+  bool hasHomedModule(const std::string& homeName,
+                      const std::string& moduleName) {
+    for (auto pair : modules) {
+      if (pair.first == moduleName && pair.second.hasHome() &&
+          pair.second.getHome() == homeName) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   bool hasModule(const std::string& name) {
     return modules.find(name) != modules.end();
   }
@@ -652,6 +674,18 @@ class Interpreter {
     return false;  // Not found in any scope
   }
 
+  Module getHomedModule(const std::string& homeName,
+                        const std::string& moduleName, CallStackFrame& frame) {
+    for (auto pair : modules) {
+      if (pair.first == moduleName && pair.second.hasHome() &&
+          pair.second.getHome() == homeName) {
+        return pair.second;
+      }
+    }
+
+    throw ModuleUndefinedError(current(frame), moduleName);
+  }
+
   Module getModule(const std::string& name, CallStackFrame& frame) {
     if (hasModule(name)) {
       return modules[name];
@@ -677,13 +711,15 @@ class Interpreter {
   Value getVariable(const std::string& name, CallStackFrame& frame) {
     // Check in the current frame
     if (frame.variables.find(name) != frame.variables.end()) {
-      return frame.variables[name];
+      Value value = frame.variables[name];
+      return value;
     }
 
     if (frame.inObjectContext()) {
       if (frame.getObjectContext()->instanceVariables.find(name) !=
           frame.getObjectContext()->instanceVariables.end()) {
-        return frame.getObjectContext()->instanceVariables[name];
+        Value value = frame.getObjectContext()->instanceVariables[name];
+        return value;
       }
     }
 
@@ -692,7 +728,8 @@ class Interpreter {
     while (!tempStack.empty()) {
       CallStackFrame& outerFrame = tempStack.top();
       if (outerFrame.variables.find(name) != outerFrame.variables.end()) {
-        return outerFrame.variables[name];  // Found in an outer frame
+        Value value = outerFrame.variables[name];
+        return value;  // Found in an outer frame
       }
       tempStack.pop();
     }
@@ -700,10 +737,14 @@ class Interpreter {
     throw VariableUndefinedError(current(frame), name);
   }
 
-  void interpretModuleImport(const std::string& name, CallStackFrame& frame) {
+  void interpretModuleImport(const std::string& home, const std::string& name,
+                             CallStackFrame& frame) {
     next(frame);  // Skip the name.
+
     moduleStack.push(name);
-    Module module = getModule(name, frame);
+    Module module = hasHomedModule(home, name)
+                        ? getHomedModule(home, name, frame)
+                        : getModule(name, frame);
 
     CallStackFrame codeFrame(module.getCode());
     callStack.push(codeFrame);
@@ -751,25 +792,54 @@ class Interpreter {
     return parameters;
   }
 
-  void interpretBuiltin(const std::string& name, CallStackFrame& frame) {
+  void interpretModuleBuiltin(const std::string moduleName,
+                              const std::string& builtin,
+                              std::vector<Value>& args, CallStackFrame& frame) {
+    if (builtin == ModuleBuiltins.Home) {
+      if (args.size() != 1) {
+        throw BuiltinUnexpectedArgumentError(current(frame), builtin);
+      }
+
+      if (!std::holds_alternative<std::string>(args.at(0))) {
+        throw SyntaxError(current(frame), "Expected string value for `" +
+                                              builtin + "` builtin parameter.");
+      }
+      std::string value = std::get<std::string>(args.at(0));
+
+      modules[moduleName].setHome(value);
+      modules[moduleName].setName(moduleName);
+    }
+  }
+
+  void interpretBuiltin(const std::string& builtin, CallStackFrame& frame) {
     Token tokenTerm = current(frame);
     next(frame);  // Skip the name.
 
-    auto parameters = interpretParameters(frame);
+    auto args = interpretParameters(frame);
 
-    frame.returnValue =
-        BuiltinInterpreter::execute(tokenTerm, name, parameters);
+    if (ModuleBuiltins.is_builtin(builtin)) {
+      if (moduleStack.empty()) {
+        throw ModuleError(tokenTerm,
+                          "Builtin `" + builtin +
+                              "` is illegal outside of a module context.");
+      }
+      std::string moduleName = moduleStack.top();
+      interpretModuleBuiltin(moduleName, builtin, args, frame);
+    } else {
+      frame.returnValue = BuiltinInterpreter::execute(tokenTerm, builtin, args);
+    }
   }
 
-  std::vector<Token> collectMethodParameters(Token& tokenTerm, Method& method,
-                                             CallStackFrame& frame) {
+  std::vector<std::string> collectMethodParameters(Token& tokenTerm,
+                                                   Method& method,
+                                                   CallStackFrame& frame) {
     if (current(frame).getType() != TokenType::OPEN_PAREN) {
       throw SyntaxError(tokenTerm);
     }
     next(frame);  // Skip "("
 
     // Interpret parameters.
-    std::vector<Token> parameters = method.getParameters();
+    std::vector<std::string> parameters = method.getParameters();
     int paramIndex = 0;
 
     bool closeParenthesisFound = false;
@@ -779,7 +849,7 @@ class Interpreter {
         continue;
       }
 
-      std::string paramName = parameters.at(paramIndex++).getText();
+      std::string paramName = parameters.at(paramIndex++);
       BooleanExpressionBuilder booleanExpression;
       tokenTerm = current(frame);
       Value paramValue = interpretExpression(booleanExpression, frame);
@@ -802,25 +872,24 @@ class Interpreter {
   CallStackFrame buildMethodInvocationStackFrame(Token& tokenTerm,
                                                  Method& method,
                                                  CallStackFrame& frame) {
-    std::vector<Token> parameters =
+    std::vector<std::string> parameters =
         collectMethodParameters(tokenTerm, method, frame);
 
     CallStackFrame codeFrame(method.getCode());
     for (const auto& pair : frame.variables) {
-      codeFrame.variables[pair.first] = pair.second;
+      codeFrame.variables[pair.first] = std::move(pair.second);
     }
 
     // Check all parameters are passed.
-    for (Token t : parameters) {
-      std::string parameterName = t.getText();
+    for (const std::string& parameterName : parameters) {
       if (!method.hasParameter(parameterName)) {
         throw ParameterMissingError(tokenTerm, parameterName);
       } else {
         codeFrame.variables[parameterName] =
-            method.getParameterValue(parameterName);
+            std::move(method.getParameterValue(parameterName));
       }
     }
-    codeFrame.setSubFrame();
+    codeFrame.setFlag(FrameFlags::SubFrame);
     return codeFrame;
   }
 
@@ -914,11 +983,10 @@ class Interpreter {
 
     // Check all parameters are passed.
     int parameterIndex = 0;
-    for (Token t : method.getParameters()) {
-      std::string parameterName = t.getText();
+    for (const std::string& parameterName : method.getParameters()) {
       codeFrame.variables[parameterName] = parameters.at(parameterIndex++);
     }
-    codeFrame.setSubFrame();
+    codeFrame.setFlag(FrameFlags::SubFrame);
     codeFrame.setObjectContext(object);
     callStack.push(codeFrame);
 
@@ -927,7 +995,7 @@ class Interpreter {
     Value value;
     if (!callStack.empty()) {
       value = callStack.top().returnValue;
-      frame.returnFlag = false;
+      frame.clearFlag(FrameFlags::ReturnFlag);
     }
 
     return value;
@@ -998,7 +1066,7 @@ class Interpreter {
     while (current(frame).getType() != TokenType::CLOSE_PAREN) {
       Token parameterToken = current(frame);
       if (parameterToken.getType() == TokenType::IDENTIFIER) {
-        method.addParameterToken(parameterToken);
+        method.addParameterName(parameterToken.getText());
       }
       next(frame);
     }
@@ -1112,7 +1180,7 @@ class Interpreter {
     }
 
     frame.returnValue = returnValue;
-    frame.setReturnFlag();
+    frame.setFlag(FrameFlags::ReturnFlag);
   }
 
   std::string interpretAssignment(CallStackFrame& frame,
@@ -1958,7 +2026,7 @@ class Interpreter {
       next(frame);
     }
 
-    modules[name] = module;
+    modules[name] = std::move(module);
   }
 
   void interpretExternalImport(CallStackFrame& frame) {
@@ -1996,12 +2064,59 @@ class Interpreter {
     interpretStackFrame();
   }
 
+  std::string interpretModuleHome(std::string& modulePath,
+                                  CallStackFrame& frame) {
+    if (current(frame).getType() != TokenType::STRING ||
+        !begins_with(modulePath, "@")) {
+      return "";
+    }
+
+    std::string moduleHome;
+
+    // Get everything between the @ and the /, that is the home.
+    Lexer lexer(logger, "", modulePath);
+    const auto& tokens = lexer.getAllTokens();
+    auto lastToken = Token::createEmpty();
+    size_t pos = 0;
+    bool build = false;
+    std::string moduleName;
+
+    while (pos < tokens.size()) {
+      const auto& token = tokens.at(pos);
+
+      // If the last token was "@"
+      if (pos + 1 < tokens.size() && lastToken.getText() == Symbols.DeclVar) {
+        if (tokens.at(pos + 1).getText() == Operators.Divide) {
+          moduleHome = token.getText();
+          pos += 2;  // Skip module home and "/"
+          build = true;
+          continue;
+        }
+      }
+
+      if (build) {
+        moduleName += token.getText();
+      } else {
+        lastToken = token;
+      }
+      ++pos;
+    }
+
+    if (!moduleName.empty()) {
+      modulePath = moduleName;
+    }
+
+    return moduleHome;
+  }
+
   void interpretImport(CallStackFrame& frame) {
     next(frame);  // skip the "import"
 
     std::string tokenText = current(frame).getText();
+    std::string moduleHome = interpretModuleHome(tokenText, frame);
+
     if (hasModule(tokenText)) {
-      interpretModuleImport(tokenText, frame);
+      interpretModuleImport(moduleHome, tokenText, frame);
     } else {
       interpretExternalImport(frame);
     }
@@ -2353,7 +2468,7 @@ class Interpreter {
 
       if (!callStack.empty()) {
         value = callStack.top().returnValue;
-        frame.returnFlag = false;
+        frame.clearFlag(FrameFlags::ReturnFlag);
         valueSet = true;
       }
     } else if (!valueSet && KiwiBuiltins.is_builtin_method(tokenText)) {
@@ -2596,9 +2711,11 @@ class Interpreter {
 
     Value value = getVariable(tempId, tempFrame);
 
-    if (callStack.size() > 1) {
+    tempAssignment.clear();
+
+    /*if (callStack.size() > 1) {
       callStack.pop();
-    }
+    }*/
 
     return value;
   }
