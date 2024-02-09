@@ -153,6 +153,7 @@ struct {
   const std::string Exit = "exit";
   const std::string False = "false";
   const std::string For = "for";
+  const std::string Go = "go";
   const std::string If = "if";
   const std::string Import = "import";
   const std::string In = "in";

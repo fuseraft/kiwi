@@ -4,10 +4,6 @@
 #include <regex>
 #include <vector>
 
-const std::string kiwi_name = "The Kiwi Programming Language";
-const std::string kiwi_version = "1.0.9";
-const std::string kiwi_arg = "kiwi";
-
 #include "configuration/config.h"
 #include "errors/error.h"
 #include "errors/handler.h"
@@ -16,6 +12,7 @@ const std::string kiwi_arg = "kiwi";
 #include "parsing/keywords.h"
 #include "parsing/strings.h"
 #include "interp_session.h"
+#include "globals.h"
 
 bool has_script_extension(std::string path);
 bool has_conf_extension(std::string path);
@@ -71,8 +68,6 @@ int process_args(int c, std::vector<std::string>& v, InterpSession& session,
       return print_help();
     } else if (is_flag(opt, "v", "version")) {
       return print_version();
-    } else if (is_flag(opt, "R", "repl")) {
-      session.setReplMode(true);
     } else if (is_flag(opt, "C", "config")) {
       if (i + 1 > c) {
         return print_help();
@@ -152,7 +147,6 @@ int print_help() {
   };
 
   std::vector<CommandInfo> commands = {
-      {"-R, --repl", "start REPL mode"},
       {"-h, --help", "print this message"},
       {"-v, --version", "print the current version"},
       {"-C, --config <conf_path>", "configure with a `.conf` file"},

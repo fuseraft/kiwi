@@ -417,7 +417,7 @@ Importing kiwi script: /home/scs/kiwi/tests/_kiwilib_time.kiwi
 ========================
 = _kiwilib_fileio.kiwi =
 ========================
-Current timestamp: 2024/02/08 8:49:46 PM
+Current timestamp: 2024/02/08 9:11:15 PM
 
 Importing kiwi script: /home/scs/kiwi/tests/arithmetic.kiwi
 ===================
@@ -550,35 +550,35 @@ Importing kiwi script: /home/scs/kiwi/tests/abstract_classes.kiwi
 =========================
 78.5397
 31.4159
-Test #0, ran /home/scs/kiwi/tests/for_loops.kiwi for 1.68448ms.
-Test #1, ran /home/scs/kiwi/tests/modules.kiwi for 0.588544ms.
-Test #2, ran /home/scs/kiwi/tests/method_early_return.kiwi for 6.45299ms.
-Test #3, ran /home/scs/kiwi/tests/error_handling.kiwi for 0.628992ms.
-Test #4, ran /home/scs/kiwi/tests/_kiwilib_fileio.kiwi for 12.9879ms.
-Test #5, ran /home/scs/kiwi/tests/hashes.kiwi for 0.962048ms.
-Test #6, ran /home/scs/kiwi/tests/builtins.kiwi for 1.5465ms.
-Test #7, ran /home/scs/kiwi/tests/conditionals.kiwi for 0.924416ms.
-Test #8, ran /home/scs/kiwi/tests/logical_and.kiwi for 0.699136ms.
-Test #9, ran /home/scs/kiwi/tests/while_loops.kiwi for 15.5092ms.
-Test #10, ran /home/scs/kiwi/tests/_kiwilib_math.kiwi for 8.29414ms.
-Test #11, ran /home/scs/kiwi/tests/conditionals_nested.kiwi for 0.708864ms.
-Test #12, ran /home/scs/kiwi/tests/classes.kiwi for 1.5744ms.
-Test #13, ran /home/scs/kiwi/tests/logical_or.kiwi for 0.730368ms.
-Test #14, ran /home/scs/kiwi/tests/fizzbuzz.kiwi for 4.67021ms.
-Test #15, ran /home/scs/kiwi/tests/bitwise.kiwi for 0.66944ms.
-Test #16, ran /home/scs/kiwi/tests/lists_slicing.kiwi for 1.36858ms.
-Test #17, ran /home/scs/kiwi/tests/relational_logic.kiwi for 2.08819ms.
-Test #18, ran /home/scs/kiwi/tests/method_return.kiwi for 0.399616ms.
-Test #19, ran /home/scs/kiwi/tests/loop_controls.kiwi for 23.2218ms.
-Test #20, ran /home/scs/kiwi/tests/_kiwilib_time.kiwi for 3.69536ms.
-Test #21, ran /home/scs/kiwi/tests/arithmetic.kiwi for 0.919552ms.
-Test #22, ran /home/scs/kiwi/tests/playground.kiwi for 0.151296ms.
-Test #23, ran /home/scs/kiwi/tests/method_invoked_in_conditional.kiwi for 6.83315ms.
-Test #24, ran /home/scs/kiwi/tests/prime_numbers.kiwi for 11.5021ms.
-Test #25, ran /home/scs/kiwi/tests/concatenation.kiwi for 0.648192ms.
-Test #26, ran /home/scs/kiwi/tests/logical_not.kiwi for 0.614144ms.
-Test #27, ran /home/scs/kiwi/tests/methods.kiwi for 2.2592ms.
-Test #28, ran /home/scs/kiwi/tests/fibonacci.kiwi for 4.77594ms.
-Test #29, ran /home/scs/kiwi/tests/lists.kiwi for 3.32083ms.
-Test #30, ran /home/scs/kiwi/tests/abstract_classes.kiwi for 0.969472ms.
-Ran 31 test(s) in 121.399ms.
+Test #0, ran /home/scs/kiwi/tests/for_loops.kiwi for 1.68013ms.
+Test #1, ran /home/scs/kiwi/tests/modules.kiwi for 0.598528ms.
+Test #2, ran /home/scs/kiwi/tests/method_early_return.kiwi for 6.42048ms.
+Test #3, ran /home/scs/kiwi/tests/error_handling.kiwi for 0.60672ms.
+Test #4, ran /home/scs/kiwi/tests/_kiwilib_fileio.kiwi for 12.7716ms.
+Test #5, ran /home/scs/kiwi/tests/hashes.kiwi for 0.8704ms.
+Test #6, ran /home/scs/kiwi/tests/builtins.kiwi for 1.58643ms.
+Test #7, ran /home/scs/kiwi/tests/conditionals.kiwi for 0.950016ms.
+Test #8, ran /home/scs/kiwi/tests/logical_and.kiwi for 0.722688ms.
+Test #9, ran /home/scs/kiwi/tests/while_loops.kiwi for 15.7681ms.
+Test #10, ran /home/scs/kiwi/tests/_kiwilib_math.kiwi for 8.77568ms.
+Test #11, ran /home/scs/kiwi/tests/conditionals_nested.kiwi for 0.729344ms.
+Test #12, ran /home/scs/kiwi/tests/classes.kiwi for 1.62509ms.
+Test #13, ran /home/scs/kiwi/tests/logical_or.kiwi for 0.72832ms.
+Test #14, ran /home/scs/kiwi/tests/fizzbuzz.kiwi for 4.79232ms.
+Test #15, ran /home/scs/kiwi/tests/bitwise.kiwi for 0.691968ms.
+Test #16, ran /home/scs/kiwi/tests/lists_slicing.kiwi for 1.3847ms.
+Test #17, ran /home/scs/kiwi/tests/relational_logic.kiwi for 2.18573ms.
+Test #18, ran /home/scs/kiwi/tests/method_return.kiwi for 0.411648ms.
+Test #19, ran /home/scs/kiwi/tests/loop_controls.kiwi for 23.7074ms.
+Test #20, ran /home/scs/kiwi/tests/_kiwilib_time.kiwi for 3.88275ms.
+Test #21, ran /home/scs/kiwi/tests/arithmetic.kiwi for 0.933888ms.
+Test #22, ran /home/scs/kiwi/tests/playground.kiwi for 0.168192ms.
+Test #23, ran /home/scs/kiwi/tests/method_invoked_in_conditional.kiwi for 6.96499ms.
+Test #24, ran /home/scs/kiwi/tests/prime_numbers.kiwi for 11.8728ms.
+Test #25, ran /home/scs/kiwi/tests/concatenation.kiwi for 0.668416ms.
+Test #26, ran /home/scs/kiwi/tests/logical_not.kiwi for 0.619264ms.
+Test #27, ran /home/scs/kiwi/tests/methods.kiwi for 2.31168ms.
+Test #28, ran /home/scs/kiwi/tests/fibonacci.kiwi for 4.90778ms.
+Test #29, ran /home/scs/kiwi/tests/lists.kiwi for 3.37126ms.
+Test #30, ran /home/scs/kiwi/tests/abstract_classes.kiwi for 0.985344ms.
+Ran 31 test(s) in 123.694ms.

@@ -8,13 +8,13 @@
 #include "logging/logger.h"
 #include "parsing/keywords.h"
 #include "system/fileio.h"
+#include "globals.h"
 #include "interp.h"
 
 class InterpSession {
  public:
   InterpSession(Logger& logger, Interpreter& interp)
       : logger(logger), interp(interp), scripts(), args() {
-    setReplMode(false);
   }
 
   void registerScript(const std::string& scriptPath) {
@@ -35,17 +35,13 @@ class InterpSession {
     args[name] = value;
   }
 
-  void setReplMode(bool value) { replMode = value; }
-  bool getReplMode() { return replMode; }
-
   int start() {
-    int ret = loadScripts();
-
-    if (replMode) {
+    // Start REPL if no scripts are supplied.
+    if (scripts.empty()) {
       return loadRepl();
     }
 
-    return ret;
+    return loadScripts();
   }
 
  private:
@@ -57,19 +53,37 @@ class InterpSession {
 
   int loadRepl() {
     const std::string repl = "repl";
+    std::vector<std::string> lines;
     std::string input;
+
+    std::cout << kiwi_name << " " << kiwi_version << " REPL" << std::endl << std::endl;
+    std::cout << "Use `go` to execute, `exit` to end the REPL session." << std::endl << std::endl;
 
     while (true) {
       try {
-        std::cout << "> ";
+        std::cout << "kiwi> ";
         std::getline(std::cin, input);
 
         if (input == Keywords.Exit) {
           break;
         }
 
-        Lexer lexer(logger, repl, input);
-        interp.interpret(lexer);
+        if (input == Keywords.Go) {
+          std::string kiwiCode;
+          for (size_t i = 0; i < lines.size(); ++i) {
+              kiwiCode += lines[i] + "\n";
+          }
+          
+          if (!kiwiCode.empty()) {
+            Lexer lexer(logger, repl, kiwiCode);
+            interp.interpret(lexer);
+            lines.clear();
+          }
+          continue;
+        }
+
+        lines.push_back(input);
+
       } catch (const std::exception& e) {
         ErrorHandler::printError(e);
         return 1;
