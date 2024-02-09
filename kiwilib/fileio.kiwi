@@ -50,6 +50,15 @@ module fileio
   end
 
   ##
+  Summary: Get the current working directory.
+  Returns: Boolean
+  ##
+  def cwd()
+    @_retval = __cwd__()
+    return @_retval
+  end
+
+  ##
   Summary: Delete a file.
   Params:
     - @_path: The path to a file or a filename.
@@ -79,6 +88,17 @@ module fileio
   ##
   def getext(@_path)
     @_retval = __fileext__(@_path)
+    return @_retval
+  end
+
+  ##
+  Summary: Get a list of files from a glob pattern.
+  Params:
+    - @_glob: The glob pattern.
+  Returns: String
+  ##
+  def glob(@_glob)
+    @_retval = __glob__(@_glob)
     return @_retval
   end
 

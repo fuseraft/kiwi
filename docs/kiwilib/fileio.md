@@ -42,12 +42,10 @@ import "fileio"
   - `@_path`: The path to a file or a filename.
 - **Returns**: Boolean indicating success or failure.
 
-### `remove(@_path)`
+### `cwd()`
 
-- **Summary**: Delete a file.
-- **Parameters**:
-  - `@_path`: The path to a file or a filename.
-- **Returns**: Boolean indicating success or failure.
+- **Summary**: Gets the path of the current working directory.
+- **Returns**: String containing the path of the current working directory.
 
 ### `exists(@_path)`
 
@@ -62,6 +60,13 @@ import "fileio"
 - **Parameters**:
   - `@_path`: The path to a file or a filename.
 - **Returns**: String representing the file extension.
+
+### `glob(@_path)`
+
+- **Summary**: Get a list of files from a glob pattern.
+- **Parameters**:
+  - `@_glob`: The glob pattern.
+- **Returns**: List of file paths matched by glob pattern.
 
 ### `filename(@_path)`
 
@@ -105,6 +110,13 @@ import "fileio"
 - **Parameters**:
   - `@_path`: The path to a file.
 - **Returns**: List containing the file content.
+
+### `remove(@_path)`
+
+- **Summary**: Delete a file.
+- **Parameters**:
+  - `@_path`: The path to a file or a filename.
+- **Returns**: Boolean indicating success or failure.
 
 ### `write(@_path, @_text)`
 

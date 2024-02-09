@@ -17,6 +17,7 @@
 #include "objects/sliceindex.h"
 #include "parsing/builtins.h"
 #include "parsing/lexer.h"
+#include "parsing/strings.h"
 #include "parsing/tokens.h"
 #include "parsing/keywords.h"
 #include "system/fileio.h"
@@ -1051,7 +1052,8 @@ class Interpreter {
       next(frame);
 
       if (current(frame).getType() == TokenType::ENDOFFRAME) {
-        throw SyntaxError(tokenTerm, "Invalid method declaration `" + name + "`");
+        throw SyntaxError(tokenTerm,
+                          "Invalid method declaration `" + name + "`");
       }
     }
 
@@ -1956,15 +1958,20 @@ class Interpreter {
       next(frame);
     }
 
-    if (current(frame).getText() == Keywords.End) {
-      //next(frame);
-    }
-
     modules[name] = module;
   }
 
-  void interpretExternalImport(std::string name, CallStackFrame& frame) {
-    std::string scriptName = name + ".kiwi";
+  void interpretExternalImport(CallStackFrame& frame) {
+    BooleanExpressionBuilder booleanExpression;
+    Value scriptNameValue = interpretExpression(booleanExpression, frame);
+    if (!std::holds_alternative<std::string>(scriptNameValue)) {
+      throw ConversionError(current(frame),
+                            "Expected a string for `import` statement.");
+    }
+    std::string scriptName = std::get<std::string>(scriptNameValue);
+    if (!ends_with(scriptName, ".kiwi")) {
+      scriptName += ".kiwi";
+    }
     std::string scriptPath = FileIO::joinPath(_parentPath, scriptName);
     if (!FileIO::fileExists(scriptPath)) {
       throw FileNotFoundError(scriptPath);
@@ -1996,7 +2003,7 @@ class Interpreter {
     if (hasModule(tokenText)) {
       interpretModuleImport(tokenText, frame);
     } else {
-      interpretExternalImport(tokenText, frame);
+      interpretExternalImport(frame);
     }
   }
 
@@ -2070,9 +2077,9 @@ class Interpreter {
   void interpretPrint(CallStackFrame& frame, bool printNewLine = false) {
     next(frame);  // skip the "print"
     BooleanExpressionBuilder booleanExpression;
-    
+
     Value value;
-    
+
     if (current(frame).getType() == TokenType::STRING) {
       value = interpretExpression(booleanExpression, frame);
     } else if (current(frame).getType() == TokenType::KEYWORD &&
@@ -2606,7 +2613,8 @@ class Interpreter {
 
     Method toString = clazz.getMethod(KiwiBuiltins.ToS);
     std::vector<Value> parameters;
-    Value returnValue = interpretInstanceMethodInvocation(object, KiwiBuiltins.ToS, parameters, frame);
+    Value returnValue = interpretInstanceMethodInvocation(
+        object, KiwiBuiltins.ToS, parameters, frame);
 
     // Should probably check that an overridden to_s() actually returns a string.
     return Serializer::serialize(returnValue);
@@ -2647,7 +2655,8 @@ class Interpreter {
 
             if (!builder.empty()) {
               Value interpolatedValue = interpolateString(frame, builder);
-              if (!std::holds_alternative<std::shared_ptr<Object>>(interpolatedValue)) {
+              if (!std::holds_alternative<std::shared_ptr<Object>>(
+                      interpolatedValue)) {
                 sv << Serializer::serialize(interpolatedValue);
               } else {
                 sv << interpolateObject(interpolatedValue, frame);

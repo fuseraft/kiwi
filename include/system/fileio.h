@@ -3,8 +3,10 @@
 
 #include <fstream>
 #include <filesystem>
+#include <regex>
 #include <string>
 #include "typing/valuetype.h"
+#include "glob.h"
 
 namespace fs = std::filesystem;
 
@@ -114,10 +116,48 @@ class FileIO {
     return absolutePath.lexically_normal().string();
   }
 
+  static std::string getCurrentWorkingDirectory() {
+    return fs::current_path().string();
+  }
+
   static std::string getParentPath(const std::string& filePath) {
     fs::path path(filePath);
     fs::path parentPath = path.parent_path();
     return parentPath.string();
+  }
+
+  static std::vector<std::string> expandGlob(const std::string& globString) {
+    Glob glob = parseGlob(globString);
+    std::string basePath = glob.path;
+    std::regex filenameRegex(
+        glob.regexPattern,
+        std::regex_constants::ECMAScript | std::regex_constants::icase);
+
+    std::vector<std::string> matchedFiles;
+
+    basePath = fs::absolute(basePath);
+
+    if (!fs::exists(basePath) || !fs::is_directory(basePath)) {
+      return matchedFiles;
+    }
+
+    if (glob.recursiveTraversal) {
+      for (const auto& entry : fs::recursive_directory_iterator(basePath)) {
+        if (entry.is_regular_file() &&
+            std::regex_match(entry.path().filename().string(), filenameRegex)) {
+          matchedFiles.push_back(entry.path().lexically_normal().string());
+        }
+      }
+    } else {
+      for (const auto& entry : fs::directory_iterator(basePath)) {
+        if (entry.is_regular_file() &&
+            std::regex_match(entry.path().filename().string(), filenameRegex)) {
+          matchedFiles.push_back(entry.path().lexically_normal().string());
+        }
+      }
+    }
+
+    return matchedFiles;
   }
 
   static std::string joinPath(const std::string& directoryPath,
