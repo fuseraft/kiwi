@@ -25,6 +25,9 @@ if !@debug
     import "prime_numbers"
     import "fibonacci"
     import "hashes"
+    import "error_handling"
+    import "classes"
+    import "abstract_classes"
 else
     # Set @debug = true, and add an import below to debug a specific script.
     import "playground"

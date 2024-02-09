@@ -1,24 +1,3 @@
 # Add Kiwi here!
 
-@hash = {
-  "key1": true, 
-  "key2": 1, 
-  "key3": ["a", "b", "c"]
-}
-
-@otherHash = {}
-
-for @key in @hash.keys() do
-  @otherHash[@key] = @hash[@key]
-end
-
-println @otherHash
-
-@keys = @otherHash.keys()
-println @keys
-
-delete @otherHash["key2"]
-@keys = @otherHash.keys()
-println @keys
-
 println ""

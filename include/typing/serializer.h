@@ -1,6 +1,7 @@
 #ifndef KIWI_TYPING_SERIALIZER_H
 #define KIWI_TYPING_SERIALIZER_H
 
+#include <map>
 #include <memory>
 #include <stdexcept>
 #include <sstream>
@@ -30,6 +31,8 @@ struct Serializer {
             type = ValueType::List;
           } else if constexpr (std::is_same_v<T, std::shared_ptr<Hash>>) {
             type = ValueType::Hash;
+          } else if constexpr (std::is_same_v<T, std::shared_ptr<Object>>) {
+            type = ValueType::Object;
           } else {
             type = ValueType::Unknown;
           }
@@ -49,7 +52,7 @@ struct Serializer {
     }
   }
 
-  static std::string get_value_string(Value v) {
+  static std::string serialize(Value v) {
     std::ostringstream sv;
 
     switch (get_value_type(v)) {
@@ -66,11 +69,13 @@ struct Serializer {
         sv << std::get<std::string>(v);
         break;
       case ValueType::List:
-        sv << list_to_string(std::get<std::shared_ptr<List>>(v));
+        sv << serialize_list(std::get<std::shared_ptr<List>>(v));
         break;
       case ValueType::Hash:
-        sv << hash_to_string(std::get<std::shared_ptr<Hash>>(v));
+        sv << serialize_hash(std::get<std::shared_ptr<Hash>>(v));
         break;
+      case ValueType::Object:
+        sv << basic_serialize_object(std::get<std::shared_ptr<Object>>(v));
       default:
         // WIP: handle ValueType::None
         break;
@@ -79,7 +84,7 @@ struct Serializer {
     return sv.str();
   }
 
-  static std::string list_to_string(const std::shared_ptr<List>& list) {
+  static std::string serialize_list(const std::shared_ptr<List>& list) {
     std::ostringstream sv;
     sv << "[";
 
@@ -89,9 +94,9 @@ struct Serializer {
       }
 
       if (get_value_type(*it) == ValueType::String) {
-        sv << "\"" << get_value_string(*it) << "\"";
+        sv << "\"" << serialize(*it) << "\"";
       } else {
-        sv << get_value_string(*it);
+        sv << serialize(*it);
       }
     }
 
@@ -108,7 +113,13 @@ struct Serializer {
     return keys;
   }
 
-  static std::string hash_to_string(const std::shared_ptr<Hash>& hash) {
+  static std::string basic_serialize_object(
+      const std::shared_ptr<Object>& object) {
+    return "[Object(class=" + object->className + ", identifier=@" +
+           object->identifier + ")]";
+  }
+
+  static std::string serialize_hash(const std::shared_ptr<Hash>& hash) {
     std::ostringstream sv;
     sv << "{";
 
@@ -129,9 +140,9 @@ struct Serializer {
       Value v = hash->kvp[key];
 
       if (get_value_type(v) == ValueType::Hash) {
-        sv << get_value_string(v);
+        sv << serialize(v);
       } else {
-        sv << get_value_string(v);
+        sv << serialize(v);
       }
     }
 

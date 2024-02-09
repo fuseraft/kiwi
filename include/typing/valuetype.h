@@ -8,9 +8,11 @@
 
 struct Hash;
 struct List;
+struct Object;
 
-using Value = std::variant<int, double, bool, std::string,
-                           std::shared_ptr<List>, std::shared_ptr<Hash>>;
+using Value =
+    std::variant<int, double, bool, std::string, std::shared_ptr<List>,
+                 std::shared_ptr<Hash>, std::shared_ptr<Object>>;
 
 struct List {
   std::vector<Value> elements;
@@ -18,6 +20,12 @@ struct List {
 
 struct Hash {
   std::map<std::string, Value> kvp;
+};
+
+struct Object {
+  std::string identifier;
+  std::string className;
+  std::map<std::string, Value> instanceVariables;
 };
 
 enum class ValueType {
@@ -28,7 +36,8 @@ enum class ValueType {
   Boolean,
   String,
   List,
-  Hash
+  Hash,
+  Object
 };
 
 #endif

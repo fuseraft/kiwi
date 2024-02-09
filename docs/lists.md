@@ -23,12 +23,22 @@ println @myList[2]       # Outputs: fun!
 
 ```ruby
 @myList = []
-@anotherList = [1, 2];
+@anotherList = [1, 2]
 
 @myList << "Hello, Kiwi!"
 @myList << @anotherList
 
 # @myList now contains ["Hello, Kiwi!", [1, 2]]
+```
+
+### Removing Elements from a List
+
+You can use the `delete` keyword to remove an element of a list by index.
+
+```ruby
+@list = "abcdef".chars()
+delete @list[3]
+println @list # prints: ["a", "b", "c", "e", "f"]
 ```
 
 ### Iterating a List

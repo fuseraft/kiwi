@@ -288,9 +288,11 @@ class Lexer {
   Token parseString() {
     std::string str;
 
+    int size = 0;
     while (currentPosition < source.length() &&
            source[currentPosition] != '"') {
       str += getCurrentChar();
+      ++size;
     }
 
     getCurrentChar();  // skip closing quote
