@@ -56,7 +56,7 @@ class InterpSession {
     std::vector<std::string> lines;
     std::string input;
 
-    std::cout << kiwi_name << " " << kiwi_version << " REPL" << std::endl << std::endl;
+    std::cout << kiwi_name << " v" << kiwi_version << " REPL" << std::endl << std::endl;
     std::cout << "Use `go` to execute, `exit` to end the REPL session." << std::endl << std::endl;
 
     while (true) {
@@ -73,7 +73,7 @@ class InterpSession {
           for (size_t i = 0; i < lines.size(); ++i) {
               kiwiCode += lines[i] + "\n";
           }
-          
+
           if (!kiwiCode.empty()) {
             Lexer lexer(logger, repl, kiwiCode);
             interp.interpret(lexer);
