@@ -22,6 +22,57 @@ To run the test suite, use:
 make test
 ```
 
+## Test Suite
+
+When you run `make test`, after compiling Kiwi, the test suite will run from this entry point script.
+
+Please see the [runtime log](runtime_log.txt) for the latest results.
+
+```ruby
+##
+Search for all Kiwi scripts in all subdirectories in the current directory, excluding all test.kiwi files and kiwilib.
+
+Import each script and record the duration of each run.
+
+Iterate through all the recorded runtimes per script and print the details of each, then print the totals at the end.
+
+I really hope you enjoy Kiwi as much as I do! :)
+##
+
+import "kiwilib/fileio"
+import "kiwilib/time"
+
+@runtimes = []
+
+for @file in fileio::glob("./**/*.kiwi") do
+  if !(@file.contains("test.kiwi") || @file.contains("/kiwilib/"))
+    @runtime = {"file": @file}
+
+    # Import the script and record the duration.
+    @start = time::ticks()
+    import @file
+    @stop = time::ticks()
+
+    @runtime["duration"] = @stop - @start
+    @runtimes << @runtime
+  end
+end
+
+@totalRuntime = 0
+
+# Print the runtime details and totals at the end.
+for @runtime, @testno in @runtimes do
+  @ticks = @runtime["duration"]
+  @file = @runtime["file"]
+  @duration = time::ticksms(@ticks)
+  @totalRuntime += @duration
+
+  println "Test #${@testno}, ran ${@file} for ${@duration}ms."
+end
+
+println "Ran ${@runtimes.size()} test(s) in ${@totalRuntime}ms."
+```
+
 ## Example: FizzBuzz
 
 ```ruby
