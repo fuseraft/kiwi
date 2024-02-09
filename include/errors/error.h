@@ -151,11 +151,25 @@ class DivideByZeroError : public KiwiError {
       : KiwiError(token, "DivideByZeroError", "Attempted to divide by zero.") {}
 };
 
+class HomeModuleUndefinedError : public KiwiError {
+ public:
+  HomeModuleUndefinedError(const Token& token, std::string home,
+                           std::string name)
+      : KiwiError(token, "HomeModuleUndefinedError",
+                  "Home module `@" + home + "/" + name + "` is undefined.") {}
+};
+
 class ModuleUndefinedError : public KiwiError {
  public:
   ModuleUndefinedError(const Token& token, std::string name)
       : KiwiError(token, "ModuleUndefinedError",
                   "Module `" + name + "` is undefined.") {}
+};
+
+class ModuleError : public KiwiError {
+ public:
+  ModuleError(const Token& token, std::string message)
+      : KiwiError(token, "ModuleError", message) {}
 };
 
 class MethodUndefinedError : public KiwiError {

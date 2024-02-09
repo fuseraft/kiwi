@@ -2,7 +2,7 @@ println "========================"
 println "= _kiwilib_fileio.kiwi ="
 println "========================"
 
-import "kiwilib/time"
+import "@kiwi/time"
 
 # =============================
 # Time tests

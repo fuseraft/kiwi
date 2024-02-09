@@ -9,21 +9,21 @@
 
 class Method {
  public:
-  void addToken(Token& t) { code.push_back(t); }
-  void addParameterToken(Token& t) { parameters.push_back(t); }
+  void addToken(Token t) { code.push_back(t); }
+  void addParameterName(const std::string& s) { parameters.push_back(s); }
   void setName(const std::string& name) { _name = name; }
   void addParameterValue(std::string paramName, Value value) {
     parameterKVP[paramName] = value;
   }
-  bool hasParameter(std::string& paramName) {
+  bool hasParameter(const std::string& paramName) const {
     return parameterKVP.find(paramName) != parameterKVP.end();
   }
-  Value getParameterValue(std::string& paramName) {
+  Value getParameterValue(const std::string& paramName) {
     return parameterKVP[paramName];
   }
 
-  std::vector<Token> getCode() const { return code; }
-  std::vector<Token> getParameters() const { return parameters; }
+  const std::vector<Token>& getCode() const { return code; }
+  const std::vector<std::string>& getParameters() const { return parameters; }
   int getParameterCount() const { return parameters.size(); }
   std::string getName() const { return _name; }
   void setAbstract() { abstractMark = true; }
@@ -38,7 +38,7 @@ class Method {
   bool isCtor() const { return ctorMark; }
 
  private:
-  std::vector<Token> parameters;
+  std::vector<std::string> parameters;
   std::vector<Token> code;
   std::string _name;
   std::map<std::string, Value> parameterKVP;

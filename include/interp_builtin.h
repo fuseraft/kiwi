@@ -673,9 +673,11 @@ class BuiltinInterpreter {
     return Time::getAMPM();
   }
 
-  static double executeTicksToMilliseconds(const Token& tokenTerm, const std::vector<Value>& args) {
+  static double executeTicksToMilliseconds(const Token& tokenTerm,
+                                           const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.TicksToMilliseconds);
+      throw BuiltinUnexpectedArgumentError(tokenTerm,
+                                           TimeBuiltins.TicksToMilliseconds);
     }
 
     double ticks = get_integer_or_double(tokenTerm, args.at(0));

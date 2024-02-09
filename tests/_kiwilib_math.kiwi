@@ -2,7 +2,7 @@ println "========================"
 println "= _kiwilib_fileio.kiwi ="
 println "========================"
 
-import "kiwilib/math"
+import "@kiwi/math"
 
 # =============================
 # Math tests

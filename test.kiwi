@@ -7,15 +7,15 @@ Iterate through all the recorded runtimes per script and print the details of ea
 I really hope you enjoy Kiwi as much as I do! :)
 ##
 
-import "kiwilib/fileio"
-import "kiwilib/time"
+import "@kiwi/fileio"
+import "@kiwi/time"
 
 @runtimes = []
 
-println "Searching for all kiwi scripts in all subdirectories in the current directory."
+println "Searching for all Kiwi scripts in all subdirectories in the current directory."
 for @file in fileio::glob("./**/*.kiwi") do
   if !(@file.contains("test.kiwi") || @file.contains("/kiwilib/"))
-    println "Importing kiwi script: ${@file}"
+    println "Importing: ${@file}"
 
     @runtime = {"file": @file}
 

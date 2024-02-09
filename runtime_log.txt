@@ -3,8 +3,8 @@ g++  build/main.o -o bin/kiwi
 rm -f build/main.o
 ================================
 bin/kiwi ./test.kiwi
-Searching for all kiwi scripts in all subdirectories in the current directory.
-Importing kiwi script: /home/scs/kiwi/tests/for_loops.kiwi
+Searching for all Kiwi scripts in all subdirectories in the current directory.
+Importing: /home/scs/kiwi/tests/for_loops.kiwi
 ==================
 = for_loops.kiwi =
 ==================
@@ -36,14 +36,14 @@ iterating an inline list with an index
 1: is
 2: fun
 
-Importing kiwi script: /home/scs/kiwi/tests/modules.kiwi
+Importing: /home/scs/kiwi/tests/modules.kiwi
 ================
 = modules.kiwi =
 ================
 Hello, World.
 Hello, World!
 
-Importing kiwi script: /home/scs/kiwi/tests/method_early_return.kiwi
+Importing: /home/scs/kiwi/tests/method_early_return.kiwi
 ============================
 = method_early_return.kiwi =
 ============================
@@ -69,14 +69,14 @@ Importing kiwi script: /home/scs/kiwi/tests/method_early_return.kiwi
 79 is old.
 80 is old.
 
-Importing kiwi script: /home/scs/kiwi/tests/error_handling.kiwi
+Importing: /home/scs/kiwi/tests/error_handling.kiwi
 =======================
 = error_handling.kiwi =
 =======================
 Attempted to divide by zero.
 An error occurred.
 
-Importing kiwi script: /home/scs/kiwi/tests/_kiwilib_fileio.kiwi
+Importing: /home/scs/kiwi/tests/_kiwilib_fileio.kiwi
 ========================
 = _kiwilib_fileio.kiwi =
 ========================
@@ -119,14 +119,14 @@ reading lines from: file.txt
 9: Item 10
 deleted file: file.txt
 
-Importing kiwi script: /home/scs/kiwi/tests/hashes.kiwi
+Importing: /home/scs/kiwi/tests/hashes.kiwi
 ===============
 = hashes.kiwi =
 ===============
 {"key1": true, "key2": 1, "key3": ["a", "b", "c"]}
 ["key1", "key2", "key3"]
 
-Importing kiwi script: /home/scs/kiwi/tests/builtins.kiwi
+Importing: /home/scs/kiwi/tests/builtins.kiwi
 =================
 = builtins.kiwi =
 =================
@@ -147,7 +147,7 @@ false
 true
 false
 
-Importing kiwi script: /home/scs/kiwi/tests/conditionals.kiwi
+Importing: /home/scs/kiwi/tests/conditionals.kiwi
 =====================
 = conditionals.kiwi =
 =====================
@@ -158,7 +158,7 @@ bar
 true, false
 baz
 
-Importing kiwi script: /home/scs/kiwi/tests/logical_and.kiwi
+Importing: /home/scs/kiwi/tests/logical_and.kiwi
 ====================
 = logical_and.kiwi =
 ====================
@@ -167,7 +167,7 @@ false && true = false
 true && false = false
 true && true = true
 
-Importing kiwi script: /home/scs/kiwi/tests/while_loops.kiwi
+Importing: /home/scs/kiwi/tests/while_loops.kiwi
 ====================
 = while_loops.kiwi =
 ====================
@@ -283,7 +283,7 @@ Loop iteration 10
   Sub loop iteration 10
 While loop test passed!
 
-Importing kiwi script: /home/scs/kiwi/tests/_kiwilib_math.kiwi
+Importing: /home/scs/kiwi/tests/_kiwilib_math.kiwi
 ========================
 = _kiwilib_fileio.kiwi =
 ========================
@@ -291,14 +291,14 @@ Importing kiwi script: /home/scs/kiwi/tests/_kiwilib_math.kiwi
 1
 0
 2.22045e-16
-Importing kiwi script: /home/scs/kiwi/tests/conditionals_nested.kiwi
+Importing: /home/scs/kiwi/tests/conditionals_nested.kiwi
 ============================
 = conditionals_nested.kiwi =
 ============================
 hello world
 bar
 
-Importing kiwi script: /home/scs/kiwi/tests/classes.kiwi
+Importing: /home/scs/kiwi/tests/classes.kiwi
 ================
 = classes.kiwi =
 ================
@@ -306,7 +306,7 @@ This is a concrete method.
 scott
 I can be invoked without an instance.
 
-Importing kiwi script: /home/scs/kiwi/tests/logical_or.kiwi
+Importing: /home/scs/kiwi/tests/logical_or.kiwi
 ===================
 = logical_or.kiwi =
 ===================
@@ -315,7 +315,7 @@ false || true = true
 true || false = true
 true || true = true
 
-Importing kiwi script: /home/scs/kiwi/tests/fizzbuzz.kiwi
+Importing: /home/scs/kiwi/tests/fizzbuzz.kiwi
 =================
 = fizzbuzz.kiwi =
 =================
@@ -335,7 +335,7 @@ Fizz
 14
 FizzBuzz
 
-Importing kiwi script: /home/scs/kiwi/tests/bitwise.kiwi
+Importing: /home/scs/kiwi/tests/bitwise.kiwi
 ================
 = bitwise.kiwi =
 ================
@@ -347,7 +347,7 @@ a = 5, b = 9
 (a >> 1) = 2
 (~a) = -6
 
-Importing kiwi script: /home/scs/kiwi/tests/lists_slicing.kiwi
+Importing: /home/scs/kiwi/tests/lists_slicing.kiwi
 ======================
 = lists_slicing.kiwi =
 ======================
@@ -363,7 +363,7 @@ replace a[3] with value of b[2]:        ["b", "c", "a", "c", 2, 3, 4]
 slice assign a[0:2] value of c[0:2]:    [true, false, "a", "c", 2, 3, 4]
 slice assign a[0:2] value of c[0:2:-1]: [false, true, "a", "c", 2, 3, 4]
 
-Importing kiwi script: /home/scs/kiwi/tests/relational_logic.kiwi
+Importing: /home/scs/kiwi/tests/relational_logic.kiwi
 =========================
 = relational_logic.kiwi =
 =========================
@@ -384,13 +384,13 @@ Importing kiwi script: /home/scs/kiwi/tests/relational_logic.kiwi
 10 == 10 = true
 20 == 10 = false
 
-Importing kiwi script: /home/scs/kiwi/tests/method_return.kiwi
+Importing: /home/scs/kiwi/tests/method_return.kiwi
 ======================
 = method_return.kiwi =
 ======================
 Greeting: Hello, World!
 
-Importing kiwi script: /home/scs/kiwi/tests/loop_controls.kiwi
+Importing: /home/scs/kiwi/tests/loop_controls.kiwi
 ======================
 = loop_controls.kiwi =
 ======================
@@ -413,13 +413,13 @@ Item 4
 Item 5
 counter = 6
 
-Importing kiwi script: /home/scs/kiwi/tests/_kiwilib_time.kiwi
+Importing: /home/scs/kiwi/tests/_kiwilib_time.kiwi
 ========================
 = _kiwilib_fileio.kiwi =
 ========================
-Current timestamp: 2024/02/08 9:11:15 PM
+Current timestamp: 2024/02/09 4:45:42 PM
 
-Importing kiwi script: /home/scs/kiwi/tests/arithmetic.kiwi
+Importing: /home/scs/kiwi/tests/arithmetic.kiwi
 ===================
 = arithmetic.kiwi =
 ===================
@@ -429,9 +429,9 @@ Importing kiwi script: /home/scs/kiwi/tests/arithmetic.kiwi
 10 / 20 = 0.5
 ((10 * 2) / 20) + 9 = 10
 
-Importing kiwi script: /home/scs/kiwi/tests/playground.kiwi
+Importing: /home/scs/kiwi/tests/playground.kiwi
 
-Importing kiwi script: /home/scs/kiwi/tests/method_invoked_in_conditional.kiwi
+Importing: /home/scs/kiwi/tests/method_invoked_in_conditional.kiwi
 ======================================
 = method_invoked_in_conditional.kiwi =
 ======================================
@@ -462,7 +462,7 @@ Importing kiwi script: /home/scs/kiwi/tests/method_invoked_in_conditional.kiwi
 24 is even
 25 is odd
 
-Importing kiwi script: /home/scs/kiwi/tests/prime_numbers.kiwi
+Importing: /home/scs/kiwi/tests/prime_numbers.kiwi
 ======================
 = prime_numbers.kiwi =
 ======================
@@ -477,7 +477,7 @@ Importing kiwi script: /home/scs/kiwi/tests/prime_numbers.kiwi
 8:	23
 9:	29
 
-Importing kiwi script: /home/scs/kiwi/tests/concatenation.kiwi
+Importing: /home/scs/kiwi/tests/concatenation.kiwi
 ======================
 = concatenation.kiwi =
 ======================
@@ -485,7 +485,7 @@ Importing kiwi script: /home/scs/kiwi/tests/concatenation.kiwi
 'Hello' + ' ' + 'World' = 'Hello World'
 'Hello' * 5 = 'HelloHelloHelloHelloHello'
 
-Importing kiwi script: /home/scs/kiwi/tests/logical_not.kiwi
+Importing: /home/scs/kiwi/tests/logical_not.kiwi
 ====================
 = logical_not.kiwi =
 ====================
@@ -494,7 +494,7 @@ Importing kiwi script: /home/scs/kiwi/tests/logical_not.kiwi
 !(true == true) = false
 !(true != true) = true
 
-Importing kiwi script: /home/scs/kiwi/tests/methods.kiwi
+Importing: /home/scs/kiwi/tests/methods.kiwi
 ================
 = methods.kiwi =
 ================
@@ -513,13 +513,13 @@ invoked add(n = 1, m = 4)
     i = 4, n = 21
 end n = 21
 
-Importing kiwi script: /home/scs/kiwi/tests/fibonacci.kiwi
+Importing: /home/scs/kiwi/tests/fibonacci.kiwi
 ==================
 = fibonacci.kiwi =
 ==================
 [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025]
 
-Importing kiwi script: /home/scs/kiwi/tests/lists.kiwi
+Importing: /home/scs/kiwi/tests/lists.kiwi
 ==============
 = lists.kiwi =
 ==============
@@ -544,41 +544,41 @@ iterating a:
 ["g", "h"]
 ["h"]
 
-Importing kiwi script: /home/scs/kiwi/tests/abstract_classes.kiwi
+Importing: /home/scs/kiwi/tests/abstract_classes.kiwi
 =========================
 = abstract_classes.kiwi =
 =========================
 78.5397
 31.4159
-Test #0, ran /home/scs/kiwi/tests/for_loops.kiwi for 1.68013ms.
-Test #1, ran /home/scs/kiwi/tests/modules.kiwi for 0.598528ms.
-Test #2, ran /home/scs/kiwi/tests/method_early_return.kiwi for 6.42048ms.
-Test #3, ran /home/scs/kiwi/tests/error_handling.kiwi for 0.60672ms.
-Test #4, ran /home/scs/kiwi/tests/_kiwilib_fileio.kiwi for 12.7716ms.
-Test #5, ran /home/scs/kiwi/tests/hashes.kiwi for 0.8704ms.
-Test #6, ran /home/scs/kiwi/tests/builtins.kiwi for 1.58643ms.
-Test #7, ran /home/scs/kiwi/tests/conditionals.kiwi for 0.950016ms.
-Test #8, ran /home/scs/kiwi/tests/logical_and.kiwi for 0.722688ms.
-Test #9, ran /home/scs/kiwi/tests/while_loops.kiwi for 15.7681ms.
-Test #10, ran /home/scs/kiwi/tests/_kiwilib_math.kiwi for 8.77568ms.
-Test #11, ran /home/scs/kiwi/tests/conditionals_nested.kiwi for 0.729344ms.
-Test #12, ran /home/scs/kiwi/tests/classes.kiwi for 1.62509ms.
-Test #13, ran /home/scs/kiwi/tests/logical_or.kiwi for 0.72832ms.
-Test #14, ran /home/scs/kiwi/tests/fizzbuzz.kiwi for 4.79232ms.
-Test #15, ran /home/scs/kiwi/tests/bitwise.kiwi for 0.691968ms.
-Test #16, ran /home/scs/kiwi/tests/lists_slicing.kiwi for 1.3847ms.
-Test #17, ran /home/scs/kiwi/tests/relational_logic.kiwi for 2.18573ms.
-Test #18, ran /home/scs/kiwi/tests/method_return.kiwi for 0.411648ms.
-Test #19, ran /home/scs/kiwi/tests/loop_controls.kiwi for 23.7074ms.
-Test #20, ran /home/scs/kiwi/tests/_kiwilib_time.kiwi for 3.88275ms.
-Test #21, ran /home/scs/kiwi/tests/arithmetic.kiwi for 0.933888ms.
-Test #22, ran /home/scs/kiwi/tests/playground.kiwi for 0.168192ms.
-Test #23, ran /home/scs/kiwi/tests/method_invoked_in_conditional.kiwi for 6.96499ms.
-Test #24, ran /home/scs/kiwi/tests/prime_numbers.kiwi for 11.8728ms.
-Test #25, ran /home/scs/kiwi/tests/concatenation.kiwi for 0.668416ms.
-Test #26, ran /home/scs/kiwi/tests/logical_not.kiwi for 0.619264ms.
-Test #27, ran /home/scs/kiwi/tests/methods.kiwi for 2.31168ms.
-Test #28, ran /home/scs/kiwi/tests/fibonacci.kiwi for 4.90778ms.
-Test #29, ran /home/scs/kiwi/tests/lists.kiwi for 3.37126ms.
-Test #30, ran /home/scs/kiwi/tests/abstract_classes.kiwi for 0.985344ms.
-Ran 31 test(s) in 123.694ms.
+Test #0, ran /home/scs/kiwi/tests/for_loops.kiwi for 1.71315ms.
+Test #1, ran /home/scs/kiwi/tests/modules.kiwi for 1.76435ms.
+Test #2, ran /home/scs/kiwi/tests/method_early_return.kiwi for 6.4768ms.
+Test #3, ran /home/scs/kiwi/tests/error_handling.kiwi for 0.677888ms.
+Test #4, ran /home/scs/kiwi/tests/_kiwilib_fileio.kiwi for 11.5965ms.
+Test #5, ran /home/scs/kiwi/tests/hashes.kiwi for 0.897536ms.
+Test #6, ran /home/scs/kiwi/tests/builtins.kiwi for 1.65453ms.
+Test #7, ran /home/scs/kiwi/tests/conditionals.kiwi for 1.01402ms.
+Test #8, ran /home/scs/kiwi/tests/logical_and.kiwi for 0.800256ms.
+Test #9, ran /home/scs/kiwi/tests/while_loops.kiwi for 17.495ms.
+Test #10, ran /home/scs/kiwi/tests/_kiwilib_math.kiwi for 6.94144ms.
+Test #11, ran /home/scs/kiwi/tests/conditionals_nested.kiwi for 0.959232ms.
+Test #12, ran /home/scs/kiwi/tests/classes.kiwi for 1.57747ms.
+Test #13, ran /home/scs/kiwi/tests/logical_or.kiwi for 0.722688ms.
+Test #14, ran /home/scs/kiwi/tests/fizzbuzz.kiwi for 4.81126ms.
+Test #15, ran /home/scs/kiwi/tests/bitwise.kiwi for 0.718592ms.
+Test #16, ran /home/scs/kiwi/tests/lists_slicing.kiwi for 1.35885ms.
+Test #17, ran /home/scs/kiwi/tests/relational_logic.kiwi for 2.16141ms.
+Test #18, ran /home/scs/kiwi/tests/method_return.kiwi for 0.404224ms.
+Test #19, ran /home/scs/kiwi/tests/loop_controls.kiwi for 23.4079ms.
+Test #20, ran /home/scs/kiwi/tests/_kiwilib_time.kiwi for 3.51846ms.
+Test #21, ran /home/scs/kiwi/tests/arithmetic.kiwi for 0.972032ms.
+Test #22, ran /home/scs/kiwi/tests/playground.kiwi for 0.166144ms.
+Test #23, ran /home/scs/kiwi/tests/method_invoked_in_conditional.kiwi for 6.81267ms.
+Test #24, ran /home/scs/kiwi/tests/prime_numbers.kiwi for 11.7583ms.
+Test #25, ran /home/scs/kiwi/tests/concatenation.kiwi for 0.697088ms.
+Test #26, ran /home/scs/kiwi/tests/logical_not.kiwi for 0.633344ms.
+Test #27, ran /home/scs/kiwi/tests/methods.kiwi for 2.30579ms.
+Test #28, ran /home/scs/kiwi/tests/fibonacci.kiwi for 4.9321ms.
+Test #29, ran /home/scs/kiwi/tests/lists.kiwi for 3.39226ms.
+Test #30, ran /home/scs/kiwi/tests/abstract_classes.kiwi for 1.01914ms.
+Ran 31 test(s) in 123.361ms.

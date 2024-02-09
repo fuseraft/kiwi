@@ -7,15 +7,23 @@
 
 class Module {
  public:
-  void addToken(Token& t) { code.push_back(t); }
-  void setName(const std::string& name) { _name = name; }
+  void addToken(Token t) { code.push_back(t); }
+  void setName(std::string name) { _name = name; }
+  void setHome(std::string home) {
+    _home = home;
+    _hasHome = true;
+  }
 
-  std::vector<Token> getCode() const { return code; }
-  std::string getName() { return _name; }
+  const std::vector<Token>& getCode() const { return code; }
+  const std::string& getName() { return _name; }
+  const std::string& getHome() { return _home; }
+  bool hasHome() const { return _hasHome; }
 
  private:
   std::vector<Token> code;
   std::string _name;
+  std::string _home;
+  bool _hasHome = false;
 };
 
 #endif

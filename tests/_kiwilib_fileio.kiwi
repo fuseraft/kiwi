@@ -2,7 +2,7 @@ println "========================"
 println "= _kiwilib_fileio.kiwi ="
 println "========================"
 
-import "kiwilib/fileio"
+import "@kiwi/fileio"
 
 @path = "hello.txt"
 

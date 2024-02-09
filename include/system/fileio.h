@@ -30,7 +30,11 @@ class FileIO {
   }
 
   static bool fileExists(const std::string& filePath) {
-    return fs::exists(filePath);
+    try {
+      return fs::exists(filePath);
+    } catch (const std::exception&) {
+      return false;
+    }
   }
 
   static bool deleteFile(const std::string& filePath) {
@@ -124,6 +128,43 @@ class FileIO {
     fs::path path(filePath);
     fs::path parentPath = path.parent_path();
     return parentPath.string();
+  }
+
+  static bool isSymLink(const std::string& symLinkPath) {
+    std::error_code ec;
+    bool result = fs::is_symlink(fs::path(symLinkPath), ec);
+    if (ec) {
+      return false;
+    }
+    return result;
+  }
+
+  static std::string getKiwiPath() {
+    const std::string executablePath = "/proc/self/exe";
+
+    if (!isSymLink(executablePath)) {
+      return "";
+    }
+
+    fs::path symLinkPath = fs::read_symlink(executablePath).parent_path();
+
+    if (!fs::exists(symLinkPath)) {
+      return "";
+    }
+
+    return symLinkPath.string();
+  }
+
+  static std::string getKiwiLibraryPath() {
+    const std::string kiwiLibraryPath = "../lib/kiwilib";
+    fs::path kiwiPath(getKiwiPath());
+    fs::path kiwilibPath = (kiwiPath / kiwiLibraryPath).lexically_normal();
+
+    if (!fs::exists(kiwilibPath)) {
+      return "";
+    }
+
+    return kiwilibPath.string();
   }
 
   static std::vector<std::string> expandGlob(const std::string& globString) {
