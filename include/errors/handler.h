@@ -52,6 +52,11 @@ class ErrorHandler {
     // printStackTrace();
   }
 
+  static void handleFatalError(const std::exception& e) {
+    printError(e);
+    exit(1);
+  }
+
  private:
   static void printStackTrace() {
     void* array[5];

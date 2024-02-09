@@ -78,11 +78,43 @@ class ParameterMissingError : public KiwiError {
                   "The parameter `" + name + "` was expected but missing.") {}
 };
 
+class ParameterCountMismatchError : public KiwiError {
+ public:
+  ParameterCountMismatchError(const Token& token, std::string name)
+      : KiwiError(token, "ParameterCountMismatchError",
+                  "The parameter count for method `" + name +
+                      "` does not match parameters passed.") {}
+};
+
 class UnrecognizedBuiltinError : public KiwiError {
  public:
   UnrecognizedBuiltinError(const Token& token, std::string name)
       : KiwiError(token, "UnrecognizedBuiltinError",
                   "Unrecognized builtin `" + name + "`.") {}
+};
+
+class ClassRedefinitionError : public KiwiError {
+ public:
+  ClassRedefinitionError(const Token& token, std::string name)
+      : KiwiError(token, "ClassRedefinitionError",
+                  "Attempted to redefine class already defined class `" + name +
+                      "`.") {}
+};
+
+class ClassUndefinedError : public KiwiError {
+ public:
+  ClassUndefinedError(const Token& token, std::string name)
+      : KiwiError(token, "ClassUndefinedError",
+                  "The class `" + name + "` is undefined.") {}
+};
+
+class UnimplementedMethodError : public KiwiError {
+ public:
+  UnimplementedMethodError(const Token& token, std::string className,
+                           std::string methodName)
+      : KiwiError(token, "UnimplementedMethodError",
+                  "The class `" + className +
+                      "` has an unimplemented method `" + methodName + "`") {}
 };
 
 class BuiltinUnexpectedArgumentError : public KiwiError {

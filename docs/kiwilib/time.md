@@ -63,6 +63,10 @@ import "time"
 - **Summary**: Retrieves the number of nanoseconds since January 1st, 1970.
 - **Returns**: Double representing nanoseconds since the epoch.
 
+### `ticksms(@_ticks)`
+- **Summary**: Converts ticks to milliseconds.
+- **Returns**: Double representing milliseconds.
+
 ### `delay(@_ms)`
 - **Parameters**:
   - `@_ms`: The duration to sleep in milliseconds.

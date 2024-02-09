@@ -133,6 +133,15 @@ module time
   end
 
   ##
+  Summary: Converts ticks to milliseconds.
+  Returns: Double
+  ##
+  def ticksms(@_ticks)
+    @_retval = __ticksms__(@_ticks)
+    return @_retval
+  end
+
+  ##
   Summary: Sleep for a specified duration in milliseconds.
   Params:
     - @_ms: The duration in milliseconds.
