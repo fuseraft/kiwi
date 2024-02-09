@@ -24,7 +24,7 @@ make test
 
 ## Test Suite
 
-When you run `make test`, after compiling Kiwi, the test suite will run from this entry point script.
+When you run `make test`, after compiling Kiwi, the test suite will run from the [test suite script](test.kiwi).
 
 Please see the [runtime log](runtime_log.txt) for the latest results.
 
