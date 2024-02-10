@@ -1,3 +1,7 @@
 # Add Kiwi here!
 
+@hello = "hello world"
+@size = @hello.chars().size()
+println @size
+
 println ""
