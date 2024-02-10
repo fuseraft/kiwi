@@ -50,6 +50,14 @@ class BuiltinInterpreter {
       return executeIsA(tokenTerm, value, args);
     } else if (builtin == KiwiBuiltins.Join) {
       return executeJoin(tokenTerm, value, args);
+    } else if (builtin == KiwiBuiltins.Split) {
+      return executeSplit(tokenTerm, value, args);
+    } else if (builtin == KiwiBuiltins.LeftTrim) {
+      return executeLeftTrim(tokenTerm, value, args);
+    } else if (builtin == KiwiBuiltins.RightTrim) {
+      return executeRightTrim(tokenTerm, value, args);
+    } else if (builtin == KiwiBuiltins.Trim) {
+      return executeTrim(tokenTerm, value, args);
     } else if (builtin == KiwiBuiltins.Size) {
       return executeSize(tokenTerm, value, args);
     } else if (builtin == KiwiBuiltins.ToD) {
@@ -888,6 +896,65 @@ class BuiltinInterpreter {
 
     return Serializer::serialize(value);
   }
+
+  static std::shared_ptr<List> executeSplit(const Token& tokenTerm,
+                                            const Value& value,
+                                            const std::vector<Value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.Split);
+    }
+
+    std::string input = get_string(tokenTerm, value);
+    auto delimiter = get_string(tokenTerm, args.at(0));
+    auto newList = std::make_shared<List>();
+
+    if (delimiter.empty()) {
+      for (char c : input) {
+        newList->elements.push_back(std::string(1, c));
+      }
+    } else {
+      for (std::string token : split(input, delimiter)) {
+        newList->elements.push_back(token);
+      }
+    }
+
+    return newList;
+  }
+
+  static std::string executeLeftTrim(const Token& tokenTerm, const Value& value,
+                                     const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.LeftTrim);
+    }
+
+    std::string input = get_string(tokenTerm, value);
+    return ltrim(input);
+  }
+
+  static std::string executeRightTrim(const Token& tokenTerm,
+                                      const Value& value,
+                                      const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.RightTrim);
+    }
+
+    std::string input = get_string(tokenTerm, value);
+    return rtrim(input);
+  }
+
+  static std::string executeTrim(const Token& tokenTerm, const Value& value,
+                                 const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.Trim);
+    }
+
+    std::string input = get_string(tokenTerm, value);
+    return trim(input);
+  }
+
+  const std::string LeftTrim = "ltrim";
+  const std::string RightTrim = "rtrim";
+  const std::string Trim = "trim";
 
   static std::shared_ptr<List> executeKeys(const Token& tokenTerm,
                                            const Value& value,

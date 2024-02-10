@@ -164,6 +164,10 @@ struct {
   const std::string Chars = "chars";
   const std::string IsA = "is_a";
   const std::string Join = "join";
+  const std::string Split = "split";
+  const std::string LeftTrim = "ltrim";
+  const std::string RightTrim = "rtrim";
+  const std::string Trim = "trim";
   const std::string Size = "size";
   const std::string ToD = "to_d";
   const std::string ToI = "to_i";
@@ -178,9 +182,9 @@ struct {
   const std::string Keys = "keys";
 
   std::unordered_set<std::string> builtins = {
-      Chars,   IsA,     Join,     Size,     ToD,        ToI,
-      ToS,     Replace, Replace,  Contains, BeginsWith, EndsWith,
-      IndexOf, Upcase,  Downcase, Keys};
+      Chars,    IsA,     Join,     Size,       ToD,       ToI,     ToS,
+      Replace,  Replace, Contains, BeginsWith, EndsWith,  IndexOf, Upcase,
+      Downcase, Keys,    Split,    LeftTrim,   RightTrim, Trim};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
