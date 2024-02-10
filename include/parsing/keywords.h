@@ -215,9 +215,11 @@ struct {
   const std::string String = "String";
   const std::string List = "List";
   const std::string Hash = "Hash";
+  const std::string Object = "Object";
+  const std::string None = "None";
 
-  std::unordered_set<std::string> typenames = {Integer, Double, Boolean,
-                                               String,  List,   Hash};
+  std::unordered_set<std::string> typenames = {Integer, Double, Boolean, String,
+                                               List,    Hash,   Object,  None};
 
   bool is_typename(const std::string& arg) {
     return typenames.find(arg) != typenames.end();

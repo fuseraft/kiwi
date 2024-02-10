@@ -58,6 +58,8 @@ class BuiltinInterpreter {
       return executeRightTrim(tokenTerm, value, args);
     } else if (builtin == KiwiBuiltins.Trim) {
       return executeTrim(tokenTerm, value, args);
+    } else if (builtin == KiwiBuiltins.Type) {
+      return executeType(tokenTerm, value, args);
     } else if (builtin == KiwiBuiltins.Size) {
       return executeSize(tokenTerm, value, args);
     } else if (builtin == KiwiBuiltins.ToD) {
@@ -952,9 +954,14 @@ class BuiltinInterpreter {
     return trim(input);
   }
 
-  const std::string LeftTrim = "ltrim";
-  const std::string RightTrim = "rtrim";
-  const std::string Trim = "trim";
+  static std::string executeType(const Token& tokenTerm, const Value& value,
+                                 const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.Type);
+    }
+
+    return Serializer::get_value_type_string(value);
+  }
 
   static std::shared_ptr<List> executeKeys(const Token& tokenTerm,
                                            const Value& value,

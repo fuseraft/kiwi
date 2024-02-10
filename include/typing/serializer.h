@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <variant>
 #include <vector>
+#include "parsing/keywords.h"
 #include "valuetype.h"
 
 struct Serializer {
@@ -33,13 +34,34 @@ struct Serializer {
             type = ValueType::Hash;
           } else if constexpr (std::is_same_v<T, std::shared_ptr<Object>>) {
             type = ValueType::Object;
-          } else {
-            type = ValueType::Unknown;
           }
         },
         v);
 
     return type;
+  }
+
+  static std::string get_value_type_string(Value v) {
+    switch (get_value_type(v)) {
+      case ValueType::Integer:
+        return TypeNames.Integer;
+      case ValueType::Double:
+        return TypeNames.Double;
+      case ValueType::Boolean:
+        return TypeNames.Boolean;
+      case ValueType::String:
+        return TypeNames.String;
+      case ValueType::List:
+        return TypeNames.List;
+      case ValueType::Hash:
+        return TypeNames.Hash;
+      case ValueType::Object:
+        return std::get<std::shared_ptr<Object>>(v)->className;
+      case ValueType::None:
+        return TypeNames.None;
+    }
+
+    return "";
   }
 
   static std::shared_ptr<List> convert_value_to_list(Value& rhsValues) {

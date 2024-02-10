@@ -961,6 +961,10 @@ class Interpreter {
 
     Class clazz = classes[object->className];
     if (!clazz.hasMethod(methodName)) {
+      if (KiwiBuiltins.is_builtin(methodName)) {
+        std::vector<Value> args;
+        return BuiltinInterpreter::execute(current(frame), methodName, object, args);
+      }
       throw UnimplementedMethodError(current(frame), object->className,
                                      methodName);
     }

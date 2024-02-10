@@ -30,7 +30,6 @@ struct Object {
 
 enum class ValueType {
   None,
-  Unknown,
   Integer,
   Double,
   Boolean,
