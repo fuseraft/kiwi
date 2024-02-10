@@ -7,6 +7,31 @@
 #include "parsing/tokens.h"
 #include "typing/valuetype.h"
 
+enum class MethodFlags : uint8_t {
+  None = 0,
+  Abstract = 1 << 0,
+  Private = 1 << 1,
+  Static = 1 << 2,
+  Override = 1 << 3,
+  Ctor = 1 << 4,
+  Lambda = 1 << 5,
+};
+
+inline MethodFlags operator|(MethodFlags a, MethodFlags b) {
+  return static_cast<MethodFlags>(
+      static_cast<std::underlying_type<MethodFlags>::type>(a) |
+      static_cast<std::underlying_type<MethodFlags>::type>(b));
+}
+inline MethodFlags operator&(MethodFlags a, MethodFlags b) {
+  return static_cast<MethodFlags>(
+      static_cast<std::underlying_type<MethodFlags>::type>(a) &
+      static_cast<std::underlying_type<MethodFlags>::type>(b));
+}
+inline MethodFlags operator~(MethodFlags a) {
+  return static_cast<MethodFlags>(
+      ~static_cast<std::underlying_type_t<MethodFlags>>(a));
+}
+
 class Method {
  public:
   void addToken(Token t) { code.push_back(t); }
@@ -26,27 +51,16 @@ class Method {
   const std::vector<std::string>& getParameters() const { return parameters; }
   int getParameterCount() const { return parameters.size(); }
   std::string getName() const { return _name; }
-  void setAbstract() { abstractMark = true; }
-  bool isAbstract() const { return abstractMark; }
-  void setPrivate() { privateMark = true; }
-  bool isPrivate() const { return privateMark; }
-  void setStatic() { staticMark = true; }
-  bool isStatic() const { return staticMark; }
-  void setOverride() { overrideMark = true; }
-  bool isOverride() const { return overrideMark; }
-  void setCtor() { ctorMark = true; }
-  bool isCtor() const { return ctorMark; }
+  void setFlag(MethodFlags flag) { flags = flags | flag; }
+  void clearFlag(MethodFlags flag) { flags = flags & ~flag; }
+  bool isFlagSet(MethodFlags flag) const { return (flags & flag) == flag; }
 
  private:
   std::vector<std::string> parameters;
   std::vector<Token> code;
   std::string _name;
   std::map<std::string, Value> parameterKVP;
-  bool abstractMark = false;
-  bool privateMark = false;
-  bool overrideMark = false;
-  bool staticMark = false;
-  bool ctorMark = false;
+  MethodFlags flags = MethodFlags::None;
 };
 
 #endif

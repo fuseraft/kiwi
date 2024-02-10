@@ -9,7 +9,7 @@
 struct Strings {
   static bool begins_with(std::string s, std::string beginning) {
     return s.size() > beginning.size() &&
-          s.substr(0, beginning.size()) == beginning;
+           s.substr(0, beginning.size()) == beginning;
   }
 
   static bool contains(std::string s, std::string search) {
@@ -25,20 +25,20 @@ struct Strings {
   }
 
   static std::string replace(std::string s, std::string search,
-                      std::string replacement) {
+                             std::string replacement) {
     std::regex pattern(search);
     return std::regex_replace(s, pattern, replacement);
   }
 
   static std::string upcase(std::string s) {
     std::transform(s.begin(), s.end(), s.begin(),
-                  [](unsigned char c) { return std::toupper(c); });
+                   [](unsigned char c) { return std::toupper(c); });
     return s;
   }
 
   static std::string downcase(std::string s) {
     std::transform(s.begin(), s.end(), s.begin(),
-                  [](unsigned char c) { return std::tolower(c); });
+                   [](unsigned char c) { return std::tolower(c); });
     return s;
   }
 
@@ -53,7 +53,7 @@ struct Strings {
   static std::string rtrim(const std::string& input) {
     std::string s = input;
     s.erase(std::find_if(s.rbegin(), s.rend(),
-                        [](unsigned char ch) { return !std::isspace(ch); })
+                         [](unsigned char ch) { return !std::isspace(ch); })
                 .base(),
             s.end());
     return s;
@@ -64,7 +64,7 @@ struct Strings {
   }
 
   static std::vector<std::string> split(const std::string& input,
-                                const std::string& delimiter) {
+                                        const std::string& delimiter) {
     std::vector<std::string> result;
 
     if (delimiter.empty())
@@ -93,7 +93,7 @@ struct Strings {
   }
 
   static bool is_flag(const std::string& s, const std::string& shortFlag,
-              const std::string& longFlag) {
+                      const std::string& longFlag) {
     std::string flags[] = {shortFlag, longFlag};
 
     // For funsies.

@@ -8,6 +8,7 @@
 #include <vector>
 #include "errors/error.h"
 #include "errors/state.h"
+#include "objects/method.h"
 #include "parsing/tokens.h"
 #include "typing/valuetype.h"
 
@@ -40,6 +41,7 @@ struct CallStackFrame {
   std::vector<Token> tokens;  // The tokens of the current method or scope.
   size_t position = 0;        // Current position in the token stream.
   std::map<std::string, Value> variables;
+  std::map<std::string, Method> lambdas;
   Value returnValue;
   ErrorState errorState;
   std::shared_ptr<Object> objectContext;

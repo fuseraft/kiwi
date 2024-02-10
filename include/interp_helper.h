@@ -119,14 +119,14 @@ struct InterpHelper {
     return isString || isLiteral || isIdentifier || isParenthesis ||
            isVariable || isBracketed || isInstanceInvocation;
   }
-  
+
   static bool shouldUpdateFrameVariables(const std::string& varName,
-                                  CallStackFrame& nextFrame) {
+                                         CallStackFrame& nextFrame) {
     return nextFrame.variables.find(varName) != nextFrame.variables.end();
   }
 
-  static void updateVariablesInCallerFrame(std::map<std::string, Value> variables,
-                                    CallStackFrame& callerFrame) {
+  static void updateVariablesInCallerFrame(
+      std::map<std::string, Value> variables, CallStackFrame& callerFrame) {
     for (const auto& var : variables) {
       std::string varName = var.first;
       if (shouldUpdateFrameVariables(varName, callerFrame)) {
@@ -140,17 +140,17 @@ struct InterpHelper {
     return "temporary_" + RNG::getInstance().random16();
   }
 
-  static void collectLoopBodyTokens(std::vector<Token>& tokens,
-                             CallStackFrame& frame) {
-    int loops = 1;
-    while (loops != 0) {
+  static void collectBodyTokens(std::vector<Token>& tokens,
+                                CallStackFrame& frame) {
+    int counter = 1;
+    while (counter != 0) {
       if (Keywords.is_required_end_keyword(current(frame).getText())) {
-        ++loops;
+        ++counter;
       } else if (current(frame).getText() == Keywords.End) {
-        --loops;
+        --counter;
 
         // Stop here.
-        if (loops == 0) {
+        if (counter == 0) {
           next(frame);
           continue;
         }
@@ -162,7 +162,7 @@ struct InterpHelper {
   }
 
   static std::vector<Token> getTemporaryAssignment(Token& tokenTerm,
-                                            const std::string& tempId) {
+                                                   const std::string& tempId) {
     std::vector<Token> tokens;
     std::string file = tokenTerm.getFile();
     tokens.push_back(
@@ -325,10 +325,13 @@ struct InterpHelper {
       return std::visit(BitwiseNotVisitor(current(frame)), value);
     }
 
-    throw InvalidOperationError(current(frame), "Invalid operator `" + op + "`");
+    throw InvalidOperationError(current(frame),
+                                "Invalid operator `" + op + "`");
   }
 
-  static Value interpretListSlice(const SliceIndex& slice, const std::shared_ptr<List>& list, CallStackFrame& frame) {
+  static Value interpretListSlice(const SliceIndex& slice,
+                                  const std::shared_ptr<List>& list,
+                                  CallStackFrame& frame) {
     if (slice.isSlice) {
       if (!std::holds_alternative<int>(slice.indexOrStart)) {
         throw IndexError(current(frame), "Start index must be an integer.");
@@ -381,8 +384,8 @@ struct InterpHelper {
   }
 
   static void interpretParameterizedCatch(CallStackFrame& frame,
-                                   std::string& errorVariableName,
-                                   Value& errorValue) {
+                                          std::string& errorVariableName,
+                                          Value& errorValue) {
     next(frame);  // Skip "("
 
     if (current(frame).getType() != TokenType::KEYWORD &&
@@ -480,13 +483,13 @@ struct InterpHelper {
 
     while (current(frame).getText() != Keywords.Method) {
       if (current(frame).getText() == Keywords.Abstract) {
-        method.setAbstract();
+        method.setFlag(MethodFlags::Abstract);
       } else if (current(frame).getText() == Keywords.Override) {
-        method.setOverride();
+        method.setFlag(MethodFlags::Override);
       } else if (current(frame).getText() == Keywords.Private) {
-        method.setPrivate();
+        method.setFlag(MethodFlags::Private);
       } else if (current(frame).getText() == Keywords.Static) {
-        method.setStatic();
+        method.setFlag(MethodFlags::Static);
       }
       next(frame);
     }
@@ -500,7 +503,7 @@ struct InterpHelper {
     interpretMethodParameters(method, frame);
     int counter = 1;
 
-    if (method.isAbstract()) {
+    if (method.isFlagSet(MethodFlags::Abstract)) {
       return method;
     }
 

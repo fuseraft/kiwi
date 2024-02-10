@@ -161,6 +161,19 @@ struct {
 } MathBuiltins;
 
 struct {
+  const std::string Map = "map";
+  const std::string Reduce = "reduce";
+  const std::string Select = "select";
+
+  std::unordered_set<std::string> builtins = {Map, Reduce, Select};
+
+  bool is_builtin(const std::string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+
+} SpecializedBuiltins;
+
+struct {
   const std::string Chars = "chars";
   const std::string IsA = "is_a";
   const std::string Join = "join";
