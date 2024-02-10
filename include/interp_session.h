@@ -82,6 +82,8 @@ class InterpSession {
               << std::endl
               << std::endl;
 
+    interp.preserveMainStackFrame();
+
     while (true) {
       try {
         std::cout << "kiwi> ";

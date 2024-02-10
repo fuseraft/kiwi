@@ -49,11 +49,15 @@ class Interpreter {
 
     interpretStackFrame();
 
-    if (callStack.size() == 1) {
+    if (!preservingMainStackFrame && callStack.size() == 1) {
       callStack.pop();
     }
 
     return 0;
+  }
+
+  void preserveMainStackFrame() {
+    preservingMainStackFrame = true;
   }
 
  private:
@@ -63,11 +67,10 @@ class Interpreter {
   std::map<std::string, Module> modules;
   std::map<std::string, Class> classes;
   std::vector<Token> _tokens;
-  bool _errorState = false;
-  bool _caught = false;
   std::string _parentPath;
   std::stack<CallStackFrame> callStack;
   std::stack<std::string> moduleStack;
+  bool preservingMainStackFrame = false;
 
   Token current(CallStackFrame& frame) {
     if (frame.position >= frame.tokens.size()) {
