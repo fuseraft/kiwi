@@ -915,7 +915,7 @@ class BuiltinInterpreter {
         newList->elements.push_back(std::string(1, c));
       }
     } else {
-      for (std::string token : split(input, delimiter)) {
+      for (std::string token : Strings::split(input, delimiter)) {
         newList->elements.push_back(token);
       }
     }
@@ -930,7 +930,7 @@ class BuiltinInterpreter {
     }
 
     std::string input = get_string(tokenTerm, value);
-    return ltrim(input);
+    return Strings::ltrim(input);
   }
 
   static std::string executeRightTrim(const Token& tokenTerm,
@@ -941,7 +941,7 @@ class BuiltinInterpreter {
     }
 
     std::string input = get_string(tokenTerm, value);
-    return rtrim(input);
+    return Strings::rtrim(input);
   }
 
   static std::string executeTrim(const Token& tokenTerm, const Value& value,
@@ -951,7 +951,7 @@ class BuiltinInterpreter {
     }
 
     std::string input = get_string(tokenTerm, value);
-    return trim(input);
+    return Strings::trim(input);
   }
 
   static std::string executeType(const Token& tokenTerm, const Value& value,
@@ -988,7 +988,7 @@ class BuiltinInterpreter {
 
     auto str = get_string(tokenTerm, value);
     auto search = get_string(tokenTerm, args.at(0));
-    return begins_with(str, search);
+    return Strings::begins_with(str, search);
   }
 
   static bool executeContains(const Token& tokenTerm, const Value& value,
@@ -999,7 +999,7 @@ class BuiltinInterpreter {
 
     auto str = get_string(tokenTerm, value);
     auto search = get_string(tokenTerm, args.at(0));
-    return contains(str, search);
+    return Strings::contains(str, search);
   }
 
   static bool executeEndsWith(const Token& tokenTerm, const Value& value,
@@ -1010,7 +1010,7 @@ class BuiltinInterpreter {
 
     auto str = get_string(tokenTerm, value);
     auto search = get_string(tokenTerm, args.at(0));
-    return ends_with(str, search);
+    return Strings::ends_with(str, search);
   }
 
   static bool executeIsA(const Token& tokenTerm, const Value& value,
@@ -1047,7 +1047,7 @@ class BuiltinInterpreter {
     auto str = get_string(tokenTerm, value);
     auto search = get_string(tokenTerm, args.at(0));
     auto replacement = get_string(tokenTerm, args.at(1));
-    return replace(str, search, replacement);
+    return Strings::replace(str, search, replacement);
   }
 
   static int executeIndexOf(const Token& tokenTerm, const Value& value,
@@ -1058,7 +1058,7 @@ class BuiltinInterpreter {
 
     auto str = get_string(tokenTerm, value);
     auto search = get_string(tokenTerm, args.at(0));
-    return index_of(str, search);
+    return Strings::index_of(str, search);
   }
 
   static std::string executeUpcase(const Token& tokenTerm, const Value& value,
@@ -1068,7 +1068,7 @@ class BuiltinInterpreter {
     }
 
     auto str = get_string(tokenTerm, value);
-    return upcase(str);
+    return Strings::upcase(str);
   }
 
   static std::string executeDowncase(const Token& tokenTerm, const Value& value,
@@ -1078,7 +1078,7 @@ class BuiltinInterpreter {
     }
 
     auto str = get_string(tokenTerm, value);
-    return downcase(str);
+    return Strings::downcase(str);
   }
 
   static bool executeAppendText(const Token& tokenTerm,

@@ -62,20 +62,20 @@ int process_args(int c, std::vector<std::string>& v, InterpSession& session,
   for (int i = 1; i < c; ++i) {
     opt = v.at(i);
 
-    if (begins_with(opt, "-X") && contains(opt, "=")) {
+    if (Strings::begins_with(opt, "-X") && Strings::contains(opt, "=")) {
       handle_xarg(opt, xargPattern, session);
-    } else if (is_flag(opt, "h", "help")) {
+    } else if (Strings::is_flag(opt, "h", "help")) {
       return print_help();
-    } else if (is_flag(opt, "v", "version")) {
+    } else if (Strings::is_flag(opt, "v", "version")) {
       return print_version();
-    } else if (is_flag(opt, "C", "config")) {
+    } else if (Strings::is_flag(opt, "C", "config")) {
       if (i + 1 > c) {
         return print_help();
       }
 
       std::string conf = v[i + 1];
 
-      if (!ends_with(conf, ".conf")) {
+      if (!Strings::ends_with(conf, ".conf")) {
         throw KiwiError::create("I can be configured with a `.conf` file.");
       } else if (!config.read(conf)) {
         throw KiwiError::create("I cannot read `" + conf + "`.");
@@ -83,7 +83,7 @@ int process_args(int c, std::vector<std::string>& v, InterpSession& session,
         configure_kiwi(config, logger, session);
         ++i;
       }
-    } else if (ends_with(opt, ".kiwi")) {
+    } else if (Strings::ends_with(opt, ".kiwi")) {
       session.registerScript(opt);
     } else {
       // logger.debug("Unknown option: " + opt);
