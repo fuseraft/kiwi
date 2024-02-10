@@ -100,7 +100,7 @@ class InterpSession {
           }
 
           if (!kiwiCode.empty()) {
-            Lexer lexer(logger, repl, kiwiCode);
+            Lexer lexer(repl, kiwiCode);
             interp.interpret(lexer);
             lines.clear();
           }
@@ -147,7 +147,7 @@ class InterpSession {
     std::string parentPath = FileIO::getParentPath(script);
     std::string absolutePath = FileIO::getAbsolutePath(script);
 
-    Lexer lexer(logger, absolutePath, content);
+    Lexer lexer(absolutePath, content);
     return interp.interpret(lexer, parentPath);
   }
 };

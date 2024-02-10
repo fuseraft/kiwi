@@ -1,7 +1,6 @@
 #ifndef KIWI_PARSING_LEXER_H
 #define KIWI_PARSING_LEXER_H
 
-#include "logging/logger.h"
 #include "tokens.h"
 #include "keywords.h"
 #include <sstream>
@@ -10,10 +9,9 @@
 
 class Lexer {
  public:
-  Lexer(Logger& logger, const std::string& file, const std::string& source,
+  Lexer(const std::string& file, const std::string& source,
         bool skipWhitespace = true)
-      : logger(logger),
-        file(file),
+      : file(file),
         source(source),
         currentPosition(0),
         _skipWhitespace(skipWhitespace) {
@@ -48,7 +46,6 @@ class Lexer {
   std::string getFile() { return file; }
 
  private:
-  Logger& logger;
   std::string file;
   std::string source;
   size_t currentPosition;
