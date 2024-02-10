@@ -1,0 +1,25 @@
+println "======================="
+println "= random_strings.kiwi ="
+println "======================="
+
+import "@kiwi/math"
+ 
+@alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".chars()
+@size = @alpha.size()
+
+def get_random_string(@length)
+    @random_string = ""
+
+    for @i in [0..@length] do
+        @rand = math::random(0, @size - 1)
+        @random_string += @alpha[@rand]
+    end
+
+    return @random_string
+end
+
+for @i in [0..20] do
+    println get_random_string(@i)
+end
+ 
+println ""
