@@ -413,7 +413,7 @@ struct InterpHelper {
   static std::string interpretModuleHome(std::string& modulePath,
                                          CallStackFrame& frame) {
     if (current(frame).getType() != TokenType::STRING ||
-        !begins_with(modulePath, "@")) {
+        !Strings::begins_with(modulePath, "@")) {
       return "";
     }
 

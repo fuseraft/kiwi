@@ -8,8 +8,6 @@
 #include "errors/state.h"
 #include "logging/logger.h"
 #include "math/boolexpr.h"
-#include "math/visitor.h"
-#include "math/rng.h"
 #include "objects/class.h"
 #include "objects/conditional.h"
 #include "objects/method.h"
@@ -1733,7 +1731,7 @@ class Interpreter {
                             "Expected a string for `import` statement.");
     }
     std::string scriptName = std::get<std::string>(scriptNameValue);
-    if (!ends_with(scriptName, ".kiwi")) {
+    if (!Strings::ends_with(scriptName, ".kiwi")) {
       scriptName += ".kiwi";
     }
     std::string scriptPath = FileIO::joinPath(_parentPath, scriptName);
