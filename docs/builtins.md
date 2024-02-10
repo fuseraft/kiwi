@@ -70,6 +70,25 @@ Trims whitespace from both sides of a string.
 println "     Hello World!    ".trim() + " Testing!" # prints: Hello World! Testing!
 ```
 
+### `.type()`
+
+Returns the type of the value as a string.
+
+Valid types are: `Integer`, `Double`, `Boolean`, `String`, `List`, `Hash`, `Object`.
+
+If the type is an object, `type()` will return the class name of the instance.
+
+```ruby
+class MyClass
+  def initialize()
+  end
+end
+
+@instance = MyClass.new()
+println @instance.type() # prints: MyClass
+println "Kiwis are delicious!".type() # prints: String
+```
+
 ### `.to_d()`
 
 Converts a numeric value to a double.
