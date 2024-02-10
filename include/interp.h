@@ -2014,11 +2014,13 @@ class Interpreter {
       valueSet = true;
     }
 
-    if (peek(frame).getType() == TokenType::OPERATOR) {
-      next(frame);
-    } else if (peek(frame).getType() == TokenType::DOT) {
+    while (peek(frame).getType() == TokenType::DOT) {
       value = interpretDotNotation(value, frame);
       valueSet = true;
+    }
+
+    if (peek(frame).getType() == TokenType::OPERATOR) {
+      next(frame);
     }
 
     while (current(frame).getType() == TokenType::OPERATOR) {
