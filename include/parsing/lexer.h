@@ -84,7 +84,7 @@ class Lexer {
     } else if (currentChar == '#') {
       return parseComment();
     } else if (currentChar == '@') {
-      return Token::create(TokenType::KEYWORD, file, "@", lineNumber,
+      return Token::create(TokenType::DECLVAR, file, "@", lineNumber,
                            linePosition);
     } else if (currentChar == '$') {
       return Token::create(TokenType::OPERATOR, file, "$", lineNumber,
@@ -135,19 +135,19 @@ class Lexer {
     }
   }
 
-  Token parseKeyword(std::string& identifier) {
-    TokenType tokenType;
+  Token parseKeyword(std::string& keyword) {
+    TokenType tokenType = TokenType::KEYWORD;
 
-    if (Keywords.is_conditional_keyword(identifier)) {
+    if (Keywords.is_conditional_keyword(keyword)) {
       tokenType = TokenType::CONDITIONAL;
-    } else if (Keywords.is_boolean(identifier)) {
+    } else if (keyword == Keywords.Lambda) {
+      tokenType = TokenType::LAMBDA;
+    } else if (Keywords.is_boolean(keyword)) {
       tokenType = TokenType::LITERAL;
-      return Token::createBoolean(file, identifier, lineNumber, linePosition);
-    } else {
-      tokenType = TokenType::KEYWORD;
+      return Token::createBoolean(file, keyword, lineNumber, linePosition);
     }
 
-    return Token::create(tokenType, file, identifier, lineNumber, linePosition);
+    return Token::create(tokenType, file, keyword, lineNumber, linePosition);
   }
 
   Token parseUnspecified(char initialChar) {

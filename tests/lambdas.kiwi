@@ -1,0 +1,11 @@
+println "================"
+println "= lambdas.kiwi ="
+println "================"
+
+puts = lambda(@s) do
+  println @s
+end
+
+puts("Hello, World!")
+
+println ""
