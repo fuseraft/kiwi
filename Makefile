@@ -1,8 +1,6 @@
 CXX := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic
-# -fsanitize=address
+CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic # -fsanitize=address
 LDFLAGS :=
-
 
 SRC_DIR := src
 INCLUDE_DIR := include
