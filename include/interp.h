@@ -56,9 +56,7 @@ class Interpreter {
     return 0;
   }
 
-  void preserveMainStackFrame() {
-    preservingMainStackFrame = true;
-  }
+  void preserveMainStackFrame() { preservingMainStackFrame = true; }
 
  private:
   Logger& logger;
