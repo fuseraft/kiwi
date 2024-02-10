@@ -23,8 +23,15 @@ Converts a string into a list. Each character in the string becomes a new string
 Joins a list into a string.
 
 ```ruby
-println ["Hello", "World!"].join(" ")
-# Prints "Hello, World!"
+println ["Hello", "World!"].join(" ") # prints: "Hello, World!"
+```
+
+### `.split(delim)`
+
+Splits a string into a list by delimiter.
+
+```ruby
+println "Hello World!".split(" ") # prints: ["Hello", "World!"]
 ```
 
 ### `.size()`
@@ -37,6 +44,30 @@ Returns the size of a list or a string as an integer.
 
 println @string.size()
 println @list.size()
+```
+
+### `.ltrim()`
+
+Trims whitespace from the left-hand side of a string.
+
+```ruby
+println "   Hello World!".ltrim() # prints: Hello World!
+```
+
+### `.rtrim()`
+
+Trims whitespace from the right-hand side of a string.
+
+```ruby
+println "Hello World!    ".rtrim() + " Testing!" # prints: Hello World! Testing!
+```
+
+### `.rtrim()`
+
+Trims whitespace from both sides of a string.
+
+```ruby
+println "     Hello World!    ".trim() + " Testing!" # prints: Hello World! Testing!
 ```
 
 ### `.to_d()`
