@@ -7,6 +7,7 @@
 #include "math/visitor.h"
 #include "objects/method.h"
 #include "objects/sliceindex.h"
+#include "parsing/keywords.h"
 #include "parsing/lexer.h"
 #include "parsing/strings.h"
 #include "parsing/tokens.h"
@@ -70,24 +71,42 @@ struct InterpHelper {
 
   static bool isListExpression(CallStackFrame& frame) {
     size_t position = frame.position;
-    Token token = frame.tokens[position];
-
-    if (token.getType() != TokenType::OPEN_BRACKET) {
+    if (position >= frame.tokens.size() || frame.tokens[position].getType() != TokenType::OPEN_BRACKET) {
       return false;
     }
 
-    token = frame.tokens[++position];
+    int bracketCount = 1;
+    ++position;
 
-    while (position < frame.tokens.size() &&
-           token.getType() != TokenType::CLOSE_BRACKET) {
-      if (token.getType() == TokenType::COLON ||
-          token.getType() == TokenType::RANGE) {
+    while (position < frame.tokens.size() && bracketCount > 0) {
+      Token token = frame.tokens[position];
+      TokenType type = token.getType();
+
+      if (type == TokenType::OPEN_BRACKET) {
+        ++bracketCount;
+      } else if (type == TokenType::CLOSE_BRACKET) {
+        --bracketCount;
+      } else if (type == TokenType::OPEN_BRACE) {
+        int braceCount = 1;
+        ++position; // Skip "["
+        while (position < frame.tokens.size() && braceCount > 0) {
+          token = frame.tokens[position];
+          if (token.getType() == TokenType::OPEN_BRACE) {
+            ++braceCount;
+          } else if (token.getType() == TokenType::CLOSE_BRACE) {
+            --braceCount;
+          }
+          ++position;
+        }
+        continue;
+      } else if (type == TokenType::COLON || type == TokenType::RANGE) {
         return false;
       }
-      token = frame.tokens[++position];
+
+      ++position;
     }
 
-    return true;
+    return bracketCount == 0;
   }
 
   static bool isRangeExpression(CallStackFrame& frame) {
@@ -111,8 +130,7 @@ struct InterpHelper {
     bool isString = tokenType == TokenType::STRING;
     bool isIdentifier = tokenType == TokenType::IDENTIFIER;
     bool isParenthesis = tokenType == TokenType::OPEN_PAREN;
-    bool isVariable = tokenType == TokenType::KEYWORD &&
-                      nextToken.getText() == Symbols.DeclVar;
+    bool isVariable = tokenType == TokenType::DECLVAR;
     bool isBracketed = tokenType == TokenType::OPEN_BRACKET;
     bool isInstanceInvocation =
         tokenType == TokenType::KEYWORD && nextToken.getText() == Keywords.This;
@@ -166,7 +184,7 @@ struct InterpHelper {
     std::vector<Token> tokens;
     std::string file = tokenTerm.getFile();
     tokens.push_back(
-        Token::create(TokenType::KEYWORD, file, Symbols.DeclVar, 0, 0));
+        Token::create(TokenType::DECLVAR, file, Keywords.DeclVar, 0, 0));
     tokens.push_back(Token::create(TokenType::IDENTIFIER, file, tempId, 0, 0));
     tokens.push_back(
         Token::create(TokenType::OPERATOR, file, Operators.Assign, 0, 0));
@@ -388,8 +406,7 @@ struct InterpHelper {
                                           Value& errorValue) {
     next(frame);  // Skip "("
 
-    if (current(frame).getType() != TokenType::KEYWORD &&
-        current(frame).getText() != Symbols.DeclVar) {
+    if (current(frame).getType() != TokenType::DECLVAR) {
       throw SyntaxError(current(frame),
                         "Syntax error in catch variable declaration.");
     }
@@ -434,7 +451,8 @@ struct InterpHelper {
       const auto& token = tokens.at(pos);
 
       // If the last token was "@"
-      if (pos + 1 < tokens.size() && lastToken.getText() == Symbols.DeclVar) {
+      if (pos + 1 < tokens.size() &&
+          lastToken.getType() == TokenType::DECLVAR) {
         if (tokens.at(pos + 1).getText() == Operators.Divide) {
           moduleHome = token.getText();
           pos += 2;  // Skip module home and "/"

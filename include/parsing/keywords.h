@@ -5,7 +5,6 @@
 #include <unordered_set>
 
 struct {
-  const std::string DeclVar = "@";
   const std::string OpenCurlyBrace = "{";
   const std::string CloseCurlyBrace = "}";
   const std::string OpenParenthesis = "(";
@@ -140,6 +139,7 @@ struct {
   const std::string Catch = "catch";
   const std::string Class = "class";
   const std::string Ctor = "initialize";
+  const std::string DeclVar = "@";
   const std::string Default = "default";
   const std::string Delay = "delay";
   const std::string Delete = "delete";
@@ -177,10 +177,12 @@ struct {
   const std::string While = "while";
 
   std::unordered_set<std::string> keywords = {
-      If,     Else,   ElseIf,   True,   False,    While,   End,
-      Lambda, Module, Method,   Return, Import,   Print,   PrintLn,
-      For,    In,     Do,       Next,   Break,    Delete,  Pass,
-      Try,    Catch,  Abstract, Class,  Override, Private, This};
+      If,       Else,    ElseIf, True,           False,
+      While,    End,     Lambda, Module,         Method,
+      Return,   Import,  Print,  PrintLn,        For,
+      In,       Do,      Next,   Break,          Delete,
+      Pass,     Try,     Catch,  Abstract,       Class,
+      Override, Private, This,   DeclVar};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           End};

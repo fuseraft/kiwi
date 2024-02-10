@@ -29,6 +29,8 @@ enum TokenType {
   COLON,
   DOT,
   TYPENAME,
+  LAMBDA,
+  DECLVAR,
   ENDOFFILE
 };
 

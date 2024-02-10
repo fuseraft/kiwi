@@ -124,6 +124,13 @@ class BuiltinUnexpectedArgumentError : public KiwiError {
                   "Unexpected argument count for builtin `" + name + "`.") {}
 };
 
+class InvalidContextError : public KiwiError {
+ public:
+  InvalidContextError(const Token& token,
+                      std::string message = "Invalid context.")
+      : KiwiError(token, "InvalidContextError", message) {}
+};
+
 class InvalidOperationError : public KiwiError {
  public:
   InvalidOperationError(const Token& token,
