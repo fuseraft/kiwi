@@ -94,7 +94,7 @@ class Interpreter {
       return Token::createEndOfFrame();
     }
   }
-
+  
   void interpretStackFrame() {
     auto& frame = callStack.top();
     while (frame.position < frame.tokens.size()) {
@@ -423,16 +423,16 @@ class Interpreter {
     }
   }
 
-  void interpretQualifiedIdentifier(Token& token, std::string& tokenText,
+  void interpretQualifiedIdentifier(Token& token, std::string& identifier,
                                     CallStackFrame& frame) {
     if (peek(frame).getType() == TokenType::QUALIFIER) {
-      if (!hasModule(tokenText)) {
-        throw ModuleUndefinedError(token, tokenText);
+      if (!hasModule(identifier)) {
+        throw ModuleUndefinedError(token, identifier);
       }
       next(frame);  // Skip the identifier.
       next(frame);  // Skip the qualifier.
       token = current(frame);
-      tokenText = tokenText + Symbols.Qualifier + token.getText();
+      identifier = identifier + Symbols.Qualifier + token.getText();
     }
   }
 
