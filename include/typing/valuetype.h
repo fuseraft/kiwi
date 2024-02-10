@@ -3,7 +3,9 @@
 
 #include <map>
 #include <memory>
+#include <string>
 #include <variant>
+#include <vector>
 #include "errors/error.h"
 
 struct Hash;

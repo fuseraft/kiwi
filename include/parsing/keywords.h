@@ -157,6 +157,7 @@ struct {
   const std::string If = "if";
   const std::string Import = "import";
   const std::string In = "in";
+  const std::string Lambda = "lambda";
   const std::string Method = "def";
   const std::string Module = "module";
   const std::string New = "new";
@@ -176,10 +177,10 @@ struct {
   const std::string While = "while";
 
   std::unordered_set<std::string> keywords = {
-      If,     Else,     ElseIf, True,     False,   While,   End,
-      Module, Method,   Return, Import,   Print,   PrintLn, For,
-      In,     Do,       Next,   Break,    Delete,  Pass,    Try,
-      Catch,  Abstract, Class,  Override, Private, This};
+      If,     Else,   ElseIf,   True,   False,    While,   End,
+      Lambda, Module, Method,   Return, Import,   Print,   PrintLn,
+      For,    In,     Do,       Next,   Break,    Delete,  Pass,
+      Try,    Catch,  Abstract, Class,  Override, Private, This};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           End};

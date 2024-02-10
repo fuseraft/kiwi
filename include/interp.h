@@ -92,7 +92,7 @@ class Interpreter {
       return Token::createEndOfFrame();
     }
   }
-  
+
   void interpretStackFrame() {
     auto& frame = callStack.top();
     while (frame.position < frame.tokens.size()) {
@@ -258,7 +258,7 @@ class Interpreter {
     auto& collection = std::get<std::shared_ptr<List>>(collectionValue);
 
     std::vector<Token> loopTokens;
-    InterpHelper::collectLoopBodyTokens(loopTokens, frame);
+    InterpHelper::collectBodyTokens(loopTokens, frame);
 
     // Execute the loop
     size_t index = 0;
@@ -304,7 +304,7 @@ class Interpreter {
     Token tokenTerm = current(frame);
 
     std::vector<Token> loopTokens;
-    InterpHelper::collectLoopBodyTokens(loopTokens, frame);
+    InterpHelper::collectBodyTokens(loopTokens, frame);
 
     CallStackFrame oldFrame = frame;
     std::string tempId = InterpHelper::getTemporaryId();
@@ -434,6 +434,13 @@ class Interpreter {
     }
   }
 
+  void interpretIdentifierOperation(const std::string& identifier,
+                                    CallStackFrame& frame) {
+    if (peek(frame).getText() == Operators.Assign) {
+      interpretAssignment(frame);
+    }
+  }
+
   void interpretIdentifier(CallStackFrame& frame) {
     Token token = current(frame);
     std::string tokenText = token.getText();
@@ -448,6 +455,8 @@ class Interpreter {
       interpretBuiltin(tokenText, frame);
     } else if (hasClass(tokenText)) {
       interpretClassMethodInvocation(tokenText, frame);
+    } else if (peek(frame).getType() == TokenType::OPERATOR) {
+      interpretIdentifierOperation(tokenText, frame);
     } else {
       throw UnknownIdentifierError(token, tokenText);
     }
@@ -460,7 +469,8 @@ class Interpreter {
     Value errorValue;
 
     if (current(frame).getType() == TokenType::OPEN_PAREN) {
-      InterpHelper::interpretParameterizedCatch(frame, errorVariableName, errorValue);
+      InterpHelper::interpretParameterizedCatch(frame, errorVariableName,
+                                                errorValue);
     }
 
     std::vector<Token> catchTokens;
@@ -663,11 +673,13 @@ class Interpreter {
     moduleStack.pop();
   }
 
-  std::vector<Value> interpretParameters(CallStackFrame& frame) {
-    std::vector<Value> parameters;
+  std::vector<Value> interpretArguments(CallStackFrame& frame) {
+    std::vector<Value> args;
 
     if (current(frame).getType() != TokenType::OPEN_PAREN) {
-      throw SyntaxError(current(frame));
+      throw SyntaxError(current(frame),
+                        "Expected open-parenthesis, `(`, near `" +
+                            current(frame).getText() + "`.");
     }
     next(frame);  // Skip "("
 
@@ -679,13 +691,13 @@ class Interpreter {
       }
 
       Token subTokenTerm = current(frame);
-      Value paramValue;
+      Value argValue;
 
       if (subTokenTerm.getType() == TokenType::TYPENAME) {
-        paramValue = subTokenTerm.getText();
+        argValue = subTokenTerm.getText();
       } else {
         BooleanExpressionBuilder booleanExpression;
-        paramValue = interpretTerm(subTokenTerm, booleanExpression, frame);
+        argValue = interpretTerm(subTokenTerm, booleanExpression, frame);
       }
 
       if (peek(frame).getType() == TokenType::CLOSE_PAREN) {
@@ -693,14 +705,14 @@ class Interpreter {
         closeParenthesisFound = true;
       }
 
-      parameters.push_back(paramValue);
+      args.push_back(argValue);
 
       if (!closeParenthesisFound) {
         next(frame);
       }
     }
     next(frame);  // Skip ")"
-    return parameters;
+    return args;
   }
 
   void interpretModuleBuiltin(const std::string moduleName,
@@ -719,25 +731,6 @@ class Interpreter {
 
       modules[moduleName].setHome(value);
       modules[moduleName].setName(moduleName);
-    }
-  }
-
-  void interpretBuiltin(const std::string& builtin, CallStackFrame& frame) {
-    Token tokenTerm = current(frame);
-    next(frame);  // Skip the name.
-
-    auto args = interpretParameters(frame);
-
-    if (ModuleBuiltins.is_builtin(builtin)) {
-      if (moduleStack.empty()) {
-        throw ModuleError(tokenTerm,
-                          "Builtin `" + builtin +
-                              "` is illegal outside of a module context.");
-      }
-      std::string moduleName = moduleStack.top();
-      interpretModuleBuiltin(moduleName, builtin, args, frame);
-    } else {
-      frame.returnValue = BuiltinInterpreter::execute(tokenTerm, builtin, args);
     }
   }
 
@@ -833,14 +826,15 @@ class Interpreter {
     }
 
     Method method = clazz.getMethod(methodName);
-    if (!method.isStatic() && !method.isCtor()) {
+    if (!method.isFlagSet(MethodFlags::Static) &&
+        !method.isFlagSet(MethodFlags::Ctor)) {
       throw InvalidOperationError(
           tokenTerm, "The method `" + methodName +
                          "` can only be invoked on an instance of class `" +
                          className + "`.");
     }
 
-    if (method.isPrivate()) {
+    if (method.isFlagSet(MethodFlags::Private)) {
       if (!frame.inObjectContext() ||
           frame.getObjectContext()->className != className) {
         throw InvalidOperationError(
@@ -882,7 +876,7 @@ class Interpreter {
 
     Method method = clazz.getMethod(methodName);
 
-    if (method.isPrivate() && !frame.inObjectContext()) {
+    if (method.isFlagSet(MethodFlags::Private) && !frame.inObjectContext()) {
       throw InvalidOperationError(
           current(frame),
           "Cannot invoke private method outside of object context.");
@@ -942,7 +936,7 @@ class Interpreter {
 
     Method method = clazz.getMethod(methodName);
 
-    if (method.isPrivate() && !frame.inObjectContext()) {
+    if (method.isFlagSet(MethodFlags::Private) && !frame.inObjectContext()) {
       throw InvalidOperationError(
           tokenTerm, "Cannot invoke private method outside of object context.");
     }
@@ -1014,7 +1008,9 @@ class Interpreter {
   std::string interpretAssignment(CallStackFrame& frame,
                                   bool isTemporary = false) {
     std::string name;
-    next(frame);  // Skip the "@"
+    if (current(frame).getText() == Symbols.DeclVar) {
+      next(frame);  // Skip the "@"
+    }
 
     if (current(frame).getType() == TokenType::IDENTIFIER) {
       name = current(frame).toString();
@@ -1647,17 +1643,19 @@ class Interpreter {
                  tokenText == Keywords.Private ||
                  tokenText == Keywords.Static) {
         Method method = InterpHelper::interpretMethodDeclaration(frame);
-        if (!method.isAbstract() && current(frame).getText() == Keywords.End) {
+        if (!method.isFlagSet(MethodFlags::Abstract) &&
+            current(frame).getText() == Keywords.End) {
           next(frame);
         }
 
         if (method.getName() == Keywords.Ctor) {
-          method.setCtor();
+          method.setFlag(MethodFlags::Ctor);
         }
 
         if (clazz.hasMethod(method.getName())) {
           Method classMethod = clazz.getMethod(method.getName());
-          if (!method.isOverride() && classMethod.isAbstract()) {
+          if (!method.isFlagSet(MethodFlags::Override) &&
+              classMethod.isFlagSet(MethodFlags::Abstract)) {
             throw SyntaxError(current(frame),
                               "The class, `" + className +
                                   "` has an abstract definition for `" +
@@ -1681,7 +1679,7 @@ class Interpreter {
     // Check for unimplemented abstract methods.
     if (!clazz.isAbstract()) {
       for (const auto& pair : clazz.getMethods()) {
-        if (pair.second.isAbstract()) {
+        if (pair.second.isFlagSet(MethodFlags::Abstract)) {
           throw UnimplementedMethodError(current(frame), className,
                                          pair.second.getName());
         }
@@ -1919,6 +1917,67 @@ class Interpreter {
     }
   }
 
+  void interpretBuiltin(const std::string& builtin, CallStackFrame& frame) {
+    Token tokenTerm = current(frame);
+    next(frame);  // Skip the name.
+
+    auto args = interpretArguments(frame);
+
+    if (ModuleBuiltins.is_builtin(builtin)) {
+      if (moduleStack.empty()) {
+        throw ModuleError(tokenTerm,
+                          "Builtin `" + builtin +
+                              "` is illegal outside of a module context.");
+      }
+      std::string moduleName = moduleStack.top();
+      interpretModuleBuiltin(moduleName, builtin, args, frame);
+    } else {
+      frame.returnValue = BuiltinInterpreter::execute(tokenTerm, builtin, args);
+    }
+  }
+
+  Method interpretLambda(CallStackFrame& frame) {
+    next(frame);  // Skip "lambda"
+    Method lambda;
+    lambda.setName(InterpHelper::getTemporaryId());
+
+    InterpHelper::interpretMethodParameters(lambda, frame);
+
+    if (current(frame).getText() != Keywords.Do) {
+      throw SyntaxError(current(frame), "Expected `do` in lambda expression.");
+    }
+    next(frame);  // Skip "do"
+
+    std::vector<Token> lambdaTokens;
+    InterpHelper::collectBodyTokens(lambdaTokens, frame);
+    for (Token t : lambdaTokens) {
+      lambda.addToken(t);
+    }
+
+    return lambda;
+  }
+
+  Value interpretSpecializedBuiltin(const Token& tokenTerm,
+                                    const std::string& builtin,
+                                    const Value& value) {
+    if (!std::holds_alternative<std::shared_ptr<List>>(value)) {
+      throw InvalidOperationError(
+          tokenTerm, "Specialized builtin `" + builtin + "` is illegal for `" +
+                         Serializer::get_value_type_string(value) + "`.");
+    }
+    if (builtin == SpecializedBuiltins.Select) {
+      /*
+      @list = [
+        { "key", 1 },
+        { "key", 2 },
+        { "key", 3 },
+        { "key", 4 },
+      ]
+      @list.select(lambda (@item) do @item["key"] > 0 end)
+      */
+    }
+  }
+
   Value interpretDotNotation(Value& value, CallStackFrame& frame) {
     if (peek(frame).getType() == TokenType::DOT) {
       next(frame);
@@ -1928,14 +1987,25 @@ class Interpreter {
     }
     std::string op = current(frame).getText();
     next(frame);
-    auto parameters = interpretParameters(frame);
+
+    if (current(frame).getType() != TokenType::OPEN_PAREN) {
+      throw SyntaxError(current(frame),
+                        "Expected open-parenthesis, `(`, to invoke builtin or "
+                        "method using dot-notation.");
+    }
+
+    if (SpecializedBuiltins.is_builtin(op)) {
+      return interpretSpecializedBuiltin(current(frame), op, value);
+    }
+
+    auto args = interpretArguments(frame);
 
     if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
       std::shared_ptr<Object> object = std::get<std::shared_ptr<Object>>(value);
-      return interpretInstanceMethodInvocation(object, op, parameters, frame);
+      return interpretInstanceMethodInvocation(object, op, args, frame);
     }
 
-    return BuiltinInterpreter::execute(current(frame), op, value, parameters);
+    return BuiltinInterpreter::execute(current(frame), op, value, args);
   }
 
   Value interpretExpression(BooleanExpressionBuilder& booleanExpression,
@@ -2346,8 +2416,24 @@ class Interpreter {
     return output;
   }
 
+  void handleLambdaAssignment(std::string& name, std::string& op,
+                              CallStackFrame& frame) {
+    next(frame);  // Skip to keyword
+    std::string keyword = current(frame).getText();
+
+    if (keyword == Keywords.Lambda) {
+      Method lambda = interpretLambda(frame);
+      std::cout << "interpreted lambda" << std::endl;
+    }
+  }
+
   void handleAssignment(std::string& name, std::string& op,
                         CallStackFrame& frame, bool isTemporary = false) {
+    if (peek(frame).getText() == Keywords.Lambda) {
+      handleLambdaAssignment(name, op, frame);
+      return;
+    }
+
     BooleanExpressionBuilder booleanExpression;
     Value value = interpretExpression(booleanExpression, frame);
 
