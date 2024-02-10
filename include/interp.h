@@ -1985,19 +1985,42 @@ class Interpreter {
       lambda.addToken(t);
     }
 
+    lambda.setFlag(MethodFlags::Lambda);
+
     return lambda;
   }
 
-  Value interpretSpecializedBuiltin(const Token& tokenTerm,
-                                    const std::string& builtin,
-                                    const Value& value) {
-    if (!std::holds_alternative<std::shared_ptr<List>>(value)) {
-      throw InvalidOperationError(
-          tokenTerm, "Specialized builtin `" + builtin + "` is illegal for `" +
-                         Serializer::get_value_type_string(value) + "`.");
+  Value interpretLambdaSelect(const std::shared_ptr<List>& list,
+                              CallStackFrame& frame) {
+    next(frame); // Skip "("
+
+    Method lambda;
+    if (current(frame).getType() == TokenType::IDENTIFIER) {
+      if (frame.hasAssignedLambda(current(frame).getText())) {
+        lambda = frame.getAssignedLambda(current(frame).getText());
+      }
+    } else if (current(frame).getType() == TokenType::LAMBDA) {
+      lambda = interpretLambda(frame);
     }
-    if (builtin == SpecializedBuiltins.Select) {
-      /*
+
+    if (!lambda.isFlagSet(MethodFlags::Lambda)) {
+      throw InvalidOperationError(current(frame), "Expected a lambda in `select` builtin.");
+    }
+
+    std::string itemVariableName, indexVariableName;
+    bool hasIndexVariable = false;
+    for (std::string parameter : lambda.getParameters()) {
+      if (itemVariableName.empty()) {
+        itemVariableName = parameter;
+      } else if (indexVariableName.empty()) {
+        indexVariableName = parameter;
+        hasIndexVariable = true;
+      } else {
+        throw BuiltinUnexpectedArgumentError(current(frame), SpecializedBuiltins.Select);
+      }
+    }
+
+    /*
       @list = [
         { "key", 1 },
         { "key", 2 },
@@ -2006,9 +2029,52 @@ class Interpreter {
       ]
       @list.select(lambda (@item) do @item["key"] > 0 end)
       */
+    std::shared_ptr<List> filteredList = std::make_shared<List>();
+
+    size_t index = 0;
+    for (const auto& item : list->elements) {
+      frame.variables[itemVariableName] = item;
+      if (hasIndexVariable) {
+        frame.variables[indexVariableName] = static_cast<int>(index);
+      }
+
+      // Execute loop body
+      CallStackFrame loopFrame(lambda.getCode());
+      for (const auto& pair : frame.variables) {
+        loopFrame.variables[pair.first] = pair.second;
+      }
+      callStack.push(loopFrame);
+      interpretStackFrame();
+
+      if (!callStack.empty()) {
+        Value value = callStack.top().returnValue;
+        frame.clearFlag(FrameFlags::ReturnFlag);
+
+        if (std::holds_alternative<bool>(value) && std::get<bool>(value)) {
+          filteredList->elements.push_back(item);
+        }
+      }
+      index++;
     }
 
-    return 0;
+    return filteredList;
+  }
+
+  Value interpretSpecializedListBuiltin(const std::string& builtin,
+                                    const Value& value, CallStackFrame& frame) {
+    if (!std::holds_alternative<std::shared_ptr<List>>(value)) {
+      throw InvalidOperationError(
+          current(frame), "Specialized list builtin `" + builtin + "` is illegal for type `" +
+                         Serializer::get_value_type_string(value) + "`.");
+    }
+
+    std::shared_ptr<List> list = std::get<std::shared_ptr<List>>(value);
+
+    if (builtin == SpecializedBuiltins.Select) {
+      return interpretLambdaSelect(list, frame);
+    }
+
+    throw UnknownBuiltinError(current(frame), builtin);
   }
 
   Value interpretDotNotation(Value& value, CallStackFrame& frame) {
@@ -2028,7 +2094,7 @@ class Interpreter {
     }
 
     if (SpecializedBuiltins.is_builtin(op)) {
-      return interpretSpecializedBuiltin(current(frame), op, value);
+      return interpretSpecializedListBuiltin(op, value, frame);
     }
 
     auto args = interpretArguments(frame);
