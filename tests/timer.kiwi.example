@@ -2,6 +2,8 @@ println "=============="
 println "= timer.kiwi ="
 println "=============="
 
+# rename this file to .kiwi to run it.
+
 import "@kiwi/time"
 
 @i = 0
