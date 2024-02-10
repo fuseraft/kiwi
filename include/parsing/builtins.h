@@ -172,6 +172,7 @@ struct {
   const std::string ToD = "to_d";
   const std::string ToI = "to_i";
   const std::string ToS = "to_s";
+  const std::string Type = "type";
   const std::string Replace = "replace";
   const std::string Contains = "contains";
   const std::string BeginsWith = "begins_with";
@@ -184,7 +185,7 @@ struct {
   std::unordered_set<std::string> builtins = {
       Chars,    IsA,     Join,     Size,       ToD,       ToI,     ToS,
       Replace,  Replace, Contains, BeginsWith, EndsWith,  IndexOf, Upcase,
-      Downcase, Keys,    Split,    LeftTrim,   RightTrim, Trim};
+      Downcase, Keys,    Split,    LeftTrim,   RightTrim, Trim,    Type};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();

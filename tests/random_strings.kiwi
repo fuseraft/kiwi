@@ -18,7 +18,7 @@ def get_random_string(@length)
     return @random_string
 end
 
-for @i in [0..20] do
+for @i in [0..5] do
     println get_random_string(@i)
 end
  
