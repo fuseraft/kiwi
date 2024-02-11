@@ -303,10 +303,8 @@ class Lexer {
           case '"':
             str += '"';
             break;
-          // Add cases for other escape sequences as needed
           default:
-            str +=
-                currentChar;  // Handle unrecognized escape sequences by including the character as-is
+            str += currentChar;
         }
         escape = false;
       } else if (currentChar == '\\') {
