@@ -1,5 +1,8 @@
-[{"key": true}]
-
+g++ -std=c++17 -Wall -Wextra -pedantic  -Iinclude -c src/main.cpp -o build/main.o
+g++  build/main.o -o bin/kiwi
+rm -f build/main.o
+================================
+bin/kiwi ./test.kiwi
 Searching for Kiwi scripts...
 Found script: /home/scs/kiwi/tests/for_loops.kiwi
 Importing and running /home/scs/kiwi/tests/for_loops.kiwi...
@@ -431,12 +434,12 @@ Importing and running /home/scs/kiwi/tests/random_strings.kiwi...
 =======================
 = random_strings.kiwi =
 =======================
-R
-cv
-1p2
-jVx9
-Xegij
-SL3SwY
+W
+iO
+zOU
+BABE
+V4pKi
+SmzyeU
 
 Found script: /home/scs/kiwi/tests/loop_controls.kiwi
 Importing and running /home/scs/kiwi/tests/loop_controls.kiwi...
@@ -467,7 +470,7 @@ Importing and running /home/scs/kiwi/tests/_kiwilib_time.kiwi...
 ========================
 = _kiwilib_fileio.kiwi =
 ========================
-Current timestamp: 2024/02/11 3:30:29 PM
+Current timestamp: 2024/02/11 3:32:18 PM
 
 Found script: /home/scs/kiwi/tests/arithmetic.kiwi
 Importing and running /home/scs/kiwi/tests/arithmetic.kiwi...
@@ -482,7 +485,6 @@ Importing and running /home/scs/kiwi/tests/arithmetic.kiwi...
 
 Found script: /home/scs/kiwi/tests/playground.kiwi
 Importing and running /home/scs/kiwi/tests/playground.kiwi...
-[{"key": true}]
 
 Found script: /home/scs/kiwi/tests/method_invoked_in_conditional.kiwi
 Importing and running /home/scs/kiwi/tests/method_invoked_in_conditional.kiwi...
@@ -612,38 +614,38 @@ Importing and running /home/scs/kiwi/tests/abstract_classes.kiwi...
 78.5397
 31.4159
 
-Script: /home/scs/kiwi/tests/for_loops.kiwi ran for 2.8375 ms.
-Script: /home/scs/kiwi/tests/modules.kiwi ran for 2.72102 ms.
-Script: /home/scs/kiwi/tests/type_checks.kiwi ran for 1.76102 ms.
-Script: /home/scs/kiwi/tests/method_early_return.kiwi ran for 10.8009 ms.
-Script: /home/scs/kiwi/tests/error_handling.kiwi ran for 1.13997 ms.
-Script: /home/scs/kiwi/tests/_kiwilib_fileio.kiwi ran for 18.4835 ms.
-Script: /home/scs/kiwi/tests/hashes.kiwi ran for 1.47456 ms.
-Script: /home/scs/kiwi/tests/builtins.kiwi ran for 2.48422 ms.
-Script: /home/scs/kiwi/tests/conditionals.kiwi ran for 1.51194 ms.
-Script: /home/scs/kiwi/tests/logical_and.kiwi ran for 1.25286 ms.
-Script: /home/scs/kiwi/tests/while_loops.kiwi ran for 25.9118 ms.
-Script: /home/scs/kiwi/tests/_kiwilib_math.kiwi ran for 7.69664 ms.
-Script: /home/scs/kiwi/tests/conditionals_nested.kiwi ran for 1.17581 ms.
-Script: /home/scs/kiwi/tests/classes.kiwi ran for 2.61325 ms.
-Script: /home/scs/kiwi/tests/logical_or.kiwi ran for 1.30483 ms.
-Script: /home/scs/kiwi/tests/fizzbuzz.kiwi ran for 7.87917 ms.
-Script: /home/scs/kiwi/tests/bitwise.kiwi ran for 1.18221 ms.
-Script: /home/scs/kiwi/tests/lists_slicing.kiwi ran for 2.19264 ms.
-Script: /home/scs/kiwi/tests/lambdas.kiwi ran for 8.20096 ms.
-Script: /home/scs/kiwi/tests/relational_logic.kiwi ran for 3.35872 ms.
-Script: /home/scs/kiwi/tests/method_return.kiwi ran for 0.713216 ms.
-Script: /home/scs/kiwi/tests/random_strings.kiwi ran for 16.6019 ms.
-Script: /home/scs/kiwi/tests/loop_controls.kiwi ran for 38.4461 ms.
-Script: /home/scs/kiwi/tests/_kiwilib_time.kiwi ran for 5.2055 ms.
-Script: /home/scs/kiwi/tests/arithmetic.kiwi ran for 1.50426 ms.
-Script: /home/scs/kiwi/tests/playground.kiwi ran for 0.474624 ms.
-Script: /home/scs/kiwi/tests/method_invoked_in_conditional.kiwi ran for 11.3201 ms.
-Script: /home/scs/kiwi/tests/prime_numbers.kiwi ran for 18.7425 ms.
-Script: /home/scs/kiwi/tests/concatenation.kiwi ran for 1.18886 ms.
-Script: /home/scs/kiwi/tests/logical_not.kiwi ran for 1.02963 ms.
-Script: /home/scs/kiwi/tests/methods.kiwi ran for 3.77651 ms.
-Script: /home/scs/kiwi/tests/fibonacci.kiwi ran for 7.68973 ms.
-Script: /home/scs/kiwi/tests/lists.kiwi ran for 5.42848 ms.
-Script: /home/scs/kiwi/tests/abstract_classes.kiwi ran for 1.56262 ms.
-Total runtime for all scripts: 219.667 ms.
+Script: /home/scs/kiwi/tests/for_loops.kiwi ran for 1.86752 ms.
+Script: /home/scs/kiwi/tests/modules.kiwi ran for 1.7088 ms.
+Script: /home/scs/kiwi/tests/type_checks.kiwi ran for 1.12461 ms.
+Script: /home/scs/kiwi/tests/method_early_return.kiwi ran for 7.04358 ms.
+Script: /home/scs/kiwi/tests/error_handling.kiwi ran for 0.686592 ms.
+Script: /home/scs/kiwi/tests/_kiwilib_fileio.kiwi ran for 11.9048 ms.
+Script: /home/scs/kiwi/tests/hashes.kiwi ran for 0.93824 ms.
+Script: /home/scs/kiwi/tests/builtins.kiwi ran for 1.61894 ms.
+Script: /home/scs/kiwi/tests/conditionals.kiwi ran for 1.00198 ms.
+Script: /home/scs/kiwi/tests/logical_and.kiwi ran for 0.773888 ms.
+Script: /home/scs/kiwi/tests/while_loops.kiwi ran for 17.4641 ms.
+Script: /home/scs/kiwi/tests/_kiwilib_math.kiwi ran for 5.10694 ms.
+Script: /home/scs/kiwi/tests/conditionals_nested.kiwi ran for 0.813568 ms.
+Script: /home/scs/kiwi/tests/classes.kiwi ran for 1.7751 ms.
+Script: /home/scs/kiwi/tests/logical_or.kiwi ran for 0.807936 ms.
+Script: /home/scs/kiwi/tests/fizzbuzz.kiwi ran for 5.21344 ms.
+Script: /home/scs/kiwi/tests/bitwise.kiwi ran for 0.744448 ms.
+Script: /home/scs/kiwi/tests/lists_slicing.kiwi ran for 1.43718 ms.
+Script: /home/scs/kiwi/tests/lambdas.kiwi ran for 5.3952 ms.
+Script: /home/scs/kiwi/tests/relational_logic.kiwi ran for 2.19853 ms.
+Script: /home/scs/kiwi/tests/method_return.kiwi ran for 0.459776 ms.
+Script: /home/scs/kiwi/tests/random_strings.kiwi ran for 11.0822 ms.
+Script: /home/scs/kiwi/tests/loop_controls.kiwi ran for 25.7987 ms.
+Script: /home/scs/kiwi/tests/_kiwilib_time.kiwi ran for 3.34208 ms.
+Script: /home/scs/kiwi/tests/arithmetic.kiwi ran for 1.02016 ms.
+Script: /home/scs/kiwi/tests/playground.kiwi ran for 0.213504 ms.
+Script: /home/scs/kiwi/tests/method_invoked_in_conditional.kiwi ran for 8.1769 ms.
+Script: /home/scs/kiwi/tests/prime_numbers.kiwi ran for 12.4626 ms.
+Script: /home/scs/kiwi/tests/concatenation.kiwi ran for 0.736 ms.
+Script: /home/scs/kiwi/tests/logical_not.kiwi ran for 0.662272 ms.
+Script: /home/scs/kiwi/tests/methods.kiwi ran for 2.49293 ms.
+Script: /home/scs/kiwi/tests/fibonacci.kiwi ran for 5.11616 ms.
+Script: /home/scs/kiwi/tests/lists.kiwi ran for 3.57709 ms.
+Script: /home/scs/kiwi/tests/abstract_classes.kiwi ran for 1.04294 ms.
+Total runtime for all scripts: 145.809 ms.
