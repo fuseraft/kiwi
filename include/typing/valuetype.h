@@ -11,10 +11,23 @@
 struct Hash;
 struct List;
 struct Object;
+struct LambdaRef;
+
+enum class ValueType {
+  None,
+  Integer,
+  Double,
+  Boolean,
+  String,
+  List,
+  Hash,
+  Object,
+  Lambda
+};
 
 using Value =
     std::variant<int, double, bool, std::string, std::shared_ptr<List>,
-                 std::shared_ptr<Hash>, std::shared_ptr<Object>>;
+                 std::shared_ptr<Hash>, std::shared_ptr<Object>, std::shared_ptr<LambdaRef>>;
 
 struct List {
   std::vector<Value> elements;
@@ -30,15 +43,10 @@ struct Object {
   std::map<std::string, Value> instanceVariables;
 };
 
-enum class ValueType {
-  None,
-  Integer,
-  Double,
-  Boolean,
-  String,
-  List,
-  Hash,
-  Object
+struct LambdaRef {
+  std::string identifier;
+
+  LambdaRef(const std::string& identifier) : identifier(identifier) {}
 };
 
 #endif

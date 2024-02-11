@@ -54,6 +54,45 @@ struct InterpHelper {
     booleanExpression.value(booleanValue);
   }
 
+  static Method interpretLambda(CallStackFrame& frame) {
+    next(frame);  // Skip "lambda"
+    Method lambda;
+    lambda.setName(getTemporaryId());
+
+    interpretMethodParameters(lambda, frame);
+
+    if (current(frame).getText() != Keywords.Do) {
+      throw SyntaxError(current(frame), "Expected `do` in lambda expression.");
+    }
+    next(frame);  // Skip "do"
+
+    std::vector<Token> lambdaTokens;
+    collectBodyTokens(lambdaTokens, frame);
+    for (Token t : lambdaTokens) {
+      lambda.addToken(t);
+    }
+
+    lambda.setFlag(MethodFlags::Lambda);
+
+    return lambda;
+  }
+
+  static Method getLambda(CallStackFrame& frame) {
+    Method lambda;
+
+    if (current(frame).getType() == TokenType::IDENTIFIER) {
+      std::string lambdaName = current(frame).getText();
+      next(frame);  // Skip identifier.
+      if (frame.hasAssignedLambda(lambdaName)) {
+        lambda = frame.getAssignedLambda(lambdaName);
+      }
+    } else if (current(frame).getType() == TokenType::LAMBDA) {
+      lambda = interpretLambda(frame);
+    }
+
+    return lambda;
+  }
+
   static bool isSliceAssignmentExpression(CallStackFrame& frame) {
     size_t pos = frame.position;
     bool isSliceAssignment = false;
@@ -71,7 +110,8 @@ struct InterpHelper {
 
   static bool isListExpression(CallStackFrame& frame) {
     size_t position = frame.position;
-    if (position >= frame.tokens.size() || frame.tokens[position].getType() != TokenType::OPEN_BRACKET) {
+    if (position >= frame.tokens.size() ||
+        frame.tokens[position].getType() != TokenType::OPEN_BRACKET) {
       return false;
     }
 
@@ -88,7 +128,7 @@ struct InterpHelper {
         --bracketCount;
       } else if (type == TokenType::OPEN_BRACE) {
         int braceCount = 1;
-        ++position; // Skip "["
+        ++position;  // Skip "["
         while (position < frame.tokens.size() && braceCount > 0) {
           token = frame.tokens[position];
           if (token.getType() == TokenType::OPEN_BRACE) {
@@ -130,12 +170,13 @@ struct InterpHelper {
     bool isString = tokenType == TokenType::STRING;
     bool isIdentifier = tokenType == TokenType::IDENTIFIER;
     bool isParenthesis = tokenType == TokenType::OPEN_PAREN;
+    bool isBraced = tokenType == TokenType::OPEN_BRACE;
     bool isVariable = tokenType == TokenType::DECLVAR;
     bool isBracketed = tokenType == TokenType::OPEN_BRACKET;
     bool isInstanceInvocation =
         tokenType == TokenType::KEYWORD && nextToken.getText() == Keywords.This;
     return isString || isLiteral || isIdentifier || isParenthesis ||
-           isVariable || isBracketed || isInstanceInvocation;
+           isVariable || isBracketed || isInstanceInvocation || isBraced;
   }
 
   static bool shouldUpdateFrameVariables(const std::string& varName,

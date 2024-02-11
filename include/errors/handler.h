@@ -22,27 +22,41 @@ class ErrorHandler {
     return 1;
   }
 
-  static int handleError(const KiwiError& e, std::vector<std::string> lines) {
+  static int handleError(const KiwiError& e, const std::map<std::string, std::vector<std::string>>& files) {
     handleError(e);
 
     const Token& token = e.getToken();
     int lineNumber = token.getLineNumber();
     int linePosition = token.getLinePosition();
-
-    std::string line = lines.at(lineNumber);
-    int length = line.length();
-
-    std::cerr << "File: " << token.getFile() << std::endl;
-    std::cerr << "Location:  Line " << 1 + lineNumber << ", Column "
-              << linePosition << "." << std::endl;
-    std::cerr << "Code: " << std::endl;
-    std::cerr << "```" << std::endl << line << std::endl;
-
-    for (int i = 0; i < length; ++i) {
-      std::cerr << (i == linePosition - 1 ? "^" : " ");
+    std::string file = token.getFile();
+    std::string line;
+    std::vector<std::string> lines;
+    if (files.find(file) != files.end()) {
+      lines = files.at(file);
+      if (lineNumber < static_cast<int>(lines.size())) {
+        line = lines.at(lineNumber);
+      }
     }
 
-    std::cerr << std::endl << "```" << std::endl << std::endl;
+    int length = line.length();
+
+    if (!file.empty()) {
+      std::cerr << "File: " << file << std::endl;
+    }
+
+    std::cerr << "Location:  Line " << 1 + lineNumber << ", Column "
+              << linePosition << "." << std::endl;
+    
+    if (!line.empty()) {
+      std::cerr << "Code: " << std::endl;
+      std::cerr << "```" << std::endl << line << std::endl;
+
+      for (int i = 0; i < length; ++i) {
+        std::cerr << (i == linePosition - 1 ? "^" : " ");
+      }
+
+      std::cerr << std::endl << "```" << std::endl << std::endl;
+    }
 
     return 1;
   }

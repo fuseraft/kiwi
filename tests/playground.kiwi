@@ -1,15 +1,6 @@
 # Add Kiwi here!
 
-@list = [
-  {"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, 
-  {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}, {"id": 9}
-]
-
-odd_item_id = lambda(@item) do
-  return @item["id"] % 2 != 0
-end
-
-println @list.select(lambda(@item) do return @item["id"] % 2 == 0 end)
-println @list.select(odd_item_id)
+@list = ["kiwi", "mango", "banana"]
+println @list.map(lambda (@item) do return { "fruit": @item, "is_a_kiwi": @item.downcase() == "kiwi" } end)
 
 println ""
