@@ -1,0 +1,13 @@
+import "@kiwi/fileio"
+
+@files = []
+
+for @file in fileio::glob("./**/*.kiwi") do
+  @content = fileio::read(@file)
+  @hash = {"file": @file, "content": @content}
+  @files << @hash
+end
+
+for @file in @files do
+  fileio::
+end
