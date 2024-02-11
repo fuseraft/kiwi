@@ -234,3 +234,15 @@ end)
 
 println @sum # prints: 15
 ```
+
+```ruby
+@numbers = [1, 2, 3, 4, 5]
+
+@hash = @numbers.reduce({}, lambda (@accumulator, @number) do
+    @accumulator["key${@number}"] = @number
+    return @accumulator
+end)
+
+println @hash 
+# prints: {"key1": 1, "key2": 2, "key3": 3, "key4": 4, "key5": 5}
+```
