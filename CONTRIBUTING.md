@@ -67,4 +67,4 @@ This section lists the labels we use to help us track and manage issues and pull
 
 ## Questions?
 
-Feel free to contact me at [scott@fuseraft.com](scott@fuseraft.com) if you need any help!
+Feel free to reach out at [https://kiwiprogramming.slack.com](Slack) if you need any help!
