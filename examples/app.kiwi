@@ -2,12 +2,15 @@ import "@kiwi/fileio"
 
 @files = []
 
-for @file in fileio::glob("./**/*.kiwi") do
-  @content = fileio::read(@file)
-  @hash = {"file": @file, "content": @content}
+for @path in fileio::glob("./**/*.kiwi") do
+  @content = fileio::read(@path)
+  @hash = {"path": @path, "content": @content}
   @files << @hash
 end
 
+@output_path = "output.kiwi"
+
 for @file in @files do
-  fileio::
+  fileio::writeln(@output_path, "#" + @file["path"])
+  fileio::writeln(@output_path, @file["content"])
 end
