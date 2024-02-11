@@ -10,7 +10,7 @@ Kiwi supports working with the following types:
 | `String` | A sequence of characters. | See below for an example. |
 | `List` | A list of values. | See [lists.md](lists.md) |
 | `Hash` | A dictionary of key-value pairs. | See [hashes.md](hashes.md) |
-| `Object` | An instance of a `class`. | See [classes.md](classes.md) |
+| `Object` | An instance of a `class`. | See [classes.md](classes.md) and [abstract_classes.md](abstract_classes.md) |
 | `Lambda` | An anonymous function. | See [lambdas.md](lambdas.md) |
 
 ### Integer
