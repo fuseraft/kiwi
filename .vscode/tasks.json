@@ -9,6 +9,7 @@
                 "-Wall",
                 "-Wextra",
                 "-pedantic",
+                "-lcurl",
                 "-I${workspaceFolder}/include",
                 "-g",
                 "${workspaceFolder}/src/main.cpp",

@@ -1022,7 +1022,8 @@ class BuiltinInterpreter {
     auto typeName = get_string(tokenTerm, args.at(0));
     if (!TypeNames.is_typename(typeName)) {
       if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
-        std::shared_ptr<Object> object = std::get<std::shared_ptr<Object>>(value);
+        std::shared_ptr<Object> object =
+            std::get<std::shared_ptr<Object>>(value);
         return object->className == typeName;
       }
       throw InvalidTypeNameError(tokenTerm, typeName);

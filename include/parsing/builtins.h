@@ -164,8 +164,9 @@ struct {
   const std::string Map = "map";
   const std::string Reduce = "reduce";
   const std::string Select = "select";
+  const std::string ToH = "to_h";
 
-  std::unordered_set<std::string> builtins = {Map, Reduce, Select};
+  std::unordered_set<std::string> builtins = {Map, Reduce, Select, ToH};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();

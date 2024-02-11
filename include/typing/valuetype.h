@@ -25,9 +25,9 @@ enum class ValueType {
   Lambda
 };
 
-using Value =
-    std::variant<int, double, bool, std::string, std::shared_ptr<List>,
-                 std::shared_ptr<Hash>, std::shared_ptr<Object>, std::shared_ptr<LambdaRef>>;
+using Value = std::variant<int, double, bool, std::string,
+                           std::shared_ptr<List>, std::shared_ptr<Hash>,
+                           std::shared_ptr<Object>, std::shared_ptr<LambdaRef>>;
 
 struct List {
   std::vector<Value> elements;

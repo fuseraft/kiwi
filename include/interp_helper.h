@@ -591,22 +591,38 @@ struct InterpHelper {
     return method;
   }
 
-  static void interpretMethodParameters(Method& method, CallStackFrame& frame) {
+  static std::vector<std::string> getParameterSet(CallStackFrame& frame) {
+    Token tokenTerm = current(frame);
     if (current(frame).getType() != TokenType::OPEN_PAREN) {
-      Token tokenTerm = current(frame);
-      throw SyntaxError(tokenTerm);
+      throw SyntaxError(
+          tokenTerm,
+          "Expected open-parenthesis, `(`, in parameter set expression.");
     }
     next(frame);  // Skip "("
+
+    std::vector<std::string> paramSet;
 
     while (current(frame).getType() != TokenType::CLOSE_PAREN) {
       Token parameterToken = current(frame);
       if (parameterToken.getType() == TokenType::IDENTIFIER) {
-        method.addParameterName(parameterToken.getText());
+        paramSet.push_back(parameterToken.getText());
       }
       next(frame);
     }
 
+    if (current(frame).getType() != TokenType::CLOSE_PAREN) {
+      throw SyntaxError(
+          tokenTerm,
+          "Expected close-parenthesis, `)`, in parameter set expression.");
+    }
     next(frame);  // Skip ")"
+    return paramSet;
+  }
+
+  static void interpretMethodParameters(Method& method, CallStackFrame& frame) {
+    for (std::string param : getParameterSet(frame)) {
+      method.addParameterName(param);
+    }
   }
 };
 
