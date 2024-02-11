@@ -122,6 +122,22 @@ Converts a value to a string.
 println @s  # prints: [100, "100"]
 ```
 
+### `.to_h()`
+
+Converts an object instance into a hash.
+
+```ruby
+class SerializeMe
+  def initialize()
+    this.@name = "Hello!"
+  end
+end
+
+@inst = SerializeMe.new()
+
+println @inst.to_h()
+```
+
 ### `.index_of(str)`
 
 Returns the index of a string.

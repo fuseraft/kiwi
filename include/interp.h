@@ -462,11 +462,13 @@ class Interpreter {
     } else if (hasVariable(tokenText, frame)) {
       Value v = getVariable(tokenText, frame);
       if (std::holds_alternative<std::shared_ptr<LambdaRef>>(v)) {
-        std::string lambdaRef = std::get<std::shared_ptr<LambdaRef>>(v)->identifier;
+        std::string lambdaRef =
+            std::get<std::shared_ptr<LambdaRef>>(v)->identifier;
         if (frame.hasAssignedLambda(lambdaRef)) {
           interpretMethodInvocation(lambdaRef, frame);
         } else {
-          throw InvalidOperationError(token, "Unknown Lambda `" + tokenText + "`.");
+          throw InvalidOperationError(token,
+                                      "Unknown Lambda `" + tokenText + "`.");
         }
       }
       // Skip it (for now).
@@ -775,7 +777,9 @@ class Interpreter {
                                                    Method& method,
                                                    CallStackFrame& frame) {
     if (current(frame).getType() != TokenType::OPEN_PAREN) {
-      throw SyntaxError(tokenTerm, "Expected open-parenthesis, `(`, in method parameter set.");
+      throw SyntaxError(
+          tokenTerm,
+          "Expected open-parenthesis, `(`, in method parameter set.");
     }
     next(frame);  // Skip "("
 
@@ -955,7 +959,10 @@ class Interpreter {
                                          CallStackFrame& frame) {
     next(frame);  // Skip the "."
     if (current(frame).getType() != TokenType::IDENTIFIER) {
-      throw SyntaxError(current(frame), "Expected identifier in instance method invocation, instead got: `" + current(frame).getText() + "`");
+      throw SyntaxError(
+          current(frame),
+          "Expected identifier in instance method invocation, instead got: `" +
+              current(frame).getText() + "`");
     }
     Token tokenTerm = current(frame);
     std::string methodName = tokenTerm.getText();
@@ -1036,7 +1043,7 @@ class Interpreter {
     BooleanExpressionBuilder ifExpression;
     if (hasValue) {
       returnValue = interpretExpression(ifExpression, frame);
-      if  (ifExpression.isSet()) {
+      if (ifExpression.isSet()) {
         if (std::holds_alternative<bool>(returnValue)) {
           returnValue = ifExpression.evaluate();
         }
@@ -1072,7 +1079,8 @@ class Interpreter {
         }
 
         if (!InterpHelper::isSliceAssignmentExpression(frame)) {
-          throw SyntaxError(current(frame), "Invalid slice-assignment expression.");
+          throw SyntaxError(current(frame),
+                            "Invalid slice-assignment expression.");
         }
 
         interpretSliceAssignment(frame, name);
@@ -1482,7 +1490,10 @@ class Interpreter {
 
   void interpretConditional(CallStackFrame& frame) {
     if (current(frame).getText() != Keywords.If) {
-      throw SyntaxError(current(frame), "Invalid conditional. Expected `" + Keywords.If + "` keyword, instead got: `" + current(frame).getText() + "`");
+      throw SyntaxError(current(frame), "Invalid conditional. Expected `" +
+                                            Keywords.If +
+                                            "` keyword, instead got: `" +
+                                            current(frame).getText() + "`");
     }
 
     next(frame);  // Skip "if"
@@ -1695,6 +1706,16 @@ class Interpreter {
                  tokenText == Keywords.Method ||
                  tokenText == Keywords.Private ||
                  tokenText == Keywords.Static) {
+        if (tokenText == Keywords.Private) {
+          if (peek(frame).getType() == TokenType::OPEN_PAREN) {
+            next(frame);  // Skip "private"
+            for (std::string privateVar :
+                 InterpHelper::getParameterSet(frame)) {
+              clazz.addPrivateVariable(privateVar);
+            }
+          }
+        }
+
         Method method = InterpHelper::interpretMethodDeclaration(frame);
         if (!method.isFlagSet(MethodFlags::Abstract) &&
             current(frame).getText() == Keywords.End) {
@@ -1946,7 +1967,9 @@ class Interpreter {
 
     // Check if the last term is valueless.
     if (nextTerm.valueless_by_exception()) {
-      throw SyntaxError(tokenTerm);
+      throw SyntaxError(tokenTerm,
+                        "The boolean expression is valueless, near `" +
+                            tokenTerm.getText() + "`.");
     }
 
     // We can't use non-boolean values in our expression.
@@ -2041,7 +2064,7 @@ class Interpreter {
   }
 
   Value interpretLambdaReduce(const std::shared_ptr<List>& list,
-                           CallStackFrame& frame) {
+                              CallStackFrame& frame) {
     next(frame);  // Skip "("
 
     BooleanExpressionBuilder booleanExpression;
@@ -2159,6 +2182,54 @@ class Interpreter {
     return filteredList;
   }
 
+  Value interpretObjectToHash(const std::shared_ptr<Object>& object,
+                              CallStackFrame& frame) {
+    if (current(frame).getType() != TokenType::OPEN_PAREN) {
+      throw SyntaxError(current(frame),
+                        "Expected open-parenthesis, `(`, in builtin `" +
+                            SpecializedBuiltins.ToH + "`.");
+    }
+    next(frame);  // Skip "("
+
+    if (current(frame).getType() != TokenType::CLOSE_PAREN) {
+      throw SyntaxError(current(frame),
+                        "Expected close-parenthesis, `)`, in builtin `" +
+                            SpecializedBuiltins.ToH + "`.");
+    }
+    next(frame);
+
+    std::shared_ptr<Hash> hash = std::make_shared<Hash>();
+    Class clazz = classes[object->className];
+    for (const auto& pair : object->instanceVariables) {
+      if (clazz.hasPrivateVariable(pair.first)) {
+        continue;
+      }
+
+      hash->kvp[pair.first] = pair.second;
+    }
+
+    return hash;
+  }
+
+  Value interpretSpecializedObjectBuiltin(const std::string& builtin,
+                                          const Value& value,
+                                          CallStackFrame& frame) {
+    if (!std::holds_alternative<std::shared_ptr<Object>>(value)) {
+      throw InvalidOperationError(
+          current(frame), "Specialized object builtin `" + builtin +
+                              "` is illegal for type `" +
+                              Serializer::get_value_type_string(value) + "`.");
+    }
+
+    std::shared_ptr<Object> object = std::get<std::shared_ptr<Object>>(value);
+
+    if (builtin == SpecializedBuiltins.ToH) {
+      return interpretObjectToHash(object, frame);
+    }
+
+    throw UnknownBuiltinError(current(frame), builtin);
+  }
+
   Value interpretSpecializedListBuiltin(const std::string& builtin,
                                         const Value& value,
                                         CallStackFrame& frame) {
@@ -2189,8 +2260,25 @@ class Interpreter {
     if (current(frame).getType() == TokenType::DOT) {
       next(frame);
     }
-    std::string op = current(frame).getText();
+    Token tokenTerm = current(frame);
+    std::string op = tokenTerm.getText();
     next(frame);
+
+    if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
+      auto object = std::get<std::shared_ptr<Object>>(value);
+      Class clazz = classes[object->className];
+
+      if (object->instanceVariables.find(op) !=
+          object->instanceVariables.end()) {
+        if (clazz.hasPrivateVariable(op)) {
+          throw InvalidContextError(tokenTerm,
+                                    "Cannot access private instance variable "
+                                    "outside of object context.");
+        }
+
+        return object->instanceVariables[op];
+      }
+    }
 
     if (current(frame).getType() != TokenType::OPEN_PAREN) {
       throw SyntaxError(current(frame),
@@ -2199,7 +2287,11 @@ class Interpreter {
     }
 
     if (SpecializedBuiltins.is_builtin(op)) {
-      return interpretSpecializedListBuiltin(op, value, frame);
+      if (op == SpecializedBuiltins.ToH) {
+        return interpretSpecializedObjectBuiltin(op, value, frame);
+      } else {
+        return interpretSpecializedListBuiltin(op, value, frame);
+      }
     }
 
     auto args = interpretArguments(frame);
@@ -2266,9 +2358,11 @@ class Interpreter {
         }
         interpretClassMethodInvocation(tokenText, frame);
       } else if (methodFound) {
-        if (peek(frame).getType() == TokenType::COMMA || peek(frame).getType() == TokenType::CLOSE_PAREN) {
+        if (peek(frame).getType() == TokenType::COMMA ||
+            peek(frame).getType() == TokenType::CLOSE_PAREN) {
           if (frame.hasAssignedLambda(tokenText)) {
-            std::shared_ptr<LambdaRef> lambdaRef = std::make_shared<LambdaRef>(tokenText);
+            std::shared_ptr<LambdaRef> lambdaRef =
+                std::make_shared<LambdaRef>(tokenText);
             value = lambdaRef;
             valueSet = true;
           } else {
@@ -2545,7 +2639,8 @@ class Interpreter {
     interpretAssignment(tempFrame, true);
 
     if (tempFrame.variables.find(tempId) == tempFrame.variables.end()) {
-      throw SyntaxError(current(frame), "Invalid string interpolation: `" + input + "`");
+      throw SyntaxError(current(frame),
+                        "Invalid string interpolation: `" + input + "`");
     }
 
     Value value = getVariable(tempId, tempFrame);

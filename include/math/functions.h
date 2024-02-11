@@ -11,7 +11,7 @@
 
 static std::string get_string(const Token& tokenTerm, const Value& arg) {
   if (!std::holds_alternative<std::string>(arg)) {
-    throw ConversionError(tokenTerm);
+    throw ConversionError(tokenTerm, "Expected a String value.");
   }
   return std::get<std::string>(arg);
 }
@@ -21,7 +21,7 @@ static int get_integer(const Token& tokenTerm, const Value& arg) {
     return static_cast<int>(std::get<double>(arg));
   }
   if (!std::holds_alternative<int>(arg)) {
-    throw ConversionError(tokenTerm);
+    throw ConversionError(tokenTerm, "Expected an Integer value.");
   }
   return std::get<int>(arg);
 }
@@ -33,7 +33,7 @@ static double get_integer_or_double(const Token& tokenTerm, const Value& arg) {
     return std::get<double>(arg);
   }
 
-  throw ConversionError(tokenTerm);
+  throw ConversionError(tokenTerm, "Expected an Integer or Double value.");
 }
 
 struct {
@@ -43,7 +43,8 @@ struct {
     } else if (std::holds_alternative<int>(v)) {
       return std::get<int>(v) == 0;
     } else {
-      throw ConversionError(tokenTerm);
+      throw ConversionError(tokenTerm,
+                            "Cannot check non-numeric value for zero value.");
     }
 
     return false;
@@ -82,7 +83,7 @@ struct {
 
       result = build.str();
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in addition.");
     }
 
     return result;
@@ -106,7 +107,7 @@ struct {
       result =
           std::get<double>(left) - static_cast<double>(std::get<int>(right));
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in subtraction.");
     }
 
     return result;
@@ -130,7 +131,7 @@ struct {
       result = pow(std::get<double>(left),
                    static_cast<double>(std::get<int>(right)));
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in exponentiation.");
     }
 
     return result;
@@ -168,7 +169,7 @@ struct {
       }
       result = fmod(std::get<double>(left), rhs);
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in modulus.");
     }
 
     return result;
@@ -206,7 +207,7 @@ struct {
       }
       result = std::get<double>(left) / rhs;
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in division.");
     }
 
     return result;
@@ -248,7 +249,7 @@ struct {
 
       result = build.str();
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in multiplication.");
     }
 
     return result;
@@ -278,7 +279,7 @@ struct {
                std::holds_alternative<bool>(right)) {
       result = std::get<bool>(left) == std::get<bool>(right);
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in == comparison.");
     }
 
     return result;
@@ -308,7 +309,7 @@ struct {
                std::holds_alternative<bool>(right)) {
       result = std::get<bool>(left) != std::get<bool>(right);
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in != comparison.");
     }
 
     return result;
@@ -332,7 +333,7 @@ struct {
       result =
           std::get<double>(left) < static_cast<double>(std::get<int>(right));
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in < comparison.");
     }
 
     return result;
@@ -356,7 +357,7 @@ struct {
       result =
           std::get<double>(left) <= static_cast<double>(std::get<int>(right));
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in <= comparison.");
     }
 
     return result;
@@ -380,7 +381,7 @@ struct {
       result =
           std::get<double>(left) > static_cast<double>(std::get<int>(right));
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in > comparison.");
     }
 
     return result;
@@ -404,7 +405,7 @@ struct {
       result =
           std::get<double>(left) >= static_cast<double>(std::get<int>(right));
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in >= comparison.");
     }
 
     return result;
@@ -417,7 +418,7 @@ struct {
         std::holds_alternative<int>(right)) {
       result = std::get<int>(left) & std::get<int>(right);
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in bitwise & operation.");
     }
 
     return result;
@@ -430,7 +431,7 @@ struct {
         std::holds_alternative<int>(right)) {
       result = std::get<int>(left) | std::get<int>(right);
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in bitwise | operation.");
     }
 
     return result;
@@ -443,7 +444,7 @@ struct {
         std::holds_alternative<int>(right)) {
       result = std::get<int>(left) ^ std::get<int>(right);
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in bitwise ^ operation.");
     }
 
     return result;
@@ -455,7 +456,7 @@ struct {
     if (std::holds_alternative<int>(left)) {
       result = ~std::get<int>(left);
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in bitwise ~ operation.");
     }
 
     return result;
@@ -468,7 +469,7 @@ struct {
         std::holds_alternative<int>(right)) {
       result = std::get<int>(left) << std::get<int>(right);
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in bitwise << operation.");
     }
 
     return result;
@@ -481,7 +482,7 @@ struct {
         std::holds_alternative<int>(right)) {
       result = std::get<int>(left) >> std::get<int>(right);
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Conversion error in bitwise >> operation.");
     }
 
     return result;
@@ -495,7 +496,7 @@ struct {
     } else if (std::holds_alternative<double>(value)) {
       doubleValue = std::get<double>(value);
     } else {
-      throw ConversionError(token);
+      throw ConversionError(token, "Cannot convert value to a double value.");
     }
 
     return doubleValue;
@@ -666,7 +667,8 @@ struct {
       return fabs(std::get<double>(value));
     }
 
-    throw ConversionError(token);
+    throw ConversionError(
+        token, "Cannot take an absolute value of a non-numeric value.");
   }
 
   Value do_random(const Token& token, Value valueX, Value valueY) {
@@ -681,7 +683,8 @@ struct {
       return RNG::getInstance().random(x, y);
     }
 
-    throw ConversionError(token);
+    throw ConversionError(token,
+                          "Expected a numeric value in random number range");
   }
 } MathImpl;
 

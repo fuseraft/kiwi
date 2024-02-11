@@ -22,7 +22,9 @@ class ErrorHandler {
     return 1;
   }
 
-  static int handleError(const KiwiError& e, const std::map<std::string, std::vector<std::string>>& files) {
+  static int handleError(
+      const KiwiError& e,
+      const std::map<std::string, std::vector<std::string>>& files) {
     handleError(e);
 
     const Token& token = e.getToken();
@@ -46,7 +48,7 @@ class ErrorHandler {
 
     std::cerr << "Location:  Line " << 1 + lineNumber << ", Column "
               << linePosition << "." << std::endl;
-    
+
     if (!line.empty()) {
       std::cerr << "Code: " << std::endl;
       std::cerr << "```" << std::endl << line << std::endl;

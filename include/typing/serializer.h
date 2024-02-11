@@ -78,7 +78,7 @@ struct Serializer {
     }
   }
 
-  static std::string serialize(Value v) {
+  static std::string serialize(Value v, bool wrapStrings = false) {
     std::ostringstream sv;
 
     switch (get_value_type(v)) {
@@ -92,7 +92,11 @@ struct Serializer {
         sv << std::boolalpha << std::get<bool>(v);
         break;
       case ValueType::String:
-        sv << std::get<std::string>(v);
+        if (wrapStrings) {
+          sv << "\"" << std::get<std::string>(v) << "\"";
+        } else {
+          sv << std::get<std::string>(v);
+        }
         break;
       case ValueType::List:
         sv << serialize_list(std::get<std::shared_ptr<List>>(v));
@@ -149,7 +153,8 @@ struct Serializer {
            object->identifier + ")]";
   }
 
-  static std::string basic_serialize_lambda(const std::shared_ptr<LambdaRef>& lambda) {
+  static std::string basic_serialize_lambda(
+      const std::shared_ptr<LambdaRef>& lambda) {
     if (lambda->identifier.empty()) {
       return "[" + TypeNames.Lambda + "]";
     }
@@ -179,7 +184,7 @@ struct Serializer {
       if (get_value_type(v) == ValueType::Hash) {
         sv << serialize(v);
       } else {
-        sv << serialize(v);
+        sv << serialize(v, true);
       }
     }
 
