@@ -284,15 +284,48 @@ class Lexer {
 
   Token parseString() {
     std::string str;
+    bool escape = false;
 
-    int size = 0;
-    while (currentPosition < source.length() &&
-           source[currentPosition] != '"') {
-      str += getCurrentChar();
-      ++size;
+    while (currentPosition < source.length()) {
+      char currentChar = source[currentPosition];
+
+      if (escape) {
+        switch (currentChar) {
+          case 'n':
+            str += '\n';
+            break;
+          case 't':
+            str += '\t';
+            break;
+          case '\\':
+            str += '\\';
+            break;
+          case '"':
+            str += '"';
+            break;
+          // Add cases for other escape sequences as needed
+          default:
+            str +=
+                currentChar;  // Handle unrecognized escape sequences by including the character as-is
+        }
+        escape = false;
+      } else if (currentChar == '\\') {
+        escape = true;
+      } else if (currentChar == '"') {
+        getCurrentChar();
+        break;  // End of string
+      } else {
+        str += currentChar;
+      }
+
+      getCurrentChar();  // Move to next character
     }
 
-    getCurrentChar();  // skip closing quote
+    // Handle case where string ends with a backslash
+    if (escape) {
+      str += '\\';
+    }
+
     return Token::create(TokenType::STRING, file, str, lineNumber,
                          linePosition);
   }
