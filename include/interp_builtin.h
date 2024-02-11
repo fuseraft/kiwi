@@ -1016,11 +1016,15 @@ class BuiltinInterpreter {
   static bool executeIsA(const Token& tokenTerm, const Value& value,
                          const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.Contains);
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.IsA);
     }
 
     auto typeName = get_string(tokenTerm, args.at(0));
     if (!TypeNames.is_typename(typeName)) {
+      if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
+        std::shared_ptr<Object> object = std::get<std::shared_ptr<Object>>(value);
+        return object->className == typeName;
+      }
       throw InvalidTypeNameError(tokenTerm, typeName);
     }
 
@@ -1034,6 +1038,10 @@ class BuiltinInterpreter {
             std::holds_alternative<int>(value)) ||
            (typeName == TypeNames.List &&
             std::holds_alternative<std::shared_ptr<List>>(value)) ||
+           (typeName == TypeNames.Object &&
+            std::holds_alternative<std::shared_ptr<Object>>(value)) ||
+           (typeName == TypeNames.Lambda &&
+            std::holds_alternative<std::shared_ptr<LambdaRef>>(value)) ||
            (typeName == TypeNames.String &&
             std::holds_alternative<std::string>(value));
   }
