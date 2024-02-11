@@ -146,12 +146,13 @@ end
 
 I welcome and appreciate any and all contributions to the Kiwi project! Here's how you can contribute:
 
-1. **Fork the Repository**: Fork the project to your GitHub account.
-2. **Clone the Forked Repository**: Clone it to your machine.
-3. **Set Up Your Environment**: Follow the "Getting Started" section.
-4. **Make Changes**: Implement your features or fixes.
-5. **Test Your Changes**: Ensure all tests pass.
-6. **Create a Pull Request**: Submit it from your fork to the main Kiwi repository.
+1. **Join the Slack**: [https://kiwiprogramming.slack.com](https://kiwiprogramming.slack.com)
+2. **Fork the Repository**: Fork the project to your GitHub account.
+3. **Clone the Forked Repository**: Clone it to your machine.
+4. **Set Up Your Environment**: Follow the "Getting Started" section.
+5. **Make Changes**: Implement your features or fixes.
+6. **Test Your Changes**: Ensure all tests pass.
+7. **Create a Pull Request**: Submit it from your fork to the main Kiwi repository.
 
 For more details, please read [CONTRIBUTING.md](CONTRIBUTING.md).
 
