@@ -222,3 +222,15 @@ Transform a list based on a condition.
 println @list.map(lambda (@item) do return { "fruit": @item, "is_a_kiwi": @item.downcase() == "kiwi" } end)
 # prints: [{"fruit": kiwi, "is_a_kiwi": true}, {"fruit": mango, "is_a_kiwi": false}, {"fruit": banana, "is_a_kiwi": false}]
 ```
+
+### `.reduce(accumulator, lambda)`
+
+```ruby
+@numbers = [1, 2, 3, 4, 5]
+
+@sum = @numbers.reduce(0, lambda (@accumulator, @number) do
+    return @accumulator + @number
+end)
+
+println @sum # prints: 15
+```
