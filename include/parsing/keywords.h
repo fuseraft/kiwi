@@ -177,12 +177,10 @@ struct {
   const std::string While = "while";
 
   std::unordered_set<std::string> keywords = {
-      If,       Else,    ElseIf, True,           False,
-      While,    End,     Lambda, Module,         Method,
-      Return,   Import,  Print,  PrintLn,        For,
-      In,       Do,      Next,   Break,          Delete,
-      Pass,     Try,     Catch,  Abstract,       Class,
-      Override, Private, This,   DeclVar};
+      If,     Else,     ElseIf,  True,   False,  While,   End,   Lambda,
+      Module, Method,   Return,  Import, Print,  PrintLn, For,   In,
+      Do,     Next,     Break,   Delete, Pass,   Try,     Catch, Abstract,
+      Class,  Override, Private, This,   DeclVar};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           End};
@@ -219,10 +217,11 @@ struct {
   const std::string List = "List";
   const std::string Hash = "Hash";
   const std::string Object = "Object";
+  const std::string Lambda = "Lambda";
   const std::string None = "None";
 
-  std::unordered_set<std::string> typenames = {Integer, Double, Boolean, String,
-                                               List,    Hash,   Object,  None};
+  std::unordered_set<std::string> typenames = {
+      Integer, Double, Boolean, String, List, Hash, Object, Lambda, None};
 
   bool is_typename(const std::string& arg) {
     return typenames.find(arg) != typenames.end();

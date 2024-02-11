@@ -3,24 +3,32 @@ println "= lambdas.kiwi ="
 println "================"
 
 @list = [
-  {"id": 0},
-  {"id": 1},
-  {"id": 2},
-  {"id": 3},
-  {"id": 4},
-  {"id": 5},
-  {"id": 6},
-  {"id": 7},
-  {"id": 8},
-  {"id": 9},
+  {"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4},
+  {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}, {"id": 9}
 ]
 
+# Define an assigned lambda.
+odd_item_id = lambda(@item) do
+  return @item["id"] % 2 != 0
+end
+
+# Using an inline lambda.
 println @list.select(lambda(@item) do return @item["id"] % 2 == 0 end)
 
+# Using an assigned lambda.
+println @list.select(odd_item_id)
+
+# Defining a lambda and using it to wrap functionality.
 puts = lambda(@s) do
   println @s
 end
 
-puts("Hello, World!")
+puts("Hello, World!") # prints: Hello, World!
+
+def use_lambda(@print_func, @message)
+  print_func(@message)
+end
+
+use_lambda(puts, "Hello, Kiwi!")
 
 println ""

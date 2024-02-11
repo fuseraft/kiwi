@@ -104,7 +104,7 @@ class Interpreter {
         if (frame.isFlagSet(FrameFlags::InTry)) {
           frame.setErrorState(e);
         } else {
-          ErrorHandler::handleError(e);
+          ErrorHandler::handleError(e, files);
           exit(1);
         }
       } catch (const std::exception& e) {
@@ -334,7 +334,7 @@ class Interpreter {
 
       if (conditionFrame.variables.find(tempId) ==
           conditionFrame.variables.end()) {
-        throw SyntaxError(current(frame));
+        throw SyntaxError(current(frame), "Invalid condition in while-loop.");
       }
 
       Value value = getVariable(tempId, conditionFrame);
@@ -434,15 +434,17 @@ class Interpreter {
     }
   }
 
-  void interpretIdentifierOperation(const std::string& identifier, CallStackFrame& frame) {
-    next(frame); // Skip identifier.
+  void interpretIdentifierOperation(const std::string& identifier,
+                                    CallStackFrame& frame) {
+    next(frame);  // Skip identifier.
     std::string op = current(frame).getText();
     next(frame);
 
     if (current(frame).getType() == TokenType::LAMBDA) {
       interpretLambdaAssignment(identifier, op, frame);
     } else {
-      throw InvalidOperationError(current(frame), "Invalid operation near `" + identifier + "`.");
+      throw InvalidOperationError(
+          current(frame), "Invalid operation near `" + identifier + "`.");
     }
   }
 
@@ -455,6 +457,15 @@ class Interpreter {
     if (hasMethod(tokenText, frame)) {
       interpretMethodInvocation(tokenText, frame);
     } else if (hasVariable(tokenText, frame)) {
+      Value v = getVariable(tokenText, frame);
+      if (std::holds_alternative<std::shared_ptr<LambdaRef>>(v)) {
+        std::string lambdaRef = std::get<std::shared_ptr<LambdaRef>>(v)->identifier;
+        if (frame.hasAssignedLambda(lambdaRef)) {
+          interpretMethodInvocation(lambdaRef, frame);
+        } else {
+          throw InvalidOperationError(token, "Unknown Lambda `" + tokenText + "`.");
+        }
+      }
       // Skip it (for now).
     } else if (KiwiBuiltins.is_builtin_method(tokenText)) {
       interpretBuiltin(tokenText, frame);
@@ -757,7 +768,7 @@ class Interpreter {
                                                    Method& method,
                                                    CallStackFrame& frame) {
     if (current(frame).getType() != TokenType::OPEN_PAREN) {
-      throw SyntaxError(tokenTerm);
+      throw SyntaxError(tokenTerm, "Expected open-parenthesis, `(`, in method parameter set.");
     }
     next(frame);  // Skip "("
 
@@ -798,9 +809,17 @@ class Interpreter {
     std::vector<std::string> parameters =
         collectMethodParameters(tokenTerm, method, frame);
 
+    if (method.getName() == "use_lambda") {
+      std::cout << "";
+    }
+
     CallStackFrame codeFrame(method.getCode());
     for (const auto& pair : frame.variables) {
       codeFrame.variables[pair.first] = std::move(pair.second);
+    }
+    for (const auto& pair : frame.lambdas) {
+      // Check this.
+      codeFrame.assignLambda(pair.first, pair.second);
     }
 
     // Check all parameters are passed.
@@ -934,7 +953,7 @@ class Interpreter {
                                          CallStackFrame& frame) {
     next(frame);  // Skip the "."
     if (current(frame).getType() != TokenType::IDENTIFIER) {
-      throw SyntaxError(current(frame));
+      throw SyntaxError(current(frame), "Expected identifier in instance method invocation, instead got: `" + current(frame).getText() + "`");
     }
     Token tokenTerm = current(frame);
     std::string methodName = tokenTerm.getText();
@@ -1015,8 +1034,10 @@ class Interpreter {
     BooleanExpressionBuilder ifExpression;
     if (hasValue) {
       returnValue = interpretExpression(ifExpression, frame);
-      if (ifExpression.isSet()) {
-        returnValue = ifExpression.evaluate();
+      if  (ifExpression.isSet()) {
+        if (std::holds_alternative<bool>(returnValue)) {
+          returnValue = ifExpression.evaluate();
+        }
       }
     }
 
@@ -1049,7 +1070,7 @@ class Interpreter {
         }
 
         if (!InterpHelper::isSliceAssignmentExpression(frame)) {
-          throw SyntaxError(current(frame));
+          throw SyntaxError(current(frame), "Invalid slice-assignment expression.");
         }
 
         interpretSliceAssignment(frame, name);
@@ -1422,7 +1443,7 @@ class Interpreter {
   std::shared_ptr<List> interpretList(
       BooleanExpressionBuilder& booleanExpression, CallStackFrame& frame) {
     std::shared_ptr<List> list = std::make_shared<List>();
-    next(frame); // Skip "["
+    next(frame);  // Skip "["
     int bracketCount = 1;
 
     while (bracketCount > 0) {
@@ -1447,13 +1468,15 @@ class Interpreter {
         auto value = interpretExpression(booleanExpression, frame);
         list->elements.push_back(value);
 
-        if (peek(frame).getType() == TokenType::COMMA || peek(frame).getType() == TokenType::CLOSE_BRACKET) {
+        if (peek(frame).getType() == TokenType::COMMA ||
+            peek(frame).getType() == TokenType::CLOSE_BRACKET) {
           next(frame);
           continue;
         }
       }
 
-      if (current(frame).getType() == TokenType::COMMA || current(frame).getType() == TokenType::CLOSE_BRACKET) {
+      if (current(frame).getType() == TokenType::COMMA ||
+          current(frame).getType() == TokenType::CLOSE_BRACKET) {
         continue;
       }
       next(frame);
@@ -1464,7 +1487,7 @@ class Interpreter {
 
   void interpretConditional(CallStackFrame& frame) {
     if (current(frame).getText() != Keywords.If) {
-      throw SyntaxError(current(frame));
+      throw SyntaxError(current(frame), "Invalid conditional. Expected `" + Keywords.If + "` keyword, instead got: `" + current(frame).getText() + "`");
     }
 
     next(frame);  // Skip "if"
@@ -1969,46 +1992,16 @@ class Interpreter {
     }
   }
 
-  Method interpretLambda(CallStackFrame& frame) {
-    next(frame);  // Skip "lambda"
-    Method lambda;
-    lambda.setName(InterpHelper::getTemporaryId());
+  Value interpretLambdaMap(const std::shared_ptr<List>& list,
+                           CallStackFrame& frame) {
+    next(frame);  // Skip "("
 
-    InterpHelper::interpretMethodParameters(lambda, frame);
-
-    if (current(frame).getText() != Keywords.Do) {
-      throw SyntaxError(current(frame), "Expected `do` in lambda expression.");
-    }
-    next(frame);  // Skip "do"
-
-    std::vector<Token> lambdaTokens;
-    InterpHelper::collectBodyTokens(lambdaTokens, frame);
-    for (Token t : lambdaTokens) {
-      lambda.addToken(t);
-    }
-
-    lambda.setFlag(MethodFlags::Lambda);
-
-    return lambda;
-  }
-
-  Value interpretLambdaSelect(const std::shared_ptr<List>& list,
-                              CallStackFrame& frame) {
-    next(frame); // Skip "("
-
-    Method lambda;
-    if (current(frame).getType() == TokenType::IDENTIFIER) {
-      std::string lambdaName = current(frame).getText();
-      next(frame); // Skip identifier.
-      if (frame.hasAssignedLambda(lambdaName)) {
-        lambda = frame.getAssignedLambda(lambdaName);
-      }
-    } else if (current(frame).getType() == TokenType::LAMBDA) {
-      lambda = interpretLambda(frame);
-    }
+    Method lambda = InterpHelper::getLambda(frame);
 
     if (!lambda.isFlagSet(MethodFlags::Lambda)) {
-      throw InvalidOperationError(current(frame), "Expected a lambda in `select` builtin.");
+      throw InvalidOperationError(
+          current(frame),
+          "Expected a lambda in `" + SpecializedBuiltins.Map + "` builtin.");
     }
 
     std::string itemVariableName, indexVariableName;
@@ -2020,7 +2013,61 @@ class Interpreter {
         indexVariableName = parameter;
         hasIndexVariable = true;
       } else {
-        throw BuiltinUnexpectedArgumentError(current(frame), SpecializedBuiltins.Select);
+        throw BuiltinUnexpectedArgumentError(current(frame),
+                                             SpecializedBuiltins.Select);
+      }
+    }
+
+    std::shared_ptr<List> mappedList = std::make_shared<List>();
+
+    size_t index = 0;
+    for (const auto& item : list->elements) {
+      frame.variables[itemVariableName] = item;
+      if (hasIndexVariable) {
+        frame.variables[indexVariableName] = static_cast<int>(index);
+      }
+
+      CallStackFrame loopFrame(lambda.getCode());
+      for (const auto& pair : frame.variables) {
+        loopFrame.variables[pair.first] = pair.second;
+      }
+      callStack.push(loopFrame);
+      interpretStackFrame();
+
+      if (!callStack.empty()) {
+        Value value = callStack.top().returnValue;
+        frame.clearFlag(FrameFlags::ReturnFlag);
+        mappedList->elements.push_back(value);
+      }
+      index++;
+    }
+
+    return mappedList;
+  }
+
+  Value interpretLambdaSelect(const std::shared_ptr<List>& list,
+                              CallStackFrame& frame) {
+    next(frame);  // Skip "("
+
+    Method lambda = InterpHelper::getLambda(frame);
+
+    if (!lambda.isFlagSet(MethodFlags::Lambda)) {
+      throw InvalidOperationError(
+          current(frame),
+          "Expected a lambda in `" + SpecializedBuiltins.Select + "` builtin.");
+    }
+
+    std::string itemVariableName, indexVariableName;
+    bool hasIndexVariable = false;
+    for (std::string parameter : lambda.getParameters()) {
+      if (itemVariableName.empty()) {
+        itemVariableName = parameter;
+      } else if (indexVariableName.empty()) {
+        indexVariableName = parameter;
+        hasIndexVariable = true;
+      } else {
+        throw BuiltinUnexpectedArgumentError(current(frame),
+                                             SpecializedBuiltins.Select);
       }
     }
 
@@ -2055,17 +2102,21 @@ class Interpreter {
   }
 
   Value interpretSpecializedListBuiltin(const std::string& builtin,
-                                    const Value& value, CallStackFrame& frame) {
+                                        const Value& value,
+                                        CallStackFrame& frame) {
     if (!std::holds_alternative<std::shared_ptr<List>>(value)) {
       throw InvalidOperationError(
-          current(frame), "Specialized list builtin `" + builtin + "` is illegal for type `" +
-                         Serializer::get_value_type_string(value) + "`.");
+          current(frame), "Specialized list builtin `" + builtin +
+                              "` is illegal for type `" +
+                              Serializer::get_value_type_string(value) + "`.");
     }
 
     std::shared_ptr<List> list = std::get<std::shared_ptr<List>>(value);
 
     if (builtin == SpecializedBuiltins.Select) {
       return interpretLambdaSelect(list, frame);
+    } else if (builtin == SpecializedBuiltins.Map) {
+      return interpretLambdaMap(list, frame);
     }
 
     throw UnknownBuiltinError(current(frame), builtin);
@@ -2155,10 +2206,20 @@ class Interpreter {
         }
         interpretClassMethodInvocation(tokenText, frame);
       } else if (methodFound) {
-        interpretMethodInvocation(tokenText, frame);
+        if (peek(frame).getType() == TokenType::COMMA || peek(frame).getType() == TokenType::CLOSE_PAREN) {
+          if (frame.hasAssignedLambda(tokenText)) {
+            std::shared_ptr<LambdaRef> lambdaRef = std::make_shared<LambdaRef>(tokenText);
+            value = lambdaRef;
+            valueSet = true;
+          } else {
+            throw SyntaxError(current(frame), "Expected lambda reference.");
+          }
+        } else {
+          interpretMethodInvocation(tokenText, frame);
+        }
       }
 
-      if (!callStack.empty()) {
+      if (!valueSet && !callStack.empty()) {
         value = callStack.top().returnValue;
         frame.clearFlag(FrameFlags::ReturnFlag);
         valueSet = true;
@@ -2238,7 +2299,7 @@ class Interpreter {
     return value;
   }
 
-  Value interpretValueType(CallStackFrame& frame) {
+  Value interpretSimpleValueType(CallStackFrame& frame) {
     if (current(frame).getValueType() == ValueType::Boolean) {
       return current(frame).toBoolean();
     } else if (current(frame).getValueType() == ValueType::Double) {
@@ -2367,7 +2428,7 @@ class Interpreter {
                current(frame).getText() == Keywords.This) {
       return interpretSelfInvocationTerm(frame);
     } else {
-      return interpretValueType(frame);
+      return interpretSimpleValueType(frame);
     }
 
     return 0;  // Placeholder for unsupported types
@@ -2419,7 +2480,7 @@ class Interpreter {
     interpretAssignment(tempFrame, true);
 
     if (tempFrame.variables.find(tempId) == tempFrame.variables.end()) {
-      throw SyntaxError(current(frame));
+      throw SyntaxError(current(frame), "Invalid string interpolation: `" + input + "`");
     }
 
     Value value = getVariable(tempId, tempFrame);
@@ -2514,11 +2575,9 @@ class Interpreter {
           current(frame), "Expected assignment operator in lambda assignment.");
     }
 
-    Method lambda = interpretLambda(frame);
+    Method lambda = InterpHelper::interpretLambda(frame);
     lambda.setName(name);
     frame.assignLambda(name, lambda);
-
-    std::cout << "";
   }
 
   void interpretAssignment(std::string& name, std::string& op,

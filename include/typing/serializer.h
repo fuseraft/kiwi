@@ -34,6 +34,8 @@ struct Serializer {
             type = ValueType::Hash;
           } else if constexpr (std::is_same_v<T, std::shared_ptr<Object>>) {
             type = ValueType::Object;
+          } else if constexpr (std::is_same_v<T, std::shared_ptr<LambdaRef>>) {
+            type = ValueType::Lambda;
           }
         },
         v);
@@ -55,6 +57,8 @@ struct Serializer {
         return TypeNames.List;
       case ValueType::Hash:
         return TypeNames.Hash;
+      case ValueType::Lambda:
+        return TypeNames.Lambda;
       case ValueType::Object:
         return std::get<std::shared_ptr<Object>>(v)->className;
       case ValueType::None:
@@ -98,6 +102,10 @@ struct Serializer {
         break;
       case ValueType::Object:
         sv << basic_serialize_object(std::get<std::shared_ptr<Object>>(v));
+        break;
+      case ValueType::Lambda:
+        sv << basic_serialize_lambda(std::get<std::shared_ptr<LambdaRef>>(v));
+        break;
       default:
         // WIP: handle ValueType::None
         break;
@@ -139,6 +147,13 @@ struct Serializer {
       const std::shared_ptr<Object>& object) {
     return "[Object(class=" + object->className + ", identifier=@" +
            object->identifier + ")]";
+  }
+
+  static std::string basic_serialize_lambda(const std::shared_ptr<LambdaRef>& lambda) {
+    if (lambda->identifier.empty()) {
+      return "[" + TypeNames.Lambda + "]";
+    }
+    return "[" + TypeNames.Lambda + "(identifier=" + lambda->identifier + ")]";
   }
 
   static std::string serialize_hash(const std::shared_ptr<Hash>& hash) {

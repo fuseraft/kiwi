@@ -41,6 +41,16 @@ delete @list[3]
 println @list # prints: ["a", "b", "c", "e", "f"]
 ```
 
+### Filtering a List
+
+You can use the `.select(lambda)` builtin to filter a list based on a condition.
+
+```ruby
+@list = ["kiwi", "mango", "banana"]
+println @list.select(lambda (@item) do return @item.contains("i") end)
+# prints: ["kiwi"]
+```
+
 ### Iterating a List
 
 Use the `for` keyword to iterate a list.

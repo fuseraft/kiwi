@@ -202,3 +202,23 @@ Returns a list of keys from a hash.
 
 println @hash.keys() # prints: ["key1", "key2", "key3"]
 ```
+
+### `.select(lambda)`
+
+Filter a list based on a condition.
+
+```ruby
+@list = ["kiwi", "mango", "banana"]
+println @list.select(lambda (@item) do return @item.contains("i") end)
+# prints: ["kiwi"]
+```
+
+### `.map(lambda)`
+
+Transform a list based on a condition.
+
+```ruby
+@list = ["kiwi", "mango", "banana"]
+println @list.map(lambda (@item) do return { "fruit": @item, "is_a_kiwi": @item.downcase() == "kiwi" } end)
+# prints: [{"fruit": kiwi, "is_a_kiwi": true}, {"fruit": mango, "is_a_kiwi": false}, {"fruit": banana, "is_a_kiwi": false}]
+```
