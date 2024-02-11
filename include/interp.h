@@ -385,6 +385,7 @@ class Interpreter {
 
   void interpretKeyword(const Token& token, CallStackFrame& frame) {
     const std::string& keyword = token.getText();
+
     if (keyword == Keywords.If) {
       interpretConditional(frame);
     } else if (keyword == Keywords.DeclVar) {
@@ -415,6 +416,8 @@ class Interpreter {
       frame.setFlag(FrameFlags::InTry);
     } else if (keyword == Keywords.Pass) {
       // skip
+    } else if (keyword == Keywords.Catch) {
+      interpretCatch(frame);
     } else {
       throw UnrecognizedTokenError(token);
     }
@@ -507,21 +510,23 @@ class Interpreter {
       next(frame);
     }
 
-    CallStackFrame catchFrame(catchTokens);
+    if (frame.isErrorStateSet()) {
+      CallStackFrame catchFrame(catchTokens);
 
-    for (const auto& pair : frame.variables) {
-      catchFrame.variables[pair.first] = pair.second;
+      for (const auto& pair : frame.variables) {
+        catchFrame.variables[pair.first] = pair.second;
+      }
+
+      if (!errorVariableName.empty() &&
+          std::holds_alternative<std::string>(errorValue)) {
+        catchFrame.variables[errorVariableName] = errorValue;
+      }
+
+      callStack.push(catchFrame);
+      interpretStackFrame();
+      frame.clearFlag(FrameFlags::InTry);
+      frame.clearErrorState();
     }
-
-    if (!errorVariableName.empty() &&
-        std::holds_alternative<std::string>(errorValue)) {
-      catchFrame.variables[errorVariableName] = errorValue;
-    }
-
-    callStack.push(catchFrame);
-    interpretStackFrame();
-    frame.clearFlag(FrameFlags::InTry);
-    frame.clearErrorState();
   }
 
   void interpretToken(const Token& token, CallStackFrame& frame) {
@@ -725,6 +730,8 @@ class Interpreter {
 
       if (subTokenTerm.getType() == TokenType::TYPENAME) {
         argValue = subTokenTerm.getText();
+      } else if (hasClass(subTokenTerm.getText())) {
+        argValue = subTokenTerm.getText();
       } else {
         BooleanExpressionBuilder booleanExpression;
         argValue = interpretTerm(subTokenTerm, booleanExpression, frame);
@@ -808,10 +815,6 @@ class Interpreter {
                                                  CallStackFrame& frame) {
     std::vector<std::string> parameters =
         collectMethodParameters(tokenTerm, method, frame);
-
-    if (method.getName() == "use_lambda") {
-      std::cout << "";
-    }
 
     CallStackFrame codeFrame(method.getCode());
     for (const auto& pair : frame.variables) {
@@ -904,9 +907,8 @@ class Interpreter {
     Class clazz = classes[object->className];
     if (!clazz.hasMethod(methodName)) {
       if (KiwiBuiltins.is_builtin(methodName)) {
-        std::vector<Value> args;
         return BuiltinInterpreter::execute(current(frame), methodName, object,
-                                           args);
+                                           parameters);
       }
       throw UnimplementedMethodError(current(frame), object->className,
                                      methodName);
@@ -1340,14 +1342,7 @@ class Interpreter {
     }
 
     auto& listPtr = std::get<std::shared_ptr<List>>(variableValue);
-
-    if (std::holds_alternative<std::shared_ptr<List>>(listValue)) {
-      listPtr->elements.push_back(listValue);
-    } else {
-      BooleanExpressionBuilder booleanExpression;
-      auto valueToAppend = interpretExpression(booleanExpression, frame);
-      listPtr->elements.push_back(valueToAppend);
-    }
+    listPtr->elements.push_back(listValue);
   }
 
   std::shared_ptr<List> interpretRange(

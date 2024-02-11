@@ -8,7 +8,10 @@ for @path in fileio::glob("./**/*.kiwi") do
   @files << @hash
 end
 
-@output_path = "output.kiwi"
+@output_path = "output.txt"
+if fileio::exists(@output_path)
+  fileio::remove(@output_path)
+end
 
 for @file in @files do
   fileio::writeln(@output_path, "#" + @file["path"])
