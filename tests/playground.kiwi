@@ -1,3 +1,15 @@
 # Add Kiwi here!
 
+@list = [
+  {"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, 
+  {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}, {"id": 9}
+]
+
+odd_item_id = lambda(@item) do
+  return @item["id"] % 2 != 0
+end
+
+println @list.select(lambda(@item) do return @item["id"] % 2 == 0 end)
+println @list.select(odd_item_id)
+
 println ""

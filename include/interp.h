@@ -273,13 +273,11 @@ class Interpreter {
         continue;
       }
 
-      // Update loop variables
       frame.variables[itemVariableName] = item;
       if (hasIndexVariable) {
         frame.variables[indexVariableName] = static_cast<int>(index);
       }
 
-      // Execute loop body
       CallStackFrame loopFrame(loopTokens);
       for (const auto& pair : frame.variables) {
         loopFrame.variables[pair.first] = pair.second;
@@ -1433,6 +1431,7 @@ class Interpreter {
         // It's another list.
         auto value = interpretExpression(booleanExpression, frame);
         list->elements.push_back(value);
+        next(frame);
         continue;
       } else if (current(frame).getType() == TokenType::CLOSE_BRACKET) {
         --bracketCount;
@@ -1448,12 +1447,15 @@ class Interpreter {
         auto value = interpretExpression(booleanExpression, frame);
         list->elements.push_back(value);
 
-        if (peek(frame).getType() == TokenType::COMMA) {
+        if (peek(frame).getType() == TokenType::COMMA || peek(frame).getType() == TokenType::CLOSE_BRACKET) {
           next(frame);
           continue;
         }
       }
 
+      if (current(frame).getType() == TokenType::COMMA || current(frame).getType() == TokenType::CLOSE_BRACKET) {
+        continue;
+      }
       next(frame);
     }
 
@@ -1996,8 +1998,10 @@ class Interpreter {
 
     Method lambda;
     if (current(frame).getType() == TokenType::IDENTIFIER) {
-      if (frame.hasAssignedLambda(current(frame).getText())) {
-        lambda = frame.getAssignedLambda(current(frame).getText());
+      std::string lambdaName = current(frame).getText();
+      next(frame); // Skip identifier.
+      if (frame.hasAssignedLambda(lambdaName)) {
+        lambda = frame.getAssignedLambda(lambdaName);
       }
     } else if (current(frame).getType() == TokenType::LAMBDA) {
       lambda = interpretLambda(frame);
@@ -2020,15 +2024,6 @@ class Interpreter {
       }
     }
 
-    /*
-      @list = [
-        { "key", 1 },
-        { "key", 2 },
-        { "key", 3 },
-        { "key", 4 },
-      ]
-      @list.select(lambda (@item) do @item["key"] > 0 end)
-      */
     std::shared_ptr<List> filteredList = std::make_shared<List>();
 
     size_t index = 0;
@@ -2038,7 +2033,6 @@ class Interpreter {
         frame.variables[indexVariableName] = static_cast<int>(index);
       }
 
-      // Execute loop body
       CallStackFrame loopFrame(lambda.getCode());
       for (const auto& pair : frame.variables) {
         loopFrame.variables[pair.first] = pair.second;
