@@ -1,6 +1,19 @@
 # Add Kiwi here!
 
-@list = ["kiwi", "mango", "banana"]
-println @list.map(lambda (@item) do return { "fruit": @item, "is_a_kiwi": @item.downcase() == "kiwi" } end)
+@numbers = [1, 2, 3, 4, 5]
+
+@sum = @numbers.reduce(0, lambda (@accumulator, @number) do
+    return @accumulator + @number
+end)
+
+println @sum # prints: 15
+
+@hash = @numbers.reduce({}, lambda (@accumulator, @number) do
+    @accumulator["key${@number}"] = @number
+    return @accumulator
+end)
+
+println @hash 
+# prints: {"key1": 1, "key2": 2, "key3": 3, "key4": 4, "key5": 5}
 
 println ""

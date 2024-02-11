@@ -2014,7 +2014,7 @@ class Interpreter {
         hasIndexVariable = true;
       } else {
         throw BuiltinUnexpectedArgumentError(current(frame),
-                                             SpecializedBuiltins.Select);
+                                             SpecializedBuiltins.Map);
       }
     }
 
@@ -2043,6 +2043,69 @@ class Interpreter {
     }
 
     return mappedList;
+  }
+
+  Value interpretLambdaReduce(const std::shared_ptr<List>& list,
+                           CallStackFrame& frame) {
+    next(frame);  // Skip "("
+
+    BooleanExpressionBuilder booleanExpression;
+    Token termToken = current(frame);
+    Value accumulator = interpretTerm(termToken, booleanExpression, frame);
+    if (current(frame).getType() != TokenType::LAMBDA) {
+      next(frame);
+    }
+    if (current(frame).getType() == TokenType::COMMA) {
+      next(frame);
+    }
+
+    Method lambda = InterpHelper::getLambda(frame);
+
+    if (!lambda.isFlagSet(MethodFlags::Lambda)) {
+      throw InvalidOperationError(
+          current(frame),
+          "Expected a lambda in `" + SpecializedBuiltins.Reduce + "` builtin.");
+    }
+
+    std::string accumulatorName, indexVariableName;
+    bool hasIndexVariable = false;
+    for (std::string parameter : lambda.getParameters()) {
+      if (accumulatorName.empty()) {
+        accumulatorName = parameter;
+      } else if (indexVariableName.empty()) {
+        indexVariableName = parameter;
+        hasIndexVariable = true;
+      } else {
+        throw BuiltinUnexpectedArgumentError(current(frame),
+                                             SpecializedBuiltins.Reduce);
+      }
+    }
+
+    std::shared_ptr<List> mappedList = std::make_shared<List>();
+    size_t index = 0;
+
+    for (const auto& item : list->elements) {
+      frame.variables[accumulatorName] = accumulator;
+      if (hasIndexVariable) {
+        frame.variables[indexVariableName] = item;
+      }
+
+      CallStackFrame loopFrame(lambda.getCode());
+      for (const auto& pair : frame.variables) {
+        loopFrame.variables[pair.first] = pair.second;
+      }
+      callStack.push(loopFrame);
+      interpretStackFrame();
+
+      if (!callStack.empty()) {
+        Value value = callStack.top().returnValue;
+        frame.clearFlag(FrameFlags::ReturnFlag);
+        accumulator = value;
+      }
+      index++;
+    }
+
+    return accumulator;
   }
 
   Value interpretLambdaSelect(const std::shared_ptr<List>& list,
@@ -2117,6 +2180,8 @@ class Interpreter {
       return interpretLambdaSelect(list, frame);
     } else if (builtin == SpecializedBuiltins.Map) {
       return interpretLambdaMap(list, frame);
+    } else if (builtin == SpecializedBuiltins.Reduce) {
+      return interpretLambdaReduce(list, frame);
     }
 
     throw UnknownBuiltinError(current(frame), builtin);
@@ -2381,6 +2446,11 @@ class Interpreter {
         throw SyntaxError(termToken,
                           "Unary minus applied to a non-numeric value.");
       }
+    }
+
+    if (termToken.getType() == TokenType::OPEN_BRACE) {
+      std::shared_ptr<Hash> hash = interpretHash(booleanExpression, frame);
+      return hash;
     }
 
     if (termToken.getType() == TokenType::IDENTIFIER &&
