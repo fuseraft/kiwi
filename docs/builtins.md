@@ -74,7 +74,7 @@ println "     Hello World!    ".trim() + " Testing!" # prints: Hello World! Test
 
 Returns the type of the value as a string.
 
-Valid types are: `Integer`, `Double`, `Boolean`, `String`, `List`, `Hash`, `Object`.
+Valid types are: `Integer`, `Double`, `Boolean`, `String`, `List`, `Hash`, `Object`, `Lambda`.
 
 If the type is an object, `type()` will return the class name of the instance.
 
