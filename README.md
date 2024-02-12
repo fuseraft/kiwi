@@ -29,48 +29,58 @@ When you run `make test`, after compiling Kiwi, the test suite will run from the
 Please see the [runtime log](runtime_log.txt) for the latest results.
 
 ```ruby
-##
-Search for all Kiwi scripts in all subdirectories in the current directory, excluding all test.kiwi files and kiwilib.
-
-Import each script and record the duration of each run.
-
-Iterate through all the recorded runtimes per script and print the details of each, then print the totals at the end.
-
-I really hope you enjoy Kiwi as much as I do! :)
-##
+# Script Performance Analyzer
 
 import "@kiwi/fileio"
 import "@kiwi/time"
 
 @runtimes = []
 
-for @file in fileio::glob("./**/*.kiwi") do
-  if !(@file.contains("test.kiwi") || @file.contains("/kiwilib/"))
-    @runtime = {"file": @file}
+# Search pattern for Kiwi scripts, excluding certain files and directories
+@search_pattern = "./**/*.kiwi"
+@exclusions = ["test.kiwi", "app.kiwi", "/kiwilib/", "/examples/"]
 
-    # Import the script and record the duration.
-    @start = time::ticks()
+println "Searching for Kiwi scripts..."
+for @file in fileio::glob(@search_pattern) do
+  # Check if file is not in the exclusions list
+  @exclude = false
+  for @exclude_pattern in @exclusions do
+    if @file.contains(@exclude_pattern)
+      @exclude = true
+      break
+    end
+  end
+  
+  if !@exclude
+    println "Found script: ${@file}"
+    
+    # Record start time
+    @start_time = time::ticks()
+    
+    # Import the script
+    println "Importing and running ${@file}..."
     import @file
-    @stop = time::ticks()
-
-    @runtime["duration"] = @stop - @start
+    
+    # Record end time and calculate duration
+    @end_time = time::ticks()
+    @duration = time::ticksms(@end_time - @start_time)
+    
+    # Store runtime information
+    @runtime = {"file": @file, "duration": @duration}
     @runtimes << @runtime
   end
 end
 
-@totalRuntime = 0
-
-# Print the runtime details and totals at the end.
-for @runtime, @testno in @runtimes do
-  @ticks = @runtime["duration"]
+# Summarize and print runtimes
+@total_duration = 0
+for @runtime in @runtimes do
   @file = @runtime["file"]
-  @duration = time::ticksms(@ticks)
-  @totalRuntime += @duration
-
-  println "Test #${@testno}, ran ${@file} for ${@duration}ms."
+  @duration = @runtime["duration"]
+  println "Script: ${@file} ran for ${@duration} ms."
+  @total_duration += @duration
 end
 
-println "Ran ${@runtimes.size()} test(s) in ${@totalRuntime}ms."
+println "Total runtime for all scripts: ${@total_duration} ms."
 ```
 
 ## Example: FizzBuzz

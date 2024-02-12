@@ -8,7 +8,7 @@ The `math` module contains functionality for working with common math operations
 To use the `math` module, import it at the beginning of your Kiwi script.
 
 ```ruby
-import "math"
+import "@kiwi/math"
 ```
 
 ## Module Functions
