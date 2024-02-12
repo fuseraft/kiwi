@@ -3,52 +3,171 @@
 
 #include <iostream>
 #include <curl/curl.h>
-#include <string>
+#include <list>
+#include <mutex>
+#include <variant>
+#include "typing/valuetype.h"
+
+enum HttpMethod { GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS };
 
 class HttpClient {
  public:
-  HttpClient() { curl_global_init(CURL_GLOBAL_ALL); }
+  HttpClient(const HttpClient&) = delete;
+  HttpClient& operator=(const HttpClient&) = delete;
 
-  ~HttpClient() { curl_global_cleanup(); }
-
-  std::string get(const std::string& url) {
-    return performRequest(url, "GET", "");
+  static HttpClient& getInstance() {
+    static HttpClient instance;
+    return instance;
   }
 
-  std::string post(const std::string& url, const std::string& body) {
-    return performRequest(url, "POST", body);
+  std::shared_ptr<Hash> get(const std::string& url,
+                            const std::shared_ptr<List>& headers = {}) {
+    return performRequest(url, HttpMethod::GET, "", headers);
+  }
+
+  std::shared_ptr<Hash> post(const std::string& url, const std::string& body,
+                             const std::shared_ptr<List>& headers = {}) {
+    return performRequest(url, HttpMethod::POST, body, headers);
+  }
+
+  std::shared_ptr<Hash> put(const std::string& url, const std::string& body,
+                            const std::shared_ptr<List>& headers = {}) {
+    return performRequest(url, HttpMethod::PUT, body, headers);
+  }
+
+  std::shared_ptr<Hash> patch(const std::string& url, const std::string& body,
+                              const std::shared_ptr<List>& headers = {}) {
+    return performRequest(url, HttpMethod::PATCH, body, headers);
+  }
+
+  std::shared_ptr<Hash> del(const std::string& url,
+                            const std::shared_ptr<List>& headers = {}) {
+    return performRequest(url, HttpMethod::DELETE, "", headers);
+  }
+
+  std::shared_ptr<Hash> head(const std::string& url,
+                             const std::shared_ptr<List>& headers = {}) {
+    return performRequest(url, HttpMethod::HEAD, "", headers);
+  }
+
+  std::shared_ptr<Hash> options(const std::string& url,
+                                const std::shared_ptr<List>& headers = {}) {
+    return performRequest(url, HttpMethod::OPTIONS, "", headers);
   }
 
  private:
+  std::list<CURL*> pool;
+  std::mutex poolMutex;
+
+  HttpClient() { curl_global_init(CURL_GLOBAL_ALL); }
+
+  ~HttpClient() {
+    for (auto handle : pool) {
+      curl_easy_cleanup(handle);
+    }
+    curl_global_cleanup();
+  }
+
   static size_t WriteCallback(void* contents, size_t size, size_t nmemb,
-                              std::string* userp) {
-    userp->append((char*)contents, size * nmemb);
+                              std::string* data) {
+    data->append((char*)contents, size * nmemb);
     return size * nmemb;
   }
 
-  std::string performRequest(const std::string& url, const std::string& method,
-                             const std::string& body) {
-    CURL* curl = curl_easy_init();
+  static size_t HeaderCallback(char* buffer, size_t size, size_t nitems,
+                               std::string* data) {
+    size_t realSize = nitems * size;
+    data->append(buffer, realSize);
+    return realSize;
+  }
+
+  CURL* acquireHandle() {
+    std::lock_guard<std::mutex> lock(poolMutex);
+    if (pool.empty()) {
+      return curl_easy_init();
+    } else {
+      CURL* handle = pool.front();
+      pool.pop_front();
+      return handle;
+    }
+  }
+
+  void releaseHandle(CURL* handle) {
+    std::lock_guard<std::mutex> lock(poolMutex);
+    curl_easy_reset(handle);  // Reset handle state
+    pool.push_back(handle);
+  }
+
+  std::shared_ptr<Hash> performRequest(
+      const std::string& url, const HttpMethod& method,
+      const std::string& body = "", const std::shared_ptr<List>& headers = {}) {
+    CURL* curl = acquireHandle();
     if (!curl) {
-      return "CURL initialization failed";
+      auto response = std::make_shared<Hash>();
+      response->kvp["error"] = Value("CURL initialization failed");
+      response->kvp["status"] = Value(0);
+      return response;
     }
 
-    std::string response;
+    struct curl_slist* curlHeaders = nullptr;
+    bool addHeaders = false;
+    for (const auto& header : headers->elements) {
+      if (std::holds_alternative<std::string>(header)) {
+        curlHeaders = curl_slist_append(curlHeaders,
+                                        std::get<std::string>(header).c_str());
+        addHeaders = true;
+      }
+    }
+
+    // Clearing existing options from previous uses
+    curl_easy_reset(curl);
+
+    std::string responseBody;
+    std::string responseHeaders;
+    long statusCode = 0;
+
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &responseBody);
+    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, HeaderCallback);
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, &responseHeaders);
 
-    if (method == "POST") {
+    if (addHeaders) {
+      curl_easy_setopt(curl, CURLOPT_HTTPHEADER, curlHeaders);
+    }
+
+    if (method == HttpMethod::POST) {
       curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
+      curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, body.size());
+    } else if (method == HttpMethod::PUT || method == HttpMethod::PATCH) {
+      curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST,
+                       method == HttpMethod::PUT ? "PUT" : "PATCH");
+      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
+      curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, body.size());
+    } else if (method == HttpMethod::DELETE) {
+      curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+    } else if (method == HttpMethod::HEAD) {
+      curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
+    } else if (method == HttpMethod::OPTIONS) {
+      curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "OPTIONS");
     }
 
     CURLcode res = curl_easy_perform(curl);
-    if (res != CURLE_OK) {
-      curl_easy_cleanup(curl);
-      return "CURL request failed: " + std::string(curl_easy_strerror(res));
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &statusCode);
+
+    auto response = std::make_shared<Hash>();
+    if (res == CURLE_OK) {
+      response->kvp["status"] = Value(static_cast<int>(statusCode));
+      response->kvp["body"] = Value(responseBody);
+      response->kvp["headers"] = Value(responseHeaders);
+    } else {
+      response->kvp["status"] =
+          Value((statusCode > 0) ? static_cast<int>(statusCode) : -1);
+      response->kvp["error"] = Value(curl_easy_strerror(res));
+      response->kvp["headers"] = Value(responseHeaders);
     }
 
-    curl_easy_cleanup(curl);
+    releaseHandle(curl);
     return response;
   }
 };

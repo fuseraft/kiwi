@@ -1,6 +1,6 @@
 CXX := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic -lcurl # -fsanitize=address
-LDFLAGS :=
+CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic # -fsanitize=address
+LDFLAGS := -lcurl
 
 SRC_DIR := src
 INCLUDE_DIR := include
@@ -39,7 +39,7 @@ clean:
 
 $(EXECUTABLE): $(OBJ_FILES)
 	@mkdir -p $(BIN_DIR)
-	$(CXX) $(LDFLAGS) $^ -o $@
+	$(CXX) $^ -o $@ $(LDFLAGS)
 	rm -f $(BUILD_DIR)/main.o
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp $(INCLUDE_FILES)

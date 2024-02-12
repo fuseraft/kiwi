@@ -2558,6 +2558,14 @@ class Interpreter {
         }
       }
       return result;
+    } else if (current(frame).getType() == TokenType::OPEN_BRACKET) {
+      Value result = interpretExpression(booleanExpression, frame);
+      if (current(frame).getType() == TokenType::CLOSE_BRACKET) {
+        if (peek(frame).getType() == TokenType::OPERATOR) {
+          next(frame);
+        }
+      }
+      return result;
     } else if (current(frame).getType() == TokenType::IDENTIFIER) {
       std::string identifier = current(frame).toString();
       if (hasVariable(identifier, frame)) {

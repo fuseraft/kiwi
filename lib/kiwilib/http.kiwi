@@ -1,0 +1,95 @@
+##
+Summary: A module for performing HTTP requests.
+##
+module http
+  __home__("kiwi")
+
+  ##
+  Summary: Performs an HTTP DELETE request to the specified URL.
+  Params:
+    - @_url: The URL to request.
+    - @_headers: The list of headers.
+  Returns: A hash with the response status code, headers, and body.
+  ##
+  def delete_(@_url, @_headers)
+    @_response = __http_delete__(@_url, @_headers)
+    return @_response
+  end
+
+  ##
+  Summary: Performs an HTTP GET request to the specified URL.
+  Params:
+    - @_url: The URL to request.
+    - @_headers: The list of headers.
+  Returns: A hash with the response status code, headers, and body.
+  ##
+  def get(@_url, @_headers)
+    @_response = __http_get__(@_url, @_headers)
+    return @_response
+  end
+
+  ##
+  Summary: Performs an HTTP HEAD request to the specified URL.
+  Params:
+    - @_url: The URL to request.
+    - @_headers: The list of headers.
+  Returns: A hash with the response status code, headers, and body.
+  ##
+  def head(@_url, @_headers)
+    @_response = __http_head__(@_url, @_headers)
+    return @_response
+  end
+
+  ##
+  Summary: Performs an HTTP OPTIONS request to the specified URL.
+  Params:
+    - @_url: The URL to request.
+    - @_headers: The list of headers.
+  Returns: A hash with the response status code, headers, and body.
+  ##
+  def options(@_url, @_headers)
+    @_response = __http_options__(@_url, @_headers)
+    return @_response
+  end
+
+  ##
+  Summary: Performs an HTTP PATCH request to the specified URL.
+  Params:
+    - @_url: The URL to request.
+    - @_body: The body to send.
+    - @_headers: The list of headers.
+  Returns: A hash with the response status code, headers, and body.
+  ##
+  def patch(@_url, @_body, @_headers)
+    @_response = __http_patch__(@_url, @_body, @_headers)
+    return @_response
+  end
+
+  ##
+  Summary: Performs an HTTP POST request to the specified URL.
+  Params:
+    - @_url: The URL to request.
+    - @_body: The body to send.
+    - @_headers: The list of headers.
+  Returns: A hash with the response status code, headers, and body.
+  ##
+  def post(@_url, @_body, @_headers)
+    @_response = __http_get__(@_url, @_body, @_headers)
+    return @_response
+  end
+
+  ##
+  Summary: Performs an HTTP PUT request to the specified URL.
+  Params:
+    - @_url: The URL to request.
+    - @_body: The body to send.
+    - @_headers: The list of headers.
+  Returns: A hash with the response status code, headers, and body.
+  ##
+  def put(@_url, @_body, @_headers)
+    @_response = __http_put__(@_url, @_body, @_headers)
+    return @_response
+  end
+end
+
+import "http"
