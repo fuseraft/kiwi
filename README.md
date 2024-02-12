@@ -4,7 +4,17 @@ A general-purpose object-oriented scripting language influenced by Ruby.
 
 ## Getting Started
 
-To get started with Kiwi, clone the repository and build the source:
+To get started with Kiwi, install the dependencies required to build.
+
+```bash
+sudo apt update
+sudo apt-get install g++
+sudo apt-get install make
+sudo apt-get install clang-format
+sudo apt-get install libcurl4-openssl-dev
+```
+
+Then clone the repository and build the source code.
 
 ```bash
 git clone https://github.com/fuseraft/kiwi.git
