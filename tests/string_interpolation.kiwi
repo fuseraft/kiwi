@@ -1,0 +1,11 @@
+println "============================="
+println "= string_interpolation.kiwi ="
+println "============================="
+
+def wrap_string(@inputstring, @openchar, @closechar)
+  return "${@openchar}${@inputstring}${@closechar}"
+end
+
+println "wrapped: ${wrap_string("div", "<", ">")}"
+
+println ""

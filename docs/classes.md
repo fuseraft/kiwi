@@ -107,3 +107,18 @@ class MyClass
   end
 end
 ```
+
+You can also use `private` to declare a list of instance variable names that are to be treated as private.
+
+```ruby
+class MyClass
+  private(@name) # declare instance variables as private
+
+  def initialize(@name)
+    this.@name = @name
+  end
+end
+
+@inst = MyClass.new("kiwi")
+println @inst.name # throws InvalidContextError: Cannot access private instance variable outside of object context. 
+```

@@ -65,6 +65,13 @@ class Lexer {
     return c;
   }
 
+  char peek() {
+    if (currentPosition + 1 < source.length()) {
+      return source[currentPosition + 1];
+    }
+    return '\0';
+  }
+
   Token _getNextToken() {
     skipWhitespace();
 
@@ -284,17 +291,82 @@ class Lexer {
 
   Token parseString() {
     std::string str;
+    bool escape = false;
 
-    int size = 0;
-    while (currentPosition < source.length() &&
-           source[currentPosition] != '"') {
-      str += getCurrentChar();
-      ++size;
+    while (currentPosition < source.length()) {
+      char currentChar = source[currentPosition];
+
+      if (escape) {
+        switch (currentChar) {
+          case 'n':
+            str += '\n';
+            break;
+          case 't':
+            str += '\t';
+            break;
+          case '\\':
+            str += '\\';
+            break;
+          case '"':
+            str += '"';
+            break;
+          default:
+            str += currentChar;
+        }
+        escape = false;
+      } else if (currentChar == '\\') {
+        escape = true;
+      } else if (currentChar == '"') {
+        getCurrentChar();  // Move past the closing quote
+        break;             // End of string
+      } else if (currentChar == '$' && peek() == '{') {
+        getCurrentChar();  // Consume '$'
+        getCurrentChar();  // Consume '{'
+        std::string interpolationExpression = parseInterpolatedExpression();
+        str += interpolationExpression;
+        continue;
+      } else {
+        str += currentChar;
+      }
+
+      getCurrentChar();  // Move to next character
     }
 
-    getCurrentChar();  // skip closing quote
+    // Handle case where string ends with a backslash
+    if (escape) {
+      str += '\\';
+    }
+
     return Token::create(TokenType::STRING, file, str, lineNumber,
                          linePosition);
+  }
+
+  std::string parseInterpolatedExpression() {
+    std::string expression;
+    int braceCount = 1;  // Starts with 1 because we've already encountered '${'
+
+    while (currentPosition < source.length() && braceCount > 0) {
+      char currentChar = getCurrentChar();
+
+      if (currentChar == '}' && braceCount == 1) {
+        braceCount--;
+        break;  // End of interpolated expression
+      } else if (currentChar == '{') {
+        braceCount++;
+      } else if (currentChar == '}') {
+        braceCount--;
+      }
+
+      if (braceCount > 0) {
+        expression += currentChar;
+      }
+    }
+
+    // Here, you might need to parse the expression or leave it as is, depending on your implementation.
+    // If expression parsing is needed, integrate with your existing parsing logic to handle expressions.
+
+    return "${" + expression +
+           "}";  // Return the expression, including '${' and '}', for clarity or further processing
   }
 
   Token parseComment() {

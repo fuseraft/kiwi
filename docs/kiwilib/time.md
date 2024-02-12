@@ -6,7 +6,7 @@ The `time` module contains functionality for working with time and date informat
 To use the `time` module, import it at the beginning of your Kiwi script.
 
 ```ruby
-import "time"
+import "@kiwi/time"
 ```
 
 ## Module Functions

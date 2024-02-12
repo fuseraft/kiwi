@@ -1,8 +1,10 @@
 #ifndef KIWI_OBJECTS_CLASS_H
 #define KIWI_OBJECTS_CLASS_H
 
+#include <algorithm>
 #include <map>
 #include <string>
+#include <vector>
 #include "parsing/tokens.h"
 #include "method.h"
 
@@ -22,12 +24,23 @@ class Class {
   Method getMethod(const std::string& name) { return methods[name]; }
   std::string getClassName() const { return className; }
   std::string getBaseClassName() const { return baseClassName; }
+  void addPrivateVariable(const std::string& name) {
+    if (hasPrivateVariable(name)) {
+      return;
+    }
+    privateVariables.push_back(name);
+  }
+  bool hasPrivateVariable(const std::string& name) const {
+    return std::find(privateVariables.begin(), privateVariables.end(), name) !=
+           privateVariables.end();
+  }
 
  private:
   std::string className;
   std::string baseClassName;
   bool abstractMark = false;
   std::map<std::string, Method> methods;
+  std::vector<std::string> privateVariables;
 };
 
 #endif

@@ -43,6 +43,14 @@ Here's how to submit a pull request:
 4. **Make sure your code lints.**
 5. **Issue that pull request!**
 
+### Testing Your Changes
+
+Before you submit a pull request, please test your changes.
+
+1. Add your test script to the [test suite](tests).
+2. Run the test suite through [Valgrind](https://valgrind.org/).
+    > `valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./bin/kiwi test.kiwi`
+
 ## Styleguides
 
 ### Git Commit Messages
@@ -67,4 +75,4 @@ This section lists the labels we use to help us track and manage issues and pull
 
 ## Questions?
 
-Feel free to reach out at [https://kiwiprogramming.slack.com](Slack) if you need any help!
+Feel free to reach out on [Slack](https://kiwiprogramming.slack.com) if you need any help!

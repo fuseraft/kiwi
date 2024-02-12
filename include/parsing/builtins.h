@@ -164,14 +164,32 @@ struct {
   const std::string Map = "map";
   const std::string Reduce = "reduce";
   const std::string Select = "select";
+  const std::string ToH = "to_h";
 
-  std::unordered_set<std::string> builtins = {Map, Reduce, Select};
+  std::unordered_set<std::string> builtins = {Map, Reduce, Select, ToH};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
 } SpecializedBuiltins;
+
+struct {
+  const std::string Get = "__http_get__";
+  const std::string Post = "__http_post__";
+  const std::string Put = "__http_put__";
+  const std::string Delete = "__http_delete__";
+  const std::string Patch = "__http_patch__";
+  const std::string Head = "__http_head__";
+  const std::string Options = "__http_options__";
+
+  std::unordered_set<std::string> builtins = {Get,   Post, Put,    Delete,
+                                              Patch, Head, Options};
+
+  bool is_builtin(const std::string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+} HttpBuiltins;
 
 struct {
   const std::string Chars = "chars";
@@ -206,7 +224,8 @@ struct {
 
   bool is_builtin_method(const std::string& arg) {
     return TimeBuiltins.is_builtin(arg) || FileIOBuiltIns.is_builtin(arg) ||
-           MathBuiltins.is_builtin(arg) || ModuleBuiltins.is_builtin(arg);
+           MathBuiltins.is_builtin(arg) || ModuleBuiltins.is_builtin(arg) ||
+           HttpBuiltins.is_builtin(arg);
   }
 } KiwiBuiltins;
 
