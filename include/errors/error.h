@@ -124,6 +124,21 @@ class BuiltinUnexpectedArgumentError : public KiwiError {
                   "Unexpected argument count for builtin `" + name + "`.") {}
 };
 
+class DbConnectionError : public KiwiError {
+ public:
+  DbConnectionError(
+      const Token& token,
+      std::string message = "A database connection error occurred.")
+      : KiwiError(token, "DbConnectionError", message) {}
+};
+
+class DbError : public KiwiError {
+ public:
+  DbError(const Token& token,
+          std::string message = "A general database error occurred.")
+      : KiwiError(token, "DbError", message) {}
+};
+
 class InvalidContextError : public KiwiError {
  public:
   InvalidContextError(const Token& token,

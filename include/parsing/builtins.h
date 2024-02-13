@@ -192,6 +192,42 @@ struct {
 } HttpBuiltins;
 
 struct {
+  const std::string Connect = "__odbc_connect__";
+  const std::string Exec = "__odbc_exec__";
+  const std::string ExecSp = "__odbc_execsp__";
+  const std::string IsConnected = "__odbc_isconnected__";
+  const std::string BeginTransaction = "__odbc_begin_tx__";
+  const std::string CommitTransaction = "__odbc_commit_tx__";
+  const std::string RollbackTransaction = "__odbc_rollback_tx__";
+  const std::string InTransaction = "__odbc_in_tx__";
+
+  std::unordered_set<std::string> builtins = {Connect,
+                                              Exec,
+                                              ExecSp,
+                                              IsConnected,
+                                              BeginTransaction,
+                                              CommitTransaction,
+                                              RollbackTransaction,
+                                              InTransaction};
+
+  bool is_builtin(const std::string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+} OdbcBuiltins;
+
+struct {
+  const std::string GetEnvironmentVariable = "__getenv__";
+  const std::string SetEnvironmentVariable = "__setenv__";
+
+  std::unordered_set<std::string> builtins = {GetEnvironmentVariable,
+                                              SetEnvironmentVariable};
+
+  bool is_builtin(const std::string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+} EnvBuiltins;
+
+struct {
   const std::string Chars = "chars";
   const std::string IsA = "is_a";
   const std::string Join = "join";
@@ -223,9 +259,10 @@ struct {
   }
 
   bool is_builtin_method(const std::string& arg) {
-    return TimeBuiltins.is_builtin(arg) || FileIOBuiltIns.is_builtin(arg) ||
-           MathBuiltins.is_builtin(arg) || ModuleBuiltins.is_builtin(arg) ||
-           HttpBuiltins.is_builtin(arg);
+    return EnvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
+           FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
+           ModuleBuiltins.is_builtin(arg) || HttpBuiltins.is_builtin(arg) ||
+           OdbcBuiltins.is_builtin(arg);
   }
 } KiwiBuiltins;
 

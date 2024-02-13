@@ -9,12 +9,13 @@
                 "-Wall",
                 "-Wextra",
                 "-pedantic",
-                "-lcurl",
                 "-I${workspaceFolder}/include",
                 "-g",
                 "${workspaceFolder}/src/main.cpp",
                 "-o",
-                "${workspaceFolder}/bin/kiwi"
+                "${workspaceFolder}/bin/kiwi",
+                "-lcurl",
+                "-lodbc",
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
