@@ -1,6 +1,6 @@
 # `odbc`
 
-The `odbc` contains functionality for connecting to databases with ODBC to execute queries..
+The `odbc` contains functionality for connecting to databases with ODBC to execute queries.
 
 ## Importing the Module
 
