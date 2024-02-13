@@ -6,9 +6,11 @@
 #include <string>
 #include <vector>
 #include "builtins/core_handler.h"
+#include "builtins/env_handler.h"
 #include "builtins/http_handler.h"
 #include "builtins/fileio_handler.h"
 #include "builtins/math_handler.h"
+#include "builtins/odbc_handler.h"
 #include "builtins/time_handler.h"
 #include "errors/error.h"
 #include "parsing/builtins.h"
@@ -26,6 +28,10 @@ class BuiltinInterpreter {
       return MathBuiltinHandler::execute(tokenTerm, builtin, args);
     } else if (HttpBuiltins.is_builtin(builtin)) {
       return HttpBuiltinHandler::execute(tokenTerm, builtin, args);
+    } else if (OdbcBuiltins.is_builtin(builtin)) {
+      return OdbcBuiltinHandler::execute(tokenTerm, builtin, args);
+    } else if (EnvBuiltins.is_builtin(builtin)) {
+      return EnvBuiltinHandler::execute(tokenTerm, builtin, args);
     }
 
     throw UnknownBuiltinError(tokenTerm, builtin);
