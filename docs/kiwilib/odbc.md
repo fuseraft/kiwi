@@ -1,4 +1,4 @@
-# `odbc`
+# `@kiwi/odbc`
 
 The `odbc` contains functionality for connecting to databases with ODBC to execute queries.
 

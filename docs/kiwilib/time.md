@@ -1,4 +1,4 @@
-# `time`
+# `@kiwi/time`
 
 The `time` module contains functionality for working with time and date information.
 

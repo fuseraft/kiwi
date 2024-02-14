@@ -21,23 +21,6 @@ cd kiwi
 make all
 ```
 
-## Experimental Builtins
-
-Kiwi has some builtins for working with databases and making HTTP requests.
-
-To use experimental features, install the following dependencies.
-
-```bash
-sudo apt-get install libcurl4-openssl-dev
-sudo apt-get install unixodbc-dev
-```
-
-To build Kiwi with experimental features enabled.
-
-```bash
-make experimental
-```
-
 ## Testing
 
 Please see the [tests](tests) directory for a list of test scripts.

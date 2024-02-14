@@ -1,4 +1,4 @@
-# `fileio`
+# `@kiwi/fileio`
 
 The `fileio` module contains functionality for working with files and directories.
 
