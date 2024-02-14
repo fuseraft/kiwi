@@ -32,7 +32,7 @@ sudo apt-get install libcurl4-openssl-dev
 sudo apt-get install unixodbc-dev
 ```
 
-To build Kiwi with experimental features enabled:
+To build Kiwi with experimental features enabled.
 
 ```bash
 make experimental
