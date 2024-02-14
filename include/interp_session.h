@@ -65,7 +65,6 @@ class InterpSession {
       if (!kiwilibPath.empty()) {
         auto kiwilib = FileIO::expandGlob(kiwilibPath + "/**/*.kiwi");
         for (const auto& script : kiwilib) {
-          std::cout << "Kiwilib Loading: " << script << std::endl;
           loadScript(script);
         }
       }
