@@ -228,6 +228,17 @@ struct {
 } EnvBuiltins;
 
 struct {
+  const std::string GetArgv = "__argv__";
+  const std::string GetXarg = "__xarg__";
+
+  std::unordered_set<std::string> builtins = {GetArgv, GetXarg};
+
+  bool is_builtin(const std::string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+} ArgvBuiltins;
+
+struct {
   const std::string Chars = "chars";
   const std::string IsA = "is_a";
   const std::string Join = "join";
@@ -259,10 +270,10 @@ struct {
   }
 
   bool is_builtin_method(const std::string& arg) {
-    return EnvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
-           FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
-           ModuleBuiltins.is_builtin(arg) || HttpBuiltins.is_builtin(arg) ||
-           OdbcBuiltins.is_builtin(arg);
+    return EnvBuiltins.is_builtin(arg) || ArgvBuiltins.is_builtin(arg) ||
+           TimeBuiltins.is_builtin(arg) || FileIOBuiltIns.is_builtin(arg) ||
+           MathBuiltins.is_builtin(arg) || ModuleBuiltins.is_builtin(arg) ||
+           HttpBuiltins.is_builtin(arg) || OdbcBuiltins.is_builtin(arg);
   }
 } KiwiBuiltins;
 
