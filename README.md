@@ -21,6 +21,10 @@ cd kiwi
 make all
 ```
 
+## Documentation
+
+To learn what you can do with Kiwi, please see the [docs](docs/).
+
 ## Testing
 
 Please see the [tests](tests) directory for a list of test scripts.
