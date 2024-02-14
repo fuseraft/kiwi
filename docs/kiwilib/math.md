@@ -1,4 +1,4 @@
-# `math`
+# `@kiwi/math`
 
 ## Overview
 

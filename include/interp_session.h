@@ -38,6 +38,8 @@ class InterpSession {
   }
 
   int start() {
+    interp.setKiwiArgs(args);
+
     // Always try to load kiwilib.
     loadKiwiLibrary();
 

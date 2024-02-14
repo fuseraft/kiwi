@@ -1,4 +1,4 @@
-# `http`
+# `@kiwi/http`
 
 The `http` module contains functionality for working with HTTP requests.
 

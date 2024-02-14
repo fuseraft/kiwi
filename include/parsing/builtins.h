@@ -174,6 +174,7 @@ struct {
 
 } SpecializedBuiltins;
 
+#ifdef EXPERIMENTAL_FEATURES
 struct {
   const std::string Get = "__http_get__";
   const std::string Post = "__http_post__";
@@ -214,6 +215,7 @@ struct {
     return builtins.find(arg) != builtins.end();
   }
 } OdbcBuiltins;
+#endif
 
 struct {
   const std::string GetEnvironmentVariable = "__getenv__";
@@ -226,6 +228,27 @@ struct {
     return builtins.find(arg) != builtins.end();
   }
 } EnvBuiltins;
+
+struct {
+  const std::string GetArgv = "__argv__";
+  const std::string GetXarg = "__xarg__";
+
+  std::unordered_set<std::string> builtins = {GetArgv, GetXarg};
+
+  bool is_builtin(const std::string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+} ArgvBuiltins;
+
+struct {
+  const std::string Input = "input";
+
+  std::unordered_set<std::string> builtins = {Input};
+
+  bool is_builtin(const std::string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+} ConsoleBuiltins;
 
 struct {
   const std::string Chars = "chars";
@@ -259,10 +282,17 @@ struct {
   }
 
   bool is_builtin_method(const std::string& arg) {
-    return EnvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
+#ifdef EXPERIMENTAL_FEATURES
+    return ConsoleBuiltins.is_builtin(arg) || EnvBuiltins.is_builtin(arg) ||
+           ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
            ModuleBuiltins.is_builtin(arg) || HttpBuiltins.is_builtin(arg) ||
            OdbcBuiltins.is_builtin(arg);
+#endif
+    return ConsoleBuiltins.is_builtin(arg) || EnvBuiltins.is_builtin(arg) ||
+           ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
+           FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
+           ModuleBuiltins.is_builtin(arg);
   }
 } KiwiBuiltins;
 

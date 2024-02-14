@@ -10,8 +10,6 @@ TEST_DIR := tests
 
 SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 INCLUDE_FILES := $(wildcard $(INCLUDE_DIR)/*.h)
-MAIN_FILE := $(SRC_DIR)/main.cpp
-
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
 EXECUTABLE := $(BIN_DIR)/kiwi
@@ -19,7 +17,9 @@ EXECUTABLE := $(BIN_DIR)/kiwi
 LIB_TEST := ./test.kiwi
 PLAY := $(TEST_DIR)/playground.kiwi
 
-.PHONY: clean test play
+EXPERIMENTAL_FLAGS :=
+
+.PHONY: clean test play experimental
 
 format:
 	find . -iname "*.cpp" -o -iname "*.h" | xargs clang-format -i --style=file
@@ -34,15 +34,16 @@ play: $(EXECUTABLE)
 	@echo "================================"
 	$(EXECUTABLE) $(PLAY)
 
+experimental: EXPERIMENTAL_FLAGS := -DEXPERIMENTAL_FEATURES
+experimental: clean $(EXECUTABLE)
+
 clean:
 	rm -rf $(BUILD_DIR) $(BIN_DIR)
 
 $(EXECUTABLE): $(OBJ_FILES)
 	@mkdir -p $(BIN_DIR)
 	$(CXX) $^ -o $@ $(LDFLAGS)
-	rm -f $(BUILD_DIR)/main.o
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp $(INCLUDE_FILES)
 	@mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
-
+	$(CXX) $(CXXFLAGS) $(EXPERIMENTAL_FLAGS) -I$(INCLUDE_DIR) -c $< -o $@

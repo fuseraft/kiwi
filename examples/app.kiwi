@@ -2,13 +2,16 @@ import "@kiwi/fileio"
 
 @files = []
 
+# search for nearby kiwi scripts
 for @path in fileio::glob("./**/*.kiwi") do
   @content = fileio::read(@path)
   @hash = {"path": @path, "content": @content}
   @files << @hash
 end
 
+# write all of the scripts to a single file.
 @output_path = "output.txt"
+
 if fileio::exists(@output_path)
   fileio::remove(@output_path)
 end
