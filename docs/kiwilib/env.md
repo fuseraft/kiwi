@@ -1,4 +1,4 @@
-# `env`
+# `@kiwi/env`
 
 The `env` module contains functionality for working with environment variables.
 

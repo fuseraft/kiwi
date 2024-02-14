@@ -11,8 +11,6 @@ sudo apt update
 sudo apt-get install g++
 sudo apt-get install make
 sudo apt-get install clang-format
-sudo apt-get install libcurl4-openssl-dev
-sudo apt-get install unixodbc-dev
 ```
 
 Then clone the repository and build the source code.
@@ -22,6 +20,10 @@ git clone https://github.com/fuseraft/kiwi.git
 cd kiwi
 make all
 ```
+
+## Documentation
+
+To learn what you can do with Kiwi, please see the [docs](docs/).
 
 ## Testing
 

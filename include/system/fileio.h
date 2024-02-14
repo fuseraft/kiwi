@@ -156,9 +156,8 @@ class FileIO {
   }
 
   static std::string getKiwiLibraryPath() {
-    const std::string kiwiLibraryPath = "../lib/kiwilib";
     fs::path kiwiPath(getKiwiPath());
-    fs::path kiwilibPath = (kiwiPath / kiwiLibraryPath).lexically_normal();
+    fs::path kiwilibPath = (kiwiPath / "../lib/kiwilib").lexically_normal();
 
     if (!fs::exists(kiwilibPath)) {
       return "";

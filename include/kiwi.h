@@ -11,6 +11,7 @@
 #include "math/rng.h"
 #include "parsing/keywords.h"
 #include "parsing/strings.h"
+#include "system/fileio.h"
 #include "interp_session.h"
 #include "globals.h"
 
@@ -83,10 +84,10 @@ int process_args(int c, std::vector<std::string>& v, InterpSession& session,
         configure_kiwi(config, logger, session);
         ++i;
       }
-    } else if (Strings::ends_with(opt, ".kiwi")) {
+    } else if (Strings::ends_with(opt, ".kiwi") && FileIO::fileExists(opt)) {
       session.registerScript(opt);
     } else {
-      // logger.debug("Unknown option: " + opt);
+      session.registerArg("argv_" + RNG::getInstance().random16(), opt);
     }
   }
   retFlag = false;
@@ -125,7 +126,7 @@ void handle_xarg(std::string& opt, std::__cxx11::regex& xargPattern,
     name = match[1].str();
   }
 
-  size_t pos = opt.find(':');
+  size_t pos = opt.find('=');
   if (pos != std::string::npos) {
     value = opt.substr(pos + 1);
   }

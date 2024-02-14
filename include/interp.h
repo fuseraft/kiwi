@@ -30,6 +30,10 @@ class Interpreter {
  public:
   Interpreter(Logger& logger) : logger(logger) {}
 
+  void setKiwiArgs(const std::map<std::string, std::string>& args) {
+    kiwiArgs = args;
+  }
+
   int interpret(Lexer& lexer, std::string parentPath = "") {
     files[lexer.getFile()] = lexer.getLines();
     return interpret(lexer.getAllTokens(), parentPath);
@@ -65,6 +69,7 @@ class Interpreter {
   std::map<std::string, Class> classes;
   std::vector<Token> _tokens;
   std::string _parentPath;
+  std::map<std::string, std::string> kiwiArgs;
   std::stack<CallStackFrame> callStack;
   std::stack<std::string> moduleStack;
   bool preservingMainStackFrame = false;
@@ -2006,7 +2011,8 @@ class Interpreter {
       std::string moduleName = moduleStack.top();
       interpretModuleBuiltin(moduleName, builtin, args, frame);
     } else {
-      frame.returnValue = BuiltinInterpreter::execute(tokenTerm, builtin, args);
+      frame.returnValue =
+          BuiltinInterpreter::execute(tokenTerm, builtin, args, kiwiArgs);
     }
   }
 
