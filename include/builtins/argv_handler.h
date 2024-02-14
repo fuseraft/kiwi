@@ -49,16 +49,15 @@ class ArgvBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(tokenTerm, ArgvBuiltins.GetXarg);
     }
 
-    std::shared_ptr<List> argv = std::make_shared<List>();
     std::string xargName = get_string(tokenTerm, args.at(0));
 
     for (const auto& pair : kiwiArgs) {
       if (pair.first == xargName) {
-        argv->elements.push_back(pair.second);
+        return pair.second;
       }
     }
 
-    return argv;
+    return "";
   }
 };
 

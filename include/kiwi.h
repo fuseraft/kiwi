@@ -126,7 +126,7 @@ void handle_xarg(std::string& opt, std::__cxx11::regex& xargPattern,
     name = match[1].str();
   }
 
-  size_t pos = opt.find(':');
+  size_t pos = opt.find('=');
   if (pos != std::string::npos) {
     value = opt.substr(pos + 1);
   }
