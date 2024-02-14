@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include "builtins/argv_handler.h"
+#include "builtins/console_handler.h"
 #include "builtins/core_handler.h"
 #include "builtins/env_handler.h"
 #include "builtins/fileio_handler.h"
@@ -34,6 +35,8 @@ class BuiltinInterpreter {
       return EnvBuiltinHandler::execute(tokenTerm, builtin, args);
     } else if (ArgvBuiltins.is_builtin(builtin)) {
       return ArgvBuiltinHandler::execute(tokenTerm, builtin, args, kiwiArgs);
+    } else if (ConsoleBuiltins.is_builtin(builtin)) {
+      return ConsoleBuiltinHandler::execute(tokenTerm, builtin, args);
     } else {
 #ifdef EXPERIMENTAL_FEATURES
       if (HttpBuiltins.is_builtin(builtin)) {
