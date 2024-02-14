@@ -11,8 +11,6 @@ sudo apt update
 sudo apt-get install g++
 sudo apt-get install make
 sudo apt-get install clang-format
-sudo apt-get install libcurl4-openssl-dev
-sudo apt-get install unixodbc-dev
 ```
 
 Then clone the repository and build the source code.
@@ -21,6 +19,23 @@ Then clone the repository and build the source code.
 git clone https://github.com/fuseraft/kiwi.git
 cd kiwi
 make all
+```
+
+## Experimental Builtins
+
+Kiwi has some builtins for working with databases and making HTTP requests.
+
+To use experimental features, install the following dependencies.
+
+```bash
+sudo apt-get install libcurl4-openssl-dev
+sudo apt-get install unixodbc-dev
+```
+
+To build Kiwi with experimental features enabled:
+
+```bash
+make experimental
 ```
 
 ## Testing
