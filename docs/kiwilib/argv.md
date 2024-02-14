@@ -1,4 +1,4 @@
-# `argv`
+# `@kiwi/argv`
 
 The `argv` module contains functionality for working with command-line arguments.
 
@@ -24,10 +24,15 @@ import "@kiwi/argv"
 
 ## XArgs
 
-An `XArg` is a named command-line argument.
-
-### XArg Syntax
+An `XArg` is a named command-line argument in the form of a key-value pair.
 
 ```bash
 /bin/kiwi -Xkey=value
+```
+
+You can pull these values using this kiwilib module.
+
+```ruby
+import "@kiwi/argv"
+println argv::xarg("key") # prints: value
 ```
