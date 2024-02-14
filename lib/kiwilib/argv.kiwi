@@ -1,0 +1,28 @@
+##
+Summary: A module for working with command-line arguments.
+##
+module argv
+  __home__("kiwi")
+
+  ##
+  Summary: Get the list of command-line arguments.
+  Returns: List of command-line arguments.
+  ##
+  def get()
+    @_argv_list = __argv__()
+    return @_argv_list
+  end
+
+  ##
+  Summary: Get an XArg value by name.
+  Params:
+    - @_xarg_key: The XArg key.
+  Returns: String containing the XArg value.
+  ##
+  def xarg(@_xarg_key)
+    @_xarg_value = __xarg__(_xarg_key)
+    return @_xarg_value
+  end
+end
+
+import "argv"
