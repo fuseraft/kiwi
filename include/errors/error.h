@@ -194,6 +194,12 @@ class ModuleError : public KiwiError {
       : KiwiError(token, "ModuleError", message) {}
 };
 
+class SystemError : public KiwiError {
+ public:
+  SystemError(const Token& token, std::string message)
+      : KiwiError(token, "SystemError", message) {}
+};
+
 class MethodUndefinedError : public KiwiError {
  public:
   MethodUndefinedError(const Token& token, std::string name)
@@ -214,7 +220,6 @@ class EmptyStackError : public KiwiError {
       : KiwiError(token, "EmptyStackError", "The stack is empty.") {}
 };
 
-// TODO: refine this.
 class IllegalNameError : public KiwiError {
  public:
   IllegalNameError(const Token& token, std::string name)
