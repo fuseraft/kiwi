@@ -1,0 +1,30 @@
+##
+Summary: A module for working with external processes.
+##
+module sys
+  __home__("kiwi")
+
+  ##
+  Summary: Run an external process and capture its exit code.
+  Params:
+    - @_command: String containing the command text.
+  Returns: Integer containing exit code of external process.
+  ##
+  def exec(@_command)
+    @_exit_code = __exec__(@_command)
+    return @_exit_code
+  end
+
+  ##
+  Summary: Run an external process and capture its standard output.
+  Params:
+    - @_command: String containing the command text.
+  Returns: String containing standard output from external process.
+  ##
+  def execout(@_command)
+    @_stdout = __execout__(@_command)
+    return @_stdout
+  end
+end
+
+import "sys"
