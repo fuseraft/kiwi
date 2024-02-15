@@ -1,6 +1,6 @@
 CXX := g++
 CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic # -fsanitize=address
-LDFLAGS := -lcurl -lodbc
+BASE_LDFLAGS := -lcurl -lodbc
 
 SRC_DIR := src
 INCLUDE_DIR := include
@@ -18,6 +18,7 @@ LIB_TEST := ./test.kiwi
 PLAY := $(TEST_DIR)/playground.kiwi
 
 EXPERIMENTAL_FLAGS :=
+LDFLAGS :=
 
 .PHONY: clean test play experimental
 
@@ -35,6 +36,7 @@ play: $(EXECUTABLE)
 	$(EXECUTABLE) $(PLAY)
 
 experimental: EXPERIMENTAL_FLAGS := -DEXPERIMENTAL_FEATURES
+experimental: LDFLAGS := $(BASE_LDFLAGS)
 experimental: clean $(EXECUTABLE)
 
 clean:

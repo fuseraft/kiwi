@@ -25,6 +25,12 @@ This module contains functionality for working with common math operations.
 
 To learn more, please see [`math`](kiwilib/math.md).
 
+## `@kiwi/sys`
+
+This module contains functionality for working with external processes.
+
+To learn more, please see [`sys`](kiwilib/sys.md).
+
 ## `@kiwi/time`
 
 This module contains functionality for working with time and date information.
