@@ -16,6 +16,8 @@ class SysBuiltinHandler {
     } else if (builtin == SysBuiltins.ExecOut) {
       return executeExecOut(tokenTerm, args);
     }
+
+    throw UnknownBuiltinError(tokenTerm, builtin);
   }
 
  private:
