@@ -11,6 +11,7 @@
 #include "builtins/env_handler.h"
 #include "builtins/fileio_handler.h"
 #include "builtins/math_handler.h"
+#include "builtins/sys_handler.h"
 #include "builtins/time_handler.h"
 #ifdef EXPERIMENTAL_FEATURES
 #include "builtins/http_handler.h"
@@ -37,6 +38,8 @@ class BuiltinInterpreter {
       return ArgvBuiltinHandler::execute(tokenTerm, builtin, args, kiwiArgs);
     } else if (ConsoleBuiltins.is_builtin(builtin)) {
       return ConsoleBuiltinHandler::execute(tokenTerm, builtin, args);
+    } else if (SysBuiltins.is_builtin(builtin)) {
+      return SysBuiltinHandler::execute(tokenTerm, builtin, args);
     } else {
 #ifdef EXPERIMENTAL_FEATURES
       if (HttpBuiltins.is_builtin(builtin)) {
