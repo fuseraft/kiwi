@@ -124,18 +124,28 @@ println @s  # prints: [100, "100"]
 
 ### `.to_h()`
 
-Converts an object instance into a hash.
+Converts an object instance or a JSON string into a hash.
 
 ```ruby
 class SerializeMe
   def initialize()
-    this.@name = "Hello!"
+    this.@name = "Kiwi"
   end
 end
 
 @inst = SerializeMe.new()
 
-println @inst.to_h()
+println @inst.to_h() # prints: {"name": "Kiwi"}
+```
+
+```ruby
+@json = "{
+  \"boolean\": true, 
+  \"double\": 3.14159, 
+  \"integer\": 100, 
+  \"string\": \"Kiwi\"
+}"
+println @json.to_h() # prints: {"boolean": true, "double": 3.14159, "integer": 100, "string": "Kiwi"}
 ```
 
 ### `.index_of(str)`

@@ -24,7 +24,7 @@ class ErrorHandler {
 
   static int handleError(
       const KiwiError& e,
-      const std::map<std::string, std::vector<std::string>>& files) {
+      const std::unordered_map<std::string, std::vector<std::string>>& files) {
     handleError(e);
 
     const Token& token = e.getToken();

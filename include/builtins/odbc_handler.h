@@ -26,9 +26,9 @@ struct ConnectionInfo {
 
     hash = std::get<std::shared_ptr<Hash>>(value);
 
-    if (hash->kvp.find("connection_string") != hash->kvp.end()) {
+    if (hash->hasKey("connection_string")) {
       conn.connectionString =
-          get_string(tokenTerm, hash->kvp["connection_string"]);
+          get_string(tokenTerm, hash->get("connection_string"));
       conn.hasConnection = true;
     }
 
