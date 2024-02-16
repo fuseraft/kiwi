@@ -14,25 +14,25 @@
 #include "stackframe.h"
 
 struct InterpHelper {
-  static Token current(CallStackFrame& frame) {
-    if (frame.position >= frame.tokens.size()) {
+  static Token current(std::shared_ptr<CallStackFrame> frame) {
+    if (frame->position >= frame->tokens.size()) {
       return Token::createEndOfFrame();
     }
-    return frame.tokens[frame.position];
+    return frame->tokens[frame->position];
   }
 
-  static void next(CallStackFrame& frame) {
-    if (frame.position < frame.tokens.size()) {
-      frame.position++;
+  static void next(std::shared_ptr<CallStackFrame> frame) {
+    if (frame->position < frame->tokens.size()) {
+      frame->position++;
     } else {
       // To complete the frame, or not to complete the frame, that is the question;
     }
   }
 
-  static Token peek(CallStackFrame& frame) {
-    size_t nextPosition = frame.position + 1;
-    if (nextPosition < frame.tokens.size()) {
-      return frame.tokens[nextPosition];
+  static Token peek(std::shared_ptr<CallStackFrame> frame) {
+    size_t nextPosition = frame->position + 1;
+    if (nextPosition < frame->tokens.size()) {
+      return frame->tokens[nextPosition];
     } else {
       return Token::createEndOfFrame();
     }
@@ -54,7 +54,7 @@ struct InterpHelper {
     booleanExpression.value(booleanValue);
   }
 
-  static Method interpretLambda(CallStackFrame& frame) {
+  static Method interpretLambda(std::shared_ptr<CallStackFrame> frame) {
     next(frame);  // Skip "lambda"
     Method lambda;
     lambda.setName(getTemporaryId());
@@ -77,14 +77,14 @@ struct InterpHelper {
     return lambda;
   }
 
-  static Method getLambda(CallStackFrame& frame) {
+  static Method getLambda(std::shared_ptr<CallStackFrame> frame) {
     Method lambda;
 
     if (current(frame).getType() == TokenType::IDENTIFIER) {
       std::string lambdaName = current(frame).getText();
       next(frame);  // Skip identifier.
-      if (frame.hasAssignedLambda(lambdaName)) {
-        lambda = frame.getAssignedLambda(lambdaName);
+      if (frame->hasAssignedLambda(lambdaName)) {
+        lambda = frame->getAssignedLambda(lambdaName);
       }
     } else if (current(frame).getType() == TokenType::LAMBDA) {
       lambda = interpretLambda(frame);
@@ -93,33 +93,34 @@ struct InterpHelper {
     return lambda;
   }
 
-  static bool isSliceAssignmentExpression(CallStackFrame& frame) {
-    size_t pos = frame.position;
+  static bool isSliceAssignmentExpression(
+      std::shared_ptr<CallStackFrame> frame) {
+    size_t pos = frame->position;
     bool isSliceAssignment = false;
-    Token token = frame.tokens[pos];
-    while (pos < frame.tokens.size()) {
+    Token token = frame->tokens[pos];
+    while (pos < frame->tokens.size()) {
       if (token.getType() == TokenType::COLON ||
           token.getType() == TokenType::OPERATOR) {
         isSliceAssignment = true;
         break;
       }
-      token = frame.tokens[++pos];
+      token = frame->tokens[++pos];
     }
     return isSliceAssignment;
   }
 
-  static bool isListExpression(CallStackFrame& frame) {
-    size_t position = frame.position;
-    if (position >= frame.tokens.size() ||
-        frame.tokens[position].getType() != TokenType::OPEN_BRACKET) {
+  static bool isListExpression(std::shared_ptr<CallStackFrame> frame) {
+    size_t position = frame->position;
+    if (position >= frame->tokens.size() ||
+        frame->tokens[position].getType() != TokenType::OPEN_BRACKET) {
       return false;
     }
 
     int bracketCount = 1;
     ++position;
 
-    while (position < frame.tokens.size() && bracketCount > 0) {
-      Token token = frame.tokens[position];
+    while (position < frame->tokens.size() && bracketCount > 0) {
+      Token token = frame->tokens[position];
       TokenType type = token.getType();
 
       if (type == TokenType::OPEN_BRACKET) {
@@ -129,8 +130,8 @@ struct InterpHelper {
       } else if (type == TokenType::OPEN_BRACE) {
         int braceCount = 1;
         ++position;  // Skip "["
-        while (position < frame.tokens.size() && braceCount > 0) {
-          token = frame.tokens[position];
+        while (position < frame->tokens.size() && braceCount > 0) {
+          token = frame->tokens[position];
           if (token.getType() == TokenType::OPEN_BRACE) {
             ++braceCount;
           } else if (token.getType() == TokenType::CLOSE_BRACE) {
@@ -149,21 +150,21 @@ struct InterpHelper {
     return bracketCount == 0;
   }
 
-  static bool isRangeExpression(CallStackFrame& frame) {
-    size_t pos = frame.position;
+  static bool isRangeExpression(std::shared_ptr<CallStackFrame> frame) {
+    size_t pos = frame->position;
     bool isRange = false;
-    Token token = frame.tokens[pos];
-    while (pos < frame.tokens.size()) {
+    Token token = frame->tokens[pos];
+    while (pos < frame->tokens.size()) {
       if (token.getType() == TokenType::RANGE) {
         isRange = true;
         break;
       }
-      token = frame.tokens[++pos];
+      token = frame->tokens[++pos];
     }
     return isRange;
   }
 
-  static bool hasReturnValue(CallStackFrame& frame) {
+  static bool hasReturnValue(std::shared_ptr<CallStackFrame> frame) {
     const Token nextToken = peek(frame);
     const TokenType tokenType = nextToken.getType();
     bool isLiteral = tokenType == TokenType::LITERAL;
@@ -179,18 +180,20 @@ struct InterpHelper {
            isVariable || isBracketed || isInstanceInvocation || isBraced;
   }
 
-  static bool shouldUpdateFrameVariables(const std::string& varName,
-                                         CallStackFrame& nextFrame) {
-    return nextFrame.variables.find(varName) != nextFrame.variables.end();
+  static bool shouldUpdateFrameVariables(
+      const std::string& varName,
+      const std::shared_ptr<CallStackFrame> nextFrame) {
+    return nextFrame->variables.find(varName) != nextFrame->variables.end();
   }
 
   static void updateVariablesInCallerFrame(
-      std::map<std::string, Value> variables, CallStackFrame& callerFrame) {
+      std::unordered_map<std::string, Value> variables,
+      std::shared_ptr<CallStackFrame> callerFrame) {
     for (const auto& var : variables) {
       std::string varName = var.first;
       if (shouldUpdateFrameVariables(varName, callerFrame)) {
         Value varValue = var.second;
-        callerFrame.variables[varName] = varValue;
+        callerFrame->variables[varName] = varValue;
       }
     }
   }
@@ -200,7 +203,7 @@ struct InterpHelper {
   }
 
   static void collectBodyTokens(std::vector<Token>& tokens,
-                                CallStackFrame& frame) {
+                                std::shared_ptr<CallStackFrame> frame) {
     int counter = 1;
     while (counter != 0) {
       if (Keywords.is_required_end_keyword(current(frame).getText())) {
@@ -233,8 +236,8 @@ struct InterpHelper {
     return tokens;
   }
 
-  static void updateListSlice(CallStackFrame& frame, bool insertOp,
-                              std::shared_ptr<List>& targetList,
+  static void updateListSlice(std::shared_ptr<CallStackFrame> frame,
+                              bool insertOp, std::shared_ptr<List>& targetList,
                               const SliceIndex& slice,
                               const std::shared_ptr<List>& rhsValues) {
     if (!std::holds_alternative<int>(slice.indexOrStart)) {
@@ -355,7 +358,8 @@ struct InterpHelper {
   }
 
   static Value interpretAssignOp(const std::string& op, Value& currentValue,
-                                 Value& value, CallStackFrame& frame) {
+                                 Value& value,
+                                 std::shared_ptr<CallStackFrame> frame) {
     if (op == Operators.AddAssign) {
       return std::visit(AddVisitor(current(frame)), currentValue, value);
     } else if (op == Operators.SubtractAssign) {
@@ -390,7 +394,7 @@ struct InterpHelper {
 
   static Value interpretListSlice(const SliceIndex& slice,
                                   const std::shared_ptr<List>& list,
-                                  CallStackFrame& frame) {
+                                  std::shared_ptr<CallStackFrame> frame) {
     if (slice.isSlice) {
       if (!std::holds_alternative<int>(slice.indexOrStart)) {
         throw IndexError(current(frame), "Start index must be an integer.");
@@ -442,7 +446,7 @@ struct InterpHelper {
     }
   }
 
-  static void interpretParameterizedCatch(CallStackFrame& frame,
+  static void interpretParameterizedCatch(std::shared_ptr<CallStackFrame> frame,
                                           std::string& errorVariableName,
                                           Value& errorValue) {
     next(frame);  // Skip "("
@@ -468,11 +472,11 @@ struct InterpHelper {
     }
     next(frame);  // Skip ")"
 
-    errorValue = frame.getErrorMessage();
+    errorValue = frame->getErrorMessage();
   }
 
-  static std::string interpretModuleHome(std::string& modulePath,
-                                         CallStackFrame& frame) {
+  static std::string interpretModuleHome(
+      std::string& modulePath, std::shared_ptr<CallStackFrame> frame) {
     if (current(frame).getType() != TokenType::STRING ||
         !Strings::begins_with(modulePath, "@")) {
       return "";
@@ -517,7 +521,7 @@ struct InterpHelper {
     return moduleHome;
   }
 
-  static std::string interpretBaseClass(CallStackFrame& frame) {
+  static std::string interpretBaseClass(std::shared_ptr<CallStackFrame> frame) {
     std::string baseClassName;
     if (current(frame).getType() == TokenType::OPERATOR) {
       if (current(frame).getText() != Operators.LessThan) {
@@ -537,7 +541,8 @@ struct InterpHelper {
     return baseClassName;
   }
 
-  static Method interpretMethodDeclaration(CallStackFrame& frame) {
+  static Method interpretMethodDeclaration(
+      std::shared_ptr<CallStackFrame> frame) {
     Method method;
 
     while (current(frame).getText() != Keywords.Method) {
@@ -591,7 +596,8 @@ struct InterpHelper {
     return method;
   }
 
-  static std::vector<std::string> getParameterSet(CallStackFrame& frame) {
+  static std::vector<std::string> getParameterSet(
+      std::shared_ptr<CallStackFrame> frame) {
     Token tokenTerm = current(frame);
     if (current(frame).getType() != TokenType::OPEN_PAREN) {
       throw SyntaxError(
@@ -619,7 +625,8 @@ struct InterpHelper {
     return paramSet;
   }
 
-  static void interpretMethodParameters(Method& method, CallStackFrame& frame) {
+  static void interpretMethodParameters(Method& method,
+                                        std::shared_ptr<CallStackFrame> frame) {
     for (std::string param : getParameterSet(frame)) {
       method.addParameterName(param);
     }

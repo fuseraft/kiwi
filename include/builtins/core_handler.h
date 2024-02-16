@@ -136,7 +136,7 @@ class CoreBuiltinHandler {
       return size;
     } else if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
       auto hash = std::get<std::shared_ptr<Hash>>(value);
-      int size = hash->kvp.size();
+      int size = hash->size();
       return size;
     } else {
       throw ConversionError(tokenTerm);

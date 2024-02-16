@@ -3,8 +3,8 @@
 
 #include <fstream>
 #include <iostream>
-#include <map>
 #include <string>
+#include <unordered_map>
 
 class Config {
  public:
@@ -43,7 +43,7 @@ class Config {
   }
 
  private:
-  std::map<std::string, std::string> config_;
+  std::unordered_map<std::string, std::string> config_;
 };
 
 #endif

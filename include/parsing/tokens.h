@@ -63,9 +63,6 @@ class Token {
     return create(TokenType::ENDOFFRAME, "", "", 0, 0);
   }
 
-  void setOwner(std::string value) { owner = value; }
-  std::string getOwner() { return owner; }
-
   std::string getFile() const { return file; }
 
   std::string toString() {
@@ -120,7 +117,6 @@ class Token {
   ValueType valueType;
   int _lineNumber;
   int _linePosition;
-  std::string owner;
 
   Token(TokenType t, std::string file, std::string text, const Value& v,
         const int& lineNumber, const int& linePosition)
@@ -128,7 +124,6 @@ class Token {
     valueType = Serializer::get_value_type(v);
     _lineNumber = lineNumber;
     _linePosition = linePosition;
-    owner = "";
   }
 };
 

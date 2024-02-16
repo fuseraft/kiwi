@@ -23,9 +23,10 @@
 
 class BuiltinInterpreter {
  public:
-  static Value execute(const Token& tokenTerm, const std::string& builtin,
-                       const std::vector<Value>& args,
-                       const std::map<std::string, std::string>& kiwiArgs) {
+  static Value execute(
+      const Token& tokenTerm, const std::string& builtin,
+      const std::vector<Value>& args,
+      const std::unordered_map<std::string, std::string>& kiwiArgs) {
     if (FileIOBuiltIns.is_builtin(builtin)) {
       return FileIOBuiltinHandler::execute(tokenTerm, builtin, args);
     } else if (TimeBuiltins.is_builtin(builtin)) {
