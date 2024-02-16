@@ -2718,11 +2718,6 @@ class Interpreter {
       tempAssignment.push_back(t);
     }
 
-    std::string line;
-    for (Token t : tempAssignment) {
-      line += t.getText();
-    }
-
     auto tempFrame = std::make_shared<CallStackFrame>(tempAssignment);
     if (frame->inObjectContext()) {
       tempFrame->setObjectContext(frame->getObjectContext());
