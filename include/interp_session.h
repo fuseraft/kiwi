@@ -55,7 +55,7 @@ class InterpSession {
   Logger& logger;
   Interpreter& interp;
   std::unordered_set<std::string> scripts;
-  std::map<std::string, std::string> args;
+  std::unordered_map<std::string, std::string> args;
   bool replMode;
 
   void loadKiwiLibrary() {

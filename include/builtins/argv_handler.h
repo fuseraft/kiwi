@@ -3,6 +3,7 @@
 
 #include <cstdlib>
 #include <string>
+#include <unordered_map>
 #include "math/functions.h"
 #include "parsing/builtins.h"
 #include "parsing/strings.h"
@@ -11,9 +12,10 @@
 
 class ArgvBuiltinHandler {
  public:
-  static Value execute(const Token& tokenTerm, const std::string& builtin,
-                       const std::vector<Value>& args,
-                       const std::map<std::string, std::string>& kiwiArgs) {
+  static Value execute(
+      const Token& tokenTerm, const std::string& builtin,
+      const std::vector<Value>& args,
+      const std::unordered_map<std::string, std::string>& kiwiArgs) {
     if (builtin == ArgvBuiltins.GetArgv) {
       return executeGetArgv(tokenTerm, args, kiwiArgs);
     } else if (builtin == ArgvBuiltins.GetXarg) {
@@ -26,7 +28,7 @@ class ArgvBuiltinHandler {
  private:
   static Value executeGetArgv(
       const Token& tokenTerm, const std::vector<Value>& args,
-      const std::map<std::string, std::string>& kiwiArgs) {
+      const std::unordered_map<std::string, std::string>& kiwiArgs) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, ArgvBuiltins.GetArgv);
     }
@@ -44,7 +46,7 @@ class ArgvBuiltinHandler {
 
   static Value executeGetXarg(
       const Token& tokenTerm, const std::vector<Value>& args,
-      const std::map<std::string, std::string>& kiwiArgs) {
+      const std::unordered_map<std::string, std::string>& kiwiArgs) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, ArgvBuiltins.GetXarg);
     }

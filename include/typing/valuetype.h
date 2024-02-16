@@ -1,9 +1,9 @@
 #ifndef KIWI_TYPING_VALUETYPE_H
 #define KIWI_TYPING_VALUETYPE_H
 
-#include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 #include "errors/error.h"
@@ -34,13 +34,13 @@ struct List {
 };
 
 struct Hash {
-  std::map<std::string, Value> kvp;
+  std::unordered_map<std::string, Value> kvp;
 };
 
 struct Object {
   std::string identifier;
   std::string className;
-  std::map<std::string, Value> instanceVariables;
+  std::unordered_map<std::string, Value> instanceVariables;
 };
 
 struct LambdaRef {

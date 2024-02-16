@@ -2,9 +2,9 @@
 #define KIWI_STACKFRAME_H
 
 #include <memory>
-#include <map>
 #include <string>
 #include <type_traits>
+#include <unordered_map>
 #include <vector>
 #include "errors/error.h"
 #include "errors/state.h"
@@ -40,8 +40,8 @@ inline FrameFlags operator~(FrameFlags a) {
 struct CallStackFrame {
   std::vector<Token> tokens;  // The tokens of the current method or scope.
   size_t position = 0;        // Current position in the token stream.
-  std::map<std::string, Value> variables;
-  std::map<std::string, Method> lambdas;
+  std::unordered_map<std::string, Value> variables;
+  std::unordered_map<std::string, Method> lambdas;
   Value returnValue;
   ErrorState errorState;
   std::shared_ptr<Object> objectContext;

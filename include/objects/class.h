@@ -2,8 +2,8 @@
 #define KIWI_OBJECTS_CLASS_H
 
 #include <algorithm>
-#include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "parsing/tokens.h"
 #include "method.h"
@@ -20,7 +20,7 @@ class Class {
   }
   void setBaseClassName(const std::string& name) { baseClassName = name; }
   void setClassName(const std::string& name) { className = name; }
-  std::map<std::string, Method> getMethods() const { return methods; }
+  std::unordered_map<std::string, Method> getMethods() const { return methods; }
   Method getMethod(const std::string& name) { return methods[name]; }
   std::string getClassName() const { return className; }
   std::string getBaseClassName() const { return baseClassName; }
@@ -39,7 +39,7 @@ class Class {
   std::string className;
   std::string baseClassName;
   bool abstractMark = false;
-  std::map<std::string, Method> methods;
+  std::unordered_map<std::string, Method> methods;
   std::vector<std::string> privateVariables;
 };
 
