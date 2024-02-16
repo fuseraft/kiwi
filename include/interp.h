@@ -21,6 +21,7 @@
 #include "system/fileio.h"
 #include "typing/serializer.h"
 #include "typing/valuetype.h"
+#include "eventloop.h"
 #include "globals.h"
 #include "interp_builtin.h"
 #include "interp_helper.h"
@@ -28,7 +29,9 @@
 
 class Interpreter {
  public:
-  Interpreter(Logger& logger) : logger(logger) {}
+  Interpreter(Logger& logger) : logger(logger) { eventLoop.startLoop(); }
+
+  ~Interpreter() { eventLoop.stopLoop(); }
 
   void setKiwiArgs(const std::map<std::string, std::string>& args) {
     kiwiArgs = args;
@@ -47,7 +50,7 @@ class Interpreter {
       return 0;
     }
 
-    CallStackFrame mainFrame(_tokens);
+    auto mainFrame = std::make_shared<CallStackFrame>(_tokens);
     callStack.push(mainFrame);
 
     interpretStackFrame();
@@ -70,29 +73,30 @@ class Interpreter {
   std::vector<Token> _tokens;
   std::string _parentPath;
   std::map<std::string, std::string> kiwiArgs;
-  std::stack<CallStackFrame> callStack;
+  std::stack<std::shared_ptr<CallStackFrame>> callStack;
   std::stack<std::string> moduleStack;
   bool preservingMainStackFrame = false;
+  EventLoop eventLoop;
 
-  Token current(CallStackFrame& frame) {
-    if (frame.position >= frame.tokens.size()) {
+  Token current(std::shared_ptr<CallStackFrame> frame) {
+    if (frame->position >= frame->tokens.size()) {
       return Token::createEndOfFrame();
     }
-    return frame.tokens[frame.position];
+    return frame->tokens[frame->position];
   }
 
-  void next(CallStackFrame& frame) {
-    if (frame.position < frame.tokens.size()) {
-      frame.position++;
+  void next(std::shared_ptr<CallStackFrame> frame) {
+    if (frame->position < frame->tokens.size()) {
+      frame->position++;
     } else {
       // To complete the frame, or not to complete the frame, that is the question;
     }
   }
 
-  Token peek(CallStackFrame& frame) {
-    size_t nextPosition = frame.position + 1;
-    if (nextPosition < frame.tokens.size()) {
-      return frame.tokens[nextPosition];
+  Token peek(std::shared_ptr<CallStackFrame> frame) {
+    size_t nextPosition = frame->position + 1;
+    if (nextPosition < frame->tokens.size()) {
+      return frame->tokens[nextPosition];
     } else {
       return Token::createEndOfFrame();
     }
@@ -100,14 +104,14 @@ class Interpreter {
 
   void interpretStackFrame() {
     auto& frame = callStack.top();
-    while (frame.position < frame.tokens.size()) {
-      auto& token = frame.tokens[frame.position];
+    while (frame->position < frame->tokens.size()) {
+      auto& token = frame->tokens[frame->position];
 
       try {
         interpretToken(token, frame);
       } catch (const KiwiError& e) {
-        if (frame.isFlagSet(FrameFlags::InTry)) {
-          frame.setErrorState(e);
+        if (frame->isFlagSet(FrameFlags::InTry)) {
+          frame->setErrorState(e);
         } else {
           ErrorHandler::handleError(e, files);
           exit(1);
@@ -116,15 +120,15 @@ class Interpreter {
         ErrorHandler::handleFatalError(e);
       }
 
-      if (frame.isErrorStateSet()) {
-        ++frame.position;
+      if (frame->isErrorStateSet()) {
+        ++frame->position;
         continue;
       }
 
       bool tokenChange = false;
 
-      if (frame.position < frame.tokens.size()) {
-        token = frame.tokens[frame.position];
+      if (frame->position < frame->tokens.size()) {
+        token = frame->tokens[frame->position];
         tokenChange = true;
       }
 
@@ -147,41 +151,41 @@ class Interpreter {
           continue;
         }
 
-        if (!frame.isFlagSet(FrameFlags::ReturnFlag)) {
-          ++frame.position;
+        if (!frame->isFlagSet(FrameFlags::ReturnFlag)) {
+          ++frame->position;
         }
       }
 
-      if (frame.isFlagSet(FrameFlags::LoopBreak) ||
-          frame.isFlagSet(FrameFlags::LoopContinue)) {
+      if (frame->isFlagSet(FrameFlags::LoopBreak) ||
+          frame->isFlagSet(FrameFlags::LoopContinue)) {
         if (callStack.size() > 1) {
           // Pop and propagate to the top frame to be used in the next iteration.
-          bool loopBreak = frame.isFlagSet(FrameFlags::LoopBreak);
-          bool loopContinue = frame.isFlagSet(FrameFlags::LoopContinue);
-          auto topVariables = std::move(frame.variables);
+          bool loopBreak = frame->isFlagSet(FrameFlags::LoopBreak);
+          bool loopContinue = frame->isFlagSet(FrameFlags::LoopContinue);
+          auto topVariables = std::move(frame->variables);
           callStack.pop();
           auto& callerFrame = callStack.top();
           InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);
           if (loopBreak) {
-            callerFrame.setFlag(FrameFlags::LoopBreak);
+            callerFrame->setFlag(FrameFlags::LoopBreak);
           }
           if (loopContinue) {
-            callerFrame.setFlag(FrameFlags::LoopContinue);
+            callerFrame->setFlag(FrameFlags::LoopContinue);
           }
           return;
         }
       }
 
-      if (frame.isFlagSet(FrameFlags::ReturnFlag)) {
+      if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
         if (callStack.size() > 1) {
           // Handle the return value in the caller frame
-          auto returnValue = std::move(frame.returnValue);
-          auto topVariables = std::move(frame.variables);
+          auto returnValue = std::move(frame->returnValue);
+          auto topVariables = std::move(frame->variables);
           callStack.pop();  // Pop the current frame
           auto& callerFrame = callStack.top();
-          callerFrame.returnValue = returnValue;
-          if (callerFrame.isFlagSet(FrameFlags::SubFrame)) {
-            callerFrame.setFlag(FrameFlags::ReturnFlag);
+          callerFrame->returnValue = returnValue;
+          if (callerFrame->isFlagSet(FrameFlags::SubFrame)) {
+            callerFrame->setFlag(FrameFlags::ReturnFlag);
           }
           InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);
         } else {
@@ -197,22 +201,22 @@ class Interpreter {
       return;
     }
 
-    Value returnValue = std::move(frame.returnValue);
-    bool inObjectContext = frame.inObjectContext();
+    Value returnValue = std::move(frame->returnValue);
+    bool inObjectContext = frame->inObjectContext();
     if (inObjectContext) {
-      returnValue = std::move(frame.objectContext);
+      returnValue = std::move(frame->objectContext);
     }
-    auto topVariables = std::move(frame.variables);
+    auto topVariables = std::move(frame->variables);
     callStack.pop();
     auto& callerFrame = callStack.top();
 
     if (inObjectContext) {
-      callerFrame.returnValue = returnValue;
+      callerFrame->returnValue = returnValue;
     }
     InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);
   }
 
-  void interpretForLoop(CallStackFrame& frame) {
+  void interpretForLoop(std::shared_ptr<CallStackFrame> frame) {
     std::string itemVariableName, indexVariableName;
     bool hasIndexVariable = false;
 
@@ -269,34 +273,34 @@ class Interpreter {
     // Execute the loop
     size_t index = 0;
     for (const auto& item : collection->elements) {
-      if (frame.isFlagSet(FrameFlags::LoopBreak)) {
+      if (frame->isFlagSet(FrameFlags::LoopBreak)) {
         break;
       }
 
-      if (frame.isFlagSet(FrameFlags::LoopContinue)) {
-        frame.clearFlag(FrameFlags::LoopContinue);
+      if (frame->isFlagSet(FrameFlags::LoopContinue)) {
+        frame->clearFlag(FrameFlags::LoopContinue);
         continue;
       }
 
-      frame.variables[itemVariableName] = item;
+      frame->variables[itemVariableName] = item;
       if (hasIndexVariable) {
-        frame.variables[indexVariableName] = static_cast<int>(index);
+        frame->variables[indexVariableName] = static_cast<int>(index);
       }
 
-      CallStackFrame loopFrame(loopTokens);
-      for (const auto& pair : frame.variables) {
-        loopFrame.variables[pair.first] = pair.second;
+      auto loopFrame = std::make_shared<CallStackFrame>(loopTokens);
+      for (const auto& pair : frame->variables) {
+        loopFrame->variables[pair.first] = pair.second;
       }
       callStack.push(loopFrame);
       interpretStackFrame();
 
       index++;
     }
-    frame.clearFlag(FrameFlags::LoopBreak);
-    frame.clearFlag(FrameFlags::LoopContinue);
+    frame->clearFlag(FrameFlags::LoopBreak);
+    frame->clearFlag(FrameFlags::LoopContinue);
   }
 
-  void interpretWhileLoop(CallStackFrame& frame) {
+  void interpretWhileLoop(std::shared_ptr<CallStackFrame> frame) {
     std::vector<Token> conditionTokens;
     while (current(frame).getText() != Keywords.Do) {
       Token t = current(frame);
@@ -310,18 +314,18 @@ class Interpreter {
     std::vector<Token> loopTokens;
     InterpHelper::collectBodyTokens(loopTokens, frame);
 
-    CallStackFrame oldFrame = frame;
+    auto oldFrame = std::make_shared<CallStackFrame>(*frame);
     std::string tempId = InterpHelper::getTemporaryId();
     std::vector<Token> tempAssignment =
         InterpHelper::getTemporaryAssignment(tokenTerm, tempId);
     // Interpret the condition.
     while (true) {
-      if (frame.isFlagSet(FrameFlags::LoopBreak)) {
+      if (frame->isFlagSet(FrameFlags::LoopBreak)) {
         break;
       }
 
-      if (frame.isFlagSet(FrameFlags::LoopContinue)) {
-        frame.clearFlag(FrameFlags::LoopContinue);
+      if (frame->isFlagSet(FrameFlags::LoopContinue)) {
+        frame->clearFlag(FrameFlags::LoopContinue);
         continue;
       }
 
@@ -329,16 +333,16 @@ class Interpreter {
       auto it = condition.begin() + 0;
       condition.insert(it, tempAssignment.begin(), tempAssignment.end());
 
-      CallStackFrame conditionFrame(condition);
-      for (const auto& pair : frame.variables) {
-        conditionFrame.variables[pair.first] = pair.second;
+      auto conditionFrame = std::make_shared<CallStackFrame>(condition);
+      for (const auto& pair : frame->variables) {
+        conditionFrame->variables[pair.first] = pair.second;
       }
 
       callStack.push(conditionFrame);
       interpretAssignment(conditionFrame, true);
 
-      if (conditionFrame.variables.find(tempId) ==
-          conditionFrame.variables.end()) {
+      if (conditionFrame->variables.find(tempId) ==
+          conditionFrame->variables.end()) {
         throw SyntaxError(current(frame), "Invalid condition in while-loop.");
       }
 
@@ -354,9 +358,9 @@ class Interpreter {
         break;
       }
 
-      CallStackFrame codeFrame(loopTokens);
-      for (const auto& pair : frame.variables) {
-        codeFrame.variables[pair.first] = pair.second;
+      auto codeFrame = std::make_shared<CallStackFrame>(loopTokens);
+      for (const auto& pair : frame->variables) {
+        codeFrame->variables[pair.first] = pair.second;
       }
 
       callStack.push(codeFrame);
@@ -365,19 +369,19 @@ class Interpreter {
       interpretStackFrame();
       frame = callStack.top();
     }
-    frame.clearFlag(FrameFlags::LoopBreak);
-    frame.clearFlag(FrameFlags::LoopContinue);
+    frame->clearFlag(FrameFlags::LoopBreak);
+    frame->clearFlag(FrameFlags::LoopContinue);
 
-    for (const auto& pair : frame.variables) {
+    for (const auto& pair : frame->variables) {
       if (InterpHelper::shouldUpdateFrameVariables(pair.first, oldFrame)) {
-        oldFrame.variables[pair.first] = pair.second;
+        oldFrame->variables[pair.first] = pair.second;
       }
     }
 
     frame = oldFrame;
   }
 
-  void interpretLoop(CallStackFrame& frame) {
+  void interpretLoop(std::shared_ptr<CallStackFrame> frame) {
     std::string loop = current(frame).getText();
     next(frame);  // Skip "while"|"for"
 
@@ -388,9 +392,9 @@ class Interpreter {
     }
   }
 
-  void interpretKeyword(const Token& token, CallStackFrame& frame) {
-    const std::string& keyword = token.getText();
-
+  void interpretKiwiKeyword(const Token& token,
+                            std::shared_ptr<CallStackFrame> frame,
+                            const std::string& keyword) {
     if (keyword == Keywords.If) {
       interpretConditional(frame);
     } else if (keyword == Keywords.DeclVar) {
@@ -414,18 +418,26 @@ class Interpreter {
     } else if (keyword == Keywords.This) {
       interpretSelfInvocation(frame);
     } else if (keyword == Keywords.Break) {
-      frame.setFlag(FrameFlags::LoopBreak);
+      frame->setFlag(FrameFlags::LoopBreak);
     } else if (keyword == Keywords.Next) {
-      frame.setFlag(FrameFlags::LoopContinue);
+      frame->setFlag(FrameFlags::LoopContinue);
     } else if (keyword == Keywords.Try) {
-      frame.setFlag(FrameFlags::InTry);
+      frame->setFlag(FrameFlags::InTry);
     } else if (keyword == Keywords.Pass) {
       // skip
     } else if (keyword == Keywords.Catch) {
       interpretCatch(frame);
     } else {
-      throw UnrecognizedTokenError(token);
+      throw UnrecognizedTokenError(
+          token, "Unrecognized token `" + token.getText() + "`.");
     }
+  }
+
+  void interpretKeyword(const Token& token,
+                        std::shared_ptr<CallStackFrame> frame) {
+    const std::string& keyword = token.getText();
+
+    interpretKiwiKeyword(token, frame, keyword);
   }
 
   /// @brief
@@ -433,7 +445,7 @@ class Interpreter {
   /// @param identifier
   /// @param frame
   void interpretQualifiedIdentifier(Token& token, std::string& identifier,
-                                    CallStackFrame& frame) {
+                                    std::shared_ptr<CallStackFrame> frame) {
     while (peek(frame).getType() == TokenType::QUALIFIER) {
       next(frame);  // Skip the identifier.
       next(frame);  // Skip the qualifier.
@@ -443,7 +455,7 @@ class Interpreter {
   }
 
   void interpretIdentifierOperation(const std::string& identifier,
-                                    CallStackFrame& frame) {
+                                    std::shared_ptr<CallStackFrame> frame) {
     next(frame);  // Skip identifier.
     std::string op = current(frame).getText();
     next(frame);
@@ -456,7 +468,7 @@ class Interpreter {
     }
   }
 
-  void interpretIdentifier(CallStackFrame& frame) {
+  void interpretIdentifier(std::shared_ptr<CallStackFrame> frame) {
     Token token = current(frame);
     std::string tokenText = token.getText();
 
@@ -469,7 +481,7 @@ class Interpreter {
       if (std::holds_alternative<std::shared_ptr<LambdaRef>>(v)) {
         std::string lambdaRef =
             std::get<std::shared_ptr<LambdaRef>>(v)->identifier;
-        if (frame.hasAssignedLambda(lambdaRef)) {
+        if (frame->hasAssignedLambda(lambdaRef)) {
           interpretMethodInvocation(lambdaRef, frame);
         } else {
           throw InvalidOperationError(token,
@@ -488,7 +500,7 @@ class Interpreter {
     }
   }
 
-  void interpretCatch(CallStackFrame& frame) {
+  void interpretCatch(std::shared_ptr<CallStackFrame> frame) {
     next(frame);  // SKip "catch"
 
     std::string errorVariableName;
@@ -517,27 +529,28 @@ class Interpreter {
       next(frame);
     }
 
-    if (frame.isErrorStateSet()) {
-      CallStackFrame catchFrame(catchTokens);
+    if (frame->isErrorStateSet()) {
+      auto catchFrame = std::make_shared<CallStackFrame>(catchTokens);
 
-      for (const auto& pair : frame.variables) {
-        catchFrame.variables[pair.first] = pair.second;
+      for (const auto& pair : frame->variables) {
+        catchFrame->variables[pair.first] = pair.second;
       }
 
       if (!errorVariableName.empty() &&
           std::holds_alternative<std::string>(errorValue)) {
-        catchFrame.variables[errorVariableName] = errorValue;
+        catchFrame->variables[errorVariableName] = errorValue;
       }
 
       callStack.push(catchFrame);
       interpretStackFrame();
-      frame.clearFlag(FrameFlags::InTry);
-      frame.clearErrorState();
+      frame->clearFlag(FrameFlags::InTry);
+      frame->clearErrorState();
     }
   }
 
-  void interpretToken(const Token& token, CallStackFrame& frame) {
-    if (frame.isErrorStateSet()) {
+  void interpretToken(const Token& token,
+                      std::shared_ptr<CallStackFrame> frame) {
+    if (frame->isErrorStateSet()) {
       if (token.getType() == TokenType::KEYWORD &&
           token.getText() == Keywords.Catch) {
         interpretCatch(frame);
@@ -564,7 +577,8 @@ class Interpreter {
         break;
 
       default:
-        throw UnrecognizedTokenError(token);
+        throw UnrecognizedTokenError(
+            token, "Unrecognized token `" + token.getText() + "`.");
     }
   }
 
@@ -588,38 +602,41 @@ class Interpreter {
     return classes.find(name) != classes.end();
   }
 
-  bool hasMethod(const std::string& name, CallStackFrame& frame) {
-    if (frame.inObjectContext()) {
-      Class clazz = classes[frame.getObjectContext()->className];
+  bool hasMethod(const std::string& name,
+                 std::shared_ptr<CallStackFrame> frame) {
+    if (frame->inObjectContext()) {
+      Class clazz = classes[frame->getObjectContext()->className];
       if (clazz.hasMethod(name)) {
         return true;
       }
     }
 
-    if (frame.hasAssignedLambda(name)) {
+    if (frame->hasAssignedLambda(name)) {
       return true;
     }
 
     return methods.find(name) != methods.end();
   }
 
-  bool hasVariable(const std::string& name, CallStackFrame& frame) {
-    if (frame.variables.find(name) != frame.variables.end()) {
+  bool hasVariable(const std::string& name,
+                   std::shared_ptr<CallStackFrame> frame) {
+    if (frame->variables.find(name) != frame->variables.end()) {
       return true;  // Found in the current frame
     }
 
-    if (frame.inObjectContext()) {
-      if (frame.getObjectContext()->instanceVariables.find(name) !=
-          frame.getObjectContext()->instanceVariables.end()) {
+    if (frame->inObjectContext()) {
+      if (frame->getObjectContext()->instanceVariables.find(name) !=
+          frame->getObjectContext()->instanceVariables.end()) {
         return true;
       }
     }
 
     // Check in outer frames
-    std::stack<CallStackFrame> tempStack(callStack);  // Copy the call stack
+    std::stack<std::shared_ptr<CallStackFrame>> tempStack(
+        callStack);  // Copy the call stack
     while (!tempStack.empty()) {
-      CallStackFrame& outerFrame = tempStack.top();
-      if (outerFrame.variables.find(name) != outerFrame.variables.end()) {
+      auto& outerFrame = tempStack.top();
+      if (outerFrame->variables.find(name) != outerFrame->variables.end()) {
         return true;  // Found in an outer frame
       }
       tempStack.pop();
@@ -629,7 +646,8 @@ class Interpreter {
   }
 
   Module getHomedModule(const std::string& homeName,
-                        const std::string& moduleName, CallStackFrame& frame) {
+                        const std::string& moduleName,
+                        std::shared_ptr<CallStackFrame> frame) {
     for (auto pair : modules) {
       if (pair.first == moduleName && pair.second.hasHome() &&
           pair.second.getHome() == homeName) {
@@ -640,7 +658,8 @@ class Interpreter {
     throw ModuleUndefinedError(current(frame), moduleName);
   }
 
-  Module getModule(const std::string& name, CallStackFrame& frame) {
+  Module getModule(const std::string& name,
+                   std::shared_ptr<CallStackFrame> frame) {
     if (hasModule(name)) {
       return modules[name];
     }
@@ -648,21 +667,22 @@ class Interpreter {
     throw ModuleUndefinedError(current(frame), name);
   }
 
-  Method getMethod(const std::string& name, CallStackFrame& frame) {
+  Method getMethod(const std::string& name,
+                   std::shared_ptr<CallStackFrame> frame) {
     if (hasMethod(name, frame)) {
-      if (frame.inObjectContext()) {
-        Class clazz = classes[frame.getObjectContext()->className];
+      if (frame->inObjectContext()) {
+        Class clazz = classes[frame->getObjectContext()->className];
         if (clazz.hasMethod(name)) {
           return clazz.getMethod(name);
         }
 
-        if (frame.hasAssignedLambda(name)) {
-          return frame.getAssignedLambda(name);
+        if (frame->hasAssignedLambda(name)) {
+          return frame->getAssignedLambda(name);
         }
       }
 
-      if (frame.hasAssignedLambda(name)) {
-        return frame.getAssignedLambda(name);
+      if (frame->hasAssignedLambda(name)) {
+        return frame->getAssignedLambda(name);
       }
 
       return methods[name];
@@ -671,27 +691,29 @@ class Interpreter {
     throw MethodUndefinedError(current(frame), name);
   }
 
-  Value getVariable(const std::string& name, CallStackFrame& frame) {
+  Value getVariable(const std::string& name,
+                    std::shared_ptr<CallStackFrame> frame) {
     // Check in the current frame
-    if (frame.variables.find(name) != frame.variables.end()) {
-      Value value = frame.variables[name];
+    if (frame->variables.find(name) != frame->variables.end()) {
+      Value value = frame->variables[name];
       return value;
     }
 
-    if (frame.inObjectContext()) {
-      if (frame.getObjectContext()->instanceVariables.find(name) !=
-          frame.getObjectContext()->instanceVariables.end()) {
-        Value value = frame.getObjectContext()->instanceVariables[name];
+    if (frame->inObjectContext()) {
+      if (frame->getObjectContext()->instanceVariables.find(name) !=
+          frame->getObjectContext()->instanceVariables.end()) {
+        Value value = frame->getObjectContext()->instanceVariables[name];
         return value;
       }
     }
 
     // Check in outer frames
-    std::stack<CallStackFrame> tempStack(callStack);  // Copy the call stack
+    std::stack<std::shared_ptr<CallStackFrame>> tempStack(
+        callStack);  // Copy the call stack
     while (!tempStack.empty()) {
-      CallStackFrame& outerFrame = tempStack.top();
-      if (outerFrame.variables.find(name) != outerFrame.variables.end()) {
-        Value value = outerFrame.variables[name];
+      auto& outerFrame = tempStack.top();
+      if (outerFrame->variables.find(name) != outerFrame->variables.end()) {
+        Value value = outerFrame->variables[name];
         return value;  // Found in an outer frame
       }
       tempStack.pop();
@@ -701,7 +723,7 @@ class Interpreter {
   }
 
   void interpretModuleImport(const std::string& home, const std::string& name,
-                             CallStackFrame& frame) {
+                             std::shared_ptr<CallStackFrame> frame) {
     next(frame);  // Skip the name.
 
     moduleStack.push(name);
@@ -709,13 +731,13 @@ class Interpreter {
                         ? getHomedModule(home, name, frame)
                         : getModule(name, frame);
 
-    CallStackFrame codeFrame(module.getCode());
+    auto codeFrame = std::make_shared<CallStackFrame>(module.getCode());
     callStack.push(codeFrame);
     interpretStackFrame();
     moduleStack.pop();
   }
 
-  std::vector<Value> interpretArguments(CallStackFrame& frame) {
+  std::vector<Value> interpretArguments(std::shared_ptr<CallStackFrame> frame) {
     std::vector<Value> args;
 
     if (current(frame).getType() != TokenType::OPEN_PAREN) {
@@ -761,7 +783,8 @@ class Interpreter {
 
   void interpretModuleBuiltin(const std::string moduleName,
                               const std::string& builtin,
-                              std::vector<Value>& args, CallStackFrame& frame) {
+                              std::vector<Value>& args,
+                              std::shared_ptr<CallStackFrame> frame) {
     if (builtin == ModuleBuiltins.Home) {
       if (args.size() != 1) {
         throw BuiltinUnexpectedArgumentError(current(frame), builtin);
@@ -778,9 +801,8 @@ class Interpreter {
     }
   }
 
-  std::vector<std::string> collectMethodParameters(Token& tokenTerm,
-                                                   Method& method,
-                                                   CallStackFrame& frame) {
+  std::vector<std::string> collectMethodParameters(
+      Token& tokenTerm, Method& method, std::shared_ptr<CallStackFrame> frame) {
     if (current(frame).getType() != TokenType::OPEN_PAREN) {
       throw SyntaxError(
           tokenTerm,
@@ -819,19 +841,18 @@ class Interpreter {
     return parameters;
   }
 
-  CallStackFrame buildMethodInvocationStackFrame(Token& tokenTerm,
-                                                 Method& method,
-                                                 CallStackFrame& frame) {
+  std::shared_ptr<CallStackFrame> buildMethodInvocationStackFrame(
+      Token& tokenTerm, Method& method, std::shared_ptr<CallStackFrame> frame) {
     std::vector<std::string> parameters =
         collectMethodParameters(tokenTerm, method, frame);
 
-    CallStackFrame codeFrame(method.getCode());
-    for (const auto& pair : frame.variables) {
-      codeFrame.variables[pair.first] = std::move(pair.second);
+    auto codeFrame = std::make_shared<CallStackFrame>(method.getCode());
+    for (const auto& pair : frame->variables) {
+      codeFrame->variables[pair.first] = std::move(pair.second);
     }
-    for (const auto& pair : frame.lambdas) {
+    for (const auto& pair : frame->lambdas) {
       // Check this.
-      codeFrame.assignLambda(pair.first, pair.second);
+      codeFrame->assignLambda(pair.first, pair.second);
     }
 
     // Check all parameters are passed.
@@ -839,16 +860,16 @@ class Interpreter {
       if (!method.hasParameter(parameterName)) {
         throw ParameterMissingError(tokenTerm, parameterName);
       } else {
-        codeFrame.variables[parameterName] =
+        codeFrame->variables[parameterName] =
             std::move(method.getParameterValue(parameterName));
       }
     }
-    codeFrame.setFlag(FrameFlags::SubFrame);
+    codeFrame->setFlag(FrameFlags::SubFrame);
     return codeFrame;
   }
 
   void interpretClassMethodInvocation(const std::string& className,
-                                      CallStackFrame& frame) {
+                                      std::shared_ptr<CallStackFrame> frame) {
     next(frame);  // Skip class name
     next(frame);  // Skip the "."
 
@@ -885,19 +906,18 @@ class Interpreter {
     }
 
     if (method.isFlagSet(MethodFlags::Private)) {
-      if (!frame.inObjectContext() ||
-          frame.getObjectContext()->className != className) {
+      if (!frame->inObjectContext() ||
+          frame->getObjectContext()->className != className) {
         throw InvalidContextError(
             current(frame),
             "Cannot invoke private method outside of object context.");
       }
     }
 
-    CallStackFrame codeFrame =
-        buildMethodInvocationStackFrame(tokenTerm, method, frame);
+    auto codeFrame = buildMethodInvocationStackFrame(tokenTerm, method, frame);
     if (isInstantiation) {
       context->className = className;
-      codeFrame.setObjectContext(context);
+      codeFrame->setObjectContext(context);
     }
     callStack.push(codeFrame);
 
@@ -905,10 +925,9 @@ class Interpreter {
     interpretStackFrame();
   }
 
-  Value interpretInstanceMethodInvocation(std::shared_ptr<Object>& object,
-                                          const std::string& methodName,
-                                          std::vector<Value>& parameters,
-                                          CallStackFrame& frame) {
+  Value interpretInstanceMethodInvocation(
+      std::shared_ptr<Object>& object, const std::string& methodName,
+      std::vector<Value>& parameters, std::shared_ptr<CallStackFrame> frame) {
     if (!hasClass(object->className)) {
       throw ClassUndefinedError(current(frame), object->className);
     }
@@ -925,15 +944,15 @@ class Interpreter {
 
     Method method = clazz.getMethod(methodName);
 
-    if (method.isFlagSet(MethodFlags::Private) && !frame.inObjectContext()) {
+    if (method.isFlagSet(MethodFlags::Private) && !frame->inObjectContext()) {
       throw InvalidContextError(
           current(frame),
           "Cannot invoke private method outside of object context.");
     }
 
-    CallStackFrame codeFrame(method.getCode());
-    for (const auto& pair : frame.variables) {
-      codeFrame.variables[pair.first] = pair.second;
+    auto codeFrame = std::make_shared<CallStackFrame>(method.getCode());
+    for (const auto& pair : frame->variables) {
+      codeFrame->variables[pair.first] = pair.second;
     }
 
     if (static_cast<int>(parameters.size()) != method.getParameterCount()) {
@@ -943,25 +962,25 @@ class Interpreter {
     // Check all parameters are passed.
     int parameterIndex = 0;
     for (const std::string& parameterName : method.getParameters()) {
-      codeFrame.variables[parameterName] = parameters.at(parameterIndex++);
+      codeFrame->variables[parameterName] = parameters.at(parameterIndex++);
     }
-    codeFrame.setFlag(FrameFlags::SubFrame);
-    codeFrame.setObjectContext(object);
+    codeFrame->setFlag(FrameFlags::SubFrame);
+    codeFrame->setObjectContext(object);
     callStack.push(codeFrame);
 
     interpretStackFrame();
 
     Value value;
     if (!callStack.empty()) {
-      value = callStack.top().returnValue;
-      frame.clearFlag(FrameFlags::ReturnFlag);
+      value = callStack.top()->returnValue;
+      frame->clearFlag(FrameFlags::ReturnFlag);
     }
 
     return value;
   }
 
-  void interpretInstanceMethodInvocation(const std::string& instanceName,
-                                         CallStackFrame& frame) {
+  void interpretInstanceMethodInvocation(
+      const std::string& instanceName, std::shared_ptr<CallStackFrame> frame) {
     next(frame);  // Skip the "."
     if (current(frame).getType() != TokenType::IDENTIFIER) {
       throw SyntaxError(
@@ -988,37 +1007,35 @@ class Interpreter {
 
     Method method = clazz.getMethod(methodName);
 
-    if (method.isFlagSet(MethodFlags::Private) && !frame.inObjectContext()) {
+    if (method.isFlagSet(MethodFlags::Private) && !frame->inObjectContext()) {
       throw InvalidContextError(
           tokenTerm, "Cannot invoke private method outside of object context.");
     }
 
-    CallStackFrame codeFrame =
-        buildMethodInvocationStackFrame(tokenTerm, method, frame);
-    codeFrame.setObjectContext(object);
+    auto codeFrame = buildMethodInvocationStackFrame(tokenTerm, method, frame);
+    codeFrame->setObjectContext(object);
     callStack.push(codeFrame);
 
     interpretStackFrame();
   }
 
   void interpretMethodInvocation(const std::string& name,
-                                 CallStackFrame& frame) {
+                                 std::shared_ptr<CallStackFrame> frame) {
     next(frame);  // Skip the name.
     Method method = getMethod(name, frame);
 
     Token tokenTerm = current(frame);
 
-    CallStackFrame codeFrame =
-        buildMethodInvocationStackFrame(tokenTerm, method, frame);
-    if (frame.inObjectContext()) {
-      codeFrame.setObjectContext(frame.getObjectContext());
+    auto codeFrame = buildMethodInvocationStackFrame(tokenTerm, method, frame);
+    if (frame->inObjectContext()) {
+      codeFrame->setObjectContext(frame->getObjectContext());
     }
     callStack.push(codeFrame);
 
     interpretStackFrame();
   }
 
-  void interpretMethodDefinition(CallStackFrame& frame) {
+  void interpretMethodDefinition(std::shared_ptr<CallStackFrame> frame) {
     Method method = InterpHelper::interpretMethodDeclaration(frame);
     std::string name = method.getName();
     std::string moduleName;
@@ -1040,7 +1057,7 @@ class Interpreter {
     methods[name] = method;
   }
 
-  void interpretReturn(CallStackFrame& frame) {
+  void interpretReturn(std::shared_ptr<CallStackFrame> frame) {
     bool hasValue = InterpHelper::hasReturnValue(frame);
     next(frame);  // Skip "return"
 
@@ -1055,11 +1072,11 @@ class Interpreter {
       }
     }
 
-    frame.returnValue = returnValue;
-    frame.setFlag(FrameFlags::ReturnFlag);
+    frame->returnValue = returnValue;
+    frame->setFlag(FrameFlags::ReturnFlag);
   }
 
-  std::string interpretAssignment(CallStackFrame& frame,
+  std::string interpretAssignment(std::shared_ptr<CallStackFrame> frame,
                                   bool isTemporary = false) {
     std::string name;
     if (current(frame).getType() == TokenType::DECLVAR) {
@@ -1108,7 +1125,7 @@ class Interpreter {
     return name;
   }
 
-  void interpretHashElementAssignment(CallStackFrame& frame,
+  void interpretHashElementAssignment(std::shared_ptr<CallStackFrame> frame,
                                       const std::string& name, Value& value) {
     std::string key;
 
@@ -1163,10 +1180,10 @@ class Interpreter {
     std::shared_ptr<Hash> hashValue = std::get<std::shared_ptr<Hash>>(value);
     hashValue->kvp[key] = elementValue;
 
-    frame.variables[name] = hashValue;
+    frame->variables[name] = hashValue;
   }
 
-  void interpretSliceAssignment(CallStackFrame& frame,
+  void interpretSliceAssignment(std::shared_ptr<CallStackFrame> frame,
                                 const std::string& name) {
     Value value = getVariable(name, frame);
 
@@ -1207,7 +1224,8 @@ class Interpreter {
                                   rhsList);
   }
 
-  SliceIndex interpretSliceIndex(CallStackFrame& frame, Value& listValue) {
+  SliceIndex interpretSliceIndex(std::shared_ptr<CallStackFrame> frame,
+                                 Value& listValue) {
     if (current(frame).getType() != TokenType::OPEN_BRACKET) {
       throw SyntaxError(current(frame),
                         "Expected open-bracket, `[`, for list access.");
@@ -1271,7 +1289,7 @@ class Interpreter {
     return slice;
   }
 
-  Value interpretKeyOrIndex(CallStackFrame& frame) {
+  Value interpretKeyOrIndex(std::shared_ptr<CallStackFrame> frame) {
     if (current(frame).getType() != TokenType::OPEN_BRACKET) {
       throw SyntaxError(current(frame),
                         "Expected open-bracket, `[`, in key or index access.");
@@ -1289,7 +1307,7 @@ class Interpreter {
     return output;
   }
 
-  std::string interpretKey(CallStackFrame& frame) {
+  std::string interpretKey(std::shared_ptr<CallStackFrame> frame) {
     Value output = interpretKeyOrIndex(frame);
 
     if (!std::holds_alternative<std::string>(output)) {
@@ -1299,7 +1317,7 @@ class Interpreter {
     return std::get<std::string>(output);
   }
 
-  int interpretIndex(CallStackFrame& frame) {
+  int interpretIndex(std::shared_ptr<CallStackFrame> frame) {
     Value output = interpretKeyOrIndex(frame);
 
     if (!std::holds_alternative<int>(output)) {
@@ -1309,7 +1327,8 @@ class Interpreter {
     return std::get<int>(output);
   }
 
-  Value interpretHashElementAccess(CallStackFrame& frame, Value& value) {
+  Value interpretHashElementAccess(std::shared_ptr<CallStackFrame> frame,
+                                   Value& value) {
     Token tokenTerm = current(frame);
 
     std::string key = interpretKey(frame);
@@ -1321,7 +1340,8 @@ class Interpreter {
     return hash->kvp[key];
   }
 
-  Value interpretSlice(CallStackFrame& frame, const std::string& name) {
+  Value interpretSlice(std::shared_ptr<CallStackFrame> frame,
+                       const std::string& name) {
     Value value = getVariable(name, frame);
     if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
       return interpretHashElementAccess(frame, value);
@@ -1338,7 +1358,8 @@ class Interpreter {
     return InterpHelper::interpretListSlice(slice, list, frame);
   }
 
-  void interpretAppendToList(CallStackFrame& frame, Value& listValue,
+  void interpretAppendToList(std::shared_ptr<CallStackFrame> frame,
+                             Value& listValue,
                              const std::string& listVariableName) {
     Token tokenTerm = current(frame);
 
@@ -1359,7 +1380,8 @@ class Interpreter {
   }
 
   std::shared_ptr<List> interpretRange(
-      BooleanExpressionBuilder& booleanExpression, CallStackFrame& frame) {
+      BooleanExpressionBuilder& booleanExpression,
+      std::shared_ptr<CallStackFrame> frame) {
     std::shared_ptr<List> list = std::make_shared<List>();
 
     next(frame);  // Skip the "["
@@ -1409,7 +1431,8 @@ class Interpreter {
   }
 
   std::shared_ptr<Hash> interpretHash(
-      BooleanExpressionBuilder& booleanExpression, CallStackFrame& frame) {
+      BooleanExpressionBuilder& booleanExpression,
+      std::shared_ptr<CallStackFrame> frame) {
     std::shared_ptr<Hash> hash = std::make_shared<Hash>();
     next(frame);  // Skip the "{"
 
@@ -1449,7 +1472,8 @@ class Interpreter {
   }
 
   std::shared_ptr<List> interpretList(
-      BooleanExpressionBuilder& booleanExpression, CallStackFrame& frame) {
+      BooleanExpressionBuilder& booleanExpression,
+      std::shared_ptr<CallStackFrame> frame) {
     std::shared_ptr<List> list = std::make_shared<List>();
     next(frame);  // Skip "["
     int bracketCount = 1;
@@ -1493,7 +1517,7 @@ class Interpreter {
     return list;
   }
 
-  void interpretConditional(CallStackFrame& frame) {
+  void interpretConditional(std::shared_ptr<CallStackFrame> frame) {
     if (current(frame).getText() != Keywords.If) {
       throw SyntaxError(current(frame), "Invalid conditional. Expected `" +
                                             Keywords.If +
@@ -1619,9 +1643,9 @@ class Interpreter {
 
     // Execute
     if (!executableTokens.empty()) {
-      CallStackFrame executableFrame(executableTokens);
-      for (const auto& pair : frame.variables) {
-        executableFrame.variables[pair.first] = pair.second;
+      auto executableFrame = std::make_shared<CallStackFrame>(executableTokens);
+      for (const auto& pair : frame->variables) {
+        executableFrame->variables[pair.first] = pair.second;
       }
 
       callStack.push(executableFrame);
@@ -1630,13 +1654,13 @@ class Interpreter {
   }
 
   /*// TODO: implement this.
-  void interpretSuperInvocation(CallStackFrame& frame) {
+  void interpretSuperInvocation(std::shared_ptr<CallStackFrame> frame) {
     
   }
 */
 
-  void interpretSelfInvocation(CallStackFrame& frame) {
-    if (!frame.inObjectContext()) {
+  void interpretSelfInvocation(std::shared_ptr<CallStackFrame> frame) {
+    if (!frame->inObjectContext()) {
       throw InvalidContextError(current(frame),
                                 "Invalid context for keyword `this`.");
     }
@@ -1655,7 +1679,7 @@ class Interpreter {
     }
   }
 
-  void interpretClassDefinition(CallStackFrame& frame) {
+  void interpretClassDefinition(std::shared_ptr<CallStackFrame> frame) {
     bool isAbstract = current(frame).getText() == Keywords.Abstract;
     std::string moduleName;
     if (!moduleStack.empty()) {
@@ -1768,7 +1792,7 @@ class Interpreter {
     classes[className] = std::move(clazz);
   }
 
-  void interpretModuleDefinition(CallStackFrame& frame) {
+  void interpretModuleDefinition(std::shared_ptr<CallStackFrame> frame) {
     next(frame);  // Skip "module"
 
     std::string name = current(frame).getText();
@@ -1800,7 +1824,7 @@ class Interpreter {
     modules[name] = std::move(module);
   }
 
-  void interpretExternalImport(CallStackFrame& frame) {
+  void interpretExternalImport(std::shared_ptr<CallStackFrame> frame) {
     BooleanExpressionBuilder booleanExpression;
     Value scriptNameValue = interpretExpression(booleanExpression, frame);
     if (!std::holds_alternative<std::string>(scriptNameValue)) {
@@ -1826,16 +1850,16 @@ class Interpreter {
     Lexer lexer(scriptPath, content);
     files[scriptPath] = lexer.getLines();
     std::vector<Token> tokens = lexer.getAllTokens();
-    CallStackFrame scriptFrame(tokens);
-    for (const auto& pair : frame.variables) {
-      scriptFrame.variables[pair.first] = pair.second;
+    auto scriptFrame = std::make_shared<CallStackFrame>(tokens);
+    for (const auto& pair : frame->variables) {
+      scriptFrame->variables[pair.first] = pair.second;
     }
 
     callStack.push(scriptFrame);
     interpretStackFrame();
   }
 
-  void interpretImport(CallStackFrame& frame) {
+  void interpretImport(std::shared_ptr<CallStackFrame> frame) {
     next(frame);  // skip the "import"
 
     std::string tokenText = current(frame).getText();
@@ -1849,7 +1873,8 @@ class Interpreter {
     }
   }
 
-  Value interpretVariableValue(std::string name, CallStackFrame& frame) {
+  Value interpretVariableValue(std::string name,
+                               std::shared_ptr<CallStackFrame> frame) {
     if (!hasVariable(name, frame)) {
       throw KiwiError(current(frame), "Unknown variable `" + name + "`");
     }
@@ -1863,8 +1888,8 @@ class Interpreter {
     return value;
   }
 
-  void interpretDeleteHashKey(CallStackFrame& frame, const std::string& name,
-                              Value& value) {
+  void interpretDeleteHashKey(std::shared_ptr<CallStackFrame> frame,
+                              const std::string& name, Value& value) {
     std::string key = interpretKey(frame);
     std::shared_ptr<Hash> hash = std::get<std::shared_ptr<Hash>>(value);
 
@@ -1873,11 +1898,11 @@ class Interpreter {
     }
 
     hash->kvp.erase(key);
-    frame.variables[name] = hash;
+    frame->variables[name] = hash;
   }
 
-  void interpretDeleteListIndex(CallStackFrame& frame, const std::string& name,
-                                Value& value) {
+  void interpretDeleteListIndex(std::shared_ptr<CallStackFrame> frame,
+                                const std::string& name, Value& value) {
     int index = interpretIndex(frame);
     std::shared_ptr<List> list = std::get<std::shared_ptr<List>>(value);
 
@@ -1886,10 +1911,10 @@ class Interpreter {
     }
 
     list->elements.erase(list->elements.begin() + index);
-    frame.variables[name] = list;
+    frame->variables[name] = list;
   }
 
-  void interpretDelete(CallStackFrame& frame) {
+  void interpretDelete(std::shared_ptr<CallStackFrame> frame) {
     next(frame);  // Skip "delete"
 
     if (current(frame).getType() == TokenType::DECLVAR) {
@@ -1915,7 +1940,8 @@ class Interpreter {
                       "Cannot delete from a non-variable value.");
   }
 
-  void interpretPrint(CallStackFrame& frame, bool printNewLine = false) {
+  void interpretPrint(std::shared_ptr<CallStackFrame> frame,
+                      bool printNewLine = false) {
     next(frame);  // skip the "print"
     BooleanExpressionBuilder booleanExpression;
 
@@ -1952,7 +1978,7 @@ class Interpreter {
   }
 
   Value interpretBracketExpression(BooleanExpressionBuilder& booleanExpression,
-                                   CallStackFrame& frame) {
+                                   std::shared_ptr<CallStackFrame> frame) {
     Value value;
     if (InterpHelper::isListExpression(frame)) {
       value = interpretList(booleanExpression, frame);
@@ -1967,7 +1993,8 @@ class Interpreter {
 
   void interpretBooleanExpression(Token& tokenTerm,
                                   BooleanExpressionBuilder& booleanExpression,
-                                  std::string& op, CallStackFrame& frame) {
+                                  std::string& op,
+                                  std::shared_ptr<CallStackFrame> frame) {
     Value nextTerm = interpretExpression(booleanExpression, frame);
 
     // Check if the last term is valueless.
@@ -1996,7 +2023,8 @@ class Interpreter {
     }
   }
 
-  void interpretBuiltin(const std::string& builtin, CallStackFrame& frame) {
+  void interpretBuiltin(const std::string& builtin,
+                        std::shared_ptr<CallStackFrame> frame) {
     Token tokenTerm = current(frame);
     next(frame);  // Skip the name.
 
@@ -2011,13 +2039,13 @@ class Interpreter {
       std::string moduleName = moduleStack.top();
       interpretModuleBuiltin(moduleName, builtin, args, frame);
     } else {
-      frame.returnValue =
+      frame->returnValue =
           BuiltinInterpreter::execute(tokenTerm, builtin, args, kiwiArgs);
     }
   }
 
   Value interpretLambdaMap(const std::shared_ptr<List>& list,
-                           CallStackFrame& frame) {
+                           std::shared_ptr<CallStackFrame> frame) {
     next(frame);  // Skip "("
 
     Method lambda = InterpHelper::getLambda(frame);
@@ -2046,21 +2074,21 @@ class Interpreter {
 
     size_t index = 0;
     for (const auto& item : list->elements) {
-      frame.variables[itemVariableName] = item;
+      frame->variables[itemVariableName] = item;
       if (hasIndexVariable) {
-        frame.variables[indexVariableName] = static_cast<int>(index);
+        frame->variables[indexVariableName] = static_cast<int>(index);
       }
 
-      CallStackFrame loopFrame(lambda.getCode());
-      for (const auto& pair : frame.variables) {
-        loopFrame.variables[pair.first] = pair.second;
+      auto loopFrame = std::make_shared<CallStackFrame>(lambda.getCode());
+      for (const auto& pair : frame->variables) {
+        loopFrame->variables[pair.first] = pair.second;
       }
       callStack.push(loopFrame);
       interpretStackFrame();
 
       if (!callStack.empty()) {
-        Value value = callStack.top().returnValue;
-        frame.clearFlag(FrameFlags::ReturnFlag);
+        Value value = callStack.top()->returnValue;
+        frame->clearFlag(FrameFlags::ReturnFlag);
         mappedList->elements.push_back(value);
       }
       index++;
@@ -2070,7 +2098,7 @@ class Interpreter {
   }
 
   Value interpretLambdaReduce(const std::shared_ptr<List>& list,
-                              CallStackFrame& frame) {
+                              std::shared_ptr<CallStackFrame> frame) {
     next(frame);  // Skip "("
 
     BooleanExpressionBuilder booleanExpression;
@@ -2109,21 +2137,21 @@ class Interpreter {
     size_t index = 0;
 
     for (const auto& item : list->elements) {
-      frame.variables[accumulatorName] = accumulator;
+      frame->variables[accumulatorName] = accumulator;
       if (hasIndexVariable) {
-        frame.variables[indexVariableName] = item;
+        frame->variables[indexVariableName] = item;
       }
 
-      CallStackFrame loopFrame(lambda.getCode());
-      for (const auto& pair : frame.variables) {
-        loopFrame.variables[pair.first] = pair.second;
+      auto loopFrame = std::make_shared<CallStackFrame>(lambda.getCode());
+      for (const auto& pair : frame->variables) {
+        loopFrame->variables[pair.first] = pair.second;
       }
       callStack.push(loopFrame);
       interpretStackFrame();
 
       if (!callStack.empty()) {
-        Value value = callStack.top().returnValue;
-        frame.clearFlag(FrameFlags::ReturnFlag);
+        Value value = callStack.top()->returnValue;
+        frame->clearFlag(FrameFlags::ReturnFlag);
         accumulator = value;
       }
       index++;
@@ -2133,7 +2161,7 @@ class Interpreter {
   }
 
   Value interpretLambdaSelect(const std::shared_ptr<List>& list,
-                              CallStackFrame& frame) {
+                              std::shared_ptr<CallStackFrame> frame) {
     next(frame);  // Skip "("
 
     Method lambda = InterpHelper::getLambda(frame);
@@ -2162,21 +2190,21 @@ class Interpreter {
 
     size_t index = 0;
     for (const auto& item : list->elements) {
-      frame.variables[itemVariableName] = item;
+      frame->variables[itemVariableName] = item;
       if (hasIndexVariable) {
-        frame.variables[indexVariableName] = static_cast<int>(index);
+        frame->variables[indexVariableName] = static_cast<int>(index);
       }
 
-      CallStackFrame loopFrame(lambda.getCode());
-      for (const auto& pair : frame.variables) {
-        loopFrame.variables[pair.first] = pair.second;
+      auto loopFrame = std::make_shared<CallStackFrame>(lambda.getCode());
+      for (const auto& pair : frame->variables) {
+        loopFrame->variables[pair.first] = pair.second;
       }
       callStack.push(loopFrame);
       interpretStackFrame();
 
       if (!callStack.empty()) {
-        Value value = callStack.top().returnValue;
-        frame.clearFlag(FrameFlags::ReturnFlag);
+        Value value = callStack.top()->returnValue;
+        frame->clearFlag(FrameFlags::ReturnFlag);
 
         if (std::holds_alternative<bool>(value) && std::get<bool>(value)) {
           filteredList->elements.push_back(item);
@@ -2189,7 +2217,7 @@ class Interpreter {
   }
 
   Value interpretObjectToHash(const std::shared_ptr<Object>& object,
-                              CallStackFrame& frame) {
+                              std::shared_ptr<CallStackFrame> frame) {
     if (current(frame).getType() != TokenType::OPEN_PAREN) {
       throw SyntaxError(current(frame),
                         "Expected open-parenthesis, `(`, in builtin `" +
@@ -2217,9 +2245,9 @@ class Interpreter {
     return hash;
   }
 
-  Value interpretSpecializedObjectBuiltin(const std::string& builtin,
-                                          const Value& value,
-                                          CallStackFrame& frame) {
+  Value interpretSpecializedObjectBuiltin(
+      const std::string& builtin, const Value& value,
+      std::shared_ptr<CallStackFrame> frame) {
     if (!std::holds_alternative<std::shared_ptr<Object>>(value)) {
       throw InvalidOperationError(
           current(frame), "Specialized object builtin `" + builtin +
@@ -2238,7 +2266,7 @@ class Interpreter {
 
   Value interpretSpecializedListBuiltin(const std::string& builtin,
                                         const Value& value,
-                                        CallStackFrame& frame) {
+                                        std::shared_ptr<CallStackFrame> frame) {
     if (!std::holds_alternative<std::shared_ptr<List>>(value)) {
       throw InvalidOperationError(
           current(frame), "Specialized list builtin `" + builtin +
@@ -2259,7 +2287,8 @@ class Interpreter {
     throw UnknownBuiltinError(current(frame), builtin);
   }
 
-  Value interpretDotNotation(Value& value, CallStackFrame& frame) {
+  Value interpretDotNotation(Value& value,
+                             std::shared_ptr<CallStackFrame> frame) {
     if (peek(frame).getType() == TokenType::DOT) {
       next(frame);
     }
@@ -2311,7 +2340,7 @@ class Interpreter {
   }
 
   Value interpretExpression(BooleanExpressionBuilder& booleanExpression,
-                            CallStackFrame& frame) {
+                            std::shared_ptr<CallStackFrame> frame) {
     Token tokenTerm = current(frame);
     std::string tokenText = tokenTerm.getText();
 
@@ -2319,13 +2348,13 @@ class Interpreter {
     bool valueSet = false;
 
     if (tokenText == Keywords.This) {
-      if (!frame.inObjectContext()) {
+      if (!frame->inObjectContext()) {
         throw InvalidContextError(current(frame),
                                   "Invalid context for keyword `this`.");
       }
 
       if (peek(frame).getType() != TokenType::DOT) {
-        value = frame.getObjectContext();
+        value = frame->getObjectContext();
         valueSet = true;
       } else {
         next(frame);  // Skip to "."
@@ -2366,7 +2395,7 @@ class Interpreter {
       } else if (methodFound) {
         if (peek(frame).getType() == TokenType::COMMA ||
             peek(frame).getType() == TokenType::CLOSE_PAREN) {
-          if (frame.hasAssignedLambda(tokenText)) {
+          if (frame->hasAssignedLambda(tokenText)) {
             std::shared_ptr<LambdaRef> lambdaRef =
                 std::make_shared<LambdaRef>(tokenText);
             value = lambdaRef;
@@ -2380,13 +2409,13 @@ class Interpreter {
       }
 
       if (!valueSet && !callStack.empty()) {
-        value = callStack.top().returnValue;
-        frame.clearFlag(FrameFlags::ReturnFlag);
+        value = callStack.top()->returnValue;
+        frame->clearFlag(FrameFlags::ReturnFlag);
         valueSet = true;
       }
     } else if (!valueSet && KiwiBuiltins.is_builtin_method(tokenText)) {
       interpretBuiltin(tokenText, frame);
-      value = frame.returnValue;
+      value = frame->returnValue;
       valueSet = true;
     }
 
@@ -2459,7 +2488,7 @@ class Interpreter {
     return value;
   }
 
-  Value interpretSimpleValueType(CallStackFrame& frame) {
+  Value interpretSimpleValueType(std::shared_ptr<CallStackFrame> frame) {
     if (current(frame).getValueType() == ValueType::Boolean) {
       return current(frame).toBoolean();
     } else if (current(frame).getValueType() == ValueType::Double) {
@@ -2473,8 +2502,8 @@ class Interpreter {
     throw ConversionError(current(frame));
   }
 
-  Value interpretSelfInvocationTerm(CallStackFrame& frame) {
-    if (!frame.inObjectContext()) {
+  Value interpretSelfInvocationTerm(std::shared_ptr<CallStackFrame> frame) {
+    if (!frame->inObjectContext()) {
       throw InvalidContextError(current(frame),
                                 "Invalid context for keyword `this`.");
     }
@@ -2484,7 +2513,7 @@ class Interpreter {
     }
 
     if (current(frame).getType() != TokenType::DOT) {
-      return frame.getObjectContext();
+      return frame->getObjectContext();
     }
     next(frame);  // Skip the "."
 
@@ -2499,18 +2528,18 @@ class Interpreter {
     std::string identifier = current(frame).getText();
     next(frame);  // Skip the identifier
 
-    Class clazz = classes[frame.getObjectContext()->className];
+    Class clazz = classes[frame->getObjectContext()->className];
 
     if (clazz.hasMethod(identifier)) {
-      interpretInstanceMethodInvocation(frame.getObjectContext()->identifier,
+      interpretInstanceMethodInvocation(frame->getObjectContext()->identifier,
                                         frame);
 
       if (!callStack.empty()) {
-        return callStack.top().returnValue;
+        return callStack.top()->returnValue;
       }
-    } else if (frame.getObjectContext()->instanceVariables.find(identifier) !=
-               frame.getObjectContext()->instanceVariables.end()) {
-      return frame.getObjectContext()->instanceVariables[identifier];
+    } else if (frame->getObjectContext()->instanceVariables.find(identifier) !=
+               frame->getObjectContext()->instanceVariables.end()) {
+      return frame->getObjectContext()->instanceVariables[identifier];
     }
 
     throw UnimplementedMethodError(current(frame), clazz.getClassName(),
@@ -2519,7 +2548,8 @@ class Interpreter {
 
   Value interpretTerm(Token& termToken,
                       BooleanExpressionBuilder& booleanExpression,
-                      CallStackFrame& frame, bool skipOnRetrieval = true) {
+                      std::shared_ptr<CallStackFrame> frame,
+                      bool skipOnRetrieval = true) {
     if (current(frame).getType() == TokenType::DECLVAR) {
       next(frame);
     }
@@ -2607,7 +2637,8 @@ class Interpreter {
     return 0;  // Placeholder for unsupported types
   }
 
-  std::string interpolateObject(Value& value, CallStackFrame& frame) {
+  std::string interpolateObject(Value& value,
+                                std::shared_ptr<CallStackFrame> frame) {
     std::shared_ptr<Object> object = std::get<std::shared_ptr<Object>>(value);
     Class clazz = classes[object->className];
 
@@ -2624,7 +2655,8 @@ class Interpreter {
     return Serializer::serialize(returnValue);
   }
 
-  Value interpolateString(CallStackFrame& frame, std::string& input) {
+  Value interpolateString(std::shared_ptr<CallStackFrame> frame,
+                          std::string& input) {
     if (input[0] == '@') {
       std::string name = input.substr(1);
       if (hasVariable(name, frame)) {
@@ -2646,13 +2678,13 @@ class Interpreter {
       line += t.getText();
     }
 
-    CallStackFrame tempFrame(tempAssignment);
-    if (frame.inObjectContext()) {
-      tempFrame.setObjectContext(frame.getObjectContext());
+    auto tempFrame = std::make_shared<CallStackFrame>(tempAssignment);
+    if (frame->inObjectContext()) {
+      tempFrame->setObjectContext(frame->getObjectContext());
     }
     interpretAssignment(tempFrame, true);
 
-    if (tempFrame.variables.find(tempId) == tempFrame.variables.end()) {
+    if (tempFrame->variables.find(tempId) == tempFrame->variables.end()) {
       throw SyntaxError(current(frame),
                         "Invalid string interpolation: `" + input + "`");
     }
@@ -2664,7 +2696,7 @@ class Interpreter {
     return value;
   }
 
-  std::string interpolateString(CallStackFrame& frame) {
+  std::string interpolateString(std::shared_ptr<CallStackFrame> frame) {
     std::ostringstream sv;
     std::string input = current(frame).getText();
     std::string builder;
@@ -2743,7 +2775,7 @@ class Interpreter {
   }
 
   void interpretLambdaAssignment(const std::string& name, std::string op,
-                                 CallStackFrame& frame) {
+                                 std::shared_ptr<CallStackFrame> frame) {
     if (op != Operators.Assign) {
       throw InvalidOperationError(
           current(frame), "Expected assignment operator in lambda assignment.");
@@ -2751,11 +2783,12 @@ class Interpreter {
 
     Method lambda = InterpHelper::interpretLambda(frame);
     lambda.setName(name);
-    frame.assignLambda(name, lambda);
+    frame->assignLambda(name, lambda);
   }
 
   void interpretAssignment(std::string& name, std::string& op,
-                           CallStackFrame& frame, bool isTemporary = false) {
+                           std::shared_ptr<CallStackFrame> frame,
+                           bool isTemporary = false) {
     if (current(frame).getType() == TokenType::LAMBDA) {
       interpretLambdaAssignment(name, op, frame);
       return;
@@ -2772,8 +2805,8 @@ class Interpreter {
       if (booleanExpression.isSet()) {
         value = booleanExpression.evaluate();
       }
-      if (!isTemporary && frame.inObjectContext()) {
-        frame.getObjectContext()->instanceVariables[name] = value;
+      if (!isTemporary && frame->inObjectContext()) {
+        frame->getObjectContext()->instanceVariables[name] = value;
       } else {
         if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
           std::shared_ptr<Object> object =
@@ -2781,7 +2814,7 @@ class Interpreter {
           object->identifier = name;
           value = object;
         }
-        frame.variables[name] = value;
+        frame->variables[name] = value;
       }
       Token nextToken = peek(frame);
       if (nextToken.getType() == TokenType::CLOSE_PAREN ||
@@ -2801,7 +2834,7 @@ class Interpreter {
     }
 
     Value currentValue = getVariable(name, frame);
-    frame.variables[name] =
+    frame->variables[name] =
         InterpHelper::interpretAssignOp(op, currentValue, value, frame);
   }
 };
