@@ -79,10 +79,10 @@ class OdbcConnection {
     }
 
     std::shared_ptr<Hash> result = std::make_shared<Hash>();
-    result->kvp[DatabaseResponseKeys.HasError] = false;
-    result->kvp[DatabaseResponseKeys.Connected] = connected;
-    result->kvp[DatabaseResponseKeys.InTransaction] =
-        autoCommitMode == SQL_AUTOCOMMIT_OFF;
+    result->add(DatabaseResponseKeys.HasError, false);
+    result->add(DatabaseResponseKeys.Connected, connected);
+    result->add(DatabaseResponseKeys.InTransaction,
+                autoCommitMode == SQL_AUTOCOMMIT_OFF);
     return result;
   }
 
@@ -99,9 +99,9 @@ class OdbcConnection {
     }
 
     std::shared_ptr<Hash> result = std::make_shared<Hash>();
-    result->kvp[DatabaseResponseKeys.HasError] = false;
-    result->kvp[DatabaseResponseKeys.Connected] = connected;
-    result->kvp[DatabaseResponseKeys.InTransaction] = false;
+    result->add(DatabaseResponseKeys.HasError, false);
+    result->add(DatabaseResponseKeys.Connected, connected);
+    result->add(DatabaseResponseKeys.InTransaction, false);
     return result;
   }
 
@@ -118,9 +118,9 @@ class OdbcConnection {
     }
 
     std::shared_ptr<Hash> result = std::make_shared<Hash>();
-    result->kvp[DatabaseResponseKeys.HasError] = false;
-    result->kvp[DatabaseResponseKeys.Connected] = connected;
-    result->kvp[DatabaseResponseKeys.InTransaction] = false;
+    result->add(DatabaseResponseKeys.HasError, false);
+    result->add(DatabaseResponseKeys.Connected, connected);
+    result->add(DatabaseResponseKeys.InTransaction, false);
     return result;
   }
 
@@ -138,10 +138,10 @@ class OdbcConnection {
     }
 
     std::shared_ptr<Hash> result = std::make_shared<Hash>();
-    result->kvp[DatabaseResponseKeys.HasError] = false;
-    result->kvp[DatabaseResponseKeys.Connected] = connected;
-    result->kvp[DatabaseResponseKeys.InTransaction] =
-        autoCommitMode == SQL_AUTOCOMMIT_OFF;
+    result->add(DatabaseResponseKeys.HasError, false);
+    result->add(DatabaseResponseKeys.Connected, connected);
+    result->add(DatabaseResponseKeys.InTransaction,
+                autoCommitMode == SQL_AUTOCOMMIT_OFF);
     return result;
   }
 
@@ -247,8 +247,8 @@ class OdbcConnection {
     connected = (retCode == SQL_SUCCESS || retCode == SQL_SUCCESS_WITH_INFO);
 
     std::shared_ptr<Hash> result = std::make_shared<Hash>();
-    result->kvp[DatabaseResponseKeys.HasError] = false;
-    result->kvp[DatabaseResponseKeys.Connected] = connected;
+    result->add(DatabaseResponseKeys.HasError, false);
+    result->add(DatabaseResponseKeys.Connected, connected);
     return result;
   }
 
@@ -295,8 +295,8 @@ class OdbcConnection {
     }
 
     std::shared_ptr<Hash> result = std::make_shared<Hash>();
-    result->kvp[DatabaseResponseKeys.HasError] = false;
-    result->kvp[DatabaseResponseKeys.Connected] = connected;
+    result->add(DatabaseResponseKeys.HasError, false);
+    result->add(DatabaseResponseKeys.Connected, connected);
 
     SQLSMALLINT columns;
     SQLRETURN ret = SQLNumResultCols(hStmt, &columns);
@@ -318,22 +318,22 @@ class OdbcConnection {
         SQLGetData(hStmt, i, SQL_C_CHAR, columnData, sizeof(columnData),
                    &columnDataLength);
 
-        row->kvp[std::string(reinterpret_cast<char*>(columnName),
-                             columnNameLength)] =
-            std::string(reinterpret_cast<char*>(columnData), columnDataLength);
+        row->add(
+            std::string(reinterpret_cast<char*>(columnName), columnNameLength),
+            std::string(reinterpret_cast<char*>(columnData), columnDataLength));
       }
 
       resultList->elements.push_back(row);
     }
 
-    result->kvp[DatabaseResponseKeys.Data] = resultList;
+    result->add(DatabaseResponseKeys.Data, resultList);
     return result;
   }
 
   Value getLastErrorMessage(SQLSMALLINT handleType, SQLHANDLE handle) {
     std::shared_ptr<Hash> result = std::make_shared<Hash>();
-    result->kvp[DatabaseResponseKeys.HasError] = true;
-    result->kvp[DatabaseResponseKeys.Connected] = connected;
+    result->add(DatabaseResponseKeys.HasError, true);
+    result->add(DatabaseResponseKeys.Connected, connected);
 
     SQLINTEGER i = 0;
     SQLINTEGER nativeError;
@@ -359,9 +359,9 @@ class OdbcConnection {
 
   Value getConnectionError(const std::string& message = "") {
     std::shared_ptr<Hash> result = std::make_shared<Hash>();
-    result->kvp[DatabaseResponseKeys.HasError] = true;
-    result->kvp[DatabaseResponseKeys.Connected] = false;
-    result->kvp[DatabaseResponseKeys.ErrorMessage] = message;
+    result->add(DatabaseResponseKeys.HasError, true);
+    result->add(DatabaseResponseKeys.Connected, false);
+    result->add(DatabaseResponseKeys.ErrorMessage, message);
     return result;
   }
 };

@@ -104,8 +104,8 @@ class HttpClient {
     CURL* curl = acquireHandle();
     if (!curl) {
       auto response = std::make_shared<Hash>();
-      response->kvp["error"] = Value("CURL initialization failed");
-      response->kvp["status"] = Value(0);
+      response->add("error", "CURL initialization failed");
+      response->add("status", 0);
       return response;
     }
 
@@ -157,14 +157,14 @@ class HttpClient {
 
     auto response = std::make_shared<Hash>();
     if (res == CURLE_OK) {
-      response->kvp["status"] = Value(static_cast<int>(statusCode));
-      response->kvp["body"] = Value(responseBody);
-      response->kvp["headers"] = Value(responseHeaders);
+      response->add("status", static_cast<int>(statusCode));
+      response->add("body", responseBody);
+      response->add("headers", responseHeaders);
     } else {
-      response->kvp["status"] =
-          Value((statusCode > 0) ? static_cast<int>(statusCode) : -1);
-      response->kvp["error"] = Value(curl_easy_strerror(res));
-      response->kvp["headers"] = Value(responseHeaders);
+      response->add("status",
+                    (statusCode > 0) ? static_cast<int>(statusCode) : -1);
+      response->add("error", curl_easy_strerror(res));
+      response->add("headers", responseHeaders);
     }
 
     releaseHandle(curl);

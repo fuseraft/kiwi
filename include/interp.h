@@ -1168,17 +1168,8 @@ class Interpreter {
 
     Value elementValue = interpretExpression(booleanExpression, frame);
 
-    /*if (std::holds_alternative<std::shared_ptr<Hash>>(elementValue)) {
-      std::shared_ptr<Hash> newHashElementValue = std::make_shared<Hash>();
-      std::shared_ptr<Hash> hashElementValue = std::get<std::shared_ptr<Hash>>(elementValue);
-      for (const auto& kvp : hashElementValue->kvp) {
-        newHashElementValue->kvp[kvp.first] = kvp.second;
-      }
-      elementValue = hashElementValue;
-    }*/
-
     std::shared_ptr<Hash> hashValue = std::get<std::shared_ptr<Hash>>(value);
-    hashValue->kvp[key] = elementValue;
+    hashValue->add(key, elementValue);
 
     frame->variables[name] = hashValue;
   }
@@ -1333,11 +1324,11 @@ class Interpreter {
 
     std::string key = interpretKey(frame);
     std::shared_ptr<Hash> hash = std::get<std::shared_ptr<Hash>>(value);
-    if (hash->kvp.find(key) == hash->kvp.end()) {
+    if (!hash->hasKey(key)) {
       throw HashKeyError(current(frame), key);
     }
 
-    return hash->kvp[key];
+    return hash->get(key);
   }
 
   Value interpretSlice(std::shared_ptr<CallStackFrame> frame,
@@ -1450,7 +1441,7 @@ class Interpreter {
       if (current(frame).getType() == TokenType::COLON) {
         next(frame);  // Skip the ":"
         auto value = interpretExpression(booleanExpression, frame);
-        hash->kvp[key] = value;
+        hash->add(key, value);
       }
 
       if (peek(frame).getType() == TokenType::COMMA) {
@@ -1893,11 +1884,11 @@ class Interpreter {
     std::string key = interpretKey(frame);
     std::shared_ptr<Hash> hash = std::get<std::shared_ptr<Hash>>(value);
 
-    if (hash->kvp.find(key) == hash->kvp.end()) {
+    if (!hash->hasKey(key)) {
       throw HashKeyError(current(frame), key);
     }
 
-    hash->kvp.erase(key);
+    hash->remove(key);
     frame->variables[name] = hash;
   }
 
@@ -2258,7 +2249,7 @@ class Interpreter {
         continue;
       }
 
-      hash->kvp[pair.first] = pair.second;
+      hash->add(pair.first, pair.second);
     }
 
     return hash;
