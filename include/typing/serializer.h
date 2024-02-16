@@ -140,8 +140,8 @@ struct Serializer {
   static std::shared_ptr<List> get_hash_keys_list(
       const std::shared_ptr<Hash>& hash) {
     std::shared_ptr<List> keys = std::make_shared<List>();
-    for (const auto& pair : hash->kvp) {
-      keys->elements.push_back(pair.first);
+    for (const auto& key : hash->keys) {
+      keys->elements.push_back(key);
     }
     return keys;
   }
@@ -164,13 +164,8 @@ struct Serializer {
     std::ostringstream sv;
     sv << "{";
 
-    std::vector<std::string> keys;
-    for (const auto& pair : hash->kvp) {
-      keys.push_back(pair.first);
-    }
-
     bool first = true;
-    for (std::string key : keys) {
+    for (std::string key : hash->keys) {
       if (!first) {
         sv << ", ";
       } else {
@@ -178,7 +173,7 @@ struct Serializer {
       }
 
       sv << "\"" << key << "\": ";
-      Value v = hash->kvp[key];
+      Value v = hash->get(key);
 
       if (get_value_type(v) == ValueType::Hash) {
         sv << serialize(v);

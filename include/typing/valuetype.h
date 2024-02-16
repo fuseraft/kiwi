@@ -35,6 +35,28 @@ struct List {
 
 struct Hash {
   std::unordered_map<std::string, Value> kvp;
+  std::vector<std::string> keys;
+
+  int size() const { return keys.size(); }
+
+  bool hasKey(const std::string& key) const {
+    return kvp.find(key) != kvp.end();
+  }
+
+  void add(const std::string& key, Value value) {
+    if (!hasKey(key)) {
+      keys.push_back(key);
+    }
+    kvp[key] = value;
+  }
+
+  Value get(const std::string& key) { return kvp[key]; }
+
+  void remove(const std::string& key) {
+    kvp.erase(key);
+    auto newEnd = std::remove(keys.begin(), keys.end(), key);
+    keys.erase(newEnd, keys.end());
+  }
 };
 
 struct Object {
