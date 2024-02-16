@@ -1,7 +1,7 @@
 #ifndef KIWI_INTERP_H
 #define KIWI_INTERP_H
 
-#include <map>
+#include <unordered_map>
 #include <stack>
 #include "errors/error.h"
 #include "errors/handler.h"
@@ -33,7 +33,7 @@ class Interpreter {
 
   ~Interpreter() { eventLoop.stopLoop(); }
 
-  void setKiwiArgs(const std::map<std::string, std::string>& args) {
+  void setKiwiArgs(const std::unordered_map<std::string, std::string>& args) {
     kiwiArgs = args;
   }
 
@@ -66,13 +66,13 @@ class Interpreter {
 
  private:
   Logger& logger;
-  std::map<std::string, std::vector<std::string>> files;
-  std::map<std::string, Method> methods;
-  std::map<std::string, Module> modules;
-  std::map<std::string, Class> classes;
+  std::unordered_map<std::string, std::vector<std::string>> files;
+  std::unordered_map<std::string, Method> methods;
+  std::unordered_map<std::string, Module> modules;
+  std::unordered_map<std::string, Class> classes;
   std::vector<Token> _tokens;
   std::string _parentPath;
-  std::map<std::string, std::string> kiwiArgs;
+  std::unordered_map<std::string, std::string> kiwiArgs;
   std::stack<std::shared_ptr<CallStackFrame>> callStack;
   std::stack<std::string> moduleStack;
   bool preservingMainStackFrame = false;
@@ -2216,6 +2216,25 @@ class Interpreter {
     return filteredList;
   }
 
+  Value interpretStringToHash(const std::string& input,
+                              std::shared_ptr<CallStackFrame> frame) {
+    if (current(frame).getType() != TokenType::OPEN_PAREN) {
+      throw SyntaxError(current(frame),
+                        "Expected open-parenthesis, `(`, in builtin `" +
+                            SpecializedBuiltins.ToH + "`.");
+    }
+    next(frame);  // Skip "("
+
+    if (current(frame).getType() != TokenType::CLOSE_PAREN) {
+      throw SyntaxError(current(frame),
+                        "Expected close-parenthesis, `)`, in builtin `" +
+                            SpecializedBuiltins.ToH + "`.");
+    }
+    next(frame);
+
+    return interpolateString(frame, input);
+  }
+
   Value interpretObjectToHash(const std::shared_ptr<Object>& object,
                               std::shared_ptr<CallStackFrame> frame) {
     if (current(frame).getType() != TokenType::OPEN_PAREN) {
@@ -2243,6 +2262,25 @@ class Interpreter {
     }
 
     return hash;
+  }
+
+  Value interpretSpecializedBuiltin(const std::string& builtin,
+                                    const Value& value,
+                                    std::shared_ptr<CallStackFrame> frame) {
+    if (!std::holds_alternative<std::string>(value)) {
+      throw InvalidOperationError(
+          current(frame), "Specialized builtin `" + builtin +
+                              "` is illegal for type `" +
+                              Serializer::get_value_type_string(value) + "`.");
+    }
+
+    std::string input = std::get<std::string>(value);
+
+    if (builtin == SpecializedBuiltins.ToH) {
+      return interpretStringToHash(input, frame);
+    }
+
+    throw UnknownBuiltinError(current(frame), builtin);
   }
 
   Value interpretSpecializedObjectBuiltin(
@@ -2299,9 +2337,12 @@ class Interpreter {
     std::string op = tokenTerm.getText();
     next(frame);
 
+    bool isObject = false;
+
     if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
       auto object = std::get<std::shared_ptr<Object>>(value);
       Class clazz = classes[object->className];
+      isObject = true;
 
       if (object->instanceVariables.find(op) !=
           object->instanceVariables.end()) {
@@ -2323,7 +2364,11 @@ class Interpreter {
 
     if (SpecializedBuiltins.is_builtin(op)) {
       if (op == SpecializedBuiltins.ToH) {
-        return interpretSpecializedObjectBuiltin(op, value, frame);
+        if (isObject) {
+          return interpretSpecializedObjectBuiltin(op, value, frame);
+        } else {
+          return interpretSpecializedBuiltin(op, value, frame);
+        }
       } else {
         return interpretSpecializedListBuiltin(op, value, frame);
       }
@@ -2656,7 +2701,7 @@ class Interpreter {
   }
 
   Value interpolateString(std::shared_ptr<CallStackFrame> frame,
-                          std::string& input) {
+                          const std::string& input) {
     if (input[0] == '@') {
       std::string name = input.substr(1);
       if (hasVariable(name, frame)) {

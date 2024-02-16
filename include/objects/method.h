@@ -1,8 +1,8 @@
 #ifndef KIWI_OBJECTS_METHOD_H
 #define KIWI_OBJECTS_METHOD_H
 
-#include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "parsing/tokens.h"
 #include "typing/valuetype.h"
@@ -59,7 +59,7 @@ class Method {
   std::vector<std::string> parameters;
   std::vector<Token> code;
   std::string _name;
-  std::map<std::string, Value> parameterKVP;
+  std::unordered_map<std::string, Value> parameterKVP;
   MethodFlags flags = MethodFlags::None;
 };
 

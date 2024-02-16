@@ -187,7 +187,7 @@ struct InterpHelper {
   }
 
   static void updateVariablesInCallerFrame(
-      std::map<std::string, Value> variables,
+      std::unordered_map<std::string, Value> variables,
       std::shared_ptr<CallStackFrame> callerFrame) {
     for (const auto& var : variables) {
       std::string varName = var.first;
