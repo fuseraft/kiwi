@@ -14,25 +14,25 @@
 #include "stackframe.h"
 
 struct InterpHelper {
-  static Token current(std::shared_ptr<CallStackFrame> frame) {
-    if (frame->position >= frame->tokens.size()) {
+  static Token current(std::shared_ptr<TokenStream> stream) {
+    if (stream->position >= stream->tokens.size()) {
       return Token::createEndOfFrame();
     }
-    return frame->tokens[frame->position];
+    return stream->tokens.at(stream->position);
   }
 
-  static void next(std::shared_ptr<CallStackFrame> frame) {
-    if (frame->position < frame->tokens.size()) {
-      frame->position++;
+  static void next(std::shared_ptr<TokenStream> stream) {
+    if (stream->position < stream->tokens.size()) {
+      stream->position++;
     } else {
       // To complete the frame, or not to complete the frame, that is the question;
     }
   }
 
-  static Token peek(std::shared_ptr<CallStackFrame> frame) {
-    size_t nextPosition = frame->position + 1;
-    if (nextPosition < frame->tokens.size()) {
-      return frame->tokens[nextPosition];
+  static Token peek(std::shared_ptr<TokenStream> stream) {
+    size_t nextPosition = stream->position + 1;
+    if (nextPosition < stream->tokens.size()) {
+      return stream->tokens[nextPosition];
     } else {
       return Token::createEndOfFrame();
     }
@@ -54,20 +54,20 @@ struct InterpHelper {
     booleanExpression.value(booleanValue);
   }
 
-  static Method interpretLambda(std::shared_ptr<CallStackFrame> frame) {
-    next(frame);  // Skip "lambda"
+  static Method interpretLambda(std::shared_ptr<TokenStream> stream) {
+    next(stream);  // Skip "lambda"
     Method lambda;
     lambda.setName(getTemporaryId());
 
-    interpretMethodParameters(lambda, frame);
+    interpretMethodParameters(lambda, stream);
 
-    if (current(frame).getText() != Keywords.Do) {
-      throw SyntaxError(current(frame), "Expected `do` in lambda expression.");
+    if (current(stream).getText() != Keywords.Do) {
+      throw SyntaxError(current(stream), "Expected `do` in lambda expression.");
     }
-    next(frame);  // Skip "do"
+    next(stream);  // Skip "do"
 
     std::vector<Token> lambdaTokens;
-    collectBodyTokens(lambdaTokens, frame);
+    collectBodyTokens(lambdaTokens, stream);
     for (Token t : lambdaTokens) {
       lambda.addToken(t);
     }
@@ -77,50 +77,33 @@ struct InterpHelper {
     return lambda;
   }
 
-  static Method getLambda(std::shared_ptr<CallStackFrame> frame) {
-    Method lambda;
-
-    if (current(frame).getType() == TokenType::IDENTIFIER) {
-      std::string lambdaName = current(frame).getText();
-      next(frame);  // Skip identifier.
-      if (frame->hasAssignedLambda(lambdaName)) {
-        lambda = frame->getAssignedLambda(lambdaName);
-      }
-    } else if (current(frame).getType() == TokenType::LAMBDA) {
-      lambda = interpretLambda(frame);
-    }
-
-    return lambda;
-  }
-
-  static bool isSliceAssignmentExpression(
-      std::shared_ptr<CallStackFrame> frame) {
-    size_t pos = frame->position;
+  static bool isSliceAssignmentExpression(std::shared_ptr<TokenStream> stream) {
+    size_t pos = stream->position;
     bool isSliceAssignment = false;
-    Token token = frame->tokens[pos];
-    while (pos < frame->tokens.size()) {
+    Token token = stream->tokens.at(pos);
+    while (pos < stream->tokens.size()) {
       if (token.getType() == TokenType::COLON ||
           token.getType() == TokenType::OPERATOR) {
         isSliceAssignment = true;
         break;
       }
-      token = frame->tokens[++pos];
+      token = stream->tokens.at(++pos);
     }
     return isSliceAssignment;
   }
 
-  static bool isListExpression(std::shared_ptr<CallStackFrame> frame) {
-    size_t position = frame->position;
-    if (position >= frame->tokens.size() ||
-        frame->tokens[position].getType() != TokenType::OPEN_BRACKET) {
+  static bool isListExpression(std::shared_ptr<TokenStream> stream) {
+    size_t position = stream->position;
+    if (position >= stream->tokens.size() ||
+        stream->tokens.at(position).getType() != TokenType::OPEN_BRACKET) {
       return false;
     }
 
     int bracketCount = 1;
     ++position;
 
-    while (position < frame->tokens.size() && bracketCount > 0) {
-      Token token = frame->tokens[position];
+    while (position < stream->tokens.size() && bracketCount > 0) {
+      Token token = stream->tokens.at(position);
       TokenType type = token.getType();
 
       if (type == TokenType::OPEN_BRACKET) {
@@ -130,8 +113,8 @@ struct InterpHelper {
       } else if (type == TokenType::OPEN_BRACE) {
         int braceCount = 1;
         ++position;  // Skip "["
-        while (position < frame->tokens.size() && braceCount > 0) {
-          token = frame->tokens[position];
+        while (position < stream->tokens.size() && braceCount > 0) {
+          token = stream->tokens.at(position);
           if (token.getType() == TokenType::OPEN_BRACE) {
             ++braceCount;
           } else if (token.getType() == TokenType::CLOSE_BRACE) {
@@ -150,22 +133,22 @@ struct InterpHelper {
     return bracketCount == 0;
   }
 
-  static bool isRangeExpression(std::shared_ptr<CallStackFrame> frame) {
-    size_t pos = frame->position;
+  static bool isRangeExpression(std::shared_ptr<TokenStream> stream) {
+    size_t pos = stream->position;
     bool isRange = false;
-    Token token = frame->tokens[pos];
-    while (pos < frame->tokens.size()) {
+    Token token = stream->tokens.at(pos);
+    while (pos < stream->tokens.size()) {
       if (token.getType() == TokenType::RANGE) {
         isRange = true;
         break;
       }
-      token = frame->tokens[++pos];
+      token = stream->tokens.at(++pos);
     }
     return isRange;
   }
 
-  static bool hasReturnValue(std::shared_ptr<CallStackFrame> frame) {
-    const Token nextToken = peek(frame);
+  static bool hasReturnValue(std::shared_ptr<TokenStream> stream) {
+    const Token nextToken = peek(stream);
     const TokenType tokenType = nextToken.getType();
     bool isLiteral = tokenType == TokenType::LITERAL;
     bool isString = tokenType == TokenType::STRING;
@@ -203,23 +186,23 @@ struct InterpHelper {
   }
 
   static void collectBodyTokens(std::vector<Token>& tokens,
-                                std::shared_ptr<CallStackFrame> frame) {
+                                std::shared_ptr<TokenStream> stream) {
     int counter = 1;
     while (counter != 0) {
-      if (Keywords.is_required_end_keyword(current(frame).getText())) {
+      if (Keywords.is_required_end_keyword(current(stream).getText())) {
         ++counter;
-      } else if (current(frame).getText() == Keywords.End) {
+      } else if (current(stream).getText() == Keywords.End) {
         --counter;
 
         // Stop here.
         if (counter == 0) {
-          next(frame);
+          next(stream);
           continue;
         }
       }
 
-      tokens.push_back(current(frame));
-      next(frame);
+      tokens.push_back(current(stream));
+      next(stream);
     }
   }
 
@@ -236,16 +219,16 @@ struct InterpHelper {
     return tokens;
   }
 
-  static void updateListSlice(std::shared_ptr<CallStackFrame> frame,
+  static void updateListSlice(std::shared_ptr<TokenStream> stream,
                               bool insertOp, std::shared_ptr<List>& targetList,
                               const SliceIndex& slice,
                               const std::shared_ptr<List>& rhsValues) {
     if (!std::holds_alternative<int>(slice.indexOrStart)) {
-      throw IndexError(current(frame), "Start index must be an integer.");
+      throw IndexError(current(stream), "Start index must be an integer.");
     } else if (!std::holds_alternative<int>(slice.stopIndex)) {
-      throw IndexError(current(frame), "Stop index must be an integer.");
+      throw IndexError(current(stream), "Stop index must be an integer.");
     } else if (!std::holds_alternative<int>(slice.stepValue)) {
-      throw IndexError(current(frame), "Step value must be an integer.");
+      throw IndexError(current(stream), "Step value must be an integer.");
     }
 
     int start = std::get<int>(slice.indexOrStart);
@@ -357,51 +340,53 @@ struct InterpHelper {
     }
   }
 
-  static Value interpretAssignOp(const std::string& op, Value& currentValue,
-                                 Value& value,
-                                 std::shared_ptr<CallStackFrame> frame) {
+  static Value interpretAssignOp(std::shared_ptr<TokenStream> stream,
+                                 const std::string& op, Value& currentValue,
+                                 Value& value) {
     if (op == Operators.AddAssign) {
-      return std::visit(AddVisitor(current(frame)), currentValue, value);
+      return std::visit(AddVisitor(current(stream)), currentValue, value);
     } else if (op == Operators.SubtractAssign) {
-      return std::visit(SubtractVisitor(current(frame)), currentValue, value);
+      return std::visit(SubtractVisitor(current(stream)), currentValue, value);
     } else if (op == Operators.MultiplyAssign) {
-      return std::visit(MultiplyVisitor(current(frame)), currentValue, value);
+      return std::visit(MultiplyVisitor(current(stream)), currentValue, value);
     } else if (op == Operators.DivideAssign) {
-      return std::visit(DivideVisitor(current(frame)), currentValue, value);
+      return std::visit(DivideVisitor(current(stream)), currentValue, value);
     } else if (op == Operators.ExponentAssign) {
-      return std::visit(PowerVisitor(current(frame)), currentValue, value);
+      return std::visit(PowerVisitor(current(stream)), currentValue, value);
     } else if (op == Operators.ModuloAssign) {
-      return std::visit(ModuloVisitor(current(frame)), currentValue, value);
+      return std::visit(ModuloVisitor(current(stream)), currentValue, value);
     } else if (op == Operators.BitwiseAndAssign) {
-      return std::visit(BitwiseAndVisitor(current(frame)), currentValue, value);
+      return std::visit(BitwiseAndVisitor(current(stream)), currentValue,
+                        value);
     } else if (op == Operators.BitwiseOrAssign) {
-      return std::visit(BitwiseOrVisitor(current(frame)), currentValue, value);
+      return std::visit(BitwiseOrVisitor(current(stream)), currentValue, value);
     } else if (op == Operators.BitwiseXorAssign) {
-      return std::visit(BitwiseXorVisitor(current(frame)), currentValue, value);
+      return std::visit(BitwiseXorVisitor(current(stream)), currentValue,
+                        value);
     } else if (op == Operators.BitwiseLeftShiftAssign) {
-      return std::visit(BitwiseLeftShiftVisitor(current(frame)), currentValue,
+      return std::visit(BitwiseLeftShiftVisitor(current(stream)), currentValue,
                         value);
     } else if (op == Operators.BitwiseRightShiftAssign) {
-      return std::visit(BitwiseRightShiftVisitor(current(frame)), currentValue,
+      return std::visit(BitwiseRightShiftVisitor(current(stream)), currentValue,
                         value);
     } else if (op == Operators.BitwiseNotAssign) {
-      return std::visit(BitwiseNotVisitor(current(frame)), value);
+      return std::visit(BitwiseNotVisitor(current(stream)), value);
     }
 
-    throw InvalidOperationError(current(frame),
+    throw InvalidOperationError(current(stream),
                                 "Invalid operator `" + op + "`");
   }
 
-  static Value interpretListSlice(const SliceIndex& slice,
-                                  const std::shared_ptr<List>& list,
-                                  std::shared_ptr<CallStackFrame> frame) {
+  static Value interpretListSlice(std::shared_ptr<TokenStream> stream,
+                                  const SliceIndex& slice,
+                                  const std::shared_ptr<List>& list) {
     if (slice.isSlice) {
       if (!std::holds_alternative<int>(slice.indexOrStart)) {
-        throw IndexError(current(frame), "Start index must be an integer.");
+        throw IndexError(current(stream), "Start index must be an integer.");
       } else if (!std::holds_alternative<int>(slice.stopIndex)) {
-        throw IndexError(current(frame), "Stop index must be an integer.");
+        throw IndexError(current(stream), "Stop index must be an integer.");
       } else if (!std::holds_alternative<int>(slice.stepValue)) {
-        throw IndexError(current(frame), "Step value must be an integer.");
+        throw IndexError(current(stream), "Step value must be an integer.");
       }
 
       int start = std::get<int>(slice.indexOrStart),
@@ -433,51 +418,52 @@ struct InterpHelper {
     } else {
       // Single index access
       if (!std::holds_alternative<int>(slice.indexOrStart)) {
-        throw IndexError(current(frame), "Index value must be an integer.");
+        throw IndexError(current(stream), "Index value must be an integer.");
       }
       int index = std::get<int>(slice.indexOrStart);
       int listSize = list->elements.size();
       if (index < 0)
         index += listSize;  // Adjust for negative index
       if (index < 0 || index >= listSize) {
-        throw RangeError(current(frame), "List index out of range.");
+        throw RangeError(current(stream), "List index out of range.");
       }
       return list->elements[index];
     }
   }
 
-  static void interpretParameterizedCatch(std::shared_ptr<CallStackFrame> frame,
+  static void interpretParameterizedCatch(std::shared_ptr<TokenStream> stream,
+                                          std::shared_ptr<CallStackFrame> frame,
                                           std::string& errorVariableName,
                                           Value& errorValue) {
-    next(frame);  // Skip "("
+    next(stream);  // Skip "("
 
-    if (current(frame).getType() != TokenType::DECLVAR) {
-      throw SyntaxError(current(frame),
+    if (current(stream).getType() != TokenType::DECLVAR) {
+      throw SyntaxError(current(stream),
                         "Syntax error in catch variable declaration.");
     }
-    next(frame);  // Skip "@"
+    next(stream);  // Skip "@"
 
-    if (current(frame).getType() != TokenType::IDENTIFIER) {
+    if (current(stream).getType() != TokenType::IDENTIFIER) {
       throw SyntaxError(
-          current(frame),
+          current(stream),
           "Syntax error in catch variable declaration. Missing identifier.");
     }
 
-    errorVariableName = current(frame).getText();
-    next(frame);  // Skip the identifier.
+    errorVariableName = current(stream).getText();
+    next(stream);  // Skip the identifier.
 
-    if (current(frame).getType() != TokenType::CLOSE_PAREN) {
-      throw SyntaxError(current(frame),
+    if (current(stream).getType() != TokenType::CLOSE_PAREN) {
+      throw SyntaxError(current(stream),
                         "Syntax error in catch variable declaration.");
     }
-    next(frame);  // Skip ")"
+    next(stream);  // Skip ")"
 
     errorValue = frame->getErrorMessage();
   }
 
-  static std::string interpretModuleHome(
-      std::string& modulePath, std::shared_ptr<CallStackFrame> frame) {
-    if (current(frame).getType() != TokenType::STRING ||
+  static std::string interpretModuleHome(std::string& modulePath,
+                                         std::shared_ptr<TokenStream> stream) {
+    if (current(stream).getType() != TokenType::STRING ||
         !Strings::begins_with(modulePath, "@")) {
       return "";
     }
@@ -521,50 +507,50 @@ struct InterpHelper {
     return moduleHome;
   }
 
-  static std::string interpretBaseClass(std::shared_ptr<CallStackFrame> frame) {
+  static std::string interpretBaseClass(std::shared_ptr<TokenStream> stream) {
     std::string baseClassName;
-    if (current(frame).getType() == TokenType::OPERATOR) {
-      if (current(frame).getText() != Operators.LessThan) {
+    if (current(stream).getType() == TokenType::OPERATOR) {
+      if (current(stream).getText() != Operators.LessThan) {
         throw SyntaxError(
-            current(frame),
+            current(stream),
             "Expected inheritance operator, `<`, in class definition.");
       }
-      next(frame);
+      next(stream);
 
-      if (current(frame).getType() != TokenType::IDENTIFIER) {
-        throw SyntaxError(current(frame), "Expected base class name.");
+      if (current(stream).getType() != TokenType::IDENTIFIER) {
+        throw SyntaxError(current(stream), "Expected base class name.");
       }
 
-      baseClassName = current(frame).getText();
-      next(frame);  // Skip base class.
+      baseClassName = current(stream).getText();
+      next(stream);  // Skip base class.
     }
     return baseClassName;
   }
 
   static Method interpretMethodDeclaration(
-      std::shared_ptr<CallStackFrame> frame) {
+      std::shared_ptr<TokenStream> stream) {
     Method method;
 
-    while (current(frame).getText() != Keywords.Method) {
-      if (current(frame).getText() == Keywords.Abstract) {
+    while (current(stream).getText() != Keywords.Method) {
+      if (current(stream).getText() == Keywords.Abstract) {
         method.setFlag(MethodFlags::Abstract);
-      } else if (current(frame).getText() == Keywords.Override) {
+      } else if (current(stream).getText() == Keywords.Override) {
         method.setFlag(MethodFlags::Override);
-      } else if (current(frame).getText() == Keywords.Private) {
+      } else if (current(stream).getText() == Keywords.Private) {
         method.setFlag(MethodFlags::Private);
-      } else if (current(frame).getText() == Keywords.Static) {
+      } else if (current(stream).getText() == Keywords.Static) {
         method.setFlag(MethodFlags::Static);
       }
-      next(frame);
+      next(stream);
     }
-    next(frame);  // Skip "def"
+    next(stream);  // Skip "def"
 
-    Token tokenTerm = current(frame);
+    Token tokenTerm = current(stream);
 
-    std::string name = current(frame).getText();
+    std::string name = current(stream).getText();
     method.setName(name);
-    next(frame);  // Skip the name.
-    interpretMethodParameters(method, frame);
+    next(stream);  // Skip the name.
+    interpretMethodParameters(method, stream);
     int counter = 1;
 
     if (method.isFlagSet(MethodFlags::Abstract)) {
@@ -572,22 +558,22 @@ struct InterpHelper {
     }
 
     while (counter > 0) {
-      if (current(frame).getText() == Keywords.End) {
+      if (current(stream).getText() == Keywords.End) {
         --counter;
 
         // Stop here.
         if (counter == 0) {
           break;
         }
-      } else if (Keywords.is_required_end_keyword(current(frame).getText())) {
+      } else if (Keywords.is_required_end_keyword(current(stream).getText())) {
         ++counter;
       }
 
-      Token codeToken = current(frame);
+      Token codeToken = current(stream);
       method.addToken(codeToken);
-      next(frame);
+      next(stream);
 
-      if (current(frame).getType() == TokenType::ENDOFFRAME) {
+      if (current(stream).getType() == TokenType::ENDOFFRAME) {
         throw SyntaxError(tokenTerm,
                           "Invalid method declaration `" + name + "`");
       }
@@ -597,37 +583,37 @@ struct InterpHelper {
   }
 
   static std::vector<std::string> getParameterSet(
-      std::shared_ptr<CallStackFrame> frame) {
-    Token tokenTerm = current(frame);
-    if (current(frame).getType() != TokenType::OPEN_PAREN) {
+      std::shared_ptr<TokenStream> stream) {
+    Token tokenTerm = current(stream);
+    if (current(stream).getType() != TokenType::OPEN_PAREN) {
       throw SyntaxError(
           tokenTerm,
           "Expected open-parenthesis, `(`, in parameter set expression.");
     }
-    next(frame);  // Skip "("
+    next(stream);  // Skip "("
 
     std::vector<std::string> paramSet;
 
-    while (current(frame).getType() != TokenType::CLOSE_PAREN) {
-      Token parameterToken = current(frame);
+    while (current(stream).getType() != TokenType::CLOSE_PAREN) {
+      Token parameterToken = current(stream);
       if (parameterToken.getType() == TokenType::IDENTIFIER) {
         paramSet.push_back(parameterToken.getText());
       }
-      next(frame);
+      next(stream);
     }
 
-    if (current(frame).getType() != TokenType::CLOSE_PAREN) {
+    if (current(stream).getType() != TokenType::CLOSE_PAREN) {
       throw SyntaxError(
           tokenTerm,
           "Expected close-parenthesis, `)`, in parameter set expression.");
     }
-    next(frame);  // Skip ")"
+    next(stream);  // Skip ")"
     return paramSet;
   }
 
   static void interpretMethodParameters(Method& method,
-                                        std::shared_ptr<CallStackFrame> frame) {
-    for (std::string param : getParameterSet(frame)) {
+                                        std::shared_ptr<TokenStream> stream) {
+    for (std::string param : getParameterSet(stream)) {
       method.addParameterName(param);
     }
   }

@@ -5,7 +5,6 @@
 #include <string>
 #include <type_traits>
 #include <unordered_map>
-#include <vector>
 #include "errors/error.h"
 #include "errors/state.h"
 #include "objects/method.h"
@@ -38,8 +37,6 @@ inline FrameFlags operator~(FrameFlags a) {
 }
 
 struct CallStackFrame {
-  std::vector<Token> tokens;  // The tokens of the current method or scope.
-  size_t position = 0;        // Current position in the token stream.
   std::unordered_map<std::string, Value> variables;
   std::unordered_map<std::string, Method> lambdas;
   Value returnValue;
@@ -47,11 +44,8 @@ struct CallStackFrame {
   std::shared_ptr<Object> objectContext;
   FrameFlags flags = FrameFlags::None;
 
-  CallStackFrame(const std::vector<Token>& tokens) : tokens(tokens) {}
-  ~CallStackFrame() {
-    tokens.clear();
-    variables.clear();
-  }
+  CallStackFrame() {}
+  ~CallStackFrame() { variables.clear(); }
 
   void assignLambda(const std::string& name, const Method& method) {
     lambdas[name] = std::move(method);
