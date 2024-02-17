@@ -1,8 +1,8 @@
 #ifndef KIWI_PARSING_LEXER_H
 #define KIWI_PARSING_LEXER_H
 
-#include "tokens.h"
-#include "keywords.h"
+#include "parsing/tokens.h"
+#include "parsing/keywords.h"
 #include <sstream>
 #include <string>
 #include <vector>
