@@ -127,4 +127,14 @@ class Token {
   }
 };
 
+class TokenStream {
+ public:
+  TokenStream(const std::vector<Token>& tokens) : tokens(tokens) {}
+  ~TokenStream() { tokens.clear(); }
+  bool empty() const { return tokens.empty(); }
+
+  std::vector<Token> tokens;
+  size_t position = 0;
+};
+
 #endif
