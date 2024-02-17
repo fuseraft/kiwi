@@ -1,6 +1,6 @@
 # kiwi 🥝
 
-A general-purpose object-oriented scripting language influenced by Ruby.
+A light-weight general-purpose scripting language.
 
 ## Getting Started
 
