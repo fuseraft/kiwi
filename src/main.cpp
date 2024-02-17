@@ -3,7 +3,7 @@
  * The Kiwi Programming Language
  * =============================
  * 
- * A general-purpose object-oriented scripting language influenced by Ruby.
+ * A light-weight general-purpose scripting language.
  *
  * @author Scott Stauffer
  * @date 2024-01-31
