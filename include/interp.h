@@ -206,18 +206,40 @@ class Interpreter {
     }
 
     Value returnValue = std::move(frame->returnValue);
+    bool doUpdate = true;
     bool inObjectContext = frame->inObjectContext();
-    if (inObjectContext) {
+    if (inObjectContext && std::holds_alternative<int>(returnValue) &&
+        std::get<int>(returnValue) == 0) {
       returnValue = std::move(frame->objectContext);
+      doUpdate = false;
     }
     auto topVariables = std::move(frame->variables);
+
     callStack.pop();
     auto& callerFrame = callStack.top();
 
     if (inObjectContext) {
       callerFrame->returnValue = returnValue;
     }
-    InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);
+
+    if (doUpdate) {
+      InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);
+    }
+  }
+
+  std::shared_ptr<CallStackFrame> buildSubFrame(
+      std::shared_ptr<CallStackFrame> frame) {
+    auto subFrame = std::make_shared<CallStackFrame>();
+    for (const auto& pair : frame->variables) {
+      subFrame->variables[pair.first] = pair.second;
+    }
+    if (frame->inObjectContext()) {
+      for (const auto& pair : frame->getObjectContext()->instanceVariables) {
+        subFrame->variables[pair.first] = pair.second;
+      }
+      subFrame->setObjectContext(frame->getObjectContext());
+    }
+    return subFrame;
   }
 
   Method getLambda(std::shared_ptr<TokenStream> stream,
@@ -235,6 +257,78 @@ class Interpreter {
     }
 
     return lambda;
+  }
+
+  void interpretHashLoop(std::shared_ptr<TokenStream> stream,
+                         Value& collectionValue, const bool& hasIndexVariable,
+                         const std::string& itemVariableName,
+                         const std::string& indexVariableName,
+                         std::shared_ptr<CallStackFrame> frame) {
+    auto& collection = std::get<std::shared_ptr<Hash>>(collectionValue);
+
+    std::vector<Token> loopTokens;
+    InterpHelper::collectBodyTokens(loopTokens, stream);
+
+    // Execute the loop
+    for (const auto& key : collection->keys) {
+      if (frame->isFlagSet(FrameFlags::LoopBreak)) {
+        break;
+      }
+
+      if (frame->isFlagSet(FrameFlags::LoopContinue)) {
+        frame->clearFlag(FrameFlags::LoopContinue);
+        continue;
+      }
+
+      frame->variables[indexVariableName] = key;
+      if (hasIndexVariable) {
+        frame->variables[itemVariableName] = collection->get(key);
+      }
+
+      auto loopStream = std::make_shared<TokenStream>(loopTokens);
+      auto loopFrame = buildSubFrame(frame);
+      callStack.push(loopFrame);
+      streamStack.push(loopStream);
+
+      interpretStackFrame();
+    }
+  }
+
+  void interpretListLoop(std::shared_ptr<TokenStream> stream,
+                         Value& collectionValue, const bool& hasIndexVariable,
+                         const std::string& itemVariableName,
+                         const std::string& indexVariableName,
+                         std::shared_ptr<CallStackFrame> frame) {
+    auto& collection = std::get<std::shared_ptr<List>>(collectionValue);
+
+    std::vector<Token> loopTokens;
+    InterpHelper::collectBodyTokens(loopTokens, stream);
+
+    // Execute the loop
+    size_t index = 0;
+    for (const auto& item : collection->elements) {
+      if (frame->isFlagSet(FrameFlags::LoopBreak)) {
+        break;
+      }
+
+      if (frame->isFlagSet(FrameFlags::LoopContinue)) {
+        frame->clearFlag(FrameFlags::LoopContinue);
+        continue;
+      }
+
+      frame->variables[itemVariableName] = item;
+      if (hasIndexVariable) {
+        frame->variables[indexVariableName] = static_cast<int>(index);
+      }
+
+      auto loopStream = std::make_shared<TokenStream>(loopTokens);
+      callStack.push(buildSubFrame(frame));
+      streamStack.push(loopStream);
+
+      interpretStackFrame();
+
+      index++;
+    }
   }
 
   void interpretForLoop(std::shared_ptr<TokenStream> stream,
@@ -272,10 +366,6 @@ class Interpreter {
     Value collectionValue =
         interpretExpression(stream, booleanExpression, frame);
 
-    if (!std::holds_alternative<std::shared_ptr<List>>(collectionValue)) {
-      throw InvalidOperationError(tokenTerm, "Term is not a list.");
-    }
-
     if (peek(stream).getText() != Keywords.Do &&
         current(stream).getText() != Keywords.Do) {
       throw SyntaxError(current(stream), "Expected `do` in `for` loop.");
@@ -289,40 +379,16 @@ class Interpreter {
       next(stream);
     }
 
-    auto& collection = std::get<std::shared_ptr<List>>(collectionValue);
-
-    std::vector<Token> loopTokens;
-    InterpHelper::collectBodyTokens(loopTokens, stream);
-
-    // Execute the loop
-    size_t index = 0;
-    for (const auto& item : collection->elements) {
-      if (frame->isFlagSet(FrameFlags::LoopBreak)) {
-        break;
-      }
-
-      if (frame->isFlagSet(FrameFlags::LoopContinue)) {
-        frame->clearFlag(FrameFlags::LoopContinue);
-        continue;
-      }
-
-      frame->variables[itemVariableName] = item;
-      if (hasIndexVariable) {
-        frame->variables[indexVariableName] = static_cast<int>(index);
-      }
-
-      auto loopStream = std::make_shared<TokenStream>(loopTokens);
-      auto loopFrame = std::make_shared<CallStackFrame>();
-      for (const auto& pair : frame->variables) {
-        loopFrame->variables[pair.first] = pair.second;
-      }
-      callStack.push(loopFrame);
-      streamStack.push(loopStream);
-
-      interpretStackFrame();
-
-      index++;
+    if (std::holds_alternative<std::shared_ptr<List>>(collectionValue)) {
+      interpretListLoop(stream, collectionValue, hasIndexVariable,
+                        itemVariableName, indexVariableName, frame);
+    } else if (std::holds_alternative<std::shared_ptr<Hash>>(collectionValue)) {
+      interpretHashLoop(stream, collectionValue, hasIndexVariable,
+                        indexVariableName, itemVariableName, frame);
+    } else {
+      throw InvalidOperationError(tokenTerm, "Term is not a List or Hash.");
     }
+
     frame->clearFlag(FrameFlags::LoopBreak);
     frame->clearFlag(FrameFlags::LoopContinue);
   }
@@ -362,11 +428,7 @@ class Interpreter {
       condition.insert(it, tempAssignment.begin(), tempAssignment.end());
 
       auto conditionStream = std::make_shared<TokenStream>(condition);
-      auto conditionFrame = std::make_shared<CallStackFrame>();
-      for (const auto& pair : frame->variables) {
-        conditionFrame->variables[pair.first] = pair.second;
-      }
-
+      auto conditionFrame = buildSubFrame(frame);
       callStack.push(conditionFrame);
       streamStack.push(conditionStream);
       interpretAssignment(conditionStream, conditionFrame, true);
@@ -389,12 +451,7 @@ class Interpreter {
       }
 
       auto codeStream = std::make_shared<TokenStream>(loopTokens);
-      auto codeFrame = std::make_shared<CallStackFrame>();
-      for (const auto& pair : frame->variables) {
-        codeFrame->variables[pair.first] = pair.second;
-      }
-
-      callStack.push(codeFrame);
+      callStack.push(buildSubFrame(frame));
       streamStack.push(codeStream);
 
       // Interpret the loop code.
@@ -407,6 +464,13 @@ class Interpreter {
     for (const auto& pair : frame->variables) {
       if (InterpHelper::shouldUpdateFrameVariables(pair.first, oldFrame)) {
         oldFrame->variables[pair.first] = pair.second;
+      }
+    }
+    if (frame->inObjectContext()) {
+      for (const auto& pair : frame->getObjectContext()->instanceVariables) {
+        if (InterpHelper::shouldUpdateFrameVariables(pair.first, oldFrame)) {
+          oldFrame->variables[pair.first] = pair.second;
+        }
       }
     }
 
@@ -568,12 +632,7 @@ class Interpreter {
 
     if (frame->isErrorStateSet()) {
       auto catchStream = std::make_shared<TokenStream>(catchTokens);
-      auto catchFrame = std::make_shared<CallStackFrame>();
-
-      for (const auto& pair : frame->variables) {
-        catchFrame->variables[pair.first] = pair.second;
-      }
-
+      auto catchFrame = buildSubFrame(frame);
       if (!errorVariableName.empty() &&
           std::holds_alternative<std::string>(errorValue)) {
         catchFrame->variables[errorVariableName] = errorValue;
@@ -893,10 +952,7 @@ class Interpreter {
     std::vector<std::string> parameters =
         collectMethodParameters(stream, tokenTerm, method, frame);
 
-    auto codeFrame = std::make_shared<CallStackFrame>();
-    for (const auto& pair : frame->variables) {
-      codeFrame->variables[pair.first] = std::move(pair.second);
-    }
+    auto codeFrame = buildSubFrame(frame);
     for (const auto& pair : frame->lambdas) {
       // Check this.
       codeFrame->assignLambda(pair.first, pair.second);
@@ -1003,10 +1059,7 @@ class Interpreter {
     }
 
     auto codeStream = std::make_shared<TokenStream>(method.getCode());
-    auto codeFrame = std::make_shared<CallStackFrame>();
-    for (const auto& pair : frame->variables) {
-      codeFrame->variables[pair.first] = pair.second;
-    }
+    auto codeFrame = buildSubFrame(frame);
 
     if (static_cast<int>(parameters.size()) != method.getParameterCount()) {
       throw ParameterCountMismatchError(current(stream), methodName);
@@ -1141,7 +1194,8 @@ class Interpreter {
 
   std::string interpretAssignment(std::shared_ptr<TokenStream> stream,
                                   std::shared_ptr<CallStackFrame> frame,
-                                  bool isTemporary = false) {
+                                  bool isTemporary = false,
+                                  bool isInstanceVariable = false) {
     std::string name;
     if (current(stream).getType() == TokenType::DECLVAR) {
       next(stream);  // Skip the "@"
@@ -1157,7 +1211,8 @@ class Interpreter {
 
         if (Operators.is_assignment_operator(op) ||
             op == Operators.ListAppend) {
-          interpretAssignment(stream, name, op, frame, isTemporary);
+          interpretAssignment(stream, name, op, frame, isTemporary,
+                              isInstanceVariable);
         }
       } else if (current(stream).getType() == TokenType::OPEN_BRACKET) {
         if (!hasVariable(name, frame)) {
@@ -1716,12 +1771,8 @@ class Interpreter {
     // Execute
     if (!executableTokens.empty()) {
       auto executableStream = std::make_shared<TokenStream>(executableTokens);
-      auto executableFrame = std::make_shared<CallStackFrame>();
-      for (const auto& pair : frame->variables) {
-        executableFrame->variables[pair.first] = pair.second;
-      }
-
-      callStack.push(executableFrame);
+      auto codeFrame = buildSubFrame(frame);
+      callStack.push(codeFrame);
       streamStack.push(executableStream);
       interpretStackFrame();
     }
@@ -1741,7 +1792,7 @@ class Interpreter {
     next(stream);  // Skip "."
 
     if (current(stream).getType() == TokenType::DECLVAR) {
-      interpretAssignment(stream, frame);
+      interpretAssignment(stream, frame, false, true);
     } else if (current(stream).getType() == TokenType::IDENTIFIER &&
                peek(stream).getType() == TokenType::OPEN_PAREN) {
       interpretMethodInvocation(stream, current(stream).getText(), frame);
@@ -1922,12 +1973,7 @@ class Interpreter {
     files[scriptPath] = lexer.getLines();
     std::vector<Token> tokens = lexer.getAllTokens();
     auto scriptStream = std::make_shared<TokenStream>(tokens);
-    auto scriptFrame = std::make_shared<CallStackFrame>();
-    for (const auto& pair : frame->variables) {
-      scriptFrame->variables[pair.first] = pair.second;
-    }
-
-    callStack.push(scriptFrame);
+    callStack.push(buildSubFrame(frame));
     streamStack.push(scriptStream);
     interpretStackFrame();
   }
@@ -2163,11 +2209,7 @@ class Interpreter {
       }
 
       auto loopStream = std::make_shared<TokenStream>(lambda.getCode());
-      auto loopFrame = std::make_shared<CallStackFrame>();
-      for (const auto& pair : frame->variables) {
-        loopFrame->variables[pair.first] = pair.second;
-      }
-      callStack.push(loopFrame);
+      callStack.push(buildSubFrame(frame));
       streamStack.push(loopStream);
       interpretStackFrame();
 
@@ -2230,11 +2272,7 @@ class Interpreter {
       }
 
       auto loopStream = std::make_shared<TokenStream>(lambda.getCode());
-      auto loopFrame = std::make_shared<CallStackFrame>();
-      for (const auto& pair : frame->variables) {
-        loopFrame->variables[pair.first] = pair.second;
-      }
-      callStack.push(loopFrame);
+      callStack.push(buildSubFrame(frame));
       streamStack.push(loopStream);
       interpretStackFrame();
 
@@ -2286,11 +2324,7 @@ class Interpreter {
       }
 
       auto loopStream = std::make_shared<TokenStream>(lambda.getCode());
-      auto loopFrame = std::make_shared<CallStackFrame>();
-      for (const auto& pair : frame->variables) {
-        loopFrame->variables[pair.first] = pair.second;
-      }
-      callStack.push(loopFrame);
+      callStack.push(buildSubFrame(frame));
       streamStack.push(loopStream);
       interpretStackFrame();
 
@@ -2488,7 +2522,12 @@ class Interpreter {
     Value value;
     bool valueSet = false;
 
-    if (tokenText == Keywords.This) {
+    if (tokenTerm.getType() == TokenType::STRING) {
+      value = interpolateString(stream, frame);
+      valueSet = true;
+    }
+
+    if (!valueSet && tokenText == Keywords.This) {
       if (!frame->inObjectContext()) {
         throw InvalidContextError(current(stream),
                                   "Invalid context for keyword `this`.");
@@ -2524,40 +2563,43 @@ class Interpreter {
       interpretQualifiedIdentifier(stream, tokenTerm, tokenText);
     }
 
-    bool methodFound = hasMethod(tokenText, frame),
-         classFound = hasClass(tokenText);
-    if (!valueSet && (methodFound || classFound)) {
-      if (classFound) {
-        if (peek(stream).getType() != TokenType::DOT) {
-          throw SyntaxError(current(stream),
-                            "Invalid syntax near `" + tokenText + "`");
-        }
-        interpretClassMethodInvocation(stream, tokenText, frame);
-      } else if (methodFound) {
-        if (peek(stream).getType() == TokenType::COMMA ||
-            peek(stream).getType() == TokenType::CLOSE_PAREN) {
-          if (frame->hasAssignedLambda(tokenText)) {
-            std::shared_ptr<LambdaRef> lambdaRef =
-                std::make_shared<LambdaRef>(tokenText);
-            value = lambdaRef;
-            valueSet = true;
-          } else {
-            throw SyntaxError(current(stream), "Expected lambda reference.");
-          }
-        } else {
-          interpretMethodInvocation(stream, tokenText, frame);
-        }
-      }
+    if (!valueSet) {
+      bool methodFound = hasMethod(tokenText, frame),
+           classFound = hasClass(tokenText);
 
-      if (!valueSet && !callStack.empty()) {
-        value = callStack.top()->returnValue;
-        frame->clearFlag(FrameFlags::ReturnFlag);
+      if (methodFound || classFound) {
+        if (classFound) {
+          if (peek(stream).getType() != TokenType::DOT) {
+            throw SyntaxError(current(stream),
+                              "Invalid syntax near `" + tokenText + "`");
+          }
+          interpretClassMethodInvocation(stream, tokenText, frame);
+        } else if (methodFound) {
+          if (peek(stream).getType() == TokenType::COMMA ||
+              peek(stream).getType() == TokenType::CLOSE_PAREN) {
+            if (frame->hasAssignedLambda(tokenText)) {
+              std::shared_ptr<LambdaRef> lambdaRef =
+                  std::make_shared<LambdaRef>(tokenText);
+              value = lambdaRef;
+              valueSet = true;
+            } else {
+              throw SyntaxError(current(stream), "Expected lambda reference.");
+            }
+          } else {
+            interpretMethodInvocation(stream, tokenText, frame);
+          }
+        }
+
+        if (!valueSet && !callStack.empty()) {
+          value = callStack.top()->returnValue;
+          frame->clearFlag(FrameFlags::ReturnFlag);
+          valueSet = true;
+        }
+      } else if (KiwiBuiltins.is_builtin_method(tokenText)) {
+        interpretBuiltin(stream, tokenText, frame);
+        value = frame->returnValue;
         valueSet = true;
       }
-    } else if (!valueSet && KiwiBuiltins.is_builtin_method(tokenText)) {
-      interpretBuiltin(stream, tokenText, frame);
-      value = frame->returnValue;
-      valueSet = true;
     }
 
     Token lastTerm = tokenTerm;
@@ -2823,10 +2865,7 @@ class Interpreter {
     }
 
     auto tempStream = std::make_shared<TokenStream>(tempAssignment);
-    auto tempFrame = std::make_shared<CallStackFrame>();
-    if (frame->inObjectContext()) {
-      tempFrame->setObjectContext(frame->getObjectContext());
-    }
+    auto tempFrame = buildSubFrame(frame);
     interpretAssignment(tempStream, tempFrame, true);
 
     if (tempFrame->variables.find(tempId) == tempFrame->variables.end()) {
@@ -2938,7 +2977,8 @@ class Interpreter {
   void interpretAssignment(std::shared_ptr<TokenStream> stream,
                            std::string& name, std::string& op,
                            std::shared_ptr<CallStackFrame> frame,
-                           bool isTemporary = false) {
+                           bool isTemporary = false,
+                           bool isInstanceVariable = false) {
     if (current(stream).getType() == TokenType::LAMBDA) {
       interpretLambdaAssignment(stream, name, op, frame);
       return;
@@ -2955,7 +2995,7 @@ class Interpreter {
       if (booleanExpression.isSet()) {
         value = booleanExpression.evaluate();
       }
-      if (!isTemporary && frame->inObjectContext()) {
+      if (!isTemporary && isInstanceVariable && frame->inObjectContext()) {
         frame->getObjectContext()->instanceVariables[name] = value;
       } else {
         if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
