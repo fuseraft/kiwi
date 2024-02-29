@@ -2,12 +2,13 @@ println "=============="
 println "= lists.kiwi ="
 println "=============="
 
-@a = [1, 3, "hello, world!", [5, "asdf", true], [2, 4]]
+@a_list = [1, 3, "hello, world!", [5, "asdf", true], [2, 4]]
+println @a_list
 @b = [1, 2, 3, 4]
-@c = @a[2]
-@d = @a[0:1000000] # Probably needs to throw IndexError (shrug)
+@c = @a_list[2]
+@d = @a_list[0:1000000] # Probably needs to throw IndexError (shrug)
 
-println "a = ${@a}"
+println "a = ${@a_list}"
 println "b = ${@b}"
 println "c = ${@c}"
 println "d = ${@d}"
@@ -15,14 +16,14 @@ println "d = ${@d}"
 @b = @b[::-1]
 println "reversed b = ${@b}"
 
-@a = @a[::-1]
-println "reversed a = ${@a}"
+@a_list = @a_list[::-1]
+println "reversed a = ${@a_list}"
 
 # Iterate a list.
 println "iterating a:"
 @i = 0
 while @i < 5 do
-  @item = @a[@i]
+  @item = @a_list[@i]
   println "${@i}: ${@item}"
   @i += 1
 end

@@ -1,20 +1,17 @@
 #ifndef KIWI_PARSING_LEXER_H
 #define KIWI_PARSING_LEXER_H
 
-#include "parsing/tokens.h"
-#include "parsing/keywords.h"
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
+#include "parsing/tokens.h"
+#include "parsing/keywords.h"
 
 class Lexer {
  public:
-  Lexer(const std::string& file, const std::string& source,
-        bool skipWhitespace = true)
-      : file(file),
-        source(source),
-        currentPosition(0),
-        _skipWhitespace(skipWhitespace) {
+  Lexer(const std::string& file, const std::string& source, bool skipWS = true)
+      : file(file), source(source), pos(0), skipWS(skipWS) {
     std::istringstream stream(source);
     std::string line;
 
@@ -23,13 +20,17 @@ class Lexer {
     }
   }
 
+  std::shared_ptr<TokenStream> getTokenStream() {
+    return std::make_shared<TokenStream>(getAllTokens());
+  }
+
   std::vector<Token> getAllTokens() {
     std::vector<Token> tokens;
-    lineNumber = 0;
-    linePosition = 0;
+    row = 0;
+    col = 0;
 
     while (true) {
-      Token token = _getNextToken();
+      auto token = _getNextToken();
 
       if (token.getType() == TokenType::ENDOFFILE) {
         break;
@@ -42,32 +43,31 @@ class Lexer {
   }
 
   std::vector<std::string> getLines() { return std::move(lines); }
-
   std::string getFile() { return file; }
 
  private:
   std::string file;
   std::string source;
-  size_t currentPosition;
-  bool _skipWhitespace;
-  int lineNumber;
-  int linePosition;
+  size_t pos;
+  bool skipWS;
+  int row;
+  int col;
   std::vector<std::string> lines;
 
   char getCurrentChar() {
-    char c = source[currentPosition++];
+    char c = source[pos++];
     if (c == '\n') {
-      lineNumber++;
-      linePosition = 0;
+      row++;
+      col = 0;
     } else {
-      linePosition++;
+      col++;
     }
     return c;
   }
 
   char peek() {
-    if (currentPosition + 1 < source.length()) {
-      return source[currentPosition + 1];
+    if (pos + 1 < source.length()) {
+      return source[pos + 1];
     }
     return '\0';
   }
@@ -75,9 +75,8 @@ class Lexer {
   Token _getNextToken() {
     skipWhitespace();
 
-    if (currentPosition >= source.length()) {
-      return Token::create(TokenType::ENDOFFILE, file, "", 0, lineNumber,
-                           linePosition);
+    if (pos >= source.length()) {
+      return Token::create(TokenType::ENDOFFILE, file, "", 0, row, col);
     }
 
     char currentChar = getCurrentChar();
@@ -91,35 +90,27 @@ class Lexer {
     } else if (currentChar == '#') {
       return parseComment();
     } else if (currentChar == '@') {
-      return Token::create(TokenType::DECLVAR, file, "@", lineNumber,
-                           linePosition);
+      return Token::create(TokenType::DECLVAR, file, "@", row, col);
     } else if (currentChar == '$') {
-      return Token::create(TokenType::OPERATOR, file, "$", lineNumber,
-                           linePosition);
+      return Token::create(TokenType::OPERATOR, file, "$", row, col);
     } else if (currentChar == '\n') {
-      return Token::create(TokenType::NEWLINE, file, "\n", lineNumber,
-                           linePosition);
+      return Token::create(TokenType::NEWLINE, file, "\n", row, col);
     } else if (currentChar == '(') {
-      return Token::create(TokenType::OPEN_PAREN, file, "(", lineNumber,
-                           linePosition);
+      return Token::create(TokenType::OPEN_PAREN, file, "(", row, col);
     } else if (currentChar == ')') {
-      return Token::create(TokenType::CLOSE_PAREN, file, ")", lineNumber,
-                           linePosition);
+      return Token::create(TokenType::CLOSE_PAREN, file, ")", row, col);
     } else if (currentChar == '[') {
-      return Token::create(TokenType::OPEN_BRACKET, file, "[", lineNumber,
-                           linePosition);
+      return Token::create(TokenType::OPEN_BRACKET, file, "[", row, col);
     } else if (currentChar == ']') {
-      return Token::create(TokenType::CLOSE_BRACKET, file, "]", lineNumber,
-                           linePosition);
+      return Token::create(TokenType::CLOSE_BRACKET, file, "]", row, col);
     } else if (currentChar == '{') {
-      return Token::create(TokenType::OPEN_BRACE, file, "{", lineNumber,
-                           linePosition);
+      return Token::create(TokenType::OPEN_BRACE, file, "{", row, col);
     } else if (currentChar == '}') {
-      return Token::create(TokenType::CLOSE_BRACE, file, "}", lineNumber,
-                           linePosition);
+      return Token::create(TokenType::CLOSE_BRACE, file, "}", row, col);
     } else if (currentChar == ',') {
-      return Token::create(TokenType::COMMA, file, ",", lineNumber,
-                           linePosition);
+      return Token::create(TokenType::COMMA, file, ",", row, col);
+    } else if (currentChar == '?') {
+      return Token::create(TokenType::QUESTION, file, "?", row, col);
     } else if (currentChar == '.') {
       return parseDot(currentChar);
     } else if (currentChar == '\\') {
@@ -132,18 +123,17 @@ class Lexer {
   }
 
   void skipWhitespace() {
-    if (!_skipWhitespace) {
+    if (!skipWS) {
       return;
     }
 
-    while (currentPosition < source.length() &&
-           isspace(source[currentPosition])) {
+    while (pos < source.length() && isspace(source[pos])) {
       getCurrentChar();
     }
   }
 
   Token parseKeyword(std::string& keyword) {
-    TokenType tokenType = TokenType::KEYWORD;
+    auto tokenType = TokenType::KEYWORD;
 
     if (Keywords.is_conditional_keyword(keyword)) {
       tokenType = TokenType::CONDITIONAL;
@@ -151,17 +141,17 @@ class Lexer {
       tokenType = TokenType::LAMBDA;
     } else if (Keywords.is_boolean(keyword)) {
       tokenType = TokenType::LITERAL;
-      return Token::createBoolean(file, keyword, lineNumber, linePosition);
+      return Token::createBoolean(file, keyword, row, col);
     }
 
-    return Token::create(tokenType, file, keyword, lineNumber, linePosition);
+    return Token::create(tokenType, file, keyword, row, col);
   }
 
   Token parseUnspecified(char initialChar) {
     std::string s(1, initialChar);
 
-    if (currentPosition < source.length()) {
-      char nextChar = source[currentPosition];
+    if (pos < source.length()) {
+      char nextChar = source[pos];
       bool isArithmeticOpChar =
           Operators.is_arithmetic_operator_char(initialChar);
       bool isBooleanOpChar = Operators.is_boolean_operator_char(initialChar);
@@ -179,7 +169,7 @@ class Lexer {
         s += nextChar;
         getCurrentChar();
 
-        nextChar = source[currentPosition];
+        nextChar = source[pos];
         if (nextChar == '=' && Operators.is_large_operator(s)) {
           s += nextChar;
           getCurrentChar();
@@ -187,105 +177,97 @@ class Lexer {
       }
     }
 
-    return Token::create(TokenType::OPERATOR, file, s, lineNumber,
-                         linePosition);
+    return Token::create(TokenType::OPERATOR, file, s, row, col);
   }
 
   Token parseColon(char initialChar) {
     std::string s(1, initialChar);
 
-    if (currentPosition < source.length()) {
-      char nextChar = source[currentPosition];
+    if (pos < source.length()) {
+      char nextChar = source[pos];
       if (nextChar == ':') {
         s += nextChar;
         getCurrentChar();
-        return Token::create(TokenType::QUALIFIER, file, s, lineNumber,
-                             linePosition);
+        return Token::create(TokenType::QUALIFIER, file, s, row, col);
       }
     }
 
-    return Token::create(TokenType::COLON, file, s, lineNumber, linePosition);
+    return Token::create(TokenType::COLON, file, s, row, col);
   }
 
   Token parseEscapeCharacter() {
-    if (currentPosition < source.length()) {
+    if (pos < source.length()) {
       char nextChar = getCurrentChar();
 
       switch (nextChar) {
-        case 't':
-          return Token::create(TokenType::ESCAPED, file, "\t", lineNumber,
-                               linePosition);
         case 'n':
-          return Token::create(TokenType::ESCAPED, file, "\n", lineNumber,
-                               linePosition);
+          return Token::create(TokenType::ESCAPED, file, "\n", row, col);
+        case 'r':
+          return Token::create(TokenType::ESCAPED, file, "\r", row, col);
+        case 't':
+          return Token::create(TokenType::ESCAPED, file, "\t", row, col);
       }
     }
 
     getCurrentChar();
 
-    return Token::create(TokenType::IDENTIFIER, file, "\\", lineNumber,
-                         linePosition);
+    return Token::create(TokenType::IDENTIFIER, file, "\\", row, col);
   }
 
   Token parseDot(char initialChar) {
     std::string s(1, initialChar);
 
-    if (currentPosition < source.length()) {
-      char nextChar = source[currentPosition];
+    if (pos < source.length()) {
+      char nextChar = source[pos];
       if (nextChar == '.') {
         s += nextChar;
         getCurrentChar();
-        return Token::create(TokenType::RANGE, file, s, lineNumber,
-                             linePosition);
+        return Token::create(TokenType::RANGE, file, s, row, col);
       }
     }
 
-    return Token::create(TokenType::DOT, file, ".", lineNumber, linePosition);
+    return Token::create(TokenType::DOT, file, ".", row, col);
   }
 
   Token parseIdentifier(char initialChar) {
     std::string identifier(1, initialChar);
 
-    while (
-        currentPosition < source.length() &&
-        (isalnum(source[currentPosition]) || source[currentPosition] == '_')) {
+    while (pos < source.length() &&
+           (isalnum(source[pos]) || source[pos] == '_')) {
       identifier += getCurrentChar();
     }
 
     if (Keywords.is_keyword(identifier)) {
       return parseKeyword(identifier);
     } else if (TypeNames.is_typename(identifier)) {
-      return Token::create(TokenType::TYPENAME, file, identifier, lineNumber,
-                           linePosition);
+      return Token::create(TokenType::TYPENAME, file, identifier, row, col);
     }
 
-    return Token::create(TokenType::IDENTIFIER, file, identifier, lineNumber,
-                         linePosition);
+    return Token::create(TokenType::IDENTIFIER, file, identifier, row, col);
   }
 
   Token parseLiteral(char initialChar) {
     std::string literal(1, initialChar);
     char lastChar = initialChar;
 
-    while (
-        currentPosition < source.length() &&
-        (isdigit(source[currentPosition]) || source[currentPosition] == '.')) {
-      if (source[currentPosition] == '.' && lastChar == '.') {
+    while (pos < source.length() &&
+           (isdigit(source[pos]) || source[pos] == '.')) {
+      if (source[pos] == '.' && lastChar == '.') {
         literal.pop_back();
-        --currentPosition;
+        --pos;
         break;
       }
 
-      lastChar = source[currentPosition];
+      lastChar = source[pos];
       literal += getCurrentChar();
     }
 
     if (literal.find('.') != std::string::npos) {
       return Token::create(TokenType::LITERAL, file, literal,
-                           std::stod(literal), lineNumber, linePosition);
+                           std::stod(literal), row, col);
     } else {
       return Token::create(TokenType::LITERAL, file, literal,
-                           std::stoi(literal), lineNumber, linePosition);
+                           std::stoi(literal), row, col);
     }
   }
 
@@ -293,13 +275,16 @@ class Lexer {
     std::string str;
     bool escape = false;
 
-    while (currentPosition < source.length()) {
-      char currentChar = source[currentPosition];
+    while (pos < source.length()) {
+      char currentChar = source[pos];
 
       if (escape) {
         switch (currentChar) {
           case 'n':
             str += '\n';
+            break;
+          case 'r':
+            str += '\r';
             break;
           case 't':
             str += '\t';
@@ -320,8 +305,8 @@ class Lexer {
         getCurrentChar();  // Move past the closing quote
         break;             // End of string
       } else if (currentChar == '$' && peek() == '{') {
-        getCurrentChar();  // Consume '$'
-        getCurrentChar();  // Consume '{'
+        getCurrentChar();  // Skip '$'
+        getCurrentChar();  // Skip '{'
         std::string interpolationExpression = parseInterpolatedExpression();
         str += interpolationExpression;
         continue;
@@ -329,28 +314,26 @@ class Lexer {
         str += currentChar;
       }
 
-      getCurrentChar();  // Move to next character
+      getCurrentChar();
     }
 
-    // Handle case where string ends with a backslash
     if (escape) {
       str += '\\';
     }
 
-    return Token::create(TokenType::STRING, file, str, lineNumber,
-                         linePosition);
+    return Token::create(TokenType::STRING, file, str, row, col);
   }
 
   std::string parseInterpolatedExpression() {
     std::string expression;
-    int braceCount = 1;  // Starts with 1 because we've already encountered '${'
+    int braceCount = 1;
 
-    while (currentPosition < source.length() && braceCount > 0) {
+    while (pos < source.length() && braceCount > 0) {
       char currentChar = getCurrentChar();
 
       if (currentChar == '}' && braceCount == 1) {
         braceCount--;
-        break;  // End of interpolated expression
+        break;
       } else if (currentChar == '{') {
         braceCount++;
       } else if (currentChar == '}') {
@@ -362,43 +345,35 @@ class Lexer {
       }
     }
 
-    // Here, you might need to parse the expression or leave it as is, depending on your implementation.
-    // If expression parsing is needed, integrate with your existing parsing logic to handle expressions.
-
-    return "${" + expression +
-           "}";  // Return the expression, including '${' and '}', for clarity or further processing
+    return "${" + expression + "}";
   }
 
   Token parseComment() {
-    if (currentPosition + 1 < source.length() &&
-        source[currentPosition] == '#') {
+    if (pos + 1 < source.length() && source[pos] == '#') {
       // It's a multi-line comment.
       std::string comment;
-      currentPosition++;  // Skip the "##"
+      pos++;  // Skip the "##"
 
-      while (currentPosition + 1 < source.length()) {
+      while (pos + 1 < source.length()) {
         char currentChar = getCurrentChar();
-        if (currentChar == '#' && source[currentPosition] == '#') {
-          currentPosition++;  // Skip the "##"
+        if (currentChar == '#' && source[pos] == '#') {
+          pos++;  // Skip the "##"
           break;
         } else {
           comment += currentChar;
         }
       }
 
-      return Token::create(TokenType::COMMENT, file, comment, lineNumber,
-                           linePosition);
+      return Token::create(TokenType::COMMENT, file, comment, row, col);
     } else {
       // It's a single-line comment
       std::string comment;
 
-      while (currentPosition < source.length() &&
-             source[currentPosition] != '\n') {
+      while (pos < source.length() && source[pos] != '\n') {
         comment += getCurrentChar();
       }
 
-      return Token::create(TokenType::COMMENT, file, comment, lineNumber,
-                           linePosition);
+      return Token::create(TokenType::COMMENT, file, comment, row, col);
     }
   }
 };

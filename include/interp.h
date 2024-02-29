@@ -7,7 +7,6 @@
 #include "errors/handler.h"
 #include "errors/state.h"
 #include "logging/logger.h"
-#include "math/boolexpr.h"
 #include "objects/class.h"
 #include "objects/conditional.h"
 #include "objects/method.h"
@@ -82,7 +81,7 @@ class Interpreter {
 
   Token current(std::shared_ptr<TokenStream> stream) {
     if (stream->position >= stream->tokens.size()) {
-      return Token::createEndOfFrame();
+      return Token::createStreamEnd();
     }
     return stream->tokens.at(stream->position);
   }
@@ -90,8 +89,6 @@ class Interpreter {
   void next(std::shared_ptr<TokenStream> stream) {
     if (stream->position < stream->tokens.size()) {
       stream->position++;
-    } else {
-      // To complete the stream, or not to complete the stream, that is the question;
     }
   }
 
@@ -100,7 +97,7 @@ class Interpreter {
     if (nextPosition < stream->tokens.size()) {
       return stream->tokens[nextPosition];
     } else {
-      return Token::createEndOfFrame();
+      return Token::createStreamEnd();
     }
   }
 
@@ -156,7 +153,7 @@ class Interpreter {
         }
 
         if (!frame->isFlagSet(FrameFlags::ReturnFlag)) {
-          ++stream->position;
+          //++stream->position;
         }
       }
 
@@ -205,7 +202,7 @@ class Interpreter {
       return;
     }
 
-    Value returnValue = std::move(frame->returnValue);
+    auto returnValue = std::move(frame->returnValue);
     bool doUpdate = true;
     bool inObjectContext = frame->inObjectContext();
     if (inObjectContext && std::holds_alternative<int>(returnValue) &&
@@ -247,7 +244,7 @@ class Interpreter {
     Method lambda;
 
     if (current(stream).getType() == TokenType::IDENTIFIER) {
-      std::string lambdaName = current(stream).getText();
+      auto lambdaName = current(stream).getText();
       next(stream);  // Skip identifier.
       if (frame->hasAssignedLambda(lambdaName)) {
         lambda = frame->getAssignedLambda(lambdaName);
@@ -361,10 +358,8 @@ class Interpreter {
 
     next(stream);  // Skip "in"
 
-    Token tokenTerm = current(stream);
-    BooleanExpressionBuilder booleanExpression;
-    Value collectionValue =
-        interpretExpression(stream, booleanExpression, frame);
+    auto tokenTerm = current(stream);
+    auto collectionValue = interpretExpression(stream, frame);
 
     if (peek(stream).getText() != Keywords.Do &&
         current(stream).getText() != Keywords.Do) {
@@ -396,21 +391,21 @@ class Interpreter {
   void interpretWhileLoop(std::shared_ptr<TokenStream> stream,
                           std::shared_ptr<CallStackFrame> frame) {
     std::vector<Token> conditionTokens;
-    while (current(stream).getText() != Keywords.Do) {
-      Token t = current(stream);
+    while (stream->canRead() && current(stream).getText() != Keywords.Do) {
+      auto t = current(stream);
       conditionTokens.push_back(current(stream));
       next(stream);
     }
 
     next(stream);  // Skip "do"
-    Token tokenTerm = current(stream);
+    auto tokenTerm = current(stream);
 
     std::vector<Token> loopTokens;
     InterpHelper::collectBodyTokens(loopTokens, stream);
 
     auto oldFrame = std::make_shared<CallStackFrame>(*frame);
-    std::string tempId = InterpHelper::getTemporaryId();
-    std::vector<Token> tempAssignment =
+    auto tempId = InterpHelper::getTemporaryId();
+    auto tempAssignment =
         InterpHelper::getTemporaryAssignment(tokenTerm, tempId);
     // Interpret the condition.
     while (true) {
@@ -423,7 +418,7 @@ class Interpreter {
         continue;
       }
 
-      std::vector<Token> condition = conditionTokens;
+      auto condition = conditionTokens;
       auto it = condition.begin() + 0;
       condition.insert(it, tempAssignment.begin(), tempAssignment.end());
 
@@ -438,7 +433,7 @@ class Interpreter {
         throw SyntaxError(current(stream), "Invalid condition in while-loop.");
       }
 
-      Value value = getVariable(conditionStream, tempId, conditionFrame);
+      auto value = getVariable(conditionStream, tempId, conditionFrame);
       callStack.pop();
 
       if (!std::holds_alternative<bool>(value)) {
@@ -479,7 +474,7 @@ class Interpreter {
 
   void interpretLoop(std::shared_ptr<TokenStream> stream,
                      std::shared_ptr<CallStackFrame> frame) {
-    std::string loop = current(stream).getText();
+    const auto& loop = current(stream).getText();
     next(stream);  // Skip "while"|"for"
 
     if (loop == Keywords.While) {
@@ -516,13 +511,16 @@ class Interpreter {
     } else if (keyword == Keywords.This) {
       interpretSelfInvocation(stream, frame);
     } else if (keyword == Keywords.Break) {
+      next(stream);  // Skip "break"
       frame->setFlag(FrameFlags::LoopBreak);
     } else if (keyword == Keywords.Next) {
+      next(stream);  // Skip "next"
       frame->setFlag(FrameFlags::LoopContinue);
     } else if (keyword == Keywords.Try) {
+      next(stream);  // Skip "try"
       frame->setFlag(FrameFlags::InTry);
     } else if (keyword == Keywords.Pass) {
-      // skip
+      next(stream);  // Skip "pass"
     } else if (keyword == Keywords.Catch) {
       interpretCatch(stream, frame);
     } else {
@@ -533,7 +531,7 @@ class Interpreter {
 
   void interpretKeyword(std::shared_ptr<TokenStream> stream, const Token& token,
                         std::shared_ptr<CallStackFrame> frame) {
-    const std::string& keyword = token.getText();
+    const auto& keyword = token.getText();
 
     interpretKiwiKeyword(stream, token, frame, keyword);
   }
@@ -556,7 +554,7 @@ class Interpreter {
                                     const std::string& identifier,
                                     std::shared_ptr<CallStackFrame> frame) {
     next(stream);  // Skip identifier.
-    std::string op = current(stream).getText();
+    auto op = current(stream).getText();
     next(stream);
 
     if (current(stream).getType() == TokenType::LAMBDA) {
@@ -567,37 +565,72 @@ class Interpreter {
     }
   }
 
-  void interpretIdentifier(std::shared_ptr<TokenStream> stream,
-                           std::shared_ptr<CallStackFrame> frame) {
-    Token token = current(stream);
-    std::string tokenText = token.getText();
+  Value interpretIdentifier(std::shared_ptr<TokenStream> stream,
+                            std::shared_ptr<CallStackFrame> frame) {
+    auto token = current(stream);
+    auto tokenText = token.getText();
 
     interpretQualifiedIdentifier(stream, token, tokenText);
 
-    if (hasMethod(tokenText, frame)) {
-      interpretMethodInvocation(stream, tokenText, frame);
-    } else if (hasVariable(tokenText, frame)) {
-      Value v = getVariable(stream, tokenText, frame);
+    bool methodFound = hasMethod(tokenText, frame),
+         classFound = hasClass(tokenText);
+
+    if (methodFound || classFound) {
+      if (classFound) {
+        if (peek(stream).getType() != TokenType::DOT) {
+          throw SyntaxError(current(stream),
+                            "Invalid syntax near `" + tokenText + "`");
+        }
+        interpretClassMethodInvocation(stream, tokenText, frame);
+      } else if (methodFound) {
+        if (peek(stream).getType() == TokenType::COMMA ||
+            peek(stream).getType() == TokenType::CLOSE_PAREN) {
+          if (frame->hasAssignedLambda(tokenText)) {
+            std::shared_ptr<LambdaRef> lambdaRef =
+                std::make_shared<LambdaRef>(tokenText);
+            return lambdaRef;
+          } else {
+            throw SyntaxError(current(stream), "Expected lambda reference.");
+          }
+        } else {
+          interpretMethodInvocation(stream, tokenText, frame);
+        }
+      }
+
+      if (!callStack.empty()) {
+        auto value = callStack.top()->returnValue;
+        frame->clearFlag(FrameFlags::ReturnFlag);
+        return value;
+      }
+    }
+
+    if (hasVariable(tokenText, frame)) {
+      auto v = getVariable(stream, tokenText, frame);
+      next(stream);
+
       if (std::holds_alternative<std::shared_ptr<LambdaRef>>(v)) {
-        std::string lambdaRef =
-            std::get<std::shared_ptr<LambdaRef>>(v)->identifier;
+        auto lambdaRef = std::get<std::shared_ptr<LambdaRef>>(v)->identifier;
         if (frame->hasAssignedLambda(lambdaRef)) {
-          interpretMethodInvocation(stream, lambdaRef, frame);
+          return interpretMethodInvocation(stream, lambdaRef, frame);
         } else {
           throw InvalidOperationError(token,
                                       "Unknown Lambda `" + tokenText + "`.");
         }
       }
-      // Skip it (for now).
+
+      if (current(stream).getType() == TokenType::DOT) {
+        return interpretDotNotation(stream, v, frame);
+      }
+
+      return v;
     } else if (KiwiBuiltins.is_builtin_method(tokenText)) {
-      interpretBuiltin(stream, tokenText, frame);
-    } else if (hasClass(tokenText)) {
-      interpretClassMethodInvocation(stream, tokenText, frame);
+      return interpretBuiltin(stream, tokenText, frame);
     } else if (peek(stream).getType() == TokenType::OPERATOR) {
       interpretIdentifierOperation(stream, tokenText, frame);
-    } else {
-      throw UnknownIdentifierError(token, tokenText);
+      return 0;
     }
+
+    throw UnknownIdentifierError(token, tokenText);
   }
 
   void interpretCatch(std::shared_ptr<TokenStream> stream,
@@ -614,12 +647,13 @@ class Interpreter {
 
     std::vector<Token> catchTokens;
     int count = 1;
-    while (count != 0) {
+    while (stream->canRead() && count != 0) {
       if (current(stream).getText() == Keywords.End) {
         --count;
 
         // Stop here.
         if (count == 0) {
+          next(stream);  // Skip "end"
           break;
         }
       } else if (Keywords.is_required_end_keyword(current(stream).getText())) {
@@ -659,6 +693,7 @@ class Interpreter {
     switch (token.getType()) {
       case TokenType::COMMENT:
       case TokenType::COMMA:
+        next(stream);  // Skip these.
         break;
 
       case TokenType::KEYWORD:
@@ -703,7 +738,7 @@ class Interpreter {
   bool hasMethod(const std::string& name,
                  std::shared_ptr<CallStackFrame> frame) {
     if (frame->inObjectContext()) {
-      Class clazz = classes[frame->getObjectContext()->className];
+      auto clazz = classes[frame->getObjectContext()->className];
       if (clazz.hasMethod(name)) {
         return true;
       }
@@ -769,7 +804,7 @@ class Interpreter {
                    std::shared_ptr<CallStackFrame> frame) {
     if (hasMethod(name, frame)) {
       if (frame->inObjectContext()) {
-        Class clazz = classes[frame->getObjectContext()->className];
+        auto clazz = classes[frame->getObjectContext()->className];
         if (clazz.hasMethod(name)) {
           return clazz.getMethod(name);
         }
@@ -826,9 +861,9 @@ class Interpreter {
     next(stream);  // Skip the name.
 
     moduleStack.push(name);
-    Module module = hasHomedModule(home, name)
-                        ? getHomedModule(stream, home, name)
-                        : getModule(stream, name);
+    auto module = hasHomedModule(home, name)
+                      ? getHomedModule(stream, home, name)
+                      : getModule(stream, name);
 
     auto codeStream = std::make_shared<TokenStream>(module.getCode());
     auto codeFrame = std::make_shared<CallStackFrame>();
@@ -850,13 +885,14 @@ class Interpreter {
     next(stream);  // Skip "("
 
     bool closeParenthesisFound = false;
-    while (current(stream).getType() != TokenType::CLOSE_PAREN) {
+    while (stream->canRead() && !closeParenthesisFound &&
+           current(stream).getType() != TokenType::CLOSE_PAREN) {
       if (current(stream).getType() == TokenType::COMMA) {
         next(stream);
         continue;
       }
 
-      Token subTokenTerm = current(stream);
+      auto subTokenTerm = current(stream);
       Value argValue;
 
       if (subTokenTerm.getType() == TokenType::TYPENAME) {
@@ -864,13 +900,10 @@ class Interpreter {
       } else if (hasClass(subTokenTerm.getText())) {
         argValue = subTokenTerm.getText();
       } else {
-        BooleanExpressionBuilder booleanExpression;
-        argValue =
-            interpretTerm(stream, subTokenTerm, booleanExpression, frame);
+        argValue = interpretExpression(stream, frame);
       }
 
-      if (peek(stream).getType() == TokenType::CLOSE_PAREN) {
-        next(stream);
+      if (current(stream).getType() == TokenType::CLOSE_PAREN) {
         closeParenthesisFound = true;
       }
 
@@ -880,7 +913,11 @@ class Interpreter {
         next(stream);
       }
     }
-    next(stream);  // Skip ")"
+
+    if (current(stream).getType() == TokenType::CLOSE_PAREN) {
+      next(stream);
+    }
+
     return args;
   }
 
@@ -916,20 +953,20 @@ class Interpreter {
     next(stream);  // Skip "("
 
     // Interpret parameters.
-    std::vector<std::string> parameters = method.getParameters();
+    auto parameters = method.getParameters();
     int paramIndex = 0;
 
     bool closeParenthesisFound = false;
-    while (current(stream).getType() != TokenType::CLOSE_PAREN) {
+    while (stream->canRead() &&
+           current(stream).getType() != TokenType::CLOSE_PAREN) {
       if (current(stream).getType() == TokenType::COMMA) {
         next(stream);
         continue;
       }
 
-      std::string paramName = parameters.at(paramIndex++);
-      BooleanExpressionBuilder booleanExpression;
+      auto paramName = parameters.at(paramIndex++);
       tokenTerm = current(stream);
-      Value paramValue = interpretExpression(stream, booleanExpression, frame);
+      auto paramValue = interpretExpression(stream, frame);
       if (peek(stream).getType() == TokenType::CLOSE_PAREN) {
         next(stream);
         closeParenthesisFound = true;
@@ -949,10 +986,9 @@ class Interpreter {
   std::shared_ptr<CallStackFrame> buildMethodInvocationStackFrame(
       std::shared_ptr<TokenStream> stream, Token& tokenTerm, Method& method,
       std::shared_ptr<CallStackFrame> frame) {
-    std::vector<std::string> parameters =
-        collectMethodParameters(stream, tokenTerm, method, frame);
-
+    auto parameters = collectMethodParameters(stream, tokenTerm, method, frame);
     auto codeFrame = buildSubFrame(frame);
+
     for (const auto& pair : frame->lambdas) {
       // Check this.
       codeFrame->assignLambda(pair.first, pair.second);
@@ -971,17 +1007,18 @@ class Interpreter {
     return codeFrame;
   }
 
-  void interpretClassMethodInvocation(std::shared_ptr<TokenStream> stream,
-                                      const std::string& className,
-                                      std::shared_ptr<CallStackFrame> frame) {
+  Value interpretClassMethodInvocation(std::shared_ptr<TokenStream> stream,
+                                       const std::string& className,
+                                       std::shared_ptr<CallStackFrame> frame) {
     next(stream);  // Skip class name
     next(stream);  // Skip the "."
 
-    std::string methodName = current(stream).getText();
+    auto methodName = current(stream).getText();
     next(stream);  // Skip the method name.
-    Class clazz = classes[className];
-    Token tokenTerm = current(stream);
-    std::shared_ptr<Object> context = std::make_shared<Object>();
+
+    auto clazz = classes[className];
+    auto tokenTerm = current(stream);
+    auto context = std::make_shared<Object>();
     bool isInstantiation = false;
 
     if (methodName == Keywords.New) {
@@ -1000,7 +1037,7 @@ class Interpreter {
       throw UnimplementedMethodError(tokenTerm, className, methodName);
     }
 
-    Method method = clazz.getMethod(methodName);
+    auto method = clazz.getMethod(methodName);
     if (!method.isFlagSet(MethodFlags::Static) &&
         !method.isFlagSet(MethodFlags::Ctor)) {
       throw InvalidContextError(
@@ -1030,6 +1067,12 @@ class Interpreter {
 
     // Now interpret the method in its own context
     interpretStackFrame();
+
+    if (!callStack.empty()) {
+      return callStack.top()->returnValue;
+    }
+
+    throw EmptyStackError(current(stream));
   }
 
   Value interpretInstanceMethodInvocation(
@@ -1040,7 +1083,7 @@ class Interpreter {
       throw ClassUndefinedError(current(stream), object->className);
     }
 
-    Class clazz = classes[object->className];
+    auto clazz = classes[object->className];
     if (!clazz.hasMethod(methodName)) {
       if (KiwiBuiltins.is_builtin(methodName)) {
         return BuiltinInterpreter::execute(current(stream), methodName, object,
@@ -1050,7 +1093,7 @@ class Interpreter {
                                      methodName);
     }
 
-    Method method = clazz.getMethod(methodName);
+    auto method = clazz.getMethod(methodName);
 
     if (method.isFlagSet(MethodFlags::Private) && !frame->inObjectContext()) {
       throw InvalidContextError(
@@ -1096,24 +1139,23 @@ class Interpreter {
           "Expected identifier in instance method invocation, instead got: `" +
               current(stream).getText() + "`");
     }
-    Token tokenTerm = current(stream);
-    std::string methodName = tokenTerm.getText();
+    auto tokenTerm = current(stream);
+    auto methodName = tokenTerm.getText();
     next(stream);  // Skip the method name.
 
-    Value instanceValue = getVariable(stream, instanceName, frame);
-    std::shared_ptr<Object> object =
-        std::get<std::shared_ptr<Object>>(instanceValue);
+    auto instanceValue = getVariable(stream, instanceName, frame);
+    auto object = std::get<std::shared_ptr<Object>>(instanceValue);
 
     if (!hasClass(object->className)) {
       throw ClassUndefinedError(tokenTerm, object->className);
     }
 
-    Class clazz = classes[object->className];
+    auto clazz = classes[object->className];
     if (!clazz.hasMethod(methodName)) {
       throw UnimplementedMethodError(tokenTerm, object->className, methodName);
     }
 
-    Method method = clazz.getMethod(methodName);
+    auto method = clazz.getMethod(methodName);
 
     if (method.isFlagSet(MethodFlags::Private) && !frame->inObjectContext()) {
       throw InvalidContextError(
@@ -1130,14 +1172,15 @@ class Interpreter {
     interpretStackFrame();
   }
 
-  void interpretMethodInvocation(std::shared_ptr<TokenStream> stream,
-                                 const std::string& name,
-                                 std::shared_ptr<CallStackFrame> frame) {
-    next(stream);  // Skip the name.
-    Method method = getMethod(stream, name, frame);
+  Value interpretMethodInvocation(std::shared_ptr<TokenStream> stream,
+                                  const std::string& name,
+                                  std::shared_ptr<CallStackFrame> frame) {
+    if (current(stream).getType() != TokenType::OPEN_PAREN) {
+      next(stream);  // Skip the name.
+    }
 
-    Token tokenTerm = current(stream);
-
+    auto method = getMethod(stream, name, frame);
+    auto tokenTerm = current(stream);
     auto codeStream = std::make_shared<TokenStream>(method.getCode());
     auto codeFrame =
         buildMethodInvocationStackFrame(stream, tokenTerm, method, frame);
@@ -1148,11 +1191,19 @@ class Interpreter {
     streamStack.push(codeStream);
 
     interpretStackFrame();
+
+    Value value;
+
+    if (!callStack.empty()) {
+      value = callStack.top()->returnValue;
+    }
+
+    return value;
   }
 
   void interpretMethodDefinition(std::shared_ptr<TokenStream> stream) {
-    Method method = InterpHelper::interpretMethodDeclaration(stream);
-    std::string name = method.getName();
+    auto method = InterpHelper::interpretMethodDeclaration(stream);
+    auto name = method.getName();
     std::string moduleName;
 
     if (!moduleStack.empty()) {
@@ -1178,14 +1229,9 @@ class Interpreter {
     next(stream);  // Skip "return"
 
     Value returnValue;
-    BooleanExpressionBuilder ifExpression;
+
     if (hasValue) {
-      returnValue = interpretExpression(stream, ifExpression, frame);
-      if (ifExpression.isSet()) {
-        if (std::holds_alternative<bool>(returnValue)) {
-          returnValue = ifExpression.evaluate();
-        }
-      }
+      returnValue = interpretExpression(stream, frame);
     }
 
     frame->returnValue = returnValue;
@@ -1206,7 +1252,7 @@ class Interpreter {
       next(stream);
 
       if (current(stream).getType() == TokenType::OPERATOR) {
-        std::string op = current(stream).toString();
+        auto op = current(stream).toString();
         next(stream);
 
         if (Operators.is_assignment_operator(op) ||
@@ -1227,7 +1273,7 @@ class Interpreter {
         interpretSliceAssignment(stream, frame, name);
       } else if (current(stream).getType() == TokenType::DOT) {
         if (hasVariable(name, frame)) {
-          Value value = getVariable(stream, name, frame);
+          auto value = getVariable(stream, name, frame);
           if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
             interpretInstanceMethodInvocation(stream, name, frame);
             return name;
@@ -1247,8 +1293,6 @@ class Interpreter {
   void interpretHashElementAssignment(std::shared_ptr<TokenStream> stream,
                                       std::shared_ptr<CallStackFrame> frame,
                                       const std::string& name, Value& value) {
-    std::string key;
-
     if (current(stream).getType() != TokenType::OPEN_BRACKET) {
       throw SyntaxError(
           current(stream),
@@ -1256,13 +1300,13 @@ class Interpreter {
     }
     next(stream);  // Skip "["
 
-    BooleanExpressionBuilder booleanExpression;
-    Value keyValue = interpretExpression(stream, booleanExpression, frame);
+    auto keyValue = interpretExpression(stream, frame);
 
     if (!std::holds_alternative<std::string>(keyValue)) {
       throw SyntaxError(current(stream), "Hash key must be a string value.");
     }
-    key = std::get<std::string>(keyValue);
+
+    auto key = std::get<std::string>(keyValue);
 
     if (peek(stream).getType() == TokenType::CLOSE_BRACKET) {
       next(stream);
@@ -1275,20 +1319,14 @@ class Interpreter {
     }
     next(stream);
 
-    std::string op = "";
-    if (current(stream).getType() == TokenType::OPERATOR) {
-      op = current(stream).getText();
-      next(stream);
-    }
-
-    if (op != Operators.Assign) {
+    if (current(stream).getText() != Operators.Assign) {
       throw InvalidOperationError(current(stream),
                                   "Expected assignment operator.");
     }
+    next(stream);
 
-    Value elementValue = interpretExpression(stream, booleanExpression, frame);
-
-    std::shared_ptr<Hash> hashValue = std::get<std::shared_ptr<Hash>>(value);
+    auto elementValue = interpretExpression(stream, frame);
+    auto hashValue = std::get<std::shared_ptr<Hash>>(value);
     hashValue->add(key, elementValue);
 
     frame->variables[name] = hashValue;
@@ -1297,7 +1335,7 @@ class Interpreter {
   void interpretSliceAssignment(std::shared_ptr<TokenStream> stream,
                                 std::shared_ptr<CallStackFrame> frame,
                                 const std::string& name) {
-    Value value = getVariable(stream, name, frame);
+    auto value = getVariable(stream, name, frame);
 
     if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
       interpretHashElementAssignment(stream, frame, name, value);
@@ -1310,7 +1348,7 @@ class Interpreter {
     }
 
     // Parse slice parameters (start:stop:step)
-    SliceIndex slice = interpretSliceIndex(stream, frame, value);
+    auto slice = interpretSliceIndex(stream, frame, value);
 
     if (peek(stream).getType() == TokenType::OPERATOR) {
       next(stream);
@@ -1325,8 +1363,7 @@ class Interpreter {
     }
     next(stream);  // Move past the assignment operator
 
-    BooleanExpressionBuilder booleanExpression;
-    Value rhsValues = interpretExpression(stream, booleanExpression, frame);
+    auto rhsValues = interpretExpression(stream, frame);
 
     // Get the target list to update
     auto targetListPtr = std::get<std::shared_ptr<List>>(value);
@@ -1347,7 +1384,6 @@ class Interpreter {
 
     auto listPtr = std::get<std::shared_ptr<List>>(listValue);
 
-    BooleanExpressionBuilder booleanExpression;
     SliceIndex slice;
     slice.indexOrStart = 0;
     slice.stopIndex = static_cast<int>(listPtr->elements.size());
@@ -1359,44 +1395,38 @@ class Interpreter {
         current(stream).getType() == TokenType::COLON) {
       slice.isSlice = true;
       if (current(stream).getType() != TokenType::COLON) {
-        slice.indexOrStart =
-            interpretExpression(stream, booleanExpression, frame);
+        slice.indexOrStart = interpretExpression(stream, frame);
       }
 
       if (peek(stream).getType() == TokenType::COLON) {
-        next(stream);  // Consume colon for start:stop:
+        next(stream);  // Skip colon for start:stop:
       }
 
       if (current(stream).getType() == TokenType::COLON) {
-        next(stream);  // Consume colon for start::step or ::step
+        next(stream);  // Skip colon for start::step or ::step
         if (current(stream).getType() != TokenType::CLOSE_BRACKET) {
-          slice.stopIndex =
-              interpretExpression(stream, booleanExpression, frame);
+          slice.stopIndex = interpretExpression(stream, frame);
         }
       }
 
-      if (peek(stream).getType() == TokenType::COLON) {
-        next(stream);  // Consume colon for ::step
-        if (current(stream).getType() == TokenType::COLON) {
-          next(stream);
-        }
+      if (current(stream).getType() == TokenType::COLON) {
+        next(stream);  // Skip colon for ::step
         if (current(stream).getType() != TokenType::CLOSE_BRACKET) {
-          slice.stepValue =
-              interpretExpression(stream, booleanExpression, frame);
+          slice.stepValue = interpretExpression(stream, frame);
         }
       }
     } else if (current(stream).getType() == TokenType::QUALIFIER) {
       next(stream);
       slice.isSlice = true;
       if (current(stream).getType() != TokenType::CLOSE_BRACKET) {
-        slice.stepValue = interpretExpression(stream, booleanExpression, frame);
+        slice.stepValue = interpretExpression(stream, frame);
       }
     } else {
-      slice.indexOrStart = interpretExpression(stream, booleanExpression,
-                                               frame);  // Single index
+      // Single index
+      slice.indexOrStart = interpretExpression(stream, frame);
     }
 
-    if (peek(stream).getType() != TokenType::CLOSE_BRACKET) {
+    if (current(stream).getType() != TokenType::CLOSE_BRACKET) {
       throw SyntaxError(current(stream),
                         "Expected close-bracket, `]`, for list access.");
     }
@@ -1413,20 +1443,20 @@ class Interpreter {
     }
     next(stream);  // Skip "["
 
-    BooleanExpressionBuilder booleanExpression;
-    Value output = interpretExpression(stream, booleanExpression, frame);
+    auto output = interpretExpression(stream, frame);
 
-    if (peek(stream).getType() != TokenType::CLOSE_BRACKET) {
+    if (current(stream).getType() != TokenType::CLOSE_BRACKET) {
       throw SyntaxError(current(stream),
                         "Expected close-bracket, `]`, in key or index access.");
     }
-    next(stream);
+    next(stream);  // Skip "]"
+
     return output;
   }
 
   std::string interpretKey(std::shared_ptr<TokenStream> stream,
                            std::shared_ptr<CallStackFrame> frame) {
-    Value output = interpretKeyOrIndex(stream, frame);
+    auto output = interpretKeyOrIndex(stream, frame);
 
     if (!std::holds_alternative<std::string>(output)) {
       throw SyntaxError(current(stream), "Hash key must be a string value.");
@@ -1437,7 +1467,7 @@ class Interpreter {
 
   int interpretIndex(std::shared_ptr<TokenStream> stream,
                      std::shared_ptr<CallStackFrame> frame) {
-    Value output = interpretKeyOrIndex(stream, frame);
+    auto output = interpretKeyOrIndex(stream, frame);
 
     if (!std::holds_alternative<int>(output)) {
       throw SyntaxError(current(stream),
@@ -1450,10 +1480,10 @@ class Interpreter {
   Value interpretHashElementAccess(std::shared_ptr<TokenStream> stream,
                                    std::shared_ptr<CallStackFrame> frame,
                                    Value& value) {
-    Token tokenTerm = current(stream);
+    auto tokenTerm = current(stream);
+    auto key = interpretKey(stream, frame);
+    auto hash = std::get<std::shared_ptr<Hash>>(value);
 
-    std::string key = interpretKey(stream, frame);
-    std::shared_ptr<Hash> hash = std::get<std::shared_ptr<Hash>>(value);
     if (!hash->hasKey(key)) {
       throw HashKeyError(current(stream), key);
     }
@@ -1464,7 +1494,7 @@ class Interpreter {
   Value interpretSlice(std::shared_ptr<TokenStream> stream,
                        std::shared_ptr<CallStackFrame> frame,
                        const std::string& name) {
-    Value value = getVariable(stream, name, frame);
+    auto value = getVariable(stream, name, frame);
     if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
       return interpretHashElementAccess(stream, frame, value);
     }
@@ -1474,7 +1504,7 @@ class Interpreter {
                                   "`" + name + "` is not a list.");
     }
 
-    SliceIndex slice = interpretSliceIndex(stream, frame, value);
+    auto slice = interpretSliceIndex(stream, frame, value);
     auto list = std::get<std::shared_ptr<List>>(value);
 
     return InterpHelper::interpretListSlice(stream, slice, list);
@@ -1484,7 +1514,7 @@ class Interpreter {
                              std::shared_ptr<CallStackFrame> frame,
                              Value& listValue,
                              const std::string& listVariableName) {
-    Token tokenTerm = current(stream);
+    auto tokenTerm = current(stream);
 
     Value variableValue;
     try {
@@ -1502,34 +1532,27 @@ class Interpreter {
     listPtr->elements.push_back(listValue);
   }
 
-  std::shared_ptr<List> interpretRange(
-      std::shared_ptr<TokenStream> stream,
-      BooleanExpressionBuilder& booleanExpression,
-      std::shared_ptr<CallStackFrame> frame) {
-    std::shared_ptr<List> list = std::make_shared<List>();
+  std::shared_ptr<List> interpretRange(std::shared_ptr<TokenStream> stream,
+                                       std::shared_ptr<CallStackFrame> frame) {
+    auto list = std::make_shared<List>();
 
     next(stream);  // Skip the "["
 
-    auto startValue = interpretExpression(stream, booleanExpression, frame);
+    auto startValue = interpretExpression(stream, frame);
 
-    if (peek(stream).getType() != TokenType::RANGE) {
+    if (current(stream).getType() != TokenType::RANGE) {
       throw RangeError(current(stream),
                        "Expected range separator, `..`, in range expression.");
-    } else {
-      next(stream);
     }
 
-    next(stream);
+    next(stream);  // Skip the ".."
 
-    auto stopValue = interpretExpression(stream, booleanExpression, frame);
+    auto stopValue = interpretExpression(stream, frame);
 
-    if (peek(stream).getType() != TokenType::CLOSE_BRACKET) {
+    if (current(stream).getType() != TokenType::CLOSE_BRACKET) {
       throw RangeError(current(stream),
                        "Expected close-bracket, `]`, in range expression.");
-    } else {
-      next(stream);
     }
-
     next(stream);  // Skip the "]"
 
     if (!std::holds_alternative<int>(startValue)) {
@@ -1554,32 +1577,26 @@ class Interpreter {
     return list;
   }
 
-  std::shared_ptr<Hash> interpretHash(
-      std::shared_ptr<TokenStream> stream,
-      BooleanExpressionBuilder& booleanExpression,
-      std::shared_ptr<CallStackFrame> frame) {
-    std::shared_ptr<Hash> hash = std::make_shared<Hash>();
+  std::shared_ptr<Hash> interpretHash(std::shared_ptr<TokenStream> stream,
+                                      std::shared_ptr<CallStackFrame> frame) {
     next(stream);  // Skip the "{"
 
-    while (current(stream).getType() != TokenType::CLOSE_BRACE) {
-      auto keyValue = interpretExpression(stream, booleanExpression, frame);
+    auto hash = std::make_shared<Hash>();
+
+    while (stream->canRead() &&
+           current(stream).getType() != TokenType::CLOSE_BRACE) {
+      auto keyValue = interpretExpression(stream, frame);
+
       if (!std::holds_alternative<std::string>(keyValue)) {
         throw SyntaxError(current(stream), "Hash key must be a string value.");
       }
-      std::string key = std::get<std::string>(keyValue);
 
-      if (peek(stream).getType() == TokenType::COLON) {
-        next(stream);
-      }
+      auto key = std::get<std::string>(keyValue);
 
       if (current(stream).getType() == TokenType::COLON) {
         next(stream);  // Skip the ":"
-        auto value = interpretExpression(stream, booleanExpression, frame);
+        auto value = interpretExpression(stream, frame);
         hash->add(key, value);
-      }
-
-      if (peek(stream).getType() == TokenType::COMMA) {
-        next(stream);  // Skip current value
       }
 
       if (current(stream).getType() == TokenType::COMMA) {
@@ -1591,52 +1608,48 @@ class Interpreter {
       }
     }
 
-    next(stream);  // Skip the "}"
+    if (current(stream).getType() == TokenType::CLOSE_BRACE) {
+      next(stream);  // Skip the "}"
+    }
 
     return hash;
   }
 
-  std::shared_ptr<List> interpretList(
-      std::shared_ptr<TokenStream> stream,
-      BooleanExpressionBuilder& booleanExpression,
-      std::shared_ptr<CallStackFrame> frame) {
-    std::shared_ptr<List> list = std::make_shared<List>();
+  std::shared_ptr<List> interpretList(std::shared_ptr<TokenStream> stream,
+                                      std::shared_ptr<CallStackFrame> frame) {
+    auto list = std::make_shared<List>();
     next(stream);  // Skip "["
     int bracketCount = 1;
 
-    while (bracketCount > 0) {
+    while (stream->canRead() && bracketCount > 0) {
       if (current(stream).getType() == TokenType::OPEN_BRACKET) {
         ++bracketCount;
         // It's another list.
-        auto value = interpretExpression(stream, booleanExpression, frame);
+        auto value = interpretExpression(stream, frame);
         list->elements.push_back(value);
-        next(stream);
         continue;
       } else if (current(stream).getType() == TokenType::CLOSE_BRACKET) {
         --bracketCount;
 
         // Stop here.
         if (bracketCount == 0) {
+          next(stream);  // Skip "]"
           break;
         }
       } else if (current(stream).getType() == TokenType::COMMA) {
         next(stream);
         continue;
       } else {
-        auto value = interpretExpression(stream, booleanExpression, frame);
+        auto value = interpretExpression(stream, frame);
         list->elements.push_back(value);
-
-        if (peek(stream).getType() == TokenType::COMMA ||
-            peek(stream).getType() == TokenType::CLOSE_BRACKET) {
-          next(stream);
-          continue;
-        }
+        continue;
       }
 
       if (current(stream).getType() == TokenType::COMMA ||
           current(stream).getType() == TokenType::CLOSE_BRACKET) {
         continue;
       }
+
       next(stream);
     }
 
@@ -1656,40 +1669,21 @@ class Interpreter {
 
     Conditional conditional;
     int ifCount = 1;
-    bool ifValue = false;
-    bool hasTrueElseIfEvaluation =
-        false;  // An optimization to prevent unnecessary evaluation.
-    std::string building = Keywords.If;
+    bool shortCircuitIf = false;
+    bool shortCircuitElseIf = false;
+    auto building = Keywords.If;
 
     // Eagerly evaluate the If conditions.
-    BooleanExpressionBuilder ifExpression;
-    Value value = interpretExpression(stream, ifExpression, frame);
-    if (ifExpression.isSet()) {
-      value = ifExpression.evaluate();
-    }
+    auto value = interpretExpression(stream, frame);
 
-    if (std::holds_alternative<bool>(value)) {
-      ifValue = std::get<bool>(value);
-      conditional.getIfStatement().setEvaluation(ifValue);
-      if (current(stream).getType() != TokenType::KEYWORD ||
-          current(stream).getType() != TokenType::DECLVAR) {
-        if (current(stream).getType() == TokenType::LITERAL) {
-          next(stream);
-        } else if (current(stream).getType() == TokenType::IDENTIFIER &&
-                   !hasModule(current(stream).getText())) {
-          next(stream);
-        }
-      }
-    } else {
+    if (!std::holds_alternative<bool>(value)) {
       throw ConversionError(current(stream));
     }
 
-    while (current(stream).getType() == TokenType::CLOSE_PAREN ||
-           current(stream).getType() == TokenType::CLOSE_BRACKET) {
-      next(stream);
-    }
+    shortCircuitIf = std::get<bool>(value);
+    conditional.getIfStatement().setEvaluation(shortCircuitIf);
 
-    while (ifCount > 0) {
+    while (stream->canRead() && ifCount > 0) {
       if (Keywords.is_required_end_keyword(current(stream).getText())) {
         ++ifCount;
       } else if (current(stream).getText() == Keywords.End && ifCount > 0) {
@@ -1701,51 +1695,44 @@ class Interpreter {
           continue;
         }
       } else if (current(stream).getText() == Keywords.Else && ifCount == 1) {
+        next(stream);
         building = Keywords.Else;
-        next(stream);
       } else if (current(stream).getText() == Keywords.ElseIf && ifCount == 1) {
-        building = Keywords.ElseIf;
         next(stream);
+        building = Keywords.ElseIf;
 
         conditional.addElseIfStatement();
 
         // No need to evaluate if the previous condition is true.
-        if (!ifValue && !hasTrueElseIfEvaluation) {
-          // Eagerly evaluate ElseIf conditions.
-          BooleanExpressionBuilder elseIfExpression;
-          value = interpretExpression(stream, elseIfExpression, frame);
-
-          if (elseIfExpression.isSet()) {
-            value = elseIfExpression.evaluate();
-          }
-
-          if (std::holds_alternative<bool>(value)) {
-            bool elseIfValue = std::get<bool>(value);
-            if (elseIfValue) {
-              hasTrueElseIfEvaluation = true;
-            }
-            conditional.getElseIfStatement().setEvaluation(elseIfValue);
-            Token bodyToken = current(stream);
-            if (bodyToken.getType() == TokenType::IDENTIFIER ||
-                bodyToken.getType() == TokenType::LITERAL) {
-              next(stream);
-            } else {
-              conditional.getElseIfStatement().addToken(bodyToken);
-            }
-          } else {
-            throw ConversionError(current(stream));
-          }
+        if (shortCircuitIf || shortCircuitElseIf) {
+          continue;
         }
-        continue;
+
+        // Eagerly evaluate ElseIf conditions.
+        value = interpretExpression(stream, frame);
+
+        if (!std::holds_alternative<bool>(value)) {
+          throw ConversionError(current(stream));
+        }
+
+        bool elseIfValue = std::get<bool>(value);
+
+        if (elseIfValue) {
+          // Don't evaluate future ElseIf branches.
+          shortCircuitElseIf = true;
+        }
+
+        conditional.getElseIfStatement().setEvaluation(elseIfValue);
       }
 
       // Distribute tokens to be executed.
       Token bodyToken = current(stream);
-      if (building == Keywords.If) {
+      if (shortCircuitIf && building == Keywords.If) {
         conditional.getIfStatement().addToken(bodyToken);
-      } else if (building == Keywords.ElseIf) {
+      } else if (!shortCircuitIf && building == Keywords.ElseIf) {
         conditional.getElseIfStatement().addToken(bodyToken);
-      } else if (building == Keywords.Else) {
+      } else if (!shortCircuitIf && !shortCircuitElseIf &&
+                 building == Keywords.Else) {
         conditional.getElseStatement().addToken(bodyToken);
       }
 
@@ -1778,8 +1765,8 @@ class Interpreter {
     }
   }
 
-  void interpretSelfInvocation(std::shared_ptr<TokenStream> stream,
-                               std::shared_ptr<CallStackFrame> frame) {
+  Value interpretSelfInvocation(std::shared_ptr<TokenStream> stream,
+                                std::shared_ptr<CallStackFrame> frame) {
     if (!frame->inObjectContext()) {
       throw InvalidContextError(current(stream),
                                 "Invalid context for keyword `this`.");
@@ -1791,12 +1778,17 @@ class Interpreter {
     }
     next(stream);  // Skip "."
 
+    Value value;
+
     if (current(stream).getType() == TokenType::DECLVAR) {
-      interpretAssignment(stream, frame, false, true);
+      value = interpretAssignment(stream, frame, false, true);
     } else if (current(stream).getType() == TokenType::IDENTIFIER &&
                peek(stream).getType() == TokenType::OPEN_PAREN) {
-      interpretMethodInvocation(stream, current(stream).getText(), frame);
+      value =
+          interpretMethodInvocation(stream, current(stream).getText(), frame);
     }
+
+    return value;
   }
 
   void interpretClassDefinition(std::shared_ptr<TokenStream> stream) {
@@ -1806,20 +1798,20 @@ class Interpreter {
       moduleName = moduleStack.top();
     }
 
-    while (current(stream).getText() != Keywords.Class) {
+    while (stream->canRead() && current(stream).getText() != Keywords.Class) {
       next(stream);
     }
     next(stream);  // Skip "class"
 
     Token tokenTerm = current(stream);
-    std::string className = current(stream).getText();
+    auto className = current(stream).getText();
     next(stream);  // Skip class name.
 
     if (classes.find(className) != classes.end()) {
       throw ClassRedefinitionError(tokenTerm, className);
     }
 
-    std::string baseClassName = InterpHelper::interpretBaseClass(stream);
+    auto baseClassName = InterpHelper::interpretBaseClass(stream);
 
     Class clazz;
     if (isAbstract) {
@@ -1834,20 +1826,21 @@ class Interpreter {
       }
 
       // inherit methods from base class.
-      Class baseClass = classes[baseClassName];
+      auto baseClass = classes[baseClassName];
       for (auto& pair : baseClass.getMethods()) {
         clazz.addMethod(pair.second);
       }
     }
 
     int counter = 1;
-    while (counter > 0) {
-      std::string tokenText = current(stream).getText();
+    while (stream->canRead() && counter > 0) {
+      auto tokenText = current(stream).getText();
       if (tokenText == Keywords.End) {
         --counter;
 
         // Stop here.
         if (counter == 0) {
+          next(stream);  // Skip "end"
           break;
         }
       } else if (tokenText == Keywords.Abstract ||
@@ -1865,18 +1858,18 @@ class Interpreter {
           }
         }
 
-        Method method = InterpHelper::interpretMethodDeclaration(stream);
-        if (!method.isFlagSet(MethodFlags::Abstract) &&
-            current(stream).getText() == Keywords.End) {
-          next(stream);
-        }
+        auto method = InterpHelper::interpretMethodDeclaration(stream);
+        // if (!method.isFlagSet(MethodFlags::Abstract) &&
+        //     current(stream).getText() == Keywords.End) {
+        //   next(stream);
+        // }
 
         if (method.getName() == Keywords.Ctor) {
           method.setFlag(MethodFlags::Ctor);
         }
 
         if (clazz.hasMethod(method.getName())) {
-          Method classMethod = clazz.getMethod(method.getName());
+          auto classMethod = clazz.getMethod(method.getName());
           if (!method.isFlagSet(MethodFlags::Override) &&
               classMethod.isFlagSet(MethodFlags::Abstract)) {
             throw SyntaxError(current(stream),
@@ -1892,11 +1885,6 @@ class Interpreter {
       }
 
       next(stream);
-    }
-
-    if (current(stream).getText() != Keywords.End) {
-      throw SyntaxError(tokenTerm,
-                        "Expected `end` keyword at end of class definition.");
     }
 
     // Check for unimplemented abstract methods.
@@ -1915,7 +1903,7 @@ class Interpreter {
   void interpretModuleDefinition(std::shared_ptr<TokenStream> stream) {
     next(stream);  // Skip "module"
 
-    std::string name = current(stream).getText();
+    auto name = current(stream).getText();
     if (hasModule(name)) {
       // WIP: Mixins?
     }
@@ -1924,12 +1912,13 @@ class Interpreter {
 
     Module module;
     int counter = 1;
-    while (counter > 0) {
+    while (stream->canRead() && counter > 0) {
       if (current(stream).getText() == Keywords.End) {
         --counter;
 
         // Stop here.
         if (counter == 0) {
+          next(stream);  // Skip "end"
           break;
         }
       } else if (Keywords.is_required_end_keyword(current(stream).getText())) {
@@ -1946,33 +1935,32 @@ class Interpreter {
 
   void interpretExternalImport(std::shared_ptr<TokenStream> stream,
                                std::shared_ptr<CallStackFrame> frame) {
-    BooleanExpressionBuilder booleanExpression;
-    Value scriptNameValue =
-        interpretExpression(stream, booleanExpression, frame);
+    auto scriptNameValue = interpretExpression(stream, frame);
     if (!std::holds_alternative<std::string>(scriptNameValue)) {
       throw ConversionError(current(stream),
                             "Expected a string for `import` statement.");
     }
-    std::string scriptName = std::get<std::string>(scriptNameValue);
+
+    auto scriptName = std::get<std::string>(scriptNameValue);
     if (!Strings::ends_with(scriptName, ".kiwi")) {
       scriptName += ".kiwi";
     }
-    std::string scriptPath = FileIO::joinPath(_parentPath, scriptName);
+
+    auto scriptPath = FileIO::joinPath(_parentPath, scriptName);
     if (!FileIO::fileExists(scriptPath)) {
       throw FileNotFoundError(scriptPath);
     }
 
     next(stream);
 
-    std::string content = FileIO::readFile(scriptPath);
+    auto content = FileIO::readFile(scriptPath);
     if (content.empty()) {
       return;
     }
 
     Lexer lexer(scriptPath, content);
     files[scriptPath] = lexer.getLines();
-    std::vector<Token> tokens = lexer.getAllTokens();
-    auto scriptStream = std::make_shared<TokenStream>(tokens);
+    auto scriptStream = lexer.getTokenStream();
     callStack.push(buildSubFrame(frame));
     streamStack.push(scriptStream);
     interpretStackFrame();
@@ -1982,9 +1970,8 @@ class Interpreter {
                        std::shared_ptr<CallStackFrame> frame) {
     next(stream);  // skip the "import"
 
-    std::string tokenText = current(stream).getText();
-    std::string moduleHome =
-        InterpHelper::interpretModuleHome(tokenText, stream);
+    auto tokenText = current(stream).getText();
+    auto moduleHome = InterpHelper::interpretModuleHome(tokenText, stream);
 
     if (hasModule(tokenText)) {
       interpretModuleImport(stream, moduleHome, tokenText);
@@ -2000,20 +1987,14 @@ class Interpreter {
       throw KiwiError(current(stream), "Unknown variable `" + name + "`");
     }
 
-    BooleanExpressionBuilder booleanExpression;
-    Value value = interpretExpression(stream, booleanExpression, frame);
-    if (booleanExpression.isSet()) {
-      value = booleanExpression.evaluate();
-    }
-
-    return value;
+    return interpretExpression(stream, frame);
   }
 
   void interpretDeleteHashKey(std::shared_ptr<TokenStream> stream,
                               std::shared_ptr<CallStackFrame> frame,
                               const std::string& name, Value& value) {
-    std::string key = interpretKey(stream, frame);
-    std::shared_ptr<Hash> hash = std::get<std::shared_ptr<Hash>>(value);
+    auto key = interpretKey(stream, frame);
+    auto hash = std::get<std::shared_ptr<Hash>>(value);
 
     if (!hash->hasKey(key)) {
       throw HashKeyError(current(stream), key);
@@ -2027,7 +2008,7 @@ class Interpreter {
                                 std::shared_ptr<CallStackFrame> frame,
                                 const std::string& name, Value& value) {
     int index = interpretIndex(stream, frame);
-    std::shared_ptr<List> list = std::get<std::shared_ptr<List>>(value);
+    auto list = std::get<std::shared_ptr<List>>(value);
 
     if (index < 0 || index >= static_cast<int>(list->elements.size())) {
       throw RangeError(current(stream), "List index out of range.");
@@ -2043,12 +2024,13 @@ class Interpreter {
 
     if (current(stream).getType() == TokenType::DECLVAR) {
       next(stream);
-      std::string name = current(stream).getText();
+      auto name = current(stream).getText();
 
       if (!hasVariable(name, frame)) {
         throw VariableUndefinedError(current(stream), name);
       }
-      Value value = getVariable(stream, name, frame);
+
+      auto value = getVariable(stream, name, frame);
       next(stream);
 
       if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
@@ -2068,28 +2050,8 @@ class Interpreter {
                       std::shared_ptr<CallStackFrame> frame,
                       bool printNewLine = false) {
     next(stream);  // skip the "print"
-    BooleanExpressionBuilder booleanExpression;
 
-    Value value;
-
-    if (current(stream).getType() == TokenType::STRING) {
-      value = interpretExpression(stream, booleanExpression, frame);
-    } else if (current(stream).getType() == TokenType::DECLVAR) {
-      next(stream);
-      std::string name = current(stream).getText();
-
-      value = interpretVariableValue(stream, name, frame);
-
-    } else if (current(stream).getType() == TokenType::OPEN_BRACKET) {
-      value = interpretBracketExpression(stream, booleanExpression, frame);
-    } else if (current(stream).getType() == TokenType::IDENTIFIER) {
-      value = interpretExpression(stream, booleanExpression, frame);
-    } else if (current(stream).getType() == TokenType::KEYWORD &&
-               current(stream).getText() == Keywords.This) {
-      value = interpretExpression(stream, booleanExpression, frame);
-    } else {
-      throw ConversionError(current(stream));
-    }
+    Value value = interpretExpression(stream, frame);
 
     if (!std::holds_alternative<std::shared_ptr<Object>>(value)) {
       std::cout << Serializer::serialize(value);
@@ -2103,57 +2065,20 @@ class Interpreter {
   }
 
   Value interpretBracketExpression(std::shared_ptr<TokenStream> stream,
-                                   BooleanExpressionBuilder& booleanExpression,
                                    std::shared_ptr<CallStackFrame> frame) {
-    Value value;
-    if (InterpHelper::isListExpression(stream)) {
-      value = interpretList(stream, booleanExpression, frame);
-    } else if (InterpHelper::isRangeExpression(stream)) {
-      value = interpretRange(stream, booleanExpression, frame);
+    if (InterpHelper::isRangeExpression(stream)) {
+      return interpretRange(stream, frame);
+    } else if (InterpHelper::isListExpression(stream)) {
+      return interpretList(stream, frame);
     }
-    if (current(stream).getType() == TokenType::DOT) {
-      value = interpretDotNotation(stream, value, frame);
-    }
-    return value;
+
+    throw SyntaxError(current(stream), "Invalid bracket expression.");
   }
 
-  void interpretBooleanExpression(std::shared_ptr<TokenStream> stream,
-                                  Token& tokenTerm,
-                                  BooleanExpressionBuilder& booleanExpression,
-                                  std::string& op,
-                                  std::shared_ptr<CallStackFrame> frame) {
-    Value nextTerm = interpretExpression(stream, booleanExpression, frame);
-
-    // Check if the last term is valueless.
-    if (nextTerm.valueless_by_exception()) {
-      throw SyntaxError(tokenTerm,
-                        "The boolean expression is valueless, near `" +
-                            tokenTerm.getText() + "`.");
-    }
-
-    // We can't use non-boolean values in our expression.
-    if (!std::holds_alternative<bool>(nextTerm)) {
-      throw ConversionError(tokenTerm);
-    }
-
-    bool nextTermValue = std::get<bool>(nextTerm);
-
-    if (op == Operators.And) {
-      booleanExpression.andOperation(
-          std::make_shared<ValueNode>(nextTermValue));
-    } else if (op == Operators.Or) {
-      booleanExpression.orOperation(std::make_shared<ValueNode>(nextTermValue));
-    } else if (op == Operators.Not) {
-      InterpHelper::ensureBooleanExpressionHasRoot(tokenTerm, booleanExpression,
-                                                   nextTerm);
-      booleanExpression.notOperation();
-    }
-  }
-
-  void interpretBuiltin(std::shared_ptr<TokenStream> stream,
-                        const std::string& builtin,
-                        std::shared_ptr<CallStackFrame> frame) {
-    Token tokenTerm = current(stream);
+  Value interpretBuiltin(std::shared_ptr<TokenStream> stream,
+                         const std::string& builtin,
+                         std::shared_ptr<CallStackFrame> frame) {
+    auto tokenTerm = current(stream);
     next(stream);  // Skip the name.
 
     auto args = interpretArguments(stream, frame);
@@ -2164,12 +2089,14 @@ class Interpreter {
             tokenTerm, "Builtin `" + builtin +
                            "` is illegal outside of a module context.");
       }
-      std::string moduleName = moduleStack.top();
+      auto moduleName = moduleStack.top();
       interpretModuleBuiltin(stream, moduleName, builtin, args);
-    } else {
-      frame->returnValue =
-          BuiltinInterpreter::execute(tokenTerm, builtin, args, kiwiArgs);
+      return 0;
     }
+
+    frame->returnValue =
+        BuiltinInterpreter::execute(tokenTerm, builtin, args, kiwiArgs);
+    return frame->returnValue;
   }
 
   Value interpretLambdaMap(std::shared_ptr<TokenStream> stream,
@@ -2177,7 +2104,11 @@ class Interpreter {
                            std::shared_ptr<CallStackFrame> frame) {
     next(stream);  // Skip "("
 
-    Method lambda = getLambda(stream, frame);
+    auto lambda = getLambda(stream, frame);
+
+    if (current(stream).getType() == CLOSE_PAREN) {
+      next(stream);  // Skip ")"
+    }
 
     if (!lambda.isFlagSet(MethodFlags::Lambda)) {
       throw InvalidOperationError(
@@ -2187,6 +2118,7 @@ class Interpreter {
 
     std::string itemVariableName, indexVariableName;
     bool hasIndexVariable = false;
+
     for (std::string parameter : lambda.getParameters()) {
       if (itemVariableName.empty()) {
         itemVariableName = parameter;
@@ -2199,11 +2131,12 @@ class Interpreter {
       }
     }
 
-    std::shared_ptr<List> mappedList = std::make_shared<List>();
-
+    auto mappedList = std::make_shared<List>();
     size_t index = 0;
+
     for (const auto& item : list->elements) {
       frame->variables[itemVariableName] = item;
+
       if (hasIndexVariable) {
         frame->variables[indexVariableName] = static_cast<int>(index);
       }
@@ -2214,10 +2147,11 @@ class Interpreter {
       interpretStackFrame();
 
       if (!callStack.empty()) {
-        Value value = callStack.top()->returnValue;
+        auto value = callStack.top()->returnValue;
         frame->clearFlag(FrameFlags::ReturnFlag);
         mappedList->elements.push_back(value);
       }
+
       index++;
     }
 
@@ -2229,18 +2163,21 @@ class Interpreter {
                               std::shared_ptr<CallStackFrame> frame) {
     next(stream);  // Skip "("
 
-    BooleanExpressionBuilder booleanExpression;
-    Token termToken = current(stream);
-    Value accumulator =
-        interpretTerm(stream, termToken, booleanExpression, frame);
+    auto accumulator = interpretExpression(stream, frame);
+
     if (current(stream).getType() != TokenType::LAMBDA) {
       next(stream);
     }
+
     if (current(stream).getType() == TokenType::COMMA) {
       next(stream);
     }
 
-    Method lambda = getLambda(stream, frame);
+    auto lambda = getLambda(stream, frame);
+
+    if (current(stream).getType() == CLOSE_PAREN) {
+      next(stream);  // Skip ")"
+    }
 
     if (!lambda.isFlagSet(MethodFlags::Lambda)) {
       throw InvalidOperationError(
@@ -2262,7 +2199,7 @@ class Interpreter {
       }
     }
 
-    std::shared_ptr<List> mappedList = std::make_shared<List>();
+    auto mappedList = std::make_shared<List>();
     size_t index = 0;
 
     for (const auto& item : list->elements) {
@@ -2277,7 +2214,7 @@ class Interpreter {
       interpretStackFrame();
 
       if (!callStack.empty()) {
-        Value value = callStack.top()->returnValue;
+        auto value = callStack.top()->returnValue;
         frame->clearFlag(FrameFlags::ReturnFlag);
         accumulator = value;
       }
@@ -2292,7 +2229,11 @@ class Interpreter {
                               std::shared_ptr<CallStackFrame> frame) {
     next(stream);  // Skip "("
 
-    Method lambda = getLambda(stream, frame);
+    auto lambda = getLambda(stream, frame);
+
+    if (current(stream).getType() == CLOSE_PAREN) {
+      next(stream);  // Skip ")"
+    }
 
     if (!lambda.isFlagSet(MethodFlags::Lambda)) {
       throw InvalidOperationError(
@@ -2301,8 +2242,8 @@ class Interpreter {
     }
 
     std::string itemVariableName, indexVariableName;
-    bool hasIndexVariable = false;
-    for (std::string parameter : lambda.getParameters()) {
+    auto hasIndexVariable = false;
+    for (const auto& parameter : lambda.getParameters()) {
       if (itemVariableName.empty()) {
         itemVariableName = parameter;
       } else if (indexVariableName.empty()) {
@@ -2314,7 +2255,7 @@ class Interpreter {
       }
     }
 
-    std::shared_ptr<List> filteredList = std::make_shared<List>();
+    auto filteredList = std::make_shared<List>();
 
     size_t index = 0;
     for (const auto& item : list->elements) {
@@ -2329,7 +2270,7 @@ class Interpreter {
       interpretStackFrame();
 
       if (!callStack.empty()) {
-        Value value = callStack.top()->returnValue;
+        auto value = callStack.top()->returnValue;
         frame->clearFlag(FrameFlags::ReturnFlag);
 
         if (std::holds_alternative<bool>(value) && std::get<bool>(value)) {
@@ -2378,8 +2319,8 @@ class Interpreter {
     }
     next(stream);
 
-    std::shared_ptr<Hash> hash = std::make_shared<Hash>();
-    Class clazz = classes[object->className];
+    auto hash = std::make_shared<Hash>();
+    auto clazz = classes[object->className];
     for (const auto& pair : object->instanceVariables) {
       if (clazz.hasPrivateVariable(pair.first)) {
         continue;
@@ -2402,7 +2343,7 @@ class Interpreter {
                                Serializer::get_value_type_string(value) + "`.");
     }
 
-    std::string input = std::get<std::string>(value);
+    auto input = std::get<std::string>(value);
 
     if (builtin == SpecializedBuiltins.ToH) {
       return interpretStringToHash(stream, input, frame);
@@ -2421,7 +2362,7 @@ class Interpreter {
                                Serializer::get_value_type_string(value) + "`.");
     }
 
-    std::shared_ptr<Object> object = std::get<std::shared_ptr<Object>>(value);
+    auto object = std::get<std::shared_ptr<Object>>(value);
 
     if (builtin == SpecializedBuiltins.ToH) {
       return interpretObjectToHash(stream, object);
@@ -2441,7 +2382,7 @@ class Interpreter {
                                Serializer::get_value_type_string(value) + "`.");
     }
 
-    std::shared_ptr<List> list = std::get<std::shared_ptr<List>>(value);
+    auto list = std::get<std::shared_ptr<List>>(value);
 
     if (builtin == SpecializedBuiltins.Select) {
       return interpretLambdaSelect(stream, list, frame);
@@ -2462,15 +2403,16 @@ class Interpreter {
     if (current(stream).getType() == TokenType::DOT) {
       next(stream);
     }
-    Token tokenTerm = current(stream);
-    std::string op = tokenTerm.getText();
+
+    auto tokenTerm = current(stream);
+    auto op = tokenTerm.getText();
     next(stream);
 
     bool isObject = false;
 
     if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
       auto object = std::get<std::shared_ptr<Object>>(value);
-      Class clazz = classes[object->className];
+      auto clazz = classes[object->className];
       isObject = true;
 
       if (object->instanceVariables.find(op) !=
@@ -2506,170 +2448,378 @@ class Interpreter {
     auto args = interpretArguments(stream, frame);
 
     if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
-      std::shared_ptr<Object> object = std::get<std::shared_ptr<Object>>(value);
+      auto object = std::get<std::shared_ptr<Object>>(value);
       return interpretInstanceMethodInvocation(stream, object, op, args, frame);
     }
 
     return BuiltinInterpreter::execute(current(stream), op, value, args);
   }
 
-  Value interpretExpression(std::shared_ptr<TokenStream> stream,
-                            BooleanExpressionBuilder& booleanExpression,
-                            std::shared_ptr<CallStackFrame> frame) {
-    Token tokenTerm = current(stream);
-    std::string tokenText = tokenTerm.getText();
+  Value parseExpression(std::shared_ptr<TokenStream> stream,
+                        std::shared_ptr<CallStackFrame> frame) {
+    Value value = parseLogicalOr(stream, frame);
 
-    Value value;
-    bool valueSet = false;
+    if (current(stream).getType() == TokenType::QUESTION) {
+      next(stream);  // Skip the '?'
 
-    if (tokenTerm.getType() == TokenType::STRING) {
-      value = interpolateString(stream, frame);
-      valueSet = true;
-    }
+      auto trueBranch = parseExpression(stream, frame);
 
-    if (!valueSet && tokenText == Keywords.This) {
-      if (!frame->inObjectContext()) {
-        throw InvalidContextError(current(stream),
-                                  "Invalid context for keyword `this`.");
+      if (current(stream).getType() != TokenType::COLON) {
+        throw SyntaxError(current(stream),
+                          "Expected ':' in ternary operation.");
+      }
+      next(stream);  // Skip the ':'
+
+      auto falseBranch =
+          parseExpression(stream, frame);  // Parse the false branch
+
+      if (!std::holds_alternative<bool>(value)) {
+        throw ConversionError(
+            current(stream), "Ternary condition must be a boolean expression.");
       }
 
-      if (peek(stream).getType() != TokenType::DOT) {
-        value = frame->getObjectContext();
-        valueSet = true;
-      } else {
-        next(stream);  // Skip to "."
-        next(stream);  // Skip the "."
-
-        tokenTerm = current(stream);
-        tokenText = tokenTerm.getText();
-
-        if (tokenTerm.getType() != TokenType::IDENTIFIER &&
-            tokenTerm.getType() != TokenType::DECLVAR) {
-          throw InvalidOperationError(
-              current(stream), "Syntax error near `this`. Missing identifier.");
-        }
-      }
-    }
-
-    if (current(stream).getType() == TokenType::OPEN_BRACKET) {
-      value = interpretBracketExpression(stream, booleanExpression, frame);
-      valueSet = true;
-    } else if (current(stream).getType() == TokenType::OPEN_BRACE) {
-      value = interpretHash(stream, booleanExpression, frame);
-      valueSet = true;
-    }
-
-    if (!valueSet) {
-      interpretQualifiedIdentifier(stream, tokenTerm, tokenText);
-    }
-
-    if (!valueSet) {
-      bool methodFound = hasMethod(tokenText, frame),
-           classFound = hasClass(tokenText);
-
-      if (methodFound || classFound) {
-        if (classFound) {
-          if (peek(stream).getType() != TokenType::DOT) {
-            throw SyntaxError(current(stream),
-                              "Invalid syntax near `" + tokenText + "`");
-          }
-          interpretClassMethodInvocation(stream, tokenText, frame);
-        } else if (methodFound) {
-          if (peek(stream).getType() == TokenType::COMMA ||
-              peek(stream).getType() == TokenType::CLOSE_PAREN) {
-            if (frame->hasAssignedLambda(tokenText)) {
-              std::shared_ptr<LambdaRef> lambdaRef =
-                  std::make_shared<LambdaRef>(tokenText);
-              value = lambdaRef;
-              valueSet = true;
-            } else {
-              throw SyntaxError(current(stream), "Expected lambda reference.");
-            }
-          } else {
-            interpretMethodInvocation(stream, tokenText, frame);
-          }
-        }
-
-        if (!valueSet && !callStack.empty()) {
-          value = callStack.top()->returnValue;
-          frame->clearFlag(FrameFlags::ReturnFlag);
-          valueSet = true;
-        }
-      } else if (KiwiBuiltins.is_builtin_method(tokenText)) {
-        interpretBuiltin(stream, tokenText, frame);
-        value = frame->returnValue;
-        valueSet = true;
-      }
-    }
-
-    Token lastTerm = tokenTerm;
-
-    if (!valueSet) {
-      value = interpretTerm(stream, tokenTerm, booleanExpression, frame);
-      valueSet = true;
-    }
-
-    while (peek(stream).getType() == TokenType::DOT) {
-      value = interpretDotNotation(stream, value, frame);
-      valueSet = true;
-    }
-
-    if (peek(stream).getType() == TokenType::OPERATOR) {
-      next(stream);
-    }
-
-    while (current(stream).getType() == TokenType::OPERATOR) {
-      std::string op = current(stream).toString();
-      next(stream);
-
-      if (Operators.is_logical_operator(op)) {
-        InterpHelper::ensureBooleanExpressionHasRoot(tokenTerm,
-                                                     booleanExpression, value);
-        interpretBooleanExpression(stream, tokenTerm, booleanExpression, op,
-                                   frame);
-        value = booleanExpression.evaluate();
-        break;
-      }
-
-      lastTerm = current(stream);
-      Value nextTerm =
-          interpretTerm(stream, tokenTerm, booleanExpression, frame, false);
-
-      if (Operators.is_arithmetic_operator(op)) {
-        InterpHelper::interpretArithmeticExpression(tokenTerm, op, value,
-                                                    nextTerm);
-        std::string peekNext = peek(stream).getText();
-        if ((current(stream).getType() == TokenType::LITERAL ||
-             current(stream).getType() == TokenType::IDENTIFIER) &&
-            (Operators.is_relational_operator(peekNext) ||
-             Operators.is_logical_operator(peekNext))) {
-          next(stream);
-        }
-
-        if (peekNext == Symbols.CloseParenthesis ||
-            Operators.is_arithmetic_operator(peekNext)) {
-          next(stream);
-        }
-
-        if (current(stream).getType() == TokenType::CLOSE_PAREN) {
-          if (peek(stream).getType() == TokenType::OPERATOR) {
-            next(stream);
-          }
-        }
-      }
-
-      if (Operators.is_relational_operator(op)) {
-        InterpHelper::interpretRelationalExpression(
-            tokenTerm, booleanExpression, op, value, nextTerm);
-      }
-
-      if (Operators.is_bitwise_operator(op)) {
-        InterpHelper::interpretBitwiseExpression(tokenTerm, op, value,
-                                                 nextTerm);
-      }
+      return std::get<bool>(value) ? trueBranch : falseBranch;
     }
 
     return value;
+  }
+
+  Value parseLogicalOr(std::shared_ptr<TokenStream> stream,
+                       std::shared_ptr<CallStackFrame> frame) {
+    auto left = parseLogicalAnd(stream, frame);
+    auto token = current(stream);
+
+    while (token.getType() == TokenType::OPERATOR &&
+           token.getText() == Operators.Or) {
+      next(stream);  // Skip "||"
+      auto right = parseLogicalAnd(stream, frame);
+
+      if (std::holds_alternative<bool>(left) &&
+          std::holds_alternative<bool>(right)) {
+        bool lhs = std::get<bool>(left), rhs = std::get<bool>(right);
+        left = lhs || rhs;
+        token = current(stream);
+      } else {
+        throw ConversionError(current(stream),
+                              "Expected a `Boolean` expression.");
+      }
+    }
+    return left;
+  }
+
+  Value parseLogicalAnd(std::shared_ptr<TokenStream> stream,
+                        std::shared_ptr<CallStackFrame> frame) {
+    auto left = parseBitwiseOr(stream, frame);
+    auto token = current(stream);
+
+    while (token.getType() == TokenType::OPERATOR &&
+           token.getText() == Operators.And) {
+      next(stream);  // Skip "&&"
+      auto right = parseBitwiseOr(stream, frame);
+
+      if (std::holds_alternative<bool>(left) &&
+          std::holds_alternative<bool>(right)) {
+        bool lhs = std::get<bool>(left), rhs = std::get<bool>(right);
+        left = lhs && rhs;
+        token = current(stream);
+      } else {
+        throw ConversionError(current(stream),
+                              "Expected a `Boolean` expression.");
+      }
+    }
+    return left;
+  }
+
+  Value parseBitwiseOr(std::shared_ptr<TokenStream> stream,
+                       std::shared_ptr<CallStackFrame> frame) {
+    auto left = parseBitwiseXor(stream, frame);
+    auto token = current(stream);
+
+    while (token.getType() == TokenType::OPERATOR &&
+           token.getText() == Operators.BitwiseOr) {
+      next(stream);
+      auto right = parseBitwiseXor(stream, frame);
+      left = std::visit(BitwiseOrVisitor(token), left, right);
+      token = current(stream);
+    }
+
+    return left;
+  }
+
+  Value parseBitwiseXor(std::shared_ptr<TokenStream> stream,
+                        std::shared_ptr<CallStackFrame> frame) {
+    auto left = parseBitwiseAnd(stream, frame);
+    auto token = current(stream);
+
+    while (token.getType() == TokenType::OPERATOR &&
+           token.getText() == Operators.BitwiseXor) {
+      next(stream);
+      auto right = parseBitwiseAnd(stream, frame);
+      left = std::visit(BitwiseXorVisitor(token), left, right);
+      token = current(stream);
+    }
+
+    return left;
+  }
+
+  Value parseBitwiseAnd(std::shared_ptr<TokenStream> stream,
+                        std::shared_ptr<CallStackFrame> frame) {
+    auto left = parseEquality(stream, frame);
+    auto token = current(stream);
+
+    while (token.getType() == TokenType::OPERATOR &&
+           token.getText() == Operators.BitwiseAnd) {
+      next(stream);  // Skip "&"
+      auto right = parseEquality(stream, frame);
+      left = std::visit(BitwiseAndVisitor(token), left, right);
+      token = current(stream);
+    }
+
+    return left;
+  }
+
+  Value parseEquality(std::shared_ptr<TokenStream> stream,
+                      std::shared_ptr<CallStackFrame> frame) {
+    auto left = parseComparison(stream, frame);
+    auto token = current(stream);
+
+    while (token.getType() == TokenType::OPERATOR &&
+           (token.getText() == Operators.Equal ||
+            token.getText() == Operators.NotEqual)) {
+      auto op = token.getText();
+      next(stream);  // Skip operator
+      auto right = parseComparison(stream, frame);
+
+      if (op == Operators.Equal) {
+        left = std::visit(EqualityVisitor(token), left, right);
+      } else if (op == Operators.NotEqual) {
+        left = std::visit(InequalityVisitor(token), left, right);
+      }
+
+      token = current(stream);
+    }
+    return left;
+  }
+
+  Value parseComparison(std::shared_ptr<TokenStream> stream,
+                        std::shared_ptr<CallStackFrame> frame) {
+    auto left = parseBitshift(stream, frame);
+    auto token = current(stream);
+
+    while (token.getType() == TokenType::OPERATOR &&
+           (token.getText() == Operators.GreaterThan ||
+            token.getText() == Operators.GreaterThanOrEqual ||
+            token.getText() == Operators.LessThan ||
+            token.getText() == Operators.LessThanOrEqual)) {
+      auto op = token.getText();
+      next(stream);  // Skip operator
+      auto right = parseBitshift(stream, frame);
+
+      if (op == Operators.LessThan) {
+        left = std::visit(LessThanVisitor(token), left, right);
+      } else if (op == Operators.LessThanOrEqual) {
+        left = std::visit(LessThanOrEqualVisitor(token), left, right);
+      } else if (op == Operators.GreaterThan) {
+        left = std::visit(GreaterThanVisitor(token), left, right);
+      } else if (op == Operators.GreaterThanOrEqual) {
+        left = std::visit(GreaterThanOrEqualVisitor(token), left, right);
+      }
+
+      token = current(stream);
+    }
+
+    return left;
+  }
+
+  Value parseBitshift(std::shared_ptr<TokenStream> stream,
+                      std::shared_ptr<CallStackFrame> frame) {
+    auto left = parseAddition(stream, frame);
+    auto token = current(stream);
+
+    while (token.getType() == TokenType::OPERATOR &&
+           (token.getText() == Operators.BitwiseLeftShift ||
+            token.getText() == Operators.BitwiseRightShift)) {
+      auto op = token.getText();
+      next(stream);  // Skip operator
+      auto right = parseAddition(stream, frame);
+
+      if (op == Operators.BitwiseLeftShift) {
+        left = std::visit(BitwiseLeftShiftVisitor(token), left, right);
+      } else if (op == Operators.BitwiseRightShift) {
+        left = std::visit(BitwiseRightShiftVisitor(token), left, right);
+      }
+
+      token = current(stream);
+    }
+
+    return left;
+  }
+
+  Value parseAddition(std::shared_ptr<TokenStream> stream,
+                      std::shared_ptr<CallStackFrame> frame) {
+    auto left = parseMultiplication(stream, frame);
+    auto token = current(stream);
+
+    while (token.getType() == TokenType::OPERATOR &&
+           (token.getText() == Operators.Add ||
+            token.getText() == Operators.Subtract)) {
+      auto op = token.getText();
+      next(stream);  // Skip operator
+      auto right = parseMultiplication(stream, frame);
+
+      if (op == Operators.Add) {
+        left = std::visit(AddVisitor(token), left, right);
+      } else if (op == Operators.Subtract) {
+        left = std::visit(SubtractVisitor(token), left, right);
+      }
+
+      token = current(stream);
+    }
+
+    return left;
+  }
+
+  Value parseMultiplication(std::shared_ptr<TokenStream> stream,
+                            std::shared_ptr<CallStackFrame> frame) {
+    auto left = parseUnary(stream, frame);
+    auto token = current(stream);
+
+    while (token.getType() == TokenType::OPERATOR &&
+           (token.getText() == Operators.Multiply ||
+            token.getText() == Operators.Divide ||
+            token.getText() == Operators.Modulus ||
+            token.getText() == Operators.Exponent)) {
+      auto op = token.getText();
+      next(stream);  // Skip operator
+      auto right = parseUnary(stream, frame);
+
+      if (op == Operators.Multiply) {
+        left = std::visit(MultiplyVisitor(token), left, right);
+      } else if (op == Operators.Divide) {
+        left = std::visit(DivideVisitor(token), left, right);
+      } else if (op == Operators.Modulus) {
+        left = std::visit(ModuloVisitor(token), left, right);
+      } else if (op == Operators.Exponent) {
+        left = std::visit(PowerVisitor(token), left, right);
+      }
+
+      token = current(stream);
+    }
+
+    return left;
+  }
+
+  Value parseUnary(std::shared_ptr<TokenStream> stream,
+                   std::shared_ptr<CallStackFrame> frame) {
+    auto token = current(stream);
+
+    while (token.getType() == TokenType::OPERATOR &&
+           (token.getText() == Operators.Not ||
+            token.getText() == Operators.Subtract ||
+            token.getText() == Operators.BitwiseNot)) {
+      auto op = token.getText();
+      next(stream);  // Skip operator
+      auto right = parseUnary(stream, frame);
+
+      if (op == Operators.Not) {
+        if (std::holds_alternative<bool>(right)) {
+          bool rhs = std::get<bool>(right);
+          return !rhs;
+        } else if (std::holds_alternative<int>(right)) {
+          int rhs = std::get<int>(right);
+          if (rhs == 0) {
+            return 1;
+          } else if (rhs == 1) {
+            return 0;
+          }
+        }
+
+        throw ConversionError(current(stream),
+                              "Expected a `Boolean` expression.");
+      } else if (op == Operators.Subtract) {
+        if (std::holds_alternative<int>(right)) {
+          return -std::get<int>(right);
+        } else if (std::holds_alternative<double>(right)) {
+          return -std::get<double>(right);
+        } else {
+          throw ConversionError(current(stream),
+                                "Unary minus applied to a non-numeric value.");
+        }
+      } else if (op == Operators.BitwiseNot) {
+        return std::visit(BitwiseNotVisitor(current(stream)), right);
+      }
+
+      token = current(stream);
+    }
+
+    return parsePrimary(stream, frame);
+  }
+
+  Value parsePrimary(std::shared_ptr<TokenStream> stream,
+                     std::shared_ptr<CallStackFrame> frame) {
+    // Implement parsing of numbers, parentheses, identifiers, etc.
+    if (current(stream).getType() == TokenType::DECLVAR) {
+      next(stream);
+    }
+
+    if (current(stream).getType() == TokenType::OPEN_BRACE) {
+      return interpretHash(stream, frame);
+    }
+
+    if (current(stream).getType() == TokenType::IDENTIFIER &&
+        peek(stream).getType() == TokenType::OPEN_BRACKET) {
+      auto variableName = current(stream).getText();
+      next(stream);  // Skip the identifier.
+      return interpretSlice(stream, frame, variableName);
+    }
+
+    if (current(stream).getType() == TokenType::OPEN_PAREN) {
+      next(stream);  // Skip "("
+      auto result = interpretExpression(stream, frame);
+
+      if (current(stream).getType() == TokenType::CLOSE_PAREN) {
+        next(stream);  // Skip ")"
+      }
+
+      return result;
+    } else if (current(stream).getType() == TokenType::OPEN_BRACKET) {
+      auto result = interpretBracketExpression(stream, frame);
+      return result;
+    } else if (current(stream).getType() == TokenType::IDENTIFIER) {
+      return interpretIdentifier(stream, frame);
+    } else if (current(stream).getType() == TokenType::KEYWORD &&
+               current(stream).getText() == Keywords.This) {
+      return interpretSelfInvocationTerm(stream, frame);
+    } else if (current(stream).getValueType() == ValueType::Boolean) {
+      auto value = current(stream).toBoolean();
+      next(stream);
+      return value;
+    } else if (current(stream).getValueType() == ValueType::Double) {
+      auto value = current(stream).toDouble();
+      next(stream);
+      return value;
+    } else if (current(stream).getValueType() == ValueType::Integer) {
+      auto value = current(stream).toInteger();
+      next(stream);
+      return value;
+    } else if (current(stream).getValueType() == ValueType::String) {
+      auto value = interpolateString(stream, frame);
+      next(stream);
+      return value;
+    }
+
+    return 0;  // Default value.
+  }
+
+  Value interpretExpression(std::shared_ptr<TokenStream> stream,
+                            std::shared_ptr<CallStackFrame> frame) {
+    auto result = parseExpression(stream, frame);
+
+    while (current(stream).getType() == TokenType::DOT) {
+      result = interpretDotNotation(stream, result, frame);
+    }
+
+    return result;
   }
 
   Value interpretSimpleValueType(std::shared_ptr<TokenStream> stream,
@@ -2711,10 +2861,10 @@ class Interpreter {
       throw InvalidOperationError(
           current(stream), "Syntax error near `this`. Missing identifier.");
     }
-    std::string identifier = current(stream).getText();
+    auto identifier = current(stream).getText();
     next(stream);  // Skip the identifier
 
-    Class clazz = classes[frame->getObjectContext()->className];
+    auto clazz = classes[frame->getObjectContext()->className];
 
     if (clazz.hasMethod(identifier)) {
       interpretInstanceMethodInvocation(
@@ -2732,111 +2882,17 @@ class Interpreter {
                                    identifier);
   }
 
-  Value interpretTerm(std::shared_ptr<TokenStream> stream, Token& termToken,
-                      BooleanExpressionBuilder& booleanExpression,
-                      std::shared_ptr<CallStackFrame> frame,
-                      bool skipOnRetrieval = true) {
-    if (current(stream).getType() == TokenType::DECLVAR) {
-      next(stream);
-    }
-
-    termToken = current(stream);
-
-    if (termToken.getType() == TokenType::OPERATOR &&
-        termToken.getText() == Operators.Subtract) {
-      next(stream);  // Move past the minus sign
-      Value nextValue =
-          interpretTerm(stream, termToken, booleanExpression, frame, false);
-
-      // Apply negation if the next value is a number
-      if (std::holds_alternative<int>(nextValue)) {
-        return -std::get<int>(nextValue);
-      } else if (std::holds_alternative<double>(nextValue)) {
-        return -std::get<double>(nextValue);
-      } else {
-        throw SyntaxError(termToken,
-                          "Unary minus applied to a non-numeric value.");
-      }
-    }
-
-    if (termToken.getType() == TokenType::OPEN_BRACE) {
-      std::shared_ptr<Hash> hash =
-          interpretHash(stream, booleanExpression, frame);
-      return hash;
-    }
-
-    if (termToken.getType() == TokenType::IDENTIFIER &&
-        peek(stream).getType() == TokenType::OPEN_BRACKET) {
-      std::string variableName = termToken.getText();
-      next(stream);  // Skip the identifier.
-      return interpretSlice(stream, frame, variableName);
-    }
-
-    if (current(stream).getType() == TokenType::OPEN_PAREN) {
-      next(stream);  // Skip the '('
-      Value result = interpretExpression(stream, booleanExpression, frame);
-      if (current(stream).getType() == TokenType::CLOSE_PAREN) {
-        if (peek(stream).getType() == TokenType::OPERATOR) {
-          next(stream);
-        }
-      }
-      return result;
-    } else if (current(stream).getType() == TokenType::OPEN_BRACKET) {
-      Value result = interpretExpression(stream, booleanExpression, frame);
-      if (current(stream).getType() == TokenType::CLOSE_BRACKET) {
-        if (peek(stream).getType() == TokenType::OPERATOR) {
-          next(stream);
-        }
-      }
-      return result;
-    } else if (current(stream).getType() == TokenType::IDENTIFIER) {
-      std::string identifier = current(stream).toString();
-      if (hasVariable(identifier, frame)) {
-        if (skipOnRetrieval) {
-          if (peek(stream).getType() == TokenType::OPERATOR) {
-            next(stream);
-          }
-        }
-        return getVariable(stream, identifier, frame);
-      } else {
-        throw UnknownIdentifierError(current(stream), identifier);
-      }
-    } else if (current(stream).getType() == TokenType::OPERATOR) {
-      std::string op = current(stream).toString();
-      next(stream);
-      if (op == Operators.BitwiseNot) {
-        Value bitwiseResult =
-            interpretExpression(stream, booleanExpression, frame);
-        bitwiseResult =
-            std::visit(BitwiseNotVisitor(current(stream)), bitwiseResult);
-        return bitwiseResult;
-      } else {
-        // We can assume it's a boolean expression.
-        interpretBooleanExpression(stream, termToken, booleanExpression, op,
-                                   frame);
-        return booleanExpression.evaluate();
-      }
-    } else if (current(stream).getType() == TokenType::KEYWORD &&
-               current(stream).getText() == Keywords.This) {
-      return interpretSelfInvocationTerm(stream, frame);
-    } else {
-      return interpretSimpleValueType(stream, frame);
-    }
-
-    return 0;  // Placeholder for unsupported types
-  }
-
   std::string interpolateObject(std::shared_ptr<TokenStream> stream,
                                 Value& value,
                                 std::shared_ptr<CallStackFrame> frame) {
-    std::shared_ptr<Object> object = std::get<std::shared_ptr<Object>>(value);
-    Class clazz = classes[object->className];
+    auto object = std::get<std::shared_ptr<Object>>(value);
+    auto clazz = classes[object->className];
 
     if (!clazz.hasMethod(KiwiBuiltins.ToS)) {
       return Serializer::basic_serialize_object(object);
     }
 
-    Method toString = clazz.getMethod(KiwiBuiltins.ToS);
+    auto toString = clazz.getMethod(KiwiBuiltins.ToS);
     std::vector<Value> parameters;
     Value returnValue = interpretInstanceMethodInvocation(
         stream, object, KiwiBuiltins.ToS, parameters, frame);
@@ -2856,8 +2912,8 @@ class Interpreter {
     }
 
     Token tempToken = Token::createEmpty();
-    std::string tempId = InterpHelper::getTemporaryId();
-    std::vector<Token> tempAssignment =
+    auto tempId = InterpHelper::getTemporaryId();
+    auto tempAssignment =
         InterpHelper::getTemporaryAssignment(tempToken, tempId);
     Lexer lexer("", input);
     for (Token t : lexer.getAllTokens()) {
@@ -2984,17 +3040,9 @@ class Interpreter {
       return;
     }
 
-    BooleanExpressionBuilder booleanExpression;
-    Value value = interpretExpression(stream, booleanExpression, frame);
-
-    if (current(stream).getType() == TokenType::DOT) {
-      value = interpretDotNotation(stream, value, frame);
-    }
+    Value value = interpretExpression(stream, frame);
 
     if (op == Operators.Assign) {
-      if (booleanExpression.isSet()) {
-        value = booleanExpression.evaluate();
-      }
       if (!isTemporary && isInstanceVariable && frame->inObjectContext()) {
         frame->getObjectContext()->instanceVariables[name] = value;
       } else {
