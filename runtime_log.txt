@@ -1,88 +1,6 @@
 ================================
 bin/kiwi ./test.kiwi
 Searching for Kiwi scripts...
-Found script: /home/scs/kiwi/tests/for_loops.kiwi
-Importing and running /home/scs/kiwi/tests/for_loops.kiwi...
-==================
-= for_loops.kiwi =
-==================
-fruits = ["kiwi", "strawberry", "pineapple", "lime", "mango", "guava"]
-
-iterating fruits without an index
-kiwi
-strawberry
-pineapple
-lime
-mango
-guava
-
-iterating fruits with an index
-0: kiwi
-1: strawberry
-2: pineapple
-3: lime
-4: mango
-5: guava
-
-iterating an inline list without an index
-kiwi
-is
-fun
-
-iterating an inline list with an index
-0: kiwi
-1: is
-2: fun
-
-Found script: /home/scs/kiwi/tests/modules.kiwi
-Importing and running /home/scs/kiwi/tests/modules.kiwi...
-================
-= modules.kiwi =
-================
-Hello, World.
-Hello, World!
-
-Found script: /home/scs/kiwi/tests/type_checks.kiwi
-Importing and running /home/scs/kiwi/tests/type_checks.kiwi...
-====================
-= type_checks.kiwi =
-====================
-All tests passed!
-Found script: /home/scs/kiwi/tests/method_early_return.kiwi
-Importing and running /home/scs/kiwi/tests/method_early_return.kiwi...
-============================
-= method_early_return.kiwi =
-============================
-60 is not old.
-61 is not old.
-62 is not old.
-63 is not old.
-64 is not old.
-65 is not old.
-66 is not old.
-67 is not old.
-68 is not old.
-69 is not old.
-70 is old.
-71 is old.
-72 is old.
-73 is old.
-74 is old.
-75 is old.
-76 is old.
-77 is old.
-78 is old.
-79 is old.
-80 is old.
-
-Found script: /home/scs/kiwi/tests/error_handling.kiwi
-Importing and running /home/scs/kiwi/tests/error_handling.kiwi...
-=======================
-= error_handling.kiwi =
-=======================
-Attempted to divide by zero.
-An error occurred.
-
 Found script: /home/scs/kiwi/tests/_kiwilib_fileio.kiwi
 Importing and running /home/scs/kiwi/tests/_kiwilib_fileio.kiwi...
 ========================
@@ -127,13 +45,53 @@ reading lines from: file.txt
 9: Item 10
 deleted file: file.txt
 
-Found script: /home/scs/kiwi/tests/hashes.kiwi
-Importing and running /home/scs/kiwi/tests/hashes.kiwi...
-===============
-= hashes.kiwi =
-===============
-{"key1": true, "key2": 1, "key3": ["a", "b", "c"]}
-["key1", "key2", "key3"]
+Found script: /home/scs/kiwi/tests/_kiwilib_math.kiwi
+Importing and running /home/scs/kiwi/tests/_kiwilib_math.kiwi...
+========================
+= _kiwilib_fileio.kiwi =
+========================
+0
+1
+0
+2.22045e-16
+Found script: /home/scs/kiwi/tests/_kiwilib_time.kiwi
+Importing and running /home/scs/kiwi/tests/_kiwilib_time.kiwi...
+========================
+= _kiwilib_fileio.kiwi =
+========================
+Current timestamp: 2024/02/28 11:26:51 PM
+
+Found script: /home/scs/kiwi/tests/abstract_classes.kiwi
+Importing and running /home/scs/kiwi/tests/abstract_classes.kiwi...
+=========================
+= abstract_classes.kiwi =
+=========================
+78.5397
+31.4159
+
+Found script: /home/scs/kiwi/tests/arithmetic.kiwi
+Importing and running /home/scs/kiwi/tests/arithmetic.kiwi...
+===================
+= arithmetic.kiwi =
+===================
+10 + 20 = 30
+10 - 20 = -10
+10 * 20 = 200
+10 / 20 = 0.5
+((10 * 2) / 20) + 9 = 10
+
+Found script: /home/scs/kiwi/tests/bitwise.kiwi
+Importing and running /home/scs/kiwi/tests/bitwise.kiwi...
+================
+= bitwise.kiwi =
+================
+a = 5, b = 9
+(a & b) = 1
+(a | b) = 13
+(a ^ b) = 12
+(a << 1) = 10
+(a >> 1) = 2
+(~a) = -6
 
 Found script: /home/scs/kiwi/tests/builtins.kiwi
 Importing and running /home/scs/kiwi/tests/builtins.kiwi...
@@ -157,6 +115,25 @@ false
 true
 false
 
+Found script: /home/scs/kiwi/tests/classes.kiwi
+Importing and running /home/scs/kiwi/tests/classes.kiwi...
+================
+= classes.kiwi =
+================
+This is a concrete method.
+scott
+Message: Hello!
+I can be invoked without an instance.
+
+Found script: /home/scs/kiwi/tests/concatenation.kiwi
+Importing and running /home/scs/kiwi/tests/concatenation.kiwi...
+======================
+= concatenation.kiwi =
+======================
+'Hello' + ' World' = 'Hello World'
+'Hello' + ' ' + 'World' = 'Hello World'
+'Hello' * 5 = 'HelloHelloHelloHelloHello'
+
 Found script: /home/scs/kiwi/tests/conditionals.kiwi
 Importing and running /home/scs/kiwi/tests/conditionals.kiwi...
 =====================
@@ -169,6 +146,148 @@ bar
 true, false
 baz
 
+Found script: /home/scs/kiwi/tests/conditionals_nested.kiwi
+Importing and running /home/scs/kiwi/tests/conditionals_nested.kiwi...
+============================
+= conditionals_nested.kiwi =
+============================
+hello world
+bar
+
+Found script: /home/scs/kiwi/tests/error_handling.kiwi
+Importing and running /home/scs/kiwi/tests/error_handling.kiwi...
+=======================
+= error_handling.kiwi =
+=======================
+Attempted to divide by zero.
+An error occurred.
+
+Found script: /home/scs/kiwi/tests/fibonacci.kiwi
+Importing and running /home/scs/kiwi/tests/fibonacci.kiwi...
+==================
+= fibonacci.kiwi =
+==================
+[1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025]
+
+Found script: /home/scs/kiwi/tests/fizzbuzz.kiwi
+Importing and running /home/scs/kiwi/tests/fizzbuzz.kiwi...
+=================
+= fizzbuzz.kiwi =
+=================
+1
+2
+Fizz
+4
+Buzz
+Fizz
+7
+8
+Fizz
+Buzz
+11
+Fizz
+13
+14
+FizzBuzz
+
+Found script: /home/scs/kiwi/tests/for_loops.kiwi
+Importing and running /home/scs/kiwi/tests/for_loops.kiwi...
+==================
+= for_loops.kiwi =
+==================
+fruits = ["kiwi", "strawberry", "pineapple", "lime", "mango", "guava"]
+
+iterating fruits without an index
+kiwi
+strawberry
+pineapple
+lime
+mango
+guava
+
+iterating fruits with an index
+0: kiwi
+1: strawberry
+2: pineapple
+3: lime
+4: mango
+5: guava
+
+iterating an inline list without an index
+kiwi
+is
+fun
+
+iterating an inline list with an index
+0: kiwi
+1: is
+2: fun
+
+Found script: /home/scs/kiwi/tests/hashes.kiwi
+Importing and running /home/scs/kiwi/tests/hashes.kiwi...
+===============
+= hashes.kiwi =
+===============
+{"key1": true, "key2": 1, "key3": ["a", "b", "c"]}
+["key1", "key2", "key3"]
+
+Found script: /home/scs/kiwi/tests/lambdas.kiwi
+Importing and running /home/scs/kiwi/tests/lambdas.kiwi...
+================
+= lambdas.kiwi =
+================
+Hello, World!
+Hello, Kiwi!
+[{"id": 0}, {"id": 2}, {"id": 4}, {"id": 6}, {"id": 8}]
+[{"id": 1}, {"id": 3}, {"id": 5}, {"id": 7}, {"id": 9}]
+[{"fruit": "kiwi", "is_a_kiwi": true}, {"fruit": "mango", "is_a_kiwi": false}, {"fruit": "banana", "is_a_kiwi": false}]
+15
+{"key1": 1, "key2": 2, "key3": 3, "key4": 4, "key5": 5}
+
+Found script: /home/scs/kiwi/tests/lists.kiwi
+Importing and running /home/scs/kiwi/tests/lists.kiwi...
+==============
+= lists.kiwi =
+==============
+[1, 3, "hello, world!", [5, "asdf", true], [2, 4]]
+a = [1, 3, "hello, world!", [5, "asdf", true], [2, 4]]
+b = [1, 2, 3, 4]
+c = hello, world!
+d = [1, 3, "hello, world!", [5, "asdf", true], [2, 4]]
+reversed b = [4, 3, 2, 1]
+reversed a = [[2, 4], [5, "asdf", true], "hello, world!", 3, 1]
+iterating a:
+0: [2, 4]
+1: [5, "asdf", true]
+2: hello, world!
+3: 3
+4: 1
+["a", "b", "c", "d", "e", "f", "g", "h"]
+["b", "c", "d", "e", "f", "g", "h"]
+["c", "d", "e", "f", "g", "h"]
+["d", "e", "f", "g", "h"]
+["e", "f", "g", "h"]
+["f", "g", "h"]
+["g", "h"]
+["h"]
+
+Found script: /home/scs/kiwi/tests/lists_slicing.kiwi
+Importing and running /home/scs/kiwi/tests/lists_slicing.kiwi...
+======================
+= lists_slicing.kiwi =
+======================
+a = [1, 2, 3, 4]
+b = ["a", "b", "c", "d"]
+c = [true, false, true, false]
+
+insert at a[0] value of b[0]:           ["a", 1, 2, 3, 4]
+insert at a[0] value of b[0:2:-1]:      ["d", "c", "a", 1, 2, 3, 4]
+replace a[0] with value of b[0]:        ["a", "c", "a", 1, 2, 3, 4]
+replace a[0] with value of b[1]:        ["b", "c", "a", 1, 2, 3, 4]
+replace a[3] with value of b[2]:        ["b", "c", "a", "c", 2, 3, 4]
+slice assign a[0:2] value of c[0:2]:    [true, false, "a", "c", 2, 3, 4]
+slice assign a[0:2] value of c[0:2:-1]: [false, true, "a", "c", 2, 3, 4]
+
 Found script: /home/scs/kiwi/tests/logical_and.kiwi
 Importing and running /home/scs/kiwi/tests/logical_and.kiwi...
 ====================
@@ -178,6 +297,220 @@ false && false = false
 false && true = false
 true && false = false
 true && true = true
+
+Found script: /home/scs/kiwi/tests/logical_not.kiwi
+Importing and running /home/scs/kiwi/tests/logical_not.kiwi...
+====================
+= logical_not.kiwi =
+====================
+!true = false
+!false = true
+!(true == true) = false
+!(true != true) = true
+
+Found script: /home/scs/kiwi/tests/logical_or.kiwi
+Importing and running /home/scs/kiwi/tests/logical_or.kiwi...
+===================
+= logical_or.kiwi =
+===================
+false || false = false
+false || true = true
+true || false = true
+true || true = true
+
+Found script: /home/scs/kiwi/tests/loop_controls.kiwi
+Importing and running /home/scs/kiwi/tests/loop_controls.kiwi...
+======================
+= loop_controls.kiwi =
+======================
+loop ended on 11
+loop ended on 100
+Item 1
+Item 2
+Item 3
+Item 4
+Item 5
+Item 8
+Item 9
+Item 10
+counter = 9
+
+Item 1
+Item 2
+Item 3
+Item 4
+Item 5
+counter = 6
+
+Found script: /home/scs/kiwi/tests/method_early_return.kiwi
+Importing and running /home/scs/kiwi/tests/method_early_return.kiwi...
+============================
+= method_early_return.kiwi =
+============================
+60 is not old.
+61 is not old.
+62 is not old.
+63 is not old.
+64 is not old.
+65 is not old.
+66 is not old.
+67 is not old.
+68 is not old.
+69 is not old.
+70 is old.
+71 is old.
+72 is old.
+73 is old.
+74 is old.
+75 is old.
+76 is old.
+77 is old.
+78 is old.
+79 is old.
+80 is old.
+
+Found script: /home/scs/kiwi/tests/method_invoked_in_conditional.kiwi
+Importing and running /home/scs/kiwi/tests/method_invoked_in_conditional.kiwi...
+======================================
+= method_invoked_in_conditional.kiwi =
+======================================
+0 is even
+1 is odd
+2 is even
+3 is odd
+4 is even
+5 is odd
+6 is even
+7 is odd
+8 is even
+9 is odd
+10 is even
+11 is odd
+12 is even
+13 is odd
+14 is even
+15 is odd
+16 is even
+17 is odd
+18 is even
+19 is odd
+20 is even
+21 is odd
+22 is even
+23 is odd
+24 is even
+25 is odd
+
+Found script: /home/scs/kiwi/tests/method_return.kiwi
+Importing and running /home/scs/kiwi/tests/method_return.kiwi...
+======================
+= method_return.kiwi =
+======================
+Greeting: Hello, World!
+
+Found script: /home/scs/kiwi/tests/methods.kiwi
+Importing and running /home/scs/kiwi/tests/methods.kiwi...
+================
+= methods.kiwi =
+================
+invoked add(n = 1, m = 2)
+  m is non-negative
+    i = 0, n = 3
+    i = 1, n = 5
+    i = 2, n = 7
+end n = 7
+invoked add(n = 1, m = 4)
+  m is non-negative
+    i = 0, n = 5
+    i = 1, n = 9
+    i = 2, n = 13
+    i = 3, n = 17
+    i = 4, n = 21
+end n = 21
+
+Found script: /home/scs/kiwi/tests/modules.kiwi
+Importing and running /home/scs/kiwi/tests/modules.kiwi...
+================
+= modules.kiwi =
+================
+Hello, World.
+Hello, World!
+
+Found script: /home/scs/kiwi/tests/playground.kiwi
+Importing and running /home/scs/kiwi/tests/playground.kiwi...
+
+Found script: /home/scs/kiwi/tests/prime_numbers.kiwi
+Importing and running /home/scs/kiwi/tests/prime_numbers.kiwi...
+======================
+= prime_numbers.kiwi =
+======================
+0:	2
+1:	3
+2:	5
+3:	7
+4:	11
+5:	13
+6:	17
+7:	19
+8:	23
+9:	29
+
+Found script: /home/scs/kiwi/tests/random_strings.kiwi
+Importing and running /home/scs/kiwi/tests/random_strings.kiwi...
+=======================
+= random_strings.kiwi =
+=======================
+p
+Sk
+Tpt
+0FYN
+dqKuN
+x8yE0A
+
+Found script: /home/scs/kiwi/tests/relational_logic.kiwi
+Importing and running /home/scs/kiwi/tests/relational_logic.kiwi...
+=========================
+= relational_logic.kiwi =
+=========================
+10 < 20 = true
+10 < 10 = false
+20 < 10 = false
+10 <= 10 = true
+20 <= 10 = false
+10 > 20 = false
+10 > 10 = false
+20 > 10 = true
+10 >= 10 = true
+20 >= 10 = true
+10 != 20 = true
+10 != 10 = false
+20 != 10 = true
+10 == 20 = false
+10 == 10 = true
+20 == 10 = false
+
+Found script: /home/scs/kiwi/tests/serialization.kiwi
+Importing and running /home/scs/kiwi/tests/serialization.kiwi...
+======================
+= serialization.kiwi =
+======================
+{"name": "Hello!"}
+{"name": "Hello!", "flag": true}
+{"key": "value"}
+
+Found script: /home/scs/kiwi/tests/string_interpolation.kiwi
+Importing and running /home/scs/kiwi/tests/string_interpolation.kiwi...
+=============================
+= string_interpolation.kiwi =
+=============================
+wrapped: <div>
+
+Found script: /home/scs/kiwi/tests/type_checks.kiwi
+Importing and running /home/scs/kiwi/tests/type_checks.kiwi...
+====================
+= type_checks.kiwi =
+====================
+All tests passed!
 
 Found script: /home/scs/kiwi/tests/while_loops.kiwi
 Importing and running /home/scs/kiwi/tests/while_loops.kiwi...
@@ -296,373 +629,42 @@ Loop iteration 10
   Sub loop iteration 10
 While loop test passed!
 
-Found script: /home/scs/kiwi/tests/_kiwilib_math.kiwi
-Importing and running /home/scs/kiwi/tests/_kiwilib_math.kiwi...
-========================
-= _kiwilib_fileio.kiwi =
-========================
-0
-1
-0
-2.22045e-16
-Found script: /home/scs/kiwi/tests/conditionals_nested.kiwi
-Importing and running /home/scs/kiwi/tests/conditionals_nested.kiwi...
-============================
-= conditionals_nested.kiwi =
-============================
-hello world
-bar
+Script: /home/scs/kiwi/tests/_kiwilib_fileio.kiwi ran for 12.1416 ms.
+Script: /home/scs/kiwi/tests/_kiwilib_math.kiwi ran for 4.17587 ms.
+Script: /home/scs/kiwi/tests/_kiwilib_time.kiwi ran for 2.18112 ms.
+Script: /home/scs/kiwi/tests/abstract_classes.kiwi ran for 1.03347 ms.
+Script: /home/scs/kiwi/tests/arithmetic.kiwi ran for 0.991744 ms.
+Script: /home/scs/kiwi/tests/bitwise.kiwi ran for 0.785664 ms.
+Script: /home/scs/kiwi/tests/builtins.kiwi ran for 1.75616 ms.
+Script: /home/scs/kiwi/tests/classes.kiwi ran for 1.42285 ms.
+Script: /home/scs/kiwi/tests/concatenation.kiwi ran for 0.70656 ms.
+Script: /home/scs/kiwi/tests/conditionals.kiwi ran for 0.988928 ms.
+Script: /home/scs/kiwi/tests/conditionals_nested.kiwi ran for 0.723456 ms.
+Script: /home/scs/kiwi/tests/error_handling.kiwi ran for 1.13792 ms.
+Script: /home/scs/kiwi/tests/fibonacci.kiwi ran for 5.52166 ms.
+Script: /home/scs/kiwi/tests/fizzbuzz.kiwi ran for 4.95386 ms.
+Script: /home/scs/kiwi/tests/for_loops.kiwi ran for 1.86829 ms.
+Script: /home/scs/kiwi/tests/hashes.kiwi ran for 1.00762 ms.
+Script: /home/scs/kiwi/tests/lambdas.kiwi ran for 4.98842 ms.
+Script: /home/scs/kiwi/tests/lists.kiwi ran for 3.8249 ms.
+Script: /home/scs/kiwi/tests/lists_slicing.kiwi ran for 1.59386 ms.
+Script: /home/scs/kiwi/tests/logical_and.kiwi ran for 0.805632 ms.
+Script: /home/scs/kiwi/tests/logical_not.kiwi ran for 0.66688 ms.
+Script: /home/scs/kiwi/tests/logical_or.kiwi ran for 0.7744 ms.
+Script: /home/scs/kiwi/tests/loop_controls.kiwi ran for 23.776 ms.
+Script: /home/scs/kiwi/tests/method_early_return.kiwi ran for 6.24051 ms.
+Script: /home/scs/kiwi/tests/method_invoked_in_conditional.kiwi ran for 7.46854 ms.
+Script: /home/scs/kiwi/tests/method_return.kiwi ran for 0.48128 ms.
+Script: /home/scs/kiwi/tests/methods.kiwi ran for 2.41024 ms.
+Script: /home/scs/kiwi/tests/modules.kiwi ran for 2.0503 ms.
+Script: /home/scs/kiwi/tests/playground.kiwi ran for 0.21376 ms.
+Script: /home/scs/kiwi/tests/prime_numbers.kiwi ran for 11.5052 ms.
+Script: /home/scs/kiwi/tests/random_strings.kiwi ran for 10.7635 ms.
+Script: /home/scs/kiwi/tests/relational_logic.kiwi ran for 2.27558 ms.
+Script: /home/scs/kiwi/tests/serialization.kiwi ran for 0.720128 ms.
+Script: /home/scs/kiwi/tests/string_interpolation.kiwi ran for 0.534272 ms.
+Script: /home/scs/kiwi/tests/type_checks.kiwi ran for 1.04192 ms.
+Script: /home/scs/kiwi/tests/while_loops.kiwi ran for 16.7972 ms.
 
-Found script: /home/scs/kiwi/tests/classes.kiwi
-Importing and running /home/scs/kiwi/tests/classes.kiwi...
-================
-= classes.kiwi =
-================
-This is a concrete method.
-scott
-Message: Hello!
-I can be invoked without an instance.
-
-Found script: /home/scs/kiwi/tests/logical_or.kiwi
-Importing and running /home/scs/kiwi/tests/logical_or.kiwi...
-===================
-= logical_or.kiwi =
-===================
-false || false = false
-false || true = true
-true || false = true
-true || true = true
-
-Found script: /home/scs/kiwi/tests/fizzbuzz.kiwi
-Importing and running /home/scs/kiwi/tests/fizzbuzz.kiwi...
-=================
-= fizzbuzz.kiwi =
-=================
-1
-2
-Fizz
-4
-Buzz
-Fizz
-7
-8
-Fizz
-Buzz
-11
-Fizz
-13
-14
-FizzBuzz
-
-Found script: /home/scs/kiwi/tests/bitwise.kiwi
-Importing and running /home/scs/kiwi/tests/bitwise.kiwi...
-================
-= bitwise.kiwi =
-================
-a = 5, b = 9
-(a & b) = 1
-(a | b) = 13
-(a ^ b) = 12
-(a << 1) = 10
-(a >> 1) = 2
-(~a) = -6
-
-Found script: /home/scs/kiwi/tests/lists_slicing.kiwi
-Importing and running /home/scs/kiwi/tests/lists_slicing.kiwi...
-======================
-= lists_slicing.kiwi =
-======================
-a = [1, 2, 3, 4]
-b = ["a", "b", "c", "d"]
-c = [true, false, true, false]
-
-insert at a[0] value of b[0]:           ["a", 1, 2, 3, 4]
-insert at a[0] value of b[0:2:-1]:      ["d", "c", "a", 1, 2, 3, 4]
-replace a[0] with value of b[0]:        ["a", "c", "a", 1, 2, 3, 4]
-replace a[0] with value of b[1]:        ["b", "c", "a", 1, 2, 3, 4]
-replace a[3] with value of b[2]:        ["b", "c", "a", "c", 2, 3, 4]
-slice assign a[0:2] value of c[0:2]:    [true, false, "a", "c", 2, 3, 4]
-slice assign a[0:2] value of c[0:2:-1]: [false, true, "a", "c", 2, 3, 4]
-
-Found script: /home/scs/kiwi/tests/lambdas.kiwi
-Importing and running /home/scs/kiwi/tests/lambdas.kiwi...
-================
-= lambdas.kiwi =
-================
-Hello, World!
-Hello, Kiwi!
-[{"id": 0}, {"id": 2}, {"id": 4}, {"id": 6}, {"id": 8}]
-[{"id": 1}, {"id": 3}, {"id": 5}, {"id": 7}, {"id": 9}]
-[{"fruit": "kiwi", "is_a_kiwi": true}, {"fruit": "mango", "is_a_kiwi": false}, {"fruit": "banana", "is_a_kiwi": false}]
-15
-{"key1": 1, "key2": 2, "key3": 3, "key4": 4, "key5": 5}
-
-Found script: /home/scs/kiwi/tests/relational_logic.kiwi
-Importing and running /home/scs/kiwi/tests/relational_logic.kiwi...
-=========================
-= relational_logic.kiwi =
-=========================
-10 < 20 = true
-10 < 10 = false
-20 < 10 = false
-10 <= 10 = true
-20 <= 10 = false
-10 > 20 = false
-10 > 10 = false
-20 > 10 = true
-10 >= 10 = true
-20 >= 10 = true
-10 != 20 = true
-10 != 10 = false
-20 != 10 = true
-10 == 20 = false
-10 == 10 = true
-20 == 10 = false
-
-Found script: /home/scs/kiwi/tests/serialization.kiwi
-Importing and running /home/scs/kiwi/tests/serialization.kiwi...
-======================
-= serialization.kiwi =
-======================
-{"name": "Hello!"}
-{"name": "Hello!", "flag": true}
-{"key": "value"}
-
-Found script: /home/scs/kiwi/tests/method_return.kiwi
-Importing and running /home/scs/kiwi/tests/method_return.kiwi...
-======================
-= method_return.kiwi =
-======================
-Greeting: Hello, World!
-
-Found script: /home/scs/kiwi/tests/random_strings.kiwi
-Importing and running /home/scs/kiwi/tests/random_strings.kiwi...
-=======================
-= random_strings.kiwi =
-=======================
-7
-4f
-qWj
-JoEu
-cyyS7
-MtNQxk
-
-Found script: /home/scs/kiwi/tests/loop_controls.kiwi
-Importing and running /home/scs/kiwi/tests/loop_controls.kiwi...
-======================
-= loop_controls.kiwi =
-======================
-loop ended on 11
-loop ended on 100
-Item 1
-Item 2
-Item 3
-Item 4
-Item 5
-Item 8
-Item 9
-Item 10
-counter = 9
-
-Item 1
-Item 2
-Item 3
-Item 4
-Item 5
-counter = 6
-
-Found script: /home/scs/kiwi/tests/_kiwilib_time.kiwi
-Importing and running /home/scs/kiwi/tests/_kiwilib_time.kiwi...
-========================
-= _kiwilib_fileio.kiwi =
-========================
-Current timestamp: 2024/02/17 3:37:00 PM
-
-Found script: /home/scs/kiwi/tests/arithmetic.kiwi
-Importing and running /home/scs/kiwi/tests/arithmetic.kiwi...
-===================
-= arithmetic.kiwi =
-===================
-10 + 20 = 30
-10 - 20 = -10
-10 * 20 = 200
-10 / 20 = 0.5
-((10 * 2) / 20) + 9 = 10
-
-Found script: /home/scs/kiwi/tests/playground.kiwi
-Importing and running /home/scs/kiwi/tests/playground.kiwi...
-wrapped: <div>
-foobar
-{"string": "Hello, World!", "integer": 100, "double": 3.14159, "boolean": true}
-Found script: /home/scs/kiwi/tests/method_invoked_in_conditional.kiwi
-Importing and running /home/scs/kiwi/tests/method_invoked_in_conditional.kiwi...
-======================================
-= method_invoked_in_conditional.kiwi =
-======================================
-0 is even
-1 is odd
-2 is even
-3 is odd
-4 is even
-5 is odd
-6 is even
-7 is odd
-8 is even
-9 is odd
-10 is even
-11 is odd
-12 is even
-13 is odd
-14 is even
-15 is odd
-16 is even
-17 is odd
-18 is even
-19 is odd
-20 is even
-21 is odd
-22 is even
-23 is odd
-24 is even
-25 is odd
-
-Found script: /home/scs/kiwi/tests/string_interpolation.kiwi
-Importing and running /home/scs/kiwi/tests/string_interpolation.kiwi...
-=============================
-= string_interpolation.kiwi =
-=============================
-wrapped: <div>
-
-Found script: /home/scs/kiwi/tests/prime_numbers.kiwi
-Importing and running /home/scs/kiwi/tests/prime_numbers.kiwi...
-======================
-= prime_numbers.kiwi =
-======================
-0:	2
-1:	3
-2:	5
-3:	7
-4:	11
-5:	13
-6:	17
-7:	19
-8:	23
-9:	29
-
-Found script: /home/scs/kiwi/tests/concatenation.kiwi
-Importing and running /home/scs/kiwi/tests/concatenation.kiwi...
-======================
-= concatenation.kiwi =
-======================
-'Hello' + ' World' = 'Hello World'
-'Hello' + ' ' + 'World' = 'Hello World'
-'Hello' * 5 = 'HelloHelloHelloHelloHello'
-
-Found script: /home/scs/kiwi/tests/logical_not.kiwi
-Importing and running /home/scs/kiwi/tests/logical_not.kiwi...
-====================
-= logical_not.kiwi =
-====================
-!true = false
-!false = true
-!(true == true) = false
-!(true != true) = true
-
-Found script: /home/scs/kiwi/tests/methods.kiwi
-Importing and running /home/scs/kiwi/tests/methods.kiwi...
-================
-= methods.kiwi =
-================
-invoked add(n = 1, m = 2)
-  m is non-negative
-    i = 0, n = 3
-    i = 1, n = 5
-    i = 2, n = 7
-end n = 7
-invoked add(n = 1, m = 4)
-  m is non-negative
-    i = 0, n = 5
-    i = 1, n = 9
-    i = 2, n = 13
-    i = 3, n = 17
-    i = 4, n = 21
-end n = 21
-
-Found script: /home/scs/kiwi/tests/fibonacci.kiwi
-Importing and running /home/scs/kiwi/tests/fibonacci.kiwi...
-==================
-= fibonacci.kiwi =
-==================
-[1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025]
-
-Found script: /home/scs/kiwi/tests/lists.kiwi
-Importing and running /home/scs/kiwi/tests/lists.kiwi...
-==============
-= lists.kiwi =
-==============
-a = [1, 3, "hello, world!", [5, "asdf", true], [2, 4]]
-b = [1, 2, 3, 4]
-c = hello, world!
-d = [1, 3, "hello, world!", [5, "asdf", true], [2, 4]]
-reversed b = [4, 3, 2, 1]
-reversed a = [[2, 4], [5, "asdf", true], "hello, world!", 3, 1]
-iterating a:
-0: [2, 4]
-1: [5, "asdf", true]
-2: hello, world!
-3: 3
-4: 1
-["a", "b", "c", "d", "e", "f", "g", "h"]
-["b", "c", "d", "e", "f", "g", "h"]
-["c", "d", "e", "f", "g", "h"]
-["d", "e", "f", "g", "h"]
-["e", "f", "g", "h"]
-["f", "g", "h"]
-["g", "h"]
-["h"]
-
-Found script: /home/scs/kiwi/tests/abstract_classes.kiwi
-Importing and running /home/scs/kiwi/tests/abstract_classes.kiwi...
-=========================
-= abstract_classes.kiwi =
-=========================
-78.5397
-31.4159
-
-Script: /home/scs/kiwi/tests/for_loops.kiwi ran for 1.74925 ms.
-Script: /home/scs/kiwi/tests/modules.kiwi ran for 2.02266 ms.
-Script: /home/scs/kiwi/tests/type_checks.kiwi ran for 1.0752 ms.
-Script: /home/scs/kiwi/tests/method_early_return.kiwi ran for 6.35366 ms.
-Script: /home/scs/kiwi/tests/error_handling.kiwi ran for 0.665344 ms.
-Script: /home/scs/kiwi/tests/_kiwilib_fileio.kiwi ran for 10.8785 ms.
-Script: /home/scs/kiwi/tests/hashes.kiwi ran for 0.934656 ms.
-Script: /home/scs/kiwi/tests/builtins.kiwi ran for 1.56442 ms.
-Script: /home/scs/kiwi/tests/conditionals.kiwi ran for 0.966656 ms.
-Script: /home/scs/kiwi/tests/logical_and.kiwi ran for 0.755456 ms.
-Script: /home/scs/kiwi/tests/while_loops.kiwi ran for 15.4875 ms.
-Script: /home/scs/kiwi/tests/_kiwilib_math.kiwi ran for 4.1239 ms.
-Script: /home/scs/kiwi/tests/conditionals_nested.kiwi ran for 0.679936 ms.
-Script: /home/scs/kiwi/tests/classes.kiwi ran for 1.48378 ms.
-Script: /home/scs/kiwi/tests/logical_or.kiwi ran for 0.745984 ms.
-Script: /home/scs/kiwi/tests/fizzbuzz.kiwi ran for 4.69402 ms.
-Script: /home/scs/kiwi/tests/bitwise.kiwi ran for 0.71808 ms.
-Script: /home/scs/kiwi/tests/lists_slicing.kiwi ran for 1.42259 ms.
-Script: /home/scs/kiwi/tests/lambdas.kiwi ran for 4.65075 ms.
-Script: /home/scs/kiwi/tests/relational_logic.kiwi ran for 2.15347 ms.
-Script: /home/scs/kiwi/tests/serialization.kiwi ran for 0.685056 ms.
-Script: /home/scs/kiwi/tests/method_return.kiwi ran for 0.431872 ms.
-Script: /home/scs/kiwi/tests/random_strings.kiwi ran for 9.6343 ms.
-Script: /home/scs/kiwi/tests/loop_controls.kiwi ran for 23.3953 ms.
-Script: /home/scs/kiwi/tests/_kiwilib_time.kiwi ran for 2.304 ms.
-Script: /home/scs/kiwi/tests/arithmetic.kiwi ran for 0.945152 ms.
-Script: /home/scs/kiwi/tests/playground.kiwi ran for 0.65408 ms.
-Script: /home/scs/kiwi/tests/method_invoked_in_conditional.kiwi ran for 6.87616 ms.
-Script: /home/scs/kiwi/tests/string_interpolation.kiwi ran for 0.471552 ms.
-Script: /home/scs/kiwi/tests/prime_numbers.kiwi ran for 11.0198 ms.
-Script: /home/scs/kiwi/tests/concatenation.kiwi ran for 0.681728 ms.
-Script: /home/scs/kiwi/tests/logical_not.kiwi ran for 0.63872 ms.
-Script: /home/scs/kiwi/tests/methods.kiwi ran for 2.26842 ms.
-Script: /home/scs/kiwi/tests/fibonacci.kiwi ran for 4.64102 ms.
-Script: /home/scs/kiwi/tests/lists.kiwi ran for 3.2937 ms.
-Script: /home/scs/kiwi/tests/abstract_classes.kiwi ran for 1.01146 ms.
-Total runtime for all scripts: 132.078 ms.
+Ran 36 scripts.
+Total runtime for all scripts: 140.329 ms.

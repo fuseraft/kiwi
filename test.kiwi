@@ -48,4 +48,5 @@ for @runtime in @runtimes do
   @total_duration += @duration
 end
 
+println "\nRan ${runtimes.size()} scripts."
 println "Total runtime for all scripts: ${@total_duration} ms."
