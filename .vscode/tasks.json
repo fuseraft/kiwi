@@ -14,8 +14,8 @@
                 "${workspaceFolder}/src/main.cpp",
                 "-o",
                 "${workspaceFolder}/bin/kiwi",
-                "-lcurl",
-                "-lodbc",
+                //"-lcurl",
+                //"-lodbc",
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

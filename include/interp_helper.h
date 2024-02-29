@@ -3,7 +3,6 @@
 
 #include <vector>
 #include "errors/error.h"
-#include "math/boolexpr.h"
 #include "math/visitor.h"
 #include "objects/method.h"
 #include "objects/sliceindex.h"
@@ -16,7 +15,7 @@
 struct InterpHelper {
   static Token current(std::shared_ptr<TokenStream> stream) {
     if (stream->position >= stream->tokens.size()) {
-      return Token::createEndOfFrame();
+      return Token::createStreamEnd();
     }
     return stream->tokens.at(stream->position);
   }
@@ -24,8 +23,6 @@ struct InterpHelper {
   static void next(std::shared_ptr<TokenStream> stream) {
     if (stream->position < stream->tokens.size()) {
       stream->position++;
-    } else {
-      // To complete the frame, or not to complete the frame, that is the question;
     }
   }
 
@@ -34,24 +31,8 @@ struct InterpHelper {
     if (nextPosition < stream->tokens.size()) {
       return stream->tokens[nextPosition];
     } else {
-      return Token::createEndOfFrame();
+      return Token::createStreamEnd();
     }
-  }
-
-  static void ensureBooleanExpressionHasRoot(
-      Token& tokenTerm, BooleanExpressionBuilder& booleanExpression,
-      Value value) {
-    if (booleanExpression.isSet()) {
-      return;
-    }
-
-    // We can't use non-boolean values in our expression.
-    if (!std::holds_alternative<bool>(value)) {
-      throw ConversionError(tokenTerm);
-    }
-
-    bool booleanValue = std::get<bool>(value);
-    booleanExpression.value(booleanValue);
   }
 
   static Method interpretLambda(std::shared_ptr<TokenStream> stream) {
@@ -80,7 +61,7 @@ struct InterpHelper {
   static bool isSliceAssignmentExpression(std::shared_ptr<TokenStream> stream) {
     size_t pos = stream->position;
     bool isSliceAssignment = false;
-    Token token = stream->tokens.at(pos);
+    auto token = stream->tokens.at(pos);
     while (pos < stream->tokens.size()) {
       if (token.getType() == TokenType::COLON ||
           token.getType() == TokenType::OPERATOR) {
@@ -93,14 +74,8 @@ struct InterpHelper {
   }
 
   static bool isListExpression(std::shared_ptr<TokenStream> stream) {
-    size_t position = stream->position;
-    if (position >= stream->tokens.size() ||
-        stream->tokens.at(position).getType() != TokenType::OPEN_BRACKET) {
-      return false;
-    }
-
+    size_t position = stream->position + 1;  // Skip the "["
     int bracketCount = 1;
-    ++position;
 
     while (position < stream->tokens.size() && bracketCount > 0) {
       Token token = stream->tokens.at(position);
@@ -134,14 +109,27 @@ struct InterpHelper {
   }
 
   static bool isRangeExpression(std::shared_ptr<TokenStream> stream) {
-    size_t pos = stream->position;
+    size_t pos = stream->position + 1;  // Skip the "["
+    size_t size = stream->tokens.size();
     bool isRange = false;
-    Token token = stream->tokens.at(pos);
-    while (pos < stream->tokens.size()) {
+    auto token = stream->tokens.at(pos);
+    int counter = 1;
+    while (pos < size && counter > 0) {
+      if (token.getType() == TokenType::OPEN_BRACKET) {
+        ++counter;
+      } else if (token.getType() == TokenType::CLOSE_BRACKET) {
+        --counter;
+
+        if (counter == 0) {
+          break;
+        }
+      }
+
       if (token.getType() == TokenType::RANGE) {
         isRange = true;
         break;
       }
+
       token = stream->tokens.at(++pos);
     }
     return isRange;
@@ -173,10 +161,8 @@ struct InterpHelper {
       std::unordered_map<std::string, Value> variables,
       std::shared_ptr<CallStackFrame> callerFrame) {
     for (const auto& var : variables) {
-      std::string varName = var.first;
-      if (shouldUpdateFrameVariables(varName, callerFrame)) {
-        Value varValue = var.second;
-        callerFrame->variables[varName] = varValue;
+      if (shouldUpdateFrameVariables(var.first, callerFrame)) {
+        callerFrame->variables[var.first] = std::move(var.second);
       }
     }
   }
@@ -188,7 +174,7 @@ struct InterpHelper {
   static void collectBodyTokens(std::vector<Token>& tokens,
                                 std::shared_ptr<TokenStream> stream) {
     int counter = 1;
-    while (counter != 0) {
+    while (stream->canRead() && counter != 0) {
       if (Keywords.is_required_end_keyword(current(stream).getText())) {
         ++counter;
       } else if (current(stream).getText() == Keywords.End) {
@@ -209,7 +195,7 @@ struct InterpHelper {
   static std::vector<Token> getTemporaryAssignment(Token& tokenTerm,
                                                    const std::string& tempId) {
     std::vector<Token> tokens;
-    std::string file = tokenTerm.getFile();
+    auto file = tokenTerm.getFile();
     tokens.push_back(
         Token::create(TokenType::DECLVAR, file, Keywords.DeclVar, 0, 0));
     tokens.push_back(Token::create(TokenType::IDENTIFIER, file, tempId, 0, 0));
@@ -263,12 +249,10 @@ struct InterpHelper {
       // Simple case: step is 1
       auto& elems = targetList->elements;
       if (start >= stop) {
-        // Insert or delete elements
         elems.erase(elems.begin() + start, elems.begin() + stop);
         elems.insert(elems.begin() + start, rhsValues->elements.begin(),
                      rhsValues->elements.end());
       } else {
-        // Replace subrange of elements
         std::copy(rhsValues->elements.begin(), rhsValues->elements.end(),
                   elems.begin() + start);
       }
@@ -282,61 +266,6 @@ struct InterpHelper {
           break;  // Avoid going out of bounds
         }
       }
-    }
-  }
-
-  static void interpretRelationalExpression(
-      Token& tokenTerm, BooleanExpressionBuilder& booleanExpression,
-      std::string& op, Value& result, Value nextTerm) {
-    if (op == Operators.Equal) {
-      result = std::visit(EqualityVisitor(tokenTerm), result, nextTerm);
-    } else if (op == Operators.NotEqual) {
-      result = std::visit(InequalityVisitor(tokenTerm), result, nextTerm);
-    } else if (op == Operators.LessThan) {
-      result = std::visit(LessThanVisitor(tokenTerm), result, nextTerm);
-    } else if (op == Operators.LessThanOrEqual) {
-      result = std::visit(LessThanOrEqualVisitor(tokenTerm), result, nextTerm);
-    } else if (op == Operators.GreaterThan) {
-      result = std::visit(GreaterThanVisitor(tokenTerm), result, nextTerm);
-    } else if (op == Operators.GreaterThanOrEqual) {
-      result =
-          std::visit(GreaterThanOrEqualVisitor(tokenTerm), result, nextTerm);
-    }
-
-    InterpHelper::ensureBooleanExpressionHasRoot(tokenTerm, booleanExpression,
-                                                 result);
-  }
-
-  static void interpretArithmeticExpression(Token& tokenTerm, std::string& op,
-                                            Value& result, Value nextTerm) {
-    if (op == Operators.Add) {
-      result = std::visit(AddVisitor(tokenTerm), result, nextTerm);
-    } else if (op == Operators.Subtract) {
-      result = std::visit(SubtractVisitor(tokenTerm), result, nextTerm);
-    } else if (op == Operators.Multiply) {
-      result = std::visit(MultiplyVisitor(tokenTerm), result, nextTerm);
-    } else if (op == Operators.Divide) {
-      result = std::visit(DivideVisitor(tokenTerm), result, nextTerm);
-    } else if (op == Operators.Exponent) {
-      result = std::visit(PowerVisitor(tokenTerm), result, nextTerm);
-    } else if (op == Operators.Modulus) {
-      result = std::visit(ModuloVisitor(tokenTerm), result, nextTerm);
-    }
-  }
-
-  static void interpretBitwiseExpression(Token& tokenTerm, std::string& op,
-                                         Value& result, Value nextTerm) {
-    if (op == Operators.BitwiseAnd) {
-      result = std::visit(BitwiseAndVisitor(tokenTerm), result, nextTerm);
-    } else if (op == Operators.BitwiseOr) {
-      result = std::visit(BitwiseOrVisitor(tokenTerm), result, nextTerm);
-    } else if (op == Operators.BitwiseXor) {
-      result = std::visit(BitwiseXorVisitor(tokenTerm), result, nextTerm);
-    } else if (op == Operators.BitwiseLeftShift) {
-      result = std::visit(BitwiseLeftShiftVisitor(tokenTerm), result, nextTerm);
-    } else if (op == Operators.BitwiseRightShift) {
-      result =
-          std::visit(BitwiseRightShiftVisitor(tokenTerm), result, nextTerm);
     }
   }
 
@@ -392,25 +321,34 @@ struct InterpHelper {
       int start = std::get<int>(slice.indexOrStart),
           stop = std::get<int>(slice.stopIndex),
           step = std::get<int>(slice.stepValue);
+
       // Adjust negative indices
       int listSize = static_cast<int>(list->elements.size());
       start = (start < 0) ? std::max(start + listSize, 0) : start;
       stop = (stop < 0) ? stop + listSize : std::min(stop, listSize);
-      if (step < 0 && stop == listSize)
-        stop = -1;  // Adjust stop for reverse slicing
+
+      // Adjust stop for reverse slicing
+      if (step < 0 && stop == listSize) {
+        stop = -1;
+      }
 
       auto slicedList = std::make_shared<List>();
+
       if (step < 0) {
         for (int i = (start == 0 ? listSize - 1 : start); i >= stop;
              i += step) {
-          if (i < 0 || i >= listSize)
-            break;  // Prevent out-of-bounds access
+          // Prevent out-of-bounds access
+          if (i < 0 || i >= listSize) {
+            break;
+          }
           slicedList->elements.push_back(list->elements[i]);
         }
       } else {
         for (int i = start; i < stop; i += step) {
-          if (i >= listSize)
-            break;  // Prevent out-of-bounds access
+          // Prevent out-of-bounds access
+          if (i >= listSize) {
+            break;
+          }
           slicedList->elements.push_back(list->elements[i]);
         }
       }
@@ -420,13 +358,18 @@ struct InterpHelper {
       if (!std::holds_alternative<int>(slice.indexOrStart)) {
         throw IndexError(current(stream), "Index value must be an integer.");
       }
+
       int index = std::get<int>(slice.indexOrStart);
       int listSize = list->elements.size();
-      if (index < 0)
+
+      if (index < 0) {
         index += listSize;  // Adjust for negative index
+      }
+
       if (index < 0 || index >= listSize) {
         throw RangeError(current(stream), "List index out of range.");
       }
+
       return list->elements[index];
     }
   }
@@ -531,7 +474,7 @@ struct InterpHelper {
       std::shared_ptr<TokenStream> stream) {
     Method method;
 
-    while (current(stream).getText() != Keywords.Method) {
+    while (stream->canRead() && current(stream).getText() != Keywords.Method) {
       if (current(stream).getText() == Keywords.Abstract) {
         method.setFlag(MethodFlags::Abstract);
       } else if (current(stream).getText() == Keywords.Override) {
@@ -545,9 +488,7 @@ struct InterpHelper {
     }
     next(stream);  // Skip "def"
 
-    Token tokenTerm = current(stream);
-
-    std::string name = current(stream).getText();
+    auto name = current(stream).getText();
     method.setName(name);
     next(stream);  // Skip the name.
     interpretMethodParameters(method, stream);
@@ -557,24 +498,25 @@ struct InterpHelper {
       return method;
     }
 
-    while (counter > 0) {
+    while (stream->canRead() && counter > 0) {
       if (current(stream).getText() == Keywords.End) {
         --counter;
 
         // Stop here.
         if (counter == 0) {
+          next(stream);  // Skip "end"
           break;
         }
       } else if (Keywords.is_required_end_keyword(current(stream).getText())) {
         ++counter;
       }
 
-      Token codeToken = current(stream);
+      auto codeToken = current(stream);
       method.addToken(codeToken);
       next(stream);
 
-      if (current(stream).getType() == TokenType::ENDOFFRAME) {
-        throw SyntaxError(tokenTerm,
+      if (current(stream).getType() == TokenType::STREAM_END) {
+        throw SyntaxError(current(stream),
                           "Invalid method declaration `" + name + "`");
       }
     }
@@ -584,7 +526,7 @@ struct InterpHelper {
 
   static std::vector<std::string> getParameterSet(
       std::shared_ptr<TokenStream> stream) {
-    Token tokenTerm = current(stream);
+    auto tokenTerm = current(stream);
     if (current(stream).getType() != TokenType::OPEN_PAREN) {
       throw SyntaxError(
           tokenTerm,
@@ -594,8 +536,9 @@ struct InterpHelper {
 
     std::vector<std::string> paramSet;
 
-    while (current(stream).getType() != TokenType::CLOSE_PAREN) {
-      Token parameterToken = current(stream);
+    while (stream->canRead() &&
+           current(stream).getType() != TokenType::CLOSE_PAREN) {
+      auto parameterToken = current(stream);
       if (parameterToken.getType() == TokenType::IDENTIFIER) {
         paramSet.push_back(parameterToken.getText());
       }
@@ -613,7 +556,7 @@ struct InterpHelper {
 
   static void interpretMethodParameters(Method& method,
                                         std::shared_ptr<TokenStream> stream) {
-    for (std::string param : getParameterSet(stream)) {
+    for (const auto& param : getParameterSet(stream)) {
       method.addParameterName(param);
     }
   }

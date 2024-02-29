@@ -1,11 +1,3 @@
 # Add Kiwi here!
 
-def wrap_string(@inputstring, @openchar, @closechar)
-  return "${@openchar}${@inputstring}${@closechar}"
-end
-
-println "wrapped: ${wrap_string("div", "<", ">")}"
-println "foobar"
-
-@json = "{\"string\": \"Hello, World!\", \"integer\": 100, \"double\": 3.14159, \"boolean\": true}"
-println @json.to_h()
+println ""

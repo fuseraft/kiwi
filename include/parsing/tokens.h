@@ -1,6 +1,7 @@
 #ifndef KIWI_PARSING_TOKENS_H
 #define KIWI_PARSING_TOKENS_H
 
+#include <memory>
 #include <string>
 #include "parsing/keywords.h"
 #include "typing/serializer.h"
@@ -23,7 +24,7 @@ enum TokenType {
   OPEN_BRACE,
   CLOSE_BRACE,
   CONDITIONAL,
-  ENDOFFRAME,
+  STREAM_END,
   QUALIFIER,
   RANGE,
   COLON,
@@ -31,6 +32,7 @@ enum TokenType {
   TYPENAME,
   LAMBDA,
   DECLVAR,
+  QUESTION,
   ENDOFFILE
 };
 
@@ -59,8 +61,8 @@ class Token {
     return create(TokenType::ENDOFFILE, "", "", 0, 0);
   }
 
-  static Token createEndOfFrame() {
-    return create(TokenType::ENDOFFRAME, "", "", 0, 0);
+  static Token createStreamEnd() {
+    return create(TokenType::STREAM_END, "", "", 0, 0);
   }
 
   std::string getFile() const { return file; }
@@ -131,7 +133,15 @@ class TokenStream {
  public:
   TokenStream(const std::vector<Token>& tokens) : tokens(tokens) {}
   ~TokenStream() { tokens.clear(); }
+
+  std::shared_ptr<TokenStream> clone() const {
+    auto clonedStream = std::make_shared<TokenStream>(tokens);  // Copy tokens
+    clonedStream->position = this->position;  // Copy current position
+    return clonedStream;
+  }
+
   bool empty() const { return tokens.empty(); }
+  bool canRead() const { return position < tokens.size(); }
 
   std::vector<Token> tokens;
   size_t position = 0;

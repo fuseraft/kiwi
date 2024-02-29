@@ -232,27 +232,59 @@ struct {
           std::get<double>(left) * static_cast<double>(std::get<int>(right));
     } else if (std::holds_alternative<std::string>(left) &&
                std::holds_alternative<int>(right)) {
-      std::string string = std::get<std::string>(left);
-      int multiplier = std::get<int>(right);
-
-      if (multiplier < 1) {
-        throw SyntaxError(
-            token, "String multiplier must be a positive non-zero integer.");
-      }
-
-      std::ostringstream build;
-      build << string;
-
-      for (int i = 1; i < multiplier; ++i) {
-        build << string;
-      }
-
-      result = build.str();
+      do_string_multiplication(left, right, token, result);
+    } else if (std::holds_alternative<std::shared_ptr<List>>(left) &&
+               std::holds_alternative<int>(right)) {
+      do_list_multiplication(left, right, token, result);
     } else {
       throw ConversionError(token, "Conversion error in multiplication.");
     }
 
     return result;
+  }
+
+  void do_list_multiplication(Value& left, Value& right, const Token& token,
+                              Value& result) {
+    auto list = std::get<std::shared_ptr<List>>(left);
+    int multiplier = std::get<int>(right);
+
+    if (multiplier < 1) {
+      throw SyntaxError(token,
+                        "List multiplier must be a positive non-zero integer.");
+    }
+
+    if (list->elements.size() == 0) {
+      throw SyntaxError(token, "Cannot multiply an empty list.");
+    }
+
+    auto newList = std::make_shared<List>();
+
+    for (int i = 0; i < multiplier; ++i) {
+      for (const auto& item : list->elements) {
+        newList->elements.push_back(item);
+      }
+    }
+
+    result = newList;
+  }
+
+  void do_string_multiplication(Value& left, Value& right, const Token& token,
+                                Value& result) {
+    auto string = std::get<std::string>(left);
+    int multiplier = std::get<int>(right);
+
+    if (multiplier < 1) {
+      throw SyntaxError(
+          token, "String multiplier must be a positive non-zero integer.");
+    }
+
+    std::ostringstream build;
+
+    for (int i = 0; i < multiplier; ++i) {
+      build << string;
+    }
+
+    result = build.str();
   }
 
   Value do_eq_comparison(const Token& token, Value left, Value right) {
