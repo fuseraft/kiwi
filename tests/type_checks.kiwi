@@ -45,3 +45,5 @@ if @failed > 0
 else
   println "All tests passed!"
 end
+
+println ""

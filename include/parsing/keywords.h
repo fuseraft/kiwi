@@ -12,6 +12,7 @@ struct {
   const std::string Interpolate = "$";
   const std::string Qualifier = "::";
   const std::string Range = "..";
+  const std::string Question = "?";
 } Symbols;
 
 struct {
