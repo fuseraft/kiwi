@@ -126,37 +126,6 @@ class Interpreter {
         continue;
       }
 
-      bool tokenChange = false;
-
-      if (stream->position < stream->tokens.size()) {
-        token = stream->tokens[stream->position];
-        tokenChange = true;
-      }
-
-      if (tokenChange && ((token.getType() != TokenType::KEYWORD &&
-                           token.getType() != TokenType::CONDITIONAL &&
-                           token.getType() != TokenType::DECLVAR) ||
-                          (token.getText() == Keywords.End ||
-                           token.getText() == Keywords.Try))) {
-        if (methods.find(token.getText()) != methods.end()) {
-          continue;
-        }
-        if (modules.find(token.getText()) != modules.end()) {
-          continue;
-        }
-        if (peek(stream).getType() == TokenType::OPEN_PAREN ||
-            peek(stream).getType() == TokenType::QUALIFIER) {
-          continue;
-        }
-        if (peek(stream).getType() == TokenType::DOT) {
-          continue;
-        }
-
-        if (!frame->isFlagSet(FrameFlags::ReturnFlag)) {
-          //++stream->position;
-        }
-      }
-
       if (frame->isFlagSet(FrameFlags::LoopBreak) ||
           frame->isFlagSet(FrameFlags::LoopContinue)) {
         if (callStack.size() > 1) {
