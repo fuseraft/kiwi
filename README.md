@@ -6,6 +6,17 @@ A light-weight general-purpose scripting language.
 
 To get started with Kiwi, install the dependencies required to build.
 
+### Fedora / RHEL
+
+```bash
+sudo dnf update
+sudo dnf install gcc-c++
+sudo dnf install make
+sudo dnf install clang-tools-extra
+```
+
+### Ubuntu / Debian
+
 ```bash
 sudo apt update
 sudo apt-get install g++
@@ -13,7 +24,7 @@ sudo apt-get install make
 sudo apt-get install clang-format
 ```
 
-Then clone the repository and build the source code.
+### Clone and Build
 
 ```bash
 git clone https://github.com/fuseraft/kiwi.git
