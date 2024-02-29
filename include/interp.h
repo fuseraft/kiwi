@@ -536,10 +536,6 @@ class Interpreter {
     interpretKiwiKeyword(stream, token, frame, keyword);
   }
 
-  /// @brief
-  /// @param token
-  /// @param identifier
-  /// @param frame
   void interpretQualifiedIdentifier(std::shared_ptr<TokenStream> stream,
                                     Token& token, std::string& identifier) {
     while (peek(stream).getType() == TokenType::QUALIFIER) {
@@ -1859,10 +1855,6 @@ class Interpreter {
         }
 
         auto method = InterpHelper::interpretMethodDeclaration(stream);
-        // if (!method.isFlagSet(MethodFlags::Abstract) &&
-        //     current(stream).getText() == Keywords.End) {
-        //   next(stream);
-        // }
 
         if (method.getName() == Keywords.Ctor) {
           method.setFlag(MethodFlags::Ctor);
