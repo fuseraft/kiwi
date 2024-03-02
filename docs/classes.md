@@ -6,7 +6,7 @@ Classes in Kiwi provide a way to bundle data and functionality together.
 
 To define a class in Kiwi, use the `class` keyword followed by the class name and a block of code defining its properties and methods.
 
-Each non-`abstract` class should define a constructor method, called `initialize`.
+Each concrete class should define a constructor method, called `initialize`.
 
 ```ruby
 class MyClass

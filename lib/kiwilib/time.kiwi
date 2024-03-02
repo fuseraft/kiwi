@@ -9,8 +9,7 @@ module time
   Returns: Integer
   ##
   def hour()
-    @_retval = __hour__()
-    return @_retval
+    return __hour__()
   end
 
   ##
@@ -18,8 +17,7 @@ module time
   Returns: Integer
   ##
   def minute()
-    @_retval = __min__()
-    return @_retval
+    return __min__()
   end
 
   ##
@@ -27,8 +25,7 @@ module time
   Returns: Integer
   ##
   def second()
-    @_retval = __sec__()
-    return @_retval
+    return __sec__()
   end
 
   ##
@@ -36,8 +33,7 @@ module time
   Returns: String
   ##
   def ampm()
-    @_retval = __ampm__()
-    return @_retval
+    return __ampm__()
   end
 
   ##
@@ -67,8 +63,7 @@ module time
   Returns: Integer
   ##
   def day()
-    @_retval = __mday__()
-    return @_retval
+    return __mday__()
   end
 
   ##
@@ -76,8 +71,7 @@ module time
   Returns: Integer
   ##
   def month()
-    @_retval = __mon__()
-    return @_retval
+    return __mon__()
   end
 
   ##
@@ -85,8 +79,7 @@ module time
   Returns: Integer
   ##
   def year()
-    @_retval = __year__()
-    return @_retval
+    return __year__()
   end
 
   ##
@@ -94,8 +87,7 @@ module time
   Returns: Integer
   ##
   def weekday()
-    @_retval = __wday__()
-    return @_retval
+    return __wday__()
   end
 
   ##
@@ -103,8 +95,7 @@ module time
   Returns: Integer
   ##
   def yearday()
-    @_retval = __yday__()
-    return @_retval
+    return __yday__()
   end
 
   ##
@@ -112,8 +103,7 @@ module time
   Returns: Boolean
   ##
   def isdst()
-    @_retval = __isdst__()
-    return @_retval
+    return __isdst__()
   end
 
   ##
@@ -121,8 +111,7 @@ module time
   Returns: Double
   ##
   def epochms()
-    @_retval = __epochms__()
-    return @_retval
+    return __epochms__()
   end
 
   ##
@@ -130,8 +119,7 @@ module time
   Returns: Double
   ##
   def ticks()
-    @_retval = __ticks__()
-    return @_retval
+    return __ticks__()
   end
 
   ##
@@ -139,8 +127,7 @@ module time
   Returns: Double
   ##
   def ticksms(@_ticks)
-    @_retval = __ticksms__(@_ticks)
-    return @_retval
+    return __ticksms__(@_ticks)
   end
 
   ##
@@ -150,9 +137,8 @@ module time
   Returns: Double
   ##
   def delay(@_ms)
-    @_retval = __delay__(@_ms)
-    return @_retval
+    return __delay__(@_ms)
   end
 end
 
-import "time"
+export "time"

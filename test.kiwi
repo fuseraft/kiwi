@@ -11,6 +11,9 @@ import "@kiwi/time"
 
 println "Searching for Kiwi scripts..."
 for @file in fileio::glob(@search_pattern) do
+  @dir = fileio::parentdir(@file)
+  fileio::chdir(@dir)
+  println fileio::cwd()
   # Check if file is not in the exclusions list
   @exclude = false
   for @exclude_pattern in @exclusions do
@@ -48,5 +51,7 @@ for @runtime in @runtimes do
   @total_duration += @duration
 end
 
-println "\nRan ${runtimes.size()} scripts."
-println "Total runtime for all scripts: ${@total_duration} ms."
+println "
+Ran ${runtimes.size()} scripts.
+Total runtime for all scripts: ${@total_duration} ms.
+"
