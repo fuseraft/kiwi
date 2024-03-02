@@ -88,4 +88,4 @@ module odbc
   end
 end
 
-import "odbc"
+export "odbc"

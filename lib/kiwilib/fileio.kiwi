@@ -257,4 +257,4 @@ module fileio
   end
 end
 
-import "fileio"
+export "fileio"
