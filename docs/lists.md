@@ -6,7 +6,6 @@ Lists in Kiwi look and behave a lot like lists in other languages.
 
 ```ruby
 @myList = ["Kiwi", "is", "fun!"]
-
 @anotherList = [1, 2, 3, "four", "five", 6]
 ```
 
@@ -118,4 +117,14 @@ end
 for @prime, @index in sieve_of_eratosthenes(30) do
   println "${@index}:\t${@prime}"
 end
+```
+
+### Optional Commas
+
+Commas are optional in Kiwi.
+
+```ruby
+@digits = [0 1 2 3 4 5 6 7 8 9]
+
+println @digits # prints: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 ```
