@@ -6,7 +6,7 @@
 
 extern bool DEBUG;
 extern const std::string kiwi_name = "The Kiwi Programming Language";
-extern const std::string kiwi_version = "1.2.0";
+extern const std::string kiwi_version = "1.2.1";
 extern const std::string kiwi_arg = "kiwi";
 
 #endif
