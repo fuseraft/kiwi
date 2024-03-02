@@ -47,8 +47,15 @@ class Interpreter {
       return -1;
     }
 
+    auto cwd = FileIO::getCurrentDirectory();
+    auto scriptDir = FileIO::getParentPath(path);
+    FileIO::setCurrentDirectory(scriptDir);
+
     Lexer lexer(path, content);
-    return interpret(lexer);
+    int result = interpret(lexer);
+
+    FileIO::setCurrentDirectory(cwd);
+    return result;
   }
 
   void preserveMainStackFrame() { preservingMainStackFrame = true; }
@@ -115,6 +122,7 @@ class Interpreter {
   /// @brief Pops and returns the top of the call stack.
   /// @return A stack frame.
   std::shared_ptr<CallStackFrame> popTop() {
+    streamStack.pop();
     callStack.pop();
     auto& callerFrame = callStack.top();
     return callerFrame;
@@ -506,6 +514,8 @@ class Interpreter {
       interpretPrint(stream, frame, keyword == Keywords.PrintLn);
     } else if (keyword == Keywords.Import) {
       interpretImport(stream, frame);
+    } else if (keyword == Keywords.Export) {
+      interpretExport(stream, frame);
     } else if (keyword == Keywords.Module) {
       interpretModuleDefinition(stream);
     } else if (keyword == Keywords.Delete) {
@@ -854,23 +864,6 @@ class Interpreter {
     }
 
     throw VariableUndefinedError(current(stream), name);
-  }
-
-  void interpretModuleImport(std::shared_ptr<TokenStream> stream,
-                             const std::string& home, const std::string& name) {
-    next(stream);  // Skip the name.
-
-    moduleStack.push(name);
-    auto module = hasHomedModule(home, name)
-                      ? getHomedModule(stream, home, name)
-                      : getModule(stream, name);
-
-    auto codeStream = std::make_shared<TokenStream>(module.getCode());
-    auto codeFrame = std::make_shared<CallStackFrame>();
-    callStack.push(codeFrame);
-    streamStack.push(codeStream);
-    interpretStackFrame();
-    moduleStack.pop();
   }
 
   std::vector<Value> interpretArguments(std::shared_ptr<TokenStream> stream,
@@ -1929,8 +1922,27 @@ class Interpreter {
     modules[name] = std::move(module);
   }
 
-  void interpretExternalImport(std::shared_ptr<TokenStream> stream,
-                               std::shared_ptr<CallStackFrame> frame) {
+  std::string interpretModuleImport(std::shared_ptr<TokenStream> stream,
+                                    const std::string& home,
+                                    const std::string& name) {
+    next(stream);  // Skip the name.
+
+    moduleStack.push(name);
+    auto module = hasHomedModule(home, name)
+                      ? getHomedModule(stream, home, name)
+                      : getModule(stream, name);
+
+    auto codeStream = std::make_shared<TokenStream>(module.getCode());
+    auto codeFrame = std::make_shared<CallStackFrame>();
+    callStack.push(codeFrame);
+    streamStack.push(codeStream);
+    interpretStackFrame();
+    moduleStack.pop();
+    return name;
+  }
+
+  std::string interpretExternalImport(std::shared_ptr<TokenStream> stream,
+                                      std::shared_ptr<CallStackFrame> frame) {
     auto scriptNameValue = interpretExpression(stream, frame);
     if (!std::holds_alternative<std::string>(scriptNameValue)) {
       throw ConversionError(current(stream),
@@ -1949,7 +1961,7 @@ class Interpreter {
 
     auto content = FileIO::readFile(scriptPath);
     if (content.empty()) {
-      return;
+      return "";
     }
 
     Lexer lexer(scriptPath, content);
@@ -1958,6 +1970,77 @@ class Interpreter {
     callStack.push(buildSubFrame(frame));
     streamStack.push(scriptStream);
     interpretStackFrame();
+
+    std::string moduleName;
+
+    // Check if a module was imported.
+    auto returnValue = frame->returnValue;
+    if (std::holds_alternative<std::string>(returnValue)) {
+      moduleName = std::get<std::string>(returnValue);
+
+      if (!hasModule(moduleName)) {
+        moduleName.clear();
+      }
+    }
+
+    return moduleName;
+  }
+
+  void interpretModuleAlias(std::shared_ptr<TokenStream> stream,
+                            const std::string& moduleName) {
+    next(stream);  // Skip "as"
+
+    if (current(stream).getType() != TokenType::IDENTIFIER) {
+      throw SyntaxError(current(stream), "Expected identifier for alias.");
+    }
+
+    auto alias = current(stream).getText();
+    next(stream);  // Skip the alias
+
+    auto search = moduleName + Symbols.Qualifier;
+
+    if (hasClass(alias)) {
+      throw InvalidOperationError(
+          current(stream), "The module alias `" + alias + "` is in use.");
+    }
+
+    Class clazz;
+    clazz.setClassName(alias);
+
+    for (auto pair : methods) {
+      auto name = pair.first;
+      if (Strings::begins_with(name, search)) {
+        auto method = pair.second;
+        method.setFlag(MethodFlags::Static);
+        method.setName(Strings::replace(name, search, ""));
+        clazz.addMethod(method);
+      }
+    }
+
+    classes[alias] = clazz;
+
+    for (auto pair : clazz.getMethods()) {
+      methods.erase(pair.first);
+    }
+
+    modules.erase(moduleName);
+  }
+
+  void interpretExport(std::shared_ptr<TokenStream> stream,
+                       std::shared_ptr<CallStackFrame> frame) {
+    next(stream);  // skip the "export"
+
+    auto moduleName = current(stream).getText();
+    auto moduleHome = InterpHelper::interpretModuleHome(moduleName, stream);
+
+    if (hasModule(moduleName)) {
+      moduleName = interpretModuleImport(stream, moduleHome, moduleName);
+      frame->returnValue = moduleName;
+      frame->setFlag(FrameFlags::ReturnFlag);
+    } else {
+      throw InvalidOperationError(current(stream),
+                                  "Invalid export `" + moduleName + "`");
+    }
   }
 
   void interpretImport(std::shared_ptr<TokenStream> stream,
@@ -1965,12 +2048,17 @@ class Interpreter {
     next(stream);  // skip the "import"
 
     auto tokenText = current(stream).getText();
-    auto moduleHome = InterpHelper::interpretModuleHome(tokenText, stream);
+    auto moduleName = tokenText;
+    auto moduleHome = InterpHelper::interpretModuleHome(moduleName, stream);
 
-    if (hasModule(tokenText)) {
-      interpretModuleImport(stream, moduleHome, tokenText);
+    if (hasModule(moduleName)) {
+      moduleName = interpretModuleImport(stream, moduleHome, moduleName);
     } else {
-      interpretExternalImport(stream, frame);
+      moduleName = interpretExternalImport(stream, frame);
+    }
+
+    if (current(stream).getText() == Keywords.As) {
+      interpretModuleAlias(stream, moduleName);
     }
   }
 

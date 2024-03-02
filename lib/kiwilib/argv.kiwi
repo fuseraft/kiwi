@@ -23,4 +23,4 @@ module argv
   end
 end
 
-import "argv"
+export "argv"

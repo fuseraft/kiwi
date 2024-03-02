@@ -135,6 +135,7 @@ struct {
 
 struct {
   const std::string Abstract = "abstract";
+  const std::string As = "as";
   const std::string Async = "async";
   const std::string Await = "await";
   const std::string Break = "break";
@@ -154,6 +155,7 @@ struct {
   const std::string Env = "env";
   const std::string Err = "err";
   const std::string Exit = "exit";
+  const std::string Export = "export";
   const std::string False = "false";
   const std::string For = "for";
   const std::string Go = "go";
@@ -180,10 +182,11 @@ struct {
   const std::string While = "while";
 
   std::unordered_set<std::string> keywords = {
-      If,     Else,     ElseIf,  True,   False,   While,   End,   Lambda,
-      Module, Method,   Return,  Import, Print,   PrintLn, For,   In,
-      Do,     Next,     Break,   Delete, Pass,    Try,     Catch, Abstract,
-      Class,  Override, Private, This,   DeclVar, Async,   Await};
+      As,      If,      Else,   ElseIf,   True,   False,    While,
+      End,     Lambda,  Module, Method,   Return, Import,   Print,
+      PrintLn, For,     In,     Do,       Next,   Break,    Delete,
+      Pass,    Try,     Catch,  Abstract, Class,  Override, Private,
+      This,    DeclVar, Async,  Await,    Export};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           End};

@@ -25,4 +25,4 @@ module sys
   end
 end
 
-import "sys"
+export "sys"

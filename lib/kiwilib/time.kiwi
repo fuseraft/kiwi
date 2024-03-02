@@ -141,4 +141,4 @@ module time
   end
 end
 
-import "time"
+export "time"
