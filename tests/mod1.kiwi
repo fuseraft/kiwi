@@ -1,0 +1,9 @@
+module mod1
+  __home__("myhome")
+
+  def say(@s)
+    println @s
+  end
+end
+
+import "mod1"

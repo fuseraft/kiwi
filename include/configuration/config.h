@@ -32,14 +32,14 @@ class Config {
     return true;
   }
 
-  std::string get(const std::string& key) const {
+  std::string get(const std::string& key,
+                  const std::string& defaultValue = "") const {
     auto it = config_.find(key);
     if (it != config_.end()) {
       return it->second;
     }
 
-    // Throw an error instead?
-    return "";
+    return defaultValue;
   }
 
  private:

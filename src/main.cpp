@@ -7,7 +7,7 @@
  *
  * @author Scott Stauffer
  * @date 2024-01-31
- * @version 1.2.0
+ * @version 1.2.1
  *
  * GitHub Repository: https://github.com/fuseraft/kiwi
  * For more information, issues, or to contribute, please visit the repository.
@@ -25,6 +25,7 @@ bool DEBUG = false;
 
 int main(int c, char** v) {
   std::vector<std::string> args;
+
   for (int i = 0; i < c; ++i) {
     args.push_back(v[i]);
   }

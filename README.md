@@ -1,12 +1,12 @@
-# kiwi 🥝
+# Kiwi 🥝
 
-A light-weight general-purpose scripting language.
+Kiwi is a light-weight general-purpose language designed for simplicity and versatility.
 
-## Getting Started
+### Getting Started
 
-To get started with Kiwi, install the dependencies required to build.
+To start using Kiwi, install the necessary dependencies, then clone and build with `make`.
 
-### Fedora / RHEL
+##### Fedora / RHEL
 
 ```bash
 sudo dnf update
@@ -15,7 +15,7 @@ sudo dnf install make
 sudo dnf install clang-tools-extra
 ```
 
-### Ubuntu / Debian
+##### Ubuntu / Debian
 
 ```bash
 sudo apt update
@@ -24,7 +24,7 @@ sudo apt-get install make
 sudo apt-get install clang-format
 ```
 
-### Clone and Build
+##### Clone and Build
 
 ```bash
 git clone https://github.com/fuseraft/kiwi.git
@@ -32,82 +32,28 @@ cd kiwi
 make all
 ```
 
-## Documentation
+##### VS Code Extension
 
-To learn what you can do with Kiwi, please see the [docs](docs/).
+You can install the [extension](https://marketplace.visualstudio.com/items?itemName=fuseraft.kiwi-lang) for syntax-highlighting in VS Code.
 
-## Testing
+Launch VS Code Quick Open (`Ctrl+P`), paste the following command, and press enter.
+```
+ext install fuseraft.kiwi-lang
+```
 
-Please see the [tests](tests) directory for a list of test scripts.
+### Documentation
 
-To run the test suite, use:
+For detailed information on language features, refer to the [docs](docs/) directory.
+
+Explore the [tests](tests/) directory for a collection of test scripts. 
+
+To run the test suite, execute:
 
 ```shell
 make test
 ```
 
-## Test Suite
-
-When you run `make test`, after compiling Kiwi, the test suite will run from the [test suite](test.kiwi).
-
-Please see the [runtime log](runtime_log.txt) for the latest results.
-
-```ruby
-# Script Performance Analyzer
-
-import "@kiwi/fileio"
-import "@kiwi/time"
-
-@runtimes = []
-
-# Search pattern for Kiwi scripts, excluding certain files and directories
-@search_pattern = "./**/*.kiwi"
-@exclusions = ["test.kiwi", "app.kiwi", "/kiwilib/", "/examples/"]
-
-println "Searching for Kiwi scripts..."
-for @file in fileio::glob(@search_pattern) do
-  # Check if file is not in the exclusions list
-  @exclude = false
-  for @exclude_pattern in @exclusions do
-    if @file.contains(@exclude_pattern)
-      @exclude = true
-      break
-    end
-  end
-  
-  if !@exclude
-    println "Found script: ${@file}"
-    
-    # Record start time
-    @start_time = time::ticks()
-    
-    # Import the script
-    println "Importing and running ${@file}..."
-    import @file
-    
-    # Record end time and calculate duration
-    @end_time = time::ticks()
-    @duration = time::ticksms(@end_time - @start_time)
-    
-    # Store runtime information
-    @runtime = {"file": @file, "duration": @duration}
-    @runtimes << @runtime
-  end
-end
-
-# Summarize and print runtimes
-@total_duration = 0
-for @runtime in @runtimes do
-  @file = @runtime["file"]
-  @duration = @runtime["duration"]
-  println "Script: ${@file} ran for ${@duration} ms."
-  @total_duration += @duration
-end
-
-println "Total runtime for all scripts: ${@total_duration} ms."
-```
-
-## Example: FizzBuzz
+##### Example: FizzBuzz
 
 ```ruby
 def fizzbuzz(@n)
@@ -131,7 +77,7 @@ end
 fizzbuzz(15)
 ```
 
-## Example: Sieve of Eratosthenes
+##### Example: Sieve of Eratosthenes
 
 ```ruby
 def sieve_of_eratosthenes(@limit)
@@ -176,7 +122,7 @@ for @prime, @index in sieve_of_eratosthenes(30) do
 end
 ```
 
-## Contributions
+### Contributions
 
 I welcome and appreciate any and all contributions to the Kiwi project! Here's how you can contribute:
 
@@ -190,6 +136,6 @@ I welcome and appreciate any and all contributions to the Kiwi project! Here's h
 
 For more details, please read [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## License
+### License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the [MIT License](LICENSE).

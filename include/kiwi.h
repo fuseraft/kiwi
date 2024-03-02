@@ -30,7 +30,7 @@ int kiwi(std::vector<std::string>& v) {
 
   Logger logger;
   Interpreter interp(logger);
-  InterpSession session(logger, interp);
+  InterpSession session(interp);
 
   if (DEBUG) {
     v.push_back("-C");
@@ -99,6 +99,7 @@ void configure_kiwi(Config& config, Logger& logger, InterpSession& session) {
   std::string logMode = config.get("LOGGER_MODE");
   std::string logLevel = config.get("LOGGER_LEVEL");
   std::string scriptPath = config.get("SCRIPT_PATH");
+  std::string kiwilibEnabled = config.get("KIWILIB_ENABLED", "true");
 
   if (!logPath.empty()) {
     logger.setLogFilePath(logPath);
@@ -114,6 +115,10 @@ void configure_kiwi(Config& config, Logger& logger, InterpSession& session) {
 
   if (!scriptPath.empty()) {
     session.registerScript(scriptPath);
+  }
+
+  if (!kiwilibEnabled.empty() && kiwilibEnabled == Keywords.False) {
+    session.disableKiwilib();
   }
 }
 

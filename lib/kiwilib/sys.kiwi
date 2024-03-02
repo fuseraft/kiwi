@@ -11,8 +11,7 @@ module sys
   Returns: Integer containing exit code of external process.
   ##
   def exec(@_command)
-    @_exit_code = __exec__(@_command)
-    return @_exit_code
+    return __exec__(@_command)
   end
 
   ##
@@ -22,9 +21,8 @@ module sys
   Returns: String containing standard output from external process.
   ##
   def execout(@_command)
-    @_stdout = __execout__(@_command)
-    return @_stdout
+    return __execout__(@_command)
   end
 end
 
-import "sys"
+export "sys"
