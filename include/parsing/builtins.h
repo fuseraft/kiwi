@@ -8,6 +8,7 @@ struct {
   // File operations
   const std::string AppendText = "__appendtext__";
   const std::string CopyFile = "__copyfile__";
+  const std::string CopyR = "__copyr__";
   const std::string CreateFile = "__createfile__";
   const std::string DeleteFile = "__deletefile__";
   const std::string MoveFile = "__movefile__";
@@ -15,25 +16,25 @@ struct {
   const std::string ReadLines = "__readlines__";
   const std::string WriteLine = "__writeline__";
   const std::string WriteText = "__writetext__";
-  const std::string FileExists = "__fileexists__";
+  const std::string FileExists = "__isfile__";
   const std::string GetFileExtension = "__fileext__";
   const std::string FileName = "__filename__";
   const std::string FileSize = "__filesize__";
   const std::string GetFilePath = "__filepath__";
   const std::string GetFileAbsolutePath = "__fileabspath__";
-  const std::string GetFileAttributes = "__fileattrs__";  // TODO
-  const std::string Glob = "__glob__";                    // I <3 Ruby.
+  const std::string GetFileAttributes = "__fileattrs__";
+  const std::string Glob = "__glob__";
 
   // Directory operations
-  const std::string DirectoryExists = "__direxists__";
-  const std::string DirectoryName = "__dirname__";
   const std::string ListDirectory = "__listdir__";
   const std::string MakeDirectory = "__mkdir__";
   const std::string MakeDirectoryP = "__mkdirp__";
   const std::string RemoveDirectory = "__rmdir__";
+  const std::string RemoveDirectoryF = "__rmdirf__";
   const std::string IsDirectory = "__isdir__";
   const std::string ChangeDirectory = "__chdir__";
   const std::string GetCurrentDirectory = "__cwd__";
+  const std::string TempDir = "__tmpdir__";
 
   std::unordered_set<std::string> builtins = {AppendText,
                                               CopyFile,
@@ -50,17 +51,17 @@ struct {
                                               GetFileExtension,
                                               GetFilePath,
                                               GetFileAttributes,
-                                              DirectoryExists,
-                                              DirectoryName,
                                               ListDirectory,
                                               MakeDirectory,
                                               MakeDirectoryP,
                                               RemoveDirectory,
+                                              RemoveDirectoryF,
                                               IsDirectory,
                                               ChangeDirectory,
                                               GetCurrentDirectory,
                                               GetFileAbsolutePath,
-                                              Glob};
+                                              Glob,
+                                              TempDir};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();

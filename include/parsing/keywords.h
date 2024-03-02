@@ -190,8 +190,8 @@ struct {
 
   std::unordered_set<std::string> loop_keywords = {While, For};
 
-  std::unordered_set<std::string> required_end_keywords = {
-      While, For, Method, If, Module, Try};
+  std::unordered_set<std::string> block_keywords = {
+      While, For, Method, If, Module, Try, Class, Lambda};
 
   bool is_keyword(std::string& arg) {
     return keywords.find(arg) != keywords.end();
@@ -207,8 +207,8 @@ struct {
     return loop_keywords.find(arg) != loop_keywords.end();
   }
 
-  bool is_required_end_keyword(const std::string& arg) {
-    return required_end_keywords.find(arg) != required_end_keywords.end();
+  bool is_block_keyword(const std::string& arg) {
+    return block_keywords.find(arg) != block_keywords.end();
   }
 } Keywords;
 

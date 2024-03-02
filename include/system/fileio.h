@@ -31,39 +31,81 @@ class FileIO {
 
   static bool fileExists(const std::string& filePath) {
     try {
-      return fs::exists(filePath);
-    } catch (const std::exception&) {
-      return false;
-    }
+      return fs::exists(filePath) && !fs::is_directory(filePath);
+    } catch (const std::exception&) {}
+    return false;
   }
 
-  static bool deleteFile(const std::string& filePath) {
+  static bool directoryExists(const std::string& path) {
     try {
-      if (!fileExists(filePath)) {
-        return false;
-      }
+      return fs::exists(path) && fs::is_directory(path);
+    } catch (const fs::filesystem_error&) {}
+    return false;
+  }
 
-      return fs::remove(filePath);
-    } catch (const fs::filesystem_error&) {
-      return false;
-    }
+  static bool makeDirectory(const std::string& path) {
+    try {
+      return fs::create_directory(path);
+    } catch (const fs::filesystem_error&) {}
+    return false;
+  }
+
+  static bool makeDirectoryP(const std::string& path) {
+    try {
+      return fs::create_directories(path);
+    } catch (const fs::filesystem_error&) {}
+    return false;
+  }
+
+  static bool removePath(const std::string& path) {
+    try {
+      return fs::remove(path);
+    } catch (const fs::filesystem_error&) {}
+    return false;
+  }
+
+  static int removePathF(const std::string& path) {
+    try {
+      return static_cast<int>(fs::remove_all(path));
+    } catch (const fs::filesystem_error&) {}
+    return false;
+  }
+
+  static std::string getTempDirectory() {
+    return fs::temp_directory_path().string();
   }
 
   static bool copyFile(const std::string& sourcePath,
                        const std::string& destinationPath,
                        bool overwrite = true) {
+    auto options = overwrite ? fs::copy_options::overwrite_existing
+                             : fs::copy_options::none;
+
     try {
-      fs::copy_options options = overwrite
-                                     ? fs::copy_options::overwrite_existing
-                                     : fs::copy_options::none;
-      fs::copy_file(sourcePath, destinationPath, options);
-      return true;
-    } catch (const fs::filesystem_error& e) {
-      throw;
-    } catch (const std::exception& e) {
-      throw;
-    }
+      return fs::copy_file(sourcePath, destinationPath, options);
+    } catch (const fs::filesystem_error&) {}
     return false;
+  }
+
+  static bool copyR(const std::string& sourcePath,
+                    const std::string& destinationPath) {
+    try {
+      fs::copy(sourcePath, destinationPath, fs::copy_options::recursive);
+      return true;
+    } catch (const fs::filesystem_error&) {}
+    return false;
+  }
+
+  static std::vector<std::string> listDirectory(const std::string& path) {
+    std::vector<std::string> paths;
+
+    try {
+      for (const auto& x : std::filesystem::directory_iterator(path)) {
+        paths.push_back(x.path().string());
+      }
+    } catch (const fs::filesystem_error&) {}
+
+    return paths;
   }
 
   static bool moveFile(const std::string& sourcePath,
@@ -71,11 +113,7 @@ class FileIO {
     try {
       fs::rename(sourcePath, destinationPath);
       return true;
-    } catch (const fs::filesystem_error& e) {
-      throw;
-    } catch (const std::exception& e) {
-      throw;
-    }
+    } catch (const fs::filesystem_error&) {}
     return false;
   }
 
@@ -84,11 +122,9 @@ class FileIO {
       if (!fileExists(filePath)) {
         throw std::runtime_error("File does not exist.");
       }
-      auto size = fs::file_size(filePath);
-      return static_cast<double>(size);
-    } catch (const fs::filesystem_error& e) {
-      throw;
-    } catch (const std::exception& e) {
+
+      return static_cast<double>(fs::file_size(filePath));
+    } catch (const fs::filesystem_error&) {
       throw;
     }
   }
@@ -120,22 +156,36 @@ class FileIO {
     return absolutePath.lexically_normal().string();
   }
 
-  static std::string getCurrentWorkingDirectory() {
+  static std::string getCurrentDirectory() {
     return fs::current_path().string();
+  }
+
+  static bool setCurrentDirectory(const std::string& path) {
+    std::error_code ec;
+    fs::current_path(path, ec);
+
+    if (ec) {
+      return false;
+    }
+
+    return true;
   }
 
   static std::string getParentPath(const std::string& filePath) {
     fs::path path(filePath);
     fs::path parentPath = path.parent_path();
+
     return parentPath.string();
   }
 
   static bool isSymLink(const std::string& symLinkPath) {
     std::error_code ec;
     bool result = fs::is_symlink(fs::path(symLinkPath), ec);
+
     if (ec) {
       return false;
     }
+
     return result;
   }
 
@@ -177,7 +227,7 @@ class FileIO {
 
     basePath = fs::absolute(basePath);
 
-    if (!fs::exists(basePath) || !fs::is_directory(basePath)) {
+    if (!directoryExists(basePath)) {
       return matchedFiles;
     }
 
@@ -198,6 +248,10 @@ class FileIO {
     }
 
     return matchedFiles;
+  }
+
+  static std::string getLocalPath(const std::string& path) {
+    return joinPath(getCurrentDirectory(), path);
   }
 
   static std::string joinPath(const std::string& directoryPath,

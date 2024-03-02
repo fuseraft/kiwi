@@ -36,19 +36,31 @@ class Interpreter {
     kiwiArgs = args;
   }
 
-  int interpret(Lexer& lexer, std::string parentPath = "") {
-    files[lexer.getFile()] = lexer.getLines();
-    auto stream = std::make_shared<TokenStream>(lexer.getAllTokens());
-    return interpret(stream, parentPath);
+  int interpretKiwi(const std::string& kiwiCode) {
+    Lexer lexer("", kiwiCode);
+    return interpret(lexer);
   }
 
-  int interpret(std::shared_ptr<TokenStream> stream,
-                std::string parentPath = "") {
+  int interpretScript(const std::string& path) {
+    auto content = FileIO::readFile(path);
+    if (content.empty()) {
+      return -1;
+    }
+
+    Lexer lexer(path, content);
+    return interpret(lexer);
+  }
+
+  int interpret(Lexer& lexer) {
+    files[lexer.getFile()] = lexer.getLines();
+    auto stream = std::make_shared<TokenStream>(lexer.getAllTokens());
+    return interpret(stream);
+  }
+
+  int interpret(std::shared_ptr<TokenStream> stream) {
     if (stream->empty()) {
       return 0;
     }
-
-    _parentPath = parentPath;
 
     auto mainFrame = std::make_shared<CallStackFrame>();
     callStack.push(mainFrame);
@@ -71,7 +83,6 @@ class Interpreter {
   std::unordered_map<std::string, Method> methods;
   std::unordered_map<std::string, Module> modules;
   std::unordered_map<std::string, Class> classes;
-  std::string _parentPath;
   std::unordered_map<std::string, std::string> kiwiArgs;
   std::stack<std::shared_ptr<CallStackFrame>> callStack;
   std::stack<std::shared_ptr<TokenStream>> streamStack;
@@ -99,6 +110,14 @@ class Interpreter {
     } else {
       return Token::createStreamEnd();
     }
+  }
+
+  /// @brief Pops and returns the top of the call stack.
+  /// @return A stack frame.
+  std::shared_ptr<CallStackFrame> popTop() {
+    callStack.pop();
+    auto& callerFrame = callStack.top();
+    return callerFrame;
   }
 
   void interpretStackFrame() {
@@ -129,35 +148,14 @@ class Interpreter {
       if (frame->isFlagSet(FrameFlags::LoopBreak) ||
           frame->isFlagSet(FrameFlags::LoopContinue)) {
         if (callStack.size() > 1) {
-          // Pop and propagate to the top frame to be used in the next iteration.
-          bool loopBreak = frame->isFlagSet(FrameFlags::LoopBreak);
-          bool loopContinue = frame->isFlagSet(FrameFlags::LoopContinue);
-          auto topVariables = std::move(frame->variables);
-          callStack.pop();
-          auto& callerFrame = callStack.top();
-          InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);
-          if (loopBreak) {
-            callerFrame->setFlag(FrameFlags::LoopBreak);
-          }
-          if (loopContinue) {
-            callerFrame->setFlag(FrameFlags::LoopContinue);
-          }
+          handleLoopControl(frame);
           return;
         }
       }
 
       if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
         if (callStack.size() > 1) {
-          // Handle the return value in the caller frame
-          auto returnValue = std::move(frame->returnValue);
-          auto topVariables = std::move(frame->variables);
-          callStack.pop();  // Pop the current frame
-          auto& callerFrame = callStack.top();
-          callerFrame->returnValue = returnValue;
-          if (callerFrame->isFlagSet(FrameFlags::SubFrame)) {
-            callerFrame->setFlag(FrameFlags::ReturnFlag);
-          }
-          InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);
+          handleFrameReturn(frame);
         } else {
           // If this is the main frame, just pop it
           callStack.pop();
@@ -171,18 +169,22 @@ class Interpreter {
       return;
     }
 
+    handleFrameExit(frame);
+  }
+
+  void handleFrameExit(std::shared_ptr<CallStackFrame>& frame) {
     auto returnValue = std::move(frame->returnValue);
     bool doUpdate = true;
     bool inObjectContext = frame->inObjectContext();
+
     if (inObjectContext && std::holds_alternative<int>(returnValue) &&
         std::get<int>(returnValue) == 0) {
       returnValue = std::move(frame->objectContext);
       doUpdate = false;
     }
-    auto topVariables = std::move(frame->variables);
 
-    callStack.pop();
-    auto& callerFrame = callStack.top();
+    auto topVariables = std::move(frame->variables);
+    auto callerFrame = popTop();
 
     if (inObjectContext) {
       callerFrame->returnValue = returnValue;
@@ -193,18 +195,51 @@ class Interpreter {
     }
   }
 
+  void handleFrameReturn(std::shared_ptr<CallStackFrame>& frame) {
+    auto returnValue = std::move(frame->returnValue);
+    auto topVariables = std::move(frame->variables);
+    auto callerFrame = popTop();
+
+    callerFrame->returnValue = returnValue;
+
+    if (callerFrame->isFlagSet(FrameFlags::SubFrame)) {
+      callerFrame->setFlag(FrameFlags::ReturnFlag);
+    }
+
+    InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);
+  }
+
+  void handleLoopControl(std::shared_ptr<CallStackFrame>& frame) {
+    bool loopBreak = frame->isFlagSet(FrameFlags::LoopBreak);
+    bool loopContinue = frame->isFlagSet(FrameFlags::LoopContinue);
+    auto topVariables = std::move(frame->variables);
+    auto callerFrame = popTop();
+
+    InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);
+
+    if (loopBreak) {
+      callerFrame->setFlag(FrameFlags::LoopBreak);
+    } else if (loopContinue) {
+      callerFrame->setFlag(FrameFlags::LoopContinue);
+    }
+  }
+
   std::shared_ptr<CallStackFrame> buildSubFrame(
       std::shared_ptr<CallStackFrame> frame) {
     auto subFrame = std::make_shared<CallStackFrame>();
+
     for (const auto& pair : frame->variables) {
       subFrame->variables[pair.first] = pair.second;
     }
+
     if (frame->inObjectContext()) {
       for (const auto& pair : frame->getObjectContext()->instanceVariables) {
         subFrame->variables[pair.first] = pair.second;
       }
+
       subFrame->setObjectContext(frame->getObjectContext());
     }
+
     return subFrame;
   }
 
@@ -621,7 +656,7 @@ class Interpreter {
           next(stream);  // Skip "end"
           break;
         }
-      } else if (Keywords.is_required_end_keyword(current(stream).getText())) {
+      } else if (Keywords.is_block_keyword(current(stream).getText())) {
         ++count;
       }
 
@@ -1171,6 +1206,10 @@ class Interpreter {
     auto name = method.getName();
     std::string moduleName;
 
+    if (name == "print_dir") {
+      std::cout << "";
+    }
+
     if (!moduleStack.empty()) {
       moduleName = moduleStack.top();
     }
@@ -1567,10 +1606,6 @@ class Interpreter {
       if (current(stream).getType() == TokenType::COMMA) {
         next(stream);
       }
-
-      if (peek(stream).getType() == TokenType::CLOSE_BRACE) {
-        next(stream);
-      }
     }
 
     if (current(stream).getType() == TokenType::CLOSE_BRACE) {
@@ -1649,7 +1684,7 @@ class Interpreter {
     conditional.getIfStatement().setEvaluation(shortCircuitIf);
 
     while (stream->canRead() && ifCount > 0) {
-      if (Keywords.is_required_end_keyword(current(stream).getText())) {
+      if (Keywords.is_block_keyword(current(stream).getText())) {
         ++ifCount;
       } else if (current(stream).getText() == Keywords.End && ifCount > 0) {
         --ifCount;
@@ -1882,7 +1917,7 @@ class Interpreter {
           next(stream);  // Skip "end"
           break;
         }
-      } else if (Keywords.is_required_end_keyword(current(stream).getText())) {
+      } else if (Keywords.is_block_keyword(current(stream).getText())) {
         ++counter;
       }
 
@@ -1907,12 +1942,10 @@ class Interpreter {
       scriptName += ".kiwi";
     }
 
-    auto scriptPath = FileIO::joinPath(_parentPath, scriptName);
+    auto scriptPath = FileIO::getLocalPath(scriptName);
     if (!FileIO::fileExists(scriptPath)) {
       throw FileNotFoundError(scriptPath);
     }
-
-    next(stream);
 
     auto content = FileIO::readFile(scriptPath);
     if (content.empty()) {
@@ -2999,6 +3032,10 @@ class Interpreter {
     if (current(stream).getType() == TokenType::LAMBDA) {
       interpretLambdaAssignment(stream, name, op, frame);
       return;
+    }
+
+    if (name == "files") {
+      std::cout << "";
     }
 
     Value value = interpretExpression(stream, frame);

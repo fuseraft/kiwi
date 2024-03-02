@@ -77,7 +77,7 @@ module fileio
   Returns: Boolean
   ##
   def exists(@_path)
-    @_retval = __fileexists__(@_path)
+    @_retval = __isfile__(@_path)
     return @_retval
   end
 
@@ -145,6 +145,17 @@ module fileio
   ##
   def parentdir(@_path)
     @_retval = __filepath__(@_path)
+    return @_retval
+  end
+
+  ##
+  Summary: Changes the current directory.
+  Params:
+    - @_path: The path to a directory.
+  Returns: String
+  ##
+  def chdir(@_path)
+    @_retval = __chdir__(@_path)
     return @_retval
   end
 

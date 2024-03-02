@@ -20,4 +20,32 @@ import "excited_greeter"
 greeter::greet("World")
 excited_greeter::greet("World")
 
+# import external module
+import "mod1"
+
+def print_dir() 
+  @directories = []
+  @files = []
+  
+  for @entry in __listdir__(".").select(lambda (@x) do return __isdir__(@x) end) do
+    @directories << __filename__(@entry) + "/"
+  end
+  
+  for @entry in __listdir__(".").select(lambda (@x) do return __isfile__(@x) end) do
+    @files << __filename__(@entry)
+  end
+  
+  return "
+  Current directory: ${__cwd__()}
+  
+  Found ${@directories.size()} directories:
+  ${@directories.join(" ")}
+  
+  Found ${@files.size()} files:
+  ${@files.join(" ")}
+  "
+end
+
+mod1::say(print_dir())
+
 println ""

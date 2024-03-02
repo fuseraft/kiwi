@@ -5,7 +5,6 @@
 #include <sstream>
 #include <stdexcept>
 #include "errors/error.h"
-#include "logging/logger.h"
 #include "parsing/keywords.h"
 #include "system/fileio.h"
 #include "globals.h"
@@ -13,8 +12,9 @@
 
 class InterpSession {
  public:
-  InterpSession(Logger& logger, Interpreter& interp)
-      : logger(logger), interp(interp), scripts(), args() {}
+  InterpSession(Interpreter& interp) : interp(interp), scripts(), args() {}
+
+  void disableKiwilib() { kiwilibEnabled = false; }
 
   void registerScript(const std::string& scriptPath) {
     if (!FileIO::fileExists(scriptPath)) {
@@ -52,18 +52,22 @@ class InterpSession {
   }
 
  private:
-  Logger& logger;
   Interpreter& interp;
   std::unordered_set<std::string> scripts;
   std::unordered_map<std::string, std::string> args;
-  bool replMode;
+  bool kiwilibEnabled = true;
 
   void loadKiwiLibrary() {
+    if (!kiwilibEnabled) {
+      return;
+    }
+
     try {
-      std::string kiwilibPath = FileIO::getKiwiLibraryPath();
+      auto kiwilibPath = FileIO::getKiwiLibraryPath();
 
       if (!kiwilibPath.empty()) {
         auto kiwilib = FileIO::expandGlob(kiwilibPath + "/**/*.kiwi");
+
         for (const auto& script : kiwilib) {
           loadScript(script);
         }
@@ -79,8 +83,8 @@ class InterpSession {
     std::string input;
 
     std::cout << kiwi_name << " v" << kiwi_version << " REPL" << std::endl
-              << std::endl;
-    std::cout << "Use `go` to execute, `exit` to end the REPL session."
+              << std::endl
+              << "Use `go` to execute, `exit` to end the REPL session."
               << std::endl
               << std::endl;
 
@@ -97,20 +101,20 @@ class InterpSession {
 
         if (input == Keywords.Go) {
           std::string kiwiCode;
+
           for (size_t i = 0; i < lines.size(); ++i) {
             kiwiCode += lines[i] + "\n";
           }
 
           if (!kiwiCode.empty()) {
-            Lexer lexer(repl, kiwiCode);
-            interp.interpret(lexer);
+            interp.interpretKiwi(kiwiCode);
             lines.clear();
           }
+
           continue;
         }
 
         lines.push_back(input);
-
       } catch (const std::exception& e) {
         ErrorHandler::printError(e);
         return 1;
@@ -124,7 +128,7 @@ class InterpSession {
     int returnCode = 0;
 
     try {
-      for (const std::string& script : scripts) {
+      for (const auto& script : scripts) {
         returnCode = loadScript(script);
 
         // If one script fails, we need to stop here.
@@ -141,16 +145,8 @@ class InterpSession {
   }
 
   int loadScript(const std::string& script) {
-    std::string content = FileIO::readFile(script);
-    if (content.empty()) {
-      return -1;
-    }
-
-    std::string parentPath = FileIO::getParentPath(script);
-    std::string absolutePath = FileIO::getAbsolutePath(script);
-
-    Lexer lexer(absolutePath, content);
-    return interp.interpret(lexer, parentPath);
+    auto path = FileIO::getAbsolutePath(script);
+    return interp.interpretScript(path);
   }
 };
 
