@@ -11,8 +11,7 @@ module odbc
   Returns: A hash containing an ODBC response.
   ##
   def begin_transaction(@_connection)
-    @_response = __odbc_begin_tx__(@_connection)
-    return @_response
+    return __odbc_begin_tx__(@_connection)
   end
 
   ##
@@ -22,8 +21,7 @@ module odbc
   Returns: A hash containing an ODBC response.
   ##
   def commit(@_connection)
-    @_response = __odbc_commit_tx__(@_connection)
-    return @_response
+    return __odbc_commit_tx__(@_connection)
   end
 
   ##
@@ -33,8 +31,7 @@ module odbc
   Returns: A hash containing an ODBC response.
   ##
   def connect(@_connection)
-    @_response = __odbc_connect__(@_connection)
-    return @_response
+    return __odbc_connect__(@_connection)
   end
 
   ##
@@ -45,8 +42,7 @@ module odbc
   Returns: A hash containing an ODBC response.
   ##
   def exec_sql(@_connection, @_sql)
-    @_response = __odbc_exec__(@_connection, @_sql)
-    return @_response
+    return __odbc_exec__(@_connection, @_sql)
   end
 
   ##
@@ -58,8 +54,7 @@ module odbc
   Returns: A hash containing an ODBC response.
   ##
   def exec_sp(@_connection, @_sp, @_params)
-    @_response = __odbc_execsp__(@_connection, @_sp, @_params)
-    return @_response
+    return __odbc_execsp__(@_connection, @_sp, @_params)
   end
 
   ##
@@ -69,8 +64,7 @@ module odbc
   Returns: A hash containing an ODBC response.
   ##
   def in_transaction(@_connection)
-    @_response = __odbc_in_tx__(@_connection)
-    return @_response
+    return __odbc_in_tx__(@_connection)
   end
 
   ##
@@ -80,8 +74,7 @@ module odbc
   Returns: A hash containing an ODBC response.
   ##
   def is_connected(@_connection)
-    @_response = __odbc_isconnected__(@_connection)
-    return @_response
+    return __odbc_isconnected__(@_connection)
   end
 
   ##
@@ -91,8 +84,7 @@ module odbc
   Returns: A hash containing an ODBC response.
   ##
   def rollback(@_connection)
-    @_response = __odbc_rollback_tx__(@_connection)
-    return @_response
+    return __odbc_rollback_tx__(@_connection)
   end
 end
 
