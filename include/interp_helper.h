@@ -175,7 +175,7 @@ struct InterpHelper {
                                 std::shared_ptr<TokenStream> stream) {
     int counter = 1;
     while (stream->canRead() && counter != 0) {
-      if (Keywords.is_required_end_keyword(current(stream).getText())) {
+      if (Keywords.is_block_keyword(current(stream).getText())) {
         ++counter;
       } else if (current(stream).getText() == Keywords.End) {
         --counter;
@@ -507,7 +507,7 @@ struct InterpHelper {
           next(stream);  // Skip "end"
           break;
         }
-      } else if (Keywords.is_required_end_keyword(current(stream).getText())) {
+      } else if (Keywords.is_block_keyword(current(stream).getText())) {
         ++counter;
       }
 

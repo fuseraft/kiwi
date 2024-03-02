@@ -135,25 +135,20 @@ struct {
 
 struct {
   const std::string Abstract = "abstract";
-  const std::string Async = "async";
-  const std::string Await = "await";
+  const std::string As = "as";
   const std::string Break = "break";
-  const std::string Case = "case";
   const std::string Catch = "catch";
   const std::string Class = "class";
   const std::string Ctor = "initialize";
   const std::string DeclVar = "@";
-  const std::string Default = "default";
-  const std::string Delay = "delay";
   const std::string Delete = "delete";
   const std::string Do = "do";
   const std::string Each = "each";
   const std::string Else = "else";
   const std::string ElseIf = "elsif";
   const std::string End = "end";
-  const std::string Env = "env";
-  const std::string Err = "err";
   const std::string Exit = "exit";
+  const std::string Export = "export";
   const std::string False = "false";
   const std::string For = "for";
   const std::string Go = "go";
@@ -172,7 +167,6 @@ struct {
   const std::string Private = "private";
   const std::string Return = "return";
   const std::string Static = "static";
-  const std::string Switch = "switch";
   const std::string This = "this";
   const std::string True = "true";
   const std::string Try = "try";
@@ -180,18 +174,18 @@ struct {
   const std::string While = "while";
 
   std::unordered_set<std::string> keywords = {
-      If,     Else,     ElseIf,  True,   False,   While,   End,   Lambda,
-      Module, Method,   Return,  Import, Print,   PrintLn, For,   In,
-      Do,     Next,     Break,   Delete, Pass,    Try,     Catch, Abstract,
-      Class,  Override, Private, This,   DeclVar, Async,   Await};
+      As,       If,     Else,     ElseIf,  True,   False,   While,   End,
+      Lambda,   Module, Method,   Return,  Import, Print,   PrintLn, For,
+      In,       Do,     Next,     Break,   Delete, Pass,    Try,     Catch,
+      Abstract, Class,  Override, Private, This,   DeclVar, Export};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           End};
 
   std::unordered_set<std::string> loop_keywords = {While, For};
 
-  std::unordered_set<std::string> required_end_keywords = {
-      While, For, Method, If, Module, Try};
+  std::unordered_set<std::string> block_keywords = {
+      While, For, Method, If, Module, Try, Class, Lambda};
 
   bool is_keyword(std::string& arg) {
     return keywords.find(arg) != keywords.end();
@@ -207,8 +201,8 @@ struct {
     return loop_keywords.find(arg) != loop_keywords.end();
   }
 
-  bool is_required_end_keyword(const std::string& arg) {
-    return required_end_keywords.find(arg) != required_end_keywords.end();
+  bool is_block_keyword(const std::string& arg) {
+    return block_keywords.find(arg) != block_keywords.end();
   }
 } Keywords;
 
