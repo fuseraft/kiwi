@@ -12,8 +12,7 @@ module http
   Returns: A hash with the response status code, headers, and body.
   ##
   def delete_(@_url, @_headers)
-    @_response = __http_delete__(@_url, @_headers)
-    return @_response
+    return __http_delete__(@_url, @_headers)
   end
 
   ##
@@ -24,8 +23,7 @@ module http
   Returns: A hash with the response status code, headers, and body.
   ##
   def get(@_url, @_headers)
-    @_response = __http_get__(@_url, @_headers)
-    return @_response
+    return __http_get__(@_url, @_headers)
   end
 
   ##
@@ -36,8 +34,7 @@ module http
   Returns: A hash with the response status code, headers, and body.
   ##
   def head(@_url, @_headers)
-    @_response = __http_head__(@_url, @_headers)
-    return @_response
+    return __http_head__(@_url, @_headers)
   end
 
   ##
@@ -48,8 +45,7 @@ module http
   Returns: A hash with the response status code, headers, and body.
   ##
   def options(@_url, @_headers)
-    @_response = __http_options__(@_url, @_headers)
-    return @_response
+    return __http_options__(@_url, @_headers)
   end
 
   ##
@@ -61,8 +57,7 @@ module http
   Returns: A hash with the response status code, headers, and body.
   ##
   def patch(@_url, @_body, @_headers)
-    @_response = __http_patch__(@_url, @_body, @_headers)
-    return @_response
+    return __http_patch__(@_url, @_body, @_headers)
   end
 
   ##
@@ -74,8 +69,7 @@ module http
   Returns: A hash with the response status code, headers, and body.
   ##
   def post(@_url, @_body, @_headers)
-    @_response = __http_get__(@_url, @_body, @_headers)
-    return @_response
+    return __http_get__(@_url, @_body, @_headers)
   end
 
   ##
@@ -87,8 +81,7 @@ module http
   Returns: A hash with the response status code, headers, and body.
   ##
   def put(@_url, @_body, @_headers)
-    @_response = __http_put__(@_url, @_body, @_headers)
-    return @_response
+    return __http_put__(@_url, @_body, @_headers)
   end
 end
 

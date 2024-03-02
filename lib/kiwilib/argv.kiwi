@@ -9,8 +9,7 @@ module argv
   Returns: List of command-line arguments.
   ##
   def get()
-    @_argv_list = __argv__()
-    return @_argv_list
+    return __argv__()
   end
 
   ##
@@ -20,8 +19,7 @@ module argv
   Returns: String containing the XArg value.
   ##
   def xarg(@_xarg_key)
-    @_xarg_value = __xarg__(_xarg_key)
-    return @_xarg_value
+    return __xarg__(_xarg_key)
   end
 end
 

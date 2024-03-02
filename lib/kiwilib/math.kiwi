@@ -9,8 +9,7 @@ module math
   Returns: Double
   ##
   def epsilon()
-    @_retval = __eps__()
-    return @_retval
+    return __eps__()
   end
 
   ##
@@ -21,8 +20,7 @@ module math
   Returns: Integer|Double
   ##
   def random(@_valueX, @_valueY)
-    @_retval = __random__(@_valueX, @_valueY)
-    return @_retval
+    return __random__(@_valueX, @_valueY)
   end
 
   ##
@@ -32,8 +30,7 @@ module math
   Returns: Double
   ##
   def sin(@_value)
-    @_retval = __sin__(@_value)
-    return @_retval
+    return __sin__(@_value)
   end
 
   ##
@@ -43,8 +40,7 @@ module math
   Returns: Double
   ##
   def cos(@_value)
-    @_retval = __cos__(@_value)
-    return @_retval
+    return __cos__(@_value)
   end
 
   ##
@@ -54,8 +50,7 @@ module math
   Returns: Double
   ##
   def tan(@_value)
-    @_retval = __tan__(@_value)
-    return @_retval
+    return __tan__(@_value)
   end
 
   ##
@@ -65,8 +60,7 @@ module math
   Returns: Double
   ##
   def asin(@_value)
-    @_retval = __asin__(@_value)
-    return @_retval
+    return __asin__(@_value)
   end
 
   ##
@@ -76,8 +70,7 @@ module math
   Returns: Double
   ##
   def acos(@_value)
-    @_retval = __acos__(@_value)
-    return @_retval
+    return __acos__(@_value)
   end
 
   ##
@@ -87,8 +80,7 @@ module math
   Returns: Double
   ##
   def atan(@_value)
-    @_retval = __atan__(@_value)
-    return @_retval
+    return __atan__(@_value)
   end
 
   ##
@@ -99,8 +91,7 @@ module math
   Returns: Double
   ##
   def atan2(@_valueY, @_valueX)
-    @_retval = __atan2__(@_valueY, @_valueX)
-    return @_retval
+    return __atan2__(@_valueY, @_valueX)
   end
 
   ##
@@ -110,8 +101,7 @@ module math
   Returns: Double
   ##
   def sinh(@_value)
-    @_retval = __sinh__(@_value)
-    return @_retval
+    return __sinh__(@_value)
   end
 
   ##
@@ -121,8 +111,7 @@ module math
   Returns: Double
   ##
   def cosh(@_value)
-    @_retval = __cosh__(@_value)
-    return @_retval
+    return __cosh__(@_value)
   end
 
   ##
@@ -132,8 +121,7 @@ module math
   Returns: Double
   ##
   def tanh(@_value)
-    @_retval = __tanh__(@_value)
-    return @_retval
+    return __tanh__(@_value)
   end
 
   ##
@@ -143,8 +131,7 @@ module math
   Returns: Double
   ##
   def log(@_value)
-    @_retval = __log__(@_value)
-    return @_retval
+    return __log__(@_value)
   end
 
   ##
@@ -154,8 +141,7 @@ module math
   Returns: Double
   ##
   def log2(@_value)
-    @_retval = __log2__(@_value)
-    return @_retval
+    return __log2__(@_value)
   end
 
   ##
@@ -165,8 +151,7 @@ module math
   Returns: Double
   ##
   def log10(@_value)
-    @_retval = __log10__(@_value)
-    return @_retval
+    return __log10__(@_value)
   end
 
   ##
@@ -176,8 +161,7 @@ module math
   Returns: Double
   ##
   def log1p(@_value)
-    @_retval = __log1p__(@_value)
-    return @_retval
+    return __log1p__(@_value)
   end
 
   ##
@@ -187,8 +171,7 @@ module math
   Returns: Double
   ##
   def sqrt(@_value)
-    @_retval = __sqrt__(@_value)
-    return @_retval
+    return __sqrt__(@_value)
   end
 
   ##
@@ -198,8 +181,7 @@ module math
   Returns: Double
   ##
   def cbrt(@_value)
-    @_retval = __cbrt__(@_value)
-    return @_retval
+    return __cbrt__(@_value)
   end
 
   ##
@@ -210,8 +192,7 @@ module math
   Returns: Double
   ##
   def fmod(@_valueX, @_valueY)
-    @_retval = __fmod__(@_valueX, @_valueY)
-    return @_retval
+    return __fmod__(@_valueX, @_valueY)
   end
 
   ##
@@ -222,8 +203,7 @@ module math
   Returns: Double
   ##
   def hypot(@_valueX, @_valueY)
-    @_retval = __hypot__(@_valueX, @_valueY)
-    return @_retval
+    return __hypot__(@_valueX, @_valueY)
   end
 
   ##
@@ -233,8 +213,7 @@ module math
   Returns: Double
   ##
   def isfinite(@_value)
-    @_retval = __isfinite__(@_value)
-    return @_retval
+    return __isfinite__(@_value)
   end
 
   ##
@@ -244,8 +223,7 @@ module math
   Returns: Double
   ##
   def isinf(@_value)
-    @_retval = __isinf__(@_value)
-    return @_retval
+    return __isinf__(@_value)
   end
 
   ##
@@ -255,8 +233,7 @@ module math
   Returns: Double
   ##
   def isnan(@_value)
-    @_retval = __isnan__(@_value)
-    return @_retval
+    return __isnan__(@_value)
   end
 
   ##
@@ -266,8 +243,7 @@ module math
   Returns: Double
   ##
   def isnormal(@_value)
-    @_retval = __isnormal__(@_value)
-    return @_retval
+    return __isnormal__(@_value)
   end
 
   ##
@@ -277,8 +253,7 @@ module math
   Returns: Double
   ##
   def floor(@_value)
-    @_retval = __floor__(@_value)
-    return @_retval
+    return __floor__(@_value)
   end
 
   ##
@@ -288,8 +263,7 @@ module math
   Returns: Double
   ##
   def ceil(@_value)
-    @_retval = __ceil__(@_value)
-    return @_retval
+    return __ceil__(@_value)
   end
 
   ##
@@ -299,8 +273,7 @@ module math
   Returns: Double
   ##
   def round(@_value)
-    @_retval = __round__(@_value)
-    return @_retval
+    return __round__(@_value)
   end
 
   ##
@@ -310,8 +283,7 @@ module math
   Returns: Double
   ##
   def trunc(@_value)
-    @_retval = __trunc__(@_value)
-    return @_retval
+    return __trunc__(@_value)
   end
 
   ##
@@ -322,8 +294,7 @@ module math
   Returns: Double
   ##
   def remainder(@_valueX, @_valueY)
-    @_retval = __remainder__(@_valueX, @_valueY)
-    return @_retval
+    return __remainder__(@_valueX, @_valueY)
   end
 
   ##
@@ -333,8 +304,7 @@ module math
   Returns: Double
   ##
   def exp(@_value)
-    @_retval = __exp__(@_value)
-    return @_retval
+    return __exp__(@_value)
   end
 
   ##
@@ -344,8 +314,7 @@ module math
   Returns: Double
   ##
   def expm1(@_value)
-    @_retval = __expm1__(@_value)
-    return @_retval
+    return __expm1__(@_value)
   end
 
   ##
@@ -355,8 +324,7 @@ module math
   Returns: Double
   ##
   def erf(@_value)
-    @_retval = __erf__(@_value)
-    return @_retval
+    return __erf__(@_value)
   end
 
   ##
@@ -366,8 +334,7 @@ module math
   Returns: Double
   ##
   def erfc(@_value)
-    @_retval = __erfc__(@_value)
-    return @_retval
+    return __erfc__(@_value)
   end
 
   ##
@@ -377,8 +344,7 @@ module math
   Returns: Double
   ##
   def lgamma(@_value)
-    @_retval = __lgamma__(@_value)
-    return @_retval
+    return __lgamma__(@_value)
   end
 
   ##
@@ -388,8 +354,7 @@ module math
   Returns: Double
   ##
   def tgamma(@_value)
-    @_retval = __tgamma__(@_value)
-    return @_retval
+    return __tgamma__(@_value)
   end
 
   ##
@@ -400,8 +365,7 @@ module math
   Returns: Double
   ##
   def copysign(@_valueX, @_valueY)
-    @_retval = __copysign__(@_valueX, @_valueY)
-    return @_retval
+    return __copysign__(@_valueX, @_valueY)
   end
 
   ##
@@ -412,8 +376,7 @@ module math
   Returns: Double
   ##
   def nextafter(@_valueX, @_valueY)
-    @_retval = __nextafter__(@_valueX, @_valueY)
-    return @_retval
+    return __nextafter__(@_valueX, @_valueY)
   end
 
   ##
@@ -424,8 +387,7 @@ module math
   Returns: Double
   ##
   def fmax(@_valueX, @_valueY)
-    @_retval = __fmax__(@_valueX, @_valueY)
-    return @_retval
+    return __fmax__(@_valueX, @_valueY)
   end
 
   ##
@@ -436,8 +398,7 @@ module math
   Returns: Double
   ##
   def fmin(@_valueX, @_valueY)
-    @_retval = __fmin__(@_valueX, @_valueY)
-    return @_retval
+    return __fmin__(@_valueX, @_valueY)
   end
 
   ##
@@ -448,8 +409,7 @@ module math
   Returns: Double
   ##
   def fdim(@_valueX, @_valueY)
-    @_retval = __fdim__(@_valueX, @_valueY)
-    return @_retval
+    return __fdim__(@_valueX, @_valueY)
   end
 
   ##
@@ -460,8 +420,7 @@ module math
   Returns: Double
   ##
   def pow(@_valueX, @_valueY)
-    @_retval = __pow__(@_valueX, @_valueY)
-    return @_retval
+    return __pow__(@_valueX, @_valueY)
   end
 
   ##
@@ -471,8 +430,7 @@ module math
   Returns: Integer|Double
   ##
   def abs(@_value)
-    @_retval = __abs__(@_value)
-    return @_retval
+    return __abs__(@_value)
   end
 end
 
