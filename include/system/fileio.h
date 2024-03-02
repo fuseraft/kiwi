@@ -31,7 +31,7 @@ class FileIO {
 
   static bool fileExists(const std::string& filePath) {
     try {
-      return fs::exists(filePath) && !fs::is_directory(filePath);
+      return fs::exists(filePath);
     } catch (const std::exception&) {}
     return false;
   }

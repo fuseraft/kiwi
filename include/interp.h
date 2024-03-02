@@ -51,6 +51,21 @@ class Interpreter {
     return interpret(lexer);
   }
 
+  void preserveMainStackFrame() { preservingMainStackFrame = true; }
+
+ private:
+  Logger& logger;
+  std::unordered_map<std::string, std::vector<std::string>> files;
+  std::unordered_map<std::string, Method> methods;
+  std::unordered_map<std::string, Module> modules;
+  std::unordered_map<std::string, Class> classes;
+  std::unordered_map<std::string, std::string> kiwiArgs;
+  std::stack<std::shared_ptr<CallStackFrame>> callStack;
+  std::stack<std::shared_ptr<TokenStream>> streamStack;
+  std::stack<std::string> moduleStack;
+  bool preservingMainStackFrame = false;
+  EventLoop eventLoop;
+
   int interpret(Lexer& lexer) {
     files[lexer.getFile()] = lexer.getLines();
     auto stream = std::make_shared<TokenStream>(lexer.getAllTokens());
@@ -74,21 +89,6 @@ class Interpreter {
 
     return 0;
   }
-
-  void preserveMainStackFrame() { preservingMainStackFrame = true; }
-
- private:
-  Logger& logger;
-  std::unordered_map<std::string, std::vector<std::string>> files;
-  std::unordered_map<std::string, Method> methods;
-  std::unordered_map<std::string, Module> modules;
-  std::unordered_map<std::string, Class> classes;
-  std::unordered_map<std::string, std::string> kiwiArgs;
-  std::stack<std::shared_ptr<CallStackFrame>> callStack;
-  std::stack<std::shared_ptr<TokenStream>> streamStack;
-  std::stack<std::string> moduleStack;
-  bool preservingMainStackFrame = false;
-  EventLoop eventLoop;
 
   Token current(std::shared_ptr<TokenStream> stream) {
     if (stream->position >= stream->tokens.size()) {

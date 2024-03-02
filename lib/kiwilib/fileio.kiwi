@@ -11,8 +11,7 @@ module fileio
   Returns: String
   ##
   def abspath(@_path)
-    @_retval = __fileabspath__(@_path)
-    return @_retval
+    return __fileabspath__(@_path)
   end
 
   ##
@@ -23,8 +22,17 @@ module fileio
   Returns: Boolean
   ##
   def append(@_path, @_text)
-    @_retval = __appendtext__(@_path, @_text)
-    return @_retval
+    return __appendtext__(@_path, @_text)
+  end
+
+  ##
+  Summary: Changes the current directory.
+  Params:
+    - @_path: The path to a directory.
+  Returns: Boolean
+  ##
+  def chdir(@_path)
+    return __chdir__(@_path)
   end
 
   ##
@@ -35,19 +43,18 @@ module fileio
   Returns: Boolean
   ##
   def copy(@_source, @_dest)
-    @_retval = __copyfile__(@_source, @_dest)
-    return @_retval
+    return __copyfile__(@_source, @_dest)
   end
 
   ##
-  Summary: Create an empty file.
+  Summary: Copy a directory recursively.
   Params:
-    - @_path: The path to a file or a filename.
+    - @_source: The source path.
+    - @_dest: The destination path.
   Returns: Boolean
   ##
-  def create(@_path)
-    @_retval = __createfile__(@_path)
-    return @_retval
+  def copyr(@_source, @_dest)
+    return __copyr__(@_source, @_dest)
   end
 
   ##
@@ -55,30 +62,17 @@ module fileio
   Returns: Boolean
   ##
   def cwd()
-    @_retval = __cwd__()
-    return @_retval
+    return __cwd__()
   end
 
   ##
-  Summary: Delete a file.
+  Summary: Check if a path exists.
   Params:
-    - @_path: The path to a file or a filename.
-  Returns: Boolean
-  ##
-  def remove(@_path)
-    @_retval = __deletefile__(@_path)
-    return @_retval
-  end
-
-  ##
-  Summary: Check if a file exists.
-  Params:
-    - @_path: The path to a file or a filename.
+    - @_path: The path to a file or directory.
   Returns: Boolean
   ##
   def exists(@_path)
-    @_retval = __isfile__(@_path)
-    return @_retval
+    return __isfile__(@_path)
   end
 
   ##
@@ -87,20 +81,8 @@ module fileio
     - @_path: The path to a file or a filename.
   Returns: String
   ##
-  def getext(@_path)
-    @_retval = __fileext__(@_path)
-    return @_retval
-  end
-
-  ##
-  Summary: Get a list of files from a glob pattern.
-  Params:
-    - @_glob: The glob pattern.
-  Returns: String
-  ##
-  def glob(@_glob)
-    @_retval = __glob__(@_glob)
-    return @_retval
+  def ext(@_path)
+    return __fileext__(@_path)
   end
 
   ##
@@ -110,8 +92,7 @@ module fileio
   Returns: String
   ##
   def filename(@_path)
-    @_retval = __filename__(@_path)
-    return @_retval
+    return __filename__(@_path)
   end
 
   ##
@@ -121,8 +102,47 @@ module fileio
   Returns: Double
   ##
   def filesize(@_path)
-    @_retval = __filesize__(@_path)
-    return @_retval
+    return __filesize__(@_path)
+  end
+
+  ##
+  Summary: Get a list of files from a glob pattern.
+  Params:
+    - @_glob: The glob pattern.
+  Returns: String
+  ##
+  def glob(@_glob)
+    return __glob__(@_glob)
+  end
+
+  ##
+  Summary: Retrieve a List of directory entries.
+  Params:
+    - @_path: The directory path.
+  Returns: List
+  ##
+  def listdir(@_path)
+    return __listdir__(@_path)
+  end
+
+  ##
+  Summary: Creates a directory.
+  Params:
+    - @_path: The directory path.
+  Returns: Boolean
+  ##
+  def mkdir(@_path)
+    return __mkdir__(@_path)
+  end
+
+  ##
+  Summary: Creates a directory and all subdirectories specified in the path.
+  Params:
+    - @_path: The directory path.
+  Returns: Boolean
+  ##
+  def mkdirp(@_path)
+    return __mkdirp__(@_path)
   end
 
   ##
@@ -133,8 +153,7 @@ module fileio
   Returns: Boolean
   ##
   def move(@_source, @_dest)
-    @_retval = __movefile__(@_source, @_dest)
-    return @_retval
+    return __movefile__(@_source, @_dest)
   end
 
   ##
@@ -144,19 +163,7 @@ module fileio
   Returns: String
   ##
   def parentdir(@_path)
-    @_retval = __filepath__(@_path)
-    return @_retval
-  end
-
-  ##
-  Summary: Changes the current directory.
-  Params:
-    - @_path: The path to a directory.
-  Returns: String
-  ##
-  def chdir(@_path)
-    @_retval = __chdir__(@_path)
-    return @_retval
+    return __filepath__(@_path)
   end
 
   ##
@@ -166,8 +173,7 @@ module fileio
   Returns: String
   ##
   def read(@_path)
-    @_retval = __readfile__(@_path)
-    return @_retval
+    return __readfile__(@_path)
   end
 
   ##
@@ -177,8 +183,55 @@ module fileio
   Returns: List
   ##
   def readlines(@_path)
-    @_retval = __readlines__(@_path)
-    return @_retval
+    return __readlines__(@_path)
+  end
+
+  ##
+  Summary: Delete a file.
+  Params:
+    - @_path: The path to a file or a filename.
+  Returns: Boolean
+  ##
+  def remove(@_path)
+    return __deletefile__(@_path)
+  end
+
+  ##
+  Summary: Delete a directory.
+  Params:
+    - @_path: The path to a directory.
+  Returns: Boolean
+  ##
+  def rmdir(@_path)
+    return __rmdir__(@_path)
+  end
+
+  ##
+  Summary: Delete a directory and all of its contents recursively.
+  Params:
+    - @_path: The path to a directory.
+  Returns: Boolean
+  ##
+  def rmdirf(@_path)
+    return __rmdirf__(@_path)
+  end
+
+  ##
+  Summary: Create an empty file.
+  Params:
+    - @_path: The path to a file or a filename.
+  Returns: Boolean
+  ##
+  def touch(@_path)
+    return __createfile__(@_path)
+  end
+  
+  ##
+  Summary: Gets the path to the temporary directory.
+  Returns: String
+  ##
+  def tmpdir()
+    return __tmpdir__()
   end
 
   ##
@@ -189,8 +242,7 @@ module fileio
   Returns: Boolean
   ##
   def write(@_path, @_text)
-    @_retval = __writetext__(@_path, @_text)
-    return @_retval
+    return __writetext__(@_path, @_text)
   end
 
   ##
@@ -201,8 +253,7 @@ module fileio
   Returns: Boolean
   ##
   def writeln(@_path, @_text)
-    @_retval = __writeline__(@_path, @_text)
-    return @_retval
+    return __writeline__(@_path, @_text)
   end
 end
 
