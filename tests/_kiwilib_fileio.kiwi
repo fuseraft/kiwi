@@ -11,7 +11,7 @@ import "@kiwi/fileio"
 # =============================
 
 println "=> creating file: ${@path}"
-fileio::create(@path)
+fileio::touch(@path)
 
 # =============================
 # Check if the file exists
@@ -95,7 +95,7 @@ println "=> file name: ${@name}"
 # Get the file extension
 # =============================
 
-@ext = fileio::getext(@path)
+@ext = fileio::ext(@path)
 println "=> file extension: ${@ext}"
 
 # =============================
@@ -128,7 +128,7 @@ end
 
 @path = "file.txt"
 println "creating file: ${@path}"
-fileio::create(@path)
+fileio::touch(@path)
 @i = 1
 
 println "writing to file: ${@path}"

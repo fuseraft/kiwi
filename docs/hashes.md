@@ -54,3 +54,31 @@ for @key, @index in @myHash.keys() do
   println "Key ${@index}: ${@key}"
 end
 ```
+
+### Optional Commas
+
+Commas are optional in Kiwi.
+
+```ruby
+@hash = {
+  "A": {
+    "B": {
+      "C": {}
+      "D": {}
+    }
+    "E": {
+      "F": {}
+      "G": [1 2 3]
+    }
+  }
+}
+
+println "
+hash = ${@hash}
+"
+
+# prints: 
+#
+# hash = {"A": {"B": {"C": {}, "D": {}}, "E": {"F": {}, "G": [1, 2, 3]}}}
+#
+```
