@@ -7,15 +7,15 @@ Methods defined in a module can only be accessed using a fully qualified name.
 ```ruby
 # Defining modules.
 module greeter
-    def greet(@name)
-        println "Hello, ${@name}."
-    end
+  def greet(@name)
+    println "Hello, ${@name}."
+  end
 end
 
 module excited_greeter
-    def greet(@name)
-        println "Hello, ${@name}!"
-    end
+  def greet(@name)
+    println "Hello, ${@name}!"
+  end
 end
 
 # Importing modules.
@@ -59,7 +59,7 @@ module fun
   end
 end
 
-import "fun" # Registers the "fun" module.
+export "fun" # Exports the "fun" module to the calling script.
 ```
 
 #### `./app.kiwi`
@@ -67,4 +67,28 @@ import "fun" # Registers the "fun" module.
 import "@fuseraft/fun"
 
 fun::method() # prints: Kiwi is fun!
+```
+
+## Aliasing
+
+You can specify an alias for an imported module. This creates a class that cannot be instantiated. The class will contain static methods matching the methods defined in the module. 
+
+#### `./fun.kiwi`
+```ruby
+module fun
+  __home__("fuseraft")
+
+  def method()
+    println "Kiwi is fun!"
+  end
+end
+
+export "fun" # Exports the "fun" module to the calling script.
+```
+
+#### `./app.kiwi`
+```ruby
+import "@fuseraft/fun" as Fun
+
+Fun.method() # prints: Kiwi is fun!
 ```
