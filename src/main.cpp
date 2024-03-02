@@ -25,7 +25,7 @@ bool DEBUG = false;
 
 int main(int c, char** v) {
   std::vector<std::string> args;
-  
+
   for (int i = 0; i < c; ++i) {
     args.push_back(v[i]);
   }

@@ -27,6 +27,13 @@ import "@kiwi/fileio"
   - `@_text`: The text to append.
 - **Returns**: Boolean indicating success or failure.
 
+### `chdir(@_path)`
+
+- **Summary**: Changes the current directory.
+- **Params**:
+  - `@_path`: The path to a directory.
+- **Returns**: Boolean indicating success or failure.
+
 ### `copy(@_source, @_dest)`
 
 - **Summary**: Copy a file.
@@ -35,11 +42,12 @@ import "@kiwi/fileio"
   - `@_dest`: The destination path.
 - **Returns**: Boolean indicating success or failure.
 
-### `create(@_path)`
+### `copyr(@_source, @_dest)`
 
-- **Summary**: Create an empty file.
+- **Summary**: Copy a directory and all of its contents.
 - **Parameters**:
-  - `@_path`: The path to a file or a filename.
+  - `@_source`: The source path.
+  - `@_dest`: The destination path.
 - **Returns**: Boolean indicating success or failure.
 
 ### `cwd()`
@@ -49,24 +57,17 @@ import "@kiwi/fileio"
 
 ### `exists(@_path)`
 
-- **Summary**: Check if a file exists.
+- **Summary**: Check if a path exists.
 - **Parameters**:
-  - `@_path`: The path to a file or a filename.
-- **Returns**: Boolean indicating whether the file exists or not.
+  - `@_path`: The path to a file or directory.
+- **Returns**: Boolean indicating whether the path exists or not.
 
-### `getext(@_path)`
+### `ext(@_path)`
 
 - **Summary**: Get a file extension.
 - **Parameters**:
   - `@_path`: The path to a file or a filename.
 - **Returns**: String representing the file extension.
-
-### `glob(@_path)`
-
-- **Summary**: Get a list of files from a glob pattern.
-- **Parameters**:
-  - `@_glob`: The glob pattern.
-- **Returns**: List of file paths matched by glob pattern.
 
 ### `filename(@_path)`
 
@@ -81,6 +82,34 @@ import "@kiwi/fileio"
 - **Parameters**:
   - `@_path`: The path to a file or a filename.
 - **Returns**: Double representing the file size in bytes.
+
+### `glob(@_path)`
+
+- **Summary**: Get a list of files from a glob pattern.
+- **Parameters**:
+  - `@_glob`: The glob pattern.
+- **Returns**: List of file paths matched by glob pattern.
+
+### `listdir(@_path)`
+
+- **Summary**: Retrieve a List of directory entries.
+- **Params**:
+  - `@_path`: The directory path.
+- **Returns**: List of directory entries.
+
+### `mkdir(@_path)`
+
+- **Summary**: Creates a directory.
+- **Parameters**:
+  - `@_path`: The path to a directory.
+- **Returns**: Boolean indicating success or failure.
+
+### `mkdirp(@_path)`
+
+- **Summary**: Creates a directory and all subdirectories specified in the path.
+- **Parameters**:
+  - `@_path`: The path to a directory.
+- **Returns**: Boolean indicating success or failure.
 
 ### `move(@_source, @_dest)`
 
@@ -117,6 +146,32 @@ import "@kiwi/fileio"
 - **Parameters**:
   - `@_path`: The path to a file or a filename.
 - **Returns**: Boolean indicating success or failure.
+
+### `rmdir(@_path)`
+
+- **Summary**: Delete a directory.
+- **Parameters**:
+  - `@_path`: The path to a directory.
+- **Returns**: Boolean indicating success or failure.
+
+### `rmdirf(@_path)`
+
+- **Summary**: Delete a directory and all of its contents recursively.
+- **Parameters**:
+  - `@_path`: The path to a directory.
+- **Returns**: Integer indicating how many objects were deleted.
+
+### `touch(@_path)`
+
+- **Summary**: Create an empty file.
+- **Parameters**:
+  - `@_path`: The path to a file or a filename.
+- **Returns**: Boolean indicating success or failure.
+
+### `tmpdir()`
+
+- **Summary**: Gets the path to the temporary directory.
+- **Returns**: String containing the path to the temporary directory.
 
 ### `write(@_path, @_text)`
 
