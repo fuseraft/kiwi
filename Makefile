@@ -35,6 +35,10 @@ play: $(EXECUTABLE)
 	@echo "================================"
 	$(EXECUTABLE) $(PLAY)
 
+install: $(EXECUTABLE)
+	@echo "================================"
+	./$(EXECUTABLE) ./install.kiwi
+
 experimental: EXPERIMENTAL_FLAGS := -DEXPERIMENTAL_FEATURES
 experimental: LDFLAGS := $(BASE_LDFLAGS)
 experimental: clean $(EXECUTABLE)

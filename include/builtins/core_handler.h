@@ -163,8 +163,8 @@ class CoreBuiltinHandler {
             tokenTerm, "Cannot convert non-numeric value to a double: `" +
                            stringValue + "`");
       }
-    } else if (std::holds_alternative<int>(value)) {
-      return static_cast<double>(std::get<int>(value));
+    } else if (std::holds_alternative<long long>(value)) {
+      return static_cast<double>(std::get<long long>(value));
     } else {
       throw ConversionError(tokenTerm,
                             "Cannot convert non-numeric value to a double.");
@@ -192,7 +192,7 @@ class CoreBuiltinHandler {
                            stringValue + "`");
       }
     } else if (std::holds_alternative<double>(value)) {
-      return static_cast<int>(std::get<double>(value));
+      return static_cast<long long>(std::get<double>(value));
     } else {
       throw ConversionError(tokenTerm,
                             "Cannot convert non-numeric value to an integer.");
@@ -345,7 +345,7 @@ class CoreBuiltinHandler {
            (typeName == TypeNames.Hash &&
             std::holds_alternative<std::shared_ptr<Hash>>(value)) ||
            (typeName == TypeNames.Integer &&
-            std::holds_alternative<int>(value)) ||
+            std::holds_alternative<long long>(value)) ||
            (typeName == TypeNames.List &&
             std::holds_alternative<std::shared_ptr<List>>(value)) ||
            (typeName == TypeNames.Object &&

@@ -75,12 +75,12 @@ class Token {
     return std::get<std::string>(value);
   }
 
-  int toInteger() {
-    if (!std::holds_alternative<int>(value)) {
+  long long toInteger() {
+    if (!std::holds_alternative<long long>(value)) {
       throw new std::runtime_error("Value type is not an `Integer`.");
     }
 
-    return std::get<int>(value);
+    return std::get<long long>(value);
   }
 
   bool toBoolean() {

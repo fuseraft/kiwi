@@ -5,6 +5,14 @@ module sys
   __home__("kiwi")
 
   ##
+  Summary: Get the effective user ID.
+  Returns: Integer containing effective user ID.
+  ##
+  def euid()
+    return __euid__()
+  end
+
+  ##
   Summary: Run an external process and capture its exit code.
   Params:
     - @_command: String containing the command text.
