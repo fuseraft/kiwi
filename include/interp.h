@@ -262,8 +262,32 @@ class Interpreter {
         lambda = frame->getAssignedLambda(lambdaName);
       }
     } else if (current(stream).getType() == TokenType::LAMBDA) {
-      lambda = InterpHelper::interpretLambda(stream);
+      lambda = interpretLambda(stream, frame);
     }
+
+    return lambda;
+  }
+
+  Method interpretLambda(std::shared_ptr<TokenStream> stream,
+                         std::shared_ptr<CallStackFrame> frame) {
+    next(stream);  // Skip "lambda"
+    Method lambda;
+    lambda.setName(InterpHelper::getTemporaryId());
+
+    interpretMethodParameters(lambda, stream, frame);
+
+    if (current(stream).getText() != Keywords.Do) {
+      throw SyntaxError(current(stream), "Expected `do` in lambda expression.");
+    }
+    next(stream);  // Skip "do"
+
+    std::vector<Token> lambdaTokens;
+    InterpHelper::collectBodyTokens(lambdaTokens, stream);
+    for (Token t : lambdaTokens) {
+      lambda.addToken(t);
+    }
+
+    lambda.setFlag(MethodFlags::Lambda);
 
     return lambda;
   }
@@ -507,7 +531,7 @@ class Interpreter {
     } else if (Keywords.is_loop_keyword(keyword)) {
       interpretLoop(stream, frame);
     } else if (keyword == Keywords.Method) {
-      interpretMethodDefinition(stream);
+      interpretMethodDefinition(stream, frame);
     } else if (keyword == Keywords.Return) {
       interpretReturn(stream, frame);
     } else if (keyword == Keywords.PrintLn || keyword == Keywords.Print) {
@@ -521,7 +545,7 @@ class Interpreter {
     } else if (keyword == Keywords.Delete) {
       interpretDelete(stream, frame);
     } else if (keyword == Keywords.Abstract || keyword == Keywords.Class) {
-      interpretClassDefinition(stream);
+      interpretClassDefinition(stream, frame);
     } else if (keyword == Keywords.This) {
       interpretSelfInvocation(stream, frame);
     } else if (keyword == Keywords.Break) {
@@ -990,7 +1014,13 @@ class Interpreter {
     // Check all parameters are passed.
     for (const std::string& parameterName : parameters) {
       if (!method.hasParameter(parameterName)) {
-        throw ParameterMissingError(tokenTerm, parameterName);
+        auto param = method.getParameter(parameterName);
+
+        if (!param.hasDefaultValue()) {
+          throw ParameterMissingError(tokenTerm, parameterName);
+        }
+
+        codeFrame->variables[parameterName] = std::move(param.getValue());
       } else {
         codeFrame->variables[parameterName] =
             std::move(method.getParameterValue(parameterName));
@@ -1194,14 +1224,127 @@ class Interpreter {
     return value;
   }
 
-  void interpretMethodDefinition(std::shared_ptr<TokenStream> stream) {
-    auto method = InterpHelper::interpretMethodDeclaration(stream);
+  std::vector<Parameter> getParameterSet(
+      std::shared_ptr<TokenStream> stream,
+      std::shared_ptr<CallStackFrame> frame) {
+    auto tokenTerm = current(stream);
+    if (current(stream).getType() != TokenType::OPEN_PAREN) {
+      throw SyntaxError(
+          tokenTerm,
+          "Expected open-parenthesis, `(`, in parameter set expression.");
+    }
+    next(stream);  // Skip "("
+
+    std::unordered_set<std::string> paramNames;
+    std::vector<Parameter> params;
+
+    while (stream->canRead() &&
+           current(stream).getType() != TokenType::CLOSE_PAREN) {
+      auto paramToken = current(stream);
+      auto paramName = paramToken.getText();
+      if (paramToken.getType() == TokenType::IDENTIFIER) {
+        if (paramNames.find(paramName) != paramNames.end()) {
+          throw SyntaxError(paramToken, "The parameter `" + paramName +
+                                            "` was specified more than once.");
+        }
+
+        paramNames.insert(paramName);
+        next(stream);
+
+        if (current(stream).getType() == TokenType::OPERATOR &&
+            current(stream).getText() == Operators.Assign) {
+          next(stream);  // Skip "=".
+          auto paramValue = interpretExpression(stream, frame);
+          Parameter optionalParam(paramName, paramValue);
+          params.push_back(optionalParam);
+          continue;
+        }
+
+        Parameter param(paramName);
+        params.push_back(param);
+
+        continue;
+      }
+      next(stream);
+    }
+
+    if (current(stream).getType() != TokenType::CLOSE_PAREN) {
+      throw SyntaxError(
+          tokenTerm,
+          "Expected close-parenthesis, `)`, in parameter set expression.");
+    }
+    next(stream);  // Skip ")"
+
+    return params;
+  }
+
+  void interpretMethodParameters(Method& method,
+                                 std::shared_ptr<TokenStream> stream,
+                                 std::shared_ptr<CallStackFrame> frame) {
+    for (const auto& param : getParameterSet(stream, frame)) {
+      method.addParameter(param);
+    }
+  }
+
+  Method interpretMethodDeclaration(std::shared_ptr<TokenStream> stream,
+                                    std::shared_ptr<CallStackFrame> frame) {
+    Method method;
+
+    while (stream->canRead() && current(stream).getText() != Keywords.Method) {
+      if (current(stream).getText() == Keywords.Abstract) {
+        method.setFlag(MethodFlags::Abstract);
+      } else if (current(stream).getText() == Keywords.Override) {
+        method.setFlag(MethodFlags::Override);
+      } else if (current(stream).getText() == Keywords.Private) {
+        method.setFlag(MethodFlags::Private);
+      } else if (current(stream).getText() == Keywords.Static) {
+        method.setFlag(MethodFlags::Static);
+      }
+      next(stream);
+    }
+    next(stream);  // Skip "def"
+
+    auto name = current(stream).getText();
+    method.setName(name);
+    next(stream);  // Skip the name.
+    interpretMethodParameters(method, stream, frame);
+    int counter = 1;
+
+    if (method.isFlagSet(MethodFlags::Abstract)) {
+      return method;
+    }
+
+    while (stream->canRead() && counter > 0) {
+      if (current(stream).getText() == Keywords.End) {
+        --counter;
+
+        // Stop here.
+        if (counter == 0) {
+          next(stream);  // Skip "end"
+          break;
+        }
+      } else if (Keywords.is_block_keyword(current(stream).getText())) {
+        ++counter;
+      }
+
+      auto codeToken = current(stream);
+      method.addToken(codeToken);
+      next(stream);
+
+      if (current(stream).getType() == TokenType::STREAM_END) {
+        throw SyntaxError(current(stream),
+                          "Invalid method declaration `" + name + "`");
+      }
+    }
+
+    return method;
+  }
+
+  void interpretMethodDefinition(std::shared_ptr<TokenStream> stream,
+                                 std::shared_ptr<CallStackFrame> frame) {
+    auto method = interpretMethodDeclaration(stream, frame);
     auto name = method.getName();
     std::string moduleName;
-
-    if (name == "print_dir") {
-      std::cout << "";
-    }
 
     if (!moduleStack.empty()) {
       moduleName = moduleStack.top();
@@ -1784,7 +1927,8 @@ class Interpreter {
     return value;
   }
 
-  void interpretClassDefinition(std::shared_ptr<TokenStream> stream) {
+  void interpretClassDefinition(std::shared_ptr<TokenStream> stream,
+                                std::shared_ptr<CallStackFrame> frame) {
     bool isAbstract = current(stream).getText() == Keywords.Abstract;
     std::string moduleName;
     if (!moduleStack.empty()) {
@@ -1844,14 +1988,13 @@ class Interpreter {
         if (tokenText == Keywords.Private) {
           if (peek(stream).getType() == TokenType::OPEN_PAREN) {
             next(stream);  // Skip "private"
-            for (std::string privateVar :
-                 InterpHelper::getParameterSet(stream)) {
+            for (auto privateVar : getParameterSet(stream, frame)) {
               clazz.addPrivateVariable(privateVar);
             }
           }
         }
 
-        auto method = InterpHelper::interpretMethodDeclaration(stream);
+        auto method = interpretMethodDeclaration(stream, frame);
 
         if (method.getName() == Keywords.Ctor) {
           method.setFlag(MethodFlags::Ctor);
@@ -3107,7 +3250,7 @@ class Interpreter {
           "Expected assignment operator in lambda assignment.");
     }
 
-    Method lambda = InterpHelper::interpretLambda(stream);
+    Method lambda = interpretLambda(stream, frame);
     lambda.setName(name);
     frame->assignLambda(name, lambda);
   }
@@ -3120,10 +3263,6 @@ class Interpreter {
     if (current(stream).getType() == TokenType::LAMBDA) {
       interpretLambdaAssignment(stream, name, op, frame);
       return;
-    }
-
-    if (name == "files") {
-      std::cout << "";
     }
 
     Value value = interpretExpression(stream, frame);
