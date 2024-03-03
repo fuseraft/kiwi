@@ -1,25 +1,53 @@
 # Methods
 
-Use the `def` keyword to define a method.
+Use the `def` keyword to define a method. Method parameters support default values.
 
 ```ruby
-def greet(@name)
-    println "Hello, ${@name}!"
+def greet(@name = "Kiwi")
+  println "Hello, ${@name}!"
 end
 
-greet("world")
+greet("world") # prints: Hello, world!
+greet()        # prints: Hello, Kiwi!
 ```
 
-Use the `return` keyword to return a value from a method.
+### Return Value
+
+Use the `return` keyword to return a value from a method, or to exit a method early.
 
 ```ruby
 def get_greeting(@name)
-    return "Hello, ${@name}"
+  return "Hello, ${@name}"
 end
 
 @greeting = get_greeting("World!")
 
 println @greeting
+```
+
+### Optional Parameters
+
+```ruby
+def say(@msg = "Hello, World!")
+  println @msg
+end
+
+say()       # prints: Hello, World!
+say("Hey!") # prints: Hey!
+
+def configure(@data, @config = {})
+  for @key in @config.keys() do
+    @data[@key] = @config[@key]
+  end
+
+  return @data
+end
+
+@data = configure({ "name": "Scott" })
+println @data # prints: {"name": "Scott"}
+
+@data = configure({ "name": "Scott" }, { "favorite_os": "Fedora" })
+println @data # prints: {"name": "Scott", "favorite_os": "Fedora"}
 ```
 
 ### Scope
