@@ -46,8 +46,8 @@ class TimeBuiltinHandler {
   }
 
  private:
-  static int executeDelay(const Token& tokenTerm,
-                          const std::vector<Value>& args) {
+  static Value executeDelay(const Token& tokenTerm,
+                            const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.Delay);
     }
@@ -66,8 +66,8 @@ class TimeBuiltinHandler {
     return Time::epochMilliseconds();
   }
 
-  static int executeCurrentHour(const Token& tokenTerm,
-                                const std::vector<Value>& args) {
+  static Value executeCurrentHour(const Token& tokenTerm,
+                                  const std::vector<Value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.Hour);
     }
@@ -75,8 +75,8 @@ class TimeBuiltinHandler {
     return Time::currentHour();
   }
 
-  static int executeCurrentMinute(const Token& tokenTerm,
-                                  const std::vector<Value>& args) {
+  static Value executeCurrentMinute(const Token& tokenTerm,
+                                    const std::vector<Value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.Minute);
     }
@@ -84,8 +84,8 @@ class TimeBuiltinHandler {
     return Time::currentMinute();
   }
 
-  static std::string executeAMPM(const Token& tokenTerm,
-                                 const std::vector<Value>& args) {
+  static Value executeAMPM(const Token& tokenTerm,
+                           const std::vector<Value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.AMPM);
     }
@@ -93,8 +93,8 @@ class TimeBuiltinHandler {
     return Time::getAMPM();
   }
 
-  static double executeTicksToMilliseconds(const Token& tokenTerm,
-                                           const std::vector<Value>& args) {
+  static Value executeTicksToMilliseconds(const Token& tokenTerm,
+                                          const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(tokenTerm,
                                            TimeBuiltins.TicksToMilliseconds);
@@ -105,8 +105,8 @@ class TimeBuiltinHandler {
     return Time::ticksToMilliseconds(ticks);
   }
 
-  static int executeCurrentMonth(const Token& tokenTerm,
-                                 const std::vector<Value>& args) {
+  static Value executeCurrentMonth(const Token& tokenTerm,
+                                   const std::vector<Value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.Month);
     }
@@ -114,8 +114,8 @@ class TimeBuiltinHandler {
     return Time::currentMonth();
   }
 
-  static int executeCurrentMonthDay(const Token& tokenTerm,
-                                    const std::vector<Value>& args) {
+  static Value executeCurrentMonthDay(const Token& tokenTerm,
+                                      const std::vector<Value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.MonthDay);
     }
@@ -123,8 +123,8 @@ class TimeBuiltinHandler {
     return Time::currentMonthDay();
   }
 
-  static int executeCurrentSecond(const Token& tokenTerm,
-                                  const std::vector<Value>& args) {
+  static Value executeCurrentSecond(const Token& tokenTerm,
+                                    const std::vector<Value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.Second);
     }
@@ -132,8 +132,8 @@ class TimeBuiltinHandler {
     return Time::currentSecond();
   }
 
-  static int executeCurrentWeekDay(const Token& tokenTerm,
-                                   const std::vector<Value>& args) {
+  static Value executeCurrentWeekDay(const Token& tokenTerm,
+                                     const std::vector<Value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.WeekDay);
     }
@@ -141,8 +141,8 @@ class TimeBuiltinHandler {
     return Time::currentWeekDay();
   }
 
-  static int executeCurrentYear(const Token& tokenTerm,
-                                const std::vector<Value>& args) {
+  static Value executeCurrentYear(const Token& tokenTerm,
+                                  const std::vector<Value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.Year);
     }
@@ -150,8 +150,8 @@ class TimeBuiltinHandler {
     return Time::currentYear();
   }
 
-  static int executeCurrentYearDay(const Token& tokenTerm,
-                                   const std::vector<Value>& args) {
+  static Value executeCurrentYearDay(const Token& tokenTerm,
+                                     const std::vector<Value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.YearDay);
     }
@@ -159,8 +159,8 @@ class TimeBuiltinHandler {
     return Time::currentYearDay();
   }
 
-  static double executeTicks(const Token& tokenTerm,
-                             const std::vector<Value>& args) {
+  static Value executeTicks(const Token& tokenTerm,
+                            const std::vector<Value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.Ticks);
     }
@@ -168,8 +168,8 @@ class TimeBuiltinHandler {
     return Time::getTicks();
   }
 
-  static bool executeIsDST(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeIsDST(const Token& tokenTerm,
+                            const std::vector<Value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(tokenTerm, TimeBuiltins.IsDST);
     }

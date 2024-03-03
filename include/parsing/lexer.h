@@ -266,8 +266,10 @@ class Lexer {
       return Token::create(TokenType::LITERAL, file, literal,
                            std::stod(literal), row, col);
     } else {
-      return Token::create(TokenType::LITERAL, file, literal,
-                           std::stoi(literal), row, col);
+      std::istringstream ss(literal);
+      long long value;
+      ss >> value;
+      return Token::create(TokenType::LITERAL, file, literal, value, row, col);
     }
   }
 

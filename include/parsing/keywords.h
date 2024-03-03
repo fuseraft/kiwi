@@ -174,10 +174,10 @@ struct {
   const std::string While = "while";
 
   std::unordered_set<std::string> keywords = {
-      As,       If,     Else,     ElseIf,  True,   False,   While,   End,
-      Lambda,   Module, Method,   Return,  Import, Print,   PrintLn, For,
-      In,       Do,     Next,     Break,   Delete, Pass,    Try,     Catch,
-      Abstract, Class,  Override, Private, This,   DeclVar, Export};
+      Abstract, As,      Break,   Catch,  Class,  DeclVar, Delete,   Do,
+      Else,     ElseIf,  End,     Exit,   Export, False,   For,      If,
+      Import,   In,      Lambda,  Method, Module, Next,    Override, Pass,
+      Print,    PrintLn, Private, Return, This,   True,    Try,      While};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           End};

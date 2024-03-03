@@ -4,9 +4,11 @@ Kiwi is a light-weight general-purpose language designed for simplicity and vers
 
 ### Getting Started
 
-To start using Kiwi, install the necessary dependencies, then clone and build with `make`.
+To start using Kiwi, please follow the instructions below.
 
-##### Fedora / RHEL
+#### Install Dependencies
+
+###### Fedora / RHEL
 
 ```bash
 sudo dnf update
@@ -15,7 +17,7 @@ sudo dnf install make
 sudo dnf install clang-tools-extra
 ```
 
-##### Ubuntu / Debian
+###### Ubuntu / Debian
 
 ```bash
 sudo apt update
@@ -24,15 +26,17 @@ sudo apt-get install make
 sudo apt-get install clang-format
 ```
 
-##### Clone and Build
+#### Installing Kiwi and Kiwi Common Library
+
+Clone and build Kiwi.  Run `sudo make install` to run the installation script.
 
 ```bash
 git clone https://github.com/fuseraft/kiwi.git
 cd kiwi
-make all
+sudo make install
 ```
 
-##### VS Code Extension
+#### Visual Studio Code Extension
 
 You can install the [extension](https://marketplace.visualstudio.com/items?itemName=fuseraft.kiwi-lang) for syntax-highlighting in VS Code.
 
@@ -53,7 +57,7 @@ To run the test suite, execute:
 make test
 ```
 
-##### Example: FizzBuzz
+###### Example: FizzBuzz
 
 ```ruby
 def fizzbuzz(@n)
@@ -77,7 +81,7 @@ end
 fizzbuzz(15)
 ```
 
-##### Example: Sieve of Eratosthenes
+###### Example: Sieve of Eratosthenes
 
 ```ruby
 def sieve_of_eratosthenes(@limit)

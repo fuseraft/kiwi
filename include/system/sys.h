@@ -8,11 +8,12 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <unistd.h>
 
 class Sys {
  public:
-  static int exec(const std::string& command) {
-    return std::system(command.c_str());
+  static long long exec(const std::string& command) {
+    return static_cast<long long>(std::system(command.c_str()));
   }
 
   static std::string execOut(const std::string& command) {
@@ -28,6 +29,8 @@ class Sys {
     }
     return result;
   }
+
+  static int getEffectiveUserId() { return geteuid(); }
 };
 
 #endif
