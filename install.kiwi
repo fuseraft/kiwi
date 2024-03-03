@@ -1,0 +1,44 @@
+# Check for root/sudo permissions
+if __euid__() != 0
+  println "Please run this script with sudo or as root."
+  exit 1
+end
+
+@bin_path = "/usr/bin/kiwi"
+@lib_path = "/usr/lib/kiwilib"
+@localbin_path = "./bin/kiwi"
+@locallib_path = "./lib/kiwilib"
+
+@counter = 0
+
+# Remove existing installation.
+if __isfile__(@bin_path)
+  @counter += __deletefile__(@bin_path) ? 0 : 1
+end
+
+if __isdir__(@lib_path)
+  @counter += __rmdirf__(@lib_path) > 0 ? 0 : 1
+end
+
+# Check for errors in removal process
+if @counter != 0
+  println "Failed to remove existing files/directories. Installation aborted."
+  exit 1
+end
+
+# Install kiwi
+if __isfile__(@localbin_path)
+  @counter += __copyfile__(@localbin_path, @bin_path) ? 0 : 1
+end
+
+if __isdir__(@locallib_path)
+  @counter += __copyr__(@locallib_path, @lib_path) ? 0 : 1
+end
+
+# Check for errors in installation process
+if @counter != 0
+  println "Failed to install kiwi. Please check permissions and try again."
+  exit 1
+end
+
+println "Kiwi installed successfully."
