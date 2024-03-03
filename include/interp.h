@@ -1548,6 +1548,9 @@ class Interpreter {
     }
     next(stream);  // Skip "["
 
+    if (!std::holds_alternative<std::shared_ptr<List>>(listValue)) {
+      throw InvalidOperationError(current(stream), "Expected a list type for list access operation.");
+    }
     auto listPtr = std::get<std::shared_ptr<List>>(listValue);
 
     SliceIndex slice;
@@ -3067,8 +3070,20 @@ class Interpreter {
                             std::shared_ptr<CallStackFrame> frame) {
     auto result = parseExpression(stream, frame);
 
-    while (current(stream).getType() == TokenType::DOT) {
-      result = interpretDotNotation(stream, result, frame);
+    while (current(stream).getType() == TokenType::DOT || current(stream).getType() == TokenType::OPEN_BRACKET) {
+      if (current(stream).getType() == TokenType::DOT) {
+        result = interpretDotNotation(stream, result, frame);
+      } else if (current(stream).getType() == TokenType::OPEN_BRACKET) {
+        if (!InterpHelper::isSliceAssignmentExpression(stream)) {
+          throw SyntaxError(current(stream),
+                            "Invalid slice-assignment expression.");
+        }
+
+        auto slice = interpretSliceIndex(stream, frame, result);
+        auto list = std::get<std::shared_ptr<List>>(result);
+
+        result = InterpHelper::interpretListSlice(stream, slice, list);
+      }
     }
 
     return result;
