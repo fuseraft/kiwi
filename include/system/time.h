@@ -13,9 +13,9 @@ class Time {
     return static_cast<double>(now_ns.time_since_epoch().count());
   }
 
-  static int delay(int ms) {
+  static long long delay(int ms) {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-    return ms;
+    return static_cast<long long>(ms);
   }
 
   static double epochMilliseconds() {
@@ -26,21 +26,37 @@ class Time {
 
   static double ticksToMilliseconds(double ticks) { return ticks / 1000000.0; }
 
-  static int currentHour() { return getLocalTime()->tm_hour; }
+  static long long currentHour() {
+    return static_cast<long long>(getLocalTime()->tm_hour);
+  }
 
-  static int currentMinute() { return getLocalTime()->tm_min; }
+  static long long currentMinute() {
+    return static_cast<long long>(getLocalTime()->tm_min);
+  }
 
-  static int currentSecond() { return getLocalTime()->tm_sec; }
+  static long long currentSecond() {
+    return static_cast<long long>(getLocalTime()->tm_sec);
+  }
 
-  static int currentMonthDay() { return getLocalTime()->tm_mday; }
+  static long long currentMonthDay() {
+    return static_cast<long long>(getLocalTime()->tm_mday);
+  }
 
-  static int currentWeekDay() { return 1 + getLocalTime()->tm_wday; }
+  static long long currentWeekDay() {
+    return static_cast<long long>(1 + getLocalTime()->tm_wday);
+  }
 
-  static int currentYearDay() { return getLocalTime()->tm_yday; }
+  static long long currentYearDay() {
+    return static_cast<long long>(getLocalTime()->tm_yday);
+  }
 
-  static int currentMonth() { return 1 + getLocalTime()->tm_mon; }
+  static long long currentMonth() {
+    return static_cast<long long>(1 + getLocalTime()->tm_mon);
+  }
 
-  static int currentYear() { return 1900 + getLocalTime()->tm_year; }
+  static long long currentYear() {
+    return static_cast<long long>(1900 + getLocalTime()->tm_year);
+  }
 
   static std::string getAMPM() { return currentHour() < 12 ? "AM" : "PM"; }
 

@@ -15,12 +15,24 @@ class SysBuiltinHandler {
       return executeExec(tokenTerm, args);
     } else if (builtin == SysBuiltins.ExecOut) {
       return executeExecOut(tokenTerm, args);
+    } else if (builtin == SysBuiltins.EffectiveUserId) {
+      return executeEffectiveUserId(tokenTerm, args);
     }
 
     throw UnknownBuiltinError(tokenTerm, builtin);
   }
 
  private:
+  static Value executeEffectiveUserId(const Token& tokenTerm,
+                                      const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm,
+                                           SysBuiltins.EffectiveUserId);
+    }
+
+    return Sys::getEffectiveUserId();
+  }
+
   static Value executeExec(const Token& tokenTerm,
                            const std::vector<Value>& args) {
     if (args.size() != 1) {

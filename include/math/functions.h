@@ -16,19 +16,19 @@ static std::string get_string(const Token& tokenTerm, const Value& arg) {
   return std::get<std::string>(arg);
 }
 
-static int get_integer(const Token& tokenTerm, const Value& arg) {
+static long long get_integer(const Token& tokenTerm, const Value& arg) {
   if (std::holds_alternative<double>(arg)) {
-    return static_cast<int>(std::get<double>(arg));
+    return static_cast<long long>(std::get<double>(arg));
   }
-  if (!std::holds_alternative<int>(arg)) {
+  if (!std::holds_alternative<long long>(arg)) {
     throw ConversionError(tokenTerm, "Expected an Integer value.");
   }
-  return std::get<int>(arg);
+  return std::get<long long>(arg);
 }
 
 static double get_integer_or_double(const Token& tokenTerm, const Value& arg) {
-  if (std::holds_alternative<int>(arg)) {
-    return std::get<int>(arg);
+  if (std::holds_alternative<long long>(arg)) {
+    return std::get<long long>(arg);
   } else if (std::holds_alternative<double>(arg)) {
     return std::get<double>(arg);
   }
@@ -40,8 +40,8 @@ struct {
   bool is_zero(Token tokenTerm, Value v) {
     if (std::holds_alternative<double>(v)) {
       return std::get<double>(v) == 0.0;
-    } else if (std::holds_alternative<int>(v)) {
-      return std::get<int>(v) == 0;
+    } else if (std::holds_alternative<long long>(v)) {
+      return std::get<long long>(v) == 0;
     } else {
       throw ConversionError(tokenTerm,
                             "Cannot check non-numeric value for zero value.");
@@ -53,26 +53,26 @@ struct {
   Value do_addition(const Token& token, Value left, Value right) {
     Value result;
 
-    if (std::holds_alternative<int>(left) &&
-        std::holds_alternative<int>(right)) {
-      result = std::get<int>(left) + std::get<int>(right);
+    if (std::holds_alternative<long long>(left) &&
+        std::holds_alternative<long long>(right)) {
+      result = std::get<long long>(left) + std::get<long long>(right);
     } else if (std::holds_alternative<double>(left) &&
                std::holds_alternative<double>(right)) {
       result = std::get<double>(left) + std::get<double>(right);
-    } else if (std::holds_alternative<int>(left) &&
+    } else if (std::holds_alternative<long long>(left) &&
                std::holds_alternative<double>(right)) {
-      result =
-          static_cast<double>(std::get<int>(left)) + std::get<double>(right);
+      result = static_cast<double>(std::get<long long>(left)) +
+               std::get<double>(right);
     } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<int>(right)) {
-      result =
-          std::get<double>(left) + static_cast<double>(std::get<int>(right));
+               std::holds_alternative<long long>(right)) {
+      result = std::get<double>(left) +
+               static_cast<double>(std::get<long long>(right));
     } else if (std::holds_alternative<std::string>(left)) {
       std::ostringstream build;
       build << std::get<std::string>(left);
 
-      if (std::holds_alternative<int>(right)) {
-        build << std::get<int>(right);
+      if (std::holds_alternative<long long>(right)) {
+        build << std::get<long long>(right);
       } else if (std::holds_alternative<double>(right)) {
         build << std::get<double>(right);
       } else if (std::holds_alternative<bool>(right)) {
@@ -92,20 +92,20 @@ struct {
   Value do_subtraction(const Token& token, Value left, Value right) {
     Value result;
 
-    if (std::holds_alternative<int>(left) &&
-        std::holds_alternative<int>(right)) {
-      result = std::get<int>(left) - std::get<int>(right);
+    if (std::holds_alternative<long long>(left) &&
+        std::holds_alternative<long long>(right)) {
+      result = std::get<long long>(left) - std::get<long long>(right);
     } else if (std::holds_alternative<double>(left) &&
                std::holds_alternative<double>(right)) {
       result = std::get<double>(left) - std::get<double>(right);
-    } else if (std::holds_alternative<int>(left) &&
+    } else if (std::holds_alternative<long long>(left) &&
                std::holds_alternative<double>(right)) {
-      result =
-          static_cast<double>(std::get<int>(left)) - std::get<double>(right);
+      result = static_cast<double>(std::get<long long>(left)) -
+               std::get<double>(right);
     } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<int>(right)) {
-      result =
-          std::get<double>(left) - static_cast<double>(std::get<int>(right));
+               std::holds_alternative<long long>(right)) {
+      result = std::get<double>(left) -
+               static_cast<double>(std::get<long long>(right));
     } else {
       throw ConversionError(token, "Conversion error in subtraction.");
     }
@@ -116,20 +116,21 @@ struct {
   Value do_exponentiation(const Token& token, Value left, Value right) {
     Value result;
 
-    if (std::holds_alternative<int>(left) &&
-        std::holds_alternative<int>(right)) {
-      result = static_cast<int>(pow(std::get<int>(left), std::get<int>(right)));
+    if (std::holds_alternative<long long>(left) &&
+        std::holds_alternative<long long>(right)) {
+      result = static_cast<long long>(
+          pow(std::get<long long>(left), std::get<long long>(right)));
     } else if (std::holds_alternative<double>(left) &&
                std::holds_alternative<double>(right)) {
       result = pow(std::get<double>(left), std::get<double>(right));
-    } else if (std::holds_alternative<int>(left) &&
+    } else if (std::holds_alternative<long long>(left) &&
                std::holds_alternative<double>(right)) {
-      result = pow(static_cast<double>(std::get<int>(left)),
+      result = pow(static_cast<double>(std::get<long long>(left)),
                    std::get<double>(right));
     } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<int>(right)) {
+               std::holds_alternative<long long>(right)) {
       result = pow(std::get<double>(left),
-                   static_cast<double>(std::get<int>(right)));
+                   static_cast<double>(std::get<long long>(right)));
     } else {
       throw ConversionError(token, "Conversion error in exponentiation.");
     }
@@ -140,13 +141,13 @@ struct {
   Value do_modulus(const Token& token, Value left, Value right) {
     Value result;
 
-    if (std::holds_alternative<int>(left) &&
-        std::holds_alternative<int>(right)) {
-      int rhs = std::get<int>(right);
+    if (std::holds_alternative<long long>(left) &&
+        std::holds_alternative<long long>(right)) {
+      int rhs = std::get<long long>(right);
       if (rhs == 0) {
         throw DivideByZeroError(token);
       }
-      result = std::get<int>(left) % std::get<int>(right);
+      result = std::get<long long>(left) % std::get<long long>(right);
     } else if (std::holds_alternative<double>(left) &&
                std::holds_alternative<double>(right)) {
       double rhs = std::get<double>(right);
@@ -154,16 +155,16 @@ struct {
         throw DivideByZeroError(token);
       }
       result = fmod(std::get<double>(left), rhs);
-    } else if (std::holds_alternative<int>(left) &&
+    } else if (std::holds_alternative<long long>(left) &&
                std::holds_alternative<double>(right)) {
       double rhs = std::get<double>(right);
       if (rhs == 0.0) {
         throw DivideByZeroError(token);
       }
-      result = fmod(std::get<int>(left), rhs);
+      result = fmod(std::get<long long>(left), rhs);
     } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<int>(right)) {
-      double rhs = static_cast<double>(std::get<int>(right));
+               std::holds_alternative<long long>(right)) {
+      double rhs = static_cast<double>(std::get<long long>(right));
       if (rhs == 0) {
         throw DivideByZeroError(token);
       }
@@ -178,13 +179,13 @@ struct {
   Value do_division(const Token& token, Value left, Value right) {
     Value result;
 
-    if (std::holds_alternative<int>(left) &&
-        std::holds_alternative<int>(right)) {
-      int rhs = std::get<int>(right);
+    if (std::holds_alternative<long long>(left) &&
+        std::holds_alternative<long long>(right)) {
+      int rhs = std::get<long long>(right);
       if (rhs == 0) {
         throw DivideByZeroError(token);
       }
-      result = std::get<int>(left) / rhs;
+      result = std::get<long long>(left) / rhs;
     } else if (std::holds_alternative<double>(left) &&
                std::holds_alternative<double>(right)) {
       double rhs = std::get<double>(right);
@@ -192,16 +193,16 @@ struct {
         throw DivideByZeroError(token);
       }
       result = std::get<double>(left) / rhs;
-    } else if (std::holds_alternative<int>(left) &&
+    } else if (std::holds_alternative<long long>(left) &&
                std::holds_alternative<double>(right)) {
       double rhs = std::get<double>(right);
       if (rhs == 0.0) {
         throw DivideByZeroError(token);
       }
-      result = static_cast<double>(std::get<int>(left)) / rhs;
+      result = static_cast<double>(std::get<long long>(left)) / rhs;
     } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<int>(right)) {
-      double rhs = static_cast<double>(std::get<int>(right));
+               std::holds_alternative<long long>(right)) {
+      double rhs = static_cast<double>(std::get<long long>(right));
       if (rhs == 0.0) {
         throw DivideByZeroError(token);
       }
@@ -216,25 +217,25 @@ struct {
   Value do_multiplication(const Token& token, Value left, Value right) {
     Value result;
 
-    if (std::holds_alternative<int>(left) &&
-        std::holds_alternative<int>(right)) {
-      result = std::get<int>(left) * std::get<int>(right);
+    if (std::holds_alternative<long long>(left) &&
+        std::holds_alternative<long long>(right)) {
+      result = std::get<long long>(left) * std::get<long long>(right);
     } else if (std::holds_alternative<double>(left) &&
                std::holds_alternative<double>(right)) {
       result = std::get<double>(left) * std::get<double>(right);
-    } else if (std::holds_alternative<int>(left) &&
+    } else if (std::holds_alternative<long long>(left) &&
                std::holds_alternative<double>(right)) {
-      result =
-          static_cast<double>(std::get<int>(left)) * std::get<double>(right);
+      result = static_cast<double>(std::get<long long>(left)) *
+               std::get<double>(right);
     } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<int>(right)) {
-      result =
-          std::get<double>(left) * static_cast<double>(std::get<int>(right));
+               std::holds_alternative<long long>(right)) {
+      result = std::get<double>(left) *
+               static_cast<double>(std::get<long long>(right));
     } else if (std::holds_alternative<std::string>(left) &&
-               std::holds_alternative<int>(right)) {
+               std::holds_alternative<long long>(right)) {
       do_string_multiplication(left, right, token, result);
     } else if (std::holds_alternative<std::shared_ptr<List>>(left) &&
-               std::holds_alternative<int>(right)) {
+               std::holds_alternative<long long>(right)) {
       do_list_multiplication(left, right, token, result);
     } else {
       throw ConversionError(token, "Conversion error in multiplication.");
@@ -246,7 +247,7 @@ struct {
   void do_list_multiplication(Value& left, Value& right, const Token& token,
                               Value& result) {
     auto list = std::get<std::shared_ptr<List>>(left);
-    int multiplier = std::get<int>(right);
+    int multiplier = std::get<long long>(right);
 
     if (multiplier < 1) {
       throw SyntaxError(token,
@@ -271,7 +272,7 @@ struct {
   void do_string_multiplication(Value& left, Value& right, const Token& token,
                                 Value& result) {
     auto string = std::get<std::string>(left);
-    int multiplier = std::get<int>(right);
+    int multiplier = std::get<long long>(right);
 
     if (multiplier < 1) {
       throw SyntaxError(
@@ -290,20 +291,20 @@ struct {
   Value do_eq_comparison(const Token& token, Value left, Value right) {
     Value result;
 
-    if (std::holds_alternative<int>(left) &&
-        std::holds_alternative<int>(right)) {
-      result = std::get<int>(left) == std::get<int>(right);
+    if (std::holds_alternative<long long>(left) &&
+        std::holds_alternative<long long>(right)) {
+      result = std::get<long long>(left) == std::get<long long>(right);
     } else if (std::holds_alternative<double>(left) &&
                std::holds_alternative<double>(right)) {
       result = std::get<double>(left) == std::get<double>(right);
-    } else if (std::holds_alternative<int>(left) &&
+    } else if (std::holds_alternative<long long>(left) &&
                std::holds_alternative<double>(right)) {
-      result =
-          static_cast<double>(std::get<int>(left)) == std::get<double>(right);
+      result = static_cast<double>(std::get<long long>(left)) ==
+               std::get<double>(right);
     } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<int>(right)) {
-      result =
-          std::get<double>(left) == static_cast<double>(std::get<int>(right));
+               std::holds_alternative<long long>(right)) {
+      result = std::get<double>(left) ==
+               static_cast<double>(std::get<long long>(right));
     } else if (std::holds_alternative<std::string>(left) &&
                std::holds_alternative<std::string>(right)) {
       result = std::get<std::string>(left) == std::get<std::string>(right);
@@ -320,20 +321,20 @@ struct {
   Value do_neq_comparison(const Token& token, Value left, Value right) {
     Value result;
 
-    if (std::holds_alternative<int>(left) &&
-        std::holds_alternative<int>(right)) {
-      result = std::get<int>(left) != std::get<int>(right);
+    if (std::holds_alternative<long long>(left) &&
+        std::holds_alternative<long long>(right)) {
+      result = std::get<long long>(left) != std::get<long long>(right);
     } else if (std::holds_alternative<double>(left) &&
                std::holds_alternative<double>(right)) {
       result = std::get<double>(left) != std::get<double>(right);
-    } else if (std::holds_alternative<int>(left) &&
+    } else if (std::holds_alternative<long long>(left) &&
                std::holds_alternative<double>(right)) {
-      result =
-          static_cast<double>(std::get<int>(left)) != std::get<double>(right);
+      result = static_cast<double>(std::get<long long>(left)) !=
+               std::get<double>(right);
     } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<int>(right)) {
-      result =
-          std::get<double>(left) != static_cast<double>(std::get<int>(right));
+               std::holds_alternative<long long>(right)) {
+      result = std::get<double>(left) !=
+               static_cast<double>(std::get<long long>(right));
     } else if (std::holds_alternative<std::string>(left) &&
                std::holds_alternative<std::string>(right)) {
       result = std::get<std::string>(left) != std::get<std::string>(right);
@@ -350,20 +351,20 @@ struct {
   Value do_lt_comparison(const Token& token, Value left, Value right) {
     Value result;
 
-    if (std::holds_alternative<int>(left) &&
-        std::holds_alternative<int>(right)) {
-      result = std::get<int>(left) < std::get<int>(right);
+    if (std::holds_alternative<long long>(left) &&
+        std::holds_alternative<long long>(right)) {
+      result = std::get<long long>(left) < std::get<long long>(right);
     } else if (std::holds_alternative<double>(left) &&
                std::holds_alternative<double>(right)) {
       result = std::get<double>(left) < std::get<double>(right);
-    } else if (std::holds_alternative<int>(left) &&
+    } else if (std::holds_alternative<long long>(left) &&
                std::holds_alternative<double>(right)) {
-      result =
-          static_cast<double>(std::get<int>(left)) < std::get<double>(right);
+      result = static_cast<double>(std::get<long long>(left)) <
+               std::get<double>(right);
     } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<int>(right)) {
-      result =
-          std::get<double>(left) < static_cast<double>(std::get<int>(right));
+               std::holds_alternative<long long>(right)) {
+      result = std::get<double>(left) <
+               static_cast<double>(std::get<long long>(right));
     } else {
       throw ConversionError(token, "Conversion error in < comparison.");
     }
@@ -374,20 +375,20 @@ struct {
   Value do_lte_comparison(const Token& token, Value left, Value right) {
     Value result;
 
-    if (std::holds_alternative<int>(left) &&
-        std::holds_alternative<int>(right)) {
-      result = std::get<int>(left) <= std::get<int>(right);
+    if (std::holds_alternative<long long>(left) &&
+        std::holds_alternative<long long>(right)) {
+      result = std::get<long long>(left) <= std::get<long long>(right);
     } else if (std::holds_alternative<double>(left) &&
                std::holds_alternative<double>(right)) {
       result = std::get<double>(left) <= std::get<double>(right);
-    } else if (std::holds_alternative<int>(left) &&
+    } else if (std::holds_alternative<long long>(left) &&
                std::holds_alternative<double>(right)) {
-      result =
-          static_cast<double>(std::get<int>(left)) <= std::get<double>(right);
+      result = static_cast<double>(std::get<long long>(left)) <=
+               std::get<double>(right);
     } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<int>(right)) {
-      result =
-          std::get<double>(left) <= static_cast<double>(std::get<int>(right));
+               std::holds_alternative<long long>(right)) {
+      result = std::get<double>(left) <=
+               static_cast<double>(std::get<long long>(right));
     } else {
       throw ConversionError(token, "Conversion error in <= comparison.");
     }
@@ -398,20 +399,20 @@ struct {
   Value do_gt_comparison(const Token& token, Value left, Value right) {
     Value result;
 
-    if (std::holds_alternative<int>(left) &&
-        std::holds_alternative<int>(right)) {
-      result = std::get<int>(left) > std::get<int>(right);
+    if (std::holds_alternative<long long>(left) &&
+        std::holds_alternative<long long>(right)) {
+      result = std::get<long long>(left) > std::get<long long>(right);
     } else if (std::holds_alternative<double>(left) &&
                std::holds_alternative<double>(right)) {
       result = std::get<double>(left) > std::get<double>(right);
-    } else if (std::holds_alternative<int>(left) &&
+    } else if (std::holds_alternative<long long>(left) &&
                std::holds_alternative<double>(right)) {
-      result =
-          static_cast<double>(std::get<int>(left)) > std::get<double>(right);
+      result = static_cast<double>(std::get<long long>(left)) >
+               std::get<double>(right);
     } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<int>(right)) {
-      result =
-          std::get<double>(left) > static_cast<double>(std::get<int>(right));
+               std::holds_alternative<long long>(right)) {
+      result = std::get<double>(left) >
+               static_cast<double>(std::get<long long>(right));
     } else {
       throw ConversionError(token, "Conversion error in > comparison.");
     }
@@ -422,20 +423,20 @@ struct {
   Value do_gte_comparison(const Token& token, Value left, Value right) {
     Value result;
 
-    if (std::holds_alternative<int>(left) &&
-        std::holds_alternative<int>(right)) {
-      result = std::get<int>(left) >= std::get<int>(right);
+    if (std::holds_alternative<long long>(left) &&
+        std::holds_alternative<long long>(right)) {
+      result = std::get<long long>(left) >= std::get<long long>(right);
     } else if (std::holds_alternative<double>(left) &&
                std::holds_alternative<double>(right)) {
       result = std::get<double>(left) >= std::get<double>(right);
-    } else if (std::holds_alternative<int>(left) &&
+    } else if (std::holds_alternative<long long>(left) &&
                std::holds_alternative<double>(right)) {
-      result =
-          static_cast<double>(std::get<int>(left)) >= std::get<double>(right);
+      result = static_cast<double>(std::get<long long>(left)) >=
+               std::get<double>(right);
     } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<int>(right)) {
-      result =
-          std::get<double>(left) >= static_cast<double>(std::get<int>(right));
+               std::holds_alternative<long long>(right)) {
+      result = std::get<double>(left) >=
+               static_cast<double>(std::get<long long>(right));
     } else {
       throw ConversionError(token, "Conversion error in >= comparison.");
     }
@@ -446,9 +447,9 @@ struct {
   Value do_bitwise_and(const Token& token, Value left, Value right) {
     Value result;
 
-    if (std::holds_alternative<int>(left) &&
-        std::holds_alternative<int>(right)) {
-      result = std::get<int>(left) & std::get<int>(right);
+    if (std::holds_alternative<long long>(left) &&
+        std::holds_alternative<long long>(right)) {
+      result = std::get<long long>(left) & std::get<long long>(right);
     } else {
       throw ConversionError(token, "Conversion error in bitwise & operation.");
     }
@@ -459,9 +460,9 @@ struct {
   Value do_bitwise_or(const Token& token, Value left, Value right) {
     Value result;
 
-    if (std::holds_alternative<int>(left) &&
-        std::holds_alternative<int>(right)) {
-      result = std::get<int>(left) | std::get<int>(right);
+    if (std::holds_alternative<long long>(left) &&
+        std::holds_alternative<long long>(right)) {
+      result = std::get<long long>(left) | std::get<long long>(right);
     } else {
       throw ConversionError(token, "Conversion error in bitwise | operation.");
     }
@@ -472,9 +473,9 @@ struct {
   Value do_bitwise_xor(const Token& token, Value left, Value right) {
     Value result;
 
-    if (std::holds_alternative<int>(left) &&
-        std::holds_alternative<int>(right)) {
-      result = std::get<int>(left) ^ std::get<int>(right);
+    if (std::holds_alternative<long long>(left) &&
+        std::holds_alternative<long long>(right)) {
+      result = std::get<long long>(left) ^ std::get<long long>(right);
     } else {
       throw ConversionError(token, "Conversion error in bitwise ^ operation.");
     }
@@ -485,8 +486,8 @@ struct {
   Value do_bitwise_not(const Token& token, Value left) {
     Value result;
 
-    if (std::holds_alternative<int>(left)) {
-      result = ~std::get<int>(left);
+    if (std::holds_alternative<long long>(left)) {
+      result = ~std::get<long long>(left);
     } else {
       throw ConversionError(token, "Conversion error in bitwise ~ operation.");
     }
@@ -497,9 +498,9 @@ struct {
   Value do_bitwise_lshift(const Token& token, Value left, Value right) {
     Value result;
 
-    if (std::holds_alternative<int>(left) &&
-        std::holds_alternative<int>(right)) {
-      result = std::get<int>(left) << std::get<int>(right);
+    if (std::holds_alternative<long long>(left) &&
+        std::holds_alternative<long long>(right)) {
+      result = std::get<long long>(left) << std::get<long long>(right);
     } else {
       throw ConversionError(token, "Conversion error in bitwise << operation.");
     }
@@ -510,9 +511,9 @@ struct {
   Value do_bitwise_rshift(const Token& token, Value left, Value right) {
     Value result;
 
-    if (std::holds_alternative<int>(left) &&
-        std::holds_alternative<int>(right)) {
-      result = std::get<int>(left) >> std::get<int>(right);
+    if (std::holds_alternative<long long>(left) &&
+        std::holds_alternative<long long>(right)) {
+      result = std::get<long long>(left) >> std::get<long long>(right);
     } else {
       throw ConversionError(token, "Conversion error in bitwise >> operation.");
     }
@@ -523,8 +524,8 @@ struct {
   double get_double(const Token& token, Value value) {
     double doubleValue;
 
-    if (std::holds_alternative<int>(value)) {
-      doubleValue = static_cast<double>(std::get<int>(value));
+    if (std::holds_alternative<long long>(value)) {
+      doubleValue = static_cast<double>(std::get<long long>(value));
     } else if (std::holds_alternative<double>(value)) {
       doubleValue = std::get<double>(value);
     } else {
@@ -693,8 +694,9 @@ struct {
   }
 
   Value do_abs(const Token& token, Value value) {
-    if (std::holds_alternative<int>(value)) {
-      return abs(static_cast<int>(std::get<int>(value)));
+    if (std::holds_alternative<long long>(value)) {
+      return static_cast<long long>(
+          labs(static_cast<long>(std::get<long long>(value))));
     } else if (std::holds_alternative<double>(value)) {
       return fabs(std::get<double>(value));
     }
@@ -709,9 +711,9 @@ struct {
       double x = get_integer_or_double(token, valueX),
              y = get_integer_or_double(token, valueY);
       return RNG::getInstance().random(x, y);
-    } else if (std::holds_alternative<int>(valueX) ||
-               std::holds_alternative<int>(valueY)) {
-      int x = get_integer(token, valueX), y = get_integer(token, valueY);
+    } else if (std::holds_alternative<long long>(valueX) ||
+               std::holds_alternative<long long>(valueY)) {
+      auto x = get_integer(token, valueX), y = get_integer(token, valueY);
       return RNG::getInstance().random(x, y);
     }
 
