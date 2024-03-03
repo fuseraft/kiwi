@@ -90,6 +90,12 @@ import "@kiwi/fileio"
   - `@_glob`: The glob pattern.
 - **Returns**: List of file paths matched by glob pattern.
 
+### `isdir(@_path)`
+- **Summary**: Check if a path is a directory.
+- **Params**:
+  - `@_path`: The path to a directory.
+- **Returns**: Boolean indicating whether the path is a directory.
+
 ### `listdir(@_path)`
 
 - **Summary**: Retrieve a List of directory entries.

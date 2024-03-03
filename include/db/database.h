@@ -178,8 +178,8 @@ class OdbcConnection {
     std::string query = "EXEC " + sanitizeString(sp) + " ";
 
     for (const auto& param : params->elements) {
-      if (std::holds_alternative<int>(param)) {
-        query += std::to_string(std::get<int>(param)) + ",";
+      if (std::holds_alternative<long long>(param)) {
+        query += std::to_string(std::get<long long>(param)) + ",";
       } else if (std::holds_alternative<double>(param)) {
         query += std::to_string(std::get<double>(param)) + ",";
       } else if (std::holds_alternative<bool>(param)) {

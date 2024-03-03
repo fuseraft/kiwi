@@ -185,8 +185,8 @@ class Interpreter {
     bool doUpdate = true;
     bool inObjectContext = frame->inObjectContext();
 
-    if (inObjectContext && std::holds_alternative<int>(returnValue) &&
-        std::get<int>(returnValue) == 0) {
+    if (inObjectContext && std::holds_alternative<long long>(returnValue) &&
+        std::get<long long>(returnValue) == 0) {
       returnValue = std::move(frame->objectContext);
       doUpdate = false;
     }
@@ -536,6 +536,8 @@ class Interpreter {
       interpretMethodDefinition(stream, frame);
     } else if (keyword == Keywords.Return) {
       interpretReturn(stream, frame);
+    } else if (keyword == Keywords.Exit) {
+      interpretExit(stream, frame);
     } else if (keyword == Keywords.PrintLn || keyword == Keywords.Print) {
       interpretPrint(stream, frame, keyword == Keywords.PrintLn);
     } else if (keyword == Keywords.Import) {
@@ -1365,6 +1367,28 @@ class Interpreter {
     methods[name] = method;
   }
 
+  void interpretExit(std::shared_ptr<TokenStream> stream,
+                     std::shared_ptr<CallStackFrame> frame) {
+    bool hasValue = InterpHelper::hasReturnValue(stream);
+    next(stream);  // Skip "exit"
+
+    Value returnValue;
+
+    if (hasValue) {
+      returnValue = interpretExpression(stream, frame);
+    }
+
+    if (std::holds_alternative<long long>(returnValue)) {
+      int exitCode = static_cast<int>(std::get<long long>(returnValue));
+      exit(exitCode);
+    } else {
+      exit(1);
+    }
+
+    frame->returnValue = returnValue;
+    frame->setFlag(FrameFlags::ReturnFlag);
+  }
+
   void interpretReturn(std::shared_ptr<TokenStream> stream,
                        std::shared_ptr<CallStackFrame> frame) {
     bool hasValue = InterpHelper::hasReturnValue(stream);
@@ -1611,12 +1635,12 @@ class Interpreter {
                      std::shared_ptr<CallStackFrame> frame) {
     auto output = interpretKeyOrIndex(stream, frame);
 
-    if (!std::holds_alternative<int>(output)) {
+    if (!std::holds_alternative<long long>(output)) {
       throw SyntaxError(current(stream),
                         "List index must be an integer value.");
     }
 
-    return std::get<int>(output);
+    return std::get<long long>(output);
   }
 
   Value interpretHashElementAccess(std::shared_ptr<TokenStream> stream,
@@ -1697,17 +1721,18 @@ class Interpreter {
     }
     next(stream);  // Skip the "]"
 
-    if (!std::holds_alternative<int>(startValue)) {
+    if (!std::holds_alternative<long long>(startValue)) {
       throw RangeError(current(stream),
                        "A range start value must be an integer.");
     }
 
-    if (!std::holds_alternative<int>(stopValue)) {
+    if (!std::holds_alternative<long long>(stopValue)) {
       throw RangeError(current(stream),
                        "A range stop value must be an integer.");
     }
 
-    int start = std::get<int>(startValue), stop = std::get<int>(stopValue);
+    int start = std::get<long long>(startValue),
+        stop = std::get<long long>(stopValue);
     int step = stop < start ? -1 : 1;
     int i = start;
 
@@ -2952,8 +2977,8 @@ class Interpreter {
         if (std::holds_alternative<bool>(right)) {
           bool rhs = std::get<bool>(right);
           return !rhs;
-        } else if (std::holds_alternative<int>(right)) {
-          int rhs = std::get<int>(right);
+        } else if (std::holds_alternative<long long>(right)) {
+          int rhs = std::get<long long>(right);
           if (rhs == 0) {
             return 1;
           } else if (rhs == 1) {
@@ -2964,8 +2989,8 @@ class Interpreter {
         throw ConversionError(current(stream),
                               "Expected a `Boolean` expression.");
       } else if (op == Operators.Subtract) {
-        if (std::holds_alternative<int>(right)) {
-          return -std::get<int>(right);
+        if (std::holds_alternative<long long>(right)) {
+          return -std::get<long long>(right);
         } else if (std::holds_alternative<double>(right)) {
           return -std::get<double>(right);
         } else {
