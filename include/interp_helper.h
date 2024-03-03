@@ -35,29 +35,6 @@ struct InterpHelper {
     }
   }
 
-  static Method interpretLambda(std::shared_ptr<TokenStream> stream) {
-    next(stream);  // Skip "lambda"
-    Method lambda;
-    lambda.setName(getTemporaryId());
-
-    interpretMethodParameters(lambda, stream);
-
-    if (current(stream).getText() != Keywords.Do) {
-      throw SyntaxError(current(stream), "Expected `do` in lambda expression.");
-    }
-    next(stream);  // Skip "do"
-
-    std::vector<Token> lambdaTokens;
-    collectBodyTokens(lambdaTokens, stream);
-    for (Token t : lambdaTokens) {
-      lambda.addToken(t);
-    }
-
-    lambda.setFlag(MethodFlags::Lambda);
-
-    return lambda;
-  }
-
   static bool isSliceAssignmentExpression(std::shared_ptr<TokenStream> stream) {
     size_t pos = stream->position;
     bool isSliceAssignment = false;
@@ -468,97 +445,6 @@ struct InterpHelper {
       next(stream);  // Skip base class.
     }
     return baseClassName;
-  }
-
-  static Method interpretMethodDeclaration(
-      std::shared_ptr<TokenStream> stream) {
-    Method method;
-
-    while (stream->canRead() && current(stream).getText() != Keywords.Method) {
-      if (current(stream).getText() == Keywords.Abstract) {
-        method.setFlag(MethodFlags::Abstract);
-      } else if (current(stream).getText() == Keywords.Override) {
-        method.setFlag(MethodFlags::Override);
-      } else if (current(stream).getText() == Keywords.Private) {
-        method.setFlag(MethodFlags::Private);
-      } else if (current(stream).getText() == Keywords.Static) {
-        method.setFlag(MethodFlags::Static);
-      }
-      next(stream);
-    }
-    next(stream);  // Skip "def"
-
-    auto name = current(stream).getText();
-    method.setName(name);
-    next(stream);  // Skip the name.
-    interpretMethodParameters(method, stream);
-    int counter = 1;
-
-    if (method.isFlagSet(MethodFlags::Abstract)) {
-      return method;
-    }
-
-    while (stream->canRead() && counter > 0) {
-      if (current(stream).getText() == Keywords.End) {
-        --counter;
-
-        // Stop here.
-        if (counter == 0) {
-          next(stream);  // Skip "end"
-          break;
-        }
-      } else if (Keywords.is_block_keyword(current(stream).getText())) {
-        ++counter;
-      }
-
-      auto codeToken = current(stream);
-      method.addToken(codeToken);
-      next(stream);
-
-      if (current(stream).getType() == TokenType::STREAM_END) {
-        throw SyntaxError(current(stream),
-                          "Invalid method declaration `" + name + "`");
-      }
-    }
-
-    return method;
-  }
-
-  static std::vector<std::string> getParameterSet(
-      std::shared_ptr<TokenStream> stream) {
-    auto tokenTerm = current(stream);
-    if (current(stream).getType() != TokenType::OPEN_PAREN) {
-      throw SyntaxError(
-          tokenTerm,
-          "Expected open-parenthesis, `(`, in parameter set expression.");
-    }
-    next(stream);  // Skip "("
-
-    std::vector<std::string> paramSet;
-
-    while (stream->canRead() &&
-           current(stream).getType() != TokenType::CLOSE_PAREN) {
-      auto parameterToken = current(stream);
-      if (parameterToken.getType() == TokenType::IDENTIFIER) {
-        paramSet.push_back(parameterToken.getText());
-      }
-      next(stream);
-    }
-
-    if (current(stream).getType() != TokenType::CLOSE_PAREN) {
-      throw SyntaxError(
-          tokenTerm,
-          "Expected close-parenthesis, `)`, in parameter set expression.");
-    }
-    next(stream);  // Skip ")"
-    return paramSet;
-  }
-
-  static void interpretMethodParameters(Method& method,
-                                        std::shared_ptr<TokenStream> stream) {
-    for (const auto& param : getParameterSet(stream)) {
-      method.addParameterName(param);
-    }
   }
 };
 
