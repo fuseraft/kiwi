@@ -233,11 +233,13 @@ class Interpreter {
   }
 
   std::shared_ptr<CallStackFrame> buildSubFrame(
-      std::shared_ptr<CallStackFrame> frame) {
+      std::shared_ptr<CallStackFrame> frame, bool isMethodInvocation = false) {
     auto subFrame = std::make_shared<CallStackFrame>();
 
-    for (const auto& pair : frame->variables) {
-      subFrame->variables[pair.first] = pair.second;
+    if (!isMethodInvocation) {
+      for (const auto& pair : frame->variables) {
+        subFrame->variables[pair.first] = pair.second;
+      }
     }
 
     if (frame->inObjectContext()) {
@@ -1004,7 +1006,7 @@ class Interpreter {
       std::shared_ptr<TokenStream> stream, Token& tokenTerm, Method& method,
       std::shared_ptr<CallStackFrame> frame) {
     auto parameters = collectMethodParameters(stream, tokenTerm, method, frame);
-    auto codeFrame = buildSubFrame(frame);
+    auto codeFrame = buildSubFrame(frame, true);
 
     for (const auto& pair : frame->lambdas) {
       // Check this.
@@ -2367,7 +2369,7 @@ class Interpreter {
       }
 
       auto loopStream = std::make_shared<TokenStream>(lambda.getCode());
-      callStack.push(buildSubFrame(frame));
+      callStack.push(buildSubFrame(frame, true));
       streamStack.push(loopStream);
       interpretStackFrame();
 
@@ -2434,7 +2436,7 @@ class Interpreter {
       }
 
       auto loopStream = std::make_shared<TokenStream>(lambda.getCode());
-      callStack.push(buildSubFrame(frame));
+      callStack.push(buildSubFrame(frame, true));
       streamStack.push(loopStream);
       interpretStackFrame();
 
@@ -2490,7 +2492,7 @@ class Interpreter {
       }
 
       auto loopStream = std::make_shared<TokenStream>(lambda.getCode());
-      callStack.push(buildSubFrame(frame));
+      callStack.push(buildSubFrame(frame, true));
       streamStack.push(loopStream);
       interpretStackFrame();
 
