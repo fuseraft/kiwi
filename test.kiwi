@@ -7,7 +7,7 @@ import "@kiwi/time"
 
 # Search pattern for Kiwi scripts, excluding certain files and directories
 @search_pattern = "./**/*.kiwi"
-@exclusions = ["test.kiwi", "app.kiwi", "/kiwilib/", "/examples/"]
+@exclusions = ["install.kiwi", "test.kiwi", "app.kiwi", "/kiwilib/", "/examples/"]
 
 println "Searching for Kiwi scripts..."
 for @file in fileio::glob(@search_pattern) do
