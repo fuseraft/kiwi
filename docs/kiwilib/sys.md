@@ -12,6 +12,10 @@ import "@kiwi/sys"
 
 ## Module Functions
 
+### `euid()`
+- **Summary**: Get the effective user ID.
+- **Returns**: Integer containing effective user ID.
+
 ### `exec(@_command)`
 - **Summary**: Run an external process and capture its exit code.
 - **Parameters**:

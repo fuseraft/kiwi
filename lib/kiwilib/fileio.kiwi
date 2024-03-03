@@ -116,6 +116,16 @@ module fileio
   end
 
   ##
+  Summary: Check if a path exists.
+  Params:
+    - @_path: The path to a directory.
+  Returns: Boolean
+  ##
+  def isdir(@_path)
+    return __isdir__(@_path)
+  end
+
+  ##
   Summary: Retrieve a List of directory entries.
   Params:
     - @_path: The directory path.

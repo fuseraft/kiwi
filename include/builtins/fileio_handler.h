@@ -57,6 +57,8 @@ class FileIOBuiltinHandler {
       return executeGetFileSize(token, args);
     } else if (builtin == FileIOBuiltIns.CopyFile) {
       return executeCopyFile(token, args);
+    } else if (builtin == FileIOBuiltIns.CopyR) {
+      return executeCopyR(token, args);
     } else if (builtin == FileIOBuiltIns.MoveFile) {
       return executeMoveFile(token, args);
     } else if (builtin == FileIOBuiltIns.ReadLines) {

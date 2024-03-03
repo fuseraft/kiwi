@@ -38,6 +38,7 @@ struct {
 
   std::unordered_set<std::string> builtins = {AppendText,
                                               CopyFile,
+                                              CopyR,
                                               CreateFile,
                                               DeleteFile,
                                               MoveFile,
@@ -242,10 +243,11 @@ struct {
 } ArgvBuiltins;
 
 struct {
+  const std::string EffectiveUserId = "__euid__";
   const std::string Exec = "__exec__";
   const std::string ExecOut = "__execout__";
 
-  std::unordered_set<std::string> builtins = {Exec, ExecOut};
+  std::unordered_set<std::string> builtins = {EffectiveUserId, Exec, ExecOut};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
