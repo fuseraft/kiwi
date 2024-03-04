@@ -3012,7 +3012,20 @@ class Interpreter {
 
   Value parsePrimary(std::shared_ptr<TokenStream> stream,
                      std::shared_ptr<CallStackFrame> frame) {
-    // Implement parsing of numbers, parentheses, identifiers, etc.
+    if (current(stream).getValueType() == ValueType::Integer) {
+      auto value = current(stream).toInteger();
+      next(stream);
+      return value;
+    } else if (current(stream).getValueType() == ValueType::Double) {
+      auto value = current(stream).toDouble();
+      next(stream);
+      return value;
+    } else if (current(stream).getValueType() == ValueType::Boolean) {
+      auto value = current(stream).toBoolean();
+      next(stream);
+      return value;
+    }
+
     if (current(stream).getType() == TokenType::DECLVAR) {
       next(stream);
     }
@@ -3045,18 +3058,6 @@ class Interpreter {
     } else if (current(stream).getType() == TokenType::KEYWORD &&
                current(stream).getText() == Keywords.This) {
       return interpretSelfInvocationTerm(stream, frame);
-    } else if (current(stream).getValueType() == ValueType::Boolean) {
-      auto value = current(stream).toBoolean();
-      next(stream);
-      return value;
-    } else if (current(stream).getValueType() == ValueType::Double) {
-      auto value = current(stream).toDouble();
-      next(stream);
-      return value;
-    } else if (current(stream).getValueType() == ValueType::Integer) {
-      auto value = current(stream).toInteger();
-      next(stream);
-      return value;
     } else if (current(stream).getValueType() == ValueType::String) {
       auto value = interpolateString(stream, frame);
       next(stream);
