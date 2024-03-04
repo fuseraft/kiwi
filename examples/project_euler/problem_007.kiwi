@@ -1,0 +1,40 @@
+##
+By listing the first six prime numbers: 2, 3, 5, 7, 11, and 13, we can see that the 6th prime is 13.
+
+What is the 10,001 prime number?
+##
+
+def is_prime(@number)
+  if @number <= 1
+    return false
+  end
+
+  if @number == 2 || @number == 3
+    return true
+  end
+
+  @none = true
+
+  for @i in [2 .. __sqrt__(@number).to_i()] do
+    if @number % @i == 0
+      @none = false
+      break
+    end
+  end
+
+  return @none
+end
+
+@count = 0
+@num = 1
+@limit = 10001
+
+while @count < @limit do
+  @num += 1
+  
+  if is_prime(@num)
+    @count += 1 
+  end
+end
+
+println @num
