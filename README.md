@@ -2,13 +2,13 @@
 
 Kiwi is a light-weight general-purpose language designed for simplicity and versatility.
 
-### Getting Started
+## Getting Started
 
 To start using Kiwi, please follow the instructions below.
 
-#### Install Dependencies
+### Install Dependencies
 
-###### Fedora / RHEL
+#### Fedora / RHEL
 
 ```bash
 sudo dnf update
@@ -17,7 +17,7 @@ sudo dnf install make
 sudo dnf install clang-tools-extra
 ```
 
-###### Ubuntu / Debian
+#### Ubuntu / Debian
 
 ```bash
 sudo apt update
@@ -36,6 +36,15 @@ cd kiwi
 sudo make install
 ```
 
+#### Docker
+
+Experiment with Kiwi in a Docker container.
+
+```bash
+sudo docker build -t kiwi-lang .
+sudo docker run -it -v $(pwd):/workspace kiwi-language
+```
+
 #### Visual Studio Code Extension
 
 You can install the [extension](https://marketplace.visualstudio.com/items?itemName=fuseraft.kiwi-lang) for syntax-highlighting in VS Code.
@@ -45,7 +54,7 @@ Launch VS Code Quick Open (`Ctrl+P`), paste the following command, and press ent
 ext install fuseraft.kiwi-lang
 ```
 
-### Documentation
+## Documentation
 
 For detailed information on language features, refer to the [docs](docs/) directory.
 
@@ -57,7 +66,7 @@ To run the test suite, execute:
 make test
 ```
 
-###### Example: FizzBuzz
+#### Example: FizzBuzz
 
 ```ruby
 def fizzbuzz(@n)
@@ -81,7 +90,7 @@ end
 fizzbuzz(15)
 ```
 
-###### Example: Sieve of Eratosthenes
+#### Example: Sieve of Eratosthenes
 
 ```ruby
 def sieve_of_eratosthenes(@limit)
@@ -126,7 +135,7 @@ for @prime, @index in sieve_of_eratosthenes(30) do
 end
 ```
 
-### Contributions
+## Contributions
 
 I welcome and appreciate any and all contributions to the Kiwi project! Here's how you can contribute:
 
@@ -140,6 +149,6 @@ I welcome and appreciate any and all contributions to the Kiwi project! Here's h
 
 For more details, please read [CONTRIBUTING.md](CONTRIBUTING.md).
 
-### License
+## License
 
 This project is licensed under the [MIT License](LICENSE).
