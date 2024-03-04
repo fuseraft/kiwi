@@ -8,20 +8,6 @@ For example, 3^2 + 4^2 = 9 + 16 = 25 = 5^2
 There exists exactly one Pythagorean triplet for which a + b + c = 1000. Find the product abc.
 ##
 
-##
-def pythagorean_triplet(sum)
-  (1..sum / 3).each do |a|
-    (a + 1..sum / 2).each do |b|
-      c = sum - a - b
-      return a * b * c if a * a + b * b == c * c
-    end
-  end
-  nil
-end
-
-puts pythagorean_triplet(1000)
-##
-
 def pythagorean_triplet(@sum)
   @found = false
   @result = 0
