@@ -1,0 +1,7 @@
+def wrap_string(@inputstring, @openchar, @closechar)
+  return "${@openchar}${@inputstring}${@closechar}"
+end
+
+println "wrapped: ${wrap_string("div", "<", ">")}"
+
+println ""

@@ -84,7 +84,9 @@ int process_args(int c, std::vector<std::string>& v, InterpSession& session,
         configure_kiwi(config, logger, session);
         ++i;
       }
-    } else if (Strings::ends_with(opt, ".kiwi") && FileIO::fileExists(opt)) {
+    } else if ((Strings::ends_with(opt, ".kiwi") ||
+                Strings::ends_with(opt, "🥝")) &&
+               FileIO::fileExists(opt)) {
       session.registerScript(opt);
     } else {
       session.registerArg("argv_" + RNG::getInstance().random16(), opt);

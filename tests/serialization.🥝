@@ -1,0 +1,17 @@
+class SerializeMe
+  def initialize()
+    this.@name = "Hello!"
+  end
+end
+
+@inst = SerializeMe.new()
+println @inst.to_h()
+
+@hash = @inst.to_h()
+@hash["flag"] = true
+println @hash
+
+@hash = {"key": "value"}
+println @hash
+
+println ""
