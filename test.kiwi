@@ -35,6 +35,8 @@ for @file in fileio::glob(@search_pattern) do
     # Record end time and calculate duration
     @end_time = time::ticks()
     @duration = time::ticksms(@end_time - @start_time)
+
+    @xyz = "hello"
     
     # Store runtime information
     @runtimes << {"file": @file, "duration": @duration}

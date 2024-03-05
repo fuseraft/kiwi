@@ -3,66 +3,41 @@
 
 #include <memory>
 #include <string>
+#include "k_int.h"
 #include "parsing/keywords.h"
+#include "parsing/tokentype.h"
 #include "typing/serializer.h"
 #include "typing/valuetype.h"
 
-enum TokenType {
-  IDENTIFIER,
-  COMMENT,
-  COMMA,
-  KEYWORD,
-  OPERATOR,
-  LITERAL,
-  STRING,
-  NEWLINE,
-  ESCAPED,
-  OPEN_PAREN,
-  CLOSE_PAREN,
-  OPEN_BRACKET,
-  CLOSE_BRACKET,
-  OPEN_BRACE,
-  CLOSE_BRACE,
-  CONDITIONAL,
-  STREAM_END,
-  QUALIFIER,
-  RANGE,
-  COLON,
-  DOT,
-  TYPENAME,
-  LAMBDA,
-  DECLVAR,
-  QUESTION,
-  ENDOFFILE
-};
-
 class Token {
  public:
-  static Token create(TokenType t, std::string file, std::string text,
-                      const Value& v, const int& lineNumber,
+  static Token create(TokenType t, SubTokenType st, std::string file,
+                      std::string text, const Value& v, const int& lineNumber,
                       const int& linePosition) {
-    Token token(t, file, text, v, lineNumber, linePosition);
+    Token token(t, st, file, text, v, lineNumber, linePosition);
     return token;
   }
 
-  static Token create(TokenType t, std::string file, std::string text,
-                      const int& lineNumber, const int& linePosition) {
-    return create(t, file, text, text, lineNumber, linePosition);
+  static Token create(TokenType t, SubTokenType st, std::string file,
+                      std::string text, const int& lineNumber,
+                      const int& linePosition) {
+    return create(t, st, file, text, text, lineNumber, linePosition);
   }
 
   static Token createBoolean(const std::string& file, std::string text,
                              const int& lineNumber, const int& linePosition) {
     bool value = text == Keywords.True;
-    return create(TokenType::LITERAL, file, text, value, lineNumber,
+    auto st = value ? SubTokenType::KW_True : SubTokenType::KW_False;
+    return create(TokenType::LITERAL, st, file, text, value, lineNumber,
                   linePosition);
   }
 
   static Token createEmpty() {
-    return create(TokenType::ENDOFFILE, "", "", 0, 0);
+    return create(TokenType::ENDOFFILE, SubTokenType::Default, "", "", 0, 0);
   }
 
   static Token createStreamEnd() {
-    return create(TokenType::STREAM_END, "", "", 0, 0);
+    return create(TokenType::STREAM_END, SubTokenType::Default, "", "", 0, 0);
   }
 
   std::string getFile() const { return file; }
@@ -75,12 +50,12 @@ class Token {
     return std::get<std::string>(value);
   }
 
-  long long toInteger() {
-    if (!std::holds_alternative<long long>(value)) {
+  k_int toInteger() {
+    if (!std::holds_alternative<k_int>(value)) {
       throw new std::runtime_error("Value type is not an `Integer`.");
     }
 
-    return std::get<long long>(value);
+    return std::get<k_int>(value);
   }
 
   bool toBoolean() {
@@ -107,12 +82,15 @@ class Token {
 
   TokenType getType() const { return type; }
 
+  SubTokenType getSubType() const { return subType; }
+
   Value getValue() { return value; }
 
   ValueType getValueType() { return valueType; }
 
  private:
   TokenType type;
+  SubTokenType subType;
   std::string file;
   std::string text;
   Value value;
@@ -120,9 +98,9 @@ class Token {
   int _lineNumber;
   int _linePosition;
 
-  Token(TokenType t, std::string file, std::string text, const Value& v,
-        const int& lineNumber, const int& linePosition)
-      : type(t), file(file), text(text), value(v) {
+  Token(TokenType t, SubTokenType st, std::string file, std::string text,
+        const Value& v, const int& lineNumber, const int& linePosition)
+      : type(t), subType(st), file(file), text(text), value(v) {
     valueType = Serializer::get_value_type(v);
     _lineNumber = lineNumber;
     _linePosition = linePosition;
