@@ -6,6 +6,7 @@
 #include "errors/error.h"
 #include "errors/handler.h"
 #include "errors/state.h"
+#include "k_int.h"
 #include "logging/logger.h"
 #include "objects/class.h"
 #include "objects/conditional.h"
@@ -184,8 +185,8 @@ class Interpreter {
     bool doUpdate = true;
     bool inObjectContext = frame->inObjectContext();
 
-    if (inObjectContext && std::holds_alternative<long long>(returnValue) &&
-        std::get<long long>(returnValue) == 0) {
+    if (inObjectContext && std::holds_alternative<k_int>(returnValue) &&
+        std::get<k_int>(returnValue) == 0) {
       returnValue = std::move(frame->objectContext);
       doUpdate = false;
     }
@@ -1405,8 +1406,8 @@ class Interpreter {
       returnValue = interpretExpression(stream, frame);
     }
 
-    if (std::holds_alternative<long long>(returnValue)) {
-      int exitCode = static_cast<int>(std::get<long long>(returnValue));
+    if (std::holds_alternative<k_int>(returnValue)) {
+      int exitCode = static_cast<int>(std::get<k_int>(returnValue));
       exit(exitCode);
     } else {
       exit(1);
@@ -1668,12 +1669,12 @@ class Interpreter {
                      std::shared_ptr<CallStackFrame> frame) {
     auto output = interpretKeyOrIndex(stream, frame);
 
-    if (!std::holds_alternative<long long>(output)) {
+    if (!std::holds_alternative<k_int>(output)) {
       throw SyntaxError(current(stream),
                         "List index must be an integer value.");
     }
 
-    return std::get<long long>(output);
+    return std::get<k_int>(output);
   }
 
   Value interpretHashElementAccess(std::shared_ptr<TokenStream> stream,
@@ -1751,18 +1752,17 @@ class Interpreter {
     }
     next(stream);  // Skip the "]"
 
-    if (!std::holds_alternative<long long>(startValue)) {
+    if (!std::holds_alternative<k_int>(startValue)) {
       throw RangeError(current(stream),
                        "A range start value must be an integer.");
     }
 
-    if (!std::holds_alternative<long long>(stopValue)) {
+    if (!std::holds_alternative<k_int>(stopValue)) {
       throw RangeError(current(stream),
                        "A range stop value must be an integer.");
     }
 
-    int start = std::get<long long>(startValue),
-        stop = std::get<long long>(stopValue);
+    int start = std::get<k_int>(startValue), stop = std::get<k_int>(stopValue);
     int step = stop < start ? -1 : 1;
     int i = start;
 
@@ -3027,8 +3027,8 @@ class Interpreter {
         if (std::holds_alternative<bool>(right)) {
           bool rhs = std::get<bool>(right);
           return !rhs;
-        } else if (std::holds_alternative<long long>(right)) {
-          int rhs = std::get<long long>(right);
+        } else if (std::holds_alternative<k_int>(right)) {
+          int rhs = std::get<k_int>(right);
           if (rhs == 0) {
             return 1;
           } else if (rhs == 1) {
@@ -3039,8 +3039,8 @@ class Interpreter {
         throw ConversionError(current(stream),
                               "Expected a `Boolean` expression.");
       } else if (op == SubTokenType::Ops_Subtract) {
-        if (std::holds_alternative<long long>(right)) {
-          return -std::get<long long>(right);
+        if (std::holds_alternative<k_int>(right)) {
+          return -std::get<k_int>(right);
         } else if (std::holds_alternative<double>(right)) {
           return -std::get<double>(right);
         } else {

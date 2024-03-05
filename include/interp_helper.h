@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "errors/error.h"
+#include "k_int.h"
 #include "math/visitor.h"
 #include "objects/method.h"
 #include "objects/sliceindex.h"
@@ -188,17 +189,17 @@ struct InterpHelper {
                               bool insertOp, std::shared_ptr<List>& targetList,
                               const SliceIndex& slice,
                               const std::shared_ptr<List>& rhsValues) {
-    if (!std::holds_alternative<long long>(slice.indexOrStart)) {
+    if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
       throw IndexError(current(stream), "Start index must be an integer.");
-    } else if (!std::holds_alternative<long long>(slice.stopIndex)) {
+    } else if (!std::holds_alternative<k_int>(slice.stopIndex)) {
       throw IndexError(current(stream), "Stop index must be an integer.");
-    } else if (!std::holds_alternative<long long>(slice.stepValue)) {
+    } else if (!std::holds_alternative<k_int>(slice.stepValue)) {
       throw IndexError(current(stream), "Step value must be an integer.");
     }
 
-    int start = std::get<long long>(slice.indexOrStart);
-    int stop = std::get<long long>(slice.stopIndex);
-    int step = std::get<long long>(slice.stepValue);
+    int start = std::get<k_int>(slice.indexOrStart);
+    int stop = std::get<k_int>(slice.stopIndex);
+    int step = std::get<k_int>(slice.stepValue);
 
     if (!slice.isSlice && insertOp) {
       // This is a single element assignment.
@@ -288,17 +289,17 @@ struct InterpHelper {
                                   const SliceIndex& slice,
                                   const std::shared_ptr<List>& list) {
     if (slice.isSlice) {
-      if (!std::holds_alternative<long long>(slice.indexOrStart)) {
+      if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
         throw IndexError(current(stream), "Start index must be an integer.");
-      } else if (!std::holds_alternative<long long>(slice.stopIndex)) {
+      } else if (!std::holds_alternative<k_int>(slice.stopIndex)) {
         throw IndexError(current(stream), "Stop index must be an integer.");
-      } else if (!std::holds_alternative<long long>(slice.stepValue)) {
+      } else if (!std::holds_alternative<k_int>(slice.stepValue)) {
         throw IndexError(current(stream), "Step value must be an integer.");
       }
 
-      int start = std::get<long long>(slice.indexOrStart),
-          stop = std::get<long long>(slice.stopIndex),
-          step = std::get<long long>(slice.stepValue);
+      int start = std::get<k_int>(slice.indexOrStart),
+          stop = std::get<k_int>(slice.stopIndex),
+          step = std::get<k_int>(slice.stepValue);
 
       // Adjust negative indices
       int listSize = static_cast<int>(list->elements.size());
@@ -333,11 +334,11 @@ struct InterpHelper {
       return slicedList;  // Return the sliced list as a Value
     } else {
       // Single index access
-      if (!std::holds_alternative<long long>(slice.indexOrStart)) {
+      if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
         throw IndexError(current(stream), "Index value must be an integer.");
       }
 
-      int index = std::get<long long>(slice.indexOrStart);
+      int index = std::get<k_int>(slice.indexOrStart);
       int listSize = list->elements.size();
 
       if (index < 0) {
