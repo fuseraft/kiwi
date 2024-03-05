@@ -68,7 +68,7 @@ class Method {
     return parameterKVP[paramName];
   }
 
-  void addToken(Token t) { code.push_back(t); }
+  void addToken(const Token& t) { code.push_back(t); }
 
   const std::vector<Token>& getCode() const { return code; }
 

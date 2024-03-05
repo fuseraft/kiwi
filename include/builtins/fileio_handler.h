@@ -10,61 +10,61 @@
 
 class FileIOBuiltinHandler {
  public:
-  static Value execute(const Token& token, const std::string& builtin,
+  static Value execute(const Token& token, const SubTokenType& builtin,
                        const std::vector<Value>& args) {
-    if (builtin == FileIOBuiltIns.CreateFile) {
+    if (builtin == SubTokenType::Builtin_FileIO_CreateFile) {
       return executeCreateFile(token, args);
-    } else if (builtin == FileIOBuiltIns.FileExists) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_FileExists) {
       return executeFileExists(token, args);
-    } else if (builtin == FileIOBuiltIns.IsDirectory) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_IsDirectory) {
       return executeIsDirectory(token, args);
-    } else if (builtin == FileIOBuiltIns.ListDirectory) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_ListDirectory) {
       return executeListDirectory(token, args);
-    } else if (builtin == FileIOBuiltIns.MakeDirectory) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_MakeDirectory) {
       return executeMakeDirectory(token, args);
-    } else if (builtin == FileIOBuiltIns.MakeDirectoryP) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_MakeDirectoryP) {
       return executeMakeDirectoryP(token, args);
-    } else if (builtin == FileIOBuiltIns.DeleteFile ||
-               builtin == FileIOBuiltIns.RemoveDirectory) {
-      return executeRemovePath(token, args, builtin);
-    } else if (builtin == FileIOBuiltIns.RemoveDirectoryF) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_DeleteFile ||
+               builtin == SubTokenType::Builtin_FileIO_RemoveDirectory) {
+      return executeRemovePath(token, args);
+    } else if (builtin == SubTokenType::Builtin_FileIO_RemoveDirectoryF) {
       return executeRemovePathF(token, args);
-    } else if (builtin == FileIOBuiltIns.TempDir) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_TempDir) {
       return executeGetTempDirectory(token, args);
-    } else if (builtin == FileIOBuiltIns.GetFileExtension) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_GetFileExtension) {
       return executeGetFileExtension(token, args);
-    } else if (builtin == FileIOBuiltIns.GetCurrentDirectory) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_GetCurrentDirectory) {
       return executeGetCurrentDirectory(token, args);
-    } else if (builtin == FileIOBuiltIns.ChangeDirectory) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_ChangeDirectory) {
       return executeChangeDirectory(token, args);
-    } else if (builtin == FileIOBuiltIns.FileName) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_FileName) {
       return executeGetFileName(token, args);
-    } else if (builtin == FileIOBuiltIns.GetFilePath) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_GetFilePath) {
       return executeGetFilePath(token, args);
-    } else if (builtin == FileIOBuiltIns.GetFileAbsolutePath) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_GetFileAbsolutePath) {
       return executeGetFileAbsolutePath(token, args);
-    } else if (builtin == FileIOBuiltIns.Glob) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_Glob) {
       return executeGlob(token, args);
-    } else if (builtin == FileIOBuiltIns.AppendText) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_AppendText) {
       return executeAppendText(token, args);
-    } else if (builtin == FileIOBuiltIns.WriteText) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_WriteText) {
       return executeWriteText(token, args);
-    } else if (builtin == FileIOBuiltIns.WriteLine) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_WriteLine) {
       return executeWriteLine(token, args);
-    } else if (builtin == FileIOBuiltIns.ReadFile) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_ReadFile) {
       return executeReadFile(token, args);
-    } else if (builtin == FileIOBuiltIns.FileSize) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_FileSize) {
       return executeGetFileSize(token, args);
-    } else if (builtin == FileIOBuiltIns.CopyFile) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_CopyFile) {
       return executeCopyFile(token, args);
-    } else if (builtin == FileIOBuiltIns.CopyR) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_CopyR) {
       return executeCopyR(token, args);
-    } else if (builtin == FileIOBuiltIns.MoveFile) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_MoveFile) {
       return executeMoveFile(token, args);
-    } else if (builtin == FileIOBuiltIns.ReadLines) {
+    } else if (builtin == SubTokenType::Builtin_FileIO_ReadLines) {
       return executeReadLines(token, args);
     } else {
-      throw UnknownBuiltinError(token, builtin);
+      throw UnknownBuiltinError(token, "");
     }
   }
 
@@ -149,10 +149,10 @@ class FileIOBuiltinHandler {
   }
 
   static bool executeRemovePath(const Token& token,
-                                const std::vector<Value>& args,
-                                const std::string& builtin) {
+                                const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(token, builtin);
+      throw BuiltinUnexpectedArgumentError(token,
+                                           FileIOBuiltIns.RemoveDirectory);
     }
 
     auto path = get_string(token, args.at(0));

@@ -17,63 +17,65 @@
 
 class CoreBuiltinHandler {
  public:
-  static Value execute(const Token& tokenTerm, const std::string& builtin,
+  static Value execute(const Token& tokenTerm, const SubTokenType& builtin,
                        const Value& value, const std::vector<Value>& args) {
     if (KiwiBuiltins.is_builtin(builtin)) {
       return executeKiwiBuiltin(tokenTerm, builtin, value, args);
     }
 
-    throw UnknownBuiltinError(tokenTerm, builtin);
+    throw UnknownBuiltinError(tokenTerm, "");
   }
 
  private:
   static Value executeKiwiBuiltin(const Token& tokenTerm,
-                                  const std::string& builtin,
+                                  const SubTokenType& builtin,
                                   const Value& value,
                                   const std::vector<Value>& args) {
-    if (builtin == KiwiBuiltins.Chars) {
+    if (builtin == SubTokenType::Builtin_Kiwi_Chars) {
       return executeChars(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.IsA) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_IsA) {
       return executeIsA(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.Join) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_Join) {
       return executeJoin(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.Split) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_Split) {
       return executeSplit(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.LeftTrim) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_LeftTrim) {
       return executeLeftTrim(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.RightTrim) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_RightTrim) {
       return executeRightTrim(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.Trim) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_Trim) {
       return executeTrim(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.Type) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_Type) {
       return executeType(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.Size) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_Size) {
       return executeSize(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.ToD) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_ToD) {
       return executeToDouble(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.ToI) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_ToI) {
       return executeToInteger(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.ToS) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_ToS) {
       return executeToString(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.BeginsWith) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_BeginsWith) {
       return executeBeginsWith(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.Contains) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_Contains) {
       return executeContains(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.EndsWith) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_EndsWith) {
       return executeEndsWith(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.Replace) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_Replace) {
       return executeReplace(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.IndexOf) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_IndexOf) {
       return executeIndexOf(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.Upcase) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_Upcase) {
       return executeUpcase(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.Downcase) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_Downcase) {
       return executeDowncase(tokenTerm, value, args);
-    } else if (builtin == KiwiBuiltins.Keys) {
+    } else if (builtin == SubTokenType::Builtin_Kiwi_Keys) {
       return executeKeys(tokenTerm, value, args);
+    } else if (builtin == SubTokenType::Builtin_Kiwi_HasKey) {
+      return executeHasKey(tokenTerm, value, args);
     }
 
-    throw UnknownBuiltinError(tokenTerm, builtin);
+    throw UnknownBuiltinError(tokenTerm, "");
   }
 
   static std::shared_ptr<List> executeChars(const Token& tokenTerm,
@@ -270,6 +272,23 @@ class CoreBuiltinHandler {
     }
 
     return Serializer::get_value_type_string(value);
+  }
+
+  static bool executeHasKey(const Token& tokenTerm, const Value& value,
+                            const std::vector<Value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(tokenTerm, KiwiBuiltins.HasKey);
+    }
+
+    if (!std::holds_alternative<std::shared_ptr<Hash>>(value)) {
+      throw InvalidOperationError(
+          tokenTerm, "Attempted to retrieve keys from non-Hash type.");
+    }
+
+    auto key = get_string(tokenTerm, args.at(0));
+    auto hash = std::get<std::shared_ptr<Hash>>(value);
+
+    return hash->hasKey(key);
   }
 
   static std::shared_ptr<List> executeKeys(const Token& tokenTerm,

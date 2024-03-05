@@ -7,7 +7,7 @@
 
 class KiwiError : public std::exception {
  public:
-  KiwiError(Token token, std::string error, std::string message = "")
+  KiwiError(const Token& token, std::string error, std::string message = "")
       : token(token), error(error), message(message) {}
 
   const char* what() const noexcept override { return message.c_str(); }

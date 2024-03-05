@@ -9,95 +9,95 @@
 
 class MathBuiltinHandler {
  public:
-  static Value execute(const Token& tokenTerm, const std::string& builtin,
+  static Value execute(const Token& tokenTerm, const SubTokenType& builtin,
                        const std::vector<Value>& args) {
-    if (builtin == MathBuiltins.Sin) {
+    if (builtin == SubTokenType::Builtin_Math_Sin) {
       return executeSin(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Tan) {
+    } else if (builtin == SubTokenType::Builtin_Math_Tan) {
       return executeTan(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Cos) {
+    } else if (builtin == SubTokenType::Builtin_Math_Cos) {
       return executeCos(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Asin) {
+    } else if (builtin == SubTokenType::Builtin_Math_Asin) {
       return executeAsin(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Acos) {
+    } else if (builtin == SubTokenType::Builtin_Math_Acos) {
       return executeAcos(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Atan) {
+    } else if (builtin == SubTokenType::Builtin_Math_Atan) {
       return executeAtan(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Atan2) {
+    } else if (builtin == SubTokenType::Builtin_Math_Atan2) {
       return executeAtan2(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Sinh) {
+    } else if (builtin == SubTokenType::Builtin_Math_Sinh) {
       return executeSinh(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Cosh) {
+    } else if (builtin == SubTokenType::Builtin_Math_Cosh) {
       return executeCosh(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Tanh) {
+    } else if (builtin == SubTokenType::Builtin_Math_Tanh) {
       return executeTanh(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Log) {
+    } else if (builtin == SubTokenType::Builtin_Math_Log) {
       return executeLog(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Log2) {
+    } else if (builtin == SubTokenType::Builtin_Math_Log2) {
       return executeLog2(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Log10) {
+    } else if (builtin == SubTokenType::Builtin_Math_Log10) {
       return executeLog10(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Log1P) {
+    } else if (builtin == SubTokenType::Builtin_Math_Log1P) {
       return executeLog1P(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Fmod) {
+    } else if (builtin == SubTokenType::Builtin_Math_Fmod) {
       return executeFmod(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Hypot) {
+    } else if (builtin == SubTokenType::Builtin_Math_Hypot) {
       return executeHypot(tokenTerm, args);
-    } else if (builtin == MathBuiltins.IsFinite) {
+    } else if (builtin == SubTokenType::Builtin_Math_IsFinite) {
       return executeIsFinite(tokenTerm, args);
-    } else if (builtin == MathBuiltins.IsInf) {
+    } else if (builtin == SubTokenType::Builtin_Math_IsInf) {
       return executeIsInf(tokenTerm, args);
-    } else if (builtin == MathBuiltins.IsNaN) {
+    } else if (builtin == SubTokenType::Builtin_Math_IsNaN) {
       return executeIsNaN(tokenTerm, args);
-    } else if (builtin == MathBuiltins.IsNormal) {
+    } else if (builtin == SubTokenType::Builtin_Math_IsNormal) {
       return executeIsNormal(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Sqrt) {
+    } else if (builtin == SubTokenType::Builtin_Math_Sqrt) {
       return executeSqrt(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Cbrt) {
+    } else if (builtin == SubTokenType::Builtin_Math_Cbrt) {
       return executeCbrt(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Abs) {
+    } else if (builtin == SubTokenType::Builtin_Math_Abs) {
       return executeAbs(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Floor) {
+    } else if (builtin == SubTokenType::Builtin_Math_Floor) {
       return executeFloor(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Ceil) {
+    } else if (builtin == SubTokenType::Builtin_Math_Ceil) {
       return executeCeil(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Round) {
+    } else if (builtin == SubTokenType::Builtin_Math_Round) {
       return executeRound(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Trunc) {
+    } else if (builtin == SubTokenType::Builtin_Math_Trunc) {
       return executeTrunc(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Remainder) {
+    } else if (builtin == SubTokenType::Builtin_Math_Remainder) {
       return executeRemainder(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Exp) {
+    } else if (builtin == SubTokenType::Builtin_Math_Exp) {
       return executeExp(tokenTerm, args);
-    } else if (builtin == MathBuiltins.ExpM1) {
+    } else if (builtin == SubTokenType::Builtin_Math_ExpM1) {
       return executeExpM1(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Erf) {
+    } else if (builtin == SubTokenType::Builtin_Math_Erf) {
       return executeErf(tokenTerm, args);
-    } else if (builtin == MathBuiltins.ErfC) {
+    } else if (builtin == SubTokenType::Builtin_Math_ErfC) {
       return executeErfC(tokenTerm, args);
-    } else if (builtin == MathBuiltins.LGamma) {
+    } else if (builtin == SubTokenType::Builtin_Math_LGamma) {
       return executeLGamma(tokenTerm, args);
-    } else if (builtin == MathBuiltins.TGamma) {
+    } else if (builtin == SubTokenType::Builtin_Math_TGamma) {
       return executeTGamma(tokenTerm, args);
-    } else if (builtin == MathBuiltins.FMax) {
+    } else if (builtin == SubTokenType::Builtin_Math_FMax) {
       return executeFMax(tokenTerm, args);
-    } else if (builtin == MathBuiltins.FMin) {
+    } else if (builtin == SubTokenType::Builtin_Math_FMin) {
       return executeFMin(tokenTerm, args);
-    } else if (builtin == MathBuiltins.FDim) {
+    } else if (builtin == SubTokenType::Builtin_Math_FDim) {
       return executeFDim(tokenTerm, args);
-    } else if (builtin == MathBuiltins.CopySign) {
+    } else if (builtin == SubTokenType::Builtin_Math_CopySign) {
       return executeCopySign(tokenTerm, args);
-    } else if (builtin == MathBuiltins.NextAfter) {
+    } else if (builtin == SubTokenType::Builtin_Math_NextAfter) {
       return executeNextAfter(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Pow) {
+    } else if (builtin == SubTokenType::Builtin_Math_Pow) {
       return executePow(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Epsilon) {
+    } else if (builtin == SubTokenType::Builtin_Math_Epsilon) {
       return executeEpsilon(tokenTerm, args);
-    } else if (builtin == MathBuiltins.Random) {
+    } else if (builtin == SubTokenType::Builtin_Math_Random) {
       return executeRandom(tokenTerm, args);
     }
 
-    throw UnknownBuiltinError(tokenTerm, builtin);
+    throw UnknownBuiltinError(tokenTerm, "");
   }
 
  private:

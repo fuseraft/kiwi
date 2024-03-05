@@ -3,16 +3,10 @@
 
 #include <string>
 #include <unordered_set>
+#include "parsing/tokentype.h"
 
 struct {
-  const std::string OpenCurlyBrace = "{";
-  const std::string CloseCurlyBrace = "}";
-  const std::string OpenParenthesis = "(";
-  const std::string CloseParenthesis = ")";
-  const std::string Interpolate = "$";
   const std::string Qualifier = "::";
-  const std::string Range = "..";
-  const std::string Question = "?";
 } Symbols;
 
 struct {
@@ -52,8 +46,6 @@ struct {
   const std::string BitwiseLeftShiftAssign = "<<=";
   const std::string BitwiseRightShift = ">>";
   const std::string BitwiseRightShiftAssign = ">>=";
-  const std::string ListAppend = "<<";
-  const std::string ListInsert = "<<=";
 
   std::unordered_set<std::string> large_operators = {
       Exponent, Or, And, BitwiseLeftShift, BitwiseRightShift};
@@ -66,21 +58,21 @@ struct {
 
   std::unordered_set<char> bitwise_operator_chars = {'^', '~', '&', '|'};
 
-  std::unordered_set<std::string> assignment_operators = {
-      Assign,
-      AddAssign,
-      SubtractAssign,
-      MultiplyAssign,
-      DivideAssign,
-      ExponentAssign,
-      OrAssign,
-      AndAssign,
-      BitwiseOrAssign,
-      BitwiseAndAssign,
-      BitwiseXorAssign,
-      BitwiseNotAssign,
-      BitwiseLeftShiftAssign,
-      BitwiseRightShiftAssign};
+  std::unordered_set<SubTokenType> assignment_operators = {
+      SubTokenType::Ops_Assign,
+      SubTokenType::Ops_AddAssign,
+      SubTokenType::Ops_SubtractAssign,
+      SubTokenType::Ops_MultiplyAssign,
+      SubTokenType::Ops_DivideAssign,
+      SubTokenType::Ops_ExponentAssign,
+      SubTokenType::Ops_OrAssign,
+      SubTokenType::Ops_AndAssign,
+      SubTokenType::Ops_BitwiseOrAssign,
+      SubTokenType::Ops_BitwiseAndAssign,
+      SubTokenType::Ops_BitwiseXorAssign,
+      SubTokenType::Ops_BitwiseNotAssign,
+      SubTokenType::Ops_BitwiseLeftShiftAssign,
+      SubTokenType::Ops_BitwiseRightShiftAssign};
 
   std::unordered_set<std::string> arithmetic_operators = {
       Add, Subtract, Multiply, Divide, Exponent, Modulus};
@@ -99,7 +91,7 @@ struct {
     return large_operators.find(arg) != large_operators.end();
   }
 
-  bool is_assignment_operator(std::string& arg) {
+  bool is_assignment_operator(const SubTokenType& arg) {
     return assignment_operators.find(arg) != assignment_operators.end();
   }
 
@@ -174,18 +166,19 @@ struct {
   const std::string While = "while";
 
   std::unordered_set<std::string> keywords = {
-      Abstract, As,      Break,   Catch,  Class,  DeclVar, Delete,   Do,
-      Else,     ElseIf,  End,     Exit,   Export, False,   For,      If,
-      Import,   In,      Lambda,  Method, Module, Next,    Override, Pass,
-      Print,    PrintLn, Private, Return, This,   True,    Try,      While};
+      Abstract, As,       Break,  Catch, Class,   DeclVar, Delete,
+      Do,       Else,     ElseIf, End,   Exit,    Export,  False,
+      For,      If,       Import, In,    Lambda,  Method,  Module,
+      Next,     Override, Pass,   Print, PrintLn, Private, Return,
+      Static,   This,     True,   Try,   While};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           End};
 
-  std::unordered_set<std::string> loop_keywords = {While, For};
-
-  std::unordered_set<std::string> block_keywords = {
-      While, For, Method, If, Module, Try, Class, Lambda};
+  std::unordered_set<SubTokenType> block_keywords = {
+      SubTokenType::KW_While, SubTokenType::KW_For,    SubTokenType::KW_Method,
+      SubTokenType::KW_If,    SubTokenType::KW_Module, SubTokenType::KW_Try,
+      SubTokenType::KW_Class, SubTokenType::KW_Lambda};
 
   bool is_keyword(std::string& arg) {
     return keywords.find(arg) != keywords.end();
@@ -197,11 +190,11 @@ struct {
     return conditional_keywords.find(arg) != conditional_keywords.end();
   }
 
-  bool is_loop_keyword(const std::string& arg) {
-    return loop_keywords.find(arg) != loop_keywords.end();
+  bool is_loop_keyword(const SubTokenType& arg) {
+    return arg == SubTokenType::KW_While || arg == SubTokenType::KW_For;
   }
 
-  bool is_block_keyword(const std::string& arg) {
+  bool is_block_keyword(const SubTokenType& arg) {
     return block_keywords.find(arg) != block_keywords.end();
   }
 } Keywords;

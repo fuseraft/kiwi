@@ -10,15 +10,15 @@
 
 class EnvBuiltinHandler {
  public:
-  static Value execute(const Token& tokenTerm, const std::string& builtin,
+  static Value execute(const Token& tokenTerm, const SubTokenType& builtin,
                        const std::vector<Value>& args) {
-    if (builtin == EnvBuiltins.GetEnvironmentVariable) {
+    if (builtin == SubTokenType::Builtin_Env_GetEnvironmentVariable) {
       return executeGetEnvironmentVariable(tokenTerm, args);
-    } else if (builtin == EnvBuiltins.SetEnvironmentVariable) {
+    } else if (builtin == SubTokenType::Builtin_Env_SetEnvironmentVariable) {
       return executeSetEnvironmentVariable(tokenTerm, args);
     }
 
-    throw UnknownBuiltinError(tokenTerm, builtin);
+    throw UnknownBuiltinError(tokenTerm, "");
   }
 
  private:

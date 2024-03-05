@@ -10,13 +10,13 @@
 
 class ConsoleBuiltinHandler {
  public:
-  static Value execute(const Token& tokenTerm, const std::string& builtin,
+  static Value execute(const Token& tokenTerm, const SubTokenType& builtin,
                        const std::vector<Value>& args) {
-    if (builtin == ConsoleBuiltins.Input) {
+    if (builtin == SubTokenType::Builtin_Console_Input) {
       return executeInput(tokenTerm, args);
     }
 
-    throw UnknownBuiltinError(tokenTerm, builtin);
+    throw UnknownBuiltinError(tokenTerm, "");
   }
 
  private:

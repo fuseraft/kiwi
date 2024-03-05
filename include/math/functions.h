@@ -37,7 +37,7 @@ static double get_integer_or_double(const Token& tokenTerm, const Value& arg) {
 }
 
 struct {
-  bool is_zero(Token tokenTerm, Value v) {
+  bool is_zero(const Token& tokenTerm, Value v) {
     if (std::holds_alternative<double>(v)) {
       return std::get<double>(v) == 0.0;
     } else if (std::holds_alternative<long long>(v)) {
