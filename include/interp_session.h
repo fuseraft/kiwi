@@ -66,7 +66,7 @@ class InterpSession {
       auto kiwilibPath = FileIO::getKiwiLibraryPath();
 
       if (!kiwilibPath.empty()) {
-        auto kiwilib = FileIO::expandGlob(kiwilibPath + "/**/*.kiwi");
+        auto kiwilib = FileIO::expandGlob(kiwilibPath + "/**/*.🥝");
 
         for (const auto& script : kiwilib) {
           loadScript(script);
