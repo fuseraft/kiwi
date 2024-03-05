@@ -4,12 +4,13 @@
 #include <ctime>
 #include <iostream>
 #include <random>
+#include "k_int.h"
 
 class RNG {
  public:
   static RNG& getInstance();
   double random(double from, double to);
-  long long random(long long from, long long to);
+  k_int random(k_int from, k_int to);
   std::string random16();
 
  private:
@@ -32,8 +33,8 @@ double RNG::random(double from, double to) {
   return distribution(generator);
 }
 
-long long RNG::random(long long from, long long to) {
-  std::uniform_int_distribution<long long> distribution(from, to);
+k_int RNG::random(k_int from, k_int to) {
+  std::uniform_int_distribution<k_int> distribution(from, to);
   return distribution(generator);
 }
 

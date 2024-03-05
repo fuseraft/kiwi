@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <variant>
 #include <vector>
+#include "k_int.h"
 #include "parsing/keywords.h"
 #include "valuetype.h"
 
@@ -19,7 +20,7 @@ struct Serializer {
         [&](auto&& arg) {
           using T = std::decay_t<decltype(arg)>;
 
-          if constexpr (std::is_same_v<T, long long>) {
+          if constexpr (std::is_same_v<T, k_int>) {
             type = ValueType::Integer;
           } else if constexpr (std::is_same_v<T, double>) {
             type = ValueType::Double;
@@ -82,7 +83,7 @@ struct Serializer {
 
     switch (get_value_type(v)) {
       case ValueType::Integer:
-        sv << std::get<long long>(v);
+        sv << std::get<k_int>(v);
         break;
       case ValueType::Double:
         sv << std::get<double>(v);

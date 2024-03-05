@@ -7,7 +7,7 @@
 
 class Module {
  public:
-  void addToken(Token t) { code.push_back(t); }
+  void addToken(const Token& t) { code.push_back(t); }
   void setName(std::string name) { _name = name; }
   void setHome(std::string home) {
     _home = home;

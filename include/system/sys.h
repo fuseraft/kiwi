@@ -9,11 +9,12 @@
 #include <stdexcept>
 #include <string>
 #include <unistd.h>
+#include "k_int.h"
 
 class Sys {
  public:
-  static long long exec(const std::string& command) {
-    return static_cast<long long>(std::system(command.c_str()));
+  static k_int exec(const std::string& command) {
+    return static_cast<k_int>(std::system(command.c_str()));
   }
 
   static std::string execOut(const std::string& command) {
