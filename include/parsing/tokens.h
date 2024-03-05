@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include "k_int.h"
 #include "parsing/keywords.h"
 #include "parsing/tokentype.h"
 #include "typing/serializer.h"
@@ -49,12 +50,12 @@ class Token {
     return std::get<std::string>(value);
   }
 
-  long long toInteger() {
-    if (!std::holds_alternative<long long>(value)) {
+  k_int toInteger() {
+    if (!std::holds_alternative<k_int>(value)) {
       throw new std::runtime_error("Value type is not an `Integer`.");
     }
 
-    return std::get<long long>(value);
+    return std::get<k_int>(value);
   }
 
   bool toBoolean() {

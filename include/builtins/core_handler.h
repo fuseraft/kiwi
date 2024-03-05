@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include "errors/error.h"
+#include "k_int.h"
 #include "math/functions.h"
 #include "parsing/builtins.h"
 #include "parsing/strings.h"
@@ -165,8 +166,8 @@ class CoreBuiltinHandler {
             tokenTerm, "Cannot convert non-numeric value to a double: `" +
                            stringValue + "`");
       }
-    } else if (std::holds_alternative<long long>(value)) {
-      return static_cast<double>(std::get<long long>(value));
+    } else if (std::holds_alternative<k_int>(value)) {
+      return static_cast<double>(std::get<k_int>(value));
     } else {
       throw ConversionError(tokenTerm,
                             "Cannot convert non-numeric value to a double.");
@@ -194,7 +195,7 @@ class CoreBuiltinHandler {
                            stringValue + "`");
       }
     } else if (std::holds_alternative<double>(value)) {
-      return static_cast<long long>(std::get<double>(value));
+      return static_cast<k_int>(std::get<double>(value));
     } else {
       throw ConversionError(tokenTerm,
                             "Cannot convert non-numeric value to an integer.");
@@ -364,7 +365,7 @@ class CoreBuiltinHandler {
            (typeName == TypeNames.Hash &&
             std::holds_alternative<std::shared_ptr<Hash>>(value)) ||
            (typeName == TypeNames.Integer &&
-            std::holds_alternative<long long>(value)) ||
+            std::holds_alternative<k_int>(value)) ||
            (typeName == TypeNames.List &&
             std::holds_alternative<std::shared_ptr<List>>(value)) ||
            (typeName == TypeNames.Object &&

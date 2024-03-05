@@ -4,6 +4,7 @@
 #include <chrono>
 #include <ctime>
 #include <thread>
+#include "k_int.h"
 
 class Time {
  public:
@@ -13,9 +14,9 @@ class Time {
     return static_cast<double>(now_ns.time_since_epoch().count());
   }
 
-  static long long delay(int ms) {
+  static k_int delay(int ms) {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-    return static_cast<long long>(ms);
+    return static_cast<k_int>(ms);
   }
 
   static double epochMilliseconds() {
@@ -26,36 +27,36 @@ class Time {
 
   static double ticksToMilliseconds(double ticks) { return ticks / 1000000.0; }
 
-  static long long currentHour() {
-    return static_cast<long long>(getLocalTime()->tm_hour);
+  static k_int currentHour() {
+    return static_cast<k_int>(getLocalTime()->tm_hour);
   }
 
-  static long long currentMinute() {
-    return static_cast<long long>(getLocalTime()->tm_min);
+  static k_int currentMinute() {
+    return static_cast<k_int>(getLocalTime()->tm_min);
   }
 
-  static long long currentSecond() {
-    return static_cast<long long>(getLocalTime()->tm_sec);
+  static k_int currentSecond() {
+    return static_cast<k_int>(getLocalTime()->tm_sec);
   }
 
-  static long long currentMonthDay() {
-    return static_cast<long long>(getLocalTime()->tm_mday);
+  static k_int currentMonthDay() {
+    return static_cast<k_int>(getLocalTime()->tm_mday);
   }
 
-  static long long currentWeekDay() {
-    return static_cast<long long>(1 + getLocalTime()->tm_wday);
+  static k_int currentWeekDay() {
+    return static_cast<k_int>(1 + getLocalTime()->tm_wday);
   }
 
-  static long long currentYearDay() {
-    return static_cast<long long>(getLocalTime()->tm_yday);
+  static k_int currentYearDay() {
+    return static_cast<k_int>(getLocalTime()->tm_yday);
   }
 
-  static long long currentMonth() {
-    return static_cast<long long>(1 + getLocalTime()->tm_mon);
+  static k_int currentMonth() {
+    return static_cast<k_int>(1 + getLocalTime()->tm_mon);
   }
 
-  static long long currentYear() {
-    return static_cast<long long>(1900 + getLocalTime()->tm_year);
+  static k_int currentYear() {
+    return static_cast<k_int>(1900 + getLocalTime()->tm_year);
   }
 
   static std::string getAMPM() { return currentHour() < 12 ? "AM" : "PM"; }

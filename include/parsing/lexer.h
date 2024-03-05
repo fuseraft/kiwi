@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "k_int.h"
 #include "parsing/builtins.h"
 #include "parsing/keywords.h"
 #include "parsing/tokens.h"
@@ -844,7 +845,7 @@ class Lexer {
                            literal, std::stod(literal), row, col);
     } else {
       std::istringstream ss(literal);
-      long long value;
+      k_int value;
       ss >> value;
       return Token::create(TokenType::LITERAL, SubTokenType::Default, file,
                            literal, value, row, col);
