@@ -1,0 +1,19 @@
+# simple concatenation
+@a = "Hello"
+@b = " World"
+@c = @a + @b
+println "'${@a}' + '${@b}' = '${@c}'"
+
+# concatenation expression
+@a = "Hello"
+@b = "World"
+@cc = (@a + " " + @b)
+println "'${@a}' + ' ' + '${@b}' = '${@cc}'"
+
+# string multiplication
+@a = "Hello"
+@b = 5
+@c = @a * @b
+println "'${@a}' * ${@b} = '${@c}'"
+
+println ""

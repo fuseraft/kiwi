@@ -1,0 +1,13 @@
+# rename this file to .🥝 or .kiwi to run it.
+
+import "@kiwi/time"
+
+@i = 0
+while @i < 10 do
+  @ts = time::current_timestamp()
+  println "Current timestamp: ${@ts}"
+  time::delay(1000)
+  @i += 1
+end
+
+println ""
