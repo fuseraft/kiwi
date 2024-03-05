@@ -1,0 +1,25 @@
+@fruits = ["kiwi", "strawberry", "pineapple", 
+           "lime", "mango", "guava"]
+
+println "fruits = ${@fruits}\n"
+println "iterating fruits without an index"
+for @fruit in @fruits do
+  println @fruit
+end
+
+println "\niterating fruits with an index"
+for @fruit, @index in @fruits do
+  println "${@index}: ${@fruit}"
+end
+
+println "\niterating an inline list without an index"
+for @item in ["kiwi", "is", "fun"] do
+  println "${@item}"
+end
+
+println "\niterating an inline list with an index"
+for @item, @index in ["kiwi", "is", "fun"] do
+  println "${@index}: ${@item}"
+end
+
+println ""

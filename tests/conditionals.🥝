@@ -1,0 +1,34 @@
+@a = true, @b = true
+println "${@a}, ${@b}"
+
+if @a == @b
+    println "foo"
+elsif @a != @b
+    println "bar"
+else
+    println "baz"
+end
+
+@a = true, @b = false
+println "${@a}, ${@b}"
+
+if @a == @b
+    println "foo"
+elsif @a != @b
+    println "bar"
+else
+    println "baz"
+end
+
+@a = true, @b = false
+println "${@a}, ${@b}"
+
+if @a == @b
+    println "foo"
+elsif @b == @a
+    println "bar"
+else
+    println "baz"
+end
+
+println ""

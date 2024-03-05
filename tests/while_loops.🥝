@@ -1,0 +1,23 @@
+@i = 0
+@test_sum = 0
+
+while @i < 10 do
+  @i += 1
+  @j = 0
+  
+  println "Loop iteration ${@i}"
+
+  while @j < 10 do
+    @j += 1
+    println "  Sub loop iteration ${@j}"
+    @test_sum += 1
+  end
+end
+
+if @test_sum == 100
+  println "While loop test passed!"
+else
+  println "While loop test failed!"
+end
+
+println ""
