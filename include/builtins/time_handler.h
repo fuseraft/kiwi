@@ -10,39 +10,39 @@
 
 class TimeBuiltinHandler {
  public:
-  static Value execute(const Token& tokenTerm, const std::string& builtin,
+  static Value execute(const Token& tokenTerm, const SubTokenType& builtin,
                        const std::vector<Value>& args) {
-    if (builtin == TimeBuiltins.Delay) {
+    if (builtin == SubTokenType::Builtin_Time_Delay) {
       return executeDelay(tokenTerm, args);
-    } else if (builtin == TimeBuiltins.EpochMilliseconds) {
+    } else if (builtin == SubTokenType::Builtin_Time_EpochMilliseconds) {
       return executeEpochMilliseconds(tokenTerm, args);
-    } else if (builtin == TimeBuiltins.Hour) {
+    } else if (builtin == SubTokenType::Builtin_Time_Hour) {
       return executeCurrentHour(tokenTerm, args);
-    } else if (builtin == TimeBuiltins.IsDST) {
+    } else if (builtin == SubTokenType::Builtin_Time_IsDST) {
       return executeIsDST(tokenTerm, args);
-    } else if (builtin == TimeBuiltins.Minute) {
+    } else if (builtin == SubTokenType::Builtin_Time_Minute) {
       return executeCurrentMinute(tokenTerm, args);
-    } else if (builtin == TimeBuiltins.Month) {
+    } else if (builtin == SubTokenType::Builtin_Time_Month) {
       return executeCurrentMonth(tokenTerm, args);
-    } else if (builtin == TimeBuiltins.MonthDay) {
+    } else if (builtin == SubTokenType::Builtin_Time_MonthDay) {
       return executeCurrentMonthDay(tokenTerm, args);
-    } else if (builtin == TimeBuiltins.Second) {
+    } else if (builtin == SubTokenType::Builtin_Time_Second) {
       return executeCurrentSecond(tokenTerm, args);
-    } else if (builtin == TimeBuiltins.Ticks) {
+    } else if (builtin == SubTokenType::Builtin_Time_Ticks) {
       return executeTicks(tokenTerm, args);
-    } else if (builtin == TimeBuiltins.WeekDay) {
+    } else if (builtin == SubTokenType::Builtin_Time_WeekDay) {
       return executeCurrentWeekDay(tokenTerm, args);
-    } else if (builtin == TimeBuiltins.Year) {
+    } else if (builtin == SubTokenType::Builtin_Time_Year) {
       return executeCurrentYear(tokenTerm, args);
-    } else if (builtin == TimeBuiltins.YearDay) {
+    } else if (builtin == SubTokenType::Builtin_Time_YearDay) {
       return executeCurrentYearDay(tokenTerm, args);
-    } else if (builtin == TimeBuiltins.AMPM) {
+    } else if (builtin == SubTokenType::Builtin_Time_AMPM) {
       return executeAMPM(tokenTerm, args);
-    } else if (builtin == TimeBuiltins.TicksToMilliseconds) {
+    } else if (builtin == SubTokenType::Builtin_Time_TicksToMilliseconds) {
       return executeTicksToMilliseconds(tokenTerm, args);
     }
 
-    throw UnknownBuiltinError(tokenTerm, builtin);
+    throw UnknownBuiltinError(tokenTerm, "");
   }
 
  private:

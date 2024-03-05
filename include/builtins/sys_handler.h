@@ -9,17 +9,17 @@
 
 class SysBuiltinHandler {
  public:
-  static Value execute(const Token& tokenTerm, const std::string& builtin,
+  static Value execute(const Token& tokenTerm, const SubTokenType& builtin,
                        const std::vector<Value>& args) {
-    if (builtin == SysBuiltins.Exec) {
+    if (builtin == SubTokenType::Builtin_Sys_Exec) {
       return executeExec(tokenTerm, args);
-    } else if (builtin == SysBuiltins.ExecOut) {
+    } else if (builtin == SubTokenType::Builtin_Sys_ExecOut) {
       return executeExecOut(tokenTerm, args);
-    } else if (builtin == SysBuiltins.EffectiveUserId) {
+    } else if (builtin == SubTokenType::Builtin_Sys_EffectiveUserId) {
       return executeEffectiveUserId(tokenTerm, args);
     }
 
-    throw UnknownBuiltinError(tokenTerm, builtin);
+    throw UnknownBuiltinError(tokenTerm, "");
   }
 
  private:
