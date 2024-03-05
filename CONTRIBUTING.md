@@ -51,6 +51,21 @@ Before you submit a pull request, please test your changes.
 2. Run the test suite through [Valgrind](https://valgrind.org/).
     > `valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./bin/kiwi test.kiwi`
 
+### Profiling Kiwi
+
+If you notice performance issues, please build with `make profile` and use gprof to produce a profile.
+
+```bash
+# build with the profiler flag
+make profile
+
+# run the test suite
+./bin/kiwi test.kiwi 
+
+# generate the profile data
+gprof ./bin/kiwi gmon.out > kiwi_profile.txt
+```
+
 ## Styleguides
 
 ### Git Commit Messages

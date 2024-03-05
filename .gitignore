@@ -7,3 +7,6 @@ bin
 logs
 output.txt
 play.kiwi
+gmon.out
+kiwi_profile*
+benchmark*.kiwi
