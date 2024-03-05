@@ -1,6 +1,7 @@
 CXX := g++
 CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic # -fsanitize=address
 BASE_LDFLAGS := -lcurl -lodbc
+PROFILE_FLAGS :=
 
 SRC_DIR := src
 INCLUDE_DIR := include
@@ -20,7 +21,7 @@ PLAY := $(TEST_DIR)/playground.kiwi
 EXPERIMENTAL_FLAGS :=
 LDFLAGS :=
 
-.PHONY: clean test play experimental
+.PHONY: clean test play experimental profile
 
 format:
 	find . -iname "*.cpp" -o -iname "*.h" | xargs clang-format -i --style=file
@@ -43,13 +44,16 @@ experimental: EXPERIMENTAL_FLAGS := -DEXPERIMENTAL_FEATURES
 experimental: LDFLAGS := $(BASE_LDFLAGS)
 experimental: clean $(EXECUTABLE)
 
+profile: PROFILE_FLAGS := -pg
+profile: clean $(EXECUTABLE)
+
 clean:
 	rm -rf $(BUILD_DIR) $(BIN_DIR)
 
 $(EXECUTABLE): $(OBJ_FILES)
 	@mkdir -p $(BIN_DIR)
-	$(CXX) $^ -o $@ $(LDFLAGS)
+	$(CXX) $(PROFILE_FLAGS) $^ -o $@ $(LDFLAGS)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp $(INCLUDE_FILES)
 	@mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $(EXPERIMENTAL_FLAGS) -I$(INCLUDE_DIR) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(PROFILE_FLAGS) $(EXPERIMENTAL_FLAGS) -I$(INCLUDE_DIR) -c $< -o $@

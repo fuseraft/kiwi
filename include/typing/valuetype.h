@@ -7,6 +7,7 @@
 #include <variant>
 #include <vector>
 #include "errors/error.h"
+#include "k_int.h"
 
 struct Hash;
 struct List;
@@ -25,7 +26,7 @@ enum class ValueType {
   Lambda
 };
 
-using Value = std::variant<long long, double, bool, std::string,
+using Value = std::variant<k_int, double, bool, std::string,
                            std::shared_ptr<List>, std::shared_ptr<Hash>,
                            std::shared_ptr<Object>, std::shared_ptr<LambdaRef>>;
 

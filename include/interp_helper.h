@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "errors/error.h"
+#include "k_int.h"
 #include "math/visitor.h"
 #include "objects/method.h"
 #include "objects/sliceindex.h"
@@ -122,8 +123,8 @@ struct InterpHelper {
     bool isBraced = tokenType == TokenType::OPEN_BRACE;
     bool isVariable = tokenType == TokenType::DECLVAR;
     bool isBracketed = tokenType == TokenType::OPEN_BRACKET;
-    bool isInstanceInvocation =
-        tokenType == TokenType::KEYWORD && nextToken.getText() == Keywords.This;
+    bool isInstanceInvocation = tokenType == TokenType::KEYWORD &&
+                                nextToken.getSubType() == SubTokenType::KW_This;
     return isString || isLiteral || isIdentifier || isParenthesis ||
            isVariable || isBracketed || isInstanceInvocation || isBraced;
   }
@@ -152,9 +153,9 @@ struct InterpHelper {
                                 std::shared_ptr<TokenStream> stream) {
     int counter = 1;
     while (stream->canRead() && counter != 0) {
-      if (Keywords.is_block_keyword(current(stream).getText())) {
+      if (Keywords.is_block_keyword(current(stream).getSubType())) {
         ++counter;
-      } else if (current(stream).getText() == Keywords.End) {
+      } else if (current(stream).getSubType() == SubTokenType::KW_End) {
         --counter;
 
         // Stop here.
@@ -169,15 +170,17 @@ struct InterpHelper {
     }
   }
 
-  static std::vector<Token> getTemporaryAssignment(Token& tokenTerm,
+  static std::vector<Token> getTemporaryAssignment(const Token& tokenTerm,
                                                    const std::string& tempId) {
     std::vector<Token> tokens;
     auto file = tokenTerm.getFile();
-    tokens.push_back(
-        Token::create(TokenType::DECLVAR, file, Keywords.DeclVar, 0, 0));
-    tokens.push_back(Token::create(TokenType::IDENTIFIER, file, tempId, 0, 0));
-    tokens.push_back(
-        Token::create(TokenType::OPERATOR, file, Operators.Assign, 0, 0));
+    tokens.push_back(Token::create(TokenType::DECLVAR, SubTokenType::Default,
+                                   file, Keywords.DeclVar, 0, 0));
+    tokens.push_back(Token::create(TokenType::IDENTIFIER, SubTokenType::Default,
+                                   file, tempId, 0, 0));
+    tokens.push_back(Token::create(TokenType::OPERATOR,
+                                   SubTokenType::Ops_Assign, file,
+                                   Operators.Assign, 0, 0));
 
     return tokens;
   }
@@ -186,17 +189,17 @@ struct InterpHelper {
                               bool insertOp, std::shared_ptr<List>& targetList,
                               const SliceIndex& slice,
                               const std::shared_ptr<List>& rhsValues) {
-    if (!std::holds_alternative<long long>(slice.indexOrStart)) {
+    if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
       throw IndexError(current(stream), "Start index must be an integer.");
-    } else if (!std::holds_alternative<long long>(slice.stopIndex)) {
+    } else if (!std::holds_alternative<k_int>(slice.stopIndex)) {
       throw IndexError(current(stream), "Stop index must be an integer.");
-    } else if (!std::holds_alternative<long long>(slice.stepValue)) {
+    } else if (!std::holds_alternative<k_int>(slice.stepValue)) {
       throw IndexError(current(stream), "Step value must be an integer.");
     }
 
-    int start = std::get<long long>(slice.indexOrStart);
-    int stop = std::get<long long>(slice.stopIndex);
-    int step = std::get<long long>(slice.stepValue);
+    int start = std::get<k_int>(slice.indexOrStart);
+    int stop = std::get<k_int>(slice.stopIndex);
+    int step = std::get<k_int>(slice.stepValue);
 
     if (!slice.isSlice && insertOp) {
       // This is a single element assignment.
@@ -247,57 +250,56 @@ struct InterpHelper {
   }
 
   static Value interpretAssignOp(std::shared_ptr<TokenStream> stream,
-                                 const std::string& op, Value& currentValue,
+                                 const SubTokenType& op, Value& currentValue,
                                  Value& value) {
-    if (op == Operators.AddAssign) {
+    if (op == SubTokenType::Ops_AddAssign) {
       return std::visit(AddVisitor(current(stream)), currentValue, value);
-    } else if (op == Operators.SubtractAssign) {
+    } else if (op == SubTokenType::Ops_SubtractAssign) {
       return std::visit(SubtractVisitor(current(stream)), currentValue, value);
-    } else if (op == Operators.MultiplyAssign) {
+    } else if (op == SubTokenType::Ops_MultiplyAssign) {
       return std::visit(MultiplyVisitor(current(stream)), currentValue, value);
-    } else if (op == Operators.DivideAssign) {
+    } else if (op == SubTokenType::Ops_DivideAssign) {
       return std::visit(DivideVisitor(current(stream)), currentValue, value);
-    } else if (op == Operators.ExponentAssign) {
+    } else if (op == SubTokenType::Ops_ExponentAssign) {
       return std::visit(PowerVisitor(current(stream)), currentValue, value);
-    } else if (op == Operators.ModuloAssign) {
+    } else if (op == SubTokenType::Ops_ModuloAssign) {
       return std::visit(ModuloVisitor(current(stream)), currentValue, value);
-    } else if (op == Operators.BitwiseAndAssign) {
+    } else if (op == SubTokenType::Ops_BitwiseAndAssign) {
       return std::visit(BitwiseAndVisitor(current(stream)), currentValue,
                         value);
-    } else if (op == Operators.BitwiseOrAssign) {
+    } else if (op == SubTokenType::Ops_BitwiseOrAssign) {
       return std::visit(BitwiseOrVisitor(current(stream)), currentValue, value);
-    } else if (op == Operators.BitwiseXorAssign) {
+    } else if (op == SubTokenType::Ops_BitwiseXorAssign) {
       return std::visit(BitwiseXorVisitor(current(stream)), currentValue,
                         value);
-    } else if (op == Operators.BitwiseLeftShiftAssign) {
+    } else if (op == SubTokenType::Ops_BitwiseLeftShiftAssign) {
       return std::visit(BitwiseLeftShiftVisitor(current(stream)), currentValue,
                         value);
-    } else if (op == Operators.BitwiseRightShiftAssign) {
+    } else if (op == SubTokenType::Ops_BitwiseRightShiftAssign) {
       return std::visit(BitwiseRightShiftVisitor(current(stream)), currentValue,
                         value);
-    } else if (op == Operators.BitwiseNotAssign) {
+    } else if (op == SubTokenType::Ops_BitwiseNotAssign) {
       return std::visit(BitwiseNotVisitor(current(stream)), value);
     }
 
-    throw InvalidOperationError(current(stream),
-                                "Invalid operator `" + op + "`");
+    throw InvalidOperationError(current(stream), "Invalid operator.");
   }
 
   static Value interpretListSlice(std::shared_ptr<TokenStream> stream,
                                   const SliceIndex& slice,
                                   const std::shared_ptr<List>& list) {
     if (slice.isSlice) {
-      if (!std::holds_alternative<long long>(slice.indexOrStart)) {
+      if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
         throw IndexError(current(stream), "Start index must be an integer.");
-      } else if (!std::holds_alternative<long long>(slice.stopIndex)) {
+      } else if (!std::holds_alternative<k_int>(slice.stopIndex)) {
         throw IndexError(current(stream), "Stop index must be an integer.");
-      } else if (!std::holds_alternative<long long>(slice.stepValue)) {
+      } else if (!std::holds_alternative<k_int>(slice.stepValue)) {
         throw IndexError(current(stream), "Step value must be an integer.");
       }
 
-      int start = std::get<long long>(slice.indexOrStart),
-          stop = std::get<long long>(slice.stopIndex),
-          step = std::get<long long>(slice.stepValue);
+      int start = std::get<k_int>(slice.indexOrStart),
+          stop = std::get<k_int>(slice.stopIndex),
+          step = std::get<k_int>(slice.stepValue);
 
       // Adjust negative indices
       int listSize = static_cast<int>(list->elements.size());
@@ -332,11 +334,11 @@ struct InterpHelper {
       return slicedList;  // Return the sliced list as a Value
     } else {
       // Single index access
-      if (!std::holds_alternative<long long>(slice.indexOrStart)) {
+      if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
         throw IndexError(current(stream), "Index value must be an integer.");
       }
 
-      int index = std::get<long long>(slice.indexOrStart);
+      int index = std::get<k_int>(slice.indexOrStart);
       int listSize = list->elements.size();
 
       if (index < 0) {
@@ -404,7 +406,7 @@ struct InterpHelper {
       // If the last token was "@"
       if (pos + 1 < tokens.size() &&
           lastToken.getType() == TokenType::DECLVAR) {
-        if (tokens.at(pos + 1).getText() == Operators.Divide) {
+        if (tokens.at(pos + 1).getSubType() == SubTokenType::Ops_Divide) {
           moduleHome = token.getText();
           pos += 2;  // Skip module home and "/"
           build = true;
@@ -430,7 +432,7 @@ struct InterpHelper {
   static std::string interpretBaseClass(std::shared_ptr<TokenStream> stream) {
     std::string baseClassName;
     if (current(stream).getType() == TokenType::OPERATOR) {
-      if (current(stream).getText() != Operators.LessThan) {
+      if (current(stream).getSubType() != SubTokenType::Ops_LessThan) {
         throw SyntaxError(
             current(stream),
             "Expected inheritance operator, `<`, in class definition.");
