@@ -2151,16 +2151,23 @@ class Interpreter {
     }
 
     auto scriptName = std::get<std::string>(scriptNameValue);
-    if (!Strings::ends_with(scriptName, ".kiwi")) {
+    auto scriptNameKiwi = scriptName;
+    if (!Strings::ends_with(scriptName, ".kiwi") &&
+        !Strings::ends_with(scriptName, "🥝")) {
       scriptName += ".kiwi";
+      scriptNameKiwi += ".🥝";
     }
 
     auto scriptPath = FileIO::getLocalPath(scriptName);
-    if (!FileIO::fileExists(scriptPath)) {
-      throw FileNotFoundError(scriptPath);
+    auto kiwiScriptPath = FileIO::getLocalPath(scriptNameKiwi);
+    if (!FileIO::fileExists(scriptPath) &&
+        !FileIO::fileExists(kiwiScriptPath)) {
+      throw FileNotFoundError(scriptName);
     }
 
-    auto content = FileIO::readFile(scriptPath);
+    auto content = FileIO::fileExists(kiwiScriptPath)
+                       ? FileIO::readFile(kiwiScriptPath)
+                       : FileIO::readFile(scriptPath);
     if (content.empty()) {
       return "";
     }
