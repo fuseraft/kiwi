@@ -1,0 +1,48 @@
+abstract class MyAbstractClass
+  abstract def method_one()
+
+  def concrete_method()
+    println "This is a concrete method."
+  end
+end
+
+class MyClass < MyAbstractClass
+  def initialize(@name)
+    this.@name = @name
+  end
+
+  override def method_one()
+    concrete_method()
+  end
+
+  private def get_name()
+    return @name # `this.` is optional.
+  end
+
+  static def static_method()
+    println "I can be invoked without an instance."
+  end
+
+  def print_name()
+    println get_name() # `this.` is optional
+  end
+
+  def print_name_and_msg(@msg)
+    try
+      print_name()
+    catch
+      println "An error occurred."
+    end
+    println "Message: ${@msg}"
+  end
+end
+
+@instance = MyClass.new("scott")
+@instance.method_one()
+
+# println @instance.get_name() # Throws InvalidOperationError: Cannot invoke private method outside of object context.
+@instance.print_name_and_msg("Hello!")
+
+MyClass.static_method()
+
+println ""

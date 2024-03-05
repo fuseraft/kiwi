@@ -49,7 +49,7 @@ Before you submit a pull request, please test your changes.
 
 1. Add your test script to the [test suite](tests).
 2. Run the test suite through [Valgrind](https://valgrind.org/).
-    > `valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./bin/kiwi test.kiwi`
+    > `valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./bin/kiwi test.🥝`
 
 ### Profiling Kiwi
 
@@ -60,7 +60,7 @@ If you notice performance issues, please build with `make profile` and use gprof
 make profile
 
 # run the test suite
-./bin/kiwi test.kiwi 
+./bin/kiwi test.🥝 
 
 # generate the profile data
 gprof ./bin/kiwi gmon.out > kiwi_profile.txt

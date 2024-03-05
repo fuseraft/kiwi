@@ -1,0 +1,65 @@
+# ==============================
+# = Assigned and inline lambdas
+# ==============================
+@list = [
+  {"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4},
+  {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}, {"id": 9}
+]
+# Define an assigned lambda.
+odd_item_id = lambda(@item) do
+  return @item["id"] % 2 != 0
+end
+
+# Defining a lambda and using it to wrap functionality.
+puts = lambda(@s) do
+  println @s
+end
+
+puts("Hello, World!") # prints: Hello, World!
+
+# ===================================
+# = Lambdas as first-class citizens
+# ===================================
+
+def use_lambda(@print_func, @message)
+  print_func(@message)
+end
+
+use_lambda(puts, "Hello, Kiwi!")
+
+# ==============================
+# = List.select test
+# ==============================
+# Using an inline lambda.
+println @list.select(lambda(@item) do return @item["id"] % 2 == 0 end)
+
+# Using an assigned lambda.
+println @list.select(odd_item_id)
+
+# ======================
+# = List.map test
+# ======================
+@list = ["kiwi", "mango", "banana"]
+println @list.map(lambda (@item) do return { "fruit": @item, "is_a_kiwi": @item.downcase() == "kiwi" } end)
+# prints: [{"fruit": kiwi, "is_a_kiwi": true}, {"fruit": mango, "is_a_kiwi": false}, {"fruit": banana, "is_a_kiwi": false}]
+
+# ======================
+# = List.reduce tests
+# ======================
+@numbers = [1, 2, 3, 4, 5]
+
+@sum = @numbers.reduce(0, lambda (@accumulator, @number) do
+    return @accumulator + @number
+end)
+
+println @sum # prints: 15
+
+@hash = @numbers.reduce({}, lambda (@accumulator, @number) do
+    @accumulator["key${@number}"] = @number
+    return @accumulator
+end)
+
+println @hash 
+# prints: {"key1": 1, "key2": 2, "key3": 3, "key4": 4, "key5": 5}
+
+println ""
