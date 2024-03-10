@@ -112,12 +112,6 @@ class TokenStream {
   TokenStream(const std::vector<Token>& tokens) : tokens(tokens) {}
   ~TokenStream() { tokens.clear(); }
 
-  std::shared_ptr<TokenStream> clone() const {
-    auto clonedStream = std::make_shared<TokenStream>(tokens);  // Copy tokens
-    clonedStream->position = this->position;  // Copy current position
-    return clonedStream;
-  }
-
   Token current() {
     if (position >= tokens.size()) {
       return Token::createStreamEnd();
@@ -132,9 +126,8 @@ class TokenStream {
   }
 
   Token peek() {
-    size_t nextPosition = position + 1;
-    if (nextPosition < tokens.size()) {
-      return tokens[nextPosition];
+    if (position + 1 < tokens.size()) {
+      return tokens.at(position + 1);
     } else {
       return Token::createStreamEnd();
     }
