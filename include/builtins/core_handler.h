@@ -11,7 +11,7 @@
 #include "parsing/builtins.h"
 #include "parsing/strings.h"
 #include "parsing/tokens.h"
-#include "system/fileio.h"
+#include "util/file.h"
 #include "system/time.h"
 #include "typing/serializer.h"
 #include "typing/valuetype.h"
@@ -227,7 +227,7 @@ class CoreBuiltinHandler {
         newList->elements.push_back(std::string(1, c));
       }
     } else {
-      for (std::string token : Strings::split(input, delimiter)) {
+      for (std::string token : String::split(input, delimiter)) {
         newList->elements.push_back(token);
       }
     }
@@ -242,7 +242,7 @@ class CoreBuiltinHandler {
     }
 
     std::string input = get_string(tokenTerm, value);
-    return Strings::ltrim(input);
+    return String::trimLeft(input);
   }
 
   static std::string executeRightTrim(const Token& tokenTerm,
@@ -253,7 +253,7 @@ class CoreBuiltinHandler {
     }
 
     std::string input = get_string(tokenTerm, value);
-    return Strings::rtrim(input);
+    return String::trimRight(input);
   }
 
   static std::string executeTrim(const Token& tokenTerm, const Value& value,
@@ -263,7 +263,7 @@ class CoreBuiltinHandler {
     }
 
     std::string input = get_string(tokenTerm, value);
-    return Strings::trim(input);
+    return String::trim(input);
   }
 
   static std::string executeType(const Token& tokenTerm, const Value& value,
@@ -317,7 +317,7 @@ class CoreBuiltinHandler {
 
     auto str = get_string(tokenTerm, value);
     auto search = get_string(tokenTerm, args.at(0));
-    return Strings::begins_with(str, search);
+    return String::beginsWith(str, search);
   }
 
   static bool executeContains(const Token& tokenTerm, const Value& value,
@@ -328,7 +328,7 @@ class CoreBuiltinHandler {
 
     auto str = get_string(tokenTerm, value);
     auto search = get_string(tokenTerm, args.at(0));
-    return Strings::contains(str, search);
+    return String::contains(str, search);
   }
 
   static bool executeEndsWith(const Token& tokenTerm, const Value& value,
@@ -339,7 +339,7 @@ class CoreBuiltinHandler {
 
     auto str = get_string(tokenTerm, value);
     auto search = get_string(tokenTerm, args.at(0));
-    return Strings::ends_with(str, search);
+    return String::endsWith(str, search);
   }
 
   static bool executeIsA(const Token& tokenTerm, const Value& value,
@@ -385,7 +385,7 @@ class CoreBuiltinHandler {
     auto str = get_string(tokenTerm, value);
     auto search = get_string(tokenTerm, args.at(0));
     auto replacement = get_string(tokenTerm, args.at(1));
-    return Strings::replace(str, search, replacement);
+    return String::replace(str, search, replacement);
   }
 
   static int executeIndexOf(const Token& tokenTerm, const Value& value,
@@ -396,7 +396,7 @@ class CoreBuiltinHandler {
 
     auto str = get_string(tokenTerm, value);
     auto search = get_string(tokenTerm, args.at(0));
-    return Strings::index_of(str, search);
+    return String::indexOf(str, search);
   }
 
   static std::string executeUpcase(const Token& tokenTerm, const Value& value,
@@ -406,7 +406,7 @@ class CoreBuiltinHandler {
     }
 
     auto str = get_string(tokenTerm, value);
-    return Strings::upcase(str);
+    return String::toUppercase(str);
   }
 
   static std::string executeDowncase(const Token& tokenTerm, const Value& value,
@@ -416,7 +416,7 @@ class CoreBuiltinHandler {
     }
 
     auto str = get_string(tokenTerm, value);
-    return Strings::downcase(str);
+    return String::toLowercase(str);
   }
 };
 

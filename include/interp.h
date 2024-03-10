@@ -19,7 +19,7 @@
 #include "parsing/tokens.h"
 #include "parsing/tokentype.h"
 #include "parsing/keywords.h"
-#include "system/fileio.h"
+#include "util/file.h"
 #include "typing/serializer.h"
 #include "typing/valuetype.h"
 #include "eventloop.h"
@@ -44,19 +44,19 @@ class Interpreter {
   }
 
   int interpretScript(const std::string& path) {
-    auto content = FileIO::readFile(path);
+    auto content = File::readFile(path);
     if (content.empty()) {
       return -1;
     }
 
-    auto cwd = FileIO::getCurrentDirectory();
-    auto scriptDir = FileIO::getParentPath(path);
-    FileIO::setCurrentDirectory(scriptDir);
+    auto cwd = File::getCurrentDirectory();
+    auto scriptDir = File::getParentPath(path);
+    File::setCurrentDirectory(scriptDir);
 
     Lexer lexer(path, content);
     int result = interpret(lexer);
 
-    FileIO::setCurrentDirectory(cwd);
+    File::setCurrentDirectory(cwd);
     return result;
   }
 
@@ -2152,22 +2152,21 @@ class Interpreter {
 
     auto scriptName = std::get<std::string>(scriptNameValue);
     auto scriptNameKiwi = scriptName;
-    if (!Strings::ends_with(scriptName, ".kiwi") &&
-        !Strings::ends_with(scriptName, "🥝")) {
+    if (!String::endsWith(scriptName, ".kiwi") &&
+        !String::endsWith(scriptName, "🥝")) {
       scriptName += ".kiwi";
       scriptNameKiwi += ".🥝";
     }
 
-    auto scriptPath = FileIO::getLocalPath(scriptName);
-    auto kiwiScriptPath = FileIO::getLocalPath(scriptNameKiwi);
-    if (!FileIO::fileExists(scriptPath) &&
-        !FileIO::fileExists(kiwiScriptPath)) {
+    auto scriptPath = File::getLocalPath(scriptName);
+    auto kiwiScriptPath = File::getLocalPath(scriptNameKiwi);
+    if (!File::fileExists(scriptPath) && !File::fileExists(kiwiScriptPath)) {
       throw FileNotFoundError(scriptName);
     }
 
-    auto content = FileIO::fileExists(kiwiScriptPath)
-                       ? FileIO::readFile(kiwiScriptPath)
-                       : FileIO::readFile(scriptPath);
+    auto content = File::fileExists(kiwiScriptPath)
+                       ? File::readFile(kiwiScriptPath)
+                       : File::readFile(scriptPath);
     if (content.empty()) {
       return "";
     }
@@ -2217,10 +2216,10 @@ class Interpreter {
 
     for (auto pair : methods) {
       auto name = pair.first;
-      if (Strings::begins_with(name, search)) {
+      if (String::beginsWith(name, search)) {
         auto method = pair.second;
         method.setFlag(MethodFlags::Static);
-        method.setName(Strings::replace(name, search, ""));
+        method.setName(String::replace(name, search, ""));
         clazz.addMethod(method);
       }
     }

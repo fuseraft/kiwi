@@ -36,7 +36,7 @@ class ArgvBuiltinHandler {
     std::shared_ptr<List> argv = std::make_shared<List>();
 
     for (const auto& pair : kiwiArgs) {
-      if (Strings::begins_with(pair.first, "argv_")) {
+      if (String::beginsWith(pair.first, "argv_")) {
         argv->elements.push_back(pair.second);
       }
     }
