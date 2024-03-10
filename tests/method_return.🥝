@@ -1,10 +1,10 @@
-def get_greeting(@name)
-  return "Hello, ${@name}"
+def get_greeting(name)
+  return "Hello, ${name}"
 end
 
-@who = "World!"
-@greeting = get_greeting(@who)
+who = "World!"
+greeting = get_greeting(who)
 
-println "Greeting: ${@greeting}"
+println "Greeting: ${greeting}"
 
 println ""

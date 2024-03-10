@@ -1,150 +1,150 @@
 import "@kiwi/fileio"
 
-@path = "hello.txt"
+path = "hello.txt"
 
 # =============================
 # Create the file
 # =============================
 
-println "=> creating file: ${@path}"
-fileio::touch(@path)
+println "=> creating file: ${path}"
+fileio::touch(path)
 
 # =============================
 # Check if the file exists
 # =============================
 
-if fileio::exists(@path)
-  println "=> created file: ${@path}"
+if fileio::exists(path)
+  println "=> created file: ${path}"
 end
 
 # =============================
 # Write text to file
 # =============================
 
-println "=> writing text to file: ${@path}"
-fileio::write(@path, "")
-fileio::writeln(@path, "Hello, World!")
-fileio::append(@path, "This is Kiwi!")
+println "=> writing text to file: ${path}"
+fileio::write(path, "")
+fileio::writeln(path, "Hello, World!")
+fileio::append(path, "This is Kiwi!")
 
 # =============================
 # Read text from file
 # =============================
 
-println "=> reading text from file: ${@path}"
-@text = fileio::read(@path)
-println "=> file text:\n${@text}"
+println "=> reading text from file: ${path}"
+text = fileio::read(path)
+println "=> file text:\n${text}"
 
 # =============================
 # Copy the file
 # =============================
 
-@dest = "hello-copy.txt"
-println "=> copying file: ${@path}"
-println "=> copying to: ${@dest}"
-@text = fileio::copy(@path, @dest)
+dest = "hello-copy.txt"
+println "=> copying file: ${path}"
+println "=> copying to: ${dest}"
+text = fileio::copy(path, dest)
 
 # =============================
 # Read text from copied file
 # =============================
 
-println "=> reading text from file: ${@dest}"
-@text = fileio::read(@dest)
-println "=> file text:\n${@text}"
+println "=> reading text from file: ${dest}"
+text = fileio::read(dest)
+println "=> file text:\n${text}"
 
 # =============================
 # Delete copied file
 # =============================
 
-println "=> deleting file: ${@dest}"
-fileio::remove(@dest)
+println "=> deleting file: ${dest}"
+fileio::remove(dest)
 
 # =============================
 # Read file size of file
 # =============================
 
-println "=> getting file size: ${@path}"
-@size = fileio::filesize(@path)
-println "=> file size: ${@size} bytes"
+println "=> getting file size: ${path}"
+size = fileio::filesize(path)
+println "=> file size: ${size} bytes"
 
 # =============================
 # Get the absolute path
 # =============================
 
-@abspath = fileio::abspath(@path)
-println "=> absolute path: ${@abspath}"
+abspath = fileio::abspath(path)
+println "=> absolute path: ${abspath}"
 
 # =============================
 # Get the parent directory
 # =============================
 
-@parent = fileio::parentdir(@abspath)
-println "=> parent directory: ${@parent}"
+parent = fileio::parentdir(abspath)
+println "=> parent directory: ${parent}"
 
 # =============================
 # Get the filename
 # =============================
 
-@name = fileio::filename(@abspath)
-println "=> file name: ${@name}"
+name = fileio::filename(abspath)
+println "=> file name: ${name}"
 
 # =============================
 # Get the file extension
 # =============================
 
-@ext = fileio::ext(@path)
-println "=> file extension: ${@ext}"
+ext = fileio::ext(path)
+println "=> file extension: ${ext}"
 
 # =============================
 # Move/Rename the file
 # =============================
 
-@dest = "hello-moved.txt"
-println "=> moving file: ${@path}"
-println "=> moving to: ${@dest}"
-fileio::move(@path, @dest)
+dest = "hello-moved.txt"
+println "=> moving file: ${path}"
+println "=> moving to: ${dest}"
+fileio::move(path, dest)
 
-@path = @dest
+path = dest
 
 # =============================
 # Delete the file if it exists
 # =============================
 
-if fileio::exists(@path)
-  println "=> deleting file: ${@path}"
-  fileio::remove(@path)
+if fileio::exists(path)
+  println "=> deleting file: ${path}"
+  fileio::remove(path)
 end
 
 # =============================
 # Check if the file exists
 # =============================
 
-if !fileio::exists(@path)
-  println "=> deleted file: ${@path}"
+if !fileio::exists(path)
+  println "=> deleted file: ${path}"
 end
 
-@path = "file.txt"
-println "creating file: ${@path}"
-fileio::touch(@path)
-@i = 1
+path = "file.txt"
+println "creating file: ${path}"
+fileio::touch(path)
+i = 1
 
-println "writing to file: ${@path}"
-while @i <= 10 do
-  fileio::writeln(@path, "Item ${@i}")
-  @i += 1
+println "writing to file: ${path}"
+while i <= 10 do
+  fileio::writeln(path, "Item ${i}")
+  i += 1
 end
 
-println "reading lines from: ${@path}"
-@lines = fileio::readlines(@path)
-for @line, @index in @lines do
-  println "${@index}: ${@line}"
+println "reading lines from: ${path}"
+lines = fileio::readlines(path)
+for line, index in lines do
+  println "${index}: ${line}"
 end
 
-if fileio::exists(@path)
-  fileio::remove(@path)
+if fileio::exists(path)
+  fileio::remove(path)
 end
 
-if !fileio::exists(@path)
-  println "deleted file: ${@path}"
+if !fileio::exists(path)
+  println "deleted file: ${path}"
 end
 
 println ""

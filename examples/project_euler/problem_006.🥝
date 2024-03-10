@@ -12,23 +12,23 @@ Hence the difference between the sum of the squares of the first ten natural num
 Find the difference between the sum of the squares of the first one hundred natural numbers and the square of the sum.
 ##
 
-def sum_of_squares(@n)
-  return [1 .. @n].reduce(0, lambda (@sum, @i) do 
-    @sum += @i**2
-    return @sum
+def sum_of_squares(n)
+  return [1 .. n].reduce(0, lambda (sum, i) do 
+    sum += i**2
+    return sum
   end)
 end
 
-def square_of_sum(@n)
-  @sum = [1 .. @n].reduce(0, lambda (@sum, @i) do 
-    @sum += @i
-    return @sum
+def square_of_sum(n)
+  sum = [1 .. n].reduce(0, lambda (sum, i) do 
+    sum += i
+    return sum
   end)
-  return @sum ** 2
+  return sum ** 2
 end
 
-def difference(@n)
-  return square_of_sum(@n) - sum_of_squares(@n)
+def difference(n)
+  return square_of_sum(n) - sum_of_squares(n)
 end
 
 println difference(100)
