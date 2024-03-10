@@ -121,12 +121,11 @@ struct InterpHelper {
     bool isIdentifier = tokenType == TokenType::IDENTIFIER;
     bool isParenthesis = tokenType == TokenType::OPEN_PAREN;
     bool isBraced = tokenType == TokenType::OPEN_BRACE;
-    bool isVariable = tokenType == TokenType::DECLVAR;
     bool isBracketed = tokenType == TokenType::OPEN_BRACKET;
     bool isInstanceInvocation = tokenType == TokenType::KEYWORD &&
                                 nextToken.getSubType() == SubTokenType::KW_This;
     return isString || isLiteral || isIdentifier || isParenthesis ||
-           isVariable || isBracketed || isInstanceInvocation || isBraced;
+           isBracketed || isInstanceInvocation || isBraced;
   }
 
   static bool shouldUpdateFrameVariables(
@@ -174,8 +173,6 @@ struct InterpHelper {
                                                    const std::string& tempId) {
     std::vector<Token> tokens;
     auto file = tokenTerm.getFile();
-    tokens.push_back(Token::create(TokenType::DECLVAR, SubTokenType::Default,
-                                   file, Keywords.DeclVar, 0, 0));
     tokens.push_back(Token::create(TokenType::IDENTIFIER, SubTokenType::Default,
                                    file, tempId, 0, 0));
     tokens.push_back(Token::create(TokenType::OPERATOR,
@@ -358,12 +355,6 @@ struct InterpHelper {
                                           std::string& errorVariableName,
                                           Value& errorValue) {
     next(stream);  // Skip "("
-
-    if (current(stream).getType() != TokenType::DECLVAR) {
-      throw SyntaxError(current(stream),
-                        "Syntax error in catch variable declaration.");
-    }
-    next(stream);  // Skip "@"
 
     if (current(stream).getType() != TokenType::IDENTIFIER) {
       throw SyntaxError(
