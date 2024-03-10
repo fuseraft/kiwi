@@ -427,7 +427,7 @@ class Interpreter {
     auto tempId = InterpHelper::getTemporaryId();
     auto tempAssignment =
         InterpHelper::getTemporaryAssignment(stream->current(), tempId);
-    // Interpret the condition.
+
     while (true) {
       if (frame->isLoopControlFlagSet()) {
         if (frame->isFlagSet(FrameFlags::LoopBreak)) {
@@ -438,9 +438,9 @@ class Interpreter {
         }
       }
 
-      auto condition = conditionTokens;
-      auto it = condition.begin() + 0;
-      condition.insert(it, tempAssignment.begin(), tempAssignment.end());
+      auto condition = tempAssignment;
+      condition.insert(condition.end(), conditionTokens.begin(),
+                       conditionTokens.end());  // Append conditionTokens
 
       auto conditionStream = std::make_shared<TokenStream>(condition);
       auto conditionFrame = buildSubFrame(frame);
@@ -461,7 +461,6 @@ class Interpreter {
         throw ConversionError(stream->current());
       }
 
-      // Stop here.
       if (!std::get<bool>(value)) {
         break;
       }
@@ -470,10 +469,10 @@ class Interpreter {
       callStack.push(buildSubFrame(frame));
       streamStack.push(codeStream);
 
-      // Interpret the loop code.
       interpretStackFrame();
       frame = callStack.top();
     }
+
     frame->clearFlag(FrameFlags::LoopBreak);
     frame->clearFlag(FrameFlags::LoopContinue);
 
@@ -482,6 +481,7 @@ class Interpreter {
         oldFrame->variables[pair.first] = pair.second;
       }
     }
+
     if (frame->inObjectContext()) {
       for (const auto& pair : frame->getObjectContext()->instanceVariables) {
         if (InterpHelper::shouldUpdateFrameVariables(pair.first, oldFrame)) {
@@ -2921,32 +2921,27 @@ class Interpreter {
 
   Value parsePrimary(std::shared_ptr<TokenStream> stream,
                      std::shared_ptr<CallStackFrame> frame) {
-    if (stream->current().getValueType() == ValueType::Integer) {
-      auto value = stream->current().toInteger();
-      stream->next();
-      return value;
-    } else if (stream->current().getValueType() == ValueType::Double) {
-      auto value = stream->current().toDouble();
-      stream->next();
-      return value;
-    } else if (stream->current().getValueType() == ValueType::Boolean) {
-      auto value = stream->current().toBoolean();
+    auto current = stream->current();
+    auto& value = current.getValue();
+    if (std::holds_alternative<k_int>(value) ||
+        std::holds_alternative<double>(value) ||
+        std::holds_alternative<bool>(value)) {
       stream->next();
       return value;
     }
 
-    if (stream->current().getType() == TokenType::OPEN_BRACE) {
+    if (current.getType() == TokenType::OPEN_BRACE) {
       return interpretHash(stream, frame);
     }
 
-    if (stream->current().getType() == TokenType::IDENTIFIER &&
+    if (current.getType() == TokenType::IDENTIFIER &&
         stream->peek().getType() == TokenType::OPEN_BRACKET) {
-      auto variableName = stream->current().getText();
+      auto variableName = current.getText();
       stream->next();  // Skip the identifier.
       return interpretSlice(stream, frame, variableName);
     }
 
-    if (stream->current().getType() == TokenType::OPEN_PAREN) {
+    if (current.getType() == TokenType::OPEN_PAREN) {
       stream->next();  // Skip "("
       auto result = interpretExpression(stream, frame);
 
@@ -2955,15 +2950,15 @@ class Interpreter {
       }
 
       return result;
-    } else if (stream->current().getType() == TokenType::OPEN_BRACKET) {
+    } else if (current.getType() == TokenType::OPEN_BRACKET) {
       auto result = interpretBracketExpression(stream, frame);
       return result;
-    } else if (stream->current().getType() == TokenType::IDENTIFIER) {
+    } else if (current.getType() == TokenType::IDENTIFIER) {
       return interpretIdentifier(stream, frame, false);
-    } else if (stream->current().getSubType() == SubTokenType::KW_This) {
+    } else if (current.getSubType() == SubTokenType::KW_This) {
       return interpretSelfInvocationTerm(stream, frame);
-    } else if (stream->current().getValueType() == ValueType::String) {
-      auto value = interpolateString(stream, frame);
+    } else if (std::holds_alternative<std::string>(value)) {
+      value = interpolateString(stream, frame);
       stream->next();
       return value;
     }
@@ -2979,13 +2974,13 @@ class Interpreter {
 
   Value interpretSimpleValueType(std::shared_ptr<TokenStream> stream,
                                  std::shared_ptr<CallStackFrame> frame) {
-    if (stream->current().getValueType() == ValueType::Boolean) {
-      return stream->current().toBoolean();
-    } else if (stream->current().getValueType() == ValueType::Double) {
-      return stream->current().toDouble();
-    } else if (stream->current().getValueType() == ValueType::Integer) {
-      return stream->current().toInteger();
-    } else if (stream->current().getValueType() == ValueType::String) {
+    auto& value = stream->current().getValue();
+
+    if (std::holds_alternative<k_int>(value) ||
+        std::holds_alternative<double>(value) ||
+        std::holds_alternative<bool>(value)) {
+      return value;
+    } else if (std::holds_alternative<std::string>(value)) {
       return interpolateString(stream, frame);
     }
 
@@ -3064,12 +3059,12 @@ class Interpreter {
     }
 
     auto tempId = InterpHelper::getTemporaryId();
-    auto tempAssignment =
+    std::vector<Token> tempAssignment =
         InterpHelper::getTemporaryAssignment(stream->current(), tempId);
+
     Lexer lexer("", input);
-    for (const auto& t : lexer.getAllTokens()) {
-      tempAssignment.push_back(t);
-    }
+    auto tokens = lexer.getAllTokens();
+    tempAssignment.insert(tempAssignment.end(), tokens.begin(), tokens.end());
 
     auto tempStream = std::make_shared<TokenStream>(tempAssignment);
     auto tempFrame = buildSubFrame(frame);
@@ -3080,93 +3075,66 @@ class Interpreter {
                         "Invalid string interpolation: `" + input + "`");
     }
 
-    Value value = getVariable(stream, tempFrame, tempId);
-
-    tempAssignment.clear();
-
-    return value;
+    return getVariable(stream, tempFrame, tempId);
   }
 
   std::string interpolateString(std::shared_ptr<TokenStream> stream,
                                 std::shared_ptr<CallStackFrame> frame) {
     auto input = stream->current().getText();
-    int i = 0, size = input.length();
-    int interpCount = 0;
-    char c = '\0';
-
     std::ostringstream sv;
-    std::ostringstream builder;
+    std::string builder;
 
-    bool hasSyntaxError = false;
+    for (size_t i = 0; i < input.length(); ++i) {
+      char c = input[i];
 
-    while (!hasSyntaxError && i < size) {
-      c = input[i];
-
-      switch (c) {
-        case '$':
-          if (i + 1 < size && input[i + 1] == '{') {
-            ++interpCount;
-            i += 2;  // Skip "${"
-            continue;
+      if (c == '$' && i + 1 < input.length() && input[i + 1] == '{') {
+        i += 2;  // Skip "${"
+        size_t start = i;
+        int braceCount = 1;
+        while (i < input.length() && braceCount > 0) {
+          if (input[i] == '{') {
+            ++braceCount;
+          } else if (input[i] == '}') {
+            --braceCount;
           }
-          break;
-
-        case '}':
-          if (interpCount > 0) {
-            --interpCount;
-
-            if (interpCount > 0) {
-              hasSyntaxError = true;
-              continue;
-            }
-
-            if (builder.tellp() > 0) {
-              auto value = interpolateString(stream, frame, builder.str());
-              if (!std::holds_alternative<std::shared_ptr<Object>>(value)) {
-                sv << Serializer::serialize(value);
-              } else {
-                sv << interpolateObject(stream, frame, value);
-              }
-              builder.str("");
-              ++i;
-            }
-
-            continue;
+          ++i;
+        }
+        if (braceCount == 0) {
+          --i;  // Go back to the closing brace
+          auto value =
+              interpolateString(stream, frame, input.substr(start, i - start));
+          if (!std::holds_alternative<std::shared_ptr<Object>>(value)) {
+            sv << Serializer::serialize(value);
+          } else {
+            sv << interpolateObject(stream, frame, value);
           }
-          break;
-
-        case '\\':
-          if (i + 1 < size) {
-            if (input[i + 1] == 't') {
-              sv << "\t";
-              i += 2;
-              continue;
-            } else if (input[i + 1] == 'n') {
-              sv << "\n";
-              i += 2;
-              continue;
-            } else if (input[i + 1] == 'r') {
-              sv << "\r";
-              i += 2;
-              continue;
-            }
+        } else {
+          throw SyntaxError(
+              stream->current(),
+              "Unmatched braces in string interpolation: `" + input + "`");
+        }
+      } else if (c == '\\') {
+        // Handle escape sequences
+        if (i + 1 < input.length()) {
+          switch (input[i + 1]) {
+            case 't':
+              sv << '\t';
+              break;
+            case 'n':
+              sv << '\n';
+              break;
+            case 'r':
+              sv << '\r';
+              break;
+            default:
+              sv << input[i + 1];
+              break;
           }
-          break;
-      }
-
-      if (interpCount == 0) {
-        sv << c;
+          i++;
+        }
       } else {
-        builder << c;
+        sv << c;
       }
-
-      ++i;
-    }
-
-    if (hasSyntaxError) {
-      throw SyntaxError(
-          stream->current(),
-          "Invalid syntax in string interpolation: `" + input + "`");
     }
 
     return sv.str();
@@ -3281,7 +3249,7 @@ class Interpreter {
 
     if (identifier.empty() &&
         stream->current().getType() == TokenType::IDENTIFIER) {
-      name = stream->current().toString();
+      name = stream->current().getText();
     } else if (!identifier.empty()) {
       name = identifier;
     }

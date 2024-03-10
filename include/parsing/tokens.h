@@ -42,38 +42,6 @@ class Token {
 
   std::string getFile() const { return file; }
 
-  std::string toString() {
-    if (!std::holds_alternative<std::string>(value)) {
-      return {};
-    }
-
-    return std::get<std::string>(value);
-  }
-
-  k_int toInteger() {
-    if (!std::holds_alternative<k_int>(value)) {
-      return {};
-    }
-
-    return std::get<k_int>(value);
-  }
-
-  bool toBoolean() {
-    if (!std::holds_alternative<bool>(value)) {
-      return {};
-    }
-
-    return std::get<bool>(value);
-  }
-
-  double toDouble() {
-    if (!std::holds_alternative<double>(value)) {
-      return {};
-    }
-
-    return std::get<double>(value);
-  }
-
   std::string getText() const { return text; }
 
   const int& getLineNumber() const { return _lineNumber; }
@@ -84,9 +52,7 @@ class Token {
 
   SubTokenType getSubType() const { return subType; }
 
-  Value getValue() { return value; }
-
-  ValueType getValueType() { return valueType; }
+  Value& getValue() { return value; }
 
  private:
   TokenType type;

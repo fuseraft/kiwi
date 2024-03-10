@@ -44,25 +44,23 @@ struct Serializer {
   }
 
   static std::string get_value_type_string(Value v) {
-    switch (get_value_type(v)) {
-      case ValueType::Integer:
-        return TypeNames.Integer;
-      case ValueType::Double:
-        return TypeNames.Double;
-      case ValueType::Boolean:
-        return TypeNames.Boolean;
-      case ValueType::String:
-        return TypeNames.String;
-      case ValueType::List:
-        return TypeNames.List;
-      case ValueType::Hash:
-        return TypeNames.Hash;
-      case ValueType::Lambda:
-        return TypeNames.Lambda;
-      case ValueType::Object:
-        return std::get<std::shared_ptr<Object>>(v)->className;
-      case ValueType::None:
-        return TypeNames.None;
+    if (std::holds_alternative<k_int>(v)) {
+      return TypeNames.Integer;
+    } else if (std::holds_alternative<double>(v)) {
+      return TypeNames.Double;
+
+    } else if (std::holds_alternative<bool>(v)) {
+      return TypeNames.Boolean;
+    } else if (std::holds_alternative<std::string>(v)) {
+      return TypeNames.String;
+    } else if (std::holds_alternative<std::shared_ptr<List>>(v)) {
+      return TypeNames.List;
+    } else if (std::holds_alternative<std::shared_ptr<Hash>>(v)) {
+      return TypeNames.Hash;
+    } else if (std::holds_alternative<std::shared_ptr<Object>>(v)) {
+      return std::get<std::shared_ptr<Object>>(v)->className;
+    } else if (std::holds_alternative<std::shared_ptr<LambdaRef>>(v)) {
+      return TypeNames.Lambda;
     }
 
     return "";
@@ -81,38 +79,26 @@ struct Serializer {
   static std::string serialize(Value v, bool wrapStrings = false) {
     std::ostringstream sv;
 
-    switch (get_value_type(v)) {
-      case ValueType::Integer:
-        sv << std::get<k_int>(v);
-        break;
-      case ValueType::Double:
-        sv << std::get<double>(v);
-        break;
-      case ValueType::Boolean:
-        sv << std::boolalpha << std::get<bool>(v);
-        break;
-      case ValueType::String:
-        if (wrapStrings) {
-          sv << "\"" << std::get<std::string>(v) << "\"";
-        } else {
-          sv << std::get<std::string>(v);
-        }
-        break;
-      case ValueType::List:
-        sv << serialize_list(std::get<std::shared_ptr<List>>(v));
-        break;
-      case ValueType::Hash:
-        sv << serialize_hash(std::get<std::shared_ptr<Hash>>(v));
-        break;
-      case ValueType::Object:
-        sv << basic_serialize_object(std::get<std::shared_ptr<Object>>(v));
-        break;
-      case ValueType::Lambda:
-        sv << basic_serialize_lambda(std::get<std::shared_ptr<LambdaRef>>(v));
-        break;
-      default:
-        // WIP: handle ValueType::None
-        break;
+    if (std::holds_alternative<k_int>(v)) {
+      sv << std::get<k_int>(v);
+    } else if (std::holds_alternative<double>(v)) {
+      sv << std::get<double>(v);
+    } else if (std::holds_alternative<bool>(v)) {
+      sv << std::boolalpha << std::get<bool>(v);
+    } else if (std::holds_alternative<std::string>(v)) {
+      if (wrapStrings) {
+        sv << "\"" << std::get<std::string>(v) << "\"";
+      } else {
+        sv << std::get<std::string>(v);
+      }
+    } else if (std::holds_alternative<std::shared_ptr<List>>(v)) {
+      sv << serialize_list(std::get<std::shared_ptr<List>>(v));
+    } else if (std::holds_alternative<std::shared_ptr<Hash>>(v)) {
+      sv << serialize_hash(std::get<std::shared_ptr<Hash>>(v));
+    } else if (std::holds_alternative<std::shared_ptr<Object>>(v)) {
+      sv << basic_serialize_object(std::get<std::shared_ptr<Object>>(v));
+    } else if (std::holds_alternative<std::shared_ptr<LambdaRef>>(v)) {
+      sv << basic_serialize_lambda(std::get<std::shared_ptr<LambdaRef>>(v));
     }
 
     return sv.str();
@@ -127,7 +113,7 @@ struct Serializer {
         sv << ", ";
       }
 
-      if (get_value_type(*it) == ValueType::String) {
+      if (std::holds_alternative<std::string>(*it)) {
         sv << "\"" << serialize(*it) << "\"";
       } else {
         sv << serialize(*it);
@@ -176,7 +162,7 @@ struct Serializer {
       sv << "\"" << key << "\": ";
       Value v = hash->get(key);
 
-      if (get_value_type(v) == ValueType::Hash) {
+      if (std::holds_alternative<std::shared_ptr<Hash>>(v)) {
         sv << serialize(v);
       } else {
         sv << serialize(v, true);
