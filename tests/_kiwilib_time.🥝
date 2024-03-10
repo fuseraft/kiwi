@@ -4,7 +4,7 @@ import "@kiwi/time"
 # Time tests
 # =============================
 
-@ts = time::current_timestamp()
-println "Current timestamp: ${@ts}"
+ts = time::current_timestamp()
+println "Current timestamp: ${ts}"
 
 println ""

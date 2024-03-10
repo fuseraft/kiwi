@@ -15,21 +15,21 @@ module sys
   ##
   Summary: Run an external process and capture its exit code.
   Params:
-    - @_command: String containing the command text.
+    - _command: String containing the command text.
   Returns: Integer containing exit code of external process.
   ##
-  def exec(@_command)
-    return __exec__(@_command)
+  def exec(_command)
+    return __exec__(_command)
   end
 
   ##
   Summary: Run an external process and capture its standard output.
   Params:
-    - @_command: String containing the command text.
+    - _command: String containing the command text.
   Returns: String containing standard output from external process.
   ##
-  def execout(@_command)
-    return __execout__(@_command)
+  def execout(_command)
+    return __execout__(_command)
   end
 end
 

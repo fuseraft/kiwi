@@ -1,17 +1,17 @@
-def is_even(@n)
-    return (@n % 2 == 0)
+def is_even(n)
+    return (n % 2 == 0)
 end
 
-@i = 0, @stop_at = 25
+i = 0, stop_at = 25
 
-while @i <= @stop_at do
-    if is_even(@i)
-        println "${@i} is even"
+while i <= stop_at do
+    if is_even(i)
+        println "${i} is even"
     else
-        println "${@i} is odd"
+        println "${i} is odd"
     end
 
-    @i += 1
+    i += 1
 end
 
 println ""

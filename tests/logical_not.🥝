@@ -1,13 +1,13 @@
-@a = true, @b = !@a
-println "!${@a} = ${@b}"
+a = true, b = !a
+println "!${a} = ${b}"
 
-@a = !@b
-println "!${@b} = ${@a}"
+a = !b
+println "!${b} = ${a}"
 
-@a = true, @b = true
-@cc = !(@a == @b)
-@d = !(@a != @b)
-println "!(${@a} == ${@b}) = ${@cc}"
-println "!(${@a} != ${@b}) = ${@d}"
+a = true, b = true
+cc = !(a == b)
+d = !(a != b)
+println "!(${a} == ${b}) = ${cc}"
+println "!(${a} != ${b}) = ${d}"
 
 println ""

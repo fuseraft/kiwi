@@ -1,16 +1,16 @@
 try
-  @a = 5
-  @a /= 0
-  @a += 1
+  a = 5
+  a /= 0
+  a += 1
   println "foobar"
-catch (@err)
-  println @err
+catch (err)
+  println err
 end
 
 try
-  @a = 5
-  @a /= 0
-  @a += 1
+  a = 5
+  a /= 0
+  a += 1
   println "foobar"
 catch
   println "An error occurred."

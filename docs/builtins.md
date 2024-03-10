@@ -9,13 +9,13 @@ Currently, Kiwi supports the following builtins:
 Converts a string into a list. Each character in the string becomes a new string in the list.
 
 ```ruby
-@string = "Hello"
+string = "Hello"
 
-@chars = @string.chars() 
-# @chars = ["H", "e", "l", "l", "o"]
+chars = string.chars() 
+# chars = ["H", "e", "l", "l", "o"]
 
-@fruit = "Kiwi".chars()
-# @fruit = ["K", "i", "w", "i"]
+fruit = "Kiwi".chars()
+# fruit = ["K", "i", "w", "i"]
 ```
 
 ### `.join(str)`
@@ -39,11 +39,11 @@ println "Hello World!".split(" ") # prints: ["Hello", "World!"]
 Returns the size of a list or a string as an integer.
 
 ```ruby
-@string = "four"
-@list = [1, 2, 3, true, false]
+string = "four"
+list = [1, 2, 3, true, false]
 
-println @string.size()
-println @list.size()
+println string.size()
+println list.size()
 ```
 
 ### `.ltrim()`
@@ -84,8 +84,8 @@ class MyClass
   end
 end
 
-@instance = MyClass.new()
-println @instance.type() # prints: MyClass
+instance = MyClass.new()
+println instance.type() # prints: MyClass
 println "Kiwis are delicious!".type() # prints: String
 ```
 
@@ -94,9 +94,9 @@ println "Kiwis are delicious!".type() # prints: String
 Converts a numeric value to a double.
 
 ```ruby
-@pi = "3.14159".to_d()
-@tau = @pi * 2
-println @tau # 6.28318
+pi = "3.14159".to_d()
+tau = pi * 2
+println tau # 6.28318
 ```
 
 ### `.to_i()`
@@ -104,12 +104,12 @@ println @tau # 6.28318
 Converts a numeric value to an integer.
 
 ```ruby
-@n = "100".to_i()
-@n += 0.5
-println @n # 100.5
+n = "100".to_i()
+n += 0.5
+println n # 100.5
 
-@n = @n.to_i()
-println @n # 100
+n = n.to_i()
+println n # 100
 ```
 
 ### `.to_s()`
@@ -117,9 +117,9 @@ println @n # 100
 Converts a value to a string.
 
 ```ruby
-@n = 100
-@s = [@n, @n.to_s()]
-println @s  # prints: [100, "100"]
+n = 100
+s = [n, n.to_s()]
+println s  # prints: [100, "100"]
 ```
 
 ### `.to_h()`
@@ -129,23 +129,23 @@ Converts an object instance or a JSON string into a hash.
 ```ruby
 class SerializeMe
   def initialize()
-    this.@name = "Kiwi"
+    this.name = "Kiwi"
   end
 end
 
-@inst = SerializeMe.new()
+inst = SerializeMe.new()
 
-println @inst.to_h() # prints: {"name": "Kiwi"}
+println inst.to_h() # prints: {"name": "Kiwi"}
 ```
 
 ```ruby
-@json = "{
+json = "{
   \"boolean\": true, 
   \"double\": 3.14159, 
   \"integer\": 100, 
   \"string\": \"Kiwi\"
 }"
-println @json.to_h() # prints: {"boolean": true, "double": 3.14159, "integer": 100, "string": "Kiwi"}
+println json.to_h() # prints: {"boolean": true, "double": 3.14159, "integer": 100, "string": "Kiwi"}
 ```
 
 ### `.index_of(str)`
@@ -220,13 +220,13 @@ println "foobar".is_a(String) # prints: true
 Returns a list of keys from a hash.
 
 ```ruby
-@hash = {
+hash = {
   "key1": true, 
   "key2": 1, 
   "key3": ["a", "b", "c"]
 }
 
-println @hash.keys() # prints: ["key1", "key2", "key3"]
+println hash.keys() # prints: ["key1", "key2", "key3"]
 ```
 
 ### `.select(lambda)`
@@ -234,8 +234,8 @@ println @hash.keys() # prints: ["key1", "key2", "key3"]
 Filter a list based on a condition.
 
 ```ruby
-@list = ["kiwi", "mango", "banana"]
-println @list.select(lambda (@item) do return @item.contains("i") end)
+list = ["kiwi", "mango", "banana"]
+println list.select(lambda (item) do return item.contains("i") end)
 # prints: ["kiwi"]
 ```
 
@@ -244,31 +244,31 @@ println @list.select(lambda (@item) do return @item.contains("i") end)
 Transform a list based on a condition.
 
 ```ruby
-@list = ["kiwi", "mango", "banana"]
-println @list.map(lambda (@item) do return { "fruit": @item, "is_a_kiwi": @item.downcase() == "kiwi" } end)
+list = ["kiwi", "mango", "banana"]
+println list.map(lambda (item) do return { "fruit": item, "is_a_kiwi": item.downcase() == "kiwi" } end)
 # prints: [{"fruit": kiwi, "is_a_kiwi": true}, {"fruit": mango, "is_a_kiwi": false}, {"fruit": banana, "is_a_kiwi": false}]
 ```
 
 ### `.reduce(accumulator, lambda)`
 
 ```ruby
-@numbers = [1, 2, 3, 4, 5]
+numbers = [1, 2, 3, 4, 5]
 
-@sum = @numbers.reduce(0, lambda (@accumulator, @number) do
-    return @accumulator + @number
+sum = numbers.reduce(0, lambda (accumulator, number) do
+    return accumulator + number
 end)
 
-println @sum # prints: 15
+println sum # prints: 15
 ```
 
 ```ruby
-@numbers = [1, 2, 3, 4, 5]
+numbers = [1, 2, 3, 4, 5]
 
-@hash = @numbers.reduce({}, lambda (@accumulator, @number) do
-    @accumulator["key${@number}"] = @number
-    return @accumulator
+hash = numbers.reduce({}, lambda (accumulator, number) do
+    accumulator["key${number}"] = number
+    return accumulator
 end)
 
-println @hash 
+println hash 
 # prints: {"key1": 1, "key2": 2, "key3": 3, "key4": 4, "key5": 5}
 ```
