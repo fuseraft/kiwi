@@ -1,21 +1,21 @@
-def is_old(@age)
-    if @age >= 70
+def is_old(age)
+    if ge >= 70
         return true
     end
 
     return false
 end
 
-@i = 60
+i = 60
 
-while @i <= 80 do
-    if is_old(@i)
-        println "${@i} is old."
+while i <= 80 do
+    if is_old(i)
+        println "${i} is old."
     else
-        println "${@i} is not old."
+        println "${i} is not old."
     end
 
-    @i += 1
+    i += 1
 end
 
 println ""

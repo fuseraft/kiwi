@@ -15,422 +15,422 @@ module math
   ##
   Summary: Gets a random number between x and y.
   Params:
-    - @_valueX: The number x.
-    - @_valueY: The number y.
+    - _valueX: The number x.
+    - _valueY: The number y.
   Returns: Integer|Double
   ##
-  def random(@_valueX, @_valueY)
-    return __random__(@_valueX, @_valueY)
+  def random(_valueX, _valueY)
+    return __random__(_valueX, _valueY)
   end
 
   ##
   Summary: Computes the sine of a number.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def sin(@_value)
-    return __sin__(@_value)
+  def sin(_value)
+    return __sin__(_value)
   end
 
   ##
   Summary: Computes the cosine of a number.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def cos(@_value)
-    return __cos__(@_value)
+  def cos(_value)
+    return __cos__(_value)
   end
 
   ##
   Summary: Computes the tangent of a number.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def tan(@_value)
-    return __tan__(@_value)
+  def tan(_value)
+    return __tan__(_value)
   end
 
   ##
   Summary: Computes the arc sine of a number.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def asin(@_value)
-    return __asin__(@_value)
+  def asin(_value)
+    return __asin__(_value)
   end
 
   ##
   Summary: Computes the arc cosine of a number.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def acos(@_value)
-    return __acos__(@_value)
+  def acos(_value)
+    return __acos__(_value)
   end
 
   ##
   Summary: Computes the arc tangent of a number.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def atan(@_value)
-    return __atan__(@_value)
+  def atan(_value)
+    return __atan__(_value)
   end
 
   ##
   Summary: Computes the arc tangent of y / x, handling quadrants correctly.
   Params:
-    - @_valueX: The number x.
-    - @_valueY: The number y.
+    - _valueX: The number x.
+    - _valueY: The number y.
   Returns: Double
   ##
-  def atan2(@_valueY, @_valueX)
-    return __atan2__(@_valueY, @_valueX)
+  def atan2(_valueY, _valueX)
+    return __atan2__(_valueY, _valueX)
   end
 
   ##
   Summary: Computes the hyperbolic sine of a number.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def sinh(@_value)
-    return __sinh__(@_value)
+  def sinh(_value)
+    return __sinh__(_value)
   end
 
   ##
   Summary: Computes the hyperbolic cosine of a number.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def cosh(@_value)
-    return __cosh__(@_value)
+  def cosh(_value)
+    return __cosh__(_value)
   end
 
   ##
   Summary: Computes the hyperbolic tangent of a number.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def tanh(@_value)
-    return __tanh__(@_value)
+  def tanh(_value)
+    return __tanh__(_value)
   end
 
   ##
   Summary: Computes the natural logarithm (base e) of a number.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def log(@_value)
-    return __log__(@_value)
+  def log(_value)
+    return __log__(_value)
   end
 
   ##
   Summary: Computes the logarithm to base 2 of a number.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def log2(@_value)
-    return __log2__(@_value)
+  def log2(_value)
+    return __log2__(_value)
   end
 
   ##
   Summary: Computes the logarithm to base 10 of a number.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def log10(@_value)
-    return __log10__(@_value)
+  def log10(_value)
+    return __log10__(_value)
   end
 
   ##
   Summary: Computes log(1 + x).
   Params:
-    - @_value: The number x.
+    - _value: The number x.
   Returns: Double
   ##
-  def log1p(@_value)
-    return __log1p__(@_value)
+  def log1p(_value)
+    return __log1p__(_value)
   end
 
   ##
   Summary: Computes the square root of a number.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def sqrt(@_value)
-    return __sqrt__(@_value)
+  def sqrt(_value)
+    return __sqrt__(_value)
   end
 
   ##
   Summary: Computes the cube root of a number.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def cbrt(@_value)
-    return __cbrt__(@_value)
+  def cbrt(_value)
+    return __cbrt__(_value)
   end
 
   ##
   Summary: Gets the FP remainder of x / y.
   Params:
-    - @_valueX: The number x.
-    - @_valueY: The number y.
+    - _valueX: The number x.
+    - _valueY: The number y.
   Returns: Double
   ##
-  def fmod(@_valueX, @_valueY)
-    return __fmod__(@_valueX, @_valueY)
+  def fmod(_valueX, _valueY)
+    return __fmod__(_valueX, _valueY)
   end
 
   ##
   Summary: Computes sqrt(x**2 + y**2) without undue overflow or underflow.
   Params:
-    - @_valueX: The number x.
-    - @_valueY: The number y.
+    - _valueX: The number x.
+    - _valueY: The number y.
   Returns: Double
   ##
-  def hypot(@_valueX, @_valueY)
-    return __hypot__(@_valueX, @_valueY)
+  def hypot(_valueX, _valueY)
+    return __hypot__(_valueX, _valueY)
   end
 
   ##
   Summary: Checks if x is a finite value.
   Params:
-    - @_value: The number x.
+    - _value: The number x.
   Returns: Double
   ##
-  def isfinite(@_value)
-    return __isfinite__(@_value)
+  def isfinite(_value)
+    return __isfinite__(_value)
   end
 
   ##
   Summary: Checks if x is a finite value.
   Params:
-    - @_value: The number x.
+    - _value: The number x.
   Returns: Double
   ##
-  def isinf(@_value)
-    return __isinf__(@_value)
+  def isinf(_value)
+    return __isinf__(_value)
   end
 
   ##
   Summary: Checks if x is NaN.
   Params:
-    - @_value: The number x.
+    - _value: The number x.
   Returns: Double
   ##
-  def isnan(@_value)
-    return __isnan__(@_value)
+  def isnan(_value)
+    return __isnan__(_value)
   end
 
   ##
   Summary: Checks if x is a normal FP number.
   Params:
-    - @_value: The number x.
+    - _value: The number x.
   Returns: Double
   ##
-  def isnormal(@_value)
-    return __isnormal__(@_value)
+  def isnormal(_value)
+    return __isnormal__(_value)
   end
 
   ##
   Summary: Rounds x to the nearest integer, away from zero in halfway cases.
   Params:
-    - @_value: The number x.
+    - _value: The number x.
   Returns: Double
   ##
-  def floor(@_value)
-    return __floor__(@_value)
+  def floor(_value)
+    return __floor__(_value)
   end
 
   ##
   Summary: Rounds x to the largest integer not greater than x.
   Params:
-    - @_value: The number x.
+    - _value: The number x.
   Returns: Double
   ##
-  def ceil(@_value)
-    return __ceil__(@_value)
+  def ceil(_value)
+    return __ceil__(_value)
   end
 
   ##
   Summary: Rounds x to the nearest integer, away from zero in halfway cases.
   Params:
-    - @_value: The number x.
+    - _value: The number x.
   Returns: Double
   ##
-  def round(@_value)
-    return __round__(@_value)
+  def round(_value)
+    return __round__(_value)
   end
 
   ##
   Summary: Truncates x to the integer part, towards zero.
   Params:
-    - @_value: The number x.
+    - _value: The number x.
   Returns: Double
   ##
-  def trunc(@_value)
-    return __trunc__(@_value)
+  def trunc(_value)
+    return __trunc__(_value)
   end
 
   ##
   Summary: IEEE 754 FP remainder of x / y.
   Params:
-    - @_valueX: The number x.
-    - @_valueY: The number y.
+    - _valueX: The number x.
+    - _valueY: The number y.
   Returns: Double
   ##
-  def remainder(@_valueX, @_valueY)
-    return __remainder__(@_valueX, @_valueY)
+  def remainder(_valueX, _valueY)
+    return __remainder__(_valueX, _valueY)
   end
 
   ##
   Summary: Computes e**x.
   Params:
-    - @_value: The number x.
+    - _value: The number x.
   Returns: Double
   ##
-  def exp(@_value)
-    return __exp__(@_value)
+  def exp(_value)
+    return __exp__(_value)
   end
 
   ##
   Summary: Computes e**x - 1.
   Params:
-    - @_value: The number x.
+    - _value: The number x.
   Returns: Double
   ##
-  def expm1(@_value)
-    return __expm1__(@_value)
+  def expm1(_value)
+    return __expm1__(_value)
   end
 
   ##
   Summary: Error function.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def erf(@_value)
-    return __erf__(@_value)
+  def erf(_value)
+    return __erf__(_value)
   end
 
   ##
   Summary: Complementary error function.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def erfc(@_value)
-    return __erfc__(@_value)
+  def erfc(_value)
+    return __erfc__(_value)
   end
 
   ##
   Summary: The natural logarithm of the absolute value of the gamma function.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def lgamma(@_value)
-    return __lgamma__(@_value)
+  def lgamma(_value)
+    return __lgamma__(_value)
   end
 
   ##
   Summary: The gamma function.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Double
   ##
-  def tgamma(@_value)
-    return __tgamma__(@_value)
+  def tgamma(_value)
+    return __tgamma__(_value)
   end
 
   ##
   Summary: Copies the sign of y to x.
   Params:
-    - @_valueX: The number x.
-    - @_valueY: The number y.
+    - _valueX: The number x.
+    - _valueY: The number y.
   Returns: Double
   ##
-  def copysign(@_valueX, @_valueY)
-    return __copysign__(@_valueX, @_valueY)
+  def copysign(_valueX, _valueY)
+    return __copysign__(_valueX, _valueY)
   end
 
   ##
   Summary: Get the next representable value after x towards y.
   Params:
-    - @_valueX: The number x.
-    - @_valueY: The number y.
+    - _valueX: The number x.
+    - _valueY: The number y.
   Returns: Double
   ##
-  def nextafter(@_valueX, @_valueY)
-    return __nextafter__(@_valueX, @_valueY)
+  def nextafter(_valueX, _valueY)
+    return __nextafter__(_valueX, _valueY)
   end
 
   ##
   Summary: Get the maximum of x and y.
   Params:
-    - @_valueX: The number x.
-    - @_valueY: The number y.
+    - _valueX: The number x.
+    - _valueY: The number y.
   Returns: Double
   ##
-  def fmax(@_valueX, @_valueY)
-    return __fmax__(@_valueX, @_valueY)
+  def fmax(_valueX, _valueY)
+    return __fmax__(_valueX, _valueY)
   end
 
   ##
   Summary: Get the minimum of x and y.
   Params:
-    - @_valueX: The number x.
-    - @_valueY: The number y.
+    - _valueX: The number x.
+    - _valueY: The number y.
   Returns: Double
   ##
-  def fmin(@_valueX, @_valueY)
-    return __fmin__(@_valueX, @_valueY)
+  def fmin(_valueX, _valueY)
+    return __fmin__(_valueX, _valueY)
   end
 
   ##
   Summary: Get the positive difference between x and y.
   Params:
-    - @_valueX: The number x.
-    - @_valueY: The number y.
+    - _valueX: The number x.
+    - _valueY: The number y.
   Returns: Double
   ##
-  def fdim(@_valueX, @_valueY)
-    return __fdim__(@_valueX, @_valueY)
+  def fdim(_valueX, _valueY)
+    return __fdim__(_valueX, _valueY)
   end
 
   ##
   Summary: Get x raised to the power of y.
   Params:
-    - @_valueX: The number x.
-    - @_valueY: The number y.
+    - _valueX: The number x.
+    - _valueY: The number y.
   Returns: Double
   ##
-  def pow(@_valueX, @_valueY)
-    return __pow__(@_valueX, @_valueY)
+  def pow(_valueX, _valueY)
+    return __pow__(_valueX, _valueY)
   end
 
   ##
   Summary: Get the absolute value of a number.
   Params:
-    - @_value: The number.
+    - _value: The number.
   Returns: Integer|Double
   ##
-  def abs(@_value)
-    return __abs__(@_value)
+  def abs(_value)
+    return __abs__(_value)
   end
 end
 

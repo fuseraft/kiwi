@@ -1,31 +1,31 @@
-@a = true, @b = true
-println "${@a}, ${@b}"
+a = true, b = true
+println "${a}, ${b}"
 
-if @a == @b
+if a == b
     println "foo"
-elsif @a != @b
+elsif a != b
     println "bar"
 else
     println "baz"
 end
 
-@a = true, @b = false
-println "${@a}, ${@b}"
+a = true, b = false
+println "${a}, ${b}"
 
-if @a == @b
+if a == b
     println "foo"
-elsif @a != @b
+elsif a != b
     println "bar"
 else
     println "baz"
 end
 
-@a = true, @b = false
-println "${@a}, ${@b}"
+a = true, b = false
+println "${a}, ${b}"
 
-if @a == @b
+if a == b
     println "foo"
-elsif @b == @a
+elsif b == a
     println "bar"
 else
     println "baz"

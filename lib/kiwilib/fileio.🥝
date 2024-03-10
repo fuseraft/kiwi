@@ -7,54 +7,54 @@ module fileio
   ##
   Summary: Get the absolute path of a file.
   Params:
-    - @_path: The path to a file or a filename.
+    - _path: The path to a file or a filename.
   Returns: String
   ##
-  def abspath(@_path)
-    return __fileabspath__(@_path)
+  def abspath(_path)
+    return __fileabspath__(_path)
   end
 
   ##
   Summary: Append text to a file.
   Params:
-    - @_path: The path to a file or a filename.
-    - @_text: The text to append.
+    - _path: The path to a file or a filename.
+    - _text: The text to append.
   Returns: Boolean
   ##
-  def append(@_path, @_text)
-    return __appendtext__(@_path, @_text)
+  def append(_path, _text)
+    return __appendtext__(_path, _text)
   end
 
   ##
   Summary: Changes the current directory.
   Params:
-    - @_path: The path to a directory.
+    - _path: The path to a directory.
   Returns: Boolean
   ##
-  def chdir(@_path)
-    return __chdir__(@_path)
+  def chdir(_path)
+    return __chdir__(_path)
   end
 
   ##
   Summary: Copy a file.
   Params:
-    - @_source: The source path.
-    - @_dest: The destination path.
+    - _source: The source path.
+    - _dest: The destination path.
   Returns: Boolean
   ##
-  def copy(@_source, @_dest)
-    return __copyfile__(@_source, @_dest)
+  def copy(_source, _dest)
+    return __copyfile__(_source, _dest)
   end
 
   ##
   Summary: Copy a directory recursively.
   Params:
-    - @_source: The source path.
-    - @_dest: The destination path.
+    - _source: The source path.
+    - _dest: The destination path.
   Returns: Boolean
   ##
-  def copyr(@_source, @_dest)
-    return __copyr__(@_source, @_dest)
+  def copyr(_source, _dest)
+    return __copyr__(_source, _dest)
   end
 
   ##
@@ -68,172 +68,172 @@ module fileio
   ##
   Summary: Check if a path exists.
   Params:
-    - @_path: The path to a file or directory.
+    - _path: The path to a file or directory.
   Returns: Boolean
   ##
-  def exists(@_path)
-    return __isfile__(@_path)
+  def exists(_path)
+    return __isfile__(_path)
   end
 
   ##
   Summary: Get a file extension.
   Params:
-    - @_path: The path to a file or a filename.
+    - _path: The path to a file or a filename.
   Returns: String
   ##
-  def ext(@_path)
-    return __fileext__(@_path)
+  def ext(_path)
+    return __fileext__(_path)
   end
 
   ##
   Summary: Get the filename from a file path.
   Params:
-    - @_path: The path to a file or a filename.
+    - _path: The path to a file or a filename.
   Returns: String
   ##
-  def filename(@_path)
-    return __filename__(@_path)
+  def filename(_path)
+    return __filename__(_path)
   end
 
   ##
   Summary: Get size of a file in bytes.
   Params:
-    - @_path: The path to a file or a filename.
+    - _path: The path to a file or a filename.
   Returns: Double
   ##
-  def filesize(@_path)
-    return __filesize__(@_path)
+  def filesize(_path)
+    return __filesize__(_path)
   end
 
   ##
   Summary: Get a list of files from a glob pattern.
   Params:
-    - @_glob: The glob pattern.
+    - _glob: The glob pattern.
   Returns: String
   ##
-  def glob(@_glob)
-    return __glob__(@_glob)
+  def glob(_glob)
+    return __glob__(_glob)
   end
 
   ##
   Summary: Check if a path exists.
   Params:
-    - @_path: The path to a directory.
+    - _path: The path to a directory.
   Returns: Boolean
   ##
-  def isdir(@_path)
-    return __isdir__(@_path)
+  def isdir(_path)
+    return __isdir__(_path)
   end
 
   ##
   Summary: Retrieve a List of directory entries.
   Params:
-    - @_path: The directory path.
+    - _path: The directory path.
   Returns: List
   ##
-  def listdir(@_path)
-    return __listdir__(@_path)
+  def listdir(_path)
+    return __listdir__(_path)
   end
 
   ##
   Summary: Creates a directory.
   Params:
-    - @_path: The directory path.
+    - _path: The directory path.
   Returns: Boolean
   ##
-  def mkdir(@_path)
-    return __mkdir__(@_path)
+  def mkdir(_path)
+    return __mkdir__(_path)
   end
 
   ##
   Summary: Creates a directory and all subdirectories specified in the path.
   Params:
-    - @_path: The directory path.
+    - _path: The directory path.
   Returns: Boolean
   ##
-  def mkdirp(@_path)
-    return __mkdirp__(@_path)
+  def mkdirp(_path)
+    return __mkdirp__(_path)
   end
 
   ##
   Summary: Move or rename a file.
   Params:
-    - @_source: The source path.
-    - @_dest: The destination path.
+    - _source: The source path.
+    - _dest: The destination path.
   Returns: Boolean
   ##
-  def move(@_source, @_dest)
-    return __movefile__(@_source, @_dest)
+  def move(_source, _dest)
+    return __movefile__(_source, _dest)
   end
 
   ##
   Summary: Get the parent directory of an absolute path.
   Params:
-    - @_path: The path to a file.
+    - _path: The path to a file.
   Returns: String
   ##
-  def parentdir(@_path)
-    return __filepath__(@_path)
+  def parentdir(_path)
+    return __filepath__(_path)
   end
 
   ##
   Summary: Get the content of a file as a string.
   Params:
-    - @_path: The path to a file.
+    - _path: The path to a file.
   Returns: String
   ##
-  def read(@_path)
-    return __readfile__(@_path)
+  def read(_path)
+    return __readfile__(_path)
   end
 
   ##
   Summary: Get the content of a file as a list of strings.
   Params:
-    - @_path: The path to a file.
+    - _path: The path to a file.
   Returns: List
   ##
-  def readlines(@_path)
-    return __readlines__(@_path)
+  def readlines(_path)
+    return __readlines__(_path)
   end
 
   ##
   Summary: Delete a file.
   Params:
-    - @_path: The path to a file or a filename.
+    - _path: The path to a file or a filename.
   Returns: Boolean
   ##
-  def remove(@_path)
-    return __deletefile__(@_path)
+  def remove(_path)
+    return __deletefile__(_path)
   end
 
   ##
   Summary: Delete a directory.
   Params:
-    - @_path: The path to a directory.
+    - _path: The path to a directory.
   Returns: Boolean
   ##
-  def rmdir(@_path)
-    return __rmdir__(@_path)
+  def rmdir(_path)
+    return __rmdir__(_path)
   end
 
   ##
   Summary: Delete a directory and all of its contents recursively.
   Params:
-    - @_path: The path to a directory.
+    - _path: The path to a directory.
   Returns: Boolean
   ##
-  def rmdirf(@_path)
-    return __rmdirf__(@_path)
+  def rmdirf(_path)
+    return __rmdirf__(_path)
   end
 
   ##
   Summary: Create an empty file.
   Params:
-    - @_path: The path to a file or a filename.
+    - _path: The path to a file or a filename.
   Returns: Boolean
   ##
-  def touch(@_path)
-    return __createfile__(@_path)
+  def touch(_path)
+    return __createfile__(_path)
   end
   
   ##
@@ -247,23 +247,23 @@ module fileio
   ##
   Summary: Write text to a file. This overwrites the file if it exists.
   Params:
-    - @_path: The path to a file or a filename.
-    - @_text: The text to write.
+    - _path: The path to a file or a filename.
+    - _text: The text to write.
   Returns: Boolean
   ##
-  def write(@_path, @_text)
-    return __writetext__(@_path, @_text)
+  def write(_path, _text)
+    return __writetext__(_path, _text)
   end
 
   ##
   Summary: Write a line of text to a file. This always appends to a file.
   Params:
-    - @_path: The path to a file or a filename.
-    - @_text: The text to append.
+    - _path: The path to a file or a filename.
+    - _text: The text to append.
   Returns: Boolean
   ##
-  def writeln(@_path, @_text)
-    return __writeline__(@_path, @_text)
+  def writeln(_path, _text)
+    return __writeline__(_path, _text)
   end
 end
 

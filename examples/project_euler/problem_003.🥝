@@ -4,22 +4,22 @@ The prime factors of 13195 are 5, 7, 13 and 29.
 What is the largest prime factor of the number 600851475143?
 ##
 
-def largest_prime_factor(@n)
-  @factor = 2
-  @max_prime = 1
-  while @factor * @factor <= @n do
-    if @n % @factor == 0
-      @max_prime = @factor
-      @n /= @factor
-      while @n % @factor == 0 do
-        @n /= @factor
+def largest_prime_factor(n)
+  factor = 2
+  max_prime = 1
+  while factor * factor <= n do
+    if n % factor == 0
+      max_prime = factor
+      n /= factor
+      while n % factor == 0 do
+        n /= factor
       end
     end
-    @factor += 1
+    factor += 1
   end
 
-  return __fmax__(@max_prime, @n)
+  return __fmax__(max_prime, n)
 end
 
-@number = 600851475143
-println largest_prime_factor(@number)
+number = 600851475143
+println largest_prime_factor(number)
