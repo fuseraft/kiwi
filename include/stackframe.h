@@ -71,6 +71,10 @@ struct CallStackFrame {
   void setFlag(FrameFlags flag) { flags = flags | flag; }
   void clearFlag(FrameFlags flag) { flags = flags & ~flag; }
   bool isFlagSet(FrameFlags flag) const { return (flags & flag) == flag; }
+  bool isLoopControlFlagSet() const {
+    return isFlagSet(FrameFlags::LoopBreak) ||
+           isFlagSet(FrameFlags::LoopContinue);
+  }
 };
 
 #endif

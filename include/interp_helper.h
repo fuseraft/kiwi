@@ -14,28 +14,6 @@
 #include "stackframe.h"
 
 struct InterpHelper {
-  static Token current(std::shared_ptr<TokenStream> stream) {
-    if (stream->position >= stream->tokens.size()) {
-      return Token::createStreamEnd();
-    }
-    return stream->tokens.at(stream->position);
-  }
-
-  static void next(std::shared_ptr<TokenStream> stream) {
-    if (stream->position < stream->tokens.size()) {
-      stream->position++;
-    }
-  }
-
-  static Token peek(std::shared_ptr<TokenStream> stream) {
-    size_t nextPosition = stream->position + 1;
-    if (nextPosition < stream->tokens.size()) {
-      return stream->tokens[nextPosition];
-    } else {
-      return Token::createStreamEnd();
-    }
-  }
-
   static bool isSliceAssignmentExpression(std::shared_ptr<TokenStream> stream) {
     size_t pos = stream->position;
     bool isSliceAssignment = false;
@@ -114,7 +92,7 @@ struct InterpHelper {
   }
 
   static bool hasReturnValue(std::shared_ptr<TokenStream> stream) {
-    const Token nextToken = peek(stream);
+    const Token nextToken = stream->peek();
     const TokenType tokenType = nextToken.getType();
     bool isLiteral = tokenType == TokenType::LITERAL;
     bool isString = tokenType == TokenType::STRING;
@@ -152,20 +130,20 @@ struct InterpHelper {
                                 std::shared_ptr<TokenStream> stream) {
     int counter = 1;
     while (stream->canRead() && counter != 0) {
-      if (Keywords.is_block_keyword(current(stream).getSubType())) {
+      if (Keywords.is_block_keyword(stream->current().getSubType())) {
         ++counter;
-      } else if (current(stream).getSubType() == SubTokenType::KW_End) {
+      } else if (stream->current().getSubType() == SubTokenType::KW_End) {
         --counter;
 
         // Stop here.
         if (counter == 0) {
-          next(stream);
+          stream->next();
           continue;
         }
       }
 
-      tokens.push_back(current(stream));
-      next(stream);
+      tokens.push_back(stream->current());
+      stream->next();
     }
   }
 
@@ -187,11 +165,11 @@ struct InterpHelper {
                               const SliceIndex& slice,
                               const std::shared_ptr<List>& rhsValues) {
     if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
-      throw IndexError(current(stream), "Start index must be an integer.");
+      throw IndexError(stream->current(), "Start index must be an integer.");
     } else if (!std::holds_alternative<k_int>(slice.stopIndex)) {
-      throw IndexError(current(stream), "Stop index must be an integer.");
+      throw IndexError(stream->current(), "Stop index must be an integer.");
     } else if (!std::holds_alternative<k_int>(slice.stepValue)) {
-      throw IndexError(current(stream), "Step value must be an integer.");
+      throw IndexError(stream->current(), "Step value must be an integer.");
     }
 
     int start = std::get<k_int>(slice.indexOrStart);
@@ -250,36 +228,39 @@ struct InterpHelper {
                                  const SubTokenType& op, Value& currentValue,
                                  Value& value) {
     if (op == SubTokenType::Ops_AddAssign) {
-      return std::visit(AddVisitor(current(stream)), currentValue, value);
+      return std::visit(AddVisitor(stream->current()), currentValue, value);
     } else if (op == SubTokenType::Ops_SubtractAssign) {
-      return std::visit(SubtractVisitor(current(stream)), currentValue, value);
+      return std::visit(SubtractVisitor(stream->current()), currentValue,
+                        value);
     } else if (op == SubTokenType::Ops_MultiplyAssign) {
-      return std::visit(MultiplyVisitor(current(stream)), currentValue, value);
+      return std::visit(MultiplyVisitor(stream->current()), currentValue,
+                        value);
     } else if (op == SubTokenType::Ops_DivideAssign) {
-      return std::visit(DivideVisitor(current(stream)), currentValue, value);
+      return std::visit(DivideVisitor(stream->current()), currentValue, value);
     } else if (op == SubTokenType::Ops_ExponentAssign) {
-      return std::visit(PowerVisitor(current(stream)), currentValue, value);
+      return std::visit(PowerVisitor(stream->current()), currentValue, value);
     } else if (op == SubTokenType::Ops_ModuloAssign) {
-      return std::visit(ModuloVisitor(current(stream)), currentValue, value);
+      return std::visit(ModuloVisitor(stream->current()), currentValue, value);
     } else if (op == SubTokenType::Ops_BitwiseAndAssign) {
-      return std::visit(BitwiseAndVisitor(current(stream)), currentValue,
+      return std::visit(BitwiseAndVisitor(stream->current()), currentValue,
                         value);
     } else if (op == SubTokenType::Ops_BitwiseOrAssign) {
-      return std::visit(BitwiseOrVisitor(current(stream)), currentValue, value);
+      return std::visit(BitwiseOrVisitor(stream->current()), currentValue,
+                        value);
     } else if (op == SubTokenType::Ops_BitwiseXorAssign) {
-      return std::visit(BitwiseXorVisitor(current(stream)), currentValue,
+      return std::visit(BitwiseXorVisitor(stream->current()), currentValue,
                         value);
     } else if (op == SubTokenType::Ops_BitwiseLeftShiftAssign) {
-      return std::visit(BitwiseLeftShiftVisitor(current(stream)), currentValue,
-                        value);
+      return std::visit(BitwiseLeftShiftVisitor(stream->current()),
+                        currentValue, value);
     } else if (op == SubTokenType::Ops_BitwiseRightShiftAssign) {
-      return std::visit(BitwiseRightShiftVisitor(current(stream)), currentValue,
-                        value);
+      return std::visit(BitwiseRightShiftVisitor(stream->current()),
+                        currentValue, value);
     } else if (op == SubTokenType::Ops_BitwiseNotAssign) {
-      return std::visit(BitwiseNotVisitor(current(stream)), value);
+      return std::visit(BitwiseNotVisitor(stream->current()), value);
     }
 
-    throw InvalidOperationError(current(stream), "Invalid operator.");
+    throw InvalidOperationError(stream->current(), "Invalid operator.");
   }
 
   static Value interpretListSlice(std::shared_ptr<TokenStream> stream,
@@ -287,11 +268,11 @@ struct InterpHelper {
                                   const std::shared_ptr<List>& list) {
     if (slice.isSlice) {
       if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
-        throw IndexError(current(stream), "Start index must be an integer.");
+        throw IndexError(stream->current(), "Start index must be an integer.");
       } else if (!std::holds_alternative<k_int>(slice.stopIndex)) {
-        throw IndexError(current(stream), "Stop index must be an integer.");
+        throw IndexError(stream->current(), "Stop index must be an integer.");
       } else if (!std::holds_alternative<k_int>(slice.stepValue)) {
-        throw IndexError(current(stream), "Step value must be an integer.");
+        throw IndexError(stream->current(), "Step value must be an integer.");
       }
 
       int start = std::get<k_int>(slice.indexOrStart),
@@ -332,7 +313,7 @@ struct InterpHelper {
     } else {
       // Single index access
       if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
-        throw IndexError(current(stream), "Index value must be an integer.");
+        throw IndexError(stream->current(), "Index value must be an integer.");
       }
 
       int index = std::get<k_int>(slice.indexOrStart);
@@ -343,7 +324,7 @@ struct InterpHelper {
       }
 
       if (index < 0 || index >= listSize) {
-        throw RangeError(current(stream), "List index out of range.");
+        throw RangeError(stream->current(), "List index out of range.");
       }
 
       return list->elements[index];
@@ -354,29 +335,29 @@ struct InterpHelper {
                                           std::shared_ptr<CallStackFrame> frame,
                                           std::string& errorVariableName,
                                           Value& errorValue) {
-    next(stream);  // Skip "("
+    stream->next();  // Skip "("
 
-    if (current(stream).getType() != TokenType::IDENTIFIER) {
+    if (stream->current().getType() != TokenType::IDENTIFIER) {
       throw SyntaxError(
-          current(stream),
+          stream->current(),
           "Syntax error in catch variable declaration. Missing identifier.");
     }
 
-    errorVariableName = current(stream).getText();
-    next(stream);  // Skip the identifier.
+    errorVariableName = stream->current().getText();
+    stream->next();  // Skip the identifier.
 
-    if (current(stream).getType() != TokenType::CLOSE_PAREN) {
-      throw SyntaxError(current(stream),
+    if (stream->current().getType() != TokenType::CLOSE_PAREN) {
+      throw SyntaxError(stream->current(),
                         "Syntax error in catch variable declaration.");
     }
-    next(stream);  // Skip ")"
+    stream->next();  // Skip ")"
 
     errorValue = frame->getErrorMessage();
   }
 
   static std::string interpretModuleHome(std::string& modulePath,
                                          std::shared_ptr<TokenStream> stream) {
-    if (current(stream).getType() != TokenType::STRING ||
+    if (stream->current().getType() != TokenType::STRING ||
         !String::beginsWith(modulePath, "@")) {
       return "";
     }
@@ -422,20 +403,20 @@ struct InterpHelper {
 
   static std::string interpretBaseClass(std::shared_ptr<TokenStream> stream) {
     std::string baseClassName;
-    if (current(stream).getType() == TokenType::OPERATOR) {
-      if (current(stream).getSubType() != SubTokenType::Ops_LessThan) {
+    if (stream->current().getType() == TokenType::OPERATOR) {
+      if (stream->current().getSubType() != SubTokenType::Ops_LessThan) {
         throw SyntaxError(
-            current(stream),
+            stream->current(),
             "Expected inheritance operator, `<`, in class definition.");
       }
-      next(stream);
+      stream->next();
 
-      if (current(stream).getType() != TokenType::IDENTIFIER) {
-        throw SyntaxError(current(stream), "Expected base class name.");
+      if (stream->current().getType() != TokenType::IDENTIFIER) {
+        throw SyntaxError(stream->current(), "Expected base class name.");
       }
 
-      baseClassName = current(stream).getText();
-      next(stream);  // Skip base class.
+      baseClassName = stream->current().getText();
+      stream->next();  // Skip base class.
     }
     return baseClassName;
   }
