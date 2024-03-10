@@ -10,15 +10,15 @@ Each concrete class should define a constructor method, called `initialize`.
 
 ```ruby
 class MyClass
-  def initialize(@name)
+  def initialize(name)
     # Constructor code here
 
     # Use the `this` keyword to declare an instance variable.
-    this.@name = @name 
+    this.name = name 
   end
 
   def say_hello()
-    println "Hello, ${@name}!"
+    println "Hello, ${name}!"
   end
 end
 ```
@@ -28,8 +28,8 @@ end
 To create an instance of a class, use the `.new()` method followed by any arguments the constructor accepts.
 
 ```ruby
-@my_object = MyClass.new("Kiwi")
-@my_object.say_hello()  # prints: Hello, Kiwi!
+my_object = MyClass.new("Kiwi")
+my_object.say_hello()  # prints: Hello, Kiwi!
 ```
 
 ### Inheritance
@@ -41,7 +41,7 @@ class MySubclass < MyClass
   def initialize() end
 
   def say_goodbye()
-    println "Goodbye, ${@name}!"
+    println "Goodbye, ${name}!"
   end
 end
 ```
@@ -54,7 +54,7 @@ Methods are defined using the `def` keyword, followed by the method name and any
 class MyClass
   def initialize() end
 
-  def my_method(@param)
+  def my_method(param)
     # Method code here
   end
 end
@@ -73,10 +73,10 @@ class KiwiClass
   end
 end
 
-@instance = KiwiClass.new()
-@string_repr = @instance.to_s()
-println @instance # prints: I am a Kiwi class
-println @string_repr # prints: I am a Kiwi class
+instance = KiwiClass.new()
+string_repr = instance.to_s()
+println instance # prints: I am a Kiwi class
+println string_repr # prints: I am a Kiwi class
 ```
 
 ### Static Method Definition
@@ -112,13 +112,13 @@ You can also use `private` to declare a list of instance variable names that are
 
 ```ruby
 class MyClass
-  private(@name) # declare instance variables as private
+  private(name) # declare instance variables as private
 
-  def initialize(@name)
-    this.@name = @name
+  def initialize(name)
+    this.name = name
   end
 end
 
-@inst = MyClass.new("kiwi")
-println @inst.name # throws InvalidContextError: Cannot access private instance variable outside of object context. 
+inst = MyClass.new("kiwi")
+println inst.name # throws InvalidContextError: Cannot access private instance variable outside of object context. 
 ```

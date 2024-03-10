@@ -15,10 +15,10 @@ The `while`-loop is used to loop based on a condition.
 ##### Loop Based on a Condition
 
 ```ruby
-@i = 0
-while @i <= 10 do
-  @i += 1
-  println @i
+i = 0
+while i <= 10 do
+  i += 1
+  println i
 end
 ```
 
@@ -37,11 +37,11 @@ end
 Exiting a loop with the `break` keyword.
 
 ```ruby
-@i = 0
+i = 0
 while true do
-  @i += 1
+  i += 1
 
-  if @i == 2
+  if i == 2
     break
   end
 end
@@ -50,17 +50,17 @@ end
 ##### Loop Continuation
 Skipping iterations with the `next` keyword.
 ```ruby
-@i = 0
+i = 0
 while true do
-  @i += 1
+  i += 1
 
-  if @i % 2 == 0
+  if i % 2 == 0
     next
   end
 
-  println @i
+  println i
 
-  if @i >= 10
+  if i >= 10
     break
   end
 end
@@ -76,13 +76,13 @@ Use the `for` keyword and the `.keys()` Hash-builtin to iterate a hash.
 
 ```ruby
 # Iterate the values in the list.
-for @key in @myHash.keys() do
-  println @myHash[@key]
+for key in myHash.keys() do
+  println myHash[key]
 end
 
 # Iterate the values in the list, with an index.
-for @key, @index in @myHash.keys() do
-  println "Key ${@index}: ${@key}"
+for key, index in myHash.keys() do
+  println "Key ${index}: ${key}"
 end
 ```
 
@@ -91,16 +91,16 @@ end
 Use the `for` keyword to iterate a list.
 
 ```ruby
-@fruits = ["kiwi", "mango", "lime"]
+fruits = ["kiwi", "mango", "lime"]
 
 # Iterate the values in the list.
-for @fruit in @fruits do
-  println @fruit
+for fruit in fruits do
+  println fruit
 end
 
 # Iterate the values in the list, with an index.
-for @fruit, @index in @fruits do
-  println "Fruit ${@index}: ${@item}"
+for fruit, index in fruits do
+  println "Fruit ${index}: ${item}"
 end
 ```
 
@@ -109,8 +109,8 @@ end
 Use the `for` keyword to iterate a range.
 
 ```ruby
-for @i in [1..10] do
-  println "${@i}"
+for i in [1..10] do
+  println "${i}"
 end
 ```
 
