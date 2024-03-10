@@ -45,7 +45,10 @@ struct CallStackFrame {
   FrameFlags flags = FrameFlags::None;
 
   CallStackFrame() {}
-  ~CallStackFrame() { variables.clear(); }
+  ~CallStackFrame() {
+    variables.clear();
+    lambdas.clear();
+  }
 
   void assignLambda(const std::string& name, const Method& method) {
     lambdas[name] = std::move(method);
