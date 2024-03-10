@@ -120,7 +120,9 @@ class Interpreter {
           frame->setErrorState(e);
         } else {
           ErrorHandler::handleError(e, files);
-          exit(1);
+          if (!preservingMainStackFrame) {
+            exit(1);
+          }
         }
       } catch (const std::exception& e) {
         ErrorHandler::handleFatalError(e);
@@ -129,16 +131,12 @@ class Interpreter {
       if (frame->isErrorStateSet()) {
         ++stream->position;
         continue;
-      }
-
-      if (frame->isLoopControlFlagSet()) {
+      } else if (frame->isLoopControlFlagSet()) {
         if (callStack.size() > 1) {
           handleLoopControl(frame);
           return;
         }
-      }
-
-      if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+      } else if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
         if (callStack.size() > 1) {
           handleFrameReturn(frame);
         } else {
