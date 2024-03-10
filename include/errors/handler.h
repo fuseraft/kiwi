@@ -14,9 +14,9 @@ class ErrorHandler {
     const Token& token = e.getToken();
     std::string message = e.getMessage();
 
-    std::cerr << "Exception: " << e.getError() << std::endl;
+    std::cerr << e.getError() << ": ";
     if (!message.empty()) {
-      std::cerr << "Message:   " << e.getMessage() << std::endl;
+      std::cerr << e.getMessage() << std::endl;
     }
 
     return 1;
@@ -43,21 +43,20 @@ class ErrorHandler {
     int length = line.length();
 
     if (!file.empty()) {
-      std::cerr << "File: " << file << std::endl;
+      std::cerr << "File: " << file;
     }
 
-    std::cerr << "Location:  Line " << 1 + lineNumber << ", Column "
-              << linePosition << "." << std::endl;
+    std::cerr << "  @ Line " << 1 + lineNumber << ", Column " << linePosition
+              << "." << std::endl;
 
     if (!line.empty()) {
-      std::cerr << "Code: " << std::endl;
-      std::cerr << "```" << std::endl << line << std::endl;
+      std::cerr << "Line: " << line << std::endl;
 
-      for (int i = 0; i < length; ++i) {
-        std::cerr << (i == linePosition - 1 ? "^" : " ");
+      for (int i = 0; i < length + 6; ++i) {
+        std::cerr << (i == 6 + linePosition - 1 ? "^" : " ");
       }
 
-      std::cerr << std::endl << "```" << std::endl << std::endl;
+      std::cerr << std::endl;
     }
 
     return 1;

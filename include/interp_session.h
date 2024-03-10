@@ -6,9 +6,9 @@
 #include <stdexcept>
 #include "errors/error.h"
 #include "parsing/keywords.h"
-#include "system/fileio.h"
-#include "globals.h"
+#include "util/file.h"
 #include "interp.h"
+#include "repl.h"
 
 class InterpSession {
  public:
@@ -17,12 +17,12 @@ class InterpSession {
   void disableKiwilib() { kiwilibEnabled = false; }
 
   void registerScript(const std::string& scriptPath) {
-    if (!FileIO::fileExists(scriptPath)) {
+    if (!File::fileExists(scriptPath)) {
       throw FileNotFoundError(scriptPath);
     }
 
-    std::string absolutePath = FileIO::getAbsolutePath(scriptPath);
-    if (!FileIO::fileExists(absolutePath)) {
+    std::string absolutePath = File::getAbsolutePath(scriptPath);
+    if (!File::fileExists(absolutePath)) {
       throw FileNotFoundError(absolutePath);
     }
 
@@ -45,7 +45,8 @@ class InterpSession {
 
     // Start REPL if no scripts are supplied.
     if (scripts.empty()) {
-      return loadRepl();
+      Repl repl(interp);
+      return repl.run();
     }
 
     return loadScripts();
@@ -63,10 +64,10 @@ class InterpSession {
     }
 
     try {
-      auto kiwilibPath = FileIO::getKiwiLibraryPath();
+      auto kiwilibPath = File::getLibraryPath();
 
       if (!kiwilibPath.empty()) {
-        auto kiwilib = FileIO::expandGlob(kiwilibPath + "/**/*.🥝");
+        auto kiwilib = File::expandGlob(kiwilibPath + "/**/*.🥝");
 
         for (const auto& script : kiwilib) {
           loadScript(script);
@@ -75,53 +76,6 @@ class InterpSession {
     } catch (const std::exception& e) {
       ErrorHandler::printError(e);
     }
-  }
-
-  int loadRepl() {
-    const std::string repl = "repl";
-    std::vector<std::string> lines;
-    std::string input;
-
-    std::cout << kiwi_name << " v" << kiwi_version << " REPL" << std::endl
-              << std::endl
-              << "Use `go` to execute, `exit` to end the REPL session."
-              << std::endl
-              << std::endl;
-
-    interp.preserveMainStackFrame();
-
-    while (true) {
-      try {
-        std::cout << "kiwi> ";
-        std::getline(std::cin, input);
-
-        if (input == Keywords.Exit) {
-          break;
-        }
-
-        if (input == Keywords.Go) {
-          std::string kiwiCode;
-
-          for (size_t i = 0; i < lines.size(); ++i) {
-            kiwiCode += lines[i] + "\n";
-          }
-
-          if (!kiwiCode.empty()) {
-            interp.interpretKiwi(kiwiCode);
-            lines.clear();
-          }
-
-          continue;
-        }
-
-        lines.push_back(input);
-      } catch (const std::exception& e) {
-        ErrorHandler::printError(e);
-        return 1;
-      }
-    }
-
-    return 0;
   }
 
   int loadScripts() {
@@ -145,7 +99,7 @@ class InterpSession {
   }
 
   int loadScript(const std::string& script) {
-    auto path = FileIO::getAbsolutePath(script);
+    auto path = File::getAbsolutePath(script);
     return interp.interpretScript(path);
   }
 };

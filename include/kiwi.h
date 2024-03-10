@@ -10,24 +10,39 @@
 #include "logging/logger.h"
 #include "math/rng.h"
 #include "parsing/keywords.h"
-#include "parsing/strings.h"
-#include "system/fileio.h"
+#include "util/file.h"
+#include "util/string.h"
 #include "interp_session.h"
 #include "globals.h"
 
-bool has_script_extension(std::string path);
-bool has_conf_extension(std::string path);
-void handle_xarg(std::string& opt, std::__cxx11::regex& xargPattern,
-                 InterpSession& session);
-void configure_kiwi(Config& config, Logger& logger, InterpSession& session);
-int process_args(int c, std::vector<std::string>& v, InterpSession& session,
-                 Logger& logger, bool& retFlag);
-int print_version();
-int print_help();
+class Kiwi {
+ public:
+  static int run(int argc, char** argv);
 
-int kiwi(std::vector<std::string>& v) {
+ private:
+  static bool configure(Config& config, Logger& logger, InterpSession& session,
+                        const std::string& path);
+  static bool processXarg(std::string& opt, InterpSession& session);
+
+  static int run(std::vector<std::string>& v);
+  static int printVersion();
+  static int printHelp();
+};
+
+int Kiwi::run(int argc, char** argv) {
+  std::vector<std::string> args;
+
+  for (int i = 0; i < argc; ++i) {
+    args.push_back(argv[i]);
+  }
+
+  return Kiwi::run(args);
+}
+
+int Kiwi::run(std::vector<std::string>& v) {
   RNG::getInstance();
 
+  Config config;
   Logger logger;
   Interpreter interp(logger);
   InterpSession session(interp);
@@ -42,10 +57,31 @@ int kiwi(std::vector<std::string>& v) {
   try {
     session.registerArg(kiwi_arg, v.at(0));
 
-    bool retFlag;
-    int retVal = process_args(size, v, session, logger, retFlag);
-    if (retFlag)
-      return retVal;
+    bool help = false;
+
+    for (size_t i = 1; i < size; ++i) {
+      if (help) {
+        return printHelp();
+      }
+
+      if (String::isCLIFlag(v.at(i), "h", "help")) {
+        help = true;
+      } else if (String::isCLIFlag(v.at(i), "v", "version")) {
+        return printVersion();
+      } else if (String::isCLIFlag(v.at(i), "C", "config")) {
+        if (i + 1 < size) {
+          help = configure(config, logger, session, v.at(++i));
+        } else {
+          help = true;
+        }
+      } else if (File::isScript(v.at(i))) {
+        session.registerScript(v.at(i));
+      } else if (String::isXArg(v.at(i))) {
+        help = !processXarg(v.at(i), session);
+      } else {
+        session.registerArg("argv_" + RNG::getInstance().random16(), v.at(i));
+      }
+    }
 
     return session.start();
   } catch (const KiwiError& e) {
@@ -53,50 +89,16 @@ int kiwi(std::vector<std::string>& v) {
   }
 }
 
-int process_args(int c, std::vector<std::string>& v, InterpSession& session,
-                 Logger& logger, bool& retFlag) {
-  std::regex xargPattern("-X(.*?)=");
-  std::string opt;
-  Config config;
-
-  retFlag = true;
-  for (int i = 1; i < c; ++i) {
-    opt = v.at(i);
-
-    if (Strings::begins_with(opt, "-X") && Strings::contains(opt, "=")) {
-      handle_xarg(opt, xargPattern, session);
-    } else if (Strings::is_flag(opt, "h", "help")) {
-      return print_help();
-    } else if (Strings::is_flag(opt, "v", "version")) {
-      return print_version();
-    } else if (Strings::is_flag(opt, "C", "config")) {
-      if (i + 1 > c) {
-        return print_help();
-      }
-
-      std::string conf = v[i + 1];
-
-      if (!Strings::ends_with(conf, ".conf")) {
-        throw KiwiError::create("I can be configured with a `.conf` file.");
-      } else if (!config.read(conf)) {
-        throw KiwiError::create("I cannot read `" + conf + "`.");
-      } else {
-        configure_kiwi(config, logger, session);
-        ++i;
-      }
-    } else if ((Strings::ends_with(opt, ".kiwi") ||
-                Strings::ends_with(opt, "🥝")) &&
-               FileIO::fileExists(opt)) {
-      session.registerScript(opt);
-    } else {
-      session.registerArg("argv_" + RNG::getInstance().random16(), opt);
-    }
+bool Kiwi::configure(Config& config, Logger& logger, InterpSession& session,
+                     const std::string& path) {
+  if (!String::endsWith(path, ".conf")) {
+    std::cout << "I can be configured with a `.conf` file." << std::endl;
+    return false;
+  } else if (!config.read(path)) {
+    std::cout << "I cannot read `" << path << "`." << std::endl;
+    return false;
   }
-  retFlag = false;
-  return {};
-}
 
-void configure_kiwi(Config& config, Logger& logger, InterpSession& session) {
   std::string logPath = config.get("LOGGER_PATH");
   std::string logMode = config.get("LOGGER_MODE");
   std::string logLevel = config.get("LOGGER_LEVEL");
@@ -122,10 +124,12 @@ void configure_kiwi(Config& config, Logger& logger, InterpSession& session) {
   if (!kiwilibEnabled.empty() && kiwilibEnabled == Keywords.False) {
     session.disableKiwilib();
   }
+
+  return true;
 }
 
-void handle_xarg(std::string& opt, std::__cxx11::regex& xargPattern,
-                 InterpSession& session) {
+bool Kiwi::processXarg(std::string& opt, InterpSession& session) {
+  std::regex xargPattern("-X(.*?)=");
   std::string name, value;
   std::smatch match;
 
@@ -140,15 +144,18 @@ void handle_xarg(std::string& opt, std::__cxx11::regex& xargPattern,
 
   if (!name.empty() && !value.empty()) {
     session.registerArg(name, value);
+    return true;
   }
+
+  return false;
 }
 
-int print_version() {
+int Kiwi::printVersion() {
   std::cout << kiwi_name << " v" << kiwi_version << std::endl << std::endl;
   return 0;
 }
 
-int print_help() {
+int Kiwi::printHelp() {
   struct CommandInfo {
     std::string command;
     std::string description;
@@ -160,7 +167,7 @@ int print_help() {
       {"-C, --config <conf_path>", "configure with a `.conf` file"},
       {"-X<key>:<value>", "specify an argument as a key-value pair"}};
 
-  print_version();
+  printVersion();
 
   std::cout << "Usage: kiwi [--flags] <script|args>" << std::endl
             << "Options:" << std::endl;
