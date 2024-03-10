@@ -118,6 +118,28 @@ class TokenStream {
     return clonedStream;
   }
 
+  Token current() {
+    if (position >= tokens.size()) {
+      return Token::createStreamEnd();
+    }
+    return tokens.at(position);
+  }
+
+  void next() {
+    if (position < tokens.size()) {
+      position++;
+    }
+  }
+
+  Token peek() {
+    size_t nextPosition = position + 1;
+    if (nextPosition < tokens.size()) {
+      return tokens[nextPosition];
+    } else {
+      return Token::createStreamEnd();
+    }
+  }
+
   bool empty() const { return tokens.empty(); }
   bool canRead() const { return position < tokens.size(); }
 
