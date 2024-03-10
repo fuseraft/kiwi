@@ -6,9 +6,9 @@
 #include <unordered_map>
 #include "math/functions.h"
 #include "parsing/builtins.h"
-#include "parsing/strings.h"
 #include "parsing/tokens.h"
 #include "typing/valuetype.h"
+#include "util/string.h"
 
 class ArgvBuiltinHandler {
  public:

@@ -9,8 +9,8 @@
 #include "objects/sliceindex.h"
 #include "parsing/keywords.h"
 #include "parsing/lexer.h"
-#include "parsing/strings.h"
 #include "parsing/tokens.h"
+#include "util/string.h"
 #include "stackframe.h"
 
 struct InterpHelper {
