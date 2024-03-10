@@ -630,19 +630,50 @@ class Interpreter {
     throw UnknownIdentifierError(current(stream), identifier);
   }
 
+  Value interpretValueInvocation(std::shared_ptr<TokenStream> stream,
+                                 std::shared_ptr<CallStackFrame> frame,
+                                 Value& v) {
+    while (current(stream).getType() == TokenType::DOT ||
+           current(stream).getType() == TokenType::OPEN_BRACKET) {
+      if (current(stream).getType() == TokenType::DOT) {
+        v = interpretDotNotation(stream, frame, v);
+      } else if (current(stream).getType() == TokenType::OPEN_BRACKET) {
+        if (!InterpHelper::isSliceAssignmentExpression(stream)) {
+          throw SyntaxError(current(stream),
+                            "Invalid slice-assignment expression.");
+        }
+
+        auto slice = interpretSliceIndex(stream, frame, v);
+        auto list = std::get<std::shared_ptr<List>>(v);
+
+        v = InterpHelper::interpretListSlice(stream, slice, list);
+      }
+    }
+    return v;
+  }
+
   Value interpretIdentifier(std::shared_ptr<TokenStream> stream,
-                            std::shared_ptr<CallStackFrame> frame) {
+                            std::shared_ptr<CallStackFrame> frame,
+                            bool doAssignment = true) {
     auto tokenText = current(stream).getText();
     auto op = current(stream).getSubType();
 
     interpretQualifiedIdentifier(stream, tokenText);
 
-    if (peek(stream).getType() == TokenType::OPERATOR) {
+    if (doAssignment && peek(stream).getType() == TokenType::OPERATOR &&
+        (Operators.is_assignment_operator(peek(stream).getSubType()) ||
+         peek(stream).getSubType() == SubTokenType::Ops_BitwiseLeftShift)) {
       interpretAssignment(stream, frame, tokenText);
       return 0;
     }
 
     if (hasVariable(frame, tokenText)) {
+      if (peek(stream).getType() == TokenType::OPEN_BRACKET) {
+        next(stream);
+        interpretSliceAssignment(stream, frame, tokenText);
+        return 0;
+      }
+
       auto v = getVariable(stream, frame, tokenText);
       next(stream);
 
@@ -656,9 +687,7 @@ class Interpreter {
         }
       }
 
-      if (current(stream).getType() == TokenType::DOT) {
-        return interpretDotNotation(stream, frame, v);
-      }
+      v = interpretValueInvocation(stream, frame, v);
 
       return v;
     } else if (KiwiBuiltins.is_builtin_method(op)) {
@@ -2165,7 +2194,6 @@ class Interpreter {
       }
 
       auto value = getVariable(stream, frame, name);
-      next(stream);
 
       if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
         interpretDeleteHashKey(stream, frame, name, value);
@@ -2946,7 +2974,7 @@ class Interpreter {
       auto result = interpretBracketExpression(stream, frame);
       return result;
     } else if (current(stream).getType() == TokenType::IDENTIFIER) {
-      return interpretIdentifier(stream, frame);
+      return interpretIdentifier(stream, frame, false);
     } else if (current(stream).getSubType() == SubTokenType::KW_This) {
       return interpretSelfInvocationTerm(stream, frame);
     } else if (current(stream).getValueType() == ValueType::String) {
@@ -2961,25 +2989,7 @@ class Interpreter {
   Value interpretExpression(std::shared_ptr<TokenStream> stream,
                             std::shared_ptr<CallStackFrame> frame) {
     auto result = parseExpression(stream, frame);
-
-    while (current(stream).getType() == TokenType::DOT ||
-           current(stream).getType() == TokenType::OPEN_BRACKET) {
-      if (current(stream).getType() == TokenType::DOT) {
-        result = interpretDotNotation(stream, frame, result);
-      } else if (current(stream).getType() == TokenType::OPEN_BRACKET) {
-        if (!InterpHelper::isSliceAssignmentExpression(stream)) {
-          throw SyntaxError(current(stream),
-                            "Invalid slice-assignment expression.");
-        }
-
-        auto slice = interpretSliceIndex(stream, frame, result);
-        auto list = std::get<std::shared_ptr<List>>(result);
-
-        result = InterpHelper::interpretListSlice(stream, slice, list);
-      }
-    }
-
-    return result;
+    return interpretValueInvocation(stream, frame, result);
   }
 
   Value interpretSimpleValueType(std::shared_ptr<TokenStream> stream,
@@ -3287,10 +3297,11 @@ class Interpreter {
     if (identifier.empty() &&
         current(stream).getType() == TokenType::IDENTIFIER) {
       name = current(stream).toString();
-      next(stream);
     } else if (!identifier.empty()) {
       name = identifier;
     }
+
+    next(stream);  // Skip the identifier.
 
     if (current(stream).getType() == TokenType::OPERATOR) {
       auto op = current(stream).getSubType();
