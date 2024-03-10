@@ -6,28 +6,28 @@ The largest palindrome made from the product of two 2-digit numbers is 9009 = 91
 Find the largest palindrome made from the product of two 3-digit numbers.
 ##
 
-def is_palindromic(@number)
-  @num_string = @number.to_s()
-  @reversed = @num_string.chars()[::-1].join("")
-  return @num_string == @reversed
+def is_palindromic(number)
+  num_string = number.to_s()
+  reversed = num_string.chars()[::-1].join("")
+  return num_string == reversed
 end
 
-@max_palindrome = 0
-@products = []
+max_palindrome = 0
+products = []
 
-for @i in [100..999][::-1] do
-  for @j in [100..@i][::-1] do
-    @product = @i * @j
-    if is_palindromic(@product)
-      @products << @product
+for i in [100..999][::-1] do
+  for j in [100..i][::-1] do
+    product = i * j
+    if is_palindromic(product)
+      products << product
     end
   end
 end
 
-for @product in @products do
-  if @product > @max_palindrome
-    @max_palindrome = @product
+for product in products do
+  if product > max_palindrome
+    max_palindrome = product
   end
 end
 
-println @max_palindrome
+println max_palindrome

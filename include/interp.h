@@ -381,20 +381,17 @@ class Interpreter {
     bool hasIndexVariable = false;
 
     // Check if the loop includes an index variable.
-    if (current(stream).getType() == TokenType::DECLVAR) {
-      next(stream);
+    if (current(stream).getType() == TokenType::IDENTIFIER) {
       itemVariableName = current(stream).getText();
       next(stream);  // Skip the item variable name
 
       if (current(stream).getType() == TokenType::COMMA) {
         next(stream);  // Skip ','
-        if (current(stream).getType() == TokenType::DECLVAR) {
+        if (current(stream).getType() == TokenType::IDENTIFIER) {
           hasIndexVariable = true;
-          next(stream);
           indexVariableName =
-              current(stream)
-                  .getText();  // Get the index variable name after '@'
-          next(stream);        // Skip the index variable name
+              current(stream).getText();  // Get the index variable name
+          next(stream);                   // Skip the index variable name
         }
       }
     }
@@ -472,7 +469,7 @@ class Interpreter {
       auto conditionFrame = buildSubFrame(frame);
       callStack.push(conditionFrame);
       streamStack.push(conditionStream);
-      interpretAssignment(conditionStream, conditionFrame, true);
+      interpretAssignment(conditionStream, conditionFrame, "", true);
 
       if (conditionFrame->variables.find(tempId) ==
           conditionFrame->variables.end()) {
@@ -535,8 +532,6 @@ class Interpreter {
                             const SubTokenType& keyword) {
     if (keyword == SubTokenType::KW_If) {
       interpretConditional(stream, frame);
-    } else if (keyword == SubTokenType::KW_DeclVar) {
-      interpretAssignment(stream, frame);
     } else if (Keywords.is_loop_keyword(keyword)) {
       interpretLoop(stream, frame);
     } else if (keyword == SubTokenType::KW_Method) {
@@ -597,21 +592,6 @@ class Interpreter {
     }
   }
 
-  void interpretIdentifierOperation(std::shared_ptr<TokenStream> stream,
-                                    std::shared_ptr<CallStackFrame> frame,
-                                    const std::string& identifier) {
-    next(stream);  // Skip identifier.
-    auto op = current(stream).getSubType();
-    next(stream);
-
-    if (current(stream).getType() == TokenType::LAMBDA) {
-      interpretLambdaAssignment(stream, frame, identifier, op);
-    } else {
-      throw InvalidOperationError(
-          current(stream), "Invalid operation near `" + identifier + "`.");
-    }
-  }
-
   Value interpretIdentifierInvocation(std::shared_ptr<TokenStream> stream,
                                       std::shared_ptr<CallStackFrame> frame,
                                       const std::string& identifier) {
@@ -650,14 +630,50 @@ class Interpreter {
     throw UnknownIdentifierError(current(stream), identifier);
   }
 
+  Value interpretValueInvocation(std::shared_ptr<TokenStream> stream,
+                                 std::shared_ptr<CallStackFrame> frame,
+                                 Value& v) {
+    while (current(stream).getType() == TokenType::DOT ||
+           current(stream).getType() == TokenType::OPEN_BRACKET) {
+      if (current(stream).getType() == TokenType::DOT) {
+        v = interpretDotNotation(stream, frame, v);
+      } else if (current(stream).getType() == TokenType::OPEN_BRACKET) {
+        if (!InterpHelper::isSliceAssignmentExpression(stream)) {
+          throw SyntaxError(current(stream),
+                            "Invalid slice-assignment expression.");
+        }
+
+        auto slice = interpretSliceIndex(stream, frame, v);
+        auto list = std::get<std::shared_ptr<List>>(v);
+
+        v = InterpHelper::interpretListSlice(stream, slice, list);
+      }
+    }
+    return v;
+  }
+
   Value interpretIdentifier(std::shared_ptr<TokenStream> stream,
-                            std::shared_ptr<CallStackFrame> frame) {
+                            std::shared_ptr<CallStackFrame> frame,
+                            bool doAssignment = true) {
     auto tokenText = current(stream).getText();
     auto op = current(stream).getSubType();
 
     interpretQualifiedIdentifier(stream, tokenText);
 
+    if (doAssignment && peek(stream).getType() == TokenType::OPERATOR &&
+        (Operators.is_assignment_operator(peek(stream).getSubType()) ||
+         peek(stream).getSubType() == SubTokenType::Ops_BitwiseLeftShift)) {
+      interpretAssignment(stream, frame, tokenText);
+      return 0;
+    }
+
     if (hasVariable(frame, tokenText)) {
+      if (peek(stream).getType() == TokenType::OPEN_BRACKET) {
+        next(stream);
+        interpretSliceAssignment(stream, frame, tokenText);
+        return 0;
+      }
+
       auto v = getVariable(stream, frame, tokenText);
       next(stream);
 
@@ -671,16 +687,11 @@ class Interpreter {
         }
       }
 
-      if (current(stream).getType() == TokenType::DOT) {
-        return interpretDotNotation(stream, frame, v);
-      }
+      v = interpretValueInvocation(stream, frame, v);
 
       return v;
     } else if (KiwiBuiltins.is_builtin_method(op)) {
       return interpretBuiltin(stream, frame, op);
-    } else if (peek(stream).getType() == TokenType::OPERATOR) {
-      interpretIdentifierOperation(stream, frame, tokenText);
-      return 0;
     } else {
       return interpretIdentifierInvocation(stream, frame, tokenText);
     }
@@ -752,7 +763,6 @@ class Interpreter {
         break;
 
       case TokenType::KEYWORD:
-      case TokenType::DECLVAR:
         interpretKeyword(stream, frame);
         break;
 
@@ -1432,143 +1442,6 @@ class Interpreter {
     frame->setFlag(FrameFlags::ReturnFlag);
   }
 
-  std::string interpretAssignment(std::shared_ptr<TokenStream> stream,
-                                  std::shared_ptr<CallStackFrame> frame,
-                                  bool isTemporary = false,
-                                  bool isInstanceVariable = false) {
-    std::string name;
-    if (current(stream).getType() == TokenType::DECLVAR) {
-      next(stream);  // Skip the "@"
-    }
-
-    if (current(stream).getType() == TokenType::IDENTIFIER) {
-      name = current(stream).toString();
-      next(stream);
-
-      if (current(stream).getType() == TokenType::OPERATOR) {
-        auto op = current(stream).getSubType();
-        next(stream);
-
-        if (Operators.is_assignment_operator(op) ||
-            op == SubTokenType::Ops_BitwiseLeftShift) {
-          interpretAssignment(stream, name, op, frame, isTemporary,
-                              isInstanceVariable);
-        }
-      } else if (current(stream).getType() == TokenType::OPEN_BRACKET) {
-        if (!hasVariable(frame, name)) {
-          throw VariableUndefinedError(current(stream), name);
-        }
-
-        if (!InterpHelper::isSliceAssignmentExpression(stream)) {
-          throw SyntaxError(current(stream),
-                            "Invalid slice-assignment expression.");
-        }
-
-        interpretSliceAssignment(stream, frame, name);
-      } else if (current(stream).getType() == TokenType::DOT) {
-        if (hasVariable(frame, name)) {
-          auto value = getVariable(stream, frame, name);
-          if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
-            interpretInstanceMethodInvocation(stream, frame, name);
-            return name;
-          } else {
-            throw InvalidOperationError(
-                current(stream), "Unsupported operation on `" + name + "`");
-          }
-        }
-
-        throw VariableUndefinedError(current(stream), name);
-      }
-    }
-
-    return name;
-  }
-
-  void interpretHashElementAssignment(std::shared_ptr<TokenStream> stream,
-                                      std::shared_ptr<CallStackFrame> frame,
-                                      const std::string& name, Value& value) {
-    if (current(stream).getType() != TokenType::OPEN_BRACKET) {
-      throw SyntaxError(
-          current(stream),
-          "Expected open-bracket, `[`, in hash element assignment.");
-    }
-    next(stream);  // Skip "["
-
-    auto keyValue = interpretExpression(stream, frame);
-
-    if (!std::holds_alternative<std::string>(keyValue)) {
-      throw SyntaxError(current(stream), "Hash key must be a string value.");
-    }
-
-    auto key = std::get<std::string>(keyValue);
-
-    if (peek(stream).getType() == TokenType::CLOSE_BRACKET) {
-      next(stream);
-    }
-
-    if (current(stream).getType() != TokenType::CLOSE_BRACKET) {
-      throw SyntaxError(
-          current(stream),
-          "Expected close-bracket, `]`, in hash element assignment.");
-    }
-    next(stream);
-
-    if (current(stream).getSubType() != SubTokenType::Ops_Assign) {
-      throw InvalidOperationError(current(stream),
-                                  "Expected assignment operator.");
-    }
-    next(stream);
-
-    auto elementValue = interpretExpression(stream, frame);
-    auto hashValue = std::get<std::shared_ptr<Hash>>(value);
-    hashValue->add(key, elementValue);
-
-    frame->variables[name] = hashValue;
-  }
-
-  void interpretSliceAssignment(std::shared_ptr<TokenStream> stream,
-                                std::shared_ptr<CallStackFrame> frame,
-                                const std::string& name) {
-    auto value = getVariable(stream, frame, name);
-
-    if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
-      interpretHashElementAssignment(stream, frame, name, value);
-      return;
-    }
-
-    if (!std::holds_alternative<std::shared_ptr<List>>(value)) {
-      throw InvalidOperationError(current(stream),
-                                  "`" + name + "` is not a list.");
-    }
-
-    // Parse slice parameters (start:stop:step)
-    auto slice = interpretSliceIndex(stream, frame, value);
-
-    if (peek(stream).getType() == TokenType::OPERATOR) {
-      next(stream);
-    }
-
-    // Expect assignment operator next
-    bool insertOp = current(stream).getSubType() ==
-                    SubTokenType::Ops_BitwiseLeftShiftAssign;
-    bool simpleAssignOp =
-        current(stream).getSubType() == SubTokenType::Ops_Assign;
-    if (!insertOp && !simpleAssignOp) {
-      throw SyntaxError(current(stream),
-                        "Expected assignment operator in slice assignment.");
-    }
-    next(stream);  // Move past the assignment operator
-
-    auto rhsValues = interpretExpression(stream, frame);
-
-    // Get the target list to update
-    auto targetListPtr = std::get<std::shared_ptr<List>>(value);
-
-    auto rhsList = Serializer::convert_value_to_list(rhsValues);
-    InterpHelper::updateListSlice(stream, insertOp, targetListPtr, slice,
-                                  rhsList);
-  }
-
   SliceIndex interpretSliceIndex(std::shared_ptr<TokenStream> stream,
                                  std::shared_ptr<CallStackFrame> frame,
                                  Value& listValue) {
@@ -1975,12 +1848,13 @@ class Interpreter {
 
     Value value;
 
-    if (current(stream).getType() == TokenType::DECLVAR) {
-      value = interpretAssignment(stream, frame, false, true);
-    } else if (current(stream).getType() == TokenType::IDENTIFIER &&
-               peek(stream).getType() == TokenType::OPEN_PAREN) {
-      value =
-          interpretMethodInvocation(stream, frame, current(stream).getText());
+    if (current(stream).getType() == TokenType::IDENTIFIER) {
+      if (peek(stream).getType() == TokenType::OPERATOR) {
+        value = interpretAssignment(stream, frame, "", false, true);
+      } else if (peek(stream).getType() == TokenType::OPEN_PAREN) {
+        value =
+            interpretMethodInvocation(stream, frame, current(stream).getText());
+      }
     }
 
     return value;
@@ -2311,16 +2185,15 @@ class Interpreter {
                        std::shared_ptr<CallStackFrame> frame) {
     next(stream);  // Skip "delete"
 
-    if (current(stream).getType() == TokenType::DECLVAR) {
-      next(stream);
+    if (current(stream).getType() == TokenType::IDENTIFIER) {
       auto name = current(stream).getText();
+      next(stream);
 
       if (!hasVariable(frame, name)) {
         throw VariableUndefinedError(current(stream), name);
       }
 
       auto value = getVariable(stream, frame, name);
-      next(stream);
 
       if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
         interpretDeleteHashKey(stream, frame, name, value);
@@ -3077,10 +2950,6 @@ class Interpreter {
       return value;
     }
 
-    if (current(stream).getType() == TokenType::DECLVAR) {
-      next(stream);
-    }
-
     if (current(stream).getType() == TokenType::OPEN_BRACE) {
       return interpretHash(stream, frame);
     }
@@ -3105,7 +2974,7 @@ class Interpreter {
       auto result = interpretBracketExpression(stream, frame);
       return result;
     } else if (current(stream).getType() == TokenType::IDENTIFIER) {
-      return interpretIdentifier(stream, frame);
+      return interpretIdentifier(stream, frame, false);
     } else if (current(stream).getSubType() == SubTokenType::KW_This) {
       return interpretSelfInvocationTerm(stream, frame);
     } else if (current(stream).getValueType() == ValueType::String) {
@@ -3120,25 +2989,7 @@ class Interpreter {
   Value interpretExpression(std::shared_ptr<TokenStream> stream,
                             std::shared_ptr<CallStackFrame> frame) {
     auto result = parseExpression(stream, frame);
-
-    while (current(stream).getType() == TokenType::DOT ||
-           current(stream).getType() == TokenType::OPEN_BRACKET) {
-      if (current(stream).getType() == TokenType::DOT) {
-        result = interpretDotNotation(stream, frame, result);
-      } else if (current(stream).getType() == TokenType::OPEN_BRACKET) {
-        if (!InterpHelper::isSliceAssignmentExpression(stream)) {
-          throw SyntaxError(current(stream),
-                            "Invalid slice-assignment expression.");
-        }
-
-        auto slice = interpretSliceIndex(stream, frame, result);
-        auto list = std::get<std::shared_ptr<List>>(result);
-
-        result = InterpHelper::interpretListSlice(stream, slice, list);
-      }
-    }
-
-    return result;
+    return interpretValueInvocation(stream, frame, result);
   }
 
   Value interpretSimpleValueType(std::shared_ptr<TokenStream> stream,
@@ -3171,10 +3022,6 @@ class Interpreter {
       return frame->getObjectContext();
     }
     next(stream);  // Skip the "."
-
-    if (current(stream).getType() == TokenType::DECLVAR) {
-      next(stream);  // Skip the "@"
-    }
 
     if (current(stream).getType() != TokenType::IDENTIFIER) {
       throw InvalidOperationError(
@@ -3241,7 +3088,7 @@ class Interpreter {
 
     auto tempStream = std::make_shared<TokenStream>(tempAssignment);
     auto tempFrame = buildSubFrame(frame);
-    interpretAssignment(tempStream, tempFrame, true);
+    interpretAssignment(tempStream, tempFrame, "", true);
 
     if (tempFrame->variables.find(tempId) == tempFrame->variables.end()) {
       throw SyntaxError(current(stream),
@@ -3353,6 +3200,145 @@ class Interpreter {
     Method lambda = interpretLambda(stream, frame);
     lambda.setName(name);
     frame->assignLambda(name, lambda);
+  }
+
+  void interpretHashElementAssignment(std::shared_ptr<TokenStream> stream,
+                                      std::shared_ptr<CallStackFrame> frame,
+                                      const std::string& name, Value& value) {
+    if (current(stream).getType() != TokenType::OPEN_BRACKET) {
+      throw SyntaxError(
+          current(stream),
+          "Expected open-bracket, `[`, in hash element assignment.");
+    }
+    next(stream);  // Skip "["
+
+    auto keyValue = interpretExpression(stream, frame);
+
+    if (!std::holds_alternative<std::string>(keyValue)) {
+      throw SyntaxError(current(stream), "Hash key must be a string value.");
+    }
+
+    auto key = std::get<std::string>(keyValue);
+
+    if (peek(stream).getType() == TokenType::CLOSE_BRACKET) {
+      next(stream);
+    }
+
+    if (current(stream).getType() != TokenType::CLOSE_BRACKET) {
+      throw SyntaxError(
+          current(stream),
+          "Expected close-bracket, `]`, in hash element assignment.");
+    }
+    next(stream);
+
+    if (current(stream).getSubType() != SubTokenType::Ops_Assign) {
+      throw InvalidOperationError(current(stream),
+                                  "Expected assignment operator.");
+    }
+    next(stream);
+
+    auto elementValue = interpretExpression(stream, frame);
+    auto hashValue = std::get<std::shared_ptr<Hash>>(value);
+    hashValue->add(key, elementValue);
+
+    frame->variables[name] = hashValue;
+  }
+
+  void interpretSliceAssignment(std::shared_ptr<TokenStream> stream,
+                                std::shared_ptr<CallStackFrame> frame,
+                                const std::string& name) {
+    auto value = getVariable(stream, frame, name);
+
+    if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
+      interpretHashElementAssignment(stream, frame, name, value);
+      return;
+    }
+
+    if (!std::holds_alternative<std::shared_ptr<List>>(value)) {
+      throw InvalidOperationError(current(stream),
+                                  "`" + name + "` is not a list.");
+    }
+
+    // Parse slice parameters (start:stop:step)
+    auto slice = interpretSliceIndex(stream, frame, value);
+
+    if (peek(stream).getType() == TokenType::OPERATOR) {
+      next(stream);
+    }
+
+    // Expect assignment operator next
+    bool insertOp = current(stream).getSubType() ==
+                    SubTokenType::Ops_BitwiseLeftShiftAssign;
+    bool simpleAssignOp =
+        current(stream).getSubType() == SubTokenType::Ops_Assign;
+    if (!insertOp && !simpleAssignOp) {
+      throw SyntaxError(current(stream),
+                        "Expected assignment operator in slice assignment.");
+    }
+    next(stream);  // Move past the assignment operator
+
+    auto rhsValues = interpretExpression(stream, frame);
+
+    // Get the target list to update
+    auto targetListPtr = std::get<std::shared_ptr<List>>(value);
+
+    auto rhsList = Serializer::convert_value_to_list(rhsValues);
+    InterpHelper::updateListSlice(stream, insertOp, targetListPtr, slice,
+                                  rhsList);
+  }
+
+  std::string interpretAssignment(std::shared_ptr<TokenStream> stream,
+                                  std::shared_ptr<CallStackFrame> frame,
+                                  const std::string& identifier = "",
+                                  bool isTemporary = false,
+                                  bool isInstanceVariable = false) {
+    std::string name;
+
+    if (identifier.empty() &&
+        current(stream).getType() == TokenType::IDENTIFIER) {
+      name = current(stream).toString();
+    } else if (!identifier.empty()) {
+      name = identifier;
+    }
+
+    next(stream);  // Skip the identifier.
+
+    if (current(stream).getType() == TokenType::OPERATOR) {
+      auto op = current(stream).getSubType();
+      next(stream);
+
+      if (Operators.is_assignment_operator(op) ||
+          op == SubTokenType::Ops_BitwiseLeftShift) {
+        interpretAssignment(stream, name, op, frame, isTemporary,
+                            isInstanceVariable);
+      }
+    } else if (current(stream).getType() == TokenType::OPEN_BRACKET) {
+      if (!hasVariable(frame, name)) {
+        throw VariableUndefinedError(current(stream), name);
+      }
+
+      if (!InterpHelper::isSliceAssignmentExpression(stream)) {
+        throw SyntaxError(current(stream),
+                          "Invalid slice-assignment expression.");
+      }
+
+      interpretSliceAssignment(stream, frame, name);
+    } else if (current(stream).getType() == TokenType::DOT) {
+      if (hasVariable(frame, name)) {
+        auto value = getVariable(stream, frame, name);
+        if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
+          interpretInstanceMethodInvocation(stream, frame, name);
+          return name;
+        } else {
+          throw InvalidOperationError(
+              current(stream), "Unsupported operation on `" + name + "`");
+        }
+      }
+
+      throw VariableUndefinedError(current(stream), name);
+    }
+
+    return name;
   }
 
   void interpretAssignment(std::shared_ptr<TokenStream> stream,

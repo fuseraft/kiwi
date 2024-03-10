@@ -15,10 +15,10 @@ module argv
   ##
   Summary: Get an XArg value by name.
   Params:
-    - @_xarg_key: The XArg key.
+    - _xarg_key: The XArg key.
   Returns: String containing the XArg value.
   ##
-  def xarg(@_xarg_key)
+  def xarg(_xarg_key)
     return __xarg__(_xarg_key)
   end
 end

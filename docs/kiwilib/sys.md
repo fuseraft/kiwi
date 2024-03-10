@@ -16,14 +16,14 @@ import "@kiwi/sys"
 - **Summary**: Get the effective user ID.
 - **Returns**: Integer containing effective user ID.
 
-### `exec(@_command)`
+### `exec(_command)`
 - **Summary**: Run an external process and capture its exit code.
 - **Parameters**:
-  - `@_command`: String containing the command text.
+  - `_command`: String containing the command text.
 - **Returns**: Integer containing exit code of external process.
 
-### `execout(@_command)`
+### `execout(_command)`
 - **Summary**: Run an external process and capture its standard output.
 - **Parameters**:
-  - `@_command`: String containing the command text.
+  - `_command`: String containing the command text.
 - **Returns**: String containing standard output from external process.

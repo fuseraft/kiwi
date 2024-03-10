@@ -1,44 +1,44 @@
-@list = [1, 2, 3]
-@string = "31337"
-@integer = @string.to_i()
-@double = @string.to_d()
-@list << [@string, @integer, @double]
+list = [1, 2, 3]
+string = "31337"
+integer = string.to_i()
+double = string.to_d()
+list << [string, integer, double]
 
-println "list = ${@list}"
-@size = @list.size()
-println "list size = ${@size}"
+println "list = ${list}"
+size = list.size()
+println "list size = ${size}"
 
-@list = ["The", "Kiwi", "Programming", "Language"]
-@joined = @list.join(" ")
-println "joined: ${@joined}"
+list = ["The", "Kiwi", "Programming", "Language"]
+joined = list.join(" ")
+println "joined: ${joined}"
 
-@joined = @list.join("-")
-println "joined: ${@joined}"
+joined = list.join("-")
+println "joined: ${joined}"
 
 # These are functionally equivalent.
-@joined = @list.join("")
-println "joined: ${@joined}"
+joined = list.join("")
+println "joined: ${joined}"
 
-@joined = @list.join()
-println "joined: ${@joined}"
+joined = list.join()
+println "joined: ${joined}"
 
-@a = "foobar".upcase()
-println @a
+a = "foobar".upcase()
+println a
 
-@a = @a.downcase()
-println @a
+a = a.downcase()
+println a
 
-println @a.index_of("bar")
-println @a.chars()
+println a.index_of("bar")
+println a.chars()
 println "foobar".replace("foo", "food")
-println @a.begins_with("food")
+println a.begins_with("food")
 println "foobar".ends_with("bar")
 println "foobar".ends_with("bark")
 
-@a = 1
+a = 1
 
-println @a.is_a(Integer) # prints: true
-println @a.is_a(String)  # prints: false
-#println @a.is_a(Zebra)  # throws UnknownIdentifierError
+println a.is_a(Integer) # prints: true
+println a.is_a(String)  # prints: false
+#println a.is_a(Zebra)  # throws UnknownIdentifierError
 
 println ""
