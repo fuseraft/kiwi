@@ -386,7 +386,7 @@ struct InterpHelper {
   static std::string interpretModuleHome(std::string& modulePath,
                                          std::shared_ptr<TokenStream> stream) {
     if (current(stream).getType() != TokenType::STRING ||
-        !Strings::begins_with(modulePath, "@")) {
+        !String::beginsWith(modulePath, "@")) {
       return "";
     }
 
