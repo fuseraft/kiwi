@@ -1,5 +1,5 @@
 def is_old(age)
-    if ge >= 70
+    if age >= 70
         return true
     end
 
