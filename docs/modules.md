@@ -7,14 +7,14 @@ Methods defined in a module can only be accessed using a fully qualified name.
 ```ruby
 # Defining modules.
 module greeter
-  def greet(@name)
-    println "Hello, ${@name}."
+  def greet(name)
+    println "Hello, ${name}."
   end
 end
 
 module excited_greeter
-  def greet(@name)
-    println "Hello, ${@name}!"
+  def greet(name)
+    println "Hello, ${name}!"
   end
 end
 
@@ -41,13 +41,13 @@ To specify a module home, use the `__home__(homename)` builtin within the `modul
 
 This will register a module to a home.
 
-To include a homed module, you can prefix the module name with `@homename/` to specify the home.
+To include a homed module, you can prefix the module name with `homename/` to specify the home.
 
-### Example Homed Module `@fuseraft/fun`
+### Example Homed Module `fuseraft/fun`
 
 In this example, we have two Kiwi scripts:
-1. **fun.kiwi**: Defines the homed module `@fuseraft/fun`.
-2. **app.kiwi**: Imports and uses functionality defined in the homed module `@fuseraft/fun`.
+1. **fun.kiwi**: Defines the homed module `fuseraft/fun`.
+2. **app.kiwi**: Imports and uses functionality defined in the homed module `fuseraft/fun`.
 
 #### `./fun.kiwi`
 ```ruby
@@ -64,7 +64,7 @@ export "fun" # Exports the "fun" module to the calling script.
 
 #### `./app.kiwi`
 ```ruby
-import "@fuseraft/fun"
+import "fuseraft/fun"
 
 fun::method() # prints: Kiwi is fun!
 ```
@@ -88,7 +88,7 @@ export "fun" # Exports the "fun" module to the calling script.
 
 #### `./app.kiwi`
 ```ruby
-import "@fuseraft/fun" as Fun
+import "fuseraft/fun" as Fun
 
 Fun.method() # prints: Kiwi is fun!
 ```

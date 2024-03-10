@@ -63,12 +63,12 @@ import "@kiwi/time"
 - **Summary**: Retrieves the number of nanoseconds since January 1st, 1970.
 - **Returns**: Double representing nanoseconds since the epoch.
 
-### `ticksms(@_ticks)`
+### `ticksms(_ticks)`
 - **Summary**: Converts ticks to milliseconds.
 - **Returns**: Double representing milliseconds.
 
-### `delay(@_ms)`
+### `delay(_ms)`
 - **Parameters**:
-  - `@_ms`: The duration to sleep in milliseconds.
+  - `_ms`: The duration to sleep in milliseconds.
 - **Summary**: Pauses execution for a specified duration in milliseconds.
 - **Returns**: Double representing the duration paused.
