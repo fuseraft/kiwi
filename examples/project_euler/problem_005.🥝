@@ -4,24 +4,24 @@
 What is the smallest positive number that is evenly divisible (divisible with no remainder) by all of the numbers from 1 to 20?
 ##
 
-def gcd(@a, @b)
-  while @b != 0 do
-    @mod = @a % @b
-    @a = @b
-    @b = @mod
+def gcd(a, b)
+  while b != 0 do
+    mod = a % b
+    a = b
+    b = mod
   end
 
-  return @a
+  return a
 end
 
-def lcm(@a, @b)
-  return __abs__(@a * @b) / gcd(@a, @b)
+def lcm(a, b)
+  return __abs__(a * b) / gcd(a, b)
 end
 
-def smallest_multiple(@n)
-  @result = 1
-  for @i in [1 .. @n + 1] do
-    @result = lcm(@result, @i)
+def smallest_multiple(n)
+  result = 1
+  for i in [1 .. n + 1] do
+    result = lcm(result, i)
   end
 
   return result

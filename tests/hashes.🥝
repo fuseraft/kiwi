@@ -1,18 +1,18 @@
-@hash = {
+hash = {
   "key1": true, 
   "key2": 1, 
   "key3": ["a", "b", "c"]
 }
 
-@otherHash = {}
+otherHash = {}
 
-for @key in @hash.keys() do
-  @otherHash[@key] = @hash[@key]
+for key in hash.keys() do
+  otherHash[key] = hash[key]
 end
 
-println @otherHash
+println otherHash
 
-@keys = @otherHash.keys()
-println @keys
+keys = otherHash.keys()
+println keys
 
 println ""

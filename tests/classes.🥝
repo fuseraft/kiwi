@@ -7,8 +7,8 @@ abstract class MyAbstractClass
 end
 
 class MyClass < MyAbstractClass
-  def initialize(@name)
-    this.@name = @name
+  def initialize(name)
+    this.name = name
   end
 
   override def method_one()
@@ -16,7 +16,7 @@ class MyClass < MyAbstractClass
   end
 
   private def get_name()
-    return @name # `this.` is optional.
+    return name # `this.` is optional.
   end
 
   static def static_method()
@@ -27,21 +27,21 @@ class MyClass < MyAbstractClass
     println get_name() # `this.` is optional
   end
 
-  def print_name_and_msg(@msg)
+  def print_name_and_msg(msg)
     try
       print_name()
     catch
       println "An error occurred."
     end
-    println "Message: ${@msg}"
+    println "Message: ${msg}"
   end
 end
 
-@instance = MyClass.new("scott")
-@instance.method_one()
+instance = MyClass.new("scott")
+instance.method_one()
 
-# println @instance.get_name() # Throws InvalidOperationError: Cannot invoke private method outside of object context.
-@instance.print_name_and_msg("Hello!")
+# println instance.get_name() # Throws InvalidOperationError: Cannot invoke private method outside of object context.
+instance.print_name_and_msg("Hello!")
 
 MyClass.static_method()
 

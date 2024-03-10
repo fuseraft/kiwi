@@ -1,21 +1,21 @@
-def add(@n, @m)
-  println "invoked add(n = ${@n}, m = ${@m})"
+def add(n, m)
+  println "invoked add(n = ${n}, m = ${m})"
 
-  if @m < 0
+  if m < 0
     println "  m is negative"
   else
     println "  m is non-negative"
   end
   
-  @i = 0
+  i = 0
 
-  while @i <= @m do
-    @n += @m
-    println "  i = ${@i}, n = ${@n}"
-    @i += 1
+  while i <= m do
+    n += m
+    println "  i = ${i}, n = ${n}"
+    i += 1
   end
 
-  println "end n = ${@n}"
+  println "end n = ${n}"
 end
 
 add(1, 2)

@@ -799,16 +799,11 @@ class Lexer {
       lastChar = source[pos - 2];
     }
 
-    bool isVar = lastChar == '@';
     bool isCall = lastChar == '.';
 
     while (pos < source.length() &&
            (isalnum(source[pos]) || source[pos] == '_')) {
       identifier += getCurrentChar();
-    }
-
-    if (isVar) {
-      return parseIdentifier(identifier);
     }
 
     if (Keywords.is_keyword(identifier)) {

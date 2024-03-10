@@ -41,21 +41,21 @@ module time
   Returns: String
   ##
   def current_timestamp()
-    @year = __year__()
-    @month = __mon__()
-    @day = __mday__()
-    @hour = __hour__()
-    @minute = __min__()
-    @second = __sec__()
-    @ampm = __ampm__()
+    year = __year__()
+    month = __mon__()
+    day = __mday__()
+    hour = __hour__()
+    minute = __min__()
+    second = __sec__()
+    ampm = __ampm__()
 
-    if @hour > 12 @hour -= 12 end
-    if @minute < 10 @minute = "0${@minute}" end
-    if @day < 10 @day = "0${@day}" end
-    if @month < 10 @month = "0${@month}" end
-    if @second < 10 @second = "0${@second}" end
+    if hour > 12 hour -= 12 end
+    if minute < 10 minute = "0${minute}" end
+    if day < 10 day = "0${day}" end
+    if month < 10 month = "0${month}" end
+    if second < 10 second = "0${second}" end
 
-    return "${@year}/${@month}/${@day} ${@hour}:${@minute}:${@second} ${@ampm}"
+    return "${year}/${month}/${day} ${hour}:${minute}:${second} ${ampm}"
   end
 
   ##
@@ -126,18 +126,18 @@ module time
   Summary: Converts ticks to milliseconds.
   Returns: Double
   ##
-  def ticksms(@_ticks)
-    return __ticksms__(@_ticks)
+  def ticksms(_ticks)
+    return __ticksms__(_ticks)
   end
 
   ##
   Summary: Sleep for a specified duration in milliseconds.
   Params:
-    - @_ms: The duration in milliseconds.
+    - _ms: The duration in milliseconds.
   Returns: Double
   ##
-  def delay(@_ms)
-    return __delay__(@_ms)
+  def delay(_ms)
+    return __delay__(_ms)
   end
 end
 
