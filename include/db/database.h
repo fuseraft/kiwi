@@ -8,6 +8,7 @@
 #include <vector>
 #include <sql.h>
 #include <sqlext.h>
+#include "errors.h"
 #include "k_int.h"
 #include "typing/valuetype.h"
 
@@ -27,7 +28,8 @@ class OdbcEnvironment {
     if (SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &hEnv) == SQL_SUCCESS) {
       SQLSetEnvAttr(hEnv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER)SQL_OV_ODBC3, 0);
     } else {
-      throw std::runtime_error("Failed to allocate ODBC environment handle.");
+      Thrower<OdbcError> thrower;
+      thrower.throwError("Failed to allocate ODBC environment handle.");
     }
   }
 

@@ -214,6 +214,13 @@ class VariableUndefinedError : public KiwiError {
                   "Variable `" + name + "` is undefined.") {}
 };
 
+class ValueTypeError : public KiwiError {
+ public:
+  ValueTypeError(const Token& token, std::string expectedType)
+      : KiwiError(token, "ValueTypeError",
+                  "Value is not a `" + expectedType + "`.") {}
+};
+
 class EmptyStackError : public KiwiError {
  public:
   EmptyStackError(const Token& token)
@@ -234,6 +241,59 @@ class FileNotFoundError : public KiwiError {
                   "File not found: " + path) {}
   FileNotFoundError(const Token& token, std::string path)
       : KiwiError(token, "FileNotFoundError", "File not found: " + path) {}
+};
+
+class FileReadError : public KiwiError {
+ public:
+  FileReadError(std::string path)
+      : KiwiError(Token::createEmpty(), "FileReadError",
+                  "Cannot read file: " + path) {}
+  FileReadError(const Token& token, std::string path)
+      : KiwiError(token, "FileReadError", "Cannot read file: " + path) {}
+};
+
+class FileWriteError : public KiwiError {
+ public:
+  FileWriteError(std::string path)
+      : KiwiError(Token::createEmpty(), "FileWriteError",
+                  "Cannot write to file: " + path) {}
+  FileWriteError(const Token& token, std::string path)
+      : KiwiError(token, "FileWriteError", "Cannot write to file: " + path) {}
+};
+
+class FileSystemError : public KiwiError {
+ public:
+  FileSystemError(std::string message)
+      : KiwiError(Token::createEmpty(), "FileSystemError", message) {}
+  FileSystemError(const Token& token, std::string message)
+      : KiwiError(token, "FileSystemError", message) {}
+};
+
+class OdbcError : public KiwiError {
+ public:
+  OdbcError(std::string message)
+      : KiwiError(Token::createEmpty(), "OdbcError", message) {}
+  OdbcError(const Token& token, std::string message)
+      : KiwiError(token, "OdbcError", message) {}
+};
+
+template <typename T>
+class Thrower {
+ public:
+  template <typename... Args>
+  void throwError(const Token& token, Args&&... args) {
+    static_assert(std::is_base_of<KiwiError, T>::value,
+                  "T must be a subtype of `KiwiError`.");
+    throw T(token, std::forward<Args>(args)...);
+  }
+
+  template <typename... Args>
+  void throwError(Args&&... args) {
+    static_assert(std::is_base_of<KiwiError, T>::value,
+                  "T must be a subtype of `KiwiError`.");
+    Token emptyToken = Token::createEmpty();
+    throw T(emptyToken, std::forward<Args>(args)...);
+  }
 };
 
 #endif
