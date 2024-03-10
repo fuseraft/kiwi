@@ -23,12 +23,6 @@
 
 bool DEBUG = false;
 
-int main(int c, char** v) {
-  std::vector<std::string> args;
-
-  for (int i = 0; i < c; ++i) {
-    args.push_back(v[i]);
-  }
-
-  return kiwi(args);
+int main(int argc, char** argv) {
+  return Kiwi::run(argc, argv);
 }

@@ -44,7 +44,7 @@ class Token {
 
   std::string toString() {
     if (!std::holds_alternative<std::string>(value)) {
-      throw new std::runtime_error("Value type is not a `String`.");
+      return {};
     }
 
     return std::get<std::string>(value);
@@ -52,7 +52,7 @@ class Token {
 
   k_int toInteger() {
     if (!std::holds_alternative<k_int>(value)) {
-      throw new std::runtime_error("Value type is not an `Integer`.");
+      return {};
     }
 
     return std::get<k_int>(value);
@@ -60,7 +60,7 @@ class Token {
 
   bool toBoolean() {
     if (!std::holds_alternative<bool>(value)) {
-      throw new std::runtime_error("Value type is not a `Boolean`.");
+      return {};
     }
 
     return std::get<bool>(value);
@@ -68,7 +68,7 @@ class Token {
 
   double toDouble() {
     if (!std::holds_alternative<double>(value)) {
-      throw new std::runtime_error("Value type is not a `Double`.");
+      return {};
     }
 
     return std::get<double>(value);
