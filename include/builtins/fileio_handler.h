@@ -5,7 +5,7 @@
 #include "math/functions.h"
 #include "parsing/builtins.h"
 #include "parsing/tokens.h"
-#include "system/fileio.h"
+#include "util/file.h"
 #include "typing/valuetype.h"
 
 class FileIOBuiltinHandler {
@@ -77,7 +77,7 @@ class FileIOBuiltinHandler {
 
     auto fileName = get_string(token, args.at(0));
     auto value = args.at(1);
-    return FileIO::writeToFile(fileName, value, true, false);
+    return File::writeToFile(fileName, value, true, false);
   }
 
   static bool executeCopyFile(const Token& token,
@@ -88,7 +88,7 @@ class FileIOBuiltinHandler {
 
     auto sourcePath = get_string(token, args.at(0));
     auto destinationPath = get_string(token, args.at(1));
-    return FileIO::copyFile(sourcePath, destinationPath);
+    return File::copyFile(sourcePath, destinationPath);
   }
 
   static bool executeCopyR(const Token& token, const std::vector<Value>& args) {
@@ -98,7 +98,7 @@ class FileIOBuiltinHandler {
 
     auto sourcePath = get_string(token, args.at(0));
     auto destinationPath = get_string(token, args.at(1));
-    return FileIO::copyR(sourcePath, destinationPath);
+    return File::copyR(sourcePath, destinationPath);
   }
 
   static bool executeCreateFile(const Token& token,
@@ -108,7 +108,7 @@ class FileIOBuiltinHandler {
     }
 
     auto fileName = get_string(token, args.at(0));
-    return FileIO::createFile(fileName);
+    return File::createFile(fileName);
   }
 
   static std::shared_ptr<List> executeListDirectory(
@@ -120,7 +120,7 @@ class FileIOBuiltinHandler {
     auto path = get_string(token, args.at(0));
     auto list = std::make_shared<List>();
 
-    for (const auto& entry : FileIO::listDirectory(path)) {
+    for (const auto& entry : File::listDirectory(path)) {
       list->elements.push_back(entry);
     }
 
@@ -134,7 +134,7 @@ class FileIOBuiltinHandler {
     }
 
     auto path = get_string(token, args.at(0));
-    return FileIO::makeDirectory(path);
+    return File::makeDirectory(path);
   }
 
   static bool executeMakeDirectoryP(const Token& token,
@@ -145,7 +145,7 @@ class FileIOBuiltinHandler {
     }
 
     auto path = get_string(token, args.at(0));
-    return FileIO::makeDirectoryP(path);
+    return File::makeDirectoryP(path);
   }
 
   static bool executeRemovePath(const Token& token,
@@ -156,7 +156,7 @@ class FileIOBuiltinHandler {
     }
 
     auto path = get_string(token, args.at(0));
-    return FileIO::removePath(path);
+    return File::removePath(path);
   }
 
   static int executeRemovePathF(const Token& token,
@@ -167,7 +167,7 @@ class FileIOBuiltinHandler {
     }
 
     auto path = get_string(token, args.at(0));
-    return FileIO::removePathF(path);
+    return File::removePathF(path);
   }
 
   static std::string executeGetTempDirectory(const Token& token,
@@ -176,7 +176,7 @@ class FileIOBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.TempDir);
     }
 
-    return FileIO::getTempDirectory();
+    return File::getTempDirectory();
   }
 
   static double executeGetFileSize(const Token& token,
@@ -186,7 +186,7 @@ class FileIOBuiltinHandler {
     }
 
     auto fileName = get_string(token, args.at(0));
-    return FileIO::getFileSize(fileName);
+    return File::getFileSize(fileName);
   }
 
   static bool executeFileExists(const Token& token,
@@ -196,7 +196,7 @@ class FileIOBuiltinHandler {
     }
 
     auto fileName = get_string(token, args.at(0));
-    return FileIO::fileExists(fileName);
+    return File::fileExists(fileName);
   }
 
   static bool executeIsDirectory(const Token& token,
@@ -206,7 +206,7 @@ class FileIOBuiltinHandler {
     }
 
     auto path = get_string(token, args.at(0));
-    return FileIO::directoryExists(path);
+    return File::directoryExists(path);
   }
 
   static std::string executeGetFileAbsolutePath(
@@ -217,7 +217,7 @@ class FileIOBuiltinHandler {
     }
 
     auto fileName = get_string(token, args.at(0));
-    return FileIO::getAbsolutePath(fileName);
+    return File::getAbsolutePath(fileName);
   }
 
   static std::string executeGetFileExtension(const Token& token,
@@ -228,7 +228,7 @@ class FileIOBuiltinHandler {
     }
 
     std::string fileName = get_string(token, args.at(0));
-    return FileIO::getFileExtension(fileName);
+    return File::getFileExtension(fileName);
   }
 
   static std::string executeGetFileName(const Token& token,
@@ -238,7 +238,7 @@ class FileIOBuiltinHandler {
     }
 
     auto fileName = get_string(token, args.at(0));
-    return FileIO::getFileName(fileName);
+    return File::getFileName(fileName);
   }
 
   static std::string executeGetCurrentDirectory(
@@ -248,7 +248,7 @@ class FileIOBuiltinHandler {
                                            FileIOBuiltIns.GetCurrentDirectory);
     }
 
-    return FileIO::getCurrentDirectory();
+    return File::getCurrentDirectory();
   }
 
   static bool executeChangeDirectory(const Token& token,
@@ -259,7 +259,7 @@ class FileIOBuiltinHandler {
     }
 
     auto path = get_string(token, args.at(0));
-    return FileIO::setCurrentDirectory(path);
+    return File::setCurrentDirectory(path);
   }
 
   static std::string executeGetFilePath(const Token& token,
@@ -269,7 +269,7 @@ class FileIOBuiltinHandler {
     }
 
     auto fileName = get_string(token, args.at(0));
-    return FileIO::getParentPath(fileName);
+    return File::getParentPath(fileName);
   }
 
   static std::shared_ptr<List> executeGlob(const Token& token,
@@ -279,7 +279,7 @@ class FileIOBuiltinHandler {
     }
 
     auto glob = get_string(token, args.at(0));
-    auto matchedFiles = FileIO::expandGlob(glob);
+    auto matchedFiles = File::expandGlob(glob);
     auto matchList = std::make_shared<List>();
 
     for (const auto& file : matchedFiles) {
@@ -297,7 +297,7 @@ class FileIOBuiltinHandler {
 
     auto sourcePath = get_string(token, args.at(0));
     auto destinationPath = get_string(token, args.at(1));
-    return FileIO::moveFile(sourcePath, destinationPath);
+    return File::movePath(sourcePath, destinationPath);
   }
 
   static std::string executeReadFile(const Token& token,
@@ -307,7 +307,7 @@ class FileIOBuiltinHandler {
     }
 
     auto fileName = get_string(token, args.at(0));
-    return FileIO::readFile(fileName);
+    return File::readFile(fileName);
   }
 
   static std::shared_ptr<List> executeReadLines(
@@ -317,7 +317,12 @@ class FileIOBuiltinHandler {
     }
 
     auto fileName = get_string(token, args.at(0));
-    return FileIO::readLines(fileName);
+    auto list = std::make_shared<List>();
+    for (const auto& line : File::readLines(fileName)) {
+      list->elements.push_back(line);
+    }
+
+    return list;
   }
 
   static bool executeWriteLine(const Token& token,
@@ -328,7 +333,7 @@ class FileIOBuiltinHandler {
 
     auto fileName = get_string(token, args.at(0));
     auto value = args.at(1);
-    return FileIO::writeToFile(fileName, value, true, true);
+    return File::writeToFile(fileName, value, true, true);
   }
 
   static bool executeWriteText(const Token& token,
@@ -339,7 +344,7 @@ class FileIOBuiltinHandler {
 
     auto fileName = get_string(token, args.at(0));
     auto value = args.at(1);
-    return FileIO::writeToFile(fileName, value, false, false);
+    return File::writeToFile(fileName, value, false, false);
   }
 };
 
