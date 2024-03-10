@@ -3,8 +3,8 @@
 Use the `def` keyword to define a method. Method parameters support default values.
 
 ```ruby
-def greet(@name = "Kiwi")
-  println "Hello, ${@name}!"
+def greet(name = "Kiwi")
+  println "Hello, ${name}!"
 end
 
 greet("world") # prints: Hello, world!
@@ -16,38 +16,38 @@ greet()        # prints: Hello, Kiwi!
 Use the `return` keyword to return a value from a method, or to exit a method early.
 
 ```ruby
-def get_greeting(@name)
-  return "Hello, ${@name}"
+def get_greeting(name)
+  return "Hello, ${name}"
 end
 
-@greeting = get_greeting("World!")
+greeting = get_greeting("World!")
 
-println @greeting
+println greeting
 ```
 
 ### Optional Parameters
 
 ```ruby
-def say(@msg = "Hello, World!")
-  println @msg
+def say(msg = "Hello, World!")
+  println msg
 end
 
 say()       # prints: Hello, World!
 say("Hey!") # prints: Hey!
 
-def configure(@data, @config = {})
-  for @key in @config.keys() do
-    @data[@key] = @config[@key]
+def configure(data, config = {})
+  for key in config.keys() do
+    data[key] = config[key]
   end
 
-  return @data
+  return data
 end
 
-@data = configure({ "name": "Scott" })
-println @data # prints: {"name": "Scott"}
+data = configure({ "name": "Scott" })
+println data # prints: {"name": "Scott"}
 
-@data = configure({ "name": "Scott" }, { "favorite_os": "Fedora" })
-println @data # prints: {"name": "Scott", "favorite_os": "Fedora"}
+data = configure({ "name": "Scott" }, { "favorite_os": "Fedora" })
+println data # prints: {"name": "Scott", "favorite_os": "Fedora"}
 ```
 
 ### Scope
@@ -55,18 +55,18 @@ println @data # prints: {"name": "Scott", "favorite_os": "Fedora"}
 You can access all global variables from within a method.
 
 ```ruby
-@counter = 0
+counter = 0
 
 def uptick()
-  @counter += 1
+  counter += 1
 end
 
-@i = 1
-while @i <= 5 do
+i = 1
+while i <= 5 do
   uptick()
-  @i += 1
+  i += 1
 end
 
 # 5
-println @counter
+println counter
 ```

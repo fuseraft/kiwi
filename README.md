@@ -69,21 +69,21 @@ make test
 #### Example: FizzBuzz
 
 ```ruby
-def fizzbuzz(@n)
-  @i = 1
+def fizzbuzz(n)
+  i = 1
 
-  while @i <= @n do    
-    if @i % 15 == 0
+  while i <= n do    
+    if i % 15 == 0
       println "FizzBuzz"
-    elsif @i % 3 == 0
+    elsif i % 3 == 0
       println "Fizz"
-    elsif @i % 5 == 0
+    elsif i % 5 == 0
       println "Buzz"
     else
-      println "${@i}"
+      println "${i}"
     end
 
-    @i += 1
+    i += 1
   end
 end
 
@@ -93,45 +93,45 @@ fizzbuzz(15)
 #### Example: Sieve of Eratosthenes
 
 ```ruby
-def sieve_of_eratosthenes(@limit)
-  @isPrime = []
-  for @i in [0..@limit] do
-     @isPrime << true
+def sieve_of_eratosthenes(limit)
+  isPrime = []
+  for i in [0..limit] do
+     isPrime << true
   end
 
-  @isPrime[0] = false
-  @isPrime[1] = false
+  isPrime[0] = false
+  isPrime[1] = false
 
-  @p = 2
+  p = 2
 
-  while @p * @p <= @limit do
-    # If @p is not changed, then it is a prime
-    if @isPrime[@p]
-      # Update all multiples of @p
-      @multiple = @p * 2
+  while p * p <= limit do
+    # If p is not changed, then it is a prime
+    if isPrime[p]
+      # Update all multiples of p
+      multiple = p * 2
       
-      while @multiple <= @limit do
-        @isPrime[@multiple] = false
-        @multiple += @p
+      while multiple <= limit do
+        isPrime[multiple] = false
+        multiple += p
       end
     end
 
-    @p += 1
+    p += 1
   end
 
   # Collect all prime numbers
-  @primes = []
-  for @i in [0..@limit] do
-    if @isPrime[@i]
-      @primes << @i
+  primes = []
+  for i in [0..limit] do
+    if isPrime[i]
+      primes << i
     end
   end
 
-  return @primes
+  return primes
 end
 
-for @prime, @index in sieve_of_eratosthenes(30) do
-  println "${@index}:\t${@prime}"
+for prime, index in sieve_of_eratosthenes(30) do
+  println "${index}:\t${prime}"
 end
 ```
 

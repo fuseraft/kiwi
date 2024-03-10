@@ -18,10 +18,10 @@ Kiwi supports working with the following types:
 An integer.
 
 ```ruby
-@number = 5
-@number += 5
+number = 5
+number += 5
 
-println @number # prints: 10
+println number # prints: 10
 ```
 
 ### Double
@@ -29,10 +29,10 @@ println @number # prints: 10
 A floating point number.
 
 ```ruby
-@pi = 3.14159
-@tau = @pi * 2
+pi = 3.14159
+tau = pi * 2
 
-println @tau # prints: 6.28318
+println tau # prints: 6.28318
 ```
 
 ### Boolean
@@ -40,9 +40,9 @@ println @tau # prints: 6.28318
 A `true` or `false` value.
 
 ```ruby
-@enabled = true
+enabled = true
 
-println @enabled # prints: true
+println enabled # prints: true
 ```
 
 ### String
@@ -50,9 +50,9 @@ println @enabled # prints: true
 A sequence of characters.
 
 ```ruby
-@string = "Hello, World!"
+string = "Hello, World!"
 
-println @string # prints: Hello, World!
+println string # prints: Hello, World!
 ```
 
 ### List
@@ -60,8 +60,8 @@ println @string # prints: Hello, World!
 A list of values.
 
 ```ruby
-@list = [1, 2, 3, 4, 5]
-println @list # prints: [1, 2, 3, 4, 5]
+list = [1, 2, 3, 4, 5]
+println list # prints: [1, 2, 3, 4, 5]
 ```
 
 ### Hash
@@ -69,9 +69,9 @@ println @list # prints: [1, 2, 3, 4, 5]
 A dictionary of key-value pairs.
 
 ```ruby
-@hash = { "language": "kiwi" }
+hash = { "language": "kiwi" }
 
-println @hash  # prints: {"language": "kiwi"}
+println hash  # prints: {"language": "kiwi"}
 ```
 
 ### Object
@@ -84,9 +84,9 @@ class MyClass
   end
 end
 
-@inst = MyClass.new()
-println @inst
-# prints: [Object(class=MyClass, identifier=@inst)]
+inst = MyClass.new()
+println inst
+# prints: [Object(class=MyClass, identifier=inst)]
 ```
 
 ### Lambda
@@ -94,8 +94,8 @@ println @inst
 An anonymous function. Lambdas can be assigned identifiers for code reuse.
 
 ```ruby
-puts = lambda(@s) do
-  println @s
+puts = lambda(s) do
+  println s
 end
 
 puts("Hello, World!") # prints: Hello, World!

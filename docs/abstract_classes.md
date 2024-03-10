@@ -21,16 +21,16 @@ Use the `override` keyword to override the abstract method with an implementatio
 
 ```ruby
 class Circle < Shape
-  def initialize(@radius)
-    this.@radius = @radius
+  def initialize(radius)
+    this.radius = radius
   end
 
   override def area()
-    return 3.14159 * @radius * @radius
+    return 3.14159 * radius * radius
   end
 
   override def perimeter()
-    return 2 * 3.14159 * @radius
+    return 2 * 3.14159 * radius
   end
 end
 ```
@@ -41,12 +41,12 @@ Abstract classes cannot be instantiated directly. An attempt to create an instan
 
 ```ruby
 # This will result in an error:
-# @shape = Shape.new()
+# shape = Shape.new()
 
 # Correct way to instantiate:
-@circle = Circle.new(5)
-println @circle.area()  # Output: Area of the circle.
-println @circle.perimeter()  # Output: Perimeter of the circle.
+circle = Circle.new(5)
+println circle.area()  # Output: Area of the circle.
+println circle.perimeter()  # Output: Perimeter of the circle.
 ```
 
 ## Notes

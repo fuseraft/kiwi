@@ -5,7 +5,7 @@ Kiwi offers the following constructs to work with console I/O:
 - `print`: Print text to the console.
 - `println`: Print a line of text to the console.
 
-For file I/O, please see [@kiwi/fileio](kiwilib/fileio.md).
+For file I/O, please see [kiwi/fileio](kiwilib/fileio.md).
 
 ### `input()`
 
@@ -13,10 +13,10 @@ To read input from the console, use the `input()` builtin.
 
 ```ruby
 print "Enter your favorite fruit: "
-@fruit = input()
-# @fruit contains "kiwi"
+fruit = input()
+# fruit contains "kiwi"
 
-println "Your favorite fruit is ${@fruit}"
+println "Your favorite fruit is ${fruit}"
 # prints: Your favorite fruit is kiwi
 ```
 

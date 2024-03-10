@@ -16,10 +16,10 @@ import "@kiwi/argv"
 - **Summary**: Get the list of command-line arguments.
 - **Returns**: List of command-line arguments.
 
-### `xarg(@_xarg_key)`
+### `xarg(_xarg_key)`
 - **Summary**: Get an XArg value by name.
 - **Parameters**:
-  - `@_xarg_key`: The XArg key.
+  - `_xarg_key`: The XArg key.
 - **Returns**: String containing the XArg value.
 
 ## XArgs
