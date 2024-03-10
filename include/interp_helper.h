@@ -14,28 +14,35 @@
 #include "stackframe.h"
 
 struct InterpHelper {
-  static bool isSliceAssignmentExpression(std::shared_ptr<TokenStream> stream) {
+  static bool isSliceAssignmentExpression(
+      const std::shared_ptr<TokenStream>& stream) {
     size_t pos = stream->position;
     bool isSliceAssignment = false;
-    auto token = stream->tokens.at(pos);
-    while (pos < stream->tokens.size()) {
+
+    const auto& tokens = stream->tokens;
+
+    auto token = tokens.at(pos);
+    while (pos < tokens.size()) {
       if (token.getType() == TokenType::COLON ||
           token.getType() == TokenType::OPERATOR) {
         isSliceAssignment = true;
         break;
       }
-      token = stream->tokens.at(++pos);
+      token = tokens.at(++pos);
     }
     return isSliceAssignment;
   }
 
-  static bool isListExpression(std::shared_ptr<TokenStream> stream) {
+  static bool isListExpression(const std::shared_ptr<TokenStream>& stream) {
     size_t position = stream->position + 1;  // Skip the "["
     int bracketCount = 1;
 
-    while (position < stream->tokens.size() && bracketCount > 0) {
-      Token token = stream->tokens.at(position);
-      TokenType type = token.getType();
+    const auto& tokens = stream->tokens;
+    const size_t tokensSize = tokens.size();
+
+    while (position < tokensSize && bracketCount > 0) {
+      const Token& token = tokens.at(position);
+      const TokenType type = token.getType();
 
       if (type == TokenType::OPEN_BRACKET) {
         ++bracketCount;
@@ -43,12 +50,12 @@ struct InterpHelper {
         --bracketCount;
       } else if (type == TokenType::OPEN_BRACE) {
         int braceCount = 1;
-        ++position;  // Skip "["
-        while (position < stream->tokens.size() && braceCount > 0) {
-          token = stream->tokens.at(position);
-          if (token.getType() == TokenType::OPEN_BRACE) {
+        ++position;  // Skip the current brace
+        while (position < tokensSize && braceCount > 0) {
+          const Token& innerToken = tokens.at(position);
+          if (innerToken.getType() == TokenType::OPEN_BRACE) {
             ++braceCount;
-          } else if (token.getType() == TokenType::CLOSE_BRACE) {
+          } else if (innerToken.getType() == TokenType::CLOSE_BRACE) {
             --braceCount;
           }
           ++position;
@@ -64,30 +71,31 @@ struct InterpHelper {
     return bracketCount == 0;
   }
 
-  static bool isRangeExpression(std::shared_ptr<TokenStream> stream) {
+  static bool isRangeExpression(const std::shared_ptr<TokenStream>& stream) {
     size_t pos = stream->position + 1;  // Skip the "["
-    size_t size = stream->tokens.size();
+    const auto& tokens = stream->tokens;
+    size_t size = tokens.size();
     bool isRange = false;
-    auto token = stream->tokens.at(pos);
     int counter = 1;
-    while (pos < size && counter > 0) {
-      if (token.getType() == TokenType::OPEN_BRACKET) {
-        ++counter;
-      } else if (token.getType() == TokenType::CLOSE_BRACKET) {
-        --counter;
 
+    while (pos < size && counter > 0) {
+      const TokenType type = tokens.at(pos++).getType();
+
+      if (type == TokenType::OPEN_BRACKET) {
+        ++counter;
+      } else if (type == TokenType::CLOSE_BRACKET) {
+        --counter;
         if (counter == 0) {
           break;
         }
       }
 
-      if (token.getType() == TokenType::RANGE) {
+      if (type == TokenType::RANGE) {
         isRange = true;
         break;
       }
-
-      token = stream->tokens.at(++pos);
     }
+
     return isRange;
   }
 
@@ -127,12 +135,16 @@ struct InterpHelper {
   }
 
   static void collectBodyTokens(std::vector<Token>& tokens,
-                                std::shared_ptr<TokenStream> stream) {
+                                std::shared_ptr<TokenStream>& stream) {
     int counter = 1;
+
     while (stream->canRead() && counter != 0) {
-      if (Keywords.is_block_keyword(stream->current().getSubType())) {
+      const Token& currentToken = stream->current();
+      const SubTokenType subType = currentToken.getSubType();
+
+      if (Keywords.is_block_keyword(subType)) {
         ++counter;
-      } else if (stream->current().getSubType() == SubTokenType::KW_End) {
+      } else if (subType == SubTokenType::KW_End) {
         --counter;
 
         // Stop here.
@@ -142,7 +154,7 @@ struct InterpHelper {
         }
       }
 
-      tokens.push_back(stream->current());
+      tokens.push_back(currentToken);
       stream->next();
     }
   }
