@@ -1808,10 +1808,6 @@ class Interpreter {
                                 std::shared_ptr<CallStackFrame> frame) {
     bool isAbstract =
         stream->current().getSubType() == SubTokenType::KW_Abstract;
-    std::string moduleName;
-    if (!moduleStack.empty()) {
-      moduleName = moduleStack.top();
-    }
 
     while (stream->canRead() &&
            stream->current().getSubType() != SubTokenType::KW_Class) {
