@@ -13,8 +13,9 @@ println "Searching for Kiwi scripts..."
 silent(true)
 
 for file in fileio::glob(search_pattern) do
-  # Check if file is not in the exclusions list
   exclude = false
+
+  # Check if file is not in the exclusions list
   for exclude_pattern in exclusions do
     if file.contains(exclude_pattern)
       exclude = true
@@ -30,10 +31,8 @@ for file in fileio::glob(search_pattern) do
     import file
     end_time = time::ticks()
         
-    duration = time::ticksms(end_time - start_time)
-
     # Store runtime information
-    runtimes << {"file": file, "duration": duration}
+    runtimes << {"file": file, "duration": time::ticksms(end_time - start_time)}
   end
 end
 
@@ -41,11 +40,11 @@ silent(false)
 
 # Summarize and print runtimes
 total_duration = 0
+
 for runtime in runtimes do
-  file = runtime["file"]
-  duration = runtime["duration"]
-  println "${file} ran for ${duration} ms."
-  total_duration += duration
+  println "${runtime["file"]} ran for ${runtime["duration"]} ms."
+
+  total_duration += runtime["duration"]
 end
 
 println "
