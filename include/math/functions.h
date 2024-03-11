@@ -10,41 +10,41 @@
 #include "typing/valuetype.h"
 #include "rng.h"
 
-static std::string get_string(const Token& tokenTerm, const Value& arg) {
+static std::string get_string(const Token& term, const Value& arg) {
   if (!std::holds_alternative<std::string>(arg)) {
-    throw ConversionError(tokenTerm, "Expected a String value.");
+    throw ConversionError(term, "Expected a String value.");
   }
   return std::get<std::string>(arg);
 }
 
-static k_int get_integer(const Token& tokenTerm, const Value& arg) {
+static k_int get_integer(const Token& term, const Value& arg) {
   if (std::holds_alternative<double>(arg)) {
     return static_cast<k_int>(std::get<double>(arg));
   }
   if (!std::holds_alternative<k_int>(arg)) {
-    throw ConversionError(tokenTerm, "Expected an Integer value.");
+    throw ConversionError(term, "Expected an Integer value.");
   }
   return std::get<k_int>(arg);
 }
 
-static double get_integer_or_double(const Token& tokenTerm, const Value& arg) {
+static double get_integer_or_double(const Token& term, const Value& arg) {
   if (std::holds_alternative<k_int>(arg)) {
     return std::get<k_int>(arg);
   } else if (std::holds_alternative<double>(arg)) {
     return std::get<double>(arg);
   }
 
-  throw ConversionError(tokenTerm, "Expected an Integer or Double value.");
+  throw ConversionError(term, "Expected an Integer or Double value.");
 }
 
 struct {
-  bool is_zero(const Token& tokenTerm, Value v) {
+  bool is_zero(const Token& term, Value v) {
     if (std::holds_alternative<double>(v)) {
       return std::get<double>(v) == 0.0;
     } else if (std::holds_alternative<k_int>(v)) {
       return std::get<k_int>(v) == 0;
     } else {
-      throw ConversionError(tokenTerm,
+      throw ConversionError(term,
                             "Cannot check non-numeric value for zero value.");
     }
 

@@ -395,10 +395,12 @@ struct {
 
 struct {
   const std::string Input = "input";
+  const std::string Silent = "silent";
 
-  std::unordered_set<std::string> builtins = {Input};
+  std::unordered_set<std::string> builtins = {Input, Silent};
   std::unordered_set<SubTokenType> st_builtins = {
-      SubTokenType::Builtin_Console_Input};
+      SubTokenType::Builtin_Console_Input,
+      SubTokenType::Builtin_Console_Silent};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
