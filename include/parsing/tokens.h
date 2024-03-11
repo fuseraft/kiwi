@@ -11,36 +11,36 @@
 
 class Token {
  public:
-  static Token create(TokenType t, SubTokenType st, const std::string& file,
+  static Token create(TokenType t, SubTokenType st, const int& fileId,
                       const std::string& text, const Value& v,
                       const int& lineNumber, const int& linePosition) {
-    Token token(t, st, file, text, v, lineNumber, linePosition);
+    Token token(t, st, fileId, text, v, lineNumber, linePosition);
     return token;
   }
 
-  static Token create(TokenType t, SubTokenType st, const std::string& file,
+  static Token create(TokenType t, SubTokenType st, const int& fileId,
                       const std::string& text, const int& lineNumber,
                       const int& linePosition) {
-    return create(t, st, file, text, text, lineNumber, linePosition);
+    return create(t, st, fileId, text, text, lineNumber, linePosition);
   }
 
-  static Token createBoolean(const std::string& file, const std::string& text,
+  static Token createBoolean(const int& fileId, const std::string& text,
                              const int& lineNumber, const int& linePosition) {
     bool value = text == Keywords.True;
     auto st = value ? SubTokenType::KW_True : SubTokenType::KW_False;
-    return create(TokenType::LITERAL, st, file, text, value, lineNumber,
+    return create(TokenType::LITERAL, st, fileId, text, value, lineNumber,
                   linePosition);
   }
 
   static Token createEmpty() {
-    return create(TokenType::ENDOFFILE, SubTokenType::Default, "", "", 0, 0);
+    return create(TokenType::ENDOFFILE, SubTokenType::Default, 0, "", 0, 0);
   }
 
   static Token createStreamEnd() {
-    return create(TokenType::STREAM_END, SubTokenType::Default, "", "", 0, 0);
+    return create(TokenType::STREAM_END, SubTokenType::Default, 0, "", 0, 0);
   }
 
-  std::string getFile() const { return file; }
+  int getFile() const { return fileId; }
 
   std::string getText() const { return text; }
 
@@ -57,17 +57,15 @@ class Token {
  private:
   TokenType type;
   SubTokenType subType;
-  std::string file;
+  int fileId;
   std::string text;
   Value value;
-  ValueType valueType;
   int _lineNumber;
   int _linePosition;
 
-  Token(TokenType t, SubTokenType st, std::string file, std::string text,
+  Token(TokenType t, SubTokenType st, int fileId, std::string text,
         const Value& v, const int& lineNumber, const int& linePosition)
-      : type(t), subType(st), file(file), text(text), value(v) {
-    valueType = Serializer::get_value_type(v);
+      : type(t), subType(st), fileId(fileId), text(text), value(v) {
     _lineNumber = lineNumber;
     _linePosition = linePosition;
   }

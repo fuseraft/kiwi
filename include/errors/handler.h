@@ -4,6 +4,7 @@
 #include <vector>
 #include "error.h"
 #include "parsing/tokens.h"
+#include "system/fileregistry.h"
 
 class ErrorHandler {
  public:
@@ -16,22 +17,12 @@ class ErrorHandler {
       std::cerr << e.getMessage() << std::endl;
     }
 
-    return 1;
-  }
-
-  static int handleError(
-      const KiwiError& e,
-      const std::unordered_map<std::string, std::vector<std::string>>& files) {
-    handleError(e);
-
-    const Token& token = e.getToken();
     int lineNumber = token.getLineNumber();
     int linePosition = token.getLinePosition();
-    std::string file = token.getFile();
     std::string line;
-    std::vector<std::string> lines;
-    if (files.find(file) != files.end()) {
-      lines = files.at(file);
+    auto file = FileRegistry::getInstance().getFilePath(token.getFile());
+    auto lines = FileRegistry::getInstance().getFileLines(token.getFile());
+    if (!file.empty() && !lines.empty()) {
       if (lineNumber < static_cast<int>(lines.size())) {
         line = lines.at(lineNumber);
       }
