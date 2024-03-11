@@ -8,8 +8,8 @@
 class Module {
  public:
   void addToken(const Token& t) { code.push_back(t); }
-  void setName(std::string name) { _name = name; }
-  void setHome(std::string home) {
+  void setName(const std::string& name) { _name = name; }
+  void setHome(const std::string& home) {
     _home = home;
     _hasHome = true;
   }
