@@ -11,16 +11,17 @@
 
 class Token {
  public:
-  static Token create(TokenType t, SubTokenType st, const int& fileId,
-                      const std::string& text, const Value& v,
-                      const int& lineNumber, const int& linePosition) {
+  static Token create(const TokenType& t, const SubTokenType& st,
+                      const int& fileId, const std::string& text,
+                      const Value& v, const int& lineNumber,
+                      const int& linePosition) {
     Token token(t, st, fileId, text, v, lineNumber, linePosition);
     return token;
   }
 
-  static Token create(TokenType t, SubTokenType st, const int& fileId,
-                      const std::string& text, const int& lineNumber,
-                      const int& linePosition) {
+  static Token create(const TokenType& t, const SubTokenType& st,
+                      const int& fileId, const std::string& text,
+                      const int& lineNumber, const int& linePosition) {
     return create(t, st, fileId, text, text, lineNumber, linePosition);
   }
 
@@ -40,9 +41,9 @@ class Token {
     return create(TokenType::STREAM_END, SubTokenType::Default, 0, "", 0, 0);
   }
 
-  int getFile() const { return fileId; }
+  const int& getFile() const { return fileId; }
 
-  std::string getText() const { return text; }
+  const std::string& getText() const { return text; }
 
   const int& getLineNumber() const { return _lineNumber; }
 
@@ -63,8 +64,9 @@ class Token {
   int _lineNumber;
   int _linePosition;
 
-  Token(TokenType t, SubTokenType st, int fileId, std::string text,
-        const Value& v, const int& lineNumber, const int& linePosition)
+  Token(const TokenType& t, const SubTokenType& st, const int& fileId,
+        const std::string& text, const Value& v, const int& lineNumber,
+        const int& linePosition)
       : type(t), subType(st), fileId(fileId), text(text), value(v) {
     _lineNumber = lineNumber;
     _linePosition = linePosition;
