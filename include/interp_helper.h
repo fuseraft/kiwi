@@ -265,8 +265,9 @@ struct InterpHelper {
   }
 
   static Value interpretAssignOp(std::shared_ptr<TokenStream> stream,
-                                 const SubTokenType& op, Value& currentValue,
-                                 Value& value) {
+                                 const SubTokenType& op,
+                                 const Value& currentValue,
+                                 const Value& value) {
     if (op == SubTokenType::Ops_AddAssign) {
       return std::visit(AddVisitor(stream->current()), currentValue, value);
     } else if (op == SubTokenType::Ops_SubtractAssign) {

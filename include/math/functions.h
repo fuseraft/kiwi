@@ -52,7 +52,7 @@ struct {
     return false;
   }
 
-  Value do_addition(const Token& token, Value left, Value right) {
+  Value do_addition(const Token& token, const Value& left, const Value& right) {
     Value result;
 
     if (std::holds_alternative<k_int>(left) &&
@@ -95,7 +95,8 @@ struct {
     return result;
   }
 
-  Value do_subtraction(const Token& token, Value left, Value right) {
+  Value do_subtraction(const Token& token, const Value& left,
+                       const Value& right) {
     Value result;
 
     if (std::holds_alternative<k_int>(left) &&
@@ -132,7 +133,8 @@ struct {
     return result;
   }
 
-  Value do_exponentiation(const Token& token, Value left, Value right) {
+  Value do_exponentiation(const Token& token, const Value& left,
+                          const Value& right) {
     Value result;
 
     if (std::holds_alternative<k_int>(left) &&
@@ -157,7 +159,7 @@ struct {
     return result;
   }
 
-  Value do_modulus(const Token& token, Value left, Value right) {
+  Value do_modulus(const Token& token, const Value& left, const Value& right) {
     Value result;
 
     if (std::holds_alternative<k_int>(left) &&
@@ -195,7 +197,7 @@ struct {
     return result;
   }
 
-  Value do_division(const Token& token, Value left, Value right) {
+  Value do_division(const Token& token, const Value& left, const Value& right) {
     Value result;
 
     if (std::holds_alternative<k_int>(left) &&
@@ -233,7 +235,8 @@ struct {
     return result;
   }
 
-  Value do_multiplication(const Token& token, Value left, Value right) {
+  Value do_multiplication(const Token& token, const Value& left,
+                          const Value& right) {
     Value result;
 
     if (std::holds_alternative<k_int>(left) &&
@@ -263,8 +266,8 @@ struct {
     return result;
   }
 
-  void do_list_multiplication(Value& left, Value& right, const Token& token,
-                              Value& result) {
+  void do_list_multiplication(const Value& left, const Value& right,
+                              const Token& token, Value& result) {
     auto list = std::get<std::shared_ptr<List>>(left);
     int multiplier = std::get<k_int>(right);
 
@@ -288,8 +291,8 @@ struct {
     result = newList;
   }
 
-  void do_string_multiplication(Value& left, Value& right, const Token& token,
-                                Value& result) {
+  void do_string_multiplication(const Value& left, const Value& right,
+                                const Token& token, Value& result) {
     auto string = std::get<std::string>(left);
     int multiplier = std::get<k_int>(right);
 
@@ -331,7 +334,8 @@ struct {
     return gt_value(left, right) || same_value(left, right);
   }
 
-  Value do_bitwise_and(const Token& token, Value left, Value right) {
+  Value do_bitwise_and(const Token& token, const Value& left,
+                       const Value& right) {
     Value result;
 
     if (std::holds_alternative<k_int>(left) &&
@@ -344,7 +348,8 @@ struct {
     return result;
   }
 
-  Value do_bitwise_or(const Token& token, Value left, Value right) {
+  Value do_bitwise_or(const Token& token, const Value& left,
+                      const Value& right) {
     Value result;
 
     if (std::holds_alternative<k_int>(left) &&
@@ -357,7 +362,8 @@ struct {
     return result;
   }
 
-  Value do_bitwise_xor(const Token& token, Value left, Value right) {
+  Value do_bitwise_xor(const Token& token, const Value& left,
+                       const Value& right) {
     Value result;
 
     if (std::holds_alternative<k_int>(left) &&
@@ -382,7 +388,8 @@ struct {
     return result;
   }
 
-  Value do_bitwise_lshift(const Token& token, Value left, Value right) {
+  Value do_bitwise_lshift(const Token& token, const Value& left,
+                          const Value& right) {
     Value result;
 
     if (std::holds_alternative<k_int>(left) &&
@@ -395,7 +402,8 @@ struct {
     return result;
   }
 
-  Value do_bitwise_rshift(const Token& token, Value left, Value right) {
+  Value do_bitwise_rshift(const Token& token, const Value& left,
+                          const Value& right) {
     Value result;
 
     if (std::holds_alternative<k_int>(left) &&
