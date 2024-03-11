@@ -63,7 +63,6 @@ class Interpreter {
 
  private:
   Logger& logger;
-  std::unordered_map<std::string, std::vector<std::string>> files;
   std::unordered_map<std::string, Method> methods;
   std::unordered_map<std::string, Module> modules;
   std::unordered_map<std::string, Class> classes;
@@ -74,7 +73,6 @@ class Interpreter {
   bool preservingMainStackFrame = false;
 
   int interpret(Lexer& lexer) {
-    files[lexer.getFile()] = lexer.getLines();
     auto stream = std::make_shared<TokenStream>(lexer.getAllTokens());
     return interpret(stream);
   }
@@ -117,7 +115,7 @@ class Interpreter {
         if (frame->isFlagSet(FrameFlags::InTry)) {
           frame->setErrorState(e);
         } else {
-          ErrorHandler::handleError(e, files);
+          ErrorHandler::handleError(e);
           if (!preservingMainStackFrame) {
             exit(1);
           }
@@ -1986,7 +1984,6 @@ class Interpreter {
     }
 
     Lexer lexer(scriptPath, content);
-    files[scriptPath] = lexer.getLines();
     execute(frame, lexer.getTokenStream());
 
     // Check if a module was imported.
