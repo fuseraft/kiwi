@@ -452,6 +452,8 @@ class Lexer {
 
     if (builtin == ConsoleBuiltins.Input) {
       st = SubTokenType::Builtin_Console_Input;
+    } else if (builtin == ConsoleBuiltins.Silent) {
+      st = SubTokenType::Builtin_Console_Silent;
     }
 
     return Token::create(TokenType::IDENTIFIER, st, file, builtin, row, col);

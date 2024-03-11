@@ -13,24 +13,24 @@
 class ArgvBuiltinHandler {
  public:
   static Value execute(
-      const Token& tokenTerm, const SubTokenType& builtin,
+      const Token& term, const SubTokenType& builtin,
       const std::vector<Value>& args,
       const std::unordered_map<std::string, std::string>& kiwiArgs) {
     if (builtin == SubTokenType::Builtin_Argv_GetArgv) {
-      return executeGetArgv(tokenTerm, args, kiwiArgs);
+      return executeGetArgv(term, args, kiwiArgs);
     } else if (builtin == SubTokenType::Builtin_Argv_GetXarg) {
-      return executeGetXarg(tokenTerm, args, kiwiArgs);
+      return executeGetXarg(term, args, kiwiArgs);
     }
 
-    throw UnknownBuiltinError(tokenTerm, "");
+    throw UnknownBuiltinError(term, "");
   }
 
  private:
   static Value executeGetArgv(
-      const Token& tokenTerm, const std::vector<Value>& args,
+      const Token& term, const std::vector<Value>& args,
       const std::unordered_map<std::string, std::string>& kiwiArgs) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, ArgvBuiltins.GetArgv);
+      throw BuiltinUnexpectedArgumentError(term, ArgvBuiltins.GetArgv);
     }
 
     std::shared_ptr<List> argv = std::make_shared<List>();
@@ -45,13 +45,13 @@ class ArgvBuiltinHandler {
   }
 
   static Value executeGetXarg(
-      const Token& tokenTerm, const std::vector<Value>& args,
+      const Token& term, const std::vector<Value>& args,
       const std::unordered_map<std::string, std::string>& kiwiArgs) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, ArgvBuiltins.GetXarg);
+      throw BuiltinUnexpectedArgumentError(term, ArgvBuiltins.GetXarg);
     }
 
-    std::string xargName = get_string(tokenTerm, args.at(0));
+    std::string xargName = get_string(term, args.at(0));
 
     for (const auto& pair : kiwiArgs) {
       if (pair.first == xargName) {

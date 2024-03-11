@@ -10,26 +10,26 @@
 
 class EnvBuiltinHandler {
  public:
-  static Value execute(const Token& tokenTerm, const SubTokenType& builtin,
+  static Value execute(const Token& term, const SubTokenType& builtin,
                        const std::vector<Value>& args) {
     if (builtin == SubTokenType::Builtin_Env_GetEnvironmentVariable) {
-      return executeGetEnvironmentVariable(tokenTerm, args);
+      return executeGetEnvironmentVariable(term, args);
     } else if (builtin == SubTokenType::Builtin_Env_SetEnvironmentVariable) {
-      return executeSetEnvironmentVariable(tokenTerm, args);
+      return executeSetEnvironmentVariable(term, args);
     }
 
-    throw UnknownBuiltinError(tokenTerm, "");
+    throw UnknownBuiltinError(term, "");
   }
 
  private:
-  static Value executeGetEnvironmentVariable(const Token& tokenTerm,
+  static Value executeGetEnvironmentVariable(const Token& term,
                                              const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm,
+      throw BuiltinUnexpectedArgumentError(term,
                                            EnvBuiltins.GetEnvironmentVariable);
     }
 
-    std::string varName = get_string(tokenTerm, args.at(0));
+    std::string varName = get_string(term, args.at(0));
     const char* varValue = std::getenv(varName.c_str());
 
     if (varValue != nullptr) {
@@ -40,15 +40,15 @@ class EnvBuiltinHandler {
     return "";
   }
 
-  static Value executeSetEnvironmentVariable(const Token& tokenTerm,
+  static Value executeSetEnvironmentVariable(const Token& term,
                                              const std::vector<Value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm,
+      throw BuiltinUnexpectedArgumentError(term,
                                            EnvBuiltins.SetEnvironmentVariable);
     }
 
-    std::string varName = get_string(tokenTerm, args.at(0));
-    std::string varValue = get_string(tokenTerm, args.at(1));
+    std::string varName = get_string(term, args.at(0));
+    std::string varValue = get_string(term, args.at(1));
 
     return setenv(varName.c_str(), varValue.c_str(), 1) == 0;
   }

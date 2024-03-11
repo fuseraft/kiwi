@@ -1837,8 +1837,7 @@ class Interpreter {
       }
 
       // inherit methods from base class.
-      auto baseClass = classes[baseClassName];
-      for (auto& pair : baseClass.getMethods()) {
+      for (auto& pair : classes[baseClassName].getMethods()) {
         clazz.addMethod(pair.second);
       }
     }
@@ -2143,13 +2142,19 @@ class Interpreter {
     auto value = interpretExpression(stream, frame);
 
     if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
-      std::cout << interpolateObject(stream, frame, value);
+      if (!SILENCE) {
+        std::cout << interpolateObject(stream, frame, value);
+      }
     } else {
-      std::cout << Serializer::serialize(value);
+      if (!SILENCE) {
+        std::cout << Serializer::serialize(value);
+      }
     }
 
     if (printNewLine) {
-      std::cout << std::endl;
+      if (!SILENCE) {
+        std::cout << std::endl;
+      }
     }
   }
 

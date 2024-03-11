@@ -21,23 +21,19 @@ for file in fileio::glob(search_pattern) do
   end
   
   if !exclude
-    println "Found script: ${file}"
-    dir = fileio::parentdir(file)
-    fileio::chdir(dir)
+    fileio::chdir(fileio::parentdir(file))
     
-    # Record start time
+    silent(true)
+
+    # Record start and end times.    
     start_time = time::ticks()
-    
-    # Import the script
-    println "Importing and running ${file}..."
     import file
-    
-    # Record end time and calculate duration
     end_time = time::ticks()
+    
+    silent(false)
+    
     duration = time::ticksms(end_time - start_time)
 
-    xyz = "hello"
-    
     # Store runtime information
     runtimes << {"file": file, "duration": duration}
   end
@@ -48,7 +44,7 @@ total_duration = 0
 for runtime in runtimes do
   file = runtime["file"]
   duration = runtime["duration"]
-  println "Script: ${file} ran for ${duration} ms."
+  println "${file} ran for ${duration} ms."
   total_duration += duration
 end
 

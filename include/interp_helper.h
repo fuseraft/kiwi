@@ -187,10 +187,10 @@ struct InterpHelper {
     }
   }
 
-  static std::vector<Token> getTemporaryAssignment(const Token& tokenTerm,
+  static std::vector<Token> getTemporaryAssignment(const Token& term,
                                                    const std::string& tempId) {
     std::vector<Token> tokens;
-    auto file = tokenTerm.getFile();
+    auto file = term.getFile();
     tokens.push_back(Token::create(TokenType::IDENTIFIER, SubTokenType::Default,
                                    file, tempId, 0, 0));
     tokens.push_back(Token::create(TokenType::OPERATOR,
