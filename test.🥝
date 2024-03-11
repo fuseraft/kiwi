@@ -10,6 +10,8 @@ search_pattern = "./**/*.🥝"
 exclusions = ["install.🥝", "test.🥝", "/kiwilib/", "/examples/"]
 
 println "Searching for Kiwi scripts..."
+silent(true)
+
 for file in fileio::glob(search_pattern) do
   # Check if file is not in the exclusions list
   exclude = false
@@ -23,21 +25,19 @@ for file in fileio::glob(search_pattern) do
   if !exclude
     fileio::chdir(fileio::parentdir(file))
     
-    silent(true)
-
     # Record start and end times.    
     start_time = time::ticks()
     import file
     end_time = time::ticks()
-    
-    silent(false)
-    
+        
     duration = time::ticksms(end_time - start_time)
 
     # Store runtime information
     runtimes << {"file": file, "duration": duration}
   end
 end
+
+silent(false)
 
 # Summarize and print runtimes
 total_duration = 0
