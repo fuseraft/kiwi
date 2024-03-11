@@ -25,9 +25,9 @@ class Class {
   void setClassName(const std::string& name) { className = name; }
 
   std::unordered_map<std::string, Method> getMethods() const { return methods; }
-  Method getMethod(const std::string& name) { return methods[name]; }
+  const Method& getMethod(const std::string& name) { return methods[name]; }
 
-  std::string getClassName() const { return className; }
+  const std::string& getClassName() const { return className; }
   // std::string getBaseClassName() const { return baseClassName; }
 
   void addPrivateVariable(const Parameter& param) {

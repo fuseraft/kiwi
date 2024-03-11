@@ -757,11 +757,11 @@ class Interpreter {
     return false;
   }
 
-  bool hasModule(const std::string& name) {
+  bool hasModule(const std::string& name) const {
     return modules.find(name) != modules.end();
   }
 
-  bool hasClass(const std::string& name) {
+  bool hasClass(const std::string& name) const {
     return classes.find(name) != classes.end();
   }
 
@@ -782,7 +782,7 @@ class Interpreter {
   }
 
   bool hasVariable(std::shared_ptr<CallStackFrame> frame,
-                   const std::string& name) {
+                   const std::string& name) const {
     if (frame->variables.find(name) != frame->variables.end()) {
       return true;  // Found in the current frame
     }
