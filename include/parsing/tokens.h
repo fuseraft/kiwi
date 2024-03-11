@@ -11,20 +11,20 @@
 
 class Token {
  public:
-  static Token create(TokenType t, SubTokenType st, std::string file,
-                      std::string text, const Value& v, const int& lineNumber,
-                      const int& linePosition) {
+  static Token create(TokenType t, SubTokenType st, const std::string& file,
+                      const std::string& text, const Value& v,
+                      const int& lineNumber, const int& linePosition) {
     Token token(t, st, file, text, v, lineNumber, linePosition);
     return token;
   }
 
-  static Token create(TokenType t, SubTokenType st, std::string file,
-                      std::string text, const int& lineNumber,
+  static Token create(TokenType t, SubTokenType st, const std::string& file,
+                      const std::string& text, const int& lineNumber,
                       const int& linePosition) {
     return create(t, st, file, text, text, lineNumber, linePosition);
   }
 
-  static Token createBoolean(const std::string& file, std::string text,
+  static Token createBoolean(const std::string& file, const std::string& text,
                              const int& lineNumber, const int& linePosition) {
     bool value = text == Keywords.True;
     auto st = value ? SubTokenType::KW_True : SubTokenType::KW_False;
@@ -42,38 +42,6 @@ class Token {
 
   std::string getFile() const { return file; }
 
-  std::string toString() {
-    if (!std::holds_alternative<std::string>(value)) {
-      return {};
-    }
-
-    return std::get<std::string>(value);
-  }
-
-  k_int toInteger() {
-    if (!std::holds_alternative<k_int>(value)) {
-      return {};
-    }
-
-    return std::get<k_int>(value);
-  }
-
-  bool toBoolean() {
-    if (!std::holds_alternative<bool>(value)) {
-      return {};
-    }
-
-    return std::get<bool>(value);
-  }
-
-  double toDouble() {
-    if (!std::holds_alternative<double>(value)) {
-      return {};
-    }
-
-    return std::get<double>(value);
-  }
-
   std::string getText() const { return text; }
 
   const int& getLineNumber() const { return _lineNumber; }
@@ -84,9 +52,7 @@ class Token {
 
   SubTokenType getSubType() const { return subType; }
 
-  Value getValue() { return value; }
-
-  ValueType getValueType() { return valueType; }
+  Value& getValue() { return value; }
 
  private:
   TokenType type;
@@ -112,10 +78,25 @@ class TokenStream {
   TokenStream(const std::vector<Token>& tokens) : tokens(tokens) {}
   ~TokenStream() { tokens.clear(); }
 
-  std::shared_ptr<TokenStream> clone() const {
-    auto clonedStream = std::make_shared<TokenStream>(tokens);  // Copy tokens
-    clonedStream->position = this->position;  // Copy current position
-    return clonedStream;
+  Token current() {
+    if (position >= tokens.size()) {
+      return Token::createStreamEnd();
+    }
+    return tokens.at(position);
+  }
+
+  void next() {
+    if (position < tokens.size()) {
+      position++;
+    }
+  }
+
+  Token peek() {
+    if (position + 1 < tokens.size()) {
+      return tokens.at(position + 1);
+    } else {
+      return Token::createStreamEnd();
+    }
   }
 
   bool empty() const { return tokens.empty(); }

@@ -13,7 +13,7 @@ class String {
   /// @param s The string to search.
   /// @param beginning The string to find.
   /// @return Boolean indicating existence.
-  static bool beginsWith(std::string s, std::string beginning) {
+  static bool beginsWith(const std::string& s, const std::string& beginning) {
     return s.size() > beginning.size() &&
            s.substr(0, beginning.size()) == beginning;
   }
@@ -22,7 +22,7 @@ class String {
   /// @param s The string to search.
   /// @param beginning The string to find.
   /// @return Boolean indicating existence.
-  static bool contains(std::string s, std::string search) {
+  static bool contains(const std::string& s, const std::string& search) {
     if (search == "") {
       return false;
     }
@@ -34,7 +34,7 @@ class String {
   /// @param s The string to search.
   /// @param beginning The string to find.
   /// @return Boolean indicating existence.
-  static bool endsWith(std::string s, std::string end) {
+  static bool endsWith(const std::string& s, const std::string& end) {
     return s.size() > end.size() && s.substr(s.size() - end.size()) == end;
   }
 
@@ -125,7 +125,7 @@ class String {
   /// @param s The string to search.
   /// @param search The string to find.
   /// @return Integer containing the index of a substring. Returns -1 if not found.
-  static int indexOf(std::string s, std::string search) {
+  static int indexOf(const std::string& s, const std::string& search) {
     size_t index = s.find(search);
     if (index != std::string::npos) {
       return index;

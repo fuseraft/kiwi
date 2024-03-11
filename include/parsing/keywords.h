@@ -87,7 +87,7 @@ struct {
       BitwiseAnd, BitwiseOr,        BitwiseXor,
       BitwiseNot, BitwiseLeftShift, BitwiseRightShift};
 
-  bool is_large_operator(std::string& arg) {
+  bool is_large_operator(const std::string& arg) {
     return large_operators.find(arg) != large_operators.end();
   }
 
@@ -95,33 +95,17 @@ struct {
     return assignment_operators.find(arg) != assignment_operators.end();
   }
 
-  bool is_arithmetic_operator_char(char arg) {
+  bool is_arithmetic_operator_char(const char& arg) {
     return arithmetic_operator_chars.find(arg) !=
            arithmetic_operator_chars.end();
   }
 
-  bool is_bitwise_operator_char(char arg) {
+  bool is_bitwise_operator_char(const char& arg) {
     return bitwise_operator_chars.find(arg) != bitwise_operator_chars.end();
   }
 
-  bool is_boolean_operator_char(char arg) {
+  bool is_boolean_operator_char(const char& arg) {
     return boolean_operator_chars.find(arg) != boolean_operator_chars.end();
-  }
-
-  bool is_logical_operator(std::string& arg) {
-    return logical_operators.find(arg) != logical_operators.end();
-  }
-
-  bool is_bitwise_operator(std::string& arg) {
-    return bitwise_operators.find(arg) != bitwise_operators.end();
-  }
-
-  bool is_relational_operator(std::string& arg) {
-    return relational_operators.find(arg) != relational_operators.end();
-  }
-
-  bool is_arithmetic_operator(std::string& arg) {
-    return arithmetic_operators.find(arg) != arithmetic_operators.end();
   }
 } Operators;
 
@@ -178,13 +162,15 @@ struct {
       SubTokenType::KW_If,    SubTokenType::KW_Module, SubTokenType::KW_Try,
       SubTokenType::KW_Class, SubTokenType::KW_Lambda};
 
-  bool is_keyword(std::string& arg) {
+  bool is_keyword(const std::string& arg) {
     return keywords.find(arg) != keywords.end();
   }
 
-  bool is_boolean(std::string& arg) { return arg == True || arg == False; }
+  bool is_boolean(const std::string& arg) {
+    return arg == True || arg == False;
+  }
 
-  bool is_conditional_keyword(std::string& arg) {
+  bool is_conditional_keyword(const std::string& arg) {
     return conditional_keywords.find(arg) != conditional_keywords.end();
   }
 
