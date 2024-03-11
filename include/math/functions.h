@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <limits>
+#include <memory>
 #include <sstream>
 #include "errors/error.h"
 #include "k_int.h"
@@ -83,6 +84,10 @@ struct {
       }
 
       result = build.str();
+    } else if (std::holds_alternative<std::shared_ptr<List>>(left)) {
+      auto list = std::get<std::shared_ptr<List>>(left);
+      list->elements.push_back(right);
+      return list;
     } else {
       throw ConversionError(token, "Conversion error in addition.");
     }
@@ -107,6 +112,19 @@ struct {
                std::holds_alternative<k_int>(right)) {
       result =
           std::get<double>(left) - static_cast<double>(std::get<k_int>(right));
+    } else if (std::holds_alternative<std::shared_ptr<List>>(left)) {
+      std::vector<Value> listValues;
+      bool found = false;
+
+      for (const auto& item : std::get<std::shared_ptr<List>>(left)->elements) {
+        if (!found && same_value(item, right)) {
+          found = true;
+          continue;
+        }
+        listValues.push_back(item);
+      }
+
+      return std::make_shared<List>(listValues);
     } else {
       throw ConversionError(token, "Conversion error in subtraction.");
     }
@@ -289,160 +307,28 @@ struct {
     result = build.str();
   }
 
-  Value do_eq_comparison(const Token& token, Value left, Value right) {
-    Value result;
-
-    if (std::holds_alternative<k_int>(left) &&
-        std::holds_alternative<k_int>(right)) {
-      result = std::get<k_int>(left) == std::get<k_int>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<double>(right)) {
-      result = std::get<double>(left) == std::get<double>(right);
-    } else if (std::holds_alternative<k_int>(left) &&
-               std::holds_alternative<double>(right)) {
-      result =
-          static_cast<double>(std::get<k_int>(left)) == std::get<double>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<k_int>(right)) {
-      result =
-          std::get<double>(left) == static_cast<double>(std::get<k_int>(right));
-    } else if (std::holds_alternative<std::string>(left) &&
-               std::holds_alternative<std::string>(right)) {
-      result = std::get<std::string>(left) == std::get<std::string>(right);
-    } else if (std::holds_alternative<bool>(left) &&
-               std::holds_alternative<bool>(right)) {
-      result = std::get<bool>(left) == std::get<bool>(right);
-    } else {
-      throw ConversionError(token, "Conversion error in == comparison.");
-    }
-
-    return result;
+  Value do_eq_comparison(const Value& left, const Value& right) {
+    return same_value(left, right);
   }
 
-  Value do_neq_comparison(const Token& token, Value left, Value right) {
-    Value result;
-
-    if (std::holds_alternative<k_int>(left) &&
-        std::holds_alternative<k_int>(right)) {
-      result = std::get<k_int>(left) != std::get<k_int>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<double>(right)) {
-      result = std::get<double>(left) != std::get<double>(right);
-    } else if (std::holds_alternative<k_int>(left) &&
-               std::holds_alternative<double>(right)) {
-      result =
-          static_cast<double>(std::get<k_int>(left)) != std::get<double>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<k_int>(right)) {
-      result =
-          std::get<double>(left) != static_cast<double>(std::get<k_int>(right));
-    } else if (std::holds_alternative<std::string>(left) &&
-               std::holds_alternative<std::string>(right)) {
-      result = std::get<std::string>(left) != std::get<std::string>(right);
-    } else if (std::holds_alternative<bool>(left) &&
-               std::holds_alternative<bool>(right)) {
-      result = std::get<bool>(left) != std::get<bool>(right);
-    } else {
-      throw ConversionError(token, "Conversion error in != comparison.");
-    }
-
-    return result;
+  Value do_neq_comparison(const Value& left, const Value& right) {
+    return !same_value(left, right);
   }
 
-  Value do_lt_comparison(const Token& token, Value left, Value right) {
-    Value result;
-
-    if (std::holds_alternative<k_int>(left) &&
-        std::holds_alternative<k_int>(right)) {
-      result = std::get<k_int>(left) < std::get<k_int>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<double>(right)) {
-      result = std::get<double>(left) < std::get<double>(right);
-    } else if (std::holds_alternative<k_int>(left) &&
-               std::holds_alternative<double>(right)) {
-      result =
-          static_cast<double>(std::get<k_int>(left)) < std::get<double>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<k_int>(right)) {
-      result =
-          std::get<double>(left) < static_cast<double>(std::get<k_int>(right));
-    } else {
-      throw ConversionError(token, "Conversion error in < comparison.");
-    }
-
-    return result;
+  Value do_lt_comparison(const Value& left, const Value& right) {
+    return lt_value(left, right);
   }
 
-  Value do_lte_comparison(const Token& token, Value left, Value right) {
-    Value result;
-
-    if (std::holds_alternative<k_int>(left) &&
-        std::holds_alternative<k_int>(right)) {
-      result = std::get<k_int>(left) <= std::get<k_int>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<double>(right)) {
-      result = std::get<double>(left) <= std::get<double>(right);
-    } else if (std::holds_alternative<k_int>(left) &&
-               std::holds_alternative<double>(right)) {
-      result =
-          static_cast<double>(std::get<k_int>(left)) <= std::get<double>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<k_int>(right)) {
-      result =
-          std::get<double>(left) <= static_cast<double>(std::get<k_int>(right));
-    } else {
-      throw ConversionError(token, "Conversion error in <= comparison.");
-    }
-
-    return result;
+  Value do_lte_comparison(const Value& left, const Value& right) {
+    return lt_value(left, right) || same_value(left, right);
   }
 
-  Value do_gt_comparison(const Token& token, Value left, Value right) {
-    Value result;
-
-    if (std::holds_alternative<k_int>(left) &&
-        std::holds_alternative<k_int>(right)) {
-      result = std::get<k_int>(left) > std::get<k_int>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<double>(right)) {
-      result = std::get<double>(left) > std::get<double>(right);
-    } else if (std::holds_alternative<k_int>(left) &&
-               std::holds_alternative<double>(right)) {
-      result =
-          static_cast<double>(std::get<k_int>(left)) > std::get<double>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<k_int>(right)) {
-      result =
-          std::get<double>(left) > static_cast<double>(std::get<k_int>(right));
-    } else {
-      throw ConversionError(token, "Conversion error in > comparison.");
-    }
-
-    return result;
+  Value do_gt_comparison(const Value& left, const Value& right) {
+    return gt_value(left, right);
   }
 
-  Value do_gte_comparison(const Token& token, Value left, Value right) {
-    Value result;
-
-    if (std::holds_alternative<k_int>(left) &&
-        std::holds_alternative<k_int>(right)) {
-      result = std::get<k_int>(left) >= std::get<k_int>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<double>(right)) {
-      result = std::get<double>(left) >= std::get<double>(right);
-    } else if (std::holds_alternative<k_int>(left) &&
-               std::holds_alternative<double>(right)) {
-      result =
-          static_cast<double>(std::get<k_int>(left)) >= std::get<double>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<k_int>(right)) {
-      result =
-          std::get<double>(left) >= static_cast<double>(std::get<k_int>(right));
-    } else {
-      throw ConversionError(token, "Conversion error in >= comparison.");
-    }
-
-    return result;
+  Value do_gte_comparison(const Value& left, const Value& right) {
+    return gt_value(left, right) || same_value(left, right);
   }
 
   Value do_bitwise_and(const Token& token, Value left, Value right) {
