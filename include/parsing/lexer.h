@@ -147,7 +147,7 @@ class Lexer {
     }
   }
 
-  Token parseConditionalKeyword(std::string& keyword) {
+  Token parseConditionalKeyword(const std::string& keyword) {
     if (keyword == Keywords.If) {
       return Token::create(TokenType::CONDITIONAL, SubTokenType::KW_If, file,
                            keyword, row, col);
@@ -166,7 +166,7 @@ class Lexer {
                          keyword, row, col);
   }
 
-  Token parseKeywordSpecific(std::string& keyword) {
+  Token parseKeywordSpecific(const std::string& keyword) {
     auto st = SubTokenType::Default;
 
     if (keyword == Keywords.Abstract) {
@@ -226,7 +226,7 @@ class Lexer {
     return Token::create(TokenType::KEYWORD, st, file, keyword, row, col);
   }
 
-  Token parseKeyword(std::string& keyword) {
+  Token parseKeyword(const std::string& keyword) {
     if (Keywords.is_conditional_keyword(keyword)) {
       return parseConditionalKeyword(keyword);
     } else if (keyword == Keywords.Lambda) {
@@ -239,7 +239,7 @@ class Lexer {
     return parseKeywordSpecific(keyword);
   }
 
-  Token parseOperator(std::string& op) {
+  Token parseOperator(const std::string& op) {
     auto st = SubTokenType::Default;
 
     if (op == Operators.Add) {
@@ -409,7 +409,7 @@ class Lexer {
                          col);
   }
 
-  Token parseTypeName(std::string& typeName) {
+  Token parseTypeName(const std::string& typeName) {
     auto st = SubTokenType::Default;
 
     if (typeName == TypeNames.Integer) {
@@ -435,7 +435,7 @@ class Lexer {
     return Token::create(TokenType::TYPENAME, st, file, typeName, row, col);
   }
 
-  Token parseArgvBuiltin(std::string& builtin) {
+  Token parseArgvBuiltin(const std::string& builtin) {
     auto st = SubTokenType::Default;
 
     if (builtin == ArgvBuiltins.GetArgv) {
@@ -447,7 +447,7 @@ class Lexer {
     return Token::create(TokenType::IDENTIFIER, st, file, builtin, row, col);
   }
 
-  Token parseConsoleBuiltin(std::string& builtin) {
+  Token parseConsoleBuiltin(const std::string& builtin) {
     auto st = SubTokenType::Default;
 
     if (builtin == ConsoleBuiltins.Input) {
@@ -457,7 +457,7 @@ class Lexer {
     return Token::create(TokenType::IDENTIFIER, st, file, builtin, row, col);
   }
 
-  Token parseEnvBuiltin(std::string& builtin) {
+  Token parseEnvBuiltin(const std::string& builtin) {
     auto st = SubTokenType::Default;
 
     if (builtin == EnvBuiltins.GetEnvironmentVariable) {
@@ -469,7 +469,7 @@ class Lexer {
     return Token::create(TokenType::IDENTIFIER, st, file, builtin, row, col);
   }
 
-  Token parseFileIOBuiltin(std::string& builtin) {
+  Token parseFileIOBuiltin(const std::string& builtin) {
     auto st = SubTokenType::Default;
 
     if (builtin == FileIOBuiltIns.AppendText) {
@@ -531,7 +531,7 @@ class Lexer {
     return Token::create(TokenType::IDENTIFIER, st, file, builtin, row, col);
   }
 
-  Token parseListBuiltin(std::string& builtin) {
+  Token parseListBuiltin(const std::string& builtin) {
     auto st = SubTokenType::Default;
 
     if (builtin == ListBuiltins.Map) {
@@ -549,7 +549,7 @@ class Lexer {
     return Token::create(TokenType::IDENTIFIER, st, file, builtin, row, col);
   }
 
-  Token parseMathBuiltin(std::string& builtin) {
+  Token parseMathBuiltin(const std::string& builtin) {
     auto st = SubTokenType::Default;
 
     if (builtin == MathBuiltins.Abs) {
@@ -641,7 +641,7 @@ class Lexer {
     return Token::create(TokenType::IDENTIFIER, st, file, builtin, row, col);
   }
 
-  Token parseModuleBuiltin(std::string& builtin) {
+  Token parseModuleBuiltin(const std::string& builtin) {
     auto st = SubTokenType::Default;
 
     if (builtin == ModuleBuiltins.Home) {
@@ -651,7 +651,7 @@ class Lexer {
     return Token::create(TokenType::IDENTIFIER, st, file, builtin, row, col);
   }
 
-  Token parseSysBuiltin(std::string& builtin) {
+  Token parseSysBuiltin(const std::string& builtin) {
     auto st = SubTokenType::Default;
 
     if (builtin == SysBuiltins.EffectiveUserId) {
@@ -665,7 +665,7 @@ class Lexer {
     return Token::create(TokenType::IDENTIFIER, st, file, builtin, row, col);
   }
 
-  Token parseTimeBuiltin(std::string& builtin) {
+  Token parseTimeBuiltin(const std::string& builtin) {
     auto st = SubTokenType::Default;
 
     if (builtin == TimeBuiltins.AMPM) {
@@ -701,7 +701,7 @@ class Lexer {
     return Token::create(TokenType::IDENTIFIER, st, file, builtin, row, col);
   }
 
-  Token parseBuiltinMethod(std::string& builtin) {
+  Token parseBuiltinMethod(const std::string& builtin) {
     if (ArgvBuiltins.is_builtin(builtin)) {
       return parseArgvBuiltin(builtin);
     } else if (ConsoleBuiltins.is_builtin(builtin)) {
@@ -726,7 +726,7 @@ class Lexer {
                          builtin, row, col);
   }
 
-  Token parseKiwiBuiltin(std::string& builtin) {
+  Token parseKiwiBuiltin(const std::string& builtin) {
     auto st = SubTokenType::Default;
 
     if (builtin == KiwiBuiltins.BeginsWith) {
@@ -786,7 +786,7 @@ class Lexer {
     return Token::create(TokenType::IDENTIFIER, st, file, builtin, row, col);
   }
 
-  Token parseIdentifier(std::string& identifier) {
+  Token parseIdentifier(const std::string& identifier) {
     auto st = SubTokenType::Default;
     return Token::create(TokenType::IDENTIFIER, st, file, identifier, row, col);
   }
@@ -909,12 +909,12 @@ class Lexer {
       char currentChar = getCurrentChar();
 
       if (currentChar == '}' && braceCount == 1) {
-        braceCount--;
+        --braceCount;
         break;
       } else if (currentChar == '{') {
-        braceCount++;
+        ++braceCount;
       } else if (currentChar == '}') {
-        braceCount--;
+        --braceCount;
       }
 
       if (braceCount > 0) {

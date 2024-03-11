@@ -36,10 +36,9 @@ inline MethodFlags operator~(MethodFlags a) {
 class Parameter {
  public:
   Parameter() {}
-  Parameter(const std::string& name) { _name = name; }
-  Parameter(const std::string& name, const Value& value) {
-    _name = name;
-    _value = value;
+  Parameter(const std::string& name) : _name(name) {}
+  Parameter(const std::string& name, const Value& value)
+      : _name(name), _value(value) {
     _hasDefaultValue = true;
   }
   ~Parameter() { _value = 0; }
@@ -56,7 +55,7 @@ class Parameter {
 
 class Method {
  public:
-  void addParameterValue(std::string paramName, Value value) {
+  void addParameterValue(const std::string& paramName, Value value) {
     parameterKVP[paramName] = value;
   }
 

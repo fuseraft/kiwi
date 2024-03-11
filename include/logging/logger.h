@@ -17,7 +17,7 @@ class Logger {
          LogMode logMode = LogMode::CONSOLE)
       : minLogLevel(minLogLevel), logMode(logMode) {}
 
-  static LogLevel loglevel_from_string(const std::string logLevel) {
+  static LogLevel loglevel_from_string(const std::string& logLevel) {
     if (logLevel == "DEBUG")
       return LogLevel::DEBUG;
     else if (logLevel == "INFO")
@@ -30,7 +30,7 @@ class Logger {
       return LogLevel::SILENT;
   }
 
-  static LogMode logmode_from_string(const std::string mode) {
+  static LogMode logmode_from_string(const std::string& mode) {
     if (mode == "FILE")
       return LogMode::FILE;
     else
@@ -86,7 +86,7 @@ class Logger {
 
   // TODO: it would be great to have a descriptor to describe log
   // output/formatting
-  void log(LogLevel level, const std::string& message,
+  void log(const LogLevel& level, const std::string& message,
            const std::string& source) const {
     if (level < minLogLevel)
       return;
@@ -120,7 +120,7 @@ class Logger {
     }
   }
 
-  std::string logLevelToString(LogLevel level) const {
+  std::string logLevelToString(const LogLevel& level) const {
     switch (level) {
       case LogLevel::DEBUG:
         return "DEBUG";

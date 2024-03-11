@@ -10,27 +10,27 @@ class IfStatement {
 
   void setEvaluation(bool evaluation) { _evaluation = evaluation; }
 
-  bool isExecutable() { return _evaluation; }
+  bool isExecutable() const { return _evaluation; }
 
-  std::vector<Token> getCode() { return code; }
+  std::vector<Token>& getCode() { return code; }
 
  private:
   std::vector<Token> code;
-  bool _evaluation;
+  bool _evaluation = false;
 };
 
 class ElseIfStatement : public IfStatement {
  public:
  private:
   std::vector<Token> code;
-  bool _evaluation;
+  bool _evaluation = false;
 };
 
 class ElseStatement {
  public:
   void addToken(const Token& t) { code.push_back(t); }
 
-  std::vector<Token> getCode() { return code; }
+  std::vector<Token>& getCode() { return code; }
 
  private:
   std::vector<Token> code;
@@ -53,8 +53,8 @@ class Conditional {
     return elseIfStatements.at(elseIfStatements.size() - 1);
   }
 
-  bool canExecuteElseIf() {
-    for (ElseIfStatement elseIf : elseIfStatements) {
+  bool canExecuteElseIf() const {
+    for (const auto& elseIf : elseIfStatements) {
       if (elseIf.isExecutable()) {
         return true;
       }

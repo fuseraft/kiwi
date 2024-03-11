@@ -28,7 +28,7 @@ class Class {
   Method getMethod(const std::string& name) { return methods[name]; }
 
   std::string getClassName() const { return className; }
-  std::string getBaseClassName() const { return baseClassName; }
+  // std::string getBaseClassName() const { return baseClassName; }
 
   void addPrivateVariable(const Parameter& param) {
     if (hasPrivateVariable(param.getName())) {
