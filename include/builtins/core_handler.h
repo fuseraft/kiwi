@@ -319,15 +319,40 @@ class CoreBuiltinHandler {
     return String::beginsWith(str, search);
   }
 
+  static bool executeStringContains(const Token& term, const Value& value,
+                                    const Value& arg) {
+    auto str = get_string(term, value);
+    auto search = get_string(term, arg);
+    return String::contains(str, search);
+  }
+
+  static bool executeListContains(const Value& value, const Value& arg) {
+    auto list = std::get<std::shared_ptr<List>>(value);
+
+    for (const auto& item : list->elements) {
+      if (same(item, arg)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   static bool executeContains(const Token& term, const Value& value,
                               const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Contains);
     }
 
-    auto str = get_string(term, value);
-    auto search = get_string(term, args.at(0));
-    return String::contains(str, search);
+    if (std::holds_alternative<std::string>(value)) {
+      return executeStringContains(term, value, args.at(0));
+    } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
+      return executeListContains(value, args.at(0));
+    } else {
+      throw ConversionError(term, "Expected a `String` or `List` value.");
+    }
+
+    return false;
   }
 
   static bool executeEndsWith(const Token& term, const Value& value,
