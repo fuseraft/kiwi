@@ -330,7 +330,7 @@ class CoreBuiltinHandler {
     auto list = std::get<std::shared_ptr<List>>(value);
 
     for (const auto& item : list->elements) {
-      if (same(item, arg)) {
+      if (same_value(item, arg)) {
         return true;
       }
     }

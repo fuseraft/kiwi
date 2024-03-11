@@ -2609,9 +2609,9 @@ class Interpreter {
     auto args = interpretArguments(stream, frame);
 
     if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
-      auto object = std::get<std::shared_ptr<Object>>(value);
-      return interpretInstanceMethodInvocation(stream, frame, object, opText,
-                                               op, args);
+      return interpretInstanceMethodInvocation(
+          stream, frame, std::get<std::shared_ptr<Object>>(value), opText, op,
+          args);
     }
 
     return BuiltinInterpreter::execute(stream->current(), op, value, args);
@@ -2737,9 +2737,9 @@ class Interpreter {
       auto right = parseComparison(stream, frame);
 
       if (op == SubTokenType::Ops_Equal) {
-        left = std::visit(EqualityVisitor(stream->current()), left, right);
+        left = std::visit(EqualityVisitor(), left, right);
       } else if (op == SubTokenType::Ops_NotEqual) {
-        left = std::visit(InequalityVisitor(stream->current()), left, right);
+        left = std::visit(InequalityVisitor(), left, right);
       }
     }
     return left;
@@ -2760,15 +2760,13 @@ class Interpreter {
       auto right = parseBitshift(stream, frame);
 
       if (op == SubTokenType::Ops_LessThan) {
-        left = std::visit(LessThanVisitor(stream->current()), left, right);
+        left = std::visit(LessThanVisitor(), left, right);
       } else if (op == SubTokenType::Ops_LessThanOrEqual) {
-        left =
-            std::visit(LessThanOrEqualVisitor(stream->current()), left, right);
+        left = std::visit(LessThanOrEqualVisitor(), left, right);
       } else if (op == SubTokenType::Ops_GreaterThan) {
-        left = std::visit(GreaterThanVisitor(stream->current()), left, right);
+        left = std::visit(GreaterThanVisitor(), left, right);
       } else if (op == SubTokenType::Ops_GreaterThanOrEqual) {
-        left = std::visit(GreaterThanOrEqualVisitor(stream->current()), left,
-                          right);
+        left = std::visit(GreaterThanOrEqualVisitor(), left, right);
       }
     }
 

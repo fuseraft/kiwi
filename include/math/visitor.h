@@ -71,62 +71,50 @@ struct ModuloVisitor {
 };
 
 struct EqualityVisitor {
-  const Token& token;
+  EqualityVisitor() {}
 
-  EqualityVisitor(const Token& token) : token(token) {}
-
-  Value operator()(Value left, Value right) const {
-    return MathImpl.do_eq_comparison(token, left, right);
+  Value operator()(const Value& left, const Value& right) const {
+    return MathImpl.do_eq_comparison(left, right);
   }
 };
 
 struct InequalityVisitor {
-  const Token& token;
+  InequalityVisitor() {}
 
-  InequalityVisitor(const Token& token) : token(token) {}
-
-  Value operator()(Value left, Value right) const {
-    return MathImpl.do_neq_comparison(token, left, right);
+  Value operator()(const Value& left, const Value& right) const {
+    return MathImpl.do_neq_comparison(left, right);
   }
 };
 
 struct LessThanVisitor {
-  const Token& token;
+  LessThanVisitor() {}
 
-  LessThanVisitor(const Token& token) : token(token) {}
-
-  Value operator()(Value left, Value right) const {
-    return MathImpl.do_lt_comparison(token, left, right);
+  Value operator()(const Value& left, const Value& right) const {
+    return MathImpl.do_lt_comparison(left, right);
   }
 };
 
 struct LessThanOrEqualVisitor {
-  const Token& token;
+  LessThanOrEqualVisitor() {}
 
-  LessThanOrEqualVisitor(const Token& token) : token(token) {}
-
-  Value operator()(Value left, Value right) const {
-    return MathImpl.do_lte_comparison(token, left, right);
+  Value operator()(const Value& left, const Value& right) const {
+    return MathImpl.do_lte_comparison(left, right);
   }
 };
 
 struct GreaterThanVisitor {
-  const Token& token;
+  GreaterThanVisitor() {}
 
-  GreaterThanVisitor(const Token& token) : token(token) {}
-
-  Value operator()(Value left, Value right) const {
-    return MathImpl.do_gt_comparison(token, left, right);
+  Value operator()(const Value& left, const Value& right) const {
+    return MathImpl.do_gt_comparison(left, right);
   }
 };
 
 struct GreaterThanOrEqualVisitor {
-  const Token& token;
+  GreaterThanOrEqualVisitor() {}
 
-  GreaterThanOrEqualVisitor(const Token& token) : token(token) {}
-
-  Value operator()(Value left, Value right) const {
-    return MathImpl.do_gte_comparison(token, left, right);
+  Value operator()(const Value& left, const Value& right) const {
+    return MathImpl.do_gte_comparison(left, right);
   }
 };
 
