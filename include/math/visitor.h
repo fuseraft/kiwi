@@ -153,7 +153,7 @@ struct BitwiseNotVisitor {
 
   BitwiseNotVisitor(const Token& token) : token(token) {}
 
-  Value operator()(Value left) const {
+  Value operator()(const Value& left) const {
     return MathImpl.do_bitwise_not(token, left);
   }
 };
