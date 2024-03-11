@@ -41,8 +41,8 @@ struct InterpHelper {
     const size_t tokensSize = tokens.size();
 
     while (position < tokensSize && bracketCount > 0) {
-      const Token& token = tokens.at(position);
-      const TokenType type = token.getType();
+      const auto& token = tokens.at(position);
+      const auto type = token.getType();
 
       if (type == TokenType::OPEN_BRACKET) {
         ++bracketCount;
@@ -52,7 +52,7 @@ struct InterpHelper {
         int braceCount = 1;
         ++position;  // Skip the current brace
         while (position < tokensSize && braceCount > 0) {
-          const Token& innerToken = tokens.at(position);
+          const auto& innerToken = tokens.at(position);
           if (innerToken.getType() == TokenType::OPEN_BRACE) {
             ++braceCount;
           } else if (innerToken.getType() == TokenType::CLOSE_BRACE) {
