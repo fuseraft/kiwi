@@ -134,6 +134,34 @@ struct InterpHelper {
     return "temporary_" + RNG::getInstance().random16();
   }
 
+  static std::vector<Token> collectBodyTokens(
+      std::shared_ptr<TokenStream>& stream) {
+    std::vector<Token> tokens;
+    int counter = 1;
+
+    while (stream->canRead() && counter != 0) {
+      const Token& currentToken = stream->current();
+      const SubTokenType subType = currentToken.getSubType();
+
+      if (Keywords.is_block_keyword(subType)) {
+        ++counter;
+      } else if (subType == SubTokenType::KW_End) {
+        --counter;
+
+        // Stop here.
+        if (counter == 0) {
+          stream->next();
+          continue;
+        }
+      }
+
+      tokens.push_back(currentToken);
+      stream->next();
+    }
+
+    return tokens;
+  }
+
   static void collectBodyTokens(std::vector<Token>& tokens,
                                 std::shared_ptr<TokenStream>& stream) {
     int counter = 1;
