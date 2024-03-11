@@ -45,7 +45,10 @@ struct CallStackFrame {
   FrameFlags flags = FrameFlags::None;
 
   CallStackFrame() {}
-  ~CallStackFrame() { variables.clear(); }
+  ~CallStackFrame() {
+    variables.clear();
+    lambdas.clear();
+  }
 
   void assignLambda(const std::string& name, const Method& method) {
     lambdas[name] = std::move(method);
@@ -57,7 +60,6 @@ struct CallStackFrame {
 
   void setErrorState(const KiwiError& e) { errorState.setError(e); }
   bool isErrorStateSet() const { return errorState.isErrorSet(); }
-  ErrorState getErrorState() const { return errorState; }
   std::string getErrorMessage() const { return errorState.error.getMessage(); }
   void clearErrorState() { errorState.clearError(); }
 
@@ -71,6 +73,10 @@ struct CallStackFrame {
   void setFlag(FrameFlags flag) { flags = flags | flag; }
   void clearFlag(FrameFlags flag) { flags = flags & ~flag; }
   bool isFlagSet(FrameFlags flag) const { return (flags & flag) == flag; }
+  bool isLoopControlFlagSet() const {
+    return isFlagSet(FrameFlags::LoopBreak) ||
+           isFlagSet(FrameFlags::LoopContinue);
+  }
 };
 
 #endif
