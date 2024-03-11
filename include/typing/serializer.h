@@ -152,7 +152,7 @@ struct Serializer {
     sv << "{";
 
     bool first = true;
-    for (std::string key : hash->keys) {
+    for (const auto& key : hash->keys) {
       if (!first) {
         sv << ", ";
       } else {

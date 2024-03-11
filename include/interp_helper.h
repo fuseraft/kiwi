@@ -121,7 +121,7 @@ struct InterpHelper {
   }
 
   static void updateVariablesInCallerFrame(
-      std::unordered_map<std::string, Value> variables,
+      const std::unordered_map<std::string, Value>& variables,
       std::shared_ptr<CallStackFrame> callerFrame) {
     for (const auto& var : variables) {
       if (shouldUpdateFrameVariables(var.first, callerFrame)) {

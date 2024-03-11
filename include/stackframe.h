@@ -60,7 +60,6 @@ struct CallStackFrame {
 
   void setErrorState(const KiwiError& e) { errorState.setError(e); }
   bool isErrorStateSet() const { return errorState.isErrorSet(); }
-  ErrorState getErrorState() const { return errorState; }
   std::string getErrorMessage() const { return errorState.error.getMessage(); }
   void clearErrorState() { errorState.clearError(); }
 
