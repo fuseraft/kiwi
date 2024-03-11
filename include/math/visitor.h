@@ -11,7 +11,7 @@ struct AddVisitor {
 
   AddVisitor(const Token& token) : token(token) {}
 
-  Value operator()(Value left, Value right) const {
+  Value operator()(const Value& left, const Value& right) const {
     return MathImpl.do_addition(token, left, right);
   }
 };
@@ -21,7 +21,7 @@ struct SubtractVisitor {
 
   SubtractVisitor(const Token& token) : token(token) {}
 
-  Value operator()(Value left, Value right) const {
+  Value operator()(const Value& left, const Value& right) const {
     return MathImpl.do_subtraction(token, left, right);
   }
 };
@@ -31,7 +31,7 @@ struct MultiplyVisitor {
 
   MultiplyVisitor(const Token& token) : token(token) {}
 
-  Value operator()(Value left, Value right) const {
+  Value operator()(const Value& left, const Value& right) const {
     return MathImpl.do_multiplication(token, left, right);
   }
 };
@@ -41,7 +41,7 @@ struct DivideVisitor {
 
   DivideVisitor(const Token& token) : token(token) {}
 
-  Value operator()(Value left, Value right) const {
+  Value operator()(const Value& left, const Value& right) const {
     if (MathImpl.is_zero(token, right)) {
       throw DivideByZeroError(token);
     } else {
@@ -55,7 +55,7 @@ struct PowerVisitor {
 
   PowerVisitor(const Token& token) : token(token) {}
 
-  Value operator()(Value left, Value right) const {
+  Value operator()(const Value& left, const Value& right) const {
     return MathImpl.do_exponentiation(token, left, right);
   }
 };
@@ -65,7 +65,7 @@ struct ModuloVisitor {
 
   ModuloVisitor(const Token& token) : token(token) {}
 
-  Value operator()(Value left, Value right) const {
+  Value operator()(const Value& left, const Value& right) const {
     return MathImpl.do_modulus(token, left, right);
   }
 };
@@ -123,7 +123,7 @@ struct BitwiseAndVisitor {
 
   BitwiseAndVisitor(const Token& token) : token(token) {}
 
-  Value operator()(Value left, Value right) const {
+  Value operator()(const Value& left, const Value& right) const {
     return MathImpl.do_bitwise_and(token, left, right);
   }
 };
@@ -133,7 +133,7 @@ struct BitwiseOrVisitor {
 
   BitwiseOrVisitor(const Token& token) : token(token) {}
 
-  Value operator()(Value left, Value right) const {
+  Value operator()(const Value& left, const Value& right) const {
     return MathImpl.do_bitwise_or(token, left, right);
   }
 };
@@ -143,7 +143,7 @@ struct BitwiseXorVisitor {
 
   BitwiseXorVisitor(const Token& token) : token(token) {}
 
-  Value operator()(Value left, Value right) const {
+  Value operator()(const Value& left, const Value& right) const {
     return MathImpl.do_bitwise_xor(token, left, right);
   }
 };
@@ -163,7 +163,7 @@ struct BitwiseLeftShiftVisitor {
 
   BitwiseLeftShiftVisitor(const Token& token) : token(token) {}
 
-  Value operator()(Value left, Value right) const {
+  Value operator()(const Value& left, const Value& right) const {
     return MathImpl.do_bitwise_lshift(token, left, right);
   }
 };
@@ -173,7 +173,7 @@ struct BitwiseRightShiftVisitor {
 
   BitwiseRightShiftVisitor(const Token& token) : token(token) {}
 
-  Value operator()(Value left, Value right) const {
+  Value operator()(const Value& left, const Value& right) const {
     return MathImpl.do_bitwise_rshift(token, left, right);
   }
 };
