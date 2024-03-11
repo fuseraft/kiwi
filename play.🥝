@@ -1,1 +1,12 @@
 # This 🥝 script is for experimentation.
+
+c = "abcdefg".chars()[::-1].join()
+println c
+
+c = c.split("").sort()[::-1][::-1].join("")
+println c
+
+l = [1, 5, 3, 2, 9]
+println l
+
+println l.sort()
