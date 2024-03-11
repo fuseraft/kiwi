@@ -16,14 +16,14 @@ class IfStatement {
 
  private:
   std::vector<Token> code;
-  bool _evaluation;
+  bool _evaluation = false;
 };
 
 class ElseIfStatement : public IfStatement {
  public:
  private:
   std::vector<Token> code;
-  bool _evaluation;
+  bool _evaluation = false;
 };
 
 class ElseStatement {

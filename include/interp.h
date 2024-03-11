@@ -22,7 +22,6 @@
 #include "util/string.h"
 #include "typing/serializer.h"
 #include "typing/valuetype.h"
-#include "eventloop.h"
 #include "globals.h"
 #include "interp_builtin.h"
 #include "interp_helper.h"
@@ -30,9 +29,9 @@
 
 class Interpreter {
  public:
-  Interpreter(Logger& logger) : logger(logger) { eventLoop.startLoop(); }
+  Interpreter(Logger& logger) : logger(logger) {}
 
-  ~Interpreter() { eventLoop.stopLoop(); }
+  ~Interpreter() {}
 
   void setKiwiArgs(const std::unordered_map<std::string, std::string>& args) {
     kiwiArgs = args;
@@ -73,7 +72,6 @@ class Interpreter {
   std::stack<std::shared_ptr<TokenStream>> streamStack;
   std::stack<std::string> moduleStack;
   bool preservingMainStackFrame = false;
-  EventLoop eventLoop;
 
   int interpret(Lexer& lexer) {
     files[lexer.getFile()] = lexer.getLines();
@@ -237,8 +235,6 @@ class Interpreter {
 
   Method getLambda(std::shared_ptr<TokenStream> stream,
                    std::shared_ptr<CallStackFrame> frame) {
-    Method lambda;
-
     if (stream->current().getType() == TokenType::IDENTIFIER) {
       auto lambdaName = stream->current().getText();
       stream->next();  // Skip identifier.
@@ -322,7 +318,7 @@ class Interpreter {
                          Value& collectionValue, const bool& hasIndexVariable,
                          const std::string& itemVariableName,
                          const std::string& indexVariableName) {
-    auto& collection = std::get<std::shared_ptr<List>>(collectionValue);
+    const auto& collection = std::get<std::shared_ptr<List>>(collectionValue);
     auto loopTokens = InterpHelper::collectBodyTokens(stream);
 
     // Execute the loop
@@ -941,7 +937,7 @@ class Interpreter {
   }
 
   void interpretModuleBuiltin(std::shared_ptr<TokenStream> stream,
-                              const std::string moduleName,
+                              const std::string& moduleName,
                               const SubTokenType& builtin,
                               std::vector<Value>& args) {
     if (builtin == SubTokenType::Builtin_Module_Home) {
@@ -1547,7 +1543,7 @@ class Interpreter {
                                   "`" + listVariableName + "` is not a list.");
     }
 
-    auto& listPtr = std::get<std::shared_ptr<List>>(variableValue);
+    const auto& listPtr = std::get<std::shared_ptr<List>>(variableValue);
     listPtr->elements.push_back(listValue);
   }
 
@@ -1870,7 +1866,7 @@ class Interpreter {
         if (st == SubTokenType::KW_Private) {
           if (stream->peek().getType() == TokenType::OPEN_PAREN) {
             stream->next();  // Skip "private"
-            for (auto privateVar : getParameterSet(stream, frame)) {
+            for (const auto& privateVar : getParameterSet(stream, frame)) {
               clazz.addPrivateVariable(privateVar);
             }
           }
@@ -2274,7 +2270,7 @@ class Interpreter {
     std::string itemVariableName, indexVariableName;
     bool hasIndexVariable = false;
 
-    for (std::string parameter : lambda.getParameters()) {
+    for (const auto& parameter : lambda.getParameters()) {
       if (itemVariableName.empty()) {
         itemVariableName = parameter;
       } else if (indexVariableName.empty()) {
@@ -2342,7 +2338,7 @@ class Interpreter {
 
     std::string accumulatorName, indexVariableName;
     bool hasIndexVariable = false;
-    for (std::string parameter : lambda.getParameters()) {
+    for (const auto& parameter : lambda.getParameters()) {
       if (accumulatorName.empty()) {
         accumulatorName = parameter;
       } else if (indexVariableName.empty()) {
@@ -2354,7 +2350,6 @@ class Interpreter {
       }
     }
 
-    auto mappedList = std::make_shared<List>();
     size_t index = 0;
 
     for (const auto& item : list->elements) {
@@ -2926,21 +2921,6 @@ class Interpreter {
     return interpretValueInvocation(stream, frame, result);
   }
 
-  Value interpretSimpleValueType(std::shared_ptr<TokenStream> stream,
-                                 std::shared_ptr<CallStackFrame> frame) {
-    auto& value = stream->current().getValue();
-
-    if (std::holds_alternative<k_int>(value) ||
-        std::holds_alternative<double>(value) ||
-        std::holds_alternative<bool>(value)) {
-      return value;
-    } else if (std::holds_alternative<std::string>(value)) {
-      return interpolateString(stream, frame);
-    }
-
-    throw ConversionError(stream->current());
-  }
-
   Value interpretSelfInvocationTerm(std::shared_ptr<TokenStream> stream,
                                     std::shared_ptr<CallStackFrame> frame) {
     if (!frame->inObjectContext()) {
@@ -3030,7 +3010,6 @@ class Interpreter {
                                 std::shared_ptr<CallStackFrame> frame) {
     auto input = stream->current().getText();
     std::ostringstream sv;
-    std::string builder;
 
     for (size_t i = 0; i < input.length(); ++i) {
       char c = input[i];
@@ -3238,7 +3217,7 @@ class Interpreter {
   }
 
   void interpretAssignment(std::shared_ptr<TokenStream> stream,
-                           std::string& name, const SubTokenType& op,
+                           const std::string& name, const SubTokenType& op,
                            std::shared_ptr<CallStackFrame> frame,
                            bool isTemporary = false,
                            bool isInstanceVariable = false) {

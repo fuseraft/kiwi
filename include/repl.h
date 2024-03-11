@@ -45,7 +45,6 @@ Repl::~Repl() {}
 int Repl::run() {
   std::ostringstream input;
   int result = 0;
-  const std::string repl = "repl";
 
   std::cout << kiwi_name << " v" << kiwi_version << " REPL" << std::endl
             << std::endl

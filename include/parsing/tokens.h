@@ -11,20 +11,20 @@
 
 class Token {
  public:
-  static Token create(TokenType t, SubTokenType st, std::string file,
-                      std::string text, const Value& v, const int& lineNumber,
-                      const int& linePosition) {
+  static Token create(TokenType t, SubTokenType st, const std::string& file,
+                      const std::string& text, const Value& v,
+                      const int& lineNumber, const int& linePosition) {
     Token token(t, st, file, text, v, lineNumber, linePosition);
     return token;
   }
 
-  static Token create(TokenType t, SubTokenType st, std::string file,
-                      std::string text, const int& lineNumber,
+  static Token create(TokenType t, SubTokenType st, const std::string& file,
+                      const std::string& text, const int& lineNumber,
                       const int& linePosition) {
     return create(t, st, file, text, text, lineNumber, linePosition);
   }
 
-  static Token createBoolean(const std::string& file, std::string text,
+  static Token createBoolean(const std::string& file, const std::string& text,
                              const int& lineNumber, const int& linePosition) {
     bool value = text == Keywords.True;
     auto st = value ? SubTokenType::KW_True : SubTokenType::KW_False;
