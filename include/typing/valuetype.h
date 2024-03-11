@@ -73,15 +73,12 @@ struct LambdaRef {
   LambdaRef(const std::string& identifier) : identifier(identifier) {}
 };
 
-// Comparator for Value types
 struct ValueComparator {
   bool operator()(const Value& lhs, const Value& rhs) const {
-    // Compare based on the type index first
     if (lhs.index() != rhs.index()) {
       return lhs.index() < rhs.index();
     }
 
-    // If types are the same, compare based on values (if comparable)
     switch (lhs.index()) {
       case 0:  // k_int
         return *std::get_if<k_int>(&lhs) < *std::get_if<k_int>(&rhs);
@@ -92,9 +89,8 @@ struct ValueComparator {
       case 3:  // std::string
         return *std::get_if<std::string>(&lhs) <
                *std::get_if<std::string>(&rhs);
-      // Add more cases for other primitive types
       default:
-        // For non-primitive types, just compare the pointers (not meaningful, placeholder)
+        // TODO: hash compare
         return &lhs < &rhs;
     }
   }
@@ -103,6 +99,26 @@ struct ValueComparator {
 // Sorting function for List
 void sortList(List& list) {
   std::sort(list.elements.begin(), list.elements.end(), ValueComparator());
+}
+
+bool same(const Value& v1, const Value& v2) {
+  if (v1.index() != v2.index()) {
+    return false;
+  }
+
+  switch (v1.index()) {
+    case 0:  // k_int
+      return *std::get_if<k_int>(&v1) == *std::get_if<k_int>(&v2);
+    case 1:  // double
+      return *std::get_if<double>(&v1) == *std::get_if<double>(&v2);
+    case 2:  // bool
+      return *std::get_if<bool>(&v1) == *std::get_if<bool>(&v2);
+    case 3:  // std::string
+      return *std::get_if<std::string>(&v1) == *std::get_if<std::string>(&v2);
+    default:
+      // TODO: hash compare.
+      return false;
+  }
 }
 
 #endif
