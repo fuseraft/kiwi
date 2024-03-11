@@ -89,6 +89,7 @@ enum SubTokenType {
   Builtin_List_None,
   Builtin_List_Reduce,
   Builtin_List_Select,
+  Builtin_List_Sort,
   Builtin_List_ToH,
   Builtin_Math_Abs,
   Builtin_Math_Acos,

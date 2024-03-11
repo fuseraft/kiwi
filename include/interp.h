@@ -2191,6 +2191,20 @@ class Interpreter {
     return frame->returnValue;
   }
 
+  Value interpretListSort(std::shared_ptr<TokenStream> stream,
+                          const std::shared_ptr<List>& list) {
+    stream->next();  // Skip "("
+
+    if (stream->current().getType() == TokenType::CLOSE_PAREN) {
+      sortList(*list);
+      stream->next();
+    } else {
+      throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
+    }
+
+    return list;
+  }
+
   Value interpretLambdaNone(std::shared_ptr<TokenStream> stream,
                             std::shared_ptr<CallStackFrame> frame,
                             const std::shared_ptr<List>& list) {
@@ -2534,6 +2548,8 @@ class Interpreter {
       return interpretLambdaReduce(stream, frame, list);
     } else if (builtin == SubTokenType::Builtin_List_None) {
       return interpretLambdaNone(stream, frame, list);
+    } else if (builtin == SubTokenType::Builtin_List_Sort) {
+      return interpretListSort(stream, list);
     }
 
     throw UnknownBuiltinError(stream->current(), "");

@@ -275,14 +275,16 @@ struct {
   const std::string None = "none";
   const std::string Reduce = "reduce";
   const std::string Select = "select";
+  const std::string Sort = "sort";
   const std::string ToH = "to_h";
 
-  std::unordered_set<std::string> builtins = {Map, None, Reduce, Select, ToH};
+  std::unordered_set<std::string> builtins = {Map,    None, Reduce,
+                                              Select, Sort, ToH};
 
   std::unordered_set<SubTokenType> st_builtins = {
-      SubTokenType::Builtin_List_Map, SubTokenType::Builtin_List_None,
+      SubTokenType::Builtin_List_Map,    SubTokenType::Builtin_List_None,
       SubTokenType::Builtin_List_Reduce, SubTokenType::Builtin_List_Select,
-      SubTokenType::Builtin_List_ToH};
+      SubTokenType::Builtin_List_Sort,   SubTokenType::Builtin_List_ToH};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();

@@ -544,6 +544,8 @@ class Lexer {
       st = SubTokenType::Builtin_List_Reduce;
     } else if (builtin == ListBuiltins.Select) {
       st = SubTokenType::Builtin_List_Select;
+    } else if (builtin == ListBuiltins.Sort) {
+      st = SubTokenType::Builtin_List_Sort;
     } else if (builtin == ListBuiltins.ToH) {
       st = SubTokenType::Builtin_List_ToH;
     }
@@ -777,6 +779,8 @@ class Lexer {
       st = SubTokenType::Builtin_List_Map;
     } else if (builtin == ListBuiltins.Select) {
       st = SubTokenType::Builtin_List_Select;
+    } else if (builtin == ListBuiltins.Sort) {
+      st = SubTokenType::Builtin_List_Sort;
     } else if (builtin == ListBuiltins.Reduce) {
       st = SubTokenType::Builtin_List_Reduce;
     } else if (builtin == ListBuiltins.None) {
