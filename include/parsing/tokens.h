@@ -93,7 +93,7 @@ class TokenStream {
     return false;
   }
 
-  bool match(SubTokenType subType) {
+  bool matchsub(SubTokenType subType) {
     if (current().getSubType() == subType) {
       next();
       return true;
