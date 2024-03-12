@@ -24,6 +24,26 @@ module math
   end
 
   ##
+  Summary: Get a list of prime numbers up to a limit.
+  Params:
+    - _limit: The limit.
+  Returns: List
+  ##
+  def listprimes(_limit)
+    return __listprimes__(_limit)
+  end
+
+  ##
+  Summary: Get the n-th prime number.
+  Params:
+    - _n: The n-th prime number.
+  Returns: Integer
+  ##
+  def nthprime(_n)
+    return __nthprime__(_n)
+  end
+
+  ##
   Summary: Computes the sine of a number.
   Params:
     - _value: The number.
