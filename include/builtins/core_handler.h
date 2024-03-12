@@ -73,6 +73,8 @@ class CoreBuiltinHandler {
       return executeUpcase(term, value, args);
     } else if (builtin == SubTokenType::Builtin_Kiwi_Downcase) {
       return executeDowncase(term, value, args);
+    } else if (builtin == SubTokenType::Builtin_Kiwi_Empty) {
+      return executeEmpty(term, value, args);
     } else if (builtin == SubTokenType::Builtin_Kiwi_Keys) {
       return executeKeys(term, value, args);
     } else if (builtin == SubTokenType::Builtin_Kiwi_HasKey) {
@@ -467,6 +469,30 @@ class CoreBuiltinHandler {
 
     auto str = get_string(term, value);
     return String::toLowercase(str);
+  }
+
+  static bool executeEmpty(const Token& term, const Value& value,
+                           const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Empty);
+    }
+
+    if (std::holds_alternative<std::string>(value)) {
+      return std::get<std::string>(value).empty();
+    } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
+      return std::get<std::shared_ptr<List>>(value)->elements.empty();
+    } else if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
+      return std::get<std::shared_ptr<Hash>>(value)->keys.empty();
+    } else if (std::holds_alternative<k_int>(value)) {
+      return std::get<k_int>(value) == 0;
+    } else if (std::holds_alternative<double>(value)) {
+      return std::get<double>(value) == 0.0;
+    } else if (std::holds_alternative<bool>(value)) {
+      return !std::get<bool>(value);
+    }
+
+    throw ConversionError(
+        term, "Invalid type for builtin `" + KiwiBuiltins.Empty + "`.");
   }
 };
 

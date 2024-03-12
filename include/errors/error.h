@@ -66,6 +66,13 @@ class IndexError : public KiwiError {
       : KiwiError(token, "IndexError", message) {}
 };
 
+class EmptyListError : public KiwiError {
+ public:
+  EmptyListError(const Token& token,
+                 const std::string& message = "This list is empty.")
+      : KiwiError(token, "EmptyListError", message) {}
+};
+
 class HashKeyError : public KiwiError {
  public:
   HashKeyError(const Token& token, const std::string& key)

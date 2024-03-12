@@ -280,15 +280,20 @@ struct {
   const std::string Reduce = "reduce";
   const std::string Select = "select";
   const std::string Sort = "sort";
+  const std::string Sum = "sum";
+  const std::string Min = "min";
+  const std::string Max = "max";
   const std::string ToH = "to_h";
 
-  std::unordered_set<std::string> builtins = {Map,    None, Reduce,
-                                              Select, Sort, ToH};
+  std::unordered_set<std::string> builtins = {Map, None, Reduce, Select, Sort,
+                                              Sum, Min,  Max,    ToH};
 
   std::unordered_set<SubTokenType> st_builtins = {
       SubTokenType::Builtin_List_Map,    SubTokenType::Builtin_List_None,
       SubTokenType::Builtin_List_Reduce, SubTokenType::Builtin_List_Select,
-      SubTokenType::Builtin_List_Sort,   SubTokenType::Builtin_List_ToH};
+      SubTokenType::Builtin_List_Sort,   SubTokenType::Builtin_List_ToH,
+      SubTokenType::Builtin_List_Sum,    SubTokenType::Builtin_List_Min,
+      SubTokenType::Builtin_List_Max};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
@@ -430,6 +435,7 @@ struct {
   const std::string ToI = "to_i";
   const std::string ToS = "to_s";
   const std::string Type = "type";
+  const std::string Empty = "empty";
   const std::string Replace = "replace";
   const std::string Reverse = "reverse";
   const std::string Contains = "contains";
@@ -442,14 +448,15 @@ struct {
   const std::string HasKey = "has_key";
 
   std::unordered_set<std::string> builtins = {
-      Chars,     IsA,     Join,     Size,     ToD,        ToI,
-      ToS,       Replace, Reverse,  Contains, BeginsWith, EndsWith,
-      IndexOf,   Upcase,  Downcase, Keys,     Split,      LeftTrim,
-      RightTrim, Trim,    Type,     HasKey};
+      Chars,    Empty,     IsA,     Join,     Size,     ToD,
+      ToI,      ToS,       Replace, Reverse,  Contains, BeginsWith,
+      EndsWith, IndexOf,   Upcase,  Downcase, Keys,     Split,
+      LeftTrim, RightTrim, Trim,    Type,     HasKey};
 
   std::unordered_set<SubTokenType> st_builtins = {
       SubTokenType::Builtin_Kiwi_BeginsWith,
       SubTokenType::Builtin_Kiwi_BeginsWith,
+      SubTokenType::Builtin_Kiwi_Empty,
       SubTokenType::Builtin_Kiwi_Chars,
       SubTokenType::Builtin_Kiwi_Contains,
       SubTokenType::Builtin_Kiwi_Downcase,

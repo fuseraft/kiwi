@@ -927,12 +927,11 @@ class Interpreter {
                                         std::shared_ptr<CallStackFrame> frame) {
     std::vector<Value> args;
 
-    if (stream->current().getType() != TokenType::OPEN_PAREN) {
+    if (!stream->match(TokenType::OPEN_PAREN)) {
       throw SyntaxError(stream->current(),
                         "Expected open-parenthesis, `(`, near `" +
                             stream->current().getText() + "`.");
     }
-    stream->next();  // Skip "("
 
     bool closeParenthesisFound = false;
     while (stream->canRead() && !closeParenthesisFound &&
@@ -2293,6 +2292,57 @@ class Interpreter {
     return frame->returnValue;
   }
 
+  Value interpretListSum(std::shared_ptr<TokenStream> stream,
+                         const std::shared_ptr<List>& list) {
+    stream->next();  // Skip "("
+
+    if (stream->current().getType() == TokenType::CLOSE_PAREN) {
+      stream->next();
+      return sum_listvalue(list);
+    } else {
+      throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
+    }
+
+    return {};
+  }
+
+  Value interpretListMin(std::shared_ptr<TokenStream> stream,
+                         const std::shared_ptr<List>& list) {
+    stream->next();  // Skip "("
+
+    if (stream->current().getType() == TokenType::CLOSE_PAREN) {
+      stream->next();
+      if (list->elements.empty()) {
+        throw EmptyListError(stream->current());
+      }
+
+      return min_listvalue(list);
+    } else {
+      throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
+    }
+
+    return {};
+  }
+
+  Value interpretListMax(std::shared_ptr<TokenStream> stream,
+                         const std::shared_ptr<List>& list) {
+    stream->next();  // Skip "("
+
+    if (stream->current().getType() == TokenType::CLOSE_PAREN) {
+      stream->next();  // Skip ")"
+
+      if (list->elements.empty()) {
+        throw EmptyListError(stream->current());
+      }
+
+      return max_listvalue(list);
+    } else {
+      throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
+    }
+
+    return {};
+  }
+
   Value interpretListSort(std::shared_ptr<TokenStream> stream,
                           const std::shared_ptr<List>& list) {
     stream->next();  // Skip "("
@@ -2642,19 +2692,34 @@ class Interpreter {
 
     auto list = std::get<std::shared_ptr<List>>(value);
 
-    if (builtin == SubTokenType::Builtin_List_Select) {
-      return interpretLambdaSelect(stream, frame, list);
-    } else if (builtin == SubTokenType::Builtin_List_Map) {
-      return interpretLambdaMap(stream, frame, list);
-    } else if (builtin == SubTokenType::Builtin_List_Reduce) {
-      return interpretLambdaReduce(stream, frame, list);
-    } else if (builtin == SubTokenType::Builtin_List_None) {
-      return interpretLambdaNone(stream, frame, list);
-    } else if (builtin == SubTokenType::Builtin_List_Sort) {
-      return interpretListSort(stream, list);
-    }
+    switch (builtin) {
+      case SubTokenType::Builtin_List_Select:
+        return interpretLambdaSelect(stream, frame, list);
 
-    throw UnknownBuiltinError(stream->current(), "");
+      case SubTokenType::Builtin_List_Map:
+        return interpretLambdaMap(stream, frame, list);
+
+      case SubTokenType::Builtin_List_Reduce:
+        return interpretLambdaReduce(stream, frame, list);
+
+      case SubTokenType::Builtin_List_None:
+        return interpretLambdaNone(stream, frame, list);
+
+      case SubTokenType::Builtin_List_Sort:
+        return interpretListSort(stream, list);
+
+      case SubTokenType::Builtin_List_Min:
+        return interpretListMin(stream, list);
+
+      case SubTokenType::Builtin_List_Max:
+        return interpretListMax(stream, list);
+
+      case SubTokenType::Builtin_List_Sum:
+        return interpretListSum(stream, list);
+
+      default:
+        throw UnknownBuiltinError(stream->current(), "");
+    }
   }
 
   Value interpretDotNotation(std::shared_ptr<TokenStream> stream,

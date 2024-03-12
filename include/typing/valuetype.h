@@ -249,4 +249,44 @@ bool gt_value(const Value& lhs, const Value& rhs) {
   }
 }
 
+Value sum_listvalue(std::shared_ptr<List> list) {
+  double sum = 0;
+  bool hasDouble = false;
+
+  for (const auto& val : list->elements) {
+    if (std::holds_alternative<k_int>(val)) {
+      sum += std::get<k_int>(val);
+    } else if (std::holds_alternative<double>(val)) {
+      sum += std::get<double>(val);
+      hasDouble = true;
+    }
+  }
+
+  if (hasDouble) {
+    return sum;
+  } else {
+    return static_cast<k_int>(sum);
+  }
+}
+
+Value min_listvalue(std::shared_ptr<List> list) {
+  Value minValue = list->elements[0];
+  for (const auto& val : list->elements) {
+    if (lt_value(val, minValue)) {
+      minValue = val;
+    }
+  }
+  return minValue;
+}
+
+Value max_listvalue(std::shared_ptr<List> list) {
+  Value maxValue = list->elements[0];
+  for (const auto& val : list->elements) {
+    if (gt_value(val, maxValue)) {
+      maxValue = val;
+    }
+  }
+  return maxValue;
+}
+
 #endif
