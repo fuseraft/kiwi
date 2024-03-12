@@ -38,7 +38,6 @@ class TaskManager {
 int task_example() {
   TaskManager manager;
 
-  // Example task: a simple function that returns an integer after a delay
   auto taskFunc = []() -> Value {
     return Value(42);
   };
