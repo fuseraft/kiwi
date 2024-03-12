@@ -9,473 +9,440 @@
 
 class MathBuiltinHandler {
  public:
-  static Value execute(const Token& tokenTerm, const SubTokenType& builtin,
+  static Value execute(const Token& term, const SubTokenType& builtin,
                        const std::vector<Value>& args) {
     if (builtin == SubTokenType::Builtin_Math_Sin) {
-      return executeSin(tokenTerm, args);
+      return executeSin(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Tan) {
-      return executeTan(tokenTerm, args);
+      return executeTan(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Cos) {
-      return executeCos(tokenTerm, args);
+      return executeCos(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Asin) {
-      return executeAsin(tokenTerm, args);
+      return executeAsin(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Acos) {
-      return executeAcos(tokenTerm, args);
+      return executeAcos(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Atan) {
-      return executeAtan(tokenTerm, args);
+      return executeAtan(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Atan2) {
-      return executeAtan2(tokenTerm, args);
+      return executeAtan2(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Sinh) {
-      return executeSinh(tokenTerm, args);
+      return executeSinh(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Cosh) {
-      return executeCosh(tokenTerm, args);
+      return executeCosh(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Tanh) {
-      return executeTanh(tokenTerm, args);
+      return executeTanh(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Log) {
-      return executeLog(tokenTerm, args);
+      return executeLog(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Log2) {
-      return executeLog2(tokenTerm, args);
+      return executeLog2(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Log10) {
-      return executeLog10(tokenTerm, args);
+      return executeLog10(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Log1P) {
-      return executeLog1P(tokenTerm, args);
+      return executeLog1P(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Fmod) {
-      return executeFmod(tokenTerm, args);
+      return executeFmod(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Hypot) {
-      return executeHypot(tokenTerm, args);
+      return executeHypot(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_IsFinite) {
-      return executeIsFinite(tokenTerm, args);
+      return executeIsFinite(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_IsInf) {
-      return executeIsInf(tokenTerm, args);
+      return executeIsInf(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_IsNaN) {
-      return executeIsNaN(tokenTerm, args);
+      return executeIsNaN(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_IsNormal) {
-      return executeIsNormal(tokenTerm, args);
+      return executeIsNormal(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Sqrt) {
-      return executeSqrt(tokenTerm, args);
+      return executeSqrt(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Cbrt) {
-      return executeCbrt(tokenTerm, args);
+      return executeCbrt(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Abs) {
-      return executeAbs(tokenTerm, args);
+      return executeAbs(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Floor) {
-      return executeFloor(tokenTerm, args);
+      return executeFloor(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Ceil) {
-      return executeCeil(tokenTerm, args);
+      return executeCeil(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Round) {
-      return executeRound(tokenTerm, args);
+      return executeRound(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Trunc) {
-      return executeTrunc(tokenTerm, args);
+      return executeTrunc(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Remainder) {
-      return executeRemainder(tokenTerm, args);
+      return executeRemainder(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Exp) {
-      return executeExp(tokenTerm, args);
+      return executeExp(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_ExpM1) {
-      return executeExpM1(tokenTerm, args);
+      return executeExpM1(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Erf) {
-      return executeErf(tokenTerm, args);
+      return executeErf(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_ErfC) {
-      return executeErfC(tokenTerm, args);
+      return executeErfC(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_LGamma) {
-      return executeLGamma(tokenTerm, args);
+      return executeLGamma(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_TGamma) {
-      return executeTGamma(tokenTerm, args);
+      return executeTGamma(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_FMax) {
-      return executeFMax(tokenTerm, args);
+      return executeFMax(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_FMin) {
-      return executeFMin(tokenTerm, args);
+      return executeFMin(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_FDim) {
-      return executeFDim(tokenTerm, args);
+      return executeFDim(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_CopySign) {
-      return executeCopySign(tokenTerm, args);
+      return executeCopySign(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_NextAfter) {
-      return executeNextAfter(tokenTerm, args);
+      return executeNextAfter(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Pow) {
-      return executePow(tokenTerm, args);
+      return executePow(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Epsilon) {
-      return executeEpsilon(tokenTerm, args);
+      return executeEpsilon(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Random) {
-      return executeRandom(tokenTerm, args);
+      return executeRandom(term, args);
     }
 
-    throw UnknownBuiltinError(tokenTerm, "");
+    throw UnknownBuiltinError(term, "");
   }
 
  private:
-  static Value executeSin(const Token& tokenTerm,
-                          const std::vector<Value>& args) {
+  static Value executeSin(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Sin);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Sin);
     }
 
-    return MathImpl.do_sin(tokenTerm, args.at(0));
+    return MathImpl.do_sin(term, args.at(0));
   }
 
-  static Value executeCos(const Token& tokenTerm,
-                          const std::vector<Value>& args) {
+  static Value executeCos(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Cos);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Cos);
     }
 
-    return MathImpl.do_cos(tokenTerm, args.at(0));
+    return MathImpl.do_cos(term, args.at(0));
   }
 
-  static Value executeTan(const Token& tokenTerm,
-                          const std::vector<Value>& args) {
+  static Value executeTan(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Tan);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Tan);
     }
 
-    return MathImpl.do_tan(tokenTerm, args.at(0));
+    return MathImpl.do_tan(term, args.at(0));
   }
 
-  static Value executeAsin(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeAsin(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Asin);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Asin);
     }
 
-    return MathImpl.do_asin(tokenTerm, args.at(0));
+    return MathImpl.do_asin(term, args.at(0));
   }
 
-  static Value executeAcos(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeAcos(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Acos);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Acos);
     }
 
-    return MathImpl.do_acos(tokenTerm, args.at(0));
+    return MathImpl.do_acos(term, args.at(0));
   }
 
-  static Value executeAtan(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeAtan(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Atan);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Atan);
     }
 
-    return MathImpl.do_atan(tokenTerm, args.at(0));
+    return MathImpl.do_atan(term, args.at(0));
   }
 
-  static Value executeAtan2(const Token& tokenTerm,
-                            const std::vector<Value>& args) {
+  static Value executeAtan2(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Atan2);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Atan2);
     }
 
-    return MathImpl.do_atan2(tokenTerm, args.at(0), args.at(1));
+    return MathImpl.do_atan2(term, args.at(0), args.at(1));
   }
-  static Value executeSinh(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeSinh(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Sinh);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Sinh);
     }
 
-    return MathImpl.do_sinh(tokenTerm, args.at(0));
+    return MathImpl.do_sinh(term, args.at(0));
   }
 
-  static Value executeCosh(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeCosh(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Cosh);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Cosh);
     }
 
-    return MathImpl.do_cosh(tokenTerm, args.at(0));
+    return MathImpl.do_cosh(term, args.at(0));
   }
 
-  static Value executeTanh(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeTanh(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Tanh);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Tanh);
     }
 
-    return MathImpl.do_tanh(tokenTerm, args.at(0));
+    return MathImpl.do_tanh(term, args.at(0));
   }
 
-  static Value executeLog(const Token& tokenTerm,
-                          const std::vector<Value>& args) {
+  static Value executeLog(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Log);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Log);
     }
 
-    return MathImpl.do_log(tokenTerm, args.at(0));
+    return MathImpl.do_log(term, args.at(0));
   }
 
-  static Value executeLog2(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeLog2(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Log2);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Log2);
     }
 
-    return MathImpl.do_log2(tokenTerm, args.at(0));
+    return MathImpl.do_log2(term, args.at(0));
   }
 
-  static Value executeLog10(const Token& tokenTerm,
-                            const std::vector<Value>& args) {
+  static Value executeLog10(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Log10);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Log10);
     }
 
-    return MathImpl.do_log10(tokenTerm, args.at(0));
+    return MathImpl.do_log10(term, args.at(0));
   }
 
-  static Value executeLog1P(const Token& tokenTerm,
-                            const std::vector<Value>& args) {
+  static Value executeLog1P(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Log1P);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Log1P);
     }
 
-    return MathImpl.do_log1p(tokenTerm, args.at(0));
+    return MathImpl.do_log1p(term, args.at(0));
   }
 
-  static Value executeFmod(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeFmod(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Fmod);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Fmod);
     }
 
-    return MathImpl.do_fmod(tokenTerm, args.at(0), args.at(1));
+    return MathImpl.do_fmod(term, args.at(0), args.at(1));
   }
 
-  static Value executeHypot(const Token& tokenTerm,
-                            const std::vector<Value>& args) {
+  static Value executeHypot(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Hypot);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Hypot);
     }
 
-    return MathImpl.do_hypot(tokenTerm, args.at(0), args.at(1));
+    return MathImpl.do_hypot(term, args.at(0), args.at(1));
   }
 
-  static Value executeIsFinite(const Token& tokenTerm,
+  static Value executeIsFinite(const Token& term,
                                const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.IsFinite);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.IsFinite);
     }
 
-    return MathImpl.do_isfinite(tokenTerm, args.at(0));
+    return MathImpl.do_isfinite(term, args.at(0));
   }
 
-  static Value executeIsInf(const Token& tokenTerm,
-                            const std::vector<Value>& args) {
+  static Value executeIsInf(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.IsInf);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.IsInf);
     }
 
-    return MathImpl.do_isinf(tokenTerm, args.at(0));
+    return MathImpl.do_isinf(term, args.at(0));
   }
 
-  static Value executeIsNaN(const Token& tokenTerm,
-                            const std::vector<Value>& args) {
+  static Value executeIsNaN(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.IsNaN);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.IsNaN);
     }
 
-    return MathImpl.do_isnan(tokenTerm, args.at(0));
+    return MathImpl.do_isnan(term, args.at(0));
   }
 
-  static Value executeIsNormal(const Token& tokenTerm,
+  static Value executeIsNormal(const Token& term,
                                const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.IsNormal);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.IsNormal);
     }
 
-    return MathImpl.do_isnormal(tokenTerm, args.at(0));
+    return MathImpl.do_isnormal(term, args.at(0));
   }
 
-  static Value executeSqrt(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeSqrt(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Sqrt);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Sqrt);
     }
 
-    return MathImpl.do_sqrt(tokenTerm, args.at(0));
+    return MathImpl.do_sqrt(term, args.at(0));
   }
 
-  static Value executeCbrt(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeCbrt(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Cbrt);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Cbrt);
     }
 
-    return MathImpl.do_cbrt(tokenTerm, args.at(0));
+    return MathImpl.do_cbrt(term, args.at(0));
   }
 
-  static Value executeAbs(const Token& tokenTerm,
-                          const std::vector<Value>& args) {
+  static Value executeAbs(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Abs);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Abs);
     }
 
-    return MathImpl.do_abs(tokenTerm, args.at(0));
+    return MathImpl.do_abs(term, args.at(0));
   }
 
-  static Value executeFloor(const Token& tokenTerm,
-                            const std::vector<Value>& args) {
+  static Value executeFloor(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Floor);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Floor);
     }
 
-    return MathImpl.do_floor(tokenTerm, args.at(0));
+    return MathImpl.do_floor(term, args.at(0));
   }
 
-  static Value executeCeil(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeCeil(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Ceil);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Ceil);
     }
 
-    return MathImpl.do_ceil(tokenTerm, args.at(0));
+    return MathImpl.do_ceil(term, args.at(0));
   }
 
-  static Value executeTrunc(const Token& tokenTerm,
-                            const std::vector<Value>& args) {
+  static Value executeTrunc(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Trunc);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Trunc);
     }
 
-    return MathImpl.do_trunc(tokenTerm, args.at(0));
+    return MathImpl.do_trunc(term, args.at(0));
   }
 
-  static Value executeRound(const Token& tokenTerm,
-                            const std::vector<Value>& args) {
+  static Value executeRound(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Round);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Round);
     }
 
-    return MathImpl.do_round(tokenTerm, args.at(0));
+    return MathImpl.do_round(term, args.at(0));
   }
 
-  static Value executeRemainder(const Token& tokenTerm,
+  static Value executeRemainder(const Token& term,
                                 const std::vector<Value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Remainder);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Remainder);
     }
 
-    return MathImpl.do_remainder(tokenTerm, args.at(0), args.at(1));
+    return MathImpl.do_remainder(term, args.at(0), args.at(1));
   }
 
-  static Value executeExp(const Token& tokenTerm,
-                          const std::vector<Value>& args) {
+  static Value executeExp(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Remainder);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Remainder);
     }
 
-    return MathImpl.do_exp(tokenTerm, args.at(0));
+    return MathImpl.do_exp(term, args.at(0));
   }
 
-  static Value executeExpM1(const Token& tokenTerm,
-                            const std::vector<Value>& args) {
+  static Value executeExpM1(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.ExpM1);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.ExpM1);
     }
 
-    return MathImpl.do_expm1(tokenTerm, args.at(0));
+    return MathImpl.do_expm1(term, args.at(0));
   }
 
-  static Value executeErf(const Token& tokenTerm,
-                          const std::vector<Value>& args) {
+  static Value executeErf(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Erf);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Erf);
     }
 
-    return MathImpl.do_erf(tokenTerm, args.at(0));
+    return MathImpl.do_erf(term, args.at(0));
   }
 
-  static Value executeErfC(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeErfC(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.ErfC);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.ErfC);
     }
 
-    return MathImpl.do_erfc(tokenTerm, args.at(0));
+    return MathImpl.do_erfc(term, args.at(0));
   }
 
-  static Value executeLGamma(const Token& tokenTerm,
+  static Value executeLGamma(const Token& term,
                              const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.LGamma);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.LGamma);
     }
 
-    return MathImpl.do_lgamma(tokenTerm, args.at(0));
+    return MathImpl.do_lgamma(term, args.at(0));
   }
 
-  static Value executeTGamma(const Token& tokenTerm,
+  static Value executeTGamma(const Token& term,
                              const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.TGamma);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.TGamma);
     }
 
-    return MathImpl.do_tgamma(tokenTerm, args.at(0));
+    return MathImpl.do_tgamma(term, args.at(0));
   }
 
-  static Value executeFMax(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeFMax(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.FMax);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.FMax);
     }
 
-    return MathImpl.do_max(tokenTerm, args.at(0), args.at(1));
+    return MathImpl.do_max(term, args.at(0), args.at(1));
   }
 
-  static Value executeFMin(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeFMin(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.FMin);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.FMin);
     }
 
-    return MathImpl.do_min(tokenTerm, args.at(0), args.at(1));
+    return MathImpl.do_min(term, args.at(0), args.at(1));
   }
 
-  static Value executeFDim(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeFDim(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.FDim);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.FDim);
     }
 
-    return MathImpl.do_fdim(tokenTerm, args.at(0), args.at(1));
+    return MathImpl.do_fdim(term, args.at(0), args.at(1));
   }
 
-  static Value executeCopySign(const Token& tokenTerm,
+  static Value executeCopySign(const Token& term,
                                const std::vector<Value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.CopySign);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.CopySign);
     }
 
-    return MathImpl.do_copysign(tokenTerm, args.at(0), args.at(1));
+    return MathImpl.do_copysign(term, args.at(0), args.at(1));
   }
 
-  static Value executeNextAfter(const Token& tokenTerm,
+  static Value executeNextAfter(const Token& term,
                                 const std::vector<Value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.NextAfter);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.NextAfter);
     }
 
-    return MathImpl.do_nextafter(tokenTerm, args.at(0), args.at(1));
+    return MathImpl.do_nextafter(term, args.at(0), args.at(1));
   }
 
-  static Value executePow(const Token& tokenTerm,
-                          const std::vector<Value>& args) {
+  static Value executePow(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Pow);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Pow);
     }
 
-    return MathImpl.do_pow(tokenTerm, args.at(0), args.at(1));
+    return MathImpl.do_pow(term, args.at(0), args.at(1));
   }
 
-  static Value executeEpsilon(const Token& tokenTerm,
+  static Value executeEpsilon(const Token& term,
                               const std::vector<Value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Epsilon);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Epsilon);
     }
 
     return MathImpl.epsilon();
   }
 
-  static Value executeRandom(const Token& tokenTerm,
+  static Value executeRandom(const Token& term,
                              const std::vector<Value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, MathBuiltins.Random);
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Random);
     }
 
-    return MathImpl.do_random(tokenTerm, args.at(0), args.at(1));
+    return MathImpl.do_random(term, args.at(0), args.at(1));
   }
 };
 

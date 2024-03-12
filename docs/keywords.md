@@ -5,6 +5,8 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
 ## Table of Contents
 - [`abstract`](#abstract)
 - [`as`](#as)
+- [`async`](#async)
+- [`await`](#await)
 - [`break`](#break)
 - [`catch`](#catch)
 - [`class`](#class)
@@ -33,6 +35,7 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
 - [`private`](#private)
 - [`return`](#return)
 - [`static`](#static)
+- [`then`](#then)
 - [`this`](#this)
 - [`true`](#true)
 - [`try`](#try)
@@ -47,6 +50,16 @@ See [Abstract Classes](abstract_classes.md).
 The `as` keyword is used to specify an alias for a module.
 
 See [Modules](modules.md).
+
+## `async`
+The `async` keyword is used to define an asynchronous method.
+
+See [Concurrency](concurrency.md).
+
+## `await`
+The `await` keyword is used to retrieve the result of an asynchronous method invocation.
+
+See [Concurrency](concurrency.md).
 
 ## `break`
 The `break` keyword is used to exit a loop.
@@ -181,6 +194,11 @@ See [Methods](methods.md).
 The `static` keyword is used to declare a method with static access (can be accessed without instantiation).
 
 See [Classes](classes.md).
+
+## `then`
+The `then` keyword is used to specify code to execute after the completion of an asychronous method invocation.
+
+See [Concurrency](concurrency.md).
 
 ## `this`
 The `this` keyword is used for class member-access.

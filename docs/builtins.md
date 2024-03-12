@@ -4,7 +4,34 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
 
 Currently, Kiwi supports the following builtins:
 
-### `.chars()`
+## Table of Contents
+- [`begins_with(str)`](#begins_withstr)
+- [`chars()`](#chars)
+- [`contains(str)`](#containsstr)
+- [`downcase(str)`](#downcasestr)
+- [`ends_with(str)`](#ends_withstr)
+- [`index_of(str)`](#index_ofstr)
+- [`is_a(type_name)`](#is_atype_name)
+- [`join(str)`](#joinstr)
+- [`keys()`](#keys)
+- [`ltrim()`](#ltrim)
+- [`map(lambda)`](#maplambda)
+- [`reduce(accumulator, lambda)`](#reduceaccumulator-lambda)
+- [`replace(search, replacement)`](#replacesearch-replacement)
+- [`rtrim()`](#rtrim)
+- [`select(lambda)`](#selectlambda)
+- [`size()`](#size)
+- [`sort()`](#sort)
+- [`split(delim)`](#splitdelim)
+- [`to_d()`](#tod)
+- [`to_h()`](#toh)
+- [`to_i()`](#toi)
+- [`to_s()`](#tos)
+- [`trim()`](#trim)
+- [`type()`](#type)
+- [`upcase(str)`](#upcasestr)
+
+### `chars()`
 
 Converts a string into a list. Each character in the string becomes a new string in the list.
 
@@ -18,7 +45,7 @@ fruit = "Kiwi".chars()
 # fruit = ["K", "i", "w", "i"]
 ```
 
-### `.join(str)`
+### `join(str)`
 
 Joins a list into a string.
 
@@ -26,7 +53,7 @@ Joins a list into a string.
 println ["Hello", "World!"].join(" ") # prints: "Hello, World!"
 ```
 
-### `.split(delim)`
+### `split(delim)`
 
 Splits a string into a list by delimiter.
 
@@ -34,7 +61,7 @@ Splits a string into a list by delimiter.
 println "Hello World!".split(" ") # prints: ["Hello", "World!"]
 ```
 
-### `.size()`
+### `size()`
 
 Returns the size of a list or a string as an integer.
 
@@ -46,7 +73,7 @@ println string.size()
 println list.size()
 ```
 
-### `.ltrim()`
+### `ltrim()`
 
 Trims whitespace from the left-hand side of a string.
 
@@ -54,7 +81,7 @@ Trims whitespace from the left-hand side of a string.
 println "   Hello World!".ltrim() # prints: Hello World!
 ```
 
-### `.rtrim()`
+### `rtrim()`
 
 Trims whitespace from the right-hand side of a string.
 
@@ -62,7 +89,7 @@ Trims whitespace from the right-hand side of a string.
 println "Hello World!    ".rtrim() + " Testing!" # prints: Hello World! Testing!
 ```
 
-### `.rtrim()`
+### `rtrim()`
 
 Trims whitespace from both sides of a string.
 
@@ -70,7 +97,7 @@ Trims whitespace from both sides of a string.
 println "     Hello World!    ".trim() + " Testing!" # prints: Hello World! Testing!
 ```
 
-### `.type()`
+### `type()`
 
 Returns the type of the value as a string.
 
@@ -89,7 +116,7 @@ println instance.type() # prints: MyClass
 println "Kiwis are delicious!".type() # prints: String
 ```
 
-### `.to_d()`
+### `to_d()`
 
 Converts a numeric value to a double.
 
@@ -99,7 +126,7 @@ tau = pi * 2
 println tau # 6.28318
 ```
 
-### `.to_i()`
+### `to_i()`
 
 Converts a numeric value to an integer.
 
@@ -112,7 +139,7 @@ n = n.to_i()
 println n # 100
 ```
 
-### `.to_s()`
+### `to_s()`
 
 Converts a value to a string.
 
@@ -122,7 +149,7 @@ s = [n, n.to_s()]
 println s  # prints: [100, "100"]
 ```
 
-### `.to_h()`
+### `to_h()`
 
 Converts an object instance or a JSON string into a hash.
 
@@ -148,7 +175,7 @@ json = "{
 println json.to_h() # prints: {"boolean": true, "double": 3.14159, "integer": 100, "string": "Kiwi"}
 ```
 
-### `.index_of(str)`
+### `index_of(str)`
 
 Returns the index of a string.
 
@@ -156,7 +183,7 @@ Returns the index of a string.
 println "foobar".index_of("bar")  # prints: 3
 ```
 
-### `.begins_with(str)`
+### `begins_with(str)`
 
 Returns true if the string begins with a given string.
 
@@ -165,7 +192,7 @@ println "foobar".begins_with("foo")   # prints: true
 println "foobar".begins_with("food")  # prints: false
 ```
 
-### `.contains(str)`
+### `contains(str)`
 
 Returns true if the string contains a given string.
 
@@ -174,7 +201,7 @@ println "foobar".contains("bar")   # prints: true
 println "foobar".contains("bark")  # prints: false
 ```
 
-### `.ends_with(str)`
+### `ends_with(str)`
 
 Returns true if the string ends with a given string.
 
@@ -183,7 +210,7 @@ println "foobar".ends_with("bar")   # prints: true
 println "foobar".ends_with("bark")  # prints: false
 ```
 
-### `.upcase(str)`
+### `upcase(str)`
 
 Returns the uppercase value of a string.
 
@@ -191,7 +218,7 @@ Returns the uppercase value of a string.
 println "foobar".upcase()   # prints: FOOBAR
 ```
 
-### `.downcase(str)`
+### `downcase(str)`
 
 Returns the lowercase value of a string.
 
@@ -199,7 +226,7 @@ Returns the lowercase value of a string.
 println "FOOBAR".downcase()   # prints: foobar
 ```
 
-### `.replace(search, replacement)`
+### `replace(search, replacement)`
 
 Search for a string and replace with a given string.
 
@@ -207,7 +234,7 @@ Search for a string and replace with a given string.
 println "foobar".replace("foo", "food")   # prints: foodbar
 ```
 
-### `.is_a(type_name)`
+### `is_a(type_name)`
 
 Used for type-checking.
 
@@ -215,7 +242,7 @@ Used for type-checking.
 println "foobar".is_a(String) # prints: true
 ```
 
-### `.keys()`
+### `keys()`
 
 Returns a list of keys from a hash.
 
@@ -229,7 +256,16 @@ hash = {
 println hash.keys() # prints: ["key1", "key2", "key3"]
 ```
 
-### `.select(lambda)`
+### `sort()`
+
+Sorting a list.
+
+```
+list = ["kiwi", "mango", "guava"]
+println list.sort() # prints: ["guava", "kiwi", "mango"]
+```
+
+### `select(lambda)`
 
 Filter a list based on a condition.
 
@@ -239,7 +275,7 @@ println list.select(lambda (item) do return item.contains("i") end)
 # prints: ["kiwi"]
 ```
 
-### `.map(lambda)`
+### `map(lambda)`
 
 Transform a list based on a condition.
 
@@ -249,7 +285,7 @@ println list.map(lambda (item) do return { "fruit": item, "is_a_kiwi": item.down
 # prints: [{"fruit": kiwi, "is_a_kiwi": true}, {"fruit": mango, "is_a_kiwi": false}, {"fruit": banana, "is_a_kiwi": false}]
 ```
 
-### `.reduce(accumulator, lambda)`
+### `reduce(accumulator, lambda)`
 
 ```ruby
 numbers = [1, 2, 3, 4, 5]
