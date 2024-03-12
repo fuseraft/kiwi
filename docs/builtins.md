@@ -229,6 +229,15 @@ hash = {
 println hash.keys() # prints: ["key1", "key2", "key3"]
 ```
 
+### `.sort()`
+
+Sorting a list.
+
+```
+list = ["kiwi", "mango", "guava"]
+println list.sort() # prints: ["guava", "kiwi", "mango"]
+```
+
 ### `.select(lambda)`
 
 Filter a list based on a condition.
