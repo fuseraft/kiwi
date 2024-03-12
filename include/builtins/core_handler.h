@@ -1,6 +1,7 @@
 #ifndef KIWI_BUILTINS_COREHANDLER_H
 #define KIWI_BUILTINS_COREHANDLER_H
 
+#include <algorithm>
 #include <charconv>
 #include <sstream>
 #include <string>
@@ -64,6 +65,8 @@ class CoreBuiltinHandler {
       return executeEndsWith(term, value, args);
     } else if (builtin == SubTokenType::Builtin_Kiwi_Replace) {
       return executeReplace(term, value, args);
+    } else if (builtin == SubTokenType::Builtin_Kiwi_Reverse) {
+      return executeReverse(term, value, args);
     } else if (builtin == SubTokenType::Builtin_Kiwi_IndexOf) {
       return executeIndexOf(term, value, args);
     } else if (builtin == SubTokenType::Builtin_Kiwi_Upcase) {
@@ -410,6 +413,29 @@ class CoreBuiltinHandler {
     auto search = get_string(term, args.at(0));
     auto replacement = get_string(term, args.at(1));
     return String::replace(str, search, replacement);
+  }
+
+  static Value executeReverse(const Token& term, const Value& value,
+                              const std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Reverse);
+    }
+
+    if (std::holds_alternative<std::string>(value)) {
+      auto s = std::get<std::string>(value);
+      std::reverse(s.begin(), s.end());
+      return s;
+    } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
+      auto v = std::get<std::shared_ptr<List>>(value)->elements;
+      std::reverse(v.begin(), v.end());
+      auto list = std::make_shared<List>();
+      list->elements = v;
+      return list;
+    }
+
+    throw ConversionError(term,
+                          "Expected a `String` or a `List` for builtin `" +
+                              KiwiBuiltins.Reverse + "`.");
   }
 
   static int executeIndexOf(const Token& term, const Value& value,

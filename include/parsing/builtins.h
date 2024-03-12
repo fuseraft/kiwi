@@ -207,14 +207,17 @@ struct {
   const std::string Pow = "__pow__";
   const std::string Epsilon = "__eps__";
   const std::string Random = "__random__";
+  const std::string ListPrimes = "__listprimes__";
+  const std::string NthPrime = "__nthprime__";
 
   std::unordered_set<std::string> builtins = {
-      Sin,  Tan,   Asin,     Acos,      Atan,   Atan2,    Sinh,
-      Cosh, Tanh,  Cos,      Log,       Log2,   Log10,    Log1P,
-      Fmod, Hypot, IsFinite, IsInf,     IsNaN,  IsNormal, Sqrt,
-      Cbrt, Abs,   Floor,    Ceil,      Round,  Trunc,    Remainder,
-      Exp,  ExpM1, Erf,      ErfC,      LGamma, TGamma,   FMax,
-      FMin, FDim,  CopySign, NextAfter, Pow,    Epsilon,  Random};
+      Sin,        Tan,     Asin,     Acos,      Atan,   Atan2,    Sinh,
+      Cosh,       Tanh,    Cos,      Log,       Log2,   Log10,    Log1P,
+      Fmod,       Hypot,   IsFinite, IsInf,     IsNaN,  IsNormal, Sqrt,
+      Cbrt,       Abs,     Floor,    Ceil,      Round,  Trunc,    Remainder,
+      Exp,        ExpM1,   Erf,      ErfC,      LGamma, TGamma,   FMax,
+      FMin,       FDim,    CopySign, NextAfter, Pow,    Epsilon,  Random,
+      ListPrimes, NthPrime};
 
   std::unordered_set<SubTokenType> st_builtins = {
       SubTokenType::Builtin_Math_Abs,
@@ -259,7 +262,8 @@ struct {
       SubTokenType::Builtin_Math_Tanh,
       SubTokenType::Builtin_Math_TGamma,
       SubTokenType::Builtin_Math_Trunc,
-  };
+      SubTokenType::Builtin_Math_ListPrimes,
+      SubTokenType::Builtin_Math_NthPrime};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
@@ -427,6 +431,7 @@ struct {
   const std::string ToS = "to_s";
   const std::string Type = "type";
   const std::string Replace = "replace";
+  const std::string Reverse = "reverse";
   const std::string Contains = "contains";
   const std::string BeginsWith = "begins_with";
   const std::string EndsWith = "ends_with";
@@ -437,9 +442,10 @@ struct {
   const std::string HasKey = "has_key";
 
   std::unordered_set<std::string> builtins = {
-      Chars,   IsA,      Join,       Size,      ToD,     ToI,    ToS,
-      Replace, Contains, BeginsWith, EndsWith,  IndexOf, Upcase, Downcase,
-      Keys,    Split,    LeftTrim,   RightTrim, Trim,    Type,   HasKey};
+      Chars,     IsA,     Join,     Size,     ToD,        ToI,
+      ToS,       Replace, Reverse,  Contains, BeginsWith, EndsWith,
+      IndexOf,   Upcase,  Downcase, Keys,     Split,      LeftTrim,
+      RightTrim, Trim,    Type,     HasKey};
 
   std::unordered_set<SubTokenType> st_builtins = {
       SubTokenType::Builtin_Kiwi_BeginsWith,
@@ -455,6 +461,7 @@ struct {
       SubTokenType::Builtin_Kiwi_Keys,
       SubTokenType::Builtin_Kiwi_LeftTrim,
       SubTokenType::Builtin_Kiwi_Replace,
+      SubTokenType::Builtin_Kiwi_Reverse,
       SubTokenType::Builtin_Kiwi_RightTrim,
       SubTokenType::Builtin_Kiwi_Size,
       SubTokenType::Builtin_Kiwi_Split,

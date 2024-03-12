@@ -1681,9 +1681,9 @@ class Interpreter {
                        "A range stop value must be an integer.");
     }
 
-    int start = std::get<k_int>(startValue), stop = std::get<k_int>(stopValue);
-    int step = stop < start ? -1 : 1;
-    int i = start;
+    auto start = std::get<k_int>(startValue), stop = std::get<k_int>(stopValue);
+    auto step = stop < start ? -1 : 1;
+    auto i = start;
 
     auto list = std::make_shared<List>();
     for (; i != stop; i += step) {
