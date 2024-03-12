@@ -1,5 +1,5 @@
-#ifndef KIWI_BUILTINS_CONSOLE_H
-#define KIWI_BUILTINS_CONSOLE_H
+#ifndef KIWI_BUILTINS_CONCURRENCY_H
+#define KIWI_BUILTINS_CONCURRENCY_H
 
 #include <cstdlib>
 #include <string>

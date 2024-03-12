@@ -64,6 +64,42 @@ class Interpreter {
  private:
   bool preservingMainStackFrame = false;
 
+  k_int interpretAsyncMethodInvocation(
+      std::shared_ptr<CallStackFrame> codeFrame, Method& method) {
+    auto taskFunc = [this, codeFrame, method]() -> Value {
+      callStack.push(codeFrame);
+      streamStack.push(std::make_shared<TokenStream>(method.getCode()));
+
+      interpretStackFrame();
+
+      if (!callStack.empty()) {
+        return callStack.top()->returnValue;
+      }
+
+      return {};
+    };
+
+    return task.addTask(taskFunc);
+  }
+
+  Value interpretAwait(std::shared_ptr<TokenStream> stream,
+                       std::shared_ptr<CallStackFrame> frame) {
+    stream->next();  // Skip "await"
+
+    auto term = stream->current();
+    if (term.getType() != TokenType::IDENTIFIER) {
+      throw SyntaxError(term, "Expected identifier near `await`.");
+    }
+
+    auto identifier = term.getText();
+    auto taskId = interpretMethodInvocation(stream, frame, identifier, true);
+    if (!std::holds_alternative<k_int>(taskId)) {
+      throw ConversionError(term, "Expected a task.");
+    }
+
+    return task.getTaskResult(std::get<k_int>(taskId));
+  }
+
   int interpret(Lexer& lexer) {
     auto stream = std::make_shared<TokenStream>(lexer.getAllTokens());
     return interpret(stream);
@@ -108,6 +144,7 @@ class Interpreter {
         } else {
           ErrorHandler::handleError(e);
           if (!preservingMainStackFrame) {
+            while (task.hasActiveTasks()) {}
             exit(1);
           }
         }
@@ -489,6 +526,10 @@ class Interpreter {
       interpretConditional(stream, frame);
     } else if (Keywords.is_loop_keyword(keyword)) {
       interpretLoop(stream, frame);
+    } else if (keyword == SubTokenType::KW_Async) {
+      interpretAsyncMethodDefinition(stream, frame);
+    } else if (keyword == SubTokenType::KW_Await) {
+      interpretAwait(stream, frame);
     } else if (keyword == SubTokenType::KW_Method) {
       interpretMethodDefinition(stream, frame);
     } else if (keyword == SubTokenType::KW_Return) {
@@ -1182,9 +1223,52 @@ class Interpreter {
     interpretStackFrame();
   }
 
+  Value interpretThen(std::shared_ptr<TokenStream> stream,
+                      std::shared_ptr<CallStackFrame> frame, k_int taskId) {
+    stream->next();  // skip "then"
+    auto then = interpretLambda(stream, frame);
+    auto result = task.getTaskResult(taskId);
+
+    std::string taskResult, taskIdName;
+    auto hasIndexVariable = false;
+
+    if (then.hasParameters()) {
+      for (const auto& parameter : then.getParameters()) {
+        if (taskResult.empty()) {
+          taskResult = parameter;
+        } else if (taskIdName.empty()) {
+          taskIdName = parameter;
+          hasIndexVariable = true;
+        } else {
+          throw InvalidOperationError(stream->current(),
+                                      "Too many parameters in `then` lambda.");
+        }
+      }
+
+      frame->variables[taskResult] = result;
+      if (hasIndexVariable) {
+        frame->variables[taskIdName] = static_cast<int>(taskId);
+      }
+    }
+
+    auto loopStream = std::make_shared<TokenStream>(then.getCode());
+    callStack.push(buildSubFrame(frame, true));
+    streamStack.push(loopStream);
+    interpretStackFrame();
+
+    if (!callStack.empty()) {
+      auto value = callStack.top()->returnValue;
+      frame->clearFlag(FrameFlags::ReturnFlag);
+
+      return value;
+    }
+
+    return {};
+  }
+
   Value interpretMethodInvocation(std::shared_ptr<TokenStream> stream,
                                   std::shared_ptr<CallStackFrame> frame,
-                                  const std::string& name) {
+                                  const std::string& name, bool await = false) {
     if (stream->current().getType() != TokenType::OPEN_PAREN) {
       stream->next();  // Skip the name.
     }
@@ -1194,6 +1278,21 @@ class Interpreter {
     if (frame->inObjectContext()) {
       codeFrame->setObjectContext(frame->getObjectContext());
     }
+
+    if (method.isFlagSet(MethodFlags::Async)) {
+      auto taskId = interpretAsyncMethodInvocation(codeFrame, method);
+
+      if (!await && stream->current().getSubType() == SubTokenType::KW_Then) {
+        return interpretThen(stream, frame, taskId);
+      } else if (await &&
+                 stream->current().getSubType() != SubTokenType::KW_Then) {
+        return taskId;
+      }
+
+      throw SyntaxError(stream->current(),
+                        "Invalid syntax in asynchronous invocation.");
+    }
+
     callStack.push(codeFrame);
     streamStack.push(std::make_shared<TokenStream>(method.getCode()));
 
@@ -1321,8 +1420,22 @@ class Interpreter {
     return method;
   }
 
-  void interpretMethodDefinition(std::shared_ptr<TokenStream> stream,
-                                 std::shared_ptr<CallStackFrame> frame) {
+  void interpretAsyncMethodDefinition(std::shared_ptr<TokenStream> stream,
+                                      std::shared_ptr<CallStackFrame> frame) {
+    stream->next();  // Skip "async"
+
+    if (stream->current().getSubType() != SubTokenType::KW_Method) {
+      throw SyntaxError(stream->current(),
+                        "Expected method definition after `async`.");
+    }
+
+    auto method = interpretMethodDefinition(stream, frame);
+    method.setFlag(MethodFlags::Async);
+    methods[method.getName()] = method;
+  }
+
+  Method interpretMethodDefinition(std::shared_ptr<TokenStream> stream,
+                                   std::shared_ptr<CallStackFrame> frame) {
     auto method = interpretMethodDeclaration(stream, frame);
     auto name = method.getName();
     std::string moduleName;
@@ -1341,6 +1454,8 @@ class Interpreter {
 
     method.setName(name);
     methods[name] = method;
+
+    return method;
   }
 
   void interpretExit(std::shared_ptr<TokenStream> stream,
@@ -3224,12 +3339,23 @@ class Interpreter {
                            std::shared_ptr<CallStackFrame> frame,
                            bool isTemporary = false,
                            bool isInstanceVariable = false) {
-    if (stream->current().getType() == TokenType::LAMBDA) {
+    auto tt = stream->current().getType();
+
+    Value value;
+
+    if (tt == TokenType::LAMBDA) {
       interpretLambdaAssignment(stream, frame, name, op);
       return;
+    } else if (tt == TokenType::KEYWORD) {
+      if (stream->current().getSubType() == SubTokenType::KW_Await) {
+        value = interpretAwait(stream, frame);
+      } else {
+        throw SyntaxError(stream->current(),
+                          "Invalid syntax in assignment of `" + name + "`.");
+      }
+    } else {
+      value = interpretExpression(stream, frame);
     }
-
-    auto value = interpretExpression(stream, frame);
 
     if (op == SubTokenType::Ops_Assign) {
       if (!isTemporary && isInstanceVariable && frame->inObjectContext()) {

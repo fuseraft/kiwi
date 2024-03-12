@@ -12,41 +12,38 @@ class TaskManager {
   using TaskFunction = std::function<Value()>;
 
  private:
-  std::atomic<int> nextPromiseId;
-  std::unordered_map<int, std::future<Value>> tasks;
+  std::atomic<k_int> nextPromiseId;
+  std::unordered_map<k_int, std::future<Value>> tasks;
 
  public:
   TaskManager() : nextPromiseId(0) {}
 
-  int addTask(TaskFunction func) {
-    int id = nextPromiseId++;
+  k_int addTask(TaskFunction func) {
+    k_int id = nextPromiseId++;
     tasks[id] = std::async(std::launch::async, func);
     return id;
   }
 
-  Value getTaskResult(int id) {
+  Value getTaskResult(k_int id) {
     auto& task = tasks.at(id);
     return task.get();
   }
 
-  bool isTaskCompleted(int id) {
+  bool isTaskCompleted(k_int id) {
     auto& task = tasks.at(id);
     return task.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
   }
+
+  bool hasActiveTasks() {
+    for (auto& task : tasks) {
+      if (task.second.wait_for(std::chrono::seconds(0)) !=
+          std::future_status::ready) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 };
-
-int task_example() {
-  TaskManager manager;
-
-  auto taskFunc = []() -> Value {
-    return Value(42);
-  };
-
-  int promiseId = manager.addTask(taskFunc);
-
-  auto result = manager.getTaskResult(promiseId);
-
-  return 0;
-}
 
 #endif
