@@ -12,13 +12,13 @@ struct ConnectionInfo {
   std::string connectionString;
   bool hasConnection = false;
 
-  static ConnectionInfo build(const Token& tokenTerm, const Value& value,
+  static ConnectionInfo build(const Token& term, const Value& value,
                               const std::string& builtin) {
     ConnectionInfo conn;
     std::shared_ptr<Hash> hash;
 
     if (!std::holds_alternative<std::shared_ptr<Hash>>(value)) {
-      throw DbConnectionError(tokenTerm,
+      throw DbConnectionError(term,
                               "Expected a Hash with a `connection_string` key "
                               "in call to builtin `" +
                                   builtin + "`.");
@@ -27,13 +27,12 @@ struct ConnectionInfo {
     hash = std::get<std::shared_ptr<Hash>>(value);
 
     if (hash->hasKey("connection_string")) {
-      conn.connectionString =
-          get_string(tokenTerm, hash->get("connection_string"));
+      conn.connectionString = get_string(term, hash->get("connection_string"));
       conn.hasConnection = true;
     }
 
     if (!conn.hasConnection) {
-      throw DbConnectionError(tokenTerm,
+      throw DbConnectionError(term,
                               "Connection hash does not contain a "
                               "`connection_string` key in call to builtin `" +
                                   builtin + "`.");
@@ -41,7 +40,7 @@ struct ConnectionInfo {
 
     if (conn.connectionString.empty()) {
       throw DbConnectionError(
-          tokenTerm,
+          term,
           "Connection string is empty in call to builtin `" + builtin + "`.");
     }
 
@@ -51,76 +50,74 @@ struct ConnectionInfo {
 
 class OdbcBuiltinHandler {
  public:
-  static Value execute(const Token& tokenTerm, const std::string& builtin,
+  static Value execute(const Token& term, const std::string& builtin,
                        const std::vector<Value>& args) {
     try {
       if (builtin == OdbcBuiltins.Connect) {
-        return executeConnect(tokenTerm, args);
+        return executeConnect(term, args);
       } else if (builtin == OdbcBuiltins.Exec) {
-        return executeExec(tokenTerm, args);
+        return executeExec(term, args);
       } else if (builtin == OdbcBuiltins.ExecSp) {
-        return executeExecSp(tokenTerm, args);
+        return executeExecSp(term, args);
       } else if (builtin == OdbcBuiltins.IsConnected) {
-        return executeIsConnected(tokenTerm, args);
+        return executeIsConnected(term, args);
       } else if (builtin == OdbcBuiltins.InTransaction) {
-        return executeInTransaction(tokenTerm, args);
+        return executeInTransaction(term, args);
       } else if (builtin == OdbcBuiltins.BeginTransaction) {
-        return executeBeginTransaction(tokenTerm, args);
+        return executeBeginTransaction(term, args);
       } else if (builtin == OdbcBuiltins.CommitTransaction) {
-        return executeCommitTransaction(tokenTerm, args);
+        return executeCommitTransaction(term, args);
       } else if (builtin == OdbcBuiltins.RollbackTransaction) {
-        return executeRollbackTransaction(tokenTerm, args);
+        return executeRollbackTransaction(term, args);
       }
     } catch (const std::exception& e) {
-      throw DbError(tokenTerm, "ODBC handler error: " + std::string(e.what()));
+      throw DbError(term, "ODBC handler error: " + std::string(e.what()));
     }
 
-    throw UnknownBuiltinError(tokenTerm, builtin);
+    throw UnknownBuiltinError(term, builtin);
   }
 
  private:
-  static Value executeConnect(const Token& tokenTerm,
+  static Value executeConnect(const Token& term,
                               const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, OdbcBuiltins.Connect);
+      throw BuiltinUnexpectedArgumentError(term, OdbcBuiltins.Connect);
     }
 
     ConnectionInfo conn =
-        ConnectionInfo::build(tokenTerm, args.at(0), OdbcBuiltins.Connect);
+        ConnectionInfo::build(term, args.at(0), OdbcBuiltins.Connect);
 
     return OdbcConnection::getInstance(conn.connectionString).connect();
     ;
   }
 
-  static Value executeExec(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeExec(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, OdbcBuiltins.Exec);
+      throw BuiltinUnexpectedArgumentError(term, OdbcBuiltins.Exec);
     }
 
     ConnectionInfo conn =
-        ConnectionInfo::build(tokenTerm, args.at(0), OdbcBuiltins.Exec);
+        ConnectionInfo::build(term, args.at(0), OdbcBuiltins.Exec);
 
-    std::string sql = get_string(tokenTerm, args.at(1));
+    std::string sql = get_string(term, args.at(1));
     return OdbcConnection::getInstance(conn.connectionString).executeSql(sql);
   }
 
-  static Value executeExecSp(const Token& tokenTerm,
+  static Value executeExecSp(const Token& term,
                              const std::vector<Value>& args) {
     if (args.size() != 3) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, OdbcBuiltins.ExecSp);
+      throw BuiltinUnexpectedArgumentError(term, OdbcBuiltins.ExecSp);
     }
 
     ConnectionInfo conn =
-        ConnectionInfo::build(tokenTerm, args.at(0), OdbcBuiltins.ExecSp);
+        ConnectionInfo::build(term, args.at(0), OdbcBuiltins.ExecSp);
 
-    std::string spName = get_string(tokenTerm, args.at(1));
+    std::string spName = get_string(term, args.at(1));
 
     if (!std::holds_alternative<std::shared_ptr<List>>(args.at(2))) {
       throw DbError(
-          tokenTerm,
-          "Stored procedure parameters must be a List type in builtin `" +
-              OdbcBuiltins.ExecSp + "`.");
+          term, "Stored procedure parameters must be a List type in builtin `" +
+                    OdbcBuiltins.ExecSp + "`.");
     }
 
     return OdbcConnection::getInstance(conn.connectionString)
@@ -128,68 +125,66 @@ class OdbcBuiltinHandler {
                                 std::get<std::shared_ptr<List>>(args.at(2)));
   }
 
-  static Value executeIsConnected(const Token& tokenTerm,
+  static Value executeIsConnected(const Token& term,
                                   const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, OdbcBuiltins.IsConnected);
+      throw BuiltinUnexpectedArgumentError(term, OdbcBuiltins.IsConnected);
     }
 
     ConnectionInfo conn =
-        ConnectionInfo::build(tokenTerm, args.at(0), OdbcBuiltins.IsConnected);
+        ConnectionInfo::build(term, args.at(0), OdbcBuiltins.IsConnected);
 
     return OdbcConnection::getInstance(conn.connectionString).isConnected();
   }
 
-  static Value executeInTransaction(const Token& tokenTerm,
+  static Value executeInTransaction(const Token& term,
                                     const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm,
-                                           OdbcBuiltins.InTransaction);
+      throw BuiltinUnexpectedArgumentError(term, OdbcBuiltins.InTransaction);
     }
 
-    ConnectionInfo conn = ConnectionInfo::build(tokenTerm, args.at(0),
-                                                OdbcBuiltins.InTransaction);
+    ConnectionInfo conn =
+        ConnectionInfo::build(term, args.at(0), OdbcBuiltins.InTransaction);
 
     return OdbcConnection::getInstance(conn.connectionString).isInTransaction();
   }
 
-  static Value executeBeginTransaction(const Token& tokenTerm,
+  static Value executeBeginTransaction(const Token& term,
                                        const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm,
-                                           OdbcBuiltins.BeginTransaction);
+      throw BuiltinUnexpectedArgumentError(term, OdbcBuiltins.BeginTransaction);
     }
 
-    ConnectionInfo conn = ConnectionInfo::build(tokenTerm, args.at(0),
-                                                OdbcBuiltins.BeginTransaction);
+    ConnectionInfo conn =
+        ConnectionInfo::build(term, args.at(0), OdbcBuiltins.BeginTransaction);
 
     return OdbcConnection::getInstance(conn.connectionString)
         .beginTransaction();
   }
 
-  static Value executeCommitTransaction(const Token& tokenTerm,
+  static Value executeCommitTransaction(const Token& term,
                                         const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm,
+      throw BuiltinUnexpectedArgumentError(term,
                                            OdbcBuiltins.CommitTransaction);
     }
 
-    ConnectionInfo conn = ConnectionInfo::build(tokenTerm, args.at(0),
-                                                OdbcBuiltins.CommitTransaction);
+    ConnectionInfo conn =
+        ConnectionInfo::build(term, args.at(0), OdbcBuiltins.CommitTransaction);
 
     return OdbcConnection::getInstance(conn.connectionString)
         .commitTransaction();
   }
 
-  static Value executeRollbackTransaction(const Token& tokenTerm,
+  static Value executeRollbackTransaction(const Token& term,
                                           const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm,
+      throw BuiltinUnexpectedArgumentError(term,
                                            OdbcBuiltins.RollbackTransaction);
     }
 
     ConnectionInfo conn = ConnectionInfo::build(
-        tokenTerm, args.at(0), OdbcBuiltins.RollbackTransaction);
+        term, args.at(0), OdbcBuiltins.RollbackTransaction);
 
     return OdbcConnection::getInstance(conn.connectionString)
         .rollbackTransaction();

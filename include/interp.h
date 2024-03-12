@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <stack>
+#include "concurrency/task.h"
 #include "errors/error.h"
 #include "errors/handler.h"
 #include "errors/state.h"
@@ -29,8 +30,7 @@
 
 class Interpreter {
  public:
-  Interpreter(Logger& logger) : logger(logger) {}
-
+  Interpreter() {}
   ~Interpreter() {}
 
   void setKiwiArgs(const std::unordered_map<std::string, std::string>& args) {
@@ -62,19 +62,45 @@ class Interpreter {
   void preserveMainStackFrame() { preservingMainStackFrame = true; }
 
  private:
-  Logger& logger;
-  std::unordered_map<std::string, std::vector<std::string>> files;
-  std::unordered_map<std::string, Method> methods;
-  std::unordered_map<std::string, Module> modules;
-  std::unordered_map<std::string, Class> classes;
-  std::unordered_map<std::string, std::string> kiwiArgs;
-  std::stack<std::shared_ptr<CallStackFrame>> callStack;
-  std::stack<std::shared_ptr<TokenStream>> streamStack;
-  std::stack<std::string> moduleStack;
   bool preservingMainStackFrame = false;
 
+  k_int interpretAsyncMethodInvocation(
+      std::shared_ptr<CallStackFrame> codeFrame, Method& method) {
+    auto taskFunc = [this, codeFrame, method]() -> Value {
+      callStack.push(codeFrame);
+      streamStack.push(std::make_shared<TokenStream>(method.getCode()));
+
+      interpretStackFrame();
+
+      if (!callStack.empty()) {
+        return callStack.top()->returnValue;
+      }
+
+      return {};
+    };
+
+    return task.addTask(taskFunc);
+  }
+
+  Value interpretAwait(std::shared_ptr<TokenStream> stream,
+                       std::shared_ptr<CallStackFrame> frame) {
+    stream->next();  // Skip "await"
+
+    auto term = stream->current();
+    if (term.getType() != TokenType::IDENTIFIER) {
+      throw SyntaxError(term, "Expected identifier near `await`.");
+    }
+
+    auto identifier = term.getText();
+    auto taskId = interpretMethodInvocation(stream, frame, identifier, true);
+    if (!std::holds_alternative<k_int>(taskId)) {
+      throw ConversionError(term, "Expected a task.");
+    }
+
+    return task.getTaskResult(std::get<k_int>(taskId));
+  }
+
   int interpret(Lexer& lexer) {
-    files[lexer.getFile()] = lexer.getLines();
     auto stream = std::make_shared<TokenStream>(lexer.getAllTokens());
     return interpret(stream);
   }
@@ -84,8 +110,7 @@ class Interpreter {
       return 0;
     }
 
-    auto mainFrame = std::make_shared<CallStackFrame>();
-    callStack.push(mainFrame);
+    callStack.push(std::make_shared<CallStackFrame>());
     streamStack.push(stream);
 
     interpretStackFrame();
@@ -117,8 +142,9 @@ class Interpreter {
         if (frame->isFlagSet(FrameFlags::InTry)) {
           frame->setErrorState(e);
         } else {
-          ErrorHandler::handleError(e, files);
+          ErrorHandler::handleError(e);
           if (!preservingMainStackFrame) {
+            while (task.hasActiveTasks()) {}
             exit(1);
           }
         }
@@ -500,6 +526,10 @@ class Interpreter {
       interpretConditional(stream, frame);
     } else if (Keywords.is_loop_keyword(keyword)) {
       interpretLoop(stream, frame);
+    } else if (keyword == SubTokenType::KW_Async) {
+      interpretAsyncMethodDefinition(stream, frame);
+    } else if (keyword == SubTokenType::KW_Await) {
+      interpretAwait(stream, frame);
     } else if (keyword == SubTokenType::KW_Method) {
       interpretMethodDefinition(stream, frame);
     } else if (keyword == SubTokenType::KW_Return) {
@@ -759,11 +789,11 @@ class Interpreter {
     return false;
   }
 
-  bool hasModule(const std::string& name) {
+  bool hasModule(const std::string& name) const {
     return modules.find(name) != modules.end();
   }
 
-  bool hasClass(const std::string& name) {
+  bool hasClass(const std::string& name) const {
     return classes.find(name) != classes.end();
   }
 
@@ -784,7 +814,7 @@ class Interpreter {
   }
 
   bool hasVariable(std::shared_ptr<CallStackFrame> frame,
-                   const std::string& name) {
+                   const std::string& name) const {
     if (frame->variables.find(name) != frame->variables.end()) {
       return true;  // Found in the current frame
     }
@@ -1193,9 +1223,51 @@ class Interpreter {
     interpretStackFrame();
   }
 
+  Value interpretThen(std::shared_ptr<TokenStream> stream,
+                      std::shared_ptr<CallStackFrame> frame, k_int taskId) {
+    auto then = interpretLambda(stream, frame);
+    auto result = task.getTaskResult(taskId);
+
+    std::string taskResult, taskIdName;
+    auto hasIndexVariable = false;
+
+    if (then.hasParameters()) {
+      for (const auto& parameter : then.getParameters()) {
+        if (taskResult.empty()) {
+          taskResult = parameter;
+        } else if (taskIdName.empty()) {
+          taskIdName = parameter;
+          hasIndexVariable = true;
+        } else {
+          throw InvalidOperationError(stream->current(),
+                                      "Too many parameters in `then` lambda.");
+        }
+      }
+
+      frame->variables[taskResult] = result;
+      if (hasIndexVariable) {
+        frame->variables[taskIdName] = static_cast<int>(taskId);
+      }
+    }
+
+    auto loopStream = std::make_shared<TokenStream>(then.getCode());
+    callStack.push(buildSubFrame(frame, true));
+    streamStack.push(loopStream);
+    interpretStackFrame();
+
+    if (!callStack.empty()) {
+      auto value = callStack.top()->returnValue;
+      frame->clearFlag(FrameFlags::ReturnFlag);
+
+      return value;
+    }
+
+    return {};
+  }
+
   Value interpretMethodInvocation(std::shared_ptr<TokenStream> stream,
                                   std::shared_ptr<CallStackFrame> frame,
-                                  const std::string& name) {
+                                  const std::string& name, bool await = false) {
     if (stream->current().getType() != TokenType::OPEN_PAREN) {
       stream->next();  // Skip the name.
     }
@@ -1205,6 +1277,21 @@ class Interpreter {
     if (frame->inObjectContext()) {
       codeFrame->setObjectContext(frame->getObjectContext());
     }
+
+    if (method.isFlagSet(MethodFlags::Async)) {
+      auto taskId = interpretAsyncMethodInvocation(codeFrame, method);
+
+      if (!await && stream->current().getSubType() == SubTokenType::KW_Then) {
+        return interpretThen(stream, frame, taskId);
+      } else if (await &&
+                 stream->current().getSubType() != SubTokenType::KW_Then) {
+        return taskId;
+      }
+
+      throw SyntaxError(stream->current(),
+                        "Invalid syntax in asynchronous invocation.");
+    }
+
     callStack.push(codeFrame);
     streamStack.push(std::make_shared<TokenStream>(method.getCode()));
 
@@ -1332,8 +1419,22 @@ class Interpreter {
     return method;
   }
 
-  void interpretMethodDefinition(std::shared_ptr<TokenStream> stream,
-                                 std::shared_ptr<CallStackFrame> frame) {
+  void interpretAsyncMethodDefinition(std::shared_ptr<TokenStream> stream,
+                                      std::shared_ptr<CallStackFrame> frame) {
+    stream->next();  // Skip "async"
+
+    if (stream->current().getSubType() != SubTokenType::KW_Method) {
+      throw SyntaxError(stream->current(),
+                        "Expected method definition after `async`.");
+    }
+
+    auto method = interpretMethodDefinition(stream, frame);
+    method.setFlag(MethodFlags::Async);
+    methods[method.getName()] = method;
+  }
+
+  Method interpretMethodDefinition(std::shared_ptr<TokenStream> stream,
+                                   std::shared_ptr<CallStackFrame> frame) {
     auto method = interpretMethodDeclaration(stream, frame);
     auto name = method.getName();
     std::string moduleName;
@@ -1352,6 +1453,8 @@ class Interpreter {
 
     method.setName(name);
     methods[name] = method;
+
+    return method;
   }
 
   void interpretExit(std::shared_ptr<TokenStream> stream,
@@ -1837,8 +1940,7 @@ class Interpreter {
       }
 
       // inherit methods from base class.
-      auto baseClass = classes[baseClassName];
-      for (auto& pair : baseClass.getMethods()) {
+      for (auto& pair : classes[baseClassName].getMethods()) {
         clazz.addMethod(pair.second);
       }
     }
@@ -1987,7 +2089,6 @@ class Interpreter {
     }
 
     Lexer lexer(scriptPath, content);
-    files[scriptPath] = lexer.getLines();
     execute(frame, lexer.getTokenStream());
 
     // Check if a module was imported.
@@ -2143,13 +2244,19 @@ class Interpreter {
     auto value = interpretExpression(stream, frame);
 
     if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
-      std::cout << interpolateObject(stream, frame, value);
+      if (!SILENCE) {
+        std::cout << interpolateObject(stream, frame, value);
+      }
     } else {
-      std::cout << Serializer::serialize(value);
+      if (!SILENCE) {
+        std::cout << Serializer::serialize(value);
+      }
     }
 
     if (printNewLine) {
-      std::cout << std::endl;
+      if (!SILENCE) {
+        std::cout << std::endl;
+      }
     }
   }
 
@@ -2184,6 +2291,20 @@ class Interpreter {
     frame->returnValue =
         BuiltinInterpreter::execute(stream->current(), builtin, args, kiwiArgs);
     return frame->returnValue;
+  }
+
+  Value interpretListSort(std::shared_ptr<TokenStream> stream,
+                          const std::shared_ptr<List>& list) {
+    stream->next();  // Skip "("
+
+    if (stream->current().getType() == TokenType::CLOSE_PAREN) {
+      sortList(*list);
+      stream->next();
+    } else {
+      throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
+    }
+
+    return list;
   }
 
   Value interpretLambdaNone(std::shared_ptr<TokenStream> stream,
@@ -2529,6 +2650,8 @@ class Interpreter {
       return interpretLambdaReduce(stream, frame, list);
     } else if (builtin == SubTokenType::Builtin_List_None) {
       return interpretLambdaNone(stream, frame, list);
+    } else if (builtin == SubTokenType::Builtin_List_Sort) {
+      return interpretListSort(stream, list);
     }
 
     throw UnknownBuiltinError(stream->current(), "");
@@ -2588,9 +2711,9 @@ class Interpreter {
     auto args = interpretArguments(stream, frame);
 
     if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
-      auto object = std::get<std::shared_ptr<Object>>(value);
-      return interpretInstanceMethodInvocation(stream, frame, object, opText,
-                                               op, args);
+      return interpretInstanceMethodInvocation(
+          stream, frame, std::get<std::shared_ptr<Object>>(value), opText, op,
+          args);
     }
 
     return BuiltinInterpreter::execute(stream->current(), op, value, args);
@@ -2716,9 +2839,9 @@ class Interpreter {
       auto right = parseComparison(stream, frame);
 
       if (op == SubTokenType::Ops_Equal) {
-        left = std::visit(EqualityVisitor(stream->current()), left, right);
+        left = std::visit(EqualityVisitor(), left, right);
       } else if (op == SubTokenType::Ops_NotEqual) {
-        left = std::visit(InequalityVisitor(stream->current()), left, right);
+        left = std::visit(InequalityVisitor(), left, right);
       }
     }
     return left;
@@ -2739,15 +2862,13 @@ class Interpreter {
       auto right = parseBitshift(stream, frame);
 
       if (op == SubTokenType::Ops_LessThan) {
-        left = std::visit(LessThanVisitor(stream->current()), left, right);
+        left = std::visit(LessThanVisitor(), left, right);
       } else if (op == SubTokenType::Ops_LessThanOrEqual) {
-        left =
-            std::visit(LessThanOrEqualVisitor(stream->current()), left, right);
+        left = std::visit(LessThanOrEqualVisitor(), left, right);
       } else if (op == SubTokenType::Ops_GreaterThan) {
-        left = std::visit(GreaterThanVisitor(stream->current()), left, right);
+        left = std::visit(GreaterThanVisitor(), left, right);
       } else if (op == SubTokenType::Ops_GreaterThanOrEqual) {
-        left = std::visit(GreaterThanOrEqualVisitor(stream->current()), left,
-                          right);
+        left = std::visit(GreaterThanOrEqualVisitor(), left, right);
       }
     }
 
@@ -3217,12 +3338,23 @@ class Interpreter {
                            std::shared_ptr<CallStackFrame> frame,
                            bool isTemporary = false,
                            bool isInstanceVariable = false) {
-    if (stream->current().getType() == TokenType::LAMBDA) {
+    auto tt = stream->current().getType();
+
+    Value value;
+
+    if (tt == TokenType::LAMBDA) {
       interpretLambdaAssignment(stream, frame, name, op);
       return;
+    } else if (tt == TokenType::KEYWORD) {
+      if (stream->current().getSubType() == SubTokenType::KW_Await) {
+        value = interpretAwait(stream, frame);
+      } else {
+        throw SyntaxError(stream->current(),
+                          "Invalid syntax in assignment of `" + name + "`.");
+      }
+    } else {
+      value = interpretExpression(stream, frame);
     }
-
-    auto value = interpretExpression(stream, frame);
 
     if (op == SubTokenType::Ops_Assign) {
       if (!isTemporary && isInstanceVariable && frame->inObjectContext()) {
