@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <stack>
+#include "concurrency/task.h"
 #include "errors/error.h"
 #include "errors/handler.h"
 #include "errors/state.h"
@@ -29,8 +30,7 @@
 
 class Interpreter {
  public:
-  Interpreter(Logger& logger) : logger(logger) {}
-
+  Interpreter() {}
   ~Interpreter() {}
 
   void setKiwiArgs(const std::unordered_map<std::string, std::string>& args) {
@@ -62,14 +62,6 @@ class Interpreter {
   void preserveMainStackFrame() { preservingMainStackFrame = true; }
 
  private:
-  Logger& logger;
-  std::unordered_map<std::string, Method> methods;
-  std::unordered_map<std::string, Module> modules;
-  std::unordered_map<std::string, Class> classes;
-  std::unordered_map<std::string, std::string> kiwiArgs;
-  std::stack<std::shared_ptr<CallStackFrame>> callStack;
-  std::stack<std::shared_ptr<TokenStream>> streamStack;
-  std::stack<std::string> moduleStack;
   bool preservingMainStackFrame = false;
 
   int interpret(Lexer& lexer) {
@@ -82,8 +74,7 @@ class Interpreter {
       return 0;
     }
 
-    auto mainFrame = std::make_shared<CallStackFrame>();
-    callStack.push(mainFrame);
+    callStack.push(std::make_shared<CallStackFrame>());
     streamStack.push(stream);
 
     interpretStackFrame();
