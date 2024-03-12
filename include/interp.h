@@ -291,11 +291,10 @@ class Interpreter {
 
     interpretMethodParameters(stream, frame, lambda);
 
-    if (stream->current().getSubType() != SubTokenType::KW_Do) {
+    if (!stream->matchsub(SubTokenType::KW_Do)) {
       throw SyntaxError(stream->current(),
                         "Expected `do` in lambda expression.");
     }
-    stream->next();  // Skip "do"
 
     for (const auto& t : InterpHelper::collectBodyTokens(stream)) {
       lambda.addToken(t);
@@ -395,19 +394,16 @@ class Interpreter {
       }
     }
 
-    if (stream->current().getSubType() != SubTokenType::KW_In) {
+    if (!stream->matchsub(SubTokenType::KW_In)) {
       throw SyntaxError(stream->current(),
                         "Expected 'in' after loop variables.");
     }
 
-    stream->next();  // Skip "in"
-
     auto collectionValue = interpretExpression(stream, frame);
 
-    if (stream->current().getSubType() != SubTokenType::KW_Do) {
+    if (!stream->matchsub(SubTokenType::KW_Do)) {
       throw SyntaxError(stream->current(), "Expected `do` in `for` loop.");
     }
-    stream->next();
 
     if (std::holds_alternative<std::shared_ptr<List>>(collectionValue)) {
       interpretListLoop(stream, frame, collectionValue, hasIndexVariable,
@@ -634,15 +630,8 @@ class Interpreter {
       if (stream->current().getType() == TokenType::DOT) {
         v = interpretDotNotation(stream, frame, v);
       } else if (stream->current().getType() == TokenType::OPEN_BRACKET) {
-        if (!InterpHelper::isSliceAssignmentExpression(stream)) {
-          throw SyntaxError(stream->current(),
-                            "Invalid slice-assignment expression.");
-        }
-
         auto slice = interpretSliceIndex(stream, frame, v);
-        auto list = std::get<std::shared_ptr<List>>(v);
-
-        v = InterpHelper::interpretListSlice(stream, slice, list);
+        v = interpretSlice(stream, v, slice);
       }
     }
     return v;
@@ -927,12 +916,11 @@ class Interpreter {
                                         std::shared_ptr<CallStackFrame> frame) {
     std::vector<Value> args;
 
-    if (stream->current().getType() != TokenType::OPEN_PAREN) {
+    if (!stream->match(TokenType::OPEN_PAREN)) {
       throw SyntaxError(stream->current(),
                         "Expected open-parenthesis, `(`, near `" +
                             stream->current().getText() + "`.");
     }
-    stream->next();  // Skip "("
 
     bool closeParenthesisFound = false;
     while (stream->canRead() && !closeParenthesisFound &&
@@ -990,12 +978,11 @@ class Interpreter {
   std::vector<std::string> collectMethodParameters(
       std::shared_ptr<TokenStream> stream,
       std::shared_ptr<CallStackFrame> frame, Method& method) {
-    if (stream->current().getType() != TokenType::OPEN_PAREN) {
+    if (!stream->match(TokenType::OPEN_PAREN)) {
       throw SyntaxError(
           stream->current(),
           "Expected open-parenthesis, `(`, in method parameter set.");
     }
-    stream->next();  // Skip "("
 
     // Interpret parameters.
     auto parameters = method.getParameters();
@@ -1307,12 +1294,11 @@ class Interpreter {
   std::vector<Parameter> getParameterSet(
       std::shared_ptr<TokenStream> stream,
       std::shared_ptr<CallStackFrame> frame) {
-    if (stream->current().getType() != TokenType::OPEN_PAREN) {
+    if (!stream->match(TokenType::OPEN_PAREN)) {
       throw SyntaxError(
           stream->current(),
           "Expected open-parenthesis, `(`, in parameter set expression.");
     }
-    stream->next();  // Skip "("
 
     std::unordered_set<std::string> paramNames;
     std::vector<Parameter> params;
@@ -1347,12 +1333,11 @@ class Interpreter {
       stream->next();
     }
 
-    if (stream->current().getType() != TokenType::CLOSE_PAREN) {
+    if (!stream->match(TokenType::CLOSE_PAREN)) {
       throw SyntaxError(
           stream->current(),
           "Expected close-parenthesis, `)`, in parameter set expression.");
     }
-    stream->next();  // Skip ")"
 
     return params;
   }
@@ -1493,21 +1478,22 @@ class Interpreter {
   SliceIndex interpretSliceIndex(std::shared_ptr<TokenStream> stream,
                                  std::shared_ptr<CallStackFrame> frame,
                                  Value& listValue) {
-    if (stream->current().getType() != TokenType::OPEN_BRACKET) {
+    if (!stream->match(TokenType::OPEN_BRACKET)) {
       throw SyntaxError(stream->current(),
                         "Expected open-bracket, `[`, for list access.");
-    }
-    stream->next();  // Skip "["
-
-    if (!std::holds_alternative<std::shared_ptr<List>>(listValue)) {
-      throw InvalidOperationError(
-          stream->current(), "Expected a list type for list access operation.");
     }
 
     SliceIndex slice;
     slice.indexOrStart = 0;
-    slice.stopIndex = static_cast<int>(
-        std::get<std::shared_ptr<List>>(listValue)->elements.size());
+
+    if (std::holds_alternative<std::shared_ptr<List>>(listValue)) {
+      slice.stopIndex = static_cast<int>(
+          std::get<std::shared_ptr<List>>(listValue)->elements.size());
+    } else if (std::holds_alternative<std::string>(listValue)) {
+      slice.stopIndex =
+          static_cast<int>(std::get<std::string>(listValue).size());
+    }
+
     slice.stepValue = 1;
     slice.isSlice = false;
 
@@ -1547,30 +1533,27 @@ class Interpreter {
       slice.indexOrStart = interpretExpression(stream, frame);
     }
 
-    if (stream->current().getType() != TokenType::CLOSE_BRACKET) {
+    if (!stream->match(TokenType::CLOSE_BRACKET)) {
       throw SyntaxError(stream->current(),
                         "Expected close-bracket, `]`, for list access.");
     }
-    stream->next();
 
     return slice;
   }
 
   Value interpretKeyOrIndex(std::shared_ptr<TokenStream> stream,
                             std::shared_ptr<CallStackFrame> frame) {
-    if (stream->current().getType() != TokenType::OPEN_BRACKET) {
+    if (!stream->match(TokenType::OPEN_BRACKET)) {
       throw SyntaxError(stream->current(),
                         "Expected open-bracket, `[`, in key or index access.");
     }
-    stream->next();  // Skip "["
 
     auto output = interpretExpression(stream, frame);
 
-    if (stream->current().getType() != TokenType::CLOSE_BRACKET) {
+    if (!stream->match(TokenType::CLOSE_BRACKET)) {
       throw SyntaxError(stream->current(),
                         "Expected close-bracket, `]`, in key or index access.");
     }
-    stream->next();  // Skip "]"
 
     return output;
   }
@@ -1611,6 +1594,40 @@ class Interpreter {
     return hash->get(key);
   }
 
+  Value interpretSlice(std::shared_ptr<TokenStream> stream, Value& value,
+                       SliceIndex& slice) {
+    if (std::holds_alternative<std::shared_ptr<List>>(value)) {
+      auto list = std::get<std::shared_ptr<List>>(value);
+      return InterpHelper::interpretListSlice(stream, slice, list);
+    } else if (std::holds_alternative<std::string>(value)) {
+      auto string = std::get<std::string>(value);
+      auto list = std::make_shared<List>();
+
+      for (const char& c : string) {
+        list->elements.push_back(std::string(1, c));
+      }
+
+      auto sliced = InterpHelper::interpretListSlice(stream, slice, list);
+      std::ostringstream sv;
+
+      if (std::holds_alternative<std::shared_ptr<List>>(sliced)) {
+        auto slicedlist = std::get<std::shared_ptr<List>>(sliced);
+        for (auto it = slicedlist->elements.begin();
+             it != slicedlist->elements.end(); ++it) {
+          sv << Serializer::serialize(*it);
+        }
+      } else {
+        sv << Serializer::serialize(sliced);
+      }
+
+      return sv.str();
+    }
+
+    throw ConversionError(
+        stream->current(),
+        "Expected a `List` or a `String` for slice operation.");
+  }
+
   Value interpretSlice(std::shared_ptr<TokenStream> stream,
                        std::shared_ptr<CallStackFrame> frame,
                        const std::string& name) {
@@ -1619,15 +1636,14 @@ class Interpreter {
       return interpretHashElementAccess(stream, frame, value);
     }
 
-    if (!std::holds_alternative<std::shared_ptr<List>>(value)) {
-      throw InvalidOperationError(stream->current(),
-                                  "`" + name + "` is not a list.");
+    if (!std::holds_alternative<std::shared_ptr<List>>(value) &&
+        !std::holds_alternative<std::string>(value)) {
+      throw InvalidOperationError(
+          stream->current(), "`" + name + "` is not a `List` or a `String`.");
     }
 
     auto slice = interpretSliceIndex(stream, frame, value);
-    auto list = std::get<std::shared_ptr<List>>(value);
-
-    return InterpHelper::interpretListSlice(stream, slice, list);
+    return interpretSlice(stream, value, slice);
   }
 
   void interpretAppendToList(std::shared_ptr<TokenStream> stream,
@@ -1656,20 +1672,17 @@ class Interpreter {
 
     auto startValue = interpretExpression(stream, frame);
 
-    if (stream->current().getType() != TokenType::RANGE) {
+    if (!stream->match(TokenType::RANGE)) {
       throw RangeError(stream->current(),
                        "Expected range separator, `..`, in range expression.");
     }
 
-    stream->next();  // Skip the ".."
-
     auto stopValue = interpretExpression(stream, frame);
 
-    if (stream->current().getType() != TokenType::CLOSE_BRACKET) {
+    if (!stream->match(TokenType::CLOSE_BRACKET)) {
       throw RangeError(stream->current(),
                        "Expected close-bracket, `]`, in range expression.");
     }
-    stream->next();  // Skip the "]"
 
     if (!std::holds_alternative<k_int>(startValue)) {
       throw RangeError(stream->current(),
@@ -1681,9 +1694,9 @@ class Interpreter {
                        "A range stop value must be an integer.");
     }
 
-    int start = std::get<k_int>(startValue), stop = std::get<k_int>(stopValue);
-    int step = stop < start ? -1 : 1;
-    int i = start;
+    auto start = std::get<k_int>(startValue), stop = std::get<k_int>(stopValue);
+    auto step = stop < start ? -1 : 1;
+    auto i = start;
 
     auto list = std::make_shared<List>();
     for (; i != stop; i += step) {
@@ -1768,14 +1781,12 @@ class Interpreter {
 
   void interpretConditional(std::shared_ptr<TokenStream> stream,
                             std::shared_ptr<CallStackFrame> frame) {
-    if (stream->current().getSubType() != SubTokenType::KW_If) {
+    if (!stream->matchsub(SubTokenType::KW_If)) {
       throw SyntaxError(stream->current(),
                         "Invalid conditional. Expected `" + Keywords.If +
                             "` keyword, instead got: `" +
                             stream->current().getText() + "`");
     }
-
-    stream->next();  // Skip "if"
 
     // Eagerly evaluate the If conditions.
     auto value = interpretExpression(stream, frame);
@@ -1887,11 +1898,10 @@ class Interpreter {
     }
 
     stream->next();  // Skip "this"
-    if (stream->current().getType() != TokenType::DOT) {
+    if (!stream->match(TokenType::DOT)) {
       throw SyntaxError(stream->current(),
                         "Invalid syntax near keyword `this`.");
     }
-    stream->next();  // Skip "."
 
     Value value;
 
@@ -2293,6 +2303,57 @@ class Interpreter {
     return frame->returnValue;
   }
 
+  Value interpretListSum(std::shared_ptr<TokenStream> stream,
+                         const std::shared_ptr<List>& list) {
+    stream->next();  // Skip "("
+
+    if (stream->current().getType() == TokenType::CLOSE_PAREN) {
+      stream->next();
+      return sum_listvalue(list);
+    } else {
+      throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
+    }
+
+    return {};
+  }
+
+  Value interpretListMin(std::shared_ptr<TokenStream> stream,
+                         const std::shared_ptr<List>& list) {
+    stream->next();  // Skip "("
+
+    if (stream->current().getType() == TokenType::CLOSE_PAREN) {
+      stream->next();
+      if (list->elements.empty()) {
+        throw EmptyListError(stream->current());
+      }
+
+      return min_listvalue(list);
+    } else {
+      throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
+    }
+
+    return {};
+  }
+
+  Value interpretListMax(std::shared_ptr<TokenStream> stream,
+                         const std::shared_ptr<List>& list) {
+    stream->next();  // Skip "("
+
+    if (stream->current().getType() == TokenType::CLOSE_PAREN) {
+      stream->next();  // Skip ")"
+
+      if (list->elements.empty()) {
+        throw EmptyListError(stream->current());
+      }
+
+      return max_listvalue(list);
+    } else {
+      throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
+    }
+
+    return {};
+  }
+
   Value interpretListSort(std::shared_ptr<TokenStream> stream,
                           const std::shared_ptr<List>& list) {
     stream->next();  // Skip "("
@@ -2553,38 +2614,34 @@ class Interpreter {
   Value interpretStringToHash(std::shared_ptr<TokenStream> stream,
                               std::shared_ptr<CallStackFrame> frame,
                               const std::string& input) {
-    if (stream->current().getType() != TokenType::OPEN_PAREN) {
+    if (!stream->match(TokenType::OPEN_PAREN)) {
       throw SyntaxError(stream->current(),
                         "Expected open-parenthesis, `(`, in builtin `" +
                             ListBuiltins.ToH + "`.");
     }
-    stream->next();  // Skip "("
 
-    if (stream->current().getType() != TokenType::CLOSE_PAREN) {
+    if (!stream->match(TokenType::CLOSE_PAREN)) {
       throw SyntaxError(stream->current(),
                         "Expected close-parenthesis, `)`, in builtin `" +
                             ListBuiltins.ToH + "`.");
     }
-    stream->next();
 
     return interpolateString(stream, frame, input);
   }
 
   Value interpretObjectToHash(std::shared_ptr<TokenStream> stream,
                               const std::shared_ptr<Object>& object) {
-    if (stream->current().getType() != TokenType::OPEN_PAREN) {
+    if (!stream->match(TokenType::OPEN_PAREN)) {
       throw SyntaxError(stream->current(),
                         "Expected open-parenthesis, `(`, in builtin `" +
                             ListBuiltins.ToH + "`.");
     }
-    stream->next();  // Skip "("
 
-    if (stream->current().getType() != TokenType::CLOSE_PAREN) {
+    if (!stream->match(TokenType::CLOSE_PAREN)) {
       throw SyntaxError(stream->current(),
                         "Expected close-parenthesis, `)`, in builtin `" +
                             ListBuiltins.ToH + "`.");
     }
-    stream->next();
 
     auto hash = std::make_shared<Hash>();
     auto clazz = classes[object->className];
@@ -2642,19 +2699,34 @@ class Interpreter {
 
     auto list = std::get<std::shared_ptr<List>>(value);
 
-    if (builtin == SubTokenType::Builtin_List_Select) {
-      return interpretLambdaSelect(stream, frame, list);
-    } else if (builtin == SubTokenType::Builtin_List_Map) {
-      return interpretLambdaMap(stream, frame, list);
-    } else if (builtin == SubTokenType::Builtin_List_Reduce) {
-      return interpretLambdaReduce(stream, frame, list);
-    } else if (builtin == SubTokenType::Builtin_List_None) {
-      return interpretLambdaNone(stream, frame, list);
-    } else if (builtin == SubTokenType::Builtin_List_Sort) {
-      return interpretListSort(stream, list);
-    }
+    switch (builtin) {
+      case SubTokenType::Builtin_List_Select:
+        return interpretLambdaSelect(stream, frame, list);
 
-    throw UnknownBuiltinError(stream->current(), "");
+      case SubTokenType::Builtin_List_Map:
+        return interpretLambdaMap(stream, frame, list);
+
+      case SubTokenType::Builtin_List_Reduce:
+        return interpretLambdaReduce(stream, frame, list);
+
+      case SubTokenType::Builtin_List_None:
+        return interpretLambdaNone(stream, frame, list);
+
+      case SubTokenType::Builtin_List_Sort:
+        return interpretListSort(stream, list);
+
+      case SubTokenType::Builtin_List_Min:
+        return interpretListMin(stream, list);
+
+      case SubTokenType::Builtin_List_Max:
+        return interpretListMax(stream, list);
+
+      case SubTokenType::Builtin_List_Sum:
+        return interpretListSum(stream, list);
+
+      default:
+        throw UnknownBuiltinError(stream->current(), "");
+    }
   }
 
   Value interpretDotNotation(std::shared_ptr<TokenStream> stream,
@@ -2728,11 +2800,10 @@ class Interpreter {
 
       auto trueBranch = parseExpression(stream, frame);
 
-      if (stream->current().getType() != TokenType::COLON) {
+      if (!stream->match(TokenType::COLON)) {
         throw SyntaxError(stream->current(),
                           "Expected ':' in ternary operation.");
       }
-      stream->next();  // Skip the ':'
 
       auto falseBranch =
           parseExpression(stream, frame);  // Parse the false branch
@@ -3045,10 +3116,9 @@ class Interpreter {
                                 "Invalid context for keyword `this`.");
     }
 
-    if (stream->current().getType() != TokenType::DOT) {
+    if (!stream->match(TokenType::DOT)) {
       return frame->getObjectContext();
     }
-    stream->next();  // Skip the "."
 
     if (stream->current().getType() != TokenType::IDENTIFIER) {
       throw InvalidOperationError(
@@ -3202,12 +3272,11 @@ class Interpreter {
   void interpretHashElementAssignment(std::shared_ptr<TokenStream> stream,
                                       std::shared_ptr<CallStackFrame> frame,
                                       const std::string& name, Value& value) {
-    if (stream->current().getType() != TokenType::OPEN_BRACKET) {
+    if (!stream->match(TokenType::OPEN_BRACKET)) {
       throw SyntaxError(
           stream->current(),
           "Expected open-bracket, `[`, in hash element assignment.");
     }
-    stream->next();  // Skip "["
 
     auto keyValue = interpretExpression(stream, frame);
 
@@ -3219,18 +3288,16 @@ class Interpreter {
       stream->next();
     }
 
-    if (stream->current().getType() != TokenType::CLOSE_BRACKET) {
+    if (!stream->match(TokenType::CLOSE_BRACKET)) {
       throw SyntaxError(
           stream->current(),
           "Expected close-bracket, `]`, in hash element assignment.");
     }
-    stream->next();
 
-    if (stream->current().getSubType() != SubTokenType::Ops_Assign) {
+    if (!stream->matchsub(SubTokenType::Ops_Assign)) {
       throw InvalidOperationError(stream->current(),
                                   "Expected assignment operator.");
     }
-    stream->next();
 
     auto elementValue = interpretExpression(stream, frame);
     auto hashValue = std::get<std::shared_ptr<Hash>>(value);

@@ -85,6 +85,22 @@ class TokenStream {
     return tokens.at(position);
   }
 
+  bool match(TokenType type) {
+    if (current().getType() == type) {
+      next();
+      return true;
+    }
+    return false;
+  }
+
+  bool matchsub(SubTokenType subType) {
+    if (current().getSubType() == subType) {
+      next();
+      return true;
+    }
+    return false;
+  }
+
   void next() {
     if (position < tokens.size()) {
       position++;
