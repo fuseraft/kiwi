@@ -638,6 +638,10 @@ class Lexer {
       st = SubTokenType::Builtin_Math_TGamma;
     } else if (builtin == MathBuiltins.Trunc) {
       st = SubTokenType::Builtin_Math_Trunc;
+    } else if (builtin == MathBuiltins.ListPrimes) {
+      st = SubTokenType::Builtin_Math_ListPrimes;
+    } else if (builtin == MathBuiltins.NthPrime) {
+      st = SubTokenType::Builtin_Math_NthPrime;
     }
 
     return Token::create(TokenType::IDENTIFIER, st, fileId, builtin, row, col);
@@ -755,6 +759,8 @@ class Lexer {
       st = SubTokenType::Builtin_Kiwi_LeftTrim;
     } else if (builtin == KiwiBuiltins.Replace) {
       st = SubTokenType::Builtin_Kiwi_Replace;
+    } else if (builtin == KiwiBuiltins.Reverse) {
+      st = SubTokenType::Builtin_Kiwi_Reverse;
     } else if (builtin == KiwiBuiltins.RightTrim) {
       st = SubTokenType::Builtin_Kiwi_RightTrim;
     } else if (builtin == KiwiBuiltins.Size) {
