@@ -16,6 +16,7 @@ enum class MethodFlags : uint8_t {
   Override = 1 << 3,
   Ctor = 1 << 4,
   Lambda = 1 << 5,
+  Async = 1 << 6
 };
 
 inline MethodFlags operator|(MethodFlags a, MethodFlags b) {
@@ -62,6 +63,8 @@ class Method {
   bool hasParameter(const std::string& paramName) const {
     return parameterKVP.find(paramName) != parameterKVP.end();
   }
+
+  bool hasParameters() const { return parameters.size() > 0; }
 
   Value getParameterValue(const std::string& paramName) {
     return parameterKVP[paramName];

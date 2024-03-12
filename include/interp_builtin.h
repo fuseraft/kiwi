@@ -24,43 +24,43 @@
 class BuiltinInterpreter {
  public:
   static Value execute(
-      const Token& tokenTerm, const SubTokenType& builtin,
+      const Token& term, const SubTokenType& builtin,
       const std::vector<Value>& args,
       const std::unordered_map<std::string, std::string>& kiwiArgs) {
     if (FileIOBuiltIns.is_builtin(builtin)) {
-      return FileIOBuiltinHandler::execute(tokenTerm, builtin, args);
+      return FileIOBuiltinHandler::execute(term, builtin, args);
     } else if (TimeBuiltins.is_builtin(builtin)) {
-      return TimeBuiltinHandler::execute(tokenTerm, builtin, args);
+      return TimeBuiltinHandler::execute(term, builtin, args);
     } else if (MathBuiltins.is_builtin(builtin)) {
-      return MathBuiltinHandler::execute(tokenTerm, builtin, args);
+      return MathBuiltinHandler::execute(term, builtin, args);
     } else if (EnvBuiltins.is_builtin(builtin)) {
-      return EnvBuiltinHandler::execute(tokenTerm, builtin, args);
+      return EnvBuiltinHandler::execute(term, builtin, args);
     } else if (ArgvBuiltins.is_builtin(builtin)) {
-      return ArgvBuiltinHandler::execute(tokenTerm, builtin, args, kiwiArgs);
+      return ArgvBuiltinHandler::execute(term, builtin, args, kiwiArgs);
     } else if (ConsoleBuiltins.is_builtin(builtin)) {
-      return ConsoleBuiltinHandler::execute(tokenTerm, builtin, args);
+      return ConsoleBuiltinHandler::execute(term, builtin, args);
     } else if (SysBuiltins.is_builtin(builtin)) {
-      return SysBuiltinHandler::execute(tokenTerm, builtin, args);
+      return SysBuiltinHandler::execute(term, builtin, args);
     } else {
 #ifdef EXPERIMENTAL_FEATURES
       if (HttpBuiltins.is_builtin(builtin)) {
-        return HttpBuiltinHandler::execute(tokenTerm, builtin, args);
+        return HttpBuiltinHandler::execute(term, builtin, args);
       } else if (OdbcBuiltins.is_builtin(builtin)) {
-        return OdbcBuiltinHandler::execute(tokenTerm, builtin, args);
+        return OdbcBuiltinHandler::execute(term, builtin, args);
       }
 #endif
     }
 
-    throw UnknownBuiltinError(tokenTerm, "");
+    throw UnknownBuiltinError(term, "");
   }
 
-  static Value execute(const Token& tokenTerm, const SubTokenType& builtin,
+  static Value execute(const Token& term, const SubTokenType& builtin,
                        const Value& value, const std::vector<Value>& args) {
     if (KiwiBuiltins.is_builtin(builtin)) {
-      return CoreBuiltinHandler::execute(tokenTerm, builtin, value, args);
+      return CoreBuiltinHandler::execute(term, builtin, value, args);
     }
 
-    throw UnknownBuiltinError(tokenTerm, "");
+    throw UnknownBuiltinError(term, "");
   }
 };
 

@@ -1,5 +1,5 @@
-#ifndef KIWI_BUILTINS_CONSOLE_H
-#define KIWI_BUILTINS_CONSOLE_H
+#ifndef KIWI_BUILTINS_CONCURRENCY_H
+#define KIWI_BUILTINS_CONCURRENCY_H
 
 #include <cstdlib>
 #include <string>
@@ -7,23 +7,25 @@
 #include "parsing/tokens.h"
 #include "typing/serializer.h"
 #include "typing/valuetype.h"
+#include "globals.h"
 
 class ConsoleBuiltinHandler {
  public:
-  static Value execute(const Token& tokenTerm, const SubTokenType& builtin,
+  static Value execute(const Token& term, const SubTokenType& builtin,
                        const std::vector<Value>& args) {
     if (builtin == SubTokenType::Builtin_Console_Input) {
-      return executeInput(tokenTerm, args);
+      return executeInput(term, args);
+    } else if (builtin == SubTokenType::Builtin_Console_Silent) {
+      return executeSilence(term, args);
     }
 
-    throw UnknownBuiltinError(tokenTerm, "");
+    throw UnknownBuiltinError(term, "");
   }
 
  private:
-  static Value executeInput(const Token& tokenTerm,
-                            const std::vector<Value>& args) {
+  static Value executeInput(const Token& term, const std::vector<Value>& args) {
     if (args.size() > 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, ConsoleBuiltins.Input);
+      throw BuiltinUnexpectedArgumentError(term, ConsoleBuiltins.Input);
     }
 
     std::string userInput;
@@ -33,6 +35,20 @@ class ConsoleBuiltinHandler {
     std::getline(std::cin, userInput);
 
     return userInput;
+  }
+
+  static Value executeSilence(const Token& term,
+                              const std::vector<Value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, ConsoleBuiltins.Silent);
+    }
+
+    if (!std::holds_alternative<bool>(args.at(0))) {
+      throw ConversionError(term, "Expected a Boolean value.");
+    }
+
+    SILENCE = std::get<bool>(args.at(0));
+    return SILENCE;
   }
 };
 

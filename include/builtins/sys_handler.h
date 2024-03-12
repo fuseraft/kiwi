@@ -9,47 +9,45 @@
 
 class SysBuiltinHandler {
  public:
-  static Value execute(const Token& tokenTerm, const SubTokenType& builtin,
+  static Value execute(const Token& term, const SubTokenType& builtin,
                        const std::vector<Value>& args) {
     if (builtin == SubTokenType::Builtin_Sys_Exec) {
-      return executeExec(tokenTerm, args);
+      return executeExec(term, args);
     } else if (builtin == SubTokenType::Builtin_Sys_ExecOut) {
-      return executeExecOut(tokenTerm, args);
+      return executeExecOut(term, args);
     } else if (builtin == SubTokenType::Builtin_Sys_EffectiveUserId) {
-      return executeEffectiveUserId(tokenTerm, args);
+      return executeEffectiveUserId(term, args);
     }
 
-    throw UnknownBuiltinError(tokenTerm, "");
+    throw UnknownBuiltinError(term, "");
   }
 
  private:
-  static Value executeEffectiveUserId(const Token& tokenTerm,
+  static Value executeEffectiveUserId(const Token& term,
                                       const std::vector<Value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm,
-                                           SysBuiltins.EffectiveUserId);
+      throw BuiltinUnexpectedArgumentError(term, SysBuiltins.EffectiveUserId);
     }
 
     return Sys::getEffectiveUserId();
   }
 
-  static Value executeExec(const Token& tokenTerm,
-                           const std::vector<Value>& args) {
+  static Value executeExec(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, SysBuiltins.Exec);
+      throw BuiltinUnexpectedArgumentError(term, SysBuiltins.Exec);
     }
 
-    std::string command = get_string(tokenTerm, args.at(0));
+    std::string command = get_string(term, args.at(0));
     return Sys::exec(command);
   }
 
-  static Value executeExecOut(const Token& tokenTerm,
+  static Value executeExecOut(const Token& term,
                               const std::vector<Value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, SysBuiltins.Exec);
+      throw BuiltinUnexpectedArgumentError(term, SysBuiltins.Exec);
     }
 
-    std::string command = get_string(tokenTerm, args.at(0));
+    std::string command = get_string(term, args.at(0));
     return Sys::execOut(command);
   }
 };
