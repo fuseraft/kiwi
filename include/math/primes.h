@@ -10,11 +10,10 @@
 class PrimeGenerator {
  public:
   static int nthPrime(int n);
-  static std::vector<int> listPrimes(int n);
+  static std::vector<int> listPrimes(int limit);
 
  private:
   static void simpleSieve(int limit, std::vector<int>& primes);
-  static std::vector<int> segmentedSieve(int n);
 };
 
 void PrimeGenerator::simpleSieve(int limit, std::vector<int>& primes) {
@@ -33,48 +32,6 @@ void PrimeGenerator::simpleSieve(int limit, std::vector<int>& primes) {
       primes.push_back(p);
     }
   }
-}
-
-std::vector<int> PrimeGenerator::segmentedSieve(int n) {
-  int limit = std::floor(std::sqrt(n)) + 1;
-  std::vector<int> primes;
-  std::vector<int> segPrimes;
-  simpleSieve(limit, primes);
-
-  int low = limit;
-  int high = 2 * limit;
-  int size = primes.size();
-
-  while (low < n) {
-    if (high >= n) {
-      high = n;
-    }
-
-    std::vector<bool> mark(limit + 1, true);
-
-    for (int i = 0; i < size; i++) {
-      int loLim = std::floor(low / primes[i]) * primes[i];
-
-      if (loLim < low) {
-        loLim += primes[i];
-      }
-
-      for (int j = loLim; j < high; j += primes[i]) {
-        mark[j - low] = false;
-      }
-    }
-
-    for (int i = low; i < high; i++) {
-      if (mark[i - low]) {
-        segPrimes.push_back(i);
-      }
-    }
-
-    low = low + limit;
-    high = high + limit;
-  }
-
-  return segPrimes;
 }
 
 int PrimeGenerator::nthPrime(int n) {
@@ -121,8 +78,27 @@ int PrimeGenerator::nthPrime(int n) {
   return -1;
 }
 
-std::vector<int> PrimeGenerator::listPrimes(int n) {
-  return segmentedSieve(n);
+std::vector<int> PrimeGenerator::listPrimes(int limit) {
+  std::vector<bool> is_prime(limit + 1, true);
+  std::vector<int> primes;
+
+  is_prime[0] = is_prime[1] = false;  // 0 and 1 are not prime numbers
+
+  for (int num = 2; num <= sqrt(limit); ++num) {
+    if (is_prime[num]) {
+      for (int multiple = num * num; multiple <= limit; multiple += num) {
+        is_prime[multiple] = false;
+      }
+    }
+  }
+
+  for (int num = 2; num <= limit; ++num) {
+    if (is_prime[num]) {
+      primes.push_back(num);
+    }
+  }
+
+  return primes;
 }
 
 #endif
