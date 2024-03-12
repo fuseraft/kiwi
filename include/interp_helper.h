@@ -21,15 +21,16 @@ struct InterpHelper {
 
     const auto& tokens = stream->tokens;
 
-    auto token = tokens.at(pos);
     while (pos < tokens.size()) {
-      if (token.getType() == TokenType::COLON ||
-          token.getType() == TokenType::OPERATOR) {
+      if (tokens.at(pos).getType() == TokenType::COLON ||
+          tokens.at(pos).getType() == TokenType::OPERATOR) {
         isSliceAssignment = true;
         break;
       }
-      token = tokens.at(++pos);
+
+      ++pos;
     }
+
     return isSliceAssignment;
   }
 

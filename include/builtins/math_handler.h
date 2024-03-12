@@ -5,6 +5,7 @@
 #include "parsing/builtins.h"
 #include "parsing/tokens.h"
 #include "math/functions.h"
+#include "math/primes.h"
 #include "typing/valuetype.h"
 
 class MathBuiltinHandler {
@@ -95,6 +96,10 @@ class MathBuiltinHandler {
       return executeEpsilon(term, args);
     } else if (builtin == SubTokenType::Builtin_Math_Random) {
       return executeRandom(term, args);
+    } else if (builtin == SubTokenType::Builtin_Math_ListPrimes) {
+      return executeListPrimes(term, args);
+    } else if (builtin == SubTokenType::Builtin_Math_NthPrime) {
+      return executeNthPrime(term, args);
     }
 
     throw UnknownBuiltinError(term, "");
@@ -434,6 +439,45 @@ class MathBuiltinHandler {
     }
 
     return MathImpl.epsilon();
+  }
+
+  static Value executeListPrimes(const Token& term,
+                                 const std::vector<Value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.ListPrimes);
+    }
+
+    if (!std::holds_alternative<k_int>(args.at(0))) {
+      throw ConversionError(term,
+                            "Expected an `Integer` argument for builtin `" +
+                                MathBuiltins.ListPrimes + "`.");
+    }
+
+    auto primes = PrimeGenerator::listPrimes(std::get<k_int>(args.at(0)));
+    auto list = std::make_shared<List>();
+
+    for (const auto& prime : primes) {
+      list->elements.push_back(static_cast<k_int>(prime));
+    }
+
+    return list;
+  }
+
+  static Value executeNthPrime(const Token& term,
+                               const std::vector<Value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.NthPrime);
+    }
+
+    if (!std::holds_alternative<k_int>(args.at(0))) {
+      throw ConversionError(term,
+                            "Expected an `Integer` argument for builtin `" +
+                                MathBuiltins.NthPrime + "`.");
+    }
+
+    auto nthPrime = PrimeGenerator::nthPrime(std::get<k_int>(args.at(0)));
+
+    return static_cast<k_int>(nthPrime);
   }
 
   static Value executeRandom(const Token& term,
