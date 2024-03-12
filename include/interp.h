@@ -1225,7 +1225,6 @@ class Interpreter {
 
   Value interpretThen(std::shared_ptr<TokenStream> stream,
                       std::shared_ptr<CallStackFrame> frame, k_int taskId) {
-    stream->next();  // skip "then"
     auto then = interpretLambda(stream, frame);
     auto result = task.getTaskResult(taskId);
 
