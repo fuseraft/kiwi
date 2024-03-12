@@ -18,6 +18,7 @@ Currently, Kiwi supports the following builtins:
 - [`map(lambda)`](#maplambda)
 - [`reduce(accumulator, lambda)`](#reduceaccumulator-lambda)
 - [`replace(search, replacement)`](#replacesearch-replacement)
+- [`reverse()`](#reverse)
 - [`rtrim()`](#rtrim)
 - [`select(lambda)`](#selectlambda)
 - [`size()`](#size)
@@ -73,6 +74,14 @@ println string.size()
 println list.size()
 ```
 
+### `reverse()`
+
+Reverse a list or a string.
+
+```ruby
+println "kiwi".reverse() # prints: iwik
+```
+
 ### `ltrim()`
 
 Trims whitespace from the left-hand side of a string.
@@ -89,7 +98,7 @@ Trims whitespace from the right-hand side of a string.
 println "Hello World!    ".rtrim() + " Testing!" # prints: Hello World! Testing!
 ```
 
-### `rtrim()`
+### `trim()`
 
 Trims whitespace from both sides of a string.
 
