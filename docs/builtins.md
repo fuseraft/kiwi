@@ -16,6 +16,8 @@ Currently, Kiwi supports the following builtins:
 - [`keys()`](#keys)
 - [`ltrim()`](#ltrim)
 - [`map(lambda)`](#maplambda)
+- [`max()`](#max)
+- [`min()`](#min)
 - [`reduce(accumulator, lambda)`](#reduceaccumulator-lambda)
 - [`replace(search, replacement)`](#replacesearch-replacement)
 - [`reverse()`](#reverse)
@@ -24,6 +26,7 @@ Currently, Kiwi supports the following builtins:
 - [`size()`](#size)
 - [`sort()`](#sort)
 - [`split(delim)`](#splitdelim)
+- [`sum()`](#sum)
 - [`to_d()`](#tod)
 - [`to_h()`](#toh)
 - [`to_i()`](#toi)
@@ -263,6 +266,33 @@ hash = {
 }
 
 println hash.keys() # prints: ["key1", "key2", "key3"]
+```
+
+### `min()`
+
+Get the lowest value in a list.
+
+```
+list = [1, 2, 3]
+println list.min() # prints: 1
+```
+
+### `max()`
+
+Get the highest value in a list.
+
+```
+list = [1, 2, 3]
+println list.max() # prints: 3
+```
+
+### `sum()`
+
+Sum the numeric values in a list.
+
+```
+list = [1, 2, 3]
+println list.sum() # prints: 6
 ```
 
 ### `sort()`
