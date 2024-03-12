@@ -638,6 +638,10 @@ class Lexer {
       st = SubTokenType::Builtin_Math_TGamma;
     } else if (builtin == MathBuiltins.Trunc) {
       st = SubTokenType::Builtin_Math_Trunc;
+    } else if (builtin == MathBuiltins.ListPrimes) {
+      st = SubTokenType::Builtin_Math_ListPrimes;
+    } else if (builtin == MathBuiltins.NthPrime) {
+      st = SubTokenType::Builtin_Math_NthPrime;
     }
 
     return Token::create(TokenType::IDENTIFIER, st, fileId, builtin, row, col);
@@ -739,6 +743,8 @@ class Lexer {
       st = SubTokenType::Builtin_Kiwi_Contains;
     } else if (builtin == KiwiBuiltins.Downcase) {
       st = SubTokenType::Builtin_Kiwi_Downcase;
+    } else if (builtin == KiwiBuiltins.Empty) {
+      st = SubTokenType::Builtin_Kiwi_Empty;
     } else if (builtin == KiwiBuiltins.EndsWith) {
       st = SubTokenType::Builtin_Kiwi_EndsWith;
     } else if (builtin == KiwiBuiltins.HasKey) {
@@ -755,6 +761,8 @@ class Lexer {
       st = SubTokenType::Builtin_Kiwi_LeftTrim;
     } else if (builtin == KiwiBuiltins.Replace) {
       st = SubTokenType::Builtin_Kiwi_Replace;
+    } else if (builtin == KiwiBuiltins.Reverse) {
+      st = SubTokenType::Builtin_Kiwi_Reverse;
     } else if (builtin == KiwiBuiltins.RightTrim) {
       st = SubTokenType::Builtin_Kiwi_RightTrim;
     } else if (builtin == KiwiBuiltins.Size) {
@@ -783,6 +791,12 @@ class Lexer {
       st = SubTokenType::Builtin_List_Reduce;
     } else if (builtin == ListBuiltins.None) {
       st = SubTokenType::Builtin_List_None;
+    } else if (builtin == ListBuiltins.Sum) {
+      st = SubTokenType::Builtin_List_Sum;
+    } else if (builtin == ListBuiltins.Min) {
+      st = SubTokenType::Builtin_List_Min;
+    } else if (builtin == ListBuiltins.Max) {
+      st = SubTokenType::Builtin_List_Max;
     } else if (builtin == ListBuiltins.ToH) {
       st = SubTokenType::Builtin_List_ToH;
     }

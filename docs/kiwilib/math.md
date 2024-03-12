@@ -25,6 +25,19 @@ import "@kiwi/math"
   - `_valueY` - The number y.
 - **Returns**: Integer or double random number.
 
+
+### `listprimes(_limit)`
+- **Summary**: Get a list of prime numbers up to a limit.
+- **Params**:
+  - `_limit`: The limit.
+- **Returns**: List of prime numbers.
+
+### `nthprime(_n)`
+- **Summary**: Get the n-th prime number.
+- **Params**:
+  - `_n`: The n-th prime number.
+- **Returns**: Integer containing the n-th prime number.
+
 ### `sin(_value)`
 - **Summary**: Computes the sine of a number.
 - **Parameters**: `_value` - The angle in radians.
