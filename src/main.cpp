@@ -22,6 +22,7 @@
 #include "globals.h"
 
 bool DEBUG = false;
+bool SILENCE = false;
 
 int main(int argc, char** argv) {
   return Kiwi::run(argc, argv);

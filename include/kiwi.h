@@ -15,6 +15,25 @@
 #include "interp_session.h"
 #include "globals.h"
 
+Logger logger;
+TaskManager task;
+
+std::unordered_map<std::string, Method> methods;
+std::unordered_map<std::string, Module> modules;
+std::unordered_map<std::string, Class> classes;
+std::unordered_map<std::string, std::string> kiwiArgs;
+std::stack<std::shared_ptr<CallStackFrame>> callStack;
+std::stack<std::shared_ptr<TokenStream>> streamStack;
+std::stack<std::string> moduleStack;
+
+std::mutex methodsMutex;
+std::mutex modulesMutex;
+std::mutex classesMutex;
+std::mutex kiwiArgsMutex;
+std::mutex callStackMutex;
+std::mutex streamStackMutex;
+std::mutex moduleStackMutex;
+
 class Kiwi {
  public:
   static int run(int argc, char** argv);
@@ -43,8 +62,7 @@ int Kiwi::run(std::vector<std::string>& v) {
   RNG::getInstance();
 
   Config config;
-  Logger logger;
-  Interpreter interp(logger);
+  Interpreter interp;
   InterpSession session(interp);
 
   if (DEBUG) {

@@ -10,42 +10,42 @@
 
 class HttpBuiltinHandler {
  public:
-  static Value execute(const Token& tokenTerm, const std::string& builtin,
+  static Value execute(const Token& term, const std::string& builtin,
                        const std::vector<Value>& args) {
     if (builtin == HttpBuiltins.Get) {
-      return executeDeleteGetHeadOptions(tokenTerm, args, builtin);
+      return executeDeleteGetHeadOptions(term, args, builtin);
     } else if (builtin == HttpBuiltins.Post) {
-      return executePatchPostPut(tokenTerm, args, builtin);
+      return executePatchPostPut(term, args, builtin);
     } else if (builtin == HttpBuiltins.Put) {
-      return executePatchPostPut(tokenTerm, args, builtin);
+      return executePatchPostPut(term, args, builtin);
     } else if (builtin == HttpBuiltins.Patch) {
-      return executePatchPostPut(tokenTerm, args, builtin);
+      return executePatchPostPut(term, args, builtin);
     } else if (builtin == HttpBuiltins.Delete) {
-      return executeDeleteGetHeadOptions(tokenTerm, args, builtin);
+      return executeDeleteGetHeadOptions(term, args, builtin);
     } else if (builtin == HttpBuiltins.Head) {
-      return executeDeleteGetHeadOptions(tokenTerm, args, builtin);
+      return executeDeleteGetHeadOptions(term, args, builtin);
     } else if (builtin == HttpBuiltins.Options) {
-      return executeDeleteGetHeadOptions(tokenTerm, args, builtin);
+      return executeDeleteGetHeadOptions(term, args, builtin);
     }
 
-    throw UnknownBuiltinError(tokenTerm, builtin);
+    throw UnknownBuiltinError(term, builtin);
   }
 
  private:
-  static Value executeDeleteGetHeadOptions(const Token& tokenTerm,
+  static Value executeDeleteGetHeadOptions(const Token& term,
                                            const std::vector<Value>& args,
                                            const std::string& builtin) {
     if (args.size() < 1 || args.size() > 2) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, builtin);
+      throw BuiltinUnexpectedArgumentError(term, builtin);
     }
 
-    std::string url = get_string(tokenTerm, args.at(0));
+    std::string url = get_string(term, args.at(0));
     std::shared_ptr<List> headers = {};
 
     if (args.size() == 2) {
       if (!std::holds_alternative<std::shared_ptr<List>>(args.at(1))) {
         throw InvalidOperationError(
-            tokenTerm, "Expected a List type for HTTP header list.");
+            term, "Expected a List type for HTTP header list.");
       }
       headers = std::get<std::shared_ptr<List>>(args.at(1));
     }
@@ -60,24 +60,24 @@ class HttpBuiltinHandler {
       return HttpClient::getInstance().options(url, headers);
     }
 
-    throw UnknownBuiltinError(tokenTerm, builtin);
+    throw UnknownBuiltinError(term, builtin);
   }
 
-  static Value executePatchPostPut(const Token& tokenTerm,
+  static Value executePatchPostPut(const Token& term,
                                    const std::vector<Value>& args,
                                    const std::string& builtin) {
     if (args.size() < 1 || args.size() > 3) {
-      throw BuiltinUnexpectedArgumentError(tokenTerm, builtin);
+      throw BuiltinUnexpectedArgumentError(term, builtin);
     }
 
-    std::string url = get_string(tokenTerm, args.at(0));
+    std::string url = get_string(term, args.at(0));
     std::string body = Serializer::serialize(args.at(1));
     std::shared_ptr<List> headers = {};
 
     if (args.size() == 3) {
       if (!std::holds_alternative<std::shared_ptr<List>>(args.at(2))) {
         throw InvalidOperationError(
-            tokenTerm, "Expected a List type for HTTP header list.");
+            term, "Expected a List type for HTTP header list.");
       }
       headers = std::get<std::shared_ptr<List>>(args.at(2));
     }
@@ -90,7 +90,7 @@ class HttpBuiltinHandler {
       return HttpClient::getInstance().patch(url, body, headers);
     }
 
-    throw UnknownBuiltinError(tokenTerm, builtin);
+    throw UnknownBuiltinError(term, builtin);
   }
 };
 

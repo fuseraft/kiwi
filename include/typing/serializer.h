@@ -13,36 +13,6 @@
 #include "valuetype.h"
 
 struct Serializer {
-  static ValueType get_value_type(Value v) {
-    ValueType type = ValueType::None;
-
-    std::visit(
-        [&](auto&& arg) {
-          using T = std::decay_t<decltype(arg)>;
-
-          if constexpr (std::is_same_v<T, k_int>) {
-            type = ValueType::Integer;
-          } else if constexpr (std::is_same_v<T, double>) {
-            type = ValueType::Double;
-          } else if constexpr (std::is_same_v<T, bool>) {
-            type = ValueType::Boolean;
-          } else if constexpr (std::is_same_v<T, std::string>) {
-            type = ValueType::String;
-          } else if constexpr (std::is_same_v<T, std::shared_ptr<List>>) {
-            type = ValueType::List;
-          } else if constexpr (std::is_same_v<T, std::shared_ptr<Hash>>) {
-            type = ValueType::Hash;
-          } else if constexpr (std::is_same_v<T, std::shared_ptr<Object>>) {
-            type = ValueType::Object;
-          } else if constexpr (std::is_same_v<T, std::shared_ptr<LambdaRef>>) {
-            type = ValueType::Lambda;
-          }
-        },
-        v);
-
-    return type;
-  }
-
   static std::string get_value_type_string(Value v) {
     if (std::holds_alternative<k_int>(v)) {
       return TypeNames.Integer;
