@@ -56,7 +56,7 @@ ext install fuseraft.kiwi-lang
 
 ## Documentation
 
-For detailed information on language features, refer to the [docs](docs/) directory.
+For detailed information on language features, refer to the [docs](docs/index.md).
 
 Explore the [tests](tests/) directory for a collection of test scripts. 
 
