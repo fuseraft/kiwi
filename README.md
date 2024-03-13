@@ -70,6 +70,8 @@ make test
 
 For fun, I wrote some [Project Euler examples](examples/project_euler/).
 
+Below is a sample script that generates a temporary script and executes it.
+
 ```ruby
 import "@kiwi/fileio" as fs
 import "@kiwi/math" as math
