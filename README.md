@@ -66,72 +66,40 @@ To run the test suite, execute:
 make test
 ```
 
-#### Example: FizzBuzz
+#### Example Code
+
+For fun, I wrote some [Project Euler examples](examples/project_euler/).
 
 ```ruby
-def fizzbuzz(n)
-  i = 1
+import "@kiwi/fileio" as fs
+import "@kiwi/math" as math
+import "@kiwi/sys" as sys
 
-  while i <= n do    
-    if i % 15 == 0
-      println "FizzBuzz"
-    elsif i % 3 == 0
-      println "Fizz"
-    elsif i % 5 == 0
-      println "Buzz"
-    else
-      println "${i}"
-    end
-
-    i += 1
+try
+  # Look for a temporary directory. Fail fast.
+  if !fs.exists(fs.tmpdir())
+    println "Could not find temporary directory."
+    exit 1
   end
-end
+  
+  # Generate a random temporary file path.
+  filename = math.random("0123456789ABCDEF", 10)
+  path = fs.combine(fs.tmpdir(), "${filename}.🥝")
 
-fizzbuzz(15)
-```
+  # Write a little 🥝 script.
+  fs.write(path, "
+    ##
+    This script will delete itself and let you know it was there.
+    ##
+    import \"@kiwi/fileio\" as fs
+    fs.remove(\"${@path}\")
+    println \"Kiwi was here.\"
+  ")
 
-#### Example: Sieve of Eratosthenes
-
-```ruby
-def sieve_of_eratosthenes(limit)
-  isPrime = []
-  for i in [0..limit] do
-     isPrime << true
-  end
-
-  isPrime[0] = false
-  isPrime[1] = false
-
-  p = 2
-
-  while p * p <= limit do
-    # If p is not changed, then it is a prime
-    if isPrime[p]
-      # Update all multiples of p
-      multiple = p * 2
-      
-      while multiple <= limit do
-        isPrime[multiple] = false
-        multiple += p
-      end
-    end
-
-    p += 1
-  end
-
-  # Collect all prime numbers
-  primes = []
-  for i in [0..limit] do
-    if isPrime[i]
-      primes << i
-    end
-  end
-
-  return primes
-end
-
-for prime, index in sieve_of_eratosthenes(30) do
-  println "${index}:\t${prime}"
+  # Run the 🥝 script.
+  sys.exec("kiwi ${path}")
+catch (err)
+  println "An error occurred: ${err}"
 end
 ```
 
