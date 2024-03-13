@@ -23,7 +23,7 @@ LDFLAGS :=
 
 .PHONY: clean test play experimental profile
 
-all: $(EXECUTABLE)
+all: clean $(EXECUTABLE)
 
 format:
 	find . -iname "*.cpp" -o -iname "*.h" | xargs clang-format -i --style=file
