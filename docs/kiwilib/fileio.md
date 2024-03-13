@@ -30,9 +30,16 @@ import "kiwi/fileio"
 ### `chdir(_path)`
 
 - **Summary**: Changes the current directory.
-- **Params**:
+- **Parameters**:
   - `_path`: The path to a directory.
 - **Returns**: Boolean indicating success or failure.
+
+### `combine(_first, _second)`
+- **Summary**: Combine two paths.
+- **Parameters**:
+  - `_source`: The first path.
+  - `_dest`: The second path.
+- **Returns**: String containing combined path.
 
 ### `copy(_source, _dest)`
 
@@ -92,14 +99,14 @@ import "kiwi/fileio"
 
 ### `isdir(_path)`
 - **Summary**: Check if a path is a directory.
-- **Params**:
+- **Parameters**:
   - `_path`: The path to a directory.
 - **Returns**: Boolean indicating whether the path is a directory.
 
 ### `listdir(_path)`
 
 - **Summary**: Retrieve a List of directory entries.
-- **Params**:
+- **Parameters**:
   - `_path`: The directory path.
 - **Returns**: List of directory entries.
 

@@ -480,6 +480,8 @@ class Lexer {
       st = SubTokenType::Builtin_FileIO_CopyFile;
     } else if (builtin == FileIOBuiltIns.CopyR) {
       st = SubTokenType::Builtin_FileIO_CopyR;
+    } else if (builtin == FileIOBuiltIns.Combine) {
+      st = SubTokenType::Builtin_FileIO_Combine;
     } else if (builtin == FileIOBuiltIns.CreateFile) {
       st = SubTokenType::Builtin_FileIO_CreateFile;
     } else if (builtin == FileIOBuiltIns.DeleteFile) {
