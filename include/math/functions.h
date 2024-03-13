@@ -6,7 +6,6 @@
 #include <memory>
 #include <sstream>
 #include "errors/error.h"
-#include "k_int.h"
 #include "parsing/tokens.h"
 #include "typing/valuetype.h"
 #include "rng.h"
@@ -573,6 +572,18 @@ struct {
 
   Value do_random(const Token& token, const Value& valueX,
                   const Value& valueY) {
+    if (std::holds_alternative<std::string>(valueX)) {
+      auto limit = get_integer(token, valueY);
+      return RNG::getInstance().randomString(std::get<std::string>(valueX),
+                                             limit);
+    }
+
+    if (std::holds_alternative<std::shared_ptr<List>>(valueX)) {
+      auto limit = get_integer(token, valueY);
+      return RNG::getInstance().randomList(
+          std::get<std::shared_ptr<List>>(valueX), limit);
+    }
+
     if (std::holds_alternative<double>(valueX) ||
         std::holds_alternative<double>(valueY)) {
       double x = get_integer_or_double(token, valueX),

@@ -12,20 +12,20 @@ class HttpBuiltinHandler {
  public:
   static Value execute(const Token& term, const std::string& builtin,
                        const std::vector<Value>& args) {
-    if (builtin == HttpBuiltins.Get) {
-      return executeDeleteGetHeadOptions(term, args, builtin);
-    } else if (builtin == HttpBuiltins.Post) {
-      return executePatchPostPut(term, args, builtin);
-    } else if (builtin == HttpBuiltins.Put) {
-      return executePatchPostPut(term, args, builtin);
-    } else if (builtin == HttpBuiltins.Patch) {
-      return executePatchPostPut(term, args, builtin);
-    } else if (builtin == HttpBuiltins.Delete) {
-      return executeDeleteGetHeadOptions(term, args, builtin);
-    } else if (builtin == HttpBuiltins.Head) {
-      return executeDeleteGetHeadOptions(term, args, builtin);
-    } else if (builtin == HttpBuiltins.Options) {
-      return executeDeleteGetHeadOptions(term, args, builtin);
+    switch (builtin) {
+      case HttpBuiltins.Delete:
+      case HttpBuiltins.Get:
+      case HttpBuiltins.Head:
+      case HttpBuiltins.Options:
+        return executeDeleteGetHeadOptions(term, args, builtin);
+
+      case HttpBuiltins.Patch:
+      case HttpBuiltins.Post:
+      case HttpBuiltins.Put:
+        return executePatchPostPut(term, args, builtin);
+
+      default:
+        break;
     }
 
     throw UnknownBuiltinError(term, builtin);

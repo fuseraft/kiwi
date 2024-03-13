@@ -25,6 +25,12 @@ import "@kiwi/math"
   - `_valueY` - The number y.
 - **Returns**: Integer or double random number.
 
+### `random(_base, _limit)`
+- **Summary**: Returns a random string or list from a string or list with a limited number of characters or elements.
+- **Parameters**: 
+  - `_base` - The base string or list containing the elements to build a random distribution from.
+  - `_limit` - The total number of characters (in a string) or elements (in a list) to produce from the base.
+- **Returns**: String or List.
 
 ### `listprimes(_limit)`
 - **Summary**: Get a list of prime numbers up to a limit.

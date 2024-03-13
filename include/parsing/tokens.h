@@ -3,7 +3,6 @@
 
 #include <memory>
 #include <string>
-#include "k_int.h"
 #include "parsing/keywords.h"
 #include "parsing/tokentype.h"
 #include "typing/serializer.h"

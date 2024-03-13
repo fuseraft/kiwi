@@ -13,10 +13,15 @@ class ConsoleBuiltinHandler {
  public:
   static Value execute(const Token& term, const SubTokenType& builtin,
                        const std::vector<Value>& args) {
-    if (builtin == SubTokenType::Builtin_Console_Input) {
-      return executeInput(term, args);
-    } else if (builtin == SubTokenType::Builtin_Console_Silent) {
-      return executeSilence(term, args);
+    switch (builtin) {
+      case SubTokenType::Builtin_Console_Input:
+        return executeInput(term, args);
+
+      case SubTokenType::Builtin_Console_Silent:
+        return executeSilence(term, args);
+
+      default:
+        break;
     }
 
     throw UnknownBuiltinError(term, "");
