@@ -36,6 +36,17 @@ module fileio
   end
 
   ##
+  Summary: Combine two paths.
+  Params:
+    - _source: The first path.
+    - _dest: The second path.
+  Returns: String
+  ##
+  def combine(_first, _second)
+    return __combine__(_first, _second)
+  end
+
+  ##
   Summary: Copy a file.
   Params:
     - _source: The source path.

@@ -1,1 +1,27 @@
 # This 🥝 script is for experimentation.
+
+import "@kiwi/fileio" as file
+import "@kiwi/sys" as sys
+
+def remove_if_exists(path)
+  if file.exists(path)
+    file.remove(path)
+  end
+end
+
+try
+  if !file.exists(file.tmpdir())
+    println "Could not find temporary directory."
+    exit 1
+  end
+  
+  path = file.combine(file.tmpdir(), "app.🥝")
+  remove_if_exists(path)
+  
+  file.writeln(path, "println \"Kiwi was here.\"")
+  sys.exec("kiwi ${path}")
+  
+  remove_if_exists(path)
+catch (err)
+  println "An error occurred: ${err}"
+end
