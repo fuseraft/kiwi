@@ -210,6 +210,7 @@ struct {
   const std::string Pow = "__pow__";
   const std::string Epsilon = "__eps__";
   const std::string Random = "__random__";
+  const std::string Divisors = "__divisors__";
   const std::string ListPrimes = "__listprimes__";
   const std::string NthPrime = "__nthprime__";
 
@@ -220,7 +221,7 @@ struct {
       Cbrt,       Abs,     Floor,    Ceil,      Round,  Trunc,    Remainder,
       Exp,        ExpM1,   Erf,      ErfC,      LGamma, TGamma,   FMax,
       FMin,       FDim,    CopySign, NextAfter, Pow,    Epsilon,  Random,
-      ListPrimes, NthPrime};
+      ListPrimes, NthPrime, Divisors};
 
   std::unordered_set<SubTokenType> st_builtins = {
       SubTokenType::Builtin_Math_Abs,
@@ -233,6 +234,7 @@ struct {
       SubTokenType::Builtin_Math_CopySign,
       SubTokenType::Builtin_Math_Cos,
       SubTokenType::Builtin_Math_Cosh,
+      SubTokenType::Builtin_Math_Divisors,
       SubTokenType::Builtin_Math_Epsilon,
       SubTokenType::Builtin_Math_Erf,
       SubTokenType::Builtin_Math_ErfC,

@@ -575,6 +575,8 @@ class Lexer {
       st = SubTokenType::Builtin_Math_Cos;
     } else if (builtin == MathBuiltins.Cosh) {
       st = SubTokenType::Builtin_Math_Cosh;
+    } else if (builtin == MathBuiltins.Divisors) {
+      st = SubTokenType::Builtin_Math_Divisors;
     } else if (builtin == MathBuiltins.Epsilon) {
       st = SubTokenType::Builtin_Math_Epsilon;
     } else if (builtin == MathBuiltins.Erf) {

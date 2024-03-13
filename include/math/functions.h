@@ -397,168 +397,168 @@ struct {
     throw ConversionError(token, "Cannot convert value to a double value.");
   }
 
-  double epsilon() { return std::numeric_limits<double>::epsilon(); }
+  double __epsilon__() { return std::numeric_limits<double>::epsilon(); }
 
-  Value do_sin(const Token& token, const Value& value) {
+  Value __sin__(const Token& token, const Value& value) {
     return sin(get_double(token, value));
   }
 
-  Value do_sinh(const Token& token, const Value& value) {
+  Value __sinh__(const Token& token, const Value& value) {
     return sinh(get_double(token, value));
   }
 
-  Value do_asin(const Token& token, const Value& value) {
+  Value __asin__(const Token& token, const Value& value) {
     return asin(get_double(token, value));
   }
 
-  Value do_tan(const Token& token, const Value& value) {
+  Value __tan__(const Token& token, const Value& value) {
     return tan(get_double(token, value));
   }
 
-  Value do_tanh(const Token& token, const Value& value) {
+  Value __tanh__(const Token& token, const Value& value) {
     return tanh(get_double(token, value));
   }
 
-  Value do_atan(const Token& token, const Value& value) {
+  Value __atan__(const Token& token, const Value& value) {
     return atan(get_double(token, value));
   }
 
-  Value do_atan2(const Token& token, const Value& valueY, const Value& valueX) {
+  Value __atan2__(const Token& token, const Value& valueY, const Value& valueX) {
     return atan2(get_double(token, valueY), get_double(token, valueX));
   }
 
-  Value do_cos(const Token& token, const Value& value) {
+  Value __cos__(const Token& token, const Value& value) {
     return cos(get_double(token, value));
   }
 
-  Value do_acos(const Token& token, const Value& value) {
+  Value __acos__(const Token& token, const Value& value) {
     return acos(get_double(token, value));
   }
 
-  Value do_cosh(const Token& token, const Value& value) {
+  Value __cosh__(const Token& token, const Value& value) {
     return cosh(get_double(token, value));
   }
 
-  Value do_log(const Token& token, const Value& value) {
+  Value __log__(const Token& token, const Value& value) {
     return log(get_double(token, value));
   }
 
-  Value do_log2(const Token& token, const Value& value) {
+  Value __log2__(const Token& token, const Value& value) {
     return log2(get_double(token, value));
   }
 
-  Value do_log10(const Token& token, const Value& value) {
+  Value __log10__(const Token& token, const Value& value) {
     return log10(get_double(token, value));
   }
 
-  Value do_log1p(const Token& token, const Value& value) {
+  Value __log1p__(const Token& token, const Value& value) {
     return log1p(get_double(token, value));
   }
 
-  Value do_sqrt(const Token& token, const Value& value) {
+  Value __sqrt__(const Token& token, const Value& value) {
     return sqrt(get_double(token, value));
   }
 
-  Value do_cbrt(const Token& token, const Value& value) {
+  Value __cbrt__(const Token& token, const Value& value) {
     return cbrt(get_double(token, value));
   }
 
-  Value do_fmod(const Token& token, const Value& valueX, const Value& valueY) {
+  Value __fmod__(const Token& token, const Value& valueX, const Value& valueY) {
     return fmod(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value do_hypot(const Token& token, const Value& valueX, const Value& valueY) {
+  Value __hypot__(const Token& token, const Value& valueX, const Value& valueY) {
     return hypot(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value do_isfinite(const Token& token, const Value& value) {
+  Value __isfinite__(const Token& token, const Value& value) {
     return std::isfinite(get_double(token, value));
   }
 
-  Value do_isinf(const Token& token, const Value& value) {
+  Value __isinf__(const Token& token, const Value& value) {
     return std::isinf(get_double(token, value));
   }
 
-  Value do_isnan(const Token& token, const Value& value) {
+  Value __isnan__(const Token& token, const Value& value) {
     return std::isnan(get_double(token, value));
   }
 
-  Value do_isnormal(const Token& token, const Value& value) {
+  Value __isnormal__(const Token& token, const Value& value) {
     return std::isnormal(get_double(token, value));
   }
 
-  Value do_floor(const Token& token, const Value& value) {
+  Value __floor__(const Token& token, const Value& value) {
     return floor(get_double(token, value));
   }
 
-  Value do_ceil(const Token& token, const Value& value) {
+  Value __ceil__(const Token& token, const Value& value) {
     return ceil(get_double(token, value));
   }
 
-  Value do_round(const Token& token, const Value& value) {
+  Value __round__(const Token& token, const Value& value) {
     return round(get_double(token, value));
   }
 
-  Value do_trunc(const Token& token, const Value& value) {
+  Value __trunc__(const Token& token, const Value& value) {
     return trunc(get_double(token, value));
   }
 
-  Value do_remainder(const Token& token, const Value& valueX,
+  Value __remainder__(const Token& token, const Value& valueX,
                      const Value& valueY) {
     return remainder(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value do_exp(const Token& token, const Value& value) {
+  Value __exp__(const Token& token, const Value& value) {
     return exp(get_double(token, value));
   }
 
-  Value do_expm1(const Token& token, const Value& value) {
+  Value __expm1__(const Token& token, const Value& value) {
     return expm1(get_double(token, value));
   }
 
-  Value do_erf(const Token& token, const Value& value) {
+  Value __erf__(const Token& token, const Value& value) {
     return erf(get_double(token, value));
   }
 
-  Value do_erfc(const Token& token, const Value& value) {
+  Value __erfc__(const Token& token, const Value& value) {
     return erfc(get_double(token, value));
   }
 
-  Value do_lgamma(const Token& token, const Value& value) {
+  Value __lgamma__(const Token& token, const Value& value) {
     return lgamma(get_double(token, value));
   }
 
-  Value do_tgamma(const Token& token, const Value& value) {
+  Value __tgamma__(const Token& token, const Value& value) {
     return tgamma(get_double(token, value));
   }
 
-  Value do_fdim(const Token& token, const Value& valueX, const Value& valueY) {
+  Value __fdim__(const Token& token, const Value& valueX, const Value& valueY) {
     return fdim(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value do_copysign(const Token& token, const Value& valueX,
+  Value __copysign__(const Token& token, const Value& valueX,
                     const Value& valueY) {
     return copysign(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value do_nextafter(const Token& token, const Value& valueX,
+  Value __nextafter__(const Token& token, const Value& valueX,
                      const Value& valueY) {
     return nextafter(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value do_max(const Token& token, const Value& valueX, const Value& valueY) {
+  Value __max__(const Token& token, const Value& valueX, const Value& valueY) {
     return fmax(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value do_min(const Token& token, const Value& valueX, const Value& valueY) {
+  Value __min__(const Token& token, const Value& valueX, const Value& valueY) {
     return fmin(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value do_pow(const Token& token, const Value& valueX, const Value& valueY) {
+  Value __pow__(const Token& token, const Value& valueX, const Value& valueY) {
     return pow(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value do_abs(const Token& token, const Value& value) {
+  Value __abs__(const Token& token, const Value& value) {
     if (std::holds_alternative<k_int>(value)) {
       return static_cast<k_int>(
           labs(static_cast<long>(std::get<k_int>(value))));
@@ -570,7 +570,22 @@ struct {
         token, "Cannot take an absolute value of a non-numeric value.");
   }
 
-  Value do_random(const Token& token, const Value& valueX,
+  std::vector<Value> __divisors__(int number) {
+    std::vector<Value> divisors;
+
+    for (int i = 1; i <= sqrt(number); ++i) {
+      if (number % i == 0) {
+        divisors.push_back(static_cast<k_int>(i));
+        if (i != number / i) {
+          divisors.push_back(static_cast<k_int>(number / i));
+        }
+      }
+    }
+
+    return divisors;
+  }
+
+  Value __random__(const Token& token, const Value& valueX,
                   const Value& valueY) {
     if (std::holds_alternative<std::string>(valueX)) {
       auto limit = get_integer(token, valueY);

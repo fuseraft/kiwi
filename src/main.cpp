@@ -21,7 +21,7 @@
 #include "kiwi.h"
 #include "globals.h"
 
-bool DEBUG = false;
+bool DEBUG = true;
 bool SILENCE = false;
 
 int main(int argc, char** argv) {

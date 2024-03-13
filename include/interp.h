@@ -3180,7 +3180,8 @@ class Interpreter {
       }
     }
 
-    return parsePrimary(stream, frame);
+    auto primary = parsePrimary(stream, frame);
+    return interpretValueInvocation(stream, frame, primary);
   }
 
   Value parsePrimary(std::shared_ptr<TokenStream> stream,
@@ -3237,7 +3238,7 @@ class Interpreter {
   Value interpretExpression(std::shared_ptr<TokenStream> stream,
                             std::shared_ptr<CallStackFrame> frame) {
     auto result = parseExpression(stream, frame);
-    return interpretValueInvocation(stream, frame, result);
+    return result;//nterpretValueInvocation(stream, frame, result);
   }
 
   Value interpretSelfInvocationTerm(std::shared_ptr<TokenStream> stream,
