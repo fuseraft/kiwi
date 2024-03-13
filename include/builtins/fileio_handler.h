@@ -292,7 +292,7 @@ class FileIOBuiltinHandler {
   }
 
   static std::string executeCombine(const Token& token,
-                              const std::vector<Value>& args) {
+                                    const std::vector<Value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.Combine);
     }
