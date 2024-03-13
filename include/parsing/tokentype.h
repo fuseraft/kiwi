@@ -41,6 +41,7 @@ enum SubTokenType {
   Builtin_FileIO_ChangeDirectory,
   Builtin_FileIO_CopyFile,
   Builtin_FileIO_CopyR,
+  Builtin_FileIO_Combine,
   Builtin_FileIO_CreateFile,
   Builtin_FileIO_DeleteFile,
   Builtin_FileIO_FileExists,

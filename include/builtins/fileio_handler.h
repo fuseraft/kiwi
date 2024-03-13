@@ -59,6 +59,8 @@ class FileIOBuiltinHandler {
       return executeCopyFile(token, args);
     } else if (builtin == SubTokenType::Builtin_FileIO_CopyR) {
       return executeCopyR(token, args);
+    } else if (builtin == SubTokenType::Builtin_FileIO_Combine) {
+      return executeCombine(token, args);
     } else if (builtin == SubTokenType::Builtin_FileIO_MoveFile) {
       return executeMoveFile(token, args);
     } else if (builtin == SubTokenType::Builtin_FileIO_ReadLines) {
@@ -287,6 +289,17 @@ class FileIOBuiltinHandler {
     }
 
     return matchList;
+  }
+
+  static std::string executeCombine(const Token& token,
+                              const std::vector<Value>& args) {
+    if (args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.Combine);
+    }
+
+    auto firstPath = get_string(token, args.at(0));
+    auto secondPath = get_string(token, args.at(1));
+    return File::joinPath(firstPath, secondPath);
   }
 
   static bool executeMoveFile(const Token& token,
