@@ -8,7 +8,6 @@
 #include <unordered_map>
 #include <variant>
 #include <vector>
-#include "k_int.h"
 #include "parsing/keywords.h"
 #include "valuetype.h"
 
