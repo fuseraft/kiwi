@@ -9,7 +9,6 @@
 #include <stdexcept>
 #include <string>
 #include <unistd.h>
-#include "k_int.h"
 
 class Sys {
  public:

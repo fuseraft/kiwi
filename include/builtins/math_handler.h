@@ -12,94 +12,141 @@ class MathBuiltinHandler {
  public:
   static Value execute(const Token& term, const SubTokenType& builtin,
                        const std::vector<Value>& args) {
-    if (builtin == SubTokenType::Builtin_Math_Sin) {
-      return executeSin(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Tan) {
-      return executeTan(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Cos) {
-      return executeCos(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Asin) {
-      return executeAsin(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Acos) {
-      return executeAcos(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Atan) {
-      return executeAtan(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Atan2) {
-      return executeAtan2(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Sinh) {
-      return executeSinh(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Cosh) {
-      return executeCosh(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Tanh) {
-      return executeTanh(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Log) {
-      return executeLog(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Log2) {
-      return executeLog2(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Log10) {
-      return executeLog10(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Log1P) {
-      return executeLog1P(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Fmod) {
-      return executeFmod(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Hypot) {
-      return executeHypot(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_IsFinite) {
-      return executeIsFinite(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_IsInf) {
-      return executeIsInf(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_IsNaN) {
-      return executeIsNaN(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_IsNormal) {
-      return executeIsNormal(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Sqrt) {
-      return executeSqrt(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Cbrt) {
-      return executeCbrt(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Abs) {
-      return executeAbs(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Floor) {
-      return executeFloor(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Ceil) {
-      return executeCeil(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Round) {
-      return executeRound(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Trunc) {
-      return executeTrunc(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Remainder) {
-      return executeRemainder(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Exp) {
-      return executeExp(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_ExpM1) {
-      return executeExpM1(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Erf) {
-      return executeErf(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_ErfC) {
-      return executeErfC(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_LGamma) {
-      return executeLGamma(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_TGamma) {
-      return executeTGamma(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_FMax) {
-      return executeFMax(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_FMin) {
-      return executeFMin(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_FDim) {
-      return executeFDim(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_CopySign) {
-      return executeCopySign(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_NextAfter) {
-      return executeNextAfter(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Pow) {
-      return executePow(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Epsilon) {
-      return executeEpsilon(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_Random) {
-      return executeRandom(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_ListPrimes) {
-      return executeListPrimes(term, args);
-    } else if (builtin == SubTokenType::Builtin_Math_NthPrime) {
-      return executeNthPrime(term, args);
+    switch (builtin) {
+      case SubTokenType::Builtin_Math_Sin:
+        return executeSin(term, args);
+
+      case SubTokenType::Builtin_Math_Tan:
+        return executeTan(term, args);
+
+      case SubTokenType::Builtin_Math_Cos:
+        return executeCos(term, args);
+
+      case SubTokenType::Builtin_Math_Asin:
+        return executeAsin(term, args);
+
+      case SubTokenType::Builtin_Math_Acos:
+        return executeAcos(term, args);
+
+      case SubTokenType::Builtin_Math_Atan:
+        return executeAtan(term, args);
+
+      case SubTokenType::Builtin_Math_Atan2:
+        return executeAtan2(term, args);
+
+      case SubTokenType::Builtin_Math_Sinh:
+        return executeSinh(term, args);
+
+      case SubTokenType::Builtin_Math_Cosh:
+        return executeCosh(term, args);
+
+      case SubTokenType::Builtin_Math_Tanh:
+        return executeTanh(term, args);
+
+      case SubTokenType::Builtin_Math_Log:
+        return executeLog(term, args);
+
+      case SubTokenType::Builtin_Math_Log2:
+        return executeLog2(term, args);
+
+      case SubTokenType::Builtin_Math_Log10:
+        return executeLog10(term, args);
+
+      case SubTokenType::Builtin_Math_Log1P:
+        return executeLog1P(term, args);
+
+      case SubTokenType::Builtin_Math_Fmod:
+        return executeFmod(term, args);
+
+      case SubTokenType::Builtin_Math_Hypot:
+        return executeHypot(term, args);
+
+      case SubTokenType::Builtin_Math_IsFinite:
+        return executeIsFinite(term, args);
+
+      case SubTokenType::Builtin_Math_IsInf:
+        return executeIsInf(term, args);
+
+      case SubTokenType::Builtin_Math_IsNaN:
+        return executeIsNaN(term, args);
+
+      case SubTokenType::Builtin_Math_IsNormal:
+        return executeIsNormal(term, args);
+
+      case SubTokenType::Builtin_Math_Sqrt:
+        return executeSqrt(term, args);
+
+      case SubTokenType::Builtin_Math_Cbrt:
+        return executeCbrt(term, args);
+
+      case SubTokenType::Builtin_Math_Abs:
+        return executeAbs(term, args);
+
+      case SubTokenType::Builtin_Math_Floor:
+        return executeFloor(term, args);
+
+      case SubTokenType::Builtin_Math_Ceil:
+        return executeCeil(term, args);
+
+      case SubTokenType::Builtin_Math_Round:
+        return executeRound(term, args);
+
+      case SubTokenType::Builtin_Math_Trunc:
+        return executeTrunc(term, args);
+
+      case SubTokenType::Builtin_Math_Remainder:
+        return executeRemainder(term, args);
+
+      case SubTokenType::Builtin_Math_Exp:
+        return executeExp(term, args);
+
+      case SubTokenType::Builtin_Math_ExpM1:
+        return executeExpM1(term, args);
+
+      case SubTokenType::Builtin_Math_Erf:
+        return executeErf(term, args);
+
+      case SubTokenType::Builtin_Math_ErfC:
+        return executeErfC(term, args);
+
+      case SubTokenType::Builtin_Math_LGamma:
+        return executeLGamma(term, args);
+
+      case SubTokenType::Builtin_Math_TGamma:
+        return executeTGamma(term, args);
+
+      case SubTokenType::Builtin_Math_FMax:
+        return executeFMax(term, args);
+
+      case SubTokenType::Builtin_Math_FMin:
+        return executeFMin(term, args);
+
+      case SubTokenType::Builtin_Math_FDim:
+        return executeFDim(term, args);
+
+      case SubTokenType::Builtin_Math_CopySign:
+        return executeCopySign(term, args);
+
+      case SubTokenType::Builtin_Math_NextAfter:
+        return executeNextAfter(term, args);
+
+      case SubTokenType::Builtin_Math_Pow:
+        return executePow(term, args);
+
+      case SubTokenType::Builtin_Math_Epsilon:
+        return executeEpsilon(term, args);
+
+      case SubTokenType::Builtin_Math_Random:
+        return executeRandom(term, args);
+
+      case SubTokenType::Builtin_Math_ListPrimes:
+        return executeListPrimes(term, args);
+
+      case SubTokenType::Builtin_Math_NthPrime:
+        return executeNthPrime(term, args);
+
+      default:
+        break;
     }
 
     throw UnknownBuiltinError(term, "");

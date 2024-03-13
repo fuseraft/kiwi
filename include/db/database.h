@@ -9,7 +9,6 @@
 #include <sql.h>
 #include <sqlext.h>
 #include "errors.h"
-#include "k_int.h"
 #include "typing/valuetype.h"
 
 struct {
