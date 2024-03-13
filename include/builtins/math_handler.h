@@ -145,6 +145,9 @@ class MathBuiltinHandler {
       case SubTokenType::Builtin_Math_NthPrime:
         return executeNthPrime(term, args);
 
+      case SubTokenType::Builtin_Math_Divisors:
+        return executeDivisors(term, args);
+
       default:
         break;
     }
@@ -158,7 +161,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Sin);
     }
 
-    return MathImpl.do_sin(term, args.at(0));
+    return MathImpl.__sin__(term, args.at(0));
   }
 
   static Value executeCos(const Token& term, const std::vector<Value>& args) {
@@ -166,7 +169,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Cos);
     }
 
-    return MathImpl.do_cos(term, args.at(0));
+    return MathImpl.__cos__(term, args.at(0));
   }
 
   static Value executeTan(const Token& term, const std::vector<Value>& args) {
@@ -174,7 +177,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Tan);
     }
 
-    return MathImpl.do_tan(term, args.at(0));
+    return MathImpl.__tan__(term, args.at(0));
   }
 
   static Value executeAsin(const Token& term, const std::vector<Value>& args) {
@@ -182,7 +185,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Asin);
     }
 
-    return MathImpl.do_asin(term, args.at(0));
+    return MathImpl.__asin__(term, args.at(0));
   }
 
   static Value executeAcos(const Token& term, const std::vector<Value>& args) {
@@ -190,7 +193,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Acos);
     }
 
-    return MathImpl.do_acos(term, args.at(0));
+    return MathImpl.__acos__(term, args.at(0));
   }
 
   static Value executeAtan(const Token& term, const std::vector<Value>& args) {
@@ -198,7 +201,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Atan);
     }
 
-    return MathImpl.do_atan(term, args.at(0));
+    return MathImpl.__atan__(term, args.at(0));
   }
 
   static Value executeAtan2(const Token& term, const std::vector<Value>& args) {
@@ -206,14 +209,14 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Atan2);
     }
 
-    return MathImpl.do_atan2(term, args.at(0), args.at(1));
+    return MathImpl.__atan2__(term, args.at(0), args.at(1));
   }
   static Value executeSinh(const Token& term, const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Sinh);
     }
 
-    return MathImpl.do_sinh(term, args.at(0));
+    return MathImpl.__sinh__(term, args.at(0));
   }
 
   static Value executeCosh(const Token& term, const std::vector<Value>& args) {
@@ -221,7 +224,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Cosh);
     }
 
-    return MathImpl.do_cosh(term, args.at(0));
+    return MathImpl.__cosh__(term, args.at(0));
   }
 
   static Value executeTanh(const Token& term, const std::vector<Value>& args) {
@@ -229,7 +232,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Tanh);
     }
 
-    return MathImpl.do_tanh(term, args.at(0));
+    return MathImpl.__tanh__(term, args.at(0));
   }
 
   static Value executeLog(const Token& term, const std::vector<Value>& args) {
@@ -237,7 +240,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Log);
     }
 
-    return MathImpl.do_log(term, args.at(0));
+    return MathImpl.__log__(term, args.at(0));
   }
 
   static Value executeLog2(const Token& term, const std::vector<Value>& args) {
@@ -245,7 +248,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Log2);
     }
 
-    return MathImpl.do_log2(term, args.at(0));
+    return MathImpl.__log2__(term, args.at(0));
   }
 
   static Value executeLog10(const Token& term, const std::vector<Value>& args) {
@@ -253,7 +256,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Log10);
     }
 
-    return MathImpl.do_log10(term, args.at(0));
+    return MathImpl.__log10__(term, args.at(0));
   }
 
   static Value executeLog1P(const Token& term, const std::vector<Value>& args) {
@@ -261,7 +264,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Log1P);
     }
 
-    return MathImpl.do_log1p(term, args.at(0));
+    return MathImpl.__log1p__(term, args.at(0));
   }
 
   static Value executeFmod(const Token& term, const std::vector<Value>& args) {
@@ -269,7 +272,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Fmod);
     }
 
-    return MathImpl.do_fmod(term, args.at(0), args.at(1));
+    return MathImpl.__fmod__(term, args.at(0), args.at(1));
   }
 
   static Value executeHypot(const Token& term, const std::vector<Value>& args) {
@@ -277,7 +280,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Hypot);
     }
 
-    return MathImpl.do_hypot(term, args.at(0), args.at(1));
+    return MathImpl.__hypot__(term, args.at(0), args.at(1));
   }
 
   static Value executeIsFinite(const Token& term,
@@ -286,7 +289,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.IsFinite);
     }
 
-    return MathImpl.do_isfinite(term, args.at(0));
+    return MathImpl.__isfinite__(term, args.at(0));
   }
 
   static Value executeIsInf(const Token& term, const std::vector<Value>& args) {
@@ -294,7 +297,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.IsInf);
     }
 
-    return MathImpl.do_isinf(term, args.at(0));
+    return MathImpl.__isinf__(term, args.at(0));
   }
 
   static Value executeIsNaN(const Token& term, const std::vector<Value>& args) {
@@ -302,7 +305,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.IsNaN);
     }
 
-    return MathImpl.do_isnan(term, args.at(0));
+    return MathImpl.__isnan__(term, args.at(0));
   }
 
   static Value executeIsNormal(const Token& term,
@@ -311,7 +314,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.IsNormal);
     }
 
-    return MathImpl.do_isnormal(term, args.at(0));
+    return MathImpl.__isnormal__(term, args.at(0));
   }
 
   static Value executeSqrt(const Token& term, const std::vector<Value>& args) {
@@ -319,7 +322,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Sqrt);
     }
 
-    return MathImpl.do_sqrt(term, args.at(0));
+    return MathImpl.__sqrt__(term, args.at(0));
   }
 
   static Value executeCbrt(const Token& term, const std::vector<Value>& args) {
@@ -327,7 +330,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Cbrt);
     }
 
-    return MathImpl.do_cbrt(term, args.at(0));
+    return MathImpl.__cbrt__(term, args.at(0));
   }
 
   static Value executeAbs(const Token& term, const std::vector<Value>& args) {
@@ -335,7 +338,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Abs);
     }
 
-    return MathImpl.do_abs(term, args.at(0));
+    return MathImpl.__abs__(term, args.at(0));
   }
 
   static Value executeFloor(const Token& term, const std::vector<Value>& args) {
@@ -343,7 +346,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Floor);
     }
 
-    return MathImpl.do_floor(term, args.at(0));
+    return MathImpl.__floor__(term, args.at(0));
   }
 
   static Value executeCeil(const Token& term, const std::vector<Value>& args) {
@@ -351,7 +354,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Ceil);
     }
 
-    return MathImpl.do_ceil(term, args.at(0));
+    return MathImpl.__ceil__(term, args.at(0));
   }
 
   static Value executeTrunc(const Token& term, const std::vector<Value>& args) {
@@ -359,7 +362,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Trunc);
     }
 
-    return MathImpl.do_trunc(term, args.at(0));
+    return MathImpl.__trunc__(term, args.at(0));
   }
 
   static Value executeRound(const Token& term, const std::vector<Value>& args) {
@@ -367,7 +370,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Round);
     }
 
-    return MathImpl.do_round(term, args.at(0));
+    return MathImpl.__round__(term, args.at(0));
   }
 
   static Value executeRemainder(const Token& term,
@@ -376,7 +379,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Remainder);
     }
 
-    return MathImpl.do_remainder(term, args.at(0), args.at(1));
+    return MathImpl.__remainder__(term, args.at(0), args.at(1));
   }
 
   static Value executeExp(const Token& term, const std::vector<Value>& args) {
@@ -384,7 +387,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Remainder);
     }
 
-    return MathImpl.do_exp(term, args.at(0));
+    return MathImpl.__exp__(term, args.at(0));
   }
 
   static Value executeExpM1(const Token& term, const std::vector<Value>& args) {
@@ -392,7 +395,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.ExpM1);
     }
 
-    return MathImpl.do_expm1(term, args.at(0));
+    return MathImpl.__expm1__(term, args.at(0));
   }
 
   static Value executeErf(const Token& term, const std::vector<Value>& args) {
@@ -400,7 +403,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Erf);
     }
 
-    return MathImpl.do_erf(term, args.at(0));
+    return MathImpl.__erf__(term, args.at(0));
   }
 
   static Value executeErfC(const Token& term, const std::vector<Value>& args) {
@@ -408,7 +411,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.ErfC);
     }
 
-    return MathImpl.do_erfc(term, args.at(0));
+    return MathImpl.__erfc__(term, args.at(0));
   }
 
   static Value executeLGamma(const Token& term,
@@ -417,7 +420,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.LGamma);
     }
 
-    return MathImpl.do_lgamma(term, args.at(0));
+    return MathImpl.__lgamma__(term, args.at(0));
   }
 
   static Value executeTGamma(const Token& term,
@@ -426,7 +429,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.TGamma);
     }
 
-    return MathImpl.do_tgamma(term, args.at(0));
+    return MathImpl.__tgamma__(term, args.at(0));
   }
 
   static Value executeFMax(const Token& term, const std::vector<Value>& args) {
@@ -434,7 +437,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.FMax);
     }
 
-    return MathImpl.do_max(term, args.at(0), args.at(1));
+    return MathImpl.__max__(term, args.at(0), args.at(1));
   }
 
   static Value executeFMin(const Token& term, const std::vector<Value>& args) {
@@ -442,7 +445,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.FMin);
     }
 
-    return MathImpl.do_min(term, args.at(0), args.at(1));
+    return MathImpl.__min__(term, args.at(0), args.at(1));
   }
 
   static Value executeFDim(const Token& term, const std::vector<Value>& args) {
@@ -450,7 +453,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.FDim);
     }
 
-    return MathImpl.do_fdim(term, args.at(0), args.at(1));
+    return MathImpl.__fdim__(term, args.at(0), args.at(1));
   }
 
   static Value executeCopySign(const Token& term,
@@ -459,7 +462,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.CopySign);
     }
 
-    return MathImpl.do_copysign(term, args.at(0), args.at(1));
+    return MathImpl.__copysign__(term, args.at(0), args.at(1));
   }
 
   static Value executeNextAfter(const Token& term,
@@ -468,7 +471,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.NextAfter);
     }
 
-    return MathImpl.do_nextafter(term, args.at(0), args.at(1));
+    return MathImpl.__nextafter__(term, args.at(0), args.at(1));
   }
 
   static Value executePow(const Token& term, const std::vector<Value>& args) {
@@ -476,7 +479,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Pow);
     }
 
-    return MathImpl.do_pow(term, args.at(0), args.at(1));
+    return MathImpl.__pow__(term, args.at(0), args.at(1));
   }
 
   static Value executeEpsilon(const Token& term,
@@ -485,7 +488,7 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Epsilon);
     }
 
-    return MathImpl.epsilon();
+    return MathImpl.__epsilon__();
   }
 
   static Value executeListPrimes(const Token& term,
@@ -533,7 +536,27 @@ class MathBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Random);
     }
 
-    return MathImpl.do_random(term, args.at(0), args.at(1));
+    return MathImpl.__random__(term, args.at(0), args.at(1));
+  }
+
+  static Value executeDivisors(const Token& term,
+                               const std::vector<Value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Divisors);
+    }
+
+    if (!std::holds_alternative<k_int>(args.at(0))) {
+      throw ConversionError(term,
+                            "Expected an `Integer` argument for builtin `" +
+                                MathBuiltins.Divisors + "`.");
+    }
+
+    auto list = std::make_shared<List>();
+    for (const auto& divisor : MathImpl.__divisors__(std::get<k_int>(args.at(0)))) {
+      list->elements.push_back(divisor);
+    }
+
+    return list;
   }
 };
 

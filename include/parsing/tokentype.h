@@ -107,6 +107,7 @@ enum SubTokenType {
   Builtin_Math_CopySign,
   Builtin_Math_Cos,
   Builtin_Math_Cosh,
+  Builtin_Math_Divisors,
   Builtin_Math_Epsilon,
   Builtin_Math_Erf,
   Builtin_Math_ErfC,
