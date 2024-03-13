@@ -16,10 +16,15 @@ class ArgvBuiltinHandler {
       const Token& term, const SubTokenType& builtin,
       const std::vector<Value>& args,
       const std::unordered_map<std::string, std::string>& kiwiArgs) {
-    if (builtin == SubTokenType::Builtin_Argv_GetArgv) {
-      return executeGetArgv(term, args, kiwiArgs);
-    } else if (builtin == SubTokenType::Builtin_Argv_GetXarg) {
-      return executeGetXarg(term, args, kiwiArgs);
+    switch (builtin) {
+      case SubTokenType::Builtin_Argv_GetArgv:
+        return executeGetArgv(term, args, kiwiArgs);
+
+      case SubTokenType::Builtin_Argv_GetXarg:
+        return executeGetXarg(term, args, kiwiArgs);
+
+      default:
+        break;
     }
 
     throw UnknownBuiltinError(term, "");

@@ -7,7 +7,6 @@
 #include "errors/error.h"
 #include "errors/handler.h"
 #include "errors/state.h"
-#include "k_int.h"
 #include "logging/logger.h"
 #include "objects/class.h"
 #include "objects/conditional.h"
@@ -644,17 +643,22 @@ class Interpreter {
         }
         interpretClassMethodInvocation(stream, frame, identifier);
       } else if (methodFound) {
-        if (stream->peek().getType() == TokenType::COMMA ||
-            stream->peek().getType() == TokenType::CLOSE_PAREN) {
-          if (frame->hasAssignedLambda(identifier)) {
-            std::shared_ptr<LambdaRef> lambdaRef =
-                std::make_shared<LambdaRef>(identifier);
-            return lambdaRef;
-          } else {
-            throw SyntaxError(stream->current(), "Expected lambda reference.");
-          }
-        } else {
-          interpretMethodInvocation(stream, frame, identifier);
+        switch (stream->peek().getType()) {
+          case TokenType::COMMA:
+          case TokenType::CLOSE_PAREN:
+            if (frame->hasAssignedLambda(identifier)) {
+              std::shared_ptr<LambdaRef> lambdaRef =
+                  std::make_shared<LambdaRef>(identifier);
+              return lambdaRef;
+            } else {
+              throw SyntaxError(stream->current(),
+                                "Expected lambda reference.");
+            }
+            break;
+
+          default:
+            interpretMethodInvocation(stream, frame, identifier);
+            break;
         }
       }
 
@@ -1969,11 +1973,18 @@ class Interpreter {
     Value value;
 
     if (stream->current().getType() == TokenType::IDENTIFIER) {
-      if (stream->peek().getType() == TokenType::OPERATOR) {
-        value = interpretAssignment(stream, frame, "", false, true);
-      } else if (stream->peek().getType() == TokenType::OPEN_PAREN) {
-        value = interpretMethodInvocation(stream, frame,
-                                          stream->current().getText());
+      switch (stream->peek().getType()) {
+        case TokenType::OPERATOR:
+          value = interpretAssignment(stream, frame, "", false, true);
+          break;
+
+        case TokenType::OPEN_PAREN:
+          value = interpretMethodInvocation(stream, frame,
+                                            stream->current().getText());
+          break;
+
+        default:
+          break;
       }
     }
 
@@ -3440,10 +3451,6 @@ class Interpreter {
     // Parse slice parameters (start:stop:step)
     auto slice = interpretSliceIndex(stream, frame, value);
 
-    if (stream->peek().getType() == TokenType::OPERATOR) {
-      stream->next();
-    }
-
     auto st = stream->current().getSubType();
     // Expect assignment operator next
     bool insertOp = st == SubTokenType::Ops_BitwiseLeftShiftAssign;
@@ -3561,7 +3568,6 @@ class Interpreter {
         frame->variables[name] = value;
       }
 
-      auto nextToken = stream->peek();
       switch (stream->peek().getType()) {
         case TokenType::CLOSE_PAREN:
         case TokenType::CLOSE_BRACKET:

@@ -12,62 +12,91 @@ class FileIOBuiltinHandler {
  public:
   static Value execute(const Token& token, const SubTokenType& builtin,
                        const std::vector<Value>& args) {
-    if (builtin == SubTokenType::Builtin_FileIO_CreateFile) {
-      return executeCreateFile(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_FileExists) {
-      return executeFileExists(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_IsDirectory) {
-      return executeIsDirectory(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_ListDirectory) {
-      return executeListDirectory(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_MakeDirectory) {
-      return executeMakeDirectory(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_MakeDirectoryP) {
-      return executeMakeDirectoryP(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_DeleteFile ||
-               builtin == SubTokenType::Builtin_FileIO_RemoveDirectory) {
-      return executeRemovePath(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_RemoveDirectoryF) {
-      return executeRemovePathF(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_TempDir) {
-      return executeGetTempDirectory(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_GetFileExtension) {
-      return executeGetFileExtension(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_GetCurrentDirectory) {
-      return executeGetCurrentDirectory(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_ChangeDirectory) {
-      return executeChangeDirectory(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_FileName) {
-      return executeGetFileName(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_GetFilePath) {
-      return executeGetFilePath(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_GetFileAbsolutePath) {
-      return executeGetFileAbsolutePath(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_Glob) {
-      return executeGlob(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_AppendText) {
-      return executeAppendText(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_WriteText) {
-      return executeWriteText(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_WriteLine) {
-      return executeWriteLine(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_ReadFile) {
-      return executeReadFile(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_FileSize) {
-      return executeGetFileSize(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_CopyFile) {
-      return executeCopyFile(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_CopyR) {
-      return executeCopyR(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_Combine) {
-      return executeCombine(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_MoveFile) {
-      return executeMoveFile(token, args);
-    } else if (builtin == SubTokenType::Builtin_FileIO_ReadLines) {
-      return executeReadLines(token, args);
-    } else {
-      throw UnknownBuiltinError(token, "");
+    switch (builtin) {
+      case SubTokenType::Builtin_FileIO_CreateFile:
+        return executeCreateFile(token, args);
+
+      case SubTokenType::Builtin_FileIO_FileExists:
+        return executeFileExists(token, args);
+
+      case SubTokenType::Builtin_FileIO_IsDirectory:
+        return executeIsDirectory(token, args);
+
+      case SubTokenType::Builtin_FileIO_ListDirectory:
+        return executeListDirectory(token, args);
+
+      case SubTokenType::Builtin_FileIO_MakeDirectory:
+        return executeMakeDirectory(token, args);
+
+      case SubTokenType::Builtin_FileIO_MakeDirectoryP:
+        return executeMakeDirectoryP(token, args);
+
+      case SubTokenType::Builtin_FileIO_DeleteFile:
+      case SubTokenType::Builtin_FileIO_RemoveDirectory:
+        return executeRemovePath(token, args);
+
+      case SubTokenType::Builtin_FileIO_RemoveDirectoryF:
+        return executeRemovePathF(token, args);
+
+      case SubTokenType::Builtin_FileIO_TempDir:
+        return executeGetTempDirectory(token, args);
+
+      case SubTokenType::Builtin_FileIO_GetFileExtension:
+        return executeGetFileExtension(token, args);
+
+      case SubTokenType::Builtin_FileIO_GetCurrentDirectory:
+        return executeGetCurrentDirectory(token, args);
+
+      case SubTokenType::Builtin_FileIO_ChangeDirectory:
+        return executeChangeDirectory(token, args);
+
+      case SubTokenType::Builtin_FileIO_FileName:
+        return executeGetFileName(token, args);
+
+      case SubTokenType::Builtin_FileIO_GetFilePath:
+        return executeGetFilePath(token, args);
+
+      case SubTokenType::Builtin_FileIO_GetFileAbsolutePath:
+        return executeGetFileAbsolutePath(token, args);
+
+      case SubTokenType::Builtin_FileIO_Glob:
+        return executeGlob(token, args);
+
+      case SubTokenType::Builtin_FileIO_AppendText:
+        return executeAppendText(token, args);
+
+      case SubTokenType::Builtin_FileIO_WriteText:
+        return executeWriteText(token, args);
+
+      case SubTokenType::Builtin_FileIO_WriteLine:
+        return executeWriteLine(token, args);
+
+      case SubTokenType::Builtin_FileIO_ReadFile:
+        return executeReadFile(token, args);
+
+      case SubTokenType::Builtin_FileIO_FileSize:
+        return executeGetFileSize(token, args);
+
+      case SubTokenType::Builtin_FileIO_CopyFile:
+        return executeCopyFile(token, args);
+
+      case SubTokenType::Builtin_FileIO_CopyR:
+        return executeCopyR(token, args);
+
+      case SubTokenType::Builtin_FileIO_Combine:
+        return executeCombine(token, args);
+
+      case SubTokenType::Builtin_FileIO_MoveFile:
+        return executeMoveFile(token, args);
+
+      case SubTokenType::Builtin_FileIO_ReadLines:
+        return executeReadLines(token, args);
+
+      default:
+        break;
     }
+
+    throw UnknownBuiltinError(token, "");
   }
 
  private:
