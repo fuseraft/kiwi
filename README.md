@@ -40,7 +40,7 @@ sudo apt-get install make
 Then build with Make.
 
 ```bash
-make all
+make
 ```
 
 #### Installing Kiwi and Kiwi Common Library
