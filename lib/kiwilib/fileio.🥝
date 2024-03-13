@@ -262,7 +262,7 @@ module fileio
     - _text: The text to write.
   Returns: Boolean
   ##
-  def write(_path, _text)
+  def write(_path, _text = "")
     return __writetext__(_path, _text)
   end
 
