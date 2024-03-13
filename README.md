@@ -19,6 +19,8 @@ sudo docker run -it -v $(pwd):/workspace kiwi-language
 
 To build Kiwi, use your favorite C++ compiler.
 
+This repo uses GCC and Make.
+
 #### Fedora / RHEL
 
 ```bash
@@ -35,9 +37,15 @@ sudo apt-get install g++
 sudo apt-get install make
 ```
 
+Then build with Make.
+
+```bash
+make all
+```
+
 #### Installing Kiwi and Kiwi Common Library
 
-Clone and build Kiwi.  Run `sudo make install` to run the installation script.
+Clone and build Kiwi.  Run `sudo make install` to build Kiwi and run the installation script.
 
 ```bash
 git clone https://github.com/fuseraft/kiwi.git
