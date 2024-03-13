@@ -57,7 +57,7 @@ sudo make install
 
 You can install the [extension](https://marketplace.visualstudio.com/items?itemName=fuseraft.kiwi-lang) for syntax-highlighting in VS Code.
 
-Launch VS Code Quick Open (`Ctrl+P`), paste the following command, and press enter.
+Launch VS Code Quick Open (<kbd>Ctrl</kbd>+<kbd>P</kbd>), paste the following command, and press enter.
 ```
 ext install fuseraft.kiwi-lang
 ```
