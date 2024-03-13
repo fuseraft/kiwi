@@ -6,7 +6,18 @@ Kiwi is a light-weight general-purpose language designed for simplicity and vers
 
 To start using Kiwi, please follow the instructions below.
 
-### Install Dependencies
+### Docker
+
+Experiment with Kiwi in a Docker container.
+
+```bash
+sudo docker build -t kiwi-lang .
+sudo docker run -it -v $(pwd):/workspace kiwi-language
+```
+
+### Building Kiwi
+
+To build Kiwi, use your favorite C++ compiler.
 
 #### Fedora / RHEL
 
@@ -14,7 +25,6 @@ To start using Kiwi, please follow the instructions below.
 sudo dnf update
 sudo dnf install gcc-c++
 sudo dnf install make
-sudo dnf install clang-tools-extra
 ```
 
 #### Ubuntu / Debian
@@ -23,7 +33,6 @@ sudo dnf install clang-tools-extra
 sudo apt update
 sudo apt-get install g++
 sudo apt-get install make
-sudo apt-get install clang-format
 ```
 
 #### Installing Kiwi and Kiwi Common Library
@@ -34,15 +43,6 @@ Clone and build Kiwi.  Run `sudo make install` to run the installation script.
 git clone https://github.com/fuseraft/kiwi.git
 cd kiwi
 sudo make install
-```
-
-#### Docker
-
-Experiment with Kiwi in a Docker container.
-
-```bash
-sudo docker build -t kiwi-lang .
-sudo docker run -it -v $(pwd):/workspace kiwi-language
 ```
 
 #### Visual Studio Code Extension
