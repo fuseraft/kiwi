@@ -269,37 +269,54 @@ struct InterpHelper {
                                  const SubTokenType& op,
                                  const Value& currentValue,
                                  const Value& value) {
-    if (op == SubTokenType::Ops_AddAssign) {
-      return std::visit(AddVisitor(stream->current()), currentValue, value);
-    } else if (op == SubTokenType::Ops_SubtractAssign) {
-      return std::visit(SubtractVisitor(stream->current()), currentValue,
-                        value);
-    } else if (op == SubTokenType::Ops_MultiplyAssign) {
-      return std::visit(MultiplyVisitor(stream->current()), currentValue,
-                        value);
-    } else if (op == SubTokenType::Ops_DivideAssign) {
-      return std::visit(DivideVisitor(stream->current()), currentValue, value);
-    } else if (op == SubTokenType::Ops_ExponentAssign) {
-      return std::visit(PowerVisitor(stream->current()), currentValue, value);
-    } else if (op == SubTokenType::Ops_ModuloAssign) {
-      return std::visit(ModuloVisitor(stream->current()), currentValue, value);
-    } else if (op == SubTokenType::Ops_BitwiseAndAssign) {
-      return std::visit(BitwiseAndVisitor(stream->current()), currentValue,
-                        value);
-    } else if (op == SubTokenType::Ops_BitwiseOrAssign) {
-      return std::visit(BitwiseOrVisitor(stream->current()), currentValue,
-                        value);
-    } else if (op == SubTokenType::Ops_BitwiseXorAssign) {
-      return std::visit(BitwiseXorVisitor(stream->current()), currentValue,
-                        value);
-    } else if (op == SubTokenType::Ops_BitwiseLeftShiftAssign) {
-      return std::visit(BitwiseLeftShiftVisitor(stream->current()),
-                        currentValue, value);
-    } else if (op == SubTokenType::Ops_BitwiseRightShiftAssign) {
-      return std::visit(BitwiseRightShiftVisitor(stream->current()),
-                        currentValue, value);
-    } else if (op == SubTokenType::Ops_BitwiseNotAssign) {
-      return std::visit(BitwiseNotVisitor(stream->current()), value);
+    switch (op) {
+      case SubTokenType::Ops_AddAssign:
+        return std::visit(AddVisitor(stream->current()), currentValue, value);
+
+      case SubTokenType::Ops_SubtractAssign:
+        return std::visit(SubtractVisitor(stream->current()), currentValue,
+                          value);
+
+      case SubTokenType::Ops_MultiplyAssign:
+        return std::visit(MultiplyVisitor(stream->current()), currentValue,
+                          value);
+
+      case SubTokenType::Ops_DivideAssign:
+        return std::visit(DivideVisitor(stream->current()), currentValue,
+                          value);
+
+      case SubTokenType::Ops_ExponentAssign:
+        return std::visit(PowerVisitor(stream->current()), currentValue, value);
+
+      case SubTokenType::Ops_ModuloAssign:
+        return std::visit(ModuloVisitor(stream->current()), currentValue,
+                          value);
+
+      case SubTokenType::Ops_BitwiseAndAssign:
+        return std::visit(BitwiseAndVisitor(stream->current()), currentValue,
+                          value);
+
+      case SubTokenType::Ops_BitwiseOrAssign:
+        return std::visit(BitwiseOrVisitor(stream->current()), currentValue,
+                          value);
+
+      case SubTokenType::Ops_BitwiseXorAssign:
+        return std::visit(BitwiseXorVisitor(stream->current()), currentValue,
+                          value);
+
+      case SubTokenType::Ops_BitwiseLeftShiftAssign:
+        return std::visit(BitwiseLeftShiftVisitor(stream->current()),
+                          currentValue, value);
+
+      case SubTokenType::Ops_BitwiseRightShiftAssign:
+        return std::visit(BitwiseRightShiftVisitor(stream->current()),
+                          currentValue, value);
+
+      case SubTokenType::Ops_BitwiseNotAssign:
+        return std::visit(BitwiseNotVisitor(stream->current()), value);
+
+      default:
+        break;
     }
 
     throw InvalidOperationError(stream->current(), "Invalid operator.");
