@@ -12,34 +12,51 @@ class TimeBuiltinHandler {
  public:
   static Value execute(const Token& term, const SubTokenType& builtin,
                        const std::vector<Value>& args) {
-    if (builtin == SubTokenType::Builtin_Time_Delay) {
-      return executeDelay(term, args);
-    } else if (builtin == SubTokenType::Builtin_Time_EpochMilliseconds) {
-      return executeEpochMilliseconds(term, args);
-    } else if (builtin == SubTokenType::Builtin_Time_Hour) {
-      return executeCurrentHour(term, args);
-    } else if (builtin == SubTokenType::Builtin_Time_IsDST) {
-      return executeIsDST(term, args);
-    } else if (builtin == SubTokenType::Builtin_Time_Minute) {
-      return executeCurrentMinute(term, args);
-    } else if (builtin == SubTokenType::Builtin_Time_Month) {
-      return executeCurrentMonth(term, args);
-    } else if (builtin == SubTokenType::Builtin_Time_MonthDay) {
-      return executeCurrentMonthDay(term, args);
-    } else if (builtin == SubTokenType::Builtin_Time_Second) {
-      return executeCurrentSecond(term, args);
-    } else if (builtin == SubTokenType::Builtin_Time_Ticks) {
-      return executeTicks(term, args);
-    } else if (builtin == SubTokenType::Builtin_Time_WeekDay) {
-      return executeCurrentWeekDay(term, args);
-    } else if (builtin == SubTokenType::Builtin_Time_Year) {
-      return executeCurrentYear(term, args);
-    } else if (builtin == SubTokenType::Builtin_Time_YearDay) {
-      return executeCurrentYearDay(term, args);
-    } else if (builtin == SubTokenType::Builtin_Time_AMPM) {
-      return executeAMPM(term, args);
-    } else if (builtin == SubTokenType::Builtin_Time_TicksToMilliseconds) {
-      return executeTicksToMilliseconds(term, args);
+    switch (builtin) {
+      case SubTokenType::Builtin_Time_Delay:
+        return executeDelay(term, args);
+
+      case SubTokenType::Builtin_Time_EpochMilliseconds:
+        return executeEpochMilliseconds(term, args);
+
+      case SubTokenType::Builtin_Time_Hour:
+        return executeCurrentHour(term, args);
+
+      case SubTokenType::Builtin_Time_IsDST:
+        return executeIsDST(term, args);
+
+      case SubTokenType::Builtin_Time_Minute:
+        return executeCurrentMinute(term, args);
+
+      case SubTokenType::Builtin_Time_Month:
+        return executeCurrentMonth(term, args);
+
+      case SubTokenType::Builtin_Time_MonthDay:
+        return executeCurrentMonthDay(term, args);
+
+      case SubTokenType::Builtin_Time_Second:
+        return executeCurrentSecond(term, args);
+
+      case SubTokenType::Builtin_Time_Ticks:
+        return executeTicks(term, args);
+
+      case SubTokenType::Builtin_Time_WeekDay:
+        return executeCurrentWeekDay(term, args);
+
+      case SubTokenType::Builtin_Time_Year:
+        return executeCurrentYear(term, args);
+
+      case SubTokenType::Builtin_Time_YearDay:
+        return executeCurrentYearDay(term, args);
+
+      case SubTokenType::Builtin_Time_AMPM:
+        return executeAMPM(term, args);
+
+      case SubTokenType::Builtin_Time_TicksToMilliseconds:
+        return executeTicksToMilliseconds(term, args);
+
+      default:
+        break;
     }
 
     throw UnknownBuiltinError(term, "");

@@ -4,7 +4,7 @@
 #include <chrono>
 #include <ctime>
 #include <thread>
-#include "k_int.h"
+#include "typing/valuetype.h"
 
 class Time {
  public:

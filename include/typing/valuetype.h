@@ -9,12 +9,13 @@
 #include <variant>
 #include <vector>
 #include "errors/error.h"
-#include "k_int.h"
 
 struct Hash;
 struct List;
 struct Object;
 struct LambdaRef;
+
+typedef long long k_int;
 
 enum class ValueType {
   None,

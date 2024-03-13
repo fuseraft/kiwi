@@ -5,7 +5,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "k_int.h"
 #include "parsing/builtins.h"
 #include "parsing/keywords.h"
 #include "parsing/tokens.h"

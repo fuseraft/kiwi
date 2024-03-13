@@ -3,8 +3,9 @@
 
 #include <ctime>
 #include <iostream>
+#include <memory>
 #include <random>
-#include "k_int.h"
+#include "typing/valuetype.h"
 
 class RNG {
  public:
@@ -12,6 +13,8 @@ class RNG {
   double random(double from, double to);
   k_int random(k_int from, k_int to);
   std::string random16();
+  std::string randomString(const std::string& input, size_t length);
+  Value randomList(std::shared_ptr<List> list, size_t length);
 
  private:
   RNG();
@@ -44,14 +47,38 @@ std::string RNG::random16() {
   const std::string chars =
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-  std::uniform_int_distribution<> distribution(0, chars.size() - 1);
+  return randomString(chars, LENGTH);
+}
 
-  std::string randomString;
-  for (size_t i = 0; i < LENGTH; ++i) {
-    randomString += chars[distribution(generator)];
+std::string RNG::randomString(const std::string& chars, size_t length) {
+  if (chars.empty()) {
+    return chars;
   }
 
-  return randomString;
+  std::uniform_int_distribution<> distribution(0, chars.size() - 1);
+  std::ostringstream randomString;
+
+  for (size_t i = 0; i < length; ++i) {
+    randomString << chars[distribution(generator)];
+  }
+
+  return randomString.str();
+}
+
+Value RNG::randomList(std::shared_ptr<List> list, size_t length) {
+  const auto& elements = list->elements;
+  if (elements.empty()) {
+    return std::make_shared<List>();
+  }
+
+  std::uniform_int_distribution<> distribution(0, elements.size() - 1);
+  auto randomList = std::make_shared<List>();
+
+  for (size_t i = 0; i < length; ++i) {
+    randomList->elements.push_back(elements.at(distribution(generator)));
+  }
+
+  return randomList;
 }
 
 #endif

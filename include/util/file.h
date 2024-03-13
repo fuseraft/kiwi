@@ -5,7 +5,6 @@
 #include <filesystem>
 #include <regex>
 #include <string>
-#include "k_int.h"
 #include "errors/error.h"
 #include "typing/serializer.h"
 #include "typing/valuetype.h"
