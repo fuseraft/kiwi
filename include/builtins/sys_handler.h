@@ -11,12 +11,18 @@ class SysBuiltinHandler {
  public:
   static Value execute(const Token& term, const SubTokenType& builtin,
                        const std::vector<Value>& args) {
-    if (builtin == SubTokenType::Builtin_Sys_Exec) {
-      return executeExec(term, args);
-    } else if (builtin == SubTokenType::Builtin_Sys_ExecOut) {
-      return executeExecOut(term, args);
-    } else if (builtin == SubTokenType::Builtin_Sys_EffectiveUserId) {
-      return executeEffectiveUserId(term, args);
+    switch (builtin) {
+      case SubTokenType::Builtin_Sys_Exec:
+        return executeExec(term, args);
+
+      case SubTokenType::Builtin_Sys_ExecOut:
+        return executeExecOut(term, args);
+
+      case SubTokenType::Builtin_Sys_EffectiveUserId:
+        return executeEffectiveUserId(term, args);
+
+      default:
+        break;
     }
 
     throw UnknownBuiltinError(term, "");

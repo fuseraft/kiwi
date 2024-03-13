@@ -53,22 +53,33 @@ class OdbcBuiltinHandler {
   static Value execute(const Token& term, const std::string& builtin,
                        const std::vector<Value>& args) {
     try {
-      if (builtin == OdbcBuiltins.Connect) {
-        return executeConnect(term, args);
-      } else if (builtin == OdbcBuiltins.Exec) {
-        return executeExec(term, args);
-      } else if (builtin == OdbcBuiltins.ExecSp) {
-        return executeExecSp(term, args);
-      } else if (builtin == OdbcBuiltins.IsConnected) {
-        return executeIsConnected(term, args);
-      } else if (builtin == OdbcBuiltins.InTransaction) {
-        return executeInTransaction(term, args);
-      } else if (builtin == OdbcBuiltins.BeginTransaction) {
-        return executeBeginTransaction(term, args);
-      } else if (builtin == OdbcBuiltins.CommitTransaction) {
-        return executeCommitTransaction(term, args);
-      } else if (builtin == OdbcBuiltins.RollbackTransaction) {
-        return executeRollbackTransaction(term, args);
+      switch (builtin) {
+        case OdbcBuiltins.Connect:
+          return executeConnect(term, args);
+
+        case OdbcBuiltins.Exec:
+          return executeExec(term, args);
+
+        case OdbcBuiltins.ExecSp:
+          return executeExecSp(term, args);
+
+        case OdbcBuiltins.IsConnected:
+          return executeIsConnected(term, args);
+
+        case OdbcBuiltins.InTransaction:
+          return executeInTransaction(term, args);
+
+        case OdbcBuiltins.BeginTransaction:
+          return executeBeginTransaction(term, args);
+
+        case OdbcBuiltins.CommitTransaction:
+          return executeCommitTransaction(term, args);
+
+        case OdbcBuiltins.RollbackTransaction:
+          return executeRollbackTransaction(term, args);
+
+        default:
+          break;
       }
     } catch (const std::exception& e) {
       throw DbError(term, "ODBC handler error: " + std::string(e.what()));

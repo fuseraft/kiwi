@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 #include "errors/error.h"
-#include "k_int.h"
 #include "math/functions.h"
 #include "parsing/builtins.h"
 #include "parsing/tokens.h"
@@ -33,52 +32,78 @@ class CoreBuiltinHandler {
                                   const SubTokenType& builtin,
                                   const Value& value,
                                   const std::vector<Value>& args) {
-    if (builtin == SubTokenType::Builtin_Kiwi_Chars) {
-      return executeChars(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_IsA) {
-      return executeIsA(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_Join) {
-      return executeJoin(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_Split) {
-      return executeSplit(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_LeftTrim) {
-      return executeLeftTrim(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_RightTrim) {
-      return executeRightTrim(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_Trim) {
-      return executeTrim(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_Type) {
-      return executeType(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_Size) {
-      return executeSize(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_ToD) {
-      return executeToDouble(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_ToI) {
-      return executeToInteger(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_ToS) {
-      return executeToString(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_BeginsWith) {
-      return executeBeginsWith(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_Contains) {
-      return executeContains(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_EndsWith) {
-      return executeEndsWith(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_Replace) {
-      return executeReplace(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_Reverse) {
-      return executeReverse(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_IndexOf) {
-      return executeIndexOf(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_Upcase) {
-      return executeUpcase(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_Downcase) {
-      return executeDowncase(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_Empty) {
-      return executeEmpty(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_Keys) {
-      return executeKeys(term, value, args);
-    } else if (builtin == SubTokenType::Builtin_Kiwi_HasKey) {
-      return executeHasKey(term, value, args);
+    switch (builtin) {
+      case SubTokenType::Builtin_Kiwi_Chars:
+        return executeChars(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_IsA:
+        return executeIsA(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_Join:
+        return executeJoin(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_Split:
+        return executeSplit(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_LeftTrim:
+        return executeLeftTrim(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_RightTrim:
+        return executeRightTrim(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_Trim:
+        return executeTrim(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_Type:
+        return executeType(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_Size:
+        return executeSize(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_ToD:
+        return executeToDouble(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_ToI:
+        return executeToInteger(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_ToS:
+        return executeToString(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_BeginsWith:
+        return executeBeginsWith(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_Contains:
+        return executeContains(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_EndsWith:
+        return executeEndsWith(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_Replace:
+        return executeReplace(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_Reverse:
+        return executeReverse(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_IndexOf:
+        return executeIndexOf(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_Upcase:
+        return executeUpcase(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_Downcase:
+        return executeDowncase(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_Empty:
+        return executeEmpty(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_Keys:
+        return executeKeys(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_HasKey:
+        return executeHasKey(term, value, args);
+
+      default:
+        break;
     }
 
     throw UnknownBuiltinError(term, "");

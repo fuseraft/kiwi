@@ -3,7 +3,6 @@
 
 #include <vector>
 #include "errors/error.h"
-#include "k_int.h"
 #include "math/visitor.h"
 #include "objects/method.h"
 #include "objects/sliceindex.h"
