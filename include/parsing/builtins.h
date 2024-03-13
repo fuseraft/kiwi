@@ -10,6 +10,7 @@ struct {
   const std::string AppendText = "__appendtext__";
   const std::string CopyFile = "__copyfile__";
   const std::string CopyR = "__copyr__";
+  const std::string Combine = "__combine__";
   const std::string CreateFile = "__createfile__";
   const std::string DeleteFile = "__deletefile__";
   const std::string MoveFile = "__movefile__";
@@ -40,6 +41,7 @@ struct {
   std::unordered_set<std::string> builtins = {AppendText,
                                               CopyFile,
                                               CopyR,
+                                              Combine,
                                               CreateFile,
                                               DeleteFile,
                                               MoveFile,
@@ -70,6 +72,7 @@ struct {
       SubTokenType::Builtin_FileIO_ChangeDirectory,
       SubTokenType::Builtin_FileIO_CopyFile,
       SubTokenType::Builtin_FileIO_CopyR,
+      SubTokenType::Builtin_FileIO_Combine,
       SubTokenType::Builtin_FileIO_CreateFile,
       SubTokenType::Builtin_FileIO_DeleteFile,
       SubTokenType::Builtin_FileIO_FileExists,
