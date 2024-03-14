@@ -104,51 +104,29 @@ numbers = [
 ]
 
 sum = [0] * 52
+carry = 0
 
-println sum
+for i in [0..49].reverse() do
+  tempSum = carry
+  
+  for num in numbers do
+    tempSum += num[i].to_i()
+  end
 
-##
-#include <iostream>
-#include <string>
-#include <vector>
+  sum[i + 2] = tempSum % 10
+  carry = tempSum / 10
+end
 
-int main() {
-    std::vector<std::string> numbers = {
-        "37107287533902102798797998220837590246510135740250",
-        "46376937677490009712648124896970078050417018260538",
-        // Add the rest of the 98 numbers here
-        "53503534226472524250874054075591789781264330331690"
-    };
+sum[1] = carry % 10
+sum[0] = carry / 10
 
-    int sum[52] = {};  // To hold the sum of the digits plus extra space for carry over
-    int carry = 0;
+index = 0
+while sum[index] == 0 do
+  index += 1
+end
 
-    for (int i = 49; i >= 0; --i) {  // Start from the least significant digit
-        int tempSum = carry;  // Start with the carry from the previous iteration
-        for (const auto& num : numbers) {
-            tempSum += (num[i] - '0');  // Convert char to int and add to tempSum
-        }
-        sum[i + 2] = tempSum % 10;  // Store the last digit in sum
-        carry = tempSum / 10;  // Calculate the carry for the next iteration
-    }
-
-    // Add the final carry to the sum array
-    sum[1] = carry % 10;
-    sum[0] = carry / 10;
-
-    // Find the index of the first non-zero digit to skip leading zeros
-    int index = 0;
-    while (sum[index] == 0) {
-        ++index;
-    }
-
-    // Output the first ten digits of the sum
-    for (int i = 0; i < 10; ++i) {
-        std::cout << sum[index + i];
-    }
-    std::cout << std::endl;
-
-    return 0;
-}
-
-##
+for i in [0..9] do
+  print sum[index + i]
+end
+    
+println ""
