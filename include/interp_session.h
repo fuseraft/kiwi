@@ -67,7 +67,7 @@ class InterpSession {
       auto kiwilibPath = File::getLibraryPath();
 
       if (!kiwilibPath.empty()) {
-        auto kiwilib = File::expandGlob(kiwilibPath + "/**/*.🥝");
+        auto kiwilib = File::expandGlob(kiwilibPath + "/*.🥝");
 
         for (const auto& script : kiwilib) {
           loadScript(script);

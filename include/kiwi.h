@@ -41,6 +41,7 @@ class Kiwi {
  private:
   static bool configure(Config& config, Logger& logger, InterpSession& session,
                         const std::string& path);
+  static bool createNewFile(const std::string& path);
   static bool processXarg(std::string& opt, InterpSession& session);
 
   static int run(std::vector<std::string>& v);
@@ -78,20 +79,21 @@ int Kiwi::run(std::vector<std::string>& v) {
     bool help = false;
 
     for (size_t i = 1; i < size; ++i) {
-      if (help) {
-        return printHelp();
-      }
-
       if (String::isCLIFlag(v.at(i), "h", "help")) {
         help = true;
       } else if (String::isCLIFlag(v.at(i), "v", "version")) {
         return printVersion();
       } else if (String::isCLIFlag(v.at(i), "C", "config")) {
-        if (i + 1 < size) {
-          help = configure(config, logger, session, v.at(++i));
-        } else {
-          help = true;
+        help = i + 1 < size;
+        if (!help) {
+          help = !configure(config, logger, session, v.at(++i));
         }
+      } else if (String::isCLIFlag(v.at(i), "n", "new")) {
+        if (i + 1 < size) {
+          return createNewFile(v.at(++i));
+        }
+
+        help = true;
       } else if (File::isScript(v.at(i))) {
         session.registerScript(v.at(i));
       } else if (String::isXArg(v.at(i))) {
@@ -101,10 +103,31 @@ int Kiwi::run(std::vector<std::string>& v) {
       }
     }
 
+    if (help) {
+      return printHelp();
+    }
+
     return session.start();
   } catch (const KiwiError& e) {
     return ErrorHandler::handleError(e);
   }
+}
+
+bool Kiwi::createNewFile(const std::string& path) {
+  const std::string DefaultExtension = ".🥝";
+  auto filePath = path;
+
+  if (File::getFileExtension(path).empty()) {
+    filePath += DefaultExtension;
+  }
+
+  if (File::fileExists(filePath)) {
+    std::cout << "The file already exists." << std::endl;
+    return false;
+  }
+
+  std::cout << "Creating " << filePath << std::endl;
+  return File::createFile(filePath);
 }
 
 bool Kiwi::configure(Config& config, Logger& logger, InterpSession& session,
@@ -182,6 +205,7 @@ int Kiwi::printHelp() {
   std::vector<CommandInfo> commands = {
       {"-h, --help", "print this message"},
       {"-v, --version", "print the current version"},
+      {"-n, --new <filename>", "create a `.🥝` file"},
       {"-C, --config <conf_path>", "configure with a `.conf` file"},
       {"-X<key>:<value>", "specify an argument as a key-value pair"}};
 

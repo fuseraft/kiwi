@@ -1,14 +1,6 @@
 # `@kiwi/argv`
 
-The `argv` module contains functionality for working with command-line arguments.
-
-## Importing the Module
-
-To use the `argv` module, import it at the beginning of your Kiwi script.
-
-```ruby
-import "@kiwi/argv"
-```
+The `ARGV` module contains functionality for working with command-line arguments.
 
 ## Module Functions
 
@@ -30,9 +22,8 @@ An `XArg` is a named command-line argument in the form of a key-value pair.
 /bin/kiwi -Xkey=value
 ```
 
-You can pull these values using this kiwilib module.
+You can pull these values using this module.
 
 ```ruby
-import "@kiwi/argv"
-println argv::xarg("key") # prints: value
+println ARGV.xarg("key") # prints: value
 ```

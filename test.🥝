@@ -1,18 +1,18 @@
 # Script Performance Analyzer
 
-import "@kiwi/fileio"
+import "@kiwi/fs" as fs
 import "@kiwi/time"
 
 runtimes = []
 
 # Search pattern for Kiwi scripts, excluding certain files and directories
 search_pattern = "./**/*.🥝"
-exclusions = ["install.🥝", "test.🥝", "/kiwilib/", "/examples/"]
+exclusions = ["install.🥝", "test.🥝", "lib/kiwi", "/examples/"]
 
 println "Searching for Kiwi scripts..."
 silent(true)
 
-for file in fileio::glob(search_pattern) do
+for file in fs.glob(search_pattern) do
   exclude = false
 
   # Check if file is not in the exclusions list
@@ -24,7 +24,7 @@ for file in fileio::glob(search_pattern) do
   end
   
   if !exclude
-    fileio::chdir(fileio::parentdir(file))
+    fs.chdir(fs.parentdir(file))
     
     # Record start and end times.    
     start_time = time::ticks()
