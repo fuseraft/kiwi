@@ -255,8 +255,9 @@ struct {
       return do_string_multiplication(token, left, right);
     } else if (std::holds_alternative<std::shared_ptr<List>>(left) &&
                std::holds_alternative<k_int>(right)) {
-      do_list_multiplication(token, left, right);
+      return do_list_multiplication(token, left, right);
     }
+
 
     throw ConversionError(token, "Conversion error in multiplication.");
   }

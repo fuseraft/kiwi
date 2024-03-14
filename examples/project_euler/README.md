@@ -18,3 +18,4 @@ Click on the **Title** to see the code!
 | 10 | **[Summation of Primes](problem_010.🥝)** | Find the sum of all the primes below two million. |
 | 11 | **[Largest Product in a Grid](problem_011.🥝)** | What is the greatest product of four adjacent numbers in the same direction (up, down, left, right, or diagonally) in the 20 x 20 grid? |
 | 12 | **[Highly Divisible Triangular Number](problem_012.🥝)** | What is the value of the first triangle number to have over five hundred divisors? |
+| 13 | **[Large Sum](problem_013.🥝)** | Work out the first ten digits of the sum of the following one-hundred 50-digit numbers. |
