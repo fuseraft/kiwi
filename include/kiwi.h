@@ -84,9 +84,10 @@ int Kiwi::run(std::vector<std::string>& v) {
       } else if (String::isCLIFlag(v.at(i), "v", "version")) {
         return printVersion();
       } else if (String::isCLIFlag(v.at(i), "C", "config")) {
-        help = i + 1 < size;
-        if (!help) {
+        if (i + 1 < size) {
           help = !configure(config, logger, session, v.at(++i));
+        } else {
+          help = true;
         }
       } else if (String::isCLIFlag(v.at(i), "n", "new")) {
         if (i + 1 < size) {
