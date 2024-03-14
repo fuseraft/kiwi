@@ -14,10 +14,10 @@ end
 # Change these if you want to install in an alternative location. 
 ##
 install_bin = "/usr/bin/kiwi"
-install_lib = "/usr/lib/kiwilib"
+install_lib = "/usr/lib/kiwi"
 
 local_bin = "./bin/kiwi"     # Path to kiwi (executable).
-local_lib = "./lib/kiwilib"  # Path to kiwilib (Kiwi Common Library).
+local_lib = "./lib/kiwi"     # Path to kiwilib (Kiwi Standard Library).
 ec = 0                       # An error counter.
 
 ##

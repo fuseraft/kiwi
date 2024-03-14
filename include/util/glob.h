@@ -42,56 +42,47 @@ std::string createRegexPattern(const std::string& pattern) {
   return regexPattern;
 }
 
-/// @brief Parse a glob.
-/// @param input The glob string.
-/// @return A glob.
 Glob parseGlob(std::string input) {
   Glob glob;
-  size_t pos = 0, length = input.size();
-  std::string builder, path;
-  bool canPeek = false;
-  char c = '\0', next = '\0';
 
-  while (pos < length) {
-    c = input[pos++];
-    canPeek = pos + 1 < length;
-    if (canPeek) {
-      next = input[pos];
+  // Check if the pattern includes the recursive "**"
+  size_t doubleStarPos = input.find("**");
+  if (doubleStarPos != std::string::npos) {
+    glob.recursiveTraversal = true;
+    if (doubleStarPos > 0 && input[doubleStarPos - 1] == '/') {
+      // Exclude the '/' before '**'
+      glob.path = input.substr(0, doubleStarPos - 1);
+    } else {
+      glob.path = "./";
     }
 
-    if (c == '/' && glob.path.empty()) {
-      builder += c;
-      path += c;
-      glob.path = builder;
-      builder.clear();
-      continue;
-    } else if (c == '*') {
-      if (canPeek && next == '*') {
-        builder.clear();
-        glob.recursiveTraversal = true;
-        pos += 2;
-        glob.path = path;
-        continue;
+    if (doubleStarPos + 2 < input.size() && input[doubleStarPos + 2] == '/') {
+      // Exclude the '/' after '**'
+      glob.pattern = input.substr(doubleStarPos + 3);
+    } else {
+      glob.pattern = input.substr(doubleStarPos + 2);
+    }
+  } else {
+    // Handle non-recursive patterns
+    size_t lastSlashPos = input.rfind('/');
+    if (lastSlashPos != std::string::npos) {
+      glob.path = input.substr(0, lastSlashPos);
+      if (lastSlashPos + 1 < input.size()) {
+        glob.pattern = input.substr(lastSlashPos + 1);
       }
+    } else {
+      glob.path = "./";
+      glob.pattern = input;
     }
-
-    builder += c;
-    path += c;
-    next = '\0';
   }
 
+  // Ensure that the path is not empty
   if (glob.path.empty()) {
-    glob.path = "./";  // Default to current directory.
+    glob.path = "./";
   }
 
-  if (!builder.empty()) {
-    glob.pattern = builder;
-    builder.clear();
-  }
-
-  if (!glob.pattern.empty()) {
-    glob.regexPattern = createRegexPattern(glob.pattern);
-  }
+  // Create the regex pattern from the glob pattern
+  glob.regexPattern = createRegexPattern(glob.pattern);
 
   return glob;
 }

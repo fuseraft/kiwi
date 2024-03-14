@@ -53,7 +53,6 @@ class Interpreter {
 
     Lexer lexer(path, content);
     int result = interpret(lexer);
-
     File::setCurrentDirectory(cwd);
     return result;
   }
@@ -2155,8 +2154,8 @@ class Interpreter {
 
     auto scriptName = std::get<std::string>(scriptNameValue);
     auto scriptNameKiwi = scriptName;
-    if (!String::endsWith(scriptName, ".kiwi") &&
-        !String::endsWith(scriptName, "🥝")) {
+    if (!String::endsWith(scriptName, "🥝") &&
+        !String::endsWith(scriptName, ".kiwi")) {
       scriptName += ".kiwi";
       scriptNameKiwi += ".🥝";
     }
@@ -2204,11 +2203,6 @@ class Interpreter {
 
     auto search = moduleName + Symbols.Qualifier;
 
-    if (hasClass(alias)) {
-      throw InvalidOperationError(
-          stream->current(), "The module alias `" + alias + "` is in use.");
-    }
-
     Class clazz;
     clazz.setClassName(alias);
 
@@ -2228,7 +2222,7 @@ class Interpreter {
       methods.erase(pair.first);
     }
 
-    modules.erase(moduleName);
+    //modules.erase(moduleName);
   }
 
   void interpretExport(std::shared_ptr<TokenStream> stream,
@@ -2250,7 +2244,9 @@ class Interpreter {
 
   void interpretImport(std::shared_ptr<TokenStream> stream,
                        std::shared_ptr<CallStackFrame> frame) {
-    stream->next();  // skip the "import"
+    if (stream->current().getSubType() == SubTokenType::KW_Import) {
+      stream->next();  // skip the "import"
+    }
 
     auto tokenText = stream->current().getText();
     auto moduleName = tokenText;

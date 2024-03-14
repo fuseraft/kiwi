@@ -26,16 +26,16 @@
     1. [Abstract Classes](abstract_classes.md)
     2. [Classes](classes.md)
 
-## kiwilib
-16. [**kiwilib**](kiwilib.md)
-    1. [argv](kiwilib/argv.md)
-    2. [env](kiwilib/env.md)
-    3. [fileio](kiwilib/fileio.md)
-    4. [http](kiwilib/http.md)
-    5. [math](kiwilib/math.md)
-    6. [odbc](kiwilib/odbc.md)
-    7. [sys](kiwilib/sys.md)
-    8. [time](kiwilib/time.md)
+## Kiwi Standard Library
+16. [**Standard Library**](standard_library.md)
+    1. [`argv`](lib/argv.md)
+    2. [`env`](lib/env.md)
+    3. [`fs`](lib/fs.md)
+    4. [`http`](lib/http.md)
+    5. [`math`](lib/math.md)
+    6. [`odbc`](lib/odbc.md)
+    7. [`sys`](lib/sys.md)
+    8. [`time`](lib/time.md)
 
 ## Other Topics
 17. [Concurrency](concurrency.md)
