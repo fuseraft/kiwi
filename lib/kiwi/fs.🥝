@@ -1,7 +1,7 @@
 ##
 Summary: A module containing functionality for working with files and directories.
 ##
-module fileio
+module fs
   __home__("kiwi")
 
   ##
@@ -278,4 +278,4 @@ module fileio
   end
 end
 
-export "fileio"
+export "fs"

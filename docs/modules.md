@@ -46,10 +46,10 @@ To include a homed module, you can prefix the module name with `homename/` to sp
 ### Example Homed Module `fuseraft/fun`
 
 In this example, we have two Kiwi scripts:
-1. **fun.kiwi**: Defines the homed module `fuseraft/fun`.
-2. **app.kiwi**: Imports and uses functionality defined in the homed module `fuseraft/fun`.
+1. **fun.🥝**: Defines the homed module `fuseraft/fun`.
+2. **app.🥝**: Imports and uses functionality defined in the homed module `fuseraft/fun`.
 
-#### `./fun.kiwi`
+#### `./fun.🥝`
 ```ruby
 module fun
   __home__("fuseraft")
@@ -62,7 +62,7 @@ end
 export "fun" # Exports the "fun" module to the calling script.
 ```
 
-#### `./app.kiwi`
+#### `./app.🥝`
 ```ruby
 import "fuseraft/fun"
 
@@ -73,7 +73,7 @@ fun::method() # prints: Kiwi is fun!
 
 You can specify an alias for an imported module. This creates a class that cannot be instantiated. The class will contain static methods matching the methods defined in the module. 
 
-#### `./fun.kiwi`
+#### `./fun.🥝`
 ```ruby
 module fun
   __home__("fuseraft")
@@ -86,7 +86,7 @@ end
 export "fun" # Exports the "fun" module to the calling script.
 ```
 
-#### `./app.kiwi`
+#### `./app.🥝`
 ```ruby
 import "fuseraft/fun" as Fun
 

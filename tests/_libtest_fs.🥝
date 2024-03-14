@@ -1,4 +1,4 @@
-import "@kiwi/fileio"
+import "@kiwi/fs" as fs
 
 path = "hello.txt"
 
@@ -7,13 +7,13 @@ path = "hello.txt"
 # =============================
 
 println "=> creating file: ${path}"
-fileio::touch(path)
+fs.touch(path)
 
 # =============================
 # Check if the file exists
 # =============================
 
-if fileio::exists(path)
+if fs.exists(path)
   println "=> created file: ${path}"
 end
 
@@ -22,16 +22,16 @@ end
 # =============================
 
 println "=> writing text to file: ${path}"
-fileio::write(path, "")
-fileio::writeln(path, "Hello, World!")
-fileio::append(path, "This is Kiwi!")
+fs.write(path, "")
+fs.writeln(path, "Hello, World!")
+fs.append(path, "This is Kiwi!")
 
 # =============================
 # Read text from file
 # =============================
 
 println "=> reading text from file: ${path}"
-text = fileio::read(path)
+text = fs.read(path)
 println "=> file text:\n${text}"
 
 # =============================
@@ -41,14 +41,14 @@ println "=> file text:\n${text}"
 dest = "hello-copy.txt"
 println "=> copying file: ${path}"
 println "=> copying to: ${dest}"
-text = fileio::copy(path, dest)
+text = fs.copy(path, dest)
 
 # =============================
 # Read text from copied file
 # =============================
 
 println "=> reading text from file: ${dest}"
-text = fileio::read(dest)
+text = fs.read(dest)
 println "=> file text:\n${text}"
 
 # =============================
@@ -56,42 +56,42 @@ println "=> file text:\n${text}"
 # =============================
 
 println "=> deleting file: ${dest}"
-fileio::remove(dest)
+fs.remove(dest)
 
 # =============================
 # Read file size of file
 # =============================
 
 println "=> getting file size: ${path}"
-size = fileio::filesize(path)
+size = fs.filesize(path)
 println "=> file size: ${size} bytes"
 
 # =============================
 # Get the absolute path
 # =============================
 
-abspath = fileio::abspath(path)
+abspath = fs.abspath(path)
 println "=> absolute path: ${abspath}"
 
 # =============================
 # Get the parent directory
 # =============================
 
-parent = fileio::parentdir(abspath)
+parent = fs.parentdir(abspath)
 println "=> parent directory: ${parent}"
 
 # =============================
 # Get the filename
 # =============================
 
-name = fileio::filename(abspath)
+name = fs.filename(abspath)
 println "=> file name: ${name}"
 
 # =============================
 # Get the file extension
 # =============================
 
-ext = fileio::ext(path)
+ext = fs.ext(path)
 println "=> file extension: ${ext}"
 
 # =============================
@@ -101,7 +101,7 @@ println "=> file extension: ${ext}"
 dest = "hello-moved.txt"
 println "=> moving file: ${path}"
 println "=> moving to: ${dest}"
-fileio::move(path, dest)
+fs.move(path, dest)
 
 path = dest
 
@@ -109,41 +109,41 @@ path = dest
 # Delete the file if it exists
 # =============================
 
-if fileio::exists(path)
+if fs.exists(path)
   println "=> deleting file: ${path}"
-  fileio::remove(path)
+  fs.remove(path)
 end
 
 # =============================
 # Check if the file exists
 # =============================
 
-if !fileio::exists(path)
+if !fs.exists(path)
   println "=> deleted file: ${path}"
 end
 
 path = "file.txt"
 println "creating file: ${path}"
-fileio::touch(path)
+fs.touch(path)
 i = 1
 
 println "writing to file: ${path}"
 while i <= 10 do
-  fileio::writeln(path, "Item ${i}")
+  fs.writeln(path, "Item ${i}")
   i += 1
 end
 
 println "reading lines from: ${path}"
-lines = fileio::readlines(path)
+lines = fs.readlines(path)
 for line, index in lines do
   println "${index}: ${line}"
 end
 
-if fileio::exists(path)
-  fileio::remove(path)
+if fs.exists(path)
+  fs.remove(path)
 end
 
-if !fileio::exists(path)
+if !fs.exists(path)
   println "deleted file: ${path}"
 end
 

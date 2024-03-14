@@ -282,7 +282,7 @@ std::string File::getParentPath(const std::string& path) {
 /// @param path The path.
 /// @return Boolean indicating success.
 bool File::isScript(const std::string& path) {
-  return (String::endsWith(path, ".kiwi") || String::endsWith(path, "🥝")) &&
+  return (String::endsWith(path, "🥝") || String::endsWith(path, ".kiwi")) &&
          File::fileExists(path);
 }
 
@@ -320,7 +320,7 @@ std::string File::getExecutablePath() {
 
 std::string File::getLibraryPath() {
   fs::path kiwiPath(getExecutablePath());
-  fs::path kiwilibPath = (kiwiPath / "../lib/kiwilib").lexically_normal();
+  fs::path kiwilibPath = (kiwiPath / "../lib/kiwi").lexically_normal();
 
   if (!fs::exists(kiwilibPath)) {
     return "";
