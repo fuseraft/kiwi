@@ -1,10 +1,10 @@
-import "@kiwi/fileio"
+import "@kiwi/fs" as fs
 
 files = []
 
 # search for nearby kiwi scripts
-for path in fileio::glob("./**/*.kiwi") do
-  content = fileio::read(path)
+for path in fs.glob("../**/*.🥝") do
+  content = fs.read(path)
   hash = {"path": path, "content": content}
   files << hash
 end
@@ -12,11 +12,11 @@ end
 # write all of the scripts to a single file.
 output_path = "output.txt"
 
-if fileio::exists(output_path)
-  fileio::remove(output_path)
+if fs.exists(output_path)
+  fs.remove(output_path)
 end
 
 for file in files do
-  fileio::writeln(output_path, "#" + file["path"])
-  fileio::writeln(output_path, file["content"])
+  fs.writeln(output_path, "#" + file["path"])
+  fs.writeln(output_path, file["content"])
 end

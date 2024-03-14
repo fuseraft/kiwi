@@ -43,7 +43,7 @@ Then build with Make.
 make
 ```
 
-#### Installing Kiwi and Kiwi Common Library
+#### Installing Kiwi and Kiwi Standard Library
 
 Clone and build Kiwi.  Run `sudo make install` to build Kiwi and run the installation script.
 
@@ -81,7 +81,7 @@ For fun, I wrote some [Project Euler examples](examples/project_euler/).
 Below is a sample script that generates a temporary script and executes it.
 
 ```ruby
-import "@kiwi/fileio" as fs
+import "@kiwi/fs" as fs
 import "@kiwi/math" as math
 import "@kiwi/sys" as sys
 
@@ -101,7 +101,7 @@ try
     ##
     This script will delete itself and let you know it was there.
     ##
-    import \"@kiwi/fileio\" as fs
+    import \"@kiwi/fs\" as fs
     fs.remove(\"${@path}\")
     println \"Kiwi was here.\"
   ")
