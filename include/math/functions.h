@@ -7,7 +7,7 @@
 #include <sstream>
 #include "errors/error.h"
 #include "parsing/tokens.h"
-#include "typing/valuetype.h"
+#include "typing/value.h"
 #include "rng.h"
 
 static std::string get_string(const Token& term, const Value& arg) {

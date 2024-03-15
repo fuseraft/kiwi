@@ -10,10 +10,11 @@ Currently, Kiwi supports the following builtins:
 - [`contains(str)`](#containsstr)
 - [`downcase(str)`](#downcasestr)
 - [`ends_with(str)`](#ends_withstr)
-- [`index_of(str)`](#index_ofstr)
+- [`index(value)`](#indexvalue)
 - [`is_a(type_name)`](#is_atype_name)
 - [`join(str)`](#joinstr)
 - [`keys()`](#keys)
+- [`lastindex(value)`](#lastindexvalue)
 - [`ltrim()`](#ltrim)
 - [`map(lambda)`](#maplambda)
 - [`max()`](#max)
@@ -187,21 +188,36 @@ json = "{
 println json.to_h() # prints: {"boolean": true, "double": 3.14159, "integer": 100, "string": "Kiwi"}
 ```
 
-### `index_of(str)`
+### `index(value)`
 
 Returns the index of a string. Returns -1 if not found.
 
 ```ruby
-println "foobar".index_of("bar")  # prints: 3
-println "foobar".index_of("kiwi")  # prints: -1
+println "foobar".index("bar")  # prints: 3
+println "foobar".index("kiwi")  # prints: -1
 ```
-
-### `index_of(item)`
 
 Returns the index of an item in a list. Returns -1 if not found.
 
 ```ruby
-println [1, 2, 3, 4, 5].index_of(1)  # prints: 0
+println [1, 2, 3, 4, 5].index(1)  # prints: 0
+println [1, 2, 3, 4, 5].index(6)  # prints: -1
+```
+
+### `lastindex(value)`
+
+Returns the last index of a string. Returns -1 if not found.
+
+```ruby
+println "foobarbar".lastindex("bar")  # prints: 6
+println "foobar".lastindex("kiwi")  # prints: -1
+```
+
+Returns the last index of an item in a list. Returns -1 if not found.
+
+```ruby
+println [1, 0, 0, 1, 0, 1, 1].lastindex(1)  # prints 6
+println [1, 2, 3, 4, 5].lastindex(6)        # prints: -1
 ```
 
 ### `begins_with(str)`

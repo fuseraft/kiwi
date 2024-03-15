@@ -6,7 +6,7 @@
 #include "parsing/tokens.h"
 #include "math/functions.h"
 #include "math/primes.h"
-#include "typing/valuetype.h"
+#include "typing/value.h"
 
 class MathBuiltinHandler {
  public:

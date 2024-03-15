@@ -6,7 +6,7 @@
 #include "parsing/keywords.h"
 #include "parsing/tokentype.h"
 #include "typing/serializer.h"
-#include "typing/valuetype.h"
+#include "typing/value.h"
 
 class Token {
  public:

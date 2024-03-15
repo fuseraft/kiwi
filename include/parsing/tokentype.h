@@ -76,6 +76,7 @@ enum SubTokenType {
   Builtin_Kiwi_IsA,
   Builtin_Kiwi_Join,
   Builtin_Kiwi_Keys,
+  Builtin_Kiwi_LastIndexOf,
   Builtin_Kiwi_LeftTrim,
   Builtin_Kiwi_Replace,
   Builtin_Kiwi_Reverse,

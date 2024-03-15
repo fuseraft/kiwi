@@ -3,7 +3,7 @@
 
 #include "errors/error.h"
 #include "parsing/tokens.h"
-#include "typing/valuetype.h"
+#include "typing/value.h"
 #include "functions.h"
 
 struct AddVisitor {

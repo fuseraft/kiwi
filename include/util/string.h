@@ -121,7 +121,7 @@ class String {
     return result;
   }
 
-  /// @brief Get the index of a string within a string.
+  /// @brief Get the index of a string within another string.
   /// @param s The string to search.
   /// @param search The string to find.
   /// @return Integer containing the index of a substring. Returns -1 if not found.
@@ -133,6 +133,20 @@ class String {
 
     return -1;
   }
+
+  /// @brief Get the last index of a string within another string.
+  /// @param s The string to search.
+  /// @param search The string to find.
+  /// @return Integer containing the last index of a substring. Returns -1 if not found.
+  static int lastIndexOf(const std::string& s, const std::string& search) {
+    size_t index = s.rfind(search);
+    if (index != std::string::npos) {
+      return static_cast<int>(index);
+    }
+
+    return -1;
+  }
+
 
   /// @brief Check if a string is a command-line flag.
   /// @param s The string to search.

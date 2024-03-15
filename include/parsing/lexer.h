@@ -760,6 +760,8 @@ class Lexer {
       st = SubTokenType::Builtin_Kiwi_Join;
     } else if (builtin == KiwiBuiltins.Keys) {
       st = SubTokenType::Builtin_Kiwi_Keys;
+    } else if (builtin == KiwiBuiltins.LastIndexOf) {
+      st = SubTokenType::Builtin_Kiwi_LastIndexOf;
     } else if (builtin == KiwiBuiltins.LeftTrim) {
       st = SubTokenType::Builtin_Kiwi_LeftTrim;
     } else if (builtin == KiwiBuiltins.Replace) {

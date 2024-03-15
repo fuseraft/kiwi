@@ -6,7 +6,7 @@
 #include "parsing/builtins.h"
 #include "parsing/tokens.h"
 #include "system/time.h"
-#include "typing/valuetype.h"
+#include "typing/value.h"
 
 class TimeBuiltinHandler {
  public:

@@ -21,7 +21,7 @@
 #include "util/file.h"
 #include "util/string.h"
 #include "typing/serializer.h"
-#include "typing/valuetype.h"
+#include "typing/value.h"
 #include "globals.h"
 #include "interp_builtin.h"
 #include "interp_helper.h"

@@ -5,7 +5,7 @@
 #include <future>
 #include <unordered_map>
 #include <atomic>
-#include "typing/valuetype.h"
+#include "typing/value.h"
 
 class TaskManager {
  public:
