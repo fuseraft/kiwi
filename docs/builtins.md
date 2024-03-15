@@ -189,10 +189,19 @@ println json.to_h() # prints: {"boolean": true, "double": 3.14159, "integer": 10
 
 ### `index_of(str)`
 
-Returns the index of a string.
+Returns the index of a string. Returns -1 if not found.
 
 ```ruby
 println "foobar".index_of("bar")  # prints: 3
+println "foobar".index_of("kiwi")  # prints: -1
+```
+
+### `index_of(item)`
+
+Returns the index of an item in a list. Returns -1 if not found.
+
+```ruby
+println [1, 2, 3, 4, 5].index_of(1)  # prints: 0
 ```
 
 ### `begins_with(str)`
