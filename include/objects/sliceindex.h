@@ -1,7 +1,7 @@
 #ifndef KIWI_OBJECTS_SLICEINDEX_H
 #define KIWI_OBJECTS_SLICEINDEX_H
 
-#include "typing/valuetype.h"
+#include "typing/value.h"
 
 struct SliceIndex {
   Value indexOrStart = 0;

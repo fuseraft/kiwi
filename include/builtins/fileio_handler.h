@@ -6,7 +6,7 @@
 #include "parsing/builtins.h"
 #include "parsing/tokens.h"
 #include "util/file.h"
-#include "typing/valuetype.h"
+#include "typing/value.h"
 
 class FileIOBuiltinHandler {
  public:

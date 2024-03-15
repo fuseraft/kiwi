@@ -6,7 +6,7 @@
 #include "parsing/builtins.h"
 #include "parsing/tokens.h"
 #include "typing/serializer.h"
-#include "typing/valuetype.h"
+#include "typing/value.h"
 #include "globals.h"
 
 class ConsoleBuiltinHandler {

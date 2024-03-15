@@ -6,7 +6,7 @@
 #include "math/functions.h"
 #include "parsing/builtins.h"
 #include "parsing/tokens.h"
-#include "typing/valuetype.h"
+#include "typing/value.h"
 
 class EnvBuiltinHandler {
  public:

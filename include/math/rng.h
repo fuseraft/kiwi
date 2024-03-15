@@ -5,7 +5,7 @@
 #include <iostream>
 #include <memory>
 #include <random>
-#include "typing/valuetype.h"
+#include "typing/value.h"
 
 class RNG {
  public:

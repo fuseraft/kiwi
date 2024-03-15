@@ -446,7 +446,8 @@ struct {
   const std::string Contains = "contains";
   const std::string BeginsWith = "begins_with";
   const std::string EndsWith = "ends_with";
-  const std::string IndexOf = "index_of";
+  const std::string IndexOf = "index";
+  const std::string LastIndexOf = "lastindex";
   const std::string Upcase = "upcase";
   const std::string Downcase = "downcase";
   const std::string Keys = "keys";
@@ -455,7 +456,7 @@ struct {
   std::unordered_set<std::string> builtins = {
       Chars,    Empty,     IsA,     Join,     Size,     ToD,
       ToI,      ToS,       Replace, Reverse,  Contains, BeginsWith,
-      EndsWith, IndexOf,   Upcase,  Downcase, Keys,     Split,
+      EndsWith, IndexOf,   LastIndexOf, Upcase,  Downcase, Keys,     Split,
       LeftTrim, RightTrim, Trim,    Type,     HasKey};
 
   std::unordered_set<SubTokenType> st_builtins = {
@@ -471,6 +472,7 @@ struct {
       SubTokenType::Builtin_Kiwi_IsA,
       SubTokenType::Builtin_Kiwi_Join,
       SubTokenType::Builtin_Kiwi_Keys,
+      SubTokenType::Builtin_Kiwi_LastIndexOf,
       SubTokenType::Builtin_Kiwi_LeftTrim,
       SubTokenType::Builtin_Kiwi_Replace,
       SubTokenType::Builtin_Kiwi_Reverse,

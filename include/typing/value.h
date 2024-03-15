@@ -290,4 +290,34 @@ Value max_listvalue(std::shared_ptr<List> list) {
   return maxValue;
 }
 
+Value indexof_listvalue(const std::shared_ptr<List>& list, const Value& value) {
+  const auto& elements = list->elements;
+  if (elements.empty()) {
+    return static_cast<k_int>(-1);
+  }
+  
+  for (size_t i = 0; i < elements.size(); ++i) {
+    if (same_value(elements.at(i), value)) {
+      return static_cast<k_int>(i);
+    }
+  }
+  return static_cast<k_int>(-1);
+}
+
+
+Value lastindexof_listvalue(const std::shared_ptr<List>& list, const Value& value) {
+  const auto& elements = list->elements;
+  if (elements.empty()) {
+    return static_cast<k_int>(-1);
+  }
+
+  for (size_t i = elements.size(); i-- > 0; ) {
+    if (same_value(elements.at(i), value)) {
+      return static_cast<k_int>(i);
+    }
+  }
+
+  return static_cast<k_int>(-1);
+}
+
 #endif

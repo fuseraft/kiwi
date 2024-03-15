@@ -6,7 +6,7 @@
 #include <list>
 #include <mutex>
 #include <variant>
-#include "typing/valuetype.h"
+#include "typing/value.h"
 
 enum HttpMethod { GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS };
 

@@ -7,7 +7,7 @@
 #include <string>
 #include "errors/error.h"
 #include "typing/serializer.h"
-#include "typing/valuetype.h"
+#include "typing/value.h"
 #include "util/glob.h"
 #include "util/string.h"
 

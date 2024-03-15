@@ -14,7 +14,7 @@
 #include "util/string.h"
 #include "system/time.h"
 #include "typing/serializer.h"
-#include "typing/valuetype.h"
+#include "typing/value.h"
 
 class CoreBuiltinHandler {
  public:
@@ -86,6 +86,9 @@ class CoreBuiltinHandler {
 
       case SubTokenType::Builtin_Kiwi_IndexOf:
         return executeIndexOf(term, value, args);
+
+      case SubTokenType::Builtin_Kiwi_LastIndexOf:
+        return executeLastIndexOf(term, value, args);
 
       case SubTokenType::Builtin_Kiwi_Upcase:
         return executeUpcase(term, value, args);
@@ -161,19 +164,14 @@ class CoreBuiltinHandler {
     }
 
     if (std::holds_alternative<std::string>(value)) {
-      int size = std::get<std::string>(value).length();
-      return size;
+      return std::get<std::string>(value).length();
     } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
-      auto list = std::get<std::shared_ptr<List>>(value);
-      int size = list->elements.size();
-      return size;
+      return std::get<std::shared_ptr<List>>(value)->elements.size();
     } else if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
-      auto hash = std::get<std::shared_ptr<Hash>>(value);
-      int size = hash->size();
-      return size;
-    } else {
-      throw ConversionError(term);
+      return std::get<std::shared_ptr<Hash>>(value)->size();
     }
+    
+    throw ConversionError(term);
   }
 
   static double executeToDouble(const Token& term, const Value& value,
@@ -465,15 +463,38 @@ class CoreBuiltinHandler {
                               KiwiBuiltins.Reverse + "`.");
   }
 
-  static int executeIndexOf(const Token& term, const Value& value,
+  static Value executeIndexOf(const Token& term, const Value& value,
                             const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.IndexOf);
     }
 
-    auto str = get_string(term, value);
-    auto search = get_string(term, args.at(0));
-    return String::indexOf(str, search);
+    if (std::holds_alternative<std::string>(value)) {
+      return String::indexOf(std::get<std::string>(value), get_string(term, args.at(0)));
+    } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
+      return indexof_listvalue(std::get<std::shared_ptr<List>>(value), args.at(0));
+    }
+
+    throw ConversionError(term,
+                          "Expected a `String` or a `List` for builtin `" +
+                              KiwiBuiltins.IndexOf + "`.");
+  }
+
+  static Value executeLastIndexOf(const Token& term, const Value& value,
+                            const std::vector<Value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.LastIndexOf);
+    }
+
+    if (std::holds_alternative<std::string>(value)) {
+      return String::lastIndexOf(std::get<std::string>(value), get_string(term, args.at(0)));
+    } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
+      return lastindexof_listvalue(std::get<std::shared_ptr<List>>(value), args.at(0));
+    }
+
+    throw ConversionError(term,
+                          "Expected a `String` or a `List` for builtin `" +
+                              KiwiBuiltins.LastIndexOf + "`.");
   }
 
   static std::string executeUpcase(const Token& term, const Value& value,
@@ -482,8 +503,7 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Upcase);
     }
 
-    auto str = get_string(term, value);
-    return String::toUppercase(str);
+    return String::toUppercase(get_string(term, value));
   }
 
   static std::string executeDowncase(const Token& term, const Value& value,
@@ -492,8 +512,7 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Downcase);
     }
 
-    auto str = get_string(term, value);
-    return String::toLowercase(str);
+    return String::toLowercase(get_string(term, value));
   }
 
   static bool executeEmpty(const Token& term, const Value& value,

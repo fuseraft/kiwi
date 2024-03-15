@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <vector>
 #include "parsing/tokens.h"
-#include "typing/valuetype.h"
+#include "typing/value.h"
 
 enum class MethodFlags : uint8_t {
   None = 0,

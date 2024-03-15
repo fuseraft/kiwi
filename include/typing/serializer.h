@@ -9,7 +9,7 @@
 #include <variant>
 #include <vector>
 #include "parsing/keywords.h"
-#include "valuetype.h"
+#include "value.h"
 
 struct Serializer {
   static std::string get_value_type_string(Value v) {

@@ -19,7 +19,7 @@
 #endif
 #include "errors/error.h"
 #include "parsing/builtins.h"
-#include "typing/valuetype.h"
+#include "typing/value.h"
 
 class BuiltinInterpreter {
  public:

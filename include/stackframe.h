@@ -9,7 +9,7 @@
 #include "errors/state.h"
 #include "objects/method.h"
 #include "parsing/tokens.h"
-#include "typing/valuetype.h"
+#include "typing/value.h"
 
 enum class FrameFlags : uint8_t {
   None = 0,

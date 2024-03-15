@@ -9,7 +9,7 @@
 #include <sql.h>
 #include <sqlext.h>
 #include "errors.h"
-#include "typing/valuetype.h"
+#include "typing/value.h"
 
 struct {
   const std::string HasError = "has_error";
