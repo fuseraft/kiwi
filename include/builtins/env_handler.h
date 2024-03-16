@@ -10,13 +10,13 @@
 
 class EnvBuiltinHandler {
  public:
-  static Value execute(const Token& term, const SubTokenType& builtin,
+  static Value execute(const Token& term, const KName& builtin,
                        const std::vector<Value>& args) {
     switch (builtin) {
-      case SubTokenType::Builtin_Env_GetEnvironmentVariable:
+      case KName::Builtin_Env_GetEnvironmentVariable:
         return executeGetEnvironmentVariable(term, args);
 
-      case SubTokenType::Builtin_Env_SetEnvironmentVariable:
+      case KName::Builtin_Env_SetEnvironmentVariable:
         return executeSetEnvironmentVariable(term, args);
 
       default:
@@ -55,7 +55,12 @@ class EnvBuiltinHandler {
     std::string varName = get_string(term, args.at(0));
     std::string varValue = get_string(term, args.at(1));
 
+    #ifdef _WIN64
+    _putenv_s(varName.c_str(), varValue.c_str());
+    return true;
+    #else
     return setenv(varName.c_str(), varValue.c_str(), 1) == 0;
+    #endif
   }
 };
 

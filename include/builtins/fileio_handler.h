@@ -10,86 +10,86 @@
 
 class FileIOBuiltinHandler {
  public:
-  static Value execute(const Token& token, const SubTokenType& builtin,
+  static Value execute(const Token& token, const KName& builtin,
                        const std::vector<Value>& args) {
     switch (builtin) {
-      case SubTokenType::Builtin_FileIO_CreateFile:
+      case KName::Builtin_FileIO_CreateFile:
         return executeCreateFile(token, args);
 
-      case SubTokenType::Builtin_FileIO_FileExists:
+      case KName::Builtin_FileIO_FileExists:
         return executeFileExists(token, args);
 
-      case SubTokenType::Builtin_FileIO_IsDirectory:
+      case KName::Builtin_FileIO_IsDirectory:
         return executeIsDirectory(token, args);
 
-      case SubTokenType::Builtin_FileIO_ListDirectory:
+      case KName::Builtin_FileIO_ListDirectory:
         return executeListDirectory(token, args);
 
-      case SubTokenType::Builtin_FileIO_MakeDirectory:
+      case KName::Builtin_FileIO_MakeDirectory:
         return executeMakeDirectory(token, args);
 
-      case SubTokenType::Builtin_FileIO_MakeDirectoryP:
+      case KName::Builtin_FileIO_MakeDirectoryP:
         return executeMakeDirectoryP(token, args);
 
-      case SubTokenType::Builtin_FileIO_DeleteFile:
-      case SubTokenType::Builtin_FileIO_RemoveDirectory:
+      case KName::Builtin_FileIO_DeleteFile:
+      case KName::Builtin_FileIO_RemoveDirectory:
         return executeRemovePath(token, args);
 
-      case SubTokenType::Builtin_FileIO_RemoveDirectoryF:
+      case KName::Builtin_FileIO_RemoveDirectoryF:
         return executeRemovePathF(token, args);
 
-      case SubTokenType::Builtin_FileIO_TempDir:
+      case KName::Builtin_FileIO_TempDir:
         return executeGetTempDirectory(token, args);
 
-      case SubTokenType::Builtin_FileIO_GetFileExtension:
+      case KName::Builtin_FileIO_GetFileExtension:
         return executeGetFileExtension(token, args);
 
-      case SubTokenType::Builtin_FileIO_GetCurrentDirectory:
+      case KName::Builtin_FileIO_GetCurrentDirectory:
         return executeGetCurrentDirectory(token, args);
 
-      case SubTokenType::Builtin_FileIO_ChangeDirectory:
+      case KName::Builtin_FileIO_ChangeDirectory:
         return executeChangeDirectory(token, args);
 
-      case SubTokenType::Builtin_FileIO_FileName:
+      case KName::Builtin_FileIO_FileName:
         return executeGetFileName(token, args);
 
-      case SubTokenType::Builtin_FileIO_GetFilePath:
+      case KName::Builtin_FileIO_GetFilePath:
         return executeGetFilePath(token, args);
 
-      case SubTokenType::Builtin_FileIO_GetFileAbsolutePath:
+      case KName::Builtin_FileIO_GetFileAbsolutePath:
         return executeGetFileAbsolutePath(token, args);
 
-      case SubTokenType::Builtin_FileIO_Glob:
+      case KName::Builtin_FileIO_Glob:
         return executeGlob(token, args);
 
-      case SubTokenType::Builtin_FileIO_AppendText:
+      case KName::Builtin_FileIO_AppendText:
         return executeAppendText(token, args);
 
-      case SubTokenType::Builtin_FileIO_WriteText:
+      case KName::Builtin_FileIO_WriteText:
         return executeWriteText(token, args);
 
-      case SubTokenType::Builtin_FileIO_WriteLine:
+      case KName::Builtin_FileIO_WriteLine:
         return executeWriteLine(token, args);
 
-      case SubTokenType::Builtin_FileIO_ReadFile:
+      case KName::Builtin_FileIO_ReadFile:
         return executeReadFile(token, args);
 
-      case SubTokenType::Builtin_FileIO_FileSize:
+      case KName::Builtin_FileIO_FileSize:
         return executeGetFileSize(token, args);
 
-      case SubTokenType::Builtin_FileIO_CopyFile:
+      case KName::Builtin_FileIO_CopyFile:
         return executeCopyFile(token, args);
 
-      case SubTokenType::Builtin_FileIO_CopyR:
+      case KName::Builtin_FileIO_CopyR:
         return executeCopyR(token, args);
 
-      case SubTokenType::Builtin_FileIO_Combine:
+      case KName::Builtin_FileIO_Combine:
         return executeCombine(token, args);
 
-      case SubTokenType::Builtin_FileIO_MoveFile:
+      case KName::Builtin_FileIO_MoveFile:
         return executeMoveFile(token, args);
 
-      case SubTokenType::Builtin_FileIO_ReadLines:
+      case KName::Builtin_FileIO_ReadLines:
         return executeReadLines(token, args);
 
       default:
@@ -100,7 +100,7 @@ class FileIOBuiltinHandler {
   }
 
  private:
-  static bool executeAppendText(const Token& token,
+  static Value executeAppendText(const Token& token,
                                 const std::vector<Value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.AppendText);
@@ -111,7 +111,7 @@ class FileIOBuiltinHandler {
     return File::writeToFile(fileName, value, true, false);
   }
 
-  static bool executeCopyFile(const Token& token,
+  static Value executeCopyFile(const Token& token,
                               const std::vector<Value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.CopyFile);
@@ -122,7 +122,7 @@ class FileIOBuiltinHandler {
     return File::copyFile(sourcePath, destinationPath);
   }
 
-  static bool executeCopyR(const Token& token, const std::vector<Value>& args) {
+  static Value executeCopyR(const Token& token, const std::vector<Value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.CopyR);
     }
@@ -132,7 +132,7 @@ class FileIOBuiltinHandler {
     return File::copyR(sourcePath, destinationPath);
   }
 
-  static bool executeCreateFile(const Token& token,
+  static Value executeCreateFile(const Token& token,
                                 const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.CreateFile);
@@ -142,7 +142,7 @@ class FileIOBuiltinHandler {
     return File::createFile(fileName);
   }
 
-  static std::shared_ptr<List> executeListDirectory(
+  static Value executeListDirectory(
       const Token& token, const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.ListDirectory);
@@ -158,7 +158,7 @@ class FileIOBuiltinHandler {
     return list;
   }
 
-  static bool executeMakeDirectory(const Token& token,
+  static Value executeMakeDirectory(const Token& token,
                                    const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.MakeDirectory);
@@ -168,7 +168,7 @@ class FileIOBuiltinHandler {
     return File::makeDirectory(path);
   }
 
-  static bool executeMakeDirectoryP(const Token& token,
+  static Value executeMakeDirectoryP(const Token& token,
                                     const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
@@ -179,7 +179,7 @@ class FileIOBuiltinHandler {
     return File::makeDirectoryP(path);
   }
 
-  static bool executeRemovePath(const Token& token,
+  static Value executeRemovePath(const Token& token,
                                 const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
@@ -190,7 +190,7 @@ class FileIOBuiltinHandler {
     return File::removePath(path);
   }
 
-  static int executeRemovePathF(const Token& token,
+  static Value executeRemovePathF(const Token& token,
                                 const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
@@ -198,10 +198,10 @@ class FileIOBuiltinHandler {
     }
 
     auto path = get_string(token, args.at(0));
-    return File::removePathF(path);
+    return static_cast<k_int>(File::removePathF(path));
   }
 
-  static std::string executeGetTempDirectory(const Token& token,
+  static Value executeGetTempDirectory(const Token& token,
                                              const std::vector<Value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.TempDir);
@@ -210,7 +210,7 @@ class FileIOBuiltinHandler {
     return File::getTempDirectory();
   }
 
-  static double executeGetFileSize(const Token& token,
+  static Value executeGetFileSize(const Token& token,
                                    const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.FileSize);
@@ -220,7 +220,7 @@ class FileIOBuiltinHandler {
     return File::getFileSize(fileName);
   }
 
-  static bool executeFileExists(const Token& token,
+  static Value executeFileExists(const Token& token,
                                 const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.FileExists);
@@ -230,7 +230,7 @@ class FileIOBuiltinHandler {
     return File::fileExists(fileName);
   }
 
-  static bool executeIsDirectory(const Token& token,
+  static Value executeIsDirectory(const Token& token,
                                  const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.IsDirectory);
@@ -240,7 +240,7 @@ class FileIOBuiltinHandler {
     return File::directoryExists(path);
   }
 
-  static std::string executeGetFileAbsolutePath(
+  static Value executeGetFileAbsolutePath(
       const Token& token, const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
@@ -251,7 +251,7 @@ class FileIOBuiltinHandler {
     return File::getAbsolutePath(fileName);
   }
 
-  static std::string executeGetFileExtension(const Token& token,
+  static Value executeGetFileExtension(const Token& token,
                                              const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
@@ -262,7 +262,7 @@ class FileIOBuiltinHandler {
     return File::getFileExtension(fileName);
   }
 
-  static std::string executeGetFileName(const Token& token,
+  static Value executeGetFileName(const Token& token,
                                         const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.FileName);
@@ -272,7 +272,7 @@ class FileIOBuiltinHandler {
     return File::getFileName(fileName);
   }
 
-  static std::string executeGetCurrentDirectory(
+  static Value executeGetCurrentDirectory(
       const Token& token, const std::vector<Value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token,
@@ -282,7 +282,7 @@ class FileIOBuiltinHandler {
     return File::getCurrentDirectory();
   }
 
-  static bool executeChangeDirectory(const Token& token,
+  static Value executeChangeDirectory(const Token& token,
                                      const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
@@ -293,7 +293,7 @@ class FileIOBuiltinHandler {
     return File::setCurrentDirectory(path);
   }
 
-  static std::string executeGetFilePath(const Token& token,
+  static Value executeGetFilePath(const Token& token,
                                         const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.GetFilePath);
@@ -303,7 +303,7 @@ class FileIOBuiltinHandler {
     return File::getParentPath(fileName);
   }
 
-  static std::shared_ptr<List> executeGlob(const Token& token,
+  static Value executeGlob(const Token& token,
                                            const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.Glob);
@@ -320,7 +320,7 @@ class FileIOBuiltinHandler {
     return matchList;
   }
 
-  static std::string executeCombine(const Token& token,
+  static Value executeCombine(const Token& token,
                                     const std::vector<Value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.Combine);
@@ -331,7 +331,7 @@ class FileIOBuiltinHandler {
     return File::joinPath(firstPath, secondPath);
   }
 
-  static bool executeMoveFile(const Token& token,
+  static Value executeMoveFile(const Token& token,
                               const std::vector<Value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.MoveFile);
@@ -342,7 +342,7 @@ class FileIOBuiltinHandler {
     return File::movePath(sourcePath, destinationPath);
   }
 
-  static std::string executeReadFile(const Token& token,
+  static Value executeReadFile(const Token& token,
                                      const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.ReadFile);
@@ -352,7 +352,7 @@ class FileIOBuiltinHandler {
     return File::readFile(fileName);
   }
 
-  static std::shared_ptr<List> executeReadLines(
+  static Value executeReadLines(
       const Token& token, const std::vector<Value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.ReadLines);
@@ -367,7 +367,7 @@ class FileIOBuiltinHandler {
     return list;
   }
 
-  static bool executeWriteLine(const Token& token,
+  static Value executeWriteLine(const Token& token,
                                const std::vector<Value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.WriteLine);
@@ -378,7 +378,7 @@ class FileIOBuiltinHandler {
     return File::writeToFile(fileName, value, true, true);
   }
 
-  static bool executeWriteText(const Token& token,
+  static Value executeWriteText(const Token& token,
                                const std::vector<Value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.WriteText);

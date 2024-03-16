@@ -67,41 +67,41 @@ struct {
                                               Glob,
                                               TempDir};
 
-  std::unordered_set<SubTokenType> st_builtins = {
-      SubTokenType::Builtin_FileIO_AppendText,
-      SubTokenType::Builtin_FileIO_ChangeDirectory,
-      SubTokenType::Builtin_FileIO_CopyFile,
-      SubTokenType::Builtin_FileIO_CopyR,
-      SubTokenType::Builtin_FileIO_Combine,
-      SubTokenType::Builtin_FileIO_CreateFile,
-      SubTokenType::Builtin_FileIO_DeleteFile,
-      SubTokenType::Builtin_FileIO_FileExists,
-      SubTokenType::Builtin_FileIO_FileName,
-      SubTokenType::Builtin_FileIO_FileSize,
-      SubTokenType::Builtin_FileIO_GetCurrentDirectory,
-      SubTokenType::Builtin_FileIO_GetFileAbsolutePath,
-      SubTokenType::Builtin_FileIO_GetFileAttributes,
-      SubTokenType::Builtin_FileIO_GetFileExtension,
-      SubTokenType::Builtin_FileIO_GetFilePath,
-      SubTokenType::Builtin_FileIO_Glob,
-      SubTokenType::Builtin_FileIO_IsDirectory,
-      SubTokenType::Builtin_FileIO_ListDirectory,
-      SubTokenType::Builtin_FileIO_MakeDirectory,
-      SubTokenType::Builtin_FileIO_MakeDirectoryP,
-      SubTokenType::Builtin_FileIO_MoveFile,
-      SubTokenType::Builtin_FileIO_ReadFile,
-      SubTokenType::Builtin_FileIO_ReadLines,
-      SubTokenType::Builtin_FileIO_RemoveDirectory,
-      SubTokenType::Builtin_FileIO_RemoveDirectoryF,
-      SubTokenType::Builtin_FileIO_TempDir,
-      SubTokenType::Builtin_FileIO_WriteLine,
-      SubTokenType::Builtin_FileIO_WriteText};
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_FileIO_AppendText,
+      KName::Builtin_FileIO_ChangeDirectory,
+      KName::Builtin_FileIO_CopyFile,
+      KName::Builtin_FileIO_CopyR,
+      KName::Builtin_FileIO_Combine,
+      KName::Builtin_FileIO_CreateFile,
+      KName::Builtin_FileIO_DeleteFile,
+      KName::Builtin_FileIO_FileExists,
+      KName::Builtin_FileIO_FileName,
+      KName::Builtin_FileIO_FileSize,
+      KName::Builtin_FileIO_GetCurrentDirectory,
+      KName::Builtin_FileIO_GetFileAbsolutePath,
+      KName::Builtin_FileIO_GetFileAttributes,
+      KName::Builtin_FileIO_GetFileExtension,
+      KName::Builtin_FileIO_GetFilePath,
+      KName::Builtin_FileIO_Glob,
+      KName::Builtin_FileIO_IsDirectory,
+      KName::Builtin_FileIO_ListDirectory,
+      KName::Builtin_FileIO_MakeDirectory,
+      KName::Builtin_FileIO_MakeDirectoryP,
+      KName::Builtin_FileIO_MoveFile,
+      KName::Builtin_FileIO_ReadFile,
+      KName::Builtin_FileIO_ReadLines,
+      KName::Builtin_FileIO_RemoveDirectory,
+      KName::Builtin_FileIO_RemoveDirectoryF,
+      KName::Builtin_FileIO_TempDir,
+      KName::Builtin_FileIO_WriteLine,
+      KName::Builtin_FileIO_WriteText};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
-  bool is_builtin(const SubTokenType& arg) {
+  bool is_builtin(const KName& arg) {
     return st_builtins.find(arg) != st_builtins.end();
   }
 } FileIOBuiltIns;
@@ -110,14 +110,14 @@ struct {
   const std::string Home = "__home__";
 
   std::unordered_set<std::string> builtins = {Home};
-  std::unordered_set<SubTokenType> st_builtins = {
-      SubTokenType::Builtin_Module_Home};
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_Module_Home};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
-  bool is_builtin(const SubTokenType& arg) {
+  bool is_builtin(const KName& arg) {
     return st_builtins.find(arg) != st_builtins.end();
   }
 } ModuleBuiltins;
@@ -142,27 +142,27 @@ struct {
       Hour,    Minute, Second, MonthDay,           WeekDay,
       YearDay, Month,  Year,   EpochMilliseconds,  Delay,
       IsDST,   Ticks,  AMPM,   TicksToMilliseconds};
-  std::unordered_set<SubTokenType> st_builtins = {
-      SubTokenType::Builtin_Time_AMPM,
-      SubTokenType::Builtin_Time_Delay,
-      SubTokenType::Builtin_Time_EpochMilliseconds,
-      SubTokenType::Builtin_Time_Hour,
-      SubTokenType::Builtin_Time_IsDST,
-      SubTokenType::Builtin_Time_Minute,
-      SubTokenType::Builtin_Time_Month,
-      SubTokenType::Builtin_Time_MonthDay,
-      SubTokenType::Builtin_Time_Second,
-      SubTokenType::Builtin_Time_Ticks,
-      SubTokenType::Builtin_Time_TicksToMilliseconds,
-      SubTokenType::Builtin_Time_WeekDay,
-      SubTokenType::Builtin_Time_Year,
-      SubTokenType::Builtin_Time_YearDay};
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_Time_AMPM,
+      KName::Builtin_Time_Delay,
+      KName::Builtin_Time_EpochMilliseconds,
+      KName::Builtin_Time_Hour,
+      KName::Builtin_Time_IsDST,
+      KName::Builtin_Time_Minute,
+      KName::Builtin_Time_Month,
+      KName::Builtin_Time_MonthDay,
+      KName::Builtin_Time_Second,
+      KName::Builtin_Time_Ticks,
+      KName::Builtin_Time_TicksToMilliseconds,
+      KName::Builtin_Time_WeekDay,
+      KName::Builtin_Time_Year,
+      KName::Builtin_Time_YearDay};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
-  bool is_builtin(const SubTokenType& arg) {
+  bool is_builtin(const KName& arg) {
     return st_builtins.find(arg) != st_builtins.end();
   }
 } TimeBuiltins;
@@ -223,58 +223,58 @@ struct {
       FMin,       FDim,    CopySign, NextAfter, Pow,    Epsilon,  Random,
       ListPrimes, NthPrime, Divisors};
 
-  std::unordered_set<SubTokenType> st_builtins = {
-      SubTokenType::Builtin_Math_Abs,
-      SubTokenType::Builtin_Math_Acos,
-      SubTokenType::Builtin_Math_Asin,
-      SubTokenType::Builtin_Math_Atan,
-      SubTokenType::Builtin_Math_Atan2,
-      SubTokenType::Builtin_Math_Cbrt,
-      SubTokenType::Builtin_Math_Ceil,
-      SubTokenType::Builtin_Math_CopySign,
-      SubTokenType::Builtin_Math_Cos,
-      SubTokenType::Builtin_Math_Cosh,
-      SubTokenType::Builtin_Math_Divisors,
-      SubTokenType::Builtin_Math_Epsilon,
-      SubTokenType::Builtin_Math_Erf,
-      SubTokenType::Builtin_Math_ErfC,
-      SubTokenType::Builtin_Math_Exp,
-      SubTokenType::Builtin_Math_ExpM1,
-      SubTokenType::Builtin_Math_FDim,
-      SubTokenType::Builtin_Math_Floor,
-      SubTokenType::Builtin_Math_FMax,
-      SubTokenType::Builtin_Math_FMin,
-      SubTokenType::Builtin_Math_Fmod,
-      SubTokenType::Builtin_Math_Hypot,
-      SubTokenType::Builtin_Math_IsFinite,
-      SubTokenType::Builtin_Math_IsInf,
-      SubTokenType::Builtin_Math_IsNaN,
-      SubTokenType::Builtin_Math_IsNormal,
-      SubTokenType::Builtin_Math_LGamma,
-      SubTokenType::Builtin_Math_Log,
-      SubTokenType::Builtin_Math_Log10,
-      SubTokenType::Builtin_Math_Log1P,
-      SubTokenType::Builtin_Math_Log2,
-      SubTokenType::Builtin_Math_NextAfter,
-      SubTokenType::Builtin_Math_Pow,
-      SubTokenType::Builtin_Math_Random,
-      SubTokenType::Builtin_Math_Remainder,
-      SubTokenType::Builtin_Math_Round,
-      SubTokenType::Builtin_Math_Sin,
-      SubTokenType::Builtin_Math_Sinh,
-      SubTokenType::Builtin_Math_Sqrt,
-      SubTokenType::Builtin_Math_Tan,
-      SubTokenType::Builtin_Math_Tanh,
-      SubTokenType::Builtin_Math_TGamma,
-      SubTokenType::Builtin_Math_Trunc,
-      SubTokenType::Builtin_Math_ListPrimes,
-      SubTokenType::Builtin_Math_NthPrime};
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_Math_Abs,
+      KName::Builtin_Math_Acos,
+      KName::Builtin_Math_Asin,
+      KName::Builtin_Math_Atan,
+      KName::Builtin_Math_Atan2,
+      KName::Builtin_Math_Cbrt,
+      KName::Builtin_Math_Ceil,
+      KName::Builtin_Math_CopySign,
+      KName::Builtin_Math_Cos,
+      KName::Builtin_Math_Cosh,
+      KName::Builtin_Math_Divisors,
+      KName::Builtin_Math_Epsilon,
+      KName::Builtin_Math_Erf,
+      KName::Builtin_Math_ErfC,
+      KName::Builtin_Math_Exp,
+      KName::Builtin_Math_ExpM1,
+      KName::Builtin_Math_FDim,
+      KName::Builtin_Math_Floor,
+      KName::Builtin_Math_FMax,
+      KName::Builtin_Math_FMin,
+      KName::Builtin_Math_Fmod,
+      KName::Builtin_Math_Hypot,
+      KName::Builtin_Math_IsFinite,
+      KName::Builtin_Math_IsInf,
+      KName::Builtin_Math_IsNaN,
+      KName::Builtin_Math_IsNormal,
+      KName::Builtin_Math_LGamma,
+      KName::Builtin_Math_Log,
+      KName::Builtin_Math_Log10,
+      KName::Builtin_Math_Log1P,
+      KName::Builtin_Math_Log2,
+      KName::Builtin_Math_NextAfter,
+      KName::Builtin_Math_Pow,
+      KName::Builtin_Math_Random,
+      KName::Builtin_Math_Remainder,
+      KName::Builtin_Math_Round,
+      KName::Builtin_Math_Sin,
+      KName::Builtin_Math_Sinh,
+      KName::Builtin_Math_Sqrt,
+      KName::Builtin_Math_Tan,
+      KName::Builtin_Math_Tanh,
+      KName::Builtin_Math_TGamma,
+      KName::Builtin_Math_Trunc,
+      KName::Builtin_Math_ListPrimes,
+      KName::Builtin_Math_NthPrime};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
-  bool is_builtin(const SubTokenType& arg) {
+  bool is_builtin(const KName& arg) {
     return st_builtins.find(arg) != st_builtins.end();
   }
 } MathBuiltins;
@@ -293,18 +293,18 @@ struct {
   std::unordered_set<std::string> builtins = {Map, None, Reduce, Select, Sort,
                                               Sum, Min,  Max,    ToH};
 
-  std::unordered_set<SubTokenType> st_builtins = {
-      SubTokenType::Builtin_List_Map,    SubTokenType::Builtin_List_None,
-      SubTokenType::Builtin_List_Reduce, SubTokenType::Builtin_List_Select,
-      SubTokenType::Builtin_List_Sort,   SubTokenType::Builtin_List_ToH,
-      SubTokenType::Builtin_List_Sum,    SubTokenType::Builtin_List_Min,
-      SubTokenType::Builtin_List_Max};
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_List_Map,    KName::Builtin_List_None,
+      KName::Builtin_List_Reduce, KName::Builtin_List_Select,
+      KName::Builtin_List_Sort,   KName::Builtin_List_ToH,
+      KName::Builtin_List_Sum,    KName::Builtin_List_Min,
+      KName::Builtin_List_Max};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
-  bool is_builtin(const SubTokenType& arg) {
+  bool is_builtin(const KName& arg) {
     return st_builtins.find(arg) != st_builtins.end();
   }
 
@@ -360,15 +360,15 @@ struct {
   std::unordered_set<std::string> builtins = {GetEnvironmentVariable,
                                               SetEnvironmentVariable};
 
-  std::unordered_set<SubTokenType> st_builtins = {
-      SubTokenType::Builtin_Env_GetEnvironmentVariable,
-      SubTokenType::Builtin_Env_SetEnvironmentVariable};
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_Env_GetEnvironmentVariable,
+      KName::Builtin_Env_SetEnvironmentVariable};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
-  bool is_builtin(const SubTokenType& arg) {
+  bool is_builtin(const KName& arg) {
     return st_builtins.find(arg) != st_builtins.end();
   }
 } EnvBuiltins;
@@ -378,14 +378,14 @@ struct {
   const std::string GetXarg = "__xarg__";
 
   std::unordered_set<std::string> builtins = {GetArgv, GetXarg};
-  std::unordered_set<SubTokenType> st_builtins = {
-      SubTokenType::Builtin_Argv_GetArgv, SubTokenType::Builtin_Argv_GetXarg};
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_Argv_GetArgv, KName::Builtin_Argv_GetXarg};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
-  bool is_builtin(const SubTokenType& arg) {
+  bool is_builtin(const KName& arg) {
     return st_builtins.find(arg) != st_builtins.end();
   }
 } ArgvBuiltins;
@@ -396,15 +396,15 @@ struct {
   const std::string ExecOut = "__execout__";
 
   std::unordered_set<std::string> builtins = {EffectiveUserId, Exec, ExecOut};
-  std::unordered_set<SubTokenType> st_builtins = {
-      SubTokenType::Builtin_Sys_EffectiveUserId, SubTokenType::Builtin_Sys_Exec,
-      SubTokenType::Builtin_Sys_ExecOut};
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_Sys_EffectiveUserId, KName::Builtin_Sys_Exec,
+      KName::Builtin_Sys_ExecOut};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
-  bool is_builtin(const SubTokenType& arg) {
+  bool is_builtin(const KName& arg) {
     return st_builtins.find(arg) != st_builtins.end();
   }
 } SysBuiltins;
@@ -414,15 +414,15 @@ struct {
   const std::string Silent = "silent";
 
   std::unordered_set<std::string> builtins = {Input, Silent};
-  std::unordered_set<SubTokenType> st_builtins = {
-      SubTokenType::Builtin_Console_Input,
-      SubTokenType::Builtin_Console_Silent};
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_Console_Input,
+      KName::Builtin_Console_Silent};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
-  bool is_builtin(const SubTokenType& arg) {
+  bool is_builtin(const KName& arg) {
     return st_builtins.find(arg) != st_builtins.end();
   }
 } ConsoleBuiltins;
@@ -459,32 +459,32 @@ struct {
       EndsWith, IndexOf,   LastIndexOf, Upcase,  Downcase, Keys,     Split,
       LeftTrim, RightTrim, Trim,    Type,     HasKey};
 
-  std::unordered_set<SubTokenType> st_builtins = {
-      SubTokenType::Builtin_Kiwi_BeginsWith,
-      SubTokenType::Builtin_Kiwi_BeginsWith,
-      SubTokenType::Builtin_Kiwi_Empty,
-      SubTokenType::Builtin_Kiwi_Chars,
-      SubTokenType::Builtin_Kiwi_Contains,
-      SubTokenType::Builtin_Kiwi_Downcase,
-      SubTokenType::Builtin_Kiwi_EndsWith,
-      SubTokenType::Builtin_Kiwi_HasKey,
-      SubTokenType::Builtin_Kiwi_IndexOf,
-      SubTokenType::Builtin_Kiwi_IsA,
-      SubTokenType::Builtin_Kiwi_Join,
-      SubTokenType::Builtin_Kiwi_Keys,
-      SubTokenType::Builtin_Kiwi_LastIndexOf,
-      SubTokenType::Builtin_Kiwi_LeftTrim,
-      SubTokenType::Builtin_Kiwi_Replace,
-      SubTokenType::Builtin_Kiwi_Reverse,
-      SubTokenType::Builtin_Kiwi_RightTrim,
-      SubTokenType::Builtin_Kiwi_Size,
-      SubTokenType::Builtin_Kiwi_Split,
-      SubTokenType::Builtin_Kiwi_ToD,
-      SubTokenType::Builtin_Kiwi_ToI,
-      SubTokenType::Builtin_Kiwi_ToS,
-      SubTokenType::Builtin_Kiwi_Trim,
-      SubTokenType::Builtin_Kiwi_Type,
-      SubTokenType::Builtin_Kiwi_Upcase};
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_Kiwi_BeginsWith,
+      KName::Builtin_Kiwi_BeginsWith,
+      KName::Builtin_Kiwi_Empty,
+      KName::Builtin_Kiwi_Chars,
+      KName::Builtin_Kiwi_Contains,
+      KName::Builtin_Kiwi_Downcase,
+      KName::Builtin_Kiwi_EndsWith,
+      KName::Builtin_Kiwi_HasKey,
+      KName::Builtin_Kiwi_IndexOf,
+      KName::Builtin_Kiwi_IsA,
+      KName::Builtin_Kiwi_Join,
+      KName::Builtin_Kiwi_Keys,
+      KName::Builtin_Kiwi_LastIndexOf,
+      KName::Builtin_Kiwi_LeftTrim,
+      KName::Builtin_Kiwi_Replace,
+      KName::Builtin_Kiwi_Reverse,
+      KName::Builtin_Kiwi_RightTrim,
+      KName::Builtin_Kiwi_Size,
+      KName::Builtin_Kiwi_Split,
+      KName::Builtin_Kiwi_ToD,
+      KName::Builtin_Kiwi_ToI,
+      KName::Builtin_Kiwi_ToS,
+      KName::Builtin_Kiwi_Trim,
+      KName::Builtin_Kiwi_Type,
+      KName::Builtin_Kiwi_Upcase};
 
   bool is_builtin(const std::string& arg) {
     if (ListBuiltins.is_builtin(arg)) {
@@ -493,7 +493,7 @@ struct {
     return builtins.find(arg) != builtins.end();
   }
 
-  bool is_builtin(const SubTokenType& arg) {
+  bool is_builtin(const KName& arg) {
     return st_builtins.find(arg) != st_builtins.end() ||
            ListBuiltins.is_builtin(arg);
   }
@@ -512,7 +512,7 @@ struct {
            ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg);
   }
 
-  bool is_builtin_method(const SubTokenType& arg) {
+  bool is_builtin_method(const KName& arg) {
     return ConsoleBuiltins.is_builtin(arg) || EnvBuiltins.is_builtin(arg) ||
            ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||

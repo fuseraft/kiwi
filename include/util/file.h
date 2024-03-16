@@ -10,6 +10,9 @@
 #include "typing/value.h"
 #include "util/glob.h"
 #include "util/string.h"
+#ifdef _WIN64
+#include "Windows.h"
+#endif
 
 namespace fs = std::filesystem;
 
@@ -42,7 +45,7 @@ class File {
   static std::string getParentPath(const std::string& path);
   static bool isSymLink(const std::string& path);
   static bool isScript(const std::string& path);
-  static std::string getExecutablePath();
+  static fs::path getExecutablePath();
   static std::string getLibraryPath();
   static std::vector<std::string> expandGlob(const std::string& globString);
   static std::string getLocalPath(const std::string& path);
@@ -282,8 +285,14 @@ std::string File::getParentPath(const std::string& path) {
 /// @param path The path.
 /// @return Boolean indicating success.
 bool File::isScript(const std::string& path) {
-  return (String::endsWith(path, "🥝") || String::endsWith(path, ".kiwi")) &&
+  bool _isScript = false;
+  #ifdef _WIN64
+  _isScript = String::endsWith(path, ".kiwi") && File::fileExists(path);
+  #else
+  _isScript = (String::endsWith(path, "🥝") || String::endsWith(path, ".kiwi")) &&
          File::fileExists(path);
+  #endif
+  return _isScript;
 }
 
 /// @brief Checks if a path is a symlink.
@@ -302,7 +311,12 @@ bool File::isSymLink(const std::string& path) {
 
 /// @brief Get the executable path.
 /// @return String containing executable path.
-std::string File::getExecutablePath() {
+fs::path File::getExecutablePath() {
+  #ifdef _WIN64
+  wchar_t path[FILENAME_MAX] = { 0 };
+  GetModuleFileNameW(nullptr, path, FILENAME_MAX);
+  return fs::path(path);
+  #else
   const std::string executablePath = "/proc/self/exe";
 
   if (!isSymLink(executablePath)) {
@@ -315,19 +329,45 @@ std::string File::getExecutablePath() {
     return "";
   }
 
-  return symLinkPath.string();
+  return symLinkPath;
+  #endif
 }
 
 std::string File::getLibraryPath() {
   fs::path kiwiPath(getExecutablePath());
-  fs::path kiwilibPath = (kiwiPath / "../lib/kiwi").lexically_normal();
+  fs::path kiwilibPath;
+  #ifdef _WIN64
+  std::string binPath = getParentPath(kiwiPath.string());
+  std::string parentPath = getParentPath(binPath);
+  kiwilibPath = (fs::path(parentPath) / "lib\\kiwi").lexically_normal();
+  #else
+  kiwilibPath = (kiwiPath / "../lib/kiwi").lexically_normal();
+  #endif
 
   if (!fs::exists(kiwilibPath)) {
+    std::cout << "lib path does not exist: " << kiwilibPath << std::endl;
     return "";
   }
 
   return kiwilibPath.string();
 }
+
+#ifdef _WIN64
+std::string wstring_tos(const std::wstring& wstring) {
+  if (wstring.empty()) {
+    return "";
+  }
+
+  const auto size = WideCharToMultiByte(CP_UTF8, 0, &wstring.at(0), (int)wstring.size(), nullptr, 0, nullptr, nullptr);
+  if (size <= 0) {
+    throw std::runtime_error("WideCharToMultiByte() failed: " + std::to_string(size));
+  }
+
+  std::string string(size, 0);
+  WideCharToMultiByte(CP_UTF8, 0, &wstring.at(0), (int)wstring.size(), &string.at(0), size, nullptr, nullptr);
+  return string;
+}
+#endif
 
 /// @brief Get a vector of paths matching a glob pattern.
 /// @param globString The glob pattern.
@@ -340,7 +380,7 @@ std::vector<std::string> File::expandGlob(const std::string& globString) {
 
   std::vector<std::string> matchedFiles;
 
-  basePath = fs::absolute(basePath);
+  basePath = fs::absolute(basePath).string();
 
   if (!directoryExists(basePath)) {
     return matchedFiles;
@@ -348,10 +388,18 @@ std::vector<std::string> File::expandGlob(const std::string& globString) {
 
   if (glob.recursiveTraversal) {
     for (const auto& entry : fs::recursive_directory_iterator(basePath)) {
+      #ifdef _WIN64
+      const std::wstring entryPath = entry.path().c_str();
+      auto pathString = wstring_tos(entryPath);
+      if (std::regex_match(pathString, filenameRegex)) {
+        matchedFiles.push_back(entry.path().lexically_normal().string());
+      }
+      #else
       if (entry.is_regular_file() &&
           std::regex_match(entry.path().filename().string(), filenameRegex)) {
         matchedFiles.push_back(entry.path().lexically_normal().string());
       }
+      #endif
     }
   } else {
     for (const auto& entry : fs::directory_iterator(basePath)) {
