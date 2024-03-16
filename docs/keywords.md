@@ -37,6 +37,7 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
 - [`static`](#static)
 - [`then`](#then)
 - [`this`](#this)
+- [`throw`](#throw)
 - [`true`](#true)
 - [`try`](#try)
 - [`while`](#while)
@@ -204,6 +205,11 @@ See [Concurrency](concurrency.md).
 The `this` keyword is used for class member-access.
 
 See [Classes](classes.md).
+
+## `throw`
+The `throw` keyword is used for throwing errors.
+
+See [Error Handling](error_handling.md).
 
 ## `true`
 The `true` keyword is inverse of `false` and is a Boolean value.
