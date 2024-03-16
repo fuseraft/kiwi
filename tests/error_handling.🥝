@@ -16,4 +16,28 @@ catch
   println "An error occurred."
 end
 
+# Throw with hash
+try
+  throw { "error": "MyError", "message": "Uh-oh!" }
+  println "This line will not be printed."
+catch (err, msg)
+  println "${err}: ${msg}"
+end
+
+# Throw with string.
+try
+  throw "Uh-oh!"
+  println "This line will not be printed."
+catch (err, msg)
+  println "${err}: ${msg}"
+end
+
+# Throw with string (no error type)
+try
+  throw "Uh-oh!"
+  println "This line will not be printed."
+catch (msg)
+  println msg
+end
+
 println ""
