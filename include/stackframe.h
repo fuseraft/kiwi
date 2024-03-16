@@ -61,6 +61,7 @@ struct CallStackFrame {
   void setErrorState(const KiwiError& e) { errorState.setError(e); }
   bool isErrorStateSet() const { return errorState.isErrorSet(); }
   std::string getErrorMessage() const { return errorState.error.getMessage(); }
+  ErrorState getErrorState() const { return errorState; }
   void clearErrorState() { errorState.clearError(); }
 
   void setObjectContext(const std::shared_ptr<Object>& object) {
