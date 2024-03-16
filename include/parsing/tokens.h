@@ -10,7 +10,7 @@
 
 class Token {
  public:
-  static Token create(const TokenType& t, const SubTokenType& st,
+  static Token create(const KTokenType& t, const KName& st,
                       const int& fileId, const std::string& text,
                       const Value& v, const int& lineNumber,
                       const int& linePosition) {
@@ -18,7 +18,7 @@ class Token {
     return token;
   }
 
-  static Token create(const TokenType& t, const SubTokenType& st,
+  static Token create(const KTokenType& t, const KName& st,
                       const int& fileId, const std::string& text,
                       const int& lineNumber, const int& linePosition) {
     return create(t, st, fileId, text, text, lineNumber, linePosition);
@@ -27,17 +27,17 @@ class Token {
   static Token createBoolean(const int& fileId, const std::string& text,
                              const int& lineNumber, const int& linePosition) {
     bool value = text == Keywords.True;
-    auto st = value ? SubTokenType::KW_True : SubTokenType::KW_False;
-    return create(TokenType::LITERAL, st, fileId, text, value, lineNumber,
+    auto st = value ? KName::KW_True : KName::KW_False;
+    return create(KTokenType::LITERAL, st, fileId, text, value, lineNumber,
                   linePosition);
   }
 
   static Token createEmpty() {
-    return create(TokenType::ENDOFFILE, SubTokenType::Default, 0, "", 0, 0);
+    return create(KTokenType::ENDOFFILE, KName::Default, 0, "", 0, 0);
   }
 
   static Token createStreamEnd() {
-    return create(TokenType::STREAM_END, SubTokenType::Default, 0, "", 0, 0);
+    return create(KTokenType::STREAM_END, KName::Default, 0, "", 0, 0);
   }
 
   const int& getFile() const { return fileId; }
@@ -48,22 +48,22 @@ class Token {
 
   const int& getLinePosition() const { return _linePosition; }
 
-  TokenType getType() const { return type; }
+  KTokenType getType() const { return type; }
 
-  SubTokenType getSubType() const { return subType; }
+  KName getSubType() const { return subType; }
 
   Value& getValue() { return value; }
 
  private:
-  TokenType type;
-  SubTokenType subType;
+  KTokenType type;
+  KName subType;
   int fileId;
   std::string text;
   Value value;
   int _lineNumber;
   int _linePosition;
 
-  Token(const TokenType& t, const SubTokenType& st, const int& fileId,
+  Token(const KTokenType& t, const KName& st, const int& fileId,
         const std::string& text, const Value& v, const int& lineNumber,
         const int& linePosition)
       : type(t), subType(st), fileId(fileId), text(text), value(v) {
@@ -84,7 +84,7 @@ class TokenStream {
     return tokens.at(position);
   }
 
-  bool match(TokenType type) {
+  bool match(KTokenType type) {
     if (current().getType() == type) {
       next();
       return true;
@@ -92,7 +92,7 @@ class TokenStream {
     return false;
   }
 
-  bool matchsub(SubTokenType subType) {
+  bool matchsub(KName subType) {
     if (current().getSubType() == subType) {
       next();
       return true;

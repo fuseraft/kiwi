@@ -10,142 +10,142 @@
 
 class MathBuiltinHandler {
  public:
-  static Value execute(const Token& term, const SubTokenType& builtin,
+  static Value execute(const Token& term, const KName& builtin,
                        const std::vector<Value>& args) {
     switch (builtin) {
-      case SubTokenType::Builtin_Math_Sin:
+      case KName::Builtin_Math_Sin:
         return executeSin(term, args);
 
-      case SubTokenType::Builtin_Math_Tan:
+      case KName::Builtin_Math_Tan:
         return executeTan(term, args);
 
-      case SubTokenType::Builtin_Math_Cos:
+      case KName::Builtin_Math_Cos:
         return executeCos(term, args);
 
-      case SubTokenType::Builtin_Math_Asin:
+      case KName::Builtin_Math_Asin:
         return executeAsin(term, args);
 
-      case SubTokenType::Builtin_Math_Acos:
+      case KName::Builtin_Math_Acos:
         return executeAcos(term, args);
 
-      case SubTokenType::Builtin_Math_Atan:
+      case KName::Builtin_Math_Atan:
         return executeAtan(term, args);
 
-      case SubTokenType::Builtin_Math_Atan2:
+      case KName::Builtin_Math_Atan2:
         return executeAtan2(term, args);
 
-      case SubTokenType::Builtin_Math_Sinh:
+      case KName::Builtin_Math_Sinh:
         return executeSinh(term, args);
 
-      case SubTokenType::Builtin_Math_Cosh:
+      case KName::Builtin_Math_Cosh:
         return executeCosh(term, args);
 
-      case SubTokenType::Builtin_Math_Tanh:
+      case KName::Builtin_Math_Tanh:
         return executeTanh(term, args);
 
-      case SubTokenType::Builtin_Math_Log:
+      case KName::Builtin_Math_Log:
         return executeLog(term, args);
 
-      case SubTokenType::Builtin_Math_Log2:
+      case KName::Builtin_Math_Log2:
         return executeLog2(term, args);
 
-      case SubTokenType::Builtin_Math_Log10:
+      case KName::Builtin_Math_Log10:
         return executeLog10(term, args);
 
-      case SubTokenType::Builtin_Math_Log1P:
+      case KName::Builtin_Math_Log1P:
         return executeLog1P(term, args);
 
-      case SubTokenType::Builtin_Math_Fmod:
+      case KName::Builtin_Math_Fmod:
         return executeFmod(term, args);
 
-      case SubTokenType::Builtin_Math_Hypot:
+      case KName::Builtin_Math_Hypot:
         return executeHypot(term, args);
 
-      case SubTokenType::Builtin_Math_IsFinite:
+      case KName::Builtin_Math_IsFinite:
         return executeIsFinite(term, args);
 
-      case SubTokenType::Builtin_Math_IsInf:
+      case KName::Builtin_Math_IsInf:
         return executeIsInf(term, args);
 
-      case SubTokenType::Builtin_Math_IsNaN:
+      case KName::Builtin_Math_IsNaN:
         return executeIsNaN(term, args);
 
-      case SubTokenType::Builtin_Math_IsNormal:
+      case KName::Builtin_Math_IsNormal:
         return executeIsNormal(term, args);
 
-      case SubTokenType::Builtin_Math_Sqrt:
+      case KName::Builtin_Math_Sqrt:
         return executeSqrt(term, args);
 
-      case SubTokenType::Builtin_Math_Cbrt:
+      case KName::Builtin_Math_Cbrt:
         return executeCbrt(term, args);
 
-      case SubTokenType::Builtin_Math_Abs:
+      case KName::Builtin_Math_Abs:
         return executeAbs(term, args);
 
-      case SubTokenType::Builtin_Math_Floor:
+      case KName::Builtin_Math_Floor:
         return executeFloor(term, args);
 
-      case SubTokenType::Builtin_Math_Ceil:
+      case KName::Builtin_Math_Ceil:
         return executeCeil(term, args);
 
-      case SubTokenType::Builtin_Math_Round:
+      case KName::Builtin_Math_Round:
         return executeRound(term, args);
 
-      case SubTokenType::Builtin_Math_Trunc:
+      case KName::Builtin_Math_Trunc:
         return executeTrunc(term, args);
 
-      case SubTokenType::Builtin_Math_Remainder:
+      case KName::Builtin_Math_Remainder:
         return executeRemainder(term, args);
 
-      case SubTokenType::Builtin_Math_Exp:
+      case KName::Builtin_Math_Exp:
         return executeExp(term, args);
 
-      case SubTokenType::Builtin_Math_ExpM1:
+      case KName::Builtin_Math_ExpM1:
         return executeExpM1(term, args);
 
-      case SubTokenType::Builtin_Math_Erf:
+      case KName::Builtin_Math_Erf:
         return executeErf(term, args);
 
-      case SubTokenType::Builtin_Math_ErfC:
+      case KName::Builtin_Math_ErfC:
         return executeErfC(term, args);
 
-      case SubTokenType::Builtin_Math_LGamma:
+      case KName::Builtin_Math_LGamma:
         return executeLGamma(term, args);
 
-      case SubTokenType::Builtin_Math_TGamma:
+      case KName::Builtin_Math_TGamma:
         return executeTGamma(term, args);
 
-      case SubTokenType::Builtin_Math_FMax:
+      case KName::Builtin_Math_FMax:
         return executeFMax(term, args);
 
-      case SubTokenType::Builtin_Math_FMin:
+      case KName::Builtin_Math_FMin:
         return executeFMin(term, args);
 
-      case SubTokenType::Builtin_Math_FDim:
+      case KName::Builtin_Math_FDim:
         return executeFDim(term, args);
 
-      case SubTokenType::Builtin_Math_CopySign:
+      case KName::Builtin_Math_CopySign:
         return executeCopySign(term, args);
 
-      case SubTokenType::Builtin_Math_NextAfter:
+      case KName::Builtin_Math_NextAfter:
         return executeNextAfter(term, args);
 
-      case SubTokenType::Builtin_Math_Pow:
+      case KName::Builtin_Math_Pow:
         return executePow(term, args);
 
-      case SubTokenType::Builtin_Math_Epsilon:
+      case KName::Builtin_Math_Epsilon:
         return executeEpsilon(term, args);
 
-      case SubTokenType::Builtin_Math_Random:
+      case KName::Builtin_Math_Random:
         return executeRandom(term, args);
 
-      case SubTokenType::Builtin_Math_ListPrimes:
+      case KName::Builtin_Math_ListPrimes:
         return executeListPrimes(term, args);
 
-      case SubTokenType::Builtin_Math_NthPrime:
+      case KName::Builtin_Math_NthPrime:
         return executeNthPrime(term, args);
 
-      case SubTokenType::Builtin_Math_Divisors:
+      case KName::Builtin_Math_Divisors:
         return executeDivisors(term, args);
 
       default:

@@ -17,7 +17,6 @@
  * The full license text is available in the LICENSE file in the repository.
  */
 
-#include <vector>
 #include "kiwi.h"
 #include "globals.h"
 

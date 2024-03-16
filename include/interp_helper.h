@@ -21,8 +21,8 @@ struct InterpHelper {
     const auto& tokens = stream->tokens;
 
     while (pos < tokens.size()) {
-      if (tokens.at(pos).getType() == TokenType::COLON ||
-          tokens.at(pos).getType() == TokenType::OPERATOR) {
+      if (tokens.at(pos).getType() == KTokenType::COLON ||
+          tokens.at(pos).getType() == KTokenType::OPERATOR) {
         isSliceAssignment = true;
         break;
       }
@@ -44,24 +44,24 @@ struct InterpHelper {
       const auto& token = tokens.at(position);
       const auto type = token.getType();
 
-      if (type == TokenType::OPEN_BRACKET) {
+      if (type == KTokenType::OPEN_BRACKET) {
         ++bracketCount;
-      } else if (type == TokenType::CLOSE_BRACKET) {
+      } else if (type == KTokenType::CLOSE_BRACKET) {
         --bracketCount;
-      } else if (type == TokenType::OPEN_BRACE) {
+      } else if (type == KTokenType::OPEN_BRACE) {
         int braceCount = 1;
         ++position;  // Skip the current brace
         while (position < tokensSize && braceCount > 0) {
           const auto& innerToken = tokens.at(position);
-          if (innerToken.getType() == TokenType::OPEN_BRACE) {
+          if (innerToken.getType() == KTokenType::OPEN_BRACE) {
             ++braceCount;
-          } else if (innerToken.getType() == TokenType::CLOSE_BRACE) {
+          } else if (innerToken.getType() == KTokenType::CLOSE_BRACE) {
             --braceCount;
           }
           ++position;
         }
         continue;
-      } else if (type == TokenType::COLON || type == TokenType::RANGE) {
+      } else if (type == KTokenType::COLON || type == KTokenType::RANGE) {
         return false;
       }
 
@@ -79,18 +79,18 @@ struct InterpHelper {
     int counter = 1;
 
     while (pos < size && counter > 0) {
-      const TokenType type = tokens.at(pos++).getType();
+      const auto type = tokens.at(pos++).getType();
 
-      if (type == TokenType::OPEN_BRACKET) {
+      if (type == KTokenType::OPEN_BRACKET) {
         ++counter;
-      } else if (type == TokenType::CLOSE_BRACKET) {
+      } else if (type == KTokenType::CLOSE_BRACKET) {
         --counter;
         if (counter == 0) {
           break;
         }
       }
 
-      if (type == TokenType::RANGE) {
+      if (type == KTokenType::RANGE) {
         isRange = true;
         break;
       }
@@ -101,15 +101,15 @@ struct InterpHelper {
 
   static bool hasReturnValue(std::shared_ptr<TokenStream> stream) {
     const Token nextToken = stream->peek();
-    const TokenType tokenType = nextToken.getType();
-    bool isLiteral = tokenType == TokenType::LITERAL;
-    bool isString = tokenType == TokenType::STRING;
-    bool isIdentifier = tokenType == TokenType::IDENTIFIER;
-    bool isParenthesis = tokenType == TokenType::OPEN_PAREN;
-    bool isBraced = tokenType == TokenType::OPEN_BRACE;
-    bool isBracketed = tokenType == TokenType::OPEN_BRACKET;
-    bool isInstanceInvocation = tokenType == TokenType::KEYWORD &&
-                                nextToken.getSubType() == SubTokenType::KW_This;
+    const auto KTokenType = nextToken.getType();
+    bool isLiteral = KTokenType == KTokenType::LITERAL;
+    bool isString = KTokenType == KTokenType::STRING;
+    bool isIdentifier = KTokenType == KTokenType::IDENTIFIER;
+    bool isParenthesis = KTokenType == KTokenType::OPEN_PAREN;
+    bool isBraced = KTokenType == KTokenType::OPEN_BRACE;
+    bool isBracketed = KTokenType == KTokenType::OPEN_BRACKET;
+    bool isInstanceInvocation = KTokenType == KTokenType::KEYWORD &&
+                                nextToken.getSubType() == KName::KW_This;
     return isString || isLiteral || isIdentifier || isParenthesis ||
            isBracketed || isInstanceInvocation || isBraced;
   }
@@ -141,11 +141,11 @@ struct InterpHelper {
 
     while (stream->canRead() && counter != 0) {
       const Token& currentToken = stream->current();
-      const SubTokenType subType = currentToken.getSubType();
+      const KName subType = currentToken.getSubType();
 
       if (Keywords.is_block_keyword(subType)) {
         ++counter;
-      } else if (subType == SubTokenType::KW_End) {
+      } else if (subType == KName::KW_End) {
         --counter;
 
         // Stop here.
@@ -168,11 +168,11 @@ struct InterpHelper {
 
     while (stream->canRead() && counter != 0) {
       const Token& currentToken = stream->current();
-      const SubTokenType subType = currentToken.getSubType();
+      const KName subType = currentToken.getSubType();
 
       if (Keywords.is_block_keyword(subType)) {
         ++counter;
-      } else if (subType == SubTokenType::KW_End) {
+      } else if (subType == KName::KW_End) {
         --counter;
 
         // Stop here.
@@ -191,10 +191,10 @@ struct InterpHelper {
                                                    const std::string& tempId) {
     std::vector<Token> tokens;
     auto file = term.getFile();
-    tokens.push_back(Token::create(TokenType::IDENTIFIER, SubTokenType::Default,
+    tokens.push_back(Token::create(KTokenType::IDENTIFIER, KName::Default,
                                    file, tempId, 0, 0));
-    tokens.push_back(Token::create(TokenType::OPERATOR,
-                                   SubTokenType::Ops_Assign, file,
+    tokens.push_back(Token::create(KTokenType::OPERATOR,
+                                   KName::Ops_Assign, file,
                                    Operators.Assign, 0, 0));
 
     return tokens;
@@ -265,53 +265,53 @@ struct InterpHelper {
   }
 
   static Value interpretAssignOp(std::shared_ptr<TokenStream> stream,
-                                 const SubTokenType& op,
+                                 const KName& op,
                                  const Value& currentValue,
                                  const Value& value) {
     switch (op) {
-      case SubTokenType::Ops_AddAssign:
+      case KName::Ops_AddAssign:
         return std::visit(AddVisitor(stream->current()), currentValue, value);
 
-      case SubTokenType::Ops_SubtractAssign:
+      case KName::Ops_SubtractAssign:
         return std::visit(SubtractVisitor(stream->current()), currentValue,
                           value);
 
-      case SubTokenType::Ops_MultiplyAssign:
+      case KName::Ops_MultiplyAssign:
         return std::visit(MultiplyVisitor(stream->current()), currentValue,
                           value);
 
-      case SubTokenType::Ops_DivideAssign:
+      case KName::Ops_DivideAssign:
         return std::visit(DivideVisitor(stream->current()), currentValue,
                           value);
 
-      case SubTokenType::Ops_ExponentAssign:
+      case KName::Ops_ExponentAssign:
         return std::visit(PowerVisitor(stream->current()), currentValue, value);
 
-      case SubTokenType::Ops_ModuloAssign:
+      case KName::Ops_ModuloAssign:
         return std::visit(ModuloVisitor(stream->current()), currentValue,
                           value);
 
-      case SubTokenType::Ops_BitwiseAndAssign:
+      case KName::Ops_BitwiseAndAssign:
         return std::visit(BitwiseAndVisitor(stream->current()), currentValue,
                           value);
 
-      case SubTokenType::Ops_BitwiseOrAssign:
+      case KName::Ops_BitwiseOrAssign:
         return std::visit(BitwiseOrVisitor(stream->current()), currentValue,
                           value);
 
-      case SubTokenType::Ops_BitwiseXorAssign:
+      case KName::Ops_BitwiseXorAssign:
         return std::visit(BitwiseXorVisitor(stream->current()), currentValue,
                           value);
 
-      case SubTokenType::Ops_BitwiseLeftShiftAssign:
+      case KName::Ops_BitwiseLeftShiftAssign:
         return std::visit(BitwiseLeftShiftVisitor(stream->current()),
                           currentValue, value);
 
-      case SubTokenType::Ops_BitwiseRightShiftAssign:
+      case KName::Ops_BitwiseRightShiftAssign:
         return std::visit(BitwiseRightShiftVisitor(stream->current()),
                           currentValue, value);
 
-      case SubTokenType::Ops_BitwiseNotAssign:
+      case KName::Ops_BitwiseNotAssign:
         return std::visit(BitwiseNotVisitor(stream->current()), value);
 
       default:
@@ -333,14 +333,21 @@ struct InterpHelper {
         throw IndexError(stream->current(), "Step value must be an integer.");
       }
 
-      int start = std::get<k_int>(slice.indexOrStart),
-          stop = std::get<k_int>(slice.stopIndex),
-          step = std::get<k_int>(slice.stepValue);
+      int start = static_cast<int>(std::get<k_int>(slice.indexOrStart)),
+          stop = static_cast<int>(std::get<k_int>(slice.stopIndex)),
+          step = static_cast<int>(std::get<k_int>(slice.stepValue));
 
       // Adjust negative indices
       int listSize = static_cast<int>(list->elements.size());
-      start = (start < 0) ? std::max(start + listSize, 0) : start;
-      stop = (stop < 0) ? stop + listSize : std::min(stop, listSize);
+      if (start < 0) {
+        start = start + listSize > 0 ? start + listSize : 0;
+      }
+
+      if (stop < 0) {
+        stop += listSize;
+      } else {
+        stop = stop < listSize ? stop : listSize;
+      }
 
       // Adjust stop for reverse slicing
       if (step < 0 && stop == listSize) {
@@ -395,7 +402,7 @@ struct InterpHelper {
                                           Value& errorValue) {
     stream->next();  // Skip "("
 
-    if (stream->current().getType() != TokenType::IDENTIFIER) {
+    if (stream->current().getType() != KTokenType::IDENTIFIER) {
       throw SyntaxError(
           stream->current(),
           "Syntax error in catch variable declaration. Missing identifier.");
@@ -404,7 +411,7 @@ struct InterpHelper {
     errorVariableName = stream->current().getText();
     stream->next();  // Skip the identifier.
 
-    if (stream->current().getType() != TokenType::CLOSE_PAREN) {
+    if (stream->current().getType() != KTokenType::CLOSE_PAREN) {
       throw SyntaxError(stream->current(),
                         "Syntax error in catch variable declaration.");
     }
@@ -415,7 +422,7 @@ struct InterpHelper {
 
   static std::string interpretModuleHome(std::string& modulePath,
                                          std::shared_ptr<TokenStream> stream) {
-    if (stream->current().getType() != TokenType::STRING ||
+    if (stream->current().getType() != KTokenType::STRING ||
         !String::beginsWith(modulePath, "@")) {
       return "";
     }
@@ -435,8 +442,8 @@ struct InterpHelper {
 
       // If the last token was "@"
       if (pos + 1 < tokens.size() &&
-          lastToken.getType() == TokenType::DECLVAR) {
-        if (tokens.at(pos + 1).getSubType() == SubTokenType::Ops_Divide) {
+          lastToken.getType() == KTokenType::DECLVAR) {
+        if (tokens.at(pos + 1).getSubType() == KName::Ops_Divide) {
           moduleHome = token.getText();
           pos += 2;  // Skip module home and "/"
           build = true;
@@ -461,15 +468,15 @@ struct InterpHelper {
 
   static std::string interpretBaseClass(std::shared_ptr<TokenStream> stream) {
     std::string baseClassName;
-    if (stream->current().getType() == TokenType::OPERATOR) {
-      if (stream->current().getSubType() != SubTokenType::Ops_LessThan) {
+    if (stream->current().getType() == KTokenType::OPERATOR) {
+      if (stream->current().getSubType() != KName::Ops_LessThan) {
         throw SyntaxError(
             stream->current(),
             "Expected inheritance operator, `<`, in class definition.");
       }
       stream->next();
 
-      if (stream->current().getType() != TokenType::IDENTIFIER) {
+      if (stream->current().getType() != KTokenType::IDENTIFIER) {
         throw SyntaxError(stream->current(), "Expected base class name.");
       }
 

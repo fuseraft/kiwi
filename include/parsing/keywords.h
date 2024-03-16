@@ -58,21 +58,21 @@ struct {
 
   std::unordered_set<char> bitwise_operator_chars = {'^', '~', '&', '|'};
 
-  std::unordered_set<SubTokenType> assignment_operators = {
-      SubTokenType::Ops_Assign,
-      SubTokenType::Ops_AddAssign,
-      SubTokenType::Ops_SubtractAssign,
-      SubTokenType::Ops_MultiplyAssign,
-      SubTokenType::Ops_DivideAssign,
-      SubTokenType::Ops_ExponentAssign,
-      SubTokenType::Ops_OrAssign,
-      SubTokenType::Ops_AndAssign,
-      SubTokenType::Ops_BitwiseOrAssign,
-      SubTokenType::Ops_BitwiseAndAssign,
-      SubTokenType::Ops_BitwiseXorAssign,
-      SubTokenType::Ops_BitwiseNotAssign,
-      SubTokenType::Ops_BitwiseLeftShiftAssign,
-      SubTokenType::Ops_BitwiseRightShiftAssign};
+  std::unordered_set<KName> assignment_operators = {
+      KName::Ops_Assign,
+      KName::Ops_AddAssign,
+      KName::Ops_SubtractAssign,
+      KName::Ops_MultiplyAssign,
+      KName::Ops_DivideAssign,
+      KName::Ops_ExponentAssign,
+      KName::Ops_OrAssign,
+      KName::Ops_AndAssign,
+      KName::Ops_BitwiseOrAssign,
+      KName::Ops_BitwiseAndAssign,
+      KName::Ops_BitwiseXorAssign,
+      KName::Ops_BitwiseNotAssign,
+      KName::Ops_BitwiseLeftShiftAssign,
+      KName::Ops_BitwiseRightShiftAssign};
 
   std::unordered_set<std::string> arithmetic_operators = {
       Add, Subtract, Multiply, Divide, Exponent, Modulus};
@@ -91,7 +91,7 @@ struct {
     return large_operators.find(arg) != large_operators.end();
   }
 
-  bool is_assignment_operator(const SubTokenType& arg) {
+  bool is_assignment_operator(const KName& arg) {
     return assignment_operators.find(arg) != assignment_operators.end();
   }
 
@@ -161,10 +161,10 @@ struct {
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           End};
 
-  std::unordered_set<SubTokenType> block_keywords = {
-      SubTokenType::KW_While, SubTokenType::KW_For,    SubTokenType::KW_Method,
-      SubTokenType::KW_If,    SubTokenType::KW_Module, SubTokenType::KW_Try,
-      SubTokenType::KW_Class, SubTokenType::KW_Lambda};
+  std::unordered_set<KName> block_keywords = {
+      KName::KW_While, KName::KW_For,    KName::KW_Method,
+      KName::KW_If,    KName::KW_Module, KName::KW_Try,
+      KName::KW_Class, KName::KW_Lambda};
 
   bool is_keyword(const std::string& arg) {
     return keywords.find(arg) != keywords.end();
@@ -178,11 +178,11 @@ struct {
     return conditional_keywords.find(arg) != conditional_keywords.end();
   }
 
-  bool is_loop_keyword(const SubTokenType& arg) {
-    return arg == SubTokenType::KW_While || arg == SubTokenType::KW_For;
+  bool is_loop_keyword(const KName& arg) {
+    return arg == KName::KW_While || arg == KName::KW_For;
   }
 
-  bool is_block_keyword(const SubTokenType& arg) {
+  bool is_block_keyword(const KName& arg) {
     return block_keywords.find(arg) != block_keywords.end();
   }
 } Keywords;

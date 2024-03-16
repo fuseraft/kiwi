@@ -24,7 +24,7 @@
 class BuiltinInterpreter {
  public:
   static Value execute(
-      const Token& term, const SubTokenType& builtin,
+      const Token& term, const KName& builtin,
       const std::vector<Value>& args,
       const std::unordered_map<std::string, std::string>& kiwiArgs) {
     if (FileIOBuiltIns.is_builtin(builtin)) {
@@ -54,7 +54,7 @@ class BuiltinInterpreter {
     throw UnknownBuiltinError(term, "");
   }
 
-  static Value execute(const Token& term, const SubTokenType& builtin,
+  static Value execute(const Token& term, const KName& builtin,
                        const Value& value, const std::vector<Value>& args) {
     if (KiwiBuiltins.is_builtin(builtin)) {
       return CoreBuiltinHandler::execute(term, builtin, value, args);

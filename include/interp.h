@@ -85,7 +85,7 @@ class Interpreter {
     stream->next();  // Skip "await"
 
     auto term = stream->current();
-    if (term.getType() != TokenType::IDENTIFIER) {
+    if (term.getType() != KTokenType::IDENTIFIER) {
       throw SyntaxError(term, "Expected identifier near `await`.");
     }
 
@@ -260,7 +260,7 @@ class Interpreter {
   Method getLambda(std::shared_ptr<TokenStream> stream,
                    std::shared_ptr<CallStackFrame> frame) {
     switch (stream->current().getType()) {
-      case TokenType::IDENTIFIER: {
+      case KTokenType::IDENTIFIER: {
         auto lambdaName = stream->current().getText();
         stream->next();  // Skip identifier.
         if (frame->hasAssignedLambda(lambdaName)) {
@@ -277,7 +277,7 @@ class Interpreter {
         }
       } break;
 
-      case TokenType::LAMBDA:
+      case KTokenType::LAMBDA:
         return interpretLambda(stream, frame);
 
       default:
@@ -295,7 +295,7 @@ class Interpreter {
 
     interpretMethodParameters(stream, frame, lambda);
 
-    if (!stream->matchsub(SubTokenType::KW_Do)) {
+    if (!stream->matchsub(KName::KW_Do)) {
       throw SyntaxError(stream->current(),
                         "Expected `do` in lambda expression.");
     }
@@ -364,7 +364,7 @@ class Interpreter {
 
       frame->variables[itemVariableName] = item;
       if (hasIndexVariable) {
-        frame->variables[indexVariableName] = static_cast<int>(index);
+        frame->variables[indexVariableName] = static_cast<k_int>(index);
       }
 
       auto loopStream = std::make_shared<TokenStream>(loopTokens);
@@ -383,13 +383,13 @@ class Interpreter {
     bool hasIndexVariable = false;
 
     // Check if the loop includes an index variable.
-    if (stream->current().getType() == TokenType::IDENTIFIER) {
+    if (stream->current().getType() == KTokenType::IDENTIFIER) {
       itemVariableName = stream->current().getText();
       stream->next();  // Skip the item variable name
 
-      if (stream->current().getType() == TokenType::COMMA) {
+      if (stream->current().getType() == KTokenType::COMMA) {
         stream->next();  // Skip ','
-        if (stream->current().getType() == TokenType::IDENTIFIER) {
+        if (stream->current().getType() == KTokenType::IDENTIFIER) {
           hasIndexVariable = true;
           indexVariableName =
               stream->current().getText();  // Get the index variable name
@@ -398,14 +398,14 @@ class Interpreter {
       }
     }
 
-    if (!stream->matchsub(SubTokenType::KW_In)) {
+    if (!stream->matchsub(KName::KW_In)) {
       throw SyntaxError(stream->current(),
                         "Expected 'in' after loop variables.");
     }
 
     auto collectionValue = interpretExpression(stream, frame);
 
-    if (!stream->matchsub(SubTokenType::KW_Do)) {
+    if (!stream->matchsub(KName::KW_Do)) {
       throw SyntaxError(stream->current(), "Expected `do` in `for` loop.");
     }
 
@@ -428,7 +428,7 @@ class Interpreter {
                           std::shared_ptr<CallStackFrame> frame) {
     std::vector<Token> conditionTokens;
     while (stream->canRead() &&
-           stream->current().getSubType() != SubTokenType::KW_Do) {
+           stream->current().getSubType() != KName::KW_Do) {
       conditionTokens.push_back(stream->current());
       stream->next();
     }
@@ -513,11 +513,11 @@ class Interpreter {
     stream->next();  // Skip "while"|"for"
 
     switch (loop) {
-      case SubTokenType::KW_While:
+      case KName::KW_While:
         interpretWhileLoop(stream, frame);
         break;
 
-      case SubTokenType::KW_For:
+      case KName::KW_For:
         interpretForLoop(stream, frame);
         break;
 
@@ -530,80 +530,80 @@ class Interpreter {
                         std::shared_ptr<CallStackFrame> frame) {
     const auto& keyword = stream->current().getSubType();
     switch (keyword) {
-      case SubTokenType::KW_If:
+      case KName::KW_If:
         interpretConditional(stream, frame);
         break;
 
-      case SubTokenType::KW_Async:
+      case KName::KW_Async:
         interpretAsyncMethodDefinition(stream, frame);
         break;
 
-      case SubTokenType::KW_Await:
+      case KName::KW_Await:
         interpretAwait(stream, frame);
         break;
 
-      case SubTokenType::KW_Method:
+      case KName::KW_Method:
         interpretMethodDefinition(stream, frame);
         break;
 
-      case SubTokenType::KW_Return:
+      case KName::KW_Return:
         interpretReturn(stream, frame);
         break;
 
-      case SubTokenType::KW_Exit:
+      case KName::KW_Exit:
         interpretExit(stream, frame);
         break;
 
-      case SubTokenType::KW_PrintLn:
-      case SubTokenType::KW_Print:
-        interpretPrint(stream, frame, keyword == SubTokenType::KW_PrintLn);
+      case KName::KW_PrintLn:
+      case KName::KW_Print:
+        interpretPrint(stream, frame, keyword == KName::KW_PrintLn);
         break;
 
-      case SubTokenType::KW_Import:
+      case KName::KW_Import:
         interpretImport(stream, frame);
         break;
 
-      case SubTokenType::KW_Export:
+      case KName::KW_Export:
         interpretExport(stream, frame);
         break;
 
-      case SubTokenType::KW_Module:
+      case KName::KW_Module:
         interpretModuleDefinition(stream);
         break;
 
-      case SubTokenType::KW_Delete:
+      case KName::KW_Delete:
         interpretDelete(stream, frame);
         break;
 
-      case SubTokenType::KW_Abstract:
-      case SubTokenType::KW_Class:
+      case KName::KW_Abstract:
+      case KName::KW_Class:
         interpretClassDefinition(stream, frame);
         break;
 
-      case SubTokenType::KW_This:
+      case KName::KW_This:
         interpretSelfInvocation(stream, frame);
         break;
 
-      case SubTokenType::KW_Break:
+      case KName::KW_Break:
         stream->next();  // Skip "break"
         frame->setFlag(FrameFlags::LoopBreak);
         break;
 
-      case SubTokenType::KW_Next:
+      case KName::KW_Next:
         stream->next();  // Skip "next"
         frame->setFlag(FrameFlags::LoopContinue);
         break;
 
-      case SubTokenType::KW_Pass:
+      case KName::KW_Pass:
         stream->next();  // Skip "pass"
         break;
 
-      case SubTokenType::KW_Try:
+      case KName::KW_Try:
         stream->next();  // Skip "try"
         frame->setFlag(FrameFlags::InTry);
         break;
 
-      case SubTokenType::KW_Catch:
+      case KName::KW_Catch:
         interpretCatch(stream, frame);
         break;
 
@@ -621,7 +621,7 @@ class Interpreter {
 
   void interpretQualifiedIdentifier(std::shared_ptr<TokenStream> stream,
                                     std::string& identifier) {
-    while (stream->peek().getType() == TokenType::QUALIFIER) {
+    while (stream->peek().getType() == KTokenType::QUALIFIER) {
       stream->next();  // Skip the identifier.
       stream->next();  // Skip the qualifier.
       identifier += Symbols.Qualifier + stream->current().getText();
@@ -636,15 +636,15 @@ class Interpreter {
 
     if (methodFound || classFound) {
       if (classFound) {
-        if (stream->peek().getType() != TokenType::DOT) {
+        if (stream->peek().getType() != KTokenType::DOT) {
           throw SyntaxError(stream->current(),
                             "Invalid syntax near `" + identifier + "`");
         }
         interpretClassMethodInvocation(stream, frame, identifier);
       } else if (methodFound) {
         switch (stream->peek().getType()) {
-          case TokenType::COMMA:
-          case TokenType::CLOSE_PAREN:
+          case KTokenType::COMMA:
+          case KTokenType::CLOSE_PAREN:
             if (frame->hasAssignedLambda(identifier)) {
               std::shared_ptr<LambdaRef> lambdaRef =
                   std::make_shared<LambdaRef>(identifier);
@@ -674,14 +674,14 @@ class Interpreter {
   Value interpretValueInvocation(std::shared_ptr<TokenStream> stream,
                                  std::shared_ptr<CallStackFrame> frame,
                                  Value& v) {
-    while (stream->current().getType() == TokenType::DOT ||
-           stream->current().getType() == TokenType::OPEN_BRACKET) {
+    while (stream->current().getType() == KTokenType::DOT ||
+           stream->current().getType() == KTokenType::OPEN_BRACKET) {
       switch (stream->current().getType()) {
-        case TokenType::DOT:
+        case KTokenType::DOT:
           v = interpretDotNotation(stream, frame, v);
           break;
 
-        case TokenType::OPEN_BRACKET: {
+        case KTokenType::OPEN_BRACKET: {
           auto slice = interpretSliceIndex(stream, frame, v);
           v = interpretSlice(stream, v, slice);
         } break;
@@ -701,18 +701,18 @@ class Interpreter {
 
     interpretQualifiedIdentifier(stream, tokenText);
 
-    if (doAssignment && stream->peek().getType() == TokenType::OPERATOR &&
+    if (doAssignment && stream->peek().getType() == KTokenType::OPERATOR &&
         (Operators.is_assignment_operator(stream->peek().getSubType()) ||
-         stream->peek().getSubType() == SubTokenType::Ops_BitwiseLeftShift)) {
+         stream->peek().getSubType() == KName::Ops_BitwiseLeftShift)) {
       interpretAssignment(stream, frame, tokenText);
-      return 0;
+      return static_cast<k_int>(0);
     }
 
     if (hasVariable(frame, tokenText)) {
-      if (stream->peek().getType() == TokenType::OPEN_BRACKET) {
+      if (stream->peek().getType() == KTokenType::OPEN_BRACKET) {
         stream->next();
         interpretSliceAssignment(stream, frame, tokenText);
-        return 0;
+        return static_cast<k_int>(0);
       }
 
       auto v = getVariable(stream, frame, tokenText);
@@ -733,11 +733,9 @@ class Interpreter {
       return v;
     } else if (KiwiBuiltins.is_builtin_method(op)) {
       return interpretBuiltin(stream, frame, op);
-    } else {
-      return interpretIdentifierInvocation(stream, frame, tokenText);
     }
-
-    throw UnknownIdentifierError(stream->current(), tokenText);
+    
+    return interpretIdentifierInvocation(stream, frame, tokenText);
   }
 
   void interpretCatch(std::shared_ptr<TokenStream> stream,
@@ -747,7 +745,7 @@ class Interpreter {
     std::string errorVariableName;
     Value errorValue;
 
-    if (stream->current().getType() == TokenType::OPEN_PAREN) {
+    if (stream->current().getType() == KTokenType::OPEN_PAREN) {
       InterpHelper::interpretParameterizedCatch(stream, frame,
                                                 errorVariableName, errorValue);
     }
@@ -755,7 +753,7 @@ class Interpreter {
     std::vector<Token> catchTokens;
     int count = 1;
     while (stream->canRead() && count != 0) {
-      if (stream->current().getSubType() == SubTokenType::KW_End) {
+      if (stream->current().getSubType() == KName::KW_End) {
         --count;
 
         // Stop here.
@@ -790,28 +788,28 @@ class Interpreter {
   void interpretToken(std::shared_ptr<TokenStream> stream,
                       std::shared_ptr<CallStackFrame> frame) {
     if (frame->isErrorStateSet()) {
-      if (stream->current().getType() == TokenType::KEYWORD &&
-          stream->current().getSubType() == SubTokenType::KW_Catch) {
+      if (stream->current().getType() == KTokenType::KEYWORD &&
+          stream->current().getSubType() == KName::KW_Catch) {
         interpretCatch(stream, frame);
       }
       return;
     }
 
     switch (stream->current().getType()) {
-      case TokenType::COMMENT:
-      case TokenType::COMMA:
+      case KTokenType::COMMENT:
+      case KTokenType::COMMA:
         stream->next();  // Skip these.
         break;
 
-      case TokenType::KEYWORD:
+      case KTokenType::KEYWORD:
         interpretKeyword(stream, frame);
         break;
 
-      case TokenType::IDENTIFIER:
+      case KTokenType::IDENTIFIER:
         interpretIdentifier(stream, frame);
         break;
 
-      case TokenType::CONDITIONAL:
+      case KTokenType::CONDITIONAL:
         interpretConditional(stream, frame);
         break;
 
@@ -972,7 +970,7 @@ class Interpreter {
                                         std::shared_ptr<CallStackFrame> frame) {
     std::vector<Value> args;
 
-    if (!stream->match(TokenType::OPEN_PAREN)) {
+    if (!stream->match(KTokenType::OPEN_PAREN)) {
       throw SyntaxError(stream->current(),
                         "Expected open-parenthesis, `(`, near `" +
                             stream->current().getText() + "`.");
@@ -980,13 +978,13 @@ class Interpreter {
 
     bool closeParenthesisFound = false;
     while (stream->canRead() && !closeParenthesisFound &&
-           stream->current().getType() != TokenType::CLOSE_PAREN) {
-      if (stream->current().getType() == TokenType::COMMA) {
+           stream->current().getType() != KTokenType::CLOSE_PAREN) {
+      if (stream->current().getType() == KTokenType::COMMA) {
         stream->next();
         continue;
       }
 
-      if (stream->current().getType() == TokenType::TYPENAME) {
+      if (stream->current().getType() == KTokenType::TYPENAME) {
         args.push_back(stream->current().getText());
       } else if (hasClass(stream->current().getText())) {
         args.push_back(stream->current().getText());
@@ -994,7 +992,7 @@ class Interpreter {
         args.push_back(interpretExpression(stream, frame));
       }
 
-      if (stream->current().getType() == TokenType::CLOSE_PAREN) {
+      if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
         closeParenthesisFound = true;
       }
 
@@ -1003,7 +1001,7 @@ class Interpreter {
       }
     }
 
-    if (stream->current().getType() == TokenType::CLOSE_PAREN) {
+    if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
       stream->next();
     }
 
@@ -1012,9 +1010,9 @@ class Interpreter {
 
   void interpretModuleBuiltin(std::shared_ptr<TokenStream> stream,
                               const std::string& moduleName,
-                              const SubTokenType& builtin,
+                              const KName& builtin,
                               std::vector<Value>& args) {
-    if (builtin == SubTokenType::Builtin_Module_Home) {
+    if (builtin == KName::Builtin_Module_Home) {
       if (args.size() != 1) {
         throw BuiltinUnexpectedArgumentError(stream->current(),
                                              ModuleBuiltins.Home);
@@ -1034,7 +1032,7 @@ class Interpreter {
   std::vector<std::string> collectMethodParameters(
       std::shared_ptr<TokenStream> stream,
       std::shared_ptr<CallStackFrame> frame, Method& method) {
-    if (!stream->match(TokenType::OPEN_PAREN)) {
+    if (!stream->match(KTokenType::OPEN_PAREN)) {
       throw SyntaxError(
           stream->current(),
           "Expected open-parenthesis, `(`, in method parameter set.");
@@ -1046,15 +1044,15 @@ class Interpreter {
 
     bool closeParenthesisFound = false;
     while (stream->canRead() &&
-           stream->current().getType() != TokenType::CLOSE_PAREN) {
-      if (stream->current().getType() == TokenType::COMMA) {
+           stream->current().getType() != KTokenType::CLOSE_PAREN) {
+      if (stream->current().getType() == KTokenType::COMMA) {
         stream->next();
         continue;
       }
 
       auto paramValue = interpretExpression(stream, frame);
 
-      if (stream->current().getType() == TokenType::CLOSE_PAREN) {
+      if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
         closeParenthesisFound = true;
       }
 
@@ -1171,7 +1169,7 @@ class Interpreter {
                                           std::shared_ptr<CallStackFrame> frame,
                                           std::shared_ptr<Object>& object,
                                           const std::string& methodName,
-                                          const SubTokenType& op,
+                                          const KName& op,
                                           std::vector<Value>& parameters) {
     if (!hasClass(object->className)) {
       throw ClassUndefinedError(stream->current(), object->className);
@@ -1226,7 +1224,7 @@ class Interpreter {
                                          std::shared_ptr<CallStackFrame> frame,
                                          const std::string& instanceName) {
     stream->next();  // Skip the "."
-    if (stream->current().getType() != TokenType::IDENTIFIER) {
+    if (stream->current().getType() != KTokenType::IDENTIFIER) {
       throw SyntaxError(
           stream->current(),
           "Expected identifier in instance method invocation, instead got: `" +
@@ -1289,7 +1287,7 @@ class Interpreter {
 
       frame->variables[taskResult] = result;
       if (hasIndexVariable) {
-        frame->variables[taskIdName] = static_cast<int>(taskId);
+        frame->variables[taskIdName] = static_cast<k_int>(taskId);
       }
     }
 
@@ -1311,7 +1309,7 @@ class Interpreter {
   Value interpretMethodInvocation(std::shared_ptr<TokenStream> stream,
                                   std::shared_ptr<CallStackFrame> frame,
                                   const std::string& name, bool await = false) {
-    if (stream->current().getType() != TokenType::OPEN_PAREN) {
+    if (stream->current().getType() != KTokenType::OPEN_PAREN) {
       stream->next();  // Skip the name.
     }
 
@@ -1324,10 +1322,10 @@ class Interpreter {
     if (method.isFlagSet(MethodFlags::Async)) {
       auto taskId = interpretAsyncMethodInvocation(codeFrame, method);
 
-      if (!await && stream->current().getSubType() == SubTokenType::KW_Then) {
+      if (!await && stream->current().getSubType() == KName::KW_Then) {
         return interpretThen(stream, frame, taskId);
       } else if (await &&
-                 stream->current().getSubType() != SubTokenType::KW_Then) {
+                 stream->current().getSubType() != KName::KW_Then) {
         return taskId;
       }
 
@@ -1350,7 +1348,7 @@ class Interpreter {
   std::vector<Parameter> getParameterSet(
       std::shared_ptr<TokenStream> stream,
       std::shared_ptr<CallStackFrame> frame) {
-    if (!stream->match(TokenType::OPEN_PAREN)) {
+    if (!stream->match(KTokenType::OPEN_PAREN)) {
       throw SyntaxError(
           stream->current(),
           "Expected open-parenthesis, `(`, in parameter set expression.");
@@ -1360,9 +1358,9 @@ class Interpreter {
     std::vector<Parameter> params;
 
     while (stream->canRead() &&
-           stream->current().getType() != TokenType::CLOSE_PAREN) {
+           stream->current().getType() != KTokenType::CLOSE_PAREN) {
       auto paramName = stream->current().getText();
-      if (stream->current().getType() == TokenType::IDENTIFIER) {
+      if (stream->current().getType() == KTokenType::IDENTIFIER) {
         if (paramNames.find(paramName) != paramNames.end()) {
           throw SyntaxError(stream->current(),
                             "The parameter `" + paramName +
@@ -1372,7 +1370,7 @@ class Interpreter {
         paramNames.insert(paramName);
         stream->next();
 
-        if (stream->current().getType() == TokenType::OPERATOR &&
+        if (stream->current().getType() == KTokenType::OPERATOR &&
             stream->current().getText() == Operators.Assign) {
           stream->next();  // Skip "=".
           Parameter optionalParam(paramName,
@@ -1389,7 +1387,7 @@ class Interpreter {
       stream->next();
     }
 
-    if (!stream->match(TokenType::CLOSE_PAREN)) {
+    if (!stream->match(KTokenType::CLOSE_PAREN)) {
       throw SyntaxError(
           stream->current(),
           "Expected close-parenthesis, `)`, in parameter set expression.");
@@ -1411,18 +1409,18 @@ class Interpreter {
     Method method;
 
     while (stream->canRead() &&
-           stream->current().getSubType() != SubTokenType::KW_Method) {
+           stream->current().getSubType() != KName::KW_Method) {
       switch (stream->current().getSubType()) {
-        case SubTokenType::KW_Abstract:
+        case KName::KW_Abstract:
           method.setFlag(MethodFlags::Abstract);
           break;
-        case SubTokenType::KW_Override:
+        case KName::KW_Override:
           method.setFlag(MethodFlags::Override);
           break;
-        case SubTokenType::KW_Private:
+        case KName::KW_Private:
           method.setFlag(MethodFlags::Private);
           break;
-        case SubTokenType::KW_Static:
+        case KName::KW_Static:
           method.setFlag(MethodFlags::Static);
           break;
         default:
@@ -1443,7 +1441,7 @@ class Interpreter {
     }
 
     while (stream->canRead() && counter > 0) {
-      if (stream->current().getSubType() == SubTokenType::KW_End) {
+      if (stream->current().getSubType() == KName::KW_End) {
         --counter;
 
         // Stop here.
@@ -1458,7 +1456,7 @@ class Interpreter {
       method.addToken(stream->current());
       stream->next();
 
-      if (stream->current().getType() == TokenType::STREAM_END) {
+      if (stream->current().getType() == KTokenType::STREAM_END) {
         throw SyntaxError(stream->current(),
                           "Invalid method declaration `" + name + "`");
       }
@@ -1471,7 +1469,7 @@ class Interpreter {
                                       std::shared_ptr<CallStackFrame> frame) {
     stream->next();  // Skip "async"
 
-    if (stream->current().getSubType() != SubTokenType::KW_Method) {
+    if (stream->current().getSubType() != KName::KW_Method) {
       throw SyntaxError(stream->current(),
                         "Expected method definition after `async`.");
     }
@@ -1519,12 +1517,9 @@ class Interpreter {
     if (std::holds_alternative<k_int>(returnValue)) {
       int exitCode = static_cast<int>(std::get<k_int>(returnValue));
       exit(exitCode);
-    } else {
-      exit(1);
     }
-
-    frame->returnValue = returnValue;
-    frame->setFlag(FrameFlags::ReturnFlag);
+    
+    exit(1);
   }
 
   void interpretReturn(std::shared_ptr<TokenStream> stream,
@@ -1541,54 +1536,54 @@ class Interpreter {
   SliceIndex interpretSliceIndex(std::shared_ptr<TokenStream> stream,
                                  std::shared_ptr<CallStackFrame> frame,
                                  Value& listValue) {
-    if (!stream->match(TokenType::OPEN_BRACKET)) {
+    if (!stream->match(KTokenType::OPEN_BRACKET)) {
       throw SyntaxError(stream->current(),
                         "Expected open-bracket, `[`, for list access.");
     }
 
     SliceIndex slice;
-    slice.indexOrStart = 0;
+    slice.indexOrStart = static_cast<k_int>(0);
 
     if (std::holds_alternative<std::shared_ptr<List>>(listValue)) {
-      slice.stopIndex = static_cast<int>(
+      slice.stopIndex = static_cast<k_int>(
           std::get<std::shared_ptr<List>>(listValue)->elements.size());
     } else if (std::holds_alternative<std::string>(listValue)) {
       slice.stopIndex =
-          static_cast<int>(std::get<std::string>(listValue).size());
+          static_cast<k_int>(std::get<std::string>(listValue).size());
     }
 
-    slice.stepValue = 1;
+    slice.stepValue = static_cast<k_int>(1);
     slice.isSlice = false;
 
     // Detect if slicing or single index
-    if (stream->peek().getType() == TokenType::COLON ||
-        stream->current().getType() == TokenType::COLON) {
+    if (stream->peek().getType() == KTokenType::COLON ||
+        stream->current().getType() == KTokenType::COLON) {
       slice.isSlice = true;
-      if (stream->current().getType() != TokenType::COLON) {
+      if (stream->current().getType() != KTokenType::COLON) {
         slice.indexOrStart = interpretExpression(stream, frame);
       }
 
-      if (stream->peek().getType() == TokenType::COLON) {
+      if (stream->peek().getType() == KTokenType::COLON) {
         stream->next();  // Skip colon for start:stop:
       }
 
-      if (stream->current().getType() == TokenType::COLON) {
+      if (stream->current().getType() == KTokenType::COLON) {
         stream->next();  // Skip colon for start::step or ::step
-        if (stream->current().getType() != TokenType::CLOSE_BRACKET) {
+        if (stream->current().getType() != KTokenType::CLOSE_BRACKET) {
           slice.stopIndex = interpretExpression(stream, frame);
         }
       }
 
-      if (stream->current().getType() == TokenType::COLON) {
+      if (stream->current().getType() == KTokenType::COLON) {
         stream->next();  // Skip colon for ::step
-        if (stream->current().getType() != TokenType::CLOSE_BRACKET) {
+        if (stream->current().getType() != KTokenType::CLOSE_BRACKET) {
           slice.stepValue = interpretExpression(stream, frame);
         }
       }
-    } else if (stream->current().getType() == TokenType::QUALIFIER) {
+    } else if (stream->current().getType() == KTokenType::QUALIFIER) {
       stream->next();
       slice.isSlice = true;
-      if (stream->current().getType() != TokenType::CLOSE_BRACKET) {
+      if (stream->current().getType() != KTokenType::CLOSE_BRACKET) {
         slice.stepValue = interpretExpression(stream, frame);
       }
     } else {
@@ -1596,7 +1591,7 @@ class Interpreter {
       slice.indexOrStart = interpretExpression(stream, frame);
     }
 
-    if (!stream->match(TokenType::CLOSE_BRACKET)) {
+    if (!stream->match(KTokenType::CLOSE_BRACKET)) {
       throw SyntaxError(stream->current(),
                         "Expected close-bracket, `]`, for list access.");
     }
@@ -1606,14 +1601,14 @@ class Interpreter {
 
   Value interpretKeyOrIndex(std::shared_ptr<TokenStream> stream,
                             std::shared_ptr<CallStackFrame> frame) {
-    if (!stream->match(TokenType::OPEN_BRACKET)) {
+    if (!stream->match(KTokenType::OPEN_BRACKET)) {
       throw SyntaxError(stream->current(),
                         "Expected open-bracket, `[`, in key or index access.");
     }
 
     auto output = interpretExpression(stream, frame);
 
-    if (!stream->match(TokenType::CLOSE_BRACKET)) {
+    if (!stream->match(KTokenType::CLOSE_BRACKET)) {
       throw SyntaxError(stream->current(),
                         "Expected close-bracket, `]`, in key or index access.");
     }
@@ -1716,7 +1711,7 @@ class Interpreter {
     Value variableValue;
     try {
       variableValue = getVariable(stream, frame, listVariableName);
-    } catch (const VariableUndefinedError& e) {
+    } catch (const VariableUndefinedError&) {
       throw VariableUndefinedError(stream->current(), listVariableName);
     }
 
@@ -1735,14 +1730,14 @@ class Interpreter {
 
     auto startValue = interpretExpression(stream, frame);
 
-    if (!stream->match(TokenType::RANGE)) {
+    if (!stream->match(KTokenType::RANGE)) {
       throw RangeError(stream->current(),
                        "Expected range separator, `..`, in range expression.");
     }
 
     auto stopValue = interpretExpression(stream, frame);
 
-    if (!stream->match(TokenType::CLOSE_BRACKET)) {
+    if (!stream->match(KTokenType::CLOSE_BRACKET)) {
       throw RangeError(stream->current(),
                        "Expected close-bracket, `]`, in range expression.");
     }
@@ -1777,7 +1772,7 @@ class Interpreter {
     auto hash = std::make_shared<Hash>();
 
     while (stream->canRead() &&
-           stream->current().getType() != TokenType::CLOSE_BRACE) {
+           stream->current().getType() != KTokenType::CLOSE_BRACE) {
       auto keyValue = interpretExpression(stream, frame);
 
       if (!std::holds_alternative<std::string>(keyValue)) {
@@ -1785,18 +1780,18 @@ class Interpreter {
                           "Hash key must be a string value.");
       }
 
-      if (stream->current().getType() == TokenType::COLON) {
+      if (stream->current().getType() == KTokenType::COLON) {
         stream->next();  // Skip the ":"
         hash->add(std::get<std::string>(keyValue),
                   interpretExpression(stream, frame));
       }
 
-      if (stream->current().getType() == TokenType::COMMA) {
+      if (stream->current().getType() == KTokenType::COMMA) {
         stream->next();
       }
     }
 
-    if (stream->current().getType() == TokenType::CLOSE_BRACE) {
+    if (stream->current().getType() == KTokenType::CLOSE_BRACE) {
       stream->next();  // Skip the "}"
     }
 
@@ -1811,12 +1806,12 @@ class Interpreter {
 
     while (stream->canRead() && bracketCount > 0) {
       switch (stream->current().getType()) {
-        case TokenType::OPEN_BRACKET:
+        case KTokenType::OPEN_BRACKET:
           ++bracketCount;
           list->elements.push_back(interpretExpression(stream, frame));
           break;
 
-        case TokenType::CLOSE_BRACKET: {
+        case KTokenType::CLOSE_BRACKET: {
           --bracketCount;
 
           // Stop here.
@@ -1826,14 +1821,14 @@ class Interpreter {
           }
         } break;
 
-        case TokenType::COMMA:
+        case KTokenType::COMMA:
           stream->next();
           break;
 
         default:
           list->elements.push_back(interpretExpression(stream, frame));
-          if (stream->current().getType() == TokenType::COMMA ||
-              stream->current().getType() == TokenType::CLOSE_BRACKET) {
+          if (stream->current().getType() == KTokenType::COMMA ||
+              stream->current().getType() == KTokenType::CLOSE_BRACKET) {
             continue;
           }
 
@@ -1847,7 +1842,7 @@ class Interpreter {
 
   void interpretConditional(std::shared_ptr<TokenStream> stream,
                             std::shared_ptr<CallStackFrame> frame) {
-    if (!stream->matchsub(SubTokenType::KW_If)) {
+    if (!stream->matchsub(KName::KW_If)) {
       throw SyntaxError(stream->current(),
                         "Invalid conditional. Expected `" + Keywords.If +
                             "` keyword, instead got: `" +
@@ -1867,13 +1862,13 @@ class Interpreter {
 
     int ifCount = 1;
     bool shortCircuitElseIf = false;
-    auto building = SubTokenType::KW_If;
+    auto building = KName::KW_If;
 
     while (stream->canRead() && ifCount > 0) {
       auto subType = stream->current().getSubType();
       if (Keywords.is_block_keyword(subType)) {
         ++ifCount;
-      } else if (subType == SubTokenType::KW_End && ifCount > 0) {
+      } else if (subType == KName::KW_End && ifCount > 0) {
         --ifCount;
 
         // Stop here.
@@ -1881,12 +1876,12 @@ class Interpreter {
           stream->next();
           continue;
         }
-      } else if (ifCount == 1 && subType == SubTokenType::KW_Else) {
+      } else if (ifCount == 1 && subType == KName::KW_Else) {
         stream->next();
-        building = SubTokenType::KW_Else;
-      } else if (ifCount == 1 && subType == SubTokenType::KW_ElseIf) {
+        building = KName::KW_Else;
+      } else if (ifCount == 1 && subType == KName::KW_ElseIf) {
         stream->next();
-        building = SubTokenType::KW_ElseIf;
+        building = KName::KW_ElseIf;
 
         conditional.addElseIfStatement();
 
@@ -1912,12 +1907,12 @@ class Interpreter {
       }
 
       // Distribute tokens to be executed.
-      if (shortCircuitIf && building == SubTokenType::KW_If) {
+      if (shortCircuitIf && building == KName::KW_If) {
         conditional.getIfStatement().addToken(stream->current());
-      } else if (!shortCircuitIf && building == SubTokenType::KW_ElseIf) {
+      } else if (!shortCircuitIf && building == KName::KW_ElseIf) {
         conditional.getElseIfStatement().addToken(stream->current());
       } else if (!shortCircuitIf && !shortCircuitElseIf &&
-                 building == SubTokenType::KW_Else) {
+                 building == KName::KW_Else) {
         conditional.getElseStatement().addToken(stream->current());
       }
 
@@ -1964,20 +1959,20 @@ class Interpreter {
     }
 
     stream->next();  // Skip "this"
-    if (!stream->match(TokenType::DOT)) {
+    if (!stream->match(KTokenType::DOT)) {
       throw SyntaxError(stream->current(),
                         "Invalid syntax near keyword `this`.");
     }
 
     Value value;
 
-    if (stream->current().getType() == TokenType::IDENTIFIER) {
+    if (stream->current().getType() == KTokenType::IDENTIFIER) {
       switch (stream->peek().getType()) {
-        case TokenType::OPERATOR:
+        case KTokenType::OPERATOR:
           value = interpretAssignment(stream, frame, "", false, true);
           break;
 
-        case TokenType::OPEN_PAREN:
+        case KTokenType::OPEN_PAREN:
           value = interpretMethodInvocation(stream, frame,
                                             stream->current().getText());
           break;
@@ -1993,10 +1988,10 @@ class Interpreter {
   void interpretClassDefinition(std::shared_ptr<TokenStream> stream,
                                 std::shared_ptr<CallStackFrame> frame) {
     bool isAbstract =
-        stream->current().getSubType() == SubTokenType::KW_Abstract;
+        stream->current().getSubType() == KName::KW_Abstract;
 
     while (stream->canRead() &&
-           stream->current().getSubType() != SubTokenType::KW_Class) {
+           stream->current().getSubType() != KName::KW_Class) {
       stream->next();
     }
     stream->next();  // Skip "class"
@@ -2033,7 +2028,7 @@ class Interpreter {
       auto token = stream->current();
       auto st = token.getSubType();
 
-      if (st == SubTokenType::KW_End) {
+      if (st == KName::KW_End) {
         --counter;
         if (counter == 0) {
           stream->next();  // Skip "end"
@@ -2041,8 +2036,8 @@ class Interpreter {
         }
       }
 
-      if (st == SubTokenType::KW_Private &&
-          stream->peek().getType() == TokenType::OPEN_PAREN) {
+      if (st == KName::KW_Private &&
+          stream->peek().getType() == KTokenType::OPEN_PAREN) {
         stream->next();  // Skip "private"
 
         for (const auto& privateVar : getParameterSet(stream, frame)) {
@@ -2052,9 +2047,9 @@ class Interpreter {
         continue;
       }
 
-      if (st == SubTokenType::KW_Abstract || st == SubTokenType::KW_Override ||
-          st == SubTokenType::KW_Method || st == SubTokenType::KW_Private ||
-          st == SubTokenType::KW_Static) {
+      if (st == KName::KW_Abstract || st == KName::KW_Override ||
+          st == KName::KW_Method || st == KName::KW_Private ||
+          st == KName::KW_Static) {
 
         auto method = interpretMethodDeclaration(stream, frame);
 
@@ -2106,7 +2101,7 @@ class Interpreter {
     Module module;
     int counter = 1;
     while (stream->canRead() && counter > 0) {
-      if (stream->current().getSubType() == SubTokenType::KW_End) {
+      if (stream->current().getSubType() == KName::KW_End) {
         --counter;
 
         // Stop here.
@@ -2154,11 +2149,19 @@ class Interpreter {
 
     auto scriptName = std::get<std::string>(scriptNameValue);
     auto scriptNameKiwi = scriptName;
+    #ifdef _WIN64
+    if (!String::endsWith(scriptName, "kiwi") &&
+        !String::endsWith(scriptName, ".kiwi")) {
+      scriptName += ".kiwi";
+      scriptNameKiwi += ".kiwi";
+    }
+    #else
     if (!String::endsWith(scriptName, "🥝") &&
         !String::endsWith(scriptName, ".kiwi")) {
       scriptName += ".kiwi";
       scriptNameKiwi += ".🥝";
     }
+    #endif
 
     auto scriptPath = File::getLocalPath(scriptName);
     auto kiwiScriptPath = File::getLocalPath(scriptNameKiwi);
@@ -2194,7 +2197,7 @@ class Interpreter {
                             const std::string& moduleName) {
     stream->next();  // Skip "as"
 
-    if (stream->current().getType() != TokenType::IDENTIFIER) {
+    if (stream->current().getType() != KTokenType::IDENTIFIER) {
       throw SyntaxError(stream->current(), "Expected identifier for alias.");
     }
 
@@ -2244,7 +2247,7 @@ class Interpreter {
 
   void interpretImport(std::shared_ptr<TokenStream> stream,
                        std::shared_ptr<CallStackFrame> frame) {
-    if (stream->current().getSubType() == SubTokenType::KW_Import) {
+    if (stream->current().getSubType() == KName::KW_Import) {
       stream->next();  // skip the "import"
     }
 
@@ -2258,7 +2261,7 @@ class Interpreter {
       moduleName = interpretExternalImport(stream, frame);
     }
 
-    if (stream->current().getSubType() == SubTokenType::KW_As) {
+    if (stream->current().getSubType() == KName::KW_As) {
       interpretModuleAlias(stream, moduleName);
     }
   }
@@ -2295,7 +2298,7 @@ class Interpreter {
                        std::shared_ptr<CallStackFrame> frame) {
     stream->next();  // Skip "delete"
 
-    if (stream->current().getType() == TokenType::IDENTIFIER) {
+    if (stream->current().getType() == KTokenType::IDENTIFIER) {
       auto name = stream->current().getText();
       stream->next();
 
@@ -2355,7 +2358,7 @@ class Interpreter {
 
   Value interpretBuiltin(std::shared_ptr<TokenStream> stream,
                          std::shared_ptr<CallStackFrame> frame,
-                         const SubTokenType& builtin) {
+                         const KName& builtin) {
     stream->next();  // Skip the name.
 
     auto args = interpretArguments(stream, frame);
@@ -2367,7 +2370,7 @@ class Interpreter {
       }
       auto moduleName = moduleStack.top();
       interpretModuleBuiltin(stream, moduleName, builtin, args);
-      return 0;
+      return static_cast<k_int>(0);
     }
 
     frame->returnValue =
@@ -2379,39 +2382,35 @@ class Interpreter {
                          const std::shared_ptr<List>& list) {
     stream->next();  // Skip "("
 
-    if (stream->current().getType() == TokenType::CLOSE_PAREN) {
+    if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
       stream->next();
       return sum_listvalue(list);
-    } else {
-      throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
     }
 
-    return {};
+    throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
   }
 
   Value interpretListMin(std::shared_ptr<TokenStream> stream,
                          const std::shared_ptr<List>& list) {
     stream->next();  // Skip "("
 
-    if (stream->current().getType() == TokenType::CLOSE_PAREN) {
+    if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
       stream->next();
       if (list->elements.empty()) {
         throw EmptyListError(stream->current());
       }
 
       return min_listvalue(list);
-    } else {
-      throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
     }
 
-    return {};
+    throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
   }
 
   Value interpretListMax(std::shared_ptr<TokenStream> stream,
                          const std::shared_ptr<List>& list) {
     stream->next();  // Skip "("
 
-    if (stream->current().getType() == TokenType::CLOSE_PAREN) {
+    if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
       stream->next();  // Skip ")"
 
       if (list->elements.empty()) {
@@ -2419,18 +2418,16 @@ class Interpreter {
       }
 
       return max_listvalue(list);
-    } else {
-      throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
     }
 
-    return {};
+    throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
   }
 
   Value interpretListSort(std::shared_ptr<TokenStream> stream,
                           const std::shared_ptr<List>& list) {
     stream->next();  // Skip "("
 
-    if (stream->current().getType() == TokenType::CLOSE_PAREN) {
+    if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
       sortList(*list);
       stream->next();
     } else {
@@ -2477,7 +2474,7 @@ class Interpreter {
     for (const auto& item : list->elements) {
       frame->variables[itemVariableName] = item;
       if (hasIndexVariable) {
-        frame->variables[indexVariableName] = static_cast<int>(index);
+        frame->variables[indexVariableName] = static_cast<k_int>(index);
       }
 
       auto loopStream = std::make_shared<TokenStream>(lambda.getCode());
@@ -2539,7 +2536,7 @@ class Interpreter {
       frame->variables[itemVariableName] = item;
 
       if (hasIndexVariable) {
-        frame->variables[indexVariableName] = static_cast<int>(index);
+        frame->variables[indexVariableName] = static_cast<k_int>(index);
       }
 
       auto loopStream = std::make_shared<TokenStream>(lambda.getCode());
@@ -2566,11 +2563,11 @@ class Interpreter {
 
     auto accumulator = interpretExpression(stream, frame);
 
-    if (stream->current().getType() != TokenType::LAMBDA) {
+    if (stream->current().getType() != KTokenType::LAMBDA) {
       stream->next();
     }
 
-    if (stream->current().getType() == TokenType::COMMA) {
+    if (stream->current().getType() == KTokenType::COMMA) {
       stream->next();
     }
 
@@ -2661,7 +2658,7 @@ class Interpreter {
     for (const auto& item : list->elements) {
       frame->variables[itemVariableName] = item;
       if (hasIndexVariable) {
-        frame->variables[indexVariableName] = static_cast<int>(index);
+        frame->variables[indexVariableName] = static_cast<k_int>(index);
       }
 
       auto loopStream = std::make_shared<TokenStream>(lambda.getCode());
@@ -2686,13 +2683,13 @@ class Interpreter {
   Value interpretStringToHash(std::shared_ptr<TokenStream> stream,
                               std::shared_ptr<CallStackFrame> frame,
                               const std::string& input) {
-    if (!stream->match(TokenType::OPEN_PAREN)) {
+    if (!stream->match(KTokenType::OPEN_PAREN)) {
       throw SyntaxError(stream->current(),
                         "Expected open-parenthesis, `(`, in builtin `" +
                             ListBuiltins.ToH + "`.");
     }
 
-    if (!stream->match(TokenType::CLOSE_PAREN)) {
+    if (!stream->match(KTokenType::CLOSE_PAREN)) {
       throw SyntaxError(stream->current(),
                         "Expected close-parenthesis, `)`, in builtin `" +
                             ListBuiltins.ToH + "`.");
@@ -2703,13 +2700,13 @@ class Interpreter {
 
   Value interpretObjectToHash(std::shared_ptr<TokenStream> stream,
                               const std::shared_ptr<Object>& object) {
-    if (!stream->match(TokenType::OPEN_PAREN)) {
+    if (!stream->match(KTokenType::OPEN_PAREN)) {
       throw SyntaxError(stream->current(),
                         "Expected open-parenthesis, `(`, in builtin `" +
                             ListBuiltins.ToH + "`.");
     }
 
-    if (!stream->match(TokenType::CLOSE_PAREN)) {
+    if (!stream->match(KTokenType::CLOSE_PAREN)) {
       throw SyntaxError(stream->current(),
                         "Expected close-parenthesis, `)`, in builtin `" +
                             ListBuiltins.ToH + "`.");
@@ -2730,7 +2727,7 @@ class Interpreter {
 
   Value interpretSpecializedBuiltin(std::shared_ptr<TokenStream> stream,
                                     std::shared_ptr<CallStackFrame> frame,
-                                    const SubTokenType& builtin,
+                                    const KName& builtin,
                                     const Value& value) {
     if (!std::holds_alternative<std::string>(value)) {
       throw InvalidOperationError(stream->current(), "Expected type String.");
@@ -2738,7 +2735,7 @@ class Interpreter {
 
     auto input = std::get<std::string>(value);
 
-    if (builtin == SubTokenType::Builtin_List_ToH) {
+    if (builtin == KName::Builtin_List_ToH) {
       return interpretStringToHash(stream, frame, input);
     }
 
@@ -2746,7 +2743,7 @@ class Interpreter {
   }
 
   Value interpretSpecializedObjectBuiltin(std::shared_ptr<TokenStream> stream,
-                                          const SubTokenType& builtin,
+                                          const KName& builtin,
                                           const Value& value) {
     if (!std::holds_alternative<std::shared_ptr<Object>>(value)) {
       throw InvalidOperationError(stream->current(), "Expected type Object.");
@@ -2754,7 +2751,7 @@ class Interpreter {
 
     auto object = std::get<std::shared_ptr<Object>>(value);
 
-    if (builtin == SubTokenType::Builtin_List_ToH) {
+    if (builtin == KName::Builtin_List_ToH) {
       return interpretObjectToHash(stream, object);
     }
 
@@ -2763,7 +2760,7 @@ class Interpreter {
 
   Value interpretSpecializedListBuiltin(std::shared_ptr<TokenStream> stream,
                                         std::shared_ptr<CallStackFrame> frame,
-                                        const SubTokenType& builtin,
+                                        const KName& builtin,
                                         const Value& value) {
     if (!std::holds_alternative<std::shared_ptr<List>>(value)) {
       throw InvalidOperationError(stream->current(), "Expected type List.");
@@ -2772,28 +2769,28 @@ class Interpreter {
     auto list = std::get<std::shared_ptr<List>>(value);
 
     switch (builtin) {
-      case SubTokenType::Builtin_List_Select:
+      case KName::Builtin_List_Select:
         return interpretLambdaSelect(stream, frame, list);
 
-      case SubTokenType::Builtin_List_Map:
+      case KName::Builtin_List_Map:
         return interpretLambdaMap(stream, frame, list);
 
-      case SubTokenType::Builtin_List_Reduce:
+      case KName::Builtin_List_Reduce:
         return interpretLambdaReduce(stream, frame, list);
 
-      case SubTokenType::Builtin_List_None:
+      case KName::Builtin_List_None:
         return interpretLambdaNone(stream, frame, list);
 
-      case SubTokenType::Builtin_List_Sort:
+      case KName::Builtin_List_Sort:
         return interpretListSort(stream, list);
 
-      case SubTokenType::Builtin_List_Min:
+      case KName::Builtin_List_Min:
         return interpretListMin(stream, list);
 
-      case SubTokenType::Builtin_List_Max:
+      case KName::Builtin_List_Max:
         return interpretListMax(stream, list);
 
-      case SubTokenType::Builtin_List_Sum:
+      case KName::Builtin_List_Sum:
         return interpretListSum(stream, list);
 
       default:
@@ -2804,7 +2801,7 @@ class Interpreter {
   Value interpretDotNotation(std::shared_ptr<TokenStream> stream,
                              std::shared_ptr<CallStackFrame> frame,
                              Value& value) {
-    if (stream->current().getType() == TokenType::DOT) {
+    if (stream->current().getType() == KTokenType::DOT) {
       stream->next();
     }
 
@@ -2831,14 +2828,14 @@ class Interpreter {
       }
     }
 
-    if (stream->current().getType() != TokenType::OPEN_PAREN) {
+    if (stream->current().getType() != KTokenType::OPEN_PAREN) {
       throw SyntaxError(stream->current(),
                         "Expected open-parenthesis, `(`, to invoke builtin or "
                         "method using dot-notation.");
     }
 
     if (ListBuiltins.is_builtin(op)) {
-      if (op == SubTokenType::Builtin_List_ToH) {
+      if (op == KName::Builtin_List_ToH) {
         if (isObject) {
           return interpretSpecializedObjectBuiltin(stream, op, value);
         } else {
@@ -2864,12 +2861,12 @@ class Interpreter {
                         std::shared_ptr<CallStackFrame> frame) {
     Value value = parseLogicalOr(stream, frame);
 
-    if (stream->current().getType() == TokenType::QUESTION) {
+    if (stream->current().getType() == KTokenType::QUESTION) {
       stream->next();  // Skip the '?'
 
       auto trueBranch = parseExpression(stream, frame);
 
-      if (!stream->match(TokenType::COLON)) {
+      if (!stream->match(KTokenType::COLON)) {
         throw SyntaxError(stream->current(),
                           "Expected ':' in ternary operation.");
       }
@@ -2893,7 +2890,7 @@ class Interpreter {
                        std::shared_ptr<CallStackFrame> frame) {
     auto left = parseLogicalAnd(stream, frame);
 
-    while (stream->current().getSubType() == SubTokenType::Ops_Or) {
+    while (stream->current().getSubType() == KName::Ops_Or) {
       stream->next();  // Skip "||"
       auto right = parseLogicalAnd(stream, frame);
 
@@ -2913,7 +2910,7 @@ class Interpreter {
                         std::shared_ptr<CallStackFrame> frame) {
     auto left = parseBitwiseOr(stream, frame);
 
-    while (stream->current().getSubType() == SubTokenType::Ops_And) {
+    while (stream->current().getSubType() == KName::Ops_And) {
       stream->next();  // Skip "&&"
       auto right = parseBitwiseOr(stream, frame);
 
@@ -2933,7 +2930,7 @@ class Interpreter {
                        std::shared_ptr<CallStackFrame> frame) {
     auto left = parseBitwiseXor(stream, frame);
 
-    while (stream->current().getSubType() == SubTokenType::Ops_BitwiseOr) {
+    while (stream->current().getSubType() == KName::Ops_BitwiseOr) {
       stream->next();
       auto right = parseBitwiseXor(stream, frame);
       left = std::visit(BitwiseOrVisitor(stream->current()), left, right);
@@ -2946,7 +2943,7 @@ class Interpreter {
                         std::shared_ptr<CallStackFrame> frame) {
     auto left = parseBitwiseAnd(stream, frame);
 
-    while (stream->current().getSubType() == SubTokenType::Ops_BitwiseXor) {
+    while (stream->current().getSubType() == KName::Ops_BitwiseXor) {
       stream->next();
       auto right = parseBitwiseAnd(stream, frame);
       left = std::visit(BitwiseXorVisitor(stream->current()), left, right);
@@ -2959,7 +2956,7 @@ class Interpreter {
                         std::shared_ptr<CallStackFrame> frame) {
     auto left = parseEquality(stream, frame);
 
-    while (stream->current().getSubType() == SubTokenType::Ops_BitwiseAnd) {
+    while (stream->current().getSubType() == KName::Ops_BitwiseAnd) {
       stream->next();  // Skip "&"
       auto right = parseEquality(stream, frame);
       left = std::visit(BitwiseAndVisitor(stream->current()), left, right);
@@ -2972,18 +2969,18 @@ class Interpreter {
                       std::shared_ptr<CallStackFrame> frame) {
     auto left = parseComparison(stream, frame);
 
-    while (stream->current().getSubType() == SubTokenType::Ops_Equal ||
-           stream->current().getSubType() == SubTokenType::Ops_NotEqual) {
+    while (stream->current().getSubType() == KName::Ops_Equal ||
+           stream->current().getSubType() == KName::Ops_NotEqual) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
       auto right = parseComparison(stream, frame);
 
       switch (op) {
-        case SubTokenType::Ops_Equal:
+        case KName::Ops_Equal:
           left = std::visit(EqualityVisitor(), left, right);
           break;
 
-        case SubTokenType::Ops_NotEqual:
+        case KName::Ops_NotEqual:
           left = std::visit(InequalityVisitor(), left, right);
           break;
 
@@ -2998,30 +2995,30 @@ class Interpreter {
                         std::shared_ptr<CallStackFrame> frame) {
     auto left = parseBitshift(stream, frame);
 
-    while (stream->current().getSubType() == SubTokenType::Ops_GreaterThan ||
+    while (stream->current().getSubType() == KName::Ops_GreaterThan ||
            stream->current().getSubType() ==
-               SubTokenType::Ops_GreaterThanOrEqual ||
-           stream->current().getSubType() == SubTokenType::Ops_LessThan ||
+               KName::Ops_GreaterThanOrEqual ||
+           stream->current().getSubType() == KName::Ops_LessThan ||
            stream->current().getSubType() ==
-               SubTokenType::Ops_LessThanOrEqual) {
+               KName::Ops_LessThanOrEqual) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
       auto right = parseBitshift(stream, frame);
 
       switch (op) {
-        case SubTokenType::Ops_LessThan:
+        case KName::Ops_LessThan:
           left = std::visit(LessThanVisitor(), left, right);
           break;
 
-        case SubTokenType::Ops_LessThanOrEqual:
+        case KName::Ops_LessThanOrEqual:
           left = std::visit(LessThanOrEqualVisitor(), left, right);
           break;
 
-        case SubTokenType::Ops_GreaterThan:
+        case KName::Ops_GreaterThan:
           left = std::visit(GreaterThanVisitor(), left, right);
           break;
 
-        case SubTokenType::Ops_GreaterThanOrEqual:
+        case KName::Ops_GreaterThanOrEqual:
           left = std::visit(GreaterThanOrEqualVisitor(), left, right);
           break;
 
@@ -3038,19 +3035,19 @@ class Interpreter {
     auto left = parseAddition(stream, frame);
 
     while (
-        stream->current().getSubType() == SubTokenType::Ops_BitwiseLeftShift ||
-        stream->current().getSubType() == SubTokenType::Ops_BitwiseRightShift) {
+        stream->current().getSubType() == KName::Ops_BitwiseLeftShift ||
+        stream->current().getSubType() == KName::Ops_BitwiseRightShift) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
       auto right = parseAddition(stream, frame);
 
       switch (op) {
-        case SubTokenType::Ops_BitwiseLeftShift:
+        case KName::Ops_BitwiseLeftShift:
           left = std::visit(BitwiseLeftShiftVisitor(stream->current()), left,
                             right);
           break;
 
-        case SubTokenType::Ops_BitwiseRightShift:
+        case KName::Ops_BitwiseRightShift:
           left = std::visit(BitwiseRightShiftVisitor(stream->current()), left,
                             right);
           break;
@@ -3067,18 +3064,18 @@ class Interpreter {
                       std::shared_ptr<CallStackFrame> frame) {
     auto left = parseMultiplication(stream, frame);
 
-    while (stream->current().getSubType() == SubTokenType::Ops_Add ||
-           stream->current().getSubType() == SubTokenType::Ops_Subtract) {
+    while (stream->current().getSubType() == KName::Ops_Add ||
+           stream->current().getSubType() == KName::Ops_Subtract) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
       auto right = parseMultiplication(stream, frame);
 
       switch (op) {
-        case SubTokenType::Ops_Add:
+        case KName::Ops_Add:
           left = std::visit(AddVisitor(stream->current()), left, right);
           break;
 
-        case SubTokenType::Ops_Subtract:
+        case KName::Ops_Subtract:
           left = std::visit(SubtractVisitor(stream->current()), left, right);
           break;
 
@@ -3094,28 +3091,28 @@ class Interpreter {
                             std::shared_ptr<CallStackFrame> frame) {
     auto left = parseUnary(stream, frame);
 
-    while (stream->current().getSubType() == SubTokenType::Ops_Multiply ||
-           stream->current().getSubType() == SubTokenType::Ops_Divide ||
-           stream->current().getSubType() == SubTokenType::Ops_Modulus ||
-           stream->current().getSubType() == SubTokenType::Ops_Exponent) {
+    while (stream->current().getSubType() == KName::Ops_Multiply ||
+           stream->current().getSubType() == KName::Ops_Divide ||
+           stream->current().getSubType() == KName::Ops_Modulus ||
+           stream->current().getSubType() == KName::Ops_Exponent) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
       auto right = parseUnary(stream, frame);
 
       switch (op) {
-        case SubTokenType::Ops_Multiply:
+        case KName::Ops_Multiply:
           left = std::visit(MultiplyVisitor(stream->current()), left, right);
           break;
 
-        case SubTokenType::Ops_Divide:
+        case KName::Ops_Divide:
           left = std::visit(DivideVisitor(stream->current()), left, right);
           break;
 
-        case SubTokenType::Ops_Modulus:
+        case KName::Ops_Modulus:
           left = std::visit(ModuloVisitor(stream->current()), left, right);
           break;
 
-        case SubTokenType::Ops_Exponent:
+        case KName::Ops_Exponent:
           left = std::visit(PowerVisitor(stream->current()), left, right);
           break;
 
@@ -3129,19 +3126,19 @@ class Interpreter {
 
   Value parseUnary(std::shared_ptr<TokenStream> stream,
                    std::shared_ptr<CallStackFrame> frame) {
-    while (stream->current().getSubType() == SubTokenType::Ops_Not ||
-           stream->current().getSubType() == SubTokenType::Ops_Subtract ||
-           stream->current().getSubType() == SubTokenType::Ops_BitwiseNot) {
+    while (stream->current().getSubType() == KName::Ops_Not ||
+           stream->current().getSubType() == KName::Ops_Subtract ||
+           stream->current().getSubType() == KName::Ops_BitwiseNot) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
       auto right = parseUnary(stream, frame);
 
       switch (op) {
-        case SubTokenType::Ops_Not:
+        case KName::Ops_Not:
           if (std::holds_alternative<bool>(right)) {
             return !std::get<bool>(right);
           } else if (std::holds_alternative<k_int>(right)) {
-            return std::get<k_int>(right) == 0 ? 1 : 0;
+            return static_cast<k_int>(std::get<k_int>(right) == 0 ? 1 : 0);
           } else if (std::holds_alternative<double>(right)) {
             return std::get<double>(right) == 0;
           } else if (std::holds_alternative<std::string>(right)) {
@@ -3156,7 +3153,7 @@ class Interpreter {
                                 "Expected a `Boolean` expression.");
           break;
 
-        case SubTokenType::Ops_Subtract:
+        case KName::Ops_Subtract:
           if (std::holds_alternative<k_int>(right)) {
             return -std::get<k_int>(right);
           } else if (std::holds_alternative<double>(right)) {
@@ -3168,7 +3165,7 @@ class Interpreter {
           }
           break;
 
-        case SubTokenType::Ops_BitwiseNot:
+        case KName::Ops_BitwiseNot:
           return std::visit(BitwiseNotVisitor(stream->current()), right);
 
         default:
@@ -3192,25 +3189,25 @@ class Interpreter {
     }
 
     switch (current.getType()) {
-      case TokenType::OPEN_BRACE:
+      case KTokenType::OPEN_BRACE:
         return interpretHash(stream, frame);
 
-      case TokenType::OPEN_PAREN: {
+      case KTokenType::OPEN_PAREN: {
         stream->next();  // Skip "("
         auto result = interpretExpression(stream, frame);
 
-        if (stream->current().getType() == TokenType::CLOSE_PAREN) {
+        if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
           stream->next();  // Skip ")"
         }
 
         return result;
       } break;
 
-      case TokenType::OPEN_BRACKET:
+      case KTokenType::OPEN_BRACKET:
         return interpretBracketExpression(stream, frame);
 
-      case TokenType::IDENTIFIER:
-        if (stream->peek().getType() == TokenType::OPEN_BRACKET) {
+      case KTokenType::IDENTIFIER:
+        if (stream->peek().getType() == KTokenType::OPEN_BRACKET) {
           auto variableName = current.getText();
           stream->next();  // Skip the identifier.
           return interpretSlice(stream, frame, variableName);
@@ -3218,7 +3215,7 @@ class Interpreter {
         return interpretIdentifier(stream, frame, false);
 
       default:
-        if (current.getSubType() == SubTokenType::KW_This) {
+        if (current.getSubType() == KName::KW_This) {
           return interpretSelfInvocationTerm(stream, frame);
         } else if (std::holds_alternative<std::string>(value)) {
           value = interpolateString(stream, frame);
@@ -3228,7 +3225,7 @@ class Interpreter {
         break;
     }
 
-    return 0;  // Default value.
+    return static_cast<k_int>(0);  // Default value.
   }
 
   Value interpretExpression(std::shared_ptr<TokenStream> stream,
@@ -3244,11 +3241,11 @@ class Interpreter {
                                 "Invalid context for keyword `this`.");
     }
 
-    if (!stream->match(TokenType::DOT)) {
+    if (!stream->match(KTokenType::DOT)) {
       return frame->getObjectContext();
     }
 
-    if (stream->current().getType() != TokenType::IDENTIFIER) {
+    if (stream->current().getType() != KTokenType::IDENTIFIER) {
       throw InvalidOperationError(
           stream->current(), "Syntax error near `this`. Missing identifier.");
     }
@@ -3287,7 +3284,7 @@ class Interpreter {
 
     // Should probably check that an overridden to_s() actually returns a string.
     return Serializer::serialize(interpretInstanceMethodInvocation(
-        stream, frame, object, KiwiBuiltins.ToS, SubTokenType::Builtin_Kiwi_ToS,
+        stream, frame, object, KiwiBuiltins.ToS, KName::Builtin_Kiwi_ToS,
         parameters));
   }
 
@@ -3385,8 +3382,8 @@ class Interpreter {
   void interpretLambdaAssignment(std::shared_ptr<TokenStream> stream,
                                  std::shared_ptr<CallStackFrame> frame,
                                  const std::string& name,
-                                 const SubTokenType& op) {
-    if (op != SubTokenType::Ops_Assign) {
+                                 const KName& op) {
+    if (op != KName::Ops_Assign) {
       throw InvalidOperationError(
           stream->current(),
           "Expected assignment operator in lambda assignment.");
@@ -3400,7 +3397,7 @@ class Interpreter {
   void interpretHashElementAssignment(std::shared_ptr<TokenStream> stream,
                                       std::shared_ptr<CallStackFrame> frame,
                                       const std::string& name, Value& value) {
-    if (!stream->match(TokenType::OPEN_BRACKET)) {
+    if (!stream->match(KTokenType::OPEN_BRACKET)) {
       throw SyntaxError(
           stream->current(),
           "Expected open-bracket, `[`, in hash element assignment.");
@@ -3412,13 +3409,13 @@ class Interpreter {
       throw SyntaxError(stream->current(), "Hash key must be a string value.");
     }
 
-    if (!stream->match(TokenType::CLOSE_BRACKET)) {
+    if (!stream->match(KTokenType::CLOSE_BRACKET)) {
       throw SyntaxError(
           stream->current(),
           "Expected close-bracket, `]`, in hash element assignment.");
     }
 
-    if (!stream->matchsub(SubTokenType::Ops_Assign)) {
+    if (!stream->matchsub(KName::Ops_Assign)) {
       throw InvalidOperationError(stream->current(),
                                   "Expected assignment operator.");
     }
@@ -3450,8 +3447,8 @@ class Interpreter {
 
     auto st = stream->current().getSubType();
     // Expect assignment operator next
-    bool insertOp = st == SubTokenType::Ops_BitwiseLeftShiftAssign;
-    bool simpleAssignOp = st == SubTokenType::Ops_Assign;
+    bool insertOp = st == KName::Ops_BitwiseLeftShiftAssign;
+    bool simpleAssignOp = st == KName::Ops_Assign;
     if (!insertOp && !simpleAssignOp) {
       throw SyntaxError(stream->current(),
                         "Expected assignment operator in slice assignment.");
@@ -3474,25 +3471,25 @@ class Interpreter {
 
     if (!identifier.empty()) {
       name = identifier;
-    } else if (stream->current().getType() == TokenType::IDENTIFIER) {
+    } else if (stream->current().getType() == KTokenType::IDENTIFIER) {
       name = stream->current().getText();
     }
 
     stream->next();  // Skip the identifier.
 
     switch (stream->current().getType()) {
-      case TokenType::OPERATOR: {
+      case KTokenType::OPERATOR: {
         auto op = stream->current().getSubType();
         stream->next();
 
         if (Operators.is_assignment_operator(op) ||
-            op == SubTokenType::Ops_BitwiseLeftShift) {
+            op == KName::Ops_BitwiseLeftShift) {
           interpretAssignment(stream, name, op, frame, isTemporary,
                               isInstanceVariable);
         }
       } break;
 
-      case TokenType::OPEN_BRACKET:
+      case KTokenType::OPEN_BRACKET:
         if (!hasVariable(frame, name)) {
           throw VariableUndefinedError(stream->current(), name);
         }
@@ -3505,7 +3502,7 @@ class Interpreter {
         interpretSliceAssignment(stream, frame, name);
         break;
 
-      case TokenType::DOT:
+      case KTokenType::DOT:
         if (hasVariable(frame, name)) {
           auto value = getVariable(stream, frame, name);
           if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
@@ -3528,19 +3525,19 @@ class Interpreter {
   }
 
   void interpretAssignment(std::shared_ptr<TokenStream> stream,
-                           const std::string& name, const SubTokenType& op,
+                           const std::string& name, const KName& op,
                            std::shared_ptr<CallStackFrame> frame,
                            bool isTemporary = false,
                            bool isInstanceVariable = false) {
     Value value;
 
     switch (stream->current().getType()) {
-      case TokenType::LAMBDA:
+      case KTokenType::LAMBDA:
         interpretLambdaAssignment(stream, frame, name, op);
         return;
 
-      case TokenType::KEYWORD:
-        if (stream->current().getSubType() == SubTokenType::KW_Await) {
+      case KTokenType::KEYWORD:
+        if (stream->current().getSubType() == KName::KW_Await) {
           value = interpretAwait(stream, frame);
         } else {
           throw SyntaxError(stream->current(),
@@ -3553,7 +3550,7 @@ class Interpreter {
         break;
     }
 
-    if (op == SubTokenType::Ops_Assign) {
+    if (op == KName::Ops_Assign) {
       if (!isTemporary && isInstanceVariable && frame->inObjectContext()) {
         frame->getObjectContext()->instanceVariables[name] = value;
       } else {
@@ -3566,8 +3563,8 @@ class Interpreter {
       }
 
       switch (stream->peek().getType()) {
-        case TokenType::CLOSE_PAREN:
-        case TokenType::CLOSE_BRACKET:
+        case KTokenType::CLOSE_PAREN:
+        case KTokenType::CLOSE_BRACKET:
           stream->next();
           break;
 
@@ -3582,7 +3579,7 @@ class Interpreter {
       throw VariableUndefinedError(stream->current(), name);
     }
 
-    if (op == SubTokenType::Ops_BitwiseLeftShift) {
+    if (op == KName::Ops_BitwiseLeftShift) {
       interpretAppendToList(stream, frame, value, name);
       return;
     }

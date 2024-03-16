@@ -1,7 +1,7 @@
-#ifndef KIWI_PARSING_TOKENTYPE_H
-#define KIWI_PARSING_TOKENTYPE_H
+#ifndef KIWI_PARSING_KTokenType_H
+#define KIWI_PARSING_KTokenType_H
 
-enum TokenType {
+enum KTokenType {
   IDENTIFIER,
   COMMENT,
   COMMA,
@@ -30,7 +30,7 @@ enum TokenType {
   ENDOFFILE
 };
 
-enum SubTokenType {
+enum KName {
   Builtin_Argv_GetArgv,
   Builtin_Argv_GetXarg,
   Builtin_Console_Input,
