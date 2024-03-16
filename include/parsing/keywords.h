@@ -146,6 +146,7 @@ struct {
   const std::string Static = "static";
   const std::string Then = "then";
   const std::string This = "this";
+  const std::string Throw = "throw";
   const std::string True = "true";
   const std::string Try = "try";
   const std::string kiwiApp = "kiwi";
@@ -156,7 +157,7 @@ struct {
       Delete,   Do,     Else,     ElseIf, End,   Exit,    Export,
       False,    For,    If,       Import, In,    Lambda,  Method,
       Module,   Next,   Override, Pass,   Print, PrintLn, Private,
-      Return,   Static, Then,     This,   True,  Try,     While};
+      Return,   Static, Then,     This,   Throw, True,  Try,     While};
 
   std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
                                                           End};

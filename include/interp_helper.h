@@ -398,7 +398,9 @@ struct InterpHelper {
 
   static void interpretParameterizedCatch(std::shared_ptr<TokenStream> stream,
                                           std::shared_ptr<CallStackFrame> frame,
+                                          std::string& errorTypeVariableName,
                                           std::string& errorVariableName,
+                                          Value& errorType,
                                           Value& errorValue) {
     stream->next();  // Skip "("
 
@@ -408,8 +410,24 @@ struct InterpHelper {
           "Syntax error in catch variable declaration. Missing identifier.");
     }
 
-    errorVariableName = stream->current().getText();
+    errorTypeVariableName = stream->current().getText();
     stream->next();  // Skip the identifier.
+
+    if (stream->current().getType() == KTokenType::COMMA) {
+      stream->next();
+
+      if (stream->current().getType() != KTokenType::IDENTIFIER) {
+        throw SyntaxError(
+            stream->current(),
+            "Syntax error in catch variable declaration. Missing identifier.");
+      }
+
+      errorVariableName = stream->current().getText();
+      stream->next();
+    } else {
+      errorVariableName = errorTypeVariableName;
+      errorTypeVariableName = "";
+    }
 
     if (stream->current().getType() != KTokenType::CLOSE_PAREN) {
       throw SyntaxError(stream->current(),
@@ -417,7 +435,9 @@ struct InterpHelper {
     }
     stream->next();  // Skip ")"
 
-    errorValue = frame->getErrorMessage();
+    auto error = frame->getErrorState().error;
+    errorType = error.getError();
+    errorValue = error.getMessage();
   }
 
   static std::string interpretModuleHome(std::string& modulePath,

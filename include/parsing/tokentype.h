@@ -194,6 +194,7 @@ enum KName {
   KW_Static,
   KW_Then,
   KW_This,
+  KW_Throw,
   KW_True,
   KW_Try,
   KW_While,
