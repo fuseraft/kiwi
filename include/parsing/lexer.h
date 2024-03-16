@@ -214,6 +214,8 @@ class Lexer {
       st = KName::KW_Then;
     } else if (keyword == Keywords.This) {
       st = KName::KW_This;
+    } else if (keyword == Keywords.Throw) {
+      st = KName::KW_Throw;
     } else if (keyword == Keywords.Try) {
       st = KName::KW_Try;
     } else if (keyword == Keywords.While) {
