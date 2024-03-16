@@ -3,8 +3,8 @@ try
   a /= 0
   a += 1
   println "foobar"
-catch (err)
-  println err
+catch (err, msg)
+  println "${err}: ${msg}"
 end
 
 try
