@@ -550,6 +550,10 @@ class Interpreter {
         interpretReturn(stream, frame);
         break;
 
+      case KName::KW_Throw:
+        interpretThrow(stream, frame);
+        break;
+
       case KName::KW_Exit:
         interpretExit(stream, frame);
         break;
@@ -742,12 +746,15 @@ class Interpreter {
                       std::shared_ptr<CallStackFrame> frame) {
     stream->next();  // SKip "catch"
 
+    auto error = std::make_shared<Object>();
+    std::string errorTypeVariableName;
     std::string errorVariableName;
+    Value errorType;
     Value errorValue;
 
     if (stream->current().getType() == KTokenType::OPEN_PAREN) {
       InterpHelper::interpretParameterizedCatch(stream, frame,
-                                                errorVariableName, errorValue);
+                                                errorTypeVariableName, errorVariableName, errorType, errorValue);
     }
 
     std::vector<Token> catchTokens;
@@ -772,9 +779,14 @@ class Interpreter {
     if (frame->isErrorStateSet()) {
       auto catchStream = std::make_shared<TokenStream>(catchTokens);
       auto catchFrame = buildSubFrame(frame);
+      
       if (!errorVariableName.empty() &&
           std::holds_alternative<std::string>(errorValue)) {
         catchFrame->variables[errorVariableName] = errorValue;
+      }
+
+      if (!errorTypeVariableName.empty() && std::holds_alternative<std::string>(errorType)) {
+        catchFrame->variables[errorTypeVariableName] = errorType;
       }
 
       callStack.push(catchFrame);
@@ -1520,6 +1532,34 @@ class Interpreter {
     }
     
     exit(1);
+  }
+
+  void interpretThrow(std::shared_ptr<TokenStream> stream,
+                      std::shared_ptr<CallStackFrame> frame) {
+    const auto& throwToken = stream->current();
+    bool hasValue = InterpHelper::hasReturnValue(stream);
+    stream->next();  // Skip "throw"
+
+    std::string errorType = "KiwiError";
+    std::string errorMessage;
+
+    if (hasValue) {
+      auto errorValue = interpretExpression(stream, frame);
+
+      if (std::holds_alternative<std::shared_ptr<Hash>>(errorValue)) {
+        auto errorHash = std::get<std::shared_ptr<Hash>>(errorValue);
+        if (errorHash->hasKey("error") && std::holds_alternative<std::string>(errorHash->kvp["error"])) {
+          errorType = std::get<std::string>(errorHash->kvp["error"]);
+        }
+        if (errorHash->hasKey("message") && std::holds_alternative<std::string>(errorHash->kvp["message"])) {
+          errorMessage = std::get<std::string>(errorHash->kvp["message"]);
+        }
+      } else if (std::holds_alternative<std::string>(errorValue)) {
+        errorMessage = std::get<std::string>(errorValue);
+      }
+    }
+
+    throw KiwiError(throwToken, errorType, errorMessage);
   }
 
   void interpretReturn(std::shared_ptr<TokenStream> stream,
