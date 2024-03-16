@@ -9,16 +9,16 @@
 
 class SysBuiltinHandler {
  public:
-  static Value execute(const Token& term, const SubTokenType& builtin,
+  static Value execute(const Token& term, const KName& builtin,
                        const std::vector<Value>& args) {
     switch (builtin) {
-      case SubTokenType::Builtin_Sys_Exec:
+      case KName::Builtin_Sys_Exec:
         return executeExec(term, args);
 
-      case SubTokenType::Builtin_Sys_ExecOut:
+      case KName::Builtin_Sys_ExecOut:
         return executeExecOut(term, args);
 
-      case SubTokenType::Builtin_Sys_EffectiveUserId:
+      case KName::Builtin_Sys_EffectiveUserId:
         return executeEffectiveUserId(term, args);
 
       default:
@@ -35,7 +35,7 @@ class SysBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, SysBuiltins.EffectiveUserId);
     }
 
-    return Sys::getEffectiveUserId();
+    return static_cast<k_int>(Sys::getEffectiveUserId());
   }
 
   static Value executeExec(const Token& term, const std::vector<Value>& args) {

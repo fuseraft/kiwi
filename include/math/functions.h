@@ -29,7 +29,7 @@ static k_int get_integer(const Token& term, const Value& arg) {
 
 static double get_integer_or_double(const Token& term, const Value& arg) {
   if (std::holds_alternative<k_int>(arg)) {
-    return std::get<k_int>(arg);
+    return static_cast<double>(std::get<k_int>(arg));
   } else if (std::holds_alternative<double>(arg)) {
     return std::get<double>(arg);
   }
@@ -43,12 +43,9 @@ struct {
       return std::get<double>(v) == 0.0;
     } else if (std::holds_alternative<k_int>(v)) {
       return std::get<k_int>(v) == 0;
-    } else {
-      throw ConversionError(term,
-                            "Cannot check non-numeric value for zero value.");
     }
-
-    return false;
+    
+    throw ConversionError(term, "Cannot check non-numeric value for zero value.");
   }
 
   Value do_addition(const Token& token, const Value& left, const Value& right) {

@@ -42,7 +42,7 @@ class Parameter {
       : _name(name), _value(value) {
     _hasDefaultValue = true;
   }
-  ~Parameter() { _value = 0; }
+  ~Parameter() { _value = static_cast<k_int>(0); }
 
   std::string getName() const { return _name; }
   Value getValue() { return _value; }

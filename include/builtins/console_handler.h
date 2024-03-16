@@ -11,13 +11,13 @@
 
 class ConsoleBuiltinHandler {
  public:
-  static Value execute(const Token& term, const SubTokenType& builtin,
+  static Value execute(const Token& term, const KName& builtin,
                        const std::vector<Value>& args) {
     switch (builtin) {
-      case SubTokenType::Builtin_Console_Input:
+      case KName::Builtin_Console_Input:
         return executeInput(term, args);
 
-      case SubTokenType::Builtin_Console_Silent:
+      case KName::Builtin_Console_Silent:
         return executeSilence(term, args);
 
       default:
