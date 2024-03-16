@@ -10,49 +10,49 @@
 
 class TimeBuiltinHandler {
  public:
-  static Value execute(const Token& term, const SubTokenType& builtin,
+  static Value execute(const Token& term, const KName& builtin,
                        const std::vector<Value>& args) {
     switch (builtin) {
-      case SubTokenType::Builtin_Time_Delay:
+      case KName::Builtin_Time_Delay:
         return executeDelay(term, args);
 
-      case SubTokenType::Builtin_Time_EpochMilliseconds:
+      case KName::Builtin_Time_EpochMilliseconds:
         return executeEpochMilliseconds(term, args);
 
-      case SubTokenType::Builtin_Time_Hour:
+      case KName::Builtin_Time_Hour:
         return executeCurrentHour(term, args);
 
-      case SubTokenType::Builtin_Time_IsDST:
+      case KName::Builtin_Time_IsDST:
         return executeIsDST(term, args);
 
-      case SubTokenType::Builtin_Time_Minute:
+      case KName::Builtin_Time_Minute:
         return executeCurrentMinute(term, args);
 
-      case SubTokenType::Builtin_Time_Month:
+      case KName::Builtin_Time_Month:
         return executeCurrentMonth(term, args);
 
-      case SubTokenType::Builtin_Time_MonthDay:
+      case KName::Builtin_Time_MonthDay:
         return executeCurrentMonthDay(term, args);
 
-      case SubTokenType::Builtin_Time_Second:
+      case KName::Builtin_Time_Second:
         return executeCurrentSecond(term, args);
 
-      case SubTokenType::Builtin_Time_Ticks:
+      case KName::Builtin_Time_Ticks:
         return executeTicks(term, args);
 
-      case SubTokenType::Builtin_Time_WeekDay:
+      case KName::Builtin_Time_WeekDay:
         return executeCurrentWeekDay(term, args);
 
-      case SubTokenType::Builtin_Time_Year:
+      case KName::Builtin_Time_Year:
         return executeCurrentYear(term, args);
 
-      case SubTokenType::Builtin_Time_YearDay:
+      case KName::Builtin_Time_YearDay:
         return executeCurrentYearDay(term, args);
 
-      case SubTokenType::Builtin_Time_AMPM:
+      case KName::Builtin_Time_AMPM:
         return executeAMPM(term, args);
 
-      case SubTokenType::Builtin_Time_TicksToMilliseconds:
+      case KName::Builtin_Time_TicksToMilliseconds:
         return executeTicksToMilliseconds(term, args);
 
       default:
@@ -72,7 +72,7 @@ class TimeBuiltinHandler {
     return Time::delay(ms);
   }
 
-  static double executeEpochMilliseconds(const Token& term,
+  static Value executeEpochMilliseconds(const Token& term,
                                          const std::vector<Value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term,

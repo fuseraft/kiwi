@@ -4,12 +4,17 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <termios.h>
-#include <unistd.h>
 #include "errors/error.h"
 #include "errors/handler.h"
 #include "interp.h"
 #include "parsing/keywords.h"
+
+#ifdef _WIN64
+#include <conio.h>
+#else
+#include <termios.h>
+#include <unistd.h>
+#endif
 
 class Repl {
  public:
@@ -83,26 +88,36 @@ int Repl::run() {
 
 /// @brief Begin REPL input.
 void Repl::beginREPLInput() {
+  #ifdef _WIN64
+  #else
   struct termios config;
   tcgetattr(0, &config);
   config.c_lflag &= ~ICANON;
   tcsetattr(0, TCSANOW, &config);
+  #endif
 }
 
 /// @brief End REPL input.
 void Repl::endREPLInput() {
+  #ifdef _WIN64
+  #else
   struct termios config;
   tcgetattr(0, &config);
   config.c_lflag |= ICANON;
   tcsetattr(0, TCSANOW, &config);
+  #endif
 }
 
 /// @brief Get the next character of REPL input.
 /// @return Character from REPL input.
 char Repl::getch() {
+  #ifdef _WIN64
+  return (char)_getch();
+  #else
   char ch;
   read(0, &ch, 1);
   return ch;
+  #endif
 }
 
 /// @brief Get a line of text from REPL input.
@@ -110,6 +125,10 @@ char Repl::getch() {
 std::string Repl::getline() {
   beginREPLInput();
   std::string line;
+  #ifdef _WIN64
+  std::cout << "> ";
+  std::getline(std::cin, line);
+  #else
   size_t pos = 0;
 
   while (true) {
@@ -169,6 +188,7 @@ std::string Repl::getline() {
 
     lines[activeReplLine - 1] = line;
   }
+  #endif
 
   endREPLInput();
   return line;

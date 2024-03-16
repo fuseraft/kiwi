@@ -30,7 +30,7 @@ class Lexer {
     while (true) {
       auto token = _getNextToken();
 
-      if (token.getType() == TokenType::ENDOFFILE) {
+      if (token.getType() == KTokenType::ENDOFFILE) {
         break;
       }
 
@@ -70,8 +70,8 @@ class Lexer {
     skipWhitespace();
 
     if (pos >= source.length()) {
-      return Token::create(TokenType::ENDOFFILE, SubTokenType::Default, fileId,
-                           "", 0, row, col);
+      return Token::create(KTokenType::ENDOFFILE, KName::Default, fileId,
+                           std::string(""), static_cast<k_int>(0), row, col);
     }
 
     char currentChar = getCurrentChar();
@@ -85,37 +85,37 @@ class Lexer {
     } else if (currentChar == '#') {
       return parseComment();
     } else if (currentChar == '@') {
-      return Token::create(TokenType::DECLVAR, SubTokenType::KW_DeclVar, fileId,
+      return Token::create(KTokenType::DECLVAR, KName::KW_DeclVar, fileId,
                            "@", row, col);
     } else if (currentChar == '$') {
-      return Token::create(TokenType::OPERATOR, SubTokenType::Default, fileId,
+      return Token::create(KTokenType::OPERATOR, KName::Default, fileId,
                            "$", row, col);
     } else if (currentChar == '\n') {
-      return Token::create(TokenType::NEWLINE, SubTokenType::Default, fileId,
+      return Token::create(KTokenType::NEWLINE, KName::Default, fileId,
                            "\n", row, col);
     } else if (currentChar == '(') {
-      return Token::create(TokenType::OPEN_PAREN, SubTokenType::Default, fileId,
+      return Token::create(KTokenType::OPEN_PAREN, KName::Default, fileId,
                            "(", row, col);
     } else if (currentChar == ')') {
-      return Token::create(TokenType::CLOSE_PAREN, SubTokenType::Default,
+      return Token::create(KTokenType::CLOSE_PAREN, KName::Default,
                            fileId, ")", row, col);
     } else if (currentChar == '[') {
-      return Token::create(TokenType::OPEN_BRACKET, SubTokenType::Default,
+      return Token::create(KTokenType::OPEN_BRACKET, KName::Default,
                            fileId, "[", row, col);
     } else if (currentChar == ']') {
-      return Token::create(TokenType::CLOSE_BRACKET, SubTokenType::Default,
+      return Token::create(KTokenType::CLOSE_BRACKET, KName::Default,
                            fileId, "]", row, col);
     } else if (currentChar == '{') {
-      return Token::create(TokenType::OPEN_BRACE, SubTokenType::Default, fileId,
+      return Token::create(KTokenType::OPEN_BRACE, KName::Default, fileId,
                            "{", row, col);
     } else if (currentChar == '}') {
-      return Token::create(TokenType::CLOSE_BRACE, SubTokenType::Default,
+      return Token::create(KTokenType::CLOSE_BRACE, KName::Default,
                            fileId, "}", row, col);
     } else if (currentChar == ',') {
-      return Token::create(TokenType::COMMA, SubTokenType::Default, fileId, ",",
+      return Token::create(KTokenType::COMMA, KName::Default, fileId, ",",
                            row, col);
     } else if (currentChar == '?') {
-      return Token::create(TokenType::QUESTION, SubTokenType::Default, fileId,
+      return Token::create(KTokenType::QUESTION, KName::Default, fileId,
                            "?", row, col);
     } else if (currentChar == '.') {
       return parseDot(currentChar);
@@ -140,94 +140,94 @@ class Lexer {
 
   Token parseConditionalKeyword(const std::string& keyword) {
     if (keyword == Keywords.If) {
-      return Token::create(TokenType::CONDITIONAL, SubTokenType::KW_If, fileId,
+      return Token::create(KTokenType::CONDITIONAL, KName::KW_If, fileId,
                            keyword, row, col);
     } else if (keyword == Keywords.ElseIf) {
-      return Token::create(TokenType::CONDITIONAL, SubTokenType::KW_ElseIf,
+      return Token::create(KTokenType::CONDITIONAL, KName::KW_ElseIf,
                            fileId, keyword, row, col);
     } else if (keyword == Keywords.Else) {
-      return Token::create(TokenType::CONDITIONAL, SubTokenType::KW_Else,
+      return Token::create(KTokenType::CONDITIONAL, KName::KW_Else,
                            fileId, keyword, row, col);
     } else if (keyword == Keywords.End) {
-      return Token::create(TokenType::CONDITIONAL, SubTokenType::KW_End, fileId,
+      return Token::create(KTokenType::CONDITIONAL, KName::KW_End, fileId,
                            keyword, row, col);
     }
 
-    return Token::create(TokenType::CONDITIONAL, SubTokenType::Default, fileId,
+    return Token::create(KTokenType::CONDITIONAL, KName::Default, fileId,
                          keyword, row, col);
   }
 
   Token parseKeywordSpecific(const std::string& keyword) {
-    auto st = SubTokenType::Default;
+    auto st = KName::Default;
 
     if (keyword == Keywords.Abstract) {
-      st = SubTokenType::KW_Abstract;
+      st = KName::KW_Abstract;
     } else if (keyword == Keywords.As) {
-      st = SubTokenType::KW_As;
+      st = KName::KW_As;
     } else if (keyword == Keywords.Async) {
-      st = SubTokenType::KW_Async;
+      st = KName::KW_Async;
     } else if (keyword == Keywords.Await) {
-      st = SubTokenType::KW_Await;
+      st = KName::KW_Await;
     } else if (keyword == Keywords.Break) {
-      st = SubTokenType::KW_Break;
+      st = KName::KW_Break;
     } else if (keyword == Keywords.Catch) {
-      st = SubTokenType::KW_Catch;
+      st = KName::KW_Catch;
     } else if (keyword == Keywords.Class) {
-      st = SubTokenType::KW_Class;
+      st = KName::KW_Class;
     } else if (keyword == Keywords.Delete) {
-      st = SubTokenType::KW_Delete;
+      st = KName::KW_Delete;
     } else if (keyword == Keywords.Do) {
-      st = SubTokenType::KW_Do;
+      st = KName::KW_Do;
     } else if (keyword == Keywords.Exit) {
-      st = SubTokenType::KW_Exit;
+      st = KName::KW_Exit;
     } else if (keyword == Keywords.Export) {
-      st = SubTokenType::KW_Export;
+      st = KName::KW_Export;
     } else if (keyword == Keywords.False) {
-      st = SubTokenType::KW_False;
+      st = KName::KW_False;
     } else if (keyword == Keywords.For) {
-      st = SubTokenType::KW_For;
+      st = KName::KW_For;
     } else if (keyword == Keywords.Import) {
-      st = SubTokenType::KW_Import;
+      st = KName::KW_Import;
     } else if (keyword == Keywords.In) {
-      st = SubTokenType::KW_In;
+      st = KName::KW_In;
     } else if (keyword == Keywords.Method) {
-      st = SubTokenType::KW_Method;
+      st = KName::KW_Method;
     } else if (keyword == Keywords.Module) {
-      st = SubTokenType::KW_Module;
+      st = KName::KW_Module;
     } else if (keyword == Keywords.Next) {
-      st = SubTokenType::KW_Next;
+      st = KName::KW_Next;
     } else if (keyword == Keywords.Override) {
-      st = SubTokenType::KW_Override;
+      st = KName::KW_Override;
     } else if (keyword == Keywords.Pass) {
-      st = SubTokenType::KW_Pass;
+      st = KName::KW_Pass;
     } else if (keyword == Keywords.Print) {
-      st = SubTokenType::KW_Print;
+      st = KName::KW_Print;
     } else if (keyword == Keywords.PrintLn) {
-      st = SubTokenType::KW_PrintLn;
+      st = KName::KW_PrintLn;
     } else if (keyword == Keywords.Private) {
-      st = SubTokenType::KW_Private;
+      st = KName::KW_Private;
     } else if (keyword == Keywords.Return) {
-      st = SubTokenType::KW_Return;
+      st = KName::KW_Return;
     } else if (keyword == Keywords.Static) {
-      st = SubTokenType::KW_Static;
+      st = KName::KW_Static;
     } else if (keyword == Keywords.Then) {
-      st = SubTokenType::KW_Then;
+      st = KName::KW_Then;
     } else if (keyword == Keywords.This) {
-      st = SubTokenType::KW_This;
+      st = KName::KW_This;
     } else if (keyword == Keywords.Try) {
-      st = SubTokenType::KW_Try;
+      st = KName::KW_Try;
     } else if (keyword == Keywords.While) {
-      st = SubTokenType::KW_While;
+      st = KName::KW_While;
     }
 
-    return Token::create(TokenType::KEYWORD, st, fileId, keyword, row, col);
+    return Token::create(KTokenType::KEYWORD, st, fileId, keyword, row, col);
   }
 
   Token parseKeyword(const std::string& keyword) {
     if (Keywords.is_conditional_keyword(keyword)) {
       return parseConditionalKeyword(keyword);
     } else if (keyword == Keywords.Lambda) {
-      return Token::create(TokenType::LAMBDA, SubTokenType::KW_Lambda, fileId,
+      return Token::create(KTokenType::LAMBDA, KName::KW_Lambda, fileId,
                            keyword, row, col);
     } else if (Keywords.is_boolean(keyword)) {
       return Token::createBoolean(fileId, keyword, row, col);
@@ -237,83 +237,83 @@ class Lexer {
   }
 
   Token parseOperator(const std::string& op) {
-    auto st = SubTokenType::Default;
+    auto st = KName::Default;
 
     if (op == Operators.Add) {
-      st = SubTokenType::Ops_Add;
+      st = KName::Ops_Add;
     } else if (op == Operators.AddAssign) {
-      st = SubTokenType::Ops_AddAssign;
+      st = KName::Ops_AddAssign;
     } else if (op == Operators.And) {
-      st = SubTokenType::Ops_And;
+      st = KName::Ops_And;
     } else if (op == Operators.AndAssign) {
-      st = SubTokenType::Ops_AndAssign;
+      st = KName::Ops_AndAssign;
     } else if (op == Operators.Assign) {
-      st = SubTokenType::Ops_Assign;
+      st = KName::Ops_Assign;
     } else if (op == Operators.BitwiseAnd) {
-      st = SubTokenType::Ops_BitwiseAnd;
+      st = KName::Ops_BitwiseAnd;
     } else if (op == Operators.BitwiseAndAssign) {
-      st = SubTokenType::Ops_BitwiseAndAssign;
+      st = KName::Ops_BitwiseAndAssign;
     } else if (op == Operators.BitwiseLeftShift) {
-      st = SubTokenType::Ops_BitwiseLeftShift;
+      st = KName::Ops_BitwiseLeftShift;
     } else if (op == Operators.BitwiseLeftShiftAssign) {
-      st = SubTokenType::Ops_BitwiseLeftShiftAssign;
+      st = KName::Ops_BitwiseLeftShiftAssign;
     } else if (op == Operators.BitwiseNot) {
-      st = SubTokenType::Ops_BitwiseNot;
+      st = KName::Ops_BitwiseNot;
     } else if (op == Operators.BitwiseNotAssign) {
-      st = SubTokenType::Ops_BitwiseNotAssign;
+      st = KName::Ops_BitwiseNotAssign;
     } else if (op == Operators.BitwiseOr) {
-      st = SubTokenType::Ops_BitwiseOr;
+      st = KName::Ops_BitwiseOr;
     } else if (op == Operators.BitwiseOrAssign) {
-      st = SubTokenType::Ops_BitwiseOrAssign;
+      st = KName::Ops_BitwiseOrAssign;
     } else if (op == Operators.BitwiseRightShift) {
-      st = SubTokenType::Ops_BitwiseRightShift;
+      st = KName::Ops_BitwiseRightShift;
     } else if (op == Operators.BitwiseRightShiftAssign) {
-      st = SubTokenType::Ops_BitwiseRightShiftAssign;
+      st = KName::Ops_BitwiseRightShiftAssign;
     } else if (op == Operators.BitwiseXor) {
-      st = SubTokenType::Ops_BitwiseXor;
+      st = KName::Ops_BitwiseXor;
     } else if (op == Operators.BitwiseXorAssign) {
-      st = SubTokenType::Ops_BitwiseXorAssign;
+      st = KName::Ops_BitwiseXorAssign;
     } else if (op == Operators.Divide) {
-      st = SubTokenType::Ops_Divide;
+      st = KName::Ops_Divide;
     } else if (op == Operators.DivideAssign) {
-      st = SubTokenType::Ops_DivideAssign;
+      st = KName::Ops_DivideAssign;
     } else if (op == Operators.Equal) {
-      st = SubTokenType::Ops_Equal;
+      st = KName::Ops_Equal;
     } else if (op == Operators.Exponent) {
-      st = SubTokenType::Ops_Exponent;
+      st = KName::Ops_Exponent;
     } else if (op == Operators.ExponentAssign) {
-      st = SubTokenType::Ops_ExponentAssign;
+      st = KName::Ops_ExponentAssign;
     } else if (op == Operators.GreaterThan) {
-      st = SubTokenType::Ops_GreaterThan;
+      st = KName::Ops_GreaterThan;
     } else if (op == Operators.GreaterThanOrEqual) {
-      st = SubTokenType::Ops_GreaterThanOrEqual;
+      st = KName::Ops_GreaterThanOrEqual;
     } else if (op == Operators.LessThan) {
-      st = SubTokenType::Ops_LessThan;
+      st = KName::Ops_LessThan;
     } else if (op == Operators.LessThanOrEqual) {
-      st = SubTokenType::Ops_LessThanOrEqual;
+      st = KName::Ops_LessThanOrEqual;
     } else if (op == Operators.ModuloAssign) {
-      st = SubTokenType::Ops_ModuloAssign;
+      st = KName::Ops_ModuloAssign;
     } else if (op == Operators.Modulus) {
-      st = SubTokenType::Ops_Modulus;
+      st = KName::Ops_Modulus;
     } else if (op == Operators.Multiply) {
-      st = SubTokenType::Ops_Multiply;
+      st = KName::Ops_Multiply;
     } else if (op == Operators.MultiplyAssign) {
-      st = SubTokenType::Ops_MultiplyAssign;
+      st = KName::Ops_MultiplyAssign;
     } else if (op == Operators.Not) {
-      st = SubTokenType::Ops_Not;
+      st = KName::Ops_Not;
     } else if (op == Operators.NotEqual) {
-      st = SubTokenType::Ops_NotEqual;
+      st = KName::Ops_NotEqual;
     } else if (op == Operators.Or) {
-      st = SubTokenType::Ops_Or;
+      st = KName::Ops_Or;
     } else if (op == Operators.OrAssign) {
-      st = SubTokenType::Ops_OrAssign;
+      st = KName::Ops_OrAssign;
     } else if (op == Operators.Subtract) {
-      st = SubTokenType::Ops_Subtract;
+      st = KName::Ops_Subtract;
     } else if (op == Operators.SubtractAssign) {
-      st = SubTokenType::Ops_SubtractAssign;
+      st = KName::Ops_SubtractAssign;
     }
 
-    return Token::create(TokenType::OPERATOR, st, fileId, op, row, col);
+    return Token::create(KTokenType::OPERATOR, st, fileId, op, row, col);
   }
 
   Token parseUnspecified(char initialChar) {
@@ -357,12 +357,12 @@ class Lexer {
       if (nextChar == ':') {
         s += nextChar;
         getCurrentChar();
-        return Token::create(TokenType::QUALIFIER, SubTokenType::Default,
+        return Token::create(KTokenType::QUALIFIER, KName::Default,
                              fileId, s, row, col);
       }
     }
 
-    return Token::create(TokenType::COLON, SubTokenType::Default, fileId, s,
+    return Token::create(KTokenType::COLON, KName::Default, fileId, s,
                          row, col);
   }
 
@@ -372,20 +372,20 @@ class Lexer {
 
       switch (nextChar) {
         case 'n':
-          return Token::create(TokenType::ESCAPED, SubTokenType::Default,
+          return Token::create(KTokenType::ESCAPED, KName::Default,
                                fileId, "\n", row, col);
         case 'r':
-          return Token::create(TokenType::ESCAPED, SubTokenType::Default,
+          return Token::create(KTokenType::ESCAPED, KName::Default,
                                fileId, "\r", row, col);
         case 't':
-          return Token::create(TokenType::ESCAPED, SubTokenType::Default,
+          return Token::create(KTokenType::ESCAPED, KName::Default,
                                fileId, "\t", row, col);
       }
     }
 
     getCurrentChar();
 
-    return Token::create(TokenType::ESCAPED, SubTokenType::Default, fileId,
+    return Token::create(KTokenType::ESCAPED, KName::Default, fileId,
                          "\\", row, col);
   }
 
@@ -397,317 +397,317 @@ class Lexer {
       if (nextChar == '.') {
         s += nextChar;
         getCurrentChar();
-        return Token::create(TokenType::RANGE, SubTokenType::Default, fileId, s,
+        return Token::create(KTokenType::RANGE, KName::Default, fileId, s,
                              row, col);
       }
     }
 
-    return Token::create(TokenType::DOT, SubTokenType::Default, fileId, ".",
+    return Token::create(KTokenType::DOT, KName::Default, fileId, ".",
                          row, col);
   }
 
   Token parseTypeName(const std::string& typeName) {
-    auto st = SubTokenType::Default;
+    auto st = KName::Default;
 
     if (typeName == TypeNames.Integer) {
-      st = SubTokenType::Types_Integer;
+      st = KName::Types_Integer;
     } else if (typeName == TypeNames.Boolean) {
-      st = SubTokenType::Types_Boolean;
+      st = KName::Types_Boolean;
     } else if (typeName == TypeNames.Double) {
-      st = SubTokenType::Types_Double;
+      st = KName::Types_Double;
     } else if (typeName == TypeNames.Hash) {
-      st = SubTokenType::Types_Hash;
+      st = KName::Types_Hash;
     } else if (typeName == TypeNames.Lambda) {
-      st = SubTokenType::Types_Lambda;
+      st = KName::Types_Lambda;
     } else if (typeName == TypeNames.List) {
-      st = SubTokenType::Types_List;
+      st = KName::Types_List;
     } else if (typeName == TypeNames.Object) {
-      st = SubTokenType::Types_Object;
+      st = KName::Types_Object;
     } else if (typeName == TypeNames.String) {
-      st = SubTokenType::Types_String;
+      st = KName::Types_String;
     } else if (typeName == TypeNames.None) {
-      st = SubTokenType::Types_None;
+      st = KName::Types_None;
     }
 
-    return Token::create(TokenType::TYPENAME, st, fileId, typeName, row, col);
+    return Token::create(KTokenType::TYPENAME, st, fileId, typeName, row, col);
   }
 
   Token parseArgvBuiltin(const std::string& builtin) {
-    auto st = SubTokenType::Default;
+    auto st = KName::Default;
 
     if (builtin == ArgvBuiltins.GetArgv) {
-      st = SubTokenType::Builtin_Argv_GetArgv;
+      st = KName::Builtin_Argv_GetArgv;
     } else if (builtin == ArgvBuiltins.GetXarg) {
-      st = SubTokenType::Builtin_Argv_GetXarg;
+      st = KName::Builtin_Argv_GetXarg;
     }
 
-    return Token::create(TokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
   }
 
   Token parseConsoleBuiltin(const std::string& builtin) {
-    auto st = SubTokenType::Default;
+    auto st = KName::Default;
 
     if (builtin == ConsoleBuiltins.Input) {
-      st = SubTokenType::Builtin_Console_Input;
+      st = KName::Builtin_Console_Input;
     } else if (builtin == ConsoleBuiltins.Silent) {
-      st = SubTokenType::Builtin_Console_Silent;
+      st = KName::Builtin_Console_Silent;
     }
 
-    return Token::create(TokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
   }
 
   Token parseEnvBuiltin(const std::string& builtin) {
-    auto st = SubTokenType::Default;
+    auto st = KName::Default;
 
     if (builtin == EnvBuiltins.GetEnvironmentVariable) {
-      st = SubTokenType::Builtin_Env_GetEnvironmentVariable;
+      st = KName::Builtin_Env_GetEnvironmentVariable;
     } else if (builtin == EnvBuiltins.SetEnvironmentVariable) {
-      st = SubTokenType::Builtin_Env_SetEnvironmentVariable;
+      st = KName::Builtin_Env_SetEnvironmentVariable;
     }
 
-    return Token::create(TokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
   }
 
   Token parseFileIOBuiltin(const std::string& builtin) {
-    auto st = SubTokenType::Default;
+    auto st = KName::Default;
 
     if (builtin == FileIOBuiltIns.AppendText) {
-      st = SubTokenType::Builtin_FileIO_AppendText;
+      st = KName::Builtin_FileIO_AppendText;
     } else if (builtin == FileIOBuiltIns.ChangeDirectory) {
-      st = SubTokenType::Builtin_FileIO_ChangeDirectory;
+      st = KName::Builtin_FileIO_ChangeDirectory;
     } else if (builtin == FileIOBuiltIns.CopyFile) {
-      st = SubTokenType::Builtin_FileIO_CopyFile;
+      st = KName::Builtin_FileIO_CopyFile;
     } else if (builtin == FileIOBuiltIns.CopyR) {
-      st = SubTokenType::Builtin_FileIO_CopyR;
+      st = KName::Builtin_FileIO_CopyR;
     } else if (builtin == FileIOBuiltIns.Combine) {
-      st = SubTokenType::Builtin_FileIO_Combine;
+      st = KName::Builtin_FileIO_Combine;
     } else if (builtin == FileIOBuiltIns.CreateFile) {
-      st = SubTokenType::Builtin_FileIO_CreateFile;
+      st = KName::Builtin_FileIO_CreateFile;
     } else if (builtin == FileIOBuiltIns.DeleteFile) {
-      st = SubTokenType::Builtin_FileIO_DeleteFile;
+      st = KName::Builtin_FileIO_DeleteFile;
     } else if (builtin == FileIOBuiltIns.FileExists) {
-      st = SubTokenType::Builtin_FileIO_FileExists;
+      st = KName::Builtin_FileIO_FileExists;
     } else if (builtin == FileIOBuiltIns.FileName) {
-      st = SubTokenType::Builtin_FileIO_FileName;
+      st = KName::Builtin_FileIO_FileName;
     } else if (builtin == FileIOBuiltIns.FileSize) {
-      st = SubTokenType::Builtin_FileIO_FileSize;
+      st = KName::Builtin_FileIO_FileSize;
     } else if (builtin == FileIOBuiltIns.GetCurrentDirectory) {
-      st = SubTokenType::Builtin_FileIO_GetCurrentDirectory;
+      st = KName::Builtin_FileIO_GetCurrentDirectory;
     } else if (builtin == FileIOBuiltIns.GetFileAbsolutePath) {
-      st = SubTokenType::Builtin_FileIO_GetFileAbsolutePath;
+      st = KName::Builtin_FileIO_GetFileAbsolutePath;
     } else if (builtin == FileIOBuiltIns.GetFileAttributes) {
-      st = SubTokenType::Builtin_FileIO_GetFileAttributes;
+      st = KName::Builtin_FileIO_GetFileAttributes;
     } else if (builtin == FileIOBuiltIns.GetFileExtension) {
-      st = SubTokenType::Builtin_FileIO_GetFileExtension;
+      st = KName::Builtin_FileIO_GetFileExtension;
     } else if (builtin == FileIOBuiltIns.GetFilePath) {
-      st = SubTokenType::Builtin_FileIO_GetFilePath;
+      st = KName::Builtin_FileIO_GetFilePath;
     } else if (builtin == FileIOBuiltIns.Glob) {
-      st = SubTokenType::Builtin_FileIO_Glob;
+      st = KName::Builtin_FileIO_Glob;
     } else if (builtin == FileIOBuiltIns.IsDirectory) {
-      st = SubTokenType::Builtin_FileIO_IsDirectory;
+      st = KName::Builtin_FileIO_IsDirectory;
     } else if (builtin == FileIOBuiltIns.ListDirectory) {
-      st = SubTokenType::Builtin_FileIO_ListDirectory;
+      st = KName::Builtin_FileIO_ListDirectory;
     } else if (builtin == FileIOBuiltIns.MakeDirectory) {
-      st = SubTokenType::Builtin_FileIO_MakeDirectory;
+      st = KName::Builtin_FileIO_MakeDirectory;
     } else if (builtin == FileIOBuiltIns.MakeDirectoryP) {
-      st = SubTokenType::Builtin_FileIO_MakeDirectoryP;
+      st = KName::Builtin_FileIO_MakeDirectoryP;
     } else if (builtin == FileIOBuiltIns.MoveFile) {
-      st = SubTokenType::Builtin_FileIO_MoveFile;
+      st = KName::Builtin_FileIO_MoveFile;
     } else if (builtin == FileIOBuiltIns.ReadFile) {
-      st = SubTokenType::Builtin_FileIO_ReadFile;
+      st = KName::Builtin_FileIO_ReadFile;
     } else if (builtin == FileIOBuiltIns.ReadLines) {
-      st = SubTokenType::Builtin_FileIO_ReadLines;
+      st = KName::Builtin_FileIO_ReadLines;
     } else if (builtin == FileIOBuiltIns.RemoveDirectory) {
-      st = SubTokenType::Builtin_FileIO_RemoveDirectory;
+      st = KName::Builtin_FileIO_RemoveDirectory;
     } else if (builtin == FileIOBuiltIns.RemoveDirectoryF) {
-      st = SubTokenType::Builtin_FileIO_RemoveDirectoryF;
+      st = KName::Builtin_FileIO_RemoveDirectoryF;
     } else if (builtin == FileIOBuiltIns.TempDir) {
-      st = SubTokenType::Builtin_FileIO_TempDir;
+      st = KName::Builtin_FileIO_TempDir;
     } else if (builtin == FileIOBuiltIns.WriteLine) {
-      st = SubTokenType::Builtin_FileIO_WriteLine;
+      st = KName::Builtin_FileIO_WriteLine;
     } else if (builtin == FileIOBuiltIns.WriteText) {
-      st = SubTokenType::Builtin_FileIO_WriteText;
+      st = KName::Builtin_FileIO_WriteText;
     }
 
-    return Token::create(TokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
   }
 
   Token parseListBuiltin(const std::string& builtin) {
-    auto st = SubTokenType::Default;
+    auto st = KName::Default;
 
     if (builtin == ListBuiltins.Map) {
-      st = SubTokenType::Builtin_List_Map;
+      st = KName::Builtin_List_Map;
     } else if (builtin == ListBuiltins.None) {
-      st = SubTokenType::Builtin_List_None;
+      st = KName::Builtin_List_None;
     } else if (builtin == ListBuiltins.Reduce) {
-      st = SubTokenType::Builtin_List_Reduce;
+      st = KName::Builtin_List_Reduce;
     } else if (builtin == ListBuiltins.Select) {
-      st = SubTokenType::Builtin_List_Select;
+      st = KName::Builtin_List_Select;
     } else if (builtin == ListBuiltins.Sort) {
-      st = SubTokenType::Builtin_List_Sort;
+      st = KName::Builtin_List_Sort;
     } else if (builtin == ListBuiltins.ToH) {
-      st = SubTokenType::Builtin_List_ToH;
+      st = KName::Builtin_List_ToH;
     }
 
-    return Token::create(TokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
   }
 
   Token parseMathBuiltin(const std::string& builtin) {
-    auto st = SubTokenType::Default;
+    auto st = KName::Default;
 
     if (builtin == MathBuiltins.Abs) {
-      st = SubTokenType::Builtin_Math_Abs;
+      st = KName::Builtin_Math_Abs;
     } else if (builtin == MathBuiltins.Acos) {
-      st = SubTokenType::Builtin_Math_Acos;
+      st = KName::Builtin_Math_Acos;
     } else if (builtin == MathBuiltins.Asin) {
-      st = SubTokenType::Builtin_Math_Asin;
+      st = KName::Builtin_Math_Asin;
     } else if (builtin == MathBuiltins.Atan) {
-      st = SubTokenType::Builtin_Math_Atan;
+      st = KName::Builtin_Math_Atan;
     } else if (builtin == MathBuiltins.Atan2) {
-      st = SubTokenType::Builtin_Math_Atan2;
+      st = KName::Builtin_Math_Atan2;
     } else if (builtin == MathBuiltins.Cbrt) {
-      st = SubTokenType::Builtin_Math_Cbrt;
+      st = KName::Builtin_Math_Cbrt;
     } else if (builtin == MathBuiltins.Ceil) {
-      st = SubTokenType::Builtin_Math_Ceil;
+      st = KName::Builtin_Math_Ceil;
     } else if (builtin == MathBuiltins.CopySign) {
-      st = SubTokenType::Builtin_Math_CopySign;
+      st = KName::Builtin_Math_CopySign;
     } else if (builtin == MathBuiltins.Cos) {
-      st = SubTokenType::Builtin_Math_Cos;
+      st = KName::Builtin_Math_Cos;
     } else if (builtin == MathBuiltins.Cosh) {
-      st = SubTokenType::Builtin_Math_Cosh;
+      st = KName::Builtin_Math_Cosh;
     } else if (builtin == MathBuiltins.Divisors) {
-      st = SubTokenType::Builtin_Math_Divisors;
+      st = KName::Builtin_Math_Divisors;
     } else if (builtin == MathBuiltins.Epsilon) {
-      st = SubTokenType::Builtin_Math_Epsilon;
+      st = KName::Builtin_Math_Epsilon;
     } else if (builtin == MathBuiltins.Erf) {
-      st = SubTokenType::Builtin_Math_Erf;
+      st = KName::Builtin_Math_Erf;
     } else if (builtin == MathBuiltins.ErfC) {
-      st = SubTokenType::Builtin_Math_ErfC;
+      st = KName::Builtin_Math_ErfC;
     } else if (builtin == MathBuiltins.Exp) {
-      st = SubTokenType::Builtin_Math_Exp;
+      st = KName::Builtin_Math_Exp;
     } else if (builtin == MathBuiltins.ExpM1) {
-      st = SubTokenType::Builtin_Math_ExpM1;
+      st = KName::Builtin_Math_ExpM1;
     } else if (builtin == MathBuiltins.FDim) {
-      st = SubTokenType::Builtin_Math_FDim;
+      st = KName::Builtin_Math_FDim;
     } else if (builtin == MathBuiltins.Floor) {
-      st = SubTokenType::Builtin_Math_Floor;
+      st = KName::Builtin_Math_Floor;
     } else if (builtin == MathBuiltins.FMax) {
-      st = SubTokenType::Builtin_Math_FMax;
+      st = KName::Builtin_Math_FMax;
     } else if (builtin == MathBuiltins.FMin) {
-      st = SubTokenType::Builtin_Math_FMin;
+      st = KName::Builtin_Math_FMin;
     } else if (builtin == MathBuiltins.Fmod) {
-      st = SubTokenType::Builtin_Math_Fmod;
+      st = KName::Builtin_Math_Fmod;
     } else if (builtin == MathBuiltins.Hypot) {
-      st = SubTokenType::Builtin_Math_Hypot;
+      st = KName::Builtin_Math_Hypot;
     } else if (builtin == MathBuiltins.IsFinite) {
-      st = SubTokenType::Builtin_Math_IsFinite;
+      st = KName::Builtin_Math_IsFinite;
     } else if (builtin == MathBuiltins.IsInf) {
-      st = SubTokenType::Builtin_Math_IsInf;
+      st = KName::Builtin_Math_IsInf;
     } else if (builtin == MathBuiltins.IsNaN) {
-      st = SubTokenType::Builtin_Math_IsNaN;
+      st = KName::Builtin_Math_IsNaN;
     } else if (builtin == MathBuiltins.IsNormal) {
-      st = SubTokenType::Builtin_Math_IsNormal;
+      st = KName::Builtin_Math_IsNormal;
     } else if (builtin == MathBuiltins.LGamma) {
-      st = SubTokenType::Builtin_Math_LGamma;
+      st = KName::Builtin_Math_LGamma;
     } else if (builtin == MathBuiltins.Log) {
-      st = SubTokenType::Builtin_Math_Log;
+      st = KName::Builtin_Math_Log;
     } else if (builtin == MathBuiltins.Log10) {
-      st = SubTokenType::Builtin_Math_Log10;
+      st = KName::Builtin_Math_Log10;
     } else if (builtin == MathBuiltins.Log1P) {
-      st = SubTokenType::Builtin_Math_Log1P;
+      st = KName::Builtin_Math_Log1P;
     } else if (builtin == MathBuiltins.Log2) {
-      st = SubTokenType::Builtin_Math_Log2;
+      st = KName::Builtin_Math_Log2;
     } else if (builtin == MathBuiltins.NextAfter) {
-      st = SubTokenType::Builtin_Math_NextAfter;
+      st = KName::Builtin_Math_NextAfter;
     } else if (builtin == MathBuiltins.Pow) {
-      st = SubTokenType::Builtin_Math_Pow;
+      st = KName::Builtin_Math_Pow;
     } else if (builtin == MathBuiltins.Random) {
-      st = SubTokenType::Builtin_Math_Random;
+      st = KName::Builtin_Math_Random;
     } else if (builtin == MathBuiltins.Remainder) {
-      st = SubTokenType::Builtin_Math_Remainder;
+      st = KName::Builtin_Math_Remainder;
     } else if (builtin == MathBuiltins.Round) {
-      st = SubTokenType::Builtin_Math_Round;
+      st = KName::Builtin_Math_Round;
     } else if (builtin == MathBuiltins.Sin) {
-      st = SubTokenType::Builtin_Math_Sin;
+      st = KName::Builtin_Math_Sin;
     } else if (builtin == MathBuiltins.Sinh) {
-      st = SubTokenType::Builtin_Math_Sinh;
+      st = KName::Builtin_Math_Sinh;
     } else if (builtin == MathBuiltins.Sqrt) {
-      st = SubTokenType::Builtin_Math_Sqrt;
+      st = KName::Builtin_Math_Sqrt;
     } else if (builtin == MathBuiltins.Tan) {
-      st = SubTokenType::Builtin_Math_Tan;
+      st = KName::Builtin_Math_Tan;
     } else if (builtin == MathBuiltins.Tanh) {
-      st = SubTokenType::Builtin_Math_Tanh;
+      st = KName::Builtin_Math_Tanh;
     } else if (builtin == MathBuiltins.TGamma) {
-      st = SubTokenType::Builtin_Math_TGamma;
+      st = KName::Builtin_Math_TGamma;
     } else if (builtin == MathBuiltins.Trunc) {
-      st = SubTokenType::Builtin_Math_Trunc;
+      st = KName::Builtin_Math_Trunc;
     } else if (builtin == MathBuiltins.ListPrimes) {
-      st = SubTokenType::Builtin_Math_ListPrimes;
+      st = KName::Builtin_Math_ListPrimes;
     } else if (builtin == MathBuiltins.NthPrime) {
-      st = SubTokenType::Builtin_Math_NthPrime;
+      st = KName::Builtin_Math_NthPrime;
     }
 
-    return Token::create(TokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
   }
 
   Token parseModuleBuiltin(const std::string& builtin) {
-    auto st = SubTokenType::Default;
+    auto st = KName::Default;
 
     if (builtin == ModuleBuiltins.Home) {
-      st = SubTokenType::Builtin_Module_Home;
+      st = KName::Builtin_Module_Home;
     }
 
-    return Token::create(TokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
   }
 
   Token parseSysBuiltin(const std::string& builtin) {
-    auto st = SubTokenType::Default;
+    auto st = KName::Default;
 
     if (builtin == SysBuiltins.EffectiveUserId) {
-      st = SubTokenType::Builtin_Sys_EffectiveUserId;
+      st = KName::Builtin_Sys_EffectiveUserId;
     } else if (builtin == SysBuiltins.Exec) {
-      st = SubTokenType::Builtin_Sys_Exec;
+      st = KName::Builtin_Sys_Exec;
     } else if (builtin == SysBuiltins.ExecOut) {
-      st = SubTokenType::Builtin_Sys_ExecOut;
+      st = KName::Builtin_Sys_ExecOut;
     }
 
-    return Token::create(TokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
   }
 
   Token parseTimeBuiltin(const std::string& builtin) {
-    auto st = SubTokenType::Default;
+    auto st = KName::Default;
 
     if (builtin == TimeBuiltins.AMPM) {
-      st = SubTokenType::Builtin_Time_AMPM;
+      st = KName::Builtin_Time_AMPM;
     } else if (builtin == TimeBuiltins.Delay) {
-      st = SubTokenType::Builtin_Time_Delay;
+      st = KName::Builtin_Time_Delay;
     } else if (builtin == TimeBuiltins.EpochMilliseconds) {
-      st = SubTokenType::Builtin_Time_EpochMilliseconds;
+      st = KName::Builtin_Time_EpochMilliseconds;
     } else if (builtin == TimeBuiltins.Hour) {
-      st = SubTokenType::Builtin_Time_Hour;
+      st = KName::Builtin_Time_Hour;
     } else if (builtin == TimeBuiltins.IsDST) {
-      st = SubTokenType::Builtin_Time_IsDST;
+      st = KName::Builtin_Time_IsDST;
     } else if (builtin == TimeBuiltins.Minute) {
-      st = SubTokenType::Builtin_Time_Minute;
+      st = KName::Builtin_Time_Minute;
     } else if (builtin == TimeBuiltins.Month) {
-      st = SubTokenType::Builtin_Time_Month;
+      st = KName::Builtin_Time_Month;
     } else if (builtin == TimeBuiltins.MonthDay) {
-      st = SubTokenType::Builtin_Time_MonthDay;
+      st = KName::Builtin_Time_MonthDay;
     } else if (builtin == TimeBuiltins.Second) {
-      st = SubTokenType::Builtin_Time_Second;
+      st = KName::Builtin_Time_Second;
     } else if (builtin == TimeBuiltins.Ticks) {
-      st = SubTokenType::Builtin_Time_Ticks;
+      st = KName::Builtin_Time_Ticks;
     } else if (builtin == TimeBuiltins.TicksToMilliseconds) {
-      st = SubTokenType::Builtin_Time_TicksToMilliseconds;
+      st = KName::Builtin_Time_TicksToMilliseconds;
     } else if (builtin == TimeBuiltins.WeekDay) {
-      st = SubTokenType::Builtin_Time_WeekDay;
+      st = KName::Builtin_Time_WeekDay;
     } else if (builtin == TimeBuiltins.Year) {
-      st = SubTokenType::Builtin_Time_Year;
+      st = KName::Builtin_Time_Year;
     } else if (builtin == TimeBuiltins.YearDay) {
-      st = SubTokenType::Builtin_Time_YearDay;
+      st = KName::Builtin_Time_YearDay;
     }
 
-    return Token::create(TokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
   }
 
   Token parseBuiltinMethod(const std::string& builtin) {
@@ -731,87 +731,87 @@ class Lexer {
       return parseTimeBuiltin(builtin);
     }
 
-    return Token::create(TokenType::IDENTIFIER, SubTokenType::Default, fileId,
+    return Token::create(KTokenType::IDENTIFIER, KName::Default, fileId,
                          builtin, row, col);
   }
 
   Token parseKiwiBuiltin(const std::string& builtin) {
-    auto st = SubTokenType::Default;
+    auto st = KName::Default;
 
     if (builtin == KiwiBuiltins.BeginsWith) {
-      st = SubTokenType::Builtin_Kiwi_BeginsWith;
+      st = KName::Builtin_Kiwi_BeginsWith;
     } else if (builtin == KiwiBuiltins.Chars) {
-      st = SubTokenType::Builtin_Kiwi_Chars;
+      st = KName::Builtin_Kiwi_Chars;
     } else if (builtin == KiwiBuiltins.Contains) {
-      st = SubTokenType::Builtin_Kiwi_Contains;
+      st = KName::Builtin_Kiwi_Contains;
     } else if (builtin == KiwiBuiltins.Downcase) {
-      st = SubTokenType::Builtin_Kiwi_Downcase;
+      st = KName::Builtin_Kiwi_Downcase;
     } else if (builtin == KiwiBuiltins.Empty) {
-      st = SubTokenType::Builtin_Kiwi_Empty;
+      st = KName::Builtin_Kiwi_Empty;
     } else if (builtin == KiwiBuiltins.EndsWith) {
-      st = SubTokenType::Builtin_Kiwi_EndsWith;
+      st = KName::Builtin_Kiwi_EndsWith;
     } else if (builtin == KiwiBuiltins.HasKey) {
-      st = SubTokenType::Builtin_Kiwi_HasKey;
+      st = KName::Builtin_Kiwi_HasKey;
     } else if (builtin == KiwiBuiltins.IndexOf) {
-      st = SubTokenType::Builtin_Kiwi_IndexOf;
+      st = KName::Builtin_Kiwi_IndexOf;
     } else if (builtin == KiwiBuiltins.IsA) {
-      st = SubTokenType::Builtin_Kiwi_IsA;
+      st = KName::Builtin_Kiwi_IsA;
     } else if (builtin == KiwiBuiltins.Join) {
-      st = SubTokenType::Builtin_Kiwi_Join;
+      st = KName::Builtin_Kiwi_Join;
     } else if (builtin == KiwiBuiltins.Keys) {
-      st = SubTokenType::Builtin_Kiwi_Keys;
+      st = KName::Builtin_Kiwi_Keys;
     } else if (builtin == KiwiBuiltins.LastIndexOf) {
-      st = SubTokenType::Builtin_Kiwi_LastIndexOf;
+      st = KName::Builtin_Kiwi_LastIndexOf;
     } else if (builtin == KiwiBuiltins.LeftTrim) {
-      st = SubTokenType::Builtin_Kiwi_LeftTrim;
+      st = KName::Builtin_Kiwi_LeftTrim;
     } else if (builtin == KiwiBuiltins.Replace) {
-      st = SubTokenType::Builtin_Kiwi_Replace;
+      st = KName::Builtin_Kiwi_Replace;
     } else if (builtin == KiwiBuiltins.Reverse) {
-      st = SubTokenType::Builtin_Kiwi_Reverse;
+      st = KName::Builtin_Kiwi_Reverse;
     } else if (builtin == KiwiBuiltins.RightTrim) {
-      st = SubTokenType::Builtin_Kiwi_RightTrim;
+      st = KName::Builtin_Kiwi_RightTrim;
     } else if (builtin == KiwiBuiltins.Size) {
-      st = SubTokenType::Builtin_Kiwi_Size;
+      st = KName::Builtin_Kiwi_Size;
     } else if (builtin == KiwiBuiltins.Split) {
-      st = SubTokenType::Builtin_Kiwi_Split;
+      st = KName::Builtin_Kiwi_Split;
     } else if (builtin == KiwiBuiltins.ToD) {
-      st = SubTokenType::Builtin_Kiwi_ToD;
+      st = KName::Builtin_Kiwi_ToD;
     } else if (builtin == KiwiBuiltins.ToI) {
-      st = SubTokenType::Builtin_Kiwi_ToI;
+      st = KName::Builtin_Kiwi_ToI;
     } else if (builtin == KiwiBuiltins.ToS) {
-      st = SubTokenType::Builtin_Kiwi_ToS;
+      st = KName::Builtin_Kiwi_ToS;
     } else if (builtin == KiwiBuiltins.Trim) {
-      st = SubTokenType::Builtin_Kiwi_Trim;
+      st = KName::Builtin_Kiwi_Trim;
     } else if (builtin == KiwiBuiltins.Type) {
-      st = SubTokenType::Builtin_Kiwi_Type;
+      st = KName::Builtin_Kiwi_Type;
     } else if (builtin == KiwiBuiltins.Upcase) {
-      st = SubTokenType::Builtin_Kiwi_Upcase;
+      st = KName::Builtin_Kiwi_Upcase;
     } else if (builtin == ListBuiltins.Map) {
-      st = SubTokenType::Builtin_List_Map;
+      st = KName::Builtin_List_Map;
     } else if (builtin == ListBuiltins.Select) {
-      st = SubTokenType::Builtin_List_Select;
+      st = KName::Builtin_List_Select;
     } else if (builtin == ListBuiltins.Sort) {
-      st = SubTokenType::Builtin_List_Sort;
+      st = KName::Builtin_List_Sort;
     } else if (builtin == ListBuiltins.Reduce) {
-      st = SubTokenType::Builtin_List_Reduce;
+      st = KName::Builtin_List_Reduce;
     } else if (builtin == ListBuiltins.None) {
-      st = SubTokenType::Builtin_List_None;
+      st = KName::Builtin_List_None;
     } else if (builtin == ListBuiltins.Sum) {
-      st = SubTokenType::Builtin_List_Sum;
+      st = KName::Builtin_List_Sum;
     } else if (builtin == ListBuiltins.Min) {
-      st = SubTokenType::Builtin_List_Min;
+      st = KName::Builtin_List_Min;
     } else if (builtin == ListBuiltins.Max) {
-      st = SubTokenType::Builtin_List_Max;
+      st = KName::Builtin_List_Max;
     } else if (builtin == ListBuiltins.ToH) {
-      st = SubTokenType::Builtin_List_ToH;
+      st = KName::Builtin_List_ToH;
     }
 
-    return Token::create(TokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
   }
 
   Token parseIdentifier(const std::string& identifier) {
-    auto st = SubTokenType::Default;
-    return Token::create(TokenType::IDENTIFIER, st, fileId, identifier, row,
+    auto st = KName::Default;
+    return Token::create(KTokenType::IDENTIFIER, st, fileId, identifier, row,
                          col);
   }
 
@@ -860,13 +860,13 @@ class Lexer {
     }
 
     if (literal.find('.') != std::string::npos) {
-      return Token::create(TokenType::LITERAL, SubTokenType::Default, fileId,
+      return Token::create(KTokenType::LITERAL, KName::Default, fileId,
                            literal, std::stod(literal), row, col);
     } else {
       std::istringstream ss(literal);
       k_int value;
       ss >> value;
-      return Token::create(TokenType::LITERAL, SubTokenType::Default, fileId,
+      return Token::create(KTokenType::LITERAL, KName::Default, fileId,
                            literal, value, row, col);
     }
   }
@@ -921,7 +921,7 @@ class Lexer {
       str += '\\';
     }
 
-    return Token::create(TokenType::STRING, SubTokenType::Default, fileId, str,
+    return Token::create(KTokenType::STRING, KName::Default, fileId, str,
                          row, col);
   }
 
@@ -965,7 +965,7 @@ class Lexer {
         }
       }
 
-      return Token::create(TokenType::COMMENT, SubTokenType::Default, fileId,
+      return Token::create(KTokenType::COMMENT, KName::Default, fileId,
                            comment, row, col);
     } else {
       // It's a single-line comment
@@ -975,7 +975,7 @@ class Lexer {
         comment += getCurrentChar();
       }
 
-      return Token::create(TokenType::COMMENT, SubTokenType::Default, fileId,
+      return Token::create(KTokenType::COMMENT, KName::Default, fileId,
                            comment, row, col);
     }
   }

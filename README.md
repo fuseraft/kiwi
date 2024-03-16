@@ -1,10 +1,10 @@
 # Kiwi 🥝
 
-Kiwi is a light-weight general-purpose language designed for simplicity and versatility.
+Kiwi is a dynamically-typed, object-oriented programming language designed.
 
 ## Getting Started
 
-To start using Kiwi, please follow the instructions below.
+To start using Kiwi, please follow the instructions below. 
 
 ### Docker
 
@@ -15,7 +15,7 @@ sudo docker build -t kiwi-lang .
 sudo docker run -it -v $(pwd):/workspace kiwi-language
 ```
 
-### Building Kiwi
+### Building on Linux
 
 To build Kiwi, use your favorite C++ compiler.
 
@@ -61,6 +61,21 @@ Launch VS Code Quick Open (<kbd>Ctrl</kbd>+<kbd>P</kbd>), paste the following co
 ```
 ext install fuseraft.kiwi-lang
 ```
+
+#### Building on Windows
+
+You can find a 64-bit build (named **`kiwi.exe`**) in the latest release.
+
+To build on Windows, you need to open a [64-bit hosted developer command prompt](https://learn.microsoft.com/en-us/cpp/build/how-to-enable-a-64-bit-visual-cpp-toolset-on-the-command-line?view=msvc-170).
+
+Then navigate to the source code and run [`build.bat`](build.bat).
+
+```cmd
+cd path\to\kiwi
+build.bat
+```
+
+*Note: The Windows build does not support `.🥝` files (use the `.kiwi` extension).*
 
 ## Documentation
 

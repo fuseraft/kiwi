@@ -67,7 +67,12 @@ class InterpSession {
       auto kiwilibPath = File::getLibraryPath();
 
       if (!kiwilibPath.empty()) {
-        auto kiwilib = File::expandGlob(kiwilibPath + "/*.🥝");
+        std::vector<std::string> kiwilib;
+        #ifdef _WIN64
+        kiwilib = File::expandGlob(kiwilibPath + "\\*.kiwi");
+        #else
+        kiwilib = File::expandGlob(kiwilibPath + "/*.🥝");
+        #endif
 
         for (const auto& script : kiwilib) {
           loadScript(script);
