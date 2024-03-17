@@ -2,7 +2,7 @@
 Summary: A module for building web applications.
 ##
 
-module webserver
+module web
   __home__("kiwi")
 
   ##
@@ -70,4 +70,4 @@ module webserver
   ##
 end
 
-export "webserver"
+export "web"
