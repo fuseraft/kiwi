@@ -1,0 +1,83 @@
+import "@kiwi/webserver" as ws
+
+def get_html(data)
+  return "<html><body>${data}</body></html>"
+end
+
+def get_form()
+  # you should read this from a file.
+  return "<form id=\"formElem\">
+  <input type=\"text\" name=\"first_name\" accept=\"text/*\">
+  <input type=\"text\" name=\"last_name\" accept=\"text/*\">
+  <input type=\"submit\">
+</form>
+<table id=\"rows\"></table>
+<script>
+  formElem.onsubmit = async (e) => {
+    e.preventDefault();
+    
+    const firstName = document.querySelector('[name=\"first_name\"]').value;
+    const lastName = document.querySelector('[name=\"last_name\"]').value;
+    
+    let res = await fetch('/post', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        firstName: firstName,
+        lastName: lastName
+      })
+    });
+
+    const tableRow = await res.text();
+    document.getElementById('rows').innerHTML += tableRow;
+  };
+</script>"
+end
+
+def get_tablerow(key, value)
+  return "<tr><td>${key}</td><td>${value}</td></tr>"
+end
+
+get_hello = lambda(req) do
+  content = "<table>"
+  for key in req.keys() do
+    content += get_tablerow(key, req[key])
+  end
+  content += "</table>"
+
+  return ws.ok(get_html(content), "text/html")
+end
+
+get_index = lambda(req) do
+  content = "<div>The Kiwi Web Server is running.</div><div>${get_form()}</div></body>"
+  return ws.ok(get_html(content), "text/html")
+end
+
+post_index = lambda(req) do
+  body = req["__BODY"]
+  content = ""
+  
+  if req["Content-Type"] == "application/json"
+    body_hash = body.to_h()
+    first_name = body_hash.has_key("firstName") ? body_hash["firstName"] : ""
+    last_name = body_hash.has_key("lastName") ? body_hash["lastName"] : ""
+    content += get_tablerow(first_name, last_name)
+  else
+    println "Received content from client: ${body}"
+  end
+
+  return ws.ok(content, "text/plain")
+end
+
+ws.get(["/", "/index"], get_index)
+ws.get("/hello", get_hello)
+ws.post("/post", post_index)
+
+host = "0.0.0.0"
+port = 8080
+
+println "Starting Kiwi Web Server at http://${host}:${port}"
+ws.listen(host, port)
+println "Done!"

@@ -310,6 +310,29 @@ struct {
 
 } ListBuiltins;
 
+struct {
+  const std::string Get = "__webserver_get__";
+  const std::string Post = "__webserver_post__";
+  const std::string Listen = "__webserver_listen__";
+  const std::string Host = "__webserver_host__";
+  const std::string Port = "__webserver_port__";
+
+  std::unordered_set<std::string> builtins = {Get, Post, Listen, Host, Port};
+
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_WebServer_Get,    KName::Builtin_WebServer_Post,
+      KName::Builtin_WebServer_Listen, KName::Builtin_WebServer_Host,
+      KName::Builtin_WebServer_Port};
+
+  bool is_builtin(const std::string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+
+  bool is_builtin(const KName& arg) {
+    return st_builtins.find(arg) != st_builtins.end();
+  }
+} WebServerBuiltins;
+
 #ifdef EXPERIMENTAL_FEATURES
 struct {
   const std::string Get = "__http_get__";
@@ -509,14 +532,16 @@ struct {
     return ConsoleBuiltins.is_builtin(arg) || EnvBuiltins.is_builtin(arg) ||
            ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
-           ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg);
+           ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
+           WebServerBuiltins.is_builtin(arg);
   }
 
   bool is_builtin_method(const KName& arg) {
     return ConsoleBuiltins.is_builtin(arg) || EnvBuiltins.is_builtin(arg) ||
            ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
-           ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg);
+           ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
+           WebServerBuiltins.is_builtin(arg);
   }
 } KiwiBuiltins;
 

@@ -676,6 +676,24 @@ class Lexer {
     return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
   }
 
+  Token parseWebServerBuiltin(const std::string& builtin) {
+    auto st = KName::Default;
+
+    if (builtin == WebServerBuiltins.Get) {
+      st = KName::Builtin_WebServer_Get;
+    } else if (builtin == WebServerBuiltins.Post) {
+      st = KName::Builtin_WebServer_Post;
+    } else if (builtin == WebServerBuiltins.Listen) {
+      st = KName::Builtin_WebServer_Listen;
+    } else if (builtin == WebServerBuiltins.Host) {
+      st = KName::Builtin_WebServer_Host;
+    } else if (builtin == WebServerBuiltins.Port) {
+      st = KName::Builtin_WebServer_Port;
+    }
+
+    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+  }
+
   Token parseTimeBuiltin(const std::string& builtin) {
     auto st = KName::Default;
 
@@ -731,6 +749,8 @@ class Lexer {
       return parseSysBuiltin(builtin);
     } else if (TimeBuiltins.is_builtin(builtin)) {
       return parseTimeBuiltin(builtin);
+    } else if (WebServerBuiltins.is_builtin(builtin)) {
+      return parseWebServerBuiltin(builtin);
     }
 
     return Token::create(KTokenType::IDENTIFIER, KName::Default, fileId,

@@ -12,6 +12,7 @@
 #include "parsing/keywords.h"
 #include "util/file.h"
 #include "util/string.h"
+#include "web/httplib.h"
 #include "interp_session.h"
 #include "globals.h"
 
@@ -25,6 +26,10 @@ std::unordered_map<std::string, std::string> kiwiArgs;
 std::stack<std::shared_ptr<CallStackFrame>> callStack;
 std::stack<std::shared_ptr<TokenStream>> streamStack;
 std::stack<std::string> moduleStack;
+std::unordered_map<int, Method> kiwiWebServerHooks;
+httplib::Server kiwiWebServer;
+std::string kiwiWebServerHost;
+k_int kiwiWebServerPort;
 
 std::mutex methodsMutex;
 std::mutex modulesMutex;
@@ -33,6 +38,10 @@ std::mutex kiwiArgsMutex;
 std::mutex callStackMutex;
 std::mutex streamStackMutex;
 std::mutex moduleStackMutex;
+std::mutex kiwiWebServerMutex;
+std::mutex kiwiWebServerHooksMutex;
+std::mutex kiwiWebServerHostMutex;
+std::mutex kiwiWebServerPortMutex;
 
 class Kiwi {
  public:
