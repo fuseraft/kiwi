@@ -103,6 +103,7 @@ enum KName {
   Builtin_WebServer_Listen,
   Builtin_WebServer_Host,
   Builtin_WebServer_Port,
+  Builtin_WebServer_Public,
   Builtin_Math_Abs,
   Builtin_Math_Acos,
   Builtin_Math_Asin,
