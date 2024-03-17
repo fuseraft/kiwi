@@ -164,29 +164,12 @@ import "@kiwi/fs" as fs
 # HTML helpers
 ##
 
-def build_html(data)
-  return "<html><body>${data}</body></html>"
-end
-
-def build_tr(key, value)
-  return "<tr><td>${key}</td><td>${value}</td></tr>"
-end
-
-def build_table(req)
-  content = ""
-  for key in req.keys() do
-    content += build_tr(key, req[key])
-  end
-  return "<table>${content}</table>"
-end
+def build_html(data) return "<html><body>${data}</body></html>" end
+def build_tr(key, value) return "<tr><td>${key}</td><td>${value}</td></tr>" end
 
 ##
 # GET endpoint controller actions
 ##
-
-get_hello = lambda(req) do
-  return ws.ok(build_html(build_table(req))), "text/html")
-end
 
 get_index = lambda(req) do
   content = "<div>The Kiwi Web Server is running.</div>
@@ -214,12 +197,10 @@ post_index = lambda(req) do
 end
 
 ##
-# Server configuration and startup.
+# Route registration.
 ##
 
-# Route registration.
 ws.get(["/", "/index"], get_index)
-ws.get("/hello", get_hello)
 ws.post("/post", post_index)
 
 # Configure host and port.
