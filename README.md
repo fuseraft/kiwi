@@ -1,6 +1,6 @@
 # Kiwi 🥝
 
-Kiwi is a dynamically-typed, object-oriented programming language designed.
+Kiwi is a dynamically-typed, general-purpose scripting language.
 
 ## Table of Contents
 
@@ -71,7 +71,7 @@ cd kiwi
 sudo make install
 ```
 
-#### Windows Builds
+### Windows Builds
 
 You can find a 64-bit build (named **`kiwi.exe`**) in the latest release.
 
@@ -86,7 +86,7 @@ build.bat
 
 *Note: The Windows build does not support `.🥝` files (use the `.kiwi` extension).*
 
-#### Visual Studio Code Extension
+### Visual Studio Code Extension
 
 You can install the [extension](https://marketplace.visualstudio.com/items?itemName=fuseraft.kiwi-lang) for syntax-highlighting in VS Code.
 
@@ -99,7 +99,7 @@ ext install fuseraft.kiwi-lang
 
 For detailed information on language features, refer to the [docs](docs/README.md).
 
-#### Test Suite
+### Test Suite
 
 Explore the [tests](tests/) directory for a collection of test scripts. 
 
@@ -109,13 +109,13 @@ To run the test suite, execute:
 make test
 ```
 
-#### Example Code
+### Example Code
 
-##### Project Euler Examples
+#### Project Euler Examples
 
 For fun, I wrote some [Project Euler examples](examples/project_euler/).
 
-##### Example Script
+#### Example Script
 Below is a sample script that generates a temporary script and executes it.
 
 ```ruby
