@@ -154,7 +154,7 @@ end
 
 #### Example Web Application
 
-Below is a simple HTTP web application.
+Below is a simple HTTP web application. You can find the application [here](examples/webapp/web.🥝).
 
 ```ruby
 import "@kiwi/web" as web
