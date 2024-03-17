@@ -689,6 +689,8 @@ class Lexer {
       st = KName::Builtin_WebServer_Host;
     } else if (builtin == WebServerBuiltins.Port) {
       st = KName::Builtin_WebServer_Port;
+    } else if (builtin == WebServerBuiltins.Public) {
+      st = KName::Builtin_WebServer_Public;
     }
 
     return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);

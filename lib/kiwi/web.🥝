@@ -59,6 +59,16 @@ module web
     __webserver_listen__(_ipaddr, _port)
   end
 
+  ##
+  Summary: Instructs the web server to serve static content.
+  Params:
+    - _public_endpoint: The endpoint at which static content is served.
+    - _public_path: The server-side path containing static content to be served.
+  ##
+  def public(_public_endpoint, _public_path)
+    __webserver_public__(_ipaddr, _port)
+  end
+
   ##  
   def port()
     return __webserver_port__()

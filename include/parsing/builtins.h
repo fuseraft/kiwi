@@ -316,13 +316,14 @@ struct {
   const std::string Listen = "__webserver_listen__";
   const std::string Host = "__webserver_host__";
   const std::string Port = "__webserver_port__";
+  const std::string Public = "__webserver_public__";
 
-  std::unordered_set<std::string> builtins = {Get, Post, Listen, Host, Port};
+  std::unordered_set<std::string> builtins = {Get, Post, Listen, Host, Port, Public};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_WebServer_Get,    KName::Builtin_WebServer_Post,
       KName::Builtin_WebServer_Listen, KName::Builtin_WebServer_Host,
-      KName::Builtin_WebServer_Port};
+      KName::Builtin_WebServer_Port,   KName::Builtin_WebServer_Public};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
