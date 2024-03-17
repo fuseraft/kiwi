@@ -157,7 +157,7 @@ end
 Below is a simple HTTP web application.
 
 ```ruby
-import "@kiwi/webserver" as ws
+import "@kiwi/web" as web
 import "@kiwi/fs" as fs
 
 ##
@@ -174,7 +174,7 @@ def build_tr(key, value) return "<tr><td>${key}</td><td>${value}</td></tr>" end
 get_index = lambda(req) do
   content = "<div>The Kiwi Web Server is running.</div>
              <div>${fs.read("form.html")}</div></body>"
-  return ws.ok(build_html(content), "text/html")
+  return web.ok(build_html(content), "text/html")
 end
 
 ##
@@ -193,15 +193,15 @@ post_index = lambda(req) do
     content = build_tr(first_name, last_name)
   end
 
-  return ws.ok(content, "text/plain")
+  return web.ok(content, "text/plain")
 end
 
 ##
 # Route registration.
 ##
 
-ws.get(["/", "/index"], get_index)
-ws.post("/post", post_index)
+web.get(["/", "/index"], get_index)
+web.post("/post", post_index)
 
 # Configure host and port.
 host = "0.0.0.0"
@@ -209,7 +209,7 @@ port = 8080
 
 # Start web server.
 println "Starting Kiwi Web Server at http://${host}:${port}"
-ws.listen(host, port)
+web.listen(host, port)
 ```
 
 ## Contributions
