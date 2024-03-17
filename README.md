@@ -154,60 +154,53 @@ end
 
 #### Example Web Application
 
-Below is a simple HTTP web application. You can find the application [here](examples/webapp/web.🥝).
+Below is a simple HTTP web application. You can find the [example project here](examples/webapp/app.🥝).
 
 ```ruby
 import "@kiwi/web" as web
 import "@kiwi/fs" as fs
 
-##
 # HTML helpers
-##
+shared_template = fs::read("templates/shared.html")
+def build_html(data) 
+  return shared_template.replace("<%content%>", data)
+end
 
-def build_html(data) return "<html><body>${data}</body></html>" end
-def build_tr(key, value) return "<tr><td>${key}</td><td>${value}</td></tr>" end
-
-##
-# GET endpoint controller actions
-##
-
+# GET / handler
 get_index = lambda(req) do
-  content = "<div>The Kiwi Web Server is running.</div>
-             <div>${fs.read("form.html")}</div></body>"
+  content = fs::read("templates/index.html")
   return web.ok(build_html(content), "text/html")
 end
 
-##
-# POST endpoint controller actions
-##
-
-post_index = lambda(req) do
-  body = req["__BODY"], content = body
-  
-  println "Received content from client: ${body}"
-  
-  if req["Content-Type"] == "application/json"
-    body = req["__BODY"].to_h()
-    first_name = body.has_key("firstName") ? body["firstName"] : ""
-    last_name = body.has_key("lastName") ? body["lastName"] : ""
-    content = build_tr(first_name, last_name)
-  end
-
-  return web.ok(content, "text/plain")
+# GET /contact handler
+get_contact = lambda(req) do
+  content = fs::read("templates/contact.html")
+  return web.ok(build_html(content), "text/html")
 end
 
-##
-# Route registration.
-##
+# POST /contact
+post_contact = lambda(req) do
+  body = req["__BODY"], # __BODY is a string
+  params = req["__PARAMETERS"] # __PARAMETERS is a hash
+  
+  println "Received content from client:\nbody: ${body}\nparams: ${params}"
 
+  return web.redirect("/")
+end
+
+# web app routes
 web.get(["/", "/index"], get_index)
-web.post("/post", post_index)
+web.get("/contact", get_contact)
+web.post("/contact", post_contact)
 
-# Configure host and port.
+# static content
+web.public("/", "./public")
+
+# server and port configuration
 host = "0.0.0.0"
 port = 8080
 
-# Start web server.
+# start the web server
 println "Starting Kiwi Web Server at http://${host}:${port}"
 web.listen(host, port)
 ```

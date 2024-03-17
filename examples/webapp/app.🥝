@@ -1,0 +1,46 @@
+import "@kiwi/web" as web
+import "@kiwi/fs" as fs
+
+# HTML helpers
+shared_template = fs::read("templates/shared.html")
+def build_html(data) 
+  return shared_template.replace("<%content%>", data)
+end
+
+# GET / handler
+get_index = lambda(req) do
+  content = fs::read("templates/index.html")
+  return web.ok(build_html(content), "text/html")
+end
+
+# GET /contact handler
+get_contact = lambda(req) do
+  content = fs::read("templates/contact.html")
+  return web.ok(build_html(content), "text/html")
+end
+
+# POST /contact
+post_contact = lambda(req) do
+  body = req["__BODY"], # __BODY is a string
+  params = req["__PARAMETERS"] # __PARAMETERS is a hash
+  
+  println "Received content from client:\nbody: ${body}\nparams: ${params}"
+
+  return web.redirect("/")
+end
+
+# web app routes
+web.get(["/", "/index"], get_index)
+web.get("/contact", get_contact)
+web.post("/contact", post_contact)
+
+# static content
+web.public("/", "./public")
+
+# server and port configuration
+host = "0.0.0.0"
+port = 8080
+
+# start the web server
+println "Starting Kiwi Web Server at http://${host}:${port}"
+web.listen(host, port)
