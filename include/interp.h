@@ -1020,7 +1020,7 @@ class Interpreter {
     return args;
   }
 
-  void handleWebServerRequest(int webhookID, std::shared_ptr<Hash> requestHash, std::string& content, std::string& contentType, int& status) {
+  void handleWebServerRequest(int webhookID, std::shared_ptr<Hash> requestHash, std::string& redirect, std::string& content, std::string& contentType, int& status) {
     auto webhook = kiwiWebServerHooks[webhookID];
     auto webhookFrame = std::make_shared<CallStackFrame>();
 
@@ -1058,6 +1058,13 @@ class Interpreter {
           auto responseHashContent = responseHash->get("status");
           if (std::holds_alternative<k_int>(responseHashContent)) {
             status = static_cast<int>(std::get<k_int>(responseHashContent));
+          }
+        }
+
+        if (responseHash->hasKey("redirect")) {
+          auto responseHashContent = responseHash->get("redirect");
+          if (std::holds_alternative<std::string>(responseHashContent)) {
+            redirect = std::get<std::string>(responseHashContent);
           }
         }
       }
@@ -1140,10 +1147,10 @@ class Interpreter {
       kiwiWebServer.Get(endpoint, [this, webhookID](const httplib::Request & req, httplib::Response &res) {
         auto requestHash = getWebServerRequestHash(req);
 
-        std::string content;
+        std::string content, redirect;
         std::string contentType = "text/plain";
         int status = 500;
-        handleWebServerRequest(webhookID, requestHash, content, contentType, status);
+        handleWebServerRequest(webhookID, requestHash, redirect, content, contentType, status);
         
         res.status = status;
         res.set_content(content, contentType);
@@ -1169,13 +1176,17 @@ class Interpreter {
       kiwiWebServer.Post(endpoint, [this, webhookID](const httplib::Request & req, httplib::Response &res) {
         auto requestHash = getWebServerRequestHash(req);
 
-        std::string content;
+        std::string content, redirect;
         std::string contentType = "text/plain";
         int status = 500;
-        handleWebServerRequest(webhookID, requestHash, content, contentType, status);
+        handleWebServerRequest(webhookID, requestHash, redirect, content, contentType, status);
         
-        res.status = status;
-        res.set_content(content, contentType);
+        if (!redirect.empty()) {
+          res.set_redirect(redirect);
+        } else {
+          res.status = status;
+          res.set_content(content, contentType);
+        }
       });
     }
 
