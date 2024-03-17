@@ -1,6 +1,6 @@
 # Kiwi 🥝
 
-Kiwi is a dynamically-typed, object-oriented programming language designed.
+Kiwi is a dynamically-typed, general-purpose scripting language.
 
 ## Table of Contents
 
