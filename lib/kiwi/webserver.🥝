@@ -1,0 +1,36 @@
+
+module webserver
+  __home__("kiwi")
+
+  def ok(_content, _content_type, _status = 200)
+    return { "content": _content, "content-type": _content_type, "status": _status }
+  end
+
+  def bad(_content, _content_type, _status = 500)
+    return { "content": _content, "content-type": _content_type, "status": _status }
+  end
+
+  def get(_endpoint, _handler)
+    __webserver_get__(_endpoint, _handler)
+    return 0
+  end
+
+  def post(_endpoint, _handler)
+    __webserver_post__(_endpoint, _handler)
+    return 0
+  end
+
+  def listen(_ipaddr = "0.0.0.0", _port = 8080)
+    __webserver_listen__(_ipaddr, _port)
+  end
+  
+  def port()
+    return __webserver_port__()
+  end
+
+  def host()
+    return __webserver_host__()
+  end
+end
+
+export "webserver"
