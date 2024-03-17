@@ -2,6 +2,24 @@
 
 Kiwi is a dynamically-typed, object-oriented programming language designed.
 
+## Table of Contents
+
+1. [Getting Started](#getting-started)
+    1. [Docker](#docker)
+    2. [Linux](#linux-builds)
+        1. [Fedora / RHEL](#fedora--rhel)
+        2. [Ubuntu / Debian](#ubuntu--debian)
+        3. [Installing Kiwi on Linux](#installing-kiwi-on-linux)
+    3. [Windows](#windows-builds)
+    4. [Visual Studio Code Extension](#visual-studio-code-extension)
+2. [Documentation](#documentation)
+    1. [Test Suite](#test-suite)
+    1. [Example Code](#example-code)
+        1. [Project Euler Examples](#project-euler-examples)
+        2. [Example Script](#example-script)
+3. [Contributions](#contributions)
+4. [License](#license)
+
 ## Getting Started
 
 To start using Kiwi, please follow the instructions below. 
@@ -15,7 +33,7 @@ sudo docker build -t kiwi-lang .
 sudo docker run -it -v $(pwd):/workspace kiwi-language
 ```
 
-### Building on Linux
+### Linux Builds
 
 To build Kiwi, use your favorite C++ compiler.
 
@@ -43,7 +61,7 @@ Then build with Make.
 make
 ```
 
-#### Installing Kiwi and Kiwi Standard Library
+#### Installing Kiwi on Linux
 
 Clone and build Kiwi.  Run `sudo make install` to build Kiwi and run the installation script.
 
@@ -53,16 +71,7 @@ cd kiwi
 sudo make install
 ```
 
-#### Visual Studio Code Extension
-
-You can install the [extension](https://marketplace.visualstudio.com/items?itemName=fuseraft.kiwi-lang) for syntax-highlighting in VS Code.
-
-Launch VS Code Quick Open (<kbd>Ctrl</kbd>+<kbd>P</kbd>), paste the following command, and press enter.
-```
-ext install fuseraft.kiwi-lang
-```
-
-#### Building on Windows
+#### Windows Builds
 
 You can find a 64-bit build (named **`kiwi.exe`**) in the latest release.
 
@@ -75,11 +84,22 @@ cd path\to\kiwi
 build.bat
 ```
 
+#### Visual Studio Code Extension
+
+You can install the [extension](https://marketplace.visualstudio.com/items?itemName=fuseraft.kiwi-lang) for syntax-highlighting in VS Code.
+
+Launch VS Code Quick Open (<kbd>Ctrl</kbd>+<kbd>P</kbd>), paste the following command, and press enter.
+```
+ext install fuseraft.kiwi-lang
+```
+
 *Note: The Windows build does not support `.🥝` files (use the `.kiwi` extension).*
 
 ## Documentation
 
 For detailed information on language features, refer to the [docs](docs/README.md).
+
+#### Test Suite
 
 Explore the [tests](tests/) directory for a collection of test scripts. 
 
@@ -91,8 +111,11 @@ make test
 
 #### Example Code
 
+##### Project Euler Examples
+
 For fun, I wrote some [Project Euler examples](examples/project_euler/).
 
+##### Example Script
 Below is a sample script that generates a temporary script and executes it.
 
 ```ruby
