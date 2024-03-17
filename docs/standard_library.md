@@ -10,6 +10,7 @@ The Kiwi Standard Library is a set of modules that enable easier systems program
 | [`@kiwi/math`](lib/math.md) | A module of useful math functions. |
 | [`@kiwi/sys`](lib/sys.md) | A module for working with the OS shell. |
 | [`@kiwi/time`](lib/time.md) | A module with useful date and time functions. |
+| [`@kiwi/web`](lib/web.md) | A module for building web applications. |
 
 # Experimental Modules
 
