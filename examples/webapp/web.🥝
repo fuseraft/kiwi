@@ -1,0 +1,72 @@
+import "@kiwi/webserver" as ws
+import "@kiwi/fs" as fs
+
+##
+# HTML helpers
+##
+
+def build_html(data)
+  return "<html><body>${data}</body></html>"
+end
+
+def build_tr(key, value)
+  return "<tr><td>${key}</td><td>${value}</td></tr>"
+end
+
+def build_table(req)
+  content = ""
+  for key in req.keys() do
+    content += build_tr(key, req[key])
+  end
+  return "<table>${content}</table>"
+end
+
+##
+# GET endpoint controller actions
+##
+
+get_hello = lambda(req) do
+  return ws.ok(build_html(build_table(req))), "text/html")
+end
+
+get_index = lambda(req) do
+  content = "<div>The Kiwi Web Server is running.</div>
+             <div>${fs.read("form.html")}</div></body>"
+  return ws.ok(build_html(content), "text/html")
+end
+
+##
+# POST endpoint controller actions
+##
+
+post_index = lambda(req) do
+  body = req["__BODY"], content = body
+  
+  println "Received content from client: ${body}"
+  
+  if req["Content-Type"] == "application/json"
+    body = req["__BODY"].to_h()
+    first_name = body.has_key("firstName") ? body["firstName"] : ""
+    last_name = body.has_key("lastName") ? body["lastName"] : ""
+    content = build_tr(first_name, last_name)
+  end
+
+  return ws.ok(content, "text/plain")
+end
+
+##
+# Server configuration and startup.
+##
+
+# Route registration.
+ws.get(["/", "/index"], get_index)
+ws.get("/hello", get_hello)
+ws.post("/post", post_index)
+
+# Configure host and port.
+host = "0.0.0.0"
+port = 8080
+
+# Start web server.
+println "Starting Kiwi Web Server at http://${host}:${port}"
+ws.listen(host, port)
