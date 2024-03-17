@@ -30,6 +30,7 @@
     4. [`math`](lib/math.md)
     5. [`sys`](lib/sys.md)
     6. [`time`](lib/time.md)
+    7. [`web`](lib/web.md)
 17. **Experimental Features**
     1. [Concurrency](concurrency.md)
     2. [**Standard Library**](standard_library.md)
