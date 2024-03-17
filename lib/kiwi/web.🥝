@@ -30,6 +30,16 @@ module web
   end
 
   ##
+  Summary: Redirects a request.
+  Params:
+    - _url: The URL to redirect to.
+  Returns: A hash with content, content-type, and status.
+  ##
+  def redirect(_url, _status = 302)
+    return { "redirect": _url, "status": _status }
+  end
+
+  ##
   Summary: Registers a GET endpoint.
   Params:
     - _endpoint: The endpoint to register.
@@ -66,7 +76,7 @@ module web
     - _public_path: The server-side path containing static content to be served.
   ##
   def public(_public_endpoint, _public_path)
-    __webserver_public__(_ipaddr, _port)
+    __webserver_public__(_public_endpoint, _public_path)
   end
 
   ##  
