@@ -1207,6 +1207,24 @@ class Interpreter {
     return kiwiWebServerPort;
   }
 
+  Value interpretWebServerPublic(std::shared_ptr<TokenStream> stream,
+                               std::vector<Value>& args) {
+    if (args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(stream->current(), WebServerBuiltins.Public);
+    }
+
+    auto endpoint = get_string(stream->current(), args.at(0));
+    auto publicDir = get_string(stream->current(), args.at(1));
+
+    if (!File::directoryExists(publicDir)) {
+      return false;
+    }
+
+    kiwiWebServer.set_mount_point(endpoint, publicDir);
+
+    return true;
+  }
+
   Value interpretWebServerHost(std::shared_ptr<TokenStream> stream,
                                std::vector<Value>& args) {
     if (args.size() != 0) {
@@ -1235,6 +1253,9 @@ class Interpreter {
 
       case KName::Builtin_WebServer_Port:
         return interpretWebServerPort(stream, args);
+
+      case KName::Builtin_WebServer_Public:
+        return interpretWebServerPublic(stream, args);
 
       default:
         break;
