@@ -8,7 +8,7 @@ extern bool DEBUG;
 extern bool SILENCE;
 
 extern const std::string kiwi_name = "The Kiwi Programming Language";
-extern const std::string kiwi_version = "1.3.0";
+extern const std::string kiwi_version = "1.3.1";
 extern const std::string kiwi_arg = "kiwi";
 
 #include <unordered_map>
