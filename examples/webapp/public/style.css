@@ -1,0 +1,28 @@
+.fuseraft {
+  background-color: rgb(240, 255, 230) !important; 
+  color: #000 !important;
+}
+
+.hero.is-primary .title {
+  color: #000 !important;
+}
+
+.kiwi-background {
+  background-image: url('images/icon.png');
+  height: 600px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 700px 700px;
+}
+
+/* bulma customizations */
+.navbar-menu.is-active { position: absolute; width: 100%; } 
+.navbar-item:hover {
+  background-color: rgb(240, 255, 230) !important;
+  color: #000 !important;
+}
+
+.subtitle ul.my-list li {
+  margin-bottom: 5px;
+  padding-top: 5px;
+}
