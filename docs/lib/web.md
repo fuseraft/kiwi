@@ -30,6 +30,12 @@ import "@kiwi/web"
   - `_status`: The status code. Defaults to 200.
 - **Returns**: Hash with content, content-type, and status.
 
+### `redirect(_url, _status = 302)`
+- **Summary**: Redirects a request.
+- **Parameters**:
+  - `_content`: The URL to redirect to.
+- **Returns**: Hash with redirect and status.
+
 ### `get(_endpoint, _handler)`
 - **Summary**: Registers a GET endpoint.
 - **Parameters**:
@@ -47,7 +53,6 @@ import "@kiwi/web"
 - **Parameters**:
   - `_ipaddr`: The host. Defaults to 0.0.0.0.
   - `_port`: The port. Defaults to 8080.
-
 
 ### `public(_public_endpoint, _public_path)`
 - **Summary**: Instructs the web server to serve static content.
