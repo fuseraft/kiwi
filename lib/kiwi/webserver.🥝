@@ -1,29 +1,65 @@
+##
+Summary: A module for building web applications.
+##
 
 module webserver
   __home__("kiwi")
 
+  ##
+  Summary: Returns an OK response.
+  Params:
+    - _content: The content to return.
+    - _content_type: The MIME type.
+    - _status: The status code. Defaults to 200.
+  Returns: A hash with content, content-type, and status.
+  ##
   def ok(_content, _content_type, _status = 200)
     return { "content": _content, "content-type": _content_type, "status": _status }
   end
 
+  ##
+  Summary: Returns an BAD response.
+  Params:
+    - _content: The content to return.
+    - _content_type: The MIME type.
+    - _status: The status code. Defaults to 500.
+  Returns: A hash with content, content-type, and status.
+  ##
   def bad(_content, _content_type, _status = 500)
     return { "content": _content, "content-type": _content_type, "status": _status }
   end
 
+  ##
+  Summary: Registers a GET endpoint.
+  Params:
+    - _endpoint: The endpoint to register.
+    - _handler: A request handler lambda.
+  ##
   def get(_endpoint, _handler)
     __webserver_get__(_endpoint, _handler)
-    return 0
   end
 
+  ##
+  Summary: Registers a POST endpoint.
+  Params:
+    - _endpoint: The endpoint to register.
+    - _handler: A request handler lambda.
+  ##
   def post(_endpoint, _handler)
     __webserver_post__(_endpoint, _handler)
-    return 0
   end
 
+  ##
+  Summary: Instructs the web server to listen for HTTP requests.
+  Params:
+    - _ipaddr: The host. Defaults to 0.0.0.0.
+    - _port: The port. Defaults to 8080.
+  ##
   def listen(_ipaddr = "0.0.0.0", _port = 8080)
     __webserver_listen__(_ipaddr, _port)
   end
-  
+
+  ##  
   def port()
     return __webserver_port__()
   end
@@ -31,6 +67,7 @@ module webserver
   def host()
     return __webserver_host__()
   end
+  ##
 end
 
 export "webserver"
