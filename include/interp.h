@@ -1020,6 +1020,229 @@ class Interpreter {
     return args;
   }
 
+  void handleWebServerRequest(int webhookID, std::shared_ptr<Hash> requestHash, std::string& content, std::string& contentType, int& status) {
+    auto webhook = kiwiWebServerHooks[webhookID];
+    auto webhookFrame = std::make_shared<CallStackFrame>();
+
+    for (const auto& param : webhook.getParameters()) {
+      webhookFrame->variables[param] = requestHash;
+      break;
+    }
+
+    auto webhookStream = std::make_shared<TokenStream>(webhook.getCode());
+    callStack.push(webhookFrame);
+    streamStack.push(webhookStream);
+
+    interpretStackFrame();
+
+    if (!callStack.empty()) {
+      auto retValue = callStack.top()->returnValue;
+      if (std::holds_alternative<std::shared_ptr<Hash>>(retValue)) {
+
+        auto responseHash = std::get<std::shared_ptr<Hash>>(retValue);
+        if (responseHash->hasKey("content")) {
+          auto responseHashContent = responseHash->get("content");
+          if (std::holds_alternative<std::string>(responseHashContent)) {
+            content = std::get<std::string>(responseHashContent);
+          }
+        }
+
+        if (responseHash->hasKey("content-type")) {
+          auto responseHashContent = responseHash->get("content-type");
+          if (std::holds_alternative<std::string>(responseHashContent)) {
+            contentType = std::get<std::string>(responseHashContent);
+          }
+        }
+
+        if (responseHash->hasKey("status")) {
+          auto responseHashContent = responseHash->get("status");
+          if (std::holds_alternative<k_int>(responseHashContent)) {
+            status = static_cast<int>(std::get<k_int>(responseHashContent));
+          }
+        }
+      }
+    }
+  }
+
+  std::vector<std::string> getWebServerEndpointList(const Token& term, Value& arg) {
+    std::vector<std::string> endpointList;
+    
+    if (std::holds_alternative<std::string>(arg)) {
+      endpointList.push_back(get_string(term, arg));
+    } else if (std::holds_alternative<std::shared_ptr<List>>(arg)) {
+      auto elements = std::get<std::shared_ptr<List>>(arg)->elements;
+      for (const auto& el : elements) {
+        if (std::holds_alternative<std::string>(el)) {
+          auto endpoint = get_string(term, el);
+          if (std::find(endpointList.begin(), endpointList.end(), endpoint) == endpointList.end()) {
+            endpointList.push_back(endpoint);
+          }
+        }
+      }
+    }
+
+    return endpointList;
+  }
+
+  int getNextWebServerHook(std::shared_ptr<TokenStream> stream,
+                           std::shared_ptr<CallStackFrame> frame,
+                           Value& arg) {
+    if (!std::holds_alternative<std::shared_ptr<LambdaRef>>(arg)) {
+      throw InvalidOperationError(stream->current(), "Expected lambda for second parameter of `" + WebServerBuiltins.Get + "`.");      
+    }
+
+    auto lambdaName = std::get<std::shared_ptr<LambdaRef>>(arg)->identifier;
+    auto method = getMethod(stream, frame, lambdaName);
+    int webhookID = 0;
+
+    if (!kiwiWebServerHooks.empty()) {
+      webhookID = static_cast<int>(kiwiWebServerHooks.size());
+    }
+
+    kiwiWebServerHooks[webhookID] = std::move(method);
+    return webhookID;
+  }
+
+  std::shared_ptr<Hash> getWebServerRequestHash(const httplib::Request & req) {
+    auto requestHash = std::make_shared<Hash>();
+    auto headers = req.headers;
+    auto params = req.params;
+
+    for (auto it = headers.begin(); it != headers.end(); ++it) {
+      const auto &x = *it;
+      requestHash->add(x.first, x.second);
+    }
+
+    auto paramsHash = std::make_shared<Hash>();
+    for (auto it = params.begin(); it != params.end(); ++it) {
+      const auto &x = *it;
+      paramsHash->add(x.first, x.second);
+    }
+    
+    requestHash->add("__PARAMETERS", paramsHash);
+    requestHash->add("__BODY", req.body);
+    return requestHash;
+  }
+
+  Value interpretWebServerGet(std::shared_ptr<TokenStream> stream,
+                              std::shared_ptr<CallStackFrame> frame,
+                              std::vector<Value>& args) {
+    auto term = stream->current();
+
+    if (args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(term, WebServerBuiltins.Get);
+    }
+
+    auto endpointList = getWebServerEndpointList(term, args.at(0));
+    int webhookID = getNextWebServerHook(stream, frame, args.at(1));
+
+    for (const auto& endpoint : endpointList) {
+      kiwiWebServer.Get(endpoint, [this, webhookID](const httplib::Request & req, httplib::Response &res) {
+        auto requestHash = getWebServerRequestHash(req);
+
+        std::string content;
+        std::string contentType = "text/plain";
+        int status = 500;
+        handleWebServerRequest(webhookID, requestHash, content, contentType, status);
+        
+        res.status = status;
+        res.set_content(content, contentType);
+      });
+    }
+
+    return static_cast<k_int>(0);
+  }
+
+  Value interpretWebServerPost(std::shared_ptr<TokenStream> stream,
+                              std::shared_ptr<CallStackFrame> frame,
+                              std::vector<Value>& args) {
+    auto term = stream->current();
+
+    if (args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(term, WebServerBuiltins.Get);
+    }
+
+    auto endpointList = getWebServerEndpointList(term, args.at(0));
+    int webhookID = getNextWebServerHook(stream, frame, args.at(1));
+
+    for (const auto& endpoint : endpointList) {
+      kiwiWebServer.Post(endpoint, [this, webhookID](const httplib::Request & req, httplib::Response &res) {
+        auto requestHash = getWebServerRequestHash(req);
+
+        std::string content;
+        std::string contentType = "text/plain";
+        int status = 500;
+        handleWebServerRequest(webhookID, requestHash, content, contentType, status);
+        
+        res.status = status;
+        res.set_content(content, contentType);
+      });
+    }
+
+    return static_cast<k_int>(0);
+  }
+
+  Value interpretWebServerListen(std::shared_ptr<TokenStream> stream,
+                                 std::vector<Value>& args) {
+    auto term = stream->current();
+
+    if (args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(term, WebServerBuiltins.Listen);
+    }
+
+    kiwiWebServerHost = get_string(term, args.at(0));
+    kiwiWebServerPort = get_integer(term, args.at(1));
+
+    kiwiWebServer.listen(kiwiWebServerHost, static_cast<int>(kiwiWebServerPort));
+
+    return static_cast<k_int>(kiwiWebServerPort);
+  }
+
+  Value interpretWebServerPort(std::shared_ptr<TokenStream> stream,
+                               std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(stream->current(), WebServerBuiltins.Listen);
+    }
+
+    return kiwiWebServerPort;
+  }
+
+  Value interpretWebServerHost(std::shared_ptr<TokenStream> stream,
+                               std::vector<Value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(stream->current(), WebServerBuiltins.Listen);
+    }
+
+    return kiwiWebServerHost;
+  }
+
+  Value interpretWebServerBuiltin(std::shared_ptr<TokenStream> stream,
+                                  std::shared_ptr<CallStackFrame> frame,
+                                  const KName& builtin,
+                                  std::vector<Value>& args) {
+    switch (builtin) {
+      case KName::Builtin_WebServer_Get:
+        return interpretWebServerGet(stream, frame, args);
+
+      case KName::Builtin_WebServer_Post:
+        return interpretWebServerPost(stream, frame, args);
+
+      case KName::Builtin_WebServer_Listen:
+        return interpretWebServerListen(stream, args);
+
+      case KName::Builtin_WebServer_Host:
+        return interpretWebServerHost(stream, args);
+
+      case KName::Builtin_WebServer_Port:
+        return interpretWebServerPort(stream, args);
+
+      default:
+        break;
+    }
+
+    return static_cast<k_int>(0);
+  }
+
   void interpretModuleBuiltin(std::shared_ptr<TokenStream> stream,
                               const std::string& moduleName,
                               const KName& builtin,
@@ -1321,11 +1544,15 @@ class Interpreter {
   Value interpretMethodInvocation(std::shared_ptr<TokenStream> stream,
                                   std::shared_ptr<CallStackFrame> frame,
                                   const std::string& name, bool await = false) {
-    if (stream->current().getType() != KTokenType::OPEN_PAREN) {
+    if (stream->current().getType() == KTokenType::IDENTIFIER) {
       stream->next();  // Skip the name.
     }
 
     auto method = getMethod(stream, frame, name);
+    if (method.isFlagSet(MethodFlags::Lambda) && stream->current().getType() != KTokenType::OPEN_PAREN) {
+      return std::make_shared<LambdaRef>(name);
+    }
+
     auto codeFrame = buildMethodInvocationStackFrame(stream, frame, method);
     if (frame->inObjectContext()) {
       codeFrame->setObjectContext(frame->getObjectContext());
@@ -2411,6 +2638,8 @@ class Interpreter {
       auto moduleName = moduleStack.top();
       interpretModuleBuiltin(stream, moduleName, builtin, args);
       return static_cast<k_int>(0);
+    } else if (WebServerBuiltins.is_builtin(builtin)) {
+      return interpretWebServerBuiltin(stream, frame, builtin, args);
     }
 
     frame->returnValue =

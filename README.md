@@ -17,6 +17,7 @@ Kiwi is a dynamically-typed, general-purpose scripting language.
     1. [Example Code](#example-code)
         1. [Project Euler Examples](#project-euler-examples)
         2. [Example Script](#example-script)
+        3. [Example Web Application](#example-web-application)
 3. [Contributions](#contributions)
 4. [License](#license)
 
@@ -116,7 +117,7 @@ make test
 For fun, I wrote some [Project Euler examples](examples/project_euler/).
 
 #### Example Script
-Below is a sample script that generates a temporary script and executes it.
+Below is an example script that generates a temporary script and executes it.
 
 ```ruby
 import "@kiwi/fs" as fs
@@ -149,6 +150,66 @@ try
 catch (err)
   println "An error occurred: ${err}"
 end
+```
+
+#### Example Web Application
+
+Below is a simple HTTP web application. You can find the application [here](examples/webapp/web.🥝).
+
+```ruby
+import "@kiwi/web" as web
+import "@kiwi/fs" as fs
+
+##
+# HTML helpers
+##
+
+def build_html(data) return "<html><body>${data}</body></html>" end
+def build_tr(key, value) return "<tr><td>${key}</td><td>${value}</td></tr>" end
+
+##
+# GET endpoint controller actions
+##
+
+get_index = lambda(req) do
+  content = "<div>The Kiwi Web Server is running.</div>
+             <div>${fs.read("form.html")}</div></body>"
+  return web.ok(build_html(content), "text/html")
+end
+
+##
+# POST endpoint controller actions
+##
+
+post_index = lambda(req) do
+  body = req["__BODY"], content = body
+  
+  println "Received content from client: ${body}"
+  
+  if req["Content-Type"] == "application/json"
+    body = req["__BODY"].to_h()
+    first_name = body.has_key("firstName") ? body["firstName"] : ""
+    last_name = body.has_key("lastName") ? body["lastName"] : ""
+    content = build_tr(first_name, last_name)
+  end
+
+  return web.ok(content, "text/plain")
+end
+
+##
+# Route registration.
+##
+
+web.get(["/", "/index"], get_index)
+web.post("/post", post_index)
+
+# Configure host and port.
+host = "0.0.0.0"
+port = 8080
+
+# Start web server.
+println "Starting Kiwi Web Server at http://${host}:${port}"
+web.listen(host, port)
 ```
 
 ## Contributions
