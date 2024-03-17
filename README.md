@@ -84,6 +84,8 @@ cd path\to\kiwi
 build.bat
 ```
 
+*Note: The Windows build does not support `.🥝` files (use the `.kiwi` extension).*
+
 #### Visual Studio Code Extension
 
 You can install the [extension](https://marketplace.visualstudio.com/items?itemName=fuseraft.kiwi-lang) for syntax-highlighting in VS Code.
@@ -92,8 +94,6 @@ Launch VS Code Quick Open (<kbd>Ctrl</kbd>+<kbd>P</kbd>), paste the following co
 ```
 ext install fuseraft.kiwi-lang
 ```
-
-*Note: The Windows build does not support `.🥝` files (use the `.kiwi` extension).*
 
 ## Documentation
 
