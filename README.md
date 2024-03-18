@@ -1,6 +1,6 @@
 # Kiwi 🥝
 
-Kiwi is a dynamically-typed, general-purpose scripting language.
+Kiwi is a lightweight, dynamically-typed, general-purpose scripting language.
 
 ## Table of Contents
 
