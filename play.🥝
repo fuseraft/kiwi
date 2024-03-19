@@ -1,1 +1,9 @@
 # This 🥝 script is for experimentation.
+
+import "@kiwi/conf" as conf
+
+config = conf.read("./config/kiwi.conf", "=")
+
+for key in config.keys() do
+  println key + ": " + config[key]
+end
