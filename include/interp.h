@@ -3129,7 +3129,14 @@ class Interpreter {
       }
     }
 
-    if (stream->current().getType() != KTokenType::OPEN_PAREN) {
+    if (stream->current().getType() != KTokenType::OPEN_PAREN) {     
+      if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
+        auto hash = std::get<std::shared_ptr<Hash>>(value);
+        if (hash->hasKey(opText)) {
+          return hash->get(opText);
+        }
+      }
+
       throw SyntaxError(stream->current(),
                         "Expected open-parenthesis, `(`, to invoke builtin or "
                         "method using dot-notation.");
