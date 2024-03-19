@@ -23,6 +23,8 @@ println list.select(lambda(item) do return item["id"] % 2 == 0 end)
 
 ### Assigned Lambdas
 
+You can assign a reference to a lambda for reuse.
+
 ```ruby
 odd_item_id = lambda(item) do
   return item["id"] % 2 != 0
