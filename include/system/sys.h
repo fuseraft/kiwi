@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <string>
 #ifdef _WIN64
+#include <WinSock2.h>
 #include "Windows.h"
 #include <stdio.h>
 #include <stdlib.h>
