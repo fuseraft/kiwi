@@ -11,6 +11,7 @@
 #include "util/glob.h"
 #include "util/string.h"
 #ifdef _WIN64
+#include <WinSock2.h>
 #include "Windows.h"
 #endif
 
