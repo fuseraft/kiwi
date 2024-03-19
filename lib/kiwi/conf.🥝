@@ -34,6 +34,24 @@ module conf
     return _conf_hash
   end
 
+  ##
+  Summary: Reads settings from a `json` file into a hash.
+  Params:
+    - _json_path: The path to a `json` file.
+  Returns: Hash containing settings read from a `json` file. 
+  ##
+  def readjson(_json_path)
+    try
+      if !__isfile__(_json_path)
+        return {}
+      end
+
+      return __readfile__(_json_path).to_h()
+    catch
+      return {}
+    end
+  end
+
   def read_confhash(_conf_path, _delim)
     try
       if !__isfile__(_conf_path)
