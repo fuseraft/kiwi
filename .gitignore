@@ -10,3 +10,4 @@ play.kiwi
 gmon.out
 kiwi_profile*
 benchmark*.kiwi
+pg
