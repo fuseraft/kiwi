@@ -9,19 +9,6 @@ for key in config.keys() do
 end
 
 config.test = "hello"
+config.test = "foobar"
 
-if config.test == "hello"
-  println "pass"
-else
-  println "fail"
-end
-
-class TestClass
-  def initialize()
-  end
-end
-
-t = TestClass.new()
-t.test = "testing"
-t.test = "foobar"
-println t.test
+println config.test
