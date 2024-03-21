@@ -85,9 +85,10 @@ module conf
       _dot_count = 0
       _is_string = false
       _builder = []
+      _digits = "0123456789".chars()
 
       for _c in _value.chars() do
-        if !"0123456789".chars().contains(_c)
+        if !_digits.contains(_c)
           if _c == "."
             _dot_count += 1
           else
