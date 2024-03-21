@@ -1,6 +1,7 @@
 #ifndef KIWI_DB_DATABASE_H
 #define KIWI_DB_DATABASE_H
 
+#ifdef EXPERIMENTAL_FEATURES
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -12,13 +13,13 @@
 #include "typing/value.h"
 
 struct {
-  const std::string HasError = "has_error";
-  const std::string Connected = "connected";
-  const std::string ErrorMessage = "error_msg";
-  const std::string NativeError = "native_error";
-  const std::string SqlState = "sql_state";
-  const std::string Data = "data";
-  const std::string InTransaction = "in_transaction";
+  const k_string HasError = "has_error";
+  const k_string Connected = "connected";
+  const k_string ErrorMessage = "error_msg";
+  const k_string NativeError = "native_error";
+  const k_string SqlState = "sql_state";
+  const k_string Data = "data";
+  const k_string InTransaction = "in_transaction";
 } DatabaseResponseKeys;
 
 class OdbcEnvironment {
@@ -50,7 +51,7 @@ class OdbcConnection {
   OdbcConnection(const OdbcConnection&) = delete;
   OdbcConnection& operator=(const OdbcConnection&) = delete;
 
-  static OdbcConnection& getInstance(const std::string& connectionString) {
+  static OdbcConnection& getInstance(const k_string& connectionString) {
     static std::mutex mutex;
     std::lock_guard<std::mutex> lock(mutex);
     static OdbcConnection instance(connectionString);
@@ -59,7 +60,7 @@ class OdbcConnection {
 
   ~OdbcConnection() { disconnect(); }
 
-  Value beginTransaction() {
+  k_value beginTransaction() {
     if (!connected) {
       return getConnectionError();
     }
@@ -80,7 +81,7 @@ class OdbcConnection {
       return getLastErrorMessage(SQL_HANDLE_DBC, hDbc);
     }
 
-    std::shared_ptr<Hash> result = std::make_shared<Hash>();
+    k_hash result = std::make_shared<Hash>();
     result->add(DatabaseResponseKeys.HasError, false);
     result->add(DatabaseResponseKeys.Connected, connected);
     result->add(DatabaseResponseKeys.InTransaction,
@@ -88,7 +89,7 @@ class OdbcConnection {
     return result;
   }
 
-  Value commitTransaction() {
+  k_value commitTransaction() {
     if (!connected) {
       return getConnectionError();
     }
@@ -100,14 +101,14 @@ class OdbcConnection {
       return getLastErrorMessage(SQL_HANDLE_DBC, hDbc);
     }
 
-    std::shared_ptr<Hash> result = std::make_shared<Hash>();
+    k_hash result = std::make_shared<Hash>();
     result->add(DatabaseResponseKeys.HasError, false);
     result->add(DatabaseResponseKeys.Connected, connected);
     result->add(DatabaseResponseKeys.InTransaction, false);
     return result;
   }
 
-  Value rollbackTransaction() {
+  k_value rollbackTransaction() {
     if (!connected) {
       return getConnectionError();
     }
@@ -119,14 +120,14 @@ class OdbcConnection {
       return getLastErrorMessage(SQL_HANDLE_DBC, hDbc);
     }
 
-    std::shared_ptr<Hash> result = std::make_shared<Hash>();
+    k_hash result = std::make_shared<Hash>();
     result->add(DatabaseResponseKeys.HasError, false);
     result->add(DatabaseResponseKeys.Connected, connected);
     result->add(DatabaseResponseKeys.InTransaction, false);
     return result;
   }
 
-  Value isInTransaction() {
+  k_value isInTransaction() {
     if (!connected) {
       return getConnectionError();
     }
@@ -139,7 +140,7 @@ class OdbcConnection {
       return getLastErrorMessage(SQL_HANDLE_DBC, hDbc);
     }
 
-    std::shared_ptr<Hash> result = std::make_shared<Hash>();
+    k_hash result = std::make_shared<Hash>();
     result->add(DatabaseResponseKeys.HasError, false);
     result->add(DatabaseResponseKeys.Connected, connected);
     result->add(DatabaseResponseKeys.InTransaction,
@@ -147,7 +148,7 @@ class OdbcConnection {
     return result;
   }
 
-  Value executeSql(const std::string& sql) {
+  k_value executeSql(const k_string& sql) {
     if (!connected) {
       return getConnectionError();
     }
@@ -160,13 +161,13 @@ class OdbcConnection {
 
     retCode = SQLExecDirect(hStmt, (SQLCHAR*)sql.c_str(), SQL_NTS);
 
-    Value result = processResultSet(hStmt, retCode);
+    k_value result = processResultSet(hStmt, retCode);
     SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
     return result;
   }
 
-  Value executeStoredProcedure(const std::string& sp,
-                               const std::shared_ptr<List> params) {
+  k_value executeStoredProcedure(const k_string& sp,
+                               const k_list params) {
     if (!connected) {
       return getConnectionError();
     }
@@ -177,7 +178,7 @@ class OdbcConnection {
       return getLastErrorMessage(SQL_HANDLE_DBC, hDbc);
     }
 
-    std::string query = "EXEC " + sanitizeString(sp) + " ";
+    k_string query = "EXEC " + sanitizeString(sp) + " ";
 
     for (const auto& param : params->elements) {
       if (std::holds_alternative<k_int>(param)) {
@@ -186,33 +187,33 @@ class OdbcConnection {
         query += std::to_string(std::get<double>(param)) + ",";
       } else if (std::holds_alternative<bool>(param)) {
         query += std::to_string(std::get<bool>(param)) + ",";
-      } else if (std::holds_alternative<std::string>(param)) {
-        query += "'" + sanitizeString(std::get<std::string>(param)) + "',";
+      } else if (std::holds_alternative<k_string>(param)) {
+        query += "'" + sanitizeString(std::get<k_string>(param)) + "',";
       }
     }
 
     query.pop_back();  // Remove the trailing comma
 
     retCode = SQLExecDirect(hStmt, (SQLCHAR*)query.c_str(), SQL_NTS);
-    Value result = processResultSet(hStmt, retCode);
+    k_value result = processResultSet(hStmt, retCode);
     SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
     return result;
   }
 
-  Value connect() { return _connect(); }
+  k_value connect() { return _connect(); }
 
   bool isConnected() const { return connected; }
 
  private:
-  std::string connectionString;
+  k_string connectionString;
   SQLHENV hEnv;
   SQLHDBC hDbc;
   bool connected = false;
 
-  explicit OdbcConnection(const std::string& connStr)
+  explicit OdbcConnection(const k_string& connStr)
       : connectionString(connStr), hEnv(NULL), hDbc(NULL) {}
 
-  Value _connect() {
+  k_value _connect() {
     // Allocate environment handle
     if (SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &hEnv) != SQL_SUCCESS) {
       return getConnectionError("Failed to allocate ODBC environment handle.");
@@ -248,7 +249,7 @@ class OdbcConnection {
 
     connected = (retCode == SQL_SUCCESS || retCode == SQL_SUCCESS_WITH_INFO);
 
-    std::shared_ptr<Hash> result = std::make_shared<Hash>();
+    k_hash result = std::make_shared<Hash>();
     result->add(DatabaseResponseKeys.HasError, false);
     result->add(DatabaseResponseKeys.Connected, connected);
     return result;
@@ -273,8 +274,8 @@ class OdbcConnection {
         autoCommit ? (void*)SQL_AUTOCOMMIT_ON : (void*)SQL_AUTOCOMMIT_OFF, 0);
   }
 
-  std::string sanitizeString(const std::string& input) {
-    std::string sanitized;
+  k_string sanitizeString(const k_string& input) {
+    k_string sanitized;
     for (char c : input) {
       switch (c) {
         case '\'':
@@ -291,12 +292,12 @@ class OdbcConnection {
     return sanitized;
   }
 
-  Value processResultSet(SQLHSTMT hStmt, RETCODE retCode) {
+  k_value processResultSet(SQLHSTMT hStmt, RETCODE retCode) {
     if (retCode != SQL_SUCCESS && retCode != SQL_SUCCESS_WITH_INFO) {
       return getLastErrorMessage(SQL_HANDLE_DBC, hDbc);
     }
 
-    std::shared_ptr<Hash> result = std::make_shared<Hash>();
+    k_hash result = std::make_shared<Hash>();
     result->add(DatabaseResponseKeys.HasError, false);
     result->add(DatabaseResponseKeys.Connected, connected);
 
@@ -306,9 +307,9 @@ class OdbcConnection {
       return getLastErrorMessage(SQL_HANDLE_DBC, hDbc);
     }
 
-    std::shared_ptr<List> resultList = std::make_shared<List>();
+    k_list resultList = std::make_shared<List>();
     while (SQLFetch(hStmt) == SQL_SUCCESS) {
-      std::shared_ptr<Hash> row = std::make_shared<Hash>();
+      k_hash row = std::make_shared<Hash>();
       for (SQLSMALLINT i = 1; i <= columns; ++i) {
         SQLCHAR columnName[256];
         SQLLEN columnNameLength;
@@ -321,8 +322,8 @@ class OdbcConnection {
                    &columnDataLength);
 
         row->add(
-            std::string(reinterpret_cast<char*>(columnName), columnNameLength),
-            std::string(reinterpret_cast<char*>(columnData), columnDataLength));
+            k_string(reinterpret_cast<char*>(columnName), columnNameLength),
+            k_string(reinterpret_cast<char*>(columnData), columnDataLength));
       }
 
       resultList->elements.push_back(row);
@@ -332,8 +333,8 @@ class OdbcConnection {
     return result;
   }
 
-  Value getLastErrorMessage(SQLSMALLINT handleType, SQLHANDLE handle) {
-    std::shared_ptr<Hash> result = std::make_shared<Hash>();
+  k_value getLastErrorMessage(SQLSMALLINT handleType, SQLHANDLE handle) {
+    k_hash result = std::make_shared<Hash>();
     result->add(DatabaseResponseKeys.HasError, true);
     result->add(DatabaseResponseKeys.Connected, connected);
 
@@ -342,7 +343,7 @@ class OdbcConnection {
     SQLCHAR sqlState[7];
     SQLCHAR messageText[1024];
     SQLSMALLINT textLength;
-    std::string fullErrorMessage;
+    k_string fullErrorMessage;
 
     while (SQLGetDiagRec(handleType, handle, ++i, sqlState, &nativeError,
                          messageText, sizeof(messageText),
@@ -351,7 +352,7 @@ class OdbcConnection {
         fullErrorMessage += " ";
       }
 
-      std::string currentMessage(reinterpret_cast<char*>(messageText),
+      k_string currentMessage(reinterpret_cast<char*>(messageText),
                                  textLength);
       fullErrorMessage += currentMessage;
     }
@@ -359,8 +360,8 @@ class OdbcConnection {
     return result;
   }
 
-  Value getConnectionError(const std::string& message = "") {
-    std::shared_ptr<Hash> result = std::make_shared<Hash>();
+  k_value getConnectionError(const k_string& message = "") {
+    k_hash result = std::make_shared<Hash>();
     result->add(DatabaseResponseKeys.HasError, true);
     result->add(DatabaseResponseKeys.Connected, false);
     result->add(DatabaseResponseKeys.ErrorMessage, message);
@@ -376,7 +377,7 @@ class OdbcStatement {
 
   ~OdbcStatement() { SQLFreeHandle(SQL_HANDLE_STMT, hStmt); }
 
-  void execute(const std::string& sql) {
+  void execute(const k_string& sql) {
     SQLExecDirect(hStmt, (SQLCHAR*)sql.c_str(), SQL_NTS);
   }
 
@@ -384,5 +385,7 @@ class OdbcStatement {
   SQLHDBC hDbc;
   SQLHSTMT hStmt;
 };
+
+#endif
 
 #endif

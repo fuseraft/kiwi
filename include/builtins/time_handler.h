@@ -5,13 +5,13 @@
 #include "math/functions.h"
 #include "parsing/builtins.h"
 #include "parsing/tokens.h"
-#include "system/time.h"
 #include "typing/value.h"
+#include "util/time.h"
 
 class TimeBuiltinHandler {
  public:
-  static Value execute(const Token& term, const KName& builtin,
-                       const std::vector<Value>& args) {
+  static k_value execute(const Token& term, const KName& builtin,
+                       const std::vector<k_value>& args) {
     switch (builtin) {
       case KName::Builtin_Time_Delay:
         return executeDelay(term, args);
@@ -63,7 +63,7 @@ class TimeBuiltinHandler {
   }
 
  private:
-  static Value executeDelay(const Token& term, const std::vector<Value>& args) {
+  static k_value executeDelay(const Token& term, const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, TimeBuiltins.Delay);
     }
@@ -72,8 +72,8 @@ class TimeBuiltinHandler {
     return Time::delay(ms);
   }
 
-  static Value executeEpochMilliseconds(const Token& term,
-                                         const std::vector<Value>& args) {
+  static k_value executeEpochMilliseconds(const Token& term,
+                                        const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term,
                                            TimeBuiltins.EpochMilliseconds);
@@ -82,8 +82,8 @@ class TimeBuiltinHandler {
     return Time::epochMilliseconds();
   }
 
-  static Value executeCurrentHour(const Token& term,
-                                  const std::vector<Value>& args) {
+  static k_value executeCurrentHour(const Token& term,
+                                  const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, TimeBuiltins.Hour);
     }
@@ -91,8 +91,8 @@ class TimeBuiltinHandler {
     return Time::currentHour();
   }
 
-  static Value executeCurrentMinute(const Token& term,
-                                    const std::vector<Value>& args) {
+  static k_value executeCurrentMinute(const Token& term,
+                                    const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, TimeBuiltins.Minute);
     }
@@ -100,7 +100,7 @@ class TimeBuiltinHandler {
     return Time::currentMinute();
   }
 
-  static Value executeAMPM(const Token& term, const std::vector<Value>& args) {
+  static k_value executeAMPM(const Token& term, const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, TimeBuiltins.AMPM);
     }
@@ -108,8 +108,8 @@ class TimeBuiltinHandler {
     return Time::getAMPM();
   }
 
-  static Value executeTicksToMilliseconds(const Token& term,
-                                          const std::vector<Value>& args) {
+  static k_value executeTicksToMilliseconds(const Token& term,
+                                          const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term,
                                            TimeBuiltins.TicksToMilliseconds);
@@ -120,8 +120,8 @@ class TimeBuiltinHandler {
     return Time::ticksToMilliseconds(ticks);
   }
 
-  static Value executeCurrentMonth(const Token& term,
-                                   const std::vector<Value>& args) {
+  static k_value executeCurrentMonth(const Token& term,
+                                   const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, TimeBuiltins.Month);
     }
@@ -129,8 +129,8 @@ class TimeBuiltinHandler {
     return Time::currentMonth();
   }
 
-  static Value executeCurrentMonthDay(const Token& term,
-                                      const std::vector<Value>& args) {
+  static k_value executeCurrentMonthDay(const Token& term,
+                                      const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, TimeBuiltins.MonthDay);
     }
@@ -138,8 +138,8 @@ class TimeBuiltinHandler {
     return Time::currentMonthDay();
   }
 
-  static Value executeCurrentSecond(const Token& term,
-                                    const std::vector<Value>& args) {
+  static k_value executeCurrentSecond(const Token& term,
+                                    const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, TimeBuiltins.Second);
     }
@@ -147,8 +147,8 @@ class TimeBuiltinHandler {
     return Time::currentSecond();
   }
 
-  static Value executeCurrentWeekDay(const Token& term,
-                                     const std::vector<Value>& args) {
+  static k_value executeCurrentWeekDay(const Token& term,
+                                     const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, TimeBuiltins.WeekDay);
     }
@@ -156,8 +156,8 @@ class TimeBuiltinHandler {
     return Time::currentWeekDay();
   }
 
-  static Value executeCurrentYear(const Token& term,
-                                  const std::vector<Value>& args) {
+  static k_value executeCurrentYear(const Token& term,
+                                  const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, TimeBuiltins.Year);
     }
@@ -165,8 +165,8 @@ class TimeBuiltinHandler {
     return Time::currentYear();
   }
 
-  static Value executeCurrentYearDay(const Token& term,
-                                     const std::vector<Value>& args) {
+  static k_value executeCurrentYearDay(const Token& term,
+                                     const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, TimeBuiltins.YearDay);
     }
@@ -174,7 +174,7 @@ class TimeBuiltinHandler {
     return Time::currentYearDay();
   }
 
-  static Value executeTicks(const Token& term, const std::vector<Value>& args) {
+  static k_value executeTicks(const Token& term, const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, TimeBuiltins.Ticks);
     }
@@ -182,7 +182,7 @@ class TimeBuiltinHandler {
     return Time::getTicks();
   }
 
-  static Value executeIsDST(const Token& term, const std::vector<Value>& args) {
+  static k_value executeIsDST(const Token& term, const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, TimeBuiltins.IsDST);
     }

@@ -10,8 +10,8 @@
 
 class EnvBuiltinHandler {
  public:
-  static Value execute(const Token& term, const KName& builtin,
-                       const std::vector<Value>& args) {
+  static k_value execute(const Token& term, const KName& builtin,
+                       const std::vector<k_value>& args) {
     switch (builtin) {
       case KName::Builtin_Env_GetEnvironmentVariable:
         return executeGetEnvironmentVariable(term, args);
@@ -27,40 +27,40 @@ class EnvBuiltinHandler {
   }
 
  private:
-  static Value executeGetEnvironmentVariable(const Token& term,
-                                             const std::vector<Value>& args) {
+  static k_value executeGetEnvironmentVariable(const Token& term,
+                                             const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term,
                                            EnvBuiltins.GetEnvironmentVariable);
     }
 
-    std::string varName = get_string(term, args.at(0));
+    k_string varName = get_string(term, args.at(0));
     const char* varValue = std::getenv(varName.c_str());
 
     if (varValue != nullptr) {
-      return std::string(varValue);
+      return k_string(varValue);
     }
 
     // If it's not there, just return an empty string for now.
     return "";
   }
 
-  static Value executeSetEnvironmentVariable(const Token& term,
-                                             const std::vector<Value>& args) {
+  static k_value executeSetEnvironmentVariable(const Token& term,
+                                             const std::vector<k_value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(term,
                                            EnvBuiltins.SetEnvironmentVariable);
     }
 
-    std::string varName = get_string(term, args.at(0));
-    std::string varValue = get_string(term, args.at(1));
+    k_string varName = get_string(term, args.at(0));
+    k_string varValue = get_string(term, args.at(1));
 
-    #ifdef _WIN64
+#ifdef _WIN64
     _putenv_s(varName.c_str(), varValue.c_str());
     return true;
-    #else
+#else
     return setenv(varName.c_str(), varValue.c_str(), 1) == 0;
-    #endif
+#endif
   }
 };
 

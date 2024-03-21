@@ -85,9 +85,10 @@ module conf
       _dot_count = 0
       _is_string = false
       _builder = []
+      _digits = "0123456789".chars()
 
       for _c in _value.chars() do
-        if !"0123456789".chars().contains(_c)
+        if !_digits.contains(_c)
           if _c == "."
             _dot_count += 1
           else
@@ -106,11 +107,9 @@ module conf
 
       if !_is_string
         if _dot_count == 1
-          _tmp_value = "{\"x\":${_builder.join().to_d()}}".to_h()
-          _ret_val = _tmp_value["x"]
+          _ret_val = _builder.join().to_d()
         else
-          _tmp_value = "{\"x\":${_builder.join().to_i()}}".to_h()
-          _ret_val = _tmp_value["x"]
+          _ret_val = _builder.join().to_i()
         end
       end
     end
