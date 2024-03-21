@@ -8,7 +8,7 @@ Kiwi will print its current version (at the time of writing this, the current ve
 
 ```
 $ kiwi
-The Kiwi Programming Language v1.3.1 REPL
+The Kiwi Programming Language v1.3.2 REPL
 
 Use `go` to execute, `exit` to exit the REPL.
 

@@ -4,15 +4,15 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
-#include "errors/error.h"
 #include "parsing/keywords.h"
 #include "util/file.h"
+#include "tracing/error.h"
 #include "interp.h"
 #include "repl.h"
 
-class InterpSession {
+class Host {
  public:
-  InterpSession(Interpreter& interp) : interp(interp), scripts(), args() {}
+  Host(Interpreter& interp) : interp(interp), scripts(), args() {}
 
   void disableKiwilib() { kiwilibEnabled = false; }
 
@@ -68,11 +68,11 @@ class InterpSession {
 
       if (!kiwilibPath.empty()) {
         std::vector<std::string> kiwilib;
-        #ifdef _WIN64
+#ifdef _WIN64
         kiwilib = File::expandGlob(kiwilibPath + "\\*.kiwi");
-        #else
+#else
         kiwilib = File::expandGlob(kiwilibPath + "/*.🥝");
-        #endif
+#endif
 
         for (const auto& script : kiwilib) {
           loadScript(script);

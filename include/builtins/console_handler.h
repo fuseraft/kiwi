@@ -11,8 +11,8 @@
 
 class ConsoleBuiltinHandler {
  public:
-  static Value execute(const Token& term, const KName& builtin,
-                       const std::vector<Value>& args) {
+  static k_value execute(const Token& term, const KName& builtin,
+                       const std::vector<k_value>& args) {
     switch (builtin) {
       case KName::Builtin_Console_Input:
         return executeInput(term, args);
@@ -28,12 +28,12 @@ class ConsoleBuiltinHandler {
   }
 
  private:
-  static Value executeInput(const Token& term, const std::vector<Value>& args) {
+  static k_value executeInput(const Token& term, const std::vector<k_value>& args) {
     if (args.size() > 1) {
       throw BuiltinUnexpectedArgumentError(term, ConsoleBuiltins.Input);
     }
 
-    std::string userInput;
+    k_string userInput;
     if (args.size() == 1) {
       std::cout << Serializer::serialize(args.at(0));
     }
@@ -42,8 +42,8 @@ class ConsoleBuiltinHandler {
     return userInput;
   }
 
-  static Value executeSilence(const Token& term,
-                              const std::vector<Value>& args) {
+  static k_value executeSilence(const Token& term,
+                              const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, ConsoleBuiltins.Silent);
     }
