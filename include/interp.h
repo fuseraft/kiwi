@@ -3156,9 +3156,11 @@ class Interpreter {
     if (current.getType() != KTokenType::OPEN_PAREN) {
       if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
         auto hash = std::get<std::shared_ptr<Hash>>(value);
-        if (hash->hasKey(callText)) {
+        if (hash->hasKey(callText) && current.getSubType() != KName::Ops_Assign) {
           return hash->get(callText);
-        } else if (current.getSubType() == KName::Ops_Assign) {
+        }
+        
+        if (current.getSubType() == KName::Ops_Assign) {
           stream->next();  // Skip "="
 
           auto value = interpretExpression(stream, frame);
