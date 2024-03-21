@@ -347,7 +347,6 @@ k_string File::getLibraryPath() {
 #endif
 
   if (!fs::exists(kiwilibPath)) {
-    std::cout << "lib path does not exist: " << kiwilibPath << std::endl;
     return "";
   }
 
