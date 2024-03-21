@@ -20,37 +20,37 @@ class HttpClient {
     return instance;
   }
 
-  std::shared_ptr<Hash> get(const std::string& url,
+  std::shared_ptr<Hash> get(const k_string& url,
                             const std::shared_ptr<List>& headers = {}) {
     return performRequest(url, HttpMethod::GET, "", headers);
   }
 
-  std::shared_ptr<Hash> post(const std::string& url, const std::string& body,
+  std::shared_ptr<Hash> post(const k_string& url, const k_string& body,
                              const std::shared_ptr<List>& headers = {}) {
     return performRequest(url, HttpMethod::POST, body, headers);
   }
 
-  std::shared_ptr<Hash> put(const std::string& url, const std::string& body,
+  std::shared_ptr<Hash> put(const k_string& url, const k_string& body,
                             const std::shared_ptr<List>& headers = {}) {
     return performRequest(url, HttpMethod::PUT, body, headers);
   }
 
-  std::shared_ptr<Hash> patch(const std::string& url, const std::string& body,
+  std::shared_ptr<Hash> patch(const k_string& url, const k_string& body,
                               const std::shared_ptr<List>& headers = {}) {
     return performRequest(url, HttpMethod::PATCH, body, headers);
   }
 
-  std::shared_ptr<Hash> del(const std::string& url,
+  std::shared_ptr<Hash> del(const k_string& url,
                             const std::shared_ptr<List>& headers = {}) {
     return performRequest(url, HttpMethod::DELETE, "", headers);
   }
 
-  std::shared_ptr<Hash> head(const std::string& url,
+  std::shared_ptr<Hash> head(const k_string& url,
                              const std::shared_ptr<List>& headers = {}) {
     return performRequest(url, HttpMethod::HEAD, "", headers);
   }
 
-  std::shared_ptr<Hash> options(const std::string& url,
+  std::shared_ptr<Hash> options(const k_string& url,
                                 const std::shared_ptr<List>& headers = {}) {
     return performRequest(url, HttpMethod::OPTIONS, "", headers);
   }
@@ -69,13 +69,13 @@ class HttpClient {
   }
 
   static size_t WriteCallback(void* contents, size_t size, size_t nmemb,
-                              std::string* data) {
+                              k_string* data) {
     data->append((char*)contents, size * nmemb);
     return size * nmemb;
   }
 
   static size_t HeaderCallback(char* buffer, size_t size, size_t nitems,
-                               std::string* data) {
+                               k_string* data) {
     size_t realSize = nitems * size;
     data->append(buffer, realSize);
     return realSize;
@@ -99,8 +99,8 @@ class HttpClient {
   }
 
   std::shared_ptr<Hash> performRequest(
-      const std::string& url, const HttpMethod& method,
-      const std::string& body = "", const std::shared_ptr<List>& headers = {}) {
+      const k_string& url, const HttpMethod& method,
+      const k_string& body = "", const std::shared_ptr<List>& headers = {}) {
     CURL* curl = acquireHandle();
     if (!curl) {
       auto response = std::make_shared<Hash>();
@@ -112,9 +112,9 @@ class HttpClient {
     struct curl_slist* curlHeaders = nullptr;
     bool addHeaders = false;
     for (const auto& header : headers->elements) {
-      if (std::holds_alternative<std::string>(header)) {
+      if (std::holds_alternative<k_string>(header)) {
         curlHeaders = curl_slist_append(curlHeaders,
-                                        std::get<std::string>(header).c_str());
+                                        std::get<k_string>(header).c_str());
         addHeaders = true;
       }
     }
@@ -122,8 +122,8 @@ class HttpClient {
     // Clearing existing options from previous uses
     curl_easy_reset(curl);
 
-    std::string responseBody;
-    std::string responseHeaders;
+    k_string responseBody;
+    k_string responseHeaders;
     long statusCode = 0;
 
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());

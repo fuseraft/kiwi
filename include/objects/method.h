@@ -37,36 +37,36 @@ inline MethodFlags operator~(MethodFlags a) {
 class Parameter {
  public:
   Parameter() {}
-  Parameter(const std::string& name) : _name(name) {}
-  Parameter(const std::string& name, const Value& value)
+  Parameter(const k_string& name) : _name(name) {}
+  Parameter(const k_string& name, const Value& value)
       : _name(name), _value(value) {
     _hasDefaultValue = true;
   }
   ~Parameter() { _value = static_cast<k_int>(0); }
 
-  std::string getName() const { return _name; }
+  k_string getName() const { return _name; }
   Value getValue() { return _value; }
   bool hasDefaultValue() const { return _hasDefaultValue; }
 
  private:
-  std::string _name;
+  k_string _name;
   bool _hasDefaultValue = false;
   Value _value;
 };
 
 class Method {
  public:
-  void addParameterValue(const std::string& paramName, Value value) {
+  void addParameterValue(const k_string& paramName, Value value) {
     parameterKVP[paramName] = value;
   }
 
-  bool hasParameter(const std::string& paramName) const {
+  bool hasParameter(const k_string& paramName) const {
     return parameterKVP.find(paramName) != parameterKVP.end();
   }
 
   bool hasParameters() const { return parameters.size() > 0; }
 
-  Value getParameterValue(const std::string& paramName) {
+  Value getParameterValue(const k_string& paramName) {
     return parameterKVP[paramName];
   }
 
@@ -74,9 +74,9 @@ class Method {
 
   const std::vector<Token>& getCode() const { return code; }
 
-  std::string getName() const { return _name; }
+  k_string getName() const { return _name; }
 
-  void setName(const std::string& name) { _name = name; }
+  void setName(const k_string& name) { _name = name; }
 
   void setFlag(MethodFlags flag) { flags = flags | flag; }
 
@@ -90,32 +90,32 @@ class Method {
     _params[paramName] = std::move(param);
   }
 
-  void addParameter(const std::string& name) {
+  void addParameter(const k_string& name) {
     Parameter param(name);
     addParameter(param);
   }
 
-  void addParameter(const std::string& name, const Value& value) {
+  void addParameter(const k_string& name, const Value& value) {
     Parameter param(name, value);
     addParameter(param);
   }
 
   int getParameterCount() const { return parameters.size(); }
 
-  const std::vector<std::string>& getParameters() const { return parameters; }
+  const std::vector<k_string>& getParameters() const { return parameters; }
 
-  const Parameter& getParameter(const std::string& name) {
+  const Parameter& getParameter(const k_string& name) {
     return _params[name];
   }
 
  private:
-  std::vector<std::string> parameters;
+  std::vector<k_string> parameters;
   std::vector<Token> code;
-  std::string _name;
-  std::unordered_map<std::string, Value> parameterKVP;
+  k_string _name;
+  std::unordered_map<k_string, Value> parameterKVP;
   MethodFlags flags = MethodFlags::None;
 
-  std::unordered_map<std::string, Parameter> _params;
+  std::unordered_map<k_string, Parameter> _params;
 };
 
 #endif

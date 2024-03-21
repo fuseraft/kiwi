@@ -2,13 +2,13 @@
 #define KIWI_INTERPHELPER_H
 
 #include <vector>
-#include "errors/error.h"
 #include "math/visitor.h"
 #include "objects/method.h"
 #include "objects/sliceindex.h"
 #include "parsing/keywords.h"
 #include "parsing/lexer.h"
 #include "parsing/tokens.h"
+#include "tracing/error.h"
 #include "util/string.h"
 #include "stackframe.h"
 

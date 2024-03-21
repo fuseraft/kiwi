@@ -10,8 +10,9 @@
 
 class HttpBuiltinHandler {
  public:
-  static Value execute(const Token& term, const std::string& builtin,
+  static Value execute(const Token& term, const k_string& builtin,
                        const std::vector<Value>& args) {
+    #ifdef EXPERIMENTAL_FEATURES
     switch (builtin) {
       case HttpBuiltins.Delete:
       case HttpBuiltins.Get:
@@ -26,20 +27,22 @@ class HttpBuiltinHandler {
 
       default:
         break;
-    }
+    }*/
 
     throw UnknownBuiltinError(term, builtin);
+    #endif
   }
 
  private:
+  #ifdef EXPERIMENTAL_FEATURES
   static Value executeDeleteGetHeadOptions(const Token& term,
                                            const std::vector<Value>& args,
-                                           const std::string& builtin) {
+                                           const k_string& builtin) {
     if (args.size() < 1 || args.size() > 2) {
       throw BuiltinUnexpectedArgumentError(term, builtin);
     }
 
-    std::string url = get_string(term, args.at(0));
+    k_string url = get_string(term, args.at(0));
     std::shared_ptr<List> headers = {};
 
     if (args.size() == 2) {
@@ -65,13 +68,13 @@ class HttpBuiltinHandler {
 
   static Value executePatchPostPut(const Token& term,
                                    const std::vector<Value>& args,
-                                   const std::string& builtin) {
+                                   const k_string& builtin) {
     if (args.size() < 1 || args.size() > 3) {
       throw BuiltinUnexpectedArgumentError(term, builtin);
     }
 
-    std::string url = get_string(term, args.at(0));
-    std::string body = Serializer::serialize(args.at(1));
+    k_string url = get_string(term, args.at(0));
+    k_string body = Serializer::serialize(args.at(1));
     std::shared_ptr<List> headers = {};
 
     if (args.size() == 3) {
@@ -92,6 +95,7 @@ class HttpBuiltinHandler {
 
     throw UnknownBuiltinError(term, builtin);
   }
+  #endif
 };
 
 #endif

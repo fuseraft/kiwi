@@ -33,7 +33,7 @@ class ConsoleBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, ConsoleBuiltins.Input);
     }
 
-    std::string userInput;
+    k_string userInput;
     if (args.size() == 1) {
       std::cout << Serializer::serialize(args.at(0));
     }

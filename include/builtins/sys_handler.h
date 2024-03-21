@@ -5,7 +5,7 @@
 #include "parsing/builtins.h"
 #include "parsing/tokens.h"
 #include "typing/value.h"
-#include "system/sys.h"
+#include "util/sys.h"
 
 class SysBuiltinHandler {
  public:
@@ -43,7 +43,7 @@ class SysBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, SysBuiltins.Exec);
     }
 
-    std::string command = get_string(term, args.at(0));
+    k_string command = get_string(term, args.at(0));
     return Sys::exec(command);
   }
 
@@ -53,7 +53,7 @@ class SysBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, SysBuiltins.Exec);
     }
 
-    std::string command = get_string(term, args.at(0));
+    k_string command = get_string(term, args.at(0));
     return Sys::execOut(command);
   }
 };

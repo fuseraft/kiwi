@@ -4,50 +4,51 @@
 #include <string>
 #include <unordered_set>
 #include "parsing/tokentype.h"
+#include "typing/value.h"
 
 struct {
-  const std::string Qualifier = "::";
+  const k_string Qualifier = "::";
 } Symbols;
 
 struct {
-  const std::string Add = "+";
-  const std::string AddAssign = "+=";
-  const std::string Assign = "=";
-  const std::string Divide = "/";
-  const std::string DivideAssign = "/=";
-  const std::string Equal = "==";
-  const std::string Exponent = "**";
-  const std::string ExponentAssign = "**=";
-  const std::string GreaterThan = ">";
-  const std::string GreaterThanOrEqual = ">=";
-  const std::string LessThan = "<";
-  const std::string LessThanOrEqual = "<=";
-  const std::string ModuloAssign = "%=";
-  const std::string Modulus = "%";
-  const std::string Multiply = "*";
-  const std::string MultiplyAssign = "*=";
-  const std::string NotEqual = "!=";
-  const std::string Subtract = "-";
-  const std::string SubtractAssign = "-=";
-  const std::string Or = "||";
-  const std::string OrAssign = "||=";
-  const std::string And = "&&";
-  const std::string AndAssign = "&&=";
-  const std::string Not = "!";
-  const std::string BitwiseOr = "|";
-  const std::string BitwiseOrAssign = "|=";
-  const std::string BitwiseAnd = "&";
-  const std::string BitwiseAndAssign = "&=";
-  const std::string BitwiseXor = "^";
-  const std::string BitwiseXorAssign = "^=";
-  const std::string BitwiseNot = "~";
-  const std::string BitwiseNotAssign = "~=";
-  const std::string BitwiseLeftShift = "<<";
-  const std::string BitwiseLeftShiftAssign = "<<=";
-  const std::string BitwiseRightShift = ">>";
-  const std::string BitwiseRightShiftAssign = ">>=";
+  const k_string Add = "+";
+  const k_string AddAssign = "+=";
+  const k_string Assign = "=";
+  const k_string Divide = "/";
+  const k_string DivideAssign = "/=";
+  const k_string Equal = "==";
+  const k_string Exponent = "**";
+  const k_string ExponentAssign = "**=";
+  const k_string GreaterThan = ">";
+  const k_string GreaterThanOrEqual = ">=";
+  const k_string LessThan = "<";
+  const k_string LessThanOrEqual = "<=";
+  const k_string ModuloAssign = "%=";
+  const k_string Modulus = "%";
+  const k_string Multiply = "*";
+  const k_string MultiplyAssign = "*=";
+  const k_string NotEqual = "!=";
+  const k_string Subtract = "-";
+  const k_string SubtractAssign = "-=";
+  const k_string Or = "||";
+  const k_string OrAssign = "||=";
+  const k_string And = "&&";
+  const k_string AndAssign = "&&=";
+  const k_string Not = "!";
+  const k_string BitwiseOr = "|";
+  const k_string BitwiseOrAssign = "|=";
+  const k_string BitwiseAnd = "&";
+  const k_string BitwiseAndAssign = "&=";
+  const k_string BitwiseXor = "^";
+  const k_string BitwiseXorAssign = "^=";
+  const k_string BitwiseNot = "~";
+  const k_string BitwiseNotAssign = "~=";
+  const k_string BitwiseLeftShift = "<<";
+  const k_string BitwiseLeftShiftAssign = "<<=";
+  const k_string BitwiseRightShift = ">>";
+  const k_string BitwiseRightShiftAssign = ">>=";
 
-  std::unordered_set<std::string> large_operators = {
+  std::unordered_set<k_string> large_operators = {
       Exponent, Or, And, BitwiseLeftShift, BitwiseRightShift};
 
   std::unordered_set<char> arithmetic_operator_chars = {'+', '-', '/', '*',
@@ -74,20 +75,20 @@ struct {
       KName::Ops_BitwiseLeftShiftAssign,
       KName::Ops_BitwiseRightShiftAssign};
 
-  std::unordered_set<std::string> arithmetic_operators = {
+  std::unordered_set<k_string> arithmetic_operators = {
       Add, Subtract, Multiply, Divide, Exponent, Modulus};
 
-  std::unordered_set<std::string> relational_operators = {
+  std::unordered_set<k_string> relational_operators = {
       Equal,           NotEqual,    LessThan,
       LessThanOrEqual, GreaterThan, GreaterThanOrEqual};
 
-  std::unordered_set<std::string> logical_operators = {And, Or, Not};
+  std::unordered_set<k_string> logical_operators = {And, Or, Not};
 
-  std::unordered_set<std::string> bitwise_operators = {
+  std::unordered_set<k_string> bitwise_operators = {
       BitwiseAnd, BitwiseOr,        BitwiseXor,
       BitwiseNot, BitwiseLeftShift, BitwiseRightShift};
 
-  bool is_large_operator(const std::string& arg) {
+  bool is_large_operator(const k_string& arg) {
     return large_operators.find(arg) != large_operators.end();
   }
 
@@ -110,71 +111,71 @@ struct {
 } Operators;
 
 struct {
-  const std::string Abstract = "abstract";
-  const std::string As = "as";
-  const std::string Async = "async";
-  const std::string Await = "await";
-  const std::string Break = "break";
-  const std::string Catch = "catch";
-  const std::string Class = "class";
-  const std::string Ctor = "initialize";
-  const std::string Delete = "delete";
-  const std::string Do = "do";
-  const std::string Each = "each";
-  const std::string Else = "else";
-  const std::string ElseIf = "elsif";
-  const std::string End = "end";
-  const std::string Exit = "exit";
-  const std::string Export = "export";
-  const std::string False = "false";
-  const std::string For = "for";
-  const std::string Go = "go";
-  const std::string If = "if";
-  const std::string Import = "import";
-  const std::string In = "in";
-  const std::string Lambda = "lambda";
-  const std::string Method = "def";
-  const std::string Module = "module";
-  const std::string New = "new";
-  const std::string Next = "next";
-  const std::string Override = "override";
-  const std::string Pass = "pass";
-  const std::string Print = "print";
-  const std::string PrintLn = "println";
-  const std::string Private = "private";
-  const std::string Return = "return";
-  const std::string Static = "static";
-  const std::string Then = "then";
-  const std::string This = "this";
-  const std::string Throw = "throw";
-  const std::string True = "true";
-  const std::string Try = "try";
-  const std::string kiwiApp = "kiwi";
-  const std::string While = "while";
+  const k_string Abstract = "abstract";
+  const k_string As = "as";
+  const k_string Async = "async";
+  const k_string Await = "await";
+  const k_string Break = "break";
+  const k_string Catch = "catch";
+  const k_string Class = "class";
+  const k_string Ctor = "initialize";
+  const k_string Delete = "delete";
+  const k_string Do = "do";
+  const k_string Each = "each";
+  const k_string Else = "else";
+  const k_string ElseIf = "elsif";
+  const k_string End = "end";
+  const k_string Exit = "exit";
+  const k_string Export = "export";
+  const k_string False = "false";
+  const k_string For = "for";
+  const k_string Go = "go";
+  const k_string If = "if";
+  const k_string Import = "import";
+  const k_string In = "in";
+  const k_string Lambda = "lambda";
+  const k_string Method = "def";
+  const k_string Module = "module";
+  const k_string New = "new";
+  const k_string Next = "next";
+  const k_string Override = "override";
+  const k_string Pass = "pass";
+  const k_string Print = "print";
+  const k_string PrintLn = "println";
+  const k_string Private = "private";
+  const k_string Return = "return";
+  const k_string Static = "static";
+  const k_string Then = "then";
+  const k_string This = "this";
+  const k_string Throw = "throw";
+  const k_string True = "true";
+  const k_string Try = "try";
+  const k_string kiwiApp = "kiwi";
+  const k_string While = "while";
 
-  std::unordered_set<std::string> keywords = {
+  std::unordered_set<k_string> keywords = {
       Abstract, As,     Async,   Await,   Break,  Catch,  Class, Delete,
       Do,       Else,   ElseIf,  End,     Exit,   Export, False, For,
       If,       Import, In,      Lambda,  Method, Module, Next,  Override,
       Pass,     Print,  PrintLn, Private, Return, Static, Then,  This,
       Throw,    True,   Try,     While};
 
-  std::unordered_set<std::string> conditional_keywords = {If, Else, ElseIf,
+  std::unordered_set<k_string> conditional_keywords = {If, Else, ElseIf,
                                                           End};
 
   std::unordered_set<KName> block_keywords = {
       KName::KW_While,  KName::KW_For, KName::KW_Method, KName::KW_If,
       KName::KW_Module, KName::KW_Try, KName::KW_Class,  KName::KW_Lambda};
 
-  bool is_keyword(const std::string& arg) {
+  bool is_keyword(const k_string& arg) {
     return keywords.find(arg) != keywords.end();
   }
 
-  bool is_boolean(const std::string& arg) {
+  bool is_boolean(const k_string& arg) {
     return arg == True || arg == False;
   }
 
-  bool is_conditional_keyword(const std::string& arg) {
+  bool is_conditional_keyword(const k_string& arg) {
     return conditional_keywords.find(arg) != conditional_keywords.end();
   }
 
@@ -188,20 +189,20 @@ struct {
 } Keywords;
 
 struct {
-  const std::string Integer = "Integer";
-  const std::string Double = "Double";
-  const std::string Boolean = "Boolean";
-  const std::string String = "String";
-  const std::string List = "List";
-  const std::string Hash = "Hash";
-  const std::string Object = "Object";
-  const std::string Lambda = "Lambda";
-  const std::string None = "None";
+  const k_string Integer = "Integer";
+  const k_string Double = "Double";
+  const k_string Boolean = "Boolean";
+  const k_string String = "String";
+  const k_string List = "List";
+  const k_string Hash = "Hash";
+  const k_string Object = "Object";
+  const k_string Lambda = "Lambda";
+  const k_string None = "None";
 
-  std::unordered_set<std::string> typenames = {
+  std::unordered_set<k_string> typenames = {
       Integer, Double, Boolean, String, List, Hash, Object, Lambda, None};
 
-  bool is_typename(const std::string& arg) {
+  bool is_typename(const k_string& arg) {
     return typenames.find(arg) != typenames.end();
   }
 } TypeNames;

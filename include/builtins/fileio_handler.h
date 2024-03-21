@@ -259,7 +259,7 @@ class FileIOBuiltinHandler {
                                            FileIOBuiltIns.GetFileExtension);
     }
 
-    std::string fileName = get_string(token, args.at(0));
+    k_string fileName = get_string(token, args.at(0));
     return File::getFileExtension(fileName);
   }
 

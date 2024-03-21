@@ -5,8 +5,8 @@
 #include "math/functions.h"
 #include "parsing/builtins.h"
 #include "parsing/tokens.h"
-#include "system/time.h"
 #include "typing/value.h"
+#include "util/time.h"
 
 class TimeBuiltinHandler {
  public:

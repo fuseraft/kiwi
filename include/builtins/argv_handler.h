@@ -14,7 +14,7 @@ class ArgvBuiltinHandler {
  public:
   static Value execute(
       const Token& term, const KName& builtin, const std::vector<Value>& args,
-      const std::unordered_map<std::string, std::string>& kiwiArgs) {
+      const std::unordered_map<k_string, k_string>& kiwiArgs) {
     switch (builtin) {
       case KName::Builtin_Argv_GetArgv:
         return executeGetArgv(term, args, kiwiArgs);
@@ -32,7 +32,7 @@ class ArgvBuiltinHandler {
  private:
   static Value executeGetArgv(
       const Token& term, const std::vector<Value>& args,
-      const std::unordered_map<std::string, std::string>& kiwiArgs) {
+      const std::unordered_map<k_string, k_string>& kiwiArgs) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, ArgvBuiltins.GetArgv);
     }
@@ -50,12 +50,12 @@ class ArgvBuiltinHandler {
 
   static Value executeGetXarg(
       const Token& term, const std::vector<Value>& args,
-      const std::unordered_map<std::string, std::string>& kiwiArgs) {
+      const std::unordered_map<k_string, k_string>& kiwiArgs) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, ArgvBuiltins.GetXarg);
     }
 
-    std::string xargName = get_string(term, args.at(0));
+    k_string xargName = get_string(term, args.at(0));
 
     for (const auto& pair : kiwiArgs) {
       if (pair.first == xargName) {

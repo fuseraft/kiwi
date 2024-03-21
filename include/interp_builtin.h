@@ -17,7 +17,7 @@
 #include "builtins/http_handler.h"
 #include "builtins/odbc_handler.h"
 #endif
-#include "errors/error.h"
+#include "tracing/error.h"
 #include "parsing/builtins.h"
 #include "typing/value.h"
 
@@ -25,7 +25,7 @@ class BuiltinInterpreter {
  public:
   static Value execute(
       const Token& term, const KName& builtin, const std::vector<Value>& args,
-      const std::unordered_map<std::string, std::string>& kiwiArgs) {
+      const std::unordered_map<k_string, k_string>& kiwiArgs) {
     if (FileIOBuiltIns.is_builtin(builtin)) {
       return FileIOBuiltinHandler::execute(term, builtin, args);
     } else if (TimeBuiltins.is_builtin(builtin)) {

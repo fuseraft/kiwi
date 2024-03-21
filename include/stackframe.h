@@ -5,10 +5,10 @@
 #include <string>
 #include <type_traits>
 #include <unordered_map>
-#include "errors/error.h"
-#include "errors/state.h"
 #include "objects/method.h"
 #include "parsing/tokens.h"
+#include "tracing/error.h"
+#include "tracing/state.h"
 #include "typing/value.h"
 
 enum class FrameFlags : uint8_t {
@@ -37,8 +37,8 @@ inline FrameFlags operator~(FrameFlags a) {
 }
 
 struct CallStackFrame {
-  std::unordered_map<std::string, Value> variables;
-  std::unordered_map<std::string, Method> lambdas;
+  std::unordered_map<k_string, Value> variables;
+  std::unordered_map<k_string, Method> lambdas;
   Value returnValue;
   ErrorState errorState;
   std::shared_ptr<Object> objectContext;
@@ -50,21 +50,21 @@ struct CallStackFrame {
     lambdas.clear();
   }
 
-  void assignLambda(const std::string& name, const Method& method) {
+  void assignLambda(const k_string& name, const Method& method) {
     lambdas[name] = std::move(method);
   }
-  bool hasAssignedLambda(const std::string& name) const {
+  bool hasAssignedLambda(const k_string& name) const {
     return lambdas.find(name) != lambdas.end();
   }
-  Method& getAssignedLambda(const std::string& name) { return lambdas[name]; }
+  Method& getAssignedLambda(const k_string& name) { return lambdas[name]; }
 
-  bool hasVariable(const std::string& name) const {
+  bool hasVariable(const k_string& name) const {
     return variables.find(name) != variables.end();
   }
 
   void setErrorState(const KiwiError& e) { errorState.setError(e); }
   bool isErrorStateSet() const { return errorState.isErrorSet(); }
-  std::string getErrorMessage() const { return errorState.error.getMessage(); }
+  k_string getErrorMessage() const { return errorState.error.getMessage(); }
   ErrorState getErrorState() const { return errorState; }
   void clearErrorState() { errorState.clearError(); }
 

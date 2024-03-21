@@ -6,15 +6,15 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "errors/error.h"
 #include "math/functions.h"
 #include "parsing/builtins.h"
 #include "parsing/tokens.h"
-#include "util/file.h"
-#include "util/string.h"
-#include "system/time.h"
+#include "tracing/error.h"
 #include "typing/serializer.h"
 #include "typing/value.h"
+#include "util/file.h"
+#include "util/string.h"
+#include "util/time.h"
 
 class CoreBuiltinHandler {
  public:
@@ -118,9 +118,9 @@ class CoreBuiltinHandler {
     }
 
     auto newList = std::make_shared<List>();
-    std::string stringValue = get_string(term, value);
+    k_string stringValue = get_string(term, value);
     for (char c : stringValue) {
-      newList->elements.push_back(std::string(1, c));
+      newList->elements.push_back(k_string(1, c));
     }
     return newList;
   }
@@ -139,7 +139,7 @@ class CoreBuiltinHandler {
 
     auto list = std::get<std::shared_ptr<List>>(value);
     std::ostringstream sv;
-    std::string joiner;
+    k_string joiner;
 
     if (argSize == 1) {
       joiner = get_string(term, args.at(0));
@@ -161,8 +161,8 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Size);
     }
 
-    if (std::holds_alternative<std::string>(value)) {
-      return static_cast<k_int>(std::get<std::string>(value).length());
+    if (std::holds_alternative<k_string>(value)) {
+      return static_cast<k_int>(std::get<k_string>(value).length());
     } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
       return static_cast<k_int>(
           std::get<std::shared_ptr<List>>(value)->elements.size());
@@ -179,8 +179,8 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.ToD);
     }
 
-    if (std::holds_alternative<std::string>(value)) {
-      std::string stringValue = std::get<std::string>(value);
+    if (std::holds_alternative<k_string>(value)) {
+      k_string stringValue = std::get<k_string>(value);
       double doubleValue = 0;
       auto [ptr, ec] =
           std::from_chars(stringValue.data(),
@@ -207,8 +207,8 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.ToI);
     }
 
-    if (std::holds_alternative<std::string>(value)) {
-      std::string stringValue = std::get<std::string>(value);
+    if (std::holds_alternative<k_string>(value)) {
+      k_string stringValue = std::get<k_string>(value);
       int intValue = 0;
       auto [ptr, ec] =
           std::from_chars(stringValue.data(),
@@ -244,16 +244,16 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Split);
     }
 
-    std::string input = get_string(term, value);
+    k_string input = get_string(term, value);
     auto delimiter = get_string(term, args.at(0));
     auto newList = std::make_shared<List>();
 
     if (delimiter.empty()) {
       for (char c : input) {
-        newList->elements.push_back(std::string(1, c));
+        newList->elements.push_back(k_string(1, c));
       }
     } else {
-      for (std::string token : String::split(input, delimiter)) {
+      for (k_string token : String::split(input, delimiter)) {
         newList->elements.push_back(token);
       }
     }
@@ -267,7 +267,7 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.LeftTrim);
     }
 
-    std::string input = get_string(term, value);
+    k_string input = get_string(term, value);
     return String::trimLeft(input);
   }
 
@@ -277,7 +277,7 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.RightTrim);
     }
 
-    std::string input = get_string(term, value);
+    k_string input = get_string(term, value);
     return String::trimRight(input);
   }
 
@@ -287,7 +287,7 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Trim);
     }
 
-    std::string input = get_string(term, value);
+    k_string input = get_string(term, value);
     return String::trim(input);
   }
 
@@ -369,7 +369,7 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Contains);
     }
 
-    if (std::holds_alternative<std::string>(value)) {
+    if (std::holds_alternative<k_string>(value)) {
       return executeStringContains(term, value, args.at(0));
     } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
       return executeListContains(value, args.at(0));
@@ -420,7 +420,7 @@ class CoreBuiltinHandler {
            (typeName == TypeNames.Lambda &&
             std::holds_alternative<std::shared_ptr<LambdaRef>>(value)) ||
            (typeName == TypeNames.String &&
-            std::holds_alternative<std::string>(value));
+            std::holds_alternative<k_string>(value));
   }
 
   static Value executeReplace(const Token& term, const Value& value,
@@ -441,8 +441,8 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Reverse);
     }
 
-    if (std::holds_alternative<std::string>(value)) {
-      auto s = std::get<std::string>(value);
+    if (std::holds_alternative<k_string>(value)) {
+      auto s = std::get<k_string>(value);
       std::reverse(s.begin(), s.end());
       return s;
     } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
@@ -464,8 +464,8 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.IndexOf);
     }
 
-    if (std::holds_alternative<std::string>(value)) {
-      return static_cast<k_int>(String::indexOf(std::get<std::string>(value),
+    if (std::holds_alternative<k_string>(value)) {
+      return static_cast<k_int>(String::indexOf(std::get<k_string>(value),
                                                 get_string(term, args.at(0))));
     } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
       return indexof_listvalue(std::get<std::shared_ptr<List>>(value),
@@ -483,9 +483,9 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.LastIndexOf);
     }
 
-    if (std::holds_alternative<std::string>(value)) {
+    if (std::holds_alternative<k_string>(value)) {
       return static_cast<k_int>(String::lastIndexOf(
-          std::get<std::string>(value), get_string(term, args.at(0))));
+          std::get<k_string>(value), get_string(term, args.at(0))));
     } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
       return lastindexof_listvalue(std::get<std::shared_ptr<List>>(value),
                                    args.at(0));
@@ -520,8 +520,8 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Empty);
     }
 
-    if (std::holds_alternative<std::string>(value)) {
-      return std::get<std::string>(value).empty();
+    if (std::holds_alternative<k_string>(value)) {
+      return std::get<k_string>(value).empty();
     } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
       return std::get<std::shared_ptr<List>>(value)->elements.empty();
     } else if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {

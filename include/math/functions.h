@@ -5,16 +5,16 @@
 #include <limits>
 #include <memory>
 #include <sstream>
-#include "errors/error.h"
 #include "parsing/tokens.h"
+#include "tracing/error.h"
 #include "typing/value.h"
 #include "rng.h"
 
-static std::string get_string(const Token& term, const Value& arg) {
-  if (!std::holds_alternative<std::string>(arg)) {
+static k_string get_string(const Token& term, const Value& arg) {
+  if (!std::holds_alternative<k_string>(arg)) {
     throw ConversionError(term, "Expected a String value.");
   }
-  return std::get<std::string>(arg);
+  return std::get<k_string>(arg);
 }
 
 static k_int get_integer(const Token& term, const Value& arg) {
@@ -66,9 +66,9 @@ struct {
                std::holds_alternative<k_int>(right)) {
       result =
           std::get<double>(left) + static_cast<double>(std::get<k_int>(right));
-    } else if (std::holds_alternative<std::string>(left)) {
+    } else if (std::holds_alternative<k_string>(left)) {
       std::ostringstream build;
-      build << std::get<std::string>(left);
+      build << std::get<k_string>(left);
 
       if (std::holds_alternative<k_int>(right)) {
         build << std::get<k_int>(right);
@@ -76,8 +76,8 @@ struct {
         build << std::get<double>(right);
       } else if (std::holds_alternative<bool>(right)) {
         build << std::boolalpha << std::get<bool>(right);
-      } else if (std::holds_alternative<std::string>(right)) {
-        build << std::get<std::string>(right);
+      } else if (std::holds_alternative<k_string>(right)) {
+        build << std::get<k_string>(right);
       }
 
       result = build.str();
@@ -248,7 +248,7 @@ struct {
                std::holds_alternative<k_int>(right)) {
       return std::get<double>(left) *
              static_cast<double>(std::get<k_int>(right));
-    } else if (std::holds_alternative<std::string>(left) &&
+    } else if (std::holds_alternative<k_string>(left) &&
                std::holds_alternative<k_int>(right)) {
       return do_string_multiplication(token, left, right);
     } else if (std::holds_alternative<std::shared_ptr<List>>(left) &&
@@ -286,7 +286,7 @@ struct {
 
   Value do_string_multiplication(const Token& token, const Value& left,
                                  const Value& right) {
-    auto string = std::get<std::string>(left);
+    auto string = std::get<k_string>(left);
     int multiplier = std::get<k_int>(right);
 
     if (multiplier < 1) {
@@ -587,9 +587,9 @@ struct {
 
   Value __random__(const Token& token, const Value& valueX,
                    const Value& valueY) {
-    if (std::holds_alternative<std::string>(valueX)) {
+    if (std::holds_alternative<k_string>(valueX)) {
       auto limit = get_integer(token, valueY);
-      return RNG::getInstance().randomString(std::get<std::string>(valueX),
+      return RNG::getInstance().randomString(std::get<k_string>(valueX),
                                              limit);
     }
 

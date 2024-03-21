@@ -4,10 +4,10 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "errors/error.h"
-#include "errors/handler.h"
-#include "interp.h"
 #include "parsing/keywords.h"
+#include "tracing/error.h"
+#include "tracing/handler.h"
+#include "interp.h"
 
 #ifdef _WIN64
 #include <conio.h>
