@@ -60,7 +60,7 @@ class OdbcConnection {
 
   ~OdbcConnection() { disconnect(); }
 
-  Value beginTransaction() {
+  k_value beginTransaction() {
     if (!connected) {
       return getConnectionError();
     }
@@ -81,7 +81,7 @@ class OdbcConnection {
       return getLastErrorMessage(SQL_HANDLE_DBC, hDbc);
     }
 
-    std::shared_ptr<Hash> result = std::make_shared<Hash>();
+    k_hash result = std::make_shared<Hash>();
     result->add(DatabaseResponseKeys.HasError, false);
     result->add(DatabaseResponseKeys.Connected, connected);
     result->add(DatabaseResponseKeys.InTransaction,
@@ -89,7 +89,7 @@ class OdbcConnection {
     return result;
   }
 
-  Value commitTransaction() {
+  k_value commitTransaction() {
     if (!connected) {
       return getConnectionError();
     }
@@ -101,14 +101,14 @@ class OdbcConnection {
       return getLastErrorMessage(SQL_HANDLE_DBC, hDbc);
     }
 
-    std::shared_ptr<Hash> result = std::make_shared<Hash>();
+    k_hash result = std::make_shared<Hash>();
     result->add(DatabaseResponseKeys.HasError, false);
     result->add(DatabaseResponseKeys.Connected, connected);
     result->add(DatabaseResponseKeys.InTransaction, false);
     return result;
   }
 
-  Value rollbackTransaction() {
+  k_value rollbackTransaction() {
     if (!connected) {
       return getConnectionError();
     }
@@ -120,14 +120,14 @@ class OdbcConnection {
       return getLastErrorMessage(SQL_HANDLE_DBC, hDbc);
     }
 
-    std::shared_ptr<Hash> result = std::make_shared<Hash>();
+    k_hash result = std::make_shared<Hash>();
     result->add(DatabaseResponseKeys.HasError, false);
     result->add(DatabaseResponseKeys.Connected, connected);
     result->add(DatabaseResponseKeys.InTransaction, false);
     return result;
   }
 
-  Value isInTransaction() {
+  k_value isInTransaction() {
     if (!connected) {
       return getConnectionError();
     }
@@ -140,7 +140,7 @@ class OdbcConnection {
       return getLastErrorMessage(SQL_HANDLE_DBC, hDbc);
     }
 
-    std::shared_ptr<Hash> result = std::make_shared<Hash>();
+    k_hash result = std::make_shared<Hash>();
     result->add(DatabaseResponseKeys.HasError, false);
     result->add(DatabaseResponseKeys.Connected, connected);
     result->add(DatabaseResponseKeys.InTransaction,
@@ -148,7 +148,7 @@ class OdbcConnection {
     return result;
   }
 
-  Value executeSql(const k_string& sql) {
+  k_value executeSql(const k_string& sql) {
     if (!connected) {
       return getConnectionError();
     }
@@ -161,13 +161,13 @@ class OdbcConnection {
 
     retCode = SQLExecDirect(hStmt, (SQLCHAR*)sql.c_str(), SQL_NTS);
 
-    Value result = processResultSet(hStmt, retCode);
+    k_value result = processResultSet(hStmt, retCode);
     SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
     return result;
   }
 
-  Value executeStoredProcedure(const k_string& sp,
-                               const std::shared_ptr<List> params) {
+  k_value executeStoredProcedure(const k_string& sp,
+                               const k_list params) {
     if (!connected) {
       return getConnectionError();
     }
@@ -195,12 +195,12 @@ class OdbcConnection {
     query.pop_back();  // Remove the trailing comma
 
     retCode = SQLExecDirect(hStmt, (SQLCHAR*)query.c_str(), SQL_NTS);
-    Value result = processResultSet(hStmt, retCode);
+    k_value result = processResultSet(hStmt, retCode);
     SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
     return result;
   }
 
-  Value connect() { return _connect(); }
+  k_value connect() { return _connect(); }
 
   bool isConnected() const { return connected; }
 
@@ -213,7 +213,7 @@ class OdbcConnection {
   explicit OdbcConnection(const k_string& connStr)
       : connectionString(connStr), hEnv(NULL), hDbc(NULL) {}
 
-  Value _connect() {
+  k_value _connect() {
     // Allocate environment handle
     if (SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &hEnv) != SQL_SUCCESS) {
       return getConnectionError("Failed to allocate ODBC environment handle.");
@@ -249,7 +249,7 @@ class OdbcConnection {
 
     connected = (retCode == SQL_SUCCESS || retCode == SQL_SUCCESS_WITH_INFO);
 
-    std::shared_ptr<Hash> result = std::make_shared<Hash>();
+    k_hash result = std::make_shared<Hash>();
     result->add(DatabaseResponseKeys.HasError, false);
     result->add(DatabaseResponseKeys.Connected, connected);
     return result;
@@ -292,12 +292,12 @@ class OdbcConnection {
     return sanitized;
   }
 
-  Value processResultSet(SQLHSTMT hStmt, RETCODE retCode) {
+  k_value processResultSet(SQLHSTMT hStmt, RETCODE retCode) {
     if (retCode != SQL_SUCCESS && retCode != SQL_SUCCESS_WITH_INFO) {
       return getLastErrorMessage(SQL_HANDLE_DBC, hDbc);
     }
 
-    std::shared_ptr<Hash> result = std::make_shared<Hash>();
+    k_hash result = std::make_shared<Hash>();
     result->add(DatabaseResponseKeys.HasError, false);
     result->add(DatabaseResponseKeys.Connected, connected);
 
@@ -307,9 +307,9 @@ class OdbcConnection {
       return getLastErrorMessage(SQL_HANDLE_DBC, hDbc);
     }
 
-    std::shared_ptr<List> resultList = std::make_shared<List>();
+    k_list resultList = std::make_shared<List>();
     while (SQLFetch(hStmt) == SQL_SUCCESS) {
-      std::shared_ptr<Hash> row = std::make_shared<Hash>();
+      k_hash row = std::make_shared<Hash>();
       for (SQLSMALLINT i = 1; i <= columns; ++i) {
         SQLCHAR columnName[256];
         SQLLEN columnNameLength;
@@ -333,8 +333,8 @@ class OdbcConnection {
     return result;
   }
 
-  Value getLastErrorMessage(SQLSMALLINT handleType, SQLHANDLE handle) {
-    std::shared_ptr<Hash> result = std::make_shared<Hash>();
+  k_value getLastErrorMessage(SQLSMALLINT handleType, SQLHANDLE handle) {
+    k_hash result = std::make_shared<Hash>();
     result->add(DatabaseResponseKeys.HasError, true);
     result->add(DatabaseResponseKeys.Connected, connected);
 
@@ -360,8 +360,8 @@ class OdbcConnection {
     return result;
   }
 
-  Value getConnectionError(const k_string& message = "") {
-    std::shared_ptr<Hash> result = std::make_shared<Hash>();
+  k_value getConnectionError(const k_string& message = "") {
+    k_hash result = std::make_shared<Hash>();
     result->add(DatabaseResponseKeys.HasError, true);
     result->add(DatabaseResponseKeys.Connected, false);
     result->add(DatabaseResponseKeys.ErrorMessage, message);

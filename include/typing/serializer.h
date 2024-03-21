@@ -12,7 +12,7 @@
 #include "value.h"
 
 struct Serializer {
-  static k_string get_value_type_string(Value v) {
+  static k_string get_value_type_string(k_value v) {
     if (std::holds_alternative<k_int>(v)) {
       return TypeNames.Integer;
     } else if (std::holds_alternative<double>(v)) {
@@ -22,22 +22,22 @@ struct Serializer {
       return TypeNames.Boolean;
     } else if (std::holds_alternative<k_string>(v)) {
       return TypeNames.String;
-    } else if (std::holds_alternative<std::shared_ptr<List>>(v)) {
+    } else if (std::holds_alternative<k_list>(v)) {
       return TypeNames.List;
-    } else if (std::holds_alternative<std::shared_ptr<Hash>>(v)) {
+    } else if (std::holds_alternative<k_hash>(v)) {
       return TypeNames.Hash;
-    } else if (std::holds_alternative<std::shared_ptr<Object>>(v)) {
-      return std::get<std::shared_ptr<Object>>(v)->className;
-    } else if (std::holds_alternative<std::shared_ptr<LambdaRef>>(v)) {
+    } else if (std::holds_alternative<k_object>(v)) {
+      return std::get<k_object>(v)->className;
+    } else if (std::holds_alternative<k_lambda>(v)) {
       return TypeNames.Lambda;
     }
 
     return "";
   }
 
-  static std::shared_ptr<List> convert_value_to_list(Value& rhsValues) {
-    if (std::holds_alternative<std::shared_ptr<List>>(rhsValues)) {
-      return std::get<std::shared_ptr<List>>(rhsValues);
+  static k_list convert_value_to_list(k_value& rhsValues) {
+    if (std::holds_alternative<k_list>(rhsValues)) {
+      return std::get<k_list>(rhsValues);
     } else {
       auto newList = std::make_shared<List>();
       newList->elements.push_back(rhsValues);
@@ -45,7 +45,7 @@ struct Serializer {
     }
   }
 
-  static k_string serialize(Value v, bool wrapStrings = false) {
+  static k_string serialize(k_value v, bool wrapStrings = false) {
     std::ostringstream sv;
 
     if (std::holds_alternative<k_int>(v)) {
@@ -60,20 +60,20 @@ struct Serializer {
       } else {
         sv << std::get<k_string>(v);
       }
-    } else if (std::holds_alternative<std::shared_ptr<List>>(v)) {
-      sv << serialize_list(std::get<std::shared_ptr<List>>(v));
-    } else if (std::holds_alternative<std::shared_ptr<Hash>>(v)) {
-      sv << serialize_hash(std::get<std::shared_ptr<Hash>>(v));
-    } else if (std::holds_alternative<std::shared_ptr<Object>>(v)) {
-      sv << basic_serialize_object(std::get<std::shared_ptr<Object>>(v));
-    } else if (std::holds_alternative<std::shared_ptr<LambdaRef>>(v)) {
-      sv << basic_serialize_lambda(std::get<std::shared_ptr<LambdaRef>>(v));
+    } else if (std::holds_alternative<k_list>(v)) {
+      sv << serialize_list(std::get<k_list>(v));
+    } else if (std::holds_alternative<k_hash>(v)) {
+      sv << serialize_hash(std::get<k_hash>(v));
+    } else if (std::holds_alternative<k_object>(v)) {
+      sv << basic_serialize_object(std::get<k_object>(v));
+    } else if (std::holds_alternative<k_lambda>(v)) {
+      sv << basic_serialize_lambda(std::get<k_lambda>(v));
     }
 
     return sv.str();
   }
 
-  static k_string serialize_list(const std::shared_ptr<List>& list) {
+  static k_string serialize_list(const k_list& list) {
     std::ostringstream sv;
     sv << "[";
 
@@ -93,9 +93,9 @@ struct Serializer {
     return sv.str();
   }
 
-  static std::shared_ptr<List> get_hash_keys_list(
-      const std::shared_ptr<Hash>& hash) {
-    std::shared_ptr<List> keys = std::make_shared<List>();
+  static k_list get_hash_keys_list(
+      const k_hash& hash) {
+    k_list keys = std::make_shared<List>();
     for (const auto& key : hash->keys) {
       keys->elements.push_back(key);
     }
@@ -103,20 +103,20 @@ struct Serializer {
   }
 
   static k_string basic_serialize_object(
-      const std::shared_ptr<Object>& object) {
+      const k_object& object) {
     return "[Object(class=" + object->className + ", identifier=@" +
            object->identifier + ")]";
   }
 
   static k_string basic_serialize_lambda(
-      const std::shared_ptr<LambdaRef>& lambda) {
+      const k_lambda& lambda) {
     if (lambda->identifier.empty()) {
       return "[" + TypeNames.Lambda + "]";
     }
     return "[" + TypeNames.Lambda + "(identifier=" + lambda->identifier + ")]";
   }
 
-  static k_string serialize_hash(const std::shared_ptr<Hash>& hash) {
+  static k_string serialize_hash(const k_hash& hash) {
     std::ostringstream sv;
     sv << "{";
 
@@ -129,9 +129,9 @@ struct Serializer {
       }
 
       sv << "\"" << key << "\": ";
-      Value v = hash->get(key);
+      k_value v = hash->get(key);
 
-      if (std::holds_alternative<std::shared_ptr<Hash>>(v)) {
+      if (std::holds_alternative<k_hash>(v)) {
         sv << serialize(v);
       } else {
         sv << serialize(v, true);

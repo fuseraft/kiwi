@@ -10,14 +10,14 @@
 #include "typing/value.h"
 #include "rng.h"
 
-static k_string get_string(const Token& term, const Value& arg) {
+static k_string get_string(const Token& term, const k_value& arg) {
   if (!std::holds_alternative<k_string>(arg)) {
     throw ConversionError(term, "Expected a String value.");
   }
   return std::get<k_string>(arg);
 }
 
-static k_int get_integer(const Token& term, const Value& arg) {
+static k_int get_integer(const Token& term, const k_value& arg) {
   if (std::holds_alternative<double>(arg)) {
     return static_cast<k_int>(std::get<double>(arg));
   }
@@ -27,7 +27,7 @@ static k_int get_integer(const Token& term, const Value& arg) {
   return std::get<k_int>(arg);
 }
 
-static double get_integer_or_double(const Token& term, const Value& arg) {
+static double get_integer_or_double(const Token& term, const k_value& arg) {
   if (std::holds_alternative<k_int>(arg)) {
     return static_cast<double>(std::get<k_int>(arg));
   } else if (std::holds_alternative<double>(arg)) {
@@ -38,7 +38,7 @@ static double get_integer_or_double(const Token& term, const Value& arg) {
 }
 
 struct {
-  bool is_zero(const Token& term, const Value& v) {
+  bool is_zero(const Token& term, const k_value& v) {
     if (std::holds_alternative<double>(v)) {
       return std::get<double>(v) == 0.0;
     } else if (std::holds_alternative<k_int>(v)) {
@@ -49,8 +49,8 @@ struct {
                           "Cannot check non-numeric value for zero value.");
   }
 
-  Value do_addition(const Token& token, const Value& left, const Value& right) {
-    Value result;
+  k_value do_addition(const Token& token, const k_value& left, const k_value& right) {
+    k_value result;
 
     if (std::holds_alternative<k_int>(left) &&
         std::holds_alternative<k_int>(right)) {
@@ -81,8 +81,8 @@ struct {
       }
 
       result = build.str();
-    } else if (std::holds_alternative<std::shared_ptr<List>>(left)) {
-      auto list = std::get<std::shared_ptr<List>>(left);
+    } else if (std::holds_alternative<k_list>(left)) {
+      auto list = std::get<k_list>(left);
       list->elements.push_back(right);
       return list;
     } else {
@@ -92,9 +92,9 @@ struct {
     return result;
   }
 
-  Value do_subtraction(const Token& token, const Value& left,
-                       const Value& right) {
-    Value result;
+  k_value do_subtraction(const Token& token, const k_value& left,
+                       const k_value& right) {
+    k_value result;
 
     if (std::holds_alternative<k_int>(left) &&
         std::holds_alternative<k_int>(right)) {
@@ -110,11 +110,11 @@ struct {
                std::holds_alternative<k_int>(right)) {
       result =
           std::get<double>(left) - static_cast<double>(std::get<k_int>(right));
-    } else if (std::holds_alternative<std::shared_ptr<List>>(left)) {
-      std::vector<Value> listValues;
+    } else if (std::holds_alternative<k_list>(left)) {
+      std::vector<k_value> listValues;
       bool found = false;
 
-      for (const auto& item : std::get<std::shared_ptr<List>>(left)->elements) {
+      for (const auto& item : std::get<k_list>(left)->elements) {
         if (!found && same_value(item, right)) {
           found = true;
           continue;
@@ -130,9 +130,9 @@ struct {
     return result;
   }
 
-  Value do_exponentiation(const Token& token, const Value& left,
-                          const Value& right) {
-    Value result;
+  k_value do_exponentiation(const Token& token, const k_value& left,
+                          const k_value& right) {
+    k_value result;
 
     if (std::holds_alternative<k_int>(left) &&
         std::holds_alternative<k_int>(right)) {
@@ -156,8 +156,8 @@ struct {
     return result;
   }
 
-  Value do_modulus(const Token& token, const Value& left, const Value& right) {
-    Value result;
+  k_value do_modulus(const Token& token, const k_value& left, const k_value& right) {
+    k_value result;
 
     if (std::holds_alternative<k_int>(left) &&
         std::holds_alternative<k_int>(right)) {
@@ -194,8 +194,8 @@ struct {
     return result;
   }
 
-  Value do_division(const Token& token, const Value& left, const Value& right) {
-    Value result;
+  k_value do_division(const Token& token, const k_value& left, const k_value& right) {
+    k_value result;
 
     if (std::holds_alternative<k_int>(left) &&
         std::holds_alternative<k_int>(right)) {
@@ -232,8 +232,8 @@ struct {
     return result;
   }
 
-  Value do_multiplication(const Token& token, const Value& left,
-                          const Value& right) {
+  k_value do_multiplication(const Token& token, const k_value& left,
+                          const k_value& right) {
     if (std::holds_alternative<k_int>(left) &&
         std::holds_alternative<k_int>(right)) {
       return std::get<k_int>(left) * std::get<k_int>(right);
@@ -251,7 +251,7 @@ struct {
     } else if (std::holds_alternative<k_string>(left) &&
                std::holds_alternative<k_int>(right)) {
       return do_string_multiplication(token, left, right);
-    } else if (std::holds_alternative<std::shared_ptr<List>>(left) &&
+    } else if (std::holds_alternative<k_list>(left) &&
                std::holds_alternative<k_int>(right)) {
       return do_list_multiplication(token, left, right);
     }
@@ -259,9 +259,9 @@ struct {
     throw ConversionError(token, "Conversion error in multiplication.");
   }
 
-  Value do_list_multiplication(const Token& token, const Value& left,
-                               const Value& right) {
-    auto list = std::get<std::shared_ptr<List>>(left);
+  k_value do_list_multiplication(const Token& token, const k_value& left,
+                               const k_value& right) {
+    auto list = std::get<k_list>(left);
     int multiplier = std::get<k_int>(right);
 
     if (multiplier < 1) {
@@ -284,8 +284,8 @@ struct {
     return newList;
   }
 
-  Value do_string_multiplication(const Token& token, const Value& left,
-                                 const Value& right) {
+  k_value do_string_multiplication(const Token& token, const k_value& left,
+                                 const k_value& right) {
     auto string = std::get<k_string>(left);
     int multiplier = std::get<k_int>(right);
 
@@ -303,32 +303,32 @@ struct {
     return build.str();
   }
 
-  Value do_eq_comparison(const Value& left, const Value& right) {
+  k_value do_eq_comparison(const k_value& left, const k_value& right) {
     return same_value(left, right);
   }
 
-  Value do_neq_comparison(const Value& left, const Value& right) {
+  k_value do_neq_comparison(const k_value& left, const k_value& right) {
     return !same_value(left, right);
   }
 
-  Value do_lt_comparison(const Value& left, const Value& right) {
+  k_value do_lt_comparison(const k_value& left, const k_value& right) {
     return lt_value(left, right);
   }
 
-  Value do_lte_comparison(const Value& left, const Value& right) {
+  k_value do_lte_comparison(const k_value& left, const k_value& right) {
     return lt_value(left, right) || same_value(left, right);
   }
 
-  Value do_gt_comparison(const Value& left, const Value& right) {
+  k_value do_gt_comparison(const k_value& left, const k_value& right) {
     return gt_value(left, right);
   }
 
-  Value do_gte_comparison(const Value& left, const Value& right) {
+  k_value do_gte_comparison(const k_value& left, const k_value& right) {
     return gt_value(left, right) || same_value(left, right);
   }
 
-  Value do_bitwise_and(const Token& token, const Value& left,
-                       const Value& right) {
+  k_value do_bitwise_and(const Token& token, const k_value& left,
+                       const k_value& right) {
     if (std::holds_alternative<k_int>(left) &&
         std::holds_alternative<k_int>(right)) {
       return std::get<k_int>(left) & std::get<k_int>(right);
@@ -337,8 +337,8 @@ struct {
     throw ConversionError(token, "Conversion error in bitwise & operation.");
   }
 
-  Value do_bitwise_or(const Token& token, const Value& left,
-                      const Value& right) {
+  k_value do_bitwise_or(const Token& token, const k_value& left,
+                      const k_value& right) {
     if (std::holds_alternative<k_int>(left) &&
         std::holds_alternative<k_int>(right)) {
       return std::get<k_int>(left) | std::get<k_int>(right);
@@ -347,8 +347,8 @@ struct {
     throw ConversionError(token, "Conversion error in bitwise | operation.");
   }
 
-  Value do_bitwise_xor(const Token& token, const Value& left,
-                       const Value& right) {
+  k_value do_bitwise_xor(const Token& token, const k_value& left,
+                       const k_value& right) {
     if (std::holds_alternative<k_int>(left) &&
         std::holds_alternative<k_int>(right)) {
       return std::get<k_int>(left) ^ std::get<k_int>(right);
@@ -357,7 +357,7 @@ struct {
     throw ConversionError(token, "Conversion error in bitwise ^ operation.");
   }
 
-  Value do_bitwise_not(const Token& token, const Value& left) {
+  k_value do_bitwise_not(const Token& token, const k_value& left) {
     if (std::holds_alternative<k_int>(left)) {
       return ~std::get<k_int>(left);
     }
@@ -365,8 +365,8 @@ struct {
     throw ConversionError(token, "Conversion error in bitwise ~ operation.");
   }
 
-  Value do_bitwise_lshift(const Token& token, const Value& left,
-                          const Value& right) {
+  k_value do_bitwise_lshift(const Token& token, const k_value& left,
+                          const k_value& right) {
     if (std::holds_alternative<k_int>(left) &&
         std::holds_alternative<k_int>(right)) {
       return std::get<k_int>(left) << std::get<k_int>(right);
@@ -375,8 +375,8 @@ struct {
     throw ConversionError(token, "Conversion error in bitwise << operation.");
   }
 
-  Value do_bitwise_rshift(const Token& token, const Value& left,
-                          const Value& right) {
+  k_value do_bitwise_rshift(const Token& token, const k_value& left,
+                          const k_value& right) {
     if (std::holds_alternative<k_int>(left) &&
         std::holds_alternative<k_int>(right)) {
       return std::get<k_int>(left) >> std::get<k_int>(right);
@@ -385,7 +385,7 @@ struct {
     throw ConversionError(token, "Conversion error in bitwise >> operation.");
   }
 
-  double get_double(const Token& token, const Value& value) {
+  double get_double(const Token& token, const k_value& value) {
     if (std::holds_alternative<k_int>(value)) {
       return static_cast<double>(std::get<k_int>(value));
     } else if (std::holds_alternative<double>(value)) {
@@ -397,168 +397,168 @@ struct {
 
   double __epsilon__() { return std::numeric_limits<double>::epsilon(); }
 
-  Value __sin__(const Token& token, const Value& value) {
+  k_value __sin__(const Token& token, const k_value& value) {
     return sin(get_double(token, value));
   }
 
-  Value __sinh__(const Token& token, const Value& value) {
+  k_value __sinh__(const Token& token, const k_value& value) {
     return sinh(get_double(token, value));
   }
 
-  Value __asin__(const Token& token, const Value& value) {
+  k_value __asin__(const Token& token, const k_value& value) {
     return asin(get_double(token, value));
   }
 
-  Value __tan__(const Token& token, const Value& value) {
+  k_value __tan__(const Token& token, const k_value& value) {
     return tan(get_double(token, value));
   }
 
-  Value __tanh__(const Token& token, const Value& value) {
+  k_value __tanh__(const Token& token, const k_value& value) {
     return tanh(get_double(token, value));
   }
 
-  Value __atan__(const Token& token, const Value& value) {
+  k_value __atan__(const Token& token, const k_value& value) {
     return atan(get_double(token, value));
   }
 
-  Value __atan2__(const Token& token, const Value& valueY,
-                  const Value& valueX) {
+  k_value __atan2__(const Token& token, const k_value& valueY,
+                  const k_value& valueX) {
     return atan2(get_double(token, valueY), get_double(token, valueX));
   }
 
-  Value __cos__(const Token& token, const Value& value) {
+  k_value __cos__(const Token& token, const k_value& value) {
     return cos(get_double(token, value));
   }
 
-  Value __acos__(const Token& token, const Value& value) {
+  k_value __acos__(const Token& token, const k_value& value) {
     return acos(get_double(token, value));
   }
 
-  Value __cosh__(const Token& token, const Value& value) {
+  k_value __cosh__(const Token& token, const k_value& value) {
     return cosh(get_double(token, value));
   }
 
-  Value __log__(const Token& token, const Value& value) {
+  k_value __log__(const Token& token, const k_value& value) {
     return log(get_double(token, value));
   }
 
-  Value __log2__(const Token& token, const Value& value) {
+  k_value __log2__(const Token& token, const k_value& value) {
     return log2(get_double(token, value));
   }
 
-  Value __log10__(const Token& token, const Value& value) {
+  k_value __log10__(const Token& token, const k_value& value) {
     return log10(get_double(token, value));
   }
 
-  Value __log1p__(const Token& token, const Value& value) {
+  k_value __log1p__(const Token& token, const k_value& value) {
     return log1p(get_double(token, value));
   }
 
-  Value __sqrt__(const Token& token, const Value& value) {
+  k_value __sqrt__(const Token& token, const k_value& value) {
     return sqrt(get_double(token, value));
   }
 
-  Value __cbrt__(const Token& token, const Value& value) {
+  k_value __cbrt__(const Token& token, const k_value& value) {
     return cbrt(get_double(token, value));
   }
 
-  Value __fmod__(const Token& token, const Value& valueX, const Value& valueY) {
+  k_value __fmod__(const Token& token, const k_value& valueX, const k_value& valueY) {
     return fmod(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value __hypot__(const Token& token, const Value& valueX,
-                  const Value& valueY) {
+  k_value __hypot__(const Token& token, const k_value& valueX,
+                  const k_value& valueY) {
     return hypot(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value __isfinite__(const Token& token, const Value& value) {
+  k_value __isfinite__(const Token& token, const k_value& value) {
     return std::isfinite(get_double(token, value));
   }
 
-  Value __isinf__(const Token& token, const Value& value) {
+  k_value __isinf__(const Token& token, const k_value& value) {
     return std::isinf(get_double(token, value));
   }
 
-  Value __isnan__(const Token& token, const Value& value) {
+  k_value __isnan__(const Token& token, const k_value& value) {
     return std::isnan(get_double(token, value));
   }
 
-  Value __isnormal__(const Token& token, const Value& value) {
+  k_value __isnormal__(const Token& token, const k_value& value) {
     return std::isnormal(get_double(token, value));
   }
 
-  Value __floor__(const Token& token, const Value& value) {
+  k_value __floor__(const Token& token, const k_value& value) {
     return floor(get_double(token, value));
   }
 
-  Value __ceil__(const Token& token, const Value& value) {
+  k_value __ceil__(const Token& token, const k_value& value) {
     return ceil(get_double(token, value));
   }
 
-  Value __round__(const Token& token, const Value& value) {
+  k_value __round__(const Token& token, const k_value& value) {
     return round(get_double(token, value));
   }
 
-  Value __trunc__(const Token& token, const Value& value) {
+  k_value __trunc__(const Token& token, const k_value& value) {
     return trunc(get_double(token, value));
   }
 
-  Value __remainder__(const Token& token, const Value& valueX,
-                      const Value& valueY) {
+  k_value __remainder__(const Token& token, const k_value& valueX,
+                      const k_value& valueY) {
     return remainder(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value __exp__(const Token& token, const Value& value) {
+  k_value __exp__(const Token& token, const k_value& value) {
     return exp(get_double(token, value));
   }
 
-  Value __expm1__(const Token& token, const Value& value) {
+  k_value __expm1__(const Token& token, const k_value& value) {
     return expm1(get_double(token, value));
   }
 
-  Value __erf__(const Token& token, const Value& value) {
+  k_value __erf__(const Token& token, const k_value& value) {
     return erf(get_double(token, value));
   }
 
-  Value __erfc__(const Token& token, const Value& value) {
+  k_value __erfc__(const Token& token, const k_value& value) {
     return erfc(get_double(token, value));
   }
 
-  Value __lgamma__(const Token& token, const Value& value) {
+  k_value __lgamma__(const Token& token, const k_value& value) {
     return lgamma(get_double(token, value));
   }
 
-  Value __tgamma__(const Token& token, const Value& value) {
+  k_value __tgamma__(const Token& token, const k_value& value) {
     return tgamma(get_double(token, value));
   }
 
-  Value __fdim__(const Token& token, const Value& valueX, const Value& valueY) {
+  k_value __fdim__(const Token& token, const k_value& valueX, const k_value& valueY) {
     return fdim(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value __copysign__(const Token& token, const Value& valueX,
-                     const Value& valueY) {
+  k_value __copysign__(const Token& token, const k_value& valueX,
+                     const k_value& valueY) {
     return copysign(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value __nextafter__(const Token& token, const Value& valueX,
-                      const Value& valueY) {
+  k_value __nextafter__(const Token& token, const k_value& valueX,
+                      const k_value& valueY) {
     return nextafter(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value __max__(const Token& token, const Value& valueX, const Value& valueY) {
+  k_value __max__(const Token& token, const k_value& valueX, const k_value& valueY) {
     return fmax(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value __min__(const Token& token, const Value& valueX, const Value& valueY) {
+  k_value __min__(const Token& token, const k_value& valueX, const k_value& valueY) {
     return fmin(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value __pow__(const Token& token, const Value& valueX, const Value& valueY) {
+  k_value __pow__(const Token& token, const k_value& valueX, const k_value& valueY) {
     return pow(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value __abs__(const Token& token, const Value& value) {
+  k_value __abs__(const Token& token, const k_value& value) {
     if (std::holds_alternative<k_int>(value)) {
       return static_cast<k_int>(
           labs(static_cast<long>(std::get<k_int>(value))));
@@ -570,8 +570,8 @@ struct {
         token, "Cannot take an absolute value of a non-numeric value.");
   }
 
-  std::vector<Value> __divisors__(int number) {
-    std::vector<Value> divisors;
+  std::vector<k_value> __divisors__(int number) {
+    std::vector<k_value> divisors;
 
     for (int i = 1; i <= sqrt(number); ++i) {
       if (number % i == 0) {
@@ -585,18 +585,18 @@ struct {
     return divisors;
   }
 
-  Value __random__(const Token& token, const Value& valueX,
-                   const Value& valueY) {
+  k_value __random__(const Token& token, const k_value& valueX,
+                   const k_value& valueY) {
     if (std::holds_alternative<k_string>(valueX)) {
       auto limit = get_integer(token, valueY);
       return RNG::getInstance().randomString(std::get<k_string>(valueX),
                                              limit);
     }
 
-    if (std::holds_alternative<std::shared_ptr<List>>(valueX)) {
+    if (std::holds_alternative<k_list>(valueX)) {
       auto limit = get_integer(token, valueY);
       return RNG::getInstance().randomList(
-          std::get<std::shared_ptr<List>>(valueX), limit);
+          std::get<k_list>(valueX), limit);
     }
 
     if (std::holds_alternative<double>(valueX) ||

@@ -23,8 +23,8 @@
 
 class BuiltinInterpreter {
  public:
-  static Value execute(
-      const Token& term, const KName& builtin, const std::vector<Value>& args,
+  static k_value execute(
+      const Token& term, const KName& builtin, const std::vector<k_value>& args,
       const std::unordered_map<k_string, k_string>& kiwiArgs) {
     if (FileIOBuiltIns.is_builtin(builtin)) {
       return FileIOBuiltinHandler::execute(term, builtin, args);
@@ -53,8 +53,8 @@ class BuiltinInterpreter {
     throw UnknownBuiltinError(term, "");
   }
 
-  static Value execute(const Token& term, const KName& builtin,
-                       const Value& value, const std::vector<Value>& args) {
+  static k_value execute(const Token& term, const KName& builtin,
+                       const k_value& value, const std::vector<k_value>& args) {
     if (KiwiBuiltins.is_builtin(builtin)) {
       return CoreBuiltinHandler::execute(term, builtin, value, args);
     }

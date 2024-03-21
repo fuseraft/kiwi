@@ -37,11 +37,11 @@ inline FrameFlags operator~(FrameFlags a) {
 }
 
 struct CallStackFrame {
-  std::unordered_map<k_string, Value> variables;
+  std::unordered_map<k_string, k_value> variables;
   std::unordered_map<k_string, Method> lambdas;
-  Value returnValue;
+  k_value returnValue;
   ErrorState errorState;
-  std::shared_ptr<Object> objectContext;
+  k_object objectContext;
   FrameFlags flags = FrameFlags::None;
 
   CallStackFrame() {}
@@ -68,12 +68,12 @@ struct CallStackFrame {
   ErrorState getErrorState() const { return errorState; }
   void clearErrorState() { errorState.clearError(); }
 
-  void setObjectContext(const std::shared_ptr<Object>& object) {
+  void setObjectContext(const k_object& object) {
     objectContext = object;
     setFlag(FrameFlags::InObject);
   }
   bool inObjectContext() const { return isFlagSet(FrameFlags::InObject); }
-  std::shared_ptr<Object>& getObjectContext() { return objectContext; }
+  k_object& getObjectContext() { return objectContext; }
 
   void setFlag(FrameFlags flag) { flags = flags | flag; }
   void clearFlag(FrameFlags flag) { flags = flags & ~flag; }

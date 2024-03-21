@@ -20,38 +20,38 @@ class HttpClient {
     return instance;
   }
 
-  std::shared_ptr<Hash> get(const k_string& url,
-                            const std::shared_ptr<List>& headers = {}) {
+  k_hash get(const k_string& url,
+                            const k_list& headers = {}) {
     return performRequest(url, HttpMethod::GET, "", headers);
   }
 
-  std::shared_ptr<Hash> post(const k_string& url, const k_string& body,
-                             const std::shared_ptr<List>& headers = {}) {
+  k_hash post(const k_string& url, const k_string& body,
+                             const k_list& headers = {}) {
     return performRequest(url, HttpMethod::POST, body, headers);
   }
 
-  std::shared_ptr<Hash> put(const k_string& url, const k_string& body,
-                            const std::shared_ptr<List>& headers = {}) {
+  k_hash put(const k_string& url, const k_string& body,
+                            const k_list& headers = {}) {
     return performRequest(url, HttpMethod::PUT, body, headers);
   }
 
-  std::shared_ptr<Hash> patch(const k_string& url, const k_string& body,
-                              const std::shared_ptr<List>& headers = {}) {
+  k_hash patch(const k_string& url, const k_string& body,
+                              const k_list& headers = {}) {
     return performRequest(url, HttpMethod::PATCH, body, headers);
   }
 
-  std::shared_ptr<Hash> del(const k_string& url,
-                            const std::shared_ptr<List>& headers = {}) {
+  k_hash del(const k_string& url,
+                            const k_list& headers = {}) {
     return performRequest(url, HttpMethod::DELETE, "", headers);
   }
 
-  std::shared_ptr<Hash> head(const k_string& url,
-                             const std::shared_ptr<List>& headers = {}) {
+  k_hash head(const k_string& url,
+                             const k_list& headers = {}) {
     return performRequest(url, HttpMethod::HEAD, "", headers);
   }
 
-  std::shared_ptr<Hash> options(const k_string& url,
-                                const std::shared_ptr<List>& headers = {}) {
+  k_hash options(const k_string& url,
+                                const k_list& headers = {}) {
     return performRequest(url, HttpMethod::OPTIONS, "", headers);
   }
 
@@ -98,9 +98,9 @@ class HttpClient {
     pool.push_back(handle);
   }
 
-  std::shared_ptr<Hash> performRequest(
+  k_hash performRequest(
       const k_string& url, const HttpMethod& method,
-      const k_string& body = "", const std::shared_ptr<List>& headers = {}) {
+      const k_string& body = "", const k_list& headers = {}) {
     CURL* curl = acquireHandle();
     if (!curl) {
       auto response = std::make_shared<Hash>();
