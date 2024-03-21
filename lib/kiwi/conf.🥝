@@ -107,11 +107,9 @@ module conf
 
       if !_is_string
         if _dot_count == 1
-          _tmp_value = "{\"x\":${_builder.join().to_d()}}".to_h()
-          _ret_val = _tmp_value["x"]
+          _ret_val = _builder.join().to_d()
         else
-          _tmp_value = "{\"x\":${_builder.join().to_i()}}".to_h()
-          _ret_val = _tmp_value["x"]
+          _ret_val = _builder.join().to_i()
         end
       end
     end
