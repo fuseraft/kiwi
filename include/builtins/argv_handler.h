@@ -12,8 +12,8 @@
 
 class ArgvBuiltinHandler {
  public:
-  static Value execute(
-      const Token& term, const KName& builtin, const std::vector<Value>& args,
+  static k_value execute(
+      const Token& term, const KName& builtin, const std::vector<k_value>& args,
       const std::unordered_map<k_string, k_string>& kiwiArgs) {
     switch (builtin) {
       case KName::Builtin_Argv_GetArgv:
@@ -30,14 +30,14 @@ class ArgvBuiltinHandler {
   }
 
  private:
-  static Value executeGetArgv(
-      const Token& term, const std::vector<Value>& args,
+  static k_value executeGetArgv(
+      const Token& term, const std::vector<k_value>& args,
       const std::unordered_map<k_string, k_string>& kiwiArgs) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, ArgvBuiltins.GetArgv);
     }
 
-    std::shared_ptr<List> argv = std::make_shared<List>();
+    k_list argv = std::make_shared<List>();
 
     for (const auto& pair : kiwiArgs) {
       if (String::beginsWith(pair.first, "argv_")) {
@@ -48,8 +48,8 @@ class ArgvBuiltinHandler {
     return argv;
   }
 
-  static Value executeGetXarg(
-      const Token& term, const std::vector<Value>& args,
+  static k_value executeGetXarg(
+      const Token& term, const std::vector<k_value>& args,
       const std::unordered_map<k_string, k_string>& kiwiArgs) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, ArgvBuiltins.GetXarg);

@@ -121,7 +121,7 @@ struct InterpHelper {
   }
 
   static void updateVariablesInCallerFrame(
-      const std::unordered_map<std::string, Value>& variables,
+      const std::unordered_map<std::string, k_value>& variables,
       std::shared_ptr<CallStackFrame> callerFrame) {
     for (const auto& var : variables) {
       if (shouldUpdateFrameVariables(var.first, callerFrame)) {
@@ -200,9 +200,9 @@ struct InterpHelper {
   }
 
   static void updateListSlice(std::shared_ptr<TokenStream> stream,
-                              bool insertOp, std::shared_ptr<List>& targetList,
+                              bool insertOp, k_list& targetList,
                               const SliceIndex& slice,
-                              const std::shared_ptr<List>& rhsValues) {
+                              const k_list& rhsValues) {
     if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
       throw IndexError(stream->current(), "Start index must be an integer.");
     } else if (!std::holds_alternative<k_int>(slice.stopIndex)) {
@@ -263,9 +263,9 @@ struct InterpHelper {
     }
   }
 
-  static Value interpretAssignOp(std::shared_ptr<TokenStream> stream,
-                                 const KName& op, const Value& currentValue,
-                                 const Value& value) {
+  static k_value interpretAssignOp(std::shared_ptr<TokenStream> stream,
+                                 const KName& op, const k_value& currentValue,
+                                 const k_value& value) {
     switch (op) {
       case KName::Ops_AddAssign:
         return std::visit(AddVisitor(stream->current()), currentValue, value);
@@ -319,9 +319,9 @@ struct InterpHelper {
     throw InvalidOperationError(stream->current(), "Invalid operator.");
   }
 
-  static Value interpretListSlice(std::shared_ptr<TokenStream> stream,
+  static k_value interpretListSlice(std::shared_ptr<TokenStream> stream,
                                   const SliceIndex& slice,
-                                  const std::shared_ptr<List>& list) {
+                                  const k_list& list) {
     if (slice.isSlice) {
       if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
         throw IndexError(stream->current(), "Start index must be an integer.");
@@ -372,7 +372,7 @@ struct InterpHelper {
           slicedList->elements.push_back(list->elements[i]);
         }
       }
-      return slicedList;  // Return the sliced list as a Value
+      return slicedList;  // Return the sliced list as a k_value
     } else {
       // Single index access
       if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
@@ -398,7 +398,7 @@ struct InterpHelper {
                                           std::shared_ptr<CallStackFrame> frame,
                                           std::string& errorTypeVariableName,
                                           std::string& errorVariableName,
-                                          Value& errorType, Value& errorValue) {
+                                          k_value& errorType, k_value& errorValue) {
     stream->next();  // Skip "("
 
     if (stream->current().getType() != KTokenType::IDENTIFIER) {

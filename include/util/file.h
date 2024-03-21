@@ -38,7 +38,7 @@ class File {
   static bool movePath(const k_string& sourcePath,
                        const k_string& destinationPath);
   static k_int getFileSize(const k_string& filePath);
-  static bool writeToFile(const k_string& filePath, const Value& content,
+  static bool writeToFile(const k_string& filePath, const k_value& content,
                           bool appendMode, bool addNewLine);
   static k_string getAbsolutePath(const k_string& path);
   static k_string getCurrentDirectory();
@@ -227,7 +227,7 @@ k_int File::getFileSize(const k_string& filePath) {
 /// @param appendMode A flag to toggle append mode.
 /// @param addNewLine A flag to toggle appending a newline.
 /// @return Boolean indicating success.
-bool File::writeToFile(const k_string& filePath, const Value& content,
+bool File::writeToFile(const k_string& filePath, const k_value& content,
                        bool appendMode, bool addNewLine) {
   std::ios_base::openmode mode = appendMode ? std::ios::app : std::ios::out;
   std::ofstream file(filePath, mode);

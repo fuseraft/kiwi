@@ -14,7 +14,7 @@ class RNG {
   k_int random(k_int from, k_int to);
   k_string random16();
   k_string randomString(const k_string& input, size_t length);
-  Value randomList(std::shared_ptr<List> list, size_t length);
+  k_value randomList(k_list list, size_t length);
 
  private:
   RNG();
@@ -65,7 +65,7 @@ k_string RNG::randomString(const k_string& chars, size_t length) {
   return randomString.str();
 }
 
-Value RNG::randomList(std::shared_ptr<List> list, size_t length) {
+k_value RNG::randomList(k_list list, size_t length) {
   const auto& elements = list->elements;
   if (elements.empty()) {
     return std::make_shared<List>();

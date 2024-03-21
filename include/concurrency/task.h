@@ -9,11 +9,11 @@
 
 class TaskManager {
  public:
-  using TaskFunction = std::function<Value()>;
+  using TaskFunction = std::function<k_value()>;
 
  private:
   std::atomic<k_int> nextPromiseId;
-  std::unordered_map<k_int, std::future<Value>> tasks;
+  std::unordered_map<k_int, std::future<k_value>> tasks;
 
  public:
   TaskManager() : nextPromiseId(0) {}
@@ -24,7 +24,7 @@ class TaskManager {
     return id;
   }
 
-  Value getTaskResult(k_int id) {
+  k_value getTaskResult(k_int id) {
     auto& task = tasks.at(id);
     return task.get();
   }

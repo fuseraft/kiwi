@@ -38,25 +38,25 @@ class Parameter {
  public:
   Parameter() {}
   Parameter(const k_string& name) : _name(name) {}
-  Parameter(const k_string& name, const Value& value)
+  Parameter(const k_string& name, const k_value& value)
       : _name(name), _value(value) {
     _hasDefaultValue = true;
   }
   ~Parameter() { _value = static_cast<k_int>(0); }
 
   k_string getName() const { return _name; }
-  Value getValue() { return _value; }
+  k_value getValue() { return _value; }
   bool hasDefaultValue() const { return _hasDefaultValue; }
 
  private:
   k_string _name;
   bool _hasDefaultValue = false;
-  Value _value;
+  k_value _value;
 };
 
 class Method {
  public:
-  void addParameterValue(const k_string& paramName, Value value) {
+  void addParameterValue(const k_string& paramName, k_value value) {
     parameterKVP[paramName] = value;
   }
 
@@ -66,7 +66,7 @@ class Method {
 
   bool hasParameters() const { return parameters.size() > 0; }
 
-  Value getParameterValue(const k_string& paramName) {
+  k_value getParameterValue(const k_string& paramName) {
     return parameterKVP[paramName];
   }
 
@@ -95,7 +95,7 @@ class Method {
     addParameter(param);
   }
 
-  void addParameter(const k_string& name, const Value& value) {
+  void addParameter(const k_string& name, const k_value& value) {
     Parameter param(name, value);
     addParameter(param);
   }
@@ -112,7 +112,7 @@ class Method {
   std::vector<k_string> parameters;
   std::vector<Token> code;
   k_string _name;
-  std::unordered_map<k_string, Value> parameterKVP;
+  std::unordered_map<k_string, k_value> parameterKVP;
   MethodFlags flags = MethodFlags::None;
 
   std::unordered_map<k_string, Parameter> _params;

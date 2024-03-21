@@ -11,7 +11,7 @@
 class Token {
  public:
   static Token create(const KTokenType& t, const KName& st, const int& fileId,
-                      const k_string& text, const Value& v,
+                      const k_string& text, const k_value& v,
                       const int& lineNumber, const int& linePosition) {
     Token token(t, st, fileId, text, v, lineNumber, linePosition);
     return token;
@@ -51,19 +51,19 @@ class Token {
 
   KName getSubType() const { return subType; }
 
-  Value& getValue() { return value; }
+  k_value& getValue() { return value; }
 
  private:
   KTokenType type;
   KName subType;
   int fileId;
   k_string text;
-  Value value;
+  k_value value;
   int _lineNumber;
   int _linePosition;
 
   Token(const KTokenType& t, const KName& st, const int& fileId,
-        const k_string& text, const Value& v, const int& lineNumber,
+        const k_string& text, const k_value& v, const int& lineNumber,
         const int& linePosition)
       : type(t), subType(st), fileId(fileId), text(text), value(v) {
     _lineNumber = lineNumber;

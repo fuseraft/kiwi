@@ -18,8 +18,8 @@
 
 class CoreBuiltinHandler {
  public:
-  static Value execute(const Token& term, const KName& builtin,
-                       const Value& value, const std::vector<Value>& args) {
+  static k_value execute(const Token& term, const KName& builtin,
+                       const k_value& value, const std::vector<k_value>& args) {
     if (KiwiBuiltins.is_builtin(builtin)) {
       return executeKiwiBuiltin(term, builtin, value, args);
     }
@@ -28,9 +28,9 @@ class CoreBuiltinHandler {
   }
 
  private:
-  static Value executeKiwiBuiltin(const Token& term, const KName& builtin,
-                                  const Value& value,
-                                  const std::vector<Value>& args) {
+  static k_value executeKiwiBuiltin(const Token& term, const KName& builtin,
+                                  const k_value& value,
+                                  const std::vector<k_value>& args) {
     switch (builtin) {
       case KName::Builtin_Kiwi_Chars:
         return executeChars(term, value, args);
@@ -111,8 +111,8 @@ class CoreBuiltinHandler {
     throw UnknownBuiltinError(term, "");
   }
 
-  static Value executeChars(const Token& term, const Value& value,
-                            const std::vector<Value>& args) {
+  static k_value executeChars(const Token& term, const k_value& value,
+                            const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Chars);
     }
@@ -125,19 +125,19 @@ class CoreBuiltinHandler {
     return newList;
   }
 
-  static Value executeJoin(const Token& term, const Value& value,
-                           const std::vector<Value>& args) {
+  static k_value executeJoin(const Token& term, const k_value& value,
+                           const std::vector<k_value>& args) {
     int argSize = args.size();
 
     if (argSize != 0 && argSize != 1) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Join);
     }
 
-    if (!std::holds_alternative<std::shared_ptr<List>>(value)) {
+    if (!std::holds_alternative<k_list>(value)) {
       throw ConversionError(term, "Cannot join a non-list type.");
     }
 
-    auto list = std::get<std::shared_ptr<List>>(value);
+    auto list = std::get<k_list>(value);
     std::ostringstream sv;
     k_string joiner;
 
@@ -155,26 +155,26 @@ class CoreBuiltinHandler {
     return sv.str();
   }
 
-  static Value executeSize(const Token& term, const Value& value,
-                           const std::vector<Value>& args) {
+  static k_value executeSize(const Token& term, const k_value& value,
+                           const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Size);
     }
 
     if (std::holds_alternative<k_string>(value)) {
       return static_cast<k_int>(std::get<k_string>(value).length());
-    } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
+    } else if (std::holds_alternative<k_list>(value)) {
       return static_cast<k_int>(
-          std::get<std::shared_ptr<List>>(value)->elements.size());
-    } else if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
-      return static_cast<k_int>(std::get<std::shared_ptr<Hash>>(value)->size());
+          std::get<k_list>(value)->elements.size());
+    } else if (std::holds_alternative<k_hash>(value)) {
+      return static_cast<k_int>(std::get<k_hash>(value)->size());
     }
 
     throw ConversionError(term);
   }
 
-  static Value executeToDouble(const Token& term, const Value& value,
-                               const std::vector<Value>& args) {
+  static k_value executeToDouble(const Token& term, const k_value& value,
+                               const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.ToD);
     }
@@ -201,8 +201,8 @@ class CoreBuiltinHandler {
     }
   }
 
-  static Value executeToInteger(const Token& term, const Value& value,
-                                const std::vector<Value>& args) {
+  static k_value executeToInteger(const Token& term, const k_value& value,
+                                const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.ToI);
     }
@@ -229,8 +229,8 @@ class CoreBuiltinHandler {
     }
   }
 
-  static Value executeToString(const Token& term, const Value& value,
-                               const std::vector<Value>& args) {
+  static k_value executeToString(const Token& term, const k_value& value,
+                               const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.ToS);
     }
@@ -238,8 +238,8 @@ class CoreBuiltinHandler {
     return Serializer::serialize(value);
   }
 
-  static Value executeSplit(const Token& term, const Value& value,
-                            const std::vector<Value>& args) {
+  static k_value executeSplit(const Token& term, const k_value& value,
+                            const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Split);
     }
@@ -261,8 +261,8 @@ class CoreBuiltinHandler {
     return newList;
   }
 
-  static Value executeLeftTrim(const Token& term, const Value& value,
-                               const std::vector<Value>& args) {
+  static k_value executeLeftTrim(const Token& term, const k_value& value,
+                               const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.LeftTrim);
     }
@@ -271,8 +271,8 @@ class CoreBuiltinHandler {
     return String::trimLeft(input);
   }
 
-  static Value executeRightTrim(const Token& term, const Value& value,
-                                const std::vector<Value>& args) {
+  static k_value executeRightTrim(const Token& term, const k_value& value,
+                                const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.RightTrim);
     }
@@ -281,8 +281,8 @@ class CoreBuiltinHandler {
     return String::trimRight(input);
   }
 
-  static Value executeTrim(const Token& term, const Value& value,
-                           const std::vector<Value>& args) {
+  static k_value executeTrim(const Token& term, const k_value& value,
+                           const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Trim);
     }
@@ -291,8 +291,8 @@ class CoreBuiltinHandler {
     return String::trim(input);
   }
 
-  static Value executeType(const Token& term, const Value& value,
-                           const std::vector<Value>& args) {
+  static k_value executeType(const Token& term, const k_value& value,
+                           const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Type);
     }
@@ -300,41 +300,41 @@ class CoreBuiltinHandler {
     return Serializer::get_value_type_string(value);
   }
 
-  static Value executeHasKey(const Token& term, const Value& value,
-                             const std::vector<Value>& args) {
+  static k_value executeHasKey(const Token& term, const k_value& value,
+                             const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.HasKey);
     }
 
-    if (!std::holds_alternative<std::shared_ptr<Hash>>(value)) {
+    if (!std::holds_alternative<k_hash>(value)) {
       throw InvalidOperationError(
           term, "Attempted to retrieve keys from non-Hash type.");
     }
 
     auto key = get_string(term, args.at(0));
-    auto hash = std::get<std::shared_ptr<Hash>>(value);
+    auto hash = std::get<k_hash>(value);
 
     return hash->hasKey(key);
   }
 
-  static Value executeKeys(const Token& term, const Value& value,
-                           const std::vector<Value>& args) {
+  static k_value executeKeys(const Token& term, const k_value& value,
+                           const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Keys);
     }
 
-    if (!std::holds_alternative<std::shared_ptr<Hash>>(value)) {
+    if (!std::holds_alternative<k_hash>(value)) {
       throw InvalidOperationError(
           term, "Attempted to retrieve keys from non-Hash type.");
     }
 
-    auto hash = std::get<std::shared_ptr<Hash>>(value);
+    auto hash = std::get<k_hash>(value);
 
     return Serializer::get_hash_keys_list(hash);
   }
 
-  static Value executeBeginsWith(const Token& term, const Value& value,
-                                 const std::vector<Value>& args) {
+  static k_value executeBeginsWith(const Token& term, const k_value& value,
+                                 const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.BeginsWith);
     }
@@ -344,15 +344,15 @@ class CoreBuiltinHandler {
     return String::beginsWith(str, search);
   }
 
-  static Value executeStringContains(const Token& term, const Value& value,
-                                     const Value& arg) {
+  static k_value executeStringContains(const Token& term, const k_value& value,
+                                     const k_value& arg) {
     auto str = get_string(term, value);
     auto search = get_string(term, arg);
     return String::contains(str, search);
   }
 
-  static Value executeListContains(const Value& value, const Value& arg) {
-    auto list = std::get<std::shared_ptr<List>>(value);
+  static k_value executeListContains(const k_value& value, const k_value& arg) {
+    auto list = std::get<k_list>(value);
 
     for (const auto& item : list->elements) {
       if (same_value(item, arg)) {
@@ -363,23 +363,23 @@ class CoreBuiltinHandler {
     return false;
   }
 
-  static Value executeContains(const Token& term, const Value& value,
-                               const std::vector<Value>& args) {
+  static k_value executeContains(const Token& term, const k_value& value,
+                               const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Contains);
     }
 
     if (std::holds_alternative<k_string>(value)) {
       return executeStringContains(term, value, args.at(0));
-    } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
+    } else if (std::holds_alternative<k_list>(value)) {
       return executeListContains(value, args.at(0));
     }
 
     throw ConversionError(term, "Expected a `String` or `List` value.");
   }
 
-  static Value executeEndsWith(const Token& term, const Value& value,
-                               const std::vector<Value>& args) {
+  static k_value executeEndsWith(const Token& term, const k_value& value,
+                               const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Contains);
     }
@@ -389,17 +389,17 @@ class CoreBuiltinHandler {
     return String::endsWith(str, search);
   }
 
-  static Value executeIsA(const Token& term, const Value& value,
-                          const std::vector<Value>& args) {
+  static k_value executeIsA(const Token& term, const k_value& value,
+                          const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.IsA);
     }
 
     auto typeName = get_string(term, args.at(0));
     if (!TypeNames.is_typename(typeName)) {
-      if (std::holds_alternative<std::shared_ptr<Object>>(value)) {
-        std::shared_ptr<Object> object =
-            std::get<std::shared_ptr<Object>>(value);
+      if (std::holds_alternative<k_object>(value)) {
+        k_object object =
+            std::get<k_object>(value);
         return object->className == typeName;
       }
       throw InvalidTypeNameError(term, typeName);
@@ -410,21 +410,21 @@ class CoreBuiltinHandler {
            (typeName == TypeNames.Double &&
             std::holds_alternative<double>(value)) ||
            (typeName == TypeNames.Hash &&
-            std::holds_alternative<std::shared_ptr<Hash>>(value)) ||
+            std::holds_alternative<k_hash>(value)) ||
            (typeName == TypeNames.Integer &&
             std::holds_alternative<k_int>(value)) ||
            (typeName == TypeNames.List &&
-            std::holds_alternative<std::shared_ptr<List>>(value)) ||
+            std::holds_alternative<k_list>(value)) ||
            (typeName == TypeNames.Object &&
-            std::holds_alternative<std::shared_ptr<Object>>(value)) ||
+            std::holds_alternative<k_object>(value)) ||
            (typeName == TypeNames.Lambda &&
-            std::holds_alternative<std::shared_ptr<LambdaRef>>(value)) ||
+            std::holds_alternative<k_lambda>(value)) ||
            (typeName == TypeNames.String &&
             std::holds_alternative<k_string>(value));
   }
 
-  static Value executeReplace(const Token& term, const Value& value,
-                              const std::vector<Value>& args) {
+  static k_value executeReplace(const Token& term, const k_value& value,
+                              const std::vector<k_value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Replace);
     }
@@ -435,8 +435,8 @@ class CoreBuiltinHandler {
     return String::replace(str, search, replacement);
   }
 
-  static Value executeReverse(const Token& term, const Value& value,
-                              const std::vector<Value>& args) {
+  static k_value executeReverse(const Token& term, const k_value& value,
+                              const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Reverse);
     }
@@ -445,8 +445,8 @@ class CoreBuiltinHandler {
       auto s = std::get<k_string>(value);
       std::reverse(s.begin(), s.end());
       return s;
-    } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
-      auto v = std::get<std::shared_ptr<List>>(value)->elements;
+    } else if (std::holds_alternative<k_list>(value)) {
+      auto v = std::get<k_list>(value)->elements;
       std::reverse(v.begin(), v.end());
       auto list = std::make_shared<List>();
       list->elements = v;
@@ -458,8 +458,8 @@ class CoreBuiltinHandler {
                               KiwiBuiltins.Reverse + "`.");
   }
 
-  static Value executeIndexOf(const Token& term, const Value& value,
-                              const std::vector<Value>& args) {
+  static k_value executeIndexOf(const Token& term, const k_value& value,
+                              const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.IndexOf);
     }
@@ -467,8 +467,8 @@ class CoreBuiltinHandler {
     if (std::holds_alternative<k_string>(value)) {
       return static_cast<k_int>(String::indexOf(std::get<k_string>(value),
                                                 get_string(term, args.at(0))));
-    } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
-      return indexof_listvalue(std::get<std::shared_ptr<List>>(value),
+    } else if (std::holds_alternative<k_list>(value)) {
+      return indexof_listvalue(std::get<k_list>(value),
                                args.at(0));
     }
 
@@ -477,8 +477,8 @@ class CoreBuiltinHandler {
                               KiwiBuiltins.IndexOf + "`.");
   }
 
-  static Value executeLastIndexOf(const Token& term, const Value& value,
-                                  const std::vector<Value>& args) {
+  static k_value executeLastIndexOf(const Token& term, const k_value& value,
+                                  const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.LastIndexOf);
     }
@@ -486,8 +486,8 @@ class CoreBuiltinHandler {
     if (std::holds_alternative<k_string>(value)) {
       return static_cast<k_int>(String::lastIndexOf(
           std::get<k_string>(value), get_string(term, args.at(0))));
-    } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
-      return lastindexof_listvalue(std::get<std::shared_ptr<List>>(value),
+    } else if (std::holds_alternative<k_list>(value)) {
+      return lastindexof_listvalue(std::get<k_list>(value),
                                    args.at(0));
     }
 
@@ -496,8 +496,8 @@ class CoreBuiltinHandler {
                               KiwiBuiltins.LastIndexOf + "`.");
   }
 
-  static Value executeUpcase(const Token& term, const Value& value,
-                             const std::vector<Value>& args) {
+  static k_value executeUpcase(const Token& term, const k_value& value,
+                             const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Upcase);
     }
@@ -505,8 +505,8 @@ class CoreBuiltinHandler {
     return String::toUppercase(get_string(term, value));
   }
 
-  static Value executeDowncase(const Token& term, const Value& value,
-                               const std::vector<Value>& args) {
+  static k_value executeDowncase(const Token& term, const k_value& value,
+                               const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Downcase);
     }
@@ -514,18 +514,18 @@ class CoreBuiltinHandler {
     return String::toLowercase(get_string(term, value));
   }
 
-  static Value executeEmpty(const Token& term, const Value& value,
-                            const std::vector<Value>& args) {
+  static k_value executeEmpty(const Token& term, const k_value& value,
+                            const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Empty);
     }
 
     if (std::holds_alternative<k_string>(value)) {
       return std::get<k_string>(value).empty();
-    } else if (std::holds_alternative<std::shared_ptr<List>>(value)) {
-      return std::get<std::shared_ptr<List>>(value)->elements.empty();
-    } else if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
-      return std::get<std::shared_ptr<Hash>>(value)->keys.empty();
+    } else if (std::holds_alternative<k_list>(value)) {
+      return std::get<k_list>(value)->elements.empty();
+    } else if (std::holds_alternative<k_hash>(value)) {
+      return std::get<k_hash>(value)->keys.empty();
     } else if (std::holds_alternative<k_int>(value)) {
       return std::get<k_int>(value) == 0;
     } else if (std::holds_alternative<double>(value)) {
