@@ -13,8 +13,7 @@
 class ArgvBuiltinHandler {
  public:
   static Value execute(
-      const Token& term, const KName& builtin,
-      const std::vector<Value>& args,
+      const Token& term, const KName& builtin, const std::vector<Value>& args,
       const std::unordered_map<std::string, std::string>& kiwiArgs) {
     switch (builtin) {
       case KName::Builtin_Argv_GetArgv:

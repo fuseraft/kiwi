@@ -55,12 +55,12 @@ class EnvBuiltinHandler {
     std::string varName = get_string(term, args.at(0));
     std::string varValue = get_string(term, args.at(1));
 
-    #ifdef _WIN64
+#ifdef _WIN64
     _putenv_s(varName.c_str(), varValue.c_str());
     return true;
-    #else
+#else
     return setenv(varName.c_str(), varValue.c_str(), 1) == 0;
-    #endif
+#endif
   }
 };
 

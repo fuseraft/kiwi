@@ -85,38 +85,38 @@ class Lexer {
     } else if (currentChar == '#') {
       return parseComment();
     } else if (currentChar == '@') {
-      return Token::create(KTokenType::DECLVAR, KName::KW_DeclVar, fileId,
-                           "@", row, col);
-    } else if (currentChar == '$') {
-      return Token::create(KTokenType::OPERATOR, KName::Default, fileId,
-                           "$", row, col);
-    } else if (currentChar == '\n') {
-      return Token::create(KTokenType::NEWLINE, KName::Default, fileId,
-                           "\n", row, col);
-    } else if (currentChar == '(') {
-      return Token::create(KTokenType::OPEN_PAREN, KName::Default, fileId,
-                           "(", row, col);
-    } else if (currentChar == ')') {
-      return Token::create(KTokenType::CLOSE_PAREN, KName::Default,
-                           fileId, ")", row, col);
-    } else if (currentChar == '[') {
-      return Token::create(KTokenType::OPEN_BRACKET, KName::Default,
-                           fileId, "[", row, col);
-    } else if (currentChar == ']') {
-      return Token::create(KTokenType::CLOSE_BRACKET, KName::Default,
-                           fileId, "]", row, col);
-    } else if (currentChar == '{') {
-      return Token::create(KTokenType::OPEN_BRACE, KName::Default, fileId,
-                           "{", row, col);
-    } else if (currentChar == '}') {
-      return Token::create(KTokenType::CLOSE_BRACE, KName::Default,
-                           fileId, "}", row, col);
-    } else if (currentChar == ',') {
-      return Token::create(KTokenType::COMMA, KName::Default, fileId, ",",
+      return Token::create(KTokenType::DECLVAR, KName::KW_DeclVar, fileId, "@",
                            row, col);
+    } else if (currentChar == '$') {
+      return Token::create(KTokenType::OPERATOR, KName::Default, fileId, "$",
+                           row, col);
+    } else if (currentChar == '\n') {
+      return Token::create(KTokenType::NEWLINE, KName::Default, fileId, "\n",
+                           row, col);
+    } else if (currentChar == '(') {
+      return Token::create(KTokenType::OPEN_PAREN, KName::Default, fileId, "(",
+                           row, col);
+    } else if (currentChar == ')') {
+      return Token::create(KTokenType::CLOSE_PAREN, KName::Default, fileId, ")",
+                           row, col);
+    } else if (currentChar == '[') {
+      return Token::create(KTokenType::OPEN_BRACKET, KName::Default, fileId,
+                           "[", row, col);
+    } else if (currentChar == ']') {
+      return Token::create(KTokenType::CLOSE_BRACKET, KName::Default, fileId,
+                           "]", row, col);
+    } else if (currentChar == '{') {
+      return Token::create(KTokenType::OPEN_BRACE, KName::Default, fileId, "{",
+                           row, col);
+    } else if (currentChar == '}') {
+      return Token::create(KTokenType::CLOSE_BRACE, KName::Default, fileId, "}",
+                           row, col);
+    } else if (currentChar == ',') {
+      return Token::create(KTokenType::COMMA, KName::Default, fileId, ",", row,
+                           col);
     } else if (currentChar == '?') {
-      return Token::create(KTokenType::QUESTION, KName::Default, fileId,
-                           "?", row, col);
+      return Token::create(KTokenType::QUESTION, KName::Default, fileId, "?",
+                           row, col);
     } else if (currentChar == '.') {
       return parseDot(currentChar);
     } else if (currentChar == '\\') {
@@ -143,11 +143,11 @@ class Lexer {
       return Token::create(KTokenType::CONDITIONAL, KName::KW_If, fileId,
                            keyword, row, col);
     } else if (keyword == Keywords.ElseIf) {
-      return Token::create(KTokenType::CONDITIONAL, KName::KW_ElseIf,
-                           fileId, keyword, row, col);
+      return Token::create(KTokenType::CONDITIONAL, KName::KW_ElseIf, fileId,
+                           keyword, row, col);
     } else if (keyword == Keywords.Else) {
-      return Token::create(KTokenType::CONDITIONAL, KName::KW_Else,
-                           fileId, keyword, row, col);
+      return Token::create(KTokenType::CONDITIONAL, KName::KW_Else, fileId,
+                           keyword, row, col);
     } else if (keyword == Keywords.End) {
       return Token::create(KTokenType::CONDITIONAL, KName::KW_End, fileId,
                            keyword, row, col);
@@ -359,13 +359,13 @@ class Lexer {
       if (nextChar == ':') {
         s += nextChar;
         getCurrentChar();
-        return Token::create(KTokenType::QUALIFIER, KName::Default,
-                             fileId, s, row, col);
+        return Token::create(KTokenType::QUALIFIER, KName::Default, fileId, s,
+                             row, col);
       }
     }
 
-    return Token::create(KTokenType::COLON, KName::Default, fileId, s,
-                         row, col);
+    return Token::create(KTokenType::COLON, KName::Default, fileId, s, row,
+                         col);
   }
 
   Token parseEscapeCharacter() {
@@ -374,21 +374,21 @@ class Lexer {
 
       switch (nextChar) {
         case 'n':
-          return Token::create(KTokenType::ESCAPED, KName::Default,
-                               fileId, "\n", row, col);
+          return Token::create(KTokenType::ESCAPED, KName::Default, fileId,
+                               "\n", row, col);
         case 'r':
-          return Token::create(KTokenType::ESCAPED, KName::Default,
-                               fileId, "\r", row, col);
+          return Token::create(KTokenType::ESCAPED, KName::Default, fileId,
+                               "\r", row, col);
         case 't':
-          return Token::create(KTokenType::ESCAPED, KName::Default,
-                               fileId, "\t", row, col);
+          return Token::create(KTokenType::ESCAPED, KName::Default, fileId,
+                               "\t", row, col);
       }
     }
 
     getCurrentChar();
 
-    return Token::create(KTokenType::ESCAPED, KName::Default, fileId,
-                         "\\", row, col);
+    return Token::create(KTokenType::ESCAPED, KName::Default, fileId, "\\", row,
+                         col);
   }
 
   Token parseDot(char initialChar) {
@@ -399,13 +399,13 @@ class Lexer {
       if (nextChar == '.') {
         s += nextChar;
         getCurrentChar();
-        return Token::create(KTokenType::RANGE, KName::Default, fileId, s,
-                             row, col);
+        return Token::create(KTokenType::RANGE, KName::Default, fileId, s, row,
+                             col);
       }
     }
 
-    return Token::create(KTokenType::DOT, KName::Default, fileId, ".",
-                         row, col);
+    return Token::create(KTokenType::DOT, KName::Default, fileId, ".", row,
+                         col);
   }
 
   Token parseTypeName(const std::string& typeName) {
@@ -884,14 +884,14 @@ class Lexer {
     }
 
     if (literal.find('.') != std::string::npos) {
-      return Token::create(KTokenType::LITERAL, KName::Default, fileId,
-                           literal, std::stod(literal), row, col);
+      return Token::create(KTokenType::LITERAL, KName::Default, fileId, literal,
+                           std::stod(literal), row, col);
     } else {
       std::istringstream ss(literal);
       k_int value;
       ss >> value;
-      return Token::create(KTokenType::LITERAL, KName::Default, fileId,
-                           literal, value, row, col);
+      return Token::create(KTokenType::LITERAL, KName::Default, fileId, literal,
+                           value, row, col);
     }
   }
 
@@ -945,8 +945,8 @@ class Lexer {
       str += '\\';
     }
 
-    return Token::create(KTokenType::STRING, KName::Default, fileId, str,
-                         row, col);
+    return Token::create(KTokenType::STRING, KName::Default, fileId, str, row,
+                         col);
   }
 
   std::string parseInterpolatedExpression() {
@@ -989,8 +989,8 @@ class Lexer {
         }
       }
 
-      return Token::create(KTokenType::COMMENT, KName::Default, fileId,
-                           comment, row, col);
+      return Token::create(KTokenType::COMMENT, KName::Default, fileId, comment,
+                           row, col);
     } else {
       // It's a single-line comment
       std::string comment;
@@ -999,8 +999,8 @@ class Lexer {
         comment += getCurrentChar();
       }
 
-      return Token::create(KTokenType::COMMENT, KName::Default, fileId,
-                           comment, row, col);
+      return Token::create(KTokenType::COMMENT, KName::Default, fileId, comment,
+                           row, col);
     }
   }
 };

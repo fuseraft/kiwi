@@ -117,7 +117,7 @@ struct InterpHelper {
   static bool shouldUpdateFrameVariables(
       const std::string& varName,
       const std::shared_ptr<CallStackFrame> nextFrame) {
-    return nextFrame->variables.find(varName) != nextFrame->variables.end();
+    return nextFrame->hasVariable(varName);
   }
 
   static void updateVariablesInCallerFrame(
@@ -191,11 +191,10 @@ struct InterpHelper {
                                                    const std::string& tempId) {
     std::vector<Token> tokens;
     auto file = term.getFile();
-    tokens.push_back(Token::create(KTokenType::IDENTIFIER, KName::Default,
-                                   file, tempId, 0, 0));
-    tokens.push_back(Token::create(KTokenType::OPERATOR,
-                                   KName::Ops_Assign, file,
-                                   Operators.Assign, 0, 0));
+    tokens.push_back(Token::create(KTokenType::IDENTIFIER, KName::Default, file,
+                                   tempId, 0, 0));
+    tokens.push_back(Token::create(KTokenType::OPERATOR, KName::Ops_Assign,
+                                   file, Operators.Assign, 0, 0));
 
     return tokens;
   }
@@ -265,8 +264,7 @@ struct InterpHelper {
   }
 
   static Value interpretAssignOp(std::shared_ptr<TokenStream> stream,
-                                 const KName& op,
-                                 const Value& currentValue,
+                                 const KName& op, const Value& currentValue,
                                  const Value& value) {
     switch (op) {
       case KName::Ops_AddAssign:
@@ -400,8 +398,7 @@ struct InterpHelper {
                                           std::shared_ptr<CallStackFrame> frame,
                                           std::string& errorTypeVariableName,
                                           std::string& errorVariableName,
-                                          Value& errorType,
-                                          Value& errorValue) {
+                                          Value& errorType, Value& errorValue) {
     stream->next();  // Skip "("
 
     if (stream->current().getType() != KTokenType::IDENTIFIER) {

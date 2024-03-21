@@ -105,6 +105,10 @@ struct Object {
   std::string identifier;
   std::string className;
   std::unordered_map<std::string, Value> instanceVariables;
+
+  bool hasVariable(const std::string& name) const {
+    return instanceVariables.find(name) != instanceVariables.end();
+  }
 };
 
 struct LambdaRef {
@@ -295,7 +299,7 @@ Value indexof_listvalue(const std::shared_ptr<List>& list, const Value& value) {
   if (elements.empty()) {
     return static_cast<k_int>(-1);
   }
-  
+
   for (size_t i = 0; i < elements.size(); ++i) {
     if (same_value(elements.at(i), value)) {
       return static_cast<k_int>(i);
@@ -304,14 +308,14 @@ Value indexof_listvalue(const std::shared_ptr<List>& list, const Value& value) {
   return static_cast<k_int>(-1);
 }
 
-
-Value lastindexof_listvalue(const std::shared_ptr<List>& list, const Value& value) {
+Value lastindexof_listvalue(const std::shared_ptr<List>& list,
+                            const Value& value) {
   const auto& elements = list->elements;
   if (elements.empty()) {
     return static_cast<k_int>(-1);
   }
 
-  for (size_t i = elements.size(); i-- > 0; ) {
+  for (size_t i = elements.size(); i-- > 0;) {
     if (same_value(elements.at(i), value)) {
       return static_cast<k_int>(i);
     }

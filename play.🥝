@@ -7,3 +7,21 @@ config = conf.read("./config/kiwi.conf", "=")
 for key in config.keys() do
   println key + ": " + config[key]
 end
+
+config.test = "hello"
+
+if config.test == "hello"
+  println "pass"
+else
+  println "fail"
+end
+
+class TestClass
+  def initialize()
+  end
+end
+
+t = TestClass.new()
+t.test = "testing"
+t.test = "foobar"
+println t.test

@@ -93,11 +93,11 @@ class Logger {
 
     std::time_t now = std::time(nullptr);
     std::tm localTime;
-    #ifdef _WIN64
+#ifdef _WIN64
     localtime_s(&localTime, &now);
-    #else
+#else
     localtime_r(&now, &localTime);
-    #endif
+#endif
 
     char timestamp[20];
     std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S",

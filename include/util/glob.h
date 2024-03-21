@@ -47,12 +47,12 @@ Glob parseGlob(std::string input) {
   Glob glob;
   char sep = '/';
 
-  #ifdef _WIN64
+#ifdef _WIN64
   sep = '\\';
   if (String::contains(input, "/")) {
     input = String::replace(input, "/", "\\");
   }
-  #endif
+#endif
 
   // Check if the pattern includes the recursive "**"
   size_t doubleStarPos = input.find("**");
@@ -62,11 +62,11 @@ Glob parseGlob(std::string input) {
       // Exclude the '/' before '**'
       glob.path = input.substr(0, doubleStarPos - 1);
     } else {
-      #ifdef _WIN64
+#ifdef _WIN64
       glob.path = ".\\";
-      #else
+#else
       glob.path = "./";
-      #endif
+#endif
     }
 
     if (doubleStarPos + 2 < input.size() && input[doubleStarPos + 2] == sep) {
@@ -84,24 +84,24 @@ Glob parseGlob(std::string input) {
         glob.pattern = input.substr(lastSlashPos + 1);
       }
     } else {
-      #ifdef _WIN64
+#ifdef _WIN64
       glob.path = ".\\";
-      #else
+#else
       glob.path = "./";
-      #endif
+#endif
       glob.pattern = input;
     }
   }
 
   // Ensure that the path is not empty
   if (glob.path.empty()) {
-    #ifdef _WIN64
+#ifdef _WIN64
     glob.path = ".\\";
-    #else
+#else
     glob.path = "./";
-    #endif
+#endif
   }
-  
+
   // Create the regex pattern from the glob pattern
   glob.regexPattern = createRegexPattern(glob.pattern);
 

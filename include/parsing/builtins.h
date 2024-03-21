@@ -110,8 +110,7 @@ struct {
   const std::string Home = "__home__";
 
   std::unordered_set<std::string> builtins = {Home};
-  std::unordered_set<KName> st_builtins = {
-      KName::Builtin_Module_Home};
+  std::unordered_set<KName> st_builtins = {KName::Builtin_Module_Home};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
@@ -215,59 +214,37 @@ struct {
   const std::string NthPrime = "__nthprime__";
 
   std::unordered_set<std::string> builtins = {
-      Sin,        Tan,     Asin,     Acos,      Atan,   Atan2,    Sinh,
-      Cosh,       Tanh,    Cos,      Log,       Log2,   Log10,    Log1P,
-      Fmod,       Hypot,   IsFinite, IsInf,     IsNaN,  IsNormal, Sqrt,
-      Cbrt,       Abs,     Floor,    Ceil,      Round,  Trunc,    Remainder,
-      Exp,        ExpM1,   Erf,      ErfC,      LGamma, TGamma,   FMax,
-      FMin,       FDim,    CopySign, NextAfter, Pow,    Epsilon,  Random,
+      Sin,        Tan,      Asin,     Acos,      Atan,   Atan2,    Sinh,
+      Cosh,       Tanh,     Cos,      Log,       Log2,   Log10,    Log1P,
+      Fmod,       Hypot,    IsFinite, IsInf,     IsNaN,  IsNormal, Sqrt,
+      Cbrt,       Abs,      Floor,    Ceil,      Round,  Trunc,    Remainder,
+      Exp,        ExpM1,    Erf,      ErfC,      LGamma, TGamma,   FMax,
+      FMin,       FDim,     CopySign, NextAfter, Pow,    Epsilon,  Random,
       ListPrimes, NthPrime, Divisors};
 
   std::unordered_set<KName> st_builtins = {
-      KName::Builtin_Math_Abs,
-      KName::Builtin_Math_Acos,
-      KName::Builtin_Math_Asin,
-      KName::Builtin_Math_Atan,
-      KName::Builtin_Math_Atan2,
-      KName::Builtin_Math_Cbrt,
-      KName::Builtin_Math_Ceil,
-      KName::Builtin_Math_CopySign,
-      KName::Builtin_Math_Cos,
-      KName::Builtin_Math_Cosh,
-      KName::Builtin_Math_Divisors,
-      KName::Builtin_Math_Epsilon,
-      KName::Builtin_Math_Erf,
-      KName::Builtin_Math_ErfC,
-      KName::Builtin_Math_Exp,
-      KName::Builtin_Math_ExpM1,
-      KName::Builtin_Math_FDim,
-      KName::Builtin_Math_Floor,
-      KName::Builtin_Math_FMax,
-      KName::Builtin_Math_FMin,
-      KName::Builtin_Math_Fmod,
-      KName::Builtin_Math_Hypot,
-      KName::Builtin_Math_IsFinite,
-      KName::Builtin_Math_IsInf,
-      KName::Builtin_Math_IsNaN,
-      KName::Builtin_Math_IsNormal,
-      KName::Builtin_Math_LGamma,
-      KName::Builtin_Math_Log,
-      KName::Builtin_Math_Log10,
-      KName::Builtin_Math_Log1P,
-      KName::Builtin_Math_Log2,
-      KName::Builtin_Math_NextAfter,
-      KName::Builtin_Math_Pow,
-      KName::Builtin_Math_Random,
-      KName::Builtin_Math_Remainder,
-      KName::Builtin_Math_Round,
-      KName::Builtin_Math_Sin,
-      KName::Builtin_Math_Sinh,
-      KName::Builtin_Math_Sqrt,
-      KName::Builtin_Math_Tan,
-      KName::Builtin_Math_Tanh,
-      KName::Builtin_Math_TGamma,
-      KName::Builtin_Math_Trunc,
-      KName::Builtin_Math_ListPrimes,
+      KName::Builtin_Math_Abs,       KName::Builtin_Math_Acos,
+      KName::Builtin_Math_Asin,      KName::Builtin_Math_Atan,
+      KName::Builtin_Math_Atan2,     KName::Builtin_Math_Cbrt,
+      KName::Builtin_Math_Ceil,      KName::Builtin_Math_CopySign,
+      KName::Builtin_Math_Cos,       KName::Builtin_Math_Cosh,
+      KName::Builtin_Math_Divisors,  KName::Builtin_Math_Epsilon,
+      KName::Builtin_Math_Erf,       KName::Builtin_Math_ErfC,
+      KName::Builtin_Math_Exp,       KName::Builtin_Math_ExpM1,
+      KName::Builtin_Math_FDim,      KName::Builtin_Math_Floor,
+      KName::Builtin_Math_FMax,      KName::Builtin_Math_FMin,
+      KName::Builtin_Math_Fmod,      KName::Builtin_Math_Hypot,
+      KName::Builtin_Math_IsFinite,  KName::Builtin_Math_IsInf,
+      KName::Builtin_Math_IsNaN,     KName::Builtin_Math_IsNormal,
+      KName::Builtin_Math_LGamma,    KName::Builtin_Math_Log,
+      KName::Builtin_Math_Log10,     KName::Builtin_Math_Log1P,
+      KName::Builtin_Math_Log2,      KName::Builtin_Math_NextAfter,
+      KName::Builtin_Math_Pow,       KName::Builtin_Math_Random,
+      KName::Builtin_Math_Remainder, KName::Builtin_Math_Round,
+      KName::Builtin_Math_Sin,       KName::Builtin_Math_Sinh,
+      KName::Builtin_Math_Sqrt,      KName::Builtin_Math_Tan,
+      KName::Builtin_Math_Tanh,      KName::Builtin_Math_TGamma,
+      KName::Builtin_Math_Trunc,     KName::Builtin_Math_ListPrimes,
       KName::Builtin_Math_NthPrime};
 
   bool is_builtin(const std::string& arg) {
@@ -318,7 +295,8 @@ struct {
   const std::string Port = "__webserver_port__";
   const std::string Public = "__webserver_public__";
 
-  std::unordered_set<std::string> builtins = {Get, Post, Listen, Host, Port, Public};
+  std::unordered_set<std::string> builtins = {Get,  Post, Listen,
+                                              Host, Port, Public};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_WebServer_Get,    KName::Builtin_WebServer_Post,
@@ -402,8 +380,8 @@ struct {
   const std::string GetXarg = "__xarg__";
 
   std::unordered_set<std::string> builtins = {GetArgv, GetXarg};
-  std::unordered_set<KName> st_builtins = {
-      KName::Builtin_Argv_GetArgv, KName::Builtin_Argv_GetXarg};
+  std::unordered_set<KName> st_builtins = {KName::Builtin_Argv_GetArgv,
+                                           KName::Builtin_Argv_GetXarg};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
@@ -420,9 +398,9 @@ struct {
   const std::string ExecOut = "__execout__";
 
   std::unordered_set<std::string> builtins = {EffectiveUserId, Exec, ExecOut};
-  std::unordered_set<KName> st_builtins = {
-      KName::Builtin_Sys_EffectiveUserId, KName::Builtin_Sys_Exec,
-      KName::Builtin_Sys_ExecOut};
+  std::unordered_set<KName> st_builtins = {KName::Builtin_Sys_EffectiveUserId,
+                                           KName::Builtin_Sys_Exec,
+                                           KName::Builtin_Sys_ExecOut};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
@@ -438,9 +416,8 @@ struct {
   const std::string Silent = "silent";
 
   std::unordered_set<std::string> builtins = {Input, Silent};
-  std::unordered_set<KName> st_builtins = {
-      KName::Builtin_Console_Input,
-      KName::Builtin_Console_Silent};
+  std::unordered_set<KName> st_builtins = {KName::Builtin_Console_Input,
+                                           KName::Builtin_Console_Silent};
 
   bool is_builtin(const std::string& arg) {
     return builtins.find(arg) != builtins.end();
@@ -478,36 +455,24 @@ struct {
   const std::string HasKey = "has_key";
 
   std::unordered_set<std::string> builtins = {
-      Chars,    Empty,     IsA,     Join,     Size,     ToD,
-      ToI,      ToS,       Replace, Reverse,  Contains, BeginsWith,
-      EndsWith, IndexOf,   LastIndexOf, Upcase,  Downcase, Keys,     Split,
-      LeftTrim, RightTrim, Trim,    Type,     HasKey};
+      Chars,    Empty,    IsA,         Join,    Size,     ToD,
+      ToI,      ToS,      Replace,     Reverse, Contains, BeginsWith,
+      EndsWith, IndexOf,  LastIndexOf, Upcase,  Downcase, Keys,
+      Split,    LeftTrim, RightTrim,   Trim,    Type,     HasKey};
 
   std::unordered_set<KName> st_builtins = {
-      KName::Builtin_Kiwi_BeginsWith,
-      KName::Builtin_Kiwi_BeginsWith,
-      KName::Builtin_Kiwi_Empty,
-      KName::Builtin_Kiwi_Chars,
-      KName::Builtin_Kiwi_Contains,
-      KName::Builtin_Kiwi_Downcase,
-      KName::Builtin_Kiwi_EndsWith,
-      KName::Builtin_Kiwi_HasKey,
-      KName::Builtin_Kiwi_IndexOf,
-      KName::Builtin_Kiwi_IsA,
-      KName::Builtin_Kiwi_Join,
-      KName::Builtin_Kiwi_Keys,
-      KName::Builtin_Kiwi_LastIndexOf,
-      KName::Builtin_Kiwi_LeftTrim,
-      KName::Builtin_Kiwi_Replace,
-      KName::Builtin_Kiwi_Reverse,
-      KName::Builtin_Kiwi_RightTrim,
-      KName::Builtin_Kiwi_Size,
-      KName::Builtin_Kiwi_Split,
-      KName::Builtin_Kiwi_ToD,
-      KName::Builtin_Kiwi_ToI,
-      KName::Builtin_Kiwi_ToS,
-      KName::Builtin_Kiwi_Trim,
-      KName::Builtin_Kiwi_Type,
+      KName::Builtin_Kiwi_BeginsWith,  KName::Builtin_Kiwi_BeginsWith,
+      KName::Builtin_Kiwi_Empty,       KName::Builtin_Kiwi_Chars,
+      KName::Builtin_Kiwi_Contains,    KName::Builtin_Kiwi_Downcase,
+      KName::Builtin_Kiwi_EndsWith,    KName::Builtin_Kiwi_HasKey,
+      KName::Builtin_Kiwi_IndexOf,     KName::Builtin_Kiwi_IsA,
+      KName::Builtin_Kiwi_Join,        KName::Builtin_Kiwi_Keys,
+      KName::Builtin_Kiwi_LastIndexOf, KName::Builtin_Kiwi_LeftTrim,
+      KName::Builtin_Kiwi_Replace,     KName::Builtin_Kiwi_Reverse,
+      KName::Builtin_Kiwi_RightTrim,   KName::Builtin_Kiwi_Size,
+      KName::Builtin_Kiwi_Split,       KName::Builtin_Kiwi_ToD,
+      KName::Builtin_Kiwi_ToI,         KName::Builtin_Kiwi_ToS,
+      KName::Builtin_Kiwi_Trim,        KName::Builtin_Kiwi_Type,
       KName::Builtin_Kiwi_Upcase};
 
   bool is_builtin(const std::string& arg) {
