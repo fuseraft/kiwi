@@ -4,41 +4,42 @@
 #include <string>
 #include <unordered_set>
 #include "parsing/tokentype.h"
+#include "typing/value.h"
 
 struct {
   // File operations
-  const std::string AppendText = "__appendtext__";
-  const std::string CopyFile = "__copyfile__";
-  const std::string CopyR = "__copyr__";
-  const std::string Combine = "__combine__";
-  const std::string CreateFile = "__createfile__";
-  const std::string DeleteFile = "__deletefile__";
-  const std::string MoveFile = "__movefile__";
-  const std::string ReadFile = "__readfile__";
-  const std::string ReadLines = "__readlines__";
-  const std::string WriteLine = "__writeline__";
-  const std::string WriteText = "__writetext__";
-  const std::string FileExists = "__isfile__";
-  const std::string GetFileExtension = "__fileext__";
-  const std::string FileName = "__filename__";
-  const std::string FileSize = "__filesize__";
-  const std::string GetFilePath = "__filepath__";
-  const std::string GetFileAbsolutePath = "__fileabspath__";
-  const std::string GetFileAttributes = "__fileattrs__";
-  const std::string Glob = "__glob__";
+  const k_string AppendText = "__appendtext__";
+  const k_string CopyFile = "__copyfile__";
+  const k_string CopyR = "__copyr__";
+  const k_string Combine = "__combine__";
+  const k_string CreateFile = "__createfile__";
+  const k_string DeleteFile = "__deletefile__";
+  const k_string MoveFile = "__movefile__";
+  const k_string ReadFile = "__readfile__";
+  const k_string ReadLines = "__readlines__";
+  const k_string WriteLine = "__writeline__";
+  const k_string WriteText = "__writetext__";
+  const k_string FileExists = "__isfile__";
+  const k_string GetFileExtension = "__fileext__";
+  const k_string FileName = "__filename__";
+  const k_string FileSize = "__filesize__";
+  const k_string GetFilePath = "__filepath__";
+  const k_string GetFileAbsolutePath = "__fileabspath__";
+  const k_string GetFileAttributes = "__fileattrs__";
+  const k_string Glob = "__glob__";
 
   // Directory operations
-  const std::string ListDirectory = "__listdir__";
-  const std::string MakeDirectory = "__mkdir__";
-  const std::string MakeDirectoryP = "__mkdirp__";
-  const std::string RemoveDirectory = "__rmdir__";
-  const std::string RemoveDirectoryF = "__rmdirf__";
-  const std::string IsDirectory = "__isdir__";
-  const std::string ChangeDirectory = "__chdir__";
-  const std::string GetCurrentDirectory = "__cwd__";
-  const std::string TempDir = "__tmpdir__";
+  const k_string ListDirectory = "__listdir__";
+  const k_string MakeDirectory = "__mkdir__";
+  const k_string MakeDirectoryP = "__mkdirp__";
+  const k_string RemoveDirectory = "__rmdir__";
+  const k_string RemoveDirectoryF = "__rmdirf__";
+  const k_string IsDirectory = "__isdir__";
+  const k_string ChangeDirectory = "__chdir__";
+  const k_string GetCurrentDirectory = "__cwd__";
+  const k_string TempDir = "__tmpdir__";
 
-  std::unordered_set<std::string> builtins = {AppendText,
+  std::unordered_set<k_string> builtins = {AppendText,
                                               CopyFile,
                                               CopyR,
                                               Combine,
@@ -97,7 +98,7 @@ struct {
       KName::Builtin_FileIO_WriteLine,
       KName::Builtin_FileIO_WriteText};
 
-  bool is_builtin(const std::string& arg) {
+  bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
@@ -107,13 +108,12 @@ struct {
 } FileIOBuiltIns;
 
 struct {
-  const std::string Home = "__home__";
+  const k_string Home = "__home__";
 
-  std::unordered_set<std::string> builtins = {Home};
-  std::unordered_set<KName> st_builtins = {
-      KName::Builtin_Module_Home};
+  std::unordered_set<k_string> builtins = {Home};
+  std::unordered_set<KName> st_builtins = {KName::Builtin_Module_Home};
 
-  bool is_builtin(const std::string& arg) {
+  bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
@@ -123,22 +123,22 @@ struct {
 } ModuleBuiltins;
 
 struct {
-  const std::string Hour = "__hour__";
-  const std::string Minute = "__min__";
-  const std::string Second = "__sec__";
-  const std::string MonthDay = "__mday__";
-  const std::string WeekDay = "__wday__";
-  const std::string YearDay = "__yday__";
-  const std::string Month = "__mon__";
-  const std::string Year = "__year__";
-  const std::string EpochMilliseconds = "__epochms__";
-  const std::string Delay = "__delay__";
-  const std::string IsDST = "__isdst__";
-  const std::string Ticks = "__ticks__";
-  const std::string TicksToMilliseconds = "__ticksms__";
-  const std::string AMPM = "__ampm__";
+  const k_string Hour = "__hour__";
+  const k_string Minute = "__min__";
+  const k_string Second = "__sec__";
+  const k_string MonthDay = "__mday__";
+  const k_string WeekDay = "__wday__";
+  const k_string YearDay = "__yday__";
+  const k_string Month = "__mon__";
+  const k_string Year = "__year__";
+  const k_string EpochMilliseconds = "__epochms__";
+  const k_string Delay = "__delay__";
+  const k_string IsDST = "__isdst__";
+  const k_string Ticks = "__ticks__";
+  const k_string TicksToMilliseconds = "__ticksms__";
+  const k_string AMPM = "__ampm__";
 
-  std::unordered_set<std::string> builtins = {
+  std::unordered_set<k_string> builtins = {
       Hour,    Minute, Second, MonthDay,           WeekDay,
       YearDay, Month,  Year,   EpochMilliseconds,  Delay,
       IsDST,   Ticks,  AMPM,   TicksToMilliseconds};
@@ -158,7 +158,7 @@ struct {
       KName::Builtin_Time_Year,
       KName::Builtin_Time_YearDay};
 
-  bool is_builtin(const std::string& arg) {
+  bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
@@ -168,109 +168,87 @@ struct {
 } TimeBuiltins;
 
 struct {
-  const std::string Sin = "__sin__";
-  const std::string Tan = "__tan__";
-  const std::string Asin = "__asin__";
-  const std::string Acos = "__acos__";
-  const std::string Atan = "__atan__";
-  const std::string Atan2 = "__atan2__";
-  const std::string Sinh = "__sinh__";
-  const std::string Cosh = "__cosh__";
-  const std::string Tanh = "__tanh__";
-  const std::string Cos = "__cos__";
-  const std::string Log = "__log__";
-  const std::string Log2 = "__log2__";
-  const std::string Log10 = "__log10__";
-  const std::string Log1P = "__log1p__";
-  const std::string Fmod = "__fmod__";
-  const std::string Hypot = "__hypot__";
-  const std::string IsFinite = "__isfinite__";
-  const std::string IsInf = "__isinf__";
-  const std::string IsNaN = "__isnan__";
-  const std::string IsNormal = "__isnormal__";
-  const std::string Sqrt = "__sqrt__";
-  const std::string Cbrt = "__cbrt__";
-  const std::string Abs = "__abs__";
-  const std::string Floor = "__floor__";
-  const std::string Ceil = "__ceil__";
-  const std::string Round = "__round__";
-  const std::string Trunc = "__trunc__";
-  const std::string Remainder = "__remainder__";
-  const std::string Exp = "__exp__";
-  const std::string ExpM1 = "__expm1__";
-  const std::string Erf = "__erf__";
-  const std::string ErfC = "__erfc__";
-  const std::string LGamma = "__lgamma__";
-  const std::string TGamma = "__tgamma__";
-  const std::string FMax = "__fmax__";
-  const std::string FMin = "__fmin__";
-  const std::string FDim = "__fdim__";
-  const std::string CopySign = "__copysign__";
-  const std::string NextAfter = "__nextafter__";
-  const std::string Pow = "__pow__";
-  const std::string Epsilon = "__eps__";
-  const std::string Random = "__random__";
-  const std::string Divisors = "__divisors__";
-  const std::string ListPrimes = "__listprimes__";
-  const std::string NthPrime = "__nthprime__";
+  const k_string Sin = "__sin__";
+  const k_string Tan = "__tan__";
+  const k_string Asin = "__asin__";
+  const k_string Acos = "__acos__";
+  const k_string Atan = "__atan__";
+  const k_string Atan2 = "__atan2__";
+  const k_string Sinh = "__sinh__";
+  const k_string Cosh = "__cosh__";
+  const k_string Tanh = "__tanh__";
+  const k_string Cos = "__cos__";
+  const k_string Log = "__log__";
+  const k_string Log2 = "__log2__";
+  const k_string Log10 = "__log10__";
+  const k_string Log1P = "__log1p__";
+  const k_string Fmod = "__fmod__";
+  const k_string Hypot = "__hypot__";
+  const k_string IsFinite = "__isfinite__";
+  const k_string IsInf = "__isinf__";
+  const k_string IsNaN = "__isnan__";
+  const k_string IsNormal = "__isnormal__";
+  const k_string Sqrt = "__sqrt__";
+  const k_string Cbrt = "__cbrt__";
+  const k_string Abs = "__abs__";
+  const k_string Floor = "__floor__";
+  const k_string Ceil = "__ceil__";
+  const k_string Round = "__round__";
+  const k_string Trunc = "__trunc__";
+  const k_string Remainder = "__remainder__";
+  const k_string Exp = "__exp__";
+  const k_string ExpM1 = "__expm1__";
+  const k_string Erf = "__erf__";
+  const k_string ErfC = "__erfc__";
+  const k_string LGamma = "__lgamma__";
+  const k_string TGamma = "__tgamma__";
+  const k_string FMax = "__fmax__";
+  const k_string FMin = "__fmin__";
+  const k_string FDim = "__fdim__";
+  const k_string CopySign = "__copysign__";
+  const k_string NextAfter = "__nextafter__";
+  const k_string Pow = "__pow__";
+  const k_string Epsilon = "__eps__";
+  const k_string Random = "__random__";
+  const k_string Divisors = "__divisors__";
+  const k_string ListPrimes = "__listprimes__";
+  const k_string NthPrime = "__nthprime__";
 
-  std::unordered_set<std::string> builtins = {
-      Sin,        Tan,     Asin,     Acos,      Atan,   Atan2,    Sinh,
-      Cosh,       Tanh,    Cos,      Log,       Log2,   Log10,    Log1P,
-      Fmod,       Hypot,   IsFinite, IsInf,     IsNaN,  IsNormal, Sqrt,
-      Cbrt,       Abs,     Floor,    Ceil,      Round,  Trunc,    Remainder,
-      Exp,        ExpM1,   Erf,      ErfC,      LGamma, TGamma,   FMax,
-      FMin,       FDim,    CopySign, NextAfter, Pow,    Epsilon,  Random,
+  std::unordered_set<k_string> builtins = {
+      Sin,        Tan,      Asin,     Acos,      Atan,   Atan2,    Sinh,
+      Cosh,       Tanh,     Cos,      Log,       Log2,   Log10,    Log1P,
+      Fmod,       Hypot,    IsFinite, IsInf,     IsNaN,  IsNormal, Sqrt,
+      Cbrt,       Abs,      Floor,    Ceil,      Round,  Trunc,    Remainder,
+      Exp,        ExpM1,    Erf,      ErfC,      LGamma, TGamma,   FMax,
+      FMin,       FDim,     CopySign, NextAfter, Pow,    Epsilon,  Random,
       ListPrimes, NthPrime, Divisors};
 
   std::unordered_set<KName> st_builtins = {
-      KName::Builtin_Math_Abs,
-      KName::Builtin_Math_Acos,
-      KName::Builtin_Math_Asin,
-      KName::Builtin_Math_Atan,
-      KName::Builtin_Math_Atan2,
-      KName::Builtin_Math_Cbrt,
-      KName::Builtin_Math_Ceil,
-      KName::Builtin_Math_CopySign,
-      KName::Builtin_Math_Cos,
-      KName::Builtin_Math_Cosh,
-      KName::Builtin_Math_Divisors,
-      KName::Builtin_Math_Epsilon,
-      KName::Builtin_Math_Erf,
-      KName::Builtin_Math_ErfC,
-      KName::Builtin_Math_Exp,
-      KName::Builtin_Math_ExpM1,
-      KName::Builtin_Math_FDim,
-      KName::Builtin_Math_Floor,
-      KName::Builtin_Math_FMax,
-      KName::Builtin_Math_FMin,
-      KName::Builtin_Math_Fmod,
-      KName::Builtin_Math_Hypot,
-      KName::Builtin_Math_IsFinite,
-      KName::Builtin_Math_IsInf,
-      KName::Builtin_Math_IsNaN,
-      KName::Builtin_Math_IsNormal,
-      KName::Builtin_Math_LGamma,
-      KName::Builtin_Math_Log,
-      KName::Builtin_Math_Log10,
-      KName::Builtin_Math_Log1P,
-      KName::Builtin_Math_Log2,
-      KName::Builtin_Math_NextAfter,
-      KName::Builtin_Math_Pow,
-      KName::Builtin_Math_Random,
-      KName::Builtin_Math_Remainder,
-      KName::Builtin_Math_Round,
-      KName::Builtin_Math_Sin,
-      KName::Builtin_Math_Sinh,
-      KName::Builtin_Math_Sqrt,
-      KName::Builtin_Math_Tan,
-      KName::Builtin_Math_Tanh,
-      KName::Builtin_Math_TGamma,
-      KName::Builtin_Math_Trunc,
-      KName::Builtin_Math_ListPrimes,
+      KName::Builtin_Math_Abs,       KName::Builtin_Math_Acos,
+      KName::Builtin_Math_Asin,      KName::Builtin_Math_Atan,
+      KName::Builtin_Math_Atan2,     KName::Builtin_Math_Cbrt,
+      KName::Builtin_Math_Ceil,      KName::Builtin_Math_CopySign,
+      KName::Builtin_Math_Cos,       KName::Builtin_Math_Cosh,
+      KName::Builtin_Math_Divisors,  KName::Builtin_Math_Epsilon,
+      KName::Builtin_Math_Erf,       KName::Builtin_Math_ErfC,
+      KName::Builtin_Math_Exp,       KName::Builtin_Math_ExpM1,
+      KName::Builtin_Math_FDim,      KName::Builtin_Math_Floor,
+      KName::Builtin_Math_FMax,      KName::Builtin_Math_FMin,
+      KName::Builtin_Math_Fmod,      KName::Builtin_Math_Hypot,
+      KName::Builtin_Math_IsFinite,  KName::Builtin_Math_IsInf,
+      KName::Builtin_Math_IsNaN,     KName::Builtin_Math_IsNormal,
+      KName::Builtin_Math_LGamma,    KName::Builtin_Math_Log,
+      KName::Builtin_Math_Log10,     KName::Builtin_Math_Log1P,
+      KName::Builtin_Math_Log2,      KName::Builtin_Math_NextAfter,
+      KName::Builtin_Math_Pow,       KName::Builtin_Math_Random,
+      KName::Builtin_Math_Remainder, KName::Builtin_Math_Round,
+      KName::Builtin_Math_Sin,       KName::Builtin_Math_Sinh,
+      KName::Builtin_Math_Sqrt,      KName::Builtin_Math_Tan,
+      KName::Builtin_Math_Tanh,      KName::Builtin_Math_TGamma,
+      KName::Builtin_Math_Trunc,     KName::Builtin_Math_ListPrimes,
       KName::Builtin_Math_NthPrime};
 
-  bool is_builtin(const std::string& arg) {
+  bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
@@ -280,17 +258,17 @@ struct {
 } MathBuiltins;
 
 struct {
-  const std::string Map = "map";
-  const std::string None = "none";
-  const std::string Reduce = "reduce";
-  const std::string Select = "select";
-  const std::string Sort = "sort";
-  const std::string Sum = "sum";
-  const std::string Min = "min";
-  const std::string Max = "max";
-  const std::string ToH = "to_h";
+  const k_string Map = "map";
+  const k_string None = "none";
+  const k_string Reduce = "reduce";
+  const k_string Select = "select";
+  const k_string Sort = "sort";
+  const k_string Sum = "sum";
+  const k_string Min = "min";
+  const k_string Max = "max";
+  const k_string ToH = "to_h";
 
-  std::unordered_set<std::string> builtins = {Map, None, Reduce, Select, Sort,
+  std::unordered_set<k_string> builtins = {Map, None, Reduce, Select, Sort,
                                               Sum, Min,  Max,    ToH};
 
   std::unordered_set<KName> st_builtins = {
@@ -300,7 +278,7 @@ struct {
       KName::Builtin_List_Sum,    KName::Builtin_List_Min,
       KName::Builtin_List_Max};
 
-  bool is_builtin(const std::string& arg) {
+  bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
@@ -311,21 +289,22 @@ struct {
 } ListBuiltins;
 
 struct {
-  const std::string Get = "__webserver_get__";
-  const std::string Post = "__webserver_post__";
-  const std::string Listen = "__webserver_listen__";
-  const std::string Host = "__webserver_host__";
-  const std::string Port = "__webserver_port__";
-  const std::string Public = "__webserver_public__";
+  const k_string Get = "__webserver_get__";
+  const k_string Post = "__webserver_post__";
+  const k_string Listen = "__webserver_listen__";
+  const k_string Host = "__webserver_host__";
+  const k_string Port = "__webserver_port__";
+  const k_string Public = "__webserver_public__";
 
-  std::unordered_set<std::string> builtins = {Get, Post, Listen, Host, Port, Public};
+  std::unordered_set<k_string> builtins = {Get,  Post, Listen,
+                                              Host, Port, Public};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_WebServer_Get,    KName::Builtin_WebServer_Post,
       KName::Builtin_WebServer_Listen, KName::Builtin_WebServer_Host,
       KName::Builtin_WebServer_Port,   KName::Builtin_WebServer_Public};
 
-  bool is_builtin(const std::string& arg) {
+  bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
@@ -336,33 +315,33 @@ struct {
 
 #ifdef EXPERIMENTAL_FEATURES
 struct {
-  const std::string Get = "__http_get__";
-  const std::string Post = "__http_post__";
-  const std::string Put = "__http_put__";
-  const std::string Delete = "__http_delete__";
-  const std::string Patch = "__http_patch__";
-  const std::string Head = "__http_head__";
-  const std::string Options = "__http_options__";
+  const k_string Get = "__http_get__";
+  const k_string Post = "__http_post__";
+  const k_string Put = "__http_put__";
+  const k_string Delete = "__http_delete__";
+  const k_string Patch = "__http_patch__";
+  const k_string Head = "__http_head__";
+  const k_string Options = "__http_options__";
 
-  std::unordered_set<std::string> builtins = {Get,   Post, Put,    Delete,
+  std::unordered_set<k_string> builtins = {Get,   Post, Put,    Delete,
                                               Patch, Head, Options};
 
-  bool is_builtin(const std::string& arg) {
+  bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 } HttpBuiltins;
 
 struct {
-  const std::string Connect = "__odbc_connect__";
-  const std::string Exec = "__odbc_exec__";
-  const std::string ExecSp = "__odbc_execsp__";
-  const std::string IsConnected = "__odbc_isconnected__";
-  const std::string BeginTransaction = "__odbc_begin_tx__";
-  const std::string CommitTransaction = "__odbc_commit_tx__";
-  const std::string RollbackTransaction = "__odbc_rollback_tx__";
-  const std::string InTransaction = "__odbc_in_tx__";
+  const k_string Connect = "__odbc_connect__";
+  const k_string Exec = "__odbc_exec__";
+  const k_string ExecSp = "__odbc_execsp__";
+  const k_string IsConnected = "__odbc_isconnected__";
+  const k_string BeginTransaction = "__odbc_begin_tx__";
+  const k_string CommitTransaction = "__odbc_commit_tx__";
+  const k_string RollbackTransaction = "__odbc_rollback_tx__";
+  const k_string InTransaction = "__odbc_in_tx__";
 
-  std::unordered_set<std::string> builtins = {Connect,
+  std::unordered_set<k_string> builtins = {Connect,
                                               Exec,
                                               ExecSp,
                                               IsConnected,
@@ -371,24 +350,24 @@ struct {
                                               RollbackTransaction,
                                               InTransaction};
 
-  bool is_builtin(const std::string& arg) {
+  bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 } OdbcBuiltins;
 #endif
 
 struct {
-  const std::string GetEnvironmentVariable = "__getenv__";
-  const std::string SetEnvironmentVariable = "__setenv__";
+  const k_string GetEnvironmentVariable = "__getenv__";
+  const k_string SetEnvironmentVariable = "__setenv__";
 
-  std::unordered_set<std::string> builtins = {GetEnvironmentVariable,
+  std::unordered_set<k_string> builtins = {GetEnvironmentVariable,
                                               SetEnvironmentVariable};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Env_GetEnvironmentVariable,
       KName::Builtin_Env_SetEnvironmentVariable};
 
-  bool is_builtin(const std::string& arg) {
+  bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
@@ -398,14 +377,14 @@ struct {
 } EnvBuiltins;
 
 struct {
-  const std::string GetArgv = "__argv__";
-  const std::string GetXarg = "__xarg__";
+  const k_string GetArgv = "__argv__";
+  const k_string GetXarg = "__xarg__";
 
-  std::unordered_set<std::string> builtins = {GetArgv, GetXarg};
-  std::unordered_set<KName> st_builtins = {
-      KName::Builtin_Argv_GetArgv, KName::Builtin_Argv_GetXarg};
+  std::unordered_set<k_string> builtins = {GetArgv, GetXarg};
+  std::unordered_set<KName> st_builtins = {KName::Builtin_Argv_GetArgv,
+                                           KName::Builtin_Argv_GetXarg};
 
-  bool is_builtin(const std::string& arg) {
+  bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
@@ -415,16 +394,16 @@ struct {
 } ArgvBuiltins;
 
 struct {
-  const std::string EffectiveUserId = "__euid__";
-  const std::string Exec = "__exec__";
-  const std::string ExecOut = "__execout__";
+  const k_string EffectiveUserId = "__euid__";
+  const k_string Exec = "__exec__";
+  const k_string ExecOut = "__execout__";
 
-  std::unordered_set<std::string> builtins = {EffectiveUserId, Exec, ExecOut};
-  std::unordered_set<KName> st_builtins = {
-      KName::Builtin_Sys_EffectiveUserId, KName::Builtin_Sys_Exec,
-      KName::Builtin_Sys_ExecOut};
+  std::unordered_set<k_string> builtins = {EffectiveUserId, Exec, ExecOut};
+  std::unordered_set<KName> st_builtins = {KName::Builtin_Sys_EffectiveUserId,
+                                           KName::Builtin_Sys_Exec,
+                                           KName::Builtin_Sys_ExecOut};
 
-  bool is_builtin(const std::string& arg) {
+  bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
@@ -434,15 +413,14 @@ struct {
 } SysBuiltins;
 
 struct {
-  const std::string Input = "input";
-  const std::string Silent = "silent";
+  const k_string Input = "input";
+  const k_string Silent = "silent";
 
-  std::unordered_set<std::string> builtins = {Input, Silent};
-  std::unordered_set<KName> st_builtins = {
-      KName::Builtin_Console_Input,
-      KName::Builtin_Console_Silent};
+  std::unordered_set<k_string> builtins = {Input, Silent};
+  std::unordered_set<KName> st_builtins = {KName::Builtin_Console_Input,
+                                           KName::Builtin_Console_Silent};
 
-  bool is_builtin(const std::string& arg) {
+  bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
   }
 
@@ -452,65 +430,53 @@ struct {
 } ConsoleBuiltins;
 
 struct {
-  const std::string Chars = "chars";
-  const std::string IsA = "is_a";
-  const std::string Join = "join";
-  const std::string Split = "split";
-  const std::string LeftTrim = "ltrim";
-  const std::string RightTrim = "rtrim";
-  const std::string Trim = "trim";
-  const std::string Size = "size";
-  const std::string ToD = "to_d";
-  const std::string ToI = "to_i";
-  const std::string ToS = "to_s";
-  const std::string Type = "type";
-  const std::string Empty = "empty";
-  const std::string Replace = "replace";
-  const std::string Reverse = "reverse";
-  const std::string Contains = "contains";
-  const std::string BeginsWith = "begins_with";
-  const std::string EndsWith = "ends_with";
-  const std::string IndexOf = "index";
-  const std::string LastIndexOf = "lastindex";
-  const std::string Upcase = "upcase";
-  const std::string Downcase = "downcase";
-  const std::string Keys = "keys";
-  const std::string HasKey = "has_key";
+  const k_string Chars = "chars";
+  const k_string IsA = "is_a";
+  const k_string Join = "join";
+  const k_string Split = "split";
+  const k_string LeftTrim = "ltrim";
+  const k_string RightTrim = "rtrim";
+  const k_string Trim = "trim";
+  const k_string Size = "size";
+  const k_string ToD = "to_d";
+  const k_string ToI = "to_i";
+  const k_string ToS = "to_s";
+  const k_string Type = "type";
+  const k_string Empty = "empty";
+  const k_string Replace = "replace";
+  const k_string Reverse = "reverse";
+  const k_string Contains = "contains";
+  const k_string BeginsWith = "begins_with";
+  const k_string EndsWith = "ends_with";
+  const k_string IndexOf = "index";
+  const k_string LastIndexOf = "lastindex";
+  const k_string Upcase = "upcase";
+  const k_string Downcase = "downcase";
+  const k_string Keys = "keys";
+  const k_string HasKey = "has_key";
 
-  std::unordered_set<std::string> builtins = {
-      Chars,    Empty,     IsA,     Join,     Size,     ToD,
-      ToI,      ToS,       Replace, Reverse,  Contains, BeginsWith,
-      EndsWith, IndexOf,   LastIndexOf, Upcase,  Downcase, Keys,     Split,
-      LeftTrim, RightTrim, Trim,    Type,     HasKey};
+  std::unordered_set<k_string> builtins = {
+      Chars,    Empty,    IsA,         Join,    Size,     ToD,
+      ToI,      ToS,      Replace,     Reverse, Contains, BeginsWith,
+      EndsWith, IndexOf,  LastIndexOf, Upcase,  Downcase, Keys,
+      Split,    LeftTrim, RightTrim,   Trim,    Type,     HasKey};
 
   std::unordered_set<KName> st_builtins = {
-      KName::Builtin_Kiwi_BeginsWith,
-      KName::Builtin_Kiwi_BeginsWith,
-      KName::Builtin_Kiwi_Empty,
-      KName::Builtin_Kiwi_Chars,
-      KName::Builtin_Kiwi_Contains,
-      KName::Builtin_Kiwi_Downcase,
-      KName::Builtin_Kiwi_EndsWith,
-      KName::Builtin_Kiwi_HasKey,
-      KName::Builtin_Kiwi_IndexOf,
-      KName::Builtin_Kiwi_IsA,
-      KName::Builtin_Kiwi_Join,
-      KName::Builtin_Kiwi_Keys,
-      KName::Builtin_Kiwi_LastIndexOf,
-      KName::Builtin_Kiwi_LeftTrim,
-      KName::Builtin_Kiwi_Replace,
-      KName::Builtin_Kiwi_Reverse,
-      KName::Builtin_Kiwi_RightTrim,
-      KName::Builtin_Kiwi_Size,
-      KName::Builtin_Kiwi_Split,
-      KName::Builtin_Kiwi_ToD,
-      KName::Builtin_Kiwi_ToI,
-      KName::Builtin_Kiwi_ToS,
-      KName::Builtin_Kiwi_Trim,
-      KName::Builtin_Kiwi_Type,
+      KName::Builtin_Kiwi_BeginsWith,  KName::Builtin_Kiwi_BeginsWith,
+      KName::Builtin_Kiwi_Empty,       KName::Builtin_Kiwi_Chars,
+      KName::Builtin_Kiwi_Contains,    KName::Builtin_Kiwi_Downcase,
+      KName::Builtin_Kiwi_EndsWith,    KName::Builtin_Kiwi_HasKey,
+      KName::Builtin_Kiwi_IndexOf,     KName::Builtin_Kiwi_IsA,
+      KName::Builtin_Kiwi_Join,        KName::Builtin_Kiwi_Keys,
+      KName::Builtin_Kiwi_LastIndexOf, KName::Builtin_Kiwi_LeftTrim,
+      KName::Builtin_Kiwi_Replace,     KName::Builtin_Kiwi_Reverse,
+      KName::Builtin_Kiwi_RightTrim,   KName::Builtin_Kiwi_Size,
+      KName::Builtin_Kiwi_Split,       KName::Builtin_Kiwi_ToD,
+      KName::Builtin_Kiwi_ToI,         KName::Builtin_Kiwi_ToS,
+      KName::Builtin_Kiwi_Trim,        KName::Builtin_Kiwi_Type,
       KName::Builtin_Kiwi_Upcase};
 
-  bool is_builtin(const std::string& arg) {
+  bool is_builtin(const k_string& arg) {
     if (ListBuiltins.is_builtin(arg)) {
       return true;
     }
@@ -522,7 +488,7 @@ struct {
            ListBuiltins.is_builtin(arg);
   }
 
-  bool is_builtin_method(const std::string& arg) {
+  bool is_builtin_method(const k_string& arg) {
 #ifdef EXPERIMENTAL_FEATURES
     return ConsoleBuiltins.is_builtin(arg) || EnvBuiltins.is_builtin(arg) ||
            ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||

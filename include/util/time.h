@@ -59,7 +59,7 @@ class Time {
     return static_cast<k_int>(1900 + getLocalTime()->tm_year);
   }
 
-  static std::string getAMPM() { return currentHour() < 12 ? "AM" : "PM"; }
+  static k_string getAMPM() { return currentHour() < 12 ? "AM" : "PM"; }
 
   static bool isDST() { return getLocalTime()->tm_isdst > 0; }
 
