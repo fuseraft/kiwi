@@ -1986,8 +1986,7 @@ class Interpreter {
 
       if (std::holds_alternative<std::shared_ptr<List>>(sliced)) {
         auto slicedlist = std::get<std::shared_ptr<List>>(sliced)->elements;
-        for (auto it = slicedlist.begin();
-             it != slicedlist.end(); ++it) {
+        for (auto it = slicedlist.begin(); it != slicedlist.end(); ++it) {
           sv << Serializer::serialize(*it);
         }
       } else {
@@ -3143,7 +3142,7 @@ class Interpreter {
           return object->instanceVariables[callText];
         }
       }
-      
+
       if (current.getSubType() == KName::Ops_Assign) {
         stream->next();  // Skip "="
 
@@ -3156,10 +3155,11 @@ class Interpreter {
     if (current.getType() != KTokenType::OPEN_PAREN) {
       if (std::holds_alternative<std::shared_ptr<Hash>>(value)) {
         auto hash = std::get<std::shared_ptr<Hash>>(value);
-        if (hash->hasKey(callText) && current.getSubType() != KName::Ops_Assign) {
+        if (hash->hasKey(callText) &&
+            current.getSubType() != KName::Ops_Assign) {
           return hash->get(callText);
         }
-        
+
         if (current.getSubType() == KName::Ops_Assign) {
           stream->next();  // Skip "="
 
