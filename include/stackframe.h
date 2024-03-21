@@ -58,6 +58,10 @@ struct CallStackFrame {
   }
   Method& getAssignedLambda(const std::string& name) { return lambdas[name]; }
 
+  bool hasVariable(const std::string& name) const {
+    return variables.find(name) != variables.end();
+  }
+
   void setErrorState(const KiwiError& e) { errorState.setError(e); }
   bool isErrorStateSet() const { return errorState.isErrorSet(); }
   std::string getErrorMessage() const { return errorState.error.getMessage(); }

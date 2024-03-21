@@ -287,12 +287,13 @@ std::string File::getParentPath(const std::string& path) {
 /// @return Boolean indicating success.
 bool File::isScript(const std::string& path) {
   bool _isScript = false;
-  #ifdef _WIN64
+#ifdef _WIN64
   _isScript = String::endsWith(path, ".kiwi") && File::fileExists(path);
-  #else
-  _isScript = (String::endsWith(path, "🥝") || String::endsWith(path, ".kiwi")) &&
-         File::fileExists(path);
-  #endif
+#else
+  _isScript =
+      (String::endsWith(path, "🥝") || String::endsWith(path, ".kiwi")) &&
+      File::fileExists(path);
+#endif
   return _isScript;
 }
 
@@ -313,11 +314,11 @@ bool File::isSymLink(const std::string& path) {
 /// @brief Get the executable path.
 /// @return String containing executable path.
 fs::path File::getExecutablePath() {
-  #ifdef _WIN64
-  wchar_t path[FILENAME_MAX] = { 0 };
+#ifdef _WIN64
+  wchar_t path[FILENAME_MAX] = {0};
   GetModuleFileNameW(nullptr, path, FILENAME_MAX);
   return fs::path(path);
-  #else
+#else
   const std::string executablePath = "/proc/self/exe";
 
   if (!isSymLink(executablePath)) {
@@ -331,19 +332,19 @@ fs::path File::getExecutablePath() {
   }
 
   return symLinkPath;
-  #endif
+#endif
 }
 
 std::string File::getLibraryPath() {
   fs::path kiwiPath(getExecutablePath());
   fs::path kiwilibPath;
-  #ifdef _WIN64
+#ifdef _WIN64
   std::string binPath = getParentPath(kiwiPath.string());
   std::string parentPath = getParentPath(binPath);
   kiwilibPath = (fs::path(parentPath) / "lib\\kiwi").lexically_normal();
-  #else
+#else
   kiwilibPath = (kiwiPath / "../lib/kiwi").lexically_normal();
-  #endif
+#endif
 
   if (!fs::exists(kiwilibPath)) {
     std::cout << "lib path does not exist: " << kiwilibPath << std::endl;
@@ -359,13 +360,17 @@ std::string wstring_tos(const std::wstring& wstring) {
     return "";
   }
 
-  const auto size = WideCharToMultiByte(CP_UTF8, 0, &wstring.at(0), (int)wstring.size(), nullptr, 0, nullptr, nullptr);
+  const auto size =
+      WideCharToMultiByte(CP_UTF8, 0, &wstring.at(0), (int)wstring.size(),
+                          nullptr, 0, nullptr, nullptr);
   if (size <= 0) {
-    throw std::runtime_error("WideCharToMultiByte() failed: " + std::to_string(size));
+    throw std::runtime_error("WideCharToMultiByte() failed: " +
+                             std::to_string(size));
   }
 
   std::string string(size, 0);
-  WideCharToMultiByte(CP_UTF8, 0, &wstring.at(0), (int)wstring.size(), &string.at(0), size, nullptr, nullptr);
+  WideCharToMultiByte(CP_UTF8, 0, &wstring.at(0), (int)wstring.size(),
+                      &string.at(0), size, nullptr, nullptr);
   return string;
 }
 #endif
@@ -389,18 +394,18 @@ std::vector<std::string> File::expandGlob(const std::string& globString) {
 
   if (glob.recursiveTraversal) {
     for (const auto& entry : fs::recursive_directory_iterator(basePath)) {
-      #ifdef _WIN64
+#ifdef _WIN64
       const std::wstring entryPath = entry.path().c_str();
       auto pathString = wstring_tos(entryPath);
       if (std::regex_match(pathString, filenameRegex)) {
         matchedFiles.push_back(entry.path().lexically_normal().string());
       }
-      #else
+#else
       if (entry.is_regular_file() &&
           std::regex_match(entry.path().filename().string(), filenameRegex)) {
         matchedFiles.push_back(entry.path().lexically_normal().string());
       }
-      #endif
+#endif
     }
   } else {
     for (const auto& entry : fs::directory_iterator(basePath)) {

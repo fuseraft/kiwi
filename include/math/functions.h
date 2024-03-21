@@ -44,8 +44,9 @@ struct {
     } else if (std::holds_alternative<k_int>(v)) {
       return std::get<k_int>(v) == 0;
     }
-    
-    throw ConversionError(term, "Cannot check non-numeric value for zero value.");
+
+    throw ConversionError(term,
+                          "Cannot check non-numeric value for zero value.");
   }
 
   Value do_addition(const Token& token, const Value& left, const Value& right) {
@@ -255,7 +256,6 @@ struct {
       return do_list_multiplication(token, left, right);
     }
 
-
     throw ConversionError(token, "Conversion error in multiplication.");
   }
 
@@ -421,7 +421,8 @@ struct {
     return atan(get_double(token, value));
   }
 
-  Value __atan2__(const Token& token, const Value& valueY, const Value& valueX) {
+  Value __atan2__(const Token& token, const Value& valueY,
+                  const Value& valueX) {
     return atan2(get_double(token, valueY), get_double(token, valueX));
   }
 
@@ -465,7 +466,8 @@ struct {
     return fmod(get_double(token, valueX), get_double(token, valueY));
   }
 
-  Value __hypot__(const Token& token, const Value& valueX, const Value& valueY) {
+  Value __hypot__(const Token& token, const Value& valueX,
+                  const Value& valueY) {
     return hypot(get_double(token, valueX), get_double(token, valueY));
   }
 
@@ -502,7 +504,7 @@ struct {
   }
 
   Value __remainder__(const Token& token, const Value& valueX,
-                     const Value& valueY) {
+                      const Value& valueY) {
     return remainder(get_double(token, valueX), get_double(token, valueY));
   }
 
@@ -535,12 +537,12 @@ struct {
   }
 
   Value __copysign__(const Token& token, const Value& valueX,
-                    const Value& valueY) {
+                     const Value& valueY) {
     return copysign(get_double(token, valueX), get_double(token, valueY));
   }
 
   Value __nextafter__(const Token& token, const Value& valueX,
-                     const Value& valueY) {
+                      const Value& valueY) {
     return nextafter(get_double(token, valueX), get_double(token, valueY));
   }
 
@@ -584,7 +586,7 @@ struct {
   }
 
   Value __random__(const Token& token, const Value& valueX,
-                  const Value& valueY) {
+                   const Value& valueY) {
     if (std::holds_alternative<std::string>(valueX)) {
       auto limit = get_integer(token, valueY);
       return RNG::getInstance().randomString(std::get<std::string>(valueX),

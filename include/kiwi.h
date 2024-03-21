@@ -128,11 +128,11 @@ bool Kiwi::createNewFile(const std::string& path) {
   auto filePath = path;
 
   if (File::getFileExtension(path).empty()) {
-    #ifdef _WIN64
+#ifdef _WIN64
     filePath += ".kiwi";
-    #else
+#else
     filePath += DefaultExtension;
-    #endif
+#endif
   }
 
   if (File::fileExists(filePath)) {
@@ -223,14 +223,13 @@ int Kiwi::printHelp() {
       {"-C, --config <conf_path>", "configure with a `.conf` file"},
       {"-X<key>:<value>", "specify an argument as a key-value pair"}};
 
-  #ifdef _WIN64
-  commands = {
-      {"-h, --help", "print this message"},
-      {"-v, --version", "print the current version"},
-      {"-n, --new <filename>", "create a `.kiwi` file"},
-      {"-C, --config <conf_path>", "configure with a `.conf` file"},
-      {"-X<key>:<value>", "specify an argument as a key-value pair"}};
-  #endif
+#ifdef _WIN64
+  commands = {{"-h, --help", "print this message"},
+              {"-v, --version", "print the current version"},
+              {"-n, --new <filename>", "create a `.kiwi` file"},
+              {"-C, --config <conf_path>", "configure with a `.conf` file"},
+              {"-X<key>:<value>", "specify an argument as a key-value pair"}};
+#endif
 
   printVersion();
 

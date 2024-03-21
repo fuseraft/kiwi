@@ -147,7 +147,6 @@ class String {
     return -1;
   }
 
-
   /// @brief Check if a string is a command-line flag.
   /// @param s The string to search.
   /// @param shortFlag The short flag name.

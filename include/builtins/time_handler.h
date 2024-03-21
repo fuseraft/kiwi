@@ -73,7 +73,7 @@ class TimeBuiltinHandler {
   }
 
   static Value executeEpochMilliseconds(const Token& term,
-                                         const std::vector<Value>& args) {
+                                        const std::vector<Value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term,
                                            TimeBuiltins.EpochMilliseconds);

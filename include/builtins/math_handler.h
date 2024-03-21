@@ -552,7 +552,8 @@ class MathBuiltinHandler {
     }
 
     auto list = std::make_shared<List>();
-    for (const auto& divisor : MathImpl.__divisors__(std::get<k_int>(args.at(0)))) {
+    for (const auto& divisor :
+         MathImpl.__divisors__(std::get<k_int>(args.at(0)))) {
       list->elements.push_back(divisor);
     }
 

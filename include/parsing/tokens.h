@@ -10,17 +10,16 @@
 
 class Token {
  public:
-  static Token create(const KTokenType& t, const KName& st,
-                      const int& fileId, const std::string& text,
-                      const Value& v, const int& lineNumber,
-                      const int& linePosition) {
+  static Token create(const KTokenType& t, const KName& st, const int& fileId,
+                      const std::string& text, const Value& v,
+                      const int& lineNumber, const int& linePosition) {
     Token token(t, st, fileId, text, v, lineNumber, linePosition);
     return token;
   }
 
-  static Token create(const KTokenType& t, const KName& st,
-                      const int& fileId, const std::string& text,
-                      const int& lineNumber, const int& linePosition) {
+  static Token create(const KTokenType& t, const KName& st, const int& fileId,
+                      const std::string& text, const int& lineNumber,
+                      const int& linePosition) {
     return create(t, st, fileId, text, text, lineNumber, linePosition);
   }
 
