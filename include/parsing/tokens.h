@@ -11,19 +11,19 @@
 class Token {
  public:
   static Token create(const KTokenType& t, const KName& st, const int& fileId,
-                      const std::string& text, const Value& v,
+                      const k_string& text, const Value& v,
                       const int& lineNumber, const int& linePosition) {
     Token token(t, st, fileId, text, v, lineNumber, linePosition);
     return token;
   }
 
   static Token create(const KTokenType& t, const KName& st, const int& fileId,
-                      const std::string& text, const int& lineNumber,
+                      const k_string& text, const int& lineNumber,
                       const int& linePosition) {
     return create(t, st, fileId, text, text, lineNumber, linePosition);
   }
 
-  static Token createBoolean(const int& fileId, const std::string& text,
+  static Token createBoolean(const int& fileId, const k_string& text,
                              const int& lineNumber, const int& linePosition) {
     bool value = text == Keywords.True;
     auto st = value ? KName::KW_True : KName::KW_False;
@@ -41,7 +41,7 @@ class Token {
 
   const int& getFile() const { return fileId; }
 
-  const std::string& getText() const { return text; }
+  const k_string& getText() const { return text; }
 
   const int& getLineNumber() const { return _lineNumber; }
 
@@ -57,13 +57,13 @@ class Token {
   KTokenType type;
   KName subType;
   int fileId;
-  std::string text;
+  k_string text;
   Value value;
   int _lineNumber;
   int _linePosition;
 
   Token(const KTokenType& t, const KName& st, const int& fileId,
-        const std::string& text, const Value& v, const int& lineNumber,
+        const k_string& text, const Value& v, const int& lineNumber,
         const int& linePosition)
       : type(t), subType(st), fileId(fileId), text(text), value(v) {
     _lineNumber = lineNumber;

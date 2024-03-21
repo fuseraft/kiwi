@@ -12,7 +12,7 @@
 #include "value.h"
 
 struct Serializer {
-  static std::string get_value_type_string(Value v) {
+  static k_string get_value_type_string(Value v) {
     if (std::holds_alternative<k_int>(v)) {
       return TypeNames.Integer;
     } else if (std::holds_alternative<double>(v)) {
@@ -20,7 +20,7 @@ struct Serializer {
 
     } else if (std::holds_alternative<bool>(v)) {
       return TypeNames.Boolean;
-    } else if (std::holds_alternative<std::string>(v)) {
+    } else if (std::holds_alternative<k_string>(v)) {
       return TypeNames.String;
     } else if (std::holds_alternative<std::shared_ptr<List>>(v)) {
       return TypeNames.List;
@@ -45,7 +45,7 @@ struct Serializer {
     }
   }
 
-  static std::string serialize(Value v, bool wrapStrings = false) {
+  static k_string serialize(Value v, bool wrapStrings = false) {
     std::ostringstream sv;
 
     if (std::holds_alternative<k_int>(v)) {
@@ -54,11 +54,11 @@ struct Serializer {
       sv << std::get<double>(v);
     } else if (std::holds_alternative<bool>(v)) {
       sv << std::boolalpha << std::get<bool>(v);
-    } else if (std::holds_alternative<std::string>(v)) {
+    } else if (std::holds_alternative<k_string>(v)) {
       if (wrapStrings) {
-        sv << "\"" << std::get<std::string>(v) << "\"";
+        sv << "\"" << std::get<k_string>(v) << "\"";
       } else {
-        sv << std::get<std::string>(v);
+        sv << std::get<k_string>(v);
       }
     } else if (std::holds_alternative<std::shared_ptr<List>>(v)) {
       sv << serialize_list(std::get<std::shared_ptr<List>>(v));
@@ -73,7 +73,7 @@ struct Serializer {
     return sv.str();
   }
 
-  static std::string serialize_list(const std::shared_ptr<List>& list) {
+  static k_string serialize_list(const std::shared_ptr<List>& list) {
     std::ostringstream sv;
     sv << "[";
 
@@ -82,7 +82,7 @@ struct Serializer {
         sv << ", ";
       }
 
-      if (std::holds_alternative<std::string>(*it)) {
+      if (std::holds_alternative<k_string>(*it)) {
         sv << "\"" << serialize(*it) << "\"";
       } else {
         sv << serialize(*it);
@@ -102,13 +102,13 @@ struct Serializer {
     return keys;
   }
 
-  static std::string basic_serialize_object(
+  static k_string basic_serialize_object(
       const std::shared_ptr<Object>& object) {
     return "[Object(class=" + object->className + ", identifier=@" +
            object->identifier + ")]";
   }
 
-  static std::string basic_serialize_lambda(
+  static k_string basic_serialize_lambda(
       const std::shared_ptr<LambdaRef>& lambda) {
     if (lambda->identifier.empty()) {
       return "[" + TypeNames.Lambda + "]";
@@ -116,7 +116,7 @@ struct Serializer {
     return "[" + TypeNames.Lambda + "(identifier=" + lambda->identifier + ")]";
   }
 
-  static std::string serialize_hash(const std::shared_ptr<Hash>& hash) {
+  static k_string serialize_hash(const std::shared_ptr<Hash>& hash) {
     std::ostringstream sv;
     sv << "{";
 

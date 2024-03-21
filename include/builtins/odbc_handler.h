@@ -9,11 +9,11 @@
 #include "typing/value.h"
 
 struct ConnectionInfo {
-  std::string connectionString;
+  k_string connectionString;
   bool hasConnection = false;
 
   static ConnectionInfo build(const Token& term, const Value& value,
-                              const std::string& builtin) {
+                              const k_string& builtin) {
     ConnectionInfo conn;
     std::shared_ptr<Hash> hash;
 
@@ -50,7 +50,7 @@ struct ConnectionInfo {
 
 class OdbcBuiltinHandler {
  public:
-  static Value execute(const Token& term, const std::string& builtin,
+  static Value execute(const Token& term, const k_string& builtin,
                        const std::vector<Value>& args) {
     try {
       switch (builtin) {
@@ -82,7 +82,7 @@ class OdbcBuiltinHandler {
           break;
       }
     } catch (const std::exception& e) {
-      throw DbError(term, "ODBC handler error: " + std::string(e.what()));
+      throw DbError(term, "ODBC handler error: " + k_string(e.what()));
     }
 
     throw UnknownBuiltinError(term, builtin);
@@ -110,7 +110,7 @@ class OdbcBuiltinHandler {
     ConnectionInfo conn =
         ConnectionInfo::build(term, args.at(0), OdbcBuiltins.Exec);
 
-    std::string sql = get_string(term, args.at(1));
+    k_string sql = get_string(term, args.at(1));
     return OdbcConnection::getInstance(conn.connectionString).executeSql(sql);
   }
 
@@ -123,7 +123,7 @@ class OdbcBuiltinHandler {
     ConnectionInfo conn =
         ConnectionInfo::build(term, args.at(0), OdbcBuiltins.ExecSp);
 
-    std::string spName = get_string(term, args.at(1));
+    k_string spName = get_string(term, args.at(1));
 
     if (!std::holds_alternative<std::shared_ptr<List>>(args.at(2))) {
       throw DbError(

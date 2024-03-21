@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <variant>
 #include <vector>
-#include "errors/error.h"
+#include "tracing/error.h"
 
 struct Hash;
 struct List;
@@ -16,6 +16,7 @@ struct Object;
 struct LambdaRef;
 
 typedef long long k_int;
+typedef std::string k_string;
 
 enum class ValueType {
   None,
@@ -34,7 +35,7 @@ std::size_t hashHash(const std::shared_ptr<Hash>& hash);
 std::size_t hashList(const std::shared_ptr<List>& list);
 std::size_t hashObject(const std::shared_ptr<Object>& object);
 
-using Value = std::variant<k_int, double, bool, std::string,
+using Value = std::variant<k_int, double, bool, k_string,
                            std::shared_ptr<List>, std::shared_ptr<Hash>,
                            std::shared_ptr<Object>, std::shared_ptr<LambdaRef>>;
 
@@ -50,8 +51,8 @@ struct hash<Value> {
         return std::hash<double>()(std::get<double>(v));
       case 2:  // bool
         return std::hash<bool>()(std::get<bool>(v));
-      case 3:  // std::string
-        return std::hash<std::string>()(std::get<std::string>(v));
+      case 3:  // k_string
+        return std::hash<k_string>()(std::get<k_string>(v));
       case 4:  // std::shared_ptr<List>
         return hashList(std::get<std::shared_ptr<List>>(v));
       case 5:  // std::shared_ptr<Hash>
@@ -76,25 +77,25 @@ struct List {
 };
 
 struct Hash {
-  std::unordered_map<std::string, Value> kvp;
-  std::vector<std::string> keys;
+  std::unordered_map<k_string, Value> kvp;
+  std::vector<k_string> keys;
 
   int size() const { return keys.size(); }
 
-  bool hasKey(const std::string& key) const {
+  bool hasKey(const k_string& key) const {
     return kvp.find(key) != kvp.end();
   }
 
-  void add(const std::string& key, Value value) {
+  void add(const k_string& key, Value value) {
     if (!hasKey(key)) {
       keys.push_back(key);
     }
     kvp[key] = value;
   }
 
-  Value get(const std::string& key) { return kvp[key]; }
+  Value get(const k_string& key) { return kvp[key]; }
 
-  void remove(const std::string& key) {
+  void remove(const k_string& key) {
     kvp.erase(key);
     auto newEnd = std::remove(keys.begin(), keys.end(), key);
     keys.erase(newEnd, keys.end());
@@ -102,19 +103,19 @@ struct Hash {
 };
 
 struct Object {
-  std::string identifier;
-  std::string className;
-  std::unordered_map<std::string, Value> instanceVariables;
+  k_string identifier;
+  k_string className;
+  std::unordered_map<k_string, Value> instanceVariables;
 
-  bool hasVariable(const std::string& name) const {
+  bool hasVariable(const k_string& name) const {
     return instanceVariables.find(name) != instanceVariables.end();
   }
 };
 
 struct LambdaRef {
-  std::string identifier;
+  k_string identifier;
 
-  LambdaRef(const std::string& identifier) : identifier(identifier) {}
+  LambdaRef(const k_string& identifier) : identifier(identifier) {}
 };
 
 inline void hash_combine(std::size_t& seed, std::size_t hash) {
@@ -132,16 +133,16 @@ std::size_t hashList(const std::shared_ptr<List>& list) {
 std::size_t hashHash(const std::shared_ptr<Hash>& hash) {
   std::size_t seed = 0;
   for (const auto& pair : hash->kvp) {
-    hash_combine(seed, std::hash<std::string>()(pair.first));
+    hash_combine(seed, std::hash<k_string>()(pair.first));
     hash_combine(seed, std::hash<Value>()(pair.second));
   }
   return seed;
 }
 
 std::size_t hashObject(const std::shared_ptr<Object>& object) {
-  auto seed = std::hash<std::string>()(object->className);
+  auto seed = std::hash<k_string>()(object->className);
   for (const auto& pair : object->instanceVariables) {
-    hash_combine(seed, std::hash<std::string>()(pair.first));
+    hash_combine(seed, std::hash<k_string>()(pair.first));
     hash_combine(seed, std::hash<Value>()(pair.second));
   }
   return seed;
@@ -160,9 +161,9 @@ struct ValueComparator {
         return *std::get_if<double>(&lhs) < *std::get_if<double>(&rhs);
       case 2:  // bool
         return *std::get_if<bool>(&lhs) < *std::get_if<bool>(&rhs);
-      case 3:  // std::string
-        return *std::get_if<std::string>(&lhs) <
-               *std::get_if<std::string>(&rhs);
+      case 3:  // k_string
+        return *std::get_if<k_string>(&lhs) <
+               *std::get_if<k_string>(&rhs);
       default:
         auto lhs_hash = std::hash<Value>()(lhs);
         auto rhs_hash = std::hash<Value>()(rhs);
@@ -191,8 +192,8 @@ bool same_value(const Value& v1, const Value& v2) {
       return *std::get_if<double>(&v1) == *std::get_if<double>(&v2);
     case 2:  // bool
       return *std::get_if<bool>(&v1) == *std::get_if<bool>(&v2);
-    case 3:  // std::string
-      return *std::get_if<std::string>(&v1) == *std::get_if<std::string>(&v2);
+    case 3:  // k_string
+      return *std::get_if<k_string>(&v1) == *std::get_if<k_string>(&v2);
     default:
       return std::hash<Value>()(v1) == std::hash<Value>()(v2);
   }
@@ -210,8 +211,8 @@ bool lt_value(const Value& lhs, const Value& rhs) {
       return std::get<double>(lhs) < std::get<double>(rhs);
     case 2:  // bool
       return std::get<bool>(lhs) < std::get<bool>(rhs);
-    case 3:  // std::string
-      return std::get<std::string>(lhs) < std::get<std::string>(rhs);
+    case 3:  // k_string
+      return std::get<k_string>(lhs) < std::get<k_string>(rhs);
     case 4:  // std::shared_ptr<List>
       return hashList(std::get<std::shared_ptr<List>>(lhs)) <
              hashList(std::get<std::shared_ptr<List>>(rhs));
@@ -238,8 +239,8 @@ bool gt_value(const Value& lhs, const Value& rhs) {
       return std::get<double>(lhs) > std::get<double>(rhs);
     case 2:  // bool
       return std::get<bool>(lhs) > std::get<bool>(rhs);
-    case 3:  // std::string
-      return std::get<std::string>(lhs) > std::get<std::string>(rhs);
+    case 3:  // k_string
+      return std::get<k_string>(lhs) > std::get<k_string>(rhs);
     case 4:  // std::shared_ptr<List>
       return hashList(std::get<std::shared_ptr<List>>(lhs)) >
              hashList(std::get<std::shared_ptr<List>>(rhs));

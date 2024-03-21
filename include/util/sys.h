@@ -16,10 +16,11 @@
 #else
 #include <unistd.h>
 #endif
+#include "typing/value.h"
 
 class Sys {
  public:
-  static k_int exec(const std::string& command) {
+  static k_int exec(const k_string& command) {
 #ifdef _WIN64
     return static_cast<k_int>(
         _wsystem(std::wstring(command.begin(), command.end()).c_str()));
@@ -28,11 +29,11 @@ class Sys {
 #endif
   }
 
-  static std::string execOut(const std::string& command) {
-    std::string result;
+  static k_string execOut(const k_string& command) {
+    k_string result;
 #ifdef _WIN64
     const int MAX_BUFFER = 128;
-    std::string data;
+    k_string data;
     FILE* stream;
     char buffer[MAX_BUFFER];
 

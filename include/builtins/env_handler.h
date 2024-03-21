@@ -34,11 +34,11 @@ class EnvBuiltinHandler {
                                            EnvBuiltins.GetEnvironmentVariable);
     }
 
-    std::string varName = get_string(term, args.at(0));
+    k_string varName = get_string(term, args.at(0));
     const char* varValue = std::getenv(varName.c_str());
 
     if (varValue != nullptr) {
-      return std::string(varValue);
+      return k_string(varValue);
     }
 
     // If it's not there, just return an empty string for now.
@@ -52,8 +52,8 @@ class EnvBuiltinHandler {
                                            EnvBuiltins.SetEnvironmentVariable);
     }
 
-    std::string varName = get_string(term, args.at(0));
-    std::string varValue = get_string(term, args.at(1));
+    k_string varName = get_string(term, args.at(0));
+    k_string varValue = get_string(term, args.at(1));
 
 #ifdef _WIN64
     _putenv_s(varName.c_str(), varValue.c_str());

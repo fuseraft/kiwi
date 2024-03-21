@@ -1,8 +1,8 @@
 #ifndef KIWI_MATH_VISITOR_H
 #define KIWI_MATH_VISITOR_H
 
-#include "errors/error.h"
 #include "parsing/tokens.h"
+#include "tracing/error.h"
 #include "typing/value.h"
 #include "functions.h"
 
