@@ -10,8 +10,9 @@
 
 class HttpBuiltinHandler {
  public:
-  static Value execute(const Token& term, const std::string& builtin,
-                       const std::vector<Value>& args) {
+  static k_value execute(const Token& term, const k_string& builtin,
+                       const std::vector<k_value>& args) {
+    #ifdef EXPERIMENTAL_FEATURES
     switch (builtin) {
       case HttpBuiltins.Delete:
       case HttpBuiltins.Get:
@@ -26,28 +27,30 @@ class HttpBuiltinHandler {
 
       default:
         break;
-    }
+    }*/
 
     throw UnknownBuiltinError(term, builtin);
+    #endif
   }
 
  private:
-  static Value executeDeleteGetHeadOptions(const Token& term,
-                                           const std::vector<Value>& args,
-                                           const std::string& builtin) {
+  #ifdef EXPERIMENTAL_FEATURES
+  static k_value executeDeleteGetHeadOptions(const Token& term,
+                                           const std::vector<k_value>& args,
+                                           const k_string& builtin) {
     if (args.size() < 1 || args.size() > 2) {
       throw BuiltinUnexpectedArgumentError(term, builtin);
     }
 
-    std::string url = get_string(term, args.at(0));
-    std::shared_ptr<List> headers = {};
+    k_string url = get_string(term, args.at(0));
+    k_list headers = {};
 
     if (args.size() == 2) {
-      if (!std::holds_alternative<std::shared_ptr<List>>(args.at(1))) {
+      if (!std::holds_alternative<k_list>(args.at(1))) {
         throw InvalidOperationError(
             term, "Expected a List type for HTTP header list.");
       }
-      headers = std::get<std::shared_ptr<List>>(args.at(1));
+      headers = std::get<k_list>(args.at(1));
     }
 
     if (builtin == HttpBuiltins.Get) {
@@ -63,23 +66,23 @@ class HttpBuiltinHandler {
     throw UnknownBuiltinError(term, builtin);
   }
 
-  static Value executePatchPostPut(const Token& term,
-                                   const std::vector<Value>& args,
-                                   const std::string& builtin) {
+  static k_value executePatchPostPut(const Token& term,
+                                   const std::vector<k_value>& args,
+                                   const k_string& builtin) {
     if (args.size() < 1 || args.size() > 3) {
       throw BuiltinUnexpectedArgumentError(term, builtin);
     }
 
-    std::string url = get_string(term, args.at(0));
-    std::string body = Serializer::serialize(args.at(1));
-    std::shared_ptr<List> headers = {};
+    k_string url = get_string(term, args.at(0));
+    k_string body = Serializer::serialize(args.at(1));
+    k_list headers = {};
 
     if (args.size() == 3) {
-      if (!std::holds_alternative<std::shared_ptr<List>>(args.at(2))) {
+      if (!std::holds_alternative<k_list>(args.at(2))) {
         throw InvalidOperationError(
             term, "Expected a List type for HTTP header list.");
       }
-      headers = std::get<std::shared_ptr<List>>(args.at(2));
+      headers = std::get<k_list>(args.at(2));
     }
 
     if (builtin == HttpBuiltins.Post) {
@@ -92,6 +95,7 @@ class HttpBuiltinHandler {
 
     throw UnknownBuiltinError(term, builtin);
   }
+  #endif
 };
 
 #endif

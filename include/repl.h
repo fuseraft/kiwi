@@ -4,10 +4,10 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "errors/error.h"
-#include "errors/handler.h"
-#include "interp.h"
 #include "parsing/keywords.h"
+#include "tracing/error.h"
+#include "tracing/handler.h"
+#include "interp.h"
 
 #ifdef _WIN64
 #include <conio.h>
@@ -88,36 +88,36 @@ int Repl::run() {
 
 /// @brief Begin REPL input.
 void Repl::beginREPLInput() {
-  #ifdef _WIN64
-  #else
+#ifdef _WIN64
+#else
   struct termios config;
   tcgetattr(0, &config);
   config.c_lflag &= ~ICANON;
   tcsetattr(0, TCSANOW, &config);
-  #endif
+#endif
 }
 
 /// @brief End REPL input.
 void Repl::endREPLInput() {
-  #ifdef _WIN64
-  #else
+#ifdef _WIN64
+#else
   struct termios config;
   tcgetattr(0, &config);
   config.c_lflag |= ICANON;
   tcsetattr(0, TCSANOW, &config);
-  #endif
+#endif
 }
 
 /// @brief Get the next character of REPL input.
 /// @return Character from REPL input.
 char Repl::getch() {
-  #ifdef _WIN64
+#ifdef _WIN64
   return (char)_getch();
-  #else
+#else
   char ch;
   read(0, &ch, 1);
   return ch;
-  #endif
+#endif
 }
 
 /// @brief Get a line of text from REPL input.
@@ -125,10 +125,10 @@ char Repl::getch() {
 std::string Repl::getline() {
   beginREPLInput();
   std::string line;
-  #ifdef _WIN64
+#ifdef _WIN64
   std::cout << "> ";
   std::getline(std::cin, line);
-  #else
+#else
   size_t pos = 0;
 
   while (true) {
@@ -188,7 +188,7 @@ std::string Repl::getline() {
 
     lines[activeReplLine - 1] = line;
   }
-  #endif
+#endif
 
   endREPLInput();
   return line;

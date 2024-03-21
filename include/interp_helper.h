@@ -2,13 +2,13 @@
 #define KIWI_INTERPHELPER_H
 
 #include <vector>
-#include "errors/error.h"
 #include "math/visitor.h"
 #include "objects/method.h"
 #include "objects/sliceindex.h"
 #include "parsing/keywords.h"
 #include "parsing/lexer.h"
 #include "parsing/tokens.h"
+#include "tracing/error.h"
 #include "util/string.h"
 #include "stackframe.h"
 
@@ -117,11 +117,11 @@ struct InterpHelper {
   static bool shouldUpdateFrameVariables(
       const std::string& varName,
       const std::shared_ptr<CallStackFrame> nextFrame) {
-    return nextFrame->variables.find(varName) != nextFrame->variables.end();
+    return nextFrame->hasVariable(varName);
   }
 
   static void updateVariablesInCallerFrame(
-      const std::unordered_map<std::string, Value>& variables,
+      const std::unordered_map<std::string, k_value>& variables,
       std::shared_ptr<CallStackFrame> callerFrame) {
     for (const auto& var : variables) {
       if (shouldUpdateFrameVariables(var.first, callerFrame)) {
@@ -191,19 +191,18 @@ struct InterpHelper {
                                                    const std::string& tempId) {
     std::vector<Token> tokens;
     auto file = term.getFile();
-    tokens.push_back(Token::create(KTokenType::IDENTIFIER, KName::Default,
-                                   file, tempId, 0, 0));
-    tokens.push_back(Token::create(KTokenType::OPERATOR,
-                                   KName::Ops_Assign, file,
-                                   Operators.Assign, 0, 0));
+    tokens.push_back(Token::create(KTokenType::IDENTIFIER, KName::Default, file,
+                                   tempId, 0, 0));
+    tokens.push_back(Token::create(KTokenType::OPERATOR, KName::Ops_Assign,
+                                   file, Operators.Assign, 0, 0));
 
     return tokens;
   }
 
   static void updateListSlice(std::shared_ptr<TokenStream> stream,
-                              bool insertOp, std::shared_ptr<List>& targetList,
+                              bool insertOp, k_list& targetList,
                               const SliceIndex& slice,
-                              const std::shared_ptr<List>& rhsValues) {
+                              const k_list& rhsValues) {
     if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
       throw IndexError(stream->current(), "Start index must be an integer.");
     } else if (!std::holds_alternative<k_int>(slice.stopIndex)) {
@@ -264,10 +263,9 @@ struct InterpHelper {
     }
   }
 
-  static Value interpretAssignOp(std::shared_ptr<TokenStream> stream,
-                                 const KName& op,
-                                 const Value& currentValue,
-                                 const Value& value) {
+  static k_value interpretAssignOp(std::shared_ptr<TokenStream> stream,
+                                 const KName& op, const k_value& currentValue,
+                                 const k_value& value) {
     switch (op) {
       case KName::Ops_AddAssign:
         return std::visit(AddVisitor(stream->current()), currentValue, value);
@@ -321,9 +319,9 @@ struct InterpHelper {
     throw InvalidOperationError(stream->current(), "Invalid operator.");
   }
 
-  static Value interpretListSlice(std::shared_ptr<TokenStream> stream,
+  static k_value interpretListSlice(std::shared_ptr<TokenStream> stream,
                                   const SliceIndex& slice,
-                                  const std::shared_ptr<List>& list) {
+                                  const k_list& list) {
     if (slice.isSlice) {
       if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
         throw IndexError(stream->current(), "Start index must be an integer.");
@@ -374,7 +372,7 @@ struct InterpHelper {
           slicedList->elements.push_back(list->elements[i]);
         }
       }
-      return slicedList;  // Return the sliced list as a Value
+      return slicedList;  // Return the sliced list as a k_value
     } else {
       // Single index access
       if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
@@ -400,8 +398,7 @@ struct InterpHelper {
                                           std::shared_ptr<CallStackFrame> frame,
                                           std::string& errorTypeVariableName,
                                           std::string& errorVariableName,
-                                          Value& errorType,
-                                          Value& errorValue) {
+                                          k_value& errorType, k_value& errorValue) {
     stream->next();  // Skip "("
 
     if (stream->current().getType() != KTokenType::IDENTIFIER) {
