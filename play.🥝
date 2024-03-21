@@ -7,8 +7,3 @@ config = conf.read("./config/kiwi.conf", "=")
 for key in config.keys() do
   println key + ": " + config[key]
 end
-
-config.test = "hello"
-config.test = "foobar"
-
-println config.test
