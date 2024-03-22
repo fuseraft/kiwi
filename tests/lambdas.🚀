@@ -39,9 +39,9 @@ println list.select(odd_item_id)
 # ======================
 # = List.map test
 # ======================
-list = ["astral", "mango", "banana"]
-println list.map(lambda (item) do return { "fruit": item, "is_a_astral": item.downcase() == "astral" } end)
-# prints: [{"fruit": astral, "is_a_astral": true}, {"fruit": mango, "is_a_astral": false}, {"fruit": banana, "is_a_astral": false}]
+list = ["kiwi", "mango", "banana"]
+println list.map(lambda (item) do return { "fruit": item, "is_a_kiwi": item.downcase() == "kiwi" } end)
+# prints:[{"fruit": "kiwi", "is_a_kiwi": true}, {"fruit": "mango", "is_a_kiwi": false}, {"fruit": "banana", "is_a_kiwi": false}]
 
 # ======================
 # = List.reduce tests

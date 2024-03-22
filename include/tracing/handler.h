@@ -1,5 +1,5 @@
-#ifndef KIWI_ERRORS_HANDLER_H
-#define KIWI_ERRORS_HANDLER_H
+#ifndef ASTRAL_ERRORS_HANDLER_H
+#define ASTRAL_ERRORS_HANDLER_H
 
 #include <vector>
 #include "error.h"

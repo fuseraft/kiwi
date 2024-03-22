@@ -1,5 +1,5 @@
-#ifndef KIWI_BUILTINS_COREHANDLER_H
-#define KIWI_BUILTINS_COREHANDLER_H
+#ifndef ASTRAL_BUILTINS_COREHANDLER_H
+#define ASTRAL_BUILTINS_COREHANDLER_H
 
 #include <algorithm>
 #include <charconv>

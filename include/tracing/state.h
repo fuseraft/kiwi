@@ -1,5 +1,5 @@
-#ifndef KIWI_ERRORS_STATE_H
-#define KIWI_ERRORS_STATE_H
+#ifndef ASTRAL_ERRORS_STATE_H
+#define ASTRAL_ERRORS_STATE_H
 
 #include "error.h"
 

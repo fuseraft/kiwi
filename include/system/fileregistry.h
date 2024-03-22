@@ -1,5 +1,5 @@
-#ifndef KIWI_SYSTEM_FILEREGISTRY_H
-#define KIWI_SYSTEM_FILEREGISTRY_H
+#ifndef ASTRAL_SYSTEM_FILEREGISTRY_H
+#define ASTRAL_SYSTEM_FILEREGISTRY_H
 
 #include <fstream>
 #include <string>

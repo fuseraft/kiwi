@@ -1,5 +1,5 @@
-#ifndef KIWI_BUILTINS_ODBCHANDLER_H
-#define KIWI_BUILTINS_ODBCHANDLER_H
+#ifndef ASTRAL_BUILTINS_ODBCHANDLER_H
+#define ASTRAL_BUILTINS_ODBCHANDLER_H
 
 #include <vector>
 #include "db/database.h"

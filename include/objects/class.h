@@ -1,5 +1,5 @@
-#ifndef KIWI_OBJECTS_CLASS_H
-#define KIWI_OBJECTS_CLASS_H
+#ifndef ASTRAL_OBJECTS_CLASS_H
+#define ASTRAL_OBJECTS_CLASS_H
 
 #include <algorithm>
 #include <string>

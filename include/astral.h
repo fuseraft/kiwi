@@ -1,5 +1,5 @@
-#ifndef KIWI_H
-#define KIWI_H
+#ifndef ASTRAL_H
+#define ASTRAL_H
 
 #include <regex>
 #include <vector>

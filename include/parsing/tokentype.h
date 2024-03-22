@@ -1,5 +1,5 @@
-#ifndef KIWI_PARSING_KTokenType_H
-#define KIWI_PARSING_KTokenType_H
+#ifndef ASTRAL_PARSING_KTokenType_H
+#define ASTRAL_PARSING_KTokenType_H
 
 enum KTokenType {
   IDENTIFIER,

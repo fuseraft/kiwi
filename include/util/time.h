@@ -1,5 +1,5 @@
-#ifndef KIWI_SYSTEM_TIME_H
-#define KIWI_SYSTEM_TIME_H
+#ifndef ASTRAL_SYSTEM_TIME_H
+#define ASTRAL_SYSTEM_TIME_H
 
 #include <chrono>
 #include <ctime>
