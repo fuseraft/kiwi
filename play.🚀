@@ -1,5 +1,6 @@
 # This 🚀 script is for experimentation.
 
+##
 import "@astral/conf" as conf
 
 config = conf.read("./config/astral.conf", "=")
@@ -7,3 +8,4 @@ config = conf.read("./config/astral.conf", "=")
 for key in config.keys() do
   println key + ": " + config[key]
 end
+##

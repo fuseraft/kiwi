@@ -7,7 +7,7 @@ runtimes = []
 
 # Search pattern for Astral scripts, excluding certain files and directories
 search_pattern = "./**/*.🚀"
-exclusions = ["install.🚀", "test.🚀", "lib/astral", "/examples/"]
+exclusions = ["install.🚀", "test.🚀", "/pg/", "lib/astral", "/examples/"]
 
 println "Searching for Astral scripts..."
 silent(true)
