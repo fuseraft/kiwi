@@ -1,6 +1,6 @@
 # The Astral Programming Language 🚀
 
-Astral is a lightweight, dynamically-typed, general-purpose scripting language.
+A light-weight general-purpose scripting language without a syntax tree.
 
 ## Table of Contents
 
