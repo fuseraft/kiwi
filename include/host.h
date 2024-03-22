@@ -14,7 +14,7 @@ class Host {
  public:
   Host(Interpreter& interp) : interp(interp), scripts(), args() {}
 
-  void disableKiwilib() { kiwilibEnabled = false; }
+  void disableKiwilib() { astrallibEnabled = false; }
 
   void registerScript(const std::string& scriptPath) {
     if (!File::fileExists(scriptPath)) {
@@ -40,7 +40,7 @@ class Host {
   int start() {
     interp.setKiwiArgs(args);
 
-    // Always try to load kiwilib.
+    // Always try to load astrallib.
     loadKiwiLibrary();
 
     // Start REPL if no scripts are supplied.
@@ -56,25 +56,25 @@ class Host {
   Interpreter& interp;
   std::unordered_set<std::string> scripts;
   std::unordered_map<std::string, std::string> args;
-  bool kiwilibEnabled = true;
+  bool astrallibEnabled = true;
 
   void loadKiwiLibrary() {
-    if (!kiwilibEnabled) {
+    if (!astrallibEnabled) {
       return;
     }
 
     try {
-      auto kiwilibPath = File::getLibraryPath();
+      auto astrallibPath = File::getLibraryPath();
 
-      if (!kiwilibPath.empty()) {
-        std::vector<std::string> kiwilib;
+      if (!astrallibPath.empty()) {
+        std::vector<std::string> astrallib;
 #ifdef _WIN64
-        kiwilib = File::expandGlob(kiwilibPath + "\\*.kiwi");
+        astrallib = File::expandGlob(astrallibPath + "\\*.astral");
 #else
-        kiwilib = File::expandGlob(kiwilibPath + "/*.🥝");
+        astrallib = File::expandGlob(astrallibPath + "/*.🚀");
 #endif
 
-        for (const auto& script : kiwilib) {
+        for (const auto& script : astrallib) {
           loadScript(script);
         }
       }

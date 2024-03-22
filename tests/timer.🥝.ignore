@@ -1,6 +1,6 @@
-# rename this file to .🥝 or .kiwi to run it.
+# rename this file to .🚀 or .astral to run it.
 
-import "@kiwi/time"
+import "@astral/time"
 
 i = 0
 while i < 10 do

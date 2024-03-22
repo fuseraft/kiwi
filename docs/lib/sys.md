@@ -1,13 +1,13 @@
-# `@kiwi/sys`
+# `@astral/sys`
 
 The `sys` module contains functionality for working with external processes.
 
 ## Importing the Module
 
-To use the `sys` module, import it at the beginning of your Kiwi script.
+To use the `sys` module, import it at the beginning of your Astral script.
 
 ```ruby
-import "@kiwi/sys"
+import "@astral/sys"
 ```
 
 ## Module Functions

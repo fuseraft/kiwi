@@ -150,7 +150,7 @@ struct {
   const k_string Throw = "throw";
   const k_string True = "true";
   const k_string Try = "try";
-  const k_string kiwiApp = "kiwi";
+  const k_string astralApp = "astral";
   const k_string While = "while";
 
   std::unordered_set<k_string> keywords = {

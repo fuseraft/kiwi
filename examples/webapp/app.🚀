@@ -1,5 +1,5 @@
-import "@kiwi/web" as web
-import "@kiwi/fs" as fs
+import "@astral/web" as web
+import "@astral/fs" as fs
 
 # HTML helpers
 shared_template = fs::read("templates/shared.html")
@@ -42,5 +42,5 @@ host = "0.0.0.0"
 port = 8080
 
 # start the web server
-println "Starting Kiwi Web Server at http://${host}:${port}"
+println "Starting Astral Web Server at http://${host}:${port}"
 web.listen(host, port)

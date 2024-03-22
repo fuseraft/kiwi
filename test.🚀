@@ -1,15 +1,15 @@
 # Script Performance Analyzer
 
-import "@kiwi/fs" as fs
-import "@kiwi/time"
+import "@astral/fs" as fs
+import "@astral/time"
 
 runtimes = []
 
-# Search pattern for Kiwi scripts, excluding certain files and directories
-search_pattern = "./**/*.🥝"
-exclusions = ["install.🥝", "test.🥝", "lib/kiwi", "/examples/"]
+# Search pattern for Astral scripts, excluding certain files and directories
+search_pattern = "./**/*.🚀"
+exclusions = ["install.🚀", "test.🚀", "lib/astral", "/examples/"]
 
-println "Searching for Kiwi scripts..."
+println "Searching for Astral scripts..."
 silent(true)
 
 for file in fs.glob(search_pattern) do

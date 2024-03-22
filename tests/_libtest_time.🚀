@@ -1,4 +1,4 @@
-import "@kiwi/time"
+import "@astral/time"
 
 # =============================
 # Time tests

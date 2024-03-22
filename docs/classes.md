@@ -1,10 +1,10 @@
 # Classes
 
-Classes in Kiwi provide a way to bundle data and functionality together.
+Classes in Astral provide a way to bundle data and functionality together.
 
 ### Defining Classes
 
-To define a class in Kiwi, use the `class` keyword followed by the class name and a block of code defining its properties and methods.
+To define a class in Astral, use the `class` keyword followed by the class name and a block of code defining its properties and methods.
 
 Each concrete class should define a constructor method, called `initialize`.
 
@@ -28,13 +28,13 @@ end
 To create an instance of a class, use the `.new()` method followed by any arguments the constructor accepts.
 
 ```ruby
-my_object = MyClass.new("Kiwi")
-my_object.say_hello()  # prints: Hello, Kiwi!
+my_object = MyClass.new("Astral")
+my_object.say_hello()  # prints: Hello, Astral!
 ```
 
 ### Inheritance
 
-Kiwi supports single inheritance. Use the `<` symbol to specify the parent class.
+Astral supports single inheritance. Use the `<` symbol to specify the parent class.
 
 ```ruby
 class MySubclass < MyClass
@@ -69,14 +69,14 @@ class KiwiClass
   def initialize() end
 
   def to_s()
-    return "I am a Kiwi class"
+    return "I am a Astral class"
   end
 end
 
 instance = KiwiClass.new()
 string_repr = instance.to_s()
-println instance # prints: I am a Kiwi class
-println string_repr # prints: I am a Kiwi class
+println instance # prints: I am a Astral class
+println string_repr # prints: I am a Astral class
 ```
 
 ### Static Method Definition
@@ -96,7 +96,7 @@ MyClass.static_method() # prints: I can be invoked without an instance!
 
 ### Access Control
 
-Kiwi supports `private` methods that cannot be called outside the class definition.
+Astral supports `private` methods that cannot be called outside the class definition.
 
 ```ruby
 class MyClass
@@ -119,6 +119,6 @@ class MyClass
   end
 end
 
-inst = MyClass.new("kiwi")
+inst = MyClass.new("astral")
 println inst.name # throws InvalidContextError: Cannot access private instance variable outside of object context. 
 ```

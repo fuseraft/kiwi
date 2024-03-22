@@ -5,17 +5,17 @@
 
 struct ErrorState {
   bool hasError = false;
-  KiwiError error = KiwiError::create();
+  AstralError error = AstralError::create();
 
   ErrorState() {}
 
-  void setError(const KiwiError& e) {
+  void setError(const AstralError& e) {
     error = e;
     hasError = true;
   }
 
   void clearError() {
-    error = KiwiError::create();
+    error = AstralError::create();
     hasError = false;
   }
 

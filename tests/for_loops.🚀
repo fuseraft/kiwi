@@ -1,4 +1,4 @@
-fruits = ["kiwi", "strawberry", "pineapple", 
+fruits = ["astral", "strawberry", "pineapple", 
            "lime", "mango", "guava"]
 
 println "fruits = ${fruits}\n"
@@ -13,12 +13,12 @@ for fruit, index in fruits do
 end
 
 println "\niterating an inline list without an index"
-for item in ["kiwi", "is", "fun"] do
+for item in ["astral", "is", "fun"] do
   println "${item}"
 end
 
 println "\niterating an inline list with an index"
-for item, index in ["kiwi", "is", "fun"] do
+for item, index in ["astral", "is", "fun"] do
   println "${index}: ${item}"
 end
 

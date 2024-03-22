@@ -1,7 +1,7 @@
-# Kiwi Documentation Index
+# Astral Documentation Index
 
 ## Core Concepts
-1. [Using the Kiwi CLI](cli.md)
+1. [Using the Astral CLI](cli.md)
 2. [Comments](comments.md)
 3. [Keywords](keywords.md)
 4. [Operators](operators.md)

@@ -1,4 +1,4 @@
-import "@kiwi/fs" as fs
+import "@astral/fs" as fs
 
 path = "hello.txt"
 
@@ -24,7 +24,7 @@ end
 println "=> writing text to file: ${path}"
 fs.write(path, "")
 fs.writeln(path, "Hello, World!")
-fs.append(path, "This is Kiwi!")
+fs.append(path, "This is Astral!")
 
 # =============================
 # Read text from file

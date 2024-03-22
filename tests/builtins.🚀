@@ -8,7 +8,7 @@ println "list = ${list}"
 size = list.size()
 println "list size = ${size}"
 
-list = ["The", "Kiwi", "Programming", "Language"]
+list = ["The", "Astral", "Programming", "Language"]
 joined = list.join(" ")
 println "joined: ${joined}"
 

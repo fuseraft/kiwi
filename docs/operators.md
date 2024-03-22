@@ -1,6 +1,6 @@
 # Operators
 
-Kiwi offers many different operators for performing every day programming operations.
+Astral offers many different operators for performing every day programming operations.
 
 | **Operator Category / Name** | **Operator** | **Operator Type** |
 | ------------ | -------- | --------------- |

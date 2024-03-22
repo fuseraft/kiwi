@@ -13,10 +13,10 @@ SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 INCLUDE_FILES := $(wildcard $(INCLUDE_DIR)/*.h)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
-EXECUTABLE := $(BIN_DIR)/kiwi
+EXECUTABLE := $(BIN_DIR)/astral
 
-LIB_TEST := ./test.🥝
-PLAY := ./play.🥝
+LIB_TEST := ./test.🚀
+PLAY := ./play.🚀
 
 EXPERIMENTAL_FLAGS :=
 LDFLAGS :=
@@ -38,7 +38,7 @@ play: $(EXECUTABLE)
 
 install: $(EXECUTABLE)
 	@echo "================================"
-	./$(EXECUTABLE) ./install.🥝
+	./$(EXECUTABLE) ./install.🚀
 
 experimental: EXPERIMENTAL_FLAGS := -DEXPERIMENTAL_FEATURES
 experimental: LDFLAGS := $(BASE_LDFLAGS)
