@@ -1,5 +1,5 @@
-#ifndef KIWI_OBJECTS_CONDITIONAL_H
-#define KIWI_OBJECTS_CONDITIONAL_H
+#ifndef ASTRAL_OBJECTS_CONDITIONAL_H
+#define ASTRAL_OBJECTS_CONDITIONAL_H
 
 #include <vector>
 #include "parsing/tokens.h"

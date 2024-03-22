@@ -1,5 +1,5 @@
-#ifndef KIWI_PARSING_LEXER_H
-#define KIWI_PARSING_LEXER_H
+#ifndef ASTRAL_PARSING_LEXER_H
+#define ASTRAL_PARSING_LEXER_H
 
 #include <memory>
 #include <sstream>

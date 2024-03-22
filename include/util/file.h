@@ -1,5 +1,5 @@
-#ifndef KIWI_UTIL_FILE_H
-#define KIWI_UTIL_FILE_H
+#ifndef ASTRAL_UTIL_FILE_H
+#define ASTRAL_UTIL_FILE_H
 
 #include <fstream>
 #include <filesystem>

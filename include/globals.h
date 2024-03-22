@@ -1,6 +1,6 @@
 // globals.h
-#ifndef KIWI_GLOBALS_H
-#define KIWI_GLOBALS_H
+#ifndef ASTRAL_GLOBALS_H
+#define ASTRAL_GLOBALS_H
 
 #include <string>
 

@@ -1,5 +1,5 @@
-#ifndef KIWI_REPL_H
-#define KIWI_REPL_H
+#ifndef ASTRAL_REPL_H
+#define ASTRAL_REPL_H
 
 #include <iostream>
 #include <sstream>

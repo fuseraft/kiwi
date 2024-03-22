@@ -1,5 +1,5 @@
-#ifndef KIWI_BUILTINS_CONCURRENCY_H
-#define KIWI_BUILTINS_CONCURRENCY_H
+#ifndef ASTRAL_BUILTINS_CONCURRENCY_H
+#define ASTRAL_BUILTINS_CONCURRENCY_H
 
 #include <cstdlib>
 #include <string>

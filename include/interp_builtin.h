@@ -1,5 +1,5 @@
-#ifndef KIWI_INTERPBUILTIN_H
-#define KIWI_INTERPBUILTIN_H
+#ifndef ASTRAL_INTERPBUILTIN_H
+#define ASTRAL_INTERPBUILTIN_H
 
 #include <charconv>
 #include <sstream>

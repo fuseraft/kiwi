@@ -1,5 +1,5 @@
-#ifndef KIWI_MATH_RNG_H
-#define KIWI_MATH_RNG_H
+#ifndef ASTRAL_MATH_RNG_H
+#define ASTRAL_MATH_RNG_H
 
 #include <ctime>
 #include <iostream>

@@ -91,7 +91,7 @@ end
 Use the `for` keyword to iterate a list.
 
 ```ruby
-fruits = ["astral", "mango", "lime"]
+fruits = ["kiwi", "mango", "lime"]
 
 # Iterate the values in the list.
 for fruit in fruits do

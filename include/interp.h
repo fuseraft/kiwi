@@ -1,5 +1,5 @@
-#ifndef KIWI_INTERP_H
-#define KIWI_INTERP_H
+#ifndef ASTRAL_INTERP_H
+#define ASTRAL_INTERP_H
 
 #include <unordered_map>
 #include <stack>

@@ -1,4 +1,4 @@
-fruits = ["astral", "strawberry", "pineapple", 
+fruits = ["kiwi", "strawberry", "pineapple", 
            "lime", "mango", "guava"]
 
 println "fruits = ${fruits}\n"

@@ -1,5 +1,5 @@
-#ifndef KIWI_CONFIGURATION_CONFIG_H
-#define KIWI_CONFIGURATION_CONFIG_H
+#ifndef ASTRAL_CONFIGURATION_CONFIG_H
+#define ASTRAL_CONFIGURATION_CONFIG_H
 
 #include <fstream>
 #include <iostream>

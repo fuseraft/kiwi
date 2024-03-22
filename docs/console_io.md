@@ -14,10 +14,10 @@ To read input from the console, use the `input()` builtin.
 ```ruby
 print "Enter your favorite fruit: "
 fruit = input()
-# fruit contains "astral"
+# fruit contains "kiwi"
 
 println "Your favorite fruit is ${fruit}"
-# prints: Your favorite fruit is astral
+# prints: Your favorite fruit is kiwi
 ```
 
 

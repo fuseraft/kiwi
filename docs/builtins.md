@@ -46,8 +46,7 @@ string = "Hello"
 chars = string.chars() 
 # chars = ["H", "e", "l", "l", "o"]
 
-fruit = "Astral".chars()
-# fruit = ["K", "i", "w", "i"]
+println "astral".chars() # prints: ["a", "s", "t", "r", "a", "l"]
 ```
 
 ### `join(str)`
@@ -344,9 +343,9 @@ println list.select(lambda (item) do return item.contains("i") end)
 Transform a list based on a condition.
 
 ```ruby
-list = ["astral", "mango", "banana"]
-println list.map(lambda (item) do return { "fruit": item, "is_a_astral": item.downcase() == "astral" } end)
-# prints: [{"fruit": astral, "is_a_astral": true}, {"fruit": mango, "is_a_astral": false}, {"fruit": banana, "is_a_astral": false}]
+list = ["kiwi", "mango", "banana"]
+println list.map(lambda (item) do return { "fruit": item, "is_a_kiwi": item.downcase() == "kiwi" } end)
+# prints: [{"fruit": "kiwi", "is_a_kiwi": true}, {"fruit": "mango", "is_a_kiwi": false}, {"fruit": "banana", "is_a_kiwi": false}]
 ```
 
 ### `reduce(accumulator, lambda)`

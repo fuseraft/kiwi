@@ -1,5 +1,5 @@
-#ifndef KIWI_STACKFRAME_H
-#define KIWI_STACKFRAME_H
+#ifndef ASTRAL_STACKFRAME_H
+#define ASTRAL_STACKFRAME_H
 
 #include <memory>
 #include <string>
