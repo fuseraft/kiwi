@@ -68,7 +68,7 @@ int Repl::run() {
 
       if (line == Keywords.Go) {
         auto astralCode = input.str();
-        result += interp.interpretKiwi(astralCode);
+        result += interp.interpretAstral(astralCode);
         input.str("");
         input.clear();
       } else if (line == Keywords.Exit) {

@@ -20,88 +20,88 @@ class CoreBuiltinHandler {
  public:
   static k_value execute(const Token& term, const KName& builtin,
                        const k_value& value, const std::vector<k_value>& args) {
-    if (KiwiBuiltins.is_builtin(builtin)) {
-      return executeKiwiBuiltin(term, builtin, value, args);
+    if (AstralBuiltins.is_builtin(builtin)) {
+      return executeAstralBuiltin(term, builtin, value, args);
     }
 
     throw UnknownBuiltinError(term, "");
   }
 
  private:
-  static k_value executeKiwiBuiltin(const Token& term, const KName& builtin,
+  static k_value executeAstralBuiltin(const Token& term, const KName& builtin,
                                   const k_value& value,
                                   const std::vector<k_value>& args) {
     switch (builtin) {
-      case KName::Builtin_Kiwi_Chars:
+      case KName::Builtin_Astral_Chars:
         return executeChars(term, value, args);
 
-      case KName::Builtin_Kiwi_IsA:
+      case KName::Builtin_Astral_IsA:
         return executeIsA(term, value, args);
 
-      case KName::Builtin_Kiwi_Join:
+      case KName::Builtin_Astral_Join:
         return executeJoin(term, value, args);
 
-      case KName::Builtin_Kiwi_Split:
+      case KName::Builtin_Astral_Split:
         return executeSplit(term, value, args);
 
-      case KName::Builtin_Kiwi_LeftTrim:
+      case KName::Builtin_Astral_LeftTrim:
         return executeLeftTrim(term, value, args);
 
-      case KName::Builtin_Kiwi_RightTrim:
+      case KName::Builtin_Astral_RightTrim:
         return executeRightTrim(term, value, args);
 
-      case KName::Builtin_Kiwi_Trim:
+      case KName::Builtin_Astral_Trim:
         return executeTrim(term, value, args);
 
-      case KName::Builtin_Kiwi_Type:
+      case KName::Builtin_Astral_Type:
         return executeType(term, value, args);
 
-      case KName::Builtin_Kiwi_Size:
+      case KName::Builtin_Astral_Size:
         return executeSize(term, value, args);
 
-      case KName::Builtin_Kiwi_ToD:
+      case KName::Builtin_Astral_ToD:
         return executeToDouble(term, value, args);
 
-      case KName::Builtin_Kiwi_ToI:
+      case KName::Builtin_Astral_ToI:
         return executeToInteger(term, value, args);
 
-      case KName::Builtin_Kiwi_ToS:
+      case KName::Builtin_Astral_ToS:
         return executeToString(term, value, args);
 
-      case KName::Builtin_Kiwi_BeginsWith:
+      case KName::Builtin_Astral_BeginsWith:
         return executeBeginsWith(term, value, args);
 
-      case KName::Builtin_Kiwi_Contains:
+      case KName::Builtin_Astral_Contains:
         return executeContains(term, value, args);
 
-      case KName::Builtin_Kiwi_EndsWith:
+      case KName::Builtin_Astral_EndsWith:
         return executeEndsWith(term, value, args);
 
-      case KName::Builtin_Kiwi_Replace:
+      case KName::Builtin_Astral_Replace:
         return executeReplace(term, value, args);
 
-      case KName::Builtin_Kiwi_Reverse:
+      case KName::Builtin_Astral_Reverse:
         return executeReverse(term, value, args);
 
-      case KName::Builtin_Kiwi_IndexOf:
+      case KName::Builtin_Astral_IndexOf:
         return executeIndexOf(term, value, args);
 
-      case KName::Builtin_Kiwi_LastIndexOf:
+      case KName::Builtin_Astral_LastIndexOf:
         return executeLastIndexOf(term, value, args);
 
-      case KName::Builtin_Kiwi_Upcase:
+      case KName::Builtin_Astral_Upcase:
         return executeUpcase(term, value, args);
 
-      case KName::Builtin_Kiwi_Downcase:
+      case KName::Builtin_Astral_Downcase:
         return executeDowncase(term, value, args);
 
-      case KName::Builtin_Kiwi_Empty:
+      case KName::Builtin_Astral_Empty:
         return executeEmpty(term, value, args);
 
-      case KName::Builtin_Kiwi_Keys:
+      case KName::Builtin_Astral_Keys:
         return executeKeys(term, value, args);
 
-      case KName::Builtin_Kiwi_HasKey:
+      case KName::Builtin_Astral_HasKey:
         return executeHasKey(term, value, args);
 
       default:
@@ -114,7 +114,7 @@ class CoreBuiltinHandler {
   static k_value executeChars(const Token& term, const k_value& value,
                             const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Chars);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Chars);
     }
 
     auto newList = std::make_shared<List>();
@@ -130,7 +130,7 @@ class CoreBuiltinHandler {
     int argSize = args.size();
 
     if (argSize != 0 && argSize != 1) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Join);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Join);
     }
 
     if (!std::holds_alternative<k_list>(value)) {
@@ -158,7 +158,7 @@ class CoreBuiltinHandler {
   static k_value executeSize(const Token& term, const k_value& value,
                            const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Size);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Size);
     }
 
     if (std::holds_alternative<k_string>(value)) {
@@ -176,7 +176,7 @@ class CoreBuiltinHandler {
   static k_value executeToDouble(const Token& term, const k_value& value,
                                const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.ToD);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.ToD);
     }
 
     if (std::holds_alternative<k_string>(value)) {
@@ -204,7 +204,7 @@ class CoreBuiltinHandler {
   static k_value executeToInteger(const Token& term, const k_value& value,
                                 const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.ToI);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.ToI);
     }
 
     if (std::holds_alternative<k_string>(value)) {
@@ -232,7 +232,7 @@ class CoreBuiltinHandler {
   static k_value executeToString(const Token& term, const k_value& value,
                                const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.ToS);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.ToS);
     }
 
     return Serializer::serialize(value);
@@ -241,7 +241,7 @@ class CoreBuiltinHandler {
   static k_value executeSplit(const Token& term, const k_value& value,
                             const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Split);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Split);
     }
 
     k_string input = get_string(term, value);
@@ -264,7 +264,7 @@ class CoreBuiltinHandler {
   static k_value executeLeftTrim(const Token& term, const k_value& value,
                                const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.LeftTrim);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.LeftTrim);
     }
 
     k_string input = get_string(term, value);
@@ -274,7 +274,7 @@ class CoreBuiltinHandler {
   static k_value executeRightTrim(const Token& term, const k_value& value,
                                 const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.RightTrim);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.RightTrim);
     }
 
     k_string input = get_string(term, value);
@@ -284,7 +284,7 @@ class CoreBuiltinHandler {
   static k_value executeTrim(const Token& term, const k_value& value,
                            const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Trim);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Trim);
     }
 
     k_string input = get_string(term, value);
@@ -294,7 +294,7 @@ class CoreBuiltinHandler {
   static k_value executeType(const Token& term, const k_value& value,
                            const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Type);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Type);
     }
 
     return Serializer::get_value_type_string(value);
@@ -303,7 +303,7 @@ class CoreBuiltinHandler {
   static k_value executeHasKey(const Token& term, const k_value& value,
                              const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.HasKey);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.HasKey);
     }
 
     if (!std::holds_alternative<k_hash>(value)) {
@@ -320,7 +320,7 @@ class CoreBuiltinHandler {
   static k_value executeKeys(const Token& term, const k_value& value,
                            const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Keys);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Keys);
     }
 
     if (!std::holds_alternative<k_hash>(value)) {
@@ -336,7 +336,7 @@ class CoreBuiltinHandler {
   static k_value executeBeginsWith(const Token& term, const k_value& value,
                                  const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.BeginsWith);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.BeginsWith);
     }
 
     auto str = get_string(term, value);
@@ -366,7 +366,7 @@ class CoreBuiltinHandler {
   static k_value executeContains(const Token& term, const k_value& value,
                                const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Contains);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Contains);
     }
 
     if (std::holds_alternative<k_string>(value)) {
@@ -381,7 +381,7 @@ class CoreBuiltinHandler {
   static k_value executeEndsWith(const Token& term, const k_value& value,
                                const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Contains);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Contains);
     }
 
     auto str = get_string(term, value);
@@ -392,7 +392,7 @@ class CoreBuiltinHandler {
   static k_value executeIsA(const Token& term, const k_value& value,
                           const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.IsA);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.IsA);
     }
 
     auto typeName = get_string(term, args.at(0));
@@ -426,7 +426,7 @@ class CoreBuiltinHandler {
   static k_value executeReplace(const Token& term, const k_value& value,
                               const std::vector<k_value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Replace);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Replace);
     }
 
     auto str = get_string(term, value);
@@ -438,7 +438,7 @@ class CoreBuiltinHandler {
   static k_value executeReverse(const Token& term, const k_value& value,
                               const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Reverse);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Reverse);
     }
 
     if (std::holds_alternative<k_string>(value)) {
@@ -455,13 +455,13 @@ class CoreBuiltinHandler {
 
     throw ConversionError(term,
                           "Expected a `String` or a `List` for builtin `" +
-                              KiwiBuiltins.Reverse + "`.");
+                              AstralBuiltins.Reverse + "`.");
   }
 
   static k_value executeIndexOf(const Token& term, const k_value& value,
                               const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.IndexOf);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.IndexOf);
     }
 
     if (std::holds_alternative<k_string>(value)) {
@@ -474,13 +474,13 @@ class CoreBuiltinHandler {
 
     throw ConversionError(term,
                           "Expected a `String` or a `List` for builtin `" +
-                              KiwiBuiltins.IndexOf + "`.");
+                              AstralBuiltins.IndexOf + "`.");
   }
 
   static k_value executeLastIndexOf(const Token& term, const k_value& value,
                                   const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.LastIndexOf);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.LastIndexOf);
     }
 
     if (std::holds_alternative<k_string>(value)) {
@@ -493,13 +493,13 @@ class CoreBuiltinHandler {
 
     throw ConversionError(term,
                           "Expected a `String` or a `List` for builtin `" +
-                              KiwiBuiltins.LastIndexOf + "`.");
+                              AstralBuiltins.LastIndexOf + "`.");
   }
 
   static k_value executeUpcase(const Token& term, const k_value& value,
                              const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Upcase);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Upcase);
     }
 
     return String::toUppercase(get_string(term, value));
@@ -508,7 +508,7 @@ class CoreBuiltinHandler {
   static k_value executeDowncase(const Token& term, const k_value& value,
                                const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Downcase);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Downcase);
     }
 
     return String::toLowercase(get_string(term, value));
@@ -517,7 +517,7 @@ class CoreBuiltinHandler {
   static k_value executeEmpty(const Token& term, const k_value& value,
                             const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Empty);
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Empty);
     }
 
     if (std::holds_alternative<k_string>(value)) {
@@ -535,7 +535,7 @@ class CoreBuiltinHandler {
     }
 
     throw ConversionError(
-        term, "Invalid type for builtin `" + KiwiBuiltins.Empty + "`.");
+        term, "Invalid type for builtin `" + AstralBuiltins.Empty + "`.");
   }
 };
 

@@ -55,7 +55,7 @@ class BuiltinInterpreter {
 
   static k_value execute(const Token& term, const KName& builtin,
                        const k_value& value, const std::vector<k_value>& args) {
-    if (KiwiBuiltins.is_builtin(builtin)) {
+    if (AstralBuiltins.is_builtin(builtin)) {
       return CoreBuiltinHandler::execute(term, builtin, value, args);
     }
 
