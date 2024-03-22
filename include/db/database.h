@@ -1,5 +1,5 @@
-#ifndef KIWI_DB_DATABASE_H
-#define KIWI_DB_DATABASE_H
+#ifndef ASTRAL_DB_DATABASE_H
+#define ASTRAL_DB_DATABASE_H
 
 #ifdef EXPERIMENTAL_FEATURES
 #include <iostream>

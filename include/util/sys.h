@@ -1,5 +1,5 @@
-#ifndef KIWI_SYSTEM_SYS_H
-#define KIWI_SYSTEM_SYS_H
+#ifndef ASTRAL_SYSTEM_SYS_H
+#define ASTRAL_SYSTEM_SYS_H
 
 #include <array>
 #include <cstdlib>

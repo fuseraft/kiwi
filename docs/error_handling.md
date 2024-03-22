@@ -1,6 +1,6 @@
 # Error Handling 
 
-Kiwi uses the `try-catch` approach for error handling.
+Astral uses the `try-catch` approach for error handling.
 
 ## Throwing an Error
 
@@ -18,7 +18,7 @@ end
 try
   throw "An error occurred!"
 catch (err, msg)
-  println "${err}: ${msg}" # prints: KiwiError: An error occurred!
+  println "${err}: ${msg}" # prints: AstralError: An error occurred!
 end
 ```
 

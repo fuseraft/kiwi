@@ -1,5 +1,5 @@
-#ifndef KIWI_MATH_FUNCTIONS_H
-#define KIWI_MATH_FUNCTIONS_H
+#ifndef ASTRAL_MATH_FUNCTIONS_H
+#define ASTRAL_MATH_FUNCTIONS_H
 
 #include <cmath>
 #include <limits>

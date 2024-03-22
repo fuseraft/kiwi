@@ -9,12 +9,12 @@ Example `conf` file using `=` to separate keys and values, with a setting for ea
 ENABLED  =   true
 PI       =   3.14159
 EMAIL    =   scott@fuseraft.com
-PATH     =   /home/scs/kiwi
+PATH     =   /home/scs/astral
 CONN_STR =  server=%SERVER%;db=%DB_NAME%;user=%DB_USER%;pass=%DB_PASS%
 ##
 
 module conf
-  __home__("kiwi")
+  __home__("astral")
 
   ##
   Summary: Reads settings from a `conf` file into a hash.

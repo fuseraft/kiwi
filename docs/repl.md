@@ -2,28 +2,28 @@
 
 ### Introduction to the REPL
 
-To use the REPL, run Kiwi without passing any arguments. 
+To use the REPL, run Astral without passing any arguments. 
 
-Kiwi will print its current version (at the time of writing this, the current version is 1.3), provide some instructions and then a prompt line beginning with **`> `**.
+Astral will print its current version (at the time of writing this, the current version is 1.3), provide some instructions and then a prompt line beginning with **`> `**.
 
 ```
-$ kiwi
-The Kiwi Programming Language v1.3.2 REPL
+$ astral
+The Astral Programming Language v1.3.2 REPL
 
 Use `go` to execute, `exit` to exit the REPL.
 
 >   
 ```
 
-The Kiwi REPL enqueues code as you enter it. It also keeps track of all lines you enter so that you can replay them.
+The Astral REPL enqueues code as you enter it. It also keeps track of all lines you enter so that you can replay them.
 
-Type some Kiwi code into the REPL prompt and press <kbd>Enter</kbd>.
+Type some Astral code into the REPL prompt and press <kbd>Enter</kbd>.
 
 ```
 > println "Hello, World!" 
 ```
 
-When you are ready to execute, type `go` and press <kbd>Enter</kbd>. Kiwi will execute the code in the queue and then reset the queue.
+When you are ready to execute, type `go` and press <kbd>Enter</kbd>. Astral will execute the code in the queue and then reset the queue.
 
 ```
 > println "Hello, World!" 
