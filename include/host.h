@@ -14,7 +14,7 @@ class Host {
  public:
   Host(Interpreter& interp) : interp(interp), scripts(), args() {}
 
-  void disableKiwilib() { astrallibEnabled = false; }
+  void disableLibraryLoad() { astrallibEnabled = false; }
 
   void registerScript(const std::string& scriptPath) {
     if (!File::fileExists(scriptPath)) {
@@ -38,10 +38,10 @@ class Host {
   }
 
   int start() {
-    interp.setKiwiArgs(args);
+    interp.setAstralArgs(args);
 
     // Always try to load astrallib.
-    loadKiwiLibrary();
+    loadAstralLibrary();
 
     // Start REPL if no scripts are supplied.
     if (scripts.empty()) {
@@ -58,7 +58,7 @@ class Host {
   std::unordered_map<std::string, std::string> args;
   bool astrallibEnabled = true;
 
-  void loadKiwiLibrary() {
+  void loadAstralLibrary() {
     if (!astrallibEnabled) {
       return;
     }

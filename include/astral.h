@@ -177,7 +177,7 @@ bool Astral::configure(Config& config, Logger& logger, Host& host,
   }
 
   if (!astrallibEnabled.empty() && astrallibEnabled == Keywords.False) {
-    host.disableKiwilib();
+    host.disableLibraryLoad();
   }
 
   return true;

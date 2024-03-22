@@ -32,11 +32,11 @@ class Interpreter {
   Interpreter() {}
   ~Interpreter() {}
 
-  void setKiwiArgs(const std::unordered_map<k_string, k_string>& args) {
+  void setAstralArgs(const std::unordered_map<k_string, k_string>& args) {
     astralArgs = args;
   }
 
-  int interpretKiwi(const k_string& astralCode) {
+  int interpretAstral(const k_string& astralCode) {
     Lexer lexer("", astralCode);
     return interpret(lexer);
   }
@@ -734,7 +734,7 @@ class Interpreter {
       v = interpretValueInvocation(stream, frame, v);
 
       return v;
-    } else if (KiwiBuiltins.is_builtin_method(op)) {
+    } else if (AstralBuiltins.is_builtin_method(op)) {
       return interpretBuiltin(stream, frame, op);
     }
 
@@ -1455,7 +1455,7 @@ class Interpreter {
 
     auto clazz = classes[object->className];
     if (!clazz.hasMethod(methodName)) {
-      if (KiwiBuiltins.is_builtin(op)) {
+      if (AstralBuiltins.is_builtin(op)) {
         return BuiltinInterpreter::execute(stream->current(), op, object,
                                            parameters);
       }
@@ -2461,23 +2461,23 @@ class Interpreter {
     }
 
     auto scriptName = std::get<k_string>(scriptNameValue);
-    auto scriptNameKiwi = scriptName;
+    auto scriptNameAstral = scriptName;
 #ifdef _WIN64
     if (!String::endsWith(scriptName, "astral") &&
         !String::endsWith(scriptName, ".astral")) {
       scriptName += ".astral";
-      scriptNameKiwi += ".astral";
+      scriptNameAstral += ".astral";
     }
 #else
     if (!String::endsWith(scriptName, "🚀") &&
         !String::endsWith(scriptName, ".astral")) {
       scriptName += ".astral";
-      scriptNameKiwi += ".🚀";
+      scriptNameAstral += ".🚀";
     }
 #endif
 
     auto scriptPath = File::getLocalPath(scriptName);
-    auto astralScriptPath = File::getLocalPath(scriptNameKiwi);
+    auto astralScriptPath = File::getLocalPath(scriptNameAstral);
     if (!File::fileExists(scriptPath) && !File::fileExists(astralScriptPath)) {
       throw FileNotFoundError(scriptName);
     }
@@ -3612,7 +3612,7 @@ class Interpreter {
     auto object = std::get<k_object>(value);
     auto clazz = classes[object->className];
 
-    if (!clazz.hasMethod(KiwiBuiltins.ToS)) {
+    if (!clazz.hasMethod(AstralBuiltins.ToS)) {
       return Serializer::basic_serialize_object(object);
     }
 
@@ -3620,7 +3620,7 @@ class Interpreter {
 
     // Should probably check that an overridden to_s() actually returns a string.
     return Serializer::serialize(interpretInstanceMethodInvocation(
-        stream, frame, object, KiwiBuiltins.ToS, KName::Builtin_Kiwi_ToS,
+        stream, frame, object, AstralBuiltins.ToS, KName::Builtin_Astral_ToS,
         parameters));
   }
 

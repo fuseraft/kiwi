@@ -65,7 +65,7 @@ end
 The `override` keyword is not required to override `to_s()`.
 
 ```ruby
-class KiwiClass
+class AstralClass
   def initialize() end
 
   def to_s()
@@ -73,7 +73,7 @@ class KiwiClass
   end
 end
 
-instance = KiwiClass.new()
+instance = AstralClass.new()
 string_repr = instance.to_s()
 println instance # prints: I am a Astral class
 println string_repr # prints: I am a Astral class

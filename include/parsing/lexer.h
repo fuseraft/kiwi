@@ -759,57 +759,57 @@ class Lexer {
                          builtin, row, col);
   }
 
-  Token parseKiwiBuiltin(const std::string& builtin) {
+  Token parseAstralBuiltin(const std::string& builtin) {
     auto st = KName::Default;
 
-    if (builtin == KiwiBuiltins.BeginsWith) {
-      st = KName::Builtin_Kiwi_BeginsWith;
-    } else if (builtin == KiwiBuiltins.Chars) {
-      st = KName::Builtin_Kiwi_Chars;
-    } else if (builtin == KiwiBuiltins.Contains) {
-      st = KName::Builtin_Kiwi_Contains;
-    } else if (builtin == KiwiBuiltins.Downcase) {
-      st = KName::Builtin_Kiwi_Downcase;
-    } else if (builtin == KiwiBuiltins.Empty) {
-      st = KName::Builtin_Kiwi_Empty;
-    } else if (builtin == KiwiBuiltins.EndsWith) {
-      st = KName::Builtin_Kiwi_EndsWith;
-    } else if (builtin == KiwiBuiltins.HasKey) {
-      st = KName::Builtin_Kiwi_HasKey;
-    } else if (builtin == KiwiBuiltins.IndexOf) {
-      st = KName::Builtin_Kiwi_IndexOf;
-    } else if (builtin == KiwiBuiltins.IsA) {
-      st = KName::Builtin_Kiwi_IsA;
-    } else if (builtin == KiwiBuiltins.Join) {
-      st = KName::Builtin_Kiwi_Join;
-    } else if (builtin == KiwiBuiltins.Keys) {
-      st = KName::Builtin_Kiwi_Keys;
-    } else if (builtin == KiwiBuiltins.LastIndexOf) {
-      st = KName::Builtin_Kiwi_LastIndexOf;
-    } else if (builtin == KiwiBuiltins.LeftTrim) {
-      st = KName::Builtin_Kiwi_LeftTrim;
-    } else if (builtin == KiwiBuiltins.Replace) {
-      st = KName::Builtin_Kiwi_Replace;
-    } else if (builtin == KiwiBuiltins.Reverse) {
-      st = KName::Builtin_Kiwi_Reverse;
-    } else if (builtin == KiwiBuiltins.RightTrim) {
-      st = KName::Builtin_Kiwi_RightTrim;
-    } else if (builtin == KiwiBuiltins.Size) {
-      st = KName::Builtin_Kiwi_Size;
-    } else if (builtin == KiwiBuiltins.Split) {
-      st = KName::Builtin_Kiwi_Split;
-    } else if (builtin == KiwiBuiltins.ToD) {
-      st = KName::Builtin_Kiwi_ToD;
-    } else if (builtin == KiwiBuiltins.ToI) {
-      st = KName::Builtin_Kiwi_ToI;
-    } else if (builtin == KiwiBuiltins.ToS) {
-      st = KName::Builtin_Kiwi_ToS;
-    } else if (builtin == KiwiBuiltins.Trim) {
-      st = KName::Builtin_Kiwi_Trim;
-    } else if (builtin == KiwiBuiltins.Type) {
-      st = KName::Builtin_Kiwi_Type;
-    } else if (builtin == KiwiBuiltins.Upcase) {
-      st = KName::Builtin_Kiwi_Upcase;
+    if (builtin == AstralBuiltins.BeginsWith) {
+      st = KName::Builtin_Astral_BeginsWith;
+    } else if (builtin == AstralBuiltins.Chars) {
+      st = KName::Builtin_Astral_Chars;
+    } else if (builtin == AstralBuiltins.Contains) {
+      st = KName::Builtin_Astral_Contains;
+    } else if (builtin == AstralBuiltins.Downcase) {
+      st = KName::Builtin_Astral_Downcase;
+    } else if (builtin == AstralBuiltins.Empty) {
+      st = KName::Builtin_Astral_Empty;
+    } else if (builtin == AstralBuiltins.EndsWith) {
+      st = KName::Builtin_Astral_EndsWith;
+    } else if (builtin == AstralBuiltins.HasKey) {
+      st = KName::Builtin_Astral_HasKey;
+    } else if (builtin == AstralBuiltins.IndexOf) {
+      st = KName::Builtin_Astral_IndexOf;
+    } else if (builtin == AstralBuiltins.IsA) {
+      st = KName::Builtin_Astral_IsA;
+    } else if (builtin == AstralBuiltins.Join) {
+      st = KName::Builtin_Astral_Join;
+    } else if (builtin == AstralBuiltins.Keys) {
+      st = KName::Builtin_Astral_Keys;
+    } else if (builtin == AstralBuiltins.LastIndexOf) {
+      st = KName::Builtin_Astral_LastIndexOf;
+    } else if (builtin == AstralBuiltins.LeftTrim) {
+      st = KName::Builtin_Astral_LeftTrim;
+    } else if (builtin == AstralBuiltins.Replace) {
+      st = KName::Builtin_Astral_Replace;
+    } else if (builtin == AstralBuiltins.Reverse) {
+      st = KName::Builtin_Astral_Reverse;
+    } else if (builtin == AstralBuiltins.RightTrim) {
+      st = KName::Builtin_Astral_RightTrim;
+    } else if (builtin == AstralBuiltins.Size) {
+      st = KName::Builtin_Astral_Size;
+    } else if (builtin == AstralBuiltins.Split) {
+      st = KName::Builtin_Astral_Split;
+    } else if (builtin == AstralBuiltins.ToD) {
+      st = KName::Builtin_Astral_ToD;
+    } else if (builtin == AstralBuiltins.ToI) {
+      st = KName::Builtin_Astral_ToI;
+    } else if (builtin == AstralBuiltins.ToS) {
+      st = KName::Builtin_Astral_ToS;
+    } else if (builtin == AstralBuiltins.Trim) {
+      st = KName::Builtin_Astral_Trim;
+    } else if (builtin == AstralBuiltins.Type) {
+      st = KName::Builtin_Astral_Type;
+    } else if (builtin == AstralBuiltins.Upcase) {
+      st = KName::Builtin_Astral_Upcase;
     } else if (builtin == ListBuiltins.Map) {
       st = KName::Builtin_List_Map;
     } else if (builtin == ListBuiltins.Select) {
@@ -858,10 +858,10 @@ class Lexer {
       return parseKeyword(identifier);
     } else if (TypeNames.is_typename(identifier)) {
       return parseTypeName(identifier);
-    } else if (KiwiBuiltins.is_builtin_method(identifier)) {
+    } else if (AstralBuiltins.is_builtin_method(identifier)) {
       return parseBuiltinMethod(identifier);
-    } else if (isCall && KiwiBuiltins.is_builtin(identifier)) {
-      return parseKiwiBuiltin(identifier);
+    } else if (isCall && AstralBuiltins.is_builtin(identifier)) {
+      return parseAstralBuiltin(identifier);
     }
 
     return parseIdentifier(identifier);
