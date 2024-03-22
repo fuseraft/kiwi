@@ -1,4 +1,4 @@
-# `@kiwi/env`
+# `@astral/env`
 
 The `ENV` module contains functionality for working with environment variables.
 

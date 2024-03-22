@@ -1,4 +1,4 @@
-# `@kiwi/conf`
+# `@astral/conf`
 
 The `conf` module contains functionality for working with configuration files.
 

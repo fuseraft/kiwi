@@ -1,13 +1,13 @@
-# `@kiwi/fs`
+# `@astral/fs`
 
 The `fs` module contains functionality for working with files and directories.
 
 ## Importing the Module
 
-To use the `fs` module, import it at the beginning of your Kiwi script.
+To use the `fs` module, import it at the beginning of your Astral script.
 
 ```ruby
-import "@kiwi/fs"
+import "@astral/fs"
 ```
 
 ## Module Functions

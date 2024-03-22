@@ -1,4 +1,4 @@
-# `@kiwi/http`
+# `@astral/http`
 
 The `http` module contains functionality for working with HTTP requests.
 
@@ -6,16 +6,16 @@ The `http` module contains functionality for working with HTTP requests.
 
 ## Importing the Module
 
-To use the `http` module, import it at the beginning of your Kiwi script.
+To use the `http` module, import it at the beginning of your Astral script.
 
 ```ruby
-import "@kiwi/http"
+import "@astral/http"
 ```
 
 ## Example GET Request
 
 ```ruby
-import "@kiwi/http"
+import "@astral/http"
 
 response = http::get("http://httpbin.org/get", [])
 

@@ -1,5 +1,5 @@
-#ifndef KIWI_INTERPHELPER_H
-#define KIWI_INTERPHELPER_H
+#ifndef ASTRAL_INTERPHELPER_H
+#define ASTRAL_INTERPHELPER_H
 
 #include <vector>
 #include "math/visitor.h"

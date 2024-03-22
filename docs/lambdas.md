@@ -49,7 +49,7 @@ def use_lambda(print_func, message)
   print_func(message)
 end
 
-use_lambda(puts, "Hello, Kiwi!") # prints: Hello, Kiwi!
+use_lambda(puts, "Hello, Astral!") # prints: Hello, Astral!
 
 println ""
 ```

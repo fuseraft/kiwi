@@ -1,11 +1,11 @@
 # Lists
 
-Lists in Kiwi look and behave a lot like lists in other languages.
+Lists in Astral look and behave a lot like lists in other languages.
 
 ### Defining a List
 
 ```ruby
-myList = ["Kiwi", "is", "fun!"]
+myList = ["Astral", "is", "fun!"]
 anotherList = [1, 2, 3, "four", "five", 6]
 ```
 
@@ -14,7 +14,7 @@ anotherList = [1, 2, 3, "four", "five", 6]
 Bracket notation can be used to access elements by index, starting from 0.
 
 ```ruby
-println "${myList[0]}"  # Outputs: Kiwi
+println "${myList[0]}"  # Outputs: Astral
 println myList[2]       # Outputs: fun!
 ```
 
@@ -24,10 +24,10 @@ println myList[2]       # Outputs: fun!
 myList = []
 anotherList = [1, 2]
 
-myList << "Hello, Kiwi!"
+myList << "Hello, Astral!"
 myList << anotherList
 
-# myList now contains ["Hello, Kiwi!", [1, 2]]
+# myList now contains ["Hello, Astral!", [1, 2]]
 ```
 
 ### Removing Elements from a List
@@ -45,9 +45,9 @@ println list # prints: ["a", "b", "c", "e", "f"]
 You can use the `.select(lambda)` builtin to filter a list based on a condition.
 
 ```ruby
-list = ["kiwi", "mango", "banana"]
+list = ["astral", "mango", "banana"]
 println list.select(lambda (item) do return item.contains("i") end)
-# prints: ["kiwi"]
+# prints: ["astral"]
 ```
 
 ### Iterating a List
@@ -121,7 +121,7 @@ end
 
 ### Optional Commas
 
-Commas are optional in Kiwi.
+Commas are optional in Astral.
 
 ```ruby
 digits = [0 1 2 3 4 5 6 7 8 9]

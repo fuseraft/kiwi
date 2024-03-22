@@ -1,5 +1,5 @@
-#ifndef KIWI_BUILTINS_MATHHANDLER_H
-#define KIWI_BUILTINS_MATHHANDLER_H
+#ifndef ASTRAL_BUILTINS_MATHHANDLER_H
+#define ASTRAL_BUILTINS_MATHHANDLER_H
 
 #include <vector>
 #include "parsing/builtins.h"

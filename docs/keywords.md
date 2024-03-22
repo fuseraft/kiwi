@@ -1,6 +1,6 @@
-# Reserved Keywords in Kiwi
+# Reserved Keywords in Astral
 
-This document provides an overview of reserved keywords in Kiwi, along with explanations and usage examples.
+This document provides an overview of reserved keywords in Astral, along with explanations and usage examples.
 
 ## Table of Contents
 - [`abstract`](#abstract)
@@ -121,7 +121,7 @@ The `for` keyword is used to define a for-loop.
 See [Loops](loops.md).
 
 ## `go`
-The `go` keyword is used in the Kiwi REPL to execute statements.
+The `go` keyword is used in the Astral REPL to execute statements.
 
 ## `if`
 The `if` keyword is used to define the `if` branch in a conditional statement.
