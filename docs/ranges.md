@@ -1,6 +1,6 @@
 # Ranges
 
-Ranges in Kiwi can be used to define a range of integers.
+Ranges in Astral can be used to define a range of integers.
 
 ###
 

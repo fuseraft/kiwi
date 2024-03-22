@@ -22,28 +22,28 @@ TaskManager task;
 std::unordered_map<std::string, Method> methods;
 std::unordered_map<std::string, Module> modules;
 std::unordered_map<std::string, Class> classes;
-std::unordered_map<std::string, std::string> kiwiArgs;
+std::unordered_map<std::string, std::string> astralArgs;
 std::stack<std::shared_ptr<CallStackFrame>> callStack;
 std::stack<std::shared_ptr<TokenStream>> streamStack;
 std::stack<std::string> moduleStack;
-std::unordered_map<int, Method> kiwiWebServerHooks;
-httplib::Server kiwiWebServer;
-std::string kiwiWebServerHost;
-k_int kiwiWebServerPort;
+std::unordered_map<int, Method> astralWebServerHooks;
+httplib::Server astralWebServer;
+std::string astralWebServerHost;
+k_int astralWebServerPort;
 
 std::mutex methodsMutex;
 std::mutex modulesMutex;
 std::mutex classesMutex;
-std::mutex kiwiArgsMutex;
+std::mutex astralArgsMutex;
 std::mutex callStackMutex;
 std::mutex streamStackMutex;
 std::mutex moduleStackMutex;
-std::mutex kiwiWebServerMutex;
-std::mutex kiwiWebServerHooksMutex;
-std::mutex kiwiWebServerHostMutex;
-std::mutex kiwiWebServerPortMutex;
+std::mutex astralWebServerMutex;
+std::mutex astralWebServerHooksMutex;
+std::mutex astralWebServerHostMutex;
+std::mutex astralWebServerPortMutex;
 
-class Kiwi {
+class Astral {
  public:
   static int run(int argc, char** argv);
 
@@ -58,17 +58,17 @@ class Kiwi {
   static int printHelp();
 };
 
-int Kiwi::run(int argc, char** argv) {
+int Astral::run(int argc, char** argv) {
   std::vector<std::string> args;
 
   for (int i = 0; i < argc; ++i) {
     args.push_back(argv[i]);
   }
 
-  return Kiwi::run(args);
+  return Astral::run(args);
 }
 
-int Kiwi::run(std::vector<std::string>& v) {
+int Astral::run(std::vector<std::string>& v) {
   RNG::getInstance();
 
   Config config;
@@ -77,13 +77,13 @@ int Kiwi::run(std::vector<std::string>& v) {
 
   if (DEBUG) {
     v.push_back("-C");
-    v.push_back("/home/scs/kiwi/config/kiwi.conf");
+    v.push_back("/home/scs/astral/config/astral.conf");
   }
 
   size_t size = v.size();
 
   try {
-    host.registerArg(kiwi_arg, v.at(0));
+    host.registerArg(astral_arg, v.at(0));
 
     bool help = false;
 
@@ -118,18 +118,18 @@ int Kiwi::run(std::vector<std::string>& v) {
     }
 
     return host.start();
-  } catch (const KiwiError& e) {
+  } catch (const AstralError& e) {
     return ErrorHandler::handleError(e);
   }
 }
 
-bool Kiwi::createNewFile(const std::string& path) {
-  const std::string DefaultExtension = ".🥝";
+bool Astral::createNewFile(const std::string& path) {
+  const std::string DefaultExtension = ".🚀";
   auto filePath = path;
 
   if (File::getFileExtension(path).empty()) {
 #ifdef _WIN64
-    filePath += ".kiwi";
+    filePath += ".astral";
 #else
     filePath += DefaultExtension;
 #endif
@@ -144,7 +144,7 @@ bool Kiwi::createNewFile(const std::string& path) {
   return File::createFile(filePath);
 }
 
-bool Kiwi::configure(Config& config, Logger& logger, Host& host,
+bool Astral::configure(Config& config, Logger& logger, Host& host,
                      const std::string& path) {
   if (!String::endsWith(path, ".conf")) {
     std::cout << "I can be configured with a `.conf` file." << std::endl;
@@ -158,7 +158,7 @@ bool Kiwi::configure(Config& config, Logger& logger, Host& host,
   std::string logMode = config.get("LOGGER_MODE");
   std::string logLevel = config.get("LOGGER_LEVEL");
   std::string scriptPath = config.get("SCRIPT_PATH");
-  std::string kiwilibEnabled = config.get("KIWILIB_ENABLED", "true");
+  std::string astrallibEnabled = config.get("KIWILIB_ENABLED", "true");
 
   if (!logPath.empty()) {
     logger.setLogFilePath(logPath);
@@ -176,14 +176,14 @@ bool Kiwi::configure(Config& config, Logger& logger, Host& host,
     host.registerScript(scriptPath);
   }
 
-  if (!kiwilibEnabled.empty() && kiwilibEnabled == Keywords.False) {
+  if (!astrallibEnabled.empty() && astrallibEnabled == Keywords.False) {
     host.disableKiwilib();
   }
 
   return true;
 }
 
-bool Kiwi::processXarg(std::string& opt, Host& host) {
+bool Astral::processXarg(std::string& opt, Host& host) {
   std::regex xargPattern("-X(.*?)=");
   std::string name, value;
   std::smatch match;
@@ -205,12 +205,12 @@ bool Kiwi::processXarg(std::string& opt, Host& host) {
   return false;
 }
 
-int Kiwi::printVersion() {
-  std::cout << kiwi_name << " v" << kiwi_version << std::endl << std::endl;
+int Astral::printVersion() {
+  std::cout << astral_name << " v" << astral_version << std::endl << std::endl;
   return 0;
 }
 
-int Kiwi::printHelp() {
+int Astral::printHelp() {
   struct CommandInfo {
     std::string command;
     std::string description;
@@ -219,21 +219,21 @@ int Kiwi::printHelp() {
   std::vector<CommandInfo> commands = {
       {"-h, --help", "print this message"},
       {"-v, --version", "print the current version"},
-      {"-n, --new <filename>", "create a `.🥝` file"},
+      {"-n, --new <filename>", "create a `.🚀` file"},
       {"-C, --config <conf_path>", "configure with a `.conf` file"},
       {"-X<key>:<value>", "specify an argument as a key-value pair"}};
 
 #ifdef _WIN64
   commands = {{"-h, --help", "print this message"},
               {"-v, --version", "print the current version"},
-              {"-n, --new <filename>", "create a `.kiwi` file"},
+              {"-n, --new <filename>", "create a `.astral` file"},
               {"-C, --config <conf_path>", "configure with a `.conf` file"},
               {"-X<key>:<value>", "specify an argument as a key-value pair"}};
 #endif
 
   printVersion();
 
-  std::cout << "Usage: kiwi [--flags] <script|args>" << std::endl
+  std::cout << "Usage: astral [--flags] <script|args>" << std::endl
             << "Options:" << std::endl;
 
   for (const auto& cmd : commands) {

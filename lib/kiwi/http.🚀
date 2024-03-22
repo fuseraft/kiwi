@@ -2,7 +2,7 @@
 Summary: A module for performing HTTP requests.
 ##
 module http
-  __home__("kiwi")
+  __home__("astral")
 
   ##
   Summary: Performs an HTTP DELETE request to the specified URL.

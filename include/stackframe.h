@@ -62,7 +62,7 @@ struct CallStackFrame {
     return variables.find(name) != variables.end();
   }
 
-  void setErrorState(const KiwiError& e) { errorState.setError(e); }
+  void setErrorState(const AstralError& e) { errorState.setError(e); }
   bool isErrorStateSet() const { return errorState.isErrorSet(); }
   k_string getErrorMessage() const { return errorState.error.getMessage(); }
   ErrorState getErrorState() const { return errorState; }

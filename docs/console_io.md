@@ -1,11 +1,11 @@
 # Console I/O
 
-Kiwi offers the following constructs to work with console I/O:
+Astral offers the following constructs to work with console I/O:
 - `input(msg)`: Read input from the console.
 - `print`: Print text to the console.
 - `println`: Print a line of text to the console.
 
-For file I/O, please see [@kiwi/fs](lib/fs.md).
+For file I/O, please see [@astral/fs](lib/fs.md).
 
 ### `input()`
 
@@ -14,10 +14,10 @@ To read input from the console, use the `input()` builtin.
 ```ruby
 print "Enter your favorite fruit: "
 fruit = input()
-# fruit contains "kiwi"
+# fruit contains "astral"
 
 println "Your favorite fruit is ${fruit}"
-# prints: Your favorite fruit is kiwi
+# prints: Your favorite fruit is astral
 ```
 
 

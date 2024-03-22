@@ -1,14 +1,14 @@
-# `@kiwi/math`
+# `@astral/math`
 
 ## Overview
 
 The `math` module contains functionality for working with common math operations.
 
 ## Importing the Module
-To use the `math` module, import it at the beginning of your Kiwi script.
+To use the `math` module, import it at the beginning of your Astral script.
 
 ```ruby
-import "@kiwi/math"
+import "@astral/math"
 ```
 
 ## Module Functions

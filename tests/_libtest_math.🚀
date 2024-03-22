@@ -1,4 +1,4 @@
-import "@kiwi/math"
+import "@astral/math"
 
 # =============================
 # Math tests

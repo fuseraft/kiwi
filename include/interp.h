@@ -33,11 +33,11 @@ class Interpreter {
   ~Interpreter() {}
 
   void setKiwiArgs(const std::unordered_map<k_string, k_string>& args) {
-    kiwiArgs = args;
+    astralArgs = args;
   }
 
-  int interpretKiwi(const k_string& kiwiCode) {
-    Lexer lexer("", kiwiCode);
+  int interpretKiwi(const k_string& astralCode) {
+    Lexer lexer("", astralCode);
     return interpret(lexer);
   }
 
@@ -136,7 +136,7 @@ class Interpreter {
     while (stream->canRead()) {
       try {
         interpretToken(stream, frame);
-      } catch (const KiwiError& e) {
+      } catch (const AstralError& e) {
         if (frame->isFlagSet(FrameFlags::InTry)) {
           frame->setErrorState(e);
         } else {
@@ -1022,7 +1022,7 @@ class Interpreter {
   void handleWebServerRequest(int webhookID, k_hash requestHash,
                               k_string& redirect, k_string& content,
                               k_string& contentType, int& status) {
-    auto webhook = kiwiWebServerHooks[webhookID];
+    auto webhook = astralWebServerHooks[webhookID];
     auto webhookFrame = std::make_shared<CallStackFrame>();
 
     for (const auto& param : webhook.getParameters()) {
@@ -1105,11 +1105,11 @@ class Interpreter {
     auto method = getMethod(stream, frame, lambdaName);
     int webhookID = 0;
 
-    if (!kiwiWebServerHooks.empty()) {
-      webhookID = static_cast<int>(kiwiWebServerHooks.size());
+    if (!astralWebServerHooks.empty()) {
+      webhookID = static_cast<int>(astralWebServerHooks.size());
     }
 
-    kiwiWebServerHooks[webhookID] = std::move(method);
+    astralWebServerHooks[webhookID] = std::move(method);
     return webhookID;
   }
 
@@ -1147,7 +1147,7 @@ class Interpreter {
     int webhookID = getNextWebServerHook(stream, frame, args.at(1));
 
     for (const auto& endpoint : endpointList) {
-      kiwiWebServer.Get(endpoint, [this, webhookID](const httplib::Request& req,
+      astralWebServer.Get(endpoint, [this, webhookID](const httplib::Request& req,
                                                     httplib::Response& res) {
         auto requestHash = getWebServerRequestHash(req);
 
@@ -1178,7 +1178,7 @@ class Interpreter {
     int webhookID = getNextWebServerHook(stream, frame, args.at(1));
 
     for (const auto& endpoint : endpointList) {
-      kiwiWebServer.Post(
+      astralWebServer.Post(
           endpoint, [this, webhookID](const httplib::Request& req,
                                       httplib::Response& res) {
             auto requestHash = getWebServerRequestHash(req);
@@ -1209,13 +1209,13 @@ class Interpreter {
       throw BuiltinUnexpectedArgumentError(term, WebServerBuiltins.Listen);
     }
 
-    kiwiWebServerHost = get_string(term, args.at(0));
-    kiwiWebServerPort = get_integer(term, args.at(1));
+    astralWebServerHost = get_string(term, args.at(0));
+    astralWebServerPort = get_integer(term, args.at(1));
 
-    kiwiWebServer.listen(kiwiWebServerHost,
-                         static_cast<int>(kiwiWebServerPort));
+    astralWebServer.listen(astralWebServerHost,
+                         static_cast<int>(astralWebServerPort));
 
-    return static_cast<k_int>(kiwiWebServerPort);
+    return static_cast<k_int>(astralWebServerPort);
   }
 
   k_value interpretWebServerPort(std::shared_ptr<TokenStream> stream,
@@ -1225,7 +1225,7 @@ class Interpreter {
                                            WebServerBuiltins.Listen);
     }
 
-    return kiwiWebServerPort;
+    return astralWebServerPort;
   }
 
   k_value interpretWebServerPublic(std::shared_ptr<TokenStream> stream,
@@ -1242,7 +1242,7 @@ class Interpreter {
       return false;
     }
 
-    kiwiWebServer.set_mount_point(endpoint, publicDir);
+    astralWebServer.set_mount_point(endpoint, publicDir);
 
     return true;
   }
@@ -1254,7 +1254,7 @@ class Interpreter {
                                            WebServerBuiltins.Listen);
     }
 
-    return kiwiWebServerHost;
+    return astralWebServerHost;
   }
 
   k_value interpretWebServerBuiltin(std::shared_ptr<TokenStream> stream,
@@ -1810,7 +1810,7 @@ class Interpreter {
     bool hasValue = InterpHelper::hasReturnValue(stream);
     stream->next();  // Skip "throw"
 
-    k_string errorType = "KiwiError";
+    k_string errorType = "AstralError";
     k_string errorMessage;
 
     if (hasValue) {
@@ -1831,7 +1831,7 @@ class Interpreter {
       }
     }
 
-    throw KiwiError(throwToken, errorType, errorMessage);
+    throw AstralError(throwToken, errorType, errorMessage);
   }
 
   void interpretReturn(std::shared_ptr<TokenStream> stream,
@@ -2463,27 +2463,27 @@ class Interpreter {
     auto scriptName = std::get<k_string>(scriptNameValue);
     auto scriptNameKiwi = scriptName;
 #ifdef _WIN64
-    if (!String::endsWith(scriptName, "kiwi") &&
-        !String::endsWith(scriptName, ".kiwi")) {
-      scriptName += ".kiwi";
-      scriptNameKiwi += ".kiwi";
+    if (!String::endsWith(scriptName, "astral") &&
+        !String::endsWith(scriptName, ".astral")) {
+      scriptName += ".astral";
+      scriptNameKiwi += ".astral";
     }
 #else
-    if (!String::endsWith(scriptName, "🥝") &&
-        !String::endsWith(scriptName, ".kiwi")) {
-      scriptName += ".kiwi";
-      scriptNameKiwi += ".🥝";
+    if (!String::endsWith(scriptName, "🚀") &&
+        !String::endsWith(scriptName, ".astral")) {
+      scriptName += ".astral";
+      scriptNameKiwi += ".🚀";
     }
 #endif
 
     auto scriptPath = File::getLocalPath(scriptName);
-    auto kiwiScriptPath = File::getLocalPath(scriptNameKiwi);
-    if (!File::fileExists(scriptPath) && !File::fileExists(kiwiScriptPath)) {
+    auto astralScriptPath = File::getLocalPath(scriptNameKiwi);
+    if (!File::fileExists(scriptPath) && !File::fileExists(astralScriptPath)) {
       throw FileNotFoundError(scriptName);
     }
 
-    auto content = File::fileExists(kiwiScriptPath)
-                       ? File::readFile(kiwiScriptPath)
+    auto content = File::fileExists(astralScriptPath)
+                       ? File::readFile(astralScriptPath)
                        : File::readFile(scriptPath);
     if (content.empty()) {
       return "";
@@ -2695,7 +2695,7 @@ class Interpreter {
     }
 
     frame->returnValue =
-        BuiltinInterpreter::execute(stream->current(), builtin, args, kiwiArgs);
+        BuiltinInterpreter::execute(stream->current(), builtin, args, astralArgs);
     return frame->returnValue;
   }
 

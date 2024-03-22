@@ -1,4 +1,4 @@
-# `@kiwi/argv`
+# `@astral/argv`
 
 The `ARGV` module contains functionality for working with command-line arguments.
 
@@ -19,7 +19,7 @@ The `ARGV` module contains functionality for working with command-line arguments
 An `XArg` is a named command-line argument in the form of a key-value pair.
 
 ```bash
-/bin/kiwi -Xkey=value
+/bin/astral -Xkey=value
 ```
 
 You can pull these values using this module.

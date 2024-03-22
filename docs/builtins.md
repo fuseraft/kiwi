@@ -1,8 +1,8 @@
 # Builtins
 
-In Kiwi, builtins are accessed using dot-notation and can be used to query or manipulate values and types.
+In Astral, builtins are accessed using dot-notation and can be used to query or manipulate values and types.
 
-Currently, Kiwi supports the following builtins:
+Currently, Astral supports the following builtins:
 
 ## Table of Contents
 - [`begins_with(str)`](#begins_withstr)
@@ -46,7 +46,7 @@ string = "Hello"
 chars = string.chars() 
 # chars = ["H", "e", "l", "l", "o"]
 
-fruit = "Kiwi".chars()
+fruit = "Astral".chars()
 # fruit = ["K", "i", "w", "i"]
 ```
 
@@ -83,7 +83,7 @@ println list.size()
 Reverse a list or a string.
 
 ```ruby
-println "kiwi".reverse() # prints: iwik
+println "astral".reverse() # prints: iwik
 ```
 
 ### `ltrim()`
@@ -169,13 +169,13 @@ Converts an object instance or a JSON string into a hash.
 ```ruby
 class SerializeMe
   def initialize()
-    this.name = "Kiwi"
+    this.name = "Astral"
   end
 end
 
 inst = SerializeMe.new()
 
-println inst.to_h() # prints: {"name": "Kiwi"}
+println inst.to_h() # prints: {"name": "Astral"}
 ```
 
 ```ruby
@@ -183,9 +183,9 @@ json = "{
   \"boolean\": true, 
   \"double\": 3.14159, 
   \"integer\": 100, 
-  \"string\": \"Kiwi\"
+  \"string\": \"Astral\"
 }"
-println json.to_h() # prints: {"boolean": true, "double": 3.14159, "integer": 100, "string": "Kiwi"}
+println json.to_h() # prints: {"boolean": true, "double": 3.14159, "integer": 100, "string": "Astral"}
 ```
 
 ### `index(value)`
@@ -194,7 +194,7 @@ Returns the index of a string. Returns -1 if not found.
 
 ```ruby
 println "foobar".index("bar")  # prints: 3
-println "foobar".index("kiwi")  # prints: -1
+println "foobar".index("astral")  # prints: -1
 ```
 
 Returns the index of an item in a list. Returns -1 if not found.
@@ -210,7 +210,7 @@ Returns the last index of a string. Returns -1 if not found.
 
 ```ruby
 println "foobarbar".lastindex("bar")  # prints: 6
-println "foobar".lastindex("kiwi")  # prints: -1
+println "foobar".lastindex("astral")  # prints: -1
 ```
 
 Returns the last index of an item in a list. Returns -1 if not found.
@@ -325,8 +325,8 @@ println list.sum() # prints: 6
 Sorting a list.
 
 ```
-list = ["kiwi", "mango", "guava"]
-println list.sort() # prints: ["guava", "kiwi", "mango"]
+list = ["astral", "mango", "guava"]
+println list.sort() # prints: ["guava", "astral", "mango"]
 ```
 
 ### `select(lambda)`
@@ -334,9 +334,9 @@ println list.sort() # prints: ["guava", "kiwi", "mango"]
 Filter a list based on a condition.
 
 ```ruby
-list = ["kiwi", "mango", "banana"]
+list = ["astral", "mango", "banana"]
 println list.select(lambda (item) do return item.contains("i") end)
-# prints: ["kiwi"]
+# prints: ["astral"]
 ```
 
 ### `map(lambda)`
@@ -344,9 +344,9 @@ println list.select(lambda (item) do return item.contains("i") end)
 Transform a list based on a condition.
 
 ```ruby
-list = ["kiwi", "mango", "banana"]
-println list.map(lambda (item) do return { "fruit": item, "is_a_kiwi": item.downcase() == "kiwi" } end)
-# prints: [{"fruit": kiwi, "is_a_kiwi": true}, {"fruit": mango, "is_a_kiwi": false}, {"fruit": banana, "is_a_kiwi": false}]
+list = ["astral", "mango", "banana"]
+println list.map(lambda (item) do return { "fruit": item, "is_a_astral": item.downcase() == "astral" } end)
+# prints: [{"fruit": astral, "is_a_astral": true}, {"fruit": mango, "is_a_astral": false}, {"fruit": banana, "is_a_astral": false}]
 ```
 
 ### `reduce(accumulator, lambda)`
