@@ -166,8 +166,7 @@ class OdbcConnection {
     return result;
   }
 
-  k_value executeStoredProcedure(const k_string& sp,
-                               const k_list params) {
+  k_value executeStoredProcedure(const k_string& sp, const k_list params) {
     if (!connected) {
       return getConnectionError();
     }
@@ -352,8 +351,7 @@ class OdbcConnection {
         fullErrorMessage += " ";
       }
 
-      k_string currentMessage(reinterpret_cast<char*>(messageText),
-                                 textLength);
+      k_string currentMessage(reinterpret_cast<char*>(messageText), textLength);
       fullErrorMessage += currentMessage;
     }
 

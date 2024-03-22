@@ -160,8 +160,7 @@ struct {
       Pass,     Print,  PrintLn, Private, Return, Static, Then,  This,
       Throw,    True,   Try,     While};
 
-  std::unordered_set<k_string> conditional_keywords = {If, Else, ElseIf,
-                                                          End};
+  std::unordered_set<k_string> conditional_keywords = {If, Else, ElseIf, End};
 
   std::unordered_set<KName> block_keywords = {
       KName::KW_While,  KName::KW_For, KName::KW_Method, KName::KW_If,
@@ -171,9 +170,7 @@ struct {
     return keywords.find(arg) != keywords.end();
   }
 
-  bool is_boolean(const k_string& arg) {
-    return arg == True || arg == False;
-  }
+  bool is_boolean(const k_string& arg) { return arg == True || arg == False; }
 
   bool is_conditional_keyword(const k_string& arg) {
     return conditional_keywords.find(arg) != conditional_keywords.end();

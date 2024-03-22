@@ -264,8 +264,8 @@ struct InterpHelper {
   }
 
   static k_value interpretAssignOp(std::shared_ptr<TokenStream> stream,
-                                 const KName& op, const k_value& currentValue,
-                                 const k_value& value) {
+                                   const KName& op, const k_value& currentValue,
+                                   const k_value& value) {
     switch (op) {
       case KName::Ops_AddAssign:
         return std::visit(AddVisitor(stream->current()), currentValue, value);
@@ -320,8 +320,8 @@ struct InterpHelper {
   }
 
   static k_value interpretListSlice(std::shared_ptr<TokenStream> stream,
-                                  const SliceIndex& slice,
-                                  const k_list& list) {
+                                    const SliceIndex& slice,
+                                    const k_list& list) {
     if (slice.isSlice) {
       if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
         throw IndexError(stream->current(), "Start index must be an integer.");
@@ -398,7 +398,8 @@ struct InterpHelper {
                                           std::shared_ptr<CallStackFrame> frame,
                                           std::string& errorTypeVariableName,
                                           std::string& errorVariableName,
-                                          k_value& errorType, k_value& errorValue) {
+                                          k_value& errorType,
+                                          k_value& errorValue) {
     stream->next();  // Skip "("
 
     if (stream->current().getType() != KTokenType::IDENTIFIER) {

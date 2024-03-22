@@ -93,8 +93,7 @@ struct Serializer {
     return sv.str();
   }
 
-  static k_list get_hash_keys_list(
-      const k_hash& hash) {
+  static k_list get_hash_keys_list(const k_hash& hash) {
     k_list keys = std::make_shared<List>();
     for (const auto& key : hash->keys) {
       keys->elements.push_back(key);
@@ -102,14 +101,12 @@ struct Serializer {
     return keys;
   }
 
-  static k_string basic_serialize_object(
-      const k_object& object) {
+  static k_string basic_serialize_object(const k_object& object) {
     return "[Object(class=" + object->className + ", identifier=@" +
            object->identifier + ")]";
   }
 
-  static k_string basic_serialize_lambda(
-      const k_lambda& lambda) {
+  static k_string basic_serialize_lambda(const k_lambda& lambda) {
     if (lambda->identifier.empty()) {
       return "[" + TypeNames.Lambda + "]";
     }

@@ -11,7 +11,7 @@
 class EnvBuiltinHandler {
  public:
   static k_value execute(const Token& term, const KName& builtin,
-                       const std::vector<k_value>& args) {
+                         const std::vector<k_value>& args) {
     switch (builtin) {
       case KName::Builtin_Env_GetEnvironmentVariable:
         return executeGetEnvironmentVariable(term, args);
@@ -27,8 +27,8 @@ class EnvBuiltinHandler {
   }
 
  private:
-  static k_value executeGetEnvironmentVariable(const Token& term,
-                                             const std::vector<k_value>& args) {
+  static k_value executeGetEnvironmentVariable(
+      const Token& term, const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term,
                                            EnvBuiltins.GetEnvironmentVariable);
@@ -45,8 +45,8 @@ class EnvBuiltinHandler {
     return "";
   }
 
-  static k_value executeSetEnvironmentVariable(const Token& term,
-                                             const std::vector<k_value>& args) {
+  static k_value executeSetEnvironmentVariable(
+      const Token& term, const std::vector<k_value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(term,
                                            EnvBuiltins.SetEnvironmentVariable);

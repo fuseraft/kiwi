@@ -51,7 +51,7 @@ struct ConnectionInfo {
 class OdbcBuiltinHandler {
  public:
   static k_value execute(const Token& term, const k_string& builtin,
-                       const std::vector<k_value>& args) {
+                         const std::vector<k_value>& args) {
     try {
       switch (builtin) {
         case OdbcBuiltins.Connect:
@@ -90,7 +90,7 @@ class OdbcBuiltinHandler {
 
  private:
   static k_value executeConnect(const Token& term,
-                              const std::vector<k_value>& args) {
+                                const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, OdbcBuiltins.Connect);
     }
@@ -102,7 +102,8 @@ class OdbcBuiltinHandler {
     ;
   }
 
-  static k_value executeExec(const Token& term, const std::vector<k_value>& args) {
+  static k_value executeExec(const Token& term,
+                             const std::vector<k_value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(term, OdbcBuiltins.Exec);
     }
@@ -115,7 +116,7 @@ class OdbcBuiltinHandler {
   }
 
   static k_value executeExecSp(const Token& term,
-                             const std::vector<k_value>& args) {
+                               const std::vector<k_value>& args) {
     if (args.size() != 3) {
       throw BuiltinUnexpectedArgumentError(term, OdbcBuiltins.ExecSp);
     }
@@ -132,12 +133,11 @@ class OdbcBuiltinHandler {
     }
 
     return OdbcConnection::getInstance(conn.connectionString)
-        .executeStoredProcedure(spName,
-                                std::get<k_list>(args.at(2)));
+        .executeStoredProcedure(spName, std::get<k_list>(args.at(2)));
   }
 
   static k_value executeIsConnected(const Token& term,
-                                  const std::vector<k_value>& args) {
+                                    const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, OdbcBuiltins.IsConnected);
     }
@@ -149,7 +149,7 @@ class OdbcBuiltinHandler {
   }
 
   static k_value executeInTransaction(const Token& term,
-                                    const std::vector<k_value>& args) {
+                                      const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, OdbcBuiltins.InTransaction);
     }
@@ -161,7 +161,7 @@ class OdbcBuiltinHandler {
   }
 
   static k_value executeBeginTransaction(const Token& term,
-                                       const std::vector<k_value>& args) {
+                                         const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, OdbcBuiltins.BeginTransaction);
     }
@@ -174,7 +174,7 @@ class OdbcBuiltinHandler {
   }
 
   static k_value executeCommitTransaction(const Token& term,
-                                        const std::vector<k_value>& args) {
+                                          const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term,
                                            OdbcBuiltins.CommitTransaction);
@@ -188,7 +188,7 @@ class OdbcBuiltinHandler {
   }
 
   static k_value executeRollbackTransaction(const Token& term,
-                                          const std::vector<k_value>& args) {
+                                            const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term,
                                            OdbcBuiltins.RollbackTransaction);

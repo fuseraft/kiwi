@@ -145,7 +145,7 @@ bool Astral::createNewFile(const std::string& path) {
 }
 
 bool Astral::configure(Config& config, Logger& logger, Host& host,
-                     const std::string& path) {
+                       const std::string& path) {
   if (!String::endsWith(path, ".conf")) {
     std::cout << "I can be configured with a `.conf` file." << std::endl;
     return false;

@@ -40,10 +40,8 @@ std::size_t hashHash(const k_hash& hash);
 std::size_t hashList(const k_list& list);
 std::size_t hashObject(const k_object& object);
 
-
-using k_value = std::variant<k_int, double, bool, k_string,
-                           k_list, k_hash,
-                           k_object, k_lambda>;
+using k_value = std::variant<k_int, double, bool, k_string, k_list, k_hash,
+                             k_object, k_lambda>;
 
 // Specialize a struct for hash computation for k_value
 namespace std {
@@ -88,9 +86,7 @@ struct Hash {
 
   int size() const { return keys.size(); }
 
-  bool hasKey(const k_string& key) const {
-    return kvp.find(key) != kvp.end();
-  }
+  bool hasKey(const k_string& key) const { return kvp.find(key) != kvp.end(); }
 
   void add(const k_string& key, k_value value) {
     if (!hasKey(key)) {
@@ -168,8 +164,7 @@ struct ValueComparator {
       case 2:  // bool
         return *std::get_if<bool>(&lhs) < *std::get_if<bool>(&rhs);
       case 3:  // k_string
-        return *std::get_if<k_string>(&lhs) <
-               *std::get_if<k_string>(&rhs);
+        return *std::get_if<k_string>(&lhs) < *std::get_if<k_string>(&rhs);
       default:
         auto lhs_hash = std::hash<k_value>()(lhs);
         auto rhs_hash = std::hash<k_value>()(rhs);
@@ -220,11 +215,9 @@ bool lt_value(const k_value& lhs, const k_value& rhs) {
     case 3:  // k_string
       return std::get<k_string>(lhs) < std::get<k_string>(rhs);
     case 4:  // k_list
-      return hashList(std::get<k_list>(lhs)) <
-             hashList(std::get<k_list>(rhs));
+      return hashList(std::get<k_list>(lhs)) < hashList(std::get<k_list>(rhs));
     case 5:  // k_hash
-      return hashHash(std::get<k_hash>(lhs)) <
-             hashHash(std::get<k_hash>(rhs));
+      return hashHash(std::get<k_hash>(lhs)) < hashHash(std::get<k_hash>(rhs));
     case 6:  // k_object
       return hashObject(std::get<k_object>(lhs)) <
              hashObject(std::get<k_object>(rhs));
@@ -248,11 +241,9 @@ bool gt_value(const k_value& lhs, const k_value& rhs) {
     case 3:  // k_string
       return std::get<k_string>(lhs) > std::get<k_string>(rhs);
     case 4:  // k_list
-      return hashList(std::get<k_list>(lhs)) >
-             hashList(std::get<k_list>(rhs));
+      return hashList(std::get<k_list>(lhs)) > hashList(std::get<k_list>(rhs));
     case 5:  // k_hash
-      return hashHash(std::get<k_hash>(lhs)) >
-             hashHash(std::get<k_hash>(rhs));
+      return hashHash(std::get<k_hash>(lhs)) > hashHash(std::get<k_hash>(rhs));
     case 6:  // k_object
       return hashObject(std::get<k_object>(lhs)) >
              hashObject(std::get<k_object>(rhs));
@@ -315,8 +306,7 @@ k_value indexof_listvalue(const k_list& list, const k_value& value) {
   return static_cast<k_int>(-1);
 }
 
-k_value lastindexof_listvalue(const k_list& list,
-                            const k_value& value) {
+k_value lastindexof_listvalue(const k_list& list, const k_value& value) {
   const auto& elements = list->elements;
   if (elements.empty()) {
     return static_cast<k_int>(-1);

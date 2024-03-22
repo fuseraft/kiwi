@@ -104,9 +104,7 @@ class Method {
 
   const std::vector<k_string>& getParameters() const { return parameters; }
 
-  const Parameter& getParameter(const k_string& name) {
-    return _params[name];
-  }
+  const Parameter& getParameter(const k_string& name) { return _params[name]; }
 
  private:
   std::vector<k_string> parameters;
