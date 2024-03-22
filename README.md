@@ -1,4 +1,4 @@
-# Astral 🚀
+# The Astral Programming Language 🚀
 
 Astral is a lightweight, dynamically-typed, general-purpose scripting language.
 
@@ -31,7 +31,7 @@ Experiment with Astral in a Docker container.
 
 ```bash
 sudo docker build -t astral-lang .
-sudo docker run -it -v $(pwd):/workspace astral-language
+sudo docker run -it -v $(pwd):/workspace astral-lang
 ```
 
 ### Linux Builds
