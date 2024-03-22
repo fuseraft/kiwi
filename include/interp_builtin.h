@@ -1,5 +1,5 @@
-#ifndef KIWI_INTERPBUILTIN_H
-#define KIWI_INTERPBUILTIN_H
+#ifndef ASTRAL_INTERPBUILTIN_H
+#define ASTRAL_INTERPBUILTIN_H
 
 #include <charconv>
 #include <sstream>
@@ -25,7 +25,7 @@ class BuiltinInterpreter {
  public:
   static k_value execute(
       const Token& term, const KName& builtin, const std::vector<k_value>& args,
-      const std::unordered_map<k_string, k_string>& kiwiArgs) {
+      const std::unordered_map<k_string, k_string>& astralArgs) {
     if (FileIOBuiltIns.is_builtin(builtin)) {
       return FileIOBuiltinHandler::execute(term, builtin, args);
     } else if (TimeBuiltins.is_builtin(builtin)) {
@@ -35,7 +35,7 @@ class BuiltinInterpreter {
     } else if (EnvBuiltins.is_builtin(builtin)) {
       return EnvBuiltinHandler::execute(term, builtin, args);
     } else if (ArgvBuiltins.is_builtin(builtin)) {
-      return ArgvBuiltinHandler::execute(term, builtin, args, kiwiArgs);
+      return ArgvBuiltinHandler::execute(term, builtin, args, astralArgs);
     } else if (ConsoleBuiltins.is_builtin(builtin)) {
       return ConsoleBuiltinHandler::execute(term, builtin, args);
     } else if (SysBuiltins.is_builtin(builtin)) {
@@ -55,7 +55,7 @@ class BuiltinInterpreter {
 
   static k_value execute(const Token& term, const KName& builtin,
                        const k_value& value, const std::vector<k_value>& args) {
-    if (KiwiBuiltins.is_builtin(builtin)) {
+    if (AstralBuiltins.is_builtin(builtin)) {
       return CoreBuiltinHandler::execute(term, builtin, value, args);
     }
 

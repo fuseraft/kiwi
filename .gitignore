@@ -1,13 +1,13 @@
 cleanup.rb
 .vscode/settings.json
 src/main
-bin/kiwi
+bin/astral
 build
 bin
 logs
 output.txt
-play.kiwi
+play.astral
 gmon.out
-kiwi_profile*
-benchmark*.kiwi
+astral_profile*
+benchmark*.astral
 pg

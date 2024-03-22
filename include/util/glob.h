@@ -1,5 +1,5 @@
-#ifndef KIWI_UTIL_GLOB_H
-#define KIWI_UTIL_GLOB_H
+#ifndef ASTRAL_UTIL_GLOB_H
+#define ASTRAL_UTIL_GLOB_H
 
 #include <string>
 #include "util/string.h"

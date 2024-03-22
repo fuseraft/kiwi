@@ -1,11 +1,11 @@
 # Console I/O
 
-Kiwi offers the following constructs to work with console I/O:
+Astral offers the following constructs to work with console I/O:
 - `input(msg)`: Read input from the console.
 - `print`: Print text to the console.
 - `println`: Print a line of text to the console.
 
-For file I/O, please see [@kiwi/fs](lib/fs.md).
+For file I/O, please see [@astral/fs](lib/fs.md).
 
 ### `input()`
 

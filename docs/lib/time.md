@@ -1,12 +1,12 @@
-# `@kiwi/time`
+# `@astral/time`
 
 The `time` module contains functionality for working with time and date information.
 
 ## Importing the Module
-To use the `time` module, import it at the beginning of your Kiwi script.
+To use the `time` module, import it at the beginning of your Astral script.
 
 ```ruby
-import "@kiwi/time"
+import "@astral/time"
 ```
 
 ## Module Functions

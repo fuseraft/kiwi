@@ -1,15 +1,15 @@
-# `@kiwi/web`
+# `@astral/web`
 
-The `web` module contains functionality for building web applications in Kiwi.
+The `web` module contains functionality for building web applications in Astral.
 
 *Note: this module is likely to evolve over time.*
 
 ## Importing the Module
 
-To use the `web` module, import it at the beginning of your Kiwi script.
+To use the `web` module, import it at the beginning of your Astral script.
 
 ```ruby
-import "@kiwi/web"
+import "@astral/web"
 ```
 
 ## Module Functions

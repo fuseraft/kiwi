@@ -1,5 +1,5 @@
-#ifndef KIWI_NET_HTTPCLIENT_H
-#define KIWI_NET_HTTPCLIENT_H
+#ifndef ASTRAL_NET_HTTPCLIENT_H
+#define ASTRAL_NET_HTTPCLIENT_H
 
 #include <iostream>
 #include <curl/curl.h>

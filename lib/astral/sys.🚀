@@ -2,7 +2,7 @@
 Summary: A module for working with external processes.
 ##
 module sys
-  __home__("kiwi")
+  __home__("astral")
 
   ##
   Summary: Get the effective user ID.

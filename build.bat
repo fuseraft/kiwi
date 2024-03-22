@@ -1,5 +1,5 @@
 @echo off
-echo Building Kiwi with MSVC
+echo Building Astral with MSVC
 
 if not exist build\NUL mkdir build
 if not exist bin\NUL mkdir bin
@@ -13,7 +13,7 @@ if %ERRORLEVEL% neq 0 (
 
 echo Linking...
 
-link build\main.obj /OUT:bin\kiwi.exe
+link build\main.obj /OUT:bin\astral.exe
 
 if %ERRORLEVEL% neq 0 (
   echo Linking failed.

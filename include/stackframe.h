@@ -1,5 +1,5 @@
-#ifndef KIWI_STACKFRAME_H
-#define KIWI_STACKFRAME_H
+#ifndef ASTRAL_STACKFRAME_H
+#define ASTRAL_STACKFRAME_H
 
 #include <memory>
 #include <string>
@@ -62,7 +62,7 @@ struct CallStackFrame {
     return variables.find(name) != variables.end();
   }
 
-  void setErrorState(const KiwiError& e) { errorState.setError(e); }
+  void setErrorState(const AstralError& e) { errorState.setError(e); }
   bool isErrorStateSet() const { return errorState.isErrorSet(); }
   k_string getErrorMessage() const { return errorState.error.getMessage(); }
   ErrorState getErrorState() const { return errorState; }

@@ -1,6 +1,6 @@
 # Loops
 
-Kiwi supports the following kinds of loops. You can use the `break` keyword to exit a loop. You can use the `next` keyword to skip to the next iteration.
+Astral supports the following kinds of loops. You can use the `break` keyword to exit a loop. You can use the `next` keyword to skip to the next iteration.
 
 ## Table of Contents
 1. [`while`](#while)
@@ -68,7 +68,7 @@ end
 
 ## `for`
 
-In Kiwi, `for`-loops are used to iterate collections.
+In Astral, `for`-loops are used to iterate collections.
 
 ##### Iterating a Hash
 

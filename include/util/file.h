@@ -1,5 +1,5 @@
-#ifndef KIWI_UTIL_FILE_H
-#define KIWI_UTIL_FILE_H
+#ifndef ASTRAL_UTIL_FILE_H
+#define ASTRAL_UTIL_FILE_H
 
 #include <fstream>
 #include <filesystem>
@@ -282,16 +282,16 @@ k_string File::getParentPath(const k_string& path) {
   return childPath.parent_path().string();
 }
 
-/// @brief Check if a path is a kiwi script.
+/// @brief Check if a path is a astral script.
 /// @param path The path.
 /// @return Boolean indicating success.
 bool File::isScript(const k_string& path) {
   bool _isScript = false;
 #ifdef _WIN64
-  _isScript = String::endsWith(path, ".kiwi") && File::fileExists(path);
+  _isScript = String::endsWith(path, ".astral") && File::fileExists(path);
 #else
   _isScript =
-      (String::endsWith(path, "🥝") || String::endsWith(path, ".kiwi")) &&
+      (String::endsWith(path, "🚀") || String::endsWith(path, ".astral")) &&
       File::fileExists(path);
 #endif
   return _isScript;
@@ -336,21 +336,21 @@ fs::path File::getExecutablePath() {
 }
 
 k_string File::getLibraryPath() {
-  fs::path kiwiPath(getExecutablePath());
-  fs::path kiwilibPath;
+  fs::path astralPath(getExecutablePath());
+  fs::path astrallibPath;
 #ifdef _WIN64
-  k_string binPath = getParentPath(kiwiPath.string());
+  k_string binPath = getParentPath(astralPath.string());
   k_string parentPath = getParentPath(binPath);
-  kiwilibPath = (fs::path(parentPath) / "lib\\kiwi").lexically_normal();
+  astrallibPath = (fs::path(parentPath) / "lib\\astral").lexically_normal();
 #else
-  kiwilibPath = (kiwiPath / "../lib/kiwi").lexically_normal();
+  astrallibPath = (astralPath / "../lib/astral").lexically_normal();
 #endif
 
-  if (!fs::exists(kiwilibPath)) {
+  if (!fs::exists(astrallibPath)) {
     return "";
   }
 
-  return kiwilibPath.string();
+  return astrallibPath.string();
 }
 
 #ifdef _WIN64

@@ -1,5 +1,5 @@
-#ifndef KIWI_UTIL_STRING_H
-#define KIWI_UTIL_STRING_H
+#ifndef ASTRAL_UTIL_STRING_H
+#define ASTRAL_UTIL_STRING_H
 
 #include <algorithm>
 #include <cctype>

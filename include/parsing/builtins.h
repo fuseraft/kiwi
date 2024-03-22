@@ -1,5 +1,5 @@
-#ifndef KIWI_PARSING_BUILTINS_H
-#define KIWI_PARSING_BUILTINS_H
+#ifndef ASTRAL_PARSING_BUILTINS_H
+#define ASTRAL_PARSING_BUILTINS_H
 
 #include <string>
 #include <unordered_set>
@@ -462,19 +462,19 @@ struct {
       Split,    LeftTrim, RightTrim,   Trim,    Type,     HasKey};
 
   std::unordered_set<KName> st_builtins = {
-      KName::Builtin_Kiwi_BeginsWith,  KName::Builtin_Kiwi_BeginsWith,
-      KName::Builtin_Kiwi_Empty,       KName::Builtin_Kiwi_Chars,
-      KName::Builtin_Kiwi_Contains,    KName::Builtin_Kiwi_Downcase,
-      KName::Builtin_Kiwi_EndsWith,    KName::Builtin_Kiwi_HasKey,
-      KName::Builtin_Kiwi_IndexOf,     KName::Builtin_Kiwi_IsA,
-      KName::Builtin_Kiwi_Join,        KName::Builtin_Kiwi_Keys,
-      KName::Builtin_Kiwi_LastIndexOf, KName::Builtin_Kiwi_LeftTrim,
-      KName::Builtin_Kiwi_Replace,     KName::Builtin_Kiwi_Reverse,
-      KName::Builtin_Kiwi_RightTrim,   KName::Builtin_Kiwi_Size,
-      KName::Builtin_Kiwi_Split,       KName::Builtin_Kiwi_ToD,
-      KName::Builtin_Kiwi_ToI,         KName::Builtin_Kiwi_ToS,
-      KName::Builtin_Kiwi_Trim,        KName::Builtin_Kiwi_Type,
-      KName::Builtin_Kiwi_Upcase};
+      KName::Builtin_Astral_BeginsWith,  KName::Builtin_Astral_BeginsWith,
+      KName::Builtin_Astral_Empty,       KName::Builtin_Astral_Chars,
+      KName::Builtin_Astral_Contains,    KName::Builtin_Astral_Downcase,
+      KName::Builtin_Astral_EndsWith,    KName::Builtin_Astral_HasKey,
+      KName::Builtin_Astral_IndexOf,     KName::Builtin_Astral_IsA,
+      KName::Builtin_Astral_Join,        KName::Builtin_Astral_Keys,
+      KName::Builtin_Astral_LastIndexOf, KName::Builtin_Astral_LeftTrim,
+      KName::Builtin_Astral_Replace,     KName::Builtin_Astral_Reverse,
+      KName::Builtin_Astral_RightTrim,   KName::Builtin_Astral_Size,
+      KName::Builtin_Astral_Split,       KName::Builtin_Astral_ToD,
+      KName::Builtin_Astral_ToI,         KName::Builtin_Astral_ToS,
+      KName::Builtin_Astral_Trim,        KName::Builtin_Astral_Type,
+      KName::Builtin_Astral_Upcase};
 
   bool is_builtin(const k_string& arg) {
     if (ListBuiltins.is_builtin(arg)) {
@@ -510,6 +510,6 @@ struct {
            ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
            WebServerBuiltins.is_builtin(arg);
   }
-} KiwiBuiltins;
+} AstralBuiltins;
 
 #endif

@@ -1,15 +1,15 @@
 // globals.h
-#ifndef KIWI_GLOBALS_H
-#define KIWI_GLOBALS_H
+#ifndef ASTRAL_GLOBALS_H
+#define ASTRAL_GLOBALS_H
 
 #include <string>
 
 extern bool DEBUG;
 extern bool SILENCE;
 
-extern const std::string kiwi_name = "The Kiwi Programming Language";
-extern const std::string kiwi_version = "1.3.2";
-extern const std::string kiwi_arg = "kiwi";
+extern const std::string astral_name = "The Astral Programming Language";
+extern const std::string astral_version = "1.3.2";
+extern const std::string astral_arg = "astral";
 
 #include <unordered_map>
 #include <stack>
@@ -30,24 +30,24 @@ extern TaskManager task;
 extern std::unordered_map<std::string, Method> methods;
 extern std::unordered_map<std::string, Module> modules;
 extern std::unordered_map<std::string, Class> classes;
-extern std::unordered_map<std::string, std::string> kiwiArgs;
+extern std::unordered_map<std::string, std::string> astralArgs;
 extern std::stack<std::shared_ptr<CallStackFrame>> callStack;
 extern std::stack<std::shared_ptr<TokenStream>> streamStack;
 extern std::stack<std::string> moduleStack;
-extern httplib::Server kiwiWebServer;
-extern std::unordered_map<int, Method> kiwiWebServerHooks;
+extern httplib::Server astralWebServer;
+extern std::unordered_map<int, Method> astralWebServerHooks;
 
-extern std::string kiwiWebServerHost;
-extern k_int kiwiWebServerPort;
-extern std::mutex kiwiWebServerMutex;
-extern std::mutex kiwiWebServerHooksMutex;
-extern std::mutex kiwiWebServerHostMutex;
-extern std::mutex kiwiWebServerPortMutex;
+extern std::string astralWebServerHost;
+extern k_int astralWebServerPort;
+extern std::mutex astralWebServerMutex;
+extern std::mutex astralWebServerHooksMutex;
+extern std::mutex astralWebServerHostMutex;
+extern std::mutex astralWebServerPortMutex;
 
 extern std::mutex methodsMutex;
 extern std::mutex modulesMutex;
 extern std::mutex classesMutex;
-extern std::mutex kiwiArgsMutex;
+extern std::mutex astralArgsMutex;
 extern std::mutex callStackMutex;
 extern std::mutex streamStackMutex;
 extern std::mutex moduleStackMutex;

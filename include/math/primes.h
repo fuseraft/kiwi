@@ -1,5 +1,5 @@
-#ifndef KIWI_MATH_PRIMES_H
-#define KIWI_MATH_PRIMES_H
+#ifndef ASTRAL_MATH_PRIMES_H
+#define ASTRAL_MATH_PRIMES_H
 
 #include <iostream>
 #include <vector>
