@@ -11,8 +11,8 @@
 class HttpBuiltinHandler {
  public:
   static k_value execute(const Token& term, const k_string& builtin,
-                       const std::vector<k_value>& args) {
-    #ifdef EXPERIMENTAL_FEATURES
+                         const std::vector<k_value>& args) {
+#ifdef EXPERIMENTAL_FEATURES
     switch (builtin) {
       case HttpBuiltins.Delete:
       case HttpBuiltins.Get:
@@ -27,17 +27,18 @@ class HttpBuiltinHandler {
 
       default:
         break;
-    }*/
+    }
+    * /
 
-    throw UnknownBuiltinError(term, builtin);
-    #endif
+        throw UnknownBuiltinError(term, builtin);
+#endif
   }
 
  private:
-  #ifdef EXPERIMENTAL_FEATURES
+#ifdef EXPERIMENTAL_FEATURES
   static k_value executeDeleteGetHeadOptions(const Token& term,
-                                           const std::vector<k_value>& args,
-                                           const k_string& builtin) {
+                                             const std::vector<k_value>& args,
+                                             const k_string& builtin) {
     if (args.size() < 1 || args.size() > 2) {
       throw BuiltinUnexpectedArgumentError(term, builtin);
     }
@@ -67,8 +68,8 @@ class HttpBuiltinHandler {
   }
 
   static k_value executePatchPostPut(const Token& term,
-                                   const std::vector<k_value>& args,
-                                   const k_string& builtin) {
+                                     const std::vector<k_value>& args,
+                                     const k_string& builtin) {
     if (args.size() < 1 || args.size() > 3) {
       throw BuiltinUnexpectedArgumentError(term, builtin);
     }
@@ -95,7 +96,7 @@ class HttpBuiltinHandler {
 
     throw UnknownBuiltinError(term, builtin);
   }
-  #endif
+#endif
 };
 
 #endif

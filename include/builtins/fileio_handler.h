@@ -11,7 +11,7 @@
 class FileIOBuiltinHandler {
  public:
   static k_value execute(const Token& token, const KName& builtin,
-                       const std::vector<k_value>& args) {
+                         const std::vector<k_value>& args) {
     switch (builtin) {
       case KName::Builtin_FileIO_CreateFile:
         return executeCreateFile(token, args);
@@ -101,7 +101,7 @@ class FileIOBuiltinHandler {
 
  private:
   static k_value executeAppendText(const Token& token,
-                                 const std::vector<k_value>& args) {
+                                   const std::vector<k_value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.AppendText);
     }
@@ -112,7 +112,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeCopyFile(const Token& token,
-                               const std::vector<k_value>& args) {
+                                 const std::vector<k_value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.CopyFile);
     }
@@ -123,7 +123,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeCopyR(const Token& token,
-                            const std::vector<k_value>& args) {
+                              const std::vector<k_value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.CopyR);
     }
@@ -134,7 +134,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeCreateFile(const Token& token,
-                                 const std::vector<k_value>& args) {
+                                   const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.CreateFile);
     }
@@ -144,7 +144,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeListDirectory(const Token& token,
-                                    const std::vector<k_value>& args) {
+                                      const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.ListDirectory);
     }
@@ -160,7 +160,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeMakeDirectory(const Token& token,
-                                    const std::vector<k_value>& args) {
+                                      const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.MakeDirectory);
     }
@@ -170,7 +170,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeMakeDirectoryP(const Token& token,
-                                     const std::vector<k_value>& args) {
+                                       const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
                                            FileIOBuiltIns.MakeDirectoryP);
@@ -181,7 +181,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeRemovePath(const Token& token,
-                                 const std::vector<k_value>& args) {
+                                   const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
                                            FileIOBuiltIns.RemoveDirectory);
@@ -192,7 +192,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeRemovePathF(const Token& token,
-                                  const std::vector<k_value>& args) {
+                                    const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
                                            FileIOBuiltIns.RemoveDirectoryF);
@@ -203,7 +203,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeGetTempDirectory(const Token& token,
-                                       const std::vector<k_value>& args) {
+                                         const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.TempDir);
     }
@@ -212,7 +212,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeGetFileSize(const Token& token,
-                                  const std::vector<k_value>& args) {
+                                    const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.FileSize);
     }
@@ -222,7 +222,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeFileExists(const Token& token,
-                                 const std::vector<k_value>& args) {
+                                   const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.FileExists);
     }
@@ -232,7 +232,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeIsDirectory(const Token& token,
-                                  const std::vector<k_value>& args) {
+                                    const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.IsDirectory);
     }
@@ -242,7 +242,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeGetFileAbsolutePath(const Token& token,
-                                          const std::vector<k_value>& args) {
+                                            const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
                                            FileIOBuiltIns.GetFileAbsolutePath);
@@ -253,7 +253,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeGetFileExtension(const Token& token,
-                                       const std::vector<k_value>& args) {
+                                         const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
                                            FileIOBuiltIns.GetFileExtension);
@@ -264,7 +264,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeGetFileName(const Token& token,
-                                  const std::vector<k_value>& args) {
+                                    const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.FileName);
     }
@@ -274,7 +274,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeGetCurrentDirectory(const Token& token,
-                                          const std::vector<k_value>& args) {
+                                            const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token,
                                            FileIOBuiltIns.GetCurrentDirectory);
@@ -284,7 +284,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeChangeDirectory(const Token& token,
-                                      const std::vector<k_value>& args) {
+                                        const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
                                            FileIOBuiltIns.ChangeDirectory);
@@ -295,7 +295,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeGetFilePath(const Token& token,
-                                  const std::vector<k_value>& args) {
+                                    const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.GetFilePath);
     }
@@ -304,7 +304,8 @@ class FileIOBuiltinHandler {
     return File::getParentPath(fileName);
   }
 
-  static k_value executeGlob(const Token& token, const std::vector<k_value>& args) {
+  static k_value executeGlob(const Token& token,
+                             const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.Glob);
     }
@@ -321,7 +322,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeCombine(const Token& token,
-                              const std::vector<k_value>& args) {
+                                const std::vector<k_value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.Combine);
     }
@@ -332,7 +333,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeMoveFile(const Token& token,
-                               const std::vector<k_value>& args) {
+                                 const std::vector<k_value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.MoveFile);
     }
@@ -343,7 +344,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeReadFile(const Token& token,
-                               const std::vector<k_value>& args) {
+                                 const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.ReadFile);
     }
@@ -353,7 +354,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeReadLines(const Token& token,
-                                const std::vector<k_value>& args) {
+                                  const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.ReadLines);
     }
@@ -368,7 +369,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeWriteLine(const Token& token,
-                                const std::vector<k_value>& args) {
+                                  const std::vector<k_value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.WriteLine);
     }
@@ -379,7 +380,7 @@ class FileIOBuiltinHandler {
   }
 
   static k_value executeWriteText(const Token& token,
-                                const std::vector<k_value>& args) {
+                                  const std::vector<k_value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.WriteText);
     }

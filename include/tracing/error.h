@@ -8,7 +8,7 @@
 class AstralError : public std::exception {
  public:
   AstralError(const Token& token, std::string error,
-            const std::string& message = "")
+              const std::string& message = "")
       : token(token), error(error), message(message) {}
 
   const char* what() const noexcept override { return message.c_str(); }
@@ -30,14 +30,14 @@ class UnknownBuiltinError : public AstralError {
  public:
   UnknownBuiltinError(const Token& token, const std::string& name)
       : AstralError(token, "UnknownBuiltinError",
-                  "The builtin `" + name + "` is unknown.") {}
+                    "The builtin `" + name + "` is unknown.") {}
 };
 
 class UnknownIdentifierError : public AstralError {
  public:
   UnknownIdentifierError(const Token& token, const std::string& name)
       : AstralError(token, "UnknownIdentifierError",
-                  "The identifier `" + name + "` is unknown.") {}
+                    "The identifier `" + name + "` is unknown.") {}
 };
 
 class UnrecognizedTokenError : public AstralError {
@@ -77,44 +77,44 @@ class HashKeyError : public AstralError {
  public:
   HashKeyError(const Token& token, const std::string& key)
       : AstralError(token, "HashKeyError",
-                  "The key `" + key + "` does not exist in the hash.") {}
+                    "The key `" + key + "` does not exist in the hash.") {}
 };
 
 class ParameterMissingError : public AstralError {
  public:
   ParameterMissingError(const Token& token, const std::string& name)
       : AstralError(token, "ParameterMissingError",
-                  "The parameter `" + name + "` was expected but missing.") {}
+                    "The parameter `" + name + "` was expected but missing.") {}
 };
 
 class ParameterCountMismatchError : public AstralError {
  public:
   ParameterCountMismatchError(const Token& token, const std::string& name)
       : AstralError(token, "ParameterCountMismatchError",
-                  "The parameter count for method `" + name +
-                      "` does not match parameters passed.") {}
+                    "The parameter count for method `" + name +
+                        "` does not match parameters passed.") {}
 };
 
 class UnrecognizedBuiltinError : public AstralError {
  public:
   UnrecognizedBuiltinError(const Token& token, const std::string& name)
       : AstralError(token, "UnrecognizedBuiltinError",
-                  "Unrecognized builtin `" + name + "`.") {}
+                    "Unrecognized builtin `" + name + "`.") {}
 };
 
 class ClassRedefinitionError : public AstralError {
  public:
   ClassRedefinitionError(const Token& token, const std::string& name)
       : AstralError(token, "ClassRedefinitionError",
-                  "Attempted to redefine class already defined class `" + name +
-                      "`.") {}
+                    "Attempted to redefine class already defined class `" +
+                        name + "`.") {}
 };
 
 class ClassUndefinedError : public AstralError {
  public:
   ClassUndefinedError(const Token& token, const std::string& name)
       : AstralError(token, "ClassUndefinedError",
-                  "The class `" + name + "` is undefined.") {}
+                    "The class `" + name + "` is undefined.") {}
 };
 
 class UnimplementedMethodError : public AstralError {
@@ -122,15 +122,15 @@ class UnimplementedMethodError : public AstralError {
   UnimplementedMethodError(const Token& token, const std::string& className,
                            const std::string& methodName)
       : AstralError(token, "UnimplementedMethodError",
-                  "The class `" + className +
-                      "` has an unimplemented method `" + methodName + "`") {}
+                    "The class `" + className +
+                        "` has an unimplemented method `" + methodName + "`") {}
 };
 
 class BuiltinUnexpectedArgumentError : public AstralError {
  public:
   BuiltinUnexpectedArgumentError(const Token& token, const std::string& name)
       : AstralError(token, "BuiltinUnexpectedArgumentError",
-                  "Unexpected argument count for builtin `" + name + "`.") {}
+                    "Unexpected argument count for builtin `" + name + "`.") {}
 };
 
 class DbConnectionError : public AstralError {
@@ -166,7 +166,7 @@ class InvalidTypeNameError : public AstralError {
  public:
   InvalidTypeNameError(const Token& token, const std::string& name)
       : AstralError(token, "InvalidTypeNameError",
-                  "Invalid type name `" + name + "`") {}
+                    "Invalid type name `" + name + "`") {}
 };
 
 class ConversionError : public AstralError {
@@ -179,7 +179,8 @@ class ConversionError : public AstralError {
 class DivideByZeroError : public AstralError {
  public:
   DivideByZeroError(const Token& token)
-      : AstralError(token, "DivideByZeroError", "Attempted to divide by zero.") {}
+      : AstralError(token, "DivideByZeroError",
+                    "Attempted to divide by zero.") {}
 };
 
 class HomeModuleUndefinedError : public AstralError {
@@ -187,14 +188,14 @@ class HomeModuleUndefinedError : public AstralError {
   HomeModuleUndefinedError(const Token& token, const std::string& home,
                            const std::string& name)
       : AstralError(token, "HomeModuleUndefinedError",
-                  "Home module `@" + home + "/" + name + "` is undefined.") {}
+                    "Home module `@" + home + "/" + name + "` is undefined.") {}
 };
 
 class ModuleUndefinedError : public AstralError {
  public:
   ModuleUndefinedError(const Token& token, const std::string& name)
       : AstralError(token, "ModuleUndefinedError",
-                  "Module `" + name + "` is undefined.") {}
+                    "Module `" + name + "` is undefined.") {}
 };
 
 class ModuleError : public AstralError {
@@ -213,21 +214,21 @@ class MethodUndefinedError : public AstralError {
  public:
   MethodUndefinedError(const Token& token, const std::string& name)
       : AstralError(token, "MethodUndefinedError",
-                  "Method `" + name + "` is undefined.") {}
+                    "Method `" + name + "` is undefined.") {}
 };
 
 class VariableUndefinedError : public AstralError {
  public:
   VariableUndefinedError(const Token& token, const std::string& name)
       : AstralError(token, "VariableUndefinedError",
-                  "Variable `" + name + "` is undefined.") {}
+                    "Variable `" + name + "` is undefined.") {}
 };
 
 class ValueTypeError : public AstralError {
  public:
   ValueTypeError(const Token& token, const std::string& expectedType)
       : AstralError(token, "ValueTypeError",
-                  "Value is not a `" + expectedType + "`.") {}
+                    "Value is not a `" + expectedType + "`.") {}
 };
 
 class EmptyStackError : public AstralError {
@@ -240,14 +241,14 @@ class IllegalNameError : public AstralError {
  public:
   IllegalNameError(const Token& token, const std::string& name)
       : AstralError(token, "IllegalNameError",
-                  "The name `" + name + "` is illegal.") {}
+                    "The name `" + name + "` is illegal.") {}
 };
 
 class FileNotFoundError : public AstralError {
  public:
   FileNotFoundError(const std::string& path)
       : AstralError(Token::createEmpty(), "FileNotFoundError",
-                  "File not found: " + path) {}
+                    "File not found: " + path) {}
   FileNotFoundError(const Token& token, const std::string& path)
       : AstralError(token, "FileNotFoundError", "File not found: " + path) {}
 };
@@ -256,7 +257,7 @@ class FileReadError : public AstralError {
  public:
   FileReadError(const std::string& path)
       : AstralError(Token::createEmpty(), "FileReadError",
-                  "Cannot read file: " + path) {}
+                    "Cannot read file: " + path) {}
   FileReadError(const Token& token, const std::string& path)
       : AstralError(token, "FileReadError", "Cannot read file: " + path) {}
 };
@@ -265,7 +266,7 @@ class FileWriteError : public AstralError {
  public:
   FileWriteError(const std::string& path)
       : AstralError(Token::createEmpty(), "FileWriteError",
-                  "Cannot write to file: " + path) {}
+                    "Cannot write to file: " + path) {}
   FileWriteError(const Token& token, const std::string& path)
       : AstralError(token, "FileWriteError", "Cannot write to file: " + path) {}
 };

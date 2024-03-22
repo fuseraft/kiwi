@@ -1,6 +1,6 @@
 # The Astral Programming Language 🚀
 
-A light-weight general-purpose language without a syntax tree.
+A lightweight, dynamically-typed, general-purpose language without a syntax tree.
 
 ## Table of Contents
 

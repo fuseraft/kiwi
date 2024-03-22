@@ -51,7 +51,7 @@ class File {
   static std::vector<k_string> expandGlob(const k_string& globString);
   static k_string getLocalPath(const k_string& path);
   static k_string joinPath(const k_string& directoryPath,
-                              const k_string& filePath);
+                           const k_string& filePath);
   static k_string readFile(const k_string& filePath);
   static std::vector<k_string> readLines(const k_string& filePath);
 };
@@ -151,8 +151,8 @@ k_string File::getTempDirectory() {
 /// @param destinationPath The destination path.
 /// @param overwrite A flag to toggle overwriting files.
 /// @return Boolean indicating success.
-bool File::copyFile(const k_string& sourcePath,
-                    const k_string& destinationPath, bool overwrite = true) {
+bool File::copyFile(const k_string& sourcePath, const k_string& destinationPath,
+                    bool overwrite = true) {
   auto options =
       overwrite ? fs::copy_options::overwrite_existing : fs::copy_options::none;
 
@@ -166,8 +166,7 @@ bool File::copyFile(const k_string& sourcePath,
 /// @param sourcePath The source path.
 /// @param destinationPath The destination path.
 /// @return Boolean indicating success.
-bool File::copyR(const k_string& sourcePath,
-                 const k_string& destinationPath) {
+bool File::copyR(const k_string& sourcePath, const k_string& destinationPath) {
   try {
     fs::copy(sourcePath, destinationPath, fs::copy_options::recursive);
     return true;
@@ -430,7 +429,7 @@ k_string File::getLocalPath(const k_string& path) {
 /// @param filePath The second path.
 /// @return String containing combined path.
 k_string File::joinPath(const k_string& directoryPath,
-                           const k_string& filePath) {
+                        const k_string& filePath) {
   fs::path dir(directoryPath);
   fs::path file(filePath);
   fs::path fullPath = dir / file;

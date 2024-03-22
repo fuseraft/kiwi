@@ -40,33 +40,33 @@ struct {
   const k_string TempDir = "__tmpdir__";
 
   std::unordered_set<k_string> builtins = {AppendText,
-                                              CopyFile,
-                                              CopyR,
-                                              Combine,
-                                              CreateFile,
-                                              DeleteFile,
-                                              MoveFile,
-                                              ReadFile,
-                                              ReadLines,
-                                              WriteText,
-                                              WriteLine,
-                                              FileExists,
-                                              FileName,
-                                              FileSize,
-                                              GetFileExtension,
-                                              GetFilePath,
-                                              GetFileAttributes,
-                                              ListDirectory,
-                                              MakeDirectory,
-                                              MakeDirectoryP,
-                                              RemoveDirectory,
-                                              RemoveDirectoryF,
-                                              IsDirectory,
-                                              ChangeDirectory,
-                                              GetCurrentDirectory,
-                                              GetFileAbsolutePath,
-                                              Glob,
-                                              TempDir};
+                                           CopyFile,
+                                           CopyR,
+                                           Combine,
+                                           CreateFile,
+                                           DeleteFile,
+                                           MoveFile,
+                                           ReadFile,
+                                           ReadLines,
+                                           WriteText,
+                                           WriteLine,
+                                           FileExists,
+                                           FileName,
+                                           FileSize,
+                                           GetFileExtension,
+                                           GetFilePath,
+                                           GetFileAttributes,
+                                           ListDirectory,
+                                           MakeDirectory,
+                                           MakeDirectoryP,
+                                           RemoveDirectory,
+                                           RemoveDirectoryF,
+                                           IsDirectory,
+                                           ChangeDirectory,
+                                           GetCurrentDirectory,
+                                           GetFileAbsolutePath,
+                                           Glob,
+                                           TempDir};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_FileIO_AppendText,
@@ -269,7 +269,7 @@ struct {
   const k_string ToH = "to_h";
 
   std::unordered_set<k_string> builtins = {Map, None, Reduce, Select, Sort,
-                                              Sum, Min,  Max,    ToH};
+                                           Sum, Min,  Max,    ToH};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_List_Map,    KName::Builtin_List_None,
@@ -297,7 +297,7 @@ struct {
   const k_string Public = "__webserver_public__";
 
   std::unordered_set<k_string> builtins = {Get,  Post, Listen,
-                                              Host, Port, Public};
+                                           Host, Port, Public};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_WebServer_Get,    KName::Builtin_WebServer_Post,
@@ -324,7 +324,7 @@ struct {
   const k_string Options = "__http_options__";
 
   std::unordered_set<k_string> builtins = {Get,   Post, Put,    Delete,
-                                              Patch, Head, Options};
+                                           Patch, Head, Options};
 
   bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
@@ -342,13 +342,13 @@ struct {
   const k_string InTransaction = "__odbc_in_tx__";
 
   std::unordered_set<k_string> builtins = {Connect,
-                                              Exec,
-                                              ExecSp,
-                                              IsConnected,
-                                              BeginTransaction,
-                                              CommitTransaction,
-                                              RollbackTransaction,
-                                              InTransaction};
+                                           Exec,
+                                           ExecSp,
+                                           IsConnected,
+                                           BeginTransaction,
+                                           CommitTransaction,
+                                           RollbackTransaction,
+                                           InTransaction};
 
   bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
@@ -361,7 +361,7 @@ struct {
   const k_string SetEnvironmentVariable = "__setenv__";
 
   std::unordered_set<k_string> builtins = {GetEnvironmentVariable,
-                                              SetEnvironmentVariable};
+                                           SetEnvironmentVariable};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Env_GetEnvironmentVariable,

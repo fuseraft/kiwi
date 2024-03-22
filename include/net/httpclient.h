@@ -20,38 +20,34 @@ class HttpClient {
     return instance;
   }
 
-  k_hash get(const k_string& url,
-                            const k_list& headers = {}) {
+  k_hash get(const k_string& url, const k_list& headers = {}) {
     return performRequest(url, HttpMethod::GET, "", headers);
   }
 
   k_hash post(const k_string& url, const k_string& body,
-                             const k_list& headers = {}) {
+              const k_list& headers = {}) {
     return performRequest(url, HttpMethod::POST, body, headers);
   }
 
   k_hash put(const k_string& url, const k_string& body,
-                            const k_list& headers = {}) {
+             const k_list& headers = {}) {
     return performRequest(url, HttpMethod::PUT, body, headers);
   }
 
   k_hash patch(const k_string& url, const k_string& body,
-                              const k_list& headers = {}) {
+               const k_list& headers = {}) {
     return performRequest(url, HttpMethod::PATCH, body, headers);
   }
 
-  k_hash del(const k_string& url,
-                            const k_list& headers = {}) {
+  k_hash del(const k_string& url, const k_list& headers = {}) {
     return performRequest(url, HttpMethod::DELETE, "", headers);
   }
 
-  k_hash head(const k_string& url,
-                             const k_list& headers = {}) {
+  k_hash head(const k_string& url, const k_list& headers = {}) {
     return performRequest(url, HttpMethod::HEAD, "", headers);
   }
 
-  k_hash options(const k_string& url,
-                                const k_list& headers = {}) {
+  k_hash options(const k_string& url, const k_list& headers = {}) {
     return performRequest(url, HttpMethod::OPTIONS, "", headers);
   }
 
@@ -98,9 +94,8 @@ class HttpClient {
     pool.push_back(handle);
   }
 
-  k_hash performRequest(
-      const k_string& url, const HttpMethod& method,
-      const k_string& body = "", const k_list& headers = {}) {
+  k_hash performRequest(const k_string& url, const HttpMethod& method,
+                        const k_string& body = "", const k_list& headers = {}) {
     CURL* curl = acquireHandle();
     if (!curl) {
       auto response = std::make_shared<Hash>();
@@ -113,8 +108,8 @@ class HttpClient {
     bool addHeaders = false;
     for (const auto& header : headers->elements) {
       if (std::holds_alternative<k_string>(header)) {
-        curlHeaders = curl_slist_append(curlHeaders,
-                                        std::get<k_string>(header).c_str());
+        curlHeaders =
+            curl_slist_append(curlHeaders, std::get<k_string>(header).c_str());
         addHeaders = true;
       }
     }
