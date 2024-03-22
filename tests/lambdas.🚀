@@ -25,7 +25,7 @@ def use_lambda(print_func, message)
   print_func(message)
 end
 
-use_lambda(puts, "Hello, Kiwi!")
+use_lambda(puts, "Hello, Astral!")
 
 # ==============================
 # = List.select test
@@ -41,7 +41,7 @@ println list.select(odd_item_id)
 # ======================
 list = ["kiwi", "mango", "banana"]
 println list.map(lambda (item) do return { "fruit": item, "is_a_kiwi": item.downcase() == "kiwi" } end)
-# prints: [{"fruit": kiwi, "is_a_kiwi": true}, {"fruit": mango, "is_a_kiwi": false}, {"fruit": banana, "is_a_kiwi": false}]
+# prints:[{"fruit": "kiwi", "is_a_kiwi": true}, {"fruit": "mango", "is_a_kiwi": false}, {"fruit": "banana", "is_a_kiwi": false}]
 
 # ======================
 # = List.reduce tests

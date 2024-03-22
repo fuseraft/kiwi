@@ -1,13 +1,13 @@
-# `@kiwi/odbc`
+# `@astral/odbc`
 
 The `odbc` contains functionality for connecting to databases with ODBC to execute queries.
 
 ## Importing the Module
 
-To use the `odbc` module, import it at the beginning of your Kiwi script.
+To use the `odbc` module, import it at the beginning of your Astral script.
 
 ```ruby
-import "@kiwi/odbc"
+import "@astral/odbc"
 ```
 
 ## Module Functions

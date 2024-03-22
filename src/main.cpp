@@ -1,15 +1,15 @@
 /**
- * =============================
- * The Kiwi Programming Language
- * =============================
+ * ===============================
+ * The Astral Programming Language
+ * ===============================
  * 
- * A light-weight general-purpose scripting language.
+ * A light-weight general-purpose scripting language without a syntax tree.
  *
  * @author Scott Stauffer
  * @date 2024-01-31
  * @version 1.3.2
  *
- * GitHub Repository: https://github.com/fuseraft/kiwi
+ * GitHub Repository: https://github.com/fuseraft/astral
  * For more information, issues, or to contribute, please visit the repository.
  *
  * License: MIT License
@@ -17,12 +17,12 @@
  * The full license text is available in the LICENSE file in the repository.
  */
 
-#include "kiwi.h"
+#include "astral.h"
 #include "globals.h"
 
 bool DEBUG = false;
 bool SILENCE = false;
 
 int main(int argc, char** argv) {
-  return Kiwi::run(argc, argv);
+  return Astral::run(argc, argv);
 }

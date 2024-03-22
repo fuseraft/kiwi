@@ -1,26 +1,26 @@
-# The Kiwi Standard Library
+# The Astral Standard Library
 
-The Kiwi Standard Library is a set of modules that enable easier systems programming in Kiwi.
+The Astral Standard Library is a set of modules that enable easier systems programming in Astral.
 
 | **Module** | **Description** |
 | --- | --- |
-| [`@kiwi/argv`](lib/argv.md) | A module for reading command-line arguments. |
-| [`@kiwi/conf`](lib/conf.md) | A module for reading configuration files. |
-| [`@kiwi/env`](lib/env.md) | A module for reading environment variables. |
-| [`@kiwi/fs`](lib/fs.md) | A module for working with the filesystem. |
-| [`@kiwi/math`](lib/math.md) | A module of useful math functions. |
-| [`@kiwi/sys`](lib/sys.md) | A module for working with the OS shell. |
-| [`@kiwi/time`](lib/time.md) | A module with useful date and time functions. |
-| [`@kiwi/web`](lib/web.md) | A module for building web applications. |
+| [`@astral/argv`](lib/argv.md) | A module for reading command-line arguments. |
+| [`@astral/conf`](lib/conf.md) | A module for reading configuration files. |
+| [`@astral/env`](lib/env.md) | A module for reading environment variables. |
+| [`@astral/fs`](lib/fs.md) | A module for working with the filesystem. |
+| [`@astral/math`](lib/math.md) | A module of useful math functions. |
+| [`@astral/sys`](lib/sys.md) | A module for working with the OS shell. |
+| [`@astral/time`](lib/time.md) | A module with useful date and time functions. |
+| [`@astral/web`](lib/web.md) | A module for building web applications. |
 
 # Experimental Modules
 
-Kiwi supports some experimental modules for working with databases and making HTTP requests.
+Astral supports some experimental modules for working with databases and making HTTP requests.
 
 | **Module** | **Description** |
 | --- | --- |
-| [`@kiwi/http`](lib/http.md) | A module for making HTTP requests. |
-| [`@kiwi/odbc`](lib/odbc.md) | A module for working with common databases. |
+| [`@astral/http`](lib/http.md) | A module for making HTTP requests. |
+| [`@astral/odbc`](lib/odbc.md) | A module for working with common databases. |
 
 
 Note: To use these modules, you need to install the following dependencies.
@@ -29,8 +29,8 @@ Note: To use these modules, you need to install the following dependencies.
 
 ```bash
 sudo dnf update
-sudo dnf install libcurl-devel  # dependency for @kiwi/http
-sudo dnf install unixODBC-devel # dependency for @kiwi/odbc
+sudo dnf install libcurl-devel  # dependency for @astral/http
+sudo dnf install unixODBC-devel # dependency for @astral/odbc
 ```
 
 #### Ubuntu / Debian
@@ -42,7 +42,7 @@ sudo apt-get install unixodbc-dev
 ```
 
 #### Build with Experimental Modules
-To build Kiwi with experimental modules enabled.
+To build Astral with experimental modules enabled.
 
 ```bash
 make experimental

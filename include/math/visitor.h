@@ -1,5 +1,5 @@
-#ifndef KIWI_MATH_VISITOR_H
-#define KIWI_MATH_VISITOR_H
+#ifndef ASTRAL_MATH_VISITOR_H
+#define ASTRAL_MATH_VISITOR_H
 
 #include "parsing/tokens.h"
 #include "tracing/error.h"

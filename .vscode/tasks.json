@@ -13,7 +13,7 @@
                 "-g",
                 "${workspaceFolder}/src/main.cpp",
                 "-o",
-                "${workspaceFolder}/bin/kiwi",
+                "${workspaceFolder}/bin/astral",
                 //"-lcurl",
                 //"-lodbc",
             ],

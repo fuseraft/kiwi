@@ -13,11 +13,11 @@ end
 ##
 # Change these if you want to install in an alternative location. 
 ##
-install_bin = "/usr/bin/kiwi"
-install_lib = "/usr/lib/kiwi"
+install_bin = "/usr/bin/astral"
+install_lib = "/usr/lib/astral"
 
-local_bin = "./bin/kiwi"     # Path to kiwi (executable).
-local_lib = "./lib/kiwi"     # Path to kiwilib (Kiwi Standard Library).
+local_bin = "./bin/astral"     # Path to astral (executable).
+local_lib = "./lib/astral"     # Path to astrallib (Astral Standard Library).
 ec = 0                       # An error counter.
 
 ##
@@ -40,7 +40,7 @@ if ec != 0
 end
 
 ##
-# Install kiwi
+# Install astral
 ##
 if __isfile__(local_bin)
   ec += __copyfile__(local_bin, install_bin) ? 0 : 1
@@ -54,8 +54,8 @@ end
 # Check for errors in installation process
 ##
 if ec != 0
-  println "Failed to install kiwi. Please check permissions and try again."
+  println "Failed to install astral. Please check permissions and try again."
   exit 1
 end
 
-println "Kiwi installed successfully."
+println "Astral installed successfully."

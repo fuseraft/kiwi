@@ -3,7 +3,7 @@ Summary: A module for building web applications.
 ##
 
 module web
-  __home__("kiwi")
+  __home__("astral")
 
   ##
   Summary: Returns an OK response.
