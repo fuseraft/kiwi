@@ -86,14 +86,16 @@ class Interpreter {
     auto tempCallStack(callStack);
     while (!tempCallStack.empty()) {
       const auto& frame = tempCallStack.top();
-      std::cout << counter << " frame variables: " << frame->variables.size()
+      const auto& frameVariables = frame->variables;
+      const auto& frameLambdas = frame->lambdas;
+      std::cout << counter << " frame variables: " << frameVariables.size()
                 << std::endl;
-      for (const auto& var : frame->variables) {
+      for (const auto& var : frameVariables) {
         std::cout << "  name: " << var.first << std::endl;
       }
-      std::cout << counter++ << " frame lambdas: " << frame->lambdas.size()
+      std::cout << counter++ << " frame lambdas: " << frameLambdas.size()
                 << std::endl;
-      for (const auto& lambda : frame->lambdas) {
+      for (const auto& lambda : frameLambdas) {
         std::cout << "  name: " << lambda.first
                   << ", size: " << lambda.second.getCode().size() << std::endl;
       }
@@ -151,13 +153,13 @@ class Interpreter {
                          std::shared_ptr<CallStackFrame> frame) {
     stream->next();  // Skip "await"
 
-    auto term = stream->current();
+    const auto& term = stream->current();
     if (term.getType() != KTokenType::IDENTIFIER) {
       throw SyntaxError(term, "Expected identifier near `await`.");
     }
 
-    auto identifier = term.getText();
-    auto taskId = interpretMethodInvocation(stream, frame, identifier, true);
+    const auto& identifier = term.getText();
+    const auto& taskId = interpretMethodInvocation(stream, frame, identifier, true);
     if (!std::holds_alternative<k_int>(taskId)) {
       throw ConversionError(term, "Expected a task.");
     }
@@ -309,19 +311,23 @@ class Interpreter {
   std::shared_ptr<CallStackFrame> buildSubFrame(
       std::shared_ptr<CallStackFrame> frame, bool isMethodInvocation = false) {
     auto subFrame = std::make_shared<CallStackFrame>();
+    auto& subFrameVariables = subFrame->variables;
 
     if (!isMethodInvocation) {
-      for (const auto& pair : frame->variables) {
-        subFrame->variables[pair.first] = pair.second;
+      const auto& frameVariables = frame->variables;
+      for (const auto& pair : frameVariables) {
+        subFrameVariables[pair.first] = pair.second;
       }
     }
 
     if (frame->inObjectContext()) {
-      for (const auto& pair : frame->getObjectContext()->instanceVariables) {
-        subFrame->variables[pair.first] = pair.second;
+      const auto& objectContext = frame->getObjectContext();
+      const auto& objectContextInstanceVariables = objectContext->instanceVariables;
+      for (const auto& pair : objectContextInstanceVariables) {
+        subFrameVariables[pair.first] = pair.second;
       }
 
-      subFrame->setObjectContext(frame->getObjectContext());
+      subFrame->setObjectContext(objectContext);
     }
 
     return subFrame;
@@ -385,10 +391,13 @@ class Interpreter {
                          const k_string& itemVariableName,
                          const k_string& indexVariableName) {
     auto& collection = std::get<k_hash>(collectionValue);
+    const auto& keys = collection->keys;
+    auto& kvp = collection->kvp;
     auto loopTokens = InterpHelper::collectBodyTokens(stream);
+    auto& frameVariables = frame->variables;
 
     // Execute the loop
-    for (const auto& key : collection->keys) {
+    for (const auto& key : keys) {
       if (frame->isLoopControlFlagSet()) {
         if (frame->isFlagSet(FrameFlags::LoopBreak)) {
           break;
@@ -398,15 +407,13 @@ class Interpreter {
         }
       }
 
-      frame->variables[indexVariableName] = key;
+      frameVariables[indexVariableName] = key;
       if (hasIndexVariable) {
-        frame->variables[itemVariableName] = collection->get(key);
+        frameVariables[itemVariableName] = kvp[key];
       }
 
-      auto loopStream = std::make_shared<TokenStream>(loopTokens);
-      auto loopFrame = buildSubFrame(frame);
-      callStack.push(loopFrame);
-      streamStack.push(loopStream);
+      callStack.push(buildSubFrame(frame));
+      streamStack.push(std::make_shared<TokenStream>(loopTokens));
 
       interpretStackFrame();
     }
@@ -418,11 +425,13 @@ class Interpreter {
                          const k_string& itemVariableName,
                          const k_string& indexVariableName) {
     const auto& collection = std::get<k_list>(collectionValue);
+    const auto& elements = collection->elements;
+    auto& frameVariables = frame->variables;
     auto loopTokens = InterpHelper::collectBodyTokens(stream);
 
     // Execute the loop
     size_t index = 0;
-    for (const auto& item : collection->elements) {
+    for (const auto& item : elements) {
       if (frame->isLoopControlFlagSet()) {
         if (frame->isFlagSet(FrameFlags::LoopBreak)) {
           break;
@@ -432,14 +441,13 @@ class Interpreter {
         }
       }
 
-      frame->variables[itemVariableName] = item;
+      frameVariables[itemVariableName] = item;
       if (hasIndexVariable) {
-        frame->variables[indexVariableName] = static_cast<k_int>(index);
+        frameVariables[indexVariableName] = static_cast<k_int>(index);
       }
 
-      auto loopStream = std::make_shared<TokenStream>(loopTokens);
       callStack.push(buildSubFrame(frame));
-      streamStack.push(loopStream);
+      streamStack.push(std::make_shared<TokenStream>(loopTokens));
 
       interpretStackFrame();
 
@@ -558,17 +566,20 @@ class Interpreter {
 
     frame->clearFlag(FrameFlags::LoopBreak);
     frame->clearFlag(FrameFlags::LoopContinue);
+    const auto& frameVariables = frame->variables;
+    auto& oldFrameVariables = oldFrame->variables;
 
-    for (const auto& pair : frame->variables) {
+    for (const auto& pair : frameVariables) {
       if (InterpHelper::shouldUpdateFrameVariables(pair.first, oldFrame)) {
-        oldFrame->variables[pair.first] = pair.second;
+        oldFrameVariables[pair.first] = pair.second;
       }
     }
 
     if (frame->inObjectContext()) {
-      for (const auto& pair : frame->getObjectContext()->instanceVariables) {
+      const auto& objectContextInstanceVariables = frame->getObjectContext()->instanceVariables;
+      for (const auto& pair : objectContextInstanceVariables) {
         if (InterpHelper::shouldUpdateFrameVariables(pair.first, oldFrame)) {
-          oldFrame->variables[pair.first] = pair.second;
+          oldFrameVariables[pair.first] = pair.second;
         }
       }
     }
@@ -734,9 +745,8 @@ class Interpreter {
       }
 
       if (!callStack.empty()) {
-        auto value = callStack.top()->returnValue;
         frame->clearFlag(FrameFlags::ReturnFlag);
-        return value;
+        return callStack.top()->returnValue;
       }
     }
 
@@ -769,7 +779,7 @@ class Interpreter {
                               std::shared_ptr<CallStackFrame> frame,
                               bool doAssignment = true) {
     auto tokenText = stream->current().getText();
-    auto op = stream->current().getSubType();
+    const auto& op = stream->current().getSubType();
 
     interpretQualifiedIdentifier(stream, tokenText);
 
@@ -791,7 +801,7 @@ class Interpreter {
       stream->next();
 
       if (std::holds_alternative<k_lambda>(v)) {
-        auto lambdaRef = std::get<k_lambda>(v)->identifier;
+        const auto& lambdaRef = std::get<k_lambda>(v)->identifier;
         if (frame->hasAssignedLambda(lambdaRef)) {
           return interpretMethodInvocation(stream, frame, lambdaRef);
         } else {
@@ -800,9 +810,7 @@ class Interpreter {
         }
       }
 
-      v = interpretValueInvocation(stream, frame, v);
-
-      return v;
+      return interpretValueInvocation(stream, frame, v);
     } else if (AstralBuiltins.is_builtin_method(op)) {
       return interpretBuiltin(stream, frame, op);
     }
@@ -847,15 +855,16 @@ class Interpreter {
     if (frame->isErrorStateSet()) {
       auto catchStream = std::make_shared<TokenStream>(catchTokens);
       auto catchFrame = buildSubFrame(frame);
+      auto& catchFrameVariables = catchFrame->variables;
 
       if (!errorVariableName.empty() &&
           std::holds_alternative<k_string>(errorValue)) {
-        catchFrame->variables[errorVariableName] = errorValue;
+        catchFrameVariables[errorVariableName] = errorValue;
       }
 
       if (!errorTypeVariableName.empty() &&
           std::holds_alternative<k_string>(errorType)) {
-        catchFrame->variables[errorTypeVariableName] = errorType;
+        catchFrameVariables[errorTypeVariableName] = errorType;
       }
 
       callStack.push(catchFrame);
@@ -1417,6 +1426,7 @@ class Interpreter {
       std::shared_ptr<CallStackFrame> frame, Method& method) {
     auto parameters = collectMethodParameters(stream, frame, method);
     auto codeFrame = buildSubFrame(frame, true);
+    auto& codeFrameVariables = codeFrame->variables;
 
     for (const auto& pair : frame->lambdas) {
       // Check this.
@@ -1432,9 +1442,9 @@ class Interpreter {
           throw ParameterMissingError(stream->current(), parameterName);
         }
 
-        codeFrame->variables[parameterName] = std::move(param.getValue());
+        codeFrameVariables[parameterName] = std::move(param.getValue());
       } else {
-        codeFrame->variables[parameterName] =
+        codeFrameVariables[parameterName] =
             std::move(method.getParameterValue(parameterName));
       }
     }
@@ -1539,6 +1549,7 @@ class Interpreter {
 
     auto codeStream = std::make_shared<TokenStream>(method.getCode());
     auto codeFrame = buildSubFrame(frame);
+    auto& codeFrameVariables = codeFrame->variables;
 
     if (static_cast<int>(parameters.size()) != method.getParameterCount()) {
       throw ParameterCountMismatchError(stream->current(), methodName);
@@ -1547,7 +1558,7 @@ class Interpreter {
     // Check all parameters are passed.
     int parameterIndex = 0;
     for (const auto& parameterName : method.getParameters()) {
-      codeFrame->variables[parameterName] = parameters.at(parameterIndex++);
+      codeFrameVariables[parameterName] = parameters.at(parameterIndex++);
     }
     codeFrame->setFlag(FrameFlags::SubFrame);
     codeFrame->setObjectContext(object);
@@ -2863,16 +2874,16 @@ class Interpreter {
       }
     }
 
+    auto& frameVariables = frame->variables;
     size_t index = 0;
     for (const auto& item : list->elements) {
-      frame->variables[itemVariableName] = item;
+      frameVariables[itemVariableName] = item;
       if (hasIndexVariable) {
-        frame->variables[indexVariableName] = static_cast<k_int>(index++);
+        frameVariables[indexVariableName] = static_cast<k_int>(index++);
       }
 
-      auto loopStream = std::make_shared<TokenStream>(lambda.getCode());
       callStack.push(buildSubFrame(frame, true));
-      streamStack.push(loopStream);
+      streamStack.push(std::make_shared<TokenStream>(lambda.getCode()));
       interpretStackFrame();
 
       if (!callStack.empty()) {
@@ -2923,17 +2934,17 @@ class Interpreter {
     auto mappedList = std::make_shared<List>();
     auto& elements = mappedList->elements;
     size_t index = 0;
+    auto& frameVariables = frame->variables;
 
     for (const auto& item : list->elements) {
-      frame->variables[itemVariableName] = item;
+      frameVariables[itemVariableName] = item;
 
       if (hasIndexVariable) {
-        frame->variables[indexVariableName] = static_cast<k_int>(index++);
+        frameVariables[indexVariableName] = static_cast<k_int>(index++);
       }
 
-      auto loopStream = std::make_shared<TokenStream>(lambda.getCode());
       callStack.push(buildSubFrame(frame, true));
-      streamStack.push(loopStream);
+      streamStack.push(std::make_shared<TokenStream>(lambda.getCode()));
       interpretStackFrame();
 
       if (!callStack.empty()) {
@@ -2987,15 +2998,16 @@ class Interpreter {
       }
     }
 
+    auto& frameVariables = frame->variables;
+
     for (const auto& item : list->elements) {
-      frame->variables[accumulatorName] = accumulator;
+      frameVariables[accumulatorName] = accumulator;
       if (hasIndexVariable) {
-        frame->variables[indexVariableName] = item;
+        frameVariables[indexVariableName] = item;
       }
 
-      auto loopStream = std::make_shared<TokenStream>(lambda.getCode());
       callStack.push(buildSubFrame(frame, true));
-      streamStack.push(loopStream);
+      streamStack.push(std::make_shared<TokenStream>(lambda.getCode()));
       interpretStackFrame();
 
       if (!callStack.empty()) {
@@ -3043,15 +3055,15 @@ class Interpreter {
     auto& elements = filteredList->elements;
 
     size_t index = 0;
+    auto& frameVariables = frame->variables;
     for (const auto& item : list->elements) {
-      frame->variables[itemVariableName] = item;
+      frameVariables[itemVariableName] = item;
       if (hasIndexVariable) {
-        frame->variables[indexVariableName] = static_cast<k_int>(index++);
+        frameVariables[indexVariableName] = static_cast<k_int>(index++);
       }
 
-      auto loopStream = std::make_shared<TokenStream>(lambda.getCode());
       callStack.push(buildSubFrame(frame, true));
-      streamStack.push(loopStream);
+      streamStack.push(std::make_shared<TokenStream>(lambda.getCode()));
       interpretStackFrame();
 
       if (!callStack.empty()) {
