@@ -29,6 +29,7 @@ Currently, Astral supports the following builtins:
 - [`split(delim)`](#splitdelim)
 - [`sum()`](#sum)
 - [`to_bytes()`](#tobytes)
+- [`to_hex()`](#tohex)
 - [`to_double()`](#todouble)
 - [`to_hash()`](#tohash)
 - [`to_int()`](#toint)
@@ -136,6 +137,15 @@ Converts a `String` or `List` value to a list of bytes.
 ```ruby
 println "astral".to_bytes()         # prints: [97, 115, 116, 114, 97, 108]
 println "astral".chars().to_bytes() # prints: [97, 115, 116, 114, 97, 108]
+```
+
+### `to_hex()`
+
+Converts a `List` of `Integer` values to a hexadecimal string.
+
+```ruby
+println [97, 115, 116, 114, 97, 108].to_hex() # prints: 61737472616c
+println "astral".chars().to_bytes().to_hex()  # prints: 61737472616c
 ```
 
 ### `to_double()`
