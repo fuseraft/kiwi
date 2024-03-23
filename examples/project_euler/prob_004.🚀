@@ -6,7 +6,7 @@ products = []
 for i in [100..999].reverse() do
   for j in [100..i].reverse() do
     product = i * j
-    product_str = product.to_s()
+    product_str = product.to_string()
     reversed = product_str.reverse()
     if product_str == reversed
       products << product

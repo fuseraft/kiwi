@@ -28,10 +28,11 @@ Currently, Astral supports the following builtins:
 - [`sort()`](#sort)
 - [`split(delim)`](#splitdelim)
 - [`sum()`](#sum)
-- [`to_d()`](#tod)
-- [`to_h()`](#toh)
-- [`to_i()`](#toi)
-- [`to_s()`](#tos)
+- [`to_bytes()`](#tobytes)
+- [`to_double()`](#todouble)
+- [`to_hash()`](#tohash)
+- [`to_int()`](#toint)
+- [`to_string()`](#tostring)
 - [`trim()`](#trim)
 - [`type()`](#type)
 - [`upcase(str)`](#upcasestr)
@@ -128,40 +129,49 @@ println instance.type() # prints: MyClass
 println "Kiwis are delicious!".type() # prints: String
 ```
 
-### `to_d()`
+### `to_bytes()`
+
+Converts a `String` or `List` value to a list of bytes.
+
+```ruby
+println "astral".to_bytes()         # prints: [97, 115, 116, 114, 97, 108]
+println "astral".chars().to_bytes() # prints: [97, 115, 116, 114, 97, 108]
+```
+
+### `to_double()`
 
 Converts a numeric value to a double.
 
 ```ruby
-pi = "3.14159".to_d()
+pi = "3.14159".to_double()
 tau = pi * 2
 println tau # 6.28318
 ```
 
-### `to_i()`
+### `to_int()`
 
 Converts a numeric value to an integer.
 
 ```ruby
-n = "100".to_i()
+n = "100".to_int()
 n += 0.5
 println n # 100.5
 
-n = n.to_i()
+n = n.to_int()
 println n # 100
 ```
 
-### `to_s()`
+### `to_string()`
 
 Converts a value to a string.
 
 ```ruby
 n = 100
-s = [n, n.to_s()]
+s = [n, n.to_string()]
 println s  # prints: [100, "100"]
 ```
 
-### `to_h()`
+### `to_hash()`
 
 Converts an object instance or a JSON string into a hash.
 
@@ -174,7 +184,7 @@ end
 
 inst = SerializeMe.new()
 
-println inst.to_h() # prints: {"name": "Astral"}
+println inst.to_hash() # prints: {"name": "Astral"}
 ```
 
 ```ruby
@@ -184,7 +194,7 @@ json = "{
   \"integer\": 100, 
   \"string\": \"Astral\"
 }"
-println json.to_h() # prints: {"boolean": true, "double": 3.14159, "integer": 100, "string": "Astral"}
+println json.to_hash() # prints: {"boolean": true, "double": 3.14159, "integer": 100, "string": "Astral"}
 ```
 
 ### `index(value)`

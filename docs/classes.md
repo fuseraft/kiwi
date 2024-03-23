@@ -60,21 +60,21 @@ class MyClass
 end
 ```
 
-### Overriding `to_s()`
+### Overriding `to_string()`
 
-The `override` keyword is not required to override `to_s()`.
+The `override` keyword is not required to override `to_string()`.
 
 ```ruby
 class AstralClass
   def initialize() end
 
-  def to_s()
+  def to_string()
     return "I am a Astral class"
   end
 end
 
 instance = AstralClass.new()
-string_repr = instance.to_s()
+string_repr = instance.to_string()
 println instance # prints: I am a Astral class
 println string_repr # prints: I am a Astral class
 ```

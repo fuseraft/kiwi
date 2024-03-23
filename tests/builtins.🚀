@@ -1,7 +1,7 @@
 list = [1, 2, 3]
 string = "31337"
-integer = string.to_i()
-double = string.to_d()
+integer = string.to_int()
+double = string.to_double()
 list << [string, integer, double]
 
 println "list = ${list}"
