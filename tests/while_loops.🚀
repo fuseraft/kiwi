@@ -5,11 +5,8 @@ while i < 10 do
   i += 1
   j = 0
   
-  println "Loop iteration ${i}"
-
   while j < 10 do
     j += 1
-    println "  Sub loop iteration ${j}"
     test_sum += 1
   end
 end
