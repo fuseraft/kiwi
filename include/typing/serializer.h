@@ -40,7 +40,7 @@ struct Serializer {
       return std::get<k_list>(rhsValues);
     } else {
       auto newList = std::make_shared<List>();
-      newList->elements.push_back(rhsValues);
+      newList->elements.emplace_back(rhsValues);
       return newList;
     }
   }
@@ -94,10 +94,13 @@ struct Serializer {
   }
 
   static k_list get_hash_keys_list(const k_hash& hash) {
-    k_list keys = std::make_shared<List>();
+    auto keys = std::make_shared<List>();
+    auto& elements = keys->elements;
+    
     for (const auto& key : hash->keys) {
-      keys->elements.push_back(key);
+      elements.emplace_back(key);
     }
+    
     return keys;
   }
 
@@ -118,7 +121,9 @@ struct Serializer {
     sv << "{";
 
     bool first = true;
-    for (const auto& key : hash->keys) {
+    auto& keys = hash->keys;
+
+    for (const auto& key : keys) {
       if (!first) {
         sv << ", ";
       } else {
@@ -126,7 +131,7 @@ struct Serializer {
       }
 
       sv << "\"" << key << "\": ";
-      k_value v = hash->get(key);
+      auto v = hash->get(key);
 
       if (std::holds_alternative<k_hash>(v)) {
         sv << serialize(v);

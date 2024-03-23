@@ -6,7 +6,7 @@
 
 class IfStatement {
  public:
-  void addToken(const Token& t) { code.push_back(t); }
+  void addToken(const Token& t) { code.emplace_back(t); }
 
   void setEvaluation(bool evaluation) { _evaluation = evaluation; }
 
@@ -28,7 +28,7 @@ class ElseIfStatement : public IfStatement {
 
 class ElseStatement {
  public:
-  void addToken(const Token& t) { code.push_back(t); }
+  void addToken(const Token& t) { code.emplace_back(t); }
 
   std::vector<Token>& getCode() { return code; }
 
@@ -64,7 +64,7 @@ class Conditional {
 
   void addElseIfStatement() {
     ElseIfStatement elseIf;
-    elseIfStatements.push_back(elseIf);
+    elseIfStatements.emplace_back(elseIf);
   }
 
  private:

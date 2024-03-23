@@ -37,11 +37,12 @@ class ArgvBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, ArgvBuiltins.GetArgv);
     }
 
-    k_list argv = std::make_shared<List>();
+    auto argv = std::make_shared<List>();
+    auto& elements = argv->elements;
 
     for (const auto& pair : astralArgs) {
       if (String::beginsWith(pair.first, "argv_")) {
-        argv->elements.push_back(pair.second);
+        elements.emplace_back(pair.second);
       }
     }
 

@@ -119,10 +119,13 @@ class CoreBuiltinHandler {
     }
 
     auto newList = std::make_shared<List>();
-    k_string stringValue = get_string(term, value);
+    auto stringValue = get_string(term, value);
+    auto& elements = newList->elements;
+    
     for (char c : stringValue) {
-      newList->elements.push_back(k_string(1, c));
+      elements.emplace_back(k_string(1, c));
     }
+    
     return newList;
   }
 
@@ -139,6 +142,7 @@ class CoreBuiltinHandler {
     }
 
     auto list = std::get<k_list>(value);
+    auto& elements = list->elements;
     std::ostringstream sv;
     k_string joiner;
 
@@ -146,8 +150,8 @@ class CoreBuiltinHandler {
       joiner = get_string(term, args.at(0));
     }
 
-    for (auto it = list->elements.begin(); it != list->elements.end(); ++it) {
-      if (it != list->elements.begin()) {
+    for (auto it = elements.begin(); it != elements.end(); ++it) {
+      if (it != elements.begin()) {
         sv << joiner;
       }
       sv << Serializer::serialize(*it);
@@ -247,14 +251,15 @@ class CoreBuiltinHandler {
     k_string input = get_string(term, value);
     auto delimiter = get_string(term, args.at(0));
     auto newList = std::make_shared<List>();
+    auto& elements = newList->elements;
 
     if (delimiter.empty()) {
       for (char c : input) {
-        newList->elements.push_back(k_string(1, c));
+        elements.emplace_back(k_string(1, c));
       }
     } else {
       for (k_string token : String::split(input, delimiter)) {
-        newList->elements.push_back(token);
+        elements.emplace_back(token);
       }
     }
 
@@ -267,8 +272,7 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.LeftTrim);
     }
 
-    k_string input = get_string(term, value);
-    return String::trimLeft(input);
+    return String::trimLeft(get_string(term, value));
   }
 
   static k_value executeRightTrim(const Token& term, const k_value& value,
@@ -277,8 +281,7 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.RightTrim);
     }
 
-    k_string input = get_string(term, value);
-    return String::trimRight(input);
+    return String::trimRight(get_string(term, value));
   }
 
   static k_value executeTrim(const Token& term, const k_value& value,
@@ -287,8 +290,7 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Trim);
     }
 
-    k_string input = get_string(term, value);
-    return String::trim(input);
+    return String::trim(get_string(term, value));
   }
 
   static k_value executeType(const Token& term, const k_value& value,
@@ -311,10 +313,7 @@ class CoreBuiltinHandler {
           term, "Attempted to retrieve keys from non-Hash type.");
     }
 
-    auto key = get_string(term, args.at(0));
-    auto hash = std::get<k_hash>(value);
-
-    return hash->hasKey(key);
+    return std::get<k_hash>(value)->hasKey(get_string(term, args.at(0)));
   }
 
   static k_value executeKeys(const Token& term, const k_value& value,
@@ -328,9 +327,7 @@ class CoreBuiltinHandler {
           term, "Attempted to retrieve keys from non-Hash type.");
     }
 
-    auto hash = std::get<k_hash>(value);
-
-    return Serializer::get_hash_keys_list(hash);
+    return Serializer::get_hash_keys_list(std::get<k_hash>(value));
   }
 
   static k_value executeBeginsWith(const Token& term, const k_value& value,
@@ -339,22 +336,19 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.BeginsWith);
     }
 
-    auto str = get_string(term, value);
-    auto search = get_string(term, args.at(0));
-    return String::beginsWith(str, search);
+    return String::beginsWith(get_string(term, value), get_string(term, args.at(0)));
   }
 
   static k_value executeStringContains(const Token& term, const k_value& value,
                                        const k_value& arg) {
-    auto str = get_string(term, value);
-    auto search = get_string(term, arg);
-    return String::contains(str, search);
+    return String::contains(get_string(term, value), get_string(term, arg));
   }
 
   static k_value executeListContains(const k_value& value, const k_value& arg) {
     auto list = std::get<k_list>(value);
+    auto& elements = list->elements;
 
-    for (const auto& item : list->elements) {
+    for (const auto& item : elements) {
       if (same_value(item, arg)) {
         return true;
       }
@@ -384,9 +378,7 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Contains);
     }
 
-    auto str = get_string(term, value);
-    auto search = get_string(term, args.at(0));
-    return String::endsWith(str, search);
+    return String::endsWith(get_string(term, value), get_string(term, args.at(0)));
   }
 
   static k_value executeIsA(const Token& term, const k_value& value,
@@ -398,28 +390,39 @@ class CoreBuiltinHandler {
     auto typeName = get_string(term, args.at(0));
     if (!TypeNames.is_typename(typeName)) {
       if (std::holds_alternative<k_object>(value)) {
-        k_object object = std::get<k_object>(value);
-        return object->className == typeName;
+        return same_value(std::get<k_object>(value)->className, typeName);
       }
       throw InvalidTypeNameError(term, typeName);
     }
 
-    return (typeName == TypeNames.Boolean &&
-            std::holds_alternative<bool>(value)) ||
-           (typeName == TypeNames.Double &&
-            std::holds_alternative<double>(value)) ||
-           (typeName == TypeNames.Hash &&
-            std::holds_alternative<k_hash>(value)) ||
-           (typeName == TypeNames.Integer &&
-            std::holds_alternative<k_int>(value)) ||
-           (typeName == TypeNames.List &&
-            std::holds_alternative<k_list>(value)) ||
-           (typeName == TypeNames.Object &&
-            std::holds_alternative<k_object>(value)) ||
-           (typeName == TypeNames.Lambda &&
-            std::holds_alternative<k_lambda>(value)) ||
-           (typeName == TypeNames.String &&
-            std::holds_alternative<k_string>(value));
+    switch (value.index()) {
+      case 0: // k_int
+        return typeName == TypeNames.Integer;
+
+      case 1: // double
+        return typeName == TypeNames.Double;
+
+      case 2: // bool
+        return typeName == TypeNames.Boolean;
+
+      case 3: // k_string
+        return typeName == TypeNames.String;
+
+      case 4: // k_list
+        return typeName == TypeNames.List;
+
+      case 5: // k_hash
+        return typeName == TypeNames.Hash;
+
+      case 6: // k_object
+        return typeName == TypeNames.Object;
+
+      case 7: // k_lambda
+        return typeName == TypeNames.Lambda;
+
+      default:
+        return false;
+    }
   }
 
   static k_value executeReplace(const Token& term, const k_value& value,
@@ -428,10 +431,7 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Replace);
     }
 
-    auto str = get_string(term, value);
-    auto search = get_string(term, args.at(0));
-    auto replacement = get_string(term, args.at(1));
-    return String::replace(str, search, replacement);
+    return String::replace(get_string(term, value), get_string(term, args.at(0)), get_string(term, args.at(1)));
   }
 
   static k_value executeReverse(const Token& term, const k_value& value,

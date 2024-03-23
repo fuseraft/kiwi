@@ -245,9 +245,9 @@ std::vector<k_string> File::listDirectory(const k_string& path) {
     for (const auto& x : fs::directory_iterator(path)) {
       #ifdef _WIN64
       const std::wstring entryPath = x.path().c_str();
-      paths.push_back(wstring_tos(entryPath));
+      paths.emplace_back(wstring_tos(entryPath));
       #else
-      paths.push_back(x.path().string());
+      paths.emplace_back(x.path().string());
       #endif
     }
   } catch (const fs::filesystem_error& e) {
@@ -478,12 +478,12 @@ std::vector<k_string> File::expandGlob(const k_string& globString) {
       const std::wstring entryPath = entry.path().c_str();
       auto pathString = wstring_tos(entryPath);
       if (std::regex_match(pathString, filenameRegex)) {
-        matchedFiles.push_back(entry.path().lexically_normal().string());
+        matchedFiles.emplace_back(entry.path().lexically_normal().string());
       }
       #else
       if (entry.is_regular_file() &&
           std::regex_match(entry.path().filename().string(), filenameRegex)) {
-        matchedFiles.push_back(entry.path().lexically_normal().string());
+        matchedFiles.emplace_back(entry.path().lexically_normal().string());
       }
       #endif
     }
@@ -492,12 +492,12 @@ std::vector<k_string> File::expandGlob(const k_string& globString) {
       #ifdef _WIN64
       const std::wstring entryPath = entry.path().c_str();
       if (std::regex_match(wstring_tos(entryPath), filenameRegex)) {
-        matchedFiles.push_back(entry.path().lexically_normal().string());
+        matchedFiles.emplace_back(entry.path().lexically_normal().string());
       }
       #else
       if (entry.is_regular_file() &&
           std::regex_match(entry.path().filename().string(), filenameRegex)) {
-        matchedFiles.push_back(entry.path().lexically_normal().string());
+        matchedFiles.emplace_back(entry.path().lexically_normal().string());
       }
       #endif
     }

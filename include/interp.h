@@ -499,7 +499,7 @@ class Interpreter {
     std::vector<Token> conditionTokens;
     while (stream->canRead() &&
            stream->current().getSubType() != KName::KW_Do) {
-      conditionTokens.push_back(stream->current());
+      conditionTokens.emplace_back(std::move(stream->current()));
       stream->next();
     }
 
@@ -840,7 +840,7 @@ class Interpreter {
         ++count;
       }
 
-      catchTokens.push_back(stream->current());
+      catchTokens.emplace_back(std::move(stream->current()));
       stream->next();
     }
 
@@ -1061,11 +1061,11 @@ class Interpreter {
       }
 
       if (stream->current().getType() == KTokenType::TYPENAME) {
-        args.push_back(stream->current().getText());
+        args.emplace_back(stream->current().getText());
       } else if (hasClass(stream->current().getText())) {
-        args.push_back(stream->current().getText());
+        args.emplace_back(stream->current().getText());
       } else {
-        args.push_back(interpretExpression(stream, frame));
+        args.emplace_back(interpretExpression(stream, frame));
       }
 
       if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
@@ -1142,14 +1142,14 @@ class Interpreter {
     std::vector<k_string> endpointList;
 
     if (std::holds_alternative<k_string>(arg)) {
-      endpointList.push_back(get_string(term, arg));
+      endpointList.emplace_back(get_string(term, arg));
     } else if (std::holds_alternative<k_list>(arg)) {
       for (const auto& el : std::get<k_list>(arg)->elements) {
         if (std::holds_alternative<k_string>(el)) {
           auto endpoint = get_string(term, el);
           if (std::find(endpointList.begin(), endpointList.end(), endpoint) ==
               endpointList.end()) {
-            endpointList.push_back(endpoint);
+            endpointList.emplace_back(endpoint);
           }
         }
       }
@@ -1720,14 +1720,11 @@ class Interpreter {
         if (stream->current().getType() == KTokenType::OPERATOR &&
             stream->current().getText() == Operators.Assign) {
           stream->next();  // Skip "=".
-          Parameter optionalParam(paramName,
-                                  interpretExpression(stream, frame));
-          params.push_back(optionalParam);
+          params.emplace_back(Parameter(paramName, interpretExpression(stream, frame)));
           continue;
         }
 
-        Parameter param(paramName);
-        params.push_back(param);
+        params.emplace_back(Parameter(paramName));
 
         continue;
       }
@@ -2040,7 +2037,7 @@ class Interpreter {
 
       auto& elements = list->elements;
       for (const char& c : string) {
-        elements.push_back(k_string(1, c));
+        elements.emplace_back(k_string(1, c));
       }
 
       auto sliced = InterpHelper::interpretListSlice(stream, slice, list);
@@ -2098,7 +2095,7 @@ class Interpreter {
     }
 
     const auto& listPtr = std::get<k_list>(variableValue);
-    listPtr->elements.push_back(listValue);
+    listPtr->elements.emplace_back(listValue);
   }
 
   k_list interpretRange(std::shared_ptr<TokenStream> stream,
@@ -2135,10 +2132,13 @@ class Interpreter {
 
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
+    
     for (; i != stop; i += step) {
-      elements.push_back(i);
+      elements.emplace_back(i);
     }
-    elements.push_back(i);
+    
+    // TODO:
+    elements.emplace_back(i);
 
     return list;
   }
@@ -2187,7 +2187,7 @@ class Interpreter {
       switch (stream->current().getType()) {
         case KTokenType::OPEN_BRACKET:
           ++bracketCount;
-          elements.push_back(interpretExpression(stream, frame));
+          elements.emplace_back(interpretExpression(stream, frame));
           break;
 
         case KTokenType::CLOSE_BRACKET: {
@@ -2205,7 +2205,7 @@ class Interpreter {
           break;
 
         default:
-          elements.push_back(interpretExpression(stream, frame));
+          elements.emplace_back(interpretExpression(stream, frame));
           if (stream->current().getType() == KTokenType::COMMA ||
               stream->current().getType() == KTokenType::CLOSE_BRACKET) {
             continue;
@@ -2609,7 +2609,7 @@ class Interpreter {
       methods.erase(pair.first);
     }
 
-    frame->aliases.push_back(alias);
+    frame->aliases.emplace_back(alias);
   }
 
   void interpretExport(std::shared_ptr<TokenStream> stream,
@@ -2939,7 +2939,7 @@ class Interpreter {
       if (!callStack.empty()) {
         auto value = callStack.top()->returnValue;
         frame->clearFlag(FrameFlags::ReturnFlag);
-        elements.push_back(value);
+        elements.emplace_back(value);
       }
     }
 
@@ -3059,7 +3059,7 @@ class Interpreter {
         frame->clearFlag(FrameFlags::ReturnFlag);
 
         if (std::holds_alternative<bool>(value) && std::get<bool>(value)) {
-          elements.push_back(item);
+          elements.emplace_back(item);
         }
       }
     }

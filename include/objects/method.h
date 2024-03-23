@@ -70,7 +70,7 @@ class Method {
     return parameterKVP[paramName];
   }
 
-  void addToken(const Token& t) { code.push_back(t); }
+  void addToken(const Token& t) { code.emplace_back(t); }
 
   const std::vector<Token>& getCode() const { return code; }
 
@@ -86,7 +86,7 @@ class Method {
 
   void addParameter(const Parameter& param) {
     auto paramName = param.getName();
-    parameters.push_back(paramName);
+    parameters.emplace_back(paramName);
     _params[paramName] = std::move(param);
   }
 
