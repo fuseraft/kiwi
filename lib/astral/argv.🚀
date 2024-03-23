@@ -1,23 +1,23 @@
-##
+/#
 Summary: A module for working with command-line arguments.
-##
+#/
 module argv
   __home__("astral")
 
-  ##
+  /#
   Summary: Get the list of command-line arguments.
   Returns: List of command-line arguments.
-  ##
+  #/
   def get()
     return __argv__()
   end
 
-  ##
+  /#
   Summary: Get an XArg value by name.
   Params:
     - _xarg_key: The XArg key.
   Returns: String containing the XArg value.
-  ##
+  #/
   def xarg(_xarg_key)
     return __xarg__(_xarg_key)
   end

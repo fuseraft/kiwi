@@ -11,14 +11,14 @@ println "hello"
 
 ## Multi-line comments
 
-Multiline comments begin and end with `##`.
+Multiline comments begin with `/#` and end with `#/`.
 
 ```
-##
+/#
 Using a double-# will give you a multiline comment.
 
 Use this to document more complicated logic.
 
 We all love documentation. :)
-##
+#/
 ```
