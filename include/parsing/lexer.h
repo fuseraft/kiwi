@@ -812,6 +812,8 @@ class Lexer {
       st = KName::Builtin_Astral_ToS;
     } else if (builtin == AstralBuiltins.ToBytes) {
       st = KName::Builtin_Astral_ToBytes;
+    } else if (builtin == AstralBuiltins.ToHex) {
+      st = KName::Builtin_Astral_ToHex;
     } else if (builtin == AstralBuiltins.Trim) {
       st = KName::Builtin_Astral_Trim;
     } else if (builtin == AstralBuiltins.Type) {
