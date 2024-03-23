@@ -63,6 +63,9 @@ class CoreBuiltinHandler {
       case KName::Builtin_Astral_ToBytes:
         return executeToBytes(term, value, args);
 
+      case KName::Builtin_Astral_ToHex:
+        return executeToHex(term, value, args);
+
       case KName::Builtin_Astral_ToD:
         return executeToDouble(term, value, args);
 
@@ -178,6 +181,39 @@ class CoreBuiltinHandler {
     }
 
     throw ConversionError(term);
+  }
+
+  static k_value executeToHex(const Token& term, const k_value& value,
+                              const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.ToHex);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw ConversionError(
+          term, "Expected a `List` value for byte to string conversion.");
+    }
+
+    auto& elements = std::get<k_list>(value)->elements;
+
+    if (elements.empty()) {
+      throw EmptyListError(term);
+    }
+
+    std::stringstream ss;
+
+    for (const auto& item : elements) {
+      if (!std::holds_alternative<k_int>(item)) {
+        throw ConversionError(
+            term, "Expected an `Integer` value for byte to string conversion.");
+      }
+
+      auto itemValue = std::get<k_int>(item);
+      auto byte = static_cast<unsigned int>(itemValue) & 0xFF;
+      ss << std::hex << std::setw(2) << std::setfill('0') << byte;
+    }
+
+    return ss.str();
   }
 
   static k_value executeToBytes(const Token& term, const k_value& value,

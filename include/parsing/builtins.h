@@ -440,8 +440,9 @@ struct {
   const k_string Size = "size";
   const k_string ToD = "to_double";
   const k_string ToI = "to_int";
-  const k_string ToBytes = "to_bytes";
   const k_string ToS = "to_string";
+  const k_string ToBytes = "to_bytes";
+  const k_string ToHex = "to_hex";
   const k_string Type = "type";
   const k_string Empty = "empty";
   const k_string Replace = "replace";
@@ -457,10 +458,10 @@ struct {
   const k_string HasKey = "has_key";
 
   std::unordered_set<k_string> builtins = {
-      Chars,     Empty,       IsA,     Join,     Size,     ToBytes,    ToD,
-      ToI,       ToS,         Replace, Reverse,  Contains, BeginsWith, EndsWith,
-      IndexOf,   LastIndexOf, Upcase,  Downcase, Keys,     Split,      LeftTrim,
-      RightTrim, Trim,        Type,    HasKey};
+      Chars,    Empty,     IsA,         Join,    Size,     ToBytes,  ToHex,
+      ToD,      ToI,       ToS,         Replace, Reverse,  Contains, BeginsWith,
+      EndsWith, IndexOf,   LastIndexOf, Upcase,  Downcase, Keys,     Split,
+      LeftTrim, RightTrim, Trim,        Type,    HasKey};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Astral_BeginsWith,  KName::Builtin_Astral_BeginsWith,
@@ -473,9 +474,10 @@ struct {
       KName::Builtin_Astral_Replace,     KName::Builtin_Astral_Reverse,
       KName::Builtin_Astral_RightTrim,   KName::Builtin_Astral_Size,
       KName::Builtin_Astral_Split,       KName::Builtin_Astral_ToBytes,
-      KName::Builtin_Astral_ToD,         KName::Builtin_Astral_ToI,
-      KName::Builtin_Astral_ToS,         KName::Builtin_Astral_Trim,
-      KName::Builtin_Astral_Type,        KName::Builtin_Astral_Upcase};
+      KName::Builtin_Astral_ToHex,       KName::Builtin_Astral_ToD,
+      KName::Builtin_Astral_ToI,         KName::Builtin_Astral_ToS,
+      KName::Builtin_Astral_Trim,        KName::Builtin_Astral_Type,
+      KName::Builtin_Astral_Upcase};
 
   bool is_builtin(const k_string& arg) {
     if (ListBuiltins.is_builtin(arg)) {
