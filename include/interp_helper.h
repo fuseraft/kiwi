@@ -36,7 +36,7 @@ struct InterpHelper {
 
     const auto& tokens = stream->tokens;
     const size_t tokensSize = tokens.size();
-    
+
     while (position < tokensSize && bracketCount > 0) {
       const auto& token = tokens.at(position);
 
@@ -61,7 +61,8 @@ struct InterpHelper {
             }
             ++position;
           }
-        } continue;
+        }
+          continue;
 
         case KTokenType::COLON:
         case KTokenType::RANGE:
@@ -202,10 +203,10 @@ struct InterpHelper {
                                                    const std::string& tempId) {
     std::vector<Token> tokens;
     auto file = term.getFile();
-    tokens.emplace_back(Token::create(KTokenType::IDENTIFIER, KName::Default, file,
-                                   tempId, 0, 0));
+    tokens.emplace_back(Token::create(KTokenType::IDENTIFIER, KName::Default,
+                                      file, tempId, 0, 0));
     tokens.emplace_back(Token::create(KTokenType::OPERATOR, KName::Ops_Assign,
-                                   file, Operators.Assign, 0, 0));
+                                      file, Operators.Assign, 0, 0));
 
     return tokens;
   }
@@ -243,14 +244,14 @@ struct InterpHelper {
     start = start < 0 ? 0 : start;
     stop = stop > listSize ? listSize : stop;
     // Special case for reverse slicing
-    stop = step < 0 && stop == listSize ? -1 : stop; 
+    stop = step < 0 && stop == listSize ? -1 : stop;
 
     if (step == 1) {
       // Simple case: step is 1
       if (start >= stop) {
         elements.erase(elements.begin() + start, elements.begin() + stop);
         elements.insert(elements.begin() + start, rhsElements.begin(),
-                     rhsElements.end());
+                        rhsElements.end());
       } else {
         std::copy(rhsElements.begin(), rhsElements.end(),
                   elements.begin() + start);

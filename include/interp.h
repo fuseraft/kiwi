@@ -76,7 +76,8 @@ class Interpreter {
     int counter = 0;
     auto tempStreamStack(streamStack);
     while (!tempStreamStack.empty()) {
-      std::cout << counter++ << " stream size: " << tempStreamStack.top()->tokens.size()
+      std::cout << counter++
+                << " stream size: " << tempStreamStack.top()->tokens.size()
                 << std::endl;
       tempStreamStack.pop();
     }
@@ -159,7 +160,8 @@ class Interpreter {
     }
 
     const auto& identifier = term.getText();
-    const auto& taskId = interpretMethodInvocation(stream, frame, identifier, true);
+    const auto& taskId =
+        interpretMethodInvocation(stream, frame, identifier, true);
     if (!std::holds_alternative<k_int>(taskId)) {
       throw ConversionError(term, "Expected a task.");
     }
@@ -322,7 +324,8 @@ class Interpreter {
 
     if (frame->inObjectContext()) {
       const auto& objectContext = frame->getObjectContext();
-      const auto& objectContextInstanceVariables = objectContext->instanceVariables;
+      const auto& objectContextInstanceVariables =
+          objectContext->instanceVariables;
       for (const auto& pair : objectContextInstanceVariables) {
         subFrameVariables[pair.first] = pair.second;
       }
@@ -576,7 +579,8 @@ class Interpreter {
     }
 
     if (frame->inObjectContext()) {
-      const auto& objectContextInstanceVariables = frame->getObjectContext()->instanceVariables;
+      const auto& objectContextInstanceVariables =
+          frame->getObjectContext()->instanceVariables;
       for (const auto& pair : objectContextInstanceVariables) {
         if (InterpHelper::shouldUpdateFrameVariables(pair.first, oldFrame)) {
           oldFrameVariables[pair.first] = pair.second;
@@ -1626,7 +1630,7 @@ class Interpreter {
     if (then.hasParameters()) {
       k_string taskResult, taskIdName;
       bool hasIndexVariable = false;
-      
+
       for (const auto& parameter : then.getParameters()) {
         if (taskResult.empty()) {
           taskResult = parameter;
@@ -1731,7 +1735,8 @@ class Interpreter {
         if (stream->current().getType() == KTokenType::OPERATOR &&
             stream->current().getText() == Operators.Assign) {
           stream->next();  // Skip "=".
-          params.emplace_back(Parameter(paramName, interpretExpression(stream, frame)));
+          params.emplace_back(
+              Parameter(paramName, interpretExpression(stream, frame)));
           continue;
         }
 
@@ -2143,11 +2148,11 @@ class Interpreter {
 
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
-    
+
     for (; i != stop; i += step) {
       elements.emplace_back(i);
     }
-    
+
     // TODO:
     elements.emplace_back(i);
 
@@ -2471,13 +2476,15 @@ class Interpreter {
     // Check for unimplemented abstract methods.
     if (!clazz.isAbstract()) {
       const auto& methods = clazz.getMethods();
-      auto it = std::find_if(methods.begin(), methods.end(), [](const auto& pair) {
-        return pair.second.isFlagSet(MethodFlags::Abstract);
-      });
+      auto it =
+          std::find_if(methods.begin(), methods.end(), [](const auto& pair) {
+            return pair.second.isFlagSet(MethodFlags::Abstract);
+          });
 
       if (it != methods.end()) {
         // If an abstract method is found, throw the error.
-        throw UnimplementedMethodError(stream->current(), className, it->second.getName());
+        throw UnimplementedMethodError(stream->current(), className,
+                                       it->second.getName());
       }
     }
 
@@ -2588,7 +2595,8 @@ class Interpreter {
     return "";
   }
 
-  void interpretModuleAlias(std::shared_ptr<TokenStream> stream, std::shared_ptr<CallStackFrame> frame,
+  void interpretModuleAlias(std::shared_ptr<TokenStream> stream,
+                            std::shared_ptr<CallStackFrame> frame,
                             const k_string& moduleName) {
     stream->next();  // Skip "as"
 
@@ -3234,7 +3242,8 @@ class Interpreter {
       if (current.getSubType() == KName::Ops_Assign) {
         stream->next();  // Skip "="
 
-        object->instanceVariables[callText] = interpretExpression(stream, frame);
+        object->instanceVariables[callText] =
+            interpretExpression(stream, frame);
         return object;
       }
     }

@@ -121,11 +121,11 @@ class CoreBuiltinHandler {
     auto newList = std::make_shared<List>();
     auto stringValue = get_string(term, value);
     auto& elements = newList->elements;
-    
+
     for (char c : stringValue) {
       elements.emplace_back(k_string(1, c));
     }
-    
+
     return newList;
   }
 
@@ -336,7 +336,8 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.BeginsWith);
     }
 
-    return String::beginsWith(get_string(term, value), get_string(term, args.at(0)));
+    return String::beginsWith(get_string(term, value),
+                              get_string(term, args.at(0)));
   }
 
   static k_value executeStringContains(const Token& term, const k_value& value,
@@ -378,7 +379,8 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Contains);
     }
 
-    return String::endsWith(get_string(term, value), get_string(term, args.at(0)));
+    return String::endsWith(get_string(term, value),
+                            get_string(term, args.at(0)));
   }
 
   static k_value executeIsA(const Token& term, const k_value& value,
@@ -396,28 +398,28 @@ class CoreBuiltinHandler {
     }
 
     switch (value.index()) {
-      case 0: // k_int
+      case 0:  // k_int
         return typeName == TypeNames.Integer;
 
-      case 1: // double
+      case 1:  // double
         return typeName == TypeNames.Double;
 
-      case 2: // bool
+      case 2:  // bool
         return typeName == TypeNames.Boolean;
 
-      case 3: // k_string
+      case 3:  // k_string
         return typeName == TypeNames.String;
 
-      case 4: // k_list
+      case 4:  // k_list
         return typeName == TypeNames.List;
 
-      case 5: // k_hash
+      case 5:  // k_hash
         return typeName == TypeNames.Hash;
 
-      case 6: // k_object
+      case 6:  // k_object
         return typeName == TypeNames.Object;
 
-      case 7: // k_lambda
+      case 7:  // k_lambda
         return typeName == TypeNames.Lambda;
 
       default:
@@ -431,7 +433,9 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Replace);
     }
 
-    return String::replace(get_string(term, value), get_string(term, args.at(0)), get_string(term, args.at(1)));
+    return String::replace(get_string(term, value),
+                           get_string(term, args.at(0)),
+                           get_string(term, args.at(1)));
   }
 
   static k_value executeReverse(const Token& term, const k_value& value,
