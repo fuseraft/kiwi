@@ -59,7 +59,7 @@ int Repl::run() {
 
   interp.preserveMainStackFrame();
 
-  lines.push_back("");
+  lines.emplace_back("");
   activeReplLine = 1;
 
   while (true) {
@@ -178,7 +178,7 @@ std::string Repl::getline() {
       line.insert(pos++, 1, ' ');
     } else if (ch == '\n') {
       lines[activeReplLine - 1] = line;
-      lines.push_back("");
+      lines.emplace_back("");
       activeReplLine = lines.size();
       std::cout << "\033[2K\r" << std::flush;
       break;

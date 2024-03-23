@@ -112,11 +112,11 @@ class String {
     std::string::size_type endPos = 0;
 
     while ((endPos = input.find(delimiter, startPos)) != std::string::npos) {
-      result.push_back(input.substr(startPos, endPos - startPos));
+      result.emplace_back(input.substr(startPos, endPos - startPos));
       startPos = endPos + delimiter.size();
     }
 
-    result.push_back(input.substr(startPos));
+    result.emplace_back(input.substr(startPos));
 
     return result;
   }

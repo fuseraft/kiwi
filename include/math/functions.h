@@ -84,7 +84,7 @@ struct {
       result = build.str();
     } else if (std::holds_alternative<k_list>(left)) {
       auto list = std::get<k_list>(left);
-      list->elements.push_back(right);
+      list->elements.emplace_back(right);
       return list;
     } else {
       throw ConversionError(token, "Conversion error in addition.");
@@ -120,7 +120,7 @@ struct {
           found = true;
           continue;
         }
-        listValues.push_back(item);
+        listValues.emplace_back(item);
       }
 
       return std::make_shared<List>(listValues);
@@ -277,10 +277,11 @@ struct {
     }
 
     auto newList = std::make_shared<List>();
+    auto& elements = newList->elements;
 
     for (int i = 0; i < multiplier; ++i) {
       for (const auto& item : list->elements) {
-        newList->elements.push_back(item);
+        elements.emplace_back(item);
       }
     }
 
@@ -583,9 +584,9 @@ struct {
 
     for (int i = 1; i <= sqrt(number); ++i) {
       if (number % i == 0) {
-        divisors.push_back(static_cast<k_int>(i));
+        divisors.emplace_back(static_cast<k_int>(i));
         if (i != number / i) {
-          divisors.push_back(static_cast<k_int>(number / i));
+          divisors.emplace_back(static_cast<k_int>(number / i));
         }
       }
     }

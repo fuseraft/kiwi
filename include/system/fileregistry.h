@@ -22,11 +22,11 @@ class FileRegistry {
     std::vector<std::string> lines;
     std::string line;
     while (std::getline(stream, line)) {
-      lines.push_back(line);
+      lines.emplace_back(line);
     }
     int id = nextId++;
     registry[id] = filePath;
-    linesRegistry[id] = lines;
+    linesRegistry[id] = std::move(lines);
     return id;
   }
 

@@ -307,6 +307,7 @@ class OdbcConnection {
     }
 
     k_list resultList = std::make_shared<List>();
+    auto& elements = resultList->elements;
     while (SQLFetch(hStmt) == SQL_SUCCESS) {
       k_hash row = std::make_shared<Hash>();
       for (SQLSMALLINT i = 1; i <= columns; ++i) {
@@ -325,7 +326,7 @@ class OdbcConnection {
             k_string(reinterpret_cast<char*>(columnData), columnDataLength));
       }
 
-      resultList->elements.push_back(row);
+      elements.emplace_back(row);
     }
 
     result->add(DatabaseResponseKeys.Data, resultList);

@@ -90,7 +90,7 @@ struct Hash {
 
   void add(const k_string& key, k_value value) {
     if (!hasKey(key)) {
-      keys.push_back(key);
+      keys.emplace_back(key);
     }
     kvp[key] = value;
   }

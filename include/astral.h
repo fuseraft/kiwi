@@ -62,7 +62,7 @@ int Astral::run(int argc, char** argv) {
   std::vector<std::string> args;
 
   for (int i = 0; i < argc; ++i) {
-    args.push_back(argv[i]);
+    args.emplace_back(argv[i]);
   }
 
   return Astral::run(args);
@@ -76,8 +76,8 @@ int Astral::run(std::vector<std::string>& v) {
   Host host(interp);
 
   if (DEBUG) {
-    v.push_back("-C");
-    v.push_back("/home/scs/astral/config/astral.conf");
+    v.emplace_back("-C");
+    v.emplace_back("/home/scs/astral/config/astral.conf");
   }
 
   size_t size = v.size();

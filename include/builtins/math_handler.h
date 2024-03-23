@@ -538,9 +538,10 @@ class MathBuiltinHandler {
 
     auto primes = PrimeGenerator::listPrimes(std::get<k_int>(args.at(0)));
     auto list = std::make_shared<List>();
+    auto& elements = list->elements;
 
     for (const auto& prime : primes) {
-      list->elements.push_back(static_cast<k_int>(prime));
+      elements.emplace_back(static_cast<k_int>(prime));
     }
 
     return list;
@@ -585,9 +586,11 @@ class MathBuiltinHandler {
     }
 
     auto list = std::make_shared<List>();
+    auto& elements = list->elements;
+
     for (const auto& divisor :
          MathImpl.__divisors__(std::get<k_int>(args.at(0)))) {
-      list->elements.push_back(divisor);
+      elements.emplace_back(divisor);
     }
 
     return list;

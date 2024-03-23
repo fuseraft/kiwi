@@ -29,7 +29,7 @@ void PrimeGenerator::simpleSieve(int limit, std::vector<int>& primes) {
 
   for (int p = 2; p < limit; p++) {
     if (mark[p]) {
-      primes.push_back(p);
+      primes.emplace_back(p);
     }
   }
 }
@@ -94,7 +94,7 @@ std::vector<int> PrimeGenerator::listPrimes(int limit) {
 
   for (int num = 2; num <= limit; ++num) {
     if (is_prime[num]) {
-      primes.push_back(num);
+      primes.emplace_back(num);
     }
   }
 

@@ -34,7 +34,7 @@ class Lexer {
         break;
       }
 
-      tokens.push_back(token);
+      tokens.emplace_back(token);
     }
 
     return tokens;
