@@ -3708,7 +3708,7 @@ class Interpreter {
 
     std::vector<k_value> parameters;
 
-    // Should probably check that an overridden to_s() actually returns a string.
+    // Should probably check that an overridden to_string() actually returns a string.
     return Serializer::serialize(interpretInstanceMethodInvocation(
         stream, frame, object, AstralBuiltins.ToS, KName::Builtin_Astral_ToS,
         parameters));

@@ -266,7 +266,7 @@ struct {
   const k_string Sum = "sum";
   const k_string Min = "min";
   const k_string Max = "max";
-  const k_string ToH = "to_h";
+  const k_string ToH = "to_hash";
 
   std::unordered_set<k_string> builtins = {Map, None, Reduce, Select, Sort,
                                            Sum, Min,  Max,    ToH};
@@ -438,10 +438,10 @@ struct {
   const k_string RightTrim = "rtrim";
   const k_string Trim = "trim";
   const k_string Size = "size";
-  const k_string ToD = "to_d";
-  const k_string ToI = "to_i";
+  const k_string ToD = "to_double";
+  const k_string ToI = "to_int";
   const k_string ToBytes = "to_bytes";
-  const k_string ToS = "to_s";
+  const k_string ToS = "to_string";
   const k_string Type = "type";
   const k_string Empty = "empty";
   const k_string Replace = "replace";

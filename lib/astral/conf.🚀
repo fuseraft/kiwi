@@ -46,7 +46,7 @@ module conf
         return {}
       end
 
-      return __readfile__(_json_path).to_h()
+      return __readfile__(_json_path).to_hash()
     catch
       return {}
     end
@@ -107,9 +107,9 @@ module conf
 
       if !_is_string
         if _dot_count == 1
-          _ret_val = _builder.join().to_d()
+          _ret_val = _builder.join().to_double()
         else
-          _ret_val = _builder.join().to_i()
+          _ret_val = _builder.join().to_int()
         end
       end
     end
