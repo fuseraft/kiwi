@@ -273,23 +273,31 @@ k_value sum_listvalue(k_list list) {
 }
 
 k_value min_listvalue(k_list list) {
-  k_value minValue = list->elements[0];
-  for (const auto& val : list->elements) {
-    if (lt_value(val, minValue)) {
-      minValue = val;
-    }
+  const auto& elements = list->elements;
+
+  if (elements.empty()) {
+    return {};
   }
-  return minValue;
+
+  auto it = std::min_element(elements.begin(), elements.end(), [](const k_value& a, const k_value& b) {
+    return lt_value(a, b);
+  });
+
+  return *it;
 }
 
 k_value max_listvalue(k_list list) {
-  k_value maxValue = list->elements[0];
-  for (const auto& val : list->elements) {
-    if (gt_value(val, maxValue)) {
-      maxValue = val;
-    }
+  const auto& elements = list->elements;
+
+  if (elements.empty()) {
+    return {};
   }
-  return maxValue;
+
+  auto it = std::max_element(elements.begin(), elements.end(), [](const k_value& a, const k_value& b) {
+    return gt_value(a, b);
+  });
+
+  return *it;
 }
 
 k_value indexof_listvalue(const k_list& list, const k_value& value) {

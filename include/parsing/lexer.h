@@ -14,7 +14,7 @@
 class Lexer {
  public:
   Lexer(const std::string& file, const std::string& source, bool skipWS = true)
-      : source(source), pos(0), skipWS(skipWS) {
+      : source(source), pos(0), skipWS(skipWS), row(0), col(0) {
     fileId = FileRegistry::getInstance().registerFile(file);
   }
 

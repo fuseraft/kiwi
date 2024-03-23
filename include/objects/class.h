@@ -17,7 +17,7 @@ class Class {
   void setAbstract() { abstractMark = true; }
   bool isAbstract() const { return abstractMark; }
 
-  void addMethod(Method& method) { methods[method.getName()] = method; }
+  void addMethod(const Method& method) { methods[method.getName()] = method; }
   bool hasMethod(const k_string& name) const {
     return methods.find(name) != methods.end();
   }
