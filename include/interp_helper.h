@@ -39,30 +39,39 @@ struct InterpHelper {
 
     const auto& tokens = stream->tokens;
     const size_t tokensSize = tokens.size();
-
+    
     while (position < tokensSize && bracketCount > 0) {
       const auto& token = tokens.at(position);
-      const auto type = token.getType();
 
-      if (type == KTokenType::OPEN_BRACKET) {
-        ++bracketCount;
-      } else if (type == KTokenType::CLOSE_BRACKET) {
-        --bracketCount;
-      } else if (type == KTokenType::OPEN_BRACE) {
-        int braceCount = 1;
-        ++position;  // Skip the current brace
-        while (position < tokensSize && braceCount > 0) {
-          const auto& innerToken = tokens.at(position);
-          if (innerToken.getType() == KTokenType::OPEN_BRACE) {
-            ++braceCount;
-          } else if (innerToken.getType() == KTokenType::CLOSE_BRACE) {
-            --braceCount;
+      switch (token.getType()) {
+        case KTokenType::OPEN_BRACKET:
+          ++bracketCount;
+          break;
+
+        case KTokenType::CLOSE_BRACKET:
+          --bracketCount;
+          break;
+
+        case KTokenType::OPEN_BRACE: {
+          int braceCount = 1;
+          ++position;  // Skip the current brace
+          while (position < tokensSize && braceCount > 0) {
+            const auto& innerToken = tokens.at(position);
+            if (innerToken.getType() == KTokenType::OPEN_BRACE) {
+              ++braceCount;
+            } else if (innerToken.getType() == KTokenType::CLOSE_BRACE) {
+              --braceCount;
+            }
+            ++position;
           }
-          ++position;
-        }
-        continue;
-      } else if (type == KTokenType::COLON || type == KTokenType::RANGE) {
-        return false;
+        } continue;
+
+        case KTokenType::COLON:
+        case KTokenType::RANGE:
+          return false;
+
+        default:
+          break;
       }
 
       ++position;

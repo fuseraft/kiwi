@@ -25,18 +25,16 @@ class TaskManager {
   }
 
   k_value getTaskResult(k_int id) {
-    auto& task = tasks.at(id);
-    return task.get();
+    return tasks.at(id).get();
   }
 
   bool isTaskCompleted(k_int id) {
-    auto& task = tasks.at(id);
-    return task.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+    return tasks.at(id).wait_for(std::chrono::seconds(0)) == std::future_status::ready;
   }
 
   bool hasActiveTasks() {
-    for (auto& task : tasks) {
-      if (task.second.wait_for(std::chrono::seconds(0)) !=
+    for (auto& activeTask : tasks) {
+      if (activeTask.second.wait_for(std::chrono::seconds(0)) !=
           std::future_status::ready) {
         return true;
       }

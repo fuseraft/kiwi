@@ -76,8 +76,7 @@ class Interpreter {
     int counter = 0;
     auto tempStreamStack(streamStack);
     while (!tempStreamStack.empty()) {
-      auto& stream = tempStreamStack.top();
-      std::cout << counter++ << " stream size: " << stream->tokens.size()
+      std::cout << counter++ << " stream size: " << tempStreamStack.top()->tokens.size()
                 << std::endl;
       tempStreamStack.pop();
     }
@@ -86,7 +85,7 @@ class Interpreter {
     counter = 0;
     auto tempCallStack(callStack);
     while (!tempCallStack.empty()) {
-      auto& frame = tempCallStack.top();
+      const auto& frame = tempCallStack.top();
       std::cout << counter << " frame variables: " << frame->variables.size()
                 << std::endl;
       for (const auto& var : frame->variables) {
@@ -131,7 +130,7 @@ class Interpreter {
   }
 
   k_int interpretAsyncMethodInvocation(
-      std::shared_ptr<CallStackFrame> codeFrame, Method& method) {
+      std::shared_ptr<CallStackFrame> codeFrame, const Method& method) {
     auto taskFunc = [this, codeFrame, method]() -> k_value {
       callStack.push(codeFrame);
       streamStack.push(std::make_shared<TokenStream>(method.getCode()));
@@ -194,8 +193,7 @@ class Interpreter {
   std::shared_ptr<CallStackFrame> popTop() {
     streamStack.pop();
     callStack.pop();
-    auto& callerFrame = callStack.top();
-    return callerFrame;
+    return callStack.top();
   }
 
   void interpretStackFrame() {
@@ -815,7 +813,6 @@ class Interpreter {
                       std::shared_ptr<CallStackFrame> frame) {
     stream->next();  // SKip "catch"
 
-    auto error = std::make_shared<Object>();
     k_string errorTypeVariableName;
     k_string errorVariableName;
     k_value errorType;
@@ -953,7 +950,7 @@ class Interpreter {
     std::stack<std::shared_ptr<CallStackFrame>> tempStack(
         callStack);  // Copy the call stack
     while (!tempStack.empty()) {
-      auto& outerFrame = tempStack.top();
+      const auto& outerFrame = tempStack.top();
       if (outerFrame->hasVariable(name)) {
         return true;  // Found in an outer frame
       }
@@ -1033,7 +1030,7 @@ class Interpreter {
     // Check in outer frames
     auto tempStack(callStack);
     while (!tempStack.empty()) {
-      auto& outerFrame = tempStack.top();
+      const auto& outerFrame = tempStack.top();
       if (outerFrame->hasVariable(name)) {
         return outerFrame->variables[name];
       }
@@ -1271,7 +1268,7 @@ class Interpreter {
   }
 
   k_value interpretWebServerListen(std::shared_ptr<TokenStream> stream,
-                                   std::vector<k_value>& args) {
+                                   const std::vector<k_value>& args) {
     auto term = stream->current();
 
     if (args.size() != 2) {
@@ -1288,7 +1285,7 @@ class Interpreter {
   }
 
   k_value interpretWebServerPort(std::shared_ptr<TokenStream> stream,
-                                 std::vector<k_value>& args) {
+                                 const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(stream->current(),
                                            WebServerBuiltins.Listen);
@@ -1298,7 +1295,7 @@ class Interpreter {
   }
 
   k_value interpretWebServerPublic(std::shared_ptr<TokenStream> stream,
-                                   std::vector<k_value>& args) {
+                                   const std::vector<k_value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(stream->current(),
                                            WebServerBuiltins.Public);
@@ -1317,7 +1314,7 @@ class Interpreter {
   }
 
   k_value interpretWebServerHost(std::shared_ptr<TokenStream> stream,
-                                 std::vector<k_value>& args) {
+                                 const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(stream->current(),
                                            WebServerBuiltins.Listen);
@@ -1614,10 +1611,10 @@ class Interpreter {
     auto then = interpretLambda(stream, frame);
     auto result = task.getTaskResult(taskId);
 
-    k_string taskResult, taskIdName;
-    auto hasIndexVariable = false;
-
     if (then.hasParameters()) {
+      k_string taskResult, taskIdName;
+      bool hasIndexVariable = false;
+      
       for (const auto& parameter : then.getParameters()) {
         if (taskResult.empty()) {
           taskResult = parameter;
@@ -2249,7 +2246,7 @@ class Interpreter {
       auto subType = stream->current().getSubType();
       if (Keywords.is_block_keyword(subType)) {
         ++ifCount;
-      } else if (subType == KName::KW_End && ifCount > 0) {
+      } else if (subType == KName::KW_End && ifCount >= 1) {
         --ifCount;
 
         // Stop here.
@@ -2398,7 +2395,7 @@ class Interpreter {
       }
 
       // inherit methods from base class.
-      for (auto& pair : classes[baseClassName].getMethods()) {
+      for (const auto& pair : classes[baseClassName].getMethods()) {
         clazz.addMethod(pair.second);
       }
     }
@@ -2457,11 +2454,14 @@ class Interpreter {
 
     // Check for unimplemented abstract methods.
     if (!clazz.isAbstract()) {
-      for (const auto& pair : clazz.getMethods()) {
-        if (pair.second.isFlagSet(MethodFlags::Abstract)) {
-          throw UnimplementedMethodError(stream->current(), className,
-                                         pair.second.getName());
-        }
+      const auto& methods = clazz.getMethods();
+      auto it = std::find_if(methods.begin(), methods.end(), [](const auto& pair) {
+        return pair.second.isFlagSet(MethodFlags::Abstract);
+      });
+
+      if (it != methods.end()) {
+        // If an abstract method is found, throw the error.
+        throw UnimplementedMethodError(stream->current(), className, it->second.getName());
       }
     }
 
@@ -3215,8 +3215,7 @@ class Interpreter {
       if (current.getSubType() == KName::Ops_Assign) {
         stream->next();  // Skip "="
 
-        auto value = interpretExpression(stream, frame);
-        object->instanceVariables[callText] = value;
+        object->instanceVariables[callText] = interpretExpression(stream, frame);
         return object;
       }
     }
@@ -3232,8 +3231,8 @@ class Interpreter {
         if (current.getSubType() == KName::Ops_Assign) {
           stream->next();  // Skip "="
 
-          auto value = interpretExpression(stream, frame);
-          hash->add(callText, value);
+          const auto& assignmentValue = interpretExpression(stream, frame);
+          hash->add(callText, assignmentValue);
           return hash;
         }
       }
