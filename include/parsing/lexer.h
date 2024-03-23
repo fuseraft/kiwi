@@ -79,12 +79,16 @@ class Lexer {
     if (isalpha(currentChar) || currentChar == '_') {
       return parseIdentifier(currentChar);
     } else if (isdigit(currentChar)) {
+      if (currentChar == '0' && (pos < source.length() && source[pos] == 'x')) {
+        return parseHexLiteral(currentChar);
+      }
       return parseLiteral(currentChar);
     } else if (currentChar == '"') {
       return parseString();
     } else if (currentChar == '#') {
       return parseComment();
-    } else if (currentChar == '/' && (pos < source.length() && source[pos] == '#')) {
+    } else if (currentChar == '/' &&
+               (pos < source.length() && source[pos] == '#')) {
       return parseBlockComment();
     } else if (currentChar == '@') {
       return Token::create(KTokenType::DECLVAR, KName::KW_DeclVar, fileId, "@",
@@ -806,6 +810,8 @@ class Lexer {
       st = KName::Builtin_Astral_ToI;
     } else if (builtin == AstralBuiltins.ToS) {
       st = KName::Builtin_Astral_ToS;
+    } else if (builtin == AstralBuiltins.ToBytes) {
+      st = KName::Builtin_Astral_ToBytes;
     } else if (builtin == AstralBuiltins.Trim) {
       st = KName::Builtin_Astral_Trim;
     } else if (builtin == AstralBuiltins.Type) {
@@ -895,6 +901,22 @@ class Lexer {
       return Token::create(KTokenType::LITERAL, KName::Default, fileId, literal,
                            value, row, col);
     }
+  }
+
+  Token parseHexLiteral(char initialChar) {
+    std::string hexLiteral(1, initialChar);
+    getCurrentChar();  // Move past 'x'
+
+    while (pos < source.length() && isxdigit(source[pos])) {
+      hexLiteral += getCurrentChar();
+    }
+
+    std::istringstream ss(hexLiteral);
+    k_int value;
+    ss >> std::hex >> value;
+
+    return Token::create(KTokenType::LITERAL, KName::Default, fileId,
+                         hexLiteral, value, row, col);
   }
 
   Token parseString() {
@@ -990,7 +1012,7 @@ class Lexer {
     }
 
     return Token::create(KTokenType::COMMENT, KName::Default, fileId, comment,
-                          row, col);
+                         row, col);
   }
 
   Token parseComment() {
@@ -1001,7 +1023,7 @@ class Lexer {
     }
 
     return Token::create(KTokenType::COMMENT, KName::Default, fileId, comment,
-                          row, col);
+                         row, col);
   }
 };
 

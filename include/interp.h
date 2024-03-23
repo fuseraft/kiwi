@@ -2737,7 +2737,7 @@ class Interpreter {
     }
 
     std::ostringstream builder;
-    
+
     if (std::holds_alternative<k_object>(value)) {
       builder << interpolateObject(stream, frame, value);
     } else {
