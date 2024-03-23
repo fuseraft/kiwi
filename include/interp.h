@@ -2729,31 +2729,28 @@ class Interpreter {
                       std::shared_ptr<CallStackFrame> frame,
                       bool printNewLine = false) {
     stream->next();  // skip the "print"
-    std::ostringstream builder;
 
     auto value = interpretExpression(stream, frame);
 
+    if (SILENCE) {
+      return;
+    }
+
+    std::ostringstream builder;
+    
     if (std::holds_alternative<k_object>(value)) {
-      if (!SILENCE) {
-        builder << interpolateObject(stream, frame, value);
-      }
+      builder << interpolateObject(stream, frame, value);
     } else {
-      if (!SILENCE) {
-        builder << Serializer::serialize(value);
-      }
+      builder << Serializer::serialize(value);
     }
 
     if (printNewLine) {
-      if (!SILENCE) {
-        builder << std::endl;
-      }
+      builder << std::endl;
     }
 
-    if (!SILENCE) {
-      std::cout << builder.str();
-      builder.str("");
-      builder.clear();
-    }
+    std::cout << builder.str();
+    builder.str("");
+    builder.clear();
   }
 
   k_value interpretBracketExpression(std::shared_ptr<TokenStream> stream,
