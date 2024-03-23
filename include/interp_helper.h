@@ -170,7 +170,7 @@ struct InterpHelper {
         }
       }
 
-      tokens.push_back(currentToken);
+      tokens.emplace_back(std::move(currentToken));
       stream->next();
     }
 
@@ -197,7 +197,7 @@ struct InterpHelper {
         }
       }
 
-      tokens.push_back(currentToken);
+      tokens.emplace_back(std::move(currentToken));
       stream->next();
     }
   }
@@ -206,9 +206,9 @@ struct InterpHelper {
                                                    const std::string& tempId) {
     std::vector<Token> tokens;
     auto file = term.getFile();
-    tokens.push_back(Token::create(KTokenType::IDENTIFIER, KName::Default, file,
+    tokens.emplace_back(Token::create(KTokenType::IDENTIFIER, KName::Default, file,
                                    tempId, 0, 0));
-    tokens.push_back(Token::create(KTokenType::OPERATOR, KName::Ops_Assign,
+    tokens.emplace_back(Token::create(KTokenType::OPERATOR, KName::Ops_Assign,
                                    file, Operators.Assign, 0, 0));
 
     return tokens;
@@ -337,6 +337,7 @@ struct InterpHelper {
   static k_value interpretListSlice(std::shared_ptr<TokenStream> stream,
                                     const SliceIndex& slice,
                                     const k_list& list) {
+    auto& elements = list->elements;
     if (slice.isSlice) {
       if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
         throw IndexError(stream->current(), "Start index must be an integer.");
@@ -368,6 +369,7 @@ struct InterpHelper {
       }
 
       auto slicedList = std::make_shared<List>();
+      auto& slicedElements = slicedList->elements;
 
       if (step < 0) {
         for (int i = (start == 0 ? listSize - 1 : start); i >= stop;
@@ -376,7 +378,8 @@ struct InterpHelper {
           if (i < 0 || i >= listSize) {
             break;
           }
-          slicedList->elements.push_back(list->elements[i]);
+
+          slicedElements.emplace_back(elements.at(i));
         }
       } else {
         for (int i = start; i < stop; i += step) {
@@ -384,7 +387,8 @@ struct InterpHelper {
           if (i >= listSize) {
             break;
           }
-          slicedList->elements.push_back(list->elements[i]);
+
+          slicedElements.emplace_back(elements.at(i));
         }
       }
       return slicedList;  // Return the sliced list as a k_value
@@ -395,7 +399,7 @@ struct InterpHelper {
       }
 
       int index = std::get<k_int>(slice.indexOrStart);
-      int listSize = list->elements.size();
+      int listSize = elements.size();
 
       if (index < 0) {
         index += listSize;  // Adjust for negative index
@@ -405,7 +409,7 @@ struct InterpHelper {
         throw RangeError(stream->current(), "List index out of range.");
       }
 
-      return list->elements[index];
+      return elements.at(index);
     }
   }
 
