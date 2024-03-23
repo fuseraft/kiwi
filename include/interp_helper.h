@@ -16,21 +16,18 @@ struct InterpHelper {
   static bool isSliceAssignmentExpression(
       const std::shared_ptr<TokenStream>& stream) {
     size_t pos = stream->position;
-    bool isSliceAssignment = false;
-
     const auto& tokens = stream->tokens;
 
     while (pos < tokens.size()) {
       if (tokens.at(pos).getType() == KTokenType::COLON ||
           tokens.at(pos).getType() == KTokenType::OPERATOR) {
-        isSliceAssignment = true;
-        break;
+        return true;
       }
 
       ++pos;
     }
 
-    return isSliceAssignment;
+    return false;
   }
 
   static bool isListExpression(const std::shared_ptr<TokenStream>& stream) {
@@ -84,7 +81,6 @@ struct InterpHelper {
     size_t pos = stream->position + 1;  // Skip the "["
     const auto& tokens = stream->tokens;
     size_t size = tokens.size();
-    bool isRange = false;
     int counter = 1;
 
     while (pos < size && counter > 0) {
@@ -100,12 +96,11 @@ struct InterpHelper {
       }
 
       if (type == KTokenType::RANGE) {
-        isRange = true;
-        break;
+        return true;
       }
     }
 
-    return isRange;
+    return false;
   }
 
   static bool hasReturnValue(std::shared_ptr<TokenStream> stream) {
