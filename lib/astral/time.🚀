@@ -1,45 +1,45 @@
-##
+/#
 Summary: A module containing functionality for working with time and date information.
-##
+#/
 module time
   __home__("astral")
 
-  ##
+  /#
   Summary: Get hours since midnight (0 to 23).
   Returns: Integer
-  ##
+  #/
   def hour()
     return __hour__()
   end
 
-  ##
+  /#
   Summary: Get minutes after the hour (0 to 59).
   Returns: Integer
-  ##
+  #/
   def minute()
     return __min__()
   end
 
-  ##
+  /#
   Summary: Get seconds after the minute (0 to 60).
   Returns: Integer
-  ##
+  #/
   def second()
     return __sec__()
   end
 
-  ##
+  /#
   Summary: Get time of day designation for 12 hour clocks as "AM" or "PM".
   Returns: String
-  ##
+  #/
   def ampm()
     return __ampm__()
   end
 
-  ##
+  /#
   Summary: Get current timestamp in YYYY/mm/dd hh:mm:ss tt format.
   Returns: String
-  ##
+  #/
   def current_timestamp()
     year = __year__()
     month = __mon__()
@@ -58,84 +58,84 @@ module time
     return "${year}/${month}/${day} ${hour}:${minute}:${second} ${ampm}"
   end
 
-  ##
+  /#
   Summary: Get the day of the month (1 to 31).
   Returns: Integer
-  ##
+  #/
   def day()
     return __mday__()
   end
 
-  ##
+  /#
   Summary: Get months since January (1 to 12).
   Returns: Integer
-  ##
+  #/
   def month()
     return __mon__()
   end
 
-  ##
+  /#
   Summary: Get the current year.
   Returns: Integer
-  ##
+  #/
   def year()
     return __year__()
   end
 
-  ##
+  /#
   Summary: Get the day of the week (1 to 7).
   Returns: Integer
-  ##
+  #/
   def weekday()
     return __wday__()
   end
 
-  ##
+  /#
   Summary: Get the day of the year (0 to 365). December 31st is 364 on leap years.
   Returns: Integer
-  ##
+  #/
   def yearday()
     return __yday__()
   end
 
-  ##
+  /#
   Summary: Get boolean indicating whether it is Daylight Savings Time.
   Returns: Boolean
-  ##
+  #/
   def isdst()
     return __isdst__()
   end
 
-  ##
+  /#
   Summary: Get milliseconds since January 1st, 1970.
   Returns: Double
-  ##
+  #/
   def epochms()
     return __epochms__()
   end
 
-  ##
+  /#
   Summary: Get nanoseconds since January 1st, 1970.
   Returns: Double
-  ##
+  #/
   def ticks()
     return __ticks__()
   end
 
-  ##
+  /#
   Summary: Converts ticks to milliseconds.
   Returns: Double
-  ##
+  #/
   def ticksms(_ticks)
     return __ticksms__(_ticks)
   end
 
-  ##
+  /#
   Summary: Sleep for a specified duration in milliseconds.
   Params:
     - _ms: The duration in milliseconds.
   Returns: Double
-  ##
+  #/
   def delay(_ms)
     return __delay__(_ms)
   end

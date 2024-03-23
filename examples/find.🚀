@@ -23,7 +23,7 @@ end
 
 println files
 
-##
+/#
 # write all of the scripts to a single file.
 output_path = "output.txt"
 
@@ -35,4 +35,4 @@ for file in files do
   fs.writeln(output_path, "#" + file["path"])
   fs.writeln(output_path, file["content"])
 end
-##
+#/

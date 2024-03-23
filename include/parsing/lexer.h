@@ -84,6 +84,8 @@ class Lexer {
       return parseString();
     } else if (currentChar == '#') {
       return parseComment();
+    } else if (currentChar == '/' && (pos < source.length() && source[pos] == '#')) {
+      return parseBlockComment();
     } else if (currentChar == '@') {
       return Token::create(KTokenType::DECLVAR, KName::KW_DeclVar, fileId, "@",
                            row, col);
@@ -973,35 +975,33 @@ class Lexer {
     return "${" + expression + "}";
   }
 
-  Token parseComment() {
-    if (pos + 1 < source.length() && source[pos] == '#') {
-      // It's a multi-line comment.
-      std::string comment;
-      pos++;  // Skip the "##"
+  Token parseBlockComment() {
+    std::string comment;
+    pos++;  // Skip the "/#"
 
-      while (pos + 1 < source.length()) {
-        char currentChar = getCurrentChar();
-        if (currentChar == '#' && source[pos] == '#') {
-          pos++;  // Skip the "##"
-          break;
-        } else {
-          comment += currentChar;
-        }
+    while (pos + 1 < source.length()) {
+      char currentChar = getCurrentChar();
+      if (currentChar == '#' && source[pos] == '/') {
+        pos++;  // Skip the "#/"
+        break;
+      } else {
+        comment += currentChar;
       }
-
-      return Token::create(KTokenType::COMMENT, KName::Default, fileId, comment,
-                           row, col);
-    } else {
-      // It's a single-line comment
-      std::string comment;
-
-      while (pos < source.length() && source[pos] != '\n') {
-        comment += getCurrentChar();
-      }
-
-      return Token::create(KTokenType::COMMENT, KName::Default, fileId, comment,
-                           row, col);
     }
+
+    return Token::create(KTokenType::COMMENT, KName::Default, fileId, comment,
+                          row, col);
+  }
+
+  Token parseComment() {
+    std::string comment;
+
+    while (pos < source.length() && source[pos] != '\n') {
+      comment += getCurrentChar();
+    }
+
+    return Token::create(KTokenType::COMMENT, KName::Default, fileId, comment,
+                          row, col);
   }
 };
 
