@@ -110,17 +110,23 @@ struct InterpHelper {
 
   static bool hasReturnValue(std::shared_ptr<TokenStream> stream) {
     const Token nextToken = stream->peek();
-    const auto KTokenType = nextToken.getType();
-    bool isLiteral = KTokenType == KTokenType::LITERAL;
-    bool isString = KTokenType == KTokenType::STRING;
-    bool isIdentifier = KTokenType == KTokenType::IDENTIFIER;
-    bool isParenthesis = KTokenType == KTokenType::OPEN_PAREN;
-    bool isBraced = KTokenType == KTokenType::OPEN_BRACE;
-    bool isBracketed = KTokenType == KTokenType::OPEN_BRACKET;
-    bool isInstanceInvocation = KTokenType == KTokenType::KEYWORD &&
-                                nextToken.getSubType() == KName::KW_This;
-    return isString || isLiteral || isIdentifier || isParenthesis ||
-           isBracketed || isInstanceInvocation || isBraced;
+    const auto type = nextToken.getType();
+
+    switch (type) {
+      case KTokenType::LITERAL:
+      case KTokenType::STRING:
+      case KTokenType::IDENTIFIER:
+      case KTokenType::OPEN_PAREN:
+      case KTokenType::OPEN_BRACE:
+      case KTokenType::OPEN_BRACKET:
+        return true;
+
+      case KTokenType::KEYWORD:
+        return nextToken.getSubType() == KName::KW_This;
+
+      default:
+        return false;
+    }
   }
 
   static bool shouldUpdateFrameVariables(
