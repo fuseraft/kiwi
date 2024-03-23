@@ -152,12 +152,14 @@ class String {
   /// @param shortFlag The short flag name.
   /// @param longFlag The long flag name.
   /// @return Boolean indicating success.
-  static bool isCLIFlag(const std::string& s, const std::string& shortFlag, const std::string& longFlag) {
+  static bool isCLIFlag(const std::string& s, const std::string& shortFlag,
+                        const std::string& longFlag) {
     std::array<std::string, 3> prefixes = {"-", "--", "/"};
 
-    return std::any_of(prefixes.begin(), prefixes.end(), [&](const std::string& prefix) {
-      return s == prefix + shortFlag || s == prefix + longFlag;
-    });
+    return std::any_of(
+        prefixes.begin(), prefixes.end(), [&](const std::string& prefix) {
+          return s == prefix + shortFlag || s == prefix + longFlag;
+        });
   }
 
   /// @brief Check if a string is an Xargument.

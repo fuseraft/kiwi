@@ -30,14 +30,18 @@ class File {
   static bool makeDirectoryP(const k_string& path);
   static bool removePath(const k_string& path);
   static int removePathF(const k_string& path);
-  static bool copyFile(const k_string& sourcePath, const k_string& destinationPath, bool overwrite);
-  static bool copyR(const k_string& sourcePath, const k_string& destinationPath);
+  static bool copyFile(const k_string& sourcePath,
+                       const k_string& destinationPath, bool overwrite);
+  static bool copyR(const k_string& sourcePath,
+                    const k_string& destinationPath);
   static std::vector<k_string> listDirectory(const k_string& path);
-  static bool movePath(const k_string& sourcePath, const k_string& destinationPath);
+  static bool movePath(const k_string& sourcePath,
+                       const k_string& destinationPath);
 
   // File content manipulation
   static k_int getFileSize(const k_string& filePath);
-  static bool writeToFile(const k_string& filePath, const k_value& content, bool appendMode, bool addNewLine);
+  static bool writeToFile(const k_string& filePath, const k_value& content,
+                          bool appendMode, bool addNewLine);
   static k_string readFile(const k_string& filePath);
   static std::vector<k_string> readLines(const k_string& filePath);
 
@@ -46,7 +50,8 @@ class File {
   static k_string getCurrentDirectory();
   static bool setCurrentDirectory(const k_string& path);
   static k_string getParentPath(const k_string& path);
-  static k_string joinPath(const k_string& directoryPath, const k_string& filePath);
+  static k_string joinPath(const k_string& directoryPath,
+                           const k_string& filePath);
 
   // File type checks
   static bool isSymLink(const k_string& path);
@@ -68,7 +73,7 @@ bool File::createFile(const k_string& filePath) {
   try {
     std::ofstream outputFile(filePath);
     success = outputFile.is_open();
-    outputFile.close();  
+    outputFile.close();
   } catch (const std::exception& e) {
     Thrower<FileSystemError> thrower;
     thrower.throwError(e.what());
@@ -208,8 +213,8 @@ k_string File::getTempDirectory() {
 bool File::copyFile(const k_string& sourcePath, const k_string& destinationPath,
                     bool overwrite = true) {
   try {
-    auto options =
-        overwrite ? fs::copy_options::overwrite_existing : fs::copy_options::none;
+    auto options = overwrite ? fs::copy_options::overwrite_existing
+                             : fs::copy_options::none;
     return fs::copy_file(sourcePath, destinationPath, options);
   } catch (const fs::filesystem_error& e) {
     Thrower<FileSystemError> thrower;
@@ -243,12 +248,12 @@ std::vector<k_string> File::listDirectory(const k_string& path) {
 
   try {
     for (const auto& x : fs::directory_iterator(path)) {
-      #ifdef _WIN64
+#ifdef _WIN64
       const std::wstring entryPath = x.path().c_str();
       paths.emplace_back(wstring_tos(entryPath));
-      #else
+#else
       paths.emplace_back(x.path().string());
-      #endif
+#endif
     }
   } catch (const fs::filesystem_error& e) {
     Thrower<FileSystemError> thrower;
@@ -285,7 +290,7 @@ k_int File::getFileSize(const k_string& filePath) {
     Thrower<FileSystemError> thrower;
     thrower.throwError(e.what());
   }
-  
+
   return 0;
 }
 
@@ -474,32 +479,32 @@ std::vector<k_string> File::expandGlob(const k_string& globString) {
 
   if (glob.recursiveTraversal) {
     for (const auto& entry : fs::recursive_directory_iterator(basePath)) {
-      #ifdef _WIN64
+#ifdef _WIN64
       const std::wstring entryPath = entry.path().c_str();
       auto pathString = wstring_tos(entryPath);
       if (std::regex_match(pathString, filenameRegex)) {
         matchedFiles.emplace_back(entry.path().lexically_normal().string());
       }
-      #else
+#else
       if (entry.is_regular_file() &&
           std::regex_match(entry.path().filename().string(), filenameRegex)) {
         matchedFiles.emplace_back(entry.path().lexically_normal().string());
       }
-      #endif
+#endif
     }
   } else {
     for (const auto& entry : fs::directory_iterator(basePath)) {
-      #ifdef _WIN64
+#ifdef _WIN64
       const std::wstring entryPath = entry.path().c_str();
       if (std::regex_match(wstring_tos(entryPath), filenameRegex)) {
         matchedFiles.emplace_back(entry.path().lexically_normal().string());
       }
-      #else
+#else
       if (entry.is_regular_file() &&
           std::regex_match(entry.path().filename().string(), filenameRegex)) {
         matchedFiles.emplace_back(entry.path().lexically_normal().string());
       }
-      #endif
+#endif
     }
   }
 
