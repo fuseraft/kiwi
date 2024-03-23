@@ -109,8 +109,8 @@ struct InterpHelper {
   }
 
   static bool hasReturnValue(std::shared_ptr<TokenStream> stream) {
-    const Token nextToken = stream->peek();
-    const auto type = nextToken.getType();
+    const auto& nextToken = stream->peek();
+    const auto& type = nextToken.getType();
 
     switch (type) {
       case KTokenType::LITERAL:
@@ -138,9 +138,10 @@ struct InterpHelper {
   static void updateVariablesInCallerFrame(
       const std::unordered_map<std::string, k_value>& variables,
       std::shared_ptr<CallStackFrame> callerFrame) {
+    auto& frameVariables = callerFrame->variables;
     for (const auto& var : variables) {
       if (shouldUpdateFrameVariables(var.first, callerFrame)) {
-        callerFrame->variables[var.first] = std::move(var.second);
+        frameVariables[var.first] = std::move(var.second);
       }
     }
   }
@@ -182,8 +183,8 @@ struct InterpHelper {
     int counter = 1;
 
     while (stream->canRead() && counter != 0) {
-      const Token& currentToken = stream->current();
-      const KName subType = currentToken.getSubType();
+      const auto& currentToken = stream->current();
+      const auto subType = currentToken.getSubType();
 
       if (Keywords.is_block_keyword(subType)) {
         ++counter;
@@ -230,47 +231,41 @@ struct InterpHelper {
     int stop = std::get<k_int>(slice.stopIndex);
     int step = std::get<k_int>(slice.stepValue);
 
+    // This is a single element assignment.
     if (!slice.isSlice && insertOp) {
-      // This is a single element assignment.
       stop = start;
     }
 
+    auto& elements = targetList->elements;
+    auto& rhsElements = rhsValues->elements;
+
     // Convert negative indices and adjust ranges
-    int listSize = static_cast<int>(targetList->elements.size());
-    int rhsSize = static_cast<int>(rhsValues->elements.size());
-    if (start < 0) {
-      start += listSize;
-    }
-    if (stop < 0) {
-      stop += listSize;
-    }
-    if (start < 0) {
-      start = 0;
-    }
-    if (stop > listSize) {
-      stop = listSize;
-    }
-    if (step < 0 && stop == listSize) {
-      stop = -1;  // Special case for reverse slicing
-    }
+    int listSize = static_cast<int>(elements.size());
+    int rhsSize = static_cast<int>(rhsElements.size());
+
+    start += start < 0 ? listSize : 0;
+    stop += stop < 0 ? listSize : 0;
+    start = start < 0 ? 0 : start;
+    stop = stop > listSize ? listSize : stop;
+    // Special case for reverse slicing
+    stop = step < 0 && stop == listSize ? -1 : stop; 
 
     if (step == 1) {
       // Simple case: step is 1
-      auto& elems = targetList->elements;
       if (start >= stop) {
-        elems.erase(elems.begin() + start, elems.begin() + stop);
-        elems.insert(elems.begin() + start, rhsValues->elements.begin(),
-                     rhsValues->elements.end());
+        elements.erase(elements.begin() + start, elements.begin() + stop);
+        elements.insert(elements.begin() + start, rhsElements.begin(),
+                     rhsElements.end());
       } else {
-        std::copy(rhsValues->elements.begin(), rhsValues->elements.end(),
-                  elems.begin() + start);
+        std::copy(rhsElements.begin(), rhsElements.end(),
+                  elements.begin() + start);
       }
     } else {
       // Complex case: step != 1
       int rhsIndex = 0;
       for (int i = start; i != stop && rhsIndex < rhsSize; i += step) {
         if ((step > 0 && i < listSize) || (step < 0 && i >= 0)) {
-          targetList->elements[i] = rhsValues->elements[rhsIndex++];
+          elements[i] = rhsElements.at(rhsIndex++);
         } else {
           break;  // Avoid going out of bounds
         }
@@ -352,7 +347,7 @@ struct InterpHelper {
           step = static_cast<int>(std::get<k_int>(slice.stepValue));
 
       // Adjust negative indices
-      int listSize = static_cast<int>(list->elements.size());
+      int listSize = static_cast<int>(elements.size());
       if (start < 0) {
         start = start + listSize > 0 ? start + listSize : 0;
       }
@@ -452,7 +447,7 @@ struct InterpHelper {
     }
     stream->next();  // Skip ")"
 
-    auto error = frame->getErrorState().error;
+    const auto& error = frame->getErrorState().error;
     errorType = error.getError();
     errorValue = error.getMessage();
   }
