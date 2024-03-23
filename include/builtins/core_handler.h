@@ -60,6 +60,9 @@ class CoreBuiltinHandler {
       case KName::Builtin_Astral_Size:
         return executeSize(term, value, args);
 
+      case KName::Builtin_Astral_ToBytes:
+        return executeToBytes(term, value, args);
+
       case KName::Builtin_Astral_ToD:
         return executeToDouble(term, value, args);
 
@@ -175,6 +178,49 @@ class CoreBuiltinHandler {
     }
 
     throw ConversionError(term);
+  }
+
+  static k_value executeToBytes(const Token& term, const k_value& value,
+                                const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.ToBytes);
+    }
+
+    if (std::holds_alternative<k_string>(value)) {
+      auto stringValue = std::get<k_string>(value);
+      std::vector<uint8_t> bytes(stringValue.begin(), stringValue.end());
+      auto byteList = std::make_shared<List>();
+      auto& elements = byteList->elements;
+
+      for (const auto& byte : bytes) {
+        elements.emplace_back(static_cast<k_int>(byte));
+      }
+
+      return byteList;
+    } else if (std::holds_alternative<k_list>(value)) {
+      auto listElements = std::get<k_list>(value)->elements;
+      auto byteList = std::make_shared<List>();
+      auto& elements = byteList->elements;
+
+      for (const auto& item : listElements) {
+        if (!std::holds_alternative<k_string>(item)) {
+          throw ConversionError(
+              term, "Expected a `List` to contain only `String` values.");
+        }
+
+        auto stringValue = std::get<k_string>(item);
+        std::vector<uint8_t> bytes(stringValue.begin(), stringValue.end());
+
+        for (const auto& byte : bytes) {
+          elements.emplace_back(static_cast<k_int>(byte));
+        }
+      }
+
+      return byteList;
+    } else {
+      throw ConversionError(
+          term, "Expected a `String` or `List` to convert to bytes.");
+    }
   }
 
   static k_value executeToDouble(const Token& term, const k_value& value,
