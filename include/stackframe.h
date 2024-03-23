@@ -39,6 +39,7 @@ inline FrameFlags operator~(FrameFlags a) {
 struct CallStackFrame {
   std::unordered_map<k_string, k_value> variables;
   std::unordered_map<k_string, Method> lambdas;
+  std::vector<k_string> aliases;
   k_value returnValue;
   ErrorState errorState;
   k_object objectContext;
@@ -48,6 +49,7 @@ struct CallStackFrame {
   ~CallStackFrame() {
     variables.clear();
     lambdas.clear();
+    aliases.clear();
   }
 
   void assignLambda(const k_string& name, const Method& method) {

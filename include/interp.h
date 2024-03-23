@@ -181,8 +181,7 @@ class Interpreter {
     interpretStackFrame();
 
     if (!preservingMainStackFrame && callStack.size() == 1) {
-      callStack.pop();
-      streamStack.pop();
+      popStack();
     }
 
     return 0;
@@ -191,9 +190,13 @@ class Interpreter {
   /// @brief Pops and returns the top of the call stack.
   /// @return A stack frame.
   std::shared_ptr<CallStackFrame> popTop() {
+    popStack();
+    return callStack.top();
+  }
+
+  void popStack() {
     streamStack.pop();
     callStack.pop();
-    return callStack.top();
   }
 
   void interpretStackFrame() {
@@ -243,8 +246,7 @@ class Interpreter {
           return true;
         }
       } else {
-        callStack.pop();
-        streamStack.pop();
+        popStack();
         return true;
       }
     }
@@ -536,8 +538,7 @@ class Interpreter {
       }
 
       auto value = getVariable(conditionStream, conditionFrame, tempId);
-      callStack.pop();
-      streamStack.pop();
+      popStack();
 
       if (!std::holds_alternative<bool>(value)) {
         throw ConversionError(stream->current());
@@ -2327,6 +2328,10 @@ class Interpreter {
     callStack.push(buildSubFrame(frame));
     streamStack.push(stream);
     interpretStackFrame();
+
+    for (const auto& alias : callStack.top()->aliases) {
+      classes.erase(alias);
+    }
   }
 
   k_value interpretSelfInvocation(std::shared_ptr<TokenStream> stream,
@@ -2572,7 +2577,7 @@ class Interpreter {
     return "";
   }
 
-  void interpretModuleAlias(std::shared_ptr<TokenStream> stream,
+  void interpretModuleAlias(std::shared_ptr<TokenStream> stream, std::shared_ptr<CallStackFrame> frame,
                             const k_string& moduleName) {
     stream->next();  // Skip "as"
 
@@ -2603,6 +2608,8 @@ class Interpreter {
     for (auto pair : clazz.getMethods()) {
       methods.erase(pair.first);
     }
+
+    frame->aliases.push_back(alias);
   }
 
   void interpretExport(std::shared_ptr<TokenStream> stream,
@@ -2639,7 +2646,7 @@ class Interpreter {
     }
 
     if (stream->current().getSubType() == KName::KW_As) {
-      interpretModuleAlias(stream, moduleName);
+      interpretModuleAlias(stream, frame, moduleName);
     }
   }
 
