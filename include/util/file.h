@@ -20,6 +20,7 @@ namespace fs = std::filesystem;
 /// @brief A file utility.
 class File {
  public:
+  // File operations
   static bool createFile(const k_string& filePath);
   static k_string getFileExtension(const k_string& filePath);
   static k_string getFileName(const k_string& filePath);
@@ -29,57 +30,79 @@ class File {
   static bool makeDirectoryP(const k_string& path);
   static bool removePath(const k_string& path);
   static int removePathF(const k_string& path);
-  static k_string getTempDirectory();
-  static bool copyFile(const k_string& sourcePath,
-                       const k_string& destinationPath, bool overwrite);
-  static bool copyR(const k_string& sourcePath,
-                    const k_string& destinationPath);
+  static bool copyFile(const k_string& sourcePath, const k_string& destinationPath, bool overwrite);
+  static bool copyR(const k_string& sourcePath, const k_string& destinationPath);
   static std::vector<k_string> listDirectory(const k_string& path);
-  static bool movePath(const k_string& sourcePath,
-                       const k_string& destinationPath);
+  static bool movePath(const k_string& sourcePath, const k_string& destinationPath);
+
+  // File content manipulation
   static k_int getFileSize(const k_string& filePath);
-  static bool writeToFile(const k_string& filePath, const k_value& content,
-                          bool appendMode, bool addNewLine);
+  static bool writeToFile(const k_string& filePath, const k_value& content, bool appendMode, bool addNewLine);
+  static k_string readFile(const k_string& filePath);
+  static std::vector<k_string> readLines(const k_string& filePath);
+
+  // Path manipulation
   static k_string getAbsolutePath(const k_string& path);
   static k_string getCurrentDirectory();
   static bool setCurrentDirectory(const k_string& path);
   static k_string getParentPath(const k_string& path);
+  static k_string joinPath(const k_string& directoryPath, const k_string& filePath);
+
+  // File type checks
   static bool isSymLink(const k_string& path);
   static bool isScript(const k_string& path);
+
+  // Directory and path utilities
+  static k_string getTempDirectory();
   static fs::path getExecutablePath();
   static k_string getLibraryPath();
   static std::vector<k_string> expandGlob(const k_string& globString);
   static k_string getLocalPath(const k_string& path);
-  static k_string joinPath(const k_string& directoryPath,
-                           const k_string& filePath);
-  static k_string readFile(const k_string& filePath);
-  static std::vector<k_string> readLines(const k_string& filePath);
 };
 
 /// @brief Create a file.
 /// @param filePath The file path.
 /// @return Boolean indicating success.
 bool File::createFile(const k_string& filePath) {
-  std::ofstream outputFile(filePath);
-  bool isSuccess = outputFile.is_open();
-  outputFile.close();
-  return isSuccess;
+  bool success = false;
+  try {
+    std::ofstream outputFile(filePath);
+    success = outputFile.is_open();
+    outputFile.close();  
+  } catch (const std::exception& e) {
+    Thrower<FileSystemError> thrower;
+    thrower.throwError(e.what());
+  }
+
+  return success;
 }
 
 /// @brief Get a file extension.
 /// @param filePath The file path.
 /// @return String containing a file extension.
 k_string File::getFileExtension(const k_string& filePath) {
-  fs::path path(filePath);
-  return path.extension().string();
+  try {
+    return fs::path(filePath).extension().string();
+  } catch (const std::exception& e) {
+    Thrower<FileSystemError> thrower;
+    thrower.throwError(e.what());
+  }
+
+  return "";
 }
 
 /// @brief Get a file name.
 /// @param filePath The file path.
 /// @return String containing a file name.
 k_string File::getFileName(const k_string& filePath) {
-  fs::path path(filePath);
-  return path.filename().string();
+  try {
+    return fs::path(filePath).filename().string();
+  } catch (const std::exception& e) {
+    Thrower<FileSystemError> thrower;
+    thrower.throwError(e.what());
+  }
+
+  return "";
 }
 
 /// @brief Checks if a file exists.
@@ -88,7 +111,11 @@ k_string File::getFileName(const k_string& filePath) {
 bool File::fileExists(const k_string& filePath) {
   try {
     return fs::exists(filePath);
-  } catch (const std::exception&) {}
+  } catch (const std::exception& e) {
+    Thrower<FileSystemError> thrower;
+    thrower.throwError(e.what());
+  }
+
   return false;
 }
 
@@ -98,7 +125,11 @@ bool File::fileExists(const k_string& filePath) {
 bool File::directoryExists(const k_string& path) {
   try {
     return fs::exists(path) && fs::is_directory(path);
-  } catch (const fs::filesystem_error&) {}
+  } catch (const fs::filesystem_error& e) {
+    Thrower<FileSystemError> thrower;
+    thrower.throwError(e.what());
+  }
+
   return false;
 }
 
@@ -108,7 +139,11 @@ bool File::directoryExists(const k_string& path) {
 bool File::makeDirectory(const k_string& path) {
   try {
     return fs::create_directory(path);
-  } catch (const fs::filesystem_error&) {}
+  } catch (const fs::filesystem_error& e) {
+    Thrower<FileSystemError> thrower;
+    thrower.throwError(e.what());
+  }
+
   return false;
 }
 
@@ -118,7 +153,11 @@ bool File::makeDirectory(const k_string& path) {
 bool File::makeDirectoryP(const k_string& path) {
   try {
     return fs::create_directories(path);
-  } catch (const fs::filesystem_error&) {}
+  } catch (const fs::filesystem_error& e) {
+    Thrower<FileSystemError> thrower;
+    thrower.throwError(e.what());
+  }
+
   return false;
 }
 
@@ -128,7 +167,11 @@ bool File::makeDirectoryP(const k_string& path) {
 bool File::removePath(const k_string& path) {
   try {
     return fs::remove(path);
-  } catch (const fs::filesystem_error&) {}
+  } catch (const fs::filesystem_error& e) {
+    Thrower<FileSystemError> thrower;
+    thrower.throwError(e.what());
+  }
+
   return false;
 }
 
@@ -138,12 +181,23 @@ bool File::removePath(const k_string& path) {
 int File::removePathF(const k_string& path) {
   try {
     return static_cast<int>(fs::remove_all(path));
-  } catch (const fs::filesystem_error&) {}
+  } catch (const fs::filesystem_error& e) {
+    Thrower<FileSystemError> thrower;
+    thrower.throwError(e.what());
+  }
+
   return false;
 }
 
 k_string File::getTempDirectory() {
-  return fs::temp_directory_path().string();
+  try {
+    return fs::temp_directory_path().string();
+  } catch (const std::exception& e) {
+    Thrower<FileSystemError> thrower;
+    thrower.throwError(e.what());
+  }
+
+  return "";
 }
 
 /// @brief Copy a file.
@@ -153,12 +207,15 @@ k_string File::getTempDirectory() {
 /// @return Boolean indicating success.
 bool File::copyFile(const k_string& sourcePath, const k_string& destinationPath,
                     bool overwrite = true) {
-  auto options =
-      overwrite ? fs::copy_options::overwrite_existing : fs::copy_options::none;
-
   try {
+    auto options =
+        overwrite ? fs::copy_options::overwrite_existing : fs::copy_options::none;
     return fs::copy_file(sourcePath, destinationPath, options);
-  } catch (const fs::filesystem_error&) {}
+  } catch (const fs::filesystem_error& e) {
+    Thrower<FileSystemError> thrower;
+    thrower.throwError(e.what());
+  }
+
   return false;
 }
 
@@ -170,7 +227,11 @@ bool File::copyR(const k_string& sourcePath, const k_string& destinationPath) {
   try {
     fs::copy(sourcePath, destinationPath, fs::copy_options::recursive);
     return true;
-  } catch (const fs::filesystem_error&) {}
+  } catch (const fs::filesystem_error& e) {
+    Thrower<FileSystemError> thrower;
+    thrower.throwError(e.what());
+  }
+
   return false;
 }
 
@@ -181,10 +242,18 @@ std::vector<k_string> File::listDirectory(const k_string& path) {
   std::vector<k_string> paths;
 
   try {
-    for (const auto& x : std::filesystem::directory_iterator(path)) {
+    for (const auto& x : fs::directory_iterator(path)) {
+      #ifdef _WIN64
+      const std::wstring entryPath = x.path().c_str();
+      paths.push_back(wstring_tos(entryPath));
+      #else
       paths.push_back(x.path().string());
+      #endif
     }
-  } catch (const fs::filesystem_error&) {}
+  } catch (const fs::filesystem_error& e) {
+    Thrower<FileSystemError> thrower;
+    thrower.throwError(e.what());
+  }
 
   return paths;
 }
@@ -198,7 +267,11 @@ bool File::movePath(const k_string& sourcePath,
   try {
     fs::rename(sourcePath, destinationPath);
     return true;
-  } catch (const fs::filesystem_error&) {}
+  } catch (const fs::filesystem_error& e) {
+    Thrower<FileSystemError> thrower;
+    thrower.throwError(e.what());
+  }
+
   return false;
 }
 
@@ -207,17 +280,13 @@ bool File::movePath(const k_string& sourcePath,
 /// @return Integer containing number of bytes in a file.
 k_int File::getFileSize(const k_string& filePath) {
   try {
-    if (!fileExists(filePath)) {
-      Thrower<FileNotFoundError> thrower;
-      thrower.throwError(filePath);
-    }
-
     return static_cast<k_int>(fs::file_size(filePath));
   } catch (const fs::filesystem_error& e) {
     Thrower<FileSystemError> thrower;
     thrower.throwError(e.what());
-    return -1;
   }
+  
+  return 0;
 }
 
 /// @brief Writes or appends content to a file.
@@ -249,8 +318,15 @@ bool File::writeToFile(const k_string& filePath, const k_value& content,
 /// @param path The path.
 /// @return String containing absolute path..
 k_string File::getAbsolutePath(const k_string& path) {
-  fs::path absolutePath = fs::absolute(path);
-  return absolutePath.lexically_normal().string();
+  try {
+    fs::path absolutePath = fs::absolute(path);
+    return absolutePath.lexically_normal().string();
+  } catch (const std::exception& e) {
+    Thrower<FileSystemError> thrower;
+    thrower.throwError(e.what());
+  }
+
+  return "";
 }
 
 /// @brief Get current directory path.
@@ -277,8 +353,14 @@ bool File::setCurrentDirectory(const k_string& path) {
 /// @param path
 /// @return
 k_string File::getParentPath(const k_string& path) {
-  fs::path childPath(path);
-  return childPath.parent_path().string();
+  try {
+    return fs::path(path).parent_path().string();
+  } catch (const std::exception& e) {
+    Thrower<FileSystemError> thrower;
+    thrower.throwError(e.what());
+  }
+
+  return "";
 }
 
 /// @brief Check if a path is a astral script.
@@ -392,25 +474,32 @@ std::vector<k_string> File::expandGlob(const k_string& globString) {
 
   if (glob.recursiveTraversal) {
     for (const auto& entry : fs::recursive_directory_iterator(basePath)) {
-#ifdef _WIN64
+      #ifdef _WIN64
       const std::wstring entryPath = entry.path().c_str();
       auto pathString = wstring_tos(entryPath);
       if (std::regex_match(pathString, filenameRegex)) {
         matchedFiles.push_back(entry.path().lexically_normal().string());
       }
-#else
+      #else
       if (entry.is_regular_file() &&
           std::regex_match(entry.path().filename().string(), filenameRegex)) {
         matchedFiles.push_back(entry.path().lexically_normal().string());
       }
-#endif
+      #endif
     }
   } else {
     for (const auto& entry : fs::directory_iterator(basePath)) {
+      #ifdef _WIN64
+      const std::wstring entryPath = entry.path().c_str();
+      if (std::regex_match(wstring_tos(entryPath), filenameRegex)) {
+        matchedFiles.push_back(entry.path().lexically_normal().string());
+      }
+      #else
       if (entry.is_regular_file() &&
           std::regex_match(entry.path().filename().string(), filenameRegex)) {
         matchedFiles.push_back(entry.path().lexically_normal().string());
       }
+      #endif
     }
   }
 
@@ -430,9 +519,7 @@ k_string File::getLocalPath(const k_string& path) {
 /// @return String containing combined path.
 k_string File::joinPath(const k_string& directoryPath,
                         const k_string& filePath) {
-  fs::path dir(directoryPath);
-  fs::path file(filePath);
-  fs::path fullPath = dir / file;
+  const auto& fullPath = fs::path(directoryPath) / fs::path(filePath);
   return fullPath.string();
 }
 
@@ -472,7 +559,7 @@ std::vector<k_string> File::readLines(const k_string& filePath) {
   std::vector<k_string> list;
   k_string line;
   while (getline(inputFile, line)) {
-    list.push_back(line);
+    list.emplace_back(std::move(line));
   }
 
   return list;
