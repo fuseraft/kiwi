@@ -1,5 +1,6 @@
 CXX := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic # -fsanitize=address
+CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic
+#-fsanitize=address
 BASE_LDFLAGS := -lcurl -lodbc
 PROFILE_FLAGS :=
 
