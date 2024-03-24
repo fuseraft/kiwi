@@ -58,6 +58,7 @@ enum KName {
   Builtin_FileIO_MakeDirectory,
   Builtin_FileIO_MakeDirectoryP,
   Builtin_FileIO_MoveFile,
+  Builtin_FileIO_ReadBytes,
   Builtin_FileIO_ReadFile,
   Builtin_FileIO_ReadLines,
   Builtin_FileIO_RemoveDirectory,

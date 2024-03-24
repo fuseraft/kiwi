@@ -208,6 +208,18 @@ module fs
   end
 
   /#
+  Summary: Get the content of a file as a list of strings.
+  Params:
+    - _path: The path to a file.
+    - _offset: The position in the file to read from.
+    - _size: The number of bytes to read from the file.
+  Returns: List
+  #/
+  def readbytes(_path, _offset, _size)
+    return __readbytes__(_path, _offset, _size)
+  end
+
+  /#
   Summary: Delete a file.
   Params:
     - _path: The path to a file or a filename.

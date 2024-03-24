@@ -525,6 +525,8 @@ class Lexer {
       st = KName::Builtin_FileIO_ReadFile;
     } else if (builtin == FileIOBuiltIns.ReadLines) {
       st = KName::Builtin_FileIO_ReadLines;
+    } else if (builtin == FileIOBuiltIns.ReadBytes) {
+      st = KName::Builtin_FileIO_ReadBytes;
     } else if (builtin == FileIOBuiltIns.RemoveDirectory) {
       st = KName::Builtin_FileIO_RemoveDirectory;
     } else if (builtin == FileIOBuiltIns.RemoveDirectoryF) {
