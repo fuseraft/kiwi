@@ -368,10 +368,13 @@ class FileIOBuiltinHandler {
     }
 
     auto fileName = get_string(token, args.at(0));
+    auto lines = File::readLines(fileName);
+
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
+    elements.reserve(lines.size());
 
-    for (const auto& line : File::readLines(fileName)) {
+    for (const auto& line : lines) {
       elements.emplace_back(line);
     }
 
@@ -391,6 +394,8 @@ class FileIOBuiltinHandler {
     auto bytes = File::readBytes(fileName, offset, size);
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
+
+    elements.reserve(bytes.size());
 
     for (const auto& byte : bytes) {
       elements.emplace_back(static_cast<k_int>(byte));
@@ -434,8 +439,10 @@ class FileIOBuiltinHandler {
       throw ConversionError(token, "Expected a list of bytes to write.");
     }
 
-    std::vector<char> bytes;
     auto elements = std::get<k_list>(value)->elements;
+    std::vector<char> bytes;
+    bytes.reserve(elements.size());
+
     for (const auto& item : elements) {
       if (!std::holds_alternative<k_int>(item)) {
         throw ConversionError(token, "Expected a list of bytes to write.");
