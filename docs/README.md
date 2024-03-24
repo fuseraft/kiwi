@@ -35,5 +35,5 @@
 17. **Experimental Features**
     1. [Concurrency](concurrency.md)
     2. [**Standard Library**](standard_library.md)
-        1. [`http`](lib/http.md)
-        2. [`odbc`](lib/odbc.md)
+        1. [`http`](lib/experimental/http.md)
+        2. [`odbc`](lib/experimental/odbc.md)

@@ -6,7 +6,7 @@ Common file extensions are: `.conf`, `.ini`, `.cfg`, `.env`, and `.json`
 
 *Note: this module is likely to evolve over time.* 
 
-# Table of Contents
+## Table of Contents
 
 - [Importing the Module](#importing-the-module)
 - [Module Functions](#module-functions)

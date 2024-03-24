@@ -2,7 +2,7 @@
 
 The `fs` module contains functionality for working with files and directories.
 
-# Table of Contents
+## Table of Contents
 
 - [Importing the Module](#importing-the-module)
 - [Module Functions](#module-functions)
