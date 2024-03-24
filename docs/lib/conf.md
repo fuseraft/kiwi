@@ -27,23 +27,28 @@ import "@astral/conf" as conf
 
 Reads settings from a `conf` file into a hash.
 
-| Parameter | Description |
-| --- | --- |
-| `_conf_path` | The path to the file. |
-| `_delim` | The delimiter for splitting key-value pairs. |
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_conf_path` | The path to the file. |
+| `String` | `_delim` | The delimiter for splitting key-value pairs. |
 
-| Return Type | Description |
-| --- | --- |
+**Returns**
+| Type | Description |
+| :--- | :---|
 | `Hash` | Settings read from a file. |
 
 ### `readjson(_json_path)`
 
 Reads settings from a `json` file into a hash.
 
-| Parameter | Description |
-| --- | --- |
-| `_json_path` | The path to a `json` file. |
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_json_path` | The path to a `json` file. |
+| `String` | `_delim` | The delimiter for splitting key-value pairs. |
 
-| Return Type | Description |
-| --- | --- |
+**Returns**
+| Type | Description |
+| :--- | :---|
 | `Hash` | Settings read from a `json` file. |

@@ -3,7 +3,7 @@
 Astral supports working with the following types: 
 
 | Type | Description | Documentation |
-| --- | --- | --- |
+| :--- | :--- | :--- |
 | `Integer` | An integer. | See below for an example. |
 | `Double` | A floating point number. | See below for an example. |
 | `Boolean` | A `true` or `false` value. | See below for an example. |

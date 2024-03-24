@@ -21,21 +21,23 @@ import "@astral/argv" as ARGV
 
 ### `get()`
 Get the list of command-line arguments.
-- **Returns**: List of command-line arguments.
 
-| Return Type | Description |
-| --- | --- |
+**Returns**
+| Type | Description |
+| :--- | :--- |
 | `List` | The command-line arguments. |
 
 ### `opt(_key)`
 Get a KVP command-line option value by key.
 
-| Parameter | Description |
-| --- | --- |
-| `_key` |The option key.|
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_key` | The option key.|
 
-| Return Type | Description |
-| --- | --- |
+**Returns**
+| Type | Description |
+| :--- | :---|
 | `String` | The option value. |
 
 ## KVP Command-Line Options

@@ -2,73 +2,171 @@
 
 The `time` module contains functionality for working with time and date information.
 
+# Table of Contents for `@astral/time` Module
+
+- [Importing the Module](#importing-the-module)
+- [Module Functions](#module-functions)
+  - [`hour()`](#hour)
+  - [`minute()`](#minute)
+  - [`second()`](#second)
+  - [`ampm()`](#ampm)
+  - [`day()`](#day)
+  - [`month()`](#month)
+  - [`year()`](#year)
+  - [`weekday()`](#weekday)
+  - [`yearday()`](#yearday)
+  - [`isdst()`](#isdst)
+  - [`epochms()`](#epochms)
+  - [`ticks()`](#ticks)
+  - [`ticksms(_ticks)`](#ticksms_ticks)
+  - [`timestamp()`](#timestamp)
+  - [`delay(_ms)`](#delay_ms)
+
 ## Importing the Module
 To use the `time` module, import it at the beginning of your Astral script.
 
 ```ruby
-import "@astral/time"
+import "@astral/time" as time
 ```
 
 ## Module Functions
 
 ### `hour()`
-- **Summary**: Retrieves the current hour of the day (0 to 23).
-- **Returns**: Integer representing the hour.
+
+Retrieves the current hour of the day (0 to 23).
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | The current hour. |
 
 ### `minute()`
-- **Summary**: Retrieves the current minute of the hour (0 to 59).
-- **Returns**: Integer representing the minute.
+
+Retrieves the current minute of the hour (0 to 59).
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | The current minute. |
 
 ### `second()`
-- **Summary**: Retrieves the current second of the minute (0 to 60).
-- **Returns**: Integer representing the second.
+
+Retrieves the current second of the minute (0 to 60).
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | The current second. |
 
 ### `ampm()`
-- **Summary**: Retrieves the time of day designation for 12-hour clocks as "AM" or "PM".
-- **Returns**: String either "AM" or "PM".
 
-### `current_timestamp()`
-- **Summary**: Retrieves the current timestamp formatted as "YYYY/mm/dd hh:mm:ss tt".
-- **Returns**: String representing the formatted current timestamp.
+Retrieves the time of day designation for 12-hour clocks as "AM" or "PM".
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `String` | "AM" or "PM". |
+
+### `timestamp()`
+
+Retrieves the current timestamp formatted as "YYYY/mm/dd hh:mm:ss tt".
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | The current timestamp formatted as "YYYY/mmdd hh:mm:ss tt". |
 
 ### `day()`
-- **Summary**: Retrieves the day of the month (1 to 31).
-- **Returns**: Integer representing the day of the month.
+
+Retrieves the day of the month (1 to 31).
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | The current day of the month. |
 
 ### `month()`
-- **Summary**: Retrieves the current month of the year (1 to 12).
-- **Returns**: Integer representing the month.
+
+Retrieves the current month of the year (1 to 12).
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | The current month. |
 
 ### `year()`
-- **Summary**: Retrieves the current year.
-- **Returns**: Integer representing the year.
+
+Retrieves the current year.
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | The current year. |
 
 ### `weekday()`
-- **Summary**: Retrieves the day of the week (1 to 7, where 1 is Sunday and 7 is Saturday).
-- **Returns**: Integer representing the day of the week.
+
+Retrieves the day of the week (1 to 7, where 1 is Sunday and 7 is Saturday).
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | The day of the week. |
 
 ### `yearday()`
-- **Summary**: Retrieves the day of the year (0 to 365). December 31st is 364 on leap years.
-- **Returns**: Integer representing the day of the year.
+
+Retrieves the day of the year (0 to 365). December 31st is 364 on leap years.
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | The day of the year. |
 
 ### `isdst()`
-- **Summary**: Checks whether it is currently Daylight Savings Time.
-- **Returns**: Boolean indicating DST status.
+
+Checks whether it is currently Daylight Savings Time.
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates DST status. |
 
 ### `epochms()`
-- **Summary**: Retrieves the number of milliseconds since January 1st, 1970.
-- **Returns**: Double representing milliseconds since the epoch.
+
+Retrieves the number of milliseconds since January 1st, 1970.
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The milliseconds since the epoch. |
 
 ### `ticks()`
-- **Summary**: Retrieves the number of nanoseconds since January 1st, 1970.
-- **Returns**: Double representing nanoseconds since the epoch.
+
+Retrieves the number of nanoseconds since January 1st, 1970.
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The nanoseconds since the epoch. |
 
 ### `ticksms(_ticks)`
-- **Summary**: Converts ticks to milliseconds.
-- **Returns**: Double representing milliseconds.
+
+Converts ticks to milliseconds.
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The ticks in milliseconds. |
 
 ### `delay(_ms)`
-- **Parameters**:
-  - `_ms`: The duration to sleep in milliseconds.
-- **Summary**: Pauses execution for a specified duration in milliseconds.
-- **Returns**: Double representing the duration paused.
+
+Pauses execution for a specified duration in milliseconds.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Integer` | `_ms` | The duration to sleep in milliseconds. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The duration slept in milliseconds. |
