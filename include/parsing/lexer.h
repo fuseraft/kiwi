@@ -533,6 +533,8 @@ class Lexer {
       st = KName::Builtin_FileIO_RemoveDirectoryF;
     } else if (builtin == FileIOBuiltIns.TempDir) {
       st = KName::Builtin_FileIO_TempDir;
+    } else if (builtin == FileIOBuiltIns.WriteBytes) {
+      st = KName::Builtin_FileIO_WriteBytes;
     } else if (builtin == FileIOBuiltIns.WriteLine) {
       st = KName::Builtin_FileIO_WriteLine;
     } else if (builtin == FileIOBuiltIns.WriteText) {
