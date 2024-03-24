@@ -199,18 +199,6 @@ struct InterpHelper {
     }
   }
 
-  static std::vector<Token> getTemporaryAssignment(const Token& term,
-                                                   const std::string& tempId) {
-    std::vector<Token> tokens;
-    auto file = term.getFile();
-    tokens.emplace_back(Token::create(KTokenType::IDENTIFIER, KName::Default,
-                                      file, tempId, 0, 0));
-    tokens.emplace_back(Token::create(KTokenType::OPERATOR, KName::Ops_Assign,
-                                      file, Operators.Assign, 0, 0));
-
-    return tokens;
-  }
-
   static void updateListSlice(std::shared_ptr<TokenStream> stream,
                               bool insertOp, k_list& targetList,
                               const SliceIndex& slice,
