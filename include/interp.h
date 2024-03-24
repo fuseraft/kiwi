@@ -507,22 +507,25 @@ class Interpreter {
 
   void interpretWhileLoop(std::shared_ptr<TokenStream> stream,
                           std::shared_ptr<CallStackFrame> frame) {
-    std::vector<Token> conditionTokens;
+    std::vector<Token> condition;
+    auto term = stream->current();
     while (stream->canRead() &&
            stream->current().getSubType() != KName::KW_Do) {
-      conditionTokens.emplace_back(std::move(stream->current()));
+      condition.emplace_back(std::move(stream->current()));
       stream->next();
+    }
+
+    if (stream->current().getType() == KTokenType::STREAM_END) {
+      throw SyntaxError(term, "Expected keyword `" + Keywords.Do + "`.");
     }
 
     stream->next();  // Skip "do"
 
     auto loopTokens = InterpHelper::collectBodyTokens(stream);
-
     auto oldFrame = std::make_shared<CallStackFrame>(*frame);
-    auto tempId = InterpHelper::getTemporaryId();
-    auto tempAssignment =
-        InterpHelper::getTemporaryAssignment(stream->current(), tempId);
-
+    auto conditionStream = std::make_shared<TokenStream>(condition);
+    auto& streamPosition = conditionStream->position;
+      
     while (true) {
       if (frame->isLoopControlFlagSet()) {
         if (frame->isFlagSet(FrameFlags::LoopBreak)) {
@@ -533,23 +536,9 @@ class Interpreter {
         }
       }
 
-      auto condition = tempAssignment;
-      condition.insert(condition.end(), conditionTokens.begin(),
-                       conditionTokens.end());  // Append conditionTokens
-
-      auto conditionStream = std::make_shared<TokenStream>(condition);
       auto conditionFrame = buildSubFrame(frame);
-      callStack.push(conditionFrame);
-      streamStack.push(conditionStream);
-      interpretAssignment(conditionStream, conditionFrame, "", true);
-
-      if (!conditionFrame->hasVariable(tempId)) {
-        throw SyntaxError(stream->current(),
-                          "Invalid condition in while-loop.");
-      }
-
-      auto value = getVariable(conditionStream, conditionFrame, tempId);
-      popStack();
+      auto value = interpretExpression(conditionStream, conditionFrame);
+      streamPosition = 0;
 
       if (!std::holds_alternative<bool>(value)) {
         throw ConversionError(stream->current());
@@ -3099,7 +3088,7 @@ class Interpreter {
                             ListBuiltins.ToH + "`.");
     }
 
-    return interpolateString(stream, frame, input);
+    return interpolateString(frame, input);
   }
 
   k_value interpretObjectToHash(std::shared_ptr<TokenStream> stream,
@@ -3714,34 +3703,13 @@ class Interpreter {
         parameters));
   }
 
-  k_value interpolateString(std::shared_ptr<TokenStream> stream,
-                            std::shared_ptr<CallStackFrame> frame,
+  k_value interpolateString(std::shared_ptr<CallStackFrame> frame,
                             const k_string& input) {
-    if (input[0] == '@') {
-      k_string name = input.substr(1);
-      if (hasVariable(frame, name)) {
-        return getVariable(stream, frame, name);
-      }
-    }
-
-    auto tempId = InterpHelper::getTemporaryId();
-    std::vector<Token> tempAssignment =
-        InterpHelper::getTemporaryAssignment(stream->current(), tempId);
-
     Lexer lexer("", input);
-    auto tokens = lexer.getAllTokens();
-    tempAssignment.insert(tempAssignment.end(), tokens.begin(), tokens.end());
-
-    auto tempStream = std::make_shared<TokenStream>(tempAssignment);
+    auto tempStream = std::make_shared<TokenStream>(lexer.getAllTokens());
     auto tempFrame = buildSubFrame(frame);
-    interpretAssignment(tempStream, tempFrame, "", true);
 
-    if (!tempFrame->hasVariable(tempId)) {
-      throw SyntaxError(stream->current(),
-                        "Invalid string interpolation: `" + input + "`");
-    }
-
-    return getVariable(stream, tempFrame, tempId);
+    return interpretExpression(tempStream, tempFrame);
   }
 
   k_string interpolateString(std::shared_ptr<TokenStream> stream,
@@ -3767,7 +3735,7 @@ class Interpreter {
         if (braceCount == 0) {
           --i;  // Go back to the closing brace
           auto value =
-              interpolateString(stream, frame, input.substr(start, i - start));
+              interpolateString(frame, input.substr(start, i - start));
           if (!std::holds_alternative<k_object>(value)) {
             sv << Serializer::serialize(value);
           } else {
