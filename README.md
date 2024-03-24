@@ -1,4 +1,4 @@
-# The Astral Programming Language 🚀
+# astral 🚀
 
 A lightweight, dynamically-typed, general-purpose language without a syntax tree.
 
