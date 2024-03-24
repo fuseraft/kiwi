@@ -2,7 +2,7 @@
 
 The `argv` module contains functionality for working with command-line arguments.
 
-# Table of Contents
+## Table of Contents
 
 - [Importing the Module](#importing-the-module)
 - [Module Functions](#module-functions)

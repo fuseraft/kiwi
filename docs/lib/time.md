@@ -2,25 +2,25 @@
 
 The `time` module contains functionality for working with time and date information.
 
-# Table of Contents for `@astral/time` Module
+## Table of Contents
 
 - [Importing the Module](#importing-the-module)
 - [Module Functions](#module-functions)
-  - [`hour()`](#hour)
-  - [`minute()`](#minute)
-  - [`second()`](#second)
   - [`ampm()`](#ampm)
   - [`day()`](#day)
-  - [`month()`](#month)
-  - [`year()`](#year)
-  - [`weekday()`](#weekday)
-  - [`yearday()`](#yearday)
-  - [`isdst()`](#isdst)
+  - [`delay(_ms)`](#delay_ms)
   - [`epochms()`](#epochms)
+  - [`hour()`](#hour)
+  - [`isdst()`](#isdst)
+  - [`minute()`](#minute)
+  - [`month()`](#month)
+  - [`second()`](#second)
   - [`ticks()`](#ticks)
   - [`ticksms(_ticks)`](#ticksms_ticks)
   - [`timestamp()`](#timestamp)
-  - [`delay(_ms)`](#delay_ms)
+  - [`weekday()`](#weekday)
+  - [`year()`](#year)
+  - [`yearday()`](#yearday)
 
 ## Importing the Module
 To use the `time` module, import it at the beginning of your Astral script.

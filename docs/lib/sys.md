@@ -2,7 +2,7 @@
 
 The `sys` module contains functionality for working with external processes.
 
-# Table of Contents
+## Table of Contents
 
 - [Importing the Module](#importing-the-module)
 - [Module Functions](#module-functions)

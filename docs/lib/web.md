@@ -4,7 +4,7 @@ The `web` module contains functionality for building web applications in Astral.
 
 *Note: this module is likely to evolve over time.*
 
-# Table of Contents
+## Table of Contents
 
 - [Importing the Module](#importing-the-module)
 - [Module Functions](#module-functions)

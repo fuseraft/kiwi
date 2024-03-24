@@ -19,8 +19,8 @@ Astral supports some experimental modules for working with databases and making 
 
 | **Module** | **Description** |
 | :--- | :--- |
-| [`@astral/http`](lib/http.md) | A module for making HTTP requests. |
-| [`@astral/odbc`](lib/odbc.md) | A module for working with common databases. |
+| [`@astral/http`](lib/experimental/http.md) | A module for making HTTP requests. |
+| [`@astral/odbc`](lib/experimental/odbc.md) | A module for working with common databases. |
 
 
 Note: To use these modules, you need to install the following dependencies.

@@ -1,281 +1,702 @@
 # `@astral/math`
 
-## Overview
-
 The `math` module contains functionality for working with common math operations.
+
+## Table of Contents
+
+- [Importing the Module](#importing-the-module)
+- [Module Functions](#module-functions)
+  - [`abs(_value)`](#abs_value)
+  - [`acos(_value)`](#acos_value)
+  - [`asin(_value)`](#asin_value)
+  - [`atan(_value)`](#atan_value)
+  - [`atan2(_valueY, _valueX)`](#atan2_valuey-_valuex)
+  - [`cbrt(_value)`](#cbrt_value)
+  - [`ceil(_value)`](#ceil_value)
+  - [`copysign(_valueX, _valueY)`](#copysign_valuex-_valuey)
+  - [`cos(_value)`](#cos_value)
+  - [`cosh(_value)`](#cosh_value)
+  - [`epsilon()`](#epsilon)
+  - [`erf(_value)`](#erf_value)
+  - [`erfc(_value)`](#erfc_value)
+  - [`exp(_value)`](#exp_value)
+  - [`expm1(_value)`](#expm1_value)
+  - [`fdim(_valueX, _valueY)`](#fdim_valuex-_valuey)
+  - [`floor(_value)`](#floor_value)
+  - [`fmax(_valueX, _valueY)`](#fmax_valuex-_valuey)
+  - [`fmin(_valueX, _valueY)`](#fmin_valuex-_valuey)
+  - [`fmod(_valueX, _valueY)`](#fmod_valuex-_valuey)
+  - [`hypot(_valueX, _valueY)`](#hypot_valuex-_valuey)
+  - [`isfinite(_value)`](#isfinite_value)
+  - [`isinf(_value)`](#isinf_value)
+  - [`isnan(_value)`](#isnan_value)
+  - [`isnormal(_value)`](#isnormal_value)
+  - [`lgamma(_value)`](#lgamma_value)
+  - [`listprimes(_limit)`](#listprimes_limit)
+  - [`log(_value)`](#log_value)
+  - [`log10(_value)`](#log10_value)
+  - [`log1p(_value)`](#log1p_value)
+  - [`log2(_value)`](#log2_value)
+  - [`nextafter(_valueX, _valueY)`](#nextafter_valuex-_valuey)
+  - [`nthprime(_n)`](#nthprime_n)
+  - [`pow(_valueX, _valueY)`](#pow_valuex-_valuey)
+  - [`random(_base, _limit)`](#random_base-_limit)
+  - [`random(_valueX, _valueY)`](#random_valuex-_valuey)
+  - [`remainder(_valueX, _valueY)`](#remainder_valuex-_valuey)
+  - [`round(_value)`](#round_value)
+  - [`sin(_value)`](#sin_value)
+  - [`sinh(_value)`](#sinh_value)
+  - [`sqrt(_value)`](#sqrt_value)
+  - [`tan(_value)`](#tan_value)
+  - [`tanh(_value)`](#tanh_value)
+  - [`tgamma(_value)`](#tgamma_value)
+  - [`trunc(_value)`](#trunc_value)
 
 ## Importing the Module
 To use the `math` module, import it at the beginning of your Astral script.
 
 ```ruby
-import "@astral/math"
+import "@astral/math" as math
 ```
 
 ## Module Functions
 
 ### `epsilon()`
-- **Summary**: Gets the smallest difference from 1.0 that a floating-point type can accurately represent.
-- **Parameters**: None.
-- **Returns**: Double representing the epsilon value.
+
+Gets the machine epsilon.
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The machine epsilon. |
 
 ### `random(_valueX, _valueY)`
-- **Summary**: Returns a random number between x and y.
-- **Parameters**: 
-  - `_valueX` - The number x.
-  - `_valueY` - The number y.
-- **Returns**: Integer or double random number.
+
+Returns a random number between x and y.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Integer`\|`Double` | `_valueX` | The number x. |
+| `Integer`\|`Double` | `_valueY` | The number y. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer`\|`Double` | A random number. |
 
 ### `random(_base, _limit)`
-- **Summary**: Returns a random string or list from a string or list with a limited number of characters or elements.
-- **Parameters**: 
-  - `_base` - The base string or list containing the elements to build a random distribution from.
-  - `_limit` - The total number of characters (in a string) or elements (in a list) to produce from the base.
-- **Returns**: String or List.
+
+Returns a random string or list from a string or list with a limited number of characters or elements.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String`\|`List` | `_base` | The base string or list containing the elements to build a random distribution from. |
+| `Integer` | `_limit` | The total number of characters (in a string) or elements (in a list) to produce from the base. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `String`\|`List` | A random string or list. |
 
 ### `listprimes(_limit)`
-- **Summary**: Get a list of prime numbers up to a limit.
-- **Params**:
-  - `_limit`: The limit.
-- **Returns**: List of prime numbers.
+
+Get a list of prime numbers up to a limit.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Integer` | `_limit` | The limit. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `List` | Prime numbers. |
 
 ### `nthprime(_n)`
-- **Summary**: Get the n-th prime number.
-- **Params**:
-  - `_n`: The n-th prime number.
-- **Returns**: Integer containing the n-th prime number.
+
+Get the n-th prime number.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Integer` | `_n` | The n-th number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | The n-th prime number. |
 
 ### `sin(_value)`
-- **Summary**: Computes the sine of a number.
-- **Parameters**: `_value` - The angle in radians.
-- **Returns**: Double representing the sine of the input.
+
+Computes the sine of a number.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The angle in radians. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The sine of the input. |
 
 ### `cos(_value)`
-- **Summary**: Computes the cosine of a number.
-- **Parameters**: `_value` - The angle in radians.
-- **Returns**: Double representing the cosine of the input.
+
+Computes the cosine of a number.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The angle in radians. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The cosine of the input. |
 
 ### `tan(_value)`
-- **Summary**: Computes the tangent of a number.
-- **Parameters**: `_value` - The angle in radians.
-- **Returns**: Double representing the tangent of the input.
+
+Computes the tangent of a number.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The angle in radians. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The tangent of the input. |
 
 ### `asin(_value)`
-- **Summary**: Computes the arc sine of a number.
-- **Parameters**: `_value` - The number.
-- **Returns**: Double representing the arc sine of the input.
+
+Computes the arc sine of a number.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The arc sine of the input. |
 
 ### `acos(_value)`
-- **Summary**: Computes the arc cosine of a number.
-- **Parameters**: `_value` - The number.
-- **Returns**: Double representing the arc cosine of the input.
+
+Computes the arc cosine of a number.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The arc cosine of the input. |
 
 ### `atan(_value)`
-- **Summary**: Computes the arc tangent of a number.
-- **Parameters**: `_value` - The number.
-- **Returns**: Double representing the arc tangent of the input.
+
+Computes the arc tangent of a number.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The arc tangent of the input. |
 
 ### `atan2(_valueY, _valueX)`
-- **Summary**: Computes the arc tangent of y / x, handling quadrants correctly.
-- **Parameters**: `_valueY` - The y-coordinate, `_valueX` - The x-coordinate.
-- **Returns**: Double representing the arc tangent of y / x.
+
+Computes the arc tangent of `y / x`, handling quadrants correctly.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_valueY` | The y-coordinate. |
+| `Double` | `_valueX` | The x-coordinate. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The arc tangent of `y / x`. |
 
 ### `sinh(_value)`
-- **Summary**: Computes the hyperbolic sine of a number.
-- **Parameters**: `_value` - The number.
-- **Returns**: Double representing the hyperbolic sine of the input.
+
+Computes the hyperbolic sine of a number.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The hyperbolic sine of the input. |
 
 ### `cosh(_value)`
-- **Summary**: Computes the hyperbolic cosine of a number.
-- **Parameters**: `_value` - The number.
-- **Returns**: Double representing the hyperbolic cosine of the input.
+
+Computes the hyperbolic cosine of a number.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The hyperbolic cosine of the input. |
 
 ### `tanh(_value)`
-- **Summary**: Computes the hyperbolic tangent of a number.
-- **Parameters**: `_value` - The number.
-- **Returns**: Double representing the hyperbolic tangent of the input.
+
+Computes the hyperbolic tangent of a number.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The hyperbolic tangent of the input. |
 
 ### `log(_value)`
-- **Summary**: Computes the natural logarithm (base e) of a number.
-- **Parameters**: `_value` - The number.
-- **Returns**: Double representing the natural logarithm of the input.
+
+Computes the natural logarithm (base e) of a number.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The natural logarithm of the input. |
 
 ### `log2(_value)`
-- **Summary**: Computes the logarithm to base 2 of a number.
-- **Parameters**: `_value` - The number.
-- **Returns**: Double representing the base 2 logarithm of the input.
+
+Computes the logarithm to base 2 of a number.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The base 2 logarithm of the input. |
+
 
 ### `log10(_value)`
-- **Summary**: Computes the logarithm to base 10 of a number.
-- **Parameters**: `_value` - The number.
-- **Returns**: Double representing the base 10 logarithm of the input.
+
+Computes the logarithm to base 10 of a number.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The base 10 logarithm of the input. |
+
 
 ### `log1p(_value)`
-- **Summary**: Computes log(1 + x).
-- **Parameters**: 
-  - `_value`: The number x.
-- **Returns**: Double representing log(1 + x).
+
+Computes `log(1 + x)`.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number x. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The value of `log(1 + x)` |
+
 
 ### `sqrt(_value)`
-- **Summary**: Computes the square root of a number.
-- **Parameters**: 
-  - `_value`: The number.
-- **Returns**: Double representing the square root of the input.
+
+Computes the square root of a number.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The square root of the input. |
 
 ### `cbrt(_value)`
-- **Summary**: Computes the cube root of a number.
-- **Parameters**: 
-  - `_value`: The number.
-- **Returns**: Double representing the cube root of the input.
+
+Computes the cube root of a number.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The cube root of the input. |
 
 ### `fmod(_valueX, _valueY)`
-- **Summary**: Gets the FP remainder of x / y.
-- **Parameters**: 
-  - `_valueX`: The number x.
-  - `_valueY`: The number y.
-- **Returns**: Double representing the remainder of x / y.
+
+Gets the floating-point remainder of `x / y`.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_valueX` | The number x. |
+| `Double` | `_valueY` | The number y. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The remainder of `x / y`. |
 
 ### `hypot(_valueX, _valueY)`
-- **Summary**: Computes sqrt(x^2 + y^2) without undue overflow or underflow.
-- **Parameters**: 
-  - `_valueX`: The number x.
-  - `_valueY`: The number y.
-- **Returns**: Double representing the Euclidean distance between the point (x, y) and the origin.
+
+Computes `sqrt(x^2 + y^2)` without undue overflow or underflow.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_valueX` | The number x. |
+| `Double` | `_valueY` | The number y. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The Euclidean distance between the point (x, y) and the origin. |
 
 ### `isfinite(_value)`
-- **Summary**: Checks if x is a finite value.
-- **Parameters**: 
-  - `_value`: The number x.
-- **Returns**: Boolean indicating whether x is finite.
+
+Checks if a number is a finite value.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates whether the number is finite. |
 
 ### `isinf(_value)`
-- **Summary**: Checks if x is an infinite value.
-- **Parameters**: 
-  - `_value`: The number x.
-- **Returns**: Boolean indicating whether x is infinite.
+
+Checks if a number is an infinite value.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates whether the number is infinite. |
 
 ### `isnan(_value)`
-- **Summary**: Checks if x is NaN (Not a Number).
-- **Parameters**: 
-  - `_value`: The number x.
-- **Returns**: Boolean indicating whether x is NaN.
+
+Checks if a number is NaN (Not a Number).
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates whether the number is NaN. |
 
 ### `isnormal(_value)`
-- **Summary**: Checks if x is a normal floating-point number.
-- **Parameters**: 
-  - `_value`: The number x.
-- **Returns**: Boolean indicating whether x is a normal number.
+
+Checks if a number is a normal floating-point number.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates whether the number is a normal number. |
 
 ### `floor(_value)`
-- **Summary**: Rounds x to the largest integer not greater than x.
-- **Parameters**: 
-  - `_value`: The number x.
-- **Returns**: Double representing the largest integer not greater than x.
+
+Rounds a number to the largest integer not greater than the number.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | The floor value. |
 
 ### `ceil(_value)`
-- **Summary**: Rounds x to the smallest integer not less than x.
-- **Parameters**: 
-  - `_value`: The number x.
-- **Returns**: Double representing the smallest integer not less than x.
+
+Rounds a number to the smallest integer not less than the number.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | The ceiling value. |
 
 ### `round(_value)`
-- **Summary**: Rounds x to the nearest integer, away from zero in halfway cases.
-- **Parameters**: 
-  - `_value`: The number x.
-- **Returns**: Double representing the nearest integer to x.
+
+Rounds a number to the nearest integer, away from zero in halfway cases.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | The nearest integer. |
 
 ### `trunc(_value)`
-- **Summary**: Truncates x to the integer part, towards zero.
-- **Parameters**: 
-  - `_value`: The number x.
-- **Returns**: Double representing the truncated value of x.
+
+Truncates a number to the integer part, towards zero.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The truncated value. |
 
 ### `remainder(_valueX, _valueY)`
-- **Summary**: IEEE 754 floating-point remainder of x / y.
-- **Parameters**: 
-  - `_valueX`: The number x.
-  - `_valueY`: The number y.
-- **Returns**: Double representing the remainder of the division of x by y.
+
+Computes the IEEE 754 floating-point remainder of `x / y`.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_valueX` | The number x. |
+| `Double` | `_valueY` | The number y. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The remainder of `x / y`. |
 
 ### `exp(_value)`
-- **Summary**: Computes e^x, where e is the base of the natural logarithms.
-- **Parameters**: 
-  - `_value`: The number x.
-- **Returns**: Double representing e raised to the power of x.
+
+Computes `e^x`, where `e` is the base of the natural logarithm.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number x. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The value of `e^x`. |
 
 ### `expm1(_value)`
-- **Summary**: Computes e^x - 1.
-- **Parameters**: 
-  - `_value`: The number x.
-- **Returns**: Double representing (e^x) - 1.
+
+Computes `e^x - 1`.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number x. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The value of `e^x - 1`. |
 
 ### `erf(_value)`
-- **Summary**: Error function.
-- **Parameters**: 
-  - `_value`: The number.
-- **Returns**: Double representing the error function of x.
+
+Error function.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The error function of a number. |
 
 ### `erfc(_value)`
-- **Summary**: Complementary error function.
-- **Parameters**: 
-  - `_value`: The number.
-- **Returns**: Double representing the complementary error function of x.
+
+Complementary error function.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The complementary error function of a number. |
 
 ### `lgamma(_value)`
-- **Summary**: The natural logarithm of the absolute value of the gamma function.
-- **Parameters**: 
-  - `_value`: The number.
-- **Returns**: Double representing the natural logarithm of the gamma function of x.
+
+The natural logarithm of the absolute value of the gamma function.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The natural logarithm of the gamma function of a number. |
 
 ### `tgamma(_value)`
-- **Summary**: The gamma function.
-- **Parameters**: 
-  - `_value`: The number.
-- **Returns**: Double representing the gamma function of x.
+
+The gamma function.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The gamma function of a number. |
 
 ### `copysign(_valueX, _valueY)`
-- **Summary**: Copies the sign of y to x.
-- **Parameters**:
-  - `_valueX`: The magnitude of the number.
-  - `_valueY`: The sign of the number.
-- **Returns**: Double with the magnitude of x and the sign of y.
+
+Copies the sign of `y` to `x`.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_valueX` | The number. |
+| `Double` | `_valueY` | The sign of the number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | Contains `x` with the sign of `y`. |
 
 ### `nextafter(_valueX, _valueY)`
-- **Summary**: Get the next representable value after x towards y.
-- **Parameters**:
-  - `_valueX`: The starting point number.
-  - `_valueY`: The number x is moving towards.
-- **Returns**: Double representing the next representable floating-point value moving from x towards y.
+
+Get the next representable value after x towards y.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_valueX` | The number x. |
+| `Double` | `_valueY` | The number x is moving towards. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The next representable floating-point value moving from `x` towards `y`. |
 
 ### `fmax(_valueX, _valueY)`
-- **Summary**: Get the maximum of x and y.
-- **Parameters**:
-  - `_valueX`: The first number.
-  - `_valueY`: The second number.
-- **Returns**: Double representing the maximum value of x and y.
+
+Get the maximum of x and y.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_valueX` | The number x. |
+| `Double` | `_valueY` | The number y. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The maximum value of `x` and `y`. |
 
 ### `fmin(_valueX, _valueY)`
-- **Summary**: Get the minimum of x and y.
-- **Parameters**:
-  - `_valueX`: The first number.
-  - `_valueY`: The second number.
-- **Returns**: Double representing the minimum value of x and y.
+
+Get the minimum of `x` and `y`.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_valueX` | The number x. |
+| `Double` | `_valueY` | The number y. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The minimum value of `x` and `y`. |
 
 ### `fdim(_valueX, _valueY)`
-- **Summary**: Get the positive difference between x and y.
-- **Parameters**:
-  - `_valueX`: The first number.
-  - `_valueY`: The second number.
-- **Returns**: Double representing the positive difference between x and y.
+
+Get the positive difference between x and y.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_valueX` | The number x. |
+| `Double` | `_valueY` | The number y. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The positive difference between `x` and `y`. |
 
 ### `pow(_valueX, _valueY)`
-- **Summary**: Get x raised to the power of y.
-- **Parameters**:
-  - `_valueX`: The base number.
-  - `_valueY`: The exponent number.
-- **Returns**: Double representing x raised to the power of y.
+
+Get `x` raised to the power of `y`.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_valueX` | The base. |
+| `Double` | `_valueY` | The exponent. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | `x^y` |
 
 ### `abs(_value)`
-- **Summary**: Get the absolute value of a number.
-- **Parameters**:
-  - `_value`: The number.
-- **Returns**: Integer|Double representing the absolute value of x.
+
+Get the absolute value of a number.
+
+**Parameters**: 
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Double` | `_value` | The number. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer`\|`Double` | The absolute value of the number. |
