@@ -74,6 +74,9 @@ class FileIOBuiltinHandler {
       case KName::Builtin_FileIO_ReadFile:
         return executeReadFile(token, args);
 
+      case KName::Builtin_FileIO_ReadBytes:
+        return executeReadBytes(token, args);
+
       case KName::Builtin_FileIO_FileSize:
         return executeGetFileSize(token, args);
 
@@ -367,6 +370,27 @@ class FileIOBuiltinHandler {
 
     for (const auto& line : File::readLines(fileName)) {
       elements.emplace_back(line);
+    }
+
+    return list;
+  }
+
+  static k_value executeReadBytes(const Token& token,
+                                  const std::vector<k_value>& args) {
+    if (args.size() != 3) {
+      throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.ReadBytes);
+    }
+
+    auto fileName = get_string(token, args.at(0));
+    auto offset = get_integer(token, args.at(1));
+    auto size = get_integer(token, args.at(2));
+
+    auto bytes = File::readBytes(fileName, offset, size);
+    auto list = std::make_shared<List>();
+    auto& elements = list->elements;
+    
+    for (const auto& byte : bytes) {
+      elements.emplace_back(byte);
     }
 
     return list;

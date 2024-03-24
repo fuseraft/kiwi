@@ -17,6 +17,7 @@ struct {
   const k_string MoveFile = "__movefile__";
   const k_string ReadFile = "__readfile__";
   const k_string ReadLines = "__readlines__";
+  const k_string ReadBytes = "__readbytes__";
   const k_string WriteLine = "__writeline__";
   const k_string WriteText = "__writetext__";
   const k_string FileExists = "__isfile__";
@@ -48,6 +49,7 @@ struct {
                                            MoveFile,
                                            ReadFile,
                                            ReadLines,
+                                           ReadBytes,
                                            WriteText,
                                            WriteLine,
                                            FileExists,
@@ -92,6 +94,7 @@ struct {
       KName::Builtin_FileIO_MoveFile,
       KName::Builtin_FileIO_ReadFile,
       KName::Builtin_FileIO_ReadLines,
+      KName::Builtin_FileIO_ReadBytes,
       KName::Builtin_FileIO_RemoveDirectory,
       KName::Builtin_FileIO_RemoveDirectoryF,
       KName::Builtin_FileIO_TempDir,

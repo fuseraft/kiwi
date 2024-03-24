@@ -44,6 +44,8 @@ class File {
                           bool appendMode, bool addNewLine);
   static k_string readFile(const k_string& filePath);
   static std::vector<k_string> readLines(const k_string& filePath);
+  static std::vector<char> readBytes(const k_string& filePath,
+                                     const k_int& offset, const k_int& size);
 
   // Path manipulation
   static k_string getAbsolutePath(const k_string& path);
@@ -568,6 +570,38 @@ std::vector<k_string> File::readLines(const k_string& filePath) {
   }
 
   return list;
+}
+
+/// @brief Read bytes from a file.
+/// @param filePath The file path.
+/// @param offset The position to read from.
+/// @param size The number of bytes to read.
+/// @return A vector of bytes containing file content.
+std::vector<char> File::readBytes(const k_string& filePath, const k_int& offset,
+                                  const k_int& size) {
+  std::vector<char> buffer(static_cast<size_t>(size));
+  std::ifstream file(filePath, std::ios::binary);
+
+  if (!file) {
+    Thrower<FileReadError> thrower;
+    thrower.throwError(filePath);
+  }
+
+  file.seekg(static_cast<std::streampos>(offset));
+
+  if (!file) {
+    Thrower<FileReadError> thrower;
+    thrower.throwError(filePath);
+  }
+
+  file.read(buffer.data(), static_cast<size_t>(size));
+
+  if (!file && !file.eof()) {
+    Thrower<FileReadError> thrower;
+    thrower.throwError(filePath);
+  }
+
+  return buffer;
 }
 
 #endif
