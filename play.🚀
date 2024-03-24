@@ -3,3 +3,15 @@
 /#
 This 🚀 script is for experimentation.
 #/
+
+import "@astral/fs" as fs
+import "@astral/math" as math
+
+file_path = fs.abspath("./bin/astral")
+file_size = fs.filesize(file_path)
+file_bytes = fs.readbytes(file_path, 0, file_size)
+
+println "File path:      ${file_path}"
+println "File size:      ${file_size}"
+
+println "Done"
