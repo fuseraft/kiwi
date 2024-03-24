@@ -40,7 +40,7 @@ module time
   Summary: Get current timestamp in YYYY/mm/dd hh:mm:ss tt format.
   Returns: String
   #/
-  def current_timestamp()
+  def timestamp()
     year = __year__()
     month = __mon__()
     day = __mday__()
