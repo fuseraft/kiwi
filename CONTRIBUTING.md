@@ -75,4 +75,4 @@ This section lists the labels we use to help us track and manage issues and pull
 
 ## Questions?
 
-Feel free to reach out on [Slack](https://astralprogramming.slack.com) if you need any help!
+Feel free to reach out on [Discord](https://discord.com/channels/1221516965743431841/1221553678104920195) if you need any help!

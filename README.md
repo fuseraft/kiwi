@@ -209,7 +209,7 @@ web.listen(host, port)
 
 I welcome and appreciate any and all contributions to the Astral project! Here's how you can contribute:
 
-1. **Join the Slack**: [https://astralprogramming.slack.com](https://astralprogramming.slack.com)
+1. **Join the Discord**: [The Astral Programming Language](https://discord.com/channels/1221516965743431841/1221553678104920195)
 2. **Fork the Repository**: Fork the project to your GitHub account.
 3. **Clone the Forked Repository**: Clone it to your machine.
 4. **Set Up Your Environment**: Follow the "Getting Started" section.
