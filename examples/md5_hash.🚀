@@ -108,8 +108,7 @@ def MD5(input)
       temp = D
       D = C
       C = B
-      result = (A + F + K[i] + M[g])
-      B = B + left_rotate(result, s[i])
+      B = B + left_rotate(A + F + K[i] + M[g], s[i])
       A = temp
     end
 
