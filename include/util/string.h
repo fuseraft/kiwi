@@ -167,10 +167,10 @@ class String {
   /// @return Boolean indicating success.
   static bool isOptionKVP(const std::string& s) {
     std::array<std::string, 3> prefixes = {"-", "--", "/"};
-    return std::any_of(
-        prefixes.begin(), prefixes.end(), [&](const std::string& prefix) {
-          return beginsWith(s, prefix) && contains(s, "=");
-        });
+    return std::any_of(prefixes.begin(), prefixes.end(),
+                       [&](const std::string& prefix) {
+                         return beginsWith(s, prefix) && contains(s, "=");
+                       });
   }
 };
 

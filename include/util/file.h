@@ -42,6 +42,8 @@ class File {
   static k_int getFileSize(const k_string& filePath);
   static bool writeToFile(const k_string& filePath, const k_value& content,
                           bool appendMode, bool addNewLine);
+  static void writeBytes(const std::string& filePath,
+                         const std::vector<char>& data);
   static k_string readFile(const k_string& filePath);
   static std::vector<k_string> readLines(const k_string& filePath);
   static std::vector<char> readBytes(const k_string& filePath,
@@ -602,6 +604,26 @@ std::vector<char> File::readBytes(const k_string& filePath, const k_int& offset,
   }
 
   return buffer;
+}
+
+/// @brief Write bytes to a file.
+/// @param filePath The file path.
+/// @param data The data to write.
+void File::writeBytes(const std::string& filePath,
+                      const std::vector<char>& data) {
+  std::ofstream file(filePath, std::ios::binary | std::ios::trunc);
+
+  if (!file) {
+    Thrower<FileReadError> thrower;
+    thrower.throwError(filePath);
+  }
+
+  file.write(data.data(), data.size());
+
+  if (!file) {
+    Thrower<FileReadError> thrower;
+    thrower.throwError(filePath);
+  }
 }
 
 #endif

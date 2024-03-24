@@ -525,7 +525,7 @@ class Interpreter {
     auto oldFrame = std::make_shared<CallStackFrame>(*frame);
     auto conditionStream = std::make_shared<TokenStream>(condition);
     auto& streamPosition = conditionStream->position;
-      
+
     while (true) {
       if (frame->isLoopControlFlagSet()) {
         if (frame->isFlagSet(FrameFlags::LoopBreak)) {
@@ -3734,8 +3734,7 @@ class Interpreter {
         }
         if (braceCount == 0) {
           --i;  // Go back to the closing brace
-          auto value =
-              interpolateString(frame, input.substr(start, i - start));
+          auto value = interpolateString(frame, input.substr(start, i - start));
           if (!std::holds_alternative<k_object>(value)) {
             sv << Serializer::serialize(value);
           } else {

@@ -64,6 +64,7 @@ enum KName {
   Builtin_FileIO_RemoveDirectory,
   Builtin_FileIO_RemoveDirectoryF,
   Builtin_FileIO_TempDir,
+  Builtin_FileIO_WriteBytes,
   Builtin_FileIO_WriteLine,
   Builtin_FileIO_WriteText,
   Builtin_Astral_BeginsWith,

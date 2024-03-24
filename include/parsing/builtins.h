@@ -20,6 +20,7 @@ struct {
   const k_string ReadBytes = "__readbytes__";
   const k_string WriteLine = "__writeline__";
   const k_string WriteText = "__writetext__";
+  const k_string WriteBytes = "__writebytes__";
   const k_string FileExists = "__isfile__";
   const k_string GetFileExtension = "__fileext__";
   const k_string FileName = "__filename__";
@@ -52,6 +53,7 @@ struct {
                                            ReadBytes,
                                            WriteText,
                                            WriteLine,
+                                           WriteBytes,
                                            FileExists,
                                            FileName,
                                            FileSize,
@@ -98,6 +100,7 @@ struct {
       KName::Builtin_FileIO_RemoveDirectory,
       KName::Builtin_FileIO_RemoveDirectoryF,
       KName::Builtin_FileIO_TempDir,
+      KName::Builtin_FileIO_WriteBytes,
       KName::Builtin_FileIO_WriteLine,
       KName::Builtin_FileIO_WriteText};
 

@@ -288,6 +288,16 @@ module fs
   def writeln(_path, _text)
     return __writeline__(_path, _text)
   end
+
+  /#
+  Summary: Write a list of bytes to a file. This overwrites the file if it exists.
+  Params:
+    - _path: The path to a file or a filename.
+    - _bytes: The list of bytes to write.
+  #/
+  def writebytes(_path, _text)
+    __writebytes__(_path, _text)
+  end
 end
 
 export "fs"

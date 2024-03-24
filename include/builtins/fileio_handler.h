@@ -95,6 +95,9 @@ class FileIOBuiltinHandler {
       case KName::Builtin_FileIO_ReadLines:
         return executeReadLines(token, args);
 
+      case KName::Builtin_FileIO_WriteBytes:
+        return executeWriteBytes(token, args);
+
       default:
         break;
     }
@@ -388,9 +391,9 @@ class FileIOBuiltinHandler {
     auto bytes = File::readBytes(fileName, offset, size);
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
-    
+
     for (const auto& byte : bytes) {
-      elements.emplace_back(byte);
+      elements.emplace_back(static_cast<k_int>(byte));
     }
 
     return list;
@@ -416,6 +419,33 @@ class FileIOBuiltinHandler {
     auto fileName = get_string(token, args.at(0));
     auto value = args.at(1);
     return File::writeToFile(fileName, value, false, false);
+  }
+
+  static k_value executeWriteBytes(const Token& token,
+                                   const std::vector<k_value>& args) {
+    if (args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.WriteBytes);
+    }
+
+    auto fileName = get_string(token, args.at(0));
+    auto value = args.at(1);
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw ConversionError(token, "Expected a list of bytes to write.");
+    }
+
+    std::vector<char> bytes;
+    auto elements = std::get<k_list>(value)->elements;
+    for (const auto& item : elements) {
+      if (!std::holds_alternative<k_int>(item)) {
+        throw ConversionError(token, "Expected a list of bytes to write.");
+      }
+
+      bytes.emplace_back(static_cast<char>(std::get<k_int>(item)));
+    }
+
+    File::writeBytes(fileName, bytes);
+    return true;
   }
 };
 
