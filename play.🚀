@@ -5,14 +5,12 @@ This 🚀 script is for experimentation.
 #/
 
 import "@astral/fs" as fs
+import "@astral/sys" as sys
 
+# binary file I/O
 file_path = fs.abspath("./bin/astral")
 file_size = fs.filesize(file_path)
-file_bytes = fs.readbytes(file_path, 0, file_size)
 
-fs.writebytes("./astral-binary", file_bytes)
-
-println "File path:      ${file_path}"
-println "File size:      ${file_size}"
-
-println "Done"
+fs.writebytes("./astral-binary", fs.readbytes(file_path, 0, file_size))
+sys.exec("chmod a+x ./astral-binary")
+sys.exec("./astral-binary && rm ./astral-binary")
