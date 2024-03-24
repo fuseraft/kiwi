@@ -51,21 +51,6 @@ Before you submit a pull request, please test your changes.
 2. Run the test suite through [Valgrind](https://valgrind.org/).
     > `valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./bin/astral test.🚀`
 
-### Profiling Astral
-
-If you notice performance issues, please build with `make profile` and use gprof to produce a profile.
-
-```bash
-# build with the profiler flag
-make profile
-
-# run the test suite
-./bin/astral test.🚀 
-
-# generate the profile data
-gprof ./bin/astral gmon.out > astral_profile.txt
-```
-
 ## Styleguides
 
 ### Git Commit Messages

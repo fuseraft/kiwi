@@ -10,5 +10,3 @@ WORKDIR /usr/src/astral
 COPY . /usr/src/astral
 RUN make && make install
 WORKDIR /home
-
-CMD ["bash"]
