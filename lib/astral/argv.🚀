@@ -13,13 +13,13 @@ module argv
   end
 
   /#
-  Summary: Get an XArg value by name.
+  Summary: Get a named option value by key.
   Params:
-    - _xarg_key: The XArg key.
-  Returns: String containing the XArg value.
+    - _key: The option key.
+  Returns: String containing the option value.
   #/
-  def xarg(_xarg_key)
-    return __xarg__(_xarg_key)
+  def opt(_key)
+    return __xarg__(_key)
   end
 end
 

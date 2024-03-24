@@ -2,6 +2,21 @@
 
 The `ENV` module contains functionality for working with environment variables.
 
+# Table of Contents
+
+- [Importing the Module](#importing-the-module)
+- [Module Functions](#module-functions)
+  - [`get(_varname)`](#get_varname)
+  - [`set(_varname, _varvalue)`](#set_varname-_varvalue)
+
+## Importing the Module
+
+To use the `env` module, import it at the beginning of your Astral script.
+
+```ruby
+import "@astral/env" as ENV
+```
+
 ## Module Functions
 
 ### `get(_varname)`

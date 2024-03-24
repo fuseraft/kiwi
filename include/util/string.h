@@ -162,11 +162,15 @@ class String {
         });
   }
 
-  /// @brief Check if a string is an Xargument.
+  /// @brief Check if a string is a KVP option.
   /// @param s The string to check.
   /// @return Boolean indicating success.
-  static bool isXArg(const std::string& s) {
-    return beginsWith(s, "-X") && contains(s, "=");
+  static bool isOptionKVP(const std::string& s) {
+    std::array<std::string, 3> prefixes = {"-", "--", "/"};
+    return std::any_of(
+        prefixes.begin(), prefixes.end(), [&](const std::string& prefix) {
+          return beginsWith(s, prefix) && contains(s, "=");
+        });
   }
 };
 

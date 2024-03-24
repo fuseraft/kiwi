@@ -2,12 +2,46 @@
 
 The `fs` module contains functionality for working with files and directories.
 
+# Table of Contents
+
+- [Importing the Module](#importing-the-module)
+- [Module Functions](#module-functions)
+  - [`abspath(_path)`](#abspath_path)
+  - [`append(_path, _text)`](#append_path-_text)
+  - [`chdir(_path)`](#chdir_path)
+  - [`combine(_first, _second)`](#combine_first-_second)
+  - [`copy(_source, _dest)`](#copy_source-_dest)
+  - [`copyr(_source, _dest)`](#copyr_source-_dest)
+  - [`cwd()`](#cwd)
+  - [`exists(_path)`](#exists_path)
+  - [`ext(_path)`](#ext_path)
+  - [`filename(_path)`](#filename_path)
+  - [`filesize(_path)`](#filesize_path)
+  - [`glob(_path)`](#glob_path)
+  - [`isdir(_path)`](#isdir_path)
+  - [`listdir(_path)`](#listdir_path)
+  - [`mkdir(_path)`](#mkdir_path)
+  - [`mkdirp(_path)`](#mkdirp_path)
+  - [`move(_source, _dest)`](#move_source-_dest)
+  - [`parentdir(_path)`](#parentdir_path)
+  - [`read(_path)`](#read_path)
+  - [`readlines(_path)`](#readlines_path)
+  - [`readbytes(_path, _offset, _size)`](#readbytes_path-_offset-_size)
+  - [`remove(_path)`](#remove_path)
+  - [`rmdir(_path)`](#rmdir_path)
+  - [`rmdirf(_path)`](#rmdirf_path)
+  - [`touch(_path)`](#touch_path)
+  - [`tmpdir()`](#tmpdir)
+  - [`write(_path, _text)`](#write_path-_text)
+  - [`writeln(_path, _text)`](#writeln_path-_text)
+
+
 ## Importing the Module
 
 To use the `fs` module, import it at the beginning of your Astral script.
 
 ```ruby
-import "@astral/fs"
+import "@astral/fs" as fs
 ```
 
 ## Module Functions
@@ -151,7 +185,16 @@ import "@astral/fs"
 - **Summary**: Get the content of a file as a list of strings.
 - **Parameters**:
   - `_path`: The path to a file.
-- **Returns**: List containing the file content.
+- **Returns**: List containing the file lines.
+
+### `readbytes(_path, _offset, _size)`
+
+- **Summary**: Get the content of a file as a list of strings.
+- **Parameters**:
+  - `_path`: The path to a file.
+  - `_offset`: The position in the file to read from.
+  - `_size`: The number of bytes to read from the file.
+- **Returns**: List containing bytes from a file.
 
 ### `remove(_path)`
 
