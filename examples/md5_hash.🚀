@@ -1,6 +1,14 @@
 #!/usr/bin/astral
 
+/#
+MD5 hash generator.
+
+usage: ./md5_hash.🚀 <string>
+#/
+
 import "@astral/argv" as ARGV
+import "@astral/fs" as fs
+import "@astral/time" as time
 
 def main()
   args = ARGV.get()
@@ -8,7 +16,17 @@ def main()
   if args.size() == 1
     println MD5(args[0])
   else
-    print_help()
+    # read the script contents
+    text = fs.read("md5_hash.🚀")
+
+    # compute the hash and record duration
+    ticks_start = time.ticks()
+    md5_hash = MD5(text)
+    ticks_stop = time.ticks()
+
+    # print the results
+    println "Computed MD5 hash of this file: ${md5_hash}"
+    println "Time to compute: ${time.ticksms(ticks_stop - ticks_start) / 1000}s"
   end
 end
 
