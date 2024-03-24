@@ -14,8 +14,6 @@
                 "${workspaceFolder}/src/main.cpp",
                 "-o",
                 "${workspaceFolder}/bin/astral",
-                //"-lcurl",
-                //"-lodbc",
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

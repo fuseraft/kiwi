@@ -5,9 +5,5 @@ bin/astral
 build
 bin
 logs
-output.txt
-play.astral
 gmon.out
 astral_profile*
-benchmark*.astral
-pg
