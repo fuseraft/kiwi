@@ -10,5 +10,6 @@ while true do
 
   if __divisors__(number).size() > limit
     println number
+    break
   end
 end
