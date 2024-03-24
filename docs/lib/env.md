@@ -20,14 +20,26 @@ import "@astral/env" as ENV
 ## Module Functions
 
 ### `get(_varname)`
-- **Summary**: Get an environment variable.
-- **Parameters**:
-  - `_varname`: String containing the environment variable name to retrieve.
-- **Returns**: String containing the environment variable value, an empty string if not found.
+
+Get an environment variable.
+
+| Parameter | Description |
+| --- | --- |
+| `_varname` | The environment variable name to retrieve. |
+
+| Return Type | Description |
+| --- | --- |
+| `String` | The environment variable value, an empty string if not found. |
 
 ### `set(_varname, _varvalue)`
-- **Summary**: Set an environment variable.
-- **Parameters**:
-  - `_varname`: String containing the environment variable name.
-  - `_varvalue`: String containing the environment variable value.
-- **Returns**: Boolean indicating success or failure.
+
+Set an environment variable.
+
+| Parameter | Description |
+| --- | --- |
+| `_varname` | The environment variable name to retrieve. |
+| `_varvalue` | The environment variable value. |
+
+| Return Type | Description |
+| --- | --- |
+| `Boolean` | `true` on success. |

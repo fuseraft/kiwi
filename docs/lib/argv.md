@@ -51,5 +51,6 @@ You can pass a named command-line argument in the form of a key-value pair.
 You can pull these values using this module.
 
 ```ruby
-println ARGV.xarg("key") # prints: value
+import "@astral/argv" as ARGV
+println ARGV.opt("key") # prints: value
 ```
