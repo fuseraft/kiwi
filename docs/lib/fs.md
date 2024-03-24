@@ -48,199 +48,391 @@ import "@astral/fs" as fs
 
 ### `abspath(_path)`
 
-- **Summary**: Get the absolute path of a file.
-- **Parameters**:
-  - `_path`: The path to a file or a filename.
-- **Returns**: String representing the absolute path.
+Get the absolute path of a file.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The relative path to a file or a filename. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `String` | The absolute path. |
 
 ### `append(_path, _text)`
 
-- **Summary**: Append text to a file.
-- **Parameters**:
-  - `_path`: The path to a file or a filename.
-  - `_text`: The text to append.
-- **Returns**: Boolean indicating success or failure.
+Append text to a file.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The relative path to a file or a filename. |
+| `String` | `_text` | The text to append. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates success or failure. |
 
 ### `chdir(_path)`
 
-- **Summary**: Changes the current directory.
-- **Parameters**:
-  - `_path`: The path to a directory.
-- **Returns**: Boolean indicating success or failure.
+Changes the current directory.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The path to a directory. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates success or failure. |
 
 ### `combine(_first, _second)`
-- **Summary**: Combine two paths.
-- **Parameters**:
-  - `_source`: The first path.
-  - `_dest`: The second path.
-- **Returns**: String containing combined path.
+
+Combine two path strings.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_source` | The source path. |
+| `String` | `_dest` | The destination path. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `String` | The combined path. |
 
 ### `copy(_source, _dest)`
 
-- **Summary**: Copy a file.
-- **Parameters**:
-  - `_source`: The source path.
-  - `_dest`: The destination path.
-- **Returns**: Boolean indicating success or failure.
+Copy a file.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_source` | The source path. |
+| `String` | `_dest` | The destination path. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates success or failure. |
 
 ### `copyr(_source, _dest)`
 
-- **Summary**: Copy a directory and all of its contents.
-- **Parameters**:
-  - `_source`: The source path.
-  - `_dest`: The destination path.
-- **Returns**: Boolean indicating success or failure.
+Copy a directory recursively.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_source` | The source path. |
+| `String` | `_dest` | The destination path. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates success or failure. |
 
 ### `cwd()`
 
-- **Summary**: Gets the path of the current working directory.
-- **Returns**: String containing the path of the current working directory.
+Gets the path of the current working directory.
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `String` | The path of the current working directory. |
 
 ### `exists(_path)`
 
-- **Summary**: Check if a path exists.
-- **Parameters**:
-  - `_path`: The path to a file or directory.
-- **Returns**: Boolean indicating whether the path exists or not.
+Check if a path exists.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The path to check. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates whether the file exists. |
 
 ### `ext(_path)`
 
-- **Summary**: Get a file extension.
-- **Parameters**:
-  - `_path`: The path to a file or a filename.
-- **Returns**: String representing the file extension.
+Get a file extension.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The path to check. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `String` | The file extension. |
 
 ### `filename(_path)`
 
-- **Summary**: Get the filename from a file path.
-- **Parameters**:
-  - `_path`: The path to a file or a filename.
-- **Returns**: String representing the filename.
+Get the filename from a path.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The path to a file. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `String` | The filename. |
 
 ### `filesize(_path)`
 
-- **Summary**: Get size of a file in bytes.
-- **Parameters**:
-  - `_path`: The path to a file or a filename.
-- **Returns**: Double representing the file size in bytes.
+Get size of a file in bytes.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The path to a file. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | The file size in number of bytes. |
 
 ### `glob(_path)`
 
-- **Summary**: Get a list of files from a glob pattern.
-- **Parameters**:
-  - `_glob`: The glob pattern.
-- **Returns**: List of file paths matched by glob pattern.
+Get a list of files from a glob pattern.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_glob` | The glob pattern. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `List` | File paths matched by glob pattern. |
 
 ### `isdir(_path)`
-- **Summary**: Check if a path is a directory.
-- **Parameters**:
-  - `_path`: The path to a directory.
-- **Returns**: Boolean indicating whether the path is a directory.
+
+Check if a path exists and is a directory.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The path to check. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates whether the path exists and is a directory. |
 
 ### `listdir(_path)`
 
-- **Summary**: Retrieve a List of directory entries.
-- **Parameters**:
-  - `_path`: The directory path.
-- **Returns**: List of directory entries.
+Retrieve a list of directory entries.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The directory path. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `List` | Directory entries. |
 
 ### `mkdir(_path)`
 
-- **Summary**: Creates a directory.
-- **Parameters**:
-  - `_path`: The path to a directory.
-- **Returns**: Boolean indicating success or failure.
+Create a directory.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The directory path. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates success or failure. |
 
 ### `mkdirp(_path)`
 
-- **Summary**: Creates a directory and all subdirectories specified in the path.
-- **Parameters**:
-  - `_path`: The path to a directory.
-- **Returns**: Boolean indicating success or failure.
+Creates a directory and all subdirectories specified in the path.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The directory path. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates success or failure. |
 
 ### `move(_source, _dest)`
 
-- **Summary**: Move or rename a file.
-- **Parameters**:
-  - `_source`: The source path.
-  - `_dest`: The destination path.
-- **Returns**: Boolean indicating success or failure.
+Move or rename a file.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_source` | The source path. |
+| `String` | `_dest` | The destination path. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates success or failure. |
 
 ### `parentdir(_path)`
 
-- **Summary**: Get the parent directory of an absolute path.
-- **Parameters**:
-  - `_path`: The path to a file.
-- **Returns**: String representing the parent directory.
+Get the parent directory of an absolute path.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The path to a file. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `String` | The parent directory. |
 
 ### `read(_path)`
 
-- **Summary**: Get the content of a file as a string.
-- **Parameters**:
-  - `_path`: The path to a file.
-- **Returns**: String containing the file content.
+Get the content of a file as a string.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The path to a file. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `String` | The file content. |
 
 ### `readlines(_path)`
 
-- **Summary**: Get the content of a file as a list of strings.
-- **Parameters**:
-  - `_path`: The path to a file.
-- **Returns**: List containing the file lines.
+Get the content of a file as a list of strings.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The path to a file. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `List` | The file lines. |
 
 ### `readbytes(_path, _offset, _size)`
 
-- **Summary**: Get the content of a file as a list of strings.
-- **Parameters**:
-  - `_path`: The path to a file.
-  - `_offset`: The position in the file to read from.
-  - `_size`: The number of bytes to read from the file.
-- **Returns**: List containing bytes from a file.
+Get the content of a file as a list of bytes.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The path to a file. |
+| `Integer` | `_offset` | The position in the file to read from.
+| `Integer` | `_size` | The number of bytes to read from the file.
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `List` | Bytes from a file. |
 
 ### `remove(_path)`
 
-- **Summary**: Delete a file.
-- **Parameters**:
-  - `_path`: The path to a file or a filename.
-- **Returns**: Boolean indicating success or failure.
+Delete a file.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The file path. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates success or failure. |
 
 ### `rmdir(_path)`
 
-- **Summary**: Delete a directory.
-- **Parameters**:
-  - `_path`: The path to a directory.
-- **Returns**: Boolean indicating success or failure.
+Delete a directory.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The directory path. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates success or failure. |
 
 ### `rmdirf(_path)`
 
-- **Summary**: Delete a directory and all of its contents recursively.
-- **Parameters**:
-  - `_path`: The path to a directory.
-- **Returns**: Integer indicating how many objects were deleted.
+Delete a directory and all of its contents recursively.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The directory path. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | Number of objects deleted. |
 
 ### `touch(_path)`
 
-- **Summary**: Create an empty file.
-- **Parameters**:
-  - `_path`: The path to a file or a filename.
-- **Returns**: Boolean indicating success or failure.
+Create an empty file.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The file path. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates success or failure. |
 
 ### `tmpdir()`
 
-- **Summary**: Gets the path to the temporary directory.
-- **Returns**: String containing the path to the temporary directory.
+Gets the path to the temporary directory.
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `String` | The temporary directory path. |
 
 ### `write(_path, _text)`
 
-- **Summary**: Write text to a file. This overwrites the file if it exists.
-- **Parameters**:
-  - `_path`: The path to a file or a filename.
-  - `_text`: The text to write.
-- **Returns**: Boolean indicating success or failure.
+Write text to a file. This overwrites the file if it exists.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The file path. |
+| `String` | `_text` | The text to write. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates success or failure. |
 
 ### `writeln(_path, _text)`
 
-- **Summary**: Write a line of text to a file. This always appends to a file.
-- **Parameters**:
-  - `_path`: The path to a file or a filename.
-  - `_text`: The text to append.
-- **Returns**: Boolean indicating success or failure.
+Write a line of text to a file. This always appends to a file.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The file path. |
+| `String` | `_text` | The text to append. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Indicates success or failure. |

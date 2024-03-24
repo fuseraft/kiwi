@@ -23,23 +23,27 @@ import "@astral/env" as ENV
 
 Get an environment variable.
 
-| Parameter | Description |
-| --- | --- |
-| `_varname` | The environment variable name to retrieve. |
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_varname` | The environment variable name to retrieve. |
 
-| Return Type | Description |
-| --- | --- |
+**Returns**
+| Type | Description |
+| :--- | :---|
 | `String` | The environment variable value, an empty string if not found. |
 
 ### `set(_varname, _varvalue)`
 
 Set an environment variable.
 
-| Parameter | Description |
-| --- | --- |
-| `_varname` | The environment variable name to retrieve. |
-| `_varvalue` | The environment variable value. |
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_varname` | The environment variable name to set. |
+| `String` | `_varvalue` | The environment variable value. |
 
-| Return Type | Description |
-| --- | --- |
+**Returns**
+| Type | Description |
+| :--- | :---|
 | `Boolean` | `true` on success. |

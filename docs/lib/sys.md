@@ -2,6 +2,14 @@
 
 The `sys` module contains functionality for working with external processes.
 
+# Table of Contents
+
+- [Importing the Module](#importing-the-module)
+- [Module Functions](#module-functions)
+  - [`euid()`](#euid)
+  - [`exec(_command)`](#exec_command)
+  - [`execout(_command)`](#execout_command)
+
 ## Importing the Module
 
 To use the `sys` module, import it at the beginning of your Astral script.
@@ -13,17 +21,39 @@ import "@astral/sys"
 ## Module Functions
 
 ### `euid()`
-- **Summary**: Get the effective user ID.
-- **Returns**: Integer containing effective user ID.
+
+Get the effective user ID.
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | The effective user ID. |
+
 
 ### `exec(_command)`
-- **Summary**: Run an external process and capture its exit code.
-- **Parameters**:
-  - `_command`: String containing the command text.
-- **Returns**: Integer containing exit code of external process.
+
+Run an external process and capture its exit code.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_command` | The command text. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | The exit code of an external process. |
 
 ### `execout(_command)`
-- **Summary**: Run an external process and capture its standard output.
-- **Parameters**:
-  - `_command`: String containing the command text.
-- **Returns**: String containing standard output from external process.
+
+Run an external process and capture its standard output.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_command` | The command text. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `String` | The standard output of an external process. |

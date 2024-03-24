@@ -3,7 +3,7 @@
 The Astral Standard Library is a set of modules that enable easier systems programming in Astral.
 
 | **Module** | **Description** |
-| --- | --- |
+| :--- | :--- |
 | [`@astral/argv`](lib/argv.md) | A module for reading command-line arguments. |
 | [`@astral/conf`](lib/conf.md) | A module for reading configuration files. |
 | [`@astral/env`](lib/env.md) | A module for reading environment variables. |
@@ -18,7 +18,7 @@ The Astral Standard Library is a set of modules that enable easier systems progr
 Astral supports some experimental modules for working with databases and making HTTP requests.
 
 | **Module** | **Description** |
-| --- | --- |
+| :--- | :--- |
 | [`@astral/http`](lib/http.md) | A module for making HTTP requests. |
 | [`@astral/odbc`](lib/odbc.md) | A module for working with common databases. |
 
