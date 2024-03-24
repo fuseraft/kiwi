@@ -134,8 +134,8 @@ def print_help()
 end
 
 def left_rotate(value, count)
-  rot_value = value & 0xFFFFFFFF
-  return (rot_value << count | rot_value >> (32 - count)) & 0xFFFFFFFF
+  adjusted_value = value & 0xFFFFFFFF
+  return (adjusted_value << count | adjusted_value >> (32 - count)) & 0xFFFFFFFF
 end
 
 def int_to_bytes(num)
