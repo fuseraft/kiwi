@@ -91,16 +91,16 @@ def MD5(input)
       F = 0, g = 0
       
       if 0 <= i && i <= 15
-        F = (B & C) | ((~B) & D)
+        F = (B & C) | (~B & D)
         g = i
       elsif 16 <= i && i <= 31
-        F = (D & B) | ((~D) & C)
+        F = (D & B) | (~D & C)
         g = (5 * i + 1) % 16
       elsif 32 <= i && i <= 47
         F = B ^ C ^ D
         g = (3 * i + 5) % 16
       elsif 48 <= i && i <= 63
-        F = C ^ (B | (~D))
+        F = C ^ (B | ~D)
         g = (7 * i) % 16
       end
   
