@@ -51,7 +51,7 @@ class Astral {
   static bool configure(Config& config, Logger& logger, Host& host,
                         const std::string& path);
   static bool createNewFile(const std::string& path);
-  static bool processXarg(std::string& opt, Host& host);
+  static bool processOption(std::string& opt, Host& host);
 
   static int run(std::vector<std::string>& v);
   static int printVersion();
@@ -106,8 +106,8 @@ int Astral::run(std::vector<std::string>& v) {
         help = true;
       } else if (File::isScript(v.at(i))) {
         host.registerScript(v.at(i));
-      } else if (String::isXArg(v.at(i))) {
-        help = !processXarg(v.at(i), host);
+      } else if (String::isOptionKVP(v.at(i))) {
+        help = !processOption(v.at(i), host);
       } else {
         host.registerArg("argv_" + RNG::getInstance().random16(), v.at(i));
       }
@@ -183,8 +183,8 @@ bool Astral::configure(Config& config, Logger& logger, Host& host,
   return true;
 }
 
-bool Astral::processXarg(std::string& opt, Host& host) {
-  std::regex xargPattern("-X(.*?)=");
+bool Astral::processOption(std::string& opt, Host& host) {
+  std::regex xargPattern("-(.*?)=");
   std::string name, value;
   std::smatch match;
 
