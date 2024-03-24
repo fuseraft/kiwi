@@ -1,4 +1,5 @@
 @echo off
+
 echo Building Astral with MSVC
 
 if not exist build\NUL mkdir build
