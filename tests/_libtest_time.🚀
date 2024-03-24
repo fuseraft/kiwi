@@ -4,7 +4,7 @@ import "@astral/time"
 # Time tests
 # =============================
 
-ts = time::current_timestamp()
+ts = time::timestamp()
 println "Current timestamp: ${ts}"
 
 println ""
