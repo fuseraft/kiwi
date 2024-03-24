@@ -34,6 +34,7 @@ The `fs` module contains functionality for working with files and directories.
   - [`tmpdir()`](#tmpdir)
   - [`write(_path, _text)`](#write_path-_text)
   - [`writeln(_path, _text)`](#writeln_path-_text)
+  - [`writebytes(_path, _bytes)`](#writebytes_path-_bytes)
 
 
 ## Importing the Module
@@ -436,3 +437,13 @@ Write a line of text to a file. This always appends to a file.
 | Type | Description |
 | :--- | :---|
 | `Boolean` | Indicates success or failure. |
+
+### `writebytes(_path, _bytes)`
+
+Write a list of bytes to a file. This overwrites the file if it exists.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_path` | The file path. |
+| `List` | `_bytes` | The list of bytes to write. |
