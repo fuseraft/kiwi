@@ -67,6 +67,10 @@ class File {
   static k_string getLibraryPath();
   static std::vector<k_string> expandGlob(const k_string& globString);
   static k_string getLocalPath(const k_string& path);
+
+  #ifdef _WIN64
+  static k_string wstring_tos(const std::wstring& wstring);
+  #endif
 };
 
 /// @brief Create a file.
@@ -444,7 +448,7 @@ k_string File::getLibraryPath() {
 }
 
 #ifdef _WIN64
-k_string wstring_tos(const std::wstring& wstring) {
+k_string File::wstring_tos(const std::wstring& wstring) {
   if (wstring.empty()) {
     return "";
   }
