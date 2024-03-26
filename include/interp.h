@@ -3758,6 +3758,16 @@ class Interpreter {
             case 'r':
               sv << '\r';
               break;
+            case 'b':
+              sv << '\b';
+              break;
+            case 'f':
+              sv << '\f';
+              break;
+            case '\\':
+              sv << '\\';
+              break;
+            
             default:
               sv << input[i + 1];
               break;
