@@ -84,7 +84,7 @@ println list.size()
 Reverse a list or a string.
 
 ```ruby
-println "astral".reverse() # prints: iwik
+println "astral".reverse() # prints: lartsa
 ```
 
 ### `ltrim()`
