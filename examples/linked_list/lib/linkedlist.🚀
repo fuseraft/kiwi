@@ -1,19 +1,21 @@
-module linkedlist
-  __home__("examples")
-
-  def clear(_ll)
-    _ll.head = {}
+class LinkedList
+  def initialize()
+    this._ll = { "head": {} }
   end
-  
-  def create()
-    return { "head": {} }
+
+  override def to_string()
+    return "${_ll}"
+  end
+
+  def clear()
+    _ll.head = {}
   end
   
   def create_node(_data, _next_node = {})
     return { "data": _data, "next_node": _next_node }
   end
   
-  def get_at(_ll, _index)
+  def get_at(_index)
     _counter = 0
     _node = _ll.head
   
@@ -22,6 +24,7 @@ module linkedlist
     while !_node.empty() do
       if _counter == _index
         _ret_node = _node
+        break
       end
       
       _counter += 1
@@ -31,11 +34,11 @@ module linkedlist
     return _ret_node
   end
   
-  def get_first(_ll)
+  def get_first()
     return _ll.head
   end
   
-  def get_last(_ll)
+  def get_last()
     if _ll.head.empty()
       return {}
     end
@@ -57,7 +60,7 @@ module linkedlist
     return _ret_node
   end
 
-  def get_values(_ll)
+  def get_values()
     _values = []
     _node = _ll.head
     
@@ -69,34 +72,34 @@ module linkedlist
     return _values
   end
   
-  def insert_at(_ll, _data, _index)
+  def insert_at(_data, _index)
     if _ll.head.empty() || _index == 0
-      _ll.head = linkedlist::create_node(_data, _ll.head)
+      _ll.head = create_node(_data, _ll.head)
     else
-      _previous = linkedlist::get_at(_ll, _index - 1)
+      _previous = get_at(_index - 1)
 
       if _previous.empty()
-        _previous = linkedlist::get_last(_ll)
-        _previous.next_node = linkedlist::create_node(_data, _previous.next_node)
+        _previous = get_last()
+        _previous.next_node = create_node(_data, _previous.next_node)
       end
     end
   end
   
-  def insert_first(_ll, _data)
-    _ll.head = linkedlist::create_node(_data, _ll.head)
+  def insert_first(_data)
+    _ll.head = create_node(_data, _ll.head)
   end
   
-  def insert_last(_ll, _data)
-    _last = linkedlist::get_last(_ll)
+  def insert_last(_data)
+    _last = get_last()
 
     if !_last.empty()
-      _last.next_node = linkedlist::create_node(_data)
+      _last.next_node = create_node(_data)
     else
-      _ll.head = linkedlist::create_node(_data)
+      _ll.head = create_node(_data)
     end
   end
   
-  def print(_ll)
+  def print()
     _node = _ll.head
 
     while !_node.empty() do
@@ -105,28 +108,31 @@ module linkedlist
     end
   end
   
-  def remove_at(_ll, _index)
+  def remove_at(_index)
     if !_ll.empty()
       if _index == 0
         _next_node = _ll.head.next_node
         _ll.head = _next_node
       else
-        _previous = linkedlist::get_at(_ll, _index - 1)
-  
-        if !_previous.empty() && !_previous.next_node.empty()
-          _previous.next_node = _previous.next_node.next_node
+        _previous = get_at(_index - 1)
+        if !_previous.empty()
+          _next_node = _previous.next_node
+    
+          if !_previous.empty() && !_next_node.empty()
+            _previous.next_node = _next_node.next_node
+          end
         end
       end
     end
   end
   
-  def remove_first(_ll)
+  def remove_first()
     if !_ll.head.empty()
       _ll.head = _ll.head.next_node
     end
   end
   
-  def remove_last(_ll)
+  def remove_last()
     if !_ll.head.empty()
       if _ll.head.next_node.empty()
         _ll.head = {}
@@ -144,7 +150,7 @@ module linkedlist
     end
   end
 
-  def size_of(_ll)
+  def size_of()
     _ll_size = 0
     _node = _ll.head
   
@@ -156,5 +162,3 @@ module linkedlist
     return _ll_size
   end
 end
-
-export "linkedlist"

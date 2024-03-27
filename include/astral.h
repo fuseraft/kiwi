@@ -158,7 +158,7 @@ bool Astral::configure(Config& config, Logger& logger, Host& host,
   std::string logMode = config.get("LOGGER_MODE");
   std::string logLevel = config.get("LOGGER_LEVEL");
   std::string scriptPath = config.get("SCRIPT_PATH");
-  std::string astrallibEnabled = config.get("KIWILIB_ENABLED", "true");
+  std::string astrallibEnabled = config.get("STDLIB_ENABLED", "true");
 
   if (!logPath.empty()) {
     logger.setLogFilePath(logPath);

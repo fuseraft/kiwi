@@ -1,49 +1,47 @@
-import "home"   # import homed modules
-import "tester" # import Tester class
-
 def main()
-  import "@examples/linkedlist" as ll
+  import "tester"
+  import "lib/linkedlist"
 
   test = Tester.new()
+  ll = LinkedList.new()
   
-  list = ll.create()
-  test.same(list, {"head": {}})
+  test.same(ll, {"head": {}})
   
-  ll.insert_first(list, 3)
-  test.same(list, {"head": {"data": 3, "next_node": {}}})
+  ll.insert_first(3)
+  test.same(ll, {"head": {"data": 3, "next_node": {}}})
   
-  ll.insert_first(list, 2)
-  test.same(list, {"head": {"data": 2, "next_node": {"data": 3, "next_node": {}}}})
+  ll.insert_first(2)
+  test.same(ll, {"head": {"data": 2, "next_node": {"data": 3, "next_node": {}}}})
   
-  ll.insert_first(list, 1)
-  test.same(list, {"head": {"data": 1, "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {}}}}})
+  ll.insert_first(1)
+  test.same(ll, {"head": {"data": 1, "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {}}}}})
   
-  ll.insert_last(list, 4)
-  test.same(list, {"head": {"data": 1, "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {"data": 4, "next_node": {}}}}}})
+  ll.insert_last(4)
+  test.same(ll, {"head": {"data": 1, "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {"data": 4, "next_node": {}}}}}})
   
-  ll.remove_last(list)
-  test.same(list, {"head": {"data": 1, "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {}}}}})
+  ll.remove_last()
+  test.same(ll, {"head": {"data": 1, "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {}}}}})
   
-  ll.remove_first(list)
-  test.same(list, {"head": {"data": 2, "next_node": {"data": 3, "next_node": {}}}})
+  ll.remove_first()
+  test.same(ll, {"head": {"data": 2, "next_node": {"data": 3, "next_node": {}}}})
   
-  ll.insert_at(list, "hello", 0)
-  test.same(list, {"head": {"data": "hello", "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {}}}}})
+  ll.insert_at("hello", 0)
+  test.same(ll, {"head": {"data": "hello", "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {}}}}})
   
-  ll.insert_last(list, "world")
-  test.same(list, {"head": {"data": "hello", "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {"data": "world", "next_node": {}}}}}})
+  ll.insert_last("world")
+  test.same(ll, {"head": {"data": "hello", "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {"data": "world", "next_node": {}}}}}})
   
-  ll.remove_at(list, 1)
-  test.same(list, {"head": {"data": "hello", "next_node": {"data": 3, "next_node": {"data": "world", "next_node": {}}}}})
+  ll.remove_at(1)
+  test.same(ll, {"head": {"data": "hello", "next_node": {"data": 3, "next_node": {"data": "world", "next_node": {}}}}})
   
-  ll.remove_at(list, 1)
-  test.same(list, {"head": {"data": "hello", "next_node": {"data": "world", "next_node": {}}}})
+  ll.remove_at(1)
+  test.same(ll, {"head": {"data": "hello", "next_node": {"data": "world", "next_node": {}}}})
   
-  values = ll.get_values(list).join(" ")
+  values = ll.get_values().join(" ")
   test.same(values, "hello world")
   
-  ll.clear(list)
-  test.same(list, {"head": {}})
+  ll.clear()
+  test.same(ll, {"head": {}})
   
   println test.results() # prints: {"same": {"passed": 13, "failed": 0}}
 end
