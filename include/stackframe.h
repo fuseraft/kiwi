@@ -19,6 +19,7 @@ enum class FrameFlags : uint8_t {
   LoopContinue = 1 << 3,
   InTry = 1 << 4,
   InObject = 1 << 5,
+  InLoop = 1 << 6
 };
 
 inline FrameFlags operator|(FrameFlags a, FrameFlags b) {

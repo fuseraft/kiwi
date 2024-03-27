@@ -1,5 +1,0 @@
-/#
-Homes the imported modules if they call __home__().
-#/
-
-import "lib/linkedlist"

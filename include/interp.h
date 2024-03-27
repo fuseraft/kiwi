@@ -269,6 +269,10 @@ class Interpreter {
       doUpdate = false;
     }
 
+    if (frame->isFlagSet(FrameFlags::InLoop)) {
+      doUpdate = true;
+    }
+
     auto topVariables = std::move(frame->variables);
     auto callerFrame = popTop();
 
@@ -549,7 +553,9 @@ class Interpreter {
       }
 
       auto codeStream = std::make_shared<TokenStream>(loopTokens);
-      callStack.push(buildSubFrame(frame));
+      auto codeFrame = buildSubFrame(frame);
+      codeFrame->setFlag(FrameFlags::InLoop);
+      callStack.push(codeFrame);
       streamStack.push(codeStream);
 
       interpretStackFrame();
@@ -717,6 +723,7 @@ class Interpreter {
           throw SyntaxError(stream->current(),
                             "Invalid syntax near `" + identifier + "`");
         }
+
         interpretClassMethodInvocation(stream, frame, identifier);
       } else if (methodFound) {
         switch (stream->peek().getType()) {
@@ -1451,7 +1458,8 @@ class Interpreter {
     stream->next();  // Skip class name
     stream->next();  // Skip the "."
 
-    auto methodName = stream->current().getText();
+    auto memberTerm = stream->current();
+    auto methodName = memberTerm.getText();
     stream->next();  // Skip the method name.
 
     auto clazz = classes[className];
@@ -3309,7 +3317,7 @@ class Interpreter {
                          std::shared_ptr<CallStackFrame> frame) {
     auto left = parseLogicalAnd(stream, frame);
 
-    while (stream->current().getSubType() == KName::Ops_Or) {
+    while (stream->canRead() && stream->current().getSubType() == KName::Ops_Or) {
       stream->next();  // Skip "||"
       auto right = parseLogicalAnd(stream, frame);
 
@@ -3329,7 +3337,7 @@ class Interpreter {
                           std::shared_ptr<CallStackFrame> frame) {
     auto left = parseBitwiseOr(stream, frame);
 
-    while (stream->current().getSubType() == KName::Ops_And) {
+    while (stream->canRead() && stream->current().getSubType() == KName::Ops_And) {
       stream->next();  // Skip "&&"
       auto right = parseBitwiseOr(stream, frame);
 
@@ -3349,7 +3357,7 @@ class Interpreter {
                          std::shared_ptr<CallStackFrame> frame) {
     auto left = parseBitwiseXor(stream, frame);
 
-    while (stream->current().getSubType() == KName::Ops_BitwiseOr) {
+    while (stream->canRead() && stream->current().getSubType() == KName::Ops_BitwiseOr) {
       stream->next();
       auto right = parseBitwiseXor(stream, frame);
       left = std::visit(BitwiseOrVisitor(stream->current()), left, right);
@@ -3362,7 +3370,7 @@ class Interpreter {
                           std::shared_ptr<CallStackFrame> frame) {
     auto left = parseBitwiseAnd(stream, frame);
 
-    while (stream->current().getSubType() == KName::Ops_BitwiseXor) {
+    while (stream->canRead() && stream->current().getSubType() == KName::Ops_BitwiseXor) {
       stream->next();
       auto right = parseBitwiseAnd(stream, frame);
       left = std::visit(BitwiseXorVisitor(stream->current()), left, right);
@@ -3375,7 +3383,7 @@ class Interpreter {
                           std::shared_ptr<CallStackFrame> frame) {
     auto left = parseEquality(stream, frame);
 
-    while (stream->current().getSubType() == KName::Ops_BitwiseAnd) {
+    while (stream->canRead() && stream->current().getSubType() == KName::Ops_BitwiseAnd) {
       stream->next();  // Skip "&"
       auto right = parseEquality(stream, frame);
       left = std::visit(BitwiseAndVisitor(stream->current()), left, right);
@@ -3388,8 +3396,7 @@ class Interpreter {
                         std::shared_ptr<CallStackFrame> frame) {
     auto left = parseComparison(stream, frame);
 
-    while (stream->current().getSubType() == KName::Ops_Equal ||
-           stream->current().getSubType() == KName::Ops_NotEqual) {
+    while (stream->canRead() && Operators.is_equality_op(stream->current().getSubType())) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
       auto right = parseComparison(stream, frame);
@@ -3414,10 +3421,7 @@ class Interpreter {
                           std::shared_ptr<CallStackFrame> frame) {
     auto left = parseBitshift(stream, frame);
 
-    while (stream->current().getSubType() == KName::Ops_GreaterThan ||
-           stream->current().getSubType() == KName::Ops_GreaterThanOrEqual ||
-           stream->current().getSubType() == KName::Ops_LessThan ||
-           stream->current().getSubType() == KName::Ops_LessThanOrEqual) {
+    while (stream->canRead() && Operators.is_comparison_op(stream->current().getSubType())) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
       auto right = parseBitshift(stream, frame);
@@ -3449,13 +3453,12 @@ class Interpreter {
 
   k_value parseBitshift(std::shared_ptr<TokenStream> stream,
                         std::shared_ptr<CallStackFrame> frame) {
-    auto left = parseAddition(stream, frame);
+    auto left = parseAdditive(stream, frame);
 
-    while (stream->current().getSubType() == KName::Ops_BitwiseLeftShift ||
-           stream->current().getSubType() == KName::Ops_BitwiseRightShift) {
+    while (stream->canRead() && Operators.is_bitwise_op(stream->current().getSubType())) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
-      auto right = parseAddition(stream, frame);
+      auto right = parseAdditive(stream, frame);
 
       switch (op) {
         case KName::Ops_BitwiseLeftShift:
@@ -3476,15 +3479,14 @@ class Interpreter {
     return left;
   }
 
-  k_value parseAddition(std::shared_ptr<TokenStream> stream,
+  k_value parseAdditive(std::shared_ptr<TokenStream> stream,
                         std::shared_ptr<CallStackFrame> frame) {
-    auto left = parseMultiplication(stream, frame);
+    auto left = parseMultiplicative(stream, frame);
 
-    while (stream->current().getSubType() == KName::Ops_Add ||
-           stream->current().getSubType() == KName::Ops_Subtract) {
+    while (stream->canRead() && Operators.is_additive_op(stream->current().getSubType())) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
-      auto right = parseMultiplication(stream, frame);
+      auto right = parseMultiplicative(stream, frame);
 
       switch (op) {
         case KName::Ops_Add:
@@ -3503,14 +3505,11 @@ class Interpreter {
     return left;
   }
 
-  k_value parseMultiplication(std::shared_ptr<TokenStream> stream,
+  k_value parseMultiplicative(std::shared_ptr<TokenStream> stream,
                               std::shared_ptr<CallStackFrame> frame) {
     auto left = parseUnary(stream, frame);
 
-    while (stream->current().getSubType() == KName::Ops_Multiply ||
-           stream->current().getSubType() == KName::Ops_Divide ||
-           stream->current().getSubType() == KName::Ops_Modulus ||
-           stream->current().getSubType() == KName::Ops_Exponent) {
+    while (stream->canRead() && Operators.is_multiplicative_op(stream->current().getSubType())) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
       auto right = parseUnary(stream, frame);
@@ -3542,9 +3541,7 @@ class Interpreter {
 
   k_value parseUnary(std::shared_ptr<TokenStream> stream,
                      std::shared_ptr<CallStackFrame> frame) {
-    while (stream->current().getSubType() == KName::Ops_Not ||
-           stream->current().getSubType() == KName::Ops_Subtract ||
-           stream->current().getSubType() == KName::Ops_BitwiseNot) {
+    while (stream->canRead() && Operators.is_unary_op(stream->current().getSubType())) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
       auto right = parseUnary(stream, frame);

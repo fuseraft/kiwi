@@ -80,6 +80,7 @@ enum KName {
   Builtin_Astral_Keys,
   Builtin_Astral_LastIndexOf,
   Builtin_Astral_LeftTrim,
+  Builtin_Astral_Members,
   Builtin_Astral_Replace,
   Builtin_Astral_Reverse,
   Builtin_Astral_RightTrim,

@@ -75,18 +75,53 @@ struct {
       KName::Ops_BitwiseLeftShiftAssign,
       KName::Ops_BitwiseRightShiftAssign};
 
-  std::unordered_set<k_string> arithmetic_operators = {
-      Add, Subtract, Multiply, Divide, Exponent, Modulus};
+  std::unordered_set<KName> equality_operators = {
+    KName::Ops_Equal, KName::Ops_NotEqual
+  };
 
-  std::unordered_set<k_string> relational_operators = {
-      Equal,           NotEqual,    LessThan,
-      LessThanOrEqual, GreaterThan, GreaterThanOrEqual};
+  std::unordered_set<KName> additive_operators = {
+    KName::Ops_Add, KName::Ops_Subtract
+  };
 
-  std::unordered_set<k_string> logical_operators = {And, Or, Not};
+  std::unordered_set<KName> multiplicative_operators = {
+    KName::Ops_Multiply, KName::Ops_Divide, KName::Ops_Modulus, KName::Ops_Exponent
+  };
 
-  std::unordered_set<k_string> bitwise_operators = {
-      BitwiseAnd, BitwiseOr,        BitwiseXor,
-      BitwiseNot, BitwiseLeftShift, BitwiseRightShift};
+  std::unordered_set<KName> comparison_operators = {
+    KName::Ops_GreaterThan, KName::Ops_GreaterThanOrEqual, KName::Ops_LessThan, KName::Ops_LessThanOrEqual
+  };
+
+  std::unordered_set<KName> bitwise_operators = {
+    KName::Ops_BitwiseLeftShift, KName::Ops_BitwiseRightShift
+  };
+
+  std::unordered_set<KName> unary_operators = {
+    KName::Ops_Not, KName::Ops_Subtract, KName::Ops_BitwiseNot
+  };
+
+  bool is_equality_op(const KName& arg) {
+    return equality_operators.find(arg) != equality_operators.end();
+  }
+
+  bool is_comparison_op(const KName& arg) {
+    return comparison_operators.find(arg) != comparison_operators.end();
+  }
+
+  bool is_bitwise_op(const KName& arg) {
+    return bitwise_operators.find(arg) != bitwise_operators.end();
+  }
+
+  bool is_additive_op(const KName& arg) {
+    return additive_operators.find(arg) != additive_operators.end();
+  }
+
+  bool is_multiplicative_op(const KName& arg) {
+    return multiplicative_operators.find(arg) != multiplicative_operators.end();
+  }
+
+  bool is_unary_op(const KName& arg) {
+    return unary_operators.find(arg) != unary_operators.end();
+  }
 
   bool is_large_operator(const k_string& arg) {
     return large_operators.find(arg) != large_operators.end();

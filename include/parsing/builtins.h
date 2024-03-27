@@ -462,12 +462,13 @@ struct {
   const k_string Downcase = "downcase";
   const k_string Keys = "keys";
   const k_string HasKey = "has_key";
+  const k_string Members = "members";
 
   std::unordered_set<k_string> builtins = {
       Chars,    Empty,     IsA,         Join,    Size,     ToBytes,  ToHex,
       ToD,      ToI,       ToS,         Replace, Reverse,  Contains, BeginsWith,
       EndsWith, IndexOf,   LastIndexOf, Upcase,  Downcase, Keys,     Split,
-      LeftTrim, RightTrim, Trim,        Type,    HasKey};
+      LeftTrim, RightTrim, Trim,        Type,    HasKey,   Members};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Astral_BeginsWith,  KName::Builtin_Astral_BeginsWith,
@@ -483,7 +484,7 @@ struct {
       KName::Builtin_Astral_ToHex,       KName::Builtin_Astral_ToD,
       KName::Builtin_Astral_ToI,         KName::Builtin_Astral_ToS,
       KName::Builtin_Astral_Trim,        KName::Builtin_Astral_Type,
-      KName::Builtin_Astral_Upcase};
+      KName::Builtin_Astral_Upcase,      KName::Builtin_Astral_Members};
 
   bool is_builtin(const k_string& arg) {
     if (ListBuiltins.is_builtin(arg)) {
