@@ -214,11 +214,7 @@ class Interpreter {
         if (frame->isFlagSet(FrameFlags::InTry)) {
           frame->setErrorState(e);
         } else {
-          ErrorHandler::handleError(e);
-          if (!preservingMainStackFrame) {
-            while (task.hasActiveTasks()) {}
-            exit(1);
-          }
+          handleUncaughtException(stream, e);
         }
       } catch (const std::exception& e) {
         ErrorHandler::handleFatalError(e);
@@ -234,6 +230,17 @@ class Interpreter {
     }
 
     handleFrameExit(frame);
+  }
+
+  void handleUncaughtException(std::shared_ptr<TokenStream> stream, const AstralError& e) {
+    ErrorHandler::handleError(e);
+          
+    if (!preservingMainStackFrame) {
+      while (task.hasActiveTasks()) {}
+      exit(1);
+    } else {
+      stream->next();
+    }
   }
 
   bool handleFrameFlags(std::shared_ptr<CallStackFrame>& frame) {
@@ -488,7 +495,7 @@ class Interpreter {
                         "Expected 'in' after loop variables.");
     }
 
-    auto collectionValue = interpretExpression(stream, frame);
+    auto collectionValue = parseExpression(stream, frame);
 
     if (!stream->matchsub(KName::KW_Do)) {
       throw SyntaxError(stream->current(), "Expected `do` in `for` loop.");
@@ -541,7 +548,7 @@ class Interpreter {
       }
 
       auto conditionFrame = buildSubFrame(frame);
-      auto value = interpretExpression(conditionStream, conditionFrame);
+      auto value = parseExpression(conditionStream, conditionFrame);
       streamPosition = 0;
 
       if (!std::holds_alternative<bool>(value)) {
@@ -730,8 +737,7 @@ class Interpreter {
           case KTokenType::COMMA:
           case KTokenType::CLOSE_PAREN:
             if (frame->hasAssignedLambda(identifier)) {
-              k_lambda lambdaRef = std::make_shared<LambdaRef>(identifier);
-              return lambdaRef;
+              return std::make_shared<LambdaRef>(identifier);
             } else {
               throw SyntaxError(stream->current(),
                                 "Expected lambda reference.");
@@ -1074,7 +1080,7 @@ class Interpreter {
       } else if (hasClass(stream->current().getText())) {
         args.emplace_back(stream->current().getText());
       } else {
-        args.emplace_back(interpretExpression(stream, frame));
+        args.emplace_back(parseExpression(stream, frame));
       }
 
       if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
@@ -1404,7 +1410,7 @@ class Interpreter {
         continue;
       }
 
-      auto paramValue = interpretExpression(stream, frame);
+      auto paramValue = parseExpression(stream, frame);
 
       if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
         closeParenthesisFound = true;
@@ -1733,7 +1739,7 @@ class Interpreter {
             stream->current().getText() == Operators.Assign) {
           stream->next();  // Skip "=".
           params.emplace_back(
-              Parameter(paramName, interpretExpression(stream, frame)));
+              Parameter(paramName, parseExpression(stream, frame)));
           continue;
         }
 
@@ -1868,7 +1874,7 @@ class Interpreter {
     k_value returnValue;
 
     if (hasValue) {
-      returnValue = interpretExpression(stream, frame);
+      returnValue = parseExpression(stream, frame);
     }
 
     if (std::holds_alternative<k_int>(returnValue)) {
@@ -1889,7 +1895,7 @@ class Interpreter {
     k_string errorMessage;
 
     if (hasValue) {
-      auto errorValue = interpretExpression(stream, frame);
+      auto errorValue = parseExpression(stream, frame);
 
       if (std::holds_alternative<k_hash>(errorValue)) {
         auto errorHash = std::get<k_hash>(errorValue);
@@ -1915,7 +1921,7 @@ class Interpreter {
     stream->next();  // Skip "return"
 
     if (hasValue) {
-      frame->returnValue = interpretExpression(stream, frame);
+      frame->returnValue = parseExpression(stream, frame);
       frame->setFlag(FrameFlags::ReturnFlag);
     }
   }
@@ -1947,7 +1953,7 @@ class Interpreter {
         stream->current().getType() == KTokenType::COLON) {
       slice.isSlice = true;
       if (stream->current().getType() != KTokenType::COLON) {
-        slice.indexOrStart = interpretExpression(stream, frame);
+        slice.indexOrStart = parseExpression(stream, frame);
       }
 
       if (stream->peek().getType() == KTokenType::COLON) {
@@ -1957,25 +1963,25 @@ class Interpreter {
       if (stream->current().getType() == KTokenType::COLON) {
         stream->next();  // Skip colon for start::step or ::step
         if (stream->current().getType() != KTokenType::CLOSE_BRACKET) {
-          slice.stopIndex = interpretExpression(stream, frame);
+          slice.stopIndex = parseExpression(stream, frame);
         }
       }
 
       if (stream->current().getType() == KTokenType::COLON) {
         stream->next();  // Skip colon for ::step
         if (stream->current().getType() != KTokenType::CLOSE_BRACKET) {
-          slice.stepValue = interpretExpression(stream, frame);
+          slice.stepValue = parseExpression(stream, frame);
         }
       }
     } else if (stream->current().getType() == KTokenType::QUALIFIER) {
       stream->next();
       slice.isSlice = true;
       if (stream->current().getType() != KTokenType::CLOSE_BRACKET) {
-        slice.stepValue = interpretExpression(stream, frame);
+        slice.stepValue = parseExpression(stream, frame);
       }
     } else {
       // Single index
-      slice.indexOrStart = interpretExpression(stream, frame);
+      slice.indexOrStart = parseExpression(stream, frame);
     }
 
     if (!stream->match(KTokenType::CLOSE_BRACKET)) {
@@ -1993,7 +1999,7 @@ class Interpreter {
                         "Expected open-bracket, `[`, in key or index access.");
     }
 
-    auto output = interpretExpression(stream, frame);
+    auto output = parseExpression(stream, frame);
 
     if (!stream->match(KTokenType::CLOSE_BRACKET)) {
       throw SyntaxError(stream->current(),
@@ -2115,14 +2121,14 @@ class Interpreter {
                         std::shared_ptr<CallStackFrame> frame) {
     stream->next();  // Skip the "["
 
-    auto startValue = interpretExpression(stream, frame);
+    auto startValue = parseExpression(stream, frame);
 
     if (!stream->match(KTokenType::RANGE)) {
       throw RangeError(stream->current(),
                        "Expected range separator, `..`, in range expression.");
     }
 
-    auto stopValue = interpretExpression(stream, frame);
+    auto stopValue = parseExpression(stream, frame);
 
     if (!stream->match(KTokenType::CLOSE_BRACKET)) {
       throw RangeError(stream->current(),
@@ -2164,7 +2170,7 @@ class Interpreter {
 
     while (stream->canRead() &&
            stream->current().getType() != KTokenType::CLOSE_BRACE) {
-      auto keyValue = interpretExpression(stream, frame);
+      auto keyValue = parseExpression(stream, frame);
 
       if (!std::holds_alternative<k_string>(keyValue)) {
         throw SyntaxError(stream->current(),
@@ -2174,7 +2180,7 @@ class Interpreter {
       if (stream->current().getType() == KTokenType::COLON) {
         stream->next();  // Skip the ":"
         hash->add(std::get<k_string>(keyValue),
-                  interpretExpression(stream, frame));
+                  parseExpression(stream, frame));
       }
 
       if (stream->current().getType() == KTokenType::COMMA) {
@@ -2200,7 +2206,7 @@ class Interpreter {
       switch (stream->current().getType()) {
         case KTokenType::OPEN_BRACKET:
           ++bracketCount;
-          elements.emplace_back(interpretExpression(stream, frame));
+          elements.emplace_back(parseExpression(stream, frame));
           break;
 
         case KTokenType::CLOSE_BRACKET: {
@@ -2218,7 +2224,7 @@ class Interpreter {
           break;
 
         default:
-          elements.emplace_back(interpretExpression(stream, frame));
+          elements.emplace_back(parseExpression(stream, frame));
           if (stream->current().getType() == KTokenType::COMMA ||
               stream->current().getType() == KTokenType::CLOSE_BRACKET) {
             continue;
@@ -2242,7 +2248,7 @@ class Interpreter {
     }
 
     // Eagerly evaluate the If conditions.
-    auto value = interpretExpression(stream, frame);
+    auto value = parseExpression(stream, frame);
 
     if (!std::holds_alternative<bool>(value)) {
       throw ConversionError(stream->current());
@@ -2283,7 +2289,7 @@ class Interpreter {
         }
 
         // Eagerly evaluate ElseIf conditions.
-        value = interpretExpression(stream, frame);
+        value = parseExpression(stream, frame);
 
         if (!std::holds_alternative<bool>(value)) {
           throw ConversionError(stream->current());
@@ -2540,7 +2546,7 @@ class Interpreter {
 
   k_string interpretExternalImport(std::shared_ptr<TokenStream> stream,
                                    std::shared_ptr<CallStackFrame> frame) {
-    auto scriptNameValue = interpretExpression(stream, frame);
+    auto scriptNameValue = parseExpression(stream, frame);
     if (!std::holds_alternative<k_string>(scriptNameValue)) {
       throw ConversionError(stream->current(),
                             "Expected a string for `import` statement.");
@@ -2707,19 +2713,25 @@ class Interpreter {
         throw VariableUndefinedError(stream->current(), name);
       }
 
-      auto value = getVariable(stream, frame, name);
+      auto value = frame->variables.at(name);
 
-      if (std::holds_alternative<k_hash>(value)) {
-        interpretDeleteHashKey(stream, frame, name, value);
-      } else if (std::holds_alternative<k_list>(value)) {
-        interpretDeleteListIndex(stream, frame, name, value);
+      if (stream->current().getType() == KTokenType::OPEN_BRACKET) {
+        if (std::holds_alternative<k_hash>(value)) {
+          interpretDeleteHashKey(stream, frame, name, value);
+        } else if (std::holds_alternative<k_list>(value)) {
+          interpretDeleteListIndex(stream, frame, name, value);
+        } else {
+          throw SyntaxError(stream->current(), "Invalid syntax in deletion.");
+        }
+      } else {
+        frame->variables.erase(name);
       }
 
       return;
     }
 
     throw SyntaxError(stream->current(),
-                      "Cannot delete from a non-variable value.");
+                      "Cannot delete a non-variable value.");
   }
 
   void interpretPrint(std::shared_ptr<TokenStream> stream,
@@ -2727,7 +2739,7 @@ class Interpreter {
                       bool printNewLine = false) {
     stream->next();  // skip the "print"
 
-    auto value = interpretExpression(stream, frame);
+    auto value = parseExpression(stream, frame);
 
     if (SILENCE) {
       return;
@@ -2964,7 +2976,7 @@ class Interpreter {
                                 const k_list& list) {
     stream->next();  // Skip "("
 
-    auto accumulator = interpretExpression(stream, frame);
+    auto accumulator = parseExpression(stream, frame);
 
     if (stream->current().getType() != KTokenType::LAMBDA) {
       stream->next();
@@ -3237,7 +3249,7 @@ class Interpreter {
         stream->next();  // Skip "="
 
         object->instanceVariables[callText] =
-            interpretExpression(stream, frame);
+            parseExpression(stream, frame);
         return object;
       }
     }
@@ -3253,7 +3265,7 @@ class Interpreter {
         if (current.getSubType() == KName::Ops_Assign) {
           stream->next();  // Skip "="
 
-          const auto& assignmentValue = interpretExpression(stream, frame);
+          const auto& assignmentValue = parseExpression(stream, frame);
           hash->add(callText, assignmentValue);
           return hash;
         }
@@ -3607,7 +3619,7 @@ class Interpreter {
 
       case KTokenType::OPEN_PAREN: {
         stream->next();  // Skip "("
-        auto result = interpretExpression(stream, frame);
+        auto result = parseExpression(stream, frame);
 
         if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
           stream->next();  // Skip ")"
@@ -3639,12 +3651,6 @@ class Interpreter {
     }
 
     return static_cast<k_int>(0);  // Default value.
-  }
-
-  k_value interpretExpression(std::shared_ptr<TokenStream> stream,
-                              std::shared_ptr<CallStackFrame> frame) {
-    auto result = parseExpression(stream, frame);
-    return result;  //nterpretValueInvocation(stream, frame, result);
   }
 
   k_value interpretSelfInvocationTerm(std::shared_ptr<TokenStream> stream,
@@ -3706,7 +3712,7 @@ class Interpreter {
     auto tempStream = std::make_shared<TokenStream>(lexer.getAllTokens());
     auto tempFrame = buildSubFrame(frame);
 
-    return interpretExpression(tempStream, tempFrame);
+    return parseExpression(tempStream, tempFrame);
   }
 
   k_string interpolateString(std::shared_ptr<TokenStream> stream,
@@ -3802,7 +3808,7 @@ class Interpreter {
           "Expected open-bracket, `[`, in hash element assignment.");
     }
 
-    auto keyValue = interpretExpression(stream, frame);
+    auto keyValue = parseExpression(stream, frame);
 
     if (!std::holds_alternative<k_string>(keyValue)) {
       throw SyntaxError(stream->current(), "Hash key must be a string value.");
@@ -3819,7 +3825,7 @@ class Interpreter {
                                   "Expected assignment operator.");
     }
 
-    auto elementValue = interpretExpression(stream, frame);
+    auto elementValue = parseExpression(stream, frame);
     auto hashValue = std::get<k_hash>(value);
     hashValue->add(std::get<k_string>(keyValue), elementValue);
 
@@ -3854,7 +3860,7 @@ class Interpreter {
     }
     stream->next();  // Move past the assignment operator
 
-    auto rhsValues = interpretExpression(stream, frame);
+    auto rhsValues = parseExpression(stream, frame);
 
     InterpHelper::updateListSlice(stream, insertOp, std::get<k_list>(value),
                                   slice,
@@ -3945,7 +3951,7 @@ class Interpreter {
         break;
 
       default:
-        value = interpretExpression(stream, frame);
+        value = parseExpression(stream, frame);
         break;
     }
 
