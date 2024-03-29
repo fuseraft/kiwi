@@ -762,8 +762,8 @@ class Interpreter {
   k_value interpretValueInvocation(std::shared_ptr<TokenStream> stream,
                                    std::shared_ptr<CallStackFrame> frame,
                                    k_value& v) {
-    while (stream->current().getType() == KTokenType::DOT ||
-           stream->current().getType() == KTokenType::OPEN_BRACKET) {
+    while (stream->canRead() && (stream->current().getType() == KTokenType::DOT ||
+           stream->current().getType() == KTokenType::OPEN_BRACKET)) {
       switch (stream->current().getType()) {
         case KTokenType::DOT:
           v = interpretDotNotation(stream, frame, v);
@@ -1584,17 +1584,19 @@ class Interpreter {
 
   void interpretInstanceMethodInvocation(std::shared_ptr<TokenStream> stream,
                                          std::shared_ptr<CallStackFrame> frame,
-                                         const k_string& instanceName) {
-    stream->next();  // Skip the "."
-    if (stream->current().getType() != KTokenType::IDENTIFIER) {
-      throw SyntaxError(
-          stream->current(),
-          "Expected identifier in instance method invocation, instead got: `" +
-              stream->current().getText() + "`");
-    }
+                                         const k_string& instanceName, k_string methodName = "") {
+    if (methodName.empty()) {
+      stream->next();  // Skip the "."
+      if (stream->current().getType() != KTokenType::IDENTIFIER) {
+        throw SyntaxError(
+            stream->current(),
+            "Expected identifier in instance method invocation, instead got: `" +
+                stream->current().getText() + "`");
+      }
 
-    auto methodName = stream->current().getText();
-    stream->next();  // Skip the method name.
+      methodName = stream->current().getText();
+      stream->next();  // Skip the method name.
+    }
 
     auto object = std::get<k_object>(getVariable(stream, frame, instanceName));
 
@@ -2776,13 +2778,14 @@ class Interpreter {
   k_value interpretBuiltin(std::shared_ptr<TokenStream> stream,
                            std::shared_ptr<CallStackFrame> frame,
                            const KName& builtin) {
+    auto term = stream->current();
     stream->next();  // Skip the name.
 
     auto args = interpretArguments(stream, frame);
 
     if (ModuleBuiltins.is_builtin(builtin)) {
       if (moduleStack.empty()) {
-        throw InvalidContextError(stream->current(),
+        throw InvalidContextError(term,
                                   "Expected a module context.");
       }
       auto moduleName = moduleStack.top();
@@ -2792,7 +2795,7 @@ class Interpreter {
       return interpretWebServerBuiltin(stream, frame, builtin, args);
     }
 
-    frame->returnValue = BuiltinInterpreter::execute(stream->current(), builtin,
+    frame->returnValue = BuiltinInterpreter::execute(term, builtin,
                                                      args, astralArgs);
     return frame->returnValue;
   }
@@ -3152,7 +3155,7 @@ class Interpreter {
       return interpretStringToHash(stream, frame, input);
     }
 
-    throw UnknownBuiltinError(stream->current(), "");
+    throw UnknownBuiltinError(stream->current(), stream->previous().getText());
   }
 
   k_value interpretSpecializedObjectBuiltin(std::shared_ptr<TokenStream> stream,
@@ -3168,7 +3171,7 @@ class Interpreter {
       return interpretObjectToHash(stream, object);
     }
 
-    throw UnknownBuiltinError(stream->current(), "");
+    throw UnknownBuiltinError(stream->current(), stream->previous().getText());
   }
 
   k_value interpretSpecializedListBuiltin(std::shared_ptr<TokenStream> stream,
@@ -3207,7 +3210,7 @@ class Interpreter {
         return interpretListSum(stream, list);
 
       default:
-        throw UnknownBuiltinError(stream->current(), "");
+        throw UnknownBuiltinError(stream->current(), stream->previous().getText());
     }
   }
 
@@ -3218,13 +3221,13 @@ class Interpreter {
       stream->next();
     }
 
-    auto current = stream->current();
+    auto term = stream->current();
 
-    auto callText = current.getText();
-    auto call = current.getSubType();
+    auto callText = term.getText();
+    auto call = term.getSubType();
     stream->next();
 
-    current = stream->current();
+    auto current = stream->current();
 
     bool isObject = false;
 
@@ -3235,7 +3238,7 @@ class Interpreter {
 
       if (object->hasVariable(callText)) {
         if (clazz.hasPrivateVariable(callText)) {
-          throw InvalidContextError(current,
+          throw InvalidContextError(term,
                                     "Cannot access private instance variable "
                                     "outside of object context.");
         }
@@ -3271,7 +3274,7 @@ class Interpreter {
         }
       }
 
-      throw UnknownIdentifierError(stream->current(), callText);
+      throw UnknownIdentifierError(term, callText);
     }
 
     if (ListBuiltins.is_builtin(call)) {
@@ -3293,7 +3296,7 @@ class Interpreter {
           stream, frame, std::get<k_object>(value), callText, call, args);
     }
 
-    return BuiltinInterpreter::execute(stream->current(), call, value, args);
+    return BuiltinInterpreter::execute(term, call, value, args);
   }
 
   k_value parseExpression(std::shared_ptr<TokenStream> stream,
@@ -3641,6 +3644,7 @@ class Interpreter {
 
       default:
         if (current.getSubType() == KName::KW_This) {
+          stream->next(); // Skip "this"
           return interpretSelfInvocationTerm(stream, frame);
         } else if (std::holds_alternative<k_string>(value)) {
           value = interpolateString(stream, frame);
@@ -3675,7 +3679,7 @@ class Interpreter {
 
     if (clazz.hasMethod(identifier)) {
       interpretInstanceMethodInvocation(stream, frame,
-                                        frame->getObjectContext()->identifier);
+                                        frame->getObjectContext()->identifier, identifier);
 
       if (!callStack.empty()) {
         return callStack.top()->returnValue;

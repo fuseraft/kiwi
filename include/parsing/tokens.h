@@ -83,6 +83,14 @@ class TokenStream {
     return tokens.at(position);
   }
 
+  Token previous() {
+    if (position - 1 > 0) {
+      return tokens.at(0);
+    }
+    
+    return tokens.at(position - 1);
+  }
+
   bool match(KTokenType type) {
     if (current().getType() == type) {
       next();
