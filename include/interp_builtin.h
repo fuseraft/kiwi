@@ -50,7 +50,7 @@ class BuiltinInterpreter {
 #endif
     }
 
-    throw UnknownBuiltinError(term, "");
+    throw UnknownBuiltinError(term, term.getText());
   }
 
   static k_value execute(const Token& term, const KName& builtin,
@@ -60,7 +60,7 @@ class BuiltinInterpreter {
       return CoreBuiltinHandler::execute(term, builtin, value, args);
     }
 
-    throw UnknownBuiltinError(term, "");
+    throw UnknownBuiltinError(term, term.getText());
   }
 };
 
