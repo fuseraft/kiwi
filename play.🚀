@@ -58,6 +58,25 @@ class Game private (name, players, player_count, turns)
     return "${this.name}"
   end
 
+  def add_player
+    ( player )
+
+    if this.player_count == this.players.size()
+      println "max player capacity is already met."
+      return 0
+    end
+
+    this.players << player
+  end
+
+  def get_players()
+    return this.players
+  end
+
+  def get_name()
+    return this.name
+  end
+
   def print_info()  
     lines = "=====================" + ("=" * "${this}".size())
     println "\n${lines}\nYou are now playing ${this}!\n${lines}"
@@ -124,25 +143,6 @@ class Game private (name, players, player_count, turns)
     println ""
 
     return action == "a" ? "attack" : "block"
-  end
-
-  def add_player
-    ( player )
-
-    if this.player_count == this.players.size()
-      println "max player capacity is already met."
-      return 0
-    end
-
-    this.players << player
-  end
-
-  def get_players()
-    return this.players
-  end
-
-  def get_name()
-    return this.name
   end
 end
 
