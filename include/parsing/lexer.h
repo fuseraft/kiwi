@@ -389,16 +389,16 @@ class Lexer {
           return Token::create(KTokenType::ESCAPED, KName::Default, fileId,
                                "\t", row, col);
         case '"':
-          return Token::create(KTokenType::ESCAPED, KName::Default, fileId, 
+          return Token::create(KTokenType::ESCAPED, KName::Default, fileId,
                                "\"", row, col);
         case 'b':
-          return Token::create(KTokenType::ESCAPED, KName::Default, fileId, 
+          return Token::create(KTokenType::ESCAPED, KName::Default, fileId,
                                "\b", row, col);
         case 'f':
-          return Token::create(KTokenType::ESCAPED, KName::Default, fileId, 
+          return Token::create(KTokenType::ESCAPED, KName::Default, fileId,
                                "\f", row, col);
         case '\\':
-          return Token::create(KTokenType::ESCAPED, KName::Default, fileId, 
+          return Token::create(KTokenType::ESCAPED, KName::Default, fileId,
                                "\\", row, col);
       }
     }
