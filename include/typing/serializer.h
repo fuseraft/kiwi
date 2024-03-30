@@ -105,8 +105,12 @@ struct Serializer {
   }
 
   static k_string basic_serialize_object(const k_object& object) {
-    return "[Object(class=" + object->className + ", identifier=@" +
-           object->identifier + ")]";
+    if (object->identifier.empty()) {
+      return "@(class=" + object->className + ")";
+    } else {
+      return "@(class=" + object->className +
+             ", identifier=" + object->identifier + ")";
+    }
   }
 
   static k_string basic_serialize_lambda(const k_lambda& lambda) {

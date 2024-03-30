@@ -145,7 +145,8 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_object>(value)) {
-      throw InvalidOperationError(term, "Expected an `Object` in call to `" + AstralBuiltins.Members + "`");
+      throw InvalidOperationError(term, "Expected an `Object` in call to `" +
+                                            AstralBuiltins.Members + "`");
     }
 
     auto memberHash = std::make_shared<Hash>();
