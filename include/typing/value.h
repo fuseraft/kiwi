@@ -279,7 +279,6 @@ k_value min_listvalue(k_list list) {
     return {};
   }
 
-
   auto minValue = elements.at(0);
   for (const auto& val : elements) {
     if (lt_value(val, minValue)) {

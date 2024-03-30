@@ -75,29 +75,25 @@ struct {
       KName::Ops_BitwiseLeftShiftAssign,
       KName::Ops_BitwiseRightShiftAssign};
 
-  std::unordered_set<KName> equality_operators = {
-    KName::Ops_Equal, KName::Ops_NotEqual
-  };
+  std::unordered_set<KName> equality_operators = {KName::Ops_Equal,
+                                                  KName::Ops_NotEqual};
 
-  std::unordered_set<KName> additive_operators = {
-    KName::Ops_Add, KName::Ops_Subtract
-  };
+  std::unordered_set<KName> additive_operators = {KName::Ops_Add,
+                                                  KName::Ops_Subtract};
 
   std::unordered_set<KName> multiplicative_operators = {
-    KName::Ops_Multiply, KName::Ops_Divide, KName::Ops_Modulus, KName::Ops_Exponent
-  };
+      KName::Ops_Multiply, KName::Ops_Divide, KName::Ops_Modulus,
+      KName::Ops_Exponent};
 
   std::unordered_set<KName> comparison_operators = {
-    KName::Ops_GreaterThan, KName::Ops_GreaterThanOrEqual, KName::Ops_LessThan, KName::Ops_LessThanOrEqual
-  };
+      KName::Ops_GreaterThan, KName::Ops_GreaterThanOrEqual,
+      KName::Ops_LessThan, KName::Ops_LessThanOrEqual};
 
-  std::unordered_set<KName> bitwise_operators = {
-    KName::Ops_BitwiseLeftShift, KName::Ops_BitwiseRightShift
-  };
+  std::unordered_set<KName> bitwise_operators = {KName::Ops_BitwiseLeftShift,
+                                                 KName::Ops_BitwiseRightShift};
 
   std::unordered_set<KName> unary_operators = {
-    KName::Ops_Not, KName::Ops_Subtract, KName::Ops_BitwiseNot
-  };
+      KName::Ops_Not, KName::Ops_Subtract, KName::Ops_BitwiseNot};
 
   bool is_equality_op(const KName& arg) {
     return equality_operators.find(arg) != equality_operators.end();
