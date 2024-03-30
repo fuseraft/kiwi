@@ -232,9 +232,10 @@ class Interpreter {
     handleFrameExit(frame);
   }
 
-  void handleUncaughtException(std::shared_ptr<TokenStream> stream, const AstralError& e) {
+  void handleUncaughtException(std::shared_ptr<TokenStream> stream,
+                               const AstralError& e) {
     ErrorHandler::handleError(e);
-          
+
     if (!preservingMainStackFrame) {
       while (task.hasActiveTasks()) {}
       exit(1);
@@ -762,8 +763,9 @@ class Interpreter {
   k_value interpretValueInvocation(std::shared_ptr<TokenStream> stream,
                                    std::shared_ptr<CallStackFrame> frame,
                                    k_value& v) {
-    while (stream->canRead() && (stream->current().getType() == KTokenType::DOT ||
-           stream->current().getType() == KTokenType::OPEN_BRACKET)) {
+    while (stream->canRead() &&
+           (stream->current().getType() == KTokenType::DOT ||
+            stream->current().getType() == KTokenType::OPEN_BRACKET)) {
       switch (stream->current().getType()) {
         case KTokenType::DOT:
           v = interpretDotNotation(stream, frame, v);
@@ -1078,6 +1080,10 @@ class Interpreter {
       if (stream->current().getType() == KTokenType::TYPENAME) {
         args.emplace_back(stream->current().getText());
       } else if (hasClass(stream->current().getText())) {
+        if (stream->peek().getType() == KTokenType::DOT) {
+          args.emplace_back(parseExpression(stream, frame));
+          continue;
+        }
         args.emplace_back(stream->current().getText());
       } else {
         args.emplace_back(parseExpression(stream, frame));
@@ -1584,14 +1590,15 @@ class Interpreter {
 
   void interpretInstanceMethodInvocation(std::shared_ptr<TokenStream> stream,
                                          std::shared_ptr<CallStackFrame> frame,
-                                         const k_string& instanceName, k_string methodName = "") {
+                                         const k_string& instanceName,
+                                         k_string methodName = "") {
     if (methodName.empty()) {
       stream->next();  // Skip the "."
       if (stream->current().getType() != KTokenType::IDENTIFIER) {
-        throw SyntaxError(
-            stream->current(),
-            "Expected identifier in instance method invocation, instead got: `" +
-                stream->current().getText() + "`");
+        throw SyntaxError(stream->current(),
+                          "Expected identifier in instance method invocation, "
+                          "instead got: `" +
+                              stream->current().getText() + "`");
       }
 
       methodName = stream->current().getText();
@@ -2181,8 +2188,7 @@ class Interpreter {
 
       if (stream->current().getType() == KTokenType::COLON) {
         stream->next();  // Skip the ":"
-        hash->add(std::get<k_string>(keyValue),
-                  parseExpression(stream, frame));
+        hash->add(std::get<k_string>(keyValue), parseExpression(stream, frame));
       }
 
       if (stream->current().getType() == KTokenType::COMMA) {
@@ -2732,8 +2738,7 @@ class Interpreter {
       return;
     }
 
-    throw SyntaxError(stream->current(),
-                      "Cannot delete a non-variable value.");
+    throw SyntaxError(stream->current(), "Cannot delete a non-variable value.");
   }
 
   void interpretPrint(std::shared_ptr<TokenStream> stream,
@@ -2785,8 +2790,7 @@ class Interpreter {
 
     if (ModuleBuiltins.is_builtin(builtin)) {
       if (moduleStack.empty()) {
-        throw InvalidContextError(term,
-                                  "Expected a module context.");
+        throw InvalidContextError(term, "Expected a module context.");
       }
       auto moduleName = moduleStack.top();
       interpretModuleBuiltin(stream, moduleName, builtin, args);
@@ -2795,8 +2799,8 @@ class Interpreter {
       return interpretWebServerBuiltin(stream, frame, builtin, args);
     }
 
-    frame->returnValue = BuiltinInterpreter::execute(term, builtin,
-                                                     args, astralArgs);
+    frame->returnValue =
+        BuiltinInterpreter::execute(term, builtin, args, astralArgs);
     return frame->returnValue;
   }
 
@@ -3210,7 +3214,8 @@ class Interpreter {
         return interpretListSum(stream, list);
 
       default:
-        throw UnknownBuiltinError(stream->current(), stream->previous().getText());
+        throw UnknownBuiltinError(stream->current(),
+                                  stream->previous().getText());
     }
   }
 
@@ -3251,8 +3256,7 @@ class Interpreter {
       if (current.getSubType() == KName::Ops_Assign) {
         stream->next();  // Skip "="
 
-        object->instanceVariables[callText] =
-            parseExpression(stream, frame);
+        object->instanceVariables[callText] = parseExpression(stream, frame);
         return object;
       }
     }
@@ -3332,7 +3336,8 @@ class Interpreter {
                          std::shared_ptr<CallStackFrame> frame) {
     auto left = parseLogicalAnd(stream, frame);
 
-    while (stream->canRead() && stream->current().getSubType() == KName::Ops_Or) {
+    while (stream->canRead() &&
+           stream->current().getSubType() == KName::Ops_Or) {
       stream->next();  // Skip "||"
       auto right = parseLogicalAnd(stream, frame);
 
@@ -3352,7 +3357,8 @@ class Interpreter {
                           std::shared_ptr<CallStackFrame> frame) {
     auto left = parseBitwiseOr(stream, frame);
 
-    while (stream->canRead() && stream->current().getSubType() == KName::Ops_And) {
+    while (stream->canRead() &&
+           stream->current().getSubType() == KName::Ops_And) {
       stream->next();  // Skip "&&"
       auto right = parseBitwiseOr(stream, frame);
 
@@ -3372,7 +3378,8 @@ class Interpreter {
                          std::shared_ptr<CallStackFrame> frame) {
     auto left = parseBitwiseXor(stream, frame);
 
-    while (stream->canRead() && stream->current().getSubType() == KName::Ops_BitwiseOr) {
+    while (stream->canRead() &&
+           stream->current().getSubType() == KName::Ops_BitwiseOr) {
       stream->next();
       auto right = parseBitwiseXor(stream, frame);
       left = std::visit(BitwiseOrVisitor(stream->current()), left, right);
@@ -3385,7 +3392,8 @@ class Interpreter {
                           std::shared_ptr<CallStackFrame> frame) {
     auto left = parseBitwiseAnd(stream, frame);
 
-    while (stream->canRead() && stream->current().getSubType() == KName::Ops_BitwiseXor) {
+    while (stream->canRead() &&
+           stream->current().getSubType() == KName::Ops_BitwiseXor) {
       stream->next();
       auto right = parseBitwiseAnd(stream, frame);
       left = std::visit(BitwiseXorVisitor(stream->current()), left, right);
@@ -3398,7 +3406,8 @@ class Interpreter {
                           std::shared_ptr<CallStackFrame> frame) {
     auto left = parseEquality(stream, frame);
 
-    while (stream->canRead() && stream->current().getSubType() == KName::Ops_BitwiseAnd) {
+    while (stream->canRead() &&
+           stream->current().getSubType() == KName::Ops_BitwiseAnd) {
       stream->next();  // Skip "&"
       auto right = parseEquality(stream, frame);
       left = std::visit(BitwiseAndVisitor(stream->current()), left, right);
@@ -3411,7 +3420,8 @@ class Interpreter {
                         std::shared_ptr<CallStackFrame> frame) {
     auto left = parseComparison(stream, frame);
 
-    while (stream->canRead() && Operators.is_equality_op(stream->current().getSubType())) {
+    while (stream->canRead() &&
+           Operators.is_equality_op(stream->current().getSubType())) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
       auto right = parseComparison(stream, frame);
@@ -3436,7 +3446,8 @@ class Interpreter {
                           std::shared_ptr<CallStackFrame> frame) {
     auto left = parseBitshift(stream, frame);
 
-    while (stream->canRead() && Operators.is_comparison_op(stream->current().getSubType())) {
+    while (stream->canRead() &&
+           Operators.is_comparison_op(stream->current().getSubType())) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
       auto right = parseBitshift(stream, frame);
@@ -3470,7 +3481,8 @@ class Interpreter {
                         std::shared_ptr<CallStackFrame> frame) {
     auto left = parseAdditive(stream, frame);
 
-    while (stream->canRead() && Operators.is_bitwise_op(stream->current().getSubType())) {
+    while (stream->canRead() &&
+           Operators.is_bitwise_op(stream->current().getSubType())) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
       auto right = parseAdditive(stream, frame);
@@ -3498,7 +3510,8 @@ class Interpreter {
                         std::shared_ptr<CallStackFrame> frame) {
     auto left = parseMultiplicative(stream, frame);
 
-    while (stream->canRead() && Operators.is_additive_op(stream->current().getSubType())) {
+    while (stream->canRead() &&
+           Operators.is_additive_op(stream->current().getSubType())) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
       auto right = parseMultiplicative(stream, frame);
@@ -3524,7 +3537,8 @@ class Interpreter {
                               std::shared_ptr<CallStackFrame> frame) {
     auto left = parseUnary(stream, frame);
 
-    while (stream->canRead() && Operators.is_multiplicative_op(stream->current().getSubType())) {
+    while (stream->canRead() &&
+           Operators.is_multiplicative_op(stream->current().getSubType())) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
       auto right = parseUnary(stream, frame);
@@ -3556,7 +3570,8 @@ class Interpreter {
 
   k_value parseUnary(std::shared_ptr<TokenStream> stream,
                      std::shared_ptr<CallStackFrame> frame) {
-    while (stream->canRead() && Operators.is_unary_op(stream->current().getSubType())) {
+    while (stream->canRead() &&
+           Operators.is_unary_op(stream->current().getSubType())) {
       auto op = stream->current().getSubType();
       stream->next();  // Skip operator
       auto right = parseUnary(stream, frame);
@@ -3644,7 +3659,7 @@ class Interpreter {
 
       default:
         if (current.getSubType() == KName::KW_This) {
-          stream->next(); // Skip "this"
+          stream->next();  // Skip "this"
           return interpretSelfInvocationTerm(stream, frame);
         } else if (std::holds_alternative<k_string>(value)) {
           value = interpolateString(stream, frame);
@@ -3678,8 +3693,8 @@ class Interpreter {
     auto clazz = classes[frame->getObjectContext()->className];
 
     if (clazz.hasMethod(identifier)) {
-      interpretInstanceMethodInvocation(stream, frame,
-                                        frame->getObjectContext()->identifier, identifier);
+      interpretInstanceMethodInvocation(
+          stream, frame, frame->getObjectContext()->identifier, identifier);
 
       if (!callStack.empty()) {
         return callStack.top()->returnValue;
@@ -3774,7 +3789,7 @@ class Interpreter {
             case '\\':
               sv << '\\';
               break;
-            
+
             default:
               sv << input[i + 1];
               break;

@@ -68,9 +68,9 @@ class File {
   static std::vector<k_string> expandGlob(const k_string& globString);
   static k_string getLocalPath(const k_string& path);
 
-  #ifdef _WIN64
+#ifdef _WIN64
   static k_string wstring_tos(const std::wstring& wstring);
-  #endif
+#endif
 };
 
 /// @brief Create a file.
