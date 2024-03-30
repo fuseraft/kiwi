@@ -5,17 +5,16 @@ This 🚀 script is for experimentation.
 #/
 
 import "@astral/math" as Math
+import "@astral/sys" as sys
 
 def main()
-  g = Game.new("cosmognorivelum", 2)
-  name = input("enter player name: ")
+  g = Game.new("Cosmognorivelum", 2)
+  name = input("Enter player name: ")
 
   g.add_player(Player.create(name))
   g.add_player(Player.create_enemy("aetheris"))
 
   g.print_info()
-
-  println "\n"
 
   g.play()
 end
@@ -31,7 +30,7 @@ class Player
   end
 
   def get_type()
-    return this.is_enemy ? "enemy" : "player"
+    return this.is_enemy ? "Enemy" : "Player"
   end
 
   static def create(name, is_enemy = false)
@@ -61,10 +60,10 @@ class Game private (name, players, player_count, turns)
 
   def print_info()  
     lines = "=====================" + ("=" * "${this}".size())
-    println "\n${lines}\nyou are now playing ${this}!\n${lines}\n"
+    println "\n${lines}\nYou are now playing ${this}!\n${lines}"
     
     for p, i in this.get_players() do
-      print "${p.get_type()}: ${p}" + ((i + 1 < this.get_players().size()) ? ", " : "\n\n")
+      print "${p.get_type()}: ${p}" + ((i + 1 < this.get_players().size()) ? ", " : "\n")
     end
   end
 
@@ -73,7 +72,10 @@ class Game private (name, players, player_count, turns)
     enemy_hp = 100
 
     for turn in [1..this.turns] do
-      println "turn ${turn} of ${this.turns} => player hp: ${player_hp}, enemy hp: ${enemy_hp}"
+      sys.exec("clear")
+      
+      this.print_info()
+      println "\nTurn ${turn} of ${this.turns} => Player HP: ${player_hp}, Enemy HP: ${enemy_hp}\n"
       
       for p in this.get_players() do
         if !p.is_enemy
@@ -81,27 +83,38 @@ class Game private (name, players, player_count, turns)
           
           player_attack = move == "attack"
           enemy_attack = Math.random(1, 100) >= 20
-    
-          if enemy_attack && player_attack
-            player_hp -= Math.random(0, 30)
-            enemy_hp -= Math.random(0, 25)
-          elsif enemy_attack && !player_attack
-            player_hp -= Math.random(0, 15)
-          elsif !enemy_attack && player_attack
-            enemy_hp -= Math.random(0, 10)
-          end
+
+          resolve_combat(player_attack, enemy_attack, player_hp, enemy_hp)
         end
       end
     end
 
+    this.conclude_game(player_hp, enemy_hp)
+  end
+
+  private def conclude_game(player_hp, enemy_hp)
+    sys.exec("clear")
+    println "Results => Player HP: ${player_hp}, Enemy HP: ${enemy_hp}\n"
+
     if player_hp > enemy_hp
-      println "Winner winner chicken dinner"
+      println "Winner winner chicken dinner!"
     else
       println "Game over."
     end
   end
 
-  def get_action(p)
+  private def resolve_combat(player_attack, enemy_attack, player_hp, enemy_hp)
+    if enemy_attack && player_attack
+      player_hp -= Math.random(0, 30)
+      enemy_hp -= Math.random(0, 25)
+    elsif enemy_attack && !player_attack && Math.random(1, 6) == 6
+      player_hp -= Math.random(0, 15)
+    elsif !enemy_attack && player_attack
+      enemy_hp -= Math.random(0, 10)
+    end
+  end
+
+  private def get_action(p)
     action = ""
 
     while !["a", "b"].contains(action) do
