@@ -2309,6 +2309,7 @@ class Interpreter {
         if (elseIfValue) {
           // Don't evaluate future ElseIf branches.
           shortCircuitElseIf = true;
+          continue;
         }
       }
 
