@@ -22,14 +22,12 @@ Astral supports some experimental modules for working with databases and making 
 | :--- | :--- |
 | [`@astral/odbc`](lib/experimental/odbc.md) | A module for working with common databases. |
 
-
 Note: To use these modules, you need to install the following dependencies.
 
 #### Fedora / RHEL
 
 ```bash
 sudo dnf update
-sudo dnf install libcurl-devel  # dependency for @astral/http
 sudo dnf install unixODBC-devel # dependency for @astral/odbc
 ```
 
@@ -37,7 +35,6 @@ sudo dnf install unixODBC-devel # dependency for @astral/odbc
 
 ```bash
 sudo apt-get update
-sudo apt-get install libcurl4-openssl-dev
 sudo apt-get install unixodbc-dev
 ```
 
