@@ -62,8 +62,8 @@ module http
     - _content_type: The content-type. Defaults to "text/plain".
   Returns: A hash with the response status code, headers, and body.
   #/
-  def patch(_url, _path, _body, _headers = {}, _content_type = "text/plain")
-    return __webc_patch__(_url, _path, _body, _headers, _content_type)
+  def patch(_url, _path, _body, _content_type = "text/plain", _headers = {})
+    return __webc_patch__(_url, _path, _body, _content_type, _headers)
   end
 
   /#
@@ -76,8 +76,8 @@ module http
     - _content_type: The content-type. Defaults to "text/plain".
   Returns: A hash with the response status code, headers, and body.
   #/
-  def post(_url, _path, _body, _headers = {}, _content_type = "text/plain")
-    return __webc_get__(_url, _path, _body, _headers, _content_type)
+  def post(_url, _path, _body, _content_type = "text/plain", _headers = {})
+    return __webc_post__(_url, _path, _body, _content_type, _headers)
   end
 
   /#
@@ -90,8 +90,8 @@ module http
     - _content_type: The content-type. Defaults to "text/plain". 
   Returns: A hash with the response status code, headers, and body.
   #/
-  def put(_url, _path, _body, _headers = {}, _content_type = "text/plain")
-    return __webc_put__(_url, _path, _body, _headers, _content_type)
+  def put(_url, _path, _body, _content_type = "text/plain", _headers = {})
+    return __webc_put__(_url, _path, _body, _content_type, _headers)
   end
 end
 

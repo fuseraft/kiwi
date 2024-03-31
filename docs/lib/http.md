@@ -11,9 +11,9 @@ The `http` module contains functionality for working with HTTP requests.
   - [`get(_url, _path, _headers)`](#get_url-_path-_headers)
   - [`head(_url, _path, _headers)`](#head_url-_path-_headers)
   - [`options(_url, _path, _headers)`](#options_url-_path-_headers)
-  - [`patch(_url, _path, _body, _headers, _content_type)`](#patch_url-_path-_body-_headers-_content_type)
-  - [`post(_url, _path, _body, _headers, _content_type)`](#post_url-_path-_body-_headers-_content_type)
-  - [`put(_url, _path, _body, _headers, _content_type)`](#put_url-_path-_body-_headers-_content_type)
+  - [`patch(_url, _path, _body, _content_type, _headers)`](#patch_url-_path-_body-_content_type-_headers)
+  - [`post(_url, _path, _body, _content_type, _headers)`](#post_url-_path-_body-_content_type-_headers)
+  - [`put(_url, _path, _body, _content_type, _headers)`](#put_url-_path-_body-_content_type-_headers)
 
 ## Importing the Module
 
@@ -103,7 +103,7 @@ Performs an HTTP OPTIONS request to the specified URL.
 | :--- | :---|
 | `Hash` | A response hash containing status, headers, and body. |
 
-### `patch(_url, _path, _body, _headers, _content_type)`
+### `patch(_url, _path, _body, _content_type, _headers)`
 
 Performs an HTTP PATCH request to the specified URL.
 
@@ -113,15 +113,15 @@ Performs an HTTP PATCH request to the specified URL.
 | `String` | `_url` | The base URL. |
 | `String` | `_path` | The path to request. |
 | `String` | `_body` | The request body. |
-| `Hash` | `_headers` | The headers. Defaults to `{}`. |
 | `String` | `_content_type` | The content-type. Defaults to `"text/plain"`. |
+| `Hash` | `_headers` | The headers. Defaults to `{}`. |
 
 **Returns**
 | Type | Description |
 | :--- | :---|
 | `Hash` | A response hash containing status, headers, and body. |
 
-### `post(_url, _path, _body, _headers, _content_type)`
+### `post(_url, _path, _body, _content_type, _headers)`
 
 Performs an HTTP POST request to the specified URL.
 
@@ -131,15 +131,15 @@ Performs an HTTP POST request to the specified URL.
 | `String` | `_url` | The base URL. |
 | `String` | `_path` | The path to request. |
 | `String` | `_body` | The request body. |
-| `Hash` | `_headers` | The headers. Defaults to `{}`. |
 | `String` | `_content_type` | The content-type. Defaults to `"text/plain"`. |
+| `Hash` | `_headers` | The headers. Defaults to `{}`. |
 
 **Returns**
 | Type | Description |
 | :--- | :---|
 | `Hash` | A response hash containing status, headers, and body. |
 
-### `put(_url, _path, _body, _headers, _content_type)`
+### `put(_url, _path, _body, _content_type, _headers)`
 
 Performs an HTTP PUT request to the specified URL.
 
@@ -149,8 +149,8 @@ Performs an HTTP PUT request to the specified URL.
 | `String` | `_url` | The base URL. |
 | `String` | `_path` | The path to request. |
 | `String` | `_body` | The request body. |
-| `Hash` | `_headers` | The headers. Defaults to `{}`. |
 | `String` | `_content_type` | The content-type. Defaults to `"text/plain"`. |
+| `Hash` | `_headers` | The headers. Defaults to `{}`. |
 
 **Returns**
 | Type | Description |
