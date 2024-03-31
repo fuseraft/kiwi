@@ -13,8 +13,8 @@
 #include "builtins/math_handler.h"
 #include "builtins/sys_handler.h"
 #include "builtins/time_handler.h"
-#ifdef EXPERIMENTAL_FEATURES
 #include "builtins/http_handler.h"
+#ifdef EXPERIMENTAL_FEATURES
 #include "builtins/odbc_handler.h"
 #endif
 #include "tracing/error.h"
@@ -40,28 +40,30 @@ class BuiltinInterpreter {
       return ConsoleBuiltinHandler::execute(term, builtin, args);
     } else if (SysBuiltins.is_builtin(builtin)) {
       return SysBuiltinHandler::execute(term, builtin, args);
+    } else if (HttpBuiltins.is_builtin(builtin)) {
+      return HttpBuiltinHandler::execute(term, builtin, args);
     } else {
 #ifdef EXPERIMENTAL_FEATURES
-      if (HttpBuiltins.is_builtin(builtin)) {
-        return HttpBuiltinHandler::execute(term, builtin, args);
-      } else if (OdbcBuiltins.is_builtin(builtin)) {
-        return OdbcBuiltinHandler::execute(term, builtin, args);
-      }
+    }
+    else if (OdbcBuiltins.is_builtin(builtin)) {
+      return OdbcBuiltinHandler::execute(term, builtin, args);
+    }
 #endif
-    }
-
-    throw UnknownBuiltinError(term, term.getText());
   }
 
-  static k_value execute(const Token& term, const KName& builtin,
-                         const k_value& value,
-                         const std::vector<k_value>& args) {
-    if (AstralBuiltins.is_builtin(builtin)) {
-      return CoreBuiltinHandler::execute(term, builtin, value, args);
-    }
+  throw UnknownBuiltinError(term, term.getText());
+}
 
-    throw UnknownBuiltinError(term, term.getText());
+static k_value
+execute(const Token& term, const KName& builtin, const k_value& value,
+        const std::vector<k_value>& args) {
+  if (AstralBuiltins.is_builtin(builtin)) {
+    return CoreBuiltinHandler::execute(term, builtin, value, args);
   }
-};
+
+  throw UnknownBuiltinError(term, term.getText());
+}
+}
+;
 
 #endif

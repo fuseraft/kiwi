@@ -11,6 +11,7 @@ The Astral Standard Library is a set of modules that enable easier systems progr
 | [`@astral/math`](lib/math.md) | A module of useful math functions. |
 | [`@astral/sys`](lib/sys.md) | A module for working with the OS shell. |
 | [`@astral/time`](lib/time.md) | A module with useful date and time functions. |
+| [`@astral/http`](lib/http.md) | A module for making HTTP requests. |
 | [`@astral/web`](lib/web.md) | A module for building web applications. |
 
 # Experimental Modules
@@ -19,9 +20,7 @@ Astral supports some experimental modules for working with databases and making 
 
 | **Module** | **Description** |
 | :--- | :--- |
-| [`@astral/http`](lib/experimental/http.md) | A module for making HTTP requests. |
 | [`@astral/odbc`](lib/experimental/odbc.md) | A module for working with common databases. |
-
 
 Note: To use these modules, you need to install the following dependencies.
 
@@ -29,7 +28,6 @@ Note: To use these modules, you need to install the following dependencies.
 
 ```bash
 sudo dnf update
-sudo dnf install libcurl-devel  # dependency for @astral/http
 sudo dnf install unixODBC-devel # dependency for @astral/odbc
 ```
 
@@ -37,7 +35,6 @@ sudo dnf install unixODBC-devel # dependency for @astral/odbc
 
 ```bash
 sudo apt-get update
-sudo apt-get install libcurl4-openssl-dev
 sudo apt-get install unixodbc-dev
 ```
 

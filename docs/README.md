@@ -32,8 +32,8 @@
     6. [`sys`](lib/sys.md)
     7. [`time`](lib/time.md)
     8. [`web`](lib/web.md)
+    9. [`http`](lib/http.md)
 17. **Experimental Features**
     1. [Concurrency](concurrency.md)
     2. [**Standard Library**](standard_library.md)
-        1. [`http`](lib/experimental/http.md)
-        2. [`odbc`](lib/experimental/odbc.md)
+        1. [`odbc`](lib/experimental/odbc.md)
