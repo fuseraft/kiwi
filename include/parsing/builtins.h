@@ -295,12 +295,12 @@ struct {
 } ListBuiltins;
 
 struct {
-  const k_string Get = "__webserver_get__";
-  const k_string Post = "__webserver_post__";
-  const k_string Listen = "__webserver_listen__";
-  const k_string Host = "__webserver_host__";
-  const k_string Port = "__webserver_port__";
-  const k_string Public = "__webserver_public__";
+  const k_string Get = "__webs_get__";
+  const k_string Post = "__webs_post__";
+  const k_string Listen = "__webs_listen__";
+  const k_string Host = "__webs_host__";
+  const k_string Port = "__webs_port__";
+  const k_string Public = "__webs_public__";
 
   std::unordered_set<k_string> builtins = {Get,  Post, Listen,
                                            Host, Port, Public};
@@ -319,23 +319,34 @@ struct {
   }
 } WebServerBuiltins;
 
-#ifdef EXPERIMENTAL_FEATURES
 struct {
-  const k_string Get = "__http_get__";
-  const k_string Post = "__http_post__";
-  const k_string Put = "__http_put__";
-  const k_string Delete = "__http_delete__";
-  const k_string Patch = "__http_patch__";
-  const k_string Head = "__http_head__";
-  const k_string Options = "__http_options__";
+  const k_string Get = "__webc_get__";
+  const k_string Post = "__webc_post__";
+  const k_string Put = "__webc_put__";
+  const k_string Delete = "__webc_delete__";
+  const k_string Patch = "__webc_patch__";
+  const k_string Head = "__webc_head__";
+  const k_string Options = "__webc_options__";
 
   std::unordered_set<k_string> builtins = {Get,   Post, Put,    Delete,
                                            Patch, Head, Options};
 
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_WebClient_Delete, KName::Builtin_WebClient_Get,
+      KName::Builtin_WebClient_Head,   KName::Builtin_WebClient_Options,
+      KName::Builtin_WebClient_Patch,  KName::Builtin_WebClient_Post,
+      KName::Builtin_WebClient_Put};
+
   bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
   }
+
+  bool is_builtin(const KName& arg) {
+    return st_builtins.find(arg) != st_builtins.end();
+  }
 } HttpBuiltins;
+
+#ifdef EXPERIMENTAL_FEATURES
 
 struct {
   const k_string Connect = "__odbc_connect__";
@@ -504,13 +515,14 @@ struct {
            ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
            ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
-           HttpBuiltins.is_builtin(arg) || OdbcBuiltins.is_builtin(arg);
+           HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
+           OdbcBuiltins.is_builtin(arg);
 #endif
     return ConsoleBuiltins.is_builtin(arg) || EnvBuiltins.is_builtin(arg) ||
            ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
            ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
-           WebServerBuiltins.is_builtin(arg);
+           HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg);
   }
 
   bool is_builtin_method(const KName& arg) {
@@ -518,7 +530,7 @@ struct {
            ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
            ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
-           WebServerBuiltins.is_builtin(arg);
+           HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg);
   }
 } AstralBuiltins;
 

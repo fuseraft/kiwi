@@ -1,6 +1,5 @@
 CXX := g++
 CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic
-BASE_LDFLAGS := -lcurl -lodbc
 
 SRC_DIR := src
 INCLUDE_DIR := include
@@ -42,7 +41,7 @@ install: $(EXECUTABLE)
 	./$(EXECUTABLE) ./install.🚀
 
 experimental: CXXFLAGS += -DEXPERIMENTAL_FEATURES
-experimental: LDFLAGS := $(BASE_LDFLAGS)
+experimental: LDFLAGS := -lodbc
 experimental: clean $(EXECUTABLE)
 
 profile: CXXFLAGS += -pg

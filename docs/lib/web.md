@@ -114,8 +114,3 @@ Instructs the web server to serve static content.
 | :--- | :--- | :--- |
 | `String` | `_public_endpoint` | The endpoint at which static content is served. |
 | `String` | `_public_path` | The server-side path containing static content to be served. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `String` | The standard output of an external process. |
