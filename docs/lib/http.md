@@ -1,0 +1,158 @@
+# `@astral/http`
+
+The `http` module contains functionality for working with HTTP requests.
+
+## Table of Contents
+
+- [Importing the Module](#importing-the-module)
+- [Example GET Request](#example-get-request)
+- [Module Functions](#module-functions)
+  - [`delete_(_url, _path, _headers)`](#delete__url-_path-_headers)
+  - [`get(_url, _path, _headers)`](#get_url-_path-_headers)
+  - [`head(_url, _path, _headers)`](#head_url-_path-_headers)
+  - [`options(_url, _path, _headers)`](#options_url-_path-_headers)
+  - [`patch(_url, _path, _body, _headers, _content_type)`](#patch_url-_path-_body-_headers-_content_type)
+  - [`post(_url, _path, _body, _headers, _content_type)`](#post_url-_path-_body-_headers-_content_type)
+  - [`put(_url, _path, _body, _headers, _content_type)`](#put_url-_path-_body-_headers-_content_type)
+
+## Importing the Module
+
+To use the `http` module, import it at the beginning of your Astral script.
+
+```ruby
+import "@astral/http"
+```
+
+## Example GET Request
+
+```ruby
+import "@astral/http" as http
+
+res = http.get("http://httpbin.org", "/get")
+
+if res.status == 200
+  println "${res.headers}${res.body}"
+else
+  println "An error occurred making GET request."
+end
+```
+
+## Module Functions
+
+### `delete_(_url, _path, _headers)`
+
+Performs an HTTP DELETE request to the specified URL.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_url` | The base URL. |
+| `String` | `_path` | The path to request. |
+| `Hash` | `_headers` | The headers. Defaults to `{}`. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Hash` | A response hash containing status, headers, and body. |
+
+### `get(_url, _path, _headers)`
+
+Performs an HTTP GET request to the specified URL.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_url` | The base URL. |
+| `String` | `_path` | The path to request. |
+| `Hash` | `_headers` | The headers. Defaults to `{}`. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Hash` | A response hash containing status, headers, and body. |
+
+### `head(_url, _path, _headers)`
+
+Performs an HTTP HEAD request to the specified URL.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_url` | The base URL. |
+| `String` | `_path` | The path to request. |
+| `Hash` | `_headers` | The headers. Defaults to `{}`. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Hash` | A response hash containing status, headers, and body. |
+
+### `options(_url, _path, _headers)`
+
+Performs an HTTP OPTIONS request to the specified URL.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_url` | The base URL. |
+| `String` | `_path` | The path to request. |
+| `Hash` | `_headers` | The headers. Defaults to `{}`. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Hash` | A response hash containing status, headers, and body. |
+
+### `patch(_url, _path, _body, _headers, _content_type)`
+
+Performs an HTTP PATCH request to the specified URL.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_url` | The base URL. |
+| `String` | `_path` | The path to request. |
+| `String` | `_body` | The request body. |
+| `Hash` | `_headers` | The headers. Defaults to `{}`. |
+| `String` | `_content_type` | The content-type. Defaults to `"text/plain"`. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Hash` | A response hash containing status, headers, and body. |
+
+### `post(_url, _path, _body, _headers, _content_type)`
+
+Performs an HTTP POST request to the specified URL.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_url` | The base URL. |
+| `String` | `_path` | The path to request. |
+| `String` | `_body` | The request body. |
+| `Hash` | `_headers` | The headers. Defaults to `{}`. |
+| `String` | `_content_type` | The content-type. Defaults to `"text/plain"`. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Hash` | A response hash containing status, headers, and body. |
+
+### `put(_url, _path, _body, _headers, _content_type)`
+
+Performs an HTTP PUT request to the specified URL.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_url` | The base URL. |
+| `String` | `_path` | The path to request. |
+| `String` | `_body` | The request body. |
+| `Hash` | `_headers` | The headers. Defaults to `{}`. |
+| `String` | `_content_type` | The content-type. Defaults to `"text/plain"`. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Hash` | A response hash containing status, headers, and body. |
