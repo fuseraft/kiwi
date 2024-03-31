@@ -1,102 +1,185 @@
 #ifndef ASTRAL_BUILTINS_HTTPHANDLER_H
 #define ASTRAL_BUILTINS_HTTPHANDLER_H
 
+#include <memory>
 #include <vector>
 #include "math/functions.h"
-#include "net/httpclient.h"
 #include "parsing/builtins.h"
 #include "parsing/tokens.h"
+#include "typing/serializer.h"
 #include "typing/value.h"
 
 class HttpBuiltinHandler {
  public:
-  static k_value execute(const Token& term, const k_string& builtin,
+  static k_value execute(const Token& term, const KName& builtin,
                          const std::vector<k_value>& args) {
-#ifdef EXPERIMENTAL_FEATURES
     switch (builtin) {
-      case HttpBuiltins.Delete:
-      case HttpBuiltins.Get:
-      case HttpBuiltins.Head:
-      case HttpBuiltins.Options:
+      case KName::Builtin_WebClient_Delete:
+      case KName::Builtin_WebClient_Get:
+      case KName::Builtin_WebClient_Head:
+      case KName::Builtin_WebClient_Options:
         return executeDeleteGetHeadOptions(term, args, builtin);
 
-      case HttpBuiltins.Patch:
-      case HttpBuiltins.Post:
-      case HttpBuiltins.Put:
+      case KName::Builtin_WebClient_Patch:
+      case KName::Builtin_WebClient_Post:
+      case KName::Builtin_WebClient_Put:
         return executePatchPostPut(term, args, builtin);
 
       default:
         break;
     }
-    * /
 
-        throw UnknownBuiltinError(term, builtin);
-#endif
+    throw UnknownBuiltinError(term, term.getText());
   }
 
  private:
-#ifdef EXPERIMENTAL_FEATURES
   static k_value executeDeleteGetHeadOptions(const Token& term,
                                              const std::vector<k_value>& args,
-                                             const k_string& builtin) {
-    if (args.size() < 1 || args.size() > 2) {
-      throw BuiltinUnexpectedArgumentError(term, builtin);
+                                             const KName& builtin) {
+    if (args.size() != 3) {
+      throw BuiltinUnexpectedArgumentError(term, term.getText());
     }
 
-    k_string url = get_string(term, args.at(0));
-    k_list headers = {};
-
-    if (args.size() == 2) {
-      if (!std::holds_alternative<k_list>(args.at(1))) {
-        throw InvalidOperationError(
-            term, "Expected a List type for HTTP header list.");
-      }
-      headers = std::get<k_list>(args.at(1));
+    if (!std::holds_alternative<k_hash>(args.at(2))) {
+      throw InvalidOperationError(term, "Expected a `Hash` type for headers.");
     }
 
-    if (builtin == HttpBuiltins.Get) {
-      return HttpClient::getInstance().get(url, headers);
-    } else if (builtin == HttpBuiltins.Delete) {
-      return HttpClient::getInstance().del(url, headers);
-    } else if (builtin == HttpBuiltins.Head) {
-      return HttpClient::getInstance().head(url, headers);
-    } else if (builtin == HttpBuiltins.Options) {
-      return HttpClient::getInstance().options(url, headers);
+    auto url = get_string(term, args.at(0));
+    auto path = get_string(term, args.at(1));
+    auto headers = std::get<k_hash>(args.at(2));
+
+    switch (builtin) {
+      case KName::Builtin_WebClient_Get:
+        return executeGet(url, path, headers);
+      case KName::Builtin_WebClient_Delete:
+        return executeDelete(url, path, headers);
+      case KName::Builtin_WebClient_Head:
+        return executeHead(url, path, headers);
+      case KName::Builtin_WebClient_Options:
+        return executeOptions(url, path, headers);
+
+      default:
+        break;
     }
 
-    throw UnknownBuiltinError(term, builtin);
+    throw UnknownBuiltinError(term, term.getText());
   }
 
   static k_value executePatchPostPut(const Token& term,
                                      const std::vector<k_value>& args,
-                                     const k_string& builtin) {
-    if (args.size() < 1 || args.size() > 3) {
-      throw BuiltinUnexpectedArgumentError(term, builtin);
+                                     const KName& builtin) {
+    if (args.size() != 5) {
+      throw BuiltinUnexpectedArgumentError(term, term.getText());
     }
 
-    k_string url = get_string(term, args.at(0));
-    k_string body = Serializer::serialize(args.at(1));
-    k_list headers = {};
-
-    if (args.size() == 3) {
-      if (!std::holds_alternative<k_list>(args.at(2))) {
-        throw InvalidOperationError(
-            term, "Expected a List type for HTTP header list.");
-      }
-      headers = std::get<k_list>(args.at(2));
+    if (!std::holds_alternative<k_hash>(args.at(4))) {
+      throw InvalidOperationError(term, "Expected a `Hash` type for headers.");
     }
 
-    if (builtin == HttpBuiltins.Post) {
-      return HttpClient::getInstance().post(url, body, headers);
-    } else if (builtin == HttpBuiltins.Put) {
-      return HttpClient::getInstance().put(url, body, headers);
-    } else if (builtin == HttpBuiltins.Patch) {
-      return HttpClient::getInstance().patch(url, body, headers);
+    auto url = get_string(term, args.at(0));
+    auto path = get_string(term, args.at(1));
+    auto body = Serializer::serialize(args.at(2));
+    auto contentType = get_string(term, args.at(3));
+    auto headers = std::get<k_hash>(args.at(4));
+
+    switch (builtin) {
+      case KName::Builtin_WebClient_Post:
+        return executePost(url, path, body, contentType, headers);
+      case KName::Builtin_WebClient_Put:
+        return executePost(url, path, body, contentType, headers);
+      case KName::Builtin_WebClient_Patch:
+        return executePost(url, path, body, contentType, headers);
+      default:
+        break;
     }
 
-    throw UnknownBuiltinError(term, builtin);
+    throw UnknownBuiltinError(term, term.getText());
   }
-#endif
+
+  static k_value executeGet(const k_string& url, const k_string& path,
+                            const k_hash& headers) {
+    httplib::Client cli(url);
+    auto res = cli.Get(path, getHeaders(headers));
+    return getResponseHash(res);
+  }
+
+  static k_value executeDelete(const k_string& url, const k_string& path,
+                               const k_hash& headers) {
+    httplib::Client cli(url);
+    auto res = cli.Delete(path, getHeaders(headers));
+    return getResponseHash(res);
+  }
+
+  static k_value executeHead(const k_string& url, const k_string& path,
+                             const k_hash& headers) {
+    httplib::Client cli(url);
+    auto res = cli.Head(path, getHeaders(headers));
+    return getResponseHash(res);
+  }
+
+  static k_value executeOptions(const k_string& url, const k_string& path,
+                                const k_hash& headers) {
+    httplib::Client cli(url);
+    auto res = cli.Options(path, getHeaders(headers));
+    return getResponseHash(res);
+  }
+
+  static k_value executePost(const k_string& url, const k_string& path,
+                             const k_string& body, const k_string& contentType,
+                             const k_hash& headers) {
+    httplib::Client cli(url);
+    auto res = cli.Post(path, getHeaders(headers), body, contentType);
+    return getResponseHash(res);
+  }
+
+  static k_value executePut(const k_string& url, const k_string& path,
+                            const k_string& body, const k_string& contentType,
+                            const k_hash& headers) {
+    httplib::Client cli(url);
+    auto res = cli.Put(path, getHeaders(headers), body, contentType);
+    return getResponseHash(res);
+  }
+
+  static k_value executePatch(const k_string& url, const k_string& path,
+                              const k_string& body, const k_string& contentType,
+                              const k_hash& headers) {
+    httplib::Client cli(url);
+    auto res = cli.Patch(path, getHeaders(headers), body, contentType);
+    return getResponseHash(res);
+  }
+
+  static httplib::Headers getHeaders(const k_hash& headersHash) {
+    httplib::Headers headers;
+
+    for (const auto& key : headersHash->keys) {
+      const auto& value = headersHash->kvp[key];
+      headers.insert({key, Serializer::serialize(value)});
+    }
+
+    return headers;
+  }
+
+  static k_value getResponseHash(const httplib::Result& res) {
+    auto resHash = std::make_shared<Hash>();
+
+    if (res) {
+      resHash->add("status", static_cast<k_int>(res->status));
+      resHash->add("body", res->body);
+
+      auto headersHash = std::make_shared<Hash>();
+      for (const auto& pair : res->headers) {
+        headersHash->add(pair.first, pair.second);
+      }
+
+      resHash->add("headers", headersHash);
+    } else {
+      resHash->add("status", static_cast<k_int>(0));
+      resHash->add("body", "Request failed or no response received");
+      resHash->add("headers", std::make_shared<Hash>());
+    }
+
+    return resHash;
+  }
 };
 
 #endif

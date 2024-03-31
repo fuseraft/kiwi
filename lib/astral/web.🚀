@@ -46,7 +46,7 @@ module web
     - _handler: A request handler lambda.
   #/
   def get(_endpoint, _handler)
-    __webserver_get__(_endpoint, _handler)
+    __webs_get__(_endpoint, _handler)
   end
 
   /#
@@ -56,7 +56,7 @@ module web
     - _handler: A request handler lambda.
   #/
   def post(_endpoint, _handler)
-    __webserver_post__(_endpoint, _handler)
+    __webs_post__(_endpoint, _handler)
   end
 
   /#
@@ -66,7 +66,7 @@ module web
     - _port: The port. Defaults to 8080.
   #/
   def listen(_ipaddr = "0.0.0.0", _port = 8080)
-    __webserver_listen__(_ipaddr, _port)
+    __webs_listen__(_ipaddr, _port)
   end
 
   /#
@@ -76,16 +76,16 @@ module web
     - _public_path: The server-side path containing static content to be served.
   #/
   def public(_public_endpoint, _public_path)
-    __webserver_public__(_public_endpoint, _public_path)
+    __webs_public__(_public_endpoint, _public_path)
   end
 
-  #/  
+  /#
   def port()
-    return __webserver_port__()
+    return __webs_port__()
   end
 
   def host()
-    return __webserver_host__()
+    return __webs_host__()
   end
   #/
 end
