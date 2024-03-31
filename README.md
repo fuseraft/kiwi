@@ -1,6 +1,6 @@
 # astral 🚀
 
-A lightweight, dynamically-typed, general-purpose language without a syntax tree.
+A dynamically-typed, single-pass, recursive descent interpreter without AST generation.
 
 ## Table of Contents
 
