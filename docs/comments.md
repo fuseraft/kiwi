@@ -2,7 +2,7 @@
 
 ## Single line comments
 
-Comments should be on their own line.
+Single line comments begin with a `#`.
 
 ```ruby
 # this will print "hello"
