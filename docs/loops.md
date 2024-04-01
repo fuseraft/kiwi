@@ -28,7 +28,7 @@ To loop indefinitely, the loop condition expression must evaluate to `true`.
 
 ```ruby
 while true do
-  println "Press Ctrl+C to exit!"
+  print "\rPress Ctrl+C to exit!"
 end
 ```
 
