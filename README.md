@@ -137,9 +137,9 @@ try
 
   # Write a little 🚀 script.
   fs.write(path, "
-    ##
+    /#
     This script will delete itself and let you know it was there.
-    ##
+    #/
     import \"@astral/fs\" as fs
     fs.remove(\"${@path}\")
     println \"Astral was here.\"
