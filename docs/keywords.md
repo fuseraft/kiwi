@@ -29,6 +29,7 @@ This document provides an overview of reserved keywords in Astral, along with ex
 - [`new`](#new)
 - [`next`](#next)
 - [`override`](#override)
+- [`parse`](#parse)
 - [`pass`](#pass)
 - [`print`](#print)
 - [`println`](#println)
@@ -167,6 +168,14 @@ See [Loops](loops.md).
 The `override` keyword is used to provide an implementation to an abstract method.
 
 See [Abstract Classes](abstract_classes.md).
+
+## `parse`
+The `parse` keyword is used to parse a string expression as Astral. 
+
+```ruby
+parse "println \"hello, world!\""
+# prints: hello, world!
+```
 
 ## `pass`
 The `pass` keyword is used as a placeholder/no-op.
