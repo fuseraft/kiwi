@@ -31,18 +31,6 @@ httplib::Server astralWebServer;
 std::string astralWebServerHost;
 k_int astralWebServerPort;
 
-std::mutex methodsMutex;
-std::mutex modulesMutex;
-std::mutex classesMutex;
-std::mutex astralArgsMutex;
-std::mutex callStackMutex;
-std::mutex streamStackMutex;
-std::mutex moduleStackMutex;
-std::mutex astralWebServerMutex;
-std::mutex astralWebServerHooksMutex;
-std::mutex astralWebServerHostMutex;
-std::mutex astralWebServerPortMutex;
-
 class Astral {
  public:
   static int run(int argc, char** argv);
