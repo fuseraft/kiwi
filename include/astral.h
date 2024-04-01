@@ -40,6 +40,7 @@ class Astral {
                         const std::string& path);
   static bool createNewFile(const std::string& path);
   static bool processOption(std::string& opt, Host& host);
+  static bool parse(Host& host, const std::string& content);
 
   static int run(std::vector<std::string>& v);
   static int printVersion();
@@ -92,6 +93,12 @@ int Astral::run(std::vector<std::string>& v) {
         }
 
         help = true;
+      } else if (String::isCLIFlag(v.at(i), "p", "parse")) {
+        if (i + 1 < size) {
+          return parse(host, v.at(++i));
+        }
+
+        help = true;
       } else if (File::isScript(v.at(i))) {
         host.registerScript(v.at(i));
       } else if (String::isOptionKVP(v.at(i))) {
@@ -109,6 +116,10 @@ int Astral::run(std::vector<std::string>& v) {
   } catch (const AstralError& e) {
     return ErrorHandler::handleError(e);
   }
+}
+
+bool Astral::parse(Host& host, const std::string& content) {
+  return host.parse(content);
 }
 
 bool Astral::createNewFile(const std::string& path) {
@@ -207,13 +218,15 @@ int Astral::printHelp() {
   std::vector<CommandInfo> commands = {
       {"-h, --help", "print this message"},
       {"-v, --version", "print the current version"},
-      {"-n, --new <filename>", "create a `.🚀` file"},
+      {"-p, --parse <astral_code>", "parse astral code as an argument"},
+      {"-n, --new <file_path>", "create a `.🚀` file"},
       {"-C, --config <conf_path>", "configure with a `.conf` file"},
       {"-X<key>:<value>", "specify an argument as a key-value pair"}};
 
 #ifdef _WIN64
   commands = {{"-h, --help", "print this message"},
               {"-v, --version", "print the current version"},
+              {"-p, --parse <astral_code>", "parse code"},
               {"-n, --new <filename>", "create a `.astral` file"},
               {"-C, --config <conf_path>", "configure with a `.conf` file"},
               {"-X<key>:<value>", "specify an argument as a key-value pair"}};

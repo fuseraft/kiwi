@@ -24,7 +24,19 @@ If no arguments are supplied, Astral enters an interactive Read-Evaluate-Print L
   astral -v
   ```
 
-- `-n`, `--new <filename>`: Creates a new file with the `.🚀` extension. If you don't include the extension in `<filename>`, it will be appended automatically.
+- `-p`, `--parse <astral_code>`: Parses astral code as an argument.
+
+  ```
+  astral -p "println \"hello\"" 
+  # prints: hello
+  
+  astral -p "import \"@astral/math\" as math println math.random(0, 100)" 
+  # prints a random number between 0 and 100
+  ```
+
+  Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.
+
+- `-n`, `--new <file_path>`: Creates a new file with the `.🚀` extension. If you don't include the extension in `<file_path>`, it will be appended automatically.
 
   ```
   astral -n filename         # Creates ./filename.🚀
