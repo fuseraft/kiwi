@@ -86,6 +86,8 @@ See [Methods](methods.md).
 ## `delete`
 The `delete` keyword is used to remove elements from collections.
 
+It can also be used to delete objects.
+
 See [Hashes](hashes.md) and [Lists](lists.md).
 
 ## `do`
