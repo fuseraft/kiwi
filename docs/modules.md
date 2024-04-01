@@ -64,7 +64,7 @@ export "fun" # Exports the "fun" module to the calling script.
 
 #### `./app.🚀`
 ```ruby
-import "fuseraft/fun"
+import "@fuseraft/fun"
 
 fun::method() # prints: Astral is fun!
 ```
@@ -88,7 +88,7 @@ export "fun" # Exports the "fun" module to the calling script.
 
 #### `./app.🚀`
 ```ruby
-import "fuseraft/fun" as Fun
+import "@fuseraft/fun" as Fun
 
 Fun.method() # prints: Astral is fun!
 ```
