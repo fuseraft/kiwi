@@ -204,6 +204,8 @@ class Lexer {
       st = KName::KW_Next;
     } else if (keyword == Keywords.Override) {
       st = KName::KW_Override;
+    } else if (keyword == Keywords.Parse) {
+      st = KName::KW_Parse;
     } else if (keyword == Keywords.Pass) {
       st = KName::KW_Pass;
     } else if (keyword == Keywords.Print) {

@@ -613,12 +613,39 @@ class Interpreter {
     }
   }
 
+  void interpretParse(std::shared_ptr<TokenStream> stream,
+                      std::shared_ptr<CallStackFrame> frame) {
+    bool hasValue = InterpHelper::hasReturnValue(stream);
+    stream->next();  // Skip "parse"
+
+    k_value expression;
+
+    if (!hasValue) {
+      throw SyntaxError(stream->current(),
+                        "Expected an expression for parse operation.");
+    }
+
+    expression = parseExpression(stream, frame);
+
+    if (!std::holds_alternative<k_string>(expression)) {
+      throw InvalidOperationError(
+          stream->current(),
+          "Expected an string expression for parse operation.");
+    }
+
+    interpretAstral(std::get<k_string>(expression));
+  }
+
   void interpretKeyword(std::shared_ptr<TokenStream> stream,
                         std::shared_ptr<CallStackFrame> frame) {
     const auto& keyword = stream->current().getSubType();
     switch (keyword) {
       case KName::KW_If:
         interpretConditional(stream, frame);
+        break;
+
+      case KName::KW_Parse:
+        interpretParse(stream, frame);
         break;
 
       case KName::KW_Async:
@@ -1129,9 +1156,7 @@ class Interpreter {
         auto responseHash = std::get<k_hash>(retValue);
         if (responseHash->hasKey("content")) {
           auto responseHashContent = responseHash->get("content");
-          if (std::holds_alternative<k_string>(responseHashContent)) {
-            content = std::get<k_string>(responseHashContent);
-          }
+          content = Serializer::serialize(responseHashContent);
         }
 
         if (responseHash->hasKey("content-type")) {
