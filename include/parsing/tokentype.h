@@ -204,6 +204,7 @@ enum KName {
   KW_Module,
   KW_Next,
   KW_Override,
+  KW_Parse,
   KW_Pass,
   KW_Print,
   KW_PrintLn,
