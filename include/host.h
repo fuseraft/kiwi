@@ -38,6 +38,11 @@ class Host {
   }
 
   int start() {
+    interp.setAstralArgs(args);
+
+    // Always try to load astrallib.
+    loadAstralLibrary();
+
     // Start REPL if no scripts are supplied.
     if (scripts.empty()) {
       Repl repl(interp);
