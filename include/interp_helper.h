@@ -126,13 +126,13 @@ struct InterpHelper {
   }
 
   static bool shouldUpdateFrameVariables(
-      const std::string& varName,
+      const k_string& varName,
       const std::shared_ptr<CallStackFrame> nextFrame) {
     return nextFrame->hasVariable(varName);
   }
 
   static void updateVariablesInCallerFrame(
-      const std::unordered_map<std::string, k_value>& variables,
+      const std::unordered_map<k_string, k_value>& variables,
       std::shared_ptr<CallStackFrame> callerFrame) {
     auto& frameVariables = callerFrame->variables;
     for (const auto& var : variables) {
@@ -142,7 +142,7 @@ struct InterpHelper {
     }
   }
 
-  static std::string getTemporaryId() {
+  static k_string getTemporaryId() {
     return "temporary_" + RNG::getInstance().random16();
   }
 
@@ -394,8 +394,8 @@ struct InterpHelper {
 
   static void interpretParameterizedCatch(std::shared_ptr<TokenStream> stream,
                                           std::shared_ptr<CallStackFrame> frame,
-                                          std::string& errorTypeVariableName,
-                                          std::string& errorVariableName,
+                                          k_string& errorTypeVariableName,
+                                          k_string& errorVariableName,
                                           k_value& errorType,
                                           k_value& errorValue) {
     stream->next();  // Skip "("
@@ -436,14 +436,14 @@ struct InterpHelper {
     errorValue = error.getMessage();
   }
 
-  static std::string interpretModuleHome(std::string& modulePath,
-                                         std::shared_ptr<TokenStream> stream) {
+  static k_string interpretModuleHome(k_string& modulePath,
+                                      std::shared_ptr<TokenStream> stream) {
     if (stream->current().getType() != KTokenType::STRING ||
         !String::beginsWith(modulePath, "@")) {
       return "";
     }
 
-    std::string moduleHome;
+    k_string moduleHome;
 
     // Get everything between the @ and the /, that is the home.
     Lexer lexer("", modulePath);
@@ -451,7 +451,7 @@ struct InterpHelper {
     auto lastToken = Token::createEmpty();
     size_t pos = 0;
     bool build = false;
-    std::string moduleName;
+    k_string moduleName;
 
     while (pos < tokens.size()) {
       const auto& token = tokens.at(pos);
@@ -482,8 +482,8 @@ struct InterpHelper {
     return moduleHome;
   }
 
-  static std::string interpretBaseClass(std::shared_ptr<TokenStream> stream) {
-    std::string baseClassName;
+  static k_string interpretBaseClass(std::shared_ptr<TokenStream> stream) {
+    k_string baseClassName;
     if (stream->current().getType() == KTokenType::OPERATOR) {
       if (stream->current().getSubType() != KName::Ops_LessThan) {
         throw SyntaxError(

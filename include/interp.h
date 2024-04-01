@@ -400,6 +400,16 @@ class Interpreter {
     return lambda;
   }
 
+  k_value interpretLambdaExpression(std::shared_ptr<TokenStream> stream,
+                                    std::shared_ptr<CallStackFrame> frame) {
+    const auto& lambda = interpretLambda(stream, frame);
+    const auto& lambdaRef = lambda.getName();
+
+    frame->assignLambda(lambdaRef, lambda);
+
+    return std::make_shared<LambdaRef>(lambdaRef);
+  }
+
   void interpretHashLoop(std::shared_ptr<TokenStream> stream,
                          std::shared_ptr<CallStackFrame> frame,
                          k_value& collectionValue, const bool& hasIndexVariable,
@@ -3687,6 +3697,8 @@ class Interpreter {
         if (current.getSubType() == KName::KW_This) {
           stream->next();  // Skip "this"
           return interpretSelfInvocationTerm(stream, frame);
+        } else if (current.getSubType() == KName::KW_Lambda) {
+          return interpretLambdaExpression(stream, frame);
         } else if (std::holds_alternative<k_string>(value)) {
           value = interpolateString(stream, frame);
           stream->next();
