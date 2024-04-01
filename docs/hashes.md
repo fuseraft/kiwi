@@ -20,11 +20,18 @@ Bracket notation can be used to access elements by key.
 println myHash["key2"]  # Outputs: [1, 2, 3, 4]
 ```
 
+Dot notation can be used to access elements by key.
+
+```ruby
+println myHash.key2  # Outputs: [1, 2, 3, 4]
+```
+
 ### Adding Elements to a Hash
 
 ```ruby
 myHash = {}
 myHash["key1"] = [1..3]
+myHash.key2 = { "nested": "hash" }
 
 # myHash now contains {"key1": [1, 2, 3]}
 ```
