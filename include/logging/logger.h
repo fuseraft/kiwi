@@ -9,7 +9,7 @@
 #include "util/file.h"
 #include "util/time.h"
 
-enum class LogLevel { DEBUG, INFO, WARNING, ERROR, SILENT };
+enum class LogLevel { DEBUG, INFO, WARNING, ERROR_, SILENT };
 enum class LogMode { CONSOLE, FILE };
 
 class Logger {
@@ -30,7 +30,7 @@ class Logger {
     else if (logLevel == "WARNING")
       return LogLevel::WARNING;
     else if (logLevel == "ERROR")
-      return LogLevel::ERROR;
+      return LogLevel::ERROR_;
     else
       return LogLevel::SILENT;
   }
@@ -43,7 +43,7 @@ class Logger {
   }
 
   void error(const std::string& message, const std::string& source = "") const {
-    log(LogLevel::ERROR, message, source);
+    log(LogLevel::ERROR_, message, source);
   }
 
   void info(const std::string& message, const std::string& source = "") const {
@@ -140,7 +140,7 @@ class Logger {
         return "INFO";
       case LogLevel::WARNING:
         return "WARNING";
-      case LogLevel::ERROR:
+      case LogLevel::ERROR_:
         return "ERROR";
       default:
         return "UNKNOWN";
