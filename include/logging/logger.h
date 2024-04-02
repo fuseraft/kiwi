@@ -1,21 +1,26 @@
 #ifndef ASTRAL_LOGGING_LOGGER_H
 #define ASTRAL_LOGGING_LOGGER_H
 
-#include <ctime>
-#include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <mutex>
 #include <string>
+#include "tracing/error.h"
+#include "util/file.h"
+#include "util/time.h"
 
 enum class LogLevel { DEBUG, INFO, WARNING, ERROR, SILENT };
-
 enum class LogMode { CONSOLE, FILE };
 
 class Logger {
  public:
-  Logger(LogLevel minLogLevel = LogLevel::INFO,
-         LogMode logMode = LogMode::CONSOLE)
-      : minLogLevel(minLogLevel), logMode(logMode) {}
+  Logger(const Logger&) = delete;
+  Logger& operator=(const Logger&) = delete;
+
+  static Logger& getInstance() {
+    static Logger instance;
+    return instance;
+  }
 
   static LogLevel loglevel_from_string(const std::string& logLevel) {
     if (logLevel == "DEBUG")
@@ -53,75 +58,78 @@ class Logger {
     log(LogLevel::DEBUG, message, source);
   }
 
-  void setMinimumLogLevel(LogLevel level) { minLogLevel = level; }
+  void setMinimumLogLevel(LogLevel level) {
+    std::lock_guard<std::mutex> lock(logMutex);
+    minLogLevel = level;
+  }
 
-  void setLogMode(LogMode mode) { logMode = mode; }
+  void setLogMode(LogMode mode) {
+    std::lock_guard<std::mutex> lock(logMutex);
+    logMode = mode;
+  }
+
+  void setTimestampFormat(const std::string& format) {
+    std::lock_guard<std::mutex> lock(logMutex);
+    timestampFormat = format;
+  }
+
+  void setEntryFormat(const std::string& format) {
+    std::lock_guard<std::mutex> lock(logMutex);
+    entryFormat = format;
+  }
 
   void setLogFilePath(const std::string& filePath) {
-    try {
-      std::ifstream inputFileStream(filePath);
-      std::ofstream outputFileStream;
-
-      bool fileExists = inputFileStream.is_open();
-
-      if (!fileExists) {
-        outputFileStream.open(filePath);
-        fileExists = outputFileStream.is_open();
-      }
-
-      if (fileExists)
-        logFilePath = filePath;
-    } catch (const std::exception& e) {
-      std::cerr << "Could not open '" << filePath
-                << "' for writing. Log level will be set to SILENT."
-                << std::endl;
-      minLogLevel = LogLevel::SILENT;
-    }
+    std::lock_guard<std::mutex> lock(logMutex);
+    logFilePath = filePath;
+    setLogMode(LogMode::FILE);
   }
 
  private:
   LogLevel minLogLevel;
   LogMode logMode;
   std::string logFilePath;
+  std::string timestampFormat = "%Y-%m-%d %H:%M:%S";
+  std::string entryFormat = "[%timestamp][%level][%source] %message";
+  mutable std::mutex logMutex;
+
+  Logger(LogLevel minLogLevel = LogLevel::INFO,
+         LogMode logMode = LogMode::CONSOLE)
+      : minLogLevel(minLogLevel), logMode(logMode) {}
 
   // TODO: it would be great to have a descriptor to describe log
   // output/formatting
   void log(const LogLevel& level, const std::string& message,
            const std::string& source) const {
-    if (level < minLogLevel)
+    std::lock_guard<std::mutex> lock(logMutex);
+
+    if (level < minLogLevel) {
       return;
+    }
 
-    std::time_t now = std::time(nullptr);
-    std::tm localTime;
-#ifdef _WIN64
-    localtime_s(&localTime, &now);
-#else
-    localtime_r(&now, &localTime);
-#endif
-
-    char timestamp[20];
-    std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S",
-                  &localTime);
+    auto logEntry = getLogEntry(level, message, source);
 
     switch (logMode) {
       case LogMode::CONSOLE:
-        std::cout << "[" << timestamp << "] [" << logLevelToString(level)
-                  << "] ";
-        if (!source.empty())
-          std::cout << "[" << source << "] ";
-        std::cout << message << std::endl;
+        std::cout << logEntry << std::endl;
         break;
       case LogMode::FILE:
-        std::ofstream file(logFilePath, std::ios::app);
-        if (file.is_open()) {
-          file << "[" << timestamp << "] [" << logLevelToString(level) << "] ";
-          if (!source.empty())
-            file << "[" << source << "] ";
-          file << message << std::endl;
-          file.close();
+        if (!logFilePath.empty()) {
+          File::writeToFile(logFilePath, logEntry, true, false);
         }
         break;
     }
+  }
+
+  std::string getLogEntry(const LogLevel& level, const std::string& message, const std::string& source) const {
+    auto timestamp = Time::getTimestamp(timestampFormat);
+    auto format = entryFormat;
+    
+    format = String::replace(format, "%timestamp", timestamp);
+    format = String::replace(format, "%level", logLevelToString(level)); 
+    format = String::replace(format, "%source", source);
+    format = String::replace(format, "%message", message);
+
+    return format;
   }
 
   std::string logLevelToString(const LogLevel& level) const {

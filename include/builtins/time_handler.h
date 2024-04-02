@@ -55,6 +55,9 @@ class TimeBuiltinHandler {
       case KName::Builtin_Time_TicksToMilliseconds:
         return executeTicksToMilliseconds(term, args);
 
+      case KName::Builtin_Time_Timestamp:
+        return executeTimestamp(term, args);
+
       default:
         break;
     }
@@ -108,6 +111,19 @@ class TimeBuiltinHandler {
     }
 
     return Time::getAMPM();
+  }
+
+  static k_value executeTimestamp(const Token& term,
+                             const std::vector<k_value>& args) {
+    if (args.size() != 0 && args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, TimeBuiltins.Timestamp);
+    }
+
+    if (args.size() == 1) {
+      return Time::getTimestamp(get_string(term, args.at(0)));
+    }
+
+    return Time::getTimestamp();
   }
 
   static k_value executeTicksToMilliseconds(const Token& term,

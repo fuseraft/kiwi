@@ -10,7 +10,7 @@ ENABLED  =   true
 PI       =   3.14159
 EMAIL    =   scott@fuseraft.com
 PATH     =   /home/scs/astral
-CONN_STR =  server=%SERVER%;db=%DB_NAME%;user=%DB_USER%;pass=%DB_PASS%
+CONN_STR =   server=%SERVER%;db=%DB_NAME%;user=%DB_USER%;pass=%DB_PASS%
 #/
 
 module conf

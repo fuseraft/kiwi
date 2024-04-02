@@ -143,11 +143,12 @@ struct {
   const k_string Ticks = "__ticks__";
   const k_string TicksToMilliseconds = "__ticksms__";
   const k_string AMPM = "__ampm__";
+  const k_string Timestamp = "__timestamp__";
 
   std::unordered_set<k_string> builtins = {
       Hour,    Minute, Second, MonthDay,           WeekDay,
       YearDay, Month,  Year,   EpochMilliseconds,  Delay,
-      IsDST,   Ticks,  AMPM,   TicksToMilliseconds};
+      IsDST,   Ticks,  AMPM,   TicksToMilliseconds, Timestamp};
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Time_AMPM,
       KName::Builtin_Time_Delay,
@@ -160,6 +161,7 @@ struct {
       KName::Builtin_Time_Second,
       KName::Builtin_Time_Ticks,
       KName::Builtin_Time_TicksToMilliseconds,
+      KName::Builtin_Time_Timestamp,
       KName::Builtin_Time_WeekDay,
       KName::Builtin_Time_Year,
       KName::Builtin_Time_YearDay};
@@ -318,6 +320,40 @@ struct {
     return st_builtins.find(arg) != st_builtins.end();
   }
 } WebServerBuiltins;
+
+struct {
+  const k_string FilePath = "__log_filepath__";
+  const k_string Mode = "__log_mode__";
+  const k_string EntryFormat = "__log_format__";
+  const k_string TimestampFormat = "__log_tsformat__";
+  const k_string Level = "__log_level__";
+  const k_string Debug = "__log_debug__";
+  const k_string Warn = "__log_warn__";
+  const k_string Info = "__log_info__";
+  const k_string Error = "__log_error__";
+
+  std::unordered_set<k_string> builtins = {
+      FilePath, Mode, EntryFormat, TimestampFormat, Level, Debug, Warn, Info, Error};
+
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_Logging_FilePath,
+      KName::Builtin_Logging_Mode,
+      KName::Builtin_Logging_EntryFormat,
+      KName::Builtin_Logging_TimestampFormat,
+      KName::Builtin_Logging_Level,
+      KName::Builtin_Logging_Debug,
+      KName::Builtin_Logging_Warn,
+      KName::Builtin_Logging_Info,
+      KName::Builtin_Logging_Error};
+
+  bool is_builtin(const k_string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+
+  bool is_builtin(const KName& arg) {
+    return st_builtins.find(arg) != st_builtins.end();
+  }
+} LoggingBuiltins;
 
 struct {
   const k_string Get = "__webc_get__";
@@ -522,7 +558,7 @@ struct {
            ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
            ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
-           HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg);
+           HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) || LoggingBuiltins.is_builtin(arg);
   }
 
   bool is_builtin_method(const KName& arg) {
@@ -530,7 +566,7 @@ struct {
            ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
            ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
-           HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg);
+           HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) || LoggingBuiltins.is_builtin(arg);
   }
 } AstralBuiltins;
 
