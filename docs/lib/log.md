@@ -6,8 +6,15 @@ The `log` module contains functionality for working with the Astral logger.
 
 - [Importing the Module](#importing-the-module)
 - [Module Functions](#module-functions)
-  - [`get()`](#get)
-  - [`opt(_key)`](#opt_key)
+  - [`set_file(_file_path)`](#set_file_file_path)
+  - [`set_mode(_mode)`](#set_mode_mode--console)
+  - [`logformat(_format)`](#logformat_format)
+  - [`tsformat(_format)`](#tsformat_format)
+  - [`minlevel(_level)`](#minlevel_level--info)
+  - [`debug(_message, _source)`](#debug_message-_source--)
+  - [`warn(_message, _source)`](#warn_message-_source--)
+  - [`info(_message, _source)`](#info_message-_source--)
+  - [`error(_message, _source)`](#error_message-_source--)
 
 ## Importing the Module
 
