@@ -4,7 +4,6 @@
 #include <regex>
 #include <vector>
 
-#include "configuration/config.h"
 #include "tracing/error.h"
 #include "tracing/handler.h"
 #include "logging/logger.h"
@@ -16,7 +15,6 @@
 #include "globals.h"
 #include "host.h"
 
-Logger logger;
 TaskManager task;
 
 std::unordered_map<std::string, Method> methods;
@@ -36,15 +34,13 @@ class Astral {
   static int run(int argc, char** argv);
 
  private:
-  static bool configure(Config& config, Logger& logger, Host& host,
-                        const std::string& path);
   static bool createNewFile(const std::string& path);
   static bool processOption(std::string& opt, Host& host);
   static bool parse(Host& host, const std::string& content);
 
-  static int run(std::vector<std::string>& v);
   static int printVersion();
   static int printHelp();
+  static int run(std::vector<std::string>& v);
 };
 
 int Astral::run(int argc, char** argv) {
@@ -60,14 +56,8 @@ int Astral::run(int argc, char** argv) {
 int Astral::run(std::vector<std::string>& v) {
   RNG::getInstance();
 
-  Config config;
   Interpreter interp;
   Host host(interp);
-
-  if (DEBUG) {
-    v.emplace_back("-C");
-    v.emplace_back("/home/scs/astral/config/astral.conf");
-  }
 
   size_t size = v.size();
 
@@ -81,12 +71,6 @@ int Astral::run(std::vector<std::string>& v) {
         help = true;
       } else if (String::isCLIFlag(v.at(i), "v", "version")) {
         return printVersion();
-      } else if (String::isCLIFlag(v.at(i), "C", "config")) {
-        if (i + 1 < size) {
-          help = !configure(config, logger, host, v.at(++i));
-        } else {
-          help = true;
-        }
       } else if (String::isCLIFlag(v.at(i), "n", "new")) {
         if (i + 1 < size) {
           return createNewFile(v.at(++i));
@@ -143,45 +127,6 @@ bool Astral::createNewFile(const std::string& path) {
   return File::createFile(filePath);
 }
 
-bool Astral::configure(Config& config, Logger& logger, Host& host,
-                       const std::string& path) {
-  if (!String::endsWith(path, ".conf")) {
-    std::cout << "I can be configured with a `.conf` file." << std::endl;
-    return false;
-  } else if (!config.read(path)) {
-    std::cout << "I cannot read `" << path << "`." << std::endl;
-    return false;
-  }
-
-  std::string logPath = config.get("LOGGER_PATH");
-  std::string logMode = config.get("LOGGER_MODE");
-  std::string logLevel = config.get("LOGGER_LEVEL");
-  std::string scriptPath = config.get("SCRIPT_PATH");
-  std::string astrallibEnabled = config.get("STDLIB_ENABLED", "true");
-
-  if (!logPath.empty()) {
-    logger.setLogFilePath(logPath);
-  }
-
-  if (!logMode.empty()) {
-    logger.setLogMode(Logger::logmode_from_string(logMode));
-  }
-
-  if (!logLevel.empty()) {
-    logger.setMinimumLogLevel(Logger::loglevel_from_string(logLevel));
-  }
-
-  if (!scriptPath.empty()) {
-    host.registerScript(scriptPath);
-  }
-
-  if (!astrallibEnabled.empty() && astrallibEnabled == Keywords.False) {
-    host.disableLibraryLoad();
-  }
-
-  return true;
-}
-
 bool Astral::processOption(std::string& opt, Host& host) {
   std::regex xargPattern("-(.*?)=");
   std::string name, value;
@@ -220,7 +165,6 @@ int Astral::printHelp() {
       {"-v, --version", "print the current version"},
       {"-p, --parse <astral_code>", "parse astral code as an argument"},
       {"-n, --new <file_path>", "create a `.🚀` file"},
-      {"-C, --config <conf_path>", "configure with a `.conf` file"},
       {"-X<key>:<value>", "specify an argument as a key-value pair"}};
 
 #ifdef _WIN64
@@ -228,7 +172,6 @@ int Astral::printHelp() {
               {"-v, --version", "print the current version"},
               {"-p, --parse <astral_code>", "parse code"},
               {"-n, --new <filename>", "create a `.astral` file"},
-              {"-C, --config <conf_path>", "configure with a `.conf` file"},
               {"-X<key>:<value>", "specify an argument as a key-value pair"}};
 #endif
 

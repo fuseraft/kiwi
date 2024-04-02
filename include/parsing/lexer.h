@@ -742,6 +742,32 @@ class Lexer {
     return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
   }
 
+  Token parseLoggingBuiltin(const std::string& builtin) {
+    auto st = KName::Default;
+
+    if (builtin == LoggingBuiltins.Debug) {
+      st = KName::Builtin_Logging_Debug;
+    } else if (builtin == LoggingBuiltins.Error) {
+      st = KName::Builtin_Logging_Error;
+    } else if (builtin == LoggingBuiltins.FilePath) {
+      st = KName::Builtin_Logging_FilePath;
+    } else if (builtin == LoggingBuiltins.Info) {
+      st = KName::Builtin_Logging_Info;
+    } else if (builtin == LoggingBuiltins.Level) {
+      st = KName::Builtin_Logging_Level;
+    } else if (builtin == LoggingBuiltins.Mode) {
+      st = KName::Builtin_Logging_Mode;
+    } else if (builtin == LoggingBuiltins.EntryFormat) {
+      st = KName::Builtin_Logging_EntryFormat;
+    } else if (builtin == LoggingBuiltins.TimestampFormat) {
+      st = KName::Builtin_Logging_TimestampFormat;
+    } else if (builtin == LoggingBuiltins.Warn) {
+      st = KName::Builtin_Logging_Warn;
+    }
+
+    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+  }
+
   Token parseTimeBuiltin(const std::string& builtin) {
     auto st = KName::Default;
 
@@ -767,6 +793,8 @@ class Lexer {
       st = KName::Builtin_Time_Ticks;
     } else if (builtin == TimeBuiltins.TicksToMilliseconds) {
       st = KName::Builtin_Time_TicksToMilliseconds;
+    } else if (builtin == TimeBuiltins.Timestamp) {
+      st = KName::Builtin_Time_Timestamp;
     } else if (builtin == TimeBuiltins.WeekDay) {
       st = KName::Builtin_Time_WeekDay;
     } else if (builtin == TimeBuiltins.Year) {
@@ -787,6 +815,8 @@ class Lexer {
       return parseEnvBuiltin(builtin);
     } else if (FileIOBuiltIns.is_builtin(builtin)) {
       return parseFileIOBuiltin(builtin);
+    } else if (LoggingBuiltins.is_builtin(builtin)) {
+      return parseLoggingBuiltin(builtin);
     } else if (ListBuiltins.is_builtin(builtin)) {
       return parseListBuiltin(builtin);
     } else if (MathBuiltins.is_builtin(builtin)) {

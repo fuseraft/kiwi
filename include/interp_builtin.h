@@ -10,6 +10,7 @@
 #include "builtins/core_handler.h"
 #include "builtins/env_handler.h"
 #include "builtins/fileio_handler.h"
+#include "builtins/logging_handler.h"
 #include "builtins/math_handler.h"
 #include "builtins/sys_handler.h"
 #include "builtins/time_handler.h"
@@ -42,6 +43,8 @@ class BuiltinInterpreter {
       return SysBuiltinHandler::execute(term, builtin, args);
     } else if (HttpBuiltins.is_builtin(builtin)) {
       return HttpBuiltinHandler::execute(term, builtin, args);
+    } else if (LoggingBuiltins.is_builtin(builtin)) {
+      return LoggingBuiltinHandler::execute(term, builtin, args);
     } else {
 #ifdef EXPERIMENTAL_FEATURES
     }

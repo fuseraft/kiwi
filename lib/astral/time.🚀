@@ -59,6 +59,16 @@ module time
   end
 
   /#
+  Summary: Get current timestamp with a specific format.
+  Params:
+    - _format: The format string.
+  Returns: String
+  #/
+  def formatted(_format)
+    return __timestamp__(_format)
+  end
+
+  /#
   Summary: Get the day of the month (1 to 31).
   Returns: Integer
   #/
