@@ -51,7 +51,7 @@ class LoggingBuiltinHandler {
     auto filePath = get_string(term, args.at(0));
     Logger::getInstance().setLogFilePath(filePath);
 
-    return 0;
+    return static_cast<k_int>(0);
   }
 
   static k_value executeLevel(const Token& term,
@@ -63,7 +63,7 @@ class LoggingBuiltinHandler {
     auto level = Logger::loglevel_from_string(get_string(term, args.at(0)));
     Logger::getInstance().setMinimumLogLevel(level);
 
-    return 0;
+    return static_cast<k_int>(0);
   }
 
   static k_value executeMode(const Token& term,
@@ -75,7 +75,7 @@ class LoggingBuiltinHandler {
     auto mode = Logger::logmode_from_string(get_string(term, args.at(0)));
     Logger::getInstance().setLogMode(mode);
 
-    return 0;
+    return static_cast<k_int>(0);
   }
 
   static k_value executeEntryFormat(const Token& term,
@@ -87,7 +87,7 @@ class LoggingBuiltinHandler {
     auto entryFormat = get_string(term, args.at(0));
     Logger::getInstance().setEntryFormat(entryFormat);
 
-    return 0;
+    return static_cast<k_int>(0);
   }
 
   static k_value executeTimestampFormat(const Token& term,
@@ -99,7 +99,7 @@ class LoggingBuiltinHandler {
     auto timestampFormat = get_string(term, args.at(0));
     Logger::getInstance().setTimestampFormat(timestampFormat);
 
-    return 0;
+    return static_cast<k_int>(0);
   }
 
   static k_value executeWriteLog(const Token& term, const KName& builtin,
@@ -151,7 +151,7 @@ class LoggingBuiltinHandler {
         break;
     }
 
-    return 0;
+    return static_cast<k_int>(0);
   }
 };
 
