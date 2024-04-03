@@ -2,31 +2,30 @@
 /# This 🚀 script is for experimentation. #/
 
 import "@astral/log" as log
+import "@astral/string"
+import "@astral/time" as time
+
 log.logformat("[%timestamp] %message")
 
-name = "Astral"
-log.info("Initial assignment: ${name}")
-
-class ScopeCheck private (name)
-  def initialize(name)
-    log.info("Ctor parameter:     ${name}")
-    this.name = name
-    log.info("Instance variable:  ${this.name}")
+class DateTime
+  def initialize(year = 1970, month = 1, day = 1, hour = 0, minute = 0, second = 0)
+    this.year = year
+    this.month = month
+    this.day = day
+    this.hour = hour
+    this.minute = minute
+    this.second = second
   end
 
-  def get_name()
-    return this.name
+  def to_string()
+    date_part = ["${this.year}", string::padstart("${this.month}", 2, "0"), string::padstart("${this.day}", 2, "0")].join("-")
+    time_part = [string::padstart("${this.hour}", 2, "0"), string::padstart("${this.minute}", 2, "0"), string::padstart("${this.second}", 2, "0")].join(":")
+    return [date_part, time_part].join(" ")
+  end
+
+  static def now()
+    return DateTime.new(time.year(), time.month(), time.day(), time.hour(), time.minute(), time.second())
   end
 end
 
-objects = []
-
-for name in ["Zephyr", "Aetheris", "Kiwi"] do # `name` should be temporary. We need to not affect the `name` outside. 
-  objects << ScopeCheck.new(name) 
-end
-
-log.info("Post instantiation: ${name}")
-
-for o in objects do
-  log.info("Instance method:    ${o.get_name()}")
-end
+log.info("DateTime.now: ${DateTime.now()}")
