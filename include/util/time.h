@@ -27,23 +27,26 @@ class Time {
 
   static double ticksToMilliseconds(double ticks) { return ticks / 1000000.0; }
 
-  static k_string getTimestamp(const std::string& timestampFormat = "%Y-%m-%d %H:%M:%S") {
+  static k_string getTimestamp(
+      const std::string& timestampFormat = "%Y-%m-%d %H:%M:%S") {
     std::time_t now = std::time(nullptr);
     std::tm localTime;
 
-    #ifdef _WIN64
+#ifdef _WIN64
     localtime_s(&localTime, &now);
-    #else
+#else
     localtime_r(&now, &localTime);
-    #endif
+#endif
 
     std::vector<char> timestamp(64);
 
-    auto result = std::strftime(timestamp.data(), timestamp.size(), timestampFormat.c_str(), &localTime);
+    auto result = std::strftime(timestamp.data(), timestamp.size(),
+                                timestampFormat.c_str(), &localTime);
 
     while (result == 0) {
       timestamp.resize(timestamp.size() * 2);
-      result = std::strftime(timestamp.data(), timestamp.size(), timestampFormat.c_str(), &localTime);
+      result = std::strftime(timestamp.data(), timestamp.size(),
+                             timestampFormat.c_str(), &localTime);
     }
 
     return k_string(timestamp.data());

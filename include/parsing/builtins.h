@@ -145,10 +145,21 @@ struct {
   const k_string AMPM = "__ampm__";
   const k_string Timestamp = "__timestamp__";
 
-  std::unordered_set<k_string> builtins = {
-      Hour,    Minute, Second, MonthDay,           WeekDay,
-      YearDay, Month,  Year,   EpochMilliseconds,  Delay,
-      IsDST,   Ticks,  AMPM,   TicksToMilliseconds, Timestamp};
+  std::unordered_set<k_string> builtins = {Hour,
+                                           Minute,
+                                           Second,
+                                           MonthDay,
+                                           WeekDay,
+                                           YearDay,
+                                           Month,
+                                           Year,
+                                           EpochMilliseconds,
+                                           Delay,
+                                           IsDST,
+                                           Ticks,
+                                           AMPM,
+                                           TicksToMilliseconds,
+                                           Timestamp};
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Time_AMPM,
       KName::Builtin_Time_Delay,
@@ -333,7 +344,8 @@ struct {
   const k_string Error = "__log_error__";
 
   std::unordered_set<k_string> builtins = {
-      FilePath, Mode, EntryFormat, TimestampFormat, Level, Debug, Warn, Info, Error};
+      FilePath, Mode, EntryFormat, TimestampFormat, Level, Debug,
+      Warn,     Info, Error};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Logging_FilePath,
@@ -558,7 +570,8 @@ struct {
            ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
            ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
-           HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) || LoggingBuiltins.is_builtin(arg);
+           HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
+           LoggingBuiltins.is_builtin(arg);
   }
 
   bool is_builtin_method(const KName& arg) {
@@ -566,7 +579,8 @@ struct {
            ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
            ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
-           HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) || LoggingBuiltins.is_builtin(arg);
+           HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
+           LoggingBuiltins.is_builtin(arg);
   }
 } AstralBuiltins;
 

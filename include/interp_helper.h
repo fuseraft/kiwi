@@ -13,8 +13,7 @@
 #include "stackframe.h"
 
 struct InterpHelper {
-  static bool isSliceAssignmentExpression(
-      const std::shared_ptr<TokenStream>& stream) {
+  static bool isSliceAssignmentExpression(const k_stream& stream) {
     size_t pos = stream->position;
     const auto& tokens = stream->tokens;
 
@@ -30,7 +29,7 @@ struct InterpHelper {
     return false;
   }
 
-  static bool isListExpression(const std::shared_ptr<TokenStream>& stream) {
+  static bool isListExpression(const k_stream& stream) {
     size_t position = stream->position + 1;  // Skip the "["
     int bracketCount = 1;
 
@@ -78,7 +77,7 @@ struct InterpHelper {
     return bracketCount == 0;
   }
 
-  static bool isRangeExpression(const std::shared_ptr<TokenStream>& stream) {
+  static bool isRangeExpression(const k_stream& stream) {
     size_t pos = stream->position + 1;  // Skip the "["
     const auto& tokens = stream->tokens;
     size_t size = tokens.size();
@@ -104,7 +103,7 @@ struct InterpHelper {
     return false;
   }
 
-  static bool hasReturnValue(std::shared_ptr<TokenStream> stream) {
+  static bool hasReturnValue(k_stream stream) {
     const auto& nextToken = stream->peek();
     const auto& type = nextToken.getType();
 
@@ -146,8 +145,7 @@ struct InterpHelper {
     return "temporary_" + RNG::getInstance().random16();
   }
 
-  static std::vector<Token> collectBodyTokens(
-      std::shared_ptr<TokenStream>& stream) {
+  static std::vector<Token> collectBodyTokens(k_stream& stream) {
     std::vector<Token> tokens;
     int counter = 1;
 
@@ -174,8 +172,7 @@ struct InterpHelper {
     return tokens;
   }
 
-  static void collectBodyTokens(std::vector<Token>& tokens,
-                                std::shared_ptr<TokenStream>& stream) {
+  static void collectBodyTokens(std::vector<Token>& tokens, k_stream& stream) {
     int counter = 1;
 
     while (stream->canRead() && counter != 0) {
@@ -199,9 +196,8 @@ struct InterpHelper {
     }
   }
 
-  static void updateListSlice(std::shared_ptr<TokenStream> stream,
-                              bool insertOp, k_list& targetList,
-                              const SliceIndex& slice,
+  static void updateListSlice(k_stream stream, bool insertOp,
+                              k_list& targetList, const SliceIndex& slice,
                               const k_list& rhsValues) {
     if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
       throw IndexError(stream->current(), "Start index must be an integer.");
@@ -257,8 +253,8 @@ struct InterpHelper {
     }
   }
 
-  static k_value interpretAssignOp(std::shared_ptr<TokenStream> stream,
-                                   const KName& op, const k_value& currentValue,
+  static k_value interpretAssignOp(k_stream stream, const KName& op,
+                                   const k_value& currentValue,
                                    const k_value& value) {
     switch (op) {
       case KName::Ops_AddAssign:
@@ -313,8 +309,7 @@ struct InterpHelper {
     throw InvalidOperationError(stream->current(), "Invalid operator.");
   }
 
-  static k_value interpretListSlice(std::shared_ptr<TokenStream> stream,
-                                    const SliceIndex& slice,
+  static k_value interpretListSlice(k_stream stream, const SliceIndex& slice,
                                     const k_list& list) {
     auto& elements = list->elements;
     if (slice.isSlice) {
@@ -392,7 +387,7 @@ struct InterpHelper {
     }
   }
 
-  static void interpretParameterizedCatch(std::shared_ptr<TokenStream> stream,
+  static void interpretParameterizedCatch(k_stream stream,
                                           std::shared_ptr<CallStackFrame> frame,
                                           k_string& errorTypeVariableName,
                                           k_string& errorVariableName,
@@ -436,8 +431,7 @@ struct InterpHelper {
     errorValue = error.getMessage();
   }
 
-  static k_string interpretModuleHome(k_string& modulePath,
-                                      std::shared_ptr<TokenStream> stream) {
+  static k_string interpretModuleHome(k_string& modulePath, k_stream stream) {
     if (stream->current().getType() != KTokenType::STRING ||
         !String::beginsWith(modulePath, "@")) {
       return "";
@@ -482,7 +476,7 @@ struct InterpHelper {
     return moduleHome;
   }
 
-  static k_string interpretBaseClass(std::shared_ptr<TokenStream> stream) {
+  static k_string interpretBaseClass(k_stream stream) {
     k_string baseClassName;
     if (stream->current().getType() == KTokenType::OPERATOR) {
       if (stream->current().getSubType() != KName::Ops_LessThan) {

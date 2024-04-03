@@ -114,7 +114,7 @@ class TimeBuiltinHandler {
   }
 
   static k_value executeTimestamp(const Token& term,
-                             const std::vector<k_value>& args) {
+                                  const std::vector<k_value>& args) {
     if (args.size() != 0 && args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, TimeBuiltins.Timestamp);
     }

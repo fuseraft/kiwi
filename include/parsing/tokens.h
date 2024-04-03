@@ -128,4 +128,6 @@ class TokenStream {
   size_t position = 0;
 };
 
+using k_stream = std::shared_ptr<TokenStream>;
+
 #endif

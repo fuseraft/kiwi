@@ -9,11 +9,13 @@
 #include "logging/logger.h"
 #include "math/rng.h"
 #include "parsing/keywords.h"
+#include "parsing/tokens.h"
 #include "util/file.h"
 #include "util/string.h"
 #include "web/httplib.h"
 #include "globals.h"
 #include "host.h"
+#include "stackframe.h"
 
 TaskManager task;
 
@@ -22,7 +24,7 @@ std::unordered_map<std::string, Module> modules;
 std::unordered_map<std::string, Class> classes;
 std::unordered_map<std::string, std::string> astralArgs;
 std::stack<std::shared_ptr<CallStackFrame>> callStack;
-std::stack<std::shared_ptr<TokenStream>> streamStack;
+std::stack<k_stream> streamStack;
 std::stack<std::string> moduleStack;
 std::unordered_map<int, Method> astralWebServerHooks;
 httplib::Server astralWebServer;

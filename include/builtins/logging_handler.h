@@ -79,7 +79,7 @@ class LoggingBuiltinHandler {
   }
 
   static k_value executeEntryFormat(const Token& term,
-                                        const std::vector<k_value>& args) {
+                                    const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, LoggingBuiltins.EntryFormat);
     }
@@ -93,7 +93,8 @@ class LoggingBuiltinHandler {
   static k_value executeTimestampFormat(const Token& term,
                                         const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, LoggingBuiltins.TimestampFormat);
+      throw BuiltinUnexpectedArgumentError(term,
+                                           LoggingBuiltins.TimestampFormat);
     }
 
     auto timestampFormat = get_string(term, args.at(0));
