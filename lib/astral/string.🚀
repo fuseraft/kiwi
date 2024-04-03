@@ -1,0 +1,21 @@
+module string
+  __home__("astral")
+
+  def padstart(_input, _size, _padding = " ")
+    if _input.size() >= _size return _input end
+    if _padding.size() != 1 _padding = " " end
+    _padding_size = _size - _input.size()
+    _pad = _padding * _padding_size
+    return _pad + _input
+  end
+
+  def padend(_input, _size, _padding = " ")
+    if _input.size() >= _size return _input end
+    if _padding.size() != 1 _padding = " " end
+    _padding_size = _size - _input.size()
+    _pad = _padding * _padding_size
+    return _input + _pad
+  end
+end
+
+export "string"
