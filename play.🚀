@@ -1,15 +1,32 @@
 #!/usr/bin/astral
+/# This 🚀 script is for experimentation. #/
 
-/#
-This 🚀 script is for experimentation.
-#/
+import "@astral/log" as log
+log.logformat("[%timestamp] %message")
 
-import "@astral/http" as http
+name = "Astral"
+log.info("Initial assignment: ${name}")
 
-res = http.get("http://httpbin.org", "/get")
+class ScopeCheck private (name)
+  def initialize(name)
+    log.info("Ctor parameter:     ${name}")
+    this.name = name
+    log.info("Instance variable:  ${this.name}")
+  end
 
-if res.status == 200
-  println "${res.headers}${res.body}"
-else
-  println "An error occurred making GET request."
+  def get_name()
+    return this.name
+  end
+end
+
+objects = []
+
+for name in ["Zephyr", "Aetheris", "Kiwi"] do # `name` should be temporary. We need to not affect the `name` outside. 
+  objects << ScopeCheck.new(name) 
+end
+
+log.info("Post instantiation: ${name}")
+
+for o in objects do
+  log.info("Instance method:    ${o.get_name()}")
 end

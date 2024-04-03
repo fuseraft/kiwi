@@ -150,7 +150,7 @@ class Interpreter {
     return task.addTask(taskFunc);
   }
 
-  k_value interpretAwait(std::shared_ptr<TokenStream> stream,
+  k_value interpretAwait(k_stream stream,
                          std::shared_ptr<CallStackFrame> frame) {
     stream->next();  // Skip "await"
 
@@ -174,7 +174,7 @@ class Interpreter {
     return interpret(stream);
   }
 
-  int interpret(std::shared_ptr<TokenStream> stream) {
+  int interpret(k_stream stream) {
     if (stream->empty()) {
       return 0;
     }
@@ -232,8 +232,7 @@ class Interpreter {
     handleFrameExit(frame);
   }
 
-  void handleUncaughtException(std::shared_ptr<TokenStream> stream,
-                               const AstralError& e) {
+  void handleUncaughtException(k_stream stream, const AstralError& e) {
     ErrorHandler::handleError(e);
 
     if (!preservingMainStackFrame) {
@@ -348,8 +347,7 @@ class Interpreter {
     return subFrame;
   }
 
-  Method getLambda(std::shared_ptr<TokenStream> stream,
-                   std::shared_ptr<CallStackFrame> frame) {
+  Method getLambda(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     switch (stream->current().getType()) {
       case KTokenType::IDENTIFIER: {
         auto lambdaName = stream->current().getText();
@@ -378,7 +376,7 @@ class Interpreter {
     throw InvalidOperationError(stream->current(), "Expected lambda.");
   }
 
-  Method interpretLambda(std::shared_ptr<TokenStream> stream,
+  Method interpretLambda(k_stream stream,
                          std::shared_ptr<CallStackFrame> frame) {
     stream->next();  // Skip "lambda"
     Method lambda;
@@ -400,7 +398,7 @@ class Interpreter {
     return lambda;
   }
 
-  k_value interpretLambdaExpression(std::shared_ptr<TokenStream> stream,
+  k_value interpretLambdaExpression(k_stream stream,
                                     std::shared_ptr<CallStackFrame> frame) {
     const auto& lambda = interpretLambda(stream, frame);
     const auto& lambdaRef = lambda.getName();
@@ -410,8 +408,7 @@ class Interpreter {
     return std::make_shared<LambdaRef>(lambdaRef);
   }
 
-  void interpretHashLoop(std::shared_ptr<TokenStream> stream,
-                         std::shared_ptr<CallStackFrame> frame,
+  void interpretHashLoop(k_stream stream, std::shared_ptr<CallStackFrame> frame,
                          k_value& collectionValue, const bool& hasIndexVariable,
                          const k_string& itemVariableName,
                          const k_string& indexVariableName) {
@@ -444,8 +441,7 @@ class Interpreter {
     }
   }
 
-  void interpretListLoop(std::shared_ptr<TokenStream> stream,
-                         std::shared_ptr<CallStackFrame> frame,
+  void interpretListLoop(k_stream stream, std::shared_ptr<CallStackFrame> frame,
                          k_value& collectionValue, const bool& hasIndexVariable,
                          const k_string& itemVariableName,
                          const k_string& indexVariableName) {
@@ -480,7 +476,7 @@ class Interpreter {
     }
   }
 
-  void interpretForLoop(std::shared_ptr<TokenStream> stream,
+  void interpretForLoop(k_stream stream,
                         std::shared_ptr<CallStackFrame> frame) {
     k_string itemVariableName, indexVariableName;
     bool hasIndexVariable = false;
@@ -512,6 +508,9 @@ class Interpreter {
       throw SyntaxError(stream->current(), "Expected `do` in `for` loop.");
     }
 
+    auto restore = getVariablesForRestore(stream, frame, itemVariableName,
+                                          indexVariableName);
+
     if (std::holds_alternative<k_list>(collectionValue)) {
       interpretListLoop(stream, frame, collectionValue, hasIndexVariable,
                         itemVariableName, indexVariableName);
@@ -523,11 +522,15 @@ class Interpreter {
                                   "Term is not a List or Hash.");
     }
 
+    for (const auto& pair : restore) {
+      frame->variables[pair.first] = pair.second;
+    }
+
     frame->clearFlag(FrameFlags::LoopBreak);
     frame->clearFlag(FrameFlags::LoopContinue);
   }
 
-  void interpretWhileLoop(std::shared_ptr<TokenStream> stream,
+  void interpretWhileLoop(k_stream stream,
                           std::shared_ptr<CallStackFrame> frame) {
     std::vector<Token> condition;
     auto term = stream->current();
@@ -604,8 +607,7 @@ class Interpreter {
     frame = oldFrame;
   }
 
-  void interpretLoop(std::shared_ptr<TokenStream> stream,
-                     std::shared_ptr<CallStackFrame> frame) {
+  void interpretLoop(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     const auto& loop = stream->current().getSubType();
     stream->next();  // Skip "while"|"for"
 
@@ -623,8 +625,22 @@ class Interpreter {
     }
   }
 
-  void interpretParse(std::shared_ptr<TokenStream> stream,
-                      std::shared_ptr<CallStackFrame> frame) {
+  std::unordered_map<k_string, k_value> getVariablesForRestore(
+      k_stream stream, std::shared_ptr<CallStackFrame> frame,
+      const std::string& firstValue, const std::string& secondValue) {
+    std::unordered_map<k_string, k_value> restore;
+    if (hasVariable(frame, firstValue)) {
+      restore[firstValue] = getVariable(stream, frame, firstValue);
+    }
+
+    if (!secondValue.empty() && hasVariable(frame, secondValue)) {
+      restore[secondValue] = getVariable(stream, frame, secondValue);
+    }
+
+    return restore;
+  }
+
+  void interpretParse(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     bool hasValue = InterpHelper::hasReturnValue(stream);
     stream->next();  // Skip "parse"
 
@@ -646,7 +662,7 @@ class Interpreter {
     interpretAstral(std::get<k_string>(expression));
   }
 
-  void interpretKeyword(std::shared_ptr<TokenStream> stream,
+  void interpretKeyword(k_stream stream,
                         std::shared_ptr<CallStackFrame> frame) {
     const auto& keyword = stream->current().getSubType();
     switch (keyword) {
@@ -747,8 +763,7 @@ class Interpreter {
     }
   }
 
-  void interpretQualifiedIdentifier(std::shared_ptr<TokenStream> stream,
-                                    k_string& identifier) {
+  void interpretQualifiedIdentifier(k_stream stream, k_string& identifier) {
     while (stream->peek().getType() == KTokenType::QUALIFIER) {
       stream->next();  // Skip the identifier.
       stream->next();  // Skip the qualifier.
@@ -756,7 +771,7 @@ class Interpreter {
     }
   }
 
-  k_value interpretIdentifierInvocation(std::shared_ptr<TokenStream> stream,
+  k_value interpretIdentifierInvocation(k_stream stream,
                                         std::shared_ptr<CallStackFrame> frame,
                                         const k_string& identifier) {
     bool methodFound = hasMethod(frame, identifier),
@@ -797,7 +812,7 @@ class Interpreter {
     throw UnknownIdentifierError(stream->current(), identifier);
   }
 
-  k_value interpretValueInvocation(std::shared_ptr<TokenStream> stream,
+  k_value interpretValueInvocation(k_stream stream,
                                    std::shared_ptr<CallStackFrame> frame,
                                    k_value& v) {
     while (stream->canRead() &&
@@ -820,7 +835,7 @@ class Interpreter {
     return v;
   }
 
-  k_value interpretIdentifier(std::shared_ptr<TokenStream> stream,
+  k_value interpretIdentifier(k_stream stream,
                               std::shared_ptr<CallStackFrame> frame,
                               bool doAssignment = true) {
     auto tokenText = stream->current().getText();
@@ -863,8 +878,7 @@ class Interpreter {
     return interpretIdentifierInvocation(stream, frame, tokenText);
   }
 
-  void interpretCatch(std::shared_ptr<TokenStream> stream,
-                      std::shared_ptr<CallStackFrame> frame) {
+  void interpretCatch(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     stream->next();  // SKip "catch"
 
     k_string errorTypeVariableName;
@@ -920,8 +934,7 @@ class Interpreter {
     }
   }
 
-  void interpretToken(std::shared_ptr<TokenStream> stream,
-                      std::shared_ptr<CallStackFrame> frame) {
+  void interpretToken(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     if (frame->isErrorStateSet()) {
       if (stream->current().getType() == KTokenType::KEYWORD &&
           stream->current().getSubType() == KName::KW_Catch) {
@@ -1015,8 +1028,8 @@ class Interpreter {
     return false;  // Not found in any scope
   }
 
-  Module getHomedModule(std::shared_ptr<TokenStream> stream,
-                        const k_string& homeName, const k_string& moduleName) {
+  Module getHomedModule(k_stream stream, const k_string& homeName,
+                        const k_string& moduleName) {
     for (auto pair : modules) {
       if (pair.first == moduleName && pair.second.hasHome() &&
           pair.second.getHome() == homeName) {
@@ -1027,7 +1040,7 @@ class Interpreter {
     throw ModuleUndefinedError(stream->current(), moduleName);
   }
 
-  Module getModule(std::shared_ptr<TokenStream> stream, const k_string& name) {
+  Module getModule(k_stream stream, const k_string& name) {
     if (hasModule(name)) {
       return modules[name];
     }
@@ -1035,8 +1048,7 @@ class Interpreter {
     throw ModuleUndefinedError(stream->current(), name);
   }
 
-  Method getMethod(std::shared_ptr<TokenStream> stream,
-                   std::shared_ptr<CallStackFrame> frame,
+  Method getMethod(k_stream stream, std::shared_ptr<CallStackFrame> frame,
                    const k_string& name) {
     if (hasMethod(frame, name)) {
       if (frame->inObjectContext()) {
@@ -1069,8 +1081,7 @@ class Interpreter {
     throw MethodUndefinedError(stream->current(), name);
   }
 
-  k_value getVariable(std::shared_ptr<TokenStream> stream,
-                      std::shared_ptr<CallStackFrame> frame,
+  k_value getVariable(k_stream stream, std::shared_ptr<CallStackFrame> frame,
                       const k_string& name) {
     // Check in the current frame
     if (frame->hasVariable(name)) {
@@ -1096,8 +1107,7 @@ class Interpreter {
   }
 
   std::vector<k_value> interpretArguments(
-      std::shared_ptr<TokenStream> stream,
-      std::shared_ptr<CallStackFrame> frame) {
+      k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     std::vector<k_value> args;
 
     if (!stream->match(KTokenType::OPEN_PAREN)) {
@@ -1214,7 +1224,7 @@ class Interpreter {
     return endpointList;
   }
 
-  int getNextWebServerHook(std::shared_ptr<TokenStream> stream,
+  int getNextWebServerHook(k_stream stream,
                            std::shared_ptr<CallStackFrame> frame,
                            k_value& arg) {
     if (!std::holds_alternative<k_lambda>(arg)) {
@@ -1256,7 +1266,7 @@ class Interpreter {
     return requestHash;
   }
 
-  k_value interpretWebServerGet(std::shared_ptr<TokenStream> stream,
+  k_value interpretWebServerGet(k_stream stream,
                                 std::shared_ptr<CallStackFrame> frame,
                                 std::vector<k_value>& args) {
     auto term = stream->current();
@@ -1288,7 +1298,7 @@ class Interpreter {
     return static_cast<k_int>(0);
   }
 
-  k_value interpretWebServerPost(std::shared_ptr<TokenStream> stream,
+  k_value interpretWebServerPost(k_stream stream,
                                  std::shared_ptr<CallStackFrame> frame,
                                  std::vector<k_value>& args) {
     auto term = stream->current();
@@ -1324,7 +1334,7 @@ class Interpreter {
     return static_cast<k_int>(0);
   }
 
-  k_value interpretWebServerListen(std::shared_ptr<TokenStream> stream,
+  k_value interpretWebServerListen(k_stream stream,
                                    const std::vector<k_value>& args) {
     auto term = stream->current();
 
@@ -1341,7 +1351,7 @@ class Interpreter {
     return static_cast<k_int>(astralWebServerPort);
   }
 
-  k_value interpretWebServerPort(std::shared_ptr<TokenStream> stream,
+  k_value interpretWebServerPort(k_stream stream,
                                  const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(stream->current(),
@@ -1351,7 +1361,7 @@ class Interpreter {
     return astralWebServerPort;
   }
 
-  k_value interpretWebServerPublic(std::shared_ptr<TokenStream> stream,
+  k_value interpretWebServerPublic(k_stream stream,
                                    const std::vector<k_value>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(stream->current(),
@@ -1370,7 +1380,7 @@ class Interpreter {
     return true;
   }
 
-  k_value interpretWebServerHost(std::shared_ptr<TokenStream> stream,
+  k_value interpretWebServerHost(k_stream stream,
                                  const std::vector<k_value>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(stream->current(),
@@ -1380,7 +1390,7 @@ class Interpreter {
     return astralWebServerHost;
   }
 
-  k_value interpretWebServerBuiltin(std::shared_ptr<TokenStream> stream,
+  k_value interpretWebServerBuiltin(k_stream stream,
                                     std::shared_ptr<CallStackFrame> frame,
                                     const KName& builtin,
                                     std::vector<k_value>& args) {
@@ -1410,8 +1420,8 @@ class Interpreter {
     return static_cast<k_int>(0);
   }
 
-  void interpretModuleBuiltin(std::shared_ptr<TokenStream> stream,
-                              const k_string& moduleName, const KName& builtin,
+  void interpretModuleBuiltin(k_stream stream, const k_string& moduleName,
+                              const KName& builtin,
                               std::vector<k_value>& args) {
     if (builtin == KName::Builtin_Module_Home) {
       if (args.size() != 1) {
@@ -1431,8 +1441,7 @@ class Interpreter {
   }
 
   std::vector<k_string> collectMethodParameters(
-      std::shared_ptr<TokenStream> stream,
-      std::shared_ptr<CallStackFrame> frame, Method& method) {
+      k_stream stream, std::shared_ptr<CallStackFrame> frame, Method& method) {
     if (!stream->match(KTokenType::OPEN_PAREN)) {
       throw SyntaxError(
           stream->current(),
@@ -1469,8 +1478,7 @@ class Interpreter {
   }
 
   std::shared_ptr<CallStackFrame> buildMethodInvocationStackFrame(
-      std::shared_ptr<TokenStream> stream,
-      std::shared_ptr<CallStackFrame> frame, Method& method) {
+      k_stream stream, std::shared_ptr<CallStackFrame> frame, Method& method) {
     auto parameters = collectMethodParameters(stream, frame, method);
     auto codeFrame = buildSubFrame(frame, true);
     auto& codeFrameVariables = codeFrame->variables;
@@ -1499,7 +1507,7 @@ class Interpreter {
     return codeFrame;
   }
 
-  k_value interpretClassMethodInvocation(std::shared_ptr<TokenStream> stream,
+  k_value interpretClassMethodInvocation(k_stream stream,
                                          std::shared_ptr<CallStackFrame> frame,
                                          const k_string& className) {
     stream->next();  // Skip class name
@@ -1569,8 +1577,7 @@ class Interpreter {
   }
 
   k_value interpretInstanceMethodInvocation(
-      std::shared_ptr<TokenStream> stream,
-      std::shared_ptr<CallStackFrame> frame, k_object& object,
+      k_stream stream, std::shared_ptr<CallStackFrame> frame, k_object& object,
       const k_string& methodName, const KName& op,
       std::vector<k_value>& parameters) {
     if (!hasClass(object->className)) {
@@ -1623,7 +1630,7 @@ class Interpreter {
     return {};
   }
 
-  void interpretInstanceMethodInvocation(std::shared_ptr<TokenStream> stream,
+  void interpretInstanceMethodInvocation(k_stream stream,
                                          std::shared_ptr<CallStackFrame> frame,
                                          const k_string& instanceName,
                                          k_string methodName = "") {
@@ -1669,8 +1676,8 @@ class Interpreter {
     interpretStackFrame();
   }
 
-  k_value interpretThen(std::shared_ptr<TokenStream> stream,
-                        std::shared_ptr<CallStackFrame> frame, k_int taskId) {
+  k_value interpretThen(k_stream stream, std::shared_ptr<CallStackFrame> frame,
+                        k_int taskId) {
     auto then = interpretLambda(stream, frame);
     auto result = task.getTaskResult(taskId);
 
@@ -1711,7 +1718,7 @@ class Interpreter {
     return {};
   }
 
-  k_value interpretMethodInvocation(std::shared_ptr<TokenStream> stream,
+  k_value interpretMethodInvocation(k_stream stream,
                                     std::shared_ptr<CallStackFrame> frame,
                                     const k_string& name, bool await = false) {
     if (stream->current().getType() == KTokenType::IDENTIFIER) {
@@ -1755,8 +1762,7 @@ class Interpreter {
   }
 
   std::vector<Parameter> getParameterSet(
-      std::shared_ptr<TokenStream> stream,
-      std::shared_ptr<CallStackFrame> frame) {
+      k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     if (!stream->match(KTokenType::OPEN_PAREN)) {
       throw SyntaxError(
           stream->current(),
@@ -1803,7 +1809,7 @@ class Interpreter {
     return params;
   }
 
-  void interpretMethodParameters(std::shared_ptr<TokenStream> stream,
+  void interpretMethodParameters(k_stream stream,
                                  std::shared_ptr<CallStackFrame> frame,
                                  Method& method) {
     for (const auto& param : getParameterSet(stream, frame)) {
@@ -1811,7 +1817,7 @@ class Interpreter {
     }
   }
 
-  Method interpretMethodDeclaration(std::shared_ptr<TokenStream> stream,
+  Method interpretMethodDeclaration(k_stream stream,
                                     std::shared_ptr<CallStackFrame> frame) {
     Method method;
 
@@ -1872,7 +1878,7 @@ class Interpreter {
     return method;
   }
 
-  void interpretAsyncMethodDefinition(std::shared_ptr<TokenStream> stream,
+  void interpretAsyncMethodDefinition(k_stream stream,
                                       std::shared_ptr<CallStackFrame> frame) {
     stream->next();  // Skip "async"
 
@@ -1886,7 +1892,7 @@ class Interpreter {
     methods[method.getName()] = method;
   }
 
-  Method interpretMethodDefinition(std::shared_ptr<TokenStream> stream,
+  Method interpretMethodDefinition(k_stream stream,
                                    std::shared_ptr<CallStackFrame> frame) {
     auto method = interpretMethodDeclaration(stream, frame);
     auto name = method.getName();
@@ -1910,8 +1916,7 @@ class Interpreter {
     return method;
   }
 
-  void interpretExit(std::shared_ptr<TokenStream> stream,
-                     std::shared_ptr<CallStackFrame> frame) {
+  void interpretExit(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     bool hasValue = InterpHelper::hasReturnValue(stream);
     stream->next();  // Skip "exit"
 
@@ -1929,8 +1934,7 @@ class Interpreter {
     exit(1);
   }
 
-  void interpretThrow(std::shared_ptr<TokenStream> stream,
-                      std::shared_ptr<CallStackFrame> frame) {
+  void interpretThrow(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     const auto& throwToken = stream->current();
     bool hasValue = InterpHelper::hasReturnValue(stream);
     stream->next();  // Skip "throw"
@@ -1959,8 +1963,7 @@ class Interpreter {
     throw AstralError(throwToken, errorType, errorMessage);
   }
 
-  void interpretReturn(std::shared_ptr<TokenStream> stream,
-                       std::shared_ptr<CallStackFrame> frame) {
+  void interpretReturn(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     bool hasValue = InterpHelper::hasReturnValue(stream);
     stream->next();  // Skip "return"
 
@@ -1970,7 +1973,7 @@ class Interpreter {
     }
   }
 
-  SliceIndex interpretSliceIndex(std::shared_ptr<TokenStream> stream,
+  SliceIndex interpretSliceIndex(k_stream stream,
                                  std::shared_ptr<CallStackFrame> frame,
                                  k_value& listValue) {
     if (!stream->match(KTokenType::OPEN_BRACKET)) {
@@ -2036,7 +2039,7 @@ class Interpreter {
     return slice;
   }
 
-  k_value interpretKeyOrIndex(std::shared_ptr<TokenStream> stream,
+  k_value interpretKeyOrIndex(k_stream stream,
                               std::shared_ptr<CallStackFrame> frame) {
     if (!stream->match(KTokenType::OPEN_BRACKET)) {
       throw SyntaxError(stream->current(),
@@ -2053,7 +2056,7 @@ class Interpreter {
     return output;
   }
 
-  k_string interpretKey(std::shared_ptr<TokenStream> stream,
+  k_string interpretKey(k_stream stream,
                         std::shared_ptr<CallStackFrame> frame) {
     auto output = interpretKeyOrIndex(stream, frame);
 
@@ -2064,8 +2067,7 @@ class Interpreter {
     return std::get<k_string>(output);
   }
 
-  int interpretIndex(std::shared_ptr<TokenStream> stream,
-                     std::shared_ptr<CallStackFrame> frame) {
+  int interpretIndex(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     auto output = interpretKeyOrIndex(stream, frame);
 
     if (!std::holds_alternative<k_int>(output)) {
@@ -2076,7 +2078,7 @@ class Interpreter {
     return std::get<k_int>(output);
   }
 
-  k_value interpretHashElementAccess(std::shared_ptr<TokenStream> stream,
+  k_value interpretHashElementAccess(k_stream stream,
                                      std::shared_ptr<CallStackFrame> frame,
                                      k_value& value) {
     auto key = interpretKey(stream, frame);
@@ -2089,8 +2091,7 @@ class Interpreter {
     return hash->get(key);
   }
 
-  k_value interpretSlice(std::shared_ptr<TokenStream> stream, k_value& value,
-                         SliceIndex& slice) {
+  k_value interpretSlice(k_stream stream, k_value& value, SliceIndex& slice) {
     if (std::holds_alternative<k_list>(value)) {
       auto list = std::get<k_list>(value);
       return InterpHelper::interpretListSlice(stream, slice, list);
@@ -2123,8 +2124,7 @@ class Interpreter {
         "Expected a `List` or a `String` for slice operation.");
   }
 
-  k_value interpretSlice(std::shared_ptr<TokenStream> stream,
-                         std::shared_ptr<CallStackFrame> frame,
+  k_value interpretSlice(k_stream stream, std::shared_ptr<CallStackFrame> frame,
                          const k_string& name) {
     auto value = getVariable(stream, frame, name);
     if (std::holds_alternative<k_hash>(value)) {
@@ -2141,7 +2141,7 @@ class Interpreter {
     return interpretSlice(stream, value, slice);
   }
 
-  void interpretAppendToList(std::shared_ptr<TokenStream> stream,
+  void interpretAppendToList(k_stream stream,
                              std::shared_ptr<CallStackFrame> frame,
                              k_value& listValue,
                              const k_string& listVariableName) {
@@ -2161,7 +2161,7 @@ class Interpreter {
     listPtr->elements.emplace_back(listValue);
   }
 
-  k_list interpretRange(std::shared_ptr<TokenStream> stream,
+  k_list interpretRange(k_stream stream,
                         std::shared_ptr<CallStackFrame> frame) {
     stream->next();  // Skip the "["
 
@@ -2206,8 +2206,7 @@ class Interpreter {
     return list;
   }
 
-  k_hash interpretHash(std::shared_ptr<TokenStream> stream,
-                       std::shared_ptr<CallStackFrame> frame) {
+  k_hash interpretHash(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     stream->next();  // Skip the "{"
 
     auto hash = std::make_shared<Hash>();
@@ -2238,8 +2237,7 @@ class Interpreter {
     return hash;
   }
 
-  k_list interpretList(std::shared_ptr<TokenStream> stream,
-                       std::shared_ptr<CallStackFrame> frame) {
+  k_list interpretList(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
     stream->next();  // Skip "["
@@ -2281,7 +2279,7 @@ class Interpreter {
     return list;
   }
 
-  void interpretConditional(std::shared_ptr<TokenStream> stream,
+  void interpretConditional(k_stream stream,
                             std::shared_ptr<CallStackFrame> frame) {
     if (!stream->matchsub(KName::KW_If)) {
       throw SyntaxError(stream->current(),
@@ -2386,8 +2384,7 @@ class Interpreter {
     interpretStackFrame();
   }
 
-  void execute(std::shared_ptr<CallStackFrame> frame,
-               std::shared_ptr<TokenStream> stream) {
+  void execute(std::shared_ptr<CallStackFrame> frame, k_stream stream) {
     callStack.push(buildSubFrame(frame));
     streamStack.push(stream);
     interpretStackFrame();
@@ -2397,7 +2394,7 @@ class Interpreter {
     }
   }
 
-  k_value interpretSelfInvocation(std::shared_ptr<TokenStream> stream,
+  k_value interpretSelfInvocation(k_stream stream,
                                   std::shared_ptr<CallStackFrame> frame) {
     if (!frame->inObjectContext()) {
       throw InvalidContextError(stream->current(),
@@ -2415,7 +2412,7 @@ class Interpreter {
     if (stream->current().getType() == KTokenType::IDENTIFIER) {
       switch (stream->peek().getType()) {
         case KTokenType::OPERATOR:
-          value = interpretAssignment(stream, frame, "", false, true);
+          value = interpretAssignment(stream, frame, "", true);
           break;
 
         case KTokenType::OPEN_PAREN:
@@ -2431,7 +2428,7 @@ class Interpreter {
     return value;
   }
 
-  void interpretClassDefinition(std::shared_ptr<TokenStream> stream,
+  void interpretClassDefinition(k_stream stream,
                                 std::shared_ptr<CallStackFrame> frame) {
     bool isAbstract = stream->current().getSubType() == KName::KW_Abstract;
 
@@ -2538,7 +2535,7 @@ class Interpreter {
     classes[className] = std::move(clazz);
   }
 
-  void interpretModuleDefinition(std::shared_ptr<TokenStream> stream) {
+  void interpretModuleDefinition(k_stream stream) {
     stream->next();  // Skip "module"
 
     auto name = stream->current().getText();
@@ -2570,8 +2567,8 @@ class Interpreter {
     modules[name] = std::move(module);
   }
 
-  k_string interpretModuleImport(std::shared_ptr<TokenStream> stream,
-                                 const k_string& home, const k_string& name) {
+  k_string interpretModuleImport(k_stream stream, const k_string& home,
+                                 const k_string& name) {
     stream->next();  // Skip the name.
 
     moduleStack.push(name);
@@ -2588,7 +2585,7 @@ class Interpreter {
     return name;
   }
 
-  k_string interpretExternalImport(std::shared_ptr<TokenStream> stream,
+  k_string interpretExternalImport(k_stream stream,
                                    std::shared_ptr<CallStackFrame> frame) {
     auto scriptNameValue = parseExpression(stream, frame);
     if (!std::holds_alternative<k_string>(scriptNameValue)) {
@@ -2642,7 +2639,7 @@ class Interpreter {
     return "";
   }
 
-  void interpretModuleAlias(std::shared_ptr<TokenStream> stream,
+  void interpretModuleAlias(k_stream stream,
                             std::shared_ptr<CallStackFrame> frame,
                             const k_string& moduleName) {
     stream->next();  // Skip "as"
@@ -2678,8 +2675,7 @@ class Interpreter {
     frame->aliases.emplace_back(alias);
   }
 
-  void interpretExport(std::shared_ptr<TokenStream> stream,
-                       std::shared_ptr<CallStackFrame> frame) {
+  void interpretExport(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     stream->next();  // skip the "export"
 
     auto moduleName = stream->current().getText();
@@ -2695,8 +2691,7 @@ class Interpreter {
     }
   }
 
-  void interpretImport(std::shared_ptr<TokenStream> stream,
-                       std::shared_ptr<CallStackFrame> frame) {
+  void interpretImport(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     if (stream->current().getSubType() == KName::KW_Import) {
       stream->next();  // skip the "import"
     }
@@ -2716,7 +2711,7 @@ class Interpreter {
     }
   }
 
-  void interpretDeleteHashKey(std::shared_ptr<TokenStream> stream,
+  void interpretDeleteHashKey(k_stream stream,
                               std::shared_ptr<CallStackFrame> frame,
                               const k_string& name, k_value& value) {
     auto key = interpretKey(stream, frame);
@@ -2730,7 +2725,7 @@ class Interpreter {
     frame->variables[name] = hash;
   }
 
-  void interpretDeleteListIndex(std::shared_ptr<TokenStream> stream,
+  void interpretDeleteListIndex(k_stream stream,
                                 std::shared_ptr<CallStackFrame> frame,
                                 const k_string& name, k_value& value) {
     int index = interpretIndex(stream, frame);
@@ -2745,8 +2740,7 @@ class Interpreter {
     frame->variables[name] = list;
   }
 
-  void interpretDelete(std::shared_ptr<TokenStream> stream,
-                       std::shared_ptr<CallStackFrame> frame) {
+  void interpretDelete(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     stream->next();  // Skip "delete"
 
     if (stream->current().getType() == KTokenType::IDENTIFIER) {
@@ -2777,8 +2771,7 @@ class Interpreter {
     throw SyntaxError(stream->current(), "Cannot delete a non-variable value.");
   }
 
-  void interpretPrint(std::shared_ptr<TokenStream> stream,
-                      std::shared_ptr<CallStackFrame> frame,
+  void interpretPrint(k_stream stream, std::shared_ptr<CallStackFrame> frame,
                       bool printNewLine = false) {
     stream->next();  // skip the "print"
 
@@ -2805,7 +2798,7 @@ class Interpreter {
     builder.clear();
   }
 
-  k_value interpretBracketExpression(std::shared_ptr<TokenStream> stream,
+  k_value interpretBracketExpression(k_stream stream,
                                      std::shared_ptr<CallStackFrame> frame) {
     if (InterpHelper::isRangeExpression(stream)) {
       return interpretRange(stream, frame);
@@ -2816,7 +2809,7 @@ class Interpreter {
     throw SyntaxError(stream->current(), "Invalid bracket expression.");
   }
 
-  k_value interpretBuiltin(std::shared_ptr<TokenStream> stream,
+  k_value interpretBuiltin(k_stream stream,
                            std::shared_ptr<CallStackFrame> frame,
                            const KName& builtin) {
     auto term = stream->current();
@@ -2840,8 +2833,7 @@ class Interpreter {
     return frame->returnValue;
   }
 
-  k_value interpretListSum(std::shared_ptr<TokenStream> stream,
-                           const k_list& list) {
+  k_value interpretListSum(k_stream stream, const k_list& list) {
     stream->next();  // Skip "("
 
     if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
@@ -2852,8 +2844,7 @@ class Interpreter {
     throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
   }
 
-  k_value interpretListMin(std::shared_ptr<TokenStream> stream,
-                           const k_list& list) {
+  k_value interpretListMin(k_stream stream, const k_list& list) {
     stream->next();  // Skip "("
 
     if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
@@ -2869,8 +2860,7 @@ class Interpreter {
     throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
   }
 
-  k_value interpretListMax(std::shared_ptr<TokenStream> stream,
-                           const k_list& list) {
+  k_value interpretListMax(k_stream stream, const k_list& list) {
     stream->next();  // Skip "("
 
     if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
@@ -2886,8 +2876,7 @@ class Interpreter {
     throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
   }
 
-  k_value interpretListSort(std::shared_ptr<TokenStream> stream,
-                            const k_list& list) {
+  k_value interpretListSort(k_stream stream, const k_list& list) {
     stream->next();  // Skip "("
 
     if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
@@ -2900,7 +2889,7 @@ class Interpreter {
     return list;
   }
 
-  k_value interpretLambdaNone(std::shared_ptr<TokenStream> stream,
+  k_value interpretLambdaNone(k_stream stream,
                               std::shared_ptr<CallStackFrame> frame,
                               const k_list& list) {
     stream->next();  // Skip "("
@@ -2956,7 +2945,7 @@ class Interpreter {
     return false;
   }
 
-  k_value interpretLambdaMap(std::shared_ptr<TokenStream> stream,
+  k_value interpretLambdaMap(k_stream stream,
                              std::shared_ptr<CallStackFrame> frame,
                              const k_list& list) {
     stream->next();  // Skip "("
@@ -3014,7 +3003,7 @@ class Interpreter {
     return mappedList;
   }
 
-  k_value interpretLambdaReduce(std::shared_ptr<TokenStream> stream,
+  k_value interpretLambdaReduce(k_stream stream,
                                 std::shared_ptr<CallStackFrame> frame,
                                 const k_list& list) {
     stream->next();  // Skip "("
@@ -3077,7 +3066,7 @@ class Interpreter {
     return accumulator;
   }
 
-  k_value interpretLambdaSelect(std::shared_ptr<TokenStream> stream,
+  k_value interpretLambdaSelect(k_stream stream,
                                 std::shared_ptr<CallStackFrame> frame,
                                 const k_list& list) {
     stream->next();  // Skip "("
@@ -3136,7 +3125,7 @@ class Interpreter {
     return filteredList;
   }
 
-  k_value interpretStringToHash(std::shared_ptr<TokenStream> stream,
+  k_value interpretStringToHash(k_stream stream,
                                 std::shared_ptr<CallStackFrame> frame,
                                 const k_string& input) {
     if (!stream->match(KTokenType::OPEN_PAREN)) {
@@ -3154,8 +3143,7 @@ class Interpreter {
     return interpolateString(frame, input);
   }
 
-  k_value interpretObjectToHash(std::shared_ptr<TokenStream> stream,
-                                const k_object& object) {
+  k_value interpretObjectToHash(k_stream stream, const k_object& object) {
     if (!stream->match(KTokenType::OPEN_PAREN)) {
       throw SyntaxError(stream->current(),
                         "Expected open-parenthesis, `(`, in builtin `" +
@@ -3181,7 +3169,7 @@ class Interpreter {
     return hash;
   }
 
-  k_value interpretSpecializedBuiltin(std::shared_ptr<TokenStream> stream,
+  k_value interpretSpecializedBuiltin(k_stream stream,
                                       std::shared_ptr<CallStackFrame> frame,
                                       const KName& builtin,
                                       const k_value& value) {
@@ -3198,7 +3186,7 @@ class Interpreter {
     throw UnknownBuiltinError(stream->current(), stream->previous().getText());
   }
 
-  k_value interpretSpecializedObjectBuiltin(std::shared_ptr<TokenStream> stream,
+  k_value interpretSpecializedObjectBuiltin(k_stream stream,
                                             const KName& builtin,
                                             const k_value& value) {
     if (!std::holds_alternative<k_object>(value)) {
@@ -3214,7 +3202,7 @@ class Interpreter {
     throw UnknownBuiltinError(stream->current(), stream->previous().getText());
   }
 
-  k_value interpretSpecializedListBuiltin(std::shared_ptr<TokenStream> stream,
+  k_value interpretSpecializedListBuiltin(k_stream stream,
                                           std::shared_ptr<CallStackFrame> frame,
                                           const KName& builtin,
                                           const k_value& value) {
@@ -3255,7 +3243,7 @@ class Interpreter {
     }
   }
 
-  k_value interpretDotNotation(std::shared_ptr<TokenStream> stream,
+  k_value interpretDotNotation(k_stream stream,
                                std::shared_ptr<CallStackFrame> frame,
                                k_value& value) {
     if (stream->current().getType() == KTokenType::DOT) {
@@ -3339,7 +3327,7 @@ class Interpreter {
     return BuiltinInterpreter::execute(term, call, value, args);
   }
 
-  k_value parseExpression(std::shared_ptr<TokenStream> stream,
+  k_value parseExpression(k_stream stream,
                           std::shared_ptr<CallStackFrame> frame) {
     k_value value = parseLogicalOr(stream, frame);
 
@@ -3368,7 +3356,7 @@ class Interpreter {
     return value;
   }
 
-  k_value parseLogicalOr(std::shared_ptr<TokenStream> stream,
+  k_value parseLogicalOr(k_stream stream,
                          std::shared_ptr<CallStackFrame> frame) {
     auto left = parseLogicalAnd(stream, frame);
 
@@ -3389,7 +3377,7 @@ class Interpreter {
     return left;
   }
 
-  k_value parseLogicalAnd(std::shared_ptr<TokenStream> stream,
+  k_value parseLogicalAnd(k_stream stream,
                           std::shared_ptr<CallStackFrame> frame) {
     auto left = parseBitwiseOr(stream, frame);
 
@@ -3410,7 +3398,7 @@ class Interpreter {
     return left;
   }
 
-  k_value parseBitwiseOr(std::shared_ptr<TokenStream> stream,
+  k_value parseBitwiseOr(k_stream stream,
                          std::shared_ptr<CallStackFrame> frame) {
     auto left = parseBitwiseXor(stream, frame);
 
@@ -3424,7 +3412,7 @@ class Interpreter {
     return left;
   }
 
-  k_value parseBitwiseXor(std::shared_ptr<TokenStream> stream,
+  k_value parseBitwiseXor(k_stream stream,
                           std::shared_ptr<CallStackFrame> frame) {
     auto left = parseBitwiseAnd(stream, frame);
 
@@ -3438,7 +3426,7 @@ class Interpreter {
     return left;
   }
 
-  k_value parseBitwiseAnd(std::shared_ptr<TokenStream> stream,
+  k_value parseBitwiseAnd(k_stream stream,
                           std::shared_ptr<CallStackFrame> frame) {
     auto left = parseEquality(stream, frame);
 
@@ -3452,7 +3440,7 @@ class Interpreter {
     return left;
   }
 
-  k_value parseEquality(std::shared_ptr<TokenStream> stream,
+  k_value parseEquality(k_stream stream,
                         std::shared_ptr<CallStackFrame> frame) {
     auto left = parseComparison(stream, frame);
 
@@ -3478,7 +3466,7 @@ class Interpreter {
     return left;
   }
 
-  k_value parseComparison(std::shared_ptr<TokenStream> stream,
+  k_value parseComparison(k_stream stream,
                           std::shared_ptr<CallStackFrame> frame) {
     auto left = parseBitshift(stream, frame);
 
@@ -3513,7 +3501,7 @@ class Interpreter {
     return left;
   }
 
-  k_value parseBitshift(std::shared_ptr<TokenStream> stream,
+  k_value parseBitshift(k_stream stream,
                         std::shared_ptr<CallStackFrame> frame) {
     auto left = parseAdditive(stream, frame);
 
@@ -3542,7 +3530,7 @@ class Interpreter {
     return left;
   }
 
-  k_value parseAdditive(std::shared_ptr<TokenStream> stream,
+  k_value parseAdditive(k_stream stream,
                         std::shared_ptr<CallStackFrame> frame) {
     auto left = parseMultiplicative(stream, frame);
 
@@ -3569,7 +3557,7 @@ class Interpreter {
     return left;
   }
 
-  k_value parseMultiplicative(std::shared_ptr<TokenStream> stream,
+  k_value parseMultiplicative(k_stream stream,
                               std::shared_ptr<CallStackFrame> frame) {
     auto left = parseUnary(stream, frame);
 
@@ -3604,8 +3592,7 @@ class Interpreter {
     return left;
   }
 
-  k_value parseUnary(std::shared_ptr<TokenStream> stream,
-                     std::shared_ptr<CallStackFrame> frame) {
+  k_value parseUnary(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     while (stream->canRead() &&
            Operators.is_unary_op(stream->current().getSubType())) {
       auto op = stream->current().getSubType();
@@ -3656,8 +3643,7 @@ class Interpreter {
     return interpretValueInvocation(stream, frame, primary);
   }
 
-  k_value parsePrimary(std::shared_ptr<TokenStream> stream,
-                       std::shared_ptr<CallStackFrame> frame) {
+  k_value parsePrimary(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     auto current = stream->current();
     auto& value = current.getValue();
     if (std::holds_alternative<k_int>(value) ||
@@ -3710,7 +3696,7 @@ class Interpreter {
     return static_cast<k_int>(0);  // Default value.
   }
 
-  k_value interpretSelfInvocationTerm(std::shared_ptr<TokenStream> stream,
+  k_value interpretSelfInvocationTerm(k_stream stream,
                                       std::shared_ptr<CallStackFrame> frame) {
     if (!frame->inObjectContext()) {
       throw InvalidContextError(stream->current(),
@@ -3745,7 +3731,7 @@ class Interpreter {
                                    identifier);
   }
 
-  k_string interpolateObject(std::shared_ptr<TokenStream> stream,
+  k_string interpolateObject(k_stream stream,
                              std::shared_ptr<CallStackFrame> frame,
                              k_value& value) {
     auto object = std::get<k_object>(value);
@@ -3772,7 +3758,7 @@ class Interpreter {
     return parseExpression(tempStream, tempFrame);
   }
 
-  k_string interpolateString(std::shared_ptr<TokenStream> stream,
+  k_string interpolateString(k_stream stream,
                              std::shared_ptr<CallStackFrame> frame) {
     auto input = stream->current().getText();
     std::ostringstream sv;
@@ -3842,7 +3828,7 @@ class Interpreter {
     return sv.str();
   }
 
-  void interpretLambdaAssignment(std::shared_ptr<TokenStream> stream,
+  void interpretLambdaAssignment(k_stream stream,
                                  std::shared_ptr<CallStackFrame> frame,
                                  const k_string& name, const KName& op) {
     if (op != KName::Ops_Assign) {
@@ -3856,7 +3842,7 @@ class Interpreter {
     frame->assignLambda(name, lambda);
   }
 
-  void interpretHashElementAssignment(std::shared_ptr<TokenStream> stream,
+  void interpretHashElementAssignment(k_stream stream,
                                       std::shared_ptr<CallStackFrame> frame,
                                       const k_string& name, k_value& value) {
     if (!stream->match(KTokenType::OPEN_BRACKET)) {
@@ -3889,7 +3875,7 @@ class Interpreter {
     frame->variables[name] = hashValue;
   }
 
-  void interpretSliceAssignment(std::shared_ptr<TokenStream> stream,
+  void interpretSliceAssignment(k_stream stream,
                                 std::shared_ptr<CallStackFrame> frame,
                                 const k_string& name) {
     auto value = getVariable(stream, frame, name);
@@ -3924,10 +3910,9 @@ class Interpreter {
                                   Serializer::convert_value_to_list(rhsValues));
   }
 
-  k_string interpretAssignment(std::shared_ptr<TokenStream> stream,
+  k_string interpretAssignment(k_stream stream,
                                std::shared_ptr<CallStackFrame> frame,
                                const k_string& identifier = "",
-                               bool isTemporary = false,
                                bool isInstanceVariable = false) {
     k_string name;
 
@@ -3946,8 +3931,7 @@ class Interpreter {
 
         if (Operators.is_assignment_operator(op) ||
             op == KName::Ops_BitwiseLeftShift) {
-          interpretAssignment(stream, name, op, frame, isTemporary,
-                              isInstanceVariable);
+          interpretAssignment(stream, name, op, frame, isInstanceVariable);
         }
       } break;
 
@@ -3986,10 +3970,9 @@ class Interpreter {
     return name;
   }
 
-  void interpretAssignment(std::shared_ptr<TokenStream> stream,
-                           const k_string& name, const KName& op,
+  void interpretAssignment(k_stream stream, const k_string& name,
+                           const KName& op,
                            std::shared_ptr<CallStackFrame> frame,
-                           bool isTemporary = false,
                            bool isInstanceVariable = false) {
     k_value value;
 
@@ -4013,7 +3996,7 @@ class Interpreter {
     }
 
     if (op == KName::Ops_Assign) {
-      if (!isTemporary && isInstanceVariable && frame->inObjectContext()) {
+      if (isInstanceVariable && frame->inObjectContext()) {
         frame->getObjectContext()->instanceVariables[name] = value;
       } else {
         if (std::holds_alternative<k_object>(value)) {

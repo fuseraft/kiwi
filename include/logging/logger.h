@@ -120,12 +120,13 @@ class Logger {
     }
   }
 
-  std::string getLogEntry(const LogLevel& level, const std::string& message, const std::string& source) const {
+  std::string getLogEntry(const LogLevel& level, const std::string& message,
+                          const std::string& source) const {
     auto timestamp = Time::getTimestamp(timestampFormat);
     auto format = entryFormat;
-    
+
     format = String::replace(format, "%timestamp", timestamp);
-    format = String::replace(format, "%level", logLevelToString(level)); 
+    format = String::replace(format, "%level", logLevelToString(level));
     format = String::replace(format, "%source", source);
     format = String::replace(format, "%message", message);
 

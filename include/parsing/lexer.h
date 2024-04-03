@@ -18,7 +18,7 @@ class Lexer {
     fileId = FileRegistry::getInstance().registerFile(file);
   }
 
-  std::shared_ptr<TokenStream> getTokenStream() {
+  k_stream getTokenStream() {
     return std::make_shared<TokenStream>(getAllTokens());
   }
 

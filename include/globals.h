@@ -32,7 +32,7 @@ extern std::unordered_map<std::string, Module> modules;
 extern std::unordered_map<std::string, Class> classes;
 extern std::unordered_map<std::string, std::string> astralArgs;
 extern std::stack<std::shared_ptr<CallStackFrame>> callStack;
-extern std::stack<std::shared_ptr<TokenStream>> streamStack;
+extern std::stack<k_stream> streamStack;
 extern std::stack<std::string> moduleStack;
 extern httplib::Server astralWebServer;
 extern std::unordered_map<int, Method> astralWebServerHooks;
