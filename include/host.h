@@ -61,6 +61,10 @@ class Host {
     return interp.interpretAstral(input);
   }
 
+  std::string minify(const std::string& script) {
+    return interp.minify(script);
+  }
+
  private:
   Interpreter& interp;
   std::unordered_set<std::string> scripts;

@@ -795,6 +795,8 @@ class Lexer {
       st = KName::Builtin_Time_TicksToMilliseconds;
     } else if (builtin == TimeBuiltins.Timestamp) {
       st = KName::Builtin_Time_Timestamp;
+    } else if (builtin == TimeBuiltins.FormatDateTime) {
+      st = KName::Builtin_Time_FormatDateTime;
     } else if (builtin == TimeBuiltins.WeekDay) {
       st = KName::Builtin_Time_WeekDay;
     } else if (builtin == TimeBuiltins.Year) {

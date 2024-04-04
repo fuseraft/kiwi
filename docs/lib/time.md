@@ -2,6 +2,8 @@
 
 The `time` module contains functionality for working with time and date information.
 
+Importing the `time` module provides access to the [`DateTime` class](datetime.md).
+
 ## Table of Contents
 
 - [Importing the Module](#importing-the-module)
@@ -12,13 +14,16 @@ The `time` module contains functionality for working with time and date informat
   - [`epochms()`](#epochms)
   - [`hour()`](#hour)
   - [`isdst()`](#isdst)
+  - [`leapyear(_year)`](#leapyear_year)
+  - [`monthdays(_year, _month)`](#monthdays_year-_month)
   - [`minute()`](#minute)
   - [`month()`](#month)
   - [`second()`](#second)
   - [`ticks()`](#ticks)
   - [`ticksms(_ticks)`](#ticksms_ticks)
   - [`timestamp()`](#timestamp)
-  - [`formatted(_format)`](#formatted_format)
+  - [`formatted(_format)`](#timestamp_formatted_format)
+  - [`dtformat(_datetime, _format)`](#dtformat_datetime-_format)
   - [`weekday()`](#weekday)
   - [`year()`](#year)
   - [`yearday()`](#yearday)
@@ -68,6 +73,22 @@ Retrieves the time of day designation for 12-hour clocks as "AM" or "PM".
 | :--- | :---|
 | `String` | "AM" or "PM". |
 
+### `dtformat(_datetime, _format)`
+
+Format a `DateTime` object as a string using a given format.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `DateTime` | `_datetime` | The `DateTime` object. |
+| `String` | `_format` | The format string. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `String` | The formatted value from a `DateTime` object. |
+
+
 ### `timestamp()`
 
 Retrieves the current timestamp formatted as "YYYY/mm/dd hh:mm:ss tt".
@@ -77,7 +98,7 @@ Retrieves the current timestamp formatted as "YYYY/mm/dd hh:mm:ss tt".
 | :--- | :---|
 | `String` | The current timestamp formatted as "YYYY/mmdd hh:mm:ss tt". |
 
-### `formatted(_format)`
+### `timestamp_formatted(_format)`
 
 Get current timestamp with a specific format.
 
@@ -170,6 +191,36 @@ Checks whether it is currently Daylight Savings Time.
 | Type | Description |
 | :--- | :---|
 | `Boolean` | Indicates DST status. |
+
+### `leapyear(_year)`
+
+Check if a given year is a leap year.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Integer` | `_year` | The year to check. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Returns `true` if the given year is a leap year. |
+
+
+### `monthdays(_year, _month)`
+
+Get the number of days in a given month. Requires the year for leap year checks.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Integer` | `_year` | The year to check. |
+| `Integer` | `_month` | The month to check. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | Returns the number of days in a given month. |
 
 ### `epochms()`
 
