@@ -1,0 +1,3 @@
+import "@astral/time"
+
+println DateTime.format(DateTime.now().add_years(1), "%Y-%m-%d")

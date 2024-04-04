@@ -1,31 +1,28 @@
 #!/usr/bin/astral
 /# This 🚀 script is for experimentation. #/
 
-import "@astral/log" as log
-import "@astral/string"
-import "@astral/time" as time
+def to_bin(number)
+  size = 32
+  bin_str = [0] * size
 
-log.logformat("[%timestamp] %message")
-
-class DateTime
-  def initialize(year = 1970, month = 1, day = 1, hour = 0, minute = 0, second = 0)
-    this.year = year
-    this.month = month
-    this.day = day
-    this.hour = hour
-    this.minute = minute
-    this.second = second
+  for i in [size - 1..0] do
+    bin_str[i] = (number & 1) #+ 0
+    number >>= 1
   end
 
-  def to_string()
-    date_part = ["${this.year}", string::padstart("${this.month}", 2, "0"), string::padstart("${this.day}", 2, "0")].join("-")
-    time_part = [string::padstart("${this.hour}", 2, "0"), string::padstart("${this.minute}", 2, "0"), string::padstart("${this.second}", 2, "0")].join(":")
-    return [date_part, time_part].join(" ")
-  end
-
-  static def now()
-    return DateTime.new(time.year(), time.month(), time.day(), time.hour(), time.minute(), time.second())
-  end
+  return bin_str.join("")
 end
 
-log.info("DateTime.now: ${DateTime.now()}")
+def absolute_value(x)
+  mask = x >> (32 * 8 - 1)
+  inversion = (x + mask) ^ mask
+  println "x: ${to_bin(x)}, mask: ${to_bin(mask)}, inverted: ${to_bin(inversion)}, input: ${x}, abs: ${inversion}"
+  return inversion
+end
+
+absolute_value(-5)
+absolute_value(-408004419)
+absolute_value(-5009133331)
+absolute_value(5)
+absolute_value(408004419)
+absolute_value(5009133331)

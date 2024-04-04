@@ -64,8 +64,19 @@ module time
     - _format: The format string.
   Returns: String
   #/
-  def formatted(_format)
+  def timestamp_formatted(_format)
     return __timestamp__(_format)
+  end
+
+  /#
+  Summary: Format a DateTime object.
+  Params:
+    - _datetime: The DateTime object.
+    - _format: The format string.
+  Returns: String
+  #/
+  def dtformat(_datetime, _format = "%Y-%m-%d %H:%M:%S")
+    return __dtformat__(_datetime, _format)
   end
 
   /#
@@ -90,6 +101,39 @@ module time
   #/
   def year()
     return __year__()
+  end
+
+  /#
+  Summary: Check if a given year is a leap year.
+  Params:
+    _year: The year to check.
+  Returns: Boolean
+  #/
+  def leapyear(_year)
+    return (_year % 4 == 0 && _year % 100 != 0) || (_year % 400 == 0)
+  end
+  
+  /#
+  Summary: Get how many days are in a given month.
+  Params:
+    _year: The year to check.
+    _month: The month to check.
+  Returns: Integer
+  #/
+  def monthdays(_year, _month)
+    if [4, 6, 9, 11].contains(_month)
+      return 30
+    elsif 2 == _month && time::leapyear(_year)
+      return 29
+    elsif 2 == _month
+      return 28
+    else
+      return 31
+    end
+  end
+
+  def valid_day(_year, _month, _day)
+    return _day > time::monthdays(_year, _month)
   end
 
   /#
@@ -148,6 +192,147 @@ module time
   #/
   def delay(_ms)
     return __delay__(_ms)
+  end
+end
+
+class DateTime private (year, month, day, hour, minute, second)
+  def initialize(year = 1970, month = 1, day = 1, hour = 0, minute = 0, second = 0)
+    this.year = year
+    this.month = month
+    this.day = day
+    this.hour = hour
+    this.minute = minute
+    this.second = second
+  end
+
+  def to_string()
+    date_part = ["${this.year}", string::padstart("${this.month}", 2, "0"), string::padstart("${this.day}", 2, "0")].join("-")
+    time_part = [string::padstart("${this.hour}", 2, "0"), string::padstart("${this.minute}", 2, "0"), string::padstart("${this.second}", 2, "0")].join(":")
+    return [date_part, time_part].join(" ")
+  end
+
+  def to_number()
+    number_string = "${this}".replace("-", "").replace(":", "").split(" ")
+    date_part = number_string[0].to_int()
+    time_part = "1${number_string[1]}".to_int()
+
+    return [date_part, time_part]
+  end
+
+  def equal(another_date)
+    if !another_date.is_a(DateTime)
+      return false
+    else
+      number_a = (this.to_number())
+      number_b = another_date.to_number()
+      if number_a[0] == number_b[0]
+        return number_a[1] == number_b[1]
+      else
+        return false
+      end
+    end
+  end
+
+  def after(another_date)
+    if !another_date.is_a(DateTime)
+      return false
+    else
+      number_a = (this.to_number())
+      number_b = another_date.to_number()
+      if number_a[0] > number_b[0]
+        return true
+      elsif number_a[0] == number_b[0]
+        return number_a[1] > number_b[1]
+      else
+        return false
+      end
+    end
+  end
+
+  def before(another_date)
+    if !another_date.is_a(DateTime)
+      return false
+    else
+      number_a = (this.to_number())
+      number_b = another_date.to_number()
+      if number_a[0] < number_b[0]
+        return true
+      elsif number_a[0] == number_b[0]
+        return number_a[1] < number_b[1]
+      else
+        return false
+      end
+    end
+  end
+
+  def add_days(n)
+    this.day += n
+    month_days = time::monthdays(this.year, this.month)
+
+    while this.day > month_days do
+      this.day -= month_days
+      this.month += 1
+
+      if this.month > 12
+        this.month = 1
+        this.year += 1
+      end
+
+      month_days = time::monthdays(this.year, this.month)
+    end
+
+    while this.day < 1 do
+      this.month -= 1
+
+      if this.month < 1
+        this.month = 12
+        this.year -= 1
+      end
+
+      this.day += time::monthdays(this.year, this.month)
+    end
+
+    return this
+  end
+
+  def add_months(n)
+    this.month += n
+    
+    while this.month > 12 do
+      this.month -= 12
+      this.year += 1
+    end
+
+    while this.month < 1 do
+      this.month += 12
+      this.year -= 1
+    end
+
+    this.day = [this.day, time::monthdays(this.year, this.month)].min()
+
+    return this
+  end
+
+  def add_years(n)
+    this.year += n
+    this.day = [this.day, time::monthdays(this.year, this.month)].min()
+
+    return this
+  end
+
+  def get_year() return this.year end
+  def get_month() return this.month end
+  def get_day() return this.day end
+  def get_hour() return this.hour end
+  def get_minute() return this.minute end
+  def get_second() return this.second end
+
+  static def format(_datetime, _format = "%Y-%m-%d %H:%M:%S")
+    return time::dtformat(_datetime, _format)
+  end
+
+  static def now()
+    return DateTime.new(time::year(), time::month(), time::day(), time::hour(), time::minute(), time::second())
   end
 end
 
