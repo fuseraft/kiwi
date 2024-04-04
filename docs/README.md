@@ -32,6 +32,7 @@
     6. [`math`](lib/math.md)
     7. [`sys`](lib/sys.md)
     8. [`time`](lib/time.md)
+        1. [`DateTime`](lib/datetime.md)
     9. [`web`](lib/web.md)
     10. [`http`](lib/http.md)
 17. **Experimental Features**

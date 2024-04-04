@@ -63,6 +63,56 @@ class Interpreter {
     return result;
   }
 
+  k_string minify(const k_string& path) {
+    auto content = File::readFile(path);
+    if (content.empty()) {
+      return content;
+    }
+
+    std::ostringstream builder;
+    Lexer lexer(path, content);
+    auto stream = Lexer(path, content).getTokenStream();
+    bool addSpace = true;
+    while (stream->canRead()) {
+      auto token = stream->current();
+      switch (token.getType()) {
+        case KTokenType::COMMENT:
+          stream->next();
+          continue;
+        case KTokenType::KEYWORD:
+        case KTokenType::IDENTIFIER:
+        case KTokenType::CONDITIONAL:
+        case KTokenType::LITERAL:
+          if (addSpace) {
+            builder << ' ';
+            std::cout << ' ';
+          }
+          builder << token.getText();
+          std::cout << token.getText();
+          addSpace = true;
+          break;
+        case KTokenType::STRING:
+          if (addSpace) {
+            builder << ' ';
+            std::cout << ' ';
+          }
+          builder << '"' << token.getText() << '"';
+          std::cout << '"' << token.getText() << '"';
+          addSpace = true;
+          break;
+        default:
+          addSpace = false;
+          builder << token.getText();
+          std::cout << token.getText();
+          break;
+      }
+
+      stream->next();
+    }
+
+    return builder.str();
+  }
+
   void preserveMainStackFrame() { preservingMainStackFrame = true; }
 
  private:
@@ -2412,7 +2462,8 @@ class Interpreter {
     if (stream->current().getType() == KTokenType::IDENTIFIER) {
       switch (stream->peek().getType()) {
         case KTokenType::OPERATOR:
-          value = interpretAssignment(stream, frame, "", true);
+          value = interpretAssignment(stream, frame,
+                                      stream->current().getText(), true);
           break;
 
         case KTokenType::OPEN_PAREN:
@@ -4030,8 +4081,14 @@ class Interpreter {
     }
 
     auto currentValue = getVariable(stream, frame, name);
-    frame->variables[name] =
+    auto newValue =
         InterpHelper::interpretAssignOp(stream, op, currentValue, value);
+
+    if (isInstanceVariable && frame->inObjectContext()) {
+      frame->getObjectContext()->instanceVariables[name] = newValue;
+    } else {
+      frame->variables[name] = newValue;
+    }
   }
 };
 
