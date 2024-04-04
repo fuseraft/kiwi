@@ -2,11 +2,11 @@
 
 The `time` module contains functionality for working with time and date information.
 
+Importing the `time` module provides access to the [`DateTime` class](datetime.md).
+
 ## Table of Contents
 
 - [Importing the Module](#importing-the-module)
-- [Module Classes](#module-classes)
-  - [`DateTime`](#datetime)
 - [Module Functions](#module-functions)
   - [`ampm()`](#ampm)
   - [`day()`](#day)
@@ -33,40 +33,6 @@ To use the `time` module, import it at the beginning of your Astral script.
 
 ```ruby
 import "@astral/time" as time
-```
-
-## Module Classes
-
-### `DateTime`
-
-The `DateTime` class is still a WIP, but functional. It offers some convenient functionality for working with date and time data in Astral.
-
-**Methods**
-| Type | Returns | Method | Description |
-| :--- | :--- | :--- | :--- |
-| Constructor | `DateTime` | `initialize(year, month, day, hour, minute, second)` | Initialize a new `DateTime`. Defaults to the epoch. |
-| Static | `String` | `format(_datetime, _format = "%Y-%m-%d %H:%M:%S")` | Format the value with a given format string. |
-| Static | `DateTime` | `now()` | Returns the current date and time as a `DateTime` object. |
-| Instance | `String` | `to_string()` | Returns a string representation of the `DateTime` object. |
-| instance | `List` | `to_number()` | Returns the date and time parts as a list of integers. |
-| instance | `Boolean` | `equal(another_date)` | Returns `true` if the values are equal. |
-| instance | `Boolean` | `after(another_date)` | Returns `true` if the value is greater than another `DateTime`. |
-| instance | `Boolean` | `before(another_date)` | Returns `true` if the value is less than another `DateTime`. |
-| instance | `DateTime` | `add_days(n)` | Adds `n` number of days. |
-| instance | `DateTime` | `add_months(n)` | Adds `n` number of months. |
-| instance | `DateTime` | `add_years(n)` | Adds `n` number of years. |
-| instance | `Integer` | `get_year()` | Gets the year. |
-| instance | `Integer` | `get_month()` | Gets the month. |
-| instance | `Integer` | `get_day()` | Gets the day. |
-| instance | `Integer` | `get_hour()` | Gets the hour. |
-| instance | `Integer` | `get_minute()` | Gets the minute. |
-| instance | `Integer` | `get_second()` | Gets the second. |
-
-**Example**
-```ruby
-import "@astral/time"
-
-println DateTime.format(DateTime.now().add_years(1), "%Y-%m-%d")
 ```
 
 ## Module Functions
