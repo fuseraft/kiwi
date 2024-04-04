@@ -7,7 +7,7 @@
  *
  * @author Scott Stauffer
  * @date 2024-01-31
- * @version 1.3.3
+ * @version 1.3.4
  *
  * GitHub Repository: https://github.com/fuseraft/astral
  * For more information, issues, or to contribute, please visit the repository.
@@ -20,7 +20,6 @@
 #include "astral.h"
 #include "globals.h"
 
-bool DEBUG = false;
 bool SILENCE = false;
 
 int main(int argc, char** argv) {

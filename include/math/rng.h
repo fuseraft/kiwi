@@ -27,7 +27,8 @@ RNG& RNG::getInstance() {
 }
 
 RNG::RNG() {
-  std::seed_seq seed{static_cast<unsigned>(std::time(0))};
+  std::random_device rd;
+  std::seed_seq seed{rd(), static_cast<unsigned>(std::time(nullptr))};
   generator.seed(seed);
 }
 

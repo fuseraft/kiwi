@@ -1,15 +1,28 @@
 #!/usr/bin/astral
+/# This 🚀 script is for experimentation. #/
 
-/#
-This 🚀 script is for experimentation.
-#/
+def to_bin(number)
+  size = 32
+  bin_str = [0] * size
 
-import "@astral/http" as http
+  for i in [size - 1..0] do
+    bin_str[i] = (number & 1) #+ 0
+    number >>= 1
+  end
 
-res = http.get("http://httpbin.org", "/get")
-
-if res.status == 200
-  println "${res.headers}${res.body}"
-else
-  println "An error occurred making GET request."
+  return bin_str.join("")
 end
+
+def absolute_value(x)
+  mask = x >> (32 * 8 - 1)
+  inversion = (x + mask) ^ mask
+  println "x: ${to_bin(x)}, mask: ${to_bin(mask)}, inverted: ${to_bin(inversion)}, input: ${x}, abs: ${inversion}"
+  return inversion
+end
+
+absolute_value(-5)
+absolute_value(-408004419)
+absolute_value(-5009133331)
+absolute_value(5)
+absolute_value(408004419)
+absolute_value(5009133331)

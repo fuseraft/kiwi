@@ -8,7 +8,7 @@ Astral will print its current version (at the time of writing this, the current 
 
 ```
 $ astral
-The Astral Programming Language v1.3.3 REPL
+The Astral Programming Language v1.3.4 REPL
 
 Use `go` to execute, `exit` to exit the REPL.
 

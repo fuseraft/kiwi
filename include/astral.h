@@ -4,19 +4,19 @@
 #include <regex>
 #include <vector>
 
-#include "configuration/config.h"
 #include "tracing/error.h"
 #include "tracing/handler.h"
 #include "logging/logger.h"
 #include "math/rng.h"
 #include "parsing/keywords.h"
+#include "parsing/tokens.h"
 #include "util/file.h"
 #include "util/string.h"
 #include "web/httplib.h"
 #include "globals.h"
 #include "host.h"
+#include "stackframe.h"
 
-Logger logger;
 TaskManager task;
 
 std::unordered_map<std::string, Method> methods;
@@ -24,38 +24,27 @@ std::unordered_map<std::string, Module> modules;
 std::unordered_map<std::string, Class> classes;
 std::unordered_map<std::string, std::string> astralArgs;
 std::stack<std::shared_ptr<CallStackFrame>> callStack;
-std::stack<std::shared_ptr<TokenStream>> streamStack;
+std::stack<k_stream> streamStack;
 std::stack<std::string> moduleStack;
 std::unordered_map<int, Method> astralWebServerHooks;
 httplib::Server astralWebServer;
 std::string astralWebServerHost;
 k_int astralWebServerPort;
 
-std::mutex methodsMutex;
-std::mutex modulesMutex;
-std::mutex classesMutex;
-std::mutex astralArgsMutex;
-std::mutex callStackMutex;
-std::mutex streamStackMutex;
-std::mutex moduleStackMutex;
-std::mutex astralWebServerMutex;
-std::mutex astralWebServerHooksMutex;
-std::mutex astralWebServerHostMutex;
-std::mutex astralWebServerPortMutex;
-
 class Astral {
  public:
   static int run(int argc, char** argv);
 
  private:
-  static bool configure(Config& config, Logger& logger, Host& host,
-                        const std::string& path);
   static bool createNewFile(const std::string& path);
+  static bool createMinified(Host& host, const std::string& path);
   static bool processOption(std::string& opt, Host& host);
+  static bool parse(Host& host, const std::string& content);
+  static bool tokenize(Host& host, const std::string& path);
 
-  static int run(std::vector<std::string>& v);
   static int printVersion();
   static int printHelp();
+  static int run(std::vector<std::string>& v);
 };
 
 int Astral::run(int argc, char** argv) {
@@ -71,14 +60,10 @@ int Astral::run(int argc, char** argv) {
 int Astral::run(std::vector<std::string>& v) {
   RNG::getInstance();
 
-  Config config;
   Interpreter interp;
   Host host(interp);
 
-  if (DEBUG) {
-    v.emplace_back("-C");
-    v.emplace_back("/home/scs/astral/config/astral.conf");
-  }
+  // v.push_back("/home/scs/astral/play.🚀");
 
   size_t size = v.size();
 
@@ -91,36 +76,87 @@ int Astral::run(std::vector<std::string>& v) {
       if (String::isCLIFlag(v.at(i), "h", "help")) {
         help = true;
       } else if (String::isCLIFlag(v.at(i), "v", "version")) {
-        return printVersion();
-      } else if (String::isCLIFlag(v.at(i), "C", "config")) {
-        if (i + 1 < size) {
-          help = !configure(config, logger, host, v.at(++i));
-        } else {
-          help = true;
-        }
+        return Astral::printVersion();
       } else if (String::isCLIFlag(v.at(i), "n", "new")) {
         if (i + 1 < size) {
-          return createNewFile(v.at(++i));
+          return Astral::createNewFile(v.at(++i));
+        }
+
+        help = true;
+      } else if (String::isCLIFlag(v.at(i), "m", "minify")) {
+        if (i + 1 < size) {
+          return Astral::createMinified(host, v.at(++i));
+        }
+
+        help = true;
+      } else if (String::isCLIFlag(v.at(i), "p", "parse")) {
+        if (i + 1 < size) {
+          return Astral::parse(host, v.at(++i));
+        }
+
+        help = true;
+      } else if (String::isCLIFlag(v.at(i), "t", "tokenize")) {
+        if (i + 1 < size) {
+          return Astral::tokenize(host, v.at(++i));
         }
 
         help = true;
       } else if (File::isScript(v.at(i))) {
         host.registerScript(v.at(i));
       } else if (String::isOptionKVP(v.at(i))) {
-        help = !processOption(v.at(i), host);
+        help = !Astral::processOption(v.at(i), host);
       } else {
         host.registerArg("argv_" + RNG::getInstance().random16(), v.at(i));
       }
     }
 
     if (help) {
-      return printHelp();
+      return Astral::printHelp();
     }
 
     return host.start();
   } catch (const AstralError& e) {
     return ErrorHandler::handleError(e);
   }
+}
+
+bool Astral::parse(Host& host, const std::string& content) {
+  return host.parse(content);
+}
+
+bool Astral::createMinified(Host& host, const std::string& path) {
+  const std::string DefaultExtension = ".min.🚀";
+
+  if (!File::fileExists(path)) {
+    std::cout << "The input file does not exists." << std::endl;
+    return false;
+  }
+
+  auto filePath = File::getAbsolutePath(path);
+  auto fileName =
+      String::replace(File::getFileName(filePath),
+                      File::getFileExtension(filePath), DefaultExtension);
+  auto minFilePath = File::joinPath(File::getParentPath(filePath), fileName);
+
+  std::cout << "Creating " << minFilePath << std::endl;
+  if (File::createFile(minFilePath)) {
+    auto minified = host.minify(filePath);
+    File::writeToFile(minFilePath, minified, false, false);
+    return true;
+  }
+
+  return false;
+}
+
+bool Astral::tokenize(Host& host, const std::string& path) {
+  if (!File::fileExists(path)) {
+    std::cout << "The input file does not exists." << std::endl;
+    return false;
+  }
+
+  auto filePath = File::getAbsolutePath(path);
+  auto minified = host.minify(filePath);
+  return true;
 }
 
 bool Astral::createNewFile(const std::string& path) {
@@ -140,47 +176,10 @@ bool Astral::createNewFile(const std::string& path) {
     return false;
   }
 
+  filePath = File::getAbsolutePath(filePath);
+
   std::cout << "Creating " << filePath << std::endl;
   return File::createFile(filePath);
-}
-
-bool Astral::configure(Config& config, Logger& logger, Host& host,
-                       const std::string& path) {
-  if (!String::endsWith(path, ".conf")) {
-    std::cout << "I can be configured with a `.conf` file." << std::endl;
-    return false;
-  } else if (!config.read(path)) {
-    std::cout << "I cannot read `" << path << "`." << std::endl;
-    return false;
-  }
-
-  std::string logPath = config.get("LOGGER_PATH");
-  std::string logMode = config.get("LOGGER_MODE");
-  std::string logLevel = config.get("LOGGER_LEVEL");
-  std::string scriptPath = config.get("SCRIPT_PATH");
-  std::string astrallibEnabled = config.get("STDLIB_ENABLED", "true");
-
-  if (!logPath.empty()) {
-    logger.setLogFilePath(logPath);
-  }
-
-  if (!logMode.empty()) {
-    logger.setLogMode(Logger::logmode_from_string(logMode));
-  }
-
-  if (!logLevel.empty()) {
-    logger.setMinimumLogLevel(Logger::loglevel_from_string(logLevel));
-  }
-
-  if (!scriptPath.empty()) {
-    host.registerScript(scriptPath);
-  }
-
-  if (!astrallibEnabled.empty() && astrallibEnabled == Keywords.False) {
-    host.disableLibraryLoad();
-  }
-
-  return true;
 }
 
 bool Astral::processOption(std::string& opt, Host& host) {
@@ -219,16 +218,22 @@ int Astral::printHelp() {
   std::vector<CommandInfo> commands = {
       {"-h, --help", "print this message"},
       {"-v, --version", "print the current version"},
-      {"-n, --new <filename>", "create a `.🚀` file"},
-      {"-C, --config <conf_path>", "configure with a `.conf` file"},
+      {"-p, --parse <astral_code>", "parse astral code as an argument"},
+      {"-n, --new <file_path>", "create a `.🚀` file"},
+      {"-m, --minify <input_file_path>", "create a `.min.🚀` file"},
+      {"-t, --tokenize <input_file_path>",
+       "tokenize a file with the astral lexer"},
       {"-X<key>:<value>", "specify an argument as a key-value pair"}};
 
 #ifdef _WIN64
-  commands = {{"-h, --help", "print this message"},
-              {"-v, --version", "print the current version"},
-              {"-n, --new <filename>", "create a `.astral` file"},
-              {"-C, --config <conf_path>", "configure with a `.conf` file"},
-              {"-X<key>:<value>", "specify an argument as a key-value pair"}};
+  commands = {
+      {"-h, --help", "print this message"},
+      {"-v, --version", "print the current version"},
+      {"-p, --parse <astral_code>", "parse code"},
+      {"-n, --new <filename>", "create a `.astral` file"},
+      {"-m, --minify <input_file_path>", "create a `.min.astral` file"},
+      {"-t, --tokenize <input_file_path>", "tokenize a file as astral code"},
+      {"-X<key>:<value>", "specify an argument as a key-value pair"}};
 #endif
 
   printVersion();

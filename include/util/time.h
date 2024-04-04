@@ -27,6 +27,56 @@ class Time {
 
   static double ticksToMilliseconds(double ticks) { return ticks / 1000000.0; }
 
+  static k_string formatDateTime(
+      k_int year, k_int month, k_int day, k_int hour, k_int minute,
+      k_int second, const std::string& timestampFormat = "%Y-%m-%d %H:%M:%S") {
+    std::tm timeInfo = {};
+    timeInfo.tm_year = year - 1900;
+    timeInfo.tm_mon = month - 1;
+    timeInfo.tm_mday = day;
+    timeInfo.tm_hour = hour;
+    timeInfo.tm_min = minute;
+    timeInfo.tm_sec = second;
+
+    std::vector<char> timestamp(64);
+
+    auto result = std::strftime(timestamp.data(), timestamp.size(),
+                                timestampFormat.c_str(), &timeInfo);
+
+    while (result == 0) {
+      timestamp.resize(timestamp.size() * 2);
+      result = std::strftime(timestamp.data(), timestamp.size(),
+                             timestampFormat.c_str(), &timeInfo);
+    }
+
+    return k_string(timestamp.data());
+  }
+
+  static k_string getTimestamp(
+      const std::string& timestampFormat = "%Y-%m-%d %H:%M:%S") {
+    std::time_t now = std::time(nullptr);
+    std::tm localTime;
+
+#ifdef _WIN64
+    localtime_s(&localTime, &now);
+#else
+    localtime_r(&now, &localTime);
+#endif
+
+    std::vector<char> timestamp(64);
+
+    auto result = std::strftime(timestamp.data(), timestamp.size(),
+                                timestampFormat.c_str(), &localTime);
+
+    while (result == 0) {
+      timestamp.resize(timestamp.size() * 2);
+      result = std::strftime(timestamp.data(), timestamp.size(),
+                             timestampFormat.c_str(), &localTime);
+    }
+
+    return k_string(timestamp.data());
+  }
+
   static k_int currentHour() {
     return static_cast<k_int>(getLocalTime()->tm_hour);
   }

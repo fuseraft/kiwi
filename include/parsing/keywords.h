@@ -170,6 +170,7 @@ struct {
   const k_string New = "new";
   const k_string Next = "next";
   const k_string Override = "override";
+  const k_string Parse = "parse";
   const k_string Pass = "pass";
   const k_string Print = "print";
   const k_string PrintLn = "println";
@@ -181,15 +182,14 @@ struct {
   const k_string Throw = "throw";
   const k_string True = "true";
   const k_string Try = "try";
-  const k_string astralApp = "astral";
   const k_string While = "while";
 
   std::unordered_set<k_string> keywords = {
-      Abstract, As,     Async,   Await,   Break,  Catch,  Class, Delete,
-      Do,       Else,   ElseIf,  End,     Exit,   Export, False, For,
-      If,       Import, In,      Lambda,  Method, Module, Next,  Override,
-      Pass,     Print,  PrintLn, Private, Return, Static, Then,  This,
-      Throw,    True,   Try,     While};
+      Abstract, As,     Async,  Await,   Break,   Catch,  Class,  Delete,
+      Do,       Else,   ElseIf, End,     Exit,    Export, False,  For,
+      If,       Import, In,     Lambda,  Method,  Module, Next,   Override,
+      Parse,    Pass,   Print,  PrintLn, Private, Return, Static, Then,
+      This,     Throw,  True,   Try,     While};
 
   std::unordered_set<k_string> conditional_keywords = {If, Else, ElseIf, End};
 
