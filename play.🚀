@@ -6,23 +6,33 @@ def to_bin(number)
   bin_str = [0] * size
 
   for i in [size - 1..0] do
-    bin_str[i] = (number & 1) #+ 0
+    bin_str[i] = (number & 1)
     number >>= 1
   end
 
   return bin_str.join("")
 end
 
-def absolute_value(x)
-  mask = x >> (32 * 8 - 1)
-  inversion = (x + mask) ^ mask
-  println "x: ${to_bin(x)}, mask: ${to_bin(mask)}, inverted: ${to_bin(inversion)}, input: ${x}, abs: ${inversion}"
-  return inversion
+def absolute_value(input, res = {})
+  mask = input >> (32 * 8 - 1)
+  output = (input + mask) ^ mask
+  res.bin_input = to_bin(input)
+  res.bin_mask = to_bin(mask)
+  res.bin_output = to_bin(output)
+  res.input = input
+  res.output = output
+  return output
 end
 
-absolute_value(-5)
-absolute_value(-408004419)
-absolute_value(-5009133331)
-absolute_value(5)
-absolute_value(408004419)
-absolute_value(5009133331)
+for n in [-5, -408004419, -5009133331,
+           5,  408004419,  5009133331] do
+  res = {}
+  absolute_value(n, res)
+  res_list = []
+
+  for key in res do
+    res_list << "${key}: ${res[key]}"
+  end
+
+  println res_list.join(" ")
+end
