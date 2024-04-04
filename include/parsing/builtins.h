@@ -144,6 +144,7 @@ struct {
   const k_string TicksToMilliseconds = "__ticksms__";
   const k_string AMPM = "__ampm__";
   const k_string Timestamp = "__timestamp__";
+  const k_string FormatDateTime = "__dtformat__";
 
   std::unordered_set<k_string> builtins = {Hour,
                                            Minute,
@@ -159,11 +160,14 @@ struct {
                                            Ticks,
                                            AMPM,
                                            TicksToMilliseconds,
-                                           Timestamp};
+                                           Timestamp,
+                                           FormatDateTime};
+
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Time_AMPM,
       KName::Builtin_Time_Delay,
       KName::Builtin_Time_EpochMilliseconds,
+      KName::Builtin_Time_FormatDateTime,
       KName::Builtin_Time_Hour,
       KName::Builtin_Time_IsDST,
       KName::Builtin_Time_Minute,

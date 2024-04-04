@@ -186,6 +186,7 @@ enum KName {
   Builtin_Time_Ticks,
   Builtin_Time_TicksToMilliseconds,
   Builtin_Time_Timestamp,
+  Builtin_Time_FormatDateTime,
   Builtin_Time_WeekDay,
   Builtin_Time_Year,
   Builtin_Time_YearDay,

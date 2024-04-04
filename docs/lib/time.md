@@ -5,6 +5,8 @@ The `time` module contains functionality for working with time and date informat
 ## Table of Contents
 
 - [Importing the Module](#importing-the-module)
+- [Module Classes](#module-classes)
+  - [`DateTime`](#datetime)
 - [Module Functions](#module-functions)
   - [`ampm()`](#ampm)
   - [`day()`](#day)
@@ -12,13 +14,16 @@ The `time` module contains functionality for working with time and date informat
   - [`epochms()`](#epochms)
   - [`hour()`](#hour)
   - [`isdst()`](#isdst)
+  - [`leapyear(_year)`](#leapyear_year)
+  - [`monthdays(_year, _month)`](#monthdays_year-_month)
   - [`minute()`](#minute)
   - [`month()`](#month)
   - [`second()`](#second)
   - [`ticks()`](#ticks)
   - [`ticksms(_ticks)`](#ticksms_ticks)
   - [`timestamp()`](#timestamp)
-  - [`formatted(_format)`](#formatted_format)
+  - [`formatted(_format)`](#timestamp_formatted_format)
+  - [`dtformat(_datetime, _format)`](#dtformat_datetime-_format)
   - [`weekday()`](#weekday)
   - [`year()`](#year)
   - [`yearday()`](#yearday)
@@ -28,6 +33,40 @@ To use the `time` module, import it at the beginning of your Astral script.
 
 ```ruby
 import "@astral/time" as time
+```
+
+## Module Classes
+
+### `DateTime`
+
+The `DateTime` class is still a WIP, but functional. It offers some convenient functionality for working with date and time data in Astral.
+
+**Methods**
+| Type | Returns | Method | Description |
+| :--- | :--- | :--- | :--- |
+| Constructor | `DateTime` | `initialize(year, month, day, hour, minute, second)` | Initialize a new `DateTime`. Defaults to the epoch. |
+| Static | `String` | `format(_datetime, _format = "%Y-%m-%d %H:%M:%S")` | Format the value with a given format string. |
+| Static | `DateTime` | `now()` | Returns the current date and time as a `DateTime` object. |
+| Instance | `String` | `to_string()` | Returns a string representation of the `DateTime` object. |
+| instance | `List` | `to_number()` | Returns the date and time parts as a list of integers. |
+| instance | `Boolean` | `equal(another_date)` | Returns `true` if the values are equal. |
+| instance | `Boolean` | `after(another_date)` | Returns `true` if the value is greater than another `DateTime`. |
+| instance | `Boolean` | `before(another_date)` | Returns `true` if the value is less than another `DateTime`. |
+| instance | `DateTime` | `add_days(n)` | Adds `n` number of days. |
+| instance | `DateTime` | `add_months(n)` | Adds `n` number of months. |
+| instance | `DateTime` | `add_years(n)` | Adds `n` number of years. |
+| instance | `Integer` | `get_year()` | Gets the year. |
+| instance | `Integer` | `get_month()` | Gets the month. |
+| instance | `Integer` | `get_day()` | Gets the day. |
+| instance | `Integer` | `get_hour()` | Gets the hour. |
+| instance | `Integer` | `get_minute()` | Gets the minute. |
+| instance | `Integer` | `get_second()` | Gets the second. |
+
+**Example**
+```ruby
+import "@astral/time"
+
+println DateTime.format(DateTime.now().add_years(1), "%Y-%m-%d")
 ```
 
 ## Module Functions
@@ -68,6 +107,22 @@ Retrieves the time of day designation for 12-hour clocks as "AM" or "PM".
 | :--- | :---|
 | `String` | "AM" or "PM". |
 
+### `dtformat(_datetime, _format)`
+
+Format a `DateTime` object as a string using a given format.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `DateTime` | `_datetime` | The `DateTime` object. |
+| `String` | `_format` | The format string. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `String` | The formatted value from a `DateTime` object. |
+
+
 ### `timestamp()`
 
 Retrieves the current timestamp formatted as "YYYY/mm/dd hh:mm:ss tt".
@@ -77,7 +132,7 @@ Retrieves the current timestamp formatted as "YYYY/mm/dd hh:mm:ss tt".
 | :--- | :---|
 | `String` | The current timestamp formatted as "YYYY/mmdd hh:mm:ss tt". |
 
-### `formatted(_format)`
+### `timestamp_formatted(_format)`
 
 Get current timestamp with a specific format.
 
@@ -170,6 +225,36 @@ Checks whether it is currently Daylight Savings Time.
 | Type | Description |
 | :--- | :---|
 | `Boolean` | Indicates DST status. |
+
+### `leapyear(_year)`
+
+Check if a given year is a leap year.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Integer` | `_year` | The year to check. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Returns `true` if the given year is a leap year. |
+
+
+### `monthdays(_year, _month)`
+
+Get the number of days in a given month. Requires the year for leap year checks.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Integer` | `_year` | The year to check. |
+| `Integer` | `_month` | The month to check. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Integer` | Returns the number of days in a given month. |
 
 ### `epochms()`
 

@@ -37,8 +37,10 @@ class Astral {
 
  private:
   static bool createNewFile(const std::string& path);
+  static bool createMinified(Host& host, const std::string& path);
   static bool processOption(std::string& opt, Host& host);
   static bool parse(Host& host, const std::string& content);
+  static bool tokenize(Host& host, const std::string& path);
 
   static int printVersion();
   static int printHelp();
@@ -61,6 +63,8 @@ int Astral::run(std::vector<std::string>& v) {
   Interpreter interp;
   Host host(interp);
 
+  // v.push_back("/home/scs/astral/play.🚀");
+
   size_t size = v.size();
 
   try {
@@ -72,30 +76,42 @@ int Astral::run(std::vector<std::string>& v) {
       if (String::isCLIFlag(v.at(i), "h", "help")) {
         help = true;
       } else if (String::isCLIFlag(v.at(i), "v", "version")) {
-        return printVersion();
+        return Astral::printVersion();
       } else if (String::isCLIFlag(v.at(i), "n", "new")) {
         if (i + 1 < size) {
-          return createNewFile(v.at(++i));
+          return Astral::createNewFile(v.at(++i));
+        }
+
+        help = true;
+      } else if (String::isCLIFlag(v.at(i), "m", "minify")) {
+        if (i + 1 < size) {
+          return Astral::createMinified(host, v.at(++i));
         }
 
         help = true;
       } else if (String::isCLIFlag(v.at(i), "p", "parse")) {
         if (i + 1 < size) {
-          return parse(host, v.at(++i));
+          return Astral::parse(host, v.at(++i));
+        }
+
+        help = true;
+      } else if (String::isCLIFlag(v.at(i), "t", "tokenize")) {
+        if (i + 1 < size) {
+          return Astral::tokenize(host, v.at(++i));
         }
 
         help = true;
       } else if (File::isScript(v.at(i))) {
         host.registerScript(v.at(i));
       } else if (String::isOptionKVP(v.at(i))) {
-        help = !processOption(v.at(i), host);
+        help = !Astral::processOption(v.at(i), host);
       } else {
         host.registerArg("argv_" + RNG::getInstance().random16(), v.at(i));
       }
     }
 
     if (help) {
-      return printHelp();
+      return Astral::printHelp();
     }
 
     return host.start();
@@ -106,6 +122,41 @@ int Astral::run(std::vector<std::string>& v) {
 
 bool Astral::parse(Host& host, const std::string& content) {
   return host.parse(content);
+}
+
+bool Astral::createMinified(Host& host, const std::string& path) {
+  const std::string DefaultExtension = ".min.🚀";
+
+  if (!File::fileExists(path)) {
+    std::cout << "The input file does not exists." << std::endl;
+    return false;
+  }
+
+  auto filePath = File::getAbsolutePath(path);
+  auto fileName =
+      String::replace(File::getFileName(filePath),
+                      File::getFileExtension(filePath), DefaultExtension);
+  auto minFilePath = File::joinPath(File::getParentPath(filePath), fileName);
+
+  std::cout << "Creating " << minFilePath << std::endl;
+  if (File::createFile(minFilePath)) {
+    auto minified = host.minify(filePath);
+    File::writeToFile(minFilePath, minified, false, false);
+    return true;
+  }
+
+  return false;
+}
+
+bool Astral::tokenize(Host& host, const std::string& path) {
+  if (!File::fileExists(path)) {
+    std::cout << "The input file does not exists." << std::endl;
+    return false;
+  }
+
+  auto filePath = File::getAbsolutePath(path);
+  auto minified = host.minify(filePath);
+  return true;
 }
 
 bool Astral::createNewFile(const std::string& path) {
@@ -124,6 +175,8 @@ bool Astral::createNewFile(const std::string& path) {
     std::cout << "The file already exists." << std::endl;
     return false;
   }
+
+  filePath = File::getAbsolutePath(filePath);
 
   std::cout << "Creating " << filePath << std::endl;
   return File::createFile(filePath);
@@ -167,14 +220,20 @@ int Astral::printHelp() {
       {"-v, --version", "print the current version"},
       {"-p, --parse <astral_code>", "parse astral code as an argument"},
       {"-n, --new <file_path>", "create a `.🚀` file"},
+      {"-m, --minify <input_file_path>", "create a `.min.🚀` file"},
+      {"-t, --tokenize <input_file_path>",
+       "tokenize a file with the astral lexer"},
       {"-X<key>:<value>", "specify an argument as a key-value pair"}};
 
 #ifdef _WIN64
-  commands = {{"-h, --help", "print this message"},
-              {"-v, --version", "print the current version"},
-              {"-p, --parse <astral_code>", "parse code"},
-              {"-n, --new <filename>", "create a `.astral` file"},
-              {"-X<key>:<value>", "specify an argument as a key-value pair"}};
+  commands = {
+      {"-h, --help", "print this message"},
+      {"-v, --version", "print the current version"},
+      {"-p, --parse <astral_code>", "parse code"},
+      {"-n, --new <filename>", "create a `.astral` file"},
+      {"-m, --minify <input_file_path>", "create a `.min.astral` file"},
+      {"-t, --tokenize <input_file_path>", "tokenize a file as astral code"},
+      {"-X<key>:<value>", "specify an argument as a key-value pair"}};
 #endif
 
   printVersion();
