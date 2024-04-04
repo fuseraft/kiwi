@@ -10,7 +10,7 @@ Astral supports the following kinds of loops. You can use the `break` keyword to
 
 The `while`-loop is used to loop based on a condition.
 
-*See the test script for a better example with nesting.*
+*See the test suite for better examples with nesting.*
 
 ##### Loop Based on a Condition
 
@@ -28,7 +28,7 @@ To loop indefinitely, the loop condition expression must evaluate to `true`.
 
 ```ruby
 while true do
-  println "Press Ctrl+C to exit!"
+  print "\rPress Ctrl+C to exit!"
 end
 ```
 

@@ -52,6 +52,19 @@ class Host {
     return loadScripts();
   }
 
+  int parse(const std::string& input) {
+    interp.setAstralArgs(args);
+
+    // Always try to load astrallib.
+    loadAstralLibrary();
+
+    return interp.interpretAstral(input);
+  }
+
+  std::string minify(const std::string& script) {
+    return interp.minify(script);
+  }
+
  private:
   Interpreter& interp;
   std::unordered_set<std::string> scripts;

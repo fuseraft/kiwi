@@ -1,6 +1,7 @@
 #ifndef ASTRAL_BUILTINS_TIMEHANDLER_H
 #define ASTRAL_BUILTINS_TIMEHANDLER_H
 
+#include <exception>
 #include <vector>
 #include "math/functions.h"
 #include "parsing/builtins.h"
@@ -55,6 +56,12 @@ class TimeBuiltinHandler {
       case KName::Builtin_Time_TicksToMilliseconds:
         return executeTicksToMilliseconds(term, args);
 
+      case KName::Builtin_Time_Timestamp:
+        return executeTimestamp(term, args);
+
+      case KName::Builtin_Time_FormatDateTime:
+        return executeFormatDateTime(term, args);
+
       default:
         break;
     }
@@ -108,6 +115,52 @@ class TimeBuiltinHandler {
     }
 
     return Time::getAMPM();
+  }
+
+  static k_value executeTimestamp(const Token& term,
+                                  const std::vector<k_value>& args) {
+    if (args.size() != 0 && args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, TimeBuiltins.Timestamp);
+    }
+
+    if (args.size() == 1) {
+      return Time::getTimestamp(get_string(term, args.at(0)));
+    }
+
+    return Time::getTimestamp();
+  }
+
+  static k_value executeFormatDateTime(const Token& term,
+                                       const std::vector<k_value>& args) {
+    if (args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(term, TimeBuiltins.FormatDateTime);
+    }
+
+    auto date = args.at(0);
+    auto format = get_string(term, args.at(1));
+    k_int year, month, day, hour, minute, second;
+
+    if (!std::holds_alternative<k_object>(date)) {
+      throw InvalidOperationError(term, "Expected a `DateTime` object.");
+    }
+
+    auto dateValue = std::get<k_object>(date);
+    if (dateValue->className != "DateTime") {
+      throw InvalidOperationError(term, "Expected a `DateTime` object.");
+    }
+
+    try {
+      year = get_integer(term, dateValue->instanceVariables["year"]);
+      month = get_integer(term, dateValue->instanceVariables["month"]);
+      day = get_integer(term, dateValue->instanceVariables["day"]);
+      hour = get_integer(term, dateValue->instanceVariables["hour"]);
+      minute = get_integer(term, dateValue->instanceVariables["minute"]);
+      second = get_integer(term, dateValue->instanceVariables["second"]);
+    } catch (const std::exception& e) {
+      throw InvalidOperationError(term, "Expected a DateTime object.");
+    }
+
+    return Time::formatDateTime(year, month, day, hour, minute, second, format);
   }
 
   static k_value executeTicksToMilliseconds(const Token& term,

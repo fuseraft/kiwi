@@ -20,6 +20,14 @@ println "Your favorite fruit is ${fruit}"
 # prints: Your favorite fruit is kiwi
 ```
 
+You can also pass a string to print as a prompt.
+
+```ruby
+choice = ""
+while !"ab".chars().contains(choice) do
+  choice = input("(a)ttack or (b)lock: ")
+end
+```
 
 ### `print`
 
