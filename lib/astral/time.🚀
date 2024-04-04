@@ -197,12 +197,12 @@ end
 
 class DateTime private (year, month, day, hour, minute, second)
   def initialize(year = 1970, month = 1, day = 1, hour = 0, minute = 0, second = 0)
-    this.year = year
-    this.month = month
-    this.day = day
-    this.hour = hour
-    this.minute = minute
-    this.second = second
+    this.year = year.is_a(Integer) ? year : 1970
+    this.month = month.is_a(Integer) ? month : 1
+    this.day = day.is_a(Integer) ? day : 1
+    this.hour = hour.is_a(Integer) ? hour : 0
+    this.minute = minute.is_a(Integer) ? minute : 0
+    this.second = second.is_a(Integer) ? second : 0
   end
 
   def to_string()
@@ -266,57 +266,112 @@ class DateTime private (year, month, day, hour, minute, second)
   end
 
   def add_days(n)
-    this.day += n
-    month_days = time::monthdays(this.year, this.month)
-
-    while this.day > month_days do
-      this.day -= month_days
-      this.month += 1
-
-      if this.month > 12
-        this.month = 1
-        this.year += 1
-      end
-
+    if n.is_a(Integer)
+      this.day += n
       month_days = time::monthdays(this.year, this.month)
-    end
 
-    while this.day < 1 do
-      this.month -= 1
+      while this.day > month_days do
+        this.day -= month_days
+        this.month += 1
 
-      if this.month < 1
-        this.month = 12
-        this.year -= 1
+        if this.month > 12
+          this.month = 1
+          this.year += 1
+        end
+
+        month_days = time::monthdays(this.year, this.month)
       end
 
-      this.day += time::monthdays(this.year, this.month)
+      while this.day < 1 do
+        this.month -= 1
+
+        if this.month < 1
+          this.month = 12
+          this.year -= 1
+        end
+
+        this.day += time::monthdays(this.year, this.month)
+      end
     end
 
     return this
   end
 
   def add_months(n)
-    this.month += n
-    
-    while this.month > 12 do
-      this.month -= 12
-      this.year += 1
+    if n.is_a(Integer)
+      this.month += n
+      
+      while this.month > 12 do
+        this.month -= 12
+        this.year += 1
+      end
+
+      while this.month < 1 do
+        this.month += 12
+        this.year -= 1
+      end
+
+      this.day = [this.day, time::monthdays(this.year, this.month)].min()
     end
-
-    while this.month < 1 do
-      this.month += 12
-      this.year -= 1
-    end
-
-    this.day = [this.day, time::monthdays(this.year, this.month)].min()
-
     return this
   end
 
   def add_years(n)
-    this.year += n
-    this.day = [this.day, time::monthdays(this.year, this.month)].min()
+    if n.is_a(Integer)
+      this.year += n
+      this.day = [this.day, time::monthdays(this.year, this.month)].min()
+    end
+    return this
+  end
 
+  def add_hours(n)
+    if n.is_a(Integer)
+      this.hour += n
+
+      while this.hour >= 24 do
+        this.hour -= 24
+        this.add_days(1)
+      end
+
+      while this.hour < 0 do
+        this.hour += 24
+        this.add_days(-1)
+      end
+    end
+    return this
+  end
+
+  def add_minutes(n)
+    if n.is_a(Integer)
+      this.minute += n
+
+      while this.minute >= 60 do
+        this.minute -= 60
+        this.add_hours(1)
+      end
+
+      while this.minute < 0 do
+        this.minute += 60
+        this.add_hours(-1)
+      end
+    end
+    return this
+  end
+
+  def add_seconds(n)
+    if n.is_a(Integer)
+      this.second += n
+
+      while this.second >= 60 do
+        this.second -= 60
+        this.add_minutes(1)
+      end
+
+      while this.second < 0 do
+        this.second += 60
+        this.add_minutes(-1)
+      end
+    end
     return this
   end
 
