@@ -526,12 +526,18 @@ struct {
   const k_string Keys = "keys";
   const k_string HasKey = "has_key";
   const k_string Members = "members";
+  const k_string Push = "push";
+  const k_string Pop = "pop";
+  const k_string Enqueue = "enqueue";
+  const k_string Dequeue = "dequeue";
+  const k_string Clear = "clear";
 
   std::unordered_set<k_string> builtins = {
       Chars,    Empty,     IsA,         Join,    Size,     ToBytes,  ToHex,
       ToD,      ToI,       ToS,         Replace, Reverse,  Contains, BeginsWith,
       EndsWith, IndexOf,   LastIndexOf, Upcase,  Downcase, Keys,     Split,
-      LeftTrim, RightTrim, Trim,        Type,    HasKey,   Members};
+      LeftTrim, RightTrim, Trim,        Type,    HasKey,   Members,  Push,
+      Pop,      Enqueue,   Dequeue,     Clear};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Astral_BeginsWith,  KName::Builtin_Astral_BeginsWith,
@@ -547,7 +553,10 @@ struct {
       KName::Builtin_Astral_ToHex,       KName::Builtin_Astral_ToD,
       KName::Builtin_Astral_ToI,         KName::Builtin_Astral_ToS,
       KName::Builtin_Astral_Trim,        KName::Builtin_Astral_Type,
-      KName::Builtin_Astral_Upcase,      KName::Builtin_Astral_Members};
+      KName::Builtin_Astral_Upcase,      KName::Builtin_Astral_Members,
+      KName::Builtin_Astral_Push,        KName::Builtin_Astral_Pop,
+      KName::Builtin_Astral_Enqueue,     KName::Builtin_Astral_Dequeue,
+      KName::Builtin_Astral_Clear};
 
   bool is_builtin(const k_string& arg) {
     if (ListBuiltins.is_builtin(arg)) {

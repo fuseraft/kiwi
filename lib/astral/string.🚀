@@ -1,6 +1,17 @@
+
+/#
+A module with interesting string operations.
+#/
 module string
   __home__("astral")
 
+  /#
+  @summary Pads the left side of a string.
+  @param   String  _input   : The input string. 
+  @param   Integer _size    : The max length of the output string.
+  @param   String  _padding : The padding content.
+  @return  String           : The padded string.
+  #/
   def padstart(_input, _size, _padding = " ")
     if _input.size() >= _size return _input end
     if _padding.size() != 1 _padding = " " end
@@ -9,12 +20,96 @@ module string
     return _pad + _input
   end
 
+  /#
+  @summary Pads the right side of a string.
+  @param   String  _input   : The input string. 
+  @param   Integer _size    : The max length of the output string.
+  @param   String  _padding : The padding content.
+  @return  String           : The padded string.
+  #/
   def padend(_input, _size, _padding = " ")
     if _input.size() >= _size return _input end
     if _padding.size() != 1 _padding = " " end
     _padding_size = _size - _input.size()
     _pad = _padding * _padding_size
     return _input + _pad
+  end
+
+  /#
+  @summary Centers a string within a given width.
+  @param   String  _input   : The input string.
+  @param   Integer _width   : The width of the resulting string.
+  @param   String  _padding : The padding character (default is space).
+  @return  String           : The centered string.
+  #/
+  def center(_input, _width, _padding = " ")
+    if _input.size() >= _width return _input end
+    if _padding.size() != 1 _padding = " " end
+    _total_padding = _width - _input.size()
+    _left_padding_size = _total_padding / 2
+    _right_padding_size = _total_padding - _left_padding_size
+    _left_pad = _padding * _left_padding_size
+    _right_pad = _padding * _right_padding_size
+    return _left_pad + _input + _right_pad
+  end
+
+  /#
+  @summary Repeats each character in the string a specified number of times.
+  @param   String  _input : The input string.
+  @param   Integer _count : The number of times each character is repeated.
+  @return  String         : The string with characters echoed.
+  #/
+  def echo(_input, _count)
+    _output = ""
+    for char in _input.chars() do
+      _output = _output + (char * _count)
+    end
+    return _output
+  end
+
+  /#
+  @summary Interweaves characters from two strings.
+  @param   String  _input1 : The first input string.
+  @param   String  _input2 : The second input string.
+  @return  String          : The interwoven string.
+  #/
+  def interweave(_input1, _input2)
+    _output = ""
+    _length = [_input1.size(), _input2.size()].max()
+    for i in [0 .. _length - 1] do
+      if i < _input1.size() _output = _output + _input1[i] end
+      if i < _input2.size() _output = _output + _input2[i] end
+    end
+    return _output
+  end
+
+  /#
+  @summary Creates a mirrored version of the input string.
+  @param   String  _input    : The input string.
+  @param   String  _delimiter: The delimiter to separate the original string from its mirror.
+  @return  String            : The mirrored string.
+  #/
+  def mirror(_input, _delimiter = "")
+    _reversed = _input.reverse()
+    return _input + _delimiter + _reversed
+  end
+
+  /#
+  @summary Randomly shuffles the characters in a string.
+  @param   String  _input : The input string.
+  @return  String         : The shuffled string.
+  #/
+  def scramble(_input)
+    _array = _input.chars()
+    _n = _array.size()
+    while _n > 1 do
+      _n = _n - 1
+      _k = __random__(0, _n)
+      _temp = _array[_k]
+      _array[_k] = _array[_n]
+      _array[_n] = _temp
+    end
+    return _array.join("")
   end
 end
 
