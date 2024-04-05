@@ -80,7 +80,13 @@ class Lexer {
       return parseIdentifier(currentChar);
     } else if (isdigit(currentChar)) {
       if (currentChar == '0' && (pos < source.length() && source[pos] == 'x')) {
-        return parseHexLiteral(currentChar);
+        return parseHexLiteral();
+      } else if (currentChar == '0' &&
+                 (pos < source.length() && source[pos] == 'b')) {
+        return parseBinaryLiteral();
+      } else if (currentChar == '0' &&
+                 (pos < source.length() && source[pos] == 'o')) {
+        return parseOctalLiteral();
       }
       return parseLiteral(currentChar);
     } else if (currentChar == '"') {
@@ -896,6 +902,16 @@ class Lexer {
       st = KName::Builtin_Astral_Type;
     } else if (builtin == AstralBuiltins.Upcase) {
       st = KName::Builtin_Astral_Upcase;
+    } else if (builtin == AstralBuiltins.Push) {
+      st = KName::Builtin_Astral_Push;
+    } else if (builtin == AstralBuiltins.Pop) {
+      st = KName::Builtin_Astral_Pop;
+    } else if (builtin == AstralBuiltins.Dequeue) {
+      st = KName::Builtin_Astral_Dequeue;
+    } else if (builtin == AstralBuiltins.Enqueue) {
+      st = KName::Builtin_Astral_Enqueue;
+    } else if (builtin == AstralBuiltins.Clear) {
+      st = KName::Builtin_Astral_Clear;
     } else if (builtin == ListBuiltins.Map) {
       st = KName::Builtin_List_Map;
     } else if (builtin == ListBuiltins.Select) {
@@ -981,8 +997,8 @@ class Lexer {
     }
   }
 
-  Token parseHexLiteral(char initialChar) {
-    std::string hexLiteral(1, initialChar);
+  Token parseHexLiteral() {
+    std::string hexLiteral;
     getCurrentChar();  // Move past 'x'
 
     while (pos < source.length() && isxdigit(source[pos])) {
@@ -995,6 +1011,35 @@ class Lexer {
 
     return Token::create(KTokenType::LITERAL, KName::Default, fileId,
                          hexLiteral, value, row, col);
+  }
+
+  Token parseBinaryLiteral() {
+    std::string binaryLiteral;
+    getCurrentChar();  // Move past 'b'
+
+    while (pos < source.length() &&
+           (source[pos] == '0' || source[pos] == '1')) {
+      binaryLiteral += getCurrentChar();
+    }
+
+    k_int value = std::stoi(binaryLiteral, nullptr, 2);
+
+    return Token::create(KTokenType::LITERAL, KName::Default, fileId,
+                         binaryLiteral, value, row, col);
+  }
+
+  Token parseOctalLiteral() {
+    std::string octalLiteral;
+    getCurrentChar();  // Move past 'o'
+
+    while (pos < source.length() && source[pos] >= '0' && source[pos] <= '7') {
+      octalLiteral += getCurrentChar();
+    }
+
+    k_int value = std::stoi(octalLiteral, nullptr, 8);
+
+    return Token::create(KTokenType::LITERAL, KName::Default, fileId,
+                         octalLiteral, value, row, col);
   }
 
   Token parseString() {

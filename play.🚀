@@ -1,28 +1,18 @@
 #!/usr/bin/astral
 /# This 🚀 script is for experimentation. #/
 
-def to_bin(number)
-  size = 32
-  bin_str = [0] * size
+import "@astral/string" as string
 
-  for i in [size - 1..0] do
-    bin_str[i] = (number & 1) #+ 0
-    number >>= 1
-  end
-
-  return bin_str.join("")
+for num in [1 .. 13] do
+  println string.padend("${string.padstart("${num}", 3, " ")} * ${num}", 10, " ") + "\t=> ${num * num}"
 end
 
-def absolute_value(x)
-  mask = x >> (32 * 8 - 1)
-  inversion = (x + mask) ^ mask
-  println "x: ${to_bin(x)}, mask: ${to_bin(mask)}, inverted: ${to_bin(inversion)}, input: ${x}, abs: ${inversion}"
-  return inversion
+println "[${string.center("hello", 23, " ")}]"
+println "[${string.center(string.interweave("hello", "world"), 23, " ")}]"
+println "[${string.center(string.mirror("hello"), 23, " ")}]"
+
+for i in [1..5] do
+  println string.scramble("hello")
 end
 
-absolute_value(-5)
-absolute_value(-408004419)
-absolute_value(-5009133331)
-absolute_value(5)
-absolute_value(408004419)
-absolute_value(5009133331)
+println string.echo("hello", 2)

@@ -7,6 +7,7 @@ Currently, Astral supports the following builtins:
 ## Table of Contents
 - [`begins_with(str)`](#begins_withstr)
 - [`chars()`](#chars)
+- [`clear()`](#clear)
 - [`contains(str)`](#containsstr)
 - [`downcase(str)`](#downcasestr)
 - [`ends_with(str)`](#ends_withstr)
@@ -19,6 +20,10 @@ Currently, Astral supports the following builtins:
 - [`map(lambda)`](#maplambda)
 - [`max()`](#max)
 - [`min()`](#min)
+- [`pop()`](#pop)
+- [`push(value)`](#pushvalue)
+- [`dequeue()`](#dequeue)
+- [`enqueue(value)`](#enqueuevalue)
 - [`reduce(accumulator, lambda)`](#reduceaccumulator-lambda)
 - [`replace(search, replacement)`](#replacesearch-replacement)
 - [`reverse()`](#reverse)
@@ -51,6 +56,14 @@ chars = string.chars()
 println "astral".chars() # prints: ["a", "s", "t", "r", "a", "l"]
 ```
 
+### `clear()`
+
+Clears a list or a hash.
+
+```ruby
+list = "Hello".chars() # ["H", "e", "l", "l", "o"]
+list.clear() # []
+```
 ### `join(str)`
 
 Joins a list into a string.
@@ -280,6 +293,44 @@ Returns the lowercase value of a string.
 
 ```ruby
 println "FOOBAR".downcase()   # prints: foobar
+```
+
+### `pop()`
+
+Returns and removes a value from the end of a list.
+
+```
+list = [1, 2, 3]
+println list.pop() # prints: 3
+println list       # prints: [1, 2]
+```
+
+### `push(value)`
+
+Pushes a value onto a list.
+
+```
+list = [1, 2, 3]
+list.push(4)       # prints: [1, 2, 3, 4]
+```
+
+### `dequeue()`
+
+Removes and returns a value from the beginning of a list.
+
+```
+list = [1, 2, 3]
+println list.dequeue() # prints: 1
+println list           # prints: [2, 3]
+```
+
+### `enqueue(value)`
+
+Pushes a value onto a list.
+
+```
+list = [1, 2, 3]
+list.enqueue(4)        # prints: [1, 2, 3, 4]
 ```
 
 ### `replace(search, replacement)`
