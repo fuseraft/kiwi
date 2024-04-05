@@ -65,6 +65,7 @@ struct CallStackFrame {
     return variables.find(name) != variables.end();
   }
 
+  void setErrorState(const ErrorState& e) { errorState = e; }
   void setErrorState(const AstralError& e) { errorState.setError(e); }
   bool isErrorStateSet() const { return errorState.isErrorSet(); }
   k_string getErrorMessage() const { return errorState.error.getMessage(); }

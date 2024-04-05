@@ -244,13 +244,19 @@ class Interpreter {
   /// @brief Pops and returns the top of the call stack.
   /// @return A stack frame.
   std::shared_ptr<CallStackFrame> popTop() {
-    popStack();
-    return callStack.top();
+    auto deadFrame = popStack();
+    auto topFrame = callStack.top();
+    if (deadFrame->isErrorStateSet()) {
+      topFrame->setErrorState(deadFrame->getErrorState());
+    }
+    return topFrame;
   }
 
-  void popStack() {
+  std::shared_ptr<CallStackFrame> popStack() {
     streamStack.pop();
+    auto top = callStack.top();
     callStack.pop();
+    return top;
   }
 
   void interpretStackFrame() {
@@ -283,6 +289,7 @@ class Interpreter {
   }
 
   void handleUncaughtException(k_stream stream, const AstralError& e) {
+    std::cerr << "Uncaught error: ";
     ErrorHandler::handleError(e);
 
     if (!preservingMainStackFrame) {
@@ -392,6 +399,10 @@ class Interpreter {
       }
 
       subFrame->setObjectContext(objectContext);
+    }
+
+    if (frame->isFlagSet(FrameFlags::InTry)) {
+      subFrame->setFlag(FrameFlags::InTry);
     }
 
     return subFrame;

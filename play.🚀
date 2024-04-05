@@ -1,18 +1,2 @@
 #!/usr/bin/astral
 /# This 🚀 script is for experimentation. #/
-
-import "@astral/string" as string
-
-for num in [1 .. 13] do
-  println string.padend("${string.padstart("${num}", 3, " ")} * ${num}", 10, " ") + "\t=> ${num * num}"
-end
-
-println "[${string.center("hello", 23, " ")}]"
-println "[${string.center(string.interweave("hello", "world"), 23, " ")}]"
-println "[${string.center(string.mirror("hello"), 23, " ")}]"
-
-for i in [1..5] do
-  println string.scramble("hello")
-end
-
-println string.echo("hello", 2)
