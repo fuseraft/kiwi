@@ -2,59 +2,78 @@
 
 In Astral, builtins are accessed using dot-notation and can be used to query or manipulate values and types.
 
-Currently, Astral supports the following builtins:
+# Table of Contents
+- [**`String` Builtins**](#string-builtins)
+  - [`begins_with(str)`](#begins_withstr)
+  - [`chars()`](#chars)
+  - [`contains(str)`](#containsstr)
+  - [`downcase()`](#downcase)
+  - [`ends_with(str)`](#ends_withstr)
+  - [`index(str)`](#indexstr)
+  - [`lastindex(str)`](#lastindexstr)
+  - [`ltrim()`](#ltrim)
+  - [`rtrim()`](#rtrim)
+  - [`trim()`](#trim)
+  - [`upcase()`](#upcase)
+  - [`replace(search, replacement)`](#replacesearch-replacement)
+  - [`split(delim)`](#splitdelim)
+  - [`substring(pos, length)`](#substringpos-length)
+- [**`Hash` Builtins**](#hash-builtins)
+  - [`keys()`](#keys)
+  - [`has_key(key)`](#has_keykey)
+  - [`merge(hash)`](#mergehash)
+  - [`values()`](#values)
+- [**`List` Builtins**](#list-builtins)
+  - [`clear()`](#clear)
+  - [`concat(list)`](#concatlist)
+  - [`count(value)`](#countvalue)
+  - [`dequeue()`](#dequeue)
+  - [`enqueue(value)`](#enqueuevalue)
+  - [`flatten()`](#flatten)
+  - [`index(value)`](#indexvalue)
+  - [`insert(value, index)`](#insertvalue-index)
+  - [`join(str)`](#joinstr)
+  - [`lastindex(value)`](#lastindexvalue)
+  - [`map(lambda)`](#maplambda)
+  - [`max()`](#max)
+  - [`min()`](#min)
+  - [`pop()`](#pop)
+  - [`push(value)`](#pushvalue)
+  - [`reduce(accumulator, lambda)`](#reduceaccumulator-lambda)
+  - [`remove(value)`](#removevalue)
+  - [`remove_at(index)`](#remove_atindex)
+  - [`reverse()`](#reverse)
+  - [`rotate(n)`](#rotaten)
+  - [`select(lambda)`](#selectlambda)
+  - [`shift()`](#shift)
+  - [`size()`](#size)
+  - [`slice(start, end)`](#slicestart-end)
+  - [`sort()`](#sort)
+  - [`sum()`](#sum)
+  - [`to_bytes()`](#to_bytes)
+  - [`to_hex()`](#to_hex)
+  - [`unique()`](#unique)
+  - [`unshift(value)`](#unshiftvalue)
+  - [`zip(list)`](#ziplist)
+- [**Conversion and Type Checking**](#conversion-and-type-checking)
+  - [`empty()`](#empty)
+  - [`is_a(type_name)`](#is_atype_name)
+  - [`to_double()`](#to_double)
+  - [`to_hash()`](#to_hash)
+  - [`to_int()`](#to_int)
+  - [`to_string()`](#to_string)
+  - [`type()`](#type)
 
-## Table of Contents
-- [`begins_with(str)`](#begins_withstr)
-- [`chars()`](#chars)
-- [`clear()`](#clear)
-- [`concat(list)`](#concatlist)
-- [`contains(str)`](#containsstr)
-- [`count(value)`](#countvalue)
-- [`dequeue()`](#dequeue)
-- [`downcase(str)`](#downcasestr)
-- [`ends_with(str)`](#ends_withstr)
-- [`enqueue(value)`](#enqueuevalue)
-- [`flatten()`](#flatten)
-- [`index(value)`](#indexvalue)
-- [`insert(value, index)`](#insertvalue-index)
-- [`is_a(type_name)`](#is_atype_name)
-- [`join(str)`](#joinstr)
-- [`keys()`](#keys)
-- [`lastindex(value)`](#lastindexvalue)
-- [`ltrim()`](#ltrim)
-- [`map(lambda)`](#maplambda)
-- [`max()`](#max)
-- [`min()`](#min)
-- [`pop()`](#pop)
-- [`push(value)`](#pushvalue)
-- [`reduce(accumulator, lambda)`](#reduceaccumulator-lambda)
-- [`remove_at(index)`](#removeatindex)
-- [`remove(value)`](#removevalue)
-- [`replace(search, replacement)`](#replacesearch-replacement)
-- [`reverse()`](#reverse)
-- [`rotate(n)`](#rotaten)
-- [`rtrim()`](#rtrim)
-- [`select(lambda)`](#selectlambda)
-- [`shift()`](#shift)
-- [`size()`](#size)
-- [`slice(start, end)`](#slicestart-end)
-- [`sort()`](#sort)
-- [`split(delim)`](#splitdelim)
-- [`substring(pos, length)`](#substringpos-length)
-- [`sum()`](#sum)
-- [`to_bytes()`](#to_bytes)
-- [`to_double()`](#to_double)
-- [`to_hash()`](#to_hash)
-- [`to_hex()`](#to_hex)
-- [`to_int()`](#to_int)
-- [`to_string()`](#to_string)
-- [`trim()`](#trim)
-- [`type()`](#type)
-- [`unique()`](#unique)
-- [`unshift(value)`](#unshiftvalue)
-- [`upcase(str)`](#upcasestr)
-- [`zip(list)`](#ziplist)
+## String Builtins
+
+### `begins_with(str)`
+
+Returns true if the string begins with a given string.
+
+```ruby
+println "foobar".begins_with("foo")   # prints: true
+println "foobar".begins_with("food")  # prints: false
+```
 
 ### `chars()`
 
@@ -69,165 +88,48 @@ chars = string.chars()
 println "astral".chars() # prints: ["a", "s", "t", "r", "a", "l"]
 ```
 
-### `clear()`
+### `contains(str)`
 
-Clears a list or a hash.
-
-```ruby
-list = "Hello".chars() # ["H", "e", "l", "l", "o"]
-list.clear() # []
-```
-### `join(str)`
-
-Joins a list into a string.
+Returns true if the string contains a given string.
 
 ```ruby
-println ["Hello", "World!"].join(" ") # prints: "Hello, World!"
+println "foobar".contains("bar")   # prints: true
+println "foobar".contains("bark")  # prints: false
 ```
 
-### `substring(pos, length)`
+### `downcase()`
 
-Extract a substring from a string.
+Returns the lowercase value of a string.
 
 ```ruby
-println "hello".substring(1)    # prints: ello
-println "hello".substring(1, 2) # prints: el
+println "FOOBAR".downcase()   # prints: foobar
 ```
 
-### `split(delim)`
+### `ends_with(str)`
 
-Splits a string into a list by delimiter.
+Returns true if the string ends with a given string.
 
 ```ruby
-println "Hello World!".split(" ") # prints: ["Hello", "World!"]
+println "foobar".ends_with("bar")   # prints: true
+println "foobar".ends_with("bark")  # prints: false
 ```
 
-### `size()`
+### `index(str)`
 
-Returns the size of a list or a string as an integer.
+Returns the index of a string. Returns -1 if not found.
 
 ```ruby
-string = "four"
-list = [1, 2, 3, true, false]
-
-println string.size()
-println list.size()
+println "foobar".index("bar")  # prints: 3
+println "foobar".index("astral")  # prints: -1
 ```
 
-### `reverse()`
+### `lastindex(str)`
 
-Reverse a list or a string.
-
-```ruby
-println "astral".reverse() # prints: lartsa
-```
-
-### `concat(list)`
-
-Combine two lists into one.
+Returns the last index of a string. Returns -1 if not found.
 
 ```ruby
-println [1,2].concat([3,4]) # prints: [1, 2, 3, 4]
-```
-
-### `zip(list)`
-
-Combine values from two lists into pairs.
-
-```ruby
-println [1, 2].zip([3, 4]) # prints: [[1, 3], [2, 4]]
-```
-
-### `slice(start, end)`
-
-Get a subset of the list, specifying start and end indices.
-
-```ruby
-println [1, 2, 3].slice(1, 2) # prints: [2]
-println [1, 2, 3].slice(0, 3) # prints: [1, 2, 3]
-println [1, 2, 3].slice(0, 2) # prints: [1, 2]
-```
-
-### `flatten()`
-
-Flatten nested lists into a single list.
-
-```ruby
-println [[1, 2, 3], [[4, 5], 6], [7]].flatten()
-# prints: [1, 2, 3, 4, 5, 6, 7]
-```
-
-### `remove(value)`
-
-Remove the first occurrence of a specific value in a list.
-
-```ruby
-println [1, 2, 3].remove(2)          # prints: [1, 3]
-println ["a", "b", 3, 4].remove("b") # prints: ["a", 3, 4]
-```
-
-### `remove_at(index)`
-
-Remove a value from a list at a specified index.
-
-```ruby
-println ["a", "b", 3, 4].remove_at(0) # prints: ["b", 3, 4]
-```
-
-### `count(value)`
-
-Count occurrences of a specific value in the list.
-
-```ruby
-println "hello world".chars().count("o") # prints: 2
-```
-
-### `shift()`
-
-Returns the first value of a list.
-
-```ruby
-list = [1, 2, 3]
-println list.shift() # prints: 1
-println list         # prints: [2, 3]
-```
-
-### `unshift(value)`
-
-Inserts a value at the beginning of a list.
-
-```ruby
-list = [1, 2, 3]
-println list.unshift(0) # prints: [0, 1, 2, 3]
-println list            # prints: [0, 1, 2, 3]
-```
-
-### `unique()`
-
-Remove duplicate values from the list.
-
-```ruby
-println "aaaabbcccc".chars().unique() # prints: ["a", "b", "c"]
-```
-
-### `rotate(n)`
-
-Rotate the values of the list by a specified number of positions. 
-
-If `n` is negative, values are rotated left.
-
-```ruby
-println "abcd".chars().rotate(1)  # prints: ["d", "a", "b", "c"]
-println "abcd".chars().rotate(0)  # prints: ["a", "b", "c", "d"]
-println "abcd".chars().rotate(-1) # prints: ["b", "c", "d", "a"]
-```
-
-### `insert(value, index)`
-
-Insert a value at a specified index.
-
-```ruby
-println [1, 2, 3].insert("a", 2) # prints: [1, 2, "a", 3]
+println "foobarbar".lastindex("bar")  # prints: 6
+println "foobar".lastindex("astral")  # prints: -1
 ```
 
 ### `ltrim()`
@@ -254,28 +156,355 @@ Trims whitespace from both sides of a string.
 println "     Hello World!    ".trim() + " Testing!" # prints: Hello World! Testing!
 ```
 
-### `type()`
+### `upcase()`
 
-Returns the type of the value as a string.
-
-Valid types are: `Integer`, `Double`, `Boolean`, `String`, `List`, `Hash`, `Object`, `Lambda`.
-
-If the type is an object, `type()` will return the class name of the instance.
+Returns the uppercase value of a string.
 
 ```ruby
-class MyClass
-  def initialize()
-  end
-end
+println "foobar".upcase()   # prints: FOOBAR
+```
 
-instance = MyClass.new()
-println instance.type() # prints: MyClass
-println "Kiwis are delicious!".type() # prints: String
+### `replace(search, replacement)`
+
+Search for a string and replace with a given string.
+
+```ruby
+println "foobar".replace("foo", "food")   # prints: foodbar
+```
+
+### `split(delim)`
+
+Splits a string into a list by delimiter.
+
+```ruby
+println "Hello World!".split(" ") # prints: ["Hello", "World!"]
+```
+
+### `substring(pos, length)`
+
+Extract a substring from a string.
+
+```ruby
+println "hello".substring(1)    # prints: ello
+println "hello".substring(1, 2) # prints: el
+```
+
+## Hash Builtins
+
+### `keys()`
+
+Returns the list of keys from a hash.
+
+```ruby
+hash = {
+  "key1": true, 
+  "key2": 1, 
+  "key3": ["a", "b", "c"]
+}
+
+println hash.keys() # prints: ["key1", "key2", "key3"]
+```
+
+### `has_key(key)`
+
+Returns true if a hash contains a given key.
+
+```ruby
+hash = {
+  "key1": true, 
+  "key2": 1, 
+  "key3": ["a", "b", "c"]
+}
+
+println hash.has_key("key2") # prints: true
+```
+
+### `merge(hash)`
+
+Merge a hash with another.
+
+```ruby
+hash1 = {"a": 1, "b": 2}
+hash2 = {"b": 3, "c": 4}
+println hash1.merge(hash2) # prints: {"a": 1, "b": 3, "c": 4}
+```
+
+### `values()`
+
+Returns the list of values from a hash.
+
+```ruby
+hash = {
+  "key1": true, 
+  "key2": 1, 
+  "key3": ["a", "b", "c"]
+}
+
+println hash.values() # prints: [true, 1, ["a", "b", "c"]]
+```
+
+## List Builtins
+
+### `clear()`
+
+Clears a list or a hash.
+
+```ruby
+list = "Hello".chars() # ["H", "e", "l", "l", "o"]
+list.clear() # []
+```
+
+### `concat(list)`
+
+Combine two lists into one.
+
+```ruby
+println [1,2].concat([3,4]) # prints: [1, 2, 3, 4]
+```
+
+### `count(value)`
+
+Count occurrences of a specific value in the list.
+
+```ruby
+println "hello world".chars().count("o") # prints: 2
+```
+
+### `dequeue()`
+
+Removes and returns a value from the beginning of a list.
+
+```ruby
+list = [1, 2, 3]
+println list.dequeue() # prints: 1
+println list           # prints: [2, 3]
+```
+
+### `enqueue(value)`
+
+Pushes a value onto a list.
+
+```ruby
+list = [1, 2, 3]
+list.enqueue(4)        # prints: [1, 2, 3, 4]
+```
+
+### `flatten()`
+
+Flatten nested lists into a single list.
+
+```ruby
+println [[1, 2, 3], [[4, 5], 6], [7]].flatten()
+# prints: [1, 2, 3, 4, 5, 6, 7]
+```
+
+### `index(value)`
+
+Returns the index of an item in a list. Returns -1 if not found.
+
+```ruby
+println [1, 2, 3, 4, 5].index(1)  # prints: 0
+println [1, 2, 3, 4, 5].index(6)  # prints: -1
+```
+
+### `insert(value, index)`
+
+Insert a value at a specified index.
+
+```ruby
+println [1, 2, 3].insert("a", 2) # prints: [1, 2, "a", 3]
+```
+
+### `join(str)`
+
+Joins a list into a string.
+
+```ruby
+println ["Hello", "World!"].join(" ") # prints: "Hello, World!"
+```
+
+### `lastindex(value)`
+
+Returns the last index of an item in a list. Returns -1 if not found.
+
+```ruby
+println [1, 0, 0, 1, 0, 1, 1].lastindex(1)  # prints 6
+println [1, 2, 3, 4, 5].lastindex(6)        # prints: -1
+```
+
+### `map(lambda)`
+
+Transform a list based on a condition.
+
+```ruby
+list = ["kiwi", "mango", "banana"]
+println list.map(lambda (item) do return { "fruit": item, "is_a_kiwi": item.downcase() == "kiwi" } end)
+# prints: [{"fruit": "kiwi", "is_a_kiwi": true}, {"fruit": "mango", "is_a_kiwi": false}, {"fruit": "banana", "is_a_kiwi": false}]
+```
+
+### `max()`
+
+Get the highest value in a list.
+
+```ruby
+list = [1, 2, 3]
+println list.max() # prints: 3
+```
+
+### `min()`
+
+Get the lowest value in a list.
+
+```ruby
+list = [1, 2, 3]
+println list.min() # prints: 1
+```
+
+### `pop()`
+
+Returns and removes a value from the end of a list.
+
+```ruby
+list = [1, 2, 3]
+println list.pop() # prints: 3
+println list       # prints: [1, 2]
+```
+
+### `push(value)`
+
+Pushes a value onto a list.
+
+```ruby
+list = [1, 2, 3]
+list.push(4)       # prints: [1, 2, 3, 4]
+```
+
+### `reduce(accumulator, lambda)`
+
+Aggregate the items in a list.
+
+```ruby
+numbers = [1, 2, 3, 4, 5]
+
+sum = numbers.reduce(0, lambda (accumulator, number) do
+    return accumulator + number
+end)
+
+println sum # prints: 15
+```
+
+```ruby
+numbers = [1, 2, 3, 4, 5]
+
+hash = numbers.reduce({}, lambda (accumulator, number) do
+    accumulator["key${number}"] = number
+    return accumulator
+end)
+
+println hash 
+# prints: {"key1": 1, "key2": 2, "key3": 3, "key4": 4, "key5": 5}
+```
+
+### `remove(value)`
+
+Remove the first occurrence of a specific value in a list.
+
+```ruby
+println [1, 2, 3].remove(2)          # prints: [1, 3]
+println ["a", "b", 3, 4].remove("b") # prints: ["a", 3, 4]
+```
+
+### `remove_at(index)`
+
+Remove a value from a list at a specified index.
+
+```ruby
+println ["a", "b", 3, 4].remove_at(0) # prints: ["b", 3, 4]
+```
+
+### `reverse()`
+
+Reverse a list or a string.
+
+```ruby
+println "astral".reverse() # prints: lartsa
+```
+
+### `rotate(n)`
+
+Rotate the values of the list by a specified number of positions. 
+
+If `n` is negative, values are rotated left.
+
+```ruby
+println "abcd".chars().rotate(1)  # prints: ["d", "a", "b", "c"]
+println "abcd".chars().rotate(0)  # prints: ["a", "b", "c", "d"]
+println "abcd".chars().rotate(-1) # prints: ["b", "c", "d", "a"]
+```
+
+### `select(lambda)`
+
+Filter a list based on a condition.
+
+```ruby
+list = ["astral", "mango", "banana"]
+println list.select(lambda (item) do return item.contains("s") end)
+# prints: ["astral"]
+```
+
+### `shift()`
+
+Returns the first value of a list.
+
+```ruby
+list = [1, 2, 3]
+println list.shift() # prints: 1
+println list         # prints: [2, 3]
+```
+
+### `size()`
+
+Returns the size of a list or a string as an integer.
+
+```ruby
+string = "four"
+list = [1, 2, 3, true, false]
+
+println string.size()
+println list.size()
+```
+
+### `slice(start, end)`
+
+Get a subset of the list, specifying start and end indices.
+
+```ruby
+println [1, 2, 3].slice(1, 2) # prints: [2]
+println [1, 2, 3].slice(0, 3) # prints: [1, 2, 3]
+println [1, 2, 3].slice(0, 2) # prints: [1, 2]
+```
+
+### `sort()`
+
+Sorting a list.
+
+```ruby
+list = ["astral", "mango", "guava"]
+println list.sort() # prints: ["guava", "astral", "mango"]
+```
+
+### `sum()`
+
+Sum the numeric values in a list.
+
+```ruby
+list = [1, 2, 3]
+println list.sum() # prints: 6
 ```
 
 ### `to_bytes()`
 
-Converts a `String` or `List` value to a list of bytes.
+Converts a string or list value to a list of bytes.
 
 ```ruby
 println "astral".to_bytes()         # prints: [97, 115, 116, 114, 97, 108]
@@ -284,11 +513,59 @@ println "astral".chars().to_bytes() # prints: [97, 115, 116, 114, 97, 108]
 
 ### `to_hex()`
 
-Converts a `List` of `Integer` values to a hexadecimal string.
+Converts a list of integer values to a hexadecimal string.
 
 ```ruby
 println [97, 115, 116, 114, 97, 108].to_hex() # prints: 61737472616c
 println "astral".chars().to_bytes().to_hex()  # prints: 61737472616c
+```
+
+### `unique()`
+
+Remove duplicate values from the list.
+
+```ruby
+println "aaaabbcccc".chars().unique() # prints: ["a", "b", "c"]
+```
+
+### `unshift(value)`
+
+Inserts a value at the beginning of a list.
+
+```ruby
+list = [1, 2, 3]
+println list.unshift(0) # prints: [0, 1, 2, 3]
+println list            # prints: [0, 1, 2, 3]
+```
+
+### `zip(list)`
+
+Combine values from two lists into pairs.
+
+```ruby
+println [1, 2].zip([3, 4]) # prints: [[1, 3], [2, 4]]
+```
+
+## Conversion and Type Checking
+
+### `empty()`
+
+Returns true if the value contained is a default value.
+
+```ruby
+println (0).empty()    # prints: true
+println "".empty()     # prints: true
+println [].empty()     # prints: true
+println {}.empty()     # prints: true
+println false.empty()  # prints: true
+```
+
+### `is_a(type_name)`
+
+Used for type-checking.
+
+```ruby
+println "foobar".is_a(String) # prints: true
 ```
 
 ### `to_double()`
@@ -299,29 +576,6 @@ Converts a numeric value to a double.
 pi = "3.14159".to_double()
 tau = pi * 2
 println tau # 6.28318
-```
-
-### `to_int()`
-
-Converts a numeric value to an integer.
-
-```ruby
-n = "100".to_int()
-n += 0.5
-println n # 100.5
-
-n = n.to_int()
-println n # 100
-```
-
-### `to_string()`
-
-Converts a value to a string.
-
-```ruby
-n = 100
-s = [n, n.to_string()]
-println s  # prints: [100, "100"]
 ```
 
 ### `to_hash()`
@@ -350,225 +604,44 @@ json = "{
 println json.to_hash() # prints: {"boolean": true, "double": 3.14159, "integer": 100, "string": "Astral"}
 ```
 
-### `index(value)`
+### `to_int()`
 
-Returns the index of a string. Returns -1 if not found.
-
-```ruby
-println "foobar".index("bar")  # prints: 3
-println "foobar".index("astral")  # prints: -1
-```
-
-Returns the index of an item in a list. Returns -1 if not found.
+Converts a numeric value to an integer.
 
 ```ruby
-println [1, 2, 3, 4, 5].index(1)  # prints: 0
-println [1, 2, 3, 4, 5].index(6)  # prints: -1
+n = "100".to_int()
+n += 0.5
+println n # 100.5
+
+n = n.to_int()
+println n # 100
 ```
 
-### `lastindex(value)`
+### `to_string()`
 
-Returns the last index of a string. Returns -1 if not found.
+Converts a value to a string.
 
 ```ruby
-println "foobarbar".lastindex("bar")  # prints: 6
-println "foobar".lastindex("astral")  # prints: -1
+n = 100
+s = [n, n.to_string()]
+println s  # prints: [100, "100"]
 ```
 
-Returns the last index of an item in a list. Returns -1 if not found.
+### `type()`
+
+Returns the type of the value as a string.
+
+Valid types are: `Integer`, `Double`, `Boolean`, `String`, `List`, `Hash`, `Object`, `Lambda`.
+
+If the type is an object, `type()` will return the class name of the instance.
 
 ```ruby
-println [1, 0, 0, 1, 0, 1, 1].lastindex(1)  # prints 6
-println [1, 2, 3, 4, 5].lastindex(6)        # prints: -1
-```
+class MyClass
+  def initialize()
+  end
+end
 
-### `begins_with(str)`
-
-Returns true if the string begins with a given string.
-
-```ruby
-println "foobar".begins_with("foo")   # prints: true
-println "foobar".begins_with("food")  # prints: false
-```
-
-### `contains(str)`
-
-Returns true if the string contains a given string.
-
-```ruby
-println "foobar".contains("bar")   # prints: true
-println "foobar".contains("bark")  # prints: false
-```
-
-### `ends_with(str)`
-
-Returns true if the string ends with a given string.
-
-```ruby
-println "foobar".ends_with("bar")   # prints: true
-println "foobar".ends_with("bark")  # prints: false
-```
-
-### `upcase(str)`
-
-Returns the uppercase value of a string.
-
-```ruby
-println "foobar".upcase()   # prints: FOOBAR
-```
-
-### `downcase(str)`
-
-Returns the lowercase value of a string.
-
-```ruby
-println "FOOBAR".downcase()   # prints: foobar
-```
-
-### `pop()`
-
-Returns and removes a value from the end of a list.
-
-```
-list = [1, 2, 3]
-println list.pop() # prints: 3
-println list       # prints: [1, 2]
-```
-
-### `push(value)`
-
-Pushes a value onto a list.
-
-```
-list = [1, 2, 3]
-list.push(4)       # prints: [1, 2, 3, 4]
-```
-
-### `dequeue()`
-
-Removes and returns a value from the beginning of a list.
-
-```
-list = [1, 2, 3]
-println list.dequeue() # prints: 1
-println list           # prints: [2, 3]
-```
-
-### `enqueue(value)`
-
-Pushes a value onto a list.
-
-```
-list = [1, 2, 3]
-list.enqueue(4)        # prints: [1, 2, 3, 4]
-```
-
-### `replace(search, replacement)`
-
-Search for a string and replace with a given string.
-
-```ruby
-println "foobar".replace("foo", "food")   # prints: foodbar
-```
-
-### `is_a(type_name)`
-
-Used for type-checking.
-
-```ruby
-println "foobar".is_a(String) # prints: true
-```
-
-### `keys()`
-
-Returns a list of keys from a hash.
-
-```ruby
-hash = {
-  "key1": true, 
-  "key2": 1, 
-  "key3": ["a", "b", "c"]
-}
-
-println hash.keys() # prints: ["key1", "key2", "key3"]
-```
-
-### `min()`
-
-Get the lowest value in a list.
-
-```
-list = [1, 2, 3]
-println list.min() # prints: 1
-```
-
-### `max()`
-
-Get the highest value in a list.
-
-```
-list = [1, 2, 3]
-println list.max() # prints: 3
-```
-
-### `sum()`
-
-Sum the numeric values in a list.
-
-```
-list = [1, 2, 3]
-println list.sum() # prints: 6
-```
-
-### `sort()`
-
-Sorting a list.
-
-```
-list = ["astral", "mango", "guava"]
-println list.sort() # prints: ["guava", "astral", "mango"]
-```
-
-### `select(lambda)`
-
-Filter a list based on a condition.
-
-```ruby
-list = ["astral", "mango", "banana"]
-println list.select(lambda (item) do return item.contains("i") end)
-# prints: ["astral"]
-```
-
-### `map(lambda)`
-
-Transform a list based on a condition.
-
-```ruby
-list = ["kiwi", "mango", "banana"]
-println list.map(lambda (item) do return { "fruit": item, "is_a_kiwi": item.downcase() == "kiwi" } end)
-# prints: [{"fruit": "kiwi", "is_a_kiwi": true}, {"fruit": "mango", "is_a_kiwi": false}, {"fruit": "banana", "is_a_kiwi": false}]
-```
-
-### `reduce(accumulator, lambda)`
-
-```ruby
-numbers = [1, 2, 3, 4, 5]
-
-sum = numbers.reduce(0, lambda (accumulator, number) do
-    return accumulator + number
-end)
-
-println sum # prints: 15
-```
-
-```ruby
-numbers = [1, 2, 3, 4, 5]
-
-hash = numbers.reduce({}, lambda (accumulator, number) do
-    accumulator["key${number}"] = number
-    return accumulator
-end)
-
-println hash 
-# prints: {"key1": 1, "key2": 2, "key3": 3, "key4": 4, "key5": 5}
+instance = MyClass.new()
+println instance.type() # prints: MyClass
+println "Kiwis are delicious!".type() # prints: String
 ```

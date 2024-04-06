@@ -114,6 +114,12 @@ class CoreBuiltinHandler {
       case KName::Builtin_Astral_HasKey:
         return executeHasKey(term, value, args);
 
+      case KName::Builtin_Astral_Merge:
+        return executeMerge(term, value, args);
+
+      case KName::Builtin_Astral_Values:
+        return executeValues(term, value, args);
+
       case KName::Builtin_Astral_Push:
         return executePush(term, value, args);
 
@@ -518,6 +524,39 @@ class CoreBuiltinHandler {
     }
 
     return Serializer::get_hash_keys_list(std::get<k_hash>(value));
+  }
+
+  static k_value executeValues(const Token& term, const k_value& value,
+                             const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Values);
+    }
+
+    if (!std::holds_alternative<k_hash>(value)) {
+      throw InvalidOperationError(
+          term, "Attempted to retrieve values from non-Hash type.");
+    }
+
+    return Serializer::get_hash_values_list(std::get<k_hash>(value));
+  }
+
+  static k_value executeMerge(const Token& term, const k_value& value,
+                             const std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Merge);
+    }
+
+    if (!std::holds_alternative<k_hash>(value) || !std::holds_alternative<k_hash>(args.at(0))) {
+      throw InvalidOperationError(
+          term, "Attempted to merge a non-Hash type.");
+    }
+
+    auto hashValue = std::get<k_hash>(value);
+    auto mergeHash = std::get<k_hash>(args.at(0));
+
+    hashValue->merge(mergeHash);
+
+    return hashValue;
   }
 
   static k_value executeBeginsWith(const Token& term, const k_value& value,
