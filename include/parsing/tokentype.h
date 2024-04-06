@@ -91,6 +91,7 @@ enum KName {
   Builtin_Astral_RightTrim,
   Builtin_Astral_Size,
   Builtin_Astral_Split,
+  Builtin_Astral_Substring,
   Builtin_Astral_ToBytes,
   Builtin_Astral_ToHex,
   Builtin_Astral_ToD,
