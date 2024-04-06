@@ -52,16 +52,9 @@ If no arguments are supplied, Astral enters an interactive Read-Evaluate-Print L
   astral -m filename.🚀      # Creates ./filename.min.🚀
   ```
 
-- `-C`, `--config <conf_path>`: Allows you to specify a configuration file in `.conf` format to customize the Astral environment or project settings.
+- `-X<key>=<value>`: Sets a specific argument as a key-value pair, which can be used for various configuration purposes or to pass parameters into scripts.
 
   Example:
   ```
-  astral -C ./config/astral.conf
-  ```
-
-- `-X<key>:<value>`: Sets a specific argument as a key-value pair, which can be used for various configuration purposes or to pass parameters into scripts.
-
-  Example:
-  ```
-  astral -Xtheme:dark -Xoptimization:2
+  astral -Xtheme=dark -Xoptimization=2
   ```
