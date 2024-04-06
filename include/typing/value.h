@@ -102,6 +102,12 @@ struct Hash {
     auto newEnd = std::remove(keys.begin(), keys.end(), key);
     keys.erase(newEnd, keys.end());
   }
+
+  void merge(const k_hash& other) {
+    for (const auto& key : other->keys) {
+      add(key, other->kvp[key]);
+    }
+  }
 };
 
 struct Object {

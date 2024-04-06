@@ -484,6 +484,22 @@ class Lexer {
     return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
   }
 
+  Token parseEncoderBuiltin(const std::string& builtin) {
+    auto st = KName::Default;
+
+    if (builtin == EncoderBuiltins.Base64Decode) {
+      st = KName::Builtin_Encoder_Base64Decode;
+    } else if (builtin == EncoderBuiltins.Base64Encode) {
+      st = KName::Builtin_Encoder_Base64Encode;
+    } else if (builtin == EncoderBuiltins.UrlDecode) {
+      st = KName::Builtin_Encoder_UrlDecode;
+    } else if (builtin == EncoderBuiltins.UrlEncode) {
+      st = KName::Builtin_Encoder_UrlEncode;
+    }
+
+    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+  }
+
   Token parseEnvBuiltin(const std::string& builtin) {
     auto st = KName::Default;
 
@@ -843,6 +859,8 @@ class Lexer {
       return parseWebServerBuiltin(builtin);
     } else if (HttpBuiltins.is_builtin(builtin)) {
       return parseWebClientBuiltin(builtin);
+    } else if (EncoderBuiltins.is_builtin(builtin)) {
+      return parseEncoderBuiltin(builtin);
     }
 
     return Token::create(KTokenType::IDENTIFIER, KName::Default, fileId,
@@ -874,6 +892,10 @@ class Lexer {
       st = KName::Builtin_Astral_Join;
     } else if (builtin == AstralBuiltins.Keys) {
       st = KName::Builtin_Astral_Keys;
+    } else if (builtin == AstralBuiltins.Merge) {
+      st = KName::Builtin_Astral_Merge;
+    } else if (builtin == AstralBuiltins.Values) {
+      st = KName::Builtin_Astral_Values;
     } else if (builtin == AstralBuiltins.LastIndexOf) {
       st = KName::Builtin_Astral_LastIndexOf;
     } else if (builtin == AstralBuiltins.LeftTrim) {

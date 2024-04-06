@@ -23,7 +23,7 @@
 #include "util/file.h"
 #include "util/string.h"
 #include "globals.h"
-#include "interp_builtin.h"
+#include "builtin.h"
 #include "interp_helper.h"
 #include "stackframe.h"
 
@@ -1647,8 +1647,8 @@ class Interpreter {
     auto clazz = classes[object->className];
     if (!clazz.hasMethod(methodName)) {
       if (AstralBuiltins.is_builtin(op)) {
-        return BuiltinInterpreter::execute(stream->current(), op, object,
-                                           parameters);
+        return BuiltinDispatch::execute(stream->current(), op, object,
+                                        parameters);
       }
       throw UnimplementedMethodError(stream->current(), object->className,
                                      methodName);
@@ -2890,7 +2890,7 @@ class Interpreter {
     }
 
     frame->returnValue =
-        BuiltinInterpreter::execute(term, builtin, args, astralArgs);
+        BuiltinDispatch::execute(term, builtin, args, astralArgs);
     return frame->returnValue;
   }
 
@@ -3385,7 +3385,7 @@ class Interpreter {
           stream, frame, std::get<k_object>(value), callText, call, args);
     }
 
-    return BuiltinInterpreter::execute(term, call, value, args);
+    return BuiltinDispatch::execute(term, call, value, args);
   }
 
   k_value parseExpression(k_stream stream,
