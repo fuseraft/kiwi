@@ -63,7 +63,7 @@ class Interpreter {
     return result;
   }
 
-  k_string minify(const k_string& path) {
+  k_string minify(const k_string& path, bool output = false) {
     auto content = File::readFile(path);
     if (content.empty()) {
       return content;
@@ -85,29 +85,28 @@ class Interpreter {
         case KTokenType::LITERAL:
           if (addSpace) {
             builder << ' ';
-            std::cout << ' ';
           }
           builder << token.getText();
-          std::cout << token.getText();
           addSpace = true;
           break;
         case KTokenType::STRING:
           if (addSpace) {
             builder << ' ';
-            std::cout << ' ';
           }
           builder << '"' << token.getText() << '"';
-          std::cout << '"' << token.getText() << '"';
           addSpace = true;
           break;
         default:
           addSpace = false;
           builder << token.getText();
-          std::cout << token.getText();
           break;
       }
 
       stream->next();
+    }
+
+    if (output) {
+      std::cout << String::trim(builder.str()) << std::endl;
     }
 
     return builder.str();
