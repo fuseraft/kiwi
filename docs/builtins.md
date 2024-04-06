@@ -32,6 +32,7 @@ Currently, Astral supports the following builtins:
 - [`size()`](#size)
 - [`sort()`](#sort)
 - [`split(delim)`](#splitdelim)
+- [`substring(pos, length)`](#substringpos-length)
 - [`sum()`](#sum)
 - [`to_bytes()`](#to_bytes)
 - [`to_hex()`](#to_hex)
@@ -70,6 +71,15 @@ Joins a list into a string.
 
 ```ruby
 println ["Hello", "World!"].join(" ") # prints: "Hello, World!"
+```
+
+### `substring(pos, length)`
+
+Extract a substring from a string.
+
+```ruby
+println "hello".substring(1)    # prints: ello
+println "hello".substring(1, 2) # prints: el
 ```
 
 ### `split(delim)`
