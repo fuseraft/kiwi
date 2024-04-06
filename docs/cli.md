@@ -55,7 +55,7 @@ If no arguments are supplied, Astral enters an interactive Read-Evaluate-Print L
 - `-t`, `--tokenize <input_file_path>`: Tokenizes a file with the Astral lexer and prints the results to the standard output stream.
 
   ```
-  astral -m filename         # Creates ./filename.min.🚀
+  astral -t filename.🚀      # Prints tokens from the file in a minified way.
   ```
 
 - `-X<key>=<value>`: Sets a specific argument as a key-value pair, which can be used for various configuration purposes or to pass parameters into scripts.
