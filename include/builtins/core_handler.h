@@ -114,6 +114,24 @@ class CoreBuiltinHandler {
       case KName::Builtin_Astral_HasKey:
         return executeHasKey(term, value, args);
 
+      case KName::Builtin_Astral_Push:
+        return executePush(term, value, args);
+
+      case KName::Builtin_Astral_Pop:
+        return executePop(term, value, args);
+
+      case KName::Builtin_Astral_Enqueue:
+        return executeEnqueue(term, value, args);
+
+      case KName::Builtin_Astral_Dequeue:
+        return executeDequeue(term, value, args);
+
+      case KName::Builtin_Astral_Clear:
+        return executeClear(term, value, args);
+
+      case KName::Builtin_Astral_Substring:
+        return executeSubstring(term, value, args);
+
       default:
         break;
     }
@@ -174,7 +192,7 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw ConversionError(term, "Cannot join a non-list type.");
+      throw InvalidOperationError(term, "Cannot join a non-list type.");
     }
 
     auto list = std::get<k_list>(value);
@@ -210,7 +228,8 @@ class CoreBuiltinHandler {
       return static_cast<k_int>(std::get<k_hash>(value)->size());
     }
 
-    throw ConversionError(term);
+    throw InvalidOperationError(
+        term, "Invalid type for builtin `" + AstralBuiltins.Empty + "`.");
   }
 
   static k_value executeToHex(const Token& term, const k_value& value,
@@ -220,7 +239,7 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw ConversionError(
+      throw InvalidOperationError(
           term, "Expected a `List` value for byte to string conversion.");
     }
 
@@ -234,7 +253,7 @@ class CoreBuiltinHandler {
 
     for (const auto& item : elements) {
       if (!std::holds_alternative<k_int>(item)) {
-        throw ConversionError(
+        throw InvalidOperationError(
             term, "Expected an `Integer` value for byte to string conversion.");
       }
 
@@ -270,7 +289,7 @@ class CoreBuiltinHandler {
 
       for (const auto& item : listElements) {
         if (!std::holds_alternative<k_string>(item)) {
-          throw ConversionError(
+          throw InvalidOperationError(
               term, "Expected a `List` to contain only `String` values.");
         }
 
@@ -284,7 +303,7 @@ class CoreBuiltinHandler {
 
       return byteList;
     } else {
-      throw ConversionError(
+      throw InvalidOperationError(
           term, "Expected a `String` or `List` to convert to bytes.");
     }
   }
@@ -325,7 +344,7 @@ class CoreBuiltinHandler {
 
     if (std::holds_alternative<k_string>(value)) {
       k_string stringValue = std::get<k_string>(value);
-      int intValue = 0;
+      k_int intValue = 0;
       auto [ptr, ec] =
           std::from_chars(stringValue.data(),
                           stringValue.data() + stringValue.size(), intValue);
@@ -352,6 +371,28 @@ class CoreBuiltinHandler {
     }
 
     return Serializer::serialize(value);
+  }
+
+  static k_value executeSubstring(const Token& term, const k_value& value,
+                                  const std::vector<k_value>& args) {
+    if (args.size() != 1 && args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Substring);
+    }
+
+    if (!std::holds_alternative<k_string>(value)) {
+      throw InvalidOperationError(term, "Expected a `String` value for builtin `" +
+                  AstralBuiltins.Substring + "`.");
+    }
+
+    auto stringValue = get_string(term, value);
+    auto pos = static_cast<size_t>(get_integer(term, args.at(0)));
+    auto size = stringValue.size();
+
+    if (args.size() == 2) {
+      size = static_cast<size_t>(get_integer(term, args.at(1)));
+    }
+
+    return String::substring(stringValue, pos, size);
   }
 
   static k_value executeSplit(const Token& term, const k_value& value,
@@ -482,7 +523,7 @@ class CoreBuiltinHandler {
       return executeListContains(value, args.at(0));
     }
 
-    throw ConversionError(term, "Expected a `String` or `List` value.");
+    throw InvalidOperationError(term, "Expected a `String` or `List` value.");
   }
 
   static k_value executeEndsWith(const Token& term, const k_value& value,
@@ -568,9 +609,9 @@ class CoreBuiltinHandler {
       return list;
     }
 
-    throw ConversionError(term,
-                          "Expected a `String` or a `List` for builtin `" +
-                              AstralBuiltins.Reverse + "`.");
+    throw InvalidOperationError(
+        term, "Expected a `String` or a `List` for builtin `" +
+                  AstralBuiltins.Reverse + "`.");
   }
 
   static k_value executeIndexOf(const Token& term, const k_value& value,
@@ -586,9 +627,9 @@ class CoreBuiltinHandler {
       return indexof_listvalue(std::get<k_list>(value), args.at(0));
     }
 
-    throw ConversionError(term,
-                          "Expected a `String` or a `List` for builtin `" +
-                              AstralBuiltins.IndexOf + "`.");
+    throw InvalidOperationError(
+        term, "Expected a `String` or a `List` for builtin `" +
+                  AstralBuiltins.IndexOf + "`.");
   }
 
   static k_value executeLastIndexOf(const Token& term, const k_value& value,
@@ -604,9 +645,9 @@ class CoreBuiltinHandler {
       return lastindexof_listvalue(std::get<k_list>(value), args.at(0));
     }
 
-    throw ConversionError(term,
-                          "Expected a `String` or a `List` for builtin `" +
-                              AstralBuiltins.LastIndexOf + "`.");
+    throw InvalidOperationError(
+        term, "Expected a `String` or a `List` for builtin `" +
+                  AstralBuiltins.LastIndexOf + "`.");
   }
 
   static k_value executeUpcase(const Token& term, const k_value& value,
@@ -647,7 +688,101 @@ class CoreBuiltinHandler {
       return !std::get<bool>(value);
     }
 
-    throw ConversionError(
+    throw InvalidOperationError(
+        term, "Invalid type for builtin `" + AstralBuiltins.Empty + "`.");
+  }
+
+  static k_value executePush(const Token& term, const k_value& value,
+                             const std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Push);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(
+          term, "Expected a `List` for builtin `" + AstralBuiltins.Push + "`.");
+    }
+
+    std::get<k_list>(value)->elements.push_back(args.at(0));
+    return true;
+  }
+
+  static k_value executePop(const Token& term, const k_value& value,
+                            const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Pop);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(
+          term, "Expected a `List` for builtin `" + AstralBuiltins.Pop + "`.");
+    }
+
+    auto& elements = std::get<k_list>(value)->elements;
+
+    if (elements.empty()) {
+      return static_cast<k_int>(0);
+    }
+
+    auto _value = elements.back();
+    elements.pop_back();
+    return _value;
+  }
+
+  static k_value executeEnqueue(const Token& term, const k_value& value,
+                                const std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Enqueue);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+                                            AstralBuiltins.Enqueue + "`.");
+    }
+
+    std::get<k_list>(value)->elements.push_back(args.at(0));
+    return true;
+  }
+
+  static k_value executeDequeue(const Token& term, const k_value& value,
+                                const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Dequeue);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+                                            AstralBuiltins.Dequeue + "`.");
+    }
+
+    auto& elements = std::get<k_list>(value)->elements;
+
+    if (elements.empty()) {
+      return static_cast<k_int>(0);
+    }
+
+    auto _value = elements.front();
+    elements.erase(elements.begin());
+    return _value;
+  }
+
+  static k_value executeClear(const Token& term, const k_value& value,
+                              const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Clear);
+    }
+
+    if (std::holds_alternative<k_list>(value)) {
+      std::get<k_list>(value)->elements.clear();
+      return value;
+    } else if (std::holds_alternative<k_hash>(value)) {
+      auto hash = std::get<k_hash>(value);
+      hash->keys.clear();
+      hash->kvp.clear();
+      return hash;
+    }
+
+    throw InvalidOperationError(
         term, "Invalid type for builtin `" + AstralBuiltins.Empty + "`.");
   }
 };

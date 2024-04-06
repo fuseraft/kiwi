@@ -34,7 +34,7 @@ If no arguments are supplied, Astral enters an interactive Read-Evaluate-Print L
   # prints a random number between 0 and 100
   ```
 
-  Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.
+  Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.<br><br>
 
 - `-n`, `--new <file_path>`: Creates a new file with the `.🚀` extension. If you don't include the extension in `<file_path>`, it will be appended automatically.
 
@@ -44,18 +44,23 @@ If no arguments are supplied, Astral enters an interactive Read-Evaluate-Print L
   astral -n ./somedir/app    # Creates ./somedir/app.🚀 in the specified subdirectory
   ```
 
-  Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.
+  Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.<br><br>
 
-- `-C`, `--config <conf_path>`: Allows you to specify a configuration file in `.conf` format to customize the Astral environment or project settings.
+- `-m`, `--minify <input_file_path>`: Creates a minified file with the `.min.🚀` extension. If you don't include the extension in `<file_path>`, it will be appended automatically.
+
+  ```
+  astral -m filename         # Creates ./filename.min.🚀
+  ```
+
+- `-t`, `--tokenize <input_file_path>`: Tokenizes a file with the Astral lexer and prints the results to the standard output stream.
+
+  ```
+  astral -t filename.🚀      # Prints tokens from the file in a minified way.
+  ```
+
+- `-X<key>=<value>`: Sets a specific argument as a key-value pair, which can be used for various configuration purposes or to pass parameters into scripts.
 
   Example:
   ```
-  astral -C ./config/astral.conf
-  ```
-
-- `-X<key>:<value>`: Sets a specific argument as a key-value pair, which can be used for various configuration purposes or to pass parameters into scripts.
-
-  Example:
-  ```
-  astral -Xtheme:dark -Xoptimization:2
+  astral -Xtheme=dark -Xoptimization=2
   ```
