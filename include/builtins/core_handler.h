@@ -126,11 +126,47 @@ class CoreBuiltinHandler {
       case KName::Builtin_Astral_Dequeue:
         return executeDequeue(term, value, args);
 
+      case KName::Builtin_Astral_Shift:
+        return executeShift(term, value, args);
+
+      case KName::Builtin_Astral_Unshift:
+        return executeUnshift(term, value, args);
+
       case KName::Builtin_Astral_Clear:
         return executeClear(term, value, args);
 
       case KName::Builtin_Astral_Substring:
         return executeSubstring(term, value, args);
+
+      case KName::Builtin_Astral_Remove:
+        return executeRemove(term, value, args);
+
+      case KName::Builtin_Astral_RemoveAt:
+        return executeRemoveAt(term, value, args);
+
+      case KName::Builtin_Astral_Rotate:
+        return executeRotate(term, value, args);
+
+      case KName::Builtin_Astral_Insert:
+        return executeInsert(term, value, args);
+
+      case KName::Builtin_Astral_Slice:
+        return executeSlice(term, value, args);
+
+      case KName::Builtin_Astral_Concat:
+        return executeConcat(term, value, args);
+
+      case KName::Builtin_Astral_Unique:
+        return executeUnique(term, value, args);
+
+      case KName::Builtin_Astral_Count:
+        return executeCount(term, value, args);
+
+      case KName::Builtin_Astral_Flatten:
+        return executeFlatten(term, value, args);
+
+      case KName::Builtin_Astral_Zip:
+        return executeZip(term, value, args);
 
       default:
         break;
@@ -380,8 +416,9 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_string>(value)) {
-      throw InvalidOperationError(term, "Expected a `String` value for builtin `" +
-                  AstralBuiltins.Substring + "`.");
+      throw InvalidOperationError(term,
+                                  "Expected a `String` value for builtin `" +
+                                      AstralBuiltins.Substring + "`.");
     }
 
     auto stringValue = get_string(term, value);
@@ -764,6 +801,279 @@ class CoreBuiltinHandler {
     auto _value = elements.front();
     elements.erase(elements.begin());
     return _value;
+  }
+
+  static k_value executeShift(const Token& term, const k_value& value,
+                              const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Shift);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+                                            AstralBuiltins.Shift + "`.");
+    }
+
+    auto& elements = std::get<k_list>(value)->elements;
+
+    if (elements.empty()) {
+      return static_cast<k_int>(0);
+    }
+
+    auto _value = elements.front();
+    elements.erase(elements.begin());
+    return _value;
+  }
+
+  static k_value executeUnshift(const Token& term, const k_value& value,
+                                const std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Unshift);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+                                            AstralBuiltins.Unshift + "`.");
+    }
+
+    auto& elements = std::get<k_list>(value)->elements;
+    elements.insert(elements.begin(), args.at(0));
+    return value;
+  }
+
+  static k_value executeConcat(const Token& term, const k_value& value,
+                               const std::vector<k_value>& args) {
+    if (args.size() != 1 || !std::holds_alternative<k_list>(args.at(0))) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Concat);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+                                            AstralBuiltins.Concat + "`.");
+    }
+
+    auto& elements = std::get<k_list>(value)->elements;
+    const auto& concat = std::get<k_list>(args.at(0))->elements;
+    elements.insert(elements.end(), concat.begin(), concat.end());
+    return value;
+  }
+
+  static k_value executeInsert(const Token& term, const k_value& value,
+                               const std::vector<k_value>& args) {
+    if (args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Insert);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+                                            AstralBuiltins.Insert + "`.");
+    }
+
+    auto& elements = std::get<k_list>(value)->elements;
+    size_t index = get_integer(term, args.at(1));
+
+    if (index > elements.size()) {
+      throw InvalidOperationError(
+          term, "Index out of bounds for `insert` operation.");
+    }
+
+    elements.insert(elements.begin() + index, args.at(0));
+    return value;
+  }
+
+  static k_value executeRemove(const Token& term, const k_value& value,
+                               const std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Remove);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+                                            AstralBuiltins.Remove + "`.");
+    }
+
+    auto& elements = std::get<k_list>(value)->elements;
+    auto it = std::find(elements.begin(), elements.end(), args.at(0));
+
+    if (it != elements.end()) {
+      elements.erase(it);
+    }
+
+    return value;
+  }
+
+  static k_value executeRemoveAt(const Token& term, const k_value& value,
+                                 const std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.RemoveAt);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+                                            AstralBuiltins.RemoveAt + "`.");
+    }
+
+    auto& elements = std::get<k_list>(value)->elements;
+    size_t index = get_integer(term, args.at(0));
+
+    if (index >= elements.size()) {
+      throw InvalidOperationError(
+          term, "Index out of bounds for `removeAt` operation.");
+    }
+
+    elements.erase(elements.begin() + index);
+    return value;
+  }
+
+  static k_value executeRotate(const Token& term, const k_value& value,
+                               const std::vector<k_value>& args) {
+    if (args.size() != 1 || !std::holds_alternative<k_int>(args[0])) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Rotate);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+                                            AstralBuiltins.Rotate + "`.");
+    }
+
+    auto& elements = std::get<k_list>(value)->elements;
+    auto rotation = get_integer(term, args[0]);
+
+    if (elements.empty()) {
+      throw EmptyListError(term, "Cannot rotate an empty list.");
+    }
+
+    // Normalize the rotation
+    rotation %= static_cast<int>(elements.size());
+    if (rotation < 0) {
+      rotation +=
+          elements
+              .size();  // Convert negative rotation to equivalent positive rotation
+    }
+
+    // Calculate the equivalent left rotation since std::rotate performs left rotation
+    rotation = elements.size() - rotation;
+
+    // Perform the rotation
+    std::rotate(elements.begin(), elements.begin() + rotation, elements.end());
+    return value;
+  }
+
+  static k_value executeUnique(const Token& term, const k_value& value,
+                               const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Unique);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+                                            AstralBuiltins.Unique + "`.");
+    }
+
+    auto& elements = std::get<k_list>(value)->elements;
+    std::unordered_set<k_value> seen;
+    auto newEnd = std::remove_if(
+        elements.begin(), elements.end(),
+        [&seen](const k_value& item) { return !seen.insert(item).second; });
+    elements.erase(newEnd, elements.end());
+    return value;
+  }
+
+  static k_value executeCount(const Token& term, const k_value& value,
+                              const std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Count);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+                                            AstralBuiltins.Count + "`.");
+    }
+
+    const auto& elements = std::get<k_list>(value)->elements;
+    return std::count(elements.begin(), elements.end(), args.at(0));
+  }
+
+  static k_value executeFlatten(const Token& term, const k_value& value,
+                                const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Flatten);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+                                            AstralBuiltins.Flatten + "`.");
+    }
+
+    auto flattened = std::make_shared<List>();
+    std::function<void(const k_value&)> flattenElement;
+    flattenElement = [&flattened, &flattenElement](const k_value& element) {
+      if (std::holds_alternative<k_list>(element)) {
+        for (const auto& subElement : std::get<k_list>(element)->elements) {
+          flattenElement(subElement);
+        }
+      } else {
+        flattened->elements.push_back(element);
+      }
+    };
+
+    const auto& elements = std::get<k_list>(value)->elements;
+    for (const auto& element : elements) {
+      flattenElement(element);
+    }
+    return flattened;
+  }
+
+  static k_value executeZip(const Token& term, const k_value& value,
+                            const std::vector<k_value>& args) {
+    if (args.size() != 1 || !std::holds_alternative<k_list>(args.at(0))) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Zip);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(
+          term, "Expected a `List` for builtin `" + AstralBuiltins.Zip + "`.");
+    }
+
+    const auto& elements1 = std::get<k_list>(value)->elements;
+    const auto& elements2 = std::get<k_list>(args.at(0))->elements;
+    auto zipped = std::make_shared<List>();
+
+    for (size_t i = 0; i < std::min(elements1.size(), elements2.size()); ++i) {
+      auto pair = std::make_shared<List>();
+      pair->elements.push_back(elements1.at(i));
+      pair->elements.push_back(elements2.at(i));
+      zipped->elements.push_back(pair);
+    }
+
+    return zipped;
+  }
+
+  static k_value executeSlice(const Token& term, const k_value& value,
+                              const std::vector<k_value>& args) {
+    if (args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Slice);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+                                            AstralBuiltins.Slice + "`.");
+    }
+
+    auto& elements = std::get<k_list>(value)->elements;
+    auto start = static_cast<size_t>(get_integer(term, args.at(0)));
+    auto end = static_cast<size_t>(get_integer(term, args.at(1)));
+
+    if (start > end || end > elements.size()) {
+      throw InvalidOperationError(
+          term, "Invalid start or end index for `slice` operation.");
+    }
+
+    auto slicedList = std::make_shared<List>();
+    auto& slice = slicedList->elements;
+    slice.insert(slice.begin(), elements.begin() + start,
+                 elements.begin() + end);
+    return slicedList;
   }
 
   static k_value executeClear(const Token& term, const k_value& value,

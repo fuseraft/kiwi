@@ -233,43 +233,47 @@ struct {
   const k_string Pow = "__pow__";
   const k_string Epsilon = "__eps__";
   const k_string Random = "__random__";
+  const k_string RotateLeft = "__rotl__";
+  const k_string RotateRight = "__rotr__";
   const k_string Divisors = "__divisors__";
   const k_string ListPrimes = "__listprimes__";
   const k_string NthPrime = "__nthprime__";
 
   std::unordered_set<k_string> builtins = {
-      Sin,        Tan,      Asin,     Acos,      Atan,   Atan2,    Sinh,
-      Cosh,       Tanh,     Cos,      Log,       Log2,   Log10,    Log1P,
-      Fmod,       Hypot,    IsFinite, IsInf,     IsNaN,  IsNormal, Sqrt,
-      Cbrt,       Abs,      Floor,    Ceil,      Round,  Trunc,    Remainder,
-      Exp,        ExpM1,    Erf,      ErfC,      LGamma, TGamma,   FMax,
-      FMin,       FDim,     CopySign, NextAfter, Pow,    Epsilon,  Random,
-      ListPrimes, NthPrime, Divisors};
+      Sin,        Tan,      Asin,      Acos,       Atan,       Atan2,
+      Sinh,       Cosh,     Tanh,      Cos,        Log,        Log2,
+      Log10,      Log1P,    Fmod,      Hypot,      IsFinite,   IsInf,
+      IsNaN,      IsNormal, Sqrt,      Cbrt,       Abs,        Floor,
+      Ceil,       Round,    Trunc,     Remainder,  Exp,        ExpM1,
+      Erf,        ErfC,     LGamma,    TGamma,     FMax,       FMin,
+      FDim,       CopySign, NextAfter, Pow,        Epsilon,    Random,
+      ListPrimes, NthPrime, Divisors,  RotateLeft, RotateRight};
 
   std::unordered_set<KName> st_builtins = {
-      KName::Builtin_Math_Abs,       KName::Builtin_Math_Acos,
-      KName::Builtin_Math_Asin,      KName::Builtin_Math_Atan,
-      KName::Builtin_Math_Atan2,     KName::Builtin_Math_Cbrt,
-      KName::Builtin_Math_Ceil,      KName::Builtin_Math_CopySign,
-      KName::Builtin_Math_Cos,       KName::Builtin_Math_Cosh,
-      KName::Builtin_Math_Divisors,  KName::Builtin_Math_Epsilon,
-      KName::Builtin_Math_Erf,       KName::Builtin_Math_ErfC,
-      KName::Builtin_Math_Exp,       KName::Builtin_Math_ExpM1,
-      KName::Builtin_Math_FDim,      KName::Builtin_Math_Floor,
-      KName::Builtin_Math_FMax,      KName::Builtin_Math_FMin,
-      KName::Builtin_Math_Fmod,      KName::Builtin_Math_Hypot,
-      KName::Builtin_Math_IsFinite,  KName::Builtin_Math_IsInf,
-      KName::Builtin_Math_IsNaN,     KName::Builtin_Math_IsNormal,
-      KName::Builtin_Math_LGamma,    KName::Builtin_Math_Log,
-      KName::Builtin_Math_Log10,     KName::Builtin_Math_Log1P,
-      KName::Builtin_Math_Log2,      KName::Builtin_Math_NextAfter,
-      KName::Builtin_Math_Pow,       KName::Builtin_Math_Random,
-      KName::Builtin_Math_Remainder, KName::Builtin_Math_Round,
-      KName::Builtin_Math_Sin,       KName::Builtin_Math_Sinh,
-      KName::Builtin_Math_Sqrt,      KName::Builtin_Math_Tan,
-      KName::Builtin_Math_Tanh,      KName::Builtin_Math_TGamma,
-      KName::Builtin_Math_Trunc,     KName::Builtin_Math_ListPrimes,
-      KName::Builtin_Math_NthPrime};
+      KName::Builtin_Math_Abs,        KName::Builtin_Math_Acos,
+      KName::Builtin_Math_Asin,       KName::Builtin_Math_Atan,
+      KName::Builtin_Math_Atan2,      KName::Builtin_Math_Cbrt,
+      KName::Builtin_Math_Ceil,       KName::Builtin_Math_CopySign,
+      KName::Builtin_Math_Cos,        KName::Builtin_Math_Cosh,
+      KName::Builtin_Math_Divisors,   KName::Builtin_Math_Epsilon,
+      KName::Builtin_Math_Erf,        KName::Builtin_Math_ErfC,
+      KName::Builtin_Math_Exp,        KName::Builtin_Math_ExpM1,
+      KName::Builtin_Math_FDim,       KName::Builtin_Math_Floor,
+      KName::Builtin_Math_FMax,       KName::Builtin_Math_FMin,
+      KName::Builtin_Math_Fmod,       KName::Builtin_Math_Hypot,
+      KName::Builtin_Math_IsFinite,   KName::Builtin_Math_IsInf,
+      KName::Builtin_Math_IsNaN,      KName::Builtin_Math_IsNormal,
+      KName::Builtin_Math_LGamma,     KName::Builtin_Math_Log,
+      KName::Builtin_Math_Log10,      KName::Builtin_Math_Log1P,
+      KName::Builtin_Math_Log2,       KName::Builtin_Math_NextAfter,
+      KName::Builtin_Math_Pow,        KName::Builtin_Math_Random,
+      KName::Builtin_Math_Remainder,  KName::Builtin_Math_Round,
+      KName::Builtin_Math_Sin,        KName::Builtin_Math_Sinh,
+      KName::Builtin_Math_Sqrt,       KName::Builtin_Math_Tan,
+      KName::Builtin_Math_Tanh,       KName::Builtin_Math_TGamma,
+      KName::Builtin_Math_Trunc,      KName::Builtin_Math_ListPrimes,
+      KName::Builtin_Math_NthPrime,   KName::Builtin_Math_RotateLeft,
+      KName::Builtin_Math_RotateRight};
 
   bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
@@ -531,14 +535,29 @@ struct {
   const k_string Pop = "pop";
   const k_string Enqueue = "enqueue";
   const k_string Dequeue = "dequeue";
+  const k_string Shift = "shift";
+  const k_string Unshift = "unshift";
   const k_string Clear = "clear";
+  const k_string Remove = "remove";
+  const k_string RemoveAt = "remove_at";
+  const k_string Rotate = "rotate";
+  const k_string Insert = "insert";
+  const k_string Slice = "slice";
+  const k_string Concat = "concat";
+  const k_string Unique = "unique";
+  const k_string Count = "count";
+  const k_string Flatten = "flatten";
+  const k_string Zip = "zip";
 
   std::unordered_set<k_string> builtins = {
-      Chars,    Empty,     IsA,         Join,    Size,     ToBytes,  ToHex,
-      ToD,      ToI,       ToS,         Replace, Reverse,  Contains, BeginsWith,
-      EndsWith, IndexOf,   LastIndexOf, Upcase,  Downcase, Keys,     Split,
-      LeftTrim, RightTrim, Trim,        Type,    HasKey,   Members,  Push,
-      Pop,      Enqueue,   Dequeue,     Clear, Substring};
+      Chars,    Empty,      IsA,       Join,     Size,        ToBytes,
+      ToHex,    ToD,        ToI,       ToS,      Replace,     Reverse,
+      Contains, BeginsWith, EndsWith,  IndexOf,  LastIndexOf, Upcase,
+      Downcase, Keys,       Split,     LeftTrim, RightTrim,   Trim,
+      Type,     HasKey,     Members,   Push,     Pop,         Enqueue,
+      Dequeue,  Clear,      Substring, Shift,    Unshift,     Remove,
+      RemoveAt, Rotate,     Insert,    Slice,    Concat,      Unique,
+      Count,    Flatten,    Zip};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Astral_BeginsWith,  KName::Builtin_Astral_BeginsWith,
@@ -557,6 +576,12 @@ struct {
       KName::Builtin_Astral_Upcase,      KName::Builtin_Astral_Members,
       KName::Builtin_Astral_Push,        KName::Builtin_Astral_Pop,
       KName::Builtin_Astral_Enqueue,     KName::Builtin_Astral_Dequeue,
+      KName::Builtin_Astral_Shift,       KName::Builtin_Astral_Unshift,
+      KName::Builtin_Astral_Remove,      KName::Builtin_Astral_RemoveAt,
+      KName::Builtin_Astral_Rotate,      KName::Builtin_Astral_Insert,
+      KName::Builtin_Astral_Slice,       KName::Builtin_Astral_Concat,
+      KName::Builtin_Astral_Unique,      KName::Builtin_Astral_Count,
+      KName::Builtin_Astral_Flatten,     KName::Builtin_Astral_Zip,
       KName::Builtin_Astral_Clear,       KName::Builtin_Astral_Substring};
 
   bool is_builtin(const k_string& arg) {
