@@ -10,6 +10,7 @@ The Astral Standard Library is a set of modules that enable easier systems progr
 | [`@astral/fs`](lib/fs.md) | A module for working with the filesystem. |
 | [`@astral/log`](lib/log.md) | A module for working with the Astral logger. |
 | [`@astral/math`](lib/math.md) | A module of useful math functions. |
+| [`@astral/string`](lib/string.md) | A module of specialized string functions. |
 | [`@astral/sys`](lib/sys.md) | A module for working with the OS shell. |
 | [`@astral/time`](lib/time.md) | A module with useful date and time functions. |
 | [`@astral/http`](lib/http.md) | A module for making HTTP requests. |
