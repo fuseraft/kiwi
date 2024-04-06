@@ -1,2 +1,4 @@
 #!/usr/bin/astral
 /# This 🚀 script is for experimentation. #/
+
+println [1, 2, 3].insert("a", 5)

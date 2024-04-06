@@ -659,6 +659,10 @@ class Lexer {
       st = KName::Builtin_Math_Remainder;
     } else if (builtin == MathBuiltins.Round) {
       st = KName::Builtin_Math_Round;
+    } else if (builtin == MathBuiltins.RotateLeft) {
+      st = KName::Builtin_Math_RotateLeft;
+    } else if (builtin == MathBuiltins.RotateRight) {
+      st = KName::Builtin_Math_RotateRight;
     } else if (builtin == MathBuiltins.Sin) {
       st = KName::Builtin_Math_Sin;
     } else if (builtin == MathBuiltins.Sinh) {
@@ -916,6 +920,26 @@ class Lexer {
       st = KName::Builtin_Astral_Shift;
     } else if (builtin == AstralBuiltins.Unshift) {
       st = KName::Builtin_Astral_Unshift;
+    } else if (builtin == AstralBuiltins.Remove) {
+      st = KName::Builtin_Astral_Remove;
+    } else if (builtin == AstralBuiltins.RemoveAt) {
+      st = KName::Builtin_Astral_RemoveAt;
+    } else if (builtin == AstralBuiltins.Rotate) {
+      st = KName::Builtin_Astral_Rotate;
+    } else if (builtin == AstralBuiltins.Insert) {
+      st = KName::Builtin_Astral_Insert;
+    } else if (builtin == AstralBuiltins.Slice) {
+      st = KName::Builtin_Astral_Slice;
+    } else if (builtin == AstralBuiltins.Concat) {
+      st = KName::Builtin_Astral_Concat;
+    } else if (builtin == AstralBuiltins.Unique) {
+      st = KName::Builtin_Astral_Unique;
+    } else if (builtin == AstralBuiltins.Count) {
+      st = KName::Builtin_Astral_Count;
+    } else if (builtin == AstralBuiltins.Flatten) {
+      st = KName::Builtin_Astral_Flatten;
+    } else if (builtin == AstralBuiltins.Zip) {
+      st = KName::Builtin_Astral_Zip;
     } else if (builtin == AstralBuiltins.Clear) {
       st = KName::Builtin_Astral_Clear;
     } else if (builtin == ListBuiltins.Map) {
