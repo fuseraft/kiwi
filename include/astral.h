@@ -223,7 +223,7 @@ int Astral::printHelp() {
       {"-m, --minify <input_file_path>", "create a `.min.🚀` file"},
       {"-t, --tokenize <input_file_path>",
        "tokenize a file with the astral lexer"},
-      {"-X<key>:<value>", "specify an argument as a key-value pair"}};
+      {"-X<key>=<value>", "specify an argument as a key-value pair"}};
 
 #ifdef _WIN64
   commands = {
@@ -233,7 +233,7 @@ int Astral::printHelp() {
       {"-n, --new <filename>", "create a `.astral` file"},
       {"-m, --minify <input_file_path>", "create a `.min.astral` file"},
       {"-t, --tokenize <input_file_path>", "tokenize a file as astral code"},
-      {"-X<key>:<value>", "specify an argument as a key-value pair"}};
+      {"-X<key>=<value>", "specify an argument as a key-value pair"}};
 #endif
 
   printVersion();
