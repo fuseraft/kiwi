@@ -11,11 +11,18 @@ The `string` module contains specialized functions for strings.
   - [`center(_input, _size, _padding = " ")`](#center_input-_size-_padding)
   - [`echo(_input, _count)`](#echo_input-_count)
   - [`interweave(_input1, _input2)`](#interweave_input1-_input2)
+  - [`isalpha(_input)`](#isalpha_input)
+  - [`isalphanumeric(_input)`](#isalphanumeric_input)
+  - [`isnumeric(_input)`](#isnumeric_input)
+  - [`islower(_input)`](#islower_input)
+  - [`isupper(_input)`](#isupper_input)
   - [`mirror(_input, _delimiter = "")`](#mirror_input-_delimiter)
   - [`padstart(_input, _size, _padding = " ")`](#padstart_input-_size-_padding)
   - [`padend(_input, _size, _padding = " ")`](#padend_input-_size-_padding)
   - [`shuffle(_input)`](#shuffle_input)
   - [`slug(_input)`](#slug_input)
+  - [`tolower(_input)`](#tolower_input)
+  - [`toupper(_input)`](#toupper_input)
   - [`urldecode(_input)`](#urldecode_input)
   - [`urlencode(_input)`](#urlencode_input)
 
@@ -101,6 +108,76 @@ Repeats each character in the string a specified number of times.
 | :--- | :---|
 | `String` | The interwoven string. |
 
+### `isalpha(_input)`
+
+Checks if the string consists only of alphabetic characters.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_input` | The input string. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Returns `true` if the string is alphabetic, otherwise `false`. |
+
+### `isalphanumeric(_input)`
+
+Checks if the string consists only of alphanumeric characters
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_input` | The input string. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Returns `true` if the string is alphanumeric, otherwise `false`. |
+
+### `islower(_input)`
+
+Checks if the string is entirely in lowercase.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_input` | The input string. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Returns `true` if the string is all lowercase, otherwise `false`. |
+
+### `isnumeric(_input)`
+
+Checks if the string consists only of numeric characters.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_input` | The input string. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Returns `true` if the string is numeric, otherwise `false`. |
+
+### `isupper(_input)`
+
+Checks if the string is entirely in uppercase.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_input` | The input string. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | Returns `true` if the string is all uppercase, otherwise `false`. |
+
 ### `mirror(_input, _delimiter = "")`
 
 Creates a mirrored version of the input string.
@@ -175,6 +252,34 @@ Generates a URL-friendly slug from a string.
 | Type | Description |
 | :--- | :---|
 | `String` | The generated slug. |
+
+### `tolower(_input)`
+
+Converts all characters in the string to lowercase.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_input` | The input string. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `String` | The string converted to lowercase. |
+
+### `toupper(_input)`
+
+Converts all characters in the string to uppercase.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_input` | The input string. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `String` | The string converted to uppercase. |
 
 ### `urldecode(_input)`
 

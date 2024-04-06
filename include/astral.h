@@ -63,7 +63,7 @@ int Astral::run(std::vector<std::string>& v) {
   Interpreter interp;
   Host host(interp);
 
-  // v.push_back("/home/scs/astral/play.🚀");
+  //v.push_back("/home/scs/astral/play.🚀");
 
   size_t size = v.size();
 

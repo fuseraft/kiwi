@@ -404,6 +404,10 @@ class Interpreter {
       subFrame->setFlag(FrameFlags::InTry);
     }
 
+    if (frame->isFlagSet(FrameFlags::SubFrame)) {
+      subFrame->setFlag(FrameFlags::SubFrame);
+    }
+
     return subFrame;
   }
 
@@ -487,6 +491,8 @@ class Interpreter {
           frame->clearFlag(FrameFlags::LoopContinue);
           continue;
         }
+      } else if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+        break;
       }
 
       frameVariables[indexVariableName] = key;
@@ -498,6 +504,7 @@ class Interpreter {
       streamStack.push(std::make_shared<TokenStream>(loopTokens));
 
       interpretStackFrame();
+      frame = callStack.top();
     }
   }
 
@@ -520,6 +527,8 @@ class Interpreter {
           frame->clearFlag(FrameFlags::LoopContinue);
           continue;
         }
+      } else if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+        break;
       }
 
       frameVariables[itemVariableName] = item;
@@ -531,6 +540,7 @@ class Interpreter {
       streamStack.push(std::make_shared<TokenStream>(loopTokens));
 
       interpretStackFrame();
+      frame = callStack.top();
 
       index++;
     }
@@ -619,6 +629,8 @@ class Interpreter {
           frame->clearFlag(FrameFlags::LoopContinue);
           continue;
         }
+      } else if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+        break;
       }
 
       auto conditionFrame = buildSubFrame(frame);
