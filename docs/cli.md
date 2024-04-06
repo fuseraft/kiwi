@@ -34,7 +34,7 @@ If no arguments are supplied, Astral enters an interactive Read-Evaluate-Print L
   # prints a random number between 0 and 100
   ```
 
-  Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.
+  Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.<br><br>
 
 - `-n`, `--new <file_path>`: Creates a new file with the `.🚀` extension. If you don't include the extension in `<file_path>`, it will be appended automatically.
 
@@ -44,7 +44,13 @@ If no arguments are supplied, Astral enters an interactive Read-Evaluate-Print L
   astral -n ./somedir/app    # Creates ./somedir/app.🚀 in the specified subdirectory
   ```
 
-  Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.
+  Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.<br><br>
+
+- `-m`, `--minify <input_file_path>`: Creates a minified file with the `.min.🚀` extension.
+
+  ```
+  astral -m filename.🚀      # Creates ./filename.min.🚀
+  ```
 
 - `-C`, `--config <conf_path>`: Allows you to specify a configuration file in `.conf` format to customize the Astral environment or project settings.
 
