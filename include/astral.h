@@ -106,7 +106,12 @@ int Astral::run(std::vector<std::string>& v) {
       } else if (String::isOptionKVP(v.at(i))) {
         help = !Astral::processOption(v.at(i), host);
       } else {
-        host.registerArg("argv_" + RNG::getInstance().random16(), v.at(i));
+        auto extensionless = File::tryGetExtensionless(v.at(i));
+        if (!extensionless.empty()) {
+          host.registerScript(extensionless);
+        } else {
+          host.registerArg("argv_" + RNG::getInstance().random16(), v.at(i));
+        }
       }
     }
 
@@ -126,7 +131,7 @@ bool Astral::parse(Host& host, const std::string& content) {
 
 bool Astral::createMinified(Host& host, const std::string& path) {
   const std::string DefaultExtension = ".min.🚀";
-  
+
   auto filePath = path;
   auto minFileExtension = DefaultExtension;
 #ifdef _WIN64

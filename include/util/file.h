@@ -60,6 +60,7 @@ class File {
   // File type checks
   static bool isSymLink(const k_string& path);
   static bool isScript(const k_string& path);
+  static k_string tryGetExtensionless(const k_string& path);
 
   // Directory and path utilities
   static k_string getTempDirectory();
@@ -380,15 +381,37 @@ k_string File::getParentPath(const k_string& path) {
 /// @param path The path.
 /// @return Boolean indicating success.
 bool File::isScript(const k_string& path) {
-  bool _isScript = false;
+  k_string extension = ".🚀";
 #ifdef _WIN64
-  _isScript = String::endsWith(path, ".astral") && File::fileExists(path);
-#else
-  _isScript =
-      (String::endsWith(path, "🚀") || String::endsWith(path, ".astral")) &&
-      File::fileExists(path);
+  extension = ".astral";
 #endif
-  return _isScript;
+  return (String::endsWith(path, extension) ||
+          String::endsWith(path, ".astral")) &&
+         File::fileExists(path);
+}
+
+/// @brief Check if a path is a astral script.
+/// @param path The path.
+/// @return Boolean indicating success.
+k_string File::tryGetExtensionless(const k_string& path) {
+  k_string minExtension = ".min.🚀";
+  k_string extension = ".🚀";
+#ifdef _WIN64
+  minExtension = ".min.astral";
+  extension = ".astral";
+#endif
+
+  k_string scriptPath = path + minExtension;
+  if (File::fileExists(scriptPath)) {
+    return scriptPath;
+  }
+
+  scriptPath = path + extension;
+  if (File::fileExists(scriptPath)) {
+    return scriptPath;
+  }
+
+  return "";
 }
 
 /// @brief Checks if a path is a symlink.
