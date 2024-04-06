@@ -1,6 +1,7 @@
 #ifndef ASTRAL_MATH_FUNCTIONS_H
 #define ASTRAL_MATH_FUNCTIONS_H
 
+#include <climits>
 #include <cmath>
 #include <limits>
 #include <memory>
@@ -565,6 +566,46 @@ struct {
   k_value __pow__(const Token& token, const k_value& valueX,
                   const k_value& valueY) {
     return pow(get_double(token, valueX), get_double(token, valueY));
+  }
+
+  k_value __rotr__(k_int value, k_int shift) {
+    if (shift == 0) {
+      return value;
+    }
+
+    auto unsignedValue = static_cast<unsigned long long>(value);
+    const int bits = sizeof(unsignedValue) * CHAR_BIT;
+
+    shift %= bits;
+
+    if (shift < 0) {
+      shift += bits;
+    }
+
+    unsigned long long result =
+        (unsignedValue >> shift) | (unsignedValue << (bits - shift));
+
+    return static_cast<k_int>(result);
+  }
+
+  k_value __rotl__(k_int value, k_int shift) {
+    if (shift == 0) {
+      return value;
+    }
+
+    unsigned long long unsignedValue = static_cast<unsigned long long>(value);
+    const int bits = sizeof(unsignedValue) * CHAR_BIT;
+
+    shift %= bits;
+
+    if (shift < 0) {
+      shift += bits;
+    }
+
+    unsigned long long result =
+        (unsignedValue << shift) | (unsignedValue >> (bits - shift));
+
+    return static_cast<k_int>(result);
   }
 
   k_value __abs__(const Token& token, const k_value& value) {

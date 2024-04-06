@@ -97,6 +97,12 @@ class MathBuiltinHandler {
       case KName::Builtin_Math_Remainder:
         return executeRemainder(term, args);
 
+      case KName::Builtin_Math_RotateLeft:
+        return executeRotateLeft(term, args);
+
+      case KName::Builtin_Math_RotateRight:
+        return executeRotateRight(term, args);
+
       case KName::Builtin_Math_Exp:
         return executeExp(term, args);
 
@@ -218,6 +224,7 @@ class MathBuiltinHandler {
 
     return MathImpl.__atan2__(term, args.at(0), args.at(1));
   }
+
   static k_value executeSinh(const Token& term,
                              const std::vector<k_value>& args) {
     if (args.size() != 1) {
@@ -396,6 +403,30 @@ class MathBuiltinHandler {
     }
 
     return MathImpl.__round__(term, args.at(0));
+  }
+
+  static k_value executeRotateLeft(const Token& term,
+                                   const std::vector<k_value>& args) {
+    if (args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.RotateLeft);
+    }
+
+    auto number = get_integer(term, args.at(0));
+    auto shift = get_integer(term, args.at(1));
+
+    return MathImpl.__rotl__(number, shift);
+  }
+
+  static k_value executeRotateRight(const Token& term,
+                                    const std::vector<k_value>& args) {
+    if (args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.RotateRight);
+    }
+
+    auto number = get_integer(term, args.at(0));
+    auto shift = get_integer(term, args.at(1));
+
+    return MathImpl.__rotr__(number, shift);
   }
 
   static k_value executeRemainder(const Token& term,
