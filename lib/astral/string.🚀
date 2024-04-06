@@ -167,6 +167,96 @@ module string
 
     return _slug
   end
+
+  /#
+  @summary Checks if the string consists only of numeric characters.
+  @param   String  _input : The input string.
+  @return  Boolean        : True if the string is numeric, otherwise false.
+  #/
+  def isnumeric(_input)
+    for char in _input.chars() do
+      if !(char >= "0" && char <= "9")
+        return false
+      end
+    end
+    return true
+  end
+
+  /#
+  @summary Checks if the string consists only of alphabetic characters.
+  @param   String  _input : The input string.
+  @return  Boolean        : True if the string is alphabetic, otherwise false.
+  #/
+  def isalpha(_input)
+    for char in _input.chars() do
+      if !((char >= "a" && char <= "z") || (char >= "A" && char <= "Z"))
+        return false
+      end
+    end
+    return true
+  end
+
+  /#
+  @summary Checks if the string consists only of alphanumeric characters.
+  @param   String  _input : The input string.
+  @return  Boolean        : True if the string is alphanumeric, otherwise false.
+  #/
+  def isalphanumeric(_input)
+    for char in _input.chars() do
+      if !(char >= "0" && char <= "9" || (char >= "a" && char <= "z") || (char >= "A" && char <= "Z"))
+        return false
+      end
+    end
+    return true
+  end
+
+  /#
+  @summary Checks if the string is entirely in uppercase.
+  @param   String  _input   : The input string.
+  @return  Boolean          : True if the string is all uppercase, false otherwise.
+  #/
+  def isupper(_input)
+    for char in _input.chars() do
+      # If any character is lowercase, return false
+      if char >= "a" && char <= "z"
+        return false
+      end
+    end
+    return true
+  end
+
+  /#
+  @summary Checks if the string is entirely in lowercase.
+  @param   String  _input   : The input string.
+  @return  Boolean          : True if the string is all lowercase, false otherwise.
+  #/
+  def islower(_input)
+    for char in _input.chars() do
+      # If any character is uppercase, return false
+      if char >= "A" && char <= "Z"
+        return false
+      end
+    end
+    return true
+  end
+
+  /#
+  @summary Converts all characters in the string to uppercase.
+  @param   String  _input   : The input string.
+  @return  String           : The string converted to uppercase.
+  #/
+  def toupper(_input)
+    return _input.upcase()
+  end
+
+  /#
+  @summary Converts all characters in the string to lowercase.
+  @param   String  _input   : The input string.
+  @return  String           : The string converted to lowercase.
+  #/
+  def tolower(_input)
+    return _input.downcase()
+  end
 end
 
 export "string"
