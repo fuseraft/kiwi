@@ -30,15 +30,15 @@ format:
 
 test: $(EXECUTABLE)
 	@echo "================================"
-	$(EXECUTABLE) ./test.🚀
+	$(EXECUTABLE) test
 
 play: $(EXECUTABLE)
 	@echo "================================"
-	$(EXECUTABLE) ./play.🚀
+	$(EXECUTABLE) play
 
 install: $(EXECUTABLE)
 	@echo "================================"
-	./$(EXECUTABLE) ./install.🚀
+	./$(EXECUTABLE) install
 
 experimental: CXXFLAGS += -DEXPERIMENTAL_FEATURES
 experimental: LDFLAGS := -lodbc
