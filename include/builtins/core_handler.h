@@ -126,6 +126,12 @@ class CoreBuiltinHandler {
       case KName::Builtin_Astral_Dequeue:
         return executeDequeue(term, value, args);
 
+      case KName::Builtin_Astral_Shift:
+        return executeShift(term, value, args);
+
+      case KName::Builtin_Astral_Unshift:
+        return executeUnshift(term, value, args);
+
       case KName::Builtin_Astral_Clear:
         return executeClear(term, value, args);
 
@@ -380,8 +386,9 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_string>(value)) {
-      throw InvalidOperationError(term, "Expected a `String` value for builtin `" +
-                  AstralBuiltins.Substring + "`.");
+      throw InvalidOperationError(term,
+                                  "Expected a `String` value for builtin `" +
+                                      AstralBuiltins.Substring + "`.");
     }
 
     auto stringValue = get_string(term, value);
@@ -764,6 +771,44 @@ class CoreBuiltinHandler {
     auto _value = elements.front();
     elements.erase(elements.begin());
     return _value;
+  }
+
+  static k_value executeShift(const Token& term, const k_value& value,
+                              const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Shift);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+                                            AstralBuiltins.Shift + "`.");
+    }
+
+    auto& elements = std::get<k_list>(value)->elements;
+
+    if (elements.empty()) {
+      return static_cast<k_int>(0);  // Or handle empty list as needed
+    }
+
+    auto _value = elements.front();
+    elements.erase(elements.begin());
+    return _value;
+  }
+
+  static k_value executeUnshift(const Token& term, const k_value& value,
+                                const std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Unshift);
+    }
+
+    if (!std::holds_alternative<k_list>(value)) {
+      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+                                            AstralBuiltins.Unshift + "`.");
+    }
+
+    auto& elements = std::get<k_list>(value)->elements;
+    elements.insert(elements.begin(), args.at(0));
+    return true;  // Or the new state of the list or another success indicator
   }
 
   static k_value executeClear(const Token& term, const k_value& value,

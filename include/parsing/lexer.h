@@ -912,6 +912,10 @@ class Lexer {
       st = KName::Builtin_Astral_Dequeue;
     } else if (builtin == AstralBuiltins.Enqueue) {
       st = KName::Builtin_Astral_Enqueue;
+    } else if (builtin == AstralBuiltins.Shift) {
+      st = KName::Builtin_Astral_Shift;
+    } else if (builtin == AstralBuiltins.Unshift) {
+      st = KName::Builtin_Astral_Unshift;
     } else if (builtin == AstralBuiltins.Clear) {
       st = KName::Builtin_Astral_Clear;
     } else if (builtin == ListBuiltins.Map) {

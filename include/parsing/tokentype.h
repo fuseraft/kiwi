@@ -89,6 +89,8 @@ enum KName {
   Builtin_Astral_Replace,
   Builtin_Astral_Reverse,
   Builtin_Astral_RightTrim,
+  Builtin_Astral_Shift,
+  Builtin_Astral_Unshift,
   Builtin_Astral_Size,
   Builtin_Astral_Split,
   Builtin_Astral_Substring,
