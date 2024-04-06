@@ -7,6 +7,11 @@
 #include <regex>
 #include <string>
 
+static const std::string base64_chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789+/";
+
 /// @brief A string utility.
 class String {
  public:
@@ -185,6 +190,108 @@ class String {
                        [&](const std::string& prefix) {
                          return beginsWith(s, prefix) && contains(s, "=");
                        });
+  }
+
+  static char hexToChar(const std::string& hex) {
+    int ch = std::stoi(hex, nullptr, 16);
+    if (ch >= 0 && ch <= 0xFF) {
+      return static_cast<char>(ch);
+    } else {
+      throw std::invalid_argument("Invalid hex character");
+    }
+  }
+
+  static std::string urlEncode(const std::string& value) {
+    std::ostringstream encoded;
+    encoded.fill('0');
+
+    for (unsigned char c : value) {
+      if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+        encoded << c;
+      } else {
+        encoded << std::uppercase;
+        encoded << '%' << std::setw(2) << std::hex << static_cast<int>(c);
+        encoded << std::nouppercase;
+      }
+    }
+
+    return encoded.str();
+  }
+
+  static std::string urlDecode(const std::string& encoded) {
+    std::ostringstream decoded;
+    for (size_t i = 0; i < encoded.length(); ++i) {
+      if (encoded[i] == '%' && i + 2 < encoded.length()) {
+        std::string hexStr = encoded.substr(i + 1, 2);
+
+        try {
+          char decodedChar = hexToChar(hexStr);
+          decoded << decodedChar;
+        } catch (const std::invalid_argument& e) {
+          std::cerr << "Error decoding: " << e.what() << std::endl;
+          return "";
+        }
+
+        i += 2;
+      } else if (encoded[i] == '+') {
+        decoded << ' ';
+      } else {
+        decoded << encoded[i];
+      }
+    }
+    return decoded.str();
+  }
+
+  static int base64CharValue(char base64_char) {
+    if (base64_char >= 'A' && base64_char <= 'Z')
+      return base64_char - 'A';
+    if (base64_char >= 'a' && base64_char <= 'z')
+      return base64_char - 'a' + 26;
+    if (base64_char >= '0' && base64_char <= '9')
+      return base64_char - '0' + 52;
+    if (base64_char == '+')
+      return 62;
+    if (base64_char == '/')
+      return 63;
+    return -1;
+  }
+
+  static std::string base64Encode(const std::string& input) {
+    std::string output;
+    int val = 0, valb = -6;
+    for (unsigned char c : input) {
+      val = (val << 8) + c;
+      valb += 8;
+      while (valb >= 0) {
+        output.push_back(base64_chars[(val >> valb) & 0x3F]);
+        valb -= 6;
+      }
+    }
+    if (valb > -6)
+      output.push_back(base64_chars[((val << 8) >> (valb + 8)) & 0x3F]);
+    while (output.size() % 4)
+      output.push_back('=');
+    return output;
+  }
+
+  static std::string base64Decode(const std::string& input) {
+    std::string output;
+    std::vector<int> T(256, -1);
+    for (int i = 0; i < 64; i++)
+      T[base64_chars[i]] = i;
+
+    int val = 0, valb = -8;
+    for (unsigned char c : input) {
+      if (T[c] == -1)
+        break;
+      val = (val << 6) + T[c];
+      valb += 6;
+      if (valb >= 0) {
+        output.push_back(char((val >> valb) & 0xFF));
+        valb -= 8;
+      }
+    }
+    return output;
   }
 };
 

@@ -486,6 +486,27 @@ struct {
 } SysBuiltins;
 
 struct {
+  const k_string Base64Encode = "__base64encode__";
+  const k_string Base64Decode = "__base64decode__";
+  const k_string UrlEncode = "__urlencode__";
+  const k_string UrlDecode = "__urldecode__";
+
+  std::unordered_set<k_string> builtins = {Base64Encode, Base64Decode,
+                                           UrlEncode, UrlDecode};
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_Encoder_Base64Encode, KName::Builtin_Encoder_Base64Decode,
+      KName::Builtin_Encoder_UrlEncode, KName::Builtin_Encoder_UrlDecode};
+
+  bool is_builtin(const k_string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+
+  bool is_builtin(const KName& arg) {
+    return st_builtins.find(arg) != st_builtins.end();
+  }
+} EncoderBuiltins;
+
+struct {
   const k_string Input = "input";
   const k_string Silent = "silent";
 
@@ -548,6 +569,8 @@ struct {
   const k_string Count = "count";
   const k_string Flatten = "flatten";
   const k_string Zip = "zip";
+  const k_string Merge = "merge";
+  const k_string Values = "values";
 
   std::unordered_set<k_string> builtins = {
       Chars,    Empty,      IsA,       Join,     Size,        ToBytes,
@@ -557,7 +580,7 @@ struct {
       Type,     HasKey,     Members,   Push,     Pop,         Enqueue,
       Dequeue,  Clear,      Substring, Shift,    Unshift,     Remove,
       RemoveAt, Rotate,     Insert,    Slice,    Concat,      Unique,
-      Count,    Flatten,    Zip};
+      Count,    Flatten,    Zip,       Merge,    Values};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Astral_BeginsWith,  KName::Builtin_Astral_BeginsWith,
@@ -582,7 +605,8 @@ struct {
       KName::Builtin_Astral_Slice,       KName::Builtin_Astral_Concat,
       KName::Builtin_Astral_Unique,      KName::Builtin_Astral_Count,
       KName::Builtin_Astral_Flatten,     KName::Builtin_Astral_Zip,
-      KName::Builtin_Astral_Clear,       KName::Builtin_Astral_Substring};
+      KName::Builtin_Astral_Clear,       KName::Builtin_Astral_Substring,
+      KName::Builtin_Astral_Merge,       KName::Builtin_Astral_Values};
 
   bool is_builtin(const k_string& arg) {
     if (ListBuiltins.is_builtin(arg)) {
@@ -603,14 +627,14 @@ struct {
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
            ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
-           OdbcBuiltins.is_builtin(arg);
+           OdbcBuiltins.is_builtin(arg) || LoggingBuiltins.is_builtin(arg);
 #endif
     return ConsoleBuiltins.is_builtin(arg) || EnvBuiltins.is_builtin(arg) ||
            ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
            ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
-           LoggingBuiltins.is_builtin(arg);
+           LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg);
   }
 
   bool is_builtin_method(const KName& arg) {
@@ -619,7 +643,7 @@ struct {
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
            ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
-           LoggingBuiltins.is_builtin(arg);
+           LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg);
   }
 } AstralBuiltins;
 

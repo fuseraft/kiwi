@@ -8,6 +8,7 @@
 #include "builtins/argv_handler.h"
 #include "builtins/console_handler.h"
 #include "builtins/core_handler.h"
+#include "builtins/encoder_handler.h"
 #include "builtins/env_handler.h"
 #include "builtins/fileio_handler.h"
 #include "builtins/logging_handler.h"
@@ -22,7 +23,7 @@
 #include "parsing/builtins.h"
 #include "typing/value.h"
 
-class BuiltinInterpreter {
+class BuiltinDispatch {
  public:
   static k_value execute(
       const Token& term, const KName& builtin, const std::vector<k_value>& args,
@@ -35,6 +36,8 @@ class BuiltinInterpreter {
       return MathBuiltinHandler::execute(term, builtin, args);
     } else if (EnvBuiltins.is_builtin(builtin)) {
       return EnvBuiltinHandler::execute(term, builtin, args);
+    } else if (EncoderBuiltins.is_builtin(builtin)) {
+      return EncoderBuiltinHandler::execute(term, builtin, args);
     } else if (ArgvBuiltins.is_builtin(builtin)) {
       return ArgvBuiltinHandler::execute(term, builtin, args, astralArgs);
     } else if (ConsoleBuiltins.is_builtin(builtin)) {

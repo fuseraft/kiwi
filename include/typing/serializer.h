@@ -104,6 +104,17 @@ struct Serializer {
     return keys;
   }
 
+  static k_list get_hash_values_list(const k_hash& hash) {
+    auto values = std::make_shared<List>();
+    auto& elements = values->elements;
+
+    for (const auto& key : hash->keys) {
+      elements.emplace_back(hash->kvp[key]);
+    }
+
+    return values;
+  }
+
   static k_string basic_serialize_object(const k_object& object) {
     if (object->identifier.empty()) {
       return "@(class=" + object->className + ")";
