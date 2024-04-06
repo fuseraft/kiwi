@@ -886,6 +886,8 @@ class Lexer {
       st = KName::Builtin_Astral_Size;
     } else if (builtin == AstralBuiltins.Split) {
       st = KName::Builtin_Astral_Split;
+    } else if (builtin == AstralBuiltins.Substring) {
+      st = KName::Builtin_Astral_Substring;
     } else if (builtin == AstralBuiltins.ToD) {
       st = KName::Builtin_Astral_ToD;
     } else if (builtin == AstralBuiltins.ToI) {

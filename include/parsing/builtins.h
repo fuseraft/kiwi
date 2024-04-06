@@ -503,6 +503,7 @@ struct {
   const k_string IsA = "is_a";
   const k_string Join = "join";
   const k_string Split = "split";
+  const k_string Substring = "substring";
   const k_string LeftTrim = "ltrim";
   const k_string RightTrim = "rtrim";
   const k_string Trim = "trim";
@@ -537,7 +538,7 @@ struct {
       ToD,      ToI,       ToS,         Replace, Reverse,  Contains, BeginsWith,
       EndsWith, IndexOf,   LastIndexOf, Upcase,  Downcase, Keys,     Split,
       LeftTrim, RightTrim, Trim,        Type,    HasKey,   Members,  Push,
-      Pop,      Enqueue,   Dequeue,     Clear};
+      Pop,      Enqueue,   Dequeue,     Clear, Substring};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Astral_BeginsWith,  KName::Builtin_Astral_BeginsWith,
@@ -556,7 +557,7 @@ struct {
       KName::Builtin_Astral_Upcase,      KName::Builtin_Astral_Members,
       KName::Builtin_Astral_Push,        KName::Builtin_Astral_Pop,
       KName::Builtin_Astral_Enqueue,     KName::Builtin_Astral_Dequeue,
-      KName::Builtin_Astral_Clear};
+      KName::Builtin_Astral_Clear,       KName::Builtin_Astral_Substring};
 
   bool is_builtin(const k_string& arg) {
     if (ListBuiltins.is_builtin(arg)) {

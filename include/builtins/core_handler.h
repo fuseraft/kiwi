@@ -129,6 +129,9 @@ class CoreBuiltinHandler {
       case KName::Builtin_Astral_Clear:
         return executeClear(term, value, args);
 
+      case KName::Builtin_Astral_Substring:
+        return executeSubstring(term, value, args);
+
       default:
         break;
     }
@@ -368,6 +371,28 @@ class CoreBuiltinHandler {
     }
 
     return Serializer::serialize(value);
+  }
+
+  static k_value executeSubstring(const Token& term, const k_value& value,
+                                  const std::vector<k_value>& args) {
+    if (args.size() != 1 && args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Substring);
+    }
+
+    if (!std::holds_alternative<k_string>(value)) {
+      throw InvalidOperationError(term, "Expected a `String` value for builtin `" +
+                  AstralBuiltins.Substring + "`.");
+    }
+
+    auto stringValue = get_string(term, value);
+    auto pos = static_cast<size_t>(get_integer(term, args.at(0)));
+    auto size = stringValue.size();
+
+    if (args.size() == 2) {
+      size = static_cast<size_t>(get_integer(term, args.at(1)));
+    }
+
+    return String::substring(stringValue, pos, size);
   }
 
   static k_value executeSplit(const Token& term, const k_value& value,
