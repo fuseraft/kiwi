@@ -61,8 +61,8 @@ class Host {
     return interp.interpretAstral(input);
   }
 
-  std::string minify(const std::string& script) {
-    return interp.minify(script);
+  std::string minify(const std::string& script, bool output = false) {
+    return interp.minify(script, output);
   }
 
  private:
