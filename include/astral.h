@@ -126,16 +126,30 @@ bool Astral::parse(Host& host, const std::string& content) {
 
 bool Astral::createMinified(Host& host, const std::string& path) {
   const std::string DefaultExtension = ".min.🚀";
+  
+  auto filePath = path;
+  auto minFileExtension = DefaultExtension;
+#ifdef _WIN64
+  minFileExtension = ".min.astral";
+#endif
 
-  if (!File::fileExists(path)) {
+  if (File::getFileExtension(filePath).empty()) {
+#ifdef _WIN64
+    filePath += ".astral";
+#else
+    filePath += ".🚀";
+#endif
+  }
+
+  if (!File::fileExists(filePath)) {
     std::cout << "The input file does not exists." << std::endl;
     return false;
   }
 
-  auto filePath = File::getAbsolutePath(path);
+  filePath = File::getAbsolutePath(filePath);
   auto fileName =
       String::replace(File::getFileName(filePath),
-                      File::getFileExtension(filePath), DefaultExtension);
+                      File::getFileExtension(filePath), minFileExtension);
   auto minFilePath = File::joinPath(File::getParentPath(filePath), fileName);
 
   std::cout << "Creating " << minFilePath << std::endl;
@@ -155,7 +169,7 @@ bool Astral::tokenize(Host& host, const std::string& path) {
   }
 
   auto filePath = File::getAbsolutePath(path);
-  auto minified = host.minify(filePath);
+  auto minified = host.minify(filePath, true);
   return true;
 }
 
@@ -223,7 +237,7 @@ int Astral::printHelp() {
       {"-m, --minify <input_file_path>", "create a `.min.🚀` file"},
       {"-t, --tokenize <input_file_path>",
        "tokenize a file with the astral lexer"},
-      {"-X<key>:<value>", "specify an argument as a key-value pair"}};
+      {"-X<key>=<value>", "specify an argument as a key-value pair"}};
 
 #ifdef _WIN64
   commands = {
@@ -233,7 +247,7 @@ int Astral::printHelp() {
       {"-n, --new <filename>", "create a `.astral` file"},
       {"-m, --minify <input_file_path>", "create a `.min.astral` file"},
       {"-t, --tokenize <input_file_path>", "tokenize a file as astral code"},
-      {"-X<key>:<value>", "specify an argument as a key-value pair"}};
+      {"-X<key>=<value>", "specify an argument as a key-value pair"}};
 #endif
 
   printVersion();

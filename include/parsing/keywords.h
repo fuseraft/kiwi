@@ -68,6 +68,7 @@ struct {
       KName::Ops_ExponentAssign,
       KName::Ops_OrAssign,
       KName::Ops_AndAssign,
+      KName::Ops_ModuloAssign,
       KName::Ops_BitwiseOrAssign,
       KName::Ops_BitwiseAndAssign,
       KName::Ops_BitwiseXorAssign,
