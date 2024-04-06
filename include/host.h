@@ -61,8 +61,8 @@ class Host {
     return interp.interpretAstral(input);
   }
 
-  std::string minify(const std::string& script) {
-    return interp.minify(script);
+  std::string minify(const std::string& script, bool output = false) {
+    return interp.minify(script, output);
   }
 
  private:
@@ -70,6 +70,19 @@ class Host {
   std::unordered_set<std::string> scripts;
   std::unordered_map<std::string, std::string> args;
   bool astrallibEnabled = true;
+
+  void loadLibraryModules(const std::string& path) {
+    std::vector<std::string> astrallib;
+#ifdef _WIN64
+    astrallib = File::expandGlob(path + "\\*.astral");
+#else
+    astrallib = File::expandGlob(path + "/*.🚀");
+#endif
+
+    for (const auto& script : astrallib) {
+      loadScript(script);
+    }
+  }
 
   void loadAstralLibrary() {
     if (!astrallibEnabled) {
@@ -80,16 +93,7 @@ class Host {
       auto astrallibPath = File::getLibraryPath();
 
       if (!astrallibPath.empty()) {
-        std::vector<std::string> astrallib;
-#ifdef _WIN64
-        astrallib = File::expandGlob(astrallibPath + "\\*.astral");
-#else
-        astrallib = File::expandGlob(astrallibPath + "/*.🚀");
-#endif
-
-        for (const auto& script : astrallib) {
-          loadScript(script);
-        }
+        loadLibraryModules(astrallibPath);
       }
     } catch (const std::exception& e) {
       ErrorHandler::printError(e);
@@ -118,6 +122,13 @@ class Host {
 
   int loadScript(const std::string& script) {
     auto path = File::getAbsolutePath(script);
+    auto parentPath = File::getParentPath(path);
+    auto libPath = File::joinPath(parentPath, "lib");
+
+    if (File::directoryExists(libPath)) {
+      loadLibraryModules(libPath);
+    }
+
     return interp.interpretScript(path);
   }
 };

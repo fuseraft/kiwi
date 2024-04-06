@@ -98,6 +98,19 @@ class String {
     return trimLeft(trimRight(input));
   }
 
+  /// @brief Extract a substring.
+  /// @param s The string to extract from.
+  /// @param pos The position in the string to start.
+  /// @param size The size of the substring to extract.
+  /// @return The substring.
+  static std::string substring(const std::string& s, size_t pos, size_t size) {
+    if (pos >= s.size()) {
+      return "";
+    }
+
+    return s.substr(pos, std::min(size, s.size() - pos));
+  }
+
   /// @brief Split a string into a vector of strings.
   /// @param input The string to split.
   /// @param delimiter The string to split on.

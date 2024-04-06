@@ -163,7 +163,7 @@ struct {
 
     if (std::holds_alternative<k_int>(left) &&
         std::holds_alternative<k_int>(right)) {
-      int rhs = std::get<k_int>(right);
+      auto rhs = std::get<k_int>(right);
       if (rhs == 0) {
         throw DivideByZeroError(token);
       }
@@ -202,7 +202,7 @@ struct {
 
     if (std::holds_alternative<k_int>(left) &&
         std::holds_alternative<k_int>(right)) {
-      int rhs = std::get<k_int>(right);
+      auto rhs = std::get<k_int>(right);
       if (rhs == 0) {
         throw DivideByZeroError(token);
       }
@@ -265,7 +265,7 @@ struct {
   k_value do_list_multiplication(const Token& token, const k_value& left,
                                  const k_value& right) {
     auto list = std::get<k_list>(left);
-    int multiplier = std::get<k_int>(right);
+    auto multiplier = std::get<k_int>(right);
 
     if (multiplier < 1) {
       throw SyntaxError(token,
@@ -291,7 +291,7 @@ struct {
   k_value do_string_multiplication(const Token& token, const k_value& left,
                                    const k_value& right) {
     auto string = std::get<k_string>(left);
-    int multiplier = std::get<k_int>(right);
+    auto multiplier = std::get<k_int>(right);
 
     if (multiplier < 1) {
       throw SyntaxError(
