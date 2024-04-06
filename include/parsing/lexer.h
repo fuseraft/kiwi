@@ -874,6 +874,10 @@ class Lexer {
       st = KName::Builtin_Astral_Join;
     } else if (builtin == AstralBuiltins.Keys) {
       st = KName::Builtin_Astral_Keys;
+    } else if (builtin == AstralBuiltins.Merge) {
+      st = KName::Builtin_Astral_Merge;
+    } else if (builtin == AstralBuiltins.Values) {
+      st = KName::Builtin_Astral_Values;
     } else if (builtin == AstralBuiltins.LastIndexOf) {
       st = KName::Builtin_Astral_LastIndexOf;
     } else if (builtin == AstralBuiltins.LeftTrim) {
