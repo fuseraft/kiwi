@@ -6,6 +6,42 @@ module string
   __home__("astral")
 
   /#
+  @summary Encodes a string as a base64 string.
+  @param   String  _input   : The input string. 
+  @return  String           : The base64 encoded string.
+  #/
+  def base64encode(_input)
+    return __base64encode__(_input)
+  end
+
+  /#
+  @summary Decodes a base64 string to plaintext.
+  @param   String  _input   : The input string. 
+  @return  String           : The plaintext string.
+  #/
+  def base64decode(_input)
+    return __base64decode__(_input)
+  end
+
+  /#
+  @summary Encodes a string as a URL encoded string.
+  @param   String  _input   : The input string.
+  @return  String           : The URL encoded string.
+  #/
+  def urlencode(_input)
+    return __urlencode__(_input)
+  end
+
+  /#
+  @summary Decodes a URL encoded string to plaintext.
+  @param   String  _input   : The input string. 
+  @return  String           : The plaintext string.
+  #/
+  def urldecode(_input)
+    return __urldecode__(_input)
+  end
+
+  /#
   @summary Pads the left side of a string.
   @param   String  _input   : The input string. 
   @param   Integer _size    : The max length of the output string.
@@ -99,7 +135,7 @@ module string
   @param   String  _input : The input string.
   @return  String         : The shuffled string.
   #/
-  def scramble(_input)
+  def shuffle(_input)
     _array = _input.chars()
     _n = _array.size()
     while _n > 1 do
@@ -110,6 +146,26 @@ module string
       _array[_n] = _temp
     end
     return _array.join("")
+  end
+
+  /#
+  @summary Generates a URL-friendly slug from a string.
+  @param   String  _input   : The input string.
+  @return  String           : The generated slug.
+  #/
+  def slug(_input)
+    _lowercased = _input.downcase()
+    _hyphenated = _lowercased.replace(" ", "-")
+
+    _slug = ""
+
+    for char in _hyphenated.chars() do
+      if char.is_a(Integer) || (char >= "a" && char <= "z") || char == "-"
+        _slug += char
+      end
+    end
+
+    return _slug
   end
 end
 
