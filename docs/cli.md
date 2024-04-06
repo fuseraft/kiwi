@@ -46,10 +46,16 @@ If no arguments are supplied, Astral enters an interactive Read-Evaluate-Print L
 
   Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.<br><br>
 
-- `-m`, `--minify <input_file_path>`: Creates a minified file with the `.min.🚀` extension.
+- `-m`, `--minify <input_file_path>`: Creates a minified file with the `.min.🚀` extension. If you don't include the extension in `<file_path>`, it will be appended automatically.
 
   ```
-  astral -m filename.🚀      # Creates ./filename.min.🚀
+  astral -m filename         # Creates ./filename.min.🚀
+  ```
+
+- `-t`, `--tokenize <input_file_path>`: Tokenizes a file with the Astral lexer and prints the results to the standard output stream.
+
+  ```
+  astral -m filename         # Creates ./filename.min.🚀
   ```
 
 - `-X<key>=<value>`: Sets a specific argument as a key-value pair, which can be used for various configuration purposes or to pass parameters into scripts.
