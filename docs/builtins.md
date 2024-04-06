@@ -10,14 +10,14 @@ Currently, Astral supports the following builtins:
 - [`clear()`](#clear)
 - [`concat(list)`](#concatlist)
 - [`contains(str)`](#containsstr)
-- [`count(element)`](#countelement)
+- [`count(value)`](#countvalue)
 - [`dequeue()`](#dequeue)
 - [`downcase(str)`](#downcasestr)
 - [`ends_with(str)`](#ends_withstr)
 - [`enqueue(value)`](#enqueuevalue)
 - [`flatten()`](#flatten)
 - [`index(value)`](#indexvalue)
-- [`insert(element, index)`](#insertelement-index)
+- [`insert(value, index)`](#insertvalue-index)
 - [`is_a(type_name)`](#is_atype_name)
 - [`join(str)`](#joinstr)
 - [`keys()`](#keys)
@@ -30,12 +30,13 @@ Currently, Astral supports the following builtins:
 - [`push(value)`](#pushvalue)
 - [`reduce(accumulator, lambda)`](#reduceaccumulator-lambda)
 - [`remove_at(index)`](#removeatindex)
-- [`remove(element)`](#removeelement)
+- [`remove(value)`](#removevalue)
 - [`replace(search, replacement)`](#replacesearch-replacement)
 - [`reverse()`](#reverse)
 - [`rotate(n)`](#rotaten)
 - [`rtrim()`](#rtrim)
 - [`select(lambda)`](#selectlambda)
+- [`shift()`](#shift)
 - [`size()`](#size)
 - [`slice(start, end)`](#slicestart-end)
 - [`sort()`](#sort)
@@ -51,9 +52,9 @@ Currently, Astral supports the following builtins:
 - [`trim()`](#trim)
 - [`type()`](#type)
 - [`unique()`](#unique)
+- [`unshift(value)`](#unshiftvalue)
 - [`upcase(str)`](#upcasestr)
 - [`zip(list)`](#ziplist)
-
 
 ### `chars()`
 
@@ -131,7 +132,7 @@ println [1,2].concat([3,4]) # prints: [1, 2, 3, 4]
 
 ### `zip(list)`
 
-Combine elements from two lists into pairs.
+Combine values from two lists into pairs.
 
 ```ruby
 println [1, 2].zip([3, 4]) # prints: [[1, 3], [2, 4]]
@@ -156,9 +157,9 @@ println [[1, 2, 3], [[4, 5], 6], [7]].flatten()
 # prints: [1, 2, 3, 4, 5, 6, 7]
 ```
 
-### `remove(element)`
+### `remove(value)`
 
-Remove the first occurrence of a specific element.
+Remove the first occurrence of a specific value in a list.
 
 ```ruby
 println [1, 2, 3].remove(2)          # prints: [1, 3]
@@ -167,23 +168,43 @@ println ["a", "b", 3, 4].remove("b") # prints: ["a", 3, 4]
 
 ### `remove_at(index)`
 
-Remove an element at a specified index.
+Remove a value from a list at a specified index.
 
 ```ruby
 println ["a", "b", 3, 4].remove_at(0) # prints: ["b", 3, 4]
 ```
 
-### `count(element)`
+### `count(value)`
 
-Count occurrences of a specific element in the list.
+Count occurrences of a specific value in the list.
 
 ```ruby
 println "hello world".chars().count("o") # prints: 2
 ```
 
+### `shift()`
+
+Returns the first value of a list.
+
+```ruby
+list = [1, 2, 3]
+println list.shift() # prints: 1
+println list         # prints: [2, 3]
+```
+
+### `unshift(value)`
+
+Inserts a value at the beginning of a list.
+
+```ruby
+list = [1, 2, 3]
+println list.unshift(0) # prints: [0, 1, 2, 3]
+println list            # prints: [0, 1, 2, 3]
+```
+
 ### `unique()`
 
-Remove duplicate elements from the list.
+Remove duplicate values from the list.
 
 ```ruby
 println "aaaabbcccc".chars().unique() # prints: ["a", "b", "c"]
@@ -191,9 +212,9 @@ println "aaaabbcccc".chars().unique() # prints: ["a", "b", "c"]
 
 ### `rotate(n)`
 
-Rotate the elements of the list by a specified number of positions. 
+Rotate the values of the list by a specified number of positions. 
 
-If `n` is negative, elements are rotated left.
+If `n` is negative, values are rotated left.
 
 ```ruby
 println "abcd".chars().rotate(1)  # prints: ["d", "a", "b", "c"]
@@ -201,9 +222,9 @@ println "abcd".chars().rotate(0)  # prints: ["a", "b", "c", "d"]
 println "abcd".chars().rotate(-1) # prints: ["b", "c", "d", "a"]
 ```
 
-### `insert(element, index)`
+### `insert(value, index)`
 
-Insert an element at a specified index.
+Insert a value at a specified index.
 
 ```ruby
 println [1, 2, 3].insert("a", 2) # prints: [1, 2, "a", 3]
