@@ -271,7 +271,7 @@ class CoreBuiltinHandler {
     }
 
     throw InvalidOperationError(
-        term, "Invalid type for builtin `" + AstralBuiltins.Empty + "`.");
+        term, "Invalid type for builtin `" + AstralBuiltins.Size + "`.");
   }
 
   static k_value executeToHex(const Token& term, const k_value& value,
