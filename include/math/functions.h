@@ -254,7 +254,7 @@ struct {
              static_cast<double>(std::get<k_int>(right));
     } else if (std::holds_alternative<k_string>(left) &&
                std::holds_alternative<k_int>(right)) {
-      return do_string_multiplication(token, left, right);
+      return do_string_multiplication(left, right);
     } else if (std::holds_alternative<k_list>(left) &&
                std::holds_alternative<k_int>(right)) {
       return do_list_multiplication(token, left, right);
@@ -289,15 +289,10 @@ struct {
     return newList;
   }
 
-  k_value do_string_multiplication(const Token& token, const k_value& left,
+  k_value do_string_multiplication(const k_value& left,
                                    const k_value& right) {
     auto string = std::get<k_string>(left);
     auto multiplier = std::get<k_int>(right);
-
-    if (multiplier < 1) {
-      throw SyntaxError(
-          token, "String multiplier must be a positive non-zero integer.");
-    }
 
     std::ostringstream build;
 
