@@ -2041,8 +2041,9 @@ class Interpreter {
 
     if (hasValue) {
       frame->returnValue = parseExpression(stream, frame);
-      frame->setFlag(FrameFlags::ReturnFlag);
     }
+    
+    frame->setFlag(FrameFlags::ReturnFlag);
   }
 
   SliceIndex interpretSliceIndex(k_stream stream,
