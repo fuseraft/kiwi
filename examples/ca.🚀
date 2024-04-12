@@ -1,27 +1,17 @@
 # cellular automata
 
 def print_state(state)
-  output = []
-  for cell in state do
-    if cell == 1
-      output << "*"
-    else
-      output << " "
-    end
-  end
-
-  return output.join()
+  return state.join().replace("0", " ").replace("1", "O")
 end
 
 def update_state_rule30(current_state)
-  new_state = []
-  cells = current_state.size()
+  cells = current_state.size() - 1
+  new_state = [0] * (cells + 1)
   
-  for i in [0..cells - 2] do
+  for i in [0..cells - 1] do
     left = i == 0 ? 0 : current_state[i - 1]
-    center = current_state[i]
-    right = i == (cells - 1) ? 0 : current_state[i + 1]
-    new_state << (left ^ (center | right)) & !(left & center & right)
+    right = (i == (cells - 1) ? 0 : current_state[i + 1])
+    new_state[i] = (left ^ (current_state[i] | right)) & !(left & current_state[i] & right)
   end
   
   return new_state
@@ -35,7 +25,7 @@ def main()
   
   for gen in [0..generations-1] do
     println print_state(state)
-    state = update_state_rule30(state)
+    state = update_state_rule30(state).clone()
   end
 end
 

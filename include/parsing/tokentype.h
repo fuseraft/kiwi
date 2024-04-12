@@ -25,7 +25,6 @@ enum KTokenType {
   DOT,
   TYPENAME,
   LAMBDA,
-  DECLVAR,
   QUESTION,
   ENDOFFILE
 };
@@ -70,6 +69,7 @@ enum KName {
   Builtin_Astral_BeginsWith,
   Builtin_Astral_Chars,
   Builtin_Astral_Clear,
+  Builtin_Astral_Clone,
   Builtin_Astral_Contains,
   Builtin_Astral_Dequeue,
   Builtin_Astral_Enqueue,
@@ -223,7 +223,6 @@ enum KName {
   KW_Break,
   KW_Catch,
   KW_Class,
-  KW_DeclVar,
   KW_Delete,
   KW_Do,
   KW_Else,

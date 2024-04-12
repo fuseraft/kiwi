@@ -22,15 +22,15 @@ Use the `override` keyword to override the abstract method with an implementatio
 ```ruby
 class Circle < Shape
   def initialize(radius)
-    this.radius = radius
+    @radius = radius
   end
 
   override def area()
-    return 3.14159 * radius * radius
+    return 3.14159 * @radius * @radius
   end
 
   override def perimeter()
-    return 2 * 3.14159 * radius
+    return 2 * 3.14159 * @radius
   end
 end
 ```

@@ -174,6 +174,9 @@ class CoreBuiltinHandler {
       case KName::Builtin_Astral_Zip:
         return executeZip(term, value, args);
 
+      case KName::Builtin_Astral_Clone:
+        return executeClone(term, value, args);
+
       default:
         break;
     }
@@ -196,6 +199,15 @@ class CoreBuiltinHandler {
     }
 
     return newList;
+  }
+
+  static k_value executeClone(const Token& term, const k_value& value,
+                              const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Clone);
+    }
+
+    return clone_value(value);
   }
 
   static k_value executeMembers(const Token& term, const k_value& value,

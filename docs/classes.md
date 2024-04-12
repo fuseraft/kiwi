@@ -11,10 +11,8 @@ Each concrete class should define a constructor method, called `initialize`.
 ```ruby
 class MyClass
   def initialize(name)
-    # Constructor code here
-
-    # Use the `this` keyword to declare an instance variable.
-    this.name = name 
+    # Use the `@` symbol to declare an instance variable.
+    @name = name 
   end
 
   def say_hello()
@@ -115,7 +113,7 @@ class MyClass
   private(name) # declare instance variables as private
 
   def initialize(name)
-    this.name = name
+    @name = name
   end
 end
 

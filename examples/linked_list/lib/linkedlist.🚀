@@ -1,6 +1,6 @@
 class LinkedList
   def initialize()
-    this._ll = { "head": {} }
+    @_ll = { "head": {} }
   end
 
   override def to_string()

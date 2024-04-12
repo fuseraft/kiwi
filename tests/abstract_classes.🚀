@@ -5,7 +5,7 @@ end
 
 class Circle < Shape
   def initialize(radius)
-    this.radius = radius
+    @radius = radius
   end
 
   override def area()

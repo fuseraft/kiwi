@@ -36,9 +36,9 @@ using k_object = std::shared_ptr<Object>;
 using k_lambda = std::shared_ptr<LambdaRef>;
 
 inline void hash_combine(std::size_t& seed, std::size_t hash);
-std::size_t hashHash(const k_hash& hash);
-std::size_t hashList(const k_list& list);
-std::size_t hashObject(const k_object& object);
+std::size_t hash_hash(const k_hash& hash);
+std::size_t hash_list(const k_list& list);
+std::size_t hash_object(const k_object& object);
 
 using k_value = std::variant<k_int, double, bool, k_string, k_list, k_hash,
                              k_object, k_lambda>;
@@ -58,11 +58,11 @@ struct hash<k_value> {
       case 3:  // k_string
         return std::hash<k_string>()(std::get<k_string>(v));
       case 4:  // k_list
-        return hashList(std::get<k_list>(v));
+        return hash_list(std::get<k_list>(v));
       case 5:  // k_hash
-        return hashHash(std::get<k_hash>(v));
+        return hash_hash(std::get<k_hash>(v));
       case 6:  // k_object
-        return hashObject(std::get<k_object>(v));
+        return hash_object(std::get<k_object>(v));
       case 7:  // k_lambda
         return false;
       default:
@@ -130,7 +130,7 @@ inline void hash_combine(std::size_t& seed, std::size_t hash) {
   seed ^= hash + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 
-std::size_t hashList(const k_list& list) {
+std::size_t hash_list(const k_list& list) {
   std::size_t seed = 0;
   for (const auto& elem : list->elements) {
     hash_combine(seed, std::hash<k_value>()(elem));
@@ -138,7 +138,7 @@ std::size_t hashList(const k_list& list) {
   return seed;
 }
 
-std::size_t hashHash(const k_hash& hash) {
+std::size_t hash_hash(const k_hash& hash) {
   std::size_t seed = 0;
   for (const auto& pair : hash->kvp) {
     hash_combine(seed, std::hash<k_string>()(pair.first));
@@ -147,7 +147,7 @@ std::size_t hashHash(const k_hash& hash) {
   return seed;
 }
 
-std::size_t hashObject(const k_object& object) {
+std::size_t hash_object(const k_object& object) {
   auto seed = std::hash<k_string>()(object->className);
   for (const auto& pair : object->instanceVariables) {
     hash_combine(seed, std::hash<k_string>()(pair.first));
@@ -183,8 +183,54 @@ struct ValueComparator {
   }
 };
 
-void sortList(List& list) {
+void sort_list(List& list) {
   std::sort(list.elements.begin(), list.elements.end(), ValueComparator());
+}
+
+k_value clone_value(const k_value& original);
+k_hash clone_hash(const k_hash& original);
+k_list clone_list(const k_list& original);
+
+k_list clone_list(const k_list& original) {
+  k_list clone = std::make_shared<List>();
+  auto& cloneElements = clone->elements;
+  auto& elements = original->elements;
+  for (const auto& element : elements) {
+    cloneElements.push_back(clone_value(element));
+  }
+  return clone;
+}
+
+k_hash clone_hash(const k_hash& original) {
+  k_hash clone = std::make_shared<Hash>();
+  auto& keys = original->keys;
+  for (const auto& key : keys) {
+    clone->add(key, clone_value(original->get(key)));
+  }
+  return clone;
+}
+
+k_value clone_value(const k_value& original) {
+  switch (original.index()) {
+    case 0:  // k_int
+      return std::get<k_int>(original);
+    case 1:  // double
+      return std::get<double>(original);
+    case 2:  // bool
+      return std::get<bool>(original);
+    case 3:  // k_string
+      return std::get<k_string>(original);
+    case 4:  // k_list
+      return clone_list(std::get<k_list>(original));
+    case 5:  // k_hash
+      return clone_hash(std::get<k_hash>(original));
+    case 6:  // k_object
+      return std::make_shared<Object>(*std::get<k_object>(original));
+    case 7:  // k_lambda
+      return std::make_shared<LambdaRef>(*std::get<k_lambda>(original));
+    default:
+      throw std::runtime_error("Unsupported type for cloning");
+  }
 }
 
 bool same_value(const k_value& v1, const k_value& v2) {
@@ -221,12 +267,14 @@ bool lt_value(const k_value& lhs, const k_value& rhs) {
     case 3:  // k_string
       return std::get<k_string>(lhs) < std::get<k_string>(rhs);
     case 4:  // k_list
-      return hashList(std::get<k_list>(lhs)) < hashList(std::get<k_list>(rhs));
+      return hash_list(std::get<k_list>(lhs)) <
+             hash_list(std::get<k_list>(rhs));
     case 5:  // k_hash
-      return hashHash(std::get<k_hash>(lhs)) < hashHash(std::get<k_hash>(rhs));
+      return hash_hash(std::get<k_hash>(lhs)) <
+             hash_hash(std::get<k_hash>(rhs));
     case 6:  // k_object
-      return hashObject(std::get<k_object>(lhs)) <
-             hashObject(std::get<k_object>(rhs));
+      return hash_object(std::get<k_object>(lhs)) <
+             hash_object(std::get<k_object>(rhs));
     default:
       return false;
   }
@@ -247,12 +295,14 @@ bool gt_value(const k_value& lhs, const k_value& rhs) {
     case 3:  // k_string
       return std::get<k_string>(lhs) > std::get<k_string>(rhs);
     case 4:  // k_list
-      return hashList(std::get<k_list>(lhs)) > hashList(std::get<k_list>(rhs));
+      return hash_list(std::get<k_list>(lhs)) >
+             hash_list(std::get<k_list>(rhs));
     case 5:  // k_hash
-      return hashHash(std::get<k_hash>(lhs)) > hashHash(std::get<k_hash>(rhs));
+      return hash_hash(std::get<k_hash>(lhs)) >
+             hash_hash(std::get<k_hash>(rhs));
     case 6:  // k_object
-      return hashObject(std::get<k_object>(lhs)) >
-             hashObject(std::get<k_object>(rhs));
+      return hash_object(std::get<k_object>(lhs)) >
+             hash_object(std::get<k_object>(rhs));
     default:
       return false;
   }
