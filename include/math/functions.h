@@ -282,15 +282,14 @@ struct {
 
     for (int i = 0; i < multiplier; ++i) {
       for (const auto& item : list->elements) {
-        elements.emplace_back(item);
+        elements.emplace_back(clone_value(item));
       }
     }
 
     return newList;
   }
 
-  k_value do_string_multiplication(const k_value& left,
-                                   const k_value& right) {
+  k_value do_string_multiplication(const k_value& left, const k_value& right) {
     auto string = std::get<k_string>(left);
     auto multiplier = std::get<k_int>(right);
 

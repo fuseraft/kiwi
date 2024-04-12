@@ -8,7 +8,7 @@ end
 
 class MyClass < MyAbstractClass
   def initialize(name)
-    this.name = name
+    @name = name
   end
 
   override def method_one()
@@ -16,7 +16,7 @@ class MyClass < MyAbstractClass
   end
 
   private def get_name()
-    return name # `this.` is optional.
+    return name # `@` is optional.
   end
 
   static def static_method()
@@ -24,7 +24,7 @@ class MyClass < MyAbstractClass
   end
 
   def print_name()
-    println get_name() # `this.` is optional
+    println get_name() # `@` is optional
   end
 
   def print_name_and_msg(msg)

@@ -947,19 +947,19 @@ class Emoji
   private (emap)
 
   def initialize(emap)
-    this.emap = emap
+    @emap = emap
   end
 
   def emotify(input)
-    return emoji.emotify(input, this.emap)
+    return emoji.emotify(input, @emap)
   end
 
   def get(name)
-    return this.emap[name]
+    return @emap[name]
   end
 
   def emojis()
-    return this.emap.keys()
+    return @emap.keys()
   end
 end
 

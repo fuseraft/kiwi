@@ -97,7 +97,7 @@ class Lexer {
                (pos < source.length() && source[pos] == '#')) {
       return parseBlockComment();
     } else if (currentChar == '@') {
-      return Token::create(KTokenType::DECLVAR, KName::KW_DeclVar, fileId, "@",
+      return Token::create(KTokenType::KEYWORD, KName::KW_This, fileId, "@",
                            row, col);
     } else if (currentChar == '$') {
       return Token::create(KTokenType::OPERATOR, KName::Default, fileId, "$",
@@ -964,6 +964,8 @@ class Lexer {
       st = KName::Builtin_Astral_Zip;
     } else if (builtin == AstralBuiltins.Clear) {
       st = KName::Builtin_Astral_Clear;
+    } else if (builtin == AstralBuiltins.Clone) {
+      st = KName::Builtin_Astral_Clone;
     } else if (builtin == ListBuiltins.Map) {
       st = KName::Builtin_List_Map;
     } else if (builtin == ListBuiltins.Select) {
