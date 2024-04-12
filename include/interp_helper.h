@@ -451,8 +451,7 @@ struct InterpHelper {
       const auto& token = tokens.at(pos);
 
       // If the last token was "@"
-      if (pos + 1 < tokens.size() &&
-          lastToken.getType() == KTokenType::DECLVAR) {
+      if (pos + 1 < tokens.size() && lastToken.getText() == "@") {
         if (tokens.at(pos + 1).getSubType() == KName::Ops_Divide) {
           moduleHome = token.getText();
           pos += 2;  // Skip module home and "/"

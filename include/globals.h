@@ -8,7 +8,7 @@ extern bool DEBUG;
 extern bool SILENCE;
 
 extern const std::string astral_name = "The Astral Programming Language";
-extern const std::string astral_version = "1.3.5";
+extern const std::string astral_version = "1.3.6";
 extern const std::string astral_arg = "astral";
 
 #include <unordered_map>

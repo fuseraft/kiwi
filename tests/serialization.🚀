@@ -1,6 +1,6 @@
 class SerializeMe
   def initialize()
-    this.name = "Hello!"
+    @name = "Hello!"
   end
 end
 

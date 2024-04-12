@@ -829,7 +829,7 @@ class Interpreter {
         } else {
           throw UnrecognizedTokenError(
               stream->current(),
-              "Unrecognized token `" + stream->current().getText() + "`.");
+              "Unknown keyword `" + stream->current().getText() + "`.");
         }
         break;
     }
@@ -1036,7 +1036,9 @@ class Interpreter {
       default:
         throw UnrecognizedTokenError(
             stream->current(),
-            "Unrecognized token `" + stream->current().getText() + "`.");
+            "Unrecognized token `" + stream->current().getText() +
+                "`, type = " +
+                get_token_type_string(stream->current().getType()) + ".");
     }
   }
 
@@ -2042,7 +2044,7 @@ class Interpreter {
     if (hasValue) {
       frame->returnValue = parseExpression(stream, frame);
     }
-    
+
     frame->setFlag(FrameFlags::ReturnFlag);
   }
 
@@ -2469,34 +2471,14 @@ class Interpreter {
 
   k_value interpretSelfInvocation(k_stream stream,
                                   std::shared_ptr<CallStackFrame> frame) {
-    if (!frame->inObjectContext()) {
-      throw InvalidContextError(stream->current(),
-                                "Invalid context for keyword `this`.");
-    }
+    auto id = stream->peek().getText();
+    auto term = parseExpression(stream, frame);
 
-    stream->next();  // Skip "this"
-    if (!stream->match(KTokenType::DOT)) {
-      throw SyntaxError(stream->current(),
-                        "Invalid syntax near keyword `this`.");
-    }
-
-    k_value value;
-
-    if (stream->current().getType() == KTokenType::IDENTIFIER) {
-      switch (stream->peek().getType()) {
-        case KTokenType::OPERATOR:
-          value = interpretAssignment(stream, frame,
-                                      stream->current().getText(), true);
-          break;
-
-        case KTokenType::OPEN_PAREN:
-          value = interpretMethodInvocation(stream, frame,
-                                            stream->current().getText());
-          break;
-
-        default:
-          break;
-      }
+    k_value value = {};
+    auto op = stream->current().getSubType();
+    if (Operators.is_assignment_operator(op) ||
+        op == KName::Ops_BitwiseLeftShift) {
+      value = interpretAssignment(stream, frame, id, true);
     }
 
     return value;
@@ -2954,7 +2936,7 @@ class Interpreter {
     stream->next();  // Skip "("
 
     if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
-      sortList(*list);
+      sort_list(*list);
       stream->next();
     } else {
       throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
@@ -3755,7 +3737,6 @@ class Interpreter {
 
       default:
         if (current.getSubType() == KName::KW_This) {
-          stream->next();  // Skip "this"
           return interpretSelfInvocationTerm(stream, frame);
         } else if (current.getSubType() == KName::KW_Lambda) {
           return interpretLambdaExpression(stream, frame);
@@ -3773,32 +3754,37 @@ class Interpreter {
   k_value interpretSelfInvocationTerm(k_stream stream,
                                       std::shared_ptr<CallStackFrame> frame) {
     if (!frame->inObjectContext()) {
-      throw InvalidContextError(stream->current(),
-                                "Invalid context for keyword `this`.");
+      throw InvalidContextError(stream->current(), "Invalid context for `@`.");
     }
 
-    if (!stream->match(KTokenType::DOT)) {
+    stream->next();  // Skip "@"
+
+    if (stream->current().getType() != KTokenType::IDENTIFIER) {
       return frame->getObjectContext();
     }
 
-    if (stream->current().getType() != KTokenType::IDENTIFIER) {
-      throw InvalidOperationError(
-          stream->current(), "Syntax error near `this`. Missing identifier.");
-    }
     auto identifier = stream->current().getText();
     stream->next();  // Skip the identifier
 
-    auto clazz = classes[frame->getObjectContext()->className];
+    auto objContext = frame->getObjectContext();
+    auto clazz = classes[objContext->className];
 
     if (clazz.hasMethod(identifier)) {
-      interpretInstanceMethodInvocation(
-          stream, frame, frame->getObjectContext()->identifier, identifier);
+      interpretInstanceMethodInvocation(stream, frame, objContext->identifier,
+                                        identifier);
 
       if (!callStack.empty()) {
         return callStack.top()->returnValue;
       }
-    } else if (frame->getObjectContext()->hasVariable(identifier)) {
-      return frame->getObjectContext()->instanceVariables[identifier];
+    } else if (objContext->hasVariable(identifier)) {
+      return objContext->instanceVariables[identifier];
+    } else {
+      auto op = stream->current().getSubType();
+      if (Operators.is_assignment_operator(op) ||
+          op == KName::Ops_BitwiseLeftShift) {
+        objContext->instanceVariables[identifier] = {};
+        return objContext->instanceVariables[identifier];
+      }
     }
 
     throw UnimplementedMethodError(stream->current(), clazz.getClassName(),
@@ -3996,7 +3982,9 @@ class Interpreter {
       name = stream->current().getText();
     }
 
-    stream->next();  // Skip the identifier.
+    if (!isInstanceVariable) {
+      stream->next();  // Skip the identifier.
+    }
 
     switch (stream->current().getType()) {
       case KTokenType::OPERATOR: {

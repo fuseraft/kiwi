@@ -1,2 +1,29 @@
 #!/usr/bin/astral
 /# This 🚀 script is for experimentation. #/
+
+class Calc
+  def initialize(n)
+    @num = n
+  end
+
+  def set(n)
+    @num = n
+    return @
+  end
+
+  def add(n)
+    @num += n
+    return @
+  end
+
+  def sub(n)
+    @num -= n
+    return @  
+  end
+
+  def value()
+    return @num
+  end
+end
+
+println Calc.new(0).add(5).add(5).sub(1).value()

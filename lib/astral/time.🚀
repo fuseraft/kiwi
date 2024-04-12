@@ -197,22 +197,22 @@ end
 
 class DateTime private (year, month, day, hour, minute, second)
   def initialize(year = 1970, month = 1, day = 1, hour = 0, minute = 0, second = 0)
-    this.year = year.is_a(Integer) ? year : 1970
-    this.month = month.is_a(Integer) ? month : 1
-    this.day = day.is_a(Integer) ? day : 1
-    this.hour = hour.is_a(Integer) ? hour : 0
-    this.minute = minute.is_a(Integer) ? minute : 0
-    this.second = second.is_a(Integer) ? second : 0
+    @year = year.is_a(Integer) ? year : 1970
+    @month = month.is_a(Integer) ? month : 1
+    @day = day.is_a(Integer) ? day : 1
+    @hour = hour.is_a(Integer) ? hour : 0
+    @minute = minute.is_a(Integer) ? minute : 0
+    @second = second.is_a(Integer) ? second : 0
   end
 
   def to_string()
-    date_part = ["${this.year}", string::padstart("${this.month}", 2, "0"), string::padstart("${this.day}", 2, "0")].join("-")
-    time_part = [string::padstart("${this.hour}", 2, "0"), string::padstart("${this.minute}", 2, "0"), string::padstart("${this.second}", 2, "0")].join(":")
+    date_part = ["${@year}", string::padstart("${@month}", 2, "0"), string::padstart("${@day}", 2, "0")].join("-")
+    time_part = [string::padstart("${@hour}", 2, "0"), string::padstart("${@minute}", 2, "0"), string::padstart("${@second}", 2, "0")].join(":")
     return [date_part, time_part].join(" ")
   end
 
   def to_number()
-    number_string = "${this}".replace("-", "").replace(":", "").split(" ")
+    number_string = "${@}".replace("-", "").replace(":", "").split(" ")
     date_part = number_string[0].to_int()
     time_part = "1${number_string[1]}".to_int()
 
@@ -223,7 +223,7 @@ class DateTime private (year, month, day, hour, minute, second)
     if !another_date.is_a(DateTime)
       return false
     else
-      number_a = (this.to_number())
+      number_a = (@to_number())
       number_b = another_date.to_number()
       if number_a[0] == number_b[0]
         return number_a[1] == number_b[1]
@@ -237,7 +237,7 @@ class DateTime private (year, month, day, hour, minute, second)
     if !another_date.is_a(DateTime)
       return false
     else
-      number_a = (this.to_number())
+      number_a = (@to_number())
       number_b = another_date.to_number()
       if number_a[0] > number_b[0]
         return true
@@ -253,7 +253,7 @@ class DateTime private (year, month, day, hour, minute, second)
     if !another_date.is_a(DateTime)
       return false
     else
-      number_a = (this.to_number())
+      number_a = (@to_number())
       number_b = another_date.to_number()
       if number_a[0] < number_b[0]
         return true
@@ -267,120 +267,120 @@ class DateTime private (year, month, day, hour, minute, second)
 
   def add_days(n)
     if n.is_a(Integer)
-      this.day += n
-      month_days = time::monthdays(this.year, this.month)
+      @day += n
+      month_days = time::monthdays(@year, @month)
 
-      while this.day > month_days do
-        this.day -= month_days
-        this.month += 1
+      while @day > month_days do
+        @day -= month_days
+        @month += 1
 
-        if this.month > 12
-          this.month = 1
-          this.year += 1
+        if @month > 12
+          @month = 1
+          @year += 1
         end
 
-        month_days = time::monthdays(this.year, this.month)
+        month_days = time::monthdays(@year, @month)
       end
 
-      while this.day < 1 do
-        this.month -= 1
+      while @day < 1 do
+        @month -= 1
 
-        if this.month < 1
-          this.month = 12
-          this.year -= 1
+        if @month < 1
+          @month = 12
+          @year -= 1
         end
 
-        this.day += time::monthdays(this.year, this.month)
+        @day += time::monthdays(@year, @month)
       end
     end
 
-    return this
+    return @
   end
 
   def add_months(n)
     if n.is_a(Integer)
-      this.month += n
+      @month += n
       
-      while this.month > 12 do
-        this.month -= 12
-        this.year += 1
+      while @month > 12 do
+        @month -= 12
+        @year += 1
       end
 
-      while this.month < 1 do
-        this.month += 12
-        this.year -= 1
+      while @month < 1 do
+        @month += 12
+        @year -= 1
       end
 
-      this.day = [this.day, time::monthdays(this.year, this.month)].min()
+      @day = [@day, time::monthdays(@year, @month)].min()
     end
-    return this
+    return @
   end
 
   def add_years(n)
     if n.is_a(Integer)
-      this.year += n
-      this.day = [this.day, time::monthdays(this.year, this.month)].min()
+      @year += n
+      @day = [@day, time::monthdays(@year, @month)].min()
     end
-    return this
+    return @
   end
 
   def add_hours(n)
     if n.is_a(Integer)
-      this.hour += n
+      @hour += n
 
-      while this.hour >= 24 do
-        this.hour -= 24
-        this.add_days(1)
+      while @hour >= 24 do
+        @hour -= 24
+        add_days(1)
       end
 
-      while this.hour < 0 do
-        this.hour += 24
-        this.add_days(-1)
+      while @hour < 0 do
+        @hour += 24
+        add_days(-1)
       end
     end
-    return this
+    return @
   end
 
   def add_minutes(n)
     if n.is_a(Integer)
-      this.minute += n
+      @minute += n
 
-      while this.minute >= 60 do
-        this.minute -= 60
-        this.add_hours(1)
+      while @minute >= 60 do
+        @minute -= 60
+        add_hours(1)
       end
 
-      while this.minute < 0 do
-        this.minute += 60
-        this.add_hours(-1)
+      while @minute < 0 do
+        @minute += 60
+        add_hours(-1)
       end
     end
-    return this
+    return @
   end
 
   def add_seconds(n)
     if n.is_a(Integer)
-      this.second += n
+      @second += n
 
-      while this.second >= 60 do
-        this.second -= 60
-        this.add_minutes(1)
+      while @second >= 60 do
+        @second -= 60
+        add_minutes(1)
       end
 
-      while this.second < 0 do
-        this.second += 60
-        this.add_minutes(-1)
+      while @second < 0 do
+        @second += 60
+        add_minutes(-1)
       end
     end
-    return this
+    return @
   end
 
-  def get_year() return this.year end
-  def get_month() return this.month end
-  def get_day() return this.day end
-  def get_hour() return this.hour end
-  def get_minute() return this.minute end
-  def get_second() return this.second end
+  def get_year() return @year end
+  def get_month() return @month end
+  def get_day() return @day end
+  def get_hour() return @hour end
+  def get_minute() return @minute end
+  def get_second() return @second end
 
   static def format(_datetime, _format = "%Y-%m-%d %H:%M:%S")
     return time::dtformat(_datetime, _format)
