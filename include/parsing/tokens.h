@@ -8,6 +8,63 @@
 #include "typing/serializer.h"
 #include "typing/value.h"
 
+k_string get_token_type_string(KTokenType type) {
+  switch (type) {
+    case KTokenType::CLOSE_BRACE:
+      return "CLOSE_BRACE";
+    case KTokenType::CLOSE_BRACKET:
+      return "CLOSE_BRACKET";
+    case KTokenType::CLOSE_PAREN:
+      return "CLOSE_PAREN";
+    case KTokenType::COLON:
+      return "COLON";
+    case KTokenType::COMMA:
+      return "COMMA";
+    case KTokenType::COMMENT:
+      return "COMMENT";
+    case KTokenType::CONDITIONAL:
+      return "CONDITIONAL";
+    case KTokenType::DOT:
+      return "DOT";
+    case KTokenType::ENDOFFILE:
+      return "ENDOFFILE";
+    case KTokenType::ESCAPED:
+      return "ESCAPED";
+    case KTokenType::IDENTIFIER:
+      return "IDENTIFIER";
+    case KTokenType::KEYWORD:
+      return "KEYWORD";
+    case KTokenType::LAMBDA:
+      return "LAMBDA";
+    case KTokenType::LITERAL:
+      return "LITERAL";
+    case KTokenType::NEWLINE:
+      return "NEWLINE";
+    case KTokenType::OPEN_BRACE:
+      return "OPEN_BRACE";
+    case KTokenType::OPEN_BRACKET:
+      return "OPEN_BRACKET";
+    case KTokenType::OPEN_PAREN:
+      return "OPEN_PAREN";
+    case KTokenType::OPERATOR:
+      return "OPERATOR";
+    case KTokenType::QUALIFIER:
+      return "QUALIFIER";
+    case KTokenType::QUESTION:
+      return "QUESTION";
+    case KTokenType::RANGE:
+      return "RANGE";
+    case KTokenType::STREAM_END:
+      return "STREAM_END";
+    case KTokenType::STRING:
+      return "STRING";
+    case KTokenType::TYPENAME:
+      return "TYPENAME";
+  }
+
+  return "UNKNOWN";
+}
+
 class Token {
  public:
   static Token create(const KTokenType& t, const KName& st, const int& fileId,

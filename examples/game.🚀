@@ -15,16 +15,16 @@ end
 
 class Player
   def initialize(config = { "name": "", "is_enemy": "" })
-    this.name = config.name
-    this.is_enemy = config.is_enemy
+    @name = config.name
+    @is_enemy = config.is_enemy
   end
 
   def to_string()
-    return this.name
+    return @name
   end
 
   def get_type()
-    return this.is_enemy ? "Enemy" : "Player"
+    return @is_enemy ? "Enemy" : "Player"
   end
 
   static def create(name, is_enemy = false)
@@ -42,41 +42,39 @@ class Game private (name, players, player_count, turns)
       player_count,
       turns = 6 )
 
-    this.name = name
-    this.player_count = player_count
-    this.players = []
-    this.turns = turns
+    @name = name
+    @player_count = player_count
+    @players = []
+    @turns = turns
   end
   
   def to_string()
-    return "${this.name}"
+    return "${@name}"
   end
 
-  def add_player
-    ( player )
-
-    if this.player_count == this.players.size()
+  def add_player(player)
+    if @player_count == @players.size()
       println "max player capacity is already met."
       return 0
     end
 
-    this.players << player
+    players << player
   end
 
   def get_players()
-    return this.players
+    return @players
   end
 
   def get_name()
-    return this.name
+    return @name
   end
 
   def print_info()  
-    lines = "=====================" + ("=" * "${this}".size())
-    println "\n${lines}\nYou are now playing ${this}!\n${lines}"
+    lines = "=====================" + ("=" * "${@}".size())
+    println "\n${lines}\nYou are now playing ${@}!\n${lines}"
     
-    for p, i in this.get_players() do
-      print "${p.get_type()}: ${p}" + ((i + 1 < this.get_players().size()) ? ", " : "\n")
+    for p, i in get_players() do
+      print "${p.get_type()}: ${p}" + ((i + 1 < get_players().size()) ? ", " : "\n")
     end
   end
 
@@ -84,13 +82,13 @@ class Game private (name, players, player_count, turns)
     player_hp = 100
     enemy_hp = 100
 
-    for turn in [1..this.turns] do
+    for turn in [1..@turns] do
       sys.exec("clear")
       
-      this.print_info()
-      println "\nTurn ${turn} of ${this.turns} => Player HP: ${player_hp}, Enemy HP: ${enemy_hp}\n"
+      print_info()
+      println "\nTurn ${turn} of ${@turns} => Player HP: ${player_hp}, Enemy HP: ${enemy_hp}\n"
       
-      for p in this.get_players() do
+      for p in get_players() do
         if !p.is_enemy
           move = get_action(p)
           
@@ -102,7 +100,7 @@ class Game private (name, players, player_count, turns)
       end
     end
 
-    this.conclude_game(player_hp, enemy_hp)
+    conclude_game(player_hp, enemy_hp)
   end
 
   private def conclude_game(player_hp, enemy_hp)

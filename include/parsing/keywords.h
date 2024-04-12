@@ -179,7 +179,7 @@ struct {
   const k_string Return = "return";
   const k_string Static = "static";
   const k_string Then = "then";
-  const k_string This = "this";
+  const k_string This = "@";
   const k_string Throw = "throw";
   const k_string True = "true";
   const k_string Try = "try";

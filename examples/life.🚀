@@ -1,24 +1,24 @@
 def main()
   rows = 20
   cols = 20
-  grid = build_grid(rows, cols, 0)
-
-  set_cell(grid, rows, cols, 1, 2, 1)
-  set_cell(grid, rows, cols, 2, 3, 1)
-  set_cell(grid, rows, cols, 3, 1, 1)
-  set_cell(grid, rows, cols, 3, 2, 1)
-  set_cell(grid, rows, cols, 3, 3, 1)
-  
-
-  set_cell(grid, rows, cols, 3, 7, 1)
-  set_cell(grid, rows, cols, 4, 8, 1)
-  set_cell(grid, rows, cols, 5, 6, 1)
-  set_cell(grid, rows, cols, 5, 7, 1)
-  set_cell(grid, rows, cols, 5, 8, 1)
+  grid = ([[0] * cols] * rows).clone()
+  randomize(grid, rows, cols)
 
   while true do
     println display(grid, rows, cols)
     update(grid, rows, cols)
+  end
+end
+
+def randomize(grid, rows, cols)
+  xrange = [0 .. rows - 1]
+  yrange = [0 .. cols - 1]
+
+  for x in xrange do
+    row = grid[x]
+    for y in yrange do
+      row[y] = __random__(0, 1)
+    end
   end
 end
 
@@ -27,6 +27,7 @@ def display(grid, rows, cols)
   disp = []
 
   i = 0, len = rows - 1
+
   while i < len do
     disp << grid[i].join(" ")
     i += 1
@@ -35,27 +36,8 @@ def display(grid, rows, cols)
   return disp.join("\n").replace("0", ".").replace("1", "O")
 end
 
-def build_grid(rows, cols, state = 0)
-  grid = []
-
-  xrange = [0 .. rows - 1]
-  yrange = [0 .. cols - 1]
-
-  for x in xrange do
-    list = []
-
-    for y in yrange do
-      list << state
-    end
-
-    grid << list
-  end
-
-  return grid
-end
-
 def set_cell(grid, rows, cols, x, y, state)
-  if (x >= 0 && x < rows && y >= 0 && y < cols)
+  if x >= 0 && x < rows && y >= 0 && y < cols
     row = grid[x]
     row[y] = state
   end
@@ -72,58 +54,55 @@ def count_neighbor(grid, rows, cols, nx, ny)
 end
 
 def count_neighbors(grid, rows, cols, x, y)
-  xm1 = x - 1
-  xp1 = x + 1
-  ym1 = y - 1
-  yp1 = y + 1
+  directions = [
+    [x - 1, y - 1],
+    [x - 1, y],
+    [x - 1, y + 1],
+    [x, y - 1],
+    [x, y + 1],
+    [x + 1, y - 1],
+    [x + 1, y],
+    [x + 1, y + 1]
+  ]
 
-  return (count_neighbor(grid, rows, cols, xm1, ym1)
-         + count_neighbor(grid, rows, cols, xm1, y)
-         + count_neighbor(grid, rows, cols, xm1, yp1)
-         + count_neighbor(grid, rows, cols, x, ym1)
-         + count_neighbor(grid, rows, cols, x, yp1)
-         + count_neighbor(grid, rows, cols, xp1, ym1)
-         + count_neighbor(grid, rows, cols, xp1, y)
-         + count_neighbor(grid, rows, cols, xp1, yp1))
+  res = 0
+
+  for direction in directions do
+    nx = direction[0], ny = direction[1]
+    if (nx >= 0 && nx < rows && ny >= 0 && ny < cols)
+      res += (grid[nx][ny])
+    end
+  end
+
+  return res
 end
 
 def update(grid, rows, cols)
-  new_grid = clone_grid(grid, rows, cols)
-
-  xrange = [0 .. rows - 1]
-  yrange = [0 .. cols - 1]
+  new_grid = grid.clone()
   
-  for x in xrange do
+  for x in [0 .. rows - 1] do
     row = new_grid[x]
 
-    for y in yrange do
+    for y in [0 .. cols - 1] do
       live_neighbors = count_neighbors(grid, rows, cols, x, y)
 
       if (row[y] == 1 && (live_neighbors < 2 || live_neighbors > 3))
         row[y] = 0
       elsif (row[y] == 0 && live_neighbors == 3)
         row[y] = 1
-      end      
+      end
+
+      if row[y] == 1 && (live_neighbors == 2 || live_neighbors == 3)
+        row[y] = 1
+      elsif row[y] == 0 && live_neighbors == 3
+        row[y] = 1
+      else
+        row[y] = 0
+      end
     end
   end
 
   grid = new_grid
-end
-
-def clone_grid(input_grid, rows, cols)
-  cloned_grid = build_grid(rows, cols, 0)
-
-  xrange = [0 .. rows - 1]
-  yrange = [0 .. cols - 1]
-
-  for x in xrange do
-    row = cloned_grid[x]
-    for y in yrange do
-      row[y] = input_grid[x][y]
-    end
-  end
-
-  return cloned_grid
 end
 
 main()

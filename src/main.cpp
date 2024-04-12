@@ -7,7 +7,7 @@
  *
  * @author Scott Stauffer
  * @date 2024-01-31
- * @version 1.3.5
+ * @version 1.3.6
  *
  * GitHub Repository: https://github.com/fuseraft/astral
  * For more information, issues, or to contribute, please visit the repository.

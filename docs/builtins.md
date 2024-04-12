@@ -57,6 +57,7 @@ In Astral, builtins are accessed using dot-notation and can be used to query or 
   - [`zip(list)`](#ziplist)
 - [**Conversion and Type Checking**](#conversion-and-type-checking)
   - [`empty()`](#empty)
+  - [`clone()`](#clone)
   - [`is_a(type_name)`](#is_atype_name)
   - [`to_double()`](#to_double)
   - [`to_hash()`](#to_hash)
@@ -560,6 +561,19 @@ println {}.empty()     # prints: true
 println false.empty()  # prints: true
 ```
 
+### `clone()`
+
+Returns a deep copy of the value.
+
+```ruby
+list = [1, 2, 3, true, false]
+list2 = list.clone()
+list2[0] = "hello"
+
+println list  # prints: [1, 2, 3, true, false]
+println list2 # prints: ["hello", 2, 3, true, false]
+```
+
 ### `is_a(type_name)`
 
 Used for type-checking.
@@ -585,7 +599,7 @@ Converts an object instance or a JSON string into a hash.
 ```ruby
 class SerializeMe
   def initialize()
-    this.name = "Astral"
+    @name = "Astral"
   end
 end
 
