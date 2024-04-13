@@ -21,7 +21,7 @@ while true do
     elsif command == "exit"
       exit 0
     elsif command == "list"
-      println e.emojis().map(lambda(emo) do return "'${emo}'" end).join(", ")
+      println e.emojis().map(with (emo) do return "'${emo}'" end).join(", ")
     else
       println e.emotify(command)
     end

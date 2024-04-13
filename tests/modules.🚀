@@ -23,11 +23,11 @@ def print_dir()
   directories = []
   files = []
   
-  for entry in __listdir__(".").select(lambda (x) do return __isdir__(x) end) do
+  for entry in __listdir__(".").select(with (x) do return __isdir__(x) end) do
   directories << __filename__(entry) + "/"
   end
   
-  for entry in __listdir__(".").select(lambda (x) do return __isfile__(x) end) do
+  for entry in __listdir__(".").select(with (x) do return __isfile__(x) end) do
   files << __filename__(entry)
   end
   
