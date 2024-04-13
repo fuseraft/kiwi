@@ -13,11 +13,13 @@ A dynamically-typed, single-pass, recursive descent interpreter without AST gene
    3. [Windows](#windows-builds)
    4. [Visual Studio Code Extension](#visual-studio-code-extension)
 2. [Documentation](#documentation)
+   1. [Astral Index](#astral-index)
    1. [Test Suite](#test-suite)
-   2. [Example Code](#example-code)
-      1. [Project Euler Examples](#project-euler-examples)
-      2. [Example Script](#example-script)
-      3. [Example Web Application](#example-web-application)
+   2. [Code Examples](#code-examples)
+      1. [Cellular Automata](#cellular-automata)
+      2. [Project Euler](#project-euler)
+      3. [Web Application](#web-application)
+      4. [Temporary Script](#temporary-script)
 3. [Contributions](#contributions)
 4. [License](#license)
 
@@ -98,7 +100,9 @@ ext install fuseraft.astral-lang
 
 ## Documentation
 
-For detailed information on language features, refer to the [docs](docs/README.md).
+### Astral Index
+
+You can find detailed information on language features in the [Astral Index](docs/README.md).
 
 ### Test Suite
 
@@ -107,15 +111,27 @@ Explore the [tests](tests/) directory for a collection of test scripts.
 To run the test suite, execute:
 
 ```shell
+astral test
+```
+
+To build and run the test suite, execute:
+
+```shell
 make test
 ```
 
-### Example Code
+### Code Examples
 
-#### Project Euler Examples
+#### Cellular Automata
 
-For fun, I wrote some [Project Euler examples](examples/project_euler/).
-#### Example Web Application
+- [Rule 30](examples/ca.🚀)
+- [Conway's Game of Life](examples/life.🚀)
+
+#### Project Euler
+
+- [Project Euler examples](examples/project_euler/).
+
+#### Web Application
 
 Below is a simple HTTP web application. You can find the [example project here](examples/webapp/app.🚀).
 
@@ -151,7 +167,7 @@ web.post("/contact", with (req) do
   return web.redirect("/")
 end)
 
-# static content
+# serve static content
 web.public("/", "./public")
 
 # server and port configuration
@@ -162,8 +178,9 @@ println("Starting Astral Web Server at http://${host}:${port}")
 web.listen(host, port)
 ```
 
-#### Example Script
-Below is an example script that generates a temporary script and executes it.
+#### Temporary Script
+
+Below is a script that generates a temporary script and executes it.
 
 ```ruby
 import "@astral/fs" as fs
@@ -187,8 +204,8 @@ try
     This script will delete itself and let you know it was there.
     #/
     import \"@astral/fs\" as fs
-    fs.remove(\"${@path}\")
-    println(\"Astral was here.\")
+    fs.remove(\"${path}\")
+    println(\"Astral was here running as ${fs.filename(path)}.\")
   ")
 
   # Run the 🚀 script.
