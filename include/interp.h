@@ -578,8 +578,8 @@ class Interpreter {
       throw SyntaxError(stream->current(), "Expected `do` in `for` loop.");
     }
 
-    auto restore = getVariablesForRestore(stream, frame, itemVariableName,
-                                          indexVariableName);
+    auto restore = InterpHelper::trackVariables(stream, frame, itemVariableName,
+                                                indexVariableName);
 
     if (std::holds_alternative<k_list>(collectionValue)) {
       interpretListLoop(stream, frame, collectionValue, hasIndexVariable,
@@ -695,21 +695,6 @@ class Interpreter {
       default:
         break;
     }
-  }
-
-  std::unordered_map<k_string, k_value> getVariablesForRestore(
-      k_stream stream, std::shared_ptr<CallStackFrame> frame,
-      const std::string& firstValue, const std::string& secondValue) {
-    std::unordered_map<k_string, k_value> restore;
-    if (hasVariable(frame, firstValue)) {
-      restore[firstValue] = getVariable(stream, frame, firstValue);
-    }
-
-    if (!secondValue.empty() && hasVariable(frame, secondValue)) {
-      restore[secondValue] = getVariable(stream, frame, secondValue);
-    }
-
-    return restore;
   }
 
   void interpretParse(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
@@ -910,6 +895,14 @@ class Interpreter {
   k_value interpretIdentifier(k_stream stream,
                               std::shared_ptr<CallStackFrame> frame,
                               bool doAssignment = true) {
+    if (!doAssignment) {
+      if (stream->peek().getType() == KTokenType::OPEN_BRACKET) {
+        auto variableName = stream->current().getText();
+        stream->next();  // Skip the identifier.
+        return interpretSlice(stream, frame, variableName);
+      }
+    }
+
     auto tokenText = stream->current().getText();
     const auto& op = stream->current().getSubType();
 
@@ -922,14 +915,14 @@ class Interpreter {
       return static_cast<k_int>(0);
     }
 
-    if (hasVariable(frame, tokenText)) {
+    if (InterpHelper::hasVariable(frame, tokenText)) {
       if (stream->peek().getType() == KTokenType::OPEN_BRACKET) {
         stream->next();
         interpretSliceAssignment(stream, frame, tokenText);
         return static_cast<k_int>(0);
       }
 
-      auto v = getVariable(stream, frame, tokenText);
+      auto v = InterpHelper::getVariable(stream, frame, tokenText);
       stream->next();
 
       if (std::holds_alternative<k_lambda>(v)) {
@@ -1076,32 +1069,6 @@ class Interpreter {
     return methods.find(name) != methods.end();
   }
 
-  bool hasVariable(std::shared_ptr<CallStackFrame> frame,
-                   const k_string& name) const {
-    if (frame->hasVariable(name)) {
-      return true;  // Found in the current frame
-    }
-
-    if (frame->inObjectContext()) {
-      if (frame->getObjectContext()->hasVariable(name)) {
-        return true;
-      }
-    }
-
-    // Check in outer frames
-    std::stack<std::shared_ptr<CallStackFrame>> tempStack(
-        callStack);  // Copy the call stack
-    while (!tempStack.empty()) {
-      const auto& outerFrame = tempStack.top();
-      if (outerFrame->hasVariable(name)) {
-        return true;  // Found in an outer frame
-      }
-      tempStack.pop();
-    }
-
-    return false;  // Not found in any scope
-  }
-
   Module getHomedModule(k_stream stream, const k_string& homeName,
                         const k_string& moduleName) {
     for (auto pair : modules) {
@@ -1153,31 +1120,6 @@ class Interpreter {
     }
 
     throw MethodUndefinedError(stream->current(), name);
-  }
-
-  k_value getVariable(k_stream stream, std::shared_ptr<CallStackFrame> frame,
-                      const k_string& name) {
-    // Check in the current frame
-    if (frame->hasVariable(name)) {
-      return frame->variables[name];
-    }
-
-    if (frame->inObjectContext() &&
-        frame->getObjectContext()->hasVariable(name)) {
-      return frame->getObjectContext()->instanceVariables[name];
-    }
-
-    // Check in outer frames
-    auto tempStack(callStack);
-    while (!tempStack.empty()) {
-      const auto& outerFrame = tempStack.top();
-      if (outerFrame->hasVariable(name)) {
-        return outerFrame->variables[name];
-      }
-      tempStack.pop();
-    }
-
-    throw VariableUndefinedError(stream->current(), name);
   }
 
   std::vector<k_value> interpretArguments(
@@ -1721,7 +1663,8 @@ class Interpreter {
       stream->next();  // Skip the method name.
     }
 
-    auto object = std::get<k_object>(getVariable(stream, frame, instanceName));
+    auto object = std::get<k_object>(
+        InterpHelper::getVariable(stream, frame, instanceName));
 
     if (!hasClass(object->className)) {
       throw ClassUndefinedError(stream->current(), object->className);
@@ -2168,30 +2111,9 @@ class Interpreter {
 
   k_value interpretSlice(k_stream stream, k_value& value, SliceIndex& slice) {
     if (std::holds_alternative<k_list>(value)) {
-      auto list = std::get<k_list>(value);
-      return InterpHelper::interpretListSlice(stream, slice, list);
+      return InterpHelper::listSlice(stream, slice, value);
     } else if (std::holds_alternative<k_string>(value)) {
-      auto string = std::get<k_string>(value);
-      auto list = std::make_shared<List>();
-
-      auto& elements = list->elements;
-      for (const char& c : string) {
-        elements.emplace_back(k_string(1, c));
-      }
-
-      auto sliced = InterpHelper::interpretListSlice(stream, slice, list);
-      std::ostringstream sv;
-
-      if (std::holds_alternative<k_list>(sliced)) {
-        auto slicedlist = std::get<k_list>(sliced)->elements;
-        for (auto it = slicedlist.begin(); it != slicedlist.end(); ++it) {
-          sv << Serializer::serialize(*it);
-        }
-      } else {
-        sv << Serializer::serialize(sliced);
-      }
-
-      return sv.str();
+      return InterpHelper::stringSlice(stream, slice, value);
     }
 
     throw ConversionError(
@@ -2201,7 +2123,7 @@ class Interpreter {
 
   k_value interpretSlice(k_stream stream, std::shared_ptr<CallStackFrame> frame,
                          const k_string& name) {
-    auto value = getVariable(stream, frame, name);
+    auto value = InterpHelper::getVariable(stream, frame, name);
     if (std::holds_alternative<k_hash>(value)) {
       return interpretHashElementAccess(stream, frame, value);
     }
@@ -2214,26 +2136,6 @@ class Interpreter {
 
     auto slice = interpretSliceIndex(stream, frame, value);
     return interpretSlice(stream, value, slice);
-  }
-
-  void interpretAppendToList(k_stream stream,
-                             std::shared_ptr<CallStackFrame> frame,
-                             k_value& listValue,
-                             const k_string& listVariableName) {
-    k_value variableValue;
-    try {
-      variableValue = getVariable(stream, frame, listVariableName);
-    } catch (const VariableUndefinedError&) {
-      throw VariableUndefinedError(stream->current(), listVariableName);
-    }
-
-    if (!std::holds_alternative<k_list>(variableValue)) {
-      throw InvalidOperationError(stream->current(),
-                                  "`" + listVariableName + "` is not a list.");
-    }
-
-    const auto& listPtr = std::get<k_list>(variableValue);
-    listPtr->elements.emplace_back(listValue);
   }
 
   k_list interpretRange(k_stream stream,
@@ -2803,7 +2705,7 @@ class Interpreter {
       auto name = stream->current().getText();
       stream->next();
 
-      if (!hasVariable(frame, name)) {
+      if (!InterpHelper::hasVariable(frame, name)) {
         throw VariableUndefinedError(stream->current(), name);
       }
 
@@ -3728,11 +3630,6 @@ class Interpreter {
         return interpretBracketExpression(stream, frame);
 
       case KTokenType::IDENTIFIER:
-        if (stream->peek().getType() == KTokenType::OPEN_BRACKET) {
-          auto variableName = current.getText();
-          stream->next();  // Skip the identifier.
-          return interpretSlice(stream, frame, variableName);
-        }
         return interpretIdentifier(stream, frame, false);
 
       default:
@@ -3938,7 +3835,7 @@ class Interpreter {
   void interpretSliceAssignment(k_stream stream,
                                 std::shared_ptr<CallStackFrame> frame,
                                 const k_string& name) {
-    auto value = getVariable(stream, frame, name);
+    auto value = InterpHelper::getVariable(stream, frame, name);
 
     if (std::holds_alternative<k_hash>(value)) {
       interpretHashElementAssignment(stream, frame, name, value);
@@ -3950,17 +3847,26 @@ class Interpreter {
                                   "`" + name + "` is not a list.");
     }
 
-    // Parse slice parameters (start:stop:step)
-    auto slice = interpretSliceIndex(stream, frame, value);
+    SliceIndex slice;
+    bool insertOp, simpleAssignOp;
 
-    auto st = stream->current().getSubType();
+    do {
+      slice = interpretSliceIndex(stream, frame, value);
+      if (stream->current().getType() == KTokenType::OPEN_BRACKET) {
+        value = InterpHelper::listSlice(stream, slice, value);
+      } else {
+        auto st = stream->current().getSubType();
+        insertOp = st == KName::Ops_BitwiseLeftShiftAssign;
+        simpleAssignOp = st == KName::Ops_Assign;
+      }
+    } while (!insertOp && !simpleAssignOp && stream->canRead());
+
     // Expect assignment operator next
-    bool insertOp = st == KName::Ops_BitwiseLeftShiftAssign;
-    bool simpleAssignOp = st == KName::Ops_Assign;
     if (!insertOp && !simpleAssignOp) {
       throw SyntaxError(stream->current(),
                         "Expected assignment operator in slice assignment.");
     }
+
     stream->next();  // Move past the assignment operator
 
     auto rhsValues = parseExpression(stream, frame);
@@ -3998,7 +3904,7 @@ class Interpreter {
       } break;
 
       case KTokenType::OPEN_BRACKET:
-        if (!hasVariable(frame, name)) {
+        if (!InterpHelper::hasVariable(frame, name)) {
           throw VariableUndefinedError(stream->current(), name);
         }
 
@@ -4011,8 +3917,8 @@ class Interpreter {
         break;
 
       case KTokenType::DOT:
-        if (hasVariable(frame, name)) {
-          auto value = getVariable(stream, frame, name);
+        if (InterpHelper::hasVariable(frame, name)) {
+          auto value = InterpHelper::getVariable(stream, frame, name);
           if (std::holds_alternative<k_object>(value)) {
             interpretInstanceMethodInvocation(stream, frame, name);
             return name;
@@ -4082,16 +3988,16 @@ class Interpreter {
       return;
     }
 
-    if (!hasVariable(frame, name)) {
+    if (!InterpHelper::hasVariable(frame, name)) {
       throw VariableUndefinedError(stream->current(), name);
     }
 
     if (op == KName::Ops_BitwiseLeftShift) {
-      interpretAppendToList(stream, frame, value, name);
+      InterpHelper::listAppend(stream, frame, value, name);
       return;
     }
 
-    auto currentValue = getVariable(stream, frame, name);
+    auto currentValue = InterpHelper::getVariable(stream, frame, name);
     auto newValue =
         InterpHelper::interpretAssignOp(stream, op, currentValue, value);
 

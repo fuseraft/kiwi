@@ -188,7 +188,7 @@ struct {
   std::unordered_set<k_string> keywords = {
       Abstract, As,     Async,  Await,   Break,   Catch,  Class,  Delete,
       Do,       Else,   ElseIf, End,     Exit,    Export, False,  For,
-      If,       Import, In,     With,  Method,  Module, Next,   Override,
+      If,       Import, In,     With,    Method,  Module, Next,   Override,
       Parse,    Pass,   Print,  PrintLn, Private, Return, Static, Then,
       This,     Throw,  True,   Try,     While};
 

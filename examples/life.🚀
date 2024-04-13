@@ -1,7 +1,7 @@
 def main()
   rows = 20
   cols = 20
-  grid = ([[0] * cols] * rows).clone()
+  grid = [[0] * cols] * rows
   randomize(grid, rows, cols)
 
   while true do
@@ -15,9 +15,8 @@ def randomize(grid, rows, cols)
   yrange = [0 .. cols - 1]
 
   for x in xrange do
-    row = grid[x]
     for y in yrange do
-      row[y] = __random__(0, 1)
+      grid[x][y] = __random__(0, 1)
     end
   end
 end
@@ -38,8 +37,7 @@ end
 
 def set_cell(grid, rows, cols, x, y, state)
   if x >= 0 && x < rows && y >= 0 && y < cols
-    row = grid[x]
-    row[y] = state
+    grid[x][y] = state
   end
 end
 
@@ -70,7 +68,7 @@ def count_neighbors(grid, rows, cols, x, y)
   for direction in directions do
     nx = direction[0], ny = direction[1]
     if (nx >= 0 && nx < rows && ny >= 0 && ny < cols)
-      res += (grid[nx][ny])
+      res += grid[nx][ny]
     end
   end
 
@@ -81,23 +79,15 @@ def update(grid, rows, cols)
   new_grid = grid.clone()
   
   for x in [0 .. rows - 1] do
-    row = new_grid[x]
-
     for y in [0 .. cols - 1] do
       live_neighbors = count_neighbors(grid, rows, cols, x, y)
 
-      if (row[y] == 1 && (live_neighbors < 2 || live_neighbors > 3))
-        row[y] = 0
-      elsif (row[y] == 0 && live_neighbors == 3)
-        row[y] = 1
-      end
-
-      if row[y] == 1 && (live_neighbors == 2 || live_neighbors == 3)
-        row[y] = 1
-      elsif row[y] == 0 && live_neighbors == 3
-        row[y] = 1
+      if new_grid[x][y] == 1 && (live_neighbors == 2 || live_neighbors == 3)
+        new_grid[x][y] = 1
+      elsif new_grid[x][y] == 0 && live_neighbors == 3
+        new_grid[x][y] = 1
       else
-        row[y] = 0
+        new_grid[x][y] = 0
       end
     end
   end
