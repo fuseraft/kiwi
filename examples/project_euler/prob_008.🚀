@@ -21,7 +21,7 @@ bignum =
 07198403850962455444362981230987879927244284909188
 84580156166097919133875499200524063689912560717606
 05886116467109405077541002256983155200055935729725
-71636269561882670428252483600823257530420752963450".split("\n").join("").chars().map(lambda (c) do return c.to_int() end)
+71636269561882670428252483600823257530420752963450".split("\n").join("").chars().map(with (c) do return c.to_int() end)
 
 size = bignum.size()
 i = 0
@@ -45,12 +45,12 @@ while i < size do
 
   i += 1
 
-  zeroes = digits.select(lambda (n) do return n == 0 end).size()
+  zeroes = digits.select(with (n) do return n == 0 end).size()
   if zeroes > 0
     next
   end
 
-  product = digits.reduce(1, lambda (acc, n) do 
+  product = digits.reduce(1, with (acc, n) do 
                                  acc *= n
                                  return acc
                                end)

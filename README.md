@@ -13,11 +13,13 @@ A dynamically-typed, single-pass, recursive descent interpreter without AST gene
    3. [Windows](#windows-builds)
    4. [Visual Studio Code Extension](#visual-studio-code-extension)
 2. [Documentation](#documentation)
+   1. [Astral Index](#astral-index)
    1. [Test Suite](#test-suite)
-   2. [Example Code](#example-code)
-      1. [Project Euler Examples](#project-euler-examples)
-      2. [Example Script](#example-script)
-      3. [Example Web Application](#example-web-application)
+   2. [Code Examples](#code-examples)
+      1. [Cellular Automata](#cellular-automata)
+      2. [Project Euler](#project-euler)
+      3. [Web Application](#web-application)
+      4. [Temporary Script](#temporary-script)
 3. [Contributions](#contributions)
 4. [License](#license)
 
@@ -98,7 +100,9 @@ ext install fuseraft.astral-lang
 
 ## Documentation
 
-For detailed information on language features, refer to the [docs](docs/README.md).
+### Astral Index
+
+You can find detailed information on language features in the [Astral Index](docs/README.md).
 
 ### Test Suite
 
@@ -107,17 +111,76 @@ Explore the [tests](tests/) directory for a collection of test scripts.
 To run the test suite, execute:
 
 ```shell
+astral test
+```
+
+To build and run the test suite, execute:
+
+```shell
 make test
 ```
 
-### Example Code
+### Code Examples
 
-#### Project Euler Examples
+#### Cellular Automata
 
-For fun, I wrote some [Project Euler examples](examples/project_euler/).
+- [Rule 30](examples/ca.🚀)
+- [Conway's Game of Life](examples/life.🚀)
 
-#### Example Script
-Below is an example script that generates a temporary script and executes it.
+#### Project Euler
+
+- [Project Euler examples](examples/project_euler/).
+
+#### Web Application
+
+Below is a simple HTTP web application. You can find the [example project here](examples/webapp/app.🚀).
+
+```ruby
+import "@astral/web" as web
+import "@astral/fs" as fs
+
+# HTML helpers
+html = {
+  "shared": fs.read("templates/shared.html"),
+  "index": fs.read("templates/index.html"),
+  "contact": fs.read("templates/contact.html")
+}
+
+# A simple template engine.
+def build_html(data)
+  return html.shared.replace("<%content%>", data)
+end
+
+# GET /
+web.get(["/", "/index"], with (req) do
+  return web.ok(build_html(html.index), "text/html")
+end)
+
+# GET /contact
+web.get("/contact", with (req) do
+  return web.ok(build_html(html.contact), "text/html")
+end)
+
+# POST /contact
+web.post("/contact", with (req) do  
+  println("Received content from client:\nbody: ${req.body}\nparams: ${req.params}")
+  return web.redirect("/")
+end)
+
+# serve static content
+web.public("/", "./public")
+
+# server and port configuration
+host = "0.0.0.0", port = 8080
+
+# start the web server
+println("Starting Astral Web Server at http://${host}:${port}")
+web.listen(host, port)
+```
+
+#### Temporary Script
+
+Below is a script that generates a temporary script and executes it.
 
 ```ruby
 import "@astral/fs" as fs
@@ -127,8 +190,8 @@ import "@astral/sys" as sys
 try
   # Look for a temporary directory. Fail fast.
   if !fs.exists(fs.tmpdir())
-    println "Could not find temporary directory."
-    exit 1
+    println("Could not find temporary directory.")
+    exit(1)
   end
   
   # Generate a random temporary file path.
@@ -141,68 +204,15 @@ try
     This script will delete itself and let you know it was there.
     #/
     import \"@astral/fs\" as fs
-    fs.remove(\"${@path}\")
-    println \"Astral was here.\"
+    fs.remove(\"${path}\")
+    println(\"Astral was here running as ${fs.filename(path)}.\")
   ")
 
   # Run the 🚀 script.
   sys.exec("astral ${path}")
 catch (err)
-  println "An error occurred: ${err}"
+  println("An error occurred: ${err}")
 end
-```
-
-#### Example Web Application
-
-Below is a simple HTTP web application. You can find the [example project here](examples/webapp/app.🚀).
-
-```ruby
-import "@astral/web" as web
-import "@astral/fs" as fs
-
-# HTML helpers
-shared_template = fs::read("templates/shared.html")
-def build_html(data) 
-  return shared_template.replace("<%content%>", data)
-end
-
-# GET / handler
-get_index = lambda(req) do
-  content = fs::read("templates/index.html")
-  return web.ok(build_html(content), "text/html")
-end
-
-# GET /contact handler
-get_contact = lambda(req) do
-  content = fs::read("templates/contact.html")
-  return web.ok(build_html(content), "text/html")
-end
-
-# POST /contact
-post_contact = lambda(req) do
-  body = req["__BODY"], # __BODY is a string
-  params = req["__PARAMETERS"] # __PARAMETERS is a hash
-  
-  println "Received content from client:\nbody: ${body}\nparams: ${params}"
-
-  return web.redirect("/")
-end
-
-# web app routes
-web.get(["/", "/index"], get_index)
-web.get("/contact", get_contact)
-web.post("/contact", post_contact)
-
-# static content
-web.public("/", "./public")
-
-# server and port configuration
-host = "0.0.0.0"
-port = 8080
-
-# start the web server
-println "Starting Astral Web Server at http://${host}:${port}"
-web.listen(host, port)
 ```
 
 ## Contributions

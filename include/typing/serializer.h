@@ -29,7 +29,7 @@ struct Serializer {
     } else if (std::holds_alternative<k_object>(v)) {
       return std::get<k_object>(v)->className;
     } else if (std::holds_alternative<k_lambda>(v)) {
-      return TypeNames.Lambda;
+      return TypeNames.With;
     }
 
     return "";
@@ -126,9 +126,9 @@ struct Serializer {
 
   static k_string basic_serialize_lambda(const k_lambda& lambda) {
     if (lambda->identifier.empty()) {
-      return "[" + TypeNames.Lambda + "]";
+      return "[" + TypeNames.With + "]";
     }
-    return "[" + TypeNames.Lambda + "(identifier=" + lambda->identifier + ")]";
+    return "[" + TypeNames.With + "(identifier=" + lambda->identifier + ")]";
   }
 
   static k_string serialize_hash(const k_hash& hash) {
