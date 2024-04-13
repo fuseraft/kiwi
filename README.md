@@ -115,6 +115,52 @@ make test
 #### Project Euler Examples
 
 For fun, I wrote some [Project Euler examples](examples/project_euler/).
+#### Example Web Application
+
+Below is a simple HTTP web application. You can find the [example project here](examples/webapp/app.🚀).
+
+```ruby
+import "@astral/web" as web
+import "@astral/fs" as fs
+
+# HTML helpers
+html = {
+  "shared": fs.read("templates/shared.html"),
+  "index": fs.read("templates/index.html"),
+  "contact": fs.read("templates/contact.html")
+}
+
+# A simple template engine.
+def build_html(data)
+  return html.shared.replace("<%content%>", data)
+end
+
+# GET /
+web.get(["/", "/index"], with (req) do
+  return web.ok(build_html(html.index), "text/html")
+end)
+
+# GET /contact
+web.get("/contact", with (req) do
+  return web.ok(build_html(html.contact), "text/html")
+end)
+
+# POST /contact
+web.post("/contact", with (req) do  
+  println("Received content from client:\nbody: ${req.body}\nparams: ${req.params}")
+  return web.redirect("/")
+end)
+
+# static content
+web.public("/", "./public")
+
+# server and port configuration
+host = "0.0.0.0", port = 8080
+
+# start the web server
+println("Starting Astral Web Server at http://${host}:${port}")
+web.listen(host, port)
+```
 
 #### Example Script
 Below is an example script that generates a temporary script and executes it.
@@ -127,8 +173,8 @@ import "@astral/sys" as sys
 try
   # Look for a temporary directory. Fail fast.
   if !fs.exists(fs.tmpdir())
-    println "Could not find temporary directory."
-    exit 1
+    println("Could not find temporary directory.")
+    exit(1)
   end
   
   # Generate a random temporary file path.
@@ -142,7 +188,7 @@ try
     #/
     import \"@astral/fs\" as fs
     fs.remove(\"${@path}\")
-    println \"Astral was here.\"
+    println(\"Astral was here.\")
   ")
 
   # Run the 🚀 script.
@@ -150,54 +196,6 @@ try
 catch (err)
   println "An error occurred: ${err}"
 end
-```
-
-#### Example Web Application
-
-Below is a simple HTTP web application. You can find the [example project here](examples/webapp/app.🚀).
-
-```ruby
-import "@astral/web" as web
-import "@astral/fs"
-
-# HTML helpers
-shared_template = fs::read("templates/shared.html")
-def build_html(data) 
-  return shared_template.replace("<%content%>", data)
-end
-
-# GET / handler
-web.get(["/", "/index"], with (req) do
-  content = fs::read("templates/index.html")
-  return web.ok(build_html(content), "text/html")
-end)
-
-# GET /contact handler
-web.get("/contact", with (req) do
-  content = fs::read("templates/contact.html")
-  return web.ok(build_html(content), "text/html")
-end)
-
-# POST /contact handler
-web.post("/contact", with (req) do
-  body = req["__BODY"], # __BODY is a string
-  params = req["__PARAMETERS"] # __PARAMETERS is a hash
-  
-  println "Received content from client:\nbody: ${body}\nparams: ${params}"
-
-  return web.redirect("/")
-end)
-
-# static content
-web.public("/", "./public")
-
-# server and port configuration
-host = "0.0.0.0"
-port = 8080
-
-# start the web server
-println "Starting Astral Web Server at http://${host}:${port}"
-web.listen(host, port)
 ```
 
 ## Contributions
