@@ -2,6 +2,8 @@
 
 Lambdas are used to treat functions as first-class citizens. You can pass lambdas as method parameters.
 
+You can define a lambda using the `with` keyword.
+
 For the examples below, I am using a list of hashes called `list`.
 
 ```ruby
@@ -17,7 +19,7 @@ list = [
 Lambdas can be used inline (without assignment).
 
 ```ruby
-println list.select(lambda(item) do return item["id"] % 2 == 0 end)
+println list.select(with (item) do return item["id"] % 2 == 0 end)
 # prints: [{"id": 0}, {"id": 2}, {"id": 4}, {"id": 6}, {"id": 8}]
 ```
 
@@ -26,7 +28,7 @@ println list.select(lambda(item) do return item["id"] % 2 == 0 end)
 You can assign a reference to a lambda for reuse.
 
 ```ruby
-odd_item_id = lambda(item) do
+odd_item_id = with (item) do
   return item["id"] % 2 != 0
 end
 
@@ -39,7 +41,7 @@ println list.select(odd_item_id)
 You can pass lambdas as parameters to methods.
 
 ```ruby
-puts = lambda(s) do
+puts = with (s) do
   println s
 end
 
@@ -51,5 +53,5 @@ end
 
 use_lambda(puts, "Hello, Astral!") # prints: Hello, Astral!
 
-println ""
+println("")
 ```

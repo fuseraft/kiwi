@@ -2,37 +2,32 @@ import "@astral/web" as web
 import "@astral/fs" as fs
 
 # HTML helpers
-shared_template = fs::read("templates/shared.html")
-def build_html(data) 
-  return shared_template.replace("<%content%>", data)
+html = {
+  "shared": fs.read("templates/shared.html"),
+  "index": fs.read("templates/index.html"),
+  "contact": fs.read("templates/contact.html")
+}
+
+# A simple template engine.
+def build_html(data)
+  return html.shared.replace("<%content%>", data)
 end
 
 # GET / handler
-get_index = lambda(req) do
-  content = fs::read("templates/index.html")
-  return web.ok(build_html(content), "text/html")
-end
+web.get(["/", "/index"], with (req) do
+  return web.ok(build_html(html.index), "text/html")
+end)
 
 # GET /contact handler
-get_contact = lambda(req) do
-  content = fs::read("templates/contact.html")
-  return web.ok(build_html(content), "text/html")
-end
+web.get("/contact", with (req) do
+  return web.ok(build_html(html.contact), "text/html")
+end)
 
-# POST /contact
-post_contact = lambda(req) do
-  body = req["__BODY"], # __BODY is a string
-  params = req["__PARAMETERS"] # __PARAMETERS is a hash
-  
-  println "Received content from client:\nbody: ${body}\nparams: ${params}"
-
+# POST /contact handler
+web.post("/contact", with (req) do  
+  println("Received content from client:\nbody: ${req.body}\nparams: ${req.params}")
   return web.redirect("/")
-end
-
-# web app routes
-web.get(["/", "/index"], get_index)
-web.get("/contact", get_contact)
-web.post("/contact", post_contact)
+end)
 
 # static content
 web.public("/", "./public")

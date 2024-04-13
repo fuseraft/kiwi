@@ -10,6 +10,7 @@
 #include "parsing/tokens.h"
 #include "tracing/error.h"
 #include "util/string.h"
+#include "globals.h"
 #include "stackframe.h"
 
 struct InterpHelper {
@@ -309,8 +310,34 @@ struct InterpHelper {
     throw InvalidOperationError(stream->current(), "Invalid operator.");
   }
 
-  static k_value interpretListSlice(k_stream stream, const SliceIndex& slice,
-                                    const k_list& list) {
+  static k_value stringSlice(k_stream stream, SliceIndex& slice,
+                             const k_value& value) {
+    auto string = std::get<k_string>(value);
+    auto list = std::make_shared<List>();
+
+    auto& elements = list->elements;
+    for (const char& c : string) {
+      elements.emplace_back(k_string(1, c));
+    }
+
+    auto sliced = listSlice(stream, slice, list);
+    std::ostringstream sv;
+
+    if (std::holds_alternative<k_list>(sliced)) {
+      auto slicedlist = std::get<k_list>(sliced)->elements;
+      for (auto it = slicedlist.begin(); it != slicedlist.end(); ++it) {
+        sv << Serializer::serialize(*it);
+      }
+    } else {
+      sv << Serializer::serialize(sliced);
+    }
+
+    return sv.str();
+  }
+
+  static k_value listSlice(k_stream stream, const SliceIndex& slice,
+                           const k_value& value) {
+    auto list = std::get<k_list>(value);
     auto& elements = list->elements;
     if (slice.isSlice) {
       if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
@@ -385,6 +412,91 @@ struct InterpHelper {
 
       return elements.at(index);
     }
+  }
+
+  static bool hasVariable(std::shared_ptr<CallStackFrame> frame,
+                          const k_string& name) {
+    if (frame->hasVariable(name)) {
+      return true;  // Found in the current frame
+    }
+
+    if (frame->inObjectContext()) {
+      if (frame->getObjectContext()->hasVariable(name)) {
+        return true;
+      }
+    }
+
+    // Check in outer frames
+    std::stack<std::shared_ptr<CallStackFrame>> tempStack(
+        callStack);  // Copy the call stack
+    while (!tempStack.empty()) {
+      const auto& outerFrame = tempStack.top();
+      if (outerFrame->hasVariable(name)) {
+        return true;  // Found in an outer frame
+      }
+      tempStack.pop();
+    }
+
+    return false;  // Not found in any scope
+  }
+
+  static k_value getVariable(k_stream stream,
+                             std::shared_ptr<CallStackFrame> frame,
+                             const k_string& name) {
+    // Check in the current frame
+    if (frame->hasVariable(name)) {
+      return frame->variables[name];
+    }
+
+    if (frame->inObjectContext() &&
+        frame->getObjectContext()->hasVariable(name)) {
+      return frame->getObjectContext()->instanceVariables[name];
+    }
+
+    // Check in outer frames
+    auto tempStack(callStack);
+    while (!tempStack.empty()) {
+      const auto& outerFrame = tempStack.top();
+      if (outerFrame->hasVariable(name)) {
+        return outerFrame->variables[name];
+      }
+      tempStack.pop();
+    }
+
+    throw VariableUndefinedError(stream->current(), name);
+  }
+
+  static std::unordered_map<k_string, k_value> trackVariables(
+      k_stream stream, std::shared_ptr<CallStackFrame> frame,
+      const std::string& firstValue, const std::string& secondValue) {
+    std::unordered_map<k_string, k_value> restore;
+    if (hasVariable(frame, firstValue)) {
+      restore[firstValue] = getVariable(stream, frame, firstValue);
+    }
+
+    if (!secondValue.empty() && hasVariable(frame, secondValue)) {
+      restore[secondValue] = getVariable(stream, frame, secondValue);
+    }
+
+    return restore;
+  }
+
+  static void listAppend(k_stream stream, std::shared_ptr<CallStackFrame> frame,
+                         k_value& listValue, const k_string& listVariableName) {
+    k_value variableValue;
+    try {
+      variableValue = getVariable(stream, frame, listVariableName);
+    } catch (const VariableUndefinedError&) {
+      throw VariableUndefinedError(stream->current(), listVariableName);
+    }
+
+    if (!std::holds_alternative<k_list>(variableValue)) {
+      throw InvalidOperationError(stream->current(),
+                                  "`" + listVariableName + "` is not a list.");
+    }
+
+    const auto& listPtr = std::get<k_list>(variableValue);
+    listPtr->elements.emplace_back(listValue);
   }
 
   static void interpretParameterizedCatch(k_stream stream,

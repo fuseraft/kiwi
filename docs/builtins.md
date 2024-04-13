@@ -339,7 +339,7 @@ Transform a list based on a condition.
 
 ```ruby
 list = ["kiwi", "mango", "banana"]
-println list.map(lambda (item) do return { "fruit": item, "is_a_kiwi": item.downcase() == "kiwi" } end)
+println list.map(with (item) do return { "fruit": item, "is_a_kiwi": item.downcase() == "kiwi" } end)
 # prints: [{"fruit": "kiwi", "is_a_kiwi": true}, {"fruit": "mango", "is_a_kiwi": false}, {"fruit": "banana", "is_a_kiwi": false}]
 ```
 
@@ -387,7 +387,7 @@ Aggregate the items in a list.
 ```ruby
 numbers = [1, 2, 3, 4, 5]
 
-sum = numbers.reduce(0, lambda (accumulator, number) do
+sum = numbers.reduce(0, with (accumulator, number) do
     return accumulator + number
 end)
 
@@ -397,7 +397,7 @@ println sum # prints: 15
 ```ruby
 numbers = [1, 2, 3, 4, 5]
 
-hash = numbers.reduce({}, lambda (accumulator, number) do
+hash = numbers.reduce({}, with (accumulator, number) do
     accumulator["key${number}"] = number
     return accumulator
 end)
@@ -449,7 +449,7 @@ Filter a list based on a condition.
 
 ```ruby
 list = ["astral", "mango", "banana"]
-println list.select(lambda (item) do return item.contains("s") end)
+println list.select(with (item) do return item.contains("s") end)
 # prints: ["astral"]
 ```
 

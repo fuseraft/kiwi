@@ -1,29 +1,9 @@
 #!/usr/bin/astral
 /# This 🚀 script is for experimentation. #/
 
-class Calc
-  def initialize(n)
-    @num = n
-  end
+matrix0 = [[0] * 3] * 3   # initialize a 3x3 matrix of 0s
+matrix1 = matrix0.clone() # deep copy matrix0
+matrix0[0][0] = 1
 
-  def set(n)
-    @num = n
-    return @
-  end
-
-  def add(n)
-    @num += n
-    return @
-  end
-
-  def sub(n)
-    @num -= n
-    return @  
-  end
-
-  def value()
-    return @num
-  end
-end
-
-println Calc.new(0).add(5).add(5).sub(1).value()
+println(matrix0) # prints: [[1, 0, 0], [0, 0, 0], [0, 0, 0]]
+println(matrix1) # prints: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]

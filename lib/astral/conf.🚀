@@ -58,7 +58,7 @@ module conf
         return {}
       end
   
-      return __readlines__(_conf_path).reduce({}, lambda(_acc, _line) do
+      return __readlines__(_conf_path).reduce({}, with (_acc, _line) do
         _delim_index = _line.index(_delim)
 
         if _delim_index > -1
