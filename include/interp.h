@@ -1335,8 +1335,8 @@ class Interpreter {
       paramsHash->add(x.first, x.second);
     }
 
-    requestHash->add("__PARAMETERS", paramsHash);
-    requestHash->add("__BODY", req.body);
+    requestHash->add("params", paramsHash);
+    requestHash->add("body", req.body);
     return requestHash;
   }
 
