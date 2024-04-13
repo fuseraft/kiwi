@@ -194,7 +194,7 @@ try
   # Run the 🚀 script.
   sys.exec("astral ${path}")
 catch (err)
-  println "An error occurred: ${err}"
+  println("An error occurred: ${err}")
 end
 ```
 
