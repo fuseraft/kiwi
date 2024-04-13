@@ -46,7 +46,7 @@ You can use the `.select(lambda)` builtin to filter a list based on a condition.
 
 ```ruby
 list = ["astral", "mango", "banana"]
-println list.select(lambda (item) do return item.contains("i") end)
+println list.select(with (item) do return item.contains("i") end)
 # prints: ["astral"]
 ```
 

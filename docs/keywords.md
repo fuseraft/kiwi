@@ -24,7 +24,6 @@ This document provides an overview of reserved keywords in Astral, along with ex
 - [`import`](#import)
 - [`in`](#in)
 - [`input`](#input)
-- [`lambda`](#lambda)
 - [`module`](#module)
 - [`new`](#new)
 - [`next`](#next)
@@ -42,6 +41,7 @@ This document provides an overview of reserved keywords in Astral, along with ex
 - [`true`](#true)
 - [`try`](#try)
 - [`while`](#while)
+- [`with`](#with)
 
 ## `abstract`
 The `abstract` keyword is used to declare a [class](#class) as being abstract, meaning it cannot be instantiated directly, but is intended to be used as a base class.
@@ -146,8 +146,8 @@ The `input` keyword is used to request user input from a console.
 
 See [Console I/O](console_io.md).
 
-## `lambda`
-The `lambda` keyword is used to define a lambda.
+## `with`
+The `with` keyword is used to define a lambda.
 
 See [Lambdas](lambdas.md).
 

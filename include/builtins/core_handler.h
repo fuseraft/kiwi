@@ -661,7 +661,7 @@ class CoreBuiltinHandler {
         return typeName == TypeNames.Object;
 
       case 7:  // k_lambda
-        return typeName == TypeNames.Lambda;
+        return typeName == TypeNames.With;
 
       default:
         return false;

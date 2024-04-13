@@ -158,7 +158,7 @@ Below is a simple HTTP web application. You can find the [example project here](
 
 ```ruby
 import "@astral/web" as web
-import "@astral/fs" as fs
+import "@astral/fs"
 
 # HTML helpers
 shared_template = fs::read("templates/shared.html")
@@ -167,31 +167,26 @@ def build_html(data)
 end
 
 # GET / handler
-get_index = lambda(req) do
+web.get(["/", "/index"], with (req) do
   content = fs::read("templates/index.html")
   return web.ok(build_html(content), "text/html")
-end
+end)
 
 # GET /contact handler
-get_contact = lambda(req) do
+web.get("/contact", with (req) do
   content = fs::read("templates/contact.html")
   return web.ok(build_html(content), "text/html")
-end
+end)
 
-# POST /contact
-post_contact = lambda(req) do
+# POST /contact handler
+web.post("/contact", with (req) do
   body = req["__BODY"], # __BODY is a string
   params = req["__PARAMETERS"] # __PARAMETERS is a hash
   
   println "Received content from client:\nbody: ${body}\nparams: ${params}"
 
   return web.redirect("/")
-end
-
-# web app routes
-web.get(["/", "/index"], get_index)
-web.get("/contact", get_contact)
-web.post("/contact", post_contact)
+end)
 
 # static content
 web.public("/", "./public")

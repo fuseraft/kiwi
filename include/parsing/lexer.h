@@ -242,7 +242,7 @@ class Lexer {
   Token parseKeyword(const std::string& keyword) {
     if (Keywords.is_conditional_keyword(keyword)) {
       return parseConditionalKeyword(keyword);
-    } else if (keyword == Keywords.Lambda) {
+    } else if (keyword == Keywords.With) {
       return Token::create(KTokenType::LAMBDA, KName::KW_Lambda, fileId,
                            keyword, row, col);
     } else if (Keywords.is_boolean(keyword)) {
@@ -445,7 +445,7 @@ class Lexer {
       st = KName::Types_Double;
     } else if (typeName == TypeNames.Hash) {
       st = KName::Types_Hash;
-    } else if (typeName == TypeNames.Lambda) {
+    } else if (typeName == TypeNames.With) {
       st = KName::Types_Lambda;
     } else if (typeName == TypeNames.List) {
       st = KName::Types_List;

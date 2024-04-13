@@ -94,7 +94,7 @@ println inst
 An anonymous function. Lambdas can be assigned identifiers for code reuse.
 
 ```ruby
-puts = lambda(s) do
+puts = with (s) do
   println s
 end
 
