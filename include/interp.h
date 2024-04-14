@@ -3648,6 +3648,11 @@ class Interpreter {
         } else if (current.getSubType() == KName::KW_Lambda) {
           return interpretLambdaExpression(stream, frame);
         } else if (std::holds_alternative<k_string>(value)) {
+          if (current.getSubType() == KName::Regex) {
+            stream->next();
+            return value;
+          }
+
           value = interpolateString(stream, frame);
           stream->next();
           return value;

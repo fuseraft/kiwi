@@ -13,11 +13,17 @@ In Astral, builtins are accessed using dot-notation and can be used to query or 
   - [`lastindex(str)`](#lastindexstr)
   - [`ltrim()`](#ltrim)
   - [`rtrim()`](#rtrim)
+  - [`substring(pos, length)`](#substringpos-length)
   - [`trim()`](#trim)
   - [`upcase()`](#upcase)
-  - [`replace(search, replacement)`](#replacesearch-replacement)
-  - [`split(delim)`](#splitdelim)
-  - [`substring(pos, length)`](#substringpos-length)
+  - [**Regular Expression Builtins**](#regex-builtins)
+    - [`find(regex)`](#findregex)
+    - [`match(regex)`](#matchregex)
+    - [`matches(regex)`](#matchesregex)
+    - [`matches_all(regex)`](#matches_allregex)
+    - [`replace(search, replacement)`](#replacesearch-replacement)
+    - [`scan(regex)`](#scanregex)
+    - [`split(delim)`](#splitdelim-limit---1)
 - [**`Hash` Builtins**](#hash-builtins)
   - [`keys()`](#keys)
   - [`has_key(key)`](#has_keykey)
@@ -83,7 +89,6 @@ Converts a string into a list. Each character in the string becomes a new string
 
 ```ruby
 string = "Hello"
-
 chars = string.chars() 
 # chars = ["H", "e", "l", "l", "o"]
 
@@ -166,22 +171,6 @@ Returns the uppercase value of a string.
 println "foobar".upcase()   # prints: FOOBAR
 ```
 
-### `replace(search, replacement)`
-
-Search for a string and replace with a given string.
-
-```ruby
-println "foobar".replace("foo", "food")   # prints: foodbar
-```
-
-### `split(delim)`
-
-Splits a string into a list by delimiter.
-
-```ruby
-println "Hello World!".split(" ") # prints: ["Hello", "World!"]
-```
-
 ### `substring(pos, length)`
 
 Extract a substring from a string.
@@ -189,6 +178,72 @@ Extract a substring from a string.
 ```ruby
 println "hello".substring(1)    # prints: ello
 println "hello".substring(1, 2) # prints: el
+```
+
+## Regex Builtins
+
+### `find(regex)`
+
+Searches for the first occurrence of a pattern described by a regex and returns the substring.
+
+```ruby
+println "my email: example@test.com".find('\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z0-9]{2,}\b')
+# prints: example@test.com
+```
+
+### `match(regex)`
+
+Returns the capture groups for the first match of the regex in the string. 
+
+This function extracts parts of the string that match the given regular expression, specifically the groups defined within the pattern.
+
+```ruby
+println "June 24, 2021".match('(\w+) (\d+), (\d+)') # prints: ["June", "24", "2021"]
+```
+
+### `matches(regex)`
+
+Tests whether the entire string conforms to a regular expression pattern.
+
+```ruby
+println "hello123".matches('^([a-z]+\d{3})$')   # prints: true
+println "hello123!".matches('^([a-z]+\d{3})$')  # prints: false
+```
+
+### `matches_all(regex)`
+
+Checks if all parts of the string conform to the regex pattern.
+
+```ruby
+println "123-456-7890".matches_all('\d{3}-\d{3}-\d{4}')  # prints: true
+println "123-456-789x".matches_all('\d{3}-\d{3}-\d{4}')  # prints: false
+```
+
+### `replace(search, replacement)`
+
+Search for a string and replace with a given string.
+
+```ruby
+println "foobar".replace("foo", "food")   # prints: foodbar
+println "foo123bar".replace('(\d+)', '[$1]')  # prints: foo[123]bar
+println "foo123bar456".replace('\d+', "-")  # prints: foo-bar-
+```
+
+### `scan(regex)`
+
+Finds every occurrence of the regex in the string and returns a list of matches.
+
+```ruby
+println "s7s s8s s9s".scan('\d')  # prints: ["7", "8", "9"]
+```
+
+### `split(delim, limit = -1)`
+
+Splits a string into a list by delimiter.
+
+```ruby
+println "Hello World!".split(" ") # prints: ["Hello", "World!"]
+println "one,two,three,four".split(",", 2)  # prints: ["one", "two,three,four"]
 ```
 
 ## Hash Builtins

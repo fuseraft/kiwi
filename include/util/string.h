@@ -4,10 +4,11 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <memory>
 #include <regex>
-#include <string>
+#include "typing/value.h"
 
-static const std::string base64_chars =
+static const k_string base64_chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
     "0123456789+/";
@@ -19,7 +20,7 @@ class String {
   /// @param s The string to search.
   /// @param beginning The string to find.
   /// @return Boolean indicating existence.
-  static bool beginsWith(const std::string& s, const std::string& beginning) {
+  static bool beginsWith(const k_string& s, const k_string& beginning) {
     return s.size() > beginning.size() &&
            s.substr(0, beginning.size()) == beginning;
   }
@@ -28,37 +29,157 @@ class String {
   /// @param s The string to search.
   /// @param beginning The string to find.
   /// @return Boolean indicating existence.
-  static bool contains(const std::string& s, const std::string& search) {
+  static bool contains(const k_string& s, const k_string& search) {
     if (search == "") {
       return false;
     }
 
-    return s.find(search) != std::string::npos;
+    return s.find(search) != k_string::npos;
   }
 
   /// @brief Check if a string ends with another string.
   /// @param s The string to search.
   /// @param beginning The string to find.
   /// @return Boolean indicating existence.
-  static bool endsWith(const std::string& s, const std::string& end) {
+  static bool endsWith(const k_string& s, const k_string& end) {
     return s.size() > end.size() && s.substr(s.size() - end.size()) == end;
   }
 
-  /// @brief Replace a string within a string.
-  /// @param s The string to work on.
-  /// @param search The string to find.
-  /// @param replacement The replacement string.
-  /// @return String containing replacement.
-  static std::string replace(std::string s, std::string search,
-                             std::string replacement) {
-    std::regex pattern(search);
-    return std::regex_replace(s, pattern, replacement);
+  /// @brief Searches for the first occurrence of a pattern described by a regex and returns the substring.
+  /// @param text The string to check.
+  /// @param pattern The regular expression.
+  /// @return A string.
+  static k_string find(const k_string& text, const k_string& pattern) {
+    std::cout << "find(\"" << text << "\", '" << pattern << "')" << std::endl;
+    std::regex reg(pattern);
+    std::smatch match;
+
+    if (std::regex_search(text, match, reg) && match.size() > 0) {
+      return match.str(0);
+    }
+
+    return "";
+  }
+
+  /// @brief Returns a list of capture groups.
+  /// @param text The string to check.
+  /// @param pattern The regular expression.
+  /// @return A list.
+  static k_list match(const k_string& text, const k_string& pattern) {
+    std::regex reg(pattern);
+    std::smatch match;
+    std::vector<k_value> results;
+
+    if (std::regex_search(text, match, reg)) {
+      for (size_t i = 1; i < match.size(); ++i) {
+        results.push_back(match[i].str());
+      }
+    }
+
+    return std::make_shared<List>(results);
+  }
+
+  /// @brief Tests whether the entire string conforms to a regular expression pattern.
+  /// @param text The string to check.
+  /// @param pattern The regular expression.
+  /// @return A boolean.
+  static bool matches(const k_string& text, const k_string& pattern) {
+    std::regex reg(pattern);
+    return std::regex_match(text, reg);
+  }
+
+  /// @brief Tests whether the entire string conforms to a regular expression pattern.
+  /// @param text The string to check.
+  /// @param pattern The regular expression.
+  /// @return A boolean.
+  static bool matchesAll(const k_string& text, const k_string& pattern) {
+    std::regex reg(pattern);
+    auto words_begin = std::sregex_iterator(text.begin(), text.end(), reg);
+    auto words_end = std::sregex_iterator();
+
+    size_t matches_length = 0;
+    for (std::sregex_iterator i = words_begin; i != words_end; ++i) {
+      std::smatch match = *i;
+      matches_length += match.str().length();
+    }
+
+    return matches_length == text.length();
+  }
+
+  /// @brief Replaces every part of the string that matches the regex with the replacement string.
+  /// @param text The string to check.
+  /// @param pattern The regular expression.
+  /// @param replacement The replacement text.
+  /// @return A string.
+  static k_string replace(const k_string& text, const k_string& pattern,
+                          const k_string& replacement) {
+    std::regex reg(pattern);
+    return std::regex_replace(text, reg, replacement);
+  }
+
+  /// @brief Finds every occurrence of the regex in the string and returns a list of matches.
+  /// @param text The string to check.
+  /// @param pattern The regular expression.
+  /// @return A list.
+  static k_list scan(const k_string& text, const k_string& pattern) {
+    std::regex reg(pattern);
+    std::sregex_iterator begin(text.begin(), text.end(), reg);
+    std::sregex_iterator end;
+
+    std::vector<k_value> matches;
+    for (std::sregex_iterator i = begin; i != end; ++i) {
+      std::smatch match = *i;
+      matches.emplace_back(match.str());
+    }
+
+    return std::make_shared<List>(matches);
+  }
+
+  /// @brief Splits the string around matches of the given regex. An optional limit can be set for the number of splits.
+  /// @param text The string to check.
+  /// @param pattern The regular expression.
+  /// @param limit The number of splits.
+  /// @return A list.
+  static std::vector<k_string> split(const k_string& text,
+                                     const k_string& pattern,
+                                     k_int limit = -1) {
+    std::regex reg(pattern);
+    std::sregex_token_iterator iter(text.begin(), text.end(), reg, -1);
+    std::sregex_token_iterator end;
+
+    std::vector<k_string> result;
+    int nlimit = static_cast<int>(limit);
+    while (iter != end && nlimit != 0) {
+      result.emplace_back(*iter++);
+      if (nlimit > 0) {
+        nlimit--;
+      }
+    }
+
+    if (!result.empty() && iter != end && nlimit == 0) {
+      k_string remaining;
+      while (iter != end) {
+        remaining += pattern + iter->str();
+        ++iter;
+      }
+
+      result.back() += remaining;
+    }
+
+    if (limit < 0) {
+      result.erase(
+          std::remove_if(result.begin(), result.end(),
+                         [](const std::string& s) { return s.empty(); }),
+          result.end());
+    }
+
+    return result;
   }
 
   /// @brief Convert the string to uppercase.
   /// @param s The string to convert.
   /// @return String containing uppercase text.
-  static std::string toUppercase(std::string s) {
+  static k_string toUppercase(k_string s) {
     std::transform(s.begin(), s.end(), s.begin(),
                    [](unsigned char c) { return std::toupper(c); });
     return s;
@@ -67,7 +188,7 @@ class String {
   /// @brief Convert the string to lowercase.
   /// @param s The string to convert.
   /// @return String containing lowercase text.
-  static std::string toLowercase(std::string s) {
+  static k_string toLowercase(k_string s) {
     std::transform(s.begin(), s.end(), s.begin(),
                    [](unsigned char c) { return std::tolower(c); });
     return s;
@@ -76,8 +197,8 @@ class String {
   /// @brief Trim whitespace from the left of a string.
   /// @param s The string to trim.
   /// @return String containing trimmed text.
-  static std::string trimLeft(const std::string& input) {
-    std::string s = input;
+  static k_string trimLeft(const k_string& input) {
+    k_string s = input;
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
               return !std::isspace(ch);
             }));
@@ -87,8 +208,8 @@ class String {
   /// @brief Trim whitespace from the right of a string.
   /// @param s The string to trim.
   /// @return String containing trimmed text.
-  static std::string trimRight(const std::string& input) {
-    std::string s = input;
+  static k_string trimRight(const k_string& input) {
+    k_string s = input;
     s.erase(std::find_if(s.rbegin(), s.rend(),
                          [](unsigned char ch) { return !std::isspace(ch); })
                 .base(),
@@ -99,7 +220,7 @@ class String {
   /// @brief Trim whitespace from a string.
   /// @param s The string to trim.
   /// @return String containing trimmed text.
-  static std::string trim(const std::string& input) {
+  static k_string trim(const k_string& input) {
     return trimLeft(trimRight(input));
   }
 
@@ -108,7 +229,7 @@ class String {
   /// @param pos The position in the string to start.
   /// @param size The size of the substring to extract.
   /// @return The substring.
-  static std::string substring(const std::string& s, size_t pos, size_t size) {
+  static k_string substring(const k_string& s, size_t pos, size_t size) {
     if (pos >= s.size()) {
       return "";
     }
@@ -116,37 +237,13 @@ class String {
     return s.substr(pos, std::min(size, s.size() - pos));
   }
 
-  /// @brief Split a string into a vector of strings.
-  /// @param input The string to split.
-  /// @param delimiter The string to split on.
-  /// @return A vector of strings.
-  static std::vector<std::string> split(const std::string& input,
-                                        const std::string& delimiter) {
-    std::vector<std::string> result;
-
-    if (delimiter.empty())
-      return {input};
-
-    std::string::size_type startPos = 0;
-    std::string::size_type endPos = 0;
-
-    while ((endPos = input.find(delimiter, startPos)) != std::string::npos) {
-      result.emplace_back(input.substr(startPos, endPos - startPos));
-      startPos = endPos + delimiter.size();
-    }
-
-    result.emplace_back(input.substr(startPos));
-
-    return result;
-  }
-
   /// @brief Get the index of a string within another string.
   /// @param s The string to search.
   /// @param search The string to find.
   /// @return Integer containing the index of a substring. Returns -1 if not found.
-  static int indexOf(const std::string& s, const std::string& search) {
+  static int indexOf(const k_string& s, const k_string& search) {
     size_t index = s.find(search);
-    if (index != std::string::npos) {
+    if (index != k_string::npos) {
       return index;
     }
 
@@ -157,9 +254,9 @@ class String {
   /// @param s The string to search.
   /// @param search The string to find.
   /// @return Integer containing the last index of a substring. Returns -1 if not found.
-  static int lastIndexOf(const std::string& s, const std::string& search) {
+  static int lastIndexOf(const k_string& s, const k_string& search) {
     size_t index = s.rfind(search);
-    if (index != std::string::npos) {
+    if (index != k_string::npos) {
       return static_cast<int>(index);
     }
 
@@ -171,12 +268,12 @@ class String {
   /// @param shortFlag The short flag name.
   /// @param longFlag The long flag name.
   /// @return Boolean indicating success.
-  static bool isCLIFlag(const std::string& s, const std::string& shortFlag,
-                        const std::string& longFlag) {
-    std::array<std::string, 3> prefixes = {"-", "--", "/"};
+  static bool isCLIFlag(const k_string& s, const k_string& shortFlag,
+                        const k_string& longFlag) {
+    std::array<k_string, 3> prefixes = {"-", "--", "/"};
 
     return std::any_of(
-        prefixes.begin(), prefixes.end(), [&](const std::string& prefix) {
+        prefixes.begin(), prefixes.end(), [&](const k_string& prefix) {
           return s == prefix + shortFlag || s == prefix + longFlag;
         });
   }
@@ -184,15 +281,15 @@ class String {
   /// @brief Check if a string is a KVP option.
   /// @param s The string to check.
   /// @return Boolean indicating success.
-  static bool isOptionKVP(const std::string& s) {
-    std::array<std::string, 3> prefixes = {"-", "--", "/"};
+  static bool isOptionKVP(const k_string& s) {
+    std::array<k_string, 3> prefixes = {"-", "--", "/"};
     return std::any_of(prefixes.begin(), prefixes.end(),
-                       [&](const std::string& prefix) {
+                       [&](const k_string& prefix) {
                          return beginsWith(s, prefix) && contains(s, "=");
                        });
   }
 
-  static char hexToChar(const std::string& hex) {
+  static char hexToChar(const k_string& hex) {
     int ch = std::stoi(hex, nullptr, 16);
     if (ch >= 0 && ch <= 0xFF) {
       return static_cast<char>(ch);
@@ -201,7 +298,7 @@ class String {
     }
   }
 
-  static std::string urlEncode(const std::string& value) {
+  static k_string urlEncode(const k_string& value) {
     std::ostringstream encoded;
     encoded.fill('0');
 
@@ -218,11 +315,11 @@ class String {
     return encoded.str();
   }
 
-  static std::string urlDecode(const std::string& encoded) {
+  static k_string urlDecode(const k_string& encoded) {
     std::ostringstream decoded;
     for (size_t i = 0; i < encoded.length(); ++i) {
       if (encoded[i] == '%' && i + 2 < encoded.length()) {
-        std::string hexStr = encoded.substr(i + 1, 2);
+        k_string hexStr = encoded.substr(i + 1, 2);
 
         try {
           char decodedChar = hexToChar(hexStr);
@@ -256,8 +353,8 @@ class String {
     return -1;
   }
 
-  static std::string base64Encode(const std::string& input) {
-    std::string output;
+  static k_string base64Encode(const k_string& input) {
+    k_string output;
     int val = 0, valb = -6;
     for (unsigned char c : input) {
       val = (val << 8) + c;
@@ -274,8 +371,8 @@ class String {
     return output;
   }
 
-  static std::string base64Decode(const std::string& input) {
-    std::string output;
+  static k_string base64Decode(const k_string& input) {
+    k_string output;
     std::vector<int> T(256, -1);
     for (int i = 0; i < 64; i++)
       T[base64_chars[i]] = i;
