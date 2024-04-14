@@ -59,6 +59,7 @@ In Astral, builtins are accessed using dot-notation and can be used to query or 
   - [`empty()`](#empty)
   - [`clone()`](#clone)
   - [`is_a(type_name)`](#is_atype_name)
+  - [`pretty()`](#pretty)
   - [`to_double()`](#to_double)
   - [`to_hash()`](#to_hash)
   - [`to_int()`](#to_int)
@@ -580,6 +581,32 @@ Used for type-checking.
 
 ```ruby
 println "foobar".is_a(String) # prints: true
+```
+
+### `pretty()`
+
+Returns a pretty serialization.
+
+```ruby
+hash = {
+  "key1": true, 
+  "key2": 1, 
+  "key3": ["a", "b", "c"]
+}
+
+println hash.pretty() 
+/# 
+prints:
+{
+  "key1": true,
+  "key2": 1,
+  "key3": [
+    "a",
+    "b",
+    "c"
+  ]
+}
+#/
 ```
 
 ### `to_double()`

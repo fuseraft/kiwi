@@ -177,6 +177,9 @@ class CoreBuiltinHandler {
       case KName::Builtin_Astral_Clone:
         return executeClone(term, value, args);
 
+      case KName::Builtin_Astral_Pretty:
+        return executePretty(term, value, args);
+
       default:
         break;
     }
@@ -208,6 +211,15 @@ class CoreBuiltinHandler {
     }
 
     return clone_value(value);
+  }
+
+  static k_value executePretty(const Token& term, const k_value& value,
+                               const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Pretty);
+    }
+
+    return Serializer::pretty_serialize(value);
   }
 
   static k_value executeMembers(const Token& term, const k_value& value,
@@ -311,8 +323,7 @@ class CoreBuiltinHandler {
             term, "Expected an `Integer` value for byte to string conversion.");
       }
 
-      auto itemValue = std::get<k_int>(item);
-      auto byte = static_cast<unsigned int>(itemValue) & 0xFF;
+      auto byte = static_cast<unsigned int>(std::get<k_int>(item)) & 0xFF;
       ss << std::hex << std::setw(2) << std::setfill('0') << byte;
     }
 

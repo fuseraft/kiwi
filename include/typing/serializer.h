@@ -93,6 +93,129 @@ struct Serializer {
     return sv.str();
   }
 
+  static k_string pretty_serialize(k_value v, int indent = 0) {
+    std::ostringstream sv;
+
+    if (std::holds_alternative<k_int>(v)) {
+      sv << std::get<k_int>(v);
+    } else if (std::holds_alternative<double>(v)) {
+      sv << std::get<double>(v);
+    } else if (std::holds_alternative<bool>(v)) {
+      sv << std::boolalpha << std::get<bool>(v);
+    } else if (std::holds_alternative<k_string>(v)) {
+      sv << "\"" << std::get<k_string>(v) << "\"";
+    } else if (std::holds_alternative<k_list>(v)) {
+      sv << pretty_serialize_list(std::get<k_list>(v), indent);
+    } else if (std::holds_alternative<k_hash>(v)) {
+      sv << pretty_serialize_hash(std::get<k_hash>(v), indent);
+    } else if (std::holds_alternative<k_object>(v)) {
+      sv << basic_serialize_object(std::get<k_object>(v));
+    } else if (std::holds_alternative<k_lambda>(v)) {
+      sv << basic_serialize_lambda(std::get<k_lambda>(v));
+    }
+
+    return sv.str();
+  }
+
+  static k_string pretty_serialize_list_experimental(const k_list& list, int indent = 0,
+                                        bool isNested = false) {
+    std::ostringstream sv;
+    if (!isNested) {
+      sv << "[" << std::endl;
+    } else {
+      sv << "[";
+    }
+
+    std::string indentString(indent + 2, ' ');
+    bool first = true;
+
+    for (const auto& item : list->elements) {
+      if (!first) {
+        sv << ", ";
+      } else {
+        first = false;
+        if (!isNested) {
+          sv << indentString;
+        }
+      }
+
+      if (std::holds_alternative<k_list>(item)) {
+        sv << pretty_serialize_list_experimental(std::get<k_list>(item), indent + 2, true);
+      } else if (std::holds_alternative<k_hash>(item)) {
+        sv << pretty_serialize_hash(std::get<k_hash>(item), indent + 2);
+      } else if (std::holds_alternative<k_string>(item)) {
+        sv << "\"" << serialize(item) << "\"";
+      } else {
+        sv << serialize(item);
+      }
+    }
+
+    if (!isNested) {
+      sv << std::endl << std::string(indent, ' ') << "]";
+    } else {
+      sv << "]";
+    }
+    return sv.str();
+  }
+
+  static k_string pretty_serialize_list(const k_list& list, int indent = 0) {
+    std::ostringstream sv;
+    sv << "[" << std::endl;
+    std::string indentString(indent + 2, ' ');
+
+    for (auto it = list->elements.begin(); it != list->elements.end(); ++it) {
+      if (it != list->elements.begin()) {
+        sv << "," << std::endl;
+      }
+
+      sv << indentString;
+
+      if (std::holds_alternative<k_list>(*it)) {
+        sv << pretty_serialize_list(std::get<k_list>(*it), indent + 2);
+      } else if (std::holds_alternative<k_hash>(*it)) {
+        sv << pretty_serialize_hash(std::get<k_hash>(*it), indent + 2);
+      } else if (std::holds_alternative<k_string>(*it)) {
+        sv << "\"" << serialize(*it) << "\"";
+      } else {
+        sv << serialize(*it);
+      }
+    }
+
+    sv << std::endl << std::string(indent, ' ') << "]";
+    return sv.str();
+  }
+
+  static k_string pretty_serialize_hash(const k_hash& hash, int indent = 0) {
+    std::ostringstream sv;
+    sv << "{" << std::endl;
+    std::string indentString(indent + 2, ' ');
+
+    bool first = true;
+    auto& keys = hash->keys;
+    for (const auto& key : keys) {
+      if (!first) {
+        sv << "," << std::endl;
+      } else {
+        first = false;
+      }
+      sv << indentString << "\"" << key << "\": ";
+
+      auto v = hash->get(key);
+      if (std::holds_alternative<k_hash>(v)) {
+        sv << pretty_serialize_hash(std::get<k_hash>(v), indent + 2);
+      } else if (std::holds_alternative<k_list>(v)) {
+        sv << pretty_serialize_list(std::get<k_list>(v), indent + 2);
+      } else if (std::holds_alternative<k_string>(v)) {
+        sv << "\"" << serialize(v) << "\"";
+      } else {
+        sv << serialize(v, true);
+      }
+    }
+
+    sv << std::endl << std::string(indent, ' ') << "}";
+    return sv.str();
+  }
+
   static k_list get_hash_keys_list(const k_hash& hash) {
     auto keys = std::make_shared<List>();
     auto& elements = keys->elements;
