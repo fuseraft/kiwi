@@ -381,11 +381,16 @@ class Interpreter {
       std::shared_ptr<CallStackFrame> frame, bool isMethodInvocation = false) {
     auto subFrame = std::make_shared<CallStackFrame>();
     auto& subFrameVariables = subFrame->variables;
+    auto& subFrameLambdas = subFrame->lambdas;
 
     if (!isMethodInvocation) {
       const auto& frameVariables = frame->variables;
       for (const auto& pair : frameVariables) {
         subFrameVariables[pair.first] = pair.second;
+      }
+      const auto& frameLambdas = frame->lambdas;
+      for (const auto& pair : frameLambdas) {
+        subFrameLambdas[pair.first] = pair.second;
       }
     }
 
@@ -930,8 +935,8 @@ class Interpreter {
         if (frame->hasAssignedLambda(lambdaRef)) {
           return interpretMethodInvocation(stream, frame, lambdaRef);
         } else {
-          throw InvalidOperationError(stream->current(),
-                                      "Unknown Lambda `" + tokenText + "`.");
+          const auto& lambda = getAssignedLambda(stream, lambdaRef);
+          frame->assignLambda(lambdaRef, lambda);
         }
       }
 
@@ -1110,7 +1115,12 @@ class Interpreter {
       return methods[name];
     }
 
+    return getAssignedLambda(stream, name);
+  }
+
+  Method& getAssignedLambda(k_stream stream, const k_string& name) {
     auto tempStack(callStack);
+
     while (!tempStack.empty()) {
       auto& outerFrame = tempStack.top();
       if (outerFrame->hasAssignedLambda(name)) {
@@ -3848,7 +3858,7 @@ class Interpreter {
     }
 
     SliceIndex slice;
-    bool insertOp, simpleAssignOp;
+    bool insertOp = false, simpleAssignOp = false;
 
     do {
       slice = interpretSliceIndex(stream, frame, value);
