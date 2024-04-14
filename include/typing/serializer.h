@@ -117,8 +117,9 @@ struct Serializer {
     return sv.str();
   }
 
-  static k_string pretty_serialize_list_experimental(const k_list& list, int indent = 0,
-                                        bool isNested = false) {
+  static k_string pretty_serialize_list_experimental(const k_list& list,
+                                                     int indent = 0,
+                                                     bool isNested = false) {
     std::ostringstream sv;
     if (!isNested) {
       sv << "[" << std::endl;
@@ -140,7 +141,8 @@ struct Serializer {
       }
 
       if (std::holds_alternative<k_list>(item)) {
-        sv << pretty_serialize_list_experimental(std::get<k_list>(item), indent + 2, true);
+        sv << pretty_serialize_list_experimental(std::get<k_list>(item),
+                                                 indent + 2, true);
       } else if (std::holds_alternative<k_hash>(item)) {
         sv << pretty_serialize_hash(std::get<k_hash>(item), indent + 2);
       } else if (std::holds_alternative<k_string>(item)) {
