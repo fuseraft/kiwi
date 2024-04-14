@@ -1,0 +1,104 @@
+/#
+A simple application that generates a random set of numbers and prints them as a bar chart.
+This is accomplished by transposing a matrix representation of these numbers and converting it into a string format.
+#/
+
+import "@astral/math"
+import "@astral/string"
+
+def main()
+  # Generate and print the matrix
+  print_matrix(get_matrix(random_set(1, 50, 20)))
+end
+
+def print_matrix(matrix)
+  matrix = transpose_left(matrix)      # Transpose the matrix to the left  
+  println(stringify_matrix(matrix))    # Print the matrix as a string
+end
+
+def stringify_matrix(input_matrix)
+  stringified = []
+  
+  for row in input_matrix do
+    # Convert each row to a string, replacing 1s with "=" and 0s with "."
+    stringified << row.map(with (x) do return x > 0 ? "=" : "." end).join(" ")
+  end
+
+  return stringified.join("\n") # Join all rows with newline characters
+end
+
+def transpose_left(input_matrix)
+  transposed = []
+  count_x = input_matrix[0].size()
+  count_y = input_matrix.size()
+
+  # Perform the transposition from right to left (counter-clockwise)
+  for x in [count_x - 1 .. 0] do
+    line = []
+
+    for y in [0 .. count_y - 1] do
+      line << input_matrix[y][x]
+    end
+    
+    transposed << line
+  end
+
+  return transposed
+end
+
+def transpose_right(input_matrix)
+  transposed = []
+  count_x = input_matrix[0].size()
+  count_y = input_matrix.size()
+
+  # Perform the transposition from left to right (clockwise)
+  for x in [0 .. count_x - 1] do
+    line = []
+
+    for y in [count_y - 1 .. 0] do
+      line << input_matrix[y][x]
+    end
+    
+    transposed << line
+  end
+
+  return transposed
+end
+
+def get_matrix(data = [])
+  columns = []
+  max_len = data.max()
+  
+  # Create columns of 1s up to the value and fill the rest with 0s
+  for d in data do
+    columns << string::padend(("1" * d), max_len, "0").chars().map(with (c) do return c.to_int() end)
+  end
+
+  return columns
+end
+
+def random_set(range_start, range_end, size)
+  min = [range_start, range_end].min()
+  max = [range_start, range_end].max()
+
+  # Ensure valid size and range, then generate a set of unique random numbers
+  if size == 0 || range_start == range_end || (max - min) < size
+    return []
+  end
+  
+  set = []
+  count = 0
+
+  while count != size do
+    n = math::random(min, max)
+
+    if set.index(n) < 0
+      set << n
+      count += 1
+    end
+  end
+
+  return set
+end
+
+main()  # Start the application
