@@ -180,6 +180,21 @@ class CoreBuiltinHandler {
       case KName::Builtin_Astral_Pretty:
         return executePretty(term, value, args);
 
+      case KName::Builtin_Astral_Find:
+        return executeFind(term, value, args);
+
+      case KName::Builtin_Astral_Match:
+        return executeMatch(term, value, args);
+
+      case KName::Builtin_Astral_Matches:
+        return executeMatches(term, value, args);
+
+      case KName::Builtin_Astral_MatchesAll:
+        return executeMatchesAll(term, value, args);
+
+      case KName::Builtin_Astral_Scan:
+        return executeScan(term, value, args);
+
       default:
         break;
     }
@@ -461,9 +476,69 @@ class CoreBuiltinHandler {
     return String::substring(stringValue, pos, size);
   }
 
-  static k_value executeSplit(const Token& term, const k_value& value,
+  static k_value executeFind(const Token& term, const k_value& value,
+                             const std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Find);
+    }
+
+    auto stringValue = get_string(term, value);
+    auto pattern = get_string(term, args.at(0));
+
+    return String::find(stringValue, pattern);
+  }
+
+  static k_value executeMatch(const Token& term, const k_value& value,
                               const std::vector<k_value>& args) {
     if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Match);
+    }
+
+    auto stringValue = get_string(term, value);
+    auto pattern = get_string(term, args.at(0));
+
+    return String::match(stringValue, pattern);
+  }
+
+  static k_value executeMatches(const Token& term, const k_value& value,
+                                const std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Matches);
+    }
+
+    auto stringValue = get_string(term, value);
+    auto pattern = get_string(term, args.at(0));
+
+    return String::matches(stringValue, pattern);
+  }
+
+  static k_value executeMatchesAll(const Token& term, const k_value& value,
+                                   const std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.MatchesAll);
+    }
+
+    auto stringValue = get_string(term, value);
+    auto pattern = get_string(term, args.at(0));
+
+    return String::matchesAll(stringValue, pattern);
+  }
+
+  static k_value executeScan(const Token& term, const k_value& value,
+                             const std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Scan);
+    }
+
+    auto stringValue = get_string(term, value);
+    auto pattern = get_string(term, args.at(0));
+
+    return String::scan(stringValue, pattern);
+  }
+
+  static k_value executeSplit(const Token& term, const k_value& value,
+                              const std::vector<k_value>& args) {
+    if (args.size() != 1 && args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(term, AstralBuiltins.Split);
     }
 
@@ -471,13 +546,18 @@ class CoreBuiltinHandler {
     auto delimiter = get_string(term, args.at(0));
     auto newList = std::make_shared<List>();
     auto& elements = newList->elements;
+    k_int limit = -1;
+
+    if (args.size() == 2) {
+      limit = get_integer(term, args.at(1));
+    }
 
     if (delimiter.empty()) {
       for (char c : input) {
         elements.emplace_back(k_string(1, c));
       }
     } else {
-      for (k_string token : String::split(input, delimiter)) {
+      for (const auto& token : String::split(input, delimiter, limit)) {
         elements.emplace_back(token);
       }
     }

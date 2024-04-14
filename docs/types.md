@@ -7,11 +7,11 @@ Astral supports working with the following types:
 | `Integer` | An integer. | See below for an example. |
 | `Double` | A floating point number. | See below for an example. |
 | `Boolean` | A `true` or `false` value. | See below for an example. |
-| `String` | A sequence of characters. | See below for an example. |
-| `List` | A list of values. | See [lists.md](lists.md) |
-| `Hash` | A dictionary of key-value pairs. | See [hashes.md](hashes.md) |
-| `Object` | An instance of a `class`. | See [classes.md](classes.md) and [abstract_classes.md](abstract_classes.md) |
-| `Lambda` | An anonymous function. | See [lambdas.md](lambdas.md) |
+| `String` | A sequence of characters. | See [Strings](strings.md). |
+| `List` | A list of values. | See [Lists](lists.md). |
+| `Hash` | A dictionary of key-value pairs. | See [Hashes](hashes.md). |
+| `Object` | An instance of a `class`. | See [Classes](classes.md) and [Abstract Classes](abstract_classes.md). |
+| `Lambda` | An anonymous function. | See [lambdas](lambdas.md). |
 
 ### Integer
 
