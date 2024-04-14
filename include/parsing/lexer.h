@@ -966,6 +966,8 @@ class Lexer {
       st = KName::Builtin_Astral_Clear;
     } else if (builtin == AstralBuiltins.Clone) {
       st = KName::Builtin_Astral_Clone;
+    } else if (builtin == AstralBuiltins.Pretty) {
+      st = KName::Builtin_Astral_Pretty;
     } else if (builtin == ListBuiltins.Map) {
       st = KName::Builtin_List_Map;
     } else if (builtin == ListBuiltins.Select) {

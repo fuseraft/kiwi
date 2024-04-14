@@ -572,6 +572,7 @@ struct {
   const k_string Merge = "merge";
   const k_string Values = "values";
   const k_string Clone = "clone";
+  const k_string Pretty = "pretty";
 
   std::unordered_set<k_string> builtins = {
       Chars,    Empty,      IsA,       Join,     Size,        ToBytes,
@@ -581,7 +582,8 @@ struct {
       Type,     HasKey,     Members,   Push,     Pop,         Enqueue,
       Dequeue,  Clear,      Substring, Shift,    Unshift,     Remove,
       RemoveAt, Rotate,     Insert,    Slice,    Concat,      Unique,
-      Count,    Flatten,    Zip,       Merge,    Values,      Clone};
+      Count,    Flatten,    Zip,       Merge,    Values,      Clone,
+      Pretty};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Astral_BeginsWith,  KName::Builtin_Astral_BeginsWith,
@@ -608,7 +610,7 @@ struct {
       KName::Builtin_Astral_Flatten,     KName::Builtin_Astral_Zip,
       KName::Builtin_Astral_Clear,       KName::Builtin_Astral_Substring,
       KName::Builtin_Astral_Merge,       KName::Builtin_Astral_Values,
-      KName::Builtin_Astral_Clone};
+      KName::Builtin_Astral_Clone,       KName::Builtin_Astral_Pretty};
 
   bool is_builtin(const k_string& arg) {
     if (ListBuiltins.is_builtin(arg)) {
