@@ -86,6 +86,7 @@ enum KName {
   Builtin_Astral_Members,
   Builtin_Astral_Merge,
   Builtin_Astral_Pop,
+  Builtin_Astral_Pretty,
   Builtin_Astral_Push,
   Builtin_Astral_Replace,
   Builtin_Astral_Reverse,
