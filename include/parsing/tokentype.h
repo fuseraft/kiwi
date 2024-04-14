@@ -87,6 +87,11 @@ enum KName {
   Builtin_Astral_Merge,
   Builtin_Astral_Pop,
   Builtin_Astral_Pretty,
+  Builtin_Astral_Find,
+  Builtin_Astral_Match,
+  Builtin_Astral_Matches,
+  Builtin_Astral_MatchesAll,
+  Builtin_Astral_Scan,
   Builtin_Astral_Push,
   Builtin_Astral_Replace,
   Builtin_Astral_Reverse,
@@ -299,6 +304,7 @@ enum KName {
   Types_None,
   Types_Object,
   Types_String,
+  Regex,
   Default
 };
 

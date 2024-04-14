@@ -573,6 +573,11 @@ struct {
   const k_string Values = "values";
   const k_string Clone = "clone";
   const k_string Pretty = "pretty";
+  const k_string Find = "find";
+  const k_string Match = "match";
+  const k_string Matches = "matches";
+  const k_string MatchesAll = "matches_all";
+  const k_string Scan = "scan";
 
   std::unordered_set<k_string> builtins = {
       Chars,    Empty,      IsA,       Join,     Size,        ToBytes,
@@ -583,7 +588,7 @@ struct {
       Dequeue,  Clear,      Substring, Shift,    Unshift,     Remove,
       RemoveAt, Rotate,     Insert,    Slice,    Concat,      Unique,
       Count,    Flatten,    Zip,       Merge,    Values,      Clone,
-      Pretty};
+      Pretty,   Find,       Match,     Matches,  MatchesAll,  Scan};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Astral_BeginsWith,  KName::Builtin_Astral_BeginsWith,
@@ -610,7 +615,10 @@ struct {
       KName::Builtin_Astral_Flatten,     KName::Builtin_Astral_Zip,
       KName::Builtin_Astral_Clear,       KName::Builtin_Astral_Substring,
       KName::Builtin_Astral_Merge,       KName::Builtin_Astral_Values,
-      KName::Builtin_Astral_Clone,       KName::Builtin_Astral_Pretty};
+      KName::Builtin_Astral_Clone,       KName::Builtin_Astral_Pretty,
+      KName::Builtin_Astral_Find,        KName::Builtin_Astral_Match,
+      KName::Builtin_Astral_Matches,     KName::Builtin_Astral_MatchesAll,
+      KName::Builtin_Astral_Scan};
 
   bool is_builtin(const k_string& arg) {
     if (ListBuiltins.is_builtin(arg)) {

@@ -91,6 +91,8 @@ class Lexer {
       return parseLiteral(currentChar);
     } else if (currentChar == '"') {
       return parseString();
+    } else if (currentChar == '\'') {
+      return parseRegex();
     } else if (currentChar == '#') {
       return parseComment();
     } else if (currentChar == '/' &&
@@ -148,6 +150,50 @@ class Lexer {
     while (pos < source.length() && isspace(source[pos])) {
       getCurrentChar();
     }
+  }
+
+  Token parseRegex() {
+    std::string regexPattern;
+    bool escape = false;
+
+    while (pos < source.length()) {
+      char currentChar = getCurrentChar();
+
+      if (escape) {
+        switch (currentChar) {
+          case 'n':
+            regexPattern += '\n';
+            break;
+          case 't':
+            regexPattern += '\t';
+            break;
+          case 'r':
+            regexPattern += '\r';
+            break;
+          case '\\':
+            regexPattern += '\\';
+            break;
+          case '/':
+            regexPattern += '/';
+            break;
+          default:
+            regexPattern += "\\" + std::string(1, currentChar);
+        }
+        escape = false;
+      } else if (currentChar == '\\') {
+        escape = true;
+      } else if (currentChar == '\'') {
+        if (!escape) {
+          break;
+        }
+        regexPattern += currentChar;
+      } else {
+        regexPattern += currentChar;
+      }
+    }
+
+    return Token::create(KTokenType::STRING, KName::Regex, fileId, regexPattern,
+                         row, col);
   }
 
   Token parseConditionalKeyword(const std::string& keyword) {
@@ -968,6 +1014,16 @@ class Lexer {
       st = KName::Builtin_Astral_Clone;
     } else if (builtin == AstralBuiltins.Pretty) {
       st = KName::Builtin_Astral_Pretty;
+    } else if (builtin == AstralBuiltins.Find) {
+      st = KName::Builtin_Astral_Find;
+    } else if (builtin == AstralBuiltins.Match) {
+      st = KName::Builtin_Astral_Match;
+    } else if (builtin == AstralBuiltins.Matches) {
+      st = KName::Builtin_Astral_Matches;
+    } else if (builtin == AstralBuiltins.MatchesAll) {
+      st = KName::Builtin_Astral_MatchesAll;
+    } else if (builtin == AstralBuiltins.Scan) {
+      st = KName::Builtin_Astral_Scan;
     } else if (builtin == ListBuiltins.Map) {
       st = KName::Builtin_List_Map;
     } else if (builtin == ListBuiltins.Select) {
