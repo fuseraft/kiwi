@@ -45,5 +45,3 @@
 
 5. **Experimental Features**
    - [Concurrency](concurrency.md)
-   - **Experimental Standard Library**
-     - [`@astral/odbc`](lib/experimental/odbc.md)
