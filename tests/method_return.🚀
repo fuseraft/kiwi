@@ -1,10 +1,2 @@
-def get_greeting(name)
-  return "Hello, ${name}"
-end
-
-who = "World!"
-greeting = get_greeting(who)
-
-println "Greeting: ${greeting}"
-
-println ""
+def get_greeting(name) return "Hello, ${name}" end
+println("Greeting: ${get_greeting("World!")}")

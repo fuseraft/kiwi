@@ -18,7 +18,7 @@ The `while`-loop is used to loop based on a condition.
 i = 0
 while i <= 10 do
   i += 1
-  println i
+  println(i)
 end
 ```
 
@@ -27,8 +27,10 @@ end
 To loop indefinitely, the loop condition expression must evaluate to `true`.
 
 ```ruby
+import "@astral/time" # for `delay()`
 while true do
-  print "\rPress Ctrl+C to exit!"
+  print("\rPress Ctrl+C to exit!")
+  time::delay(500) # sleep for 500 seconds
 end
 ```
 
@@ -58,7 +60,7 @@ while true do
     next
   end
 
-  println i
+  println(i)
 
   if i >= 10
     break
@@ -72,17 +74,31 @@ In Astral, `for`-loops are used to iterate collections.
 
 ##### Iterating a Hash
 
-Use the `for` keyword and the `.keys()` Hash-builtin to iterate a hash.
+Loop on the `.keys()` builtin to iterate the keys of a hash.
 
 ```ruby
-# Iterate the values in the list.
+# Iterate the keys in the hash.
 for key in myHash.keys() do
-  println myHash[key]
+  println("${key}: ${myHash[key]}")
 end
 
-# Iterate the values in the list, with an index.
+# Iterate the keys in the hash, with an index.
 for key, index in myHash.keys() do
-  println "Key ${index}: ${key}"
+  println("Key ${index}: ${key}")
+end
+```
+
+Loop on the `.values()` builtin to iterate the values of a hash.
+
+```ruby
+# Iterate the values in the hash.
+for value in myHash.values() do
+  println(value)
+end
+
+# Iterate the values in the hash, with an index.
+for value, index in myHash.values() do
+  println("Value ${index}: ${value}")
 end
 ```
 
@@ -95,12 +111,12 @@ fruits = ["kiwi", "mango", "lime"]
 
 # Iterate the values in the list.
 for fruit in fruits do
-  println fruit
+  println(fruit)
 end
 
 # Iterate the values in the list, with an index.
 for fruit, index in fruits do
-  println "Fruit ${index}: ${item}"
+  println("Fruit ${index}: ${item}")
 end
 ```
 
@@ -110,7 +126,7 @@ Use the `for` keyword to iterate a range.
 
 ```ruby
 for i in [1..10] do
-  println "${i}"
+  println("${i}")
 end
 ```
 

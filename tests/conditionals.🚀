@@ -1,34 +1,7 @@
-a = true, b = true
-println "${a}, ${b}"
-
-if a == b
-    println "foo"
-elsif a != b
-    println "bar"
-else
-    println "baz"
+for i in [0 .. 9] do
+  if i % 2 == 0    println("${i} foo")
+  elsif i % 3 == 0 println("${i} bar")
+  elsif i % 5 == 0 println("${i} baz")
+  elsif i % 7 == 0 println("${i} qux")
+  else             println("${i} quux") end
 end
-
-a = true, b = false
-println "${a}, ${b}"
-
-if a == b
-    println "foo"
-elsif a != b
-    println "bar"
-else
-    println "baz"
-end
-
-a = true, b = false
-println "${a}, ${b}"
-
-if a == b
-    println "foo"
-elsif b == a
-    println "bar"
-else
-    println "baz"
-end
-
-println ""

@@ -8,13 +8,13 @@ Methods defined in a module can only be accessed using a fully qualified name.
 # Defining modules.
 module greeter
   def greet(name)
-    println "Hello, ${name}."
+    println("Hello, ${name}.")
   end
 end
 
 module excited_greeter
   def greet(name)
-    println "Hello, ${name}!"
+    println("Hello, ${name}!")
   end
 end
 
@@ -49,13 +49,13 @@ In this example, we have two Astral scripts:
 1. **fun.🚀**: Defines the homed module `fuseraft/fun`.
 2. **app.🚀**: Imports and uses functionality defined in the homed module `fuseraft/fun`.
 
-#### `./fun.🚀`
+#### `./lib/fun.🚀`
 ```ruby
 module fun
   __home__("fuseraft")
 
   def method()
-    println "Astral is fun!"
+    println("Astral is fun!")
   end
 end
 
@@ -73,13 +73,13 @@ fun::method() # prints: Astral is fun!
 
 You can specify an alias for an imported module. This creates a class that cannot be instantiated. The class will contain static methods matching the methods defined in the module. 
 
-#### `./fun.🚀`
+#### `./lib/fun.🚀`
 ```ruby
 module fun
   __home__("fuseraft")
 
   def method()
-    println "Astral is fun!"
+    println("Astral is fun!")
   end
 end
 

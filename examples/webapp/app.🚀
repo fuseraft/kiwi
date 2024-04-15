@@ -33,9 +33,8 @@ end)
 web.public("/", "./public")
 
 # server and port configuration
-host = "0.0.0.0"
-port = 8080
+host = "0.0.0.0", port = 8080
 
 # start the web server
-println "Starting Astral Web Server at http://${host}:${port}"
+println("Starting Astral Web Server at http://${host}:${port}")
 web.listen(host, port)

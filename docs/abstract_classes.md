@@ -45,8 +45,8 @@ Abstract classes cannot be instantiated directly. An attempt to create an instan
 
 # Correct way to instantiate:
 circle = Circle.new(5)
-println circle.area()  # Output: Area of the circle.
-println circle.perimeter()  # Output: Perimeter of the circle.
+println(circle.area())       # Output: Area of the circle.
+println(circle.perimeter())  # Output: Perimeter of the circle.
 ```
 
 ## Notes

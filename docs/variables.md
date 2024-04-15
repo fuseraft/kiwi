@@ -11,9 +11,7 @@ name = "Astral"
 powerlevel = 9001
 threshold = 9000
 
-println "I hope you like ${name}!"
-
 if powerlevel > threshold
-  println "It's over ${threshold}!"
+  println("${name} is over ${threshold}!")
 end
 ```

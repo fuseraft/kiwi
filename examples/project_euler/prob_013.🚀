@@ -126,7 +126,7 @@ while sum[index] == 0 do
 end
 
 for i in [0..9] do
-  print sum[index + i]
+  print(sum[index + i])
 end
     
-println ""
+println("")

@@ -1,10 +1,3 @@
 import "@astral/time"
 
-# =============================
-# Time tests
-# =============================
-
-ts = time::timestamp()
-println "Current timestamp: ${ts}"
-
-println ""
+println("Current timestamp: ${time::timestamp()}")

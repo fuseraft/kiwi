@@ -21,7 +21,7 @@ An integer.
 number = 5
 number += 5
 
-println number # prints: 10
+println(number) # prints: 10
 ```
 
 ### Double
@@ -32,7 +32,7 @@ A floating point number.
 pi = 3.14159
 tau = pi * 2
 
-println tau # prints: 6.28318
+println(tau) # prints: 6.28318
 ```
 
 ### Boolean
@@ -42,7 +42,7 @@ A `true` or `false` value.
 ```ruby
 enabled = true
 
-println enabled # prints: true
+println(enabled) # prints: true
 ```
 
 ### String
@@ -52,7 +52,7 @@ A sequence of characters.
 ```ruby
 string = "Hello, World!"
 
-println string # prints: Hello, World!
+println(string) # prints: Hello, World!
 ```
 
 ### List
@@ -61,7 +61,7 @@ A list of values.
 
 ```ruby
 list = [1, 2, 3, 4, 5]
-println list # prints: [1, 2, 3, 4, 5]
+println(list) # prints: [1, 2, 3, 4, 5]
 ```
 
 ### Hash
@@ -71,7 +71,7 @@ A dictionary of key-value pairs.
 ```ruby
 hash = { "language": "astral" }
 
-println hash  # prints: {"language": "astral"}
+println(hash) # prints: {"language": "astral"}
 ```
 
 ### Object
@@ -85,7 +85,7 @@ class MyClass
 end
 
 inst = MyClass.new()
-println inst
+println(inst)
 # prints: [Object(class=MyClass, identifier=inst)]
 ```
 
@@ -95,7 +95,7 @@ An anonymous function. Lambdas can be assigned identifiers for code reuse.
 
 ```ruby
 puts = with (s) do
-  println s
+  println(s)
 end
 
 puts("Hello, World!") # prints: Hello, World!

@@ -1,12 +1,12 @@
 module greeter
   def greet(name)
-    println "Hello, ${name}."
+    println("Hello, ${name}.")
   end
 end
 
 module excited_greeter
   def greet(name)
-    println "Hello, ${name}!"
+    println("Hello, ${name}!")
   end
 end
 
@@ -24,24 +24,18 @@ def print_dir()
   files = []
   
   for entry in __listdir__(".").select(with (x) do return __isdir__(x) end) do
-  directories << __filename__(entry) + "/"
+    directories << __filename__(entry) + "/"
   end
   
   for entry in __listdir__(".").select(with (x) do return __isfile__(x) end) do
-  files << __filename__(entry)
+    files << __filename__(entry)
   end
   
-  return "
-  Current directory: ${__cwd__()}
-  
-  Found ${directories.size()} directories:
-  ${directories.join(" ")}
-  
-  Found ${files.size()} files:
-  ${files.join(" ")}
-  "
+  return "Current directory: ${__cwd__()}
+Found ${directories.size()} directories:
+${directories.join(" ")}
+Found ${files.size()} files:
+${files.join(" ")}"
 end
 
 mod1::say(print_dir())
-
-println ""

@@ -54,5 +54,5 @@ You can pull these values using this module.
 
 ```ruby
 import "@astral/argv" as ARGV
-println ARGV.opt("key") # prints: value
+println(ARGV.opt("key")) # prints: value
 ```

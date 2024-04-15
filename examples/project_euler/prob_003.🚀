@@ -18,4 +18,4 @@ def largest_prime_factor(n)
 end
 
 number = 600851475143
-println largest_prime_factor(number)
+println(largest_prime_factor(number))

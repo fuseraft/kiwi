@@ -2,7 +2,7 @@ abstract class MyAbstractClass
   abstract def method_one()
 
   def concrete_method()
-    println "This is a concrete method."
+    println("This is a concrete method.")
   end
 end
 
@@ -20,29 +20,63 @@ class MyClass < MyAbstractClass
   end
 
   static def static_method()
-    println "I can be invoked without an instance."
+    println("I can be invoked without an instance.")
   end
 
   def print_name()
-    println get_name() # `@` is optional
+    println(get_name())
   end
 
   def print_name_and_msg(msg)
     try
       print_name()
+      println("Message: ${msg}")
     catch
-      println "An error occurred."
+      println("An error occurred.")
     end
-    println "Message: ${msg}"
   end
 end
 
 instance = MyClass.new("scott")
 instance.method_one()
 
-# println instance.get_name() # Throws InvalidOperationError: Cannot invoke private method outside of object context.
+try
+  println(instance.get_name()) # throws InvalidOperationError: Cannot invoke private method outside of object context.
+catch (err)
+  println(err)
+end
+
 instance.print_name_and_msg("Hello!")
 
 MyClass.static_method()
 
-println ""
+abstract class Shape
+  abstract def area()
+  abstract def perimeter()
+end
+
+class Circle < Shape
+  def initialize(radius)
+    @radius = radius
+  end
+
+  override def area()
+    return 3.14159 * radius * radius
+  end
+
+  override def perimeter()
+    return 2 * 3.14159 * radius
+  end
+end
+
+try
+  # This will result in an error:
+  #shape = Shape.new() # Throws InvalidOperationError: Cannot instantiate an abstract class.
+
+  # Correct way to instantiate:
+  circle = Circle.new(5)
+  println(circle.area())      # Output: Area of the circle.
+  println(circle.perimeter()) # Output: Perimeter of the circle.
+catch (error)
+  println("An error occurred: ${error}")
+end

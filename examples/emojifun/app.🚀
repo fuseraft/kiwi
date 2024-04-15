@@ -3,11 +3,11 @@ import "@fun/emoji" as emoji
 e = Emoji.new(emoji.get())
 
 def print_help()
-  println "Enter the name of an emoji or one of the commands below:"
-  println "--------------------------------------------------------"
-  println "help                     print this message"
-  println "list                     print a list of emoji names"
-  println "exit                     exit the program\n"
+  println("Enter the name of an emoji or one of the commands below:")
+  println("--------------------------------------------------------")
+  println("help                     print this message")
+  println("list                     print a list of emoji names")
+  println("exit                     exit the program\n")
 end
 
 print_help()
@@ -19,11 +19,11 @@ while true do
     if command == "help"
       print_help()
     elsif command == "exit"
-      exit 0
+      exit(0)
     elsif command == "list"
-      println e.emojis().map(with (emo) do return "'${emo}'" end).join(", ")
+      println(e.emojis().map(with (emo) do return "'${emo}'" end).join(", "))
     else
-      println e.emotify(command)
+      println(e.emotify(command))
     end
   catch
   end

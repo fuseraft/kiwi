@@ -5,7 +5,7 @@ def main()
   randomize(grid, rows, cols)
 
   while true do
-    println display(grid, rows, cols)
+    println(display(grid, rows, cols))
     update(grid, rows, cols)
   end
 end

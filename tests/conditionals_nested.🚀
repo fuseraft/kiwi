@@ -1,21 +1,9 @@
 a = true, b = true
-
 if a == b
-    # should print
-    println "hello world"
-
-    if a != b
-        println "foo"
-    elsif b == a
-        # should print
-        println "bar"
-    else
-        println "baz"
-    end
-elsif a != b
-    println "hello"
-else
-    println "world"
+  if a != b    println("this should not print")
+  elsif b == a println("this should print")
+  else         println("this should not print")
+  end
+elsif a != b   println("this should not print")
+else           println("this should not print")
 end
-
-println ""

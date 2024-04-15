@@ -11,14 +11,14 @@ To throw an error, use the `throw` keyword.
 try
   throw { "error": "MyError", "message": "An error occurred!" }
 catch (err, msg)
-  println "${err}: ${msg}" # prints: MyError: An error occurred!
+  println("${err}: ${msg}") # prints: MyError: An error occurred!
 end
 
 # Throwing an error with a message only.
 try
   throw "An error occurred!"
 catch (err, msg)
-  println "${err}: ${msg}" # prints: AstralError: An error occurred!
+  println("${err}: ${msg}") # prints: AstralError: An error occurred!
 end
 ```
 
@@ -30,9 +30,9 @@ To capture the error type and the message, use the following syntax: `catch (err
 try
   a = 1
   a /= 0
-  println "The line above throws an error."
+  println("The line above throws an error.")
 catch (err, msg)
-  println "${err}: ${msg}" # prints: DivideByZeroError: Attempted to divide by zero.
+  println("${err}: ${msg}") # prints: DivideByZeroError: Attempted to divide by zero.
 end
 ```
 
@@ -42,9 +42,9 @@ To capture just the error message, use the following syntax: `catch (message_var
 try
   a = 1
   a /= 0
-  println "The line above throws an error."
+  println("The line above throws an error.")
 catch (err)
-  println "An error occurred: ${err}" 
+  println("An error occurred: ${err}")
   # prints: An error occurred: Attempted to divide by zero.
 end
 ```
@@ -57,8 +57,8 @@ Sometimes you just want to catch an error without handling the error message.
 try
   a = 1
   a /= 0
-  println "The line above throws an error."
+  println("The line above throws an error.")
 catch
-  println "An error occurred." # prints: An error occurred.
+  println("An error occurred.") # prints: An error occurred.
 end
 ```

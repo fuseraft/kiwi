@@ -14,7 +14,7 @@ def main()
   args = ARGV.get()
   
   if args.size() == 1
-    println MD5(args[0])
+    println(MD5(args[0]))
   else
     # read the script contents
     text = fs.read("md5_hash.🚀")
@@ -25,8 +25,8 @@ def main()
     ticks_stop = time.ticks()
 
     # print the results
-    println "Computed MD5 hash of this file: ${md5_hash}"
-    println "Time to compute: ${time.ticksms(ticks_stop - ticks_start) / 1000}s"
+    println("Computed MD5 hash of this file: ${md5_hash}")
+    println("Time to compute: ${time.ticksms(ticks_stop - ticks_start) / 1000}s")
   end
 end
 
@@ -147,8 +147,8 @@ def MD5(input)
 end
 
 def print_help()
-  println "usage: md5_hash.🚀 <input>"
-  exit 0
+  println("usage: md5_hash.🚀 <input>")
+  exit(0)
 end
 
 def left_rotate(value, count)

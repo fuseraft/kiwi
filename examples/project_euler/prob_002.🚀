@@ -18,8 +18,4 @@ end
 limit = 4000000
 numbers = fibonacci(limit)
 
-println numbers.select(with (n) do return n % 2 == 0 end)
-                .reduce(0, with (acc, n) do 
-                    acc += n 
-                    return acc 
-                end)
+println(numbers.select(with (n) do return n % 2 == 0 end).reduce(0, with (acc, n) do acc += n return acc end))

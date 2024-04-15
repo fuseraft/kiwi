@@ -9,7 +9,7 @@ runtimes = []
 search_pattern = "./**/*.🚀"
 exclusions = ["install.🚀", "test.🚀", "test.min.🚀", "play.🚀", "/pg/", "lib/astral", "/examples/"]
 
-println "Searching for Astral scripts..."
+println("Searching for Astral scripts...")
 silent(true)
 
 for file in fs.glob(search_pattern) do
@@ -42,12 +42,11 @@ silent(false)
 total_duration = 0
 
 for runtime in runtimes do
-  println "${runtime["file"]} ran for ${runtime["duration"]} ms."
-
+  println("${runtime["file"]} ran for ${runtime["duration"]} ms.")
   total_duration += runtime["duration"]
 end
 
-println "
+println("
 Ran ${runtimes.size()} scripts.
 Total runtime for all scripts: ${total_duration} ms.
-"
+")
