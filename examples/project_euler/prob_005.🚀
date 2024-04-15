@@ -23,4 +23,4 @@ def smallest_multiple(n)
   return result
 end
 
-println smallest_multiple(20)
+println(smallest_multiple(20))

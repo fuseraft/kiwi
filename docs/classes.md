@@ -16,7 +16,7 @@ class MyClass
   end
 
   def say_hello()
-    println "Hello, ${name}!"
+    println("Hello, ${name}!")
   end
 end
 ```
@@ -39,7 +39,7 @@ class MySubclass < MyClass
   def initialize() end
 
   def say_goodbye()
-    println "Goodbye, ${name}!"
+    println("Goodbye, ${name}!")
   end
 end
 ```
@@ -73,8 +73,8 @@ end
 
 instance = AstralClass.new()
 string_repr = instance.to_string()
-println instance # prints: I am a Astral class
-println string_repr # prints: I am a Astral class
+println(instance)    # prints: I am a Astral class
+println(string_repr) # prints: I am a Astral class
 ```
 
 ### Static Method Definition
@@ -85,7 +85,7 @@ Methods declared as static can be invoked directly through the class and cannot 
 class MyClass
   def initialize() end
   static def static_method()
-    println "I can be invoked without an instance!"
+    println("I can be invoked without an instance!")
   end
 end
 
@@ -118,5 +118,5 @@ class MyClass
 end
 
 inst = MyClass.new("astral")
-println inst.name # throws InvalidContextError: Cannot access private instance variable outside of object context. 
+println(inst.name) # throws InvalidContextError: Cannot access private instance variable outside of object context. 
 ```

@@ -1,25 +1,8 @@
-fruits = ["kiwi", "strawberry", "pineapple", 
-           "lime", "mango", "guava"]
+fruits = ["kiwi", "strawberry", "pineapple", "lime", "mango", "guava"]
 
-println "fruits = ${fruits}\n"
-println "iterating fruits without an index"
-for fruit in fruits do
-  println fruit
-end
-
-println "\niterating fruits with an index"
-for fruit, index in fruits do
-  println "${index}: ${fruit}"
-end
-
-println "\niterating an inline list without an index"
-for item in ["astral", "is", "fun"] do
-  println "${item}"
-end
-
-println "\niterating an inline list with an index"
-for item, index in ["astral", "is", "fun"] do
-  println "${index}: ${item}"
-end
-
-println ""
+for fruit in fruits do println(fruit) end                                      # iterating a list
+for fruit, index in fruits do println("${index}: ${fruit}") end                # iterating a list with an index
+for item in ["astral", "is", "fun"] do println("${item}") end                  # iterating an inline list
+for item, index in ["astral", "is", "fun"] do println("${index}: ${item}") end # iterating an inline list with an index
+for i in [0..5] do println(i) end                                              # iterating a range
+for value, i in [10..5] do println("${i} = ${value}") end                      # iterating a range with an index

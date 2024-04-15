@@ -19,7 +19,7 @@ list = [
 Lambdas can be used inline (without assignment).
 
 ```ruby
-println list.select(with (item) do return item["id"] % 2 == 0 end)
+println(list.select(with (item) do return item["id"] % 2 == 0 end))
 # prints: [{"id": 0}, {"id": 2}, {"id": 4}, {"id": 6}, {"id": 8}]
 ```
 
@@ -32,7 +32,7 @@ odd_item_id = with (item) do
   return item["id"] % 2 != 0
 end
 
-println list.select(odd_item_id)
+println(list.select(odd_item_id))
 # prints: [{"id": 1}, {"id": 3}, {"id": 5}, {"id": 7}, {"id": 9}]
 ```
 
@@ -42,7 +42,7 @@ You can pass lambdas as parameters to methods.
 
 ```ruby
 puts = with (s) do
-  println s
+  println(s)
 end
 
 puts("Hello, World!") # prints: Hello, World!
@@ -52,6 +52,4 @@ def use_lambda(print_func, message)
 end
 
 use_lambda(puts, "Hello, Astral!") # prints: Hello, Astral!
-
-println("")
 ```

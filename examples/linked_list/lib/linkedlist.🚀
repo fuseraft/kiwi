@@ -103,7 +103,7 @@ class LinkedList
     _node = _ll.head
 
     while !_node.empty() do
-      println _node.data
+      println(_node.data)
       _node = _node.next_node
     end
   end

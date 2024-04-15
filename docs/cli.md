@@ -27,10 +27,10 @@ If no arguments are supplied, Astral enters an interactive Read-Evaluate-Print L
 - `-p`, `--parse <astral_code>`: Parses astral code as an argument.
 
   ```
-  astral -p "println \"hello\"" 
+  astral -p 'println("hello")' 
   # prints: hello
   
-  astral -p "import \"@astral/math\" as math println math.random(0, 100)" 
+  astral -p 'import "@astral/math" as math println(math.random(0, 100))' 
   # prints a random number between 0 and 100
   ```
 

@@ -11,4 +11,4 @@ while i < limit do
   i += 1
 end
 
-println sum
+println(sum)

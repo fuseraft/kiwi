@@ -2,149 +2,35 @@ import "@astral/fs" as fs
 
 path = "hello.txt"
 
-# =============================
-# Create the file
-# =============================
+println("=> creating file: ${path}, result: ${fs.touch(path)}")
 
-println "=> creating file: ${path}"
-fs.touch(path)
+if fs.exists(path) println("=> created file: ${path}") end
 
-# =============================
-# Check if the file exists
-# =============================
-
-if fs.exists(path)
-  println "=> created file: ${path}"
-end
-
-# =============================
-# Write text to file
-# =============================
-
-println "=> writing text to file: ${path}"
+println("=> writing text to file: ${path}")
 fs.write(path, "")
 fs.writeln(path, "Hello, World!")
 fs.append(path, "This is Astral!")
 
-# =============================
-# Read text from file
-# =============================
-
-println "=> reading text from file: ${path}"
-text = fs.read(path)
-println "=> file text:\n${text}"
-
-# =============================
-# Copy the file
-# =============================
+println("=> reading text from file: ${path}\n=> file text:\n${fs.read(path)}")
 
 dest = "hello-copy.txt"
-println "=> copying file: ${path}"
-println "=> copying to: ${dest}"
-text = fs.copy(path, dest)
+println("=> copying file: ${path}\n=> copying to: ${dest}, result: ${fs.copy(path, dest)}")
 
-# =============================
-# Read text from copied file
-# =============================
-
-println "=> reading text from file: ${dest}"
-text = fs.read(dest)
-println "=> file text:\n${text}"
-
-# =============================
-# Delete copied file
-# =============================
-
-println "=> deleting file: ${dest}"
-fs.remove(dest)
-
-# =============================
-# Read file size of file
-# =============================
-
-println "=> getting file size: ${path}"
-size = fs.filesize(path)
-println "=> file size: ${size} bytes"
-
-# =============================
-# Get the absolute path
-# =============================
+println("=> reading text from file: ${dest}\n=> file text:\n${fs.read(dest)}")
+println("=> deleting file: ${dest}, result: ${fs.remove(dest)}")
+println("=> getting file size: ${path}\n=> file size in bytes: ${fs.filesize(path)} bytes")
 
 abspath = fs.abspath(path)
-println "=> absolute path: ${abspath}"
+println("=> absolute path: ${abspath}")
 
-# =============================
-# Get the parent directory
-# =============================
-
-parent = fs.parentdir(abspath)
-println "=> parent directory: ${parent}"
-
-# =============================
-# Get the filename
-# =============================
-
-name = fs.filename(abspath)
-println "=> file name: ${name}"
-
-# =============================
-# Get the file extension
-# =============================
-
-ext = fs.ext(path)
-println "=> file extension: ${ext}"
-
-# =============================
-# Move/Rename the file
-# =============================
+println("=> parent directory: ${fs.parentdir(abspath)}")
+println("=> file name: ${fs.filename(abspath)}")
+println("=> file extension: ${fs.ext(path)}")
 
 dest = "hello-moved.txt"
-println "=> moving file: ${path}"
-println "=> moving to: ${dest}"
-fs.move(path, dest)
+println("=> moving file: ${path}\n=> moving to: ${dest}, result: ${fs.move(path, dest)}")
 
 path = dest
 
-# =============================
-# Delete the file if it exists
-# =============================
-
-if fs.exists(path)
-  println "=> deleting file: ${path}"
-  fs.remove(path)
-end
-
-# =============================
-# Check if the file exists
-# =============================
-
-if !fs.exists(path)
-  println "=> deleted file: ${path}"
-end
-
-path = "file.txt"
-println "creating file: ${path}"
-fs.touch(path)
-i = 1
-
-println "writing to file: ${path}"
-while i <= 10 do
-  fs.writeln(path, "Item ${i}")
-  i += 1
-end
-
-println "reading lines from: ${path}"
-lines = fs.readlines(path)
-for line, index in lines do
-  println "${index}: ${line}"
-end
-
-if fs.exists(path)
-  fs.remove(path)
-end
-
-if !fs.exists(path)
-  println "deleted file: ${path}"
-end
-
-println ""
+if fs.exists(path) println("=> deleting file: ${path}, result: ${fs.remove(path)}") end
+if !fs.exists(path) println("=> deleted file: ${path}") end

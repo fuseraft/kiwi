@@ -60,4 +60,4 @@ for i in [0..16] do
   end
 end
 
-println products.max()
+println(products.max())

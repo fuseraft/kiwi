@@ -19,4 +19,4 @@ def difference(n)
   return square_of_sum(n) - sum_of_squares(n)
 end
 
-println difference(100)
+println(difference(100))
