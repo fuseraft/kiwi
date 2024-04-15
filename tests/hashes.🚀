@@ -6,13 +6,9 @@ hash = {
 
 otherHash = {}
 
-for key in hash.keys() do
-  otherHash[key] = hash[key]
-end
+for key in hash.keys() do otherHash[key] = hash[key] end println(otherHash)
 
-println otherHash
-
-keys = otherHash.keys()
-println keys
-
-println ""
+otherHash = {}, otherHash = hash.merge(otherHash)
+println(otherHash)
+println(otherHash.keys())
+println(otherHash.values())

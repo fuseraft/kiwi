@@ -6,8 +6,8 @@ Run `sudo make install` to run this installation script.
  Check for root/sudo permissions
 #/
 if __euid__() != 0
-  println "Please run this script with sudo or as root."
-  exit 1
+  println("Please run this script with sudo or as root.")
+  exit(1)
 end
 
 /#
@@ -35,8 +35,8 @@ end
 Check for errors in removal process
 #/
 if ec != 0
-  println "Failed to remove existing files/directories. Installation aborted."
-  exit 1
+  println("Failed to remove existing files/directories. Installation aborted.")
+  exit(1)
 end
 
 /#
@@ -54,8 +54,8 @@ end
 Check for errors in installation process
 #/
 if ec != 0
-  println "Failed to install astral. Please check permissions and try again."
-  exit 1
+  println("Failed to install astral. Please check permissions and try again.")
+  exit(1)
 end
 
-println "Astral installed successfully."
+println("Astral installed successfully.")

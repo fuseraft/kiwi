@@ -1,7 +1,6 @@
 # https://projecteuler.net/problem=14
 
-limit = 1000000
-lengths = [0, 1]
+limit = 1000000, lengths = [0, 1]
 
 for i in [2 .. limit - 1] do
   n = i
@@ -20,8 +19,5 @@ for i in [2 .. limit - 1] do
   lengths << length + lengths[n]
 end
 
-maxvalue = lengths.max()
-println "max value = ${maxvalue}"
-
-number = lengths.index(maxvalue)
-println "number = ${number}"
+maxvalue = lengths.max(), number = lengths.index(maxvalue)
+println("max value = ${maxvalue}, number = ${number}")

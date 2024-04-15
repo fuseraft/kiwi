@@ -1,18 +1,12 @@
 def fibonacci(n)
-  fib = []
-  t1 = 0, t2 = 1, nextTerm = 0
+  fib = [], t1 = 0, t2 = 1, nextTerm = 0
   nextTerm = t1 + t2
 
   while nextTerm <= n do
-    fib << nextTerm
-    t1 = t2
-    t2 = nextTerm
-    nextTerm = t1 + t2
+    fib << nextTerm, t1 = t2, t2 = nextTerm, nextTerm = t1 + t2
   end
 
   return fib
 end
 
-println fibonacci(100000)
-
-println ""
+println(fibonacci(100000))

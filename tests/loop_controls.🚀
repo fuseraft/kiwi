@@ -13,14 +13,10 @@ def loopy(stop)
   return i
 end
 
-retval = loopy(true)
-println "loop ended on ${retval}"
+println("loop ended on ${loopy(true)}")
+println("loop ended on ${loopy(false)}")
 
-retval = loopy(false)
-println "loop ended on ${retval}"
-
-list = []
-i = 1
+list = [], i = 1
 while i <= 10 do
   list << "Item ${i}"
   i += 1
@@ -32,10 +28,9 @@ for item, index in list do
   if index == 5
     next
   end
-  println "${item}"
 end
 
-println "counter = ${counter}\n"
+println("counter = ${counter}")
 
 counter = 0
 for item, index in list do
@@ -43,9 +38,6 @@ for item, index in list do
   if index == 5
     break
   end
-  println "${item}"
 end
 
-println "counter = ${counter}"
-
-println ""
+println("counter = ${counter}")

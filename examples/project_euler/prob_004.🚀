@@ -20,4 +20,4 @@ for product in products do
   end
 end
 
-println max_palindrome
+println(max_palindrome)

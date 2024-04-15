@@ -1,45 +1,19 @@
-s = "astral"
-i = 100
-d = 3.14159
-b = true
+s = "astral", i = 100, d = 3.14159, b = true
 
 class TypeCheckMe
-  def initialize()
-  end
+  def initialize() end
 end
 
 inst = TypeCheckMe.new()
-
-failed = 0
-
-if !s.is_a(String)
-  failed += 1
-end
-
-if !i.is_a(Integer)
-  failed += 1
-end
-
-if !d.is_a(Double)
-  failed += 1
-end
-
-if !b.is_a(Boolean)
-  failed += 1
-end
-
-if !inst.is_a(TypeCheckMe)
-  failed += 1
-end
-
-if !inst.is_a(Object)
-  failed += 1
-end
+failed = ((!s.is_a(String) ? 1 : 0)
+        + (!i.is_a(Integer) ? 1 : 0)
+        + (!d.is_a(Double) ? 1 : 0)
+        + (!b.is_a(Boolean) ? 1 : 0)
+        + (!inst.is_a(TypeCheckMe) ? 1 : 0)
+        + (!inst.is_a(Object) ? 1 : 0))
 
 if failed > 0
-  println "Test(s) failed: ${failed}"
+  println("Test(s) failed: ${failed}")
 else
-  println "All tests passed!"
+  println("All tests passed!")
 end
-
-println ""

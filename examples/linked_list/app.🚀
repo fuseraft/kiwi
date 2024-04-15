@@ -42,7 +42,7 @@ def main()
   ll.clear()
   test.same(ll, {"head": {}})
   
-  println test.results() # prints: {"same": {"passed": 13, "failed": 0}}
+  println(test.results()) # prints: {"same": {"passed": 13, "failed": 0}}
 end
 
 main()

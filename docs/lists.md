@@ -14,8 +14,8 @@ anotherList = [1, 2, 3, "four", "five", 6]
 Bracket notation can be used to access elements by index, starting from 0.
 
 ```ruby
-println "${myList[0]}"  # Outputs: Astral
-println myList[2]       # Outputs: fun!
+println("${myList[0]}")  # Outputs: Astral
+println(myList[2])       # Outputs: fun!
 ```
 
 ### Adding Elements to a List
@@ -37,7 +37,7 @@ You can use the `delete` keyword to remove an element of a list by index.
 ```ruby
 list = "abcdef".chars()
 delete list[3]
-println list # prints: ["a", "b", "c", "e", "f"]
+println(list) # prints: ["a", "b", "c", "e", "f"]
 ```
 
 ### Filtering a List
@@ -46,7 +46,7 @@ You can use the `.select(lambda)` builtin to filter a list based on a condition.
 
 ```ruby
 list = ["astral", "mango", "banana"]
-println list.select(with (item) do return item.contains("i") end)
+println(list.select(with (item) do return item.contains("i") end))
 # prints: ["astral"]
 ```
 
@@ -57,12 +57,12 @@ Use the `for` keyword to iterate a list.
 ```ruby
 # Iterate the values in the list.
 for item in myList do
-  println "${item}"
+  println("${item}")
 end
 
 # Iterate the values in the list, with an index.
 for item, index in myList do
-  println "Item ${index}: ${item}"
+  println("Item ${index}: ${item}")
 end
 ```
 
@@ -115,7 +115,7 @@ def sieve_of_eratosthenes(limit)
 end
 
 for prime, index in sieve_of_eratosthenes(30) do
-  println "${index}:\t${prime}"
+  println("${index}:\t${prime}")
 end
 ```
 
@@ -126,5 +126,5 @@ Commas are optional in Astral.
 ```ruby
 digits = [0 1 2 3 4 5 6 7 8 9]
 
-println digits # prints: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+println(digits) # prints: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 ```

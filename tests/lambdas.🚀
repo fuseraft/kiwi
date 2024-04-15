@@ -1,65 +1,31 @@
-# ==============================
-# = Assigned and inline lambdas
-# ==============================
-list = [
-  {"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4},
-  {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}, {"id": 9}
-]
-# Define an assigned lambda.
-odd_item_id = with (item) do
-  return item["id"] % 2 != 0
-end
+# setup
+list = [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4},
+        {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}, {"id": 9}]
 
-# Defining a lambda and using it to wrap functionality.
-puts = with (s) do
-  println s
-end
-
+# Assigned and inline lambdas
+odd_item_id = with (item) do return item.id % 2 != 0 end # Define an assigned lambda.
+puts = (with (s) do println(s) end) # Defining a lambda and using it to wrap functionality.
 puts("Hello, World!") # prints: Hello, World!
 
-# ===================================
-# = Lambdas as first-class citizens
-# ===================================
-
-def use_lambda(print_func, message)
-  print_func(message)
-end
-
+# Lambdas as first-class citizens
+def use_lambda(print_func, message) print_func(message) end
 use_lambda(puts, "Hello, Astral!")
 
-# ==============================
-# = List.select test
-# ==============================
-# Using an inline lambda.
-println list.select(with (item) do return item["id"] % 2 == 0 end)
+# List.select test
+println(list.select(with (item) do return item["id"] % 2 == 0 end)) # Using an inline lambda.
+println(list.select(odd_item_id))                                   # Using an assigned lambda.
 
-# Using an assigned lambda.
-println list.select(odd_item_id)
+# List.map
+println(["kiwi", "mango", "banana"].map(with (item) do return { "fruit": item, "is_a_kiwi": item.downcase() == "kiwi" } end))
 
-# ======================
-# = List.map test
-# ======================
-list = ["kiwi", "mango", "banana"]
-println list.map(with (item) do return { "fruit": item, "is_a_kiwi": item.downcase() == "kiwi" } end)
-# prints:[{"fruit": "kiwi", "is_a_kiwi": true}, {"fruit": "mango", "is_a_kiwi": false}, {"fruit": "banana", "is_a_kiwi": false}]
-
-# ======================
-# = List.reduce tests
-# ======================
+# List.reduce
 numbers = [1, 2, 3, 4, 5]
 
-sum = numbers.reduce(0, with (accumulator, number) do
-    return accumulator + number
-end)
+println(numbers.reduce(0, with (accumulator, number) do
+  return accumulator + number
+end)) # prints: 15
 
-println(sum) # prints: 15
-
-hash = numbers.reduce({}, with (accumulator, number) do
-    accumulator["key${number}"] = number
-    return accumulator
-end)
-
-println(hash)
-# prints: {"key1": 1, "key2": 2, "key3": 3, "key4": 4, "key5": 5}
-
-println("")
+println(numbers.reduce({}, with (accumulator, number) do
+  accumulator["key${number}"] = number
+  return accumulator
+end)) # prints: {"key1": 1, "key2": 2, "key3": 3, "key4": 4, "key5": 5}

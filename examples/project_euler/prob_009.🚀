@@ -24,4 +24,4 @@ def pythagorean_triplet(sum)
   return found ? result : -1
 end
 
-println pythagorean_triplet(1000)
+println(pythagorean_triplet(1000))
