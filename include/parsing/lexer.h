@@ -546,6 +546,18 @@ class Lexer {
     return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
   }
 
+  Token parseSerializerBuiltin(const std::string& builtin) {
+    auto st = KName::Default;
+
+    if (builtin == SerializerBuiltins.Deserialize) {
+      st = KName::Builtin_Serializer_Deserialize;
+    } else if (builtin == SerializerBuiltins.Serialize) {
+      st = KName::Builtin_Serializer_Serialize;
+    }
+
+    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+  }
+
   Token parseEnvBuiltin(const std::string& builtin) {
     auto st = KName::Default;
 
@@ -907,6 +919,8 @@ class Lexer {
       return parseWebClientBuiltin(builtin);
     } else if (EncoderBuiltins.is_builtin(builtin)) {
       return parseEncoderBuiltin(builtin);
+    } else if (SerializerBuiltins.is_builtin(builtin)) {
+      return parseSerializerBuiltin(builtin);
     }
 
     return Token::create(KTokenType::IDENTIFIER, KName::Default, fileId,

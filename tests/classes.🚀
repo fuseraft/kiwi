@@ -73,7 +73,6 @@ try
   # This will result in an error:
   #shape = Shape.new() # Throws InvalidOperationError: Cannot instantiate an abstract class.
 
-  # Correct way to instantiate:
   circle = Circle.new(5)
   println(circle.area())      # Output: Area of the circle.
   println(circle.perimeter()) # Output: Perimeter of the circle.

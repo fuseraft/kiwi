@@ -2794,6 +2794,7 @@ class Interpreter {
       return static_cast<k_int>(0);
     } else if (WebServerBuiltins.is_builtin(builtin)) {
       return interpretWebServerBuiltin(stream, frame, builtin, args);
+    } else if (SerializerBuiltins.is_builtin(builtin)) {
     }
 
     frame->returnValue =

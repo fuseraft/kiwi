@@ -285,6 +285,26 @@ struct {
 } MathBuiltins;
 
 struct {
+  const k_string Deserialize = "deserialize";
+  const k_string Serialize = "serialize";
+
+  std::unordered_set<k_string> builtins = {Deserialize, Serialize};
+
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_Serializer_Deserialize,
+      KName::Builtin_Serializer_Serialize};
+
+  bool is_builtin(const k_string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+
+  bool is_builtin(const KName& arg) {
+    return st_builtins.find(arg) != st_builtins.end();
+  }
+
+} SerializerBuiltins;
+
+struct {
   const k_string Map = "map";
   const k_string None = "none";
   const k_string Reduce = "reduce";
@@ -401,33 +421,6 @@ struct {
     return st_builtins.find(arg) != st_builtins.end();
   }
 } HttpBuiltins;
-
-#ifdef EXPERIMENTAL_FEATURES
-
-struct {
-  const k_string Connect = "__odbc_connect__";
-  const k_string Exec = "__odbc_exec__";
-  const k_string ExecSp = "__odbc_execsp__";
-  const k_string IsConnected = "__odbc_isconnected__";
-  const k_string BeginTransaction = "__odbc_begin_tx__";
-  const k_string CommitTransaction = "__odbc_commit_tx__";
-  const k_string RollbackTransaction = "__odbc_rollback_tx__";
-  const k_string InTransaction = "__odbc_in_tx__";
-
-  std::unordered_set<k_string> builtins = {Connect,
-                                           Exec,
-                                           ExecSp,
-                                           IsConnected,
-                                           BeginTransaction,
-                                           CommitTransaction,
-                                           RollbackTransaction,
-                                           InTransaction};
-
-  bool is_builtin(const k_string& arg) {
-    return builtins.find(arg) != builtins.end();
-  }
-} OdbcBuiltins;
-#endif
 
 struct {
   const k_string GetEnvironmentVariable = "__getenv__";
@@ -633,14 +626,6 @@ struct {
   }
 
   bool is_builtin_method(const k_string& arg) {
-#ifdef EXPERIMENTAL_FEATURES
-    return ConsoleBuiltins.is_builtin(arg) || EnvBuiltins.is_builtin(arg) ||
-           ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
-           FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
-           ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
-           HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
-           OdbcBuiltins.is_builtin(arg) || LoggingBuiltins.is_builtin(arg);
-#endif
     return ConsoleBuiltins.is_builtin(arg) || EnvBuiltins.is_builtin(arg) ||
            ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
