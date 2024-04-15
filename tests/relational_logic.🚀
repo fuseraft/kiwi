@@ -1,53 +1,16 @@
-a = 10, b = 20
-c = a < b
-println "${a} < ${b} = ${c}"
-a = 10, b = 10
-c = a < b
-println "${a} < ${b} = ${c}"
-a = 20, b = 10
-c = a < b
-println "${a} < ${b} = ${c}"
-a = 10, b = 10
-c = a <= b
-println "${a} <= ${b} = ${c}"
-a = 20, b = 10
-c = a <= b
-println "${a} <= ${b} = ${c}"
-
-a = 10, b = 20
-c = a > b
-println "${a} > ${b} = ${c}"
-a = 10, b = 10
-c = a > b
-println "${a} > ${b} = ${c}"
-a = 20, b = 10
-c = a > b
-println "${a} > ${b} = ${c}"
-a = 10, b = 10
-c = a >= b
-println "${a} >= ${b} = ${c}"
-a = 20, b = 10
-c = a >= b
-println "${a} >= ${b} = ${c}"
-
-a = 10, b = 20
-c = a != b
-println "${a} != ${b} = ${c}"
-a = 10, b = 10
-c = a != b
-println "${a} != ${b} = ${c}"
-a = 20, b = 10
-c = a != b
-println "${a} != ${b} = ${c}"
-
-a = 10, b = 20
-c = a == b
-println "${a} == ${b} = ${c}"
-a = 10, b = 10
-c = a == b
-println "${a} == ${b} = ${c}"
-a = 20, b = 10
-c = a == b
-println "${a} == ${b} = ${c}"
-
-println ""
+a = 10, b = 20 println("${a} < ${b} = ${a < b}")
+a = 10, b = 10 println("${a} < ${b} = ${a < b}")
+a = 20, b = 10 println("${a} < ${b} = ${a < b}")
+a = 10, b = 10 println("${a} <= ${b} = ${a <= b}")
+a = 20, b = 10 println("${a} <= ${b} = ${a <= b}")
+a = 10, b = 20 println("${a} > ${b} = ${a > b}")
+a = 10, b = 10 println("${a} > ${b} = ${a > b}")
+a = 20, b = 10 println("${a} > ${b} = ${a > b}")
+a = 10, b = 10 println("${a} >= ${b} = ${a >= b}")
+a = 20, b = 10 println("${a} >= ${b} = ${a >= b}")
+a = 10, b = 20 println("${a} != ${b} = ${a != b}")
+a = 10, b = 10 println("${a} != ${b} = ${a != b}")
+a = 20, b = 10 println("${a} != ${b} = ${a != b}")
+a = 10, b = 20 println("${a} == ${b} = ${a == b}")
+a = 10, b = 10 println("${a} == ${b} = ${a == b}")
+a = 20, b = 10 println("${a} == ${b} = ${a == b}")

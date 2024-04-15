@@ -4,8 +4,8 @@ import "@astral/argv" as ARGV
 argv = ARGV.get()
 
 if argv.size() != 1
-  println "Usage: find.🚀 \"search string\""
-  exit 1
+  println("Usage: find.🚀 \"search string\"")
+  exit(1)
 end
 
 search = argv[0]
@@ -21,7 +21,7 @@ for path in fs.glob("../**/*.🚀") do
   end
 end
 
-println files
+println(files)
 
 /#
 # write all of the scripts to a single file.

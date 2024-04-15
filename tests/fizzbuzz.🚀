@@ -1,22 +1,12 @@
 def fizzbuzz(n)
-    i = 1
-
-    while i <= n do    
-        if i % 15 == 0
-            println "FizzBuzz"
-        elsif i % 3 == 0
-            println "Fizz"
-        elsif i % 5 == 0
-            println "Buzz"
-        else
-            println "${i}"
-        end
-
-        i += 1
-    end
+  i = 1
+  while i <= n do  
+    if i % 15 == 0   println("FizzBuzz")
+    elsif i % 3 == 0 println("Fizz")
+    elsif i % 5 == 0 println("Buzz")
+    else             println("${i}") end
+    i += 1
+  end
 end
 
-value = 15
-fizzbuzz(value)
-
-println ""
+fizzbuzz(15)

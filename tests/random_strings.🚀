@@ -1,8 +1,6 @@
 alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".chars()
 size = alpha.size()
 
-for i in [0..5] do
-  println __random__(alpha, i)
+for i in [1..5] do
+  println(__random__(alpha, i))
 end
- 
-println ""

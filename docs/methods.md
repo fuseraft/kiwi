@@ -4,7 +4,7 @@ Use the `def` keyword to define a method. Method parameters support default valu
 
 ```ruby
 def greet(name = "Astral")
-  println "Hello, ${name}!"
+  println("Hello, ${name}!")
 end
 
 greet("world") # prints: Hello, world!
@@ -22,14 +22,14 @@ end
 
 greeting = get_greeting("World!")
 
-println greeting
+println(greeting)
 ```
 
 ### Optional Parameters
 
 ```ruby
 def say(msg = "Hello, World!")
-  println msg
+  println(msg)
 end
 
 say()       # prints: Hello, World!
@@ -44,10 +44,10 @@ def configure(data, config = {})
 end
 
 data = configure({ "name": "Scott" })
-println data # prints: {"name": "Scott"}
+println(data) # prints: {"name": "Scott"}
 
 data = configure({ "name": "Scott" }, { "favorite_os": "Fedora" })
-println data # prints: {"name": "Scott", "favorite_os": "Fedora"}
+println(data) # prints: {"name": "Scott", "favorite_os": "Fedora"}
 ```
 
 ### Scope
@@ -68,5 +68,5 @@ while i <= 5 do
 end
 
 # 5
-println counter
+println(counter)
 ```

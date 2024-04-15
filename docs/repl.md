@@ -20,13 +20,13 @@ The Astral REPL enqueues code as you enter it. It also keeps track of all lines 
 Type some Astral code into the REPL prompt and press <kbd>Enter</kbd>.
 
 ```
-> println "Hello, World!" 
+> println("Hello, World!")
 ```
 
 When you are ready to execute, type `go` and press <kbd>Enter</kbd>. Astral will execute the code in the queue and then reset the queue.
 
 ```
-> println "Hello, World!" 
+> println("Hello, World!")
 > go
 Hello, World!
 > 

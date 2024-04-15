@@ -31,9 +31,9 @@ import "@astral/http" as http
 res = http.get("http://httpbin.org", "/get")
 
 if res.status == 200
-  println "${res.headers}${res.body}"
+  println("${res.headers}${res.body}")
 else
-  println "An error occurred making GET request."
+  println("An error occurred making GET request.")
 end
 ```
 

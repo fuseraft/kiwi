@@ -17,13 +17,13 @@ myHash = {"key1": true, "key2": 1, "key2": [1, 2, 3, 4]}
 Bracket notation can be used to access elements by key.
 
 ```ruby
-println myHash["key2"]  # Outputs: [1, 2, 3, 4]
+println(myHash["key2"])  # Outputs: [1, 2, 3, 4]
 ```
 
 Dot notation can be used to access elements by key.
 
 ```ruby
-println myHash.key2  # Outputs: [1, 2, 3, 4]
+println(myHash.key2)  # Outputs: [1, 2, 3, 4]
 ```
 
 ### Adding Elements to a Hash
@@ -43,7 +43,7 @@ You can use the `delete` keyword to remove an element of a hash by key.
 ```ruby
 hash = {"key1": 1, "key2": true, "key3": [1, 2, 3]}
 delete hash["key2"]
-println hash # prints: {"key1": 1, "key3": [1, 2, 3]}
+println(hash) # prints: {"key1": 1, "key3": [1, 2, 3]}
 ```
 
 ### Iterating a Hash
@@ -53,12 +53,12 @@ Use the `for` keyword and the `.keys()` Hash-builtin to iterate a hash.
 ```ruby
 # Iterate the values in the list.
 for key in myHash.keys() do
-  println myHash[key]
+  println(myHash[key])
 end
 
 # Iterate the values in the list, with an index.
 for key, index in myHash.keys() do
-  println "Key ${index}: ${key}"
+  println("Key ${index}: ${key}")
 end
 ```
 
@@ -80,9 +80,9 @@ hash = {
   }
 }
 
-println "
+println("
 hash = ${hash}
-"
+")
 
 # prints: 
 #

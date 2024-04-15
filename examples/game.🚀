@@ -54,7 +54,7 @@ class Game private (name, players, player_count, turns)
 
   def add_player(player)
     if @player_count == @players.size()
-      println "max player capacity is already met."
+      println("max player capacity is already met.")
       return 0
     end
 
@@ -71,10 +71,10 @@ class Game private (name, players, player_count, turns)
 
   def print_info()  
     lines = "=====================" + ("=" * "${@}".size())
-    println "\n${lines}\nYou are now playing ${@}!\n${lines}"
-    
+    println("\n${lines}\nYou are now playing ${@}!\n${lines}")
+
     for p, i in get_players() do
-      print "${p.get_type()}: ${p}" + ((i + 1 < get_players().size()) ? ", " : "\n")
+      print("${p.get_type()}: ${p}" + ((i + 1 < get_players().size()) ? ", " : "\n"))
     end
   end
 
@@ -86,7 +86,7 @@ class Game private (name, players, player_count, turns)
       sys.exec("clear")
       
       print_info()
-      println "\nTurn ${turn} of ${@turns} => Player HP: ${player_hp}, Enemy HP: ${enemy_hp}\n"
+      println("\nTurn ${turn} of ${@turns} => Player HP: ${player_hp}, Enemy HP: ${enemy_hp}\n")
       
       for p in get_players() do
         if !p.is_enemy
@@ -105,12 +105,12 @@ class Game private (name, players, player_count, turns)
 
   private def conclude_game(player_hp, enemy_hp)
     sys.exec("clear")
-    println "Results => Player HP: ${player_hp}, Enemy HP: ${enemy_hp}\n"
+    println("Results => Player HP: ${player_hp}, Enemy HP: ${enemy_hp}\n")
 
     if player_hp > enemy_hp
-      println "Winner winner chicken dinner!"
+      println("Winner winner chicken dinner!")
     else
-      println "Game over."
+      println("Game over.")
     end
   end
 
@@ -132,7 +132,7 @@ class Game private (name, players, player_count, turns)
       action = input("${p} will (a)ttack or (b)lock: ")
     end
 
-    println ""
+    println("")
 
     return action == "a" ? "attack" : "block"
   end

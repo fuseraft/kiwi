@@ -1,43 +1,39 @@
+# Catch and capture
 try
-  a = 5
-  a /= 0
-  a += 1
-  println "foobar"
+  a = 5, a /= 0, a += 1
+  println("This string will not be printed.")
 catch (err, msg)
-  println "${err}: ${msg}"
+  println("${err}: ${msg}")
 end
 
+# Empty catch
 try
-  a = 5
-  a /= 0
-  a += 1
-  println "foobar"
+  a = 5, a /= 0, a += 1
+  println("This string will not be printed.")
 catch
-  println "An error occurred."
+  println("An error occurred.")
 end
 
-# Throw with hash
+# Hash throw
 try
-  throw { "error": "MyError", "message": "Uh-oh!" }
-  println "This line will not be printed."
+  throw({ "error": "MyError", "message": "Uh-oh!" })
+  println("This string will not be printed.")
 catch (err, msg)
-  println "${err}: ${msg}"
+  println("${err}: ${msg}")
 end
 
-# Throw with string.
+# String throw
 try
-  throw "Uh-oh!"
-  println "This line will not be printed."
+  throw("Uh-oh!")
+  println("This string will not be printed.")
 catch (err, msg)
-  println "${err}: ${msg}"
+  println("${err}: ${msg}")
 end
 
-# Throw with string (no error type)
+# String throw (no error type)
 try
-  throw "Uh-oh!"
-  println "This line will not be printed."
+  throw("Uh-oh!")
+  println("This string will not be printed.")
 catch (msg)
-  println msg
+  println(msg)
 end
-
-println ""

@@ -1,44 +1,23 @@
-list = [1, 2, 3]
-string = "31337"
-integer = string.to_int()
-double = string.to_double()
+list = [1, 2, 3], string = "31337", integer = string.to_int(), double = string.to_double()
 list << [string, integer, double]
 
-println "list = ${list}"
-size = list.size()
-println "list size = ${size}"
+println("list = ${list}, size = ${list.size()}")
 
 list = ["The", "Astral", "Programming", "Language"]
-joined = list.join(" ")
-println "joined: ${joined}"
-
-joined = list.join("-")
-println "joined: ${joined}"
+println("${list.join(" ")}")
+println("${list.join("-")}")
 
 # These are functionally equivalent.
-joined = list.join("")
-println "joined: ${joined}"
+println(list.join(""))
+println(list.join())
 
-joined = list.join()
-println "joined: ${joined}"
+a = "FooBar".downcase() println("downcase: ${a}, upcase: ${a.upcase()}")
 
-a = "foobar".upcase()
-println a
+println(a.index("bar"))
+println(a.chars())
+println("foobar".replace("foo", "food"))
+println("\"${a}\" begins with \"food\"? ${a.begins_with("food")}")
+println("\"foobar\" ends with \"bar\"? ${"foobar".ends_with("bar")}")
+println("foobar".ends_with("bark"))
 
-a = a.downcase()
-println a
-
-println a.index("bar")
-println a.chars()
-println "foobar".replace("foo", "food")
-println a.begins_with("food")
-println "foobar".ends_with("bar")
-println "foobar".ends_with("bark")
-
-a = 1
-
-println a.is_a(Integer) # prints: true
-println a.is_a(String)  # prints: false
-#println a.is_a(Zebra)  # throws UnknownIdentifierError
-
-println ""
+a = 1 println("is ${a} an integer? ${a.is_a(Integer) ? "yes" : "no"}\nis ${a} a string? ${a.is_a(String) ? "yes" : "no"}")

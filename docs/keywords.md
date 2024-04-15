@@ -175,8 +175,7 @@ See [Abstract Classes](abstract_classes.md).
 The `parse` keyword is used to parse a string expression as Astral. 
 
 ```ruby
-parse "println \"hello, world!\""
-# prints: hello, world!
+parse('println("hello, world!")') # prints: hello, world!
 ```
 
 ## `pass`

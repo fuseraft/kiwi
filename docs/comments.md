@@ -6,16 +6,16 @@ Single line comments begin with a `#`.
 
 ```ruby
 # this will print "hello"
-println "hello"
+println("hello")
 ```
 
-## Multi-line comments
+## Block comments
 
-Multiline comments begin with `/#` and end with `#/`.
+Block comments begin with `/#` and end with `#/`.
 
 ```
 /#
-Using a double-# will give you a multiline comment.
+Using a double-# will give you a multiline/block comment.
 
 Use this to document more complicated logic.
 

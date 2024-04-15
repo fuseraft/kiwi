@@ -60,4 +60,4 @@ while i < size do
   end
 end
 
-println max_product
+println(max_product)

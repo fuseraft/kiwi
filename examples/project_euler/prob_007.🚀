@@ -1,3 +1,3 @@
 # https://projecteuler.net/problem=7
 
-println __nthprime__(10001)
+println(__nthprime__(10001))

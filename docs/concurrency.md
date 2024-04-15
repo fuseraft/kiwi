@@ -17,10 +17,10 @@ Use the `await` keyword to invoke an asynchronous method and store the result.
 
 ```ruby
 result = await long_runner(1000) # sleep for 1 second.
-println result # prints: 42
+println(result) # prints: 42
 
 await long_runner(500) # sleep for 0.5 seconds.
-println "done!" # prints: done!
+println("done!") # prints: done!
 ```
 
 ## `then`
@@ -29,7 +29,7 @@ Use the `then` keyword to invoke an asynchronous method and specify logic to exe
 
 ```ruby
 long_runner(500) then (i) do
-  println "The answer is ${i}" # prints: The answer is 42.
+  println("The answer is ${i}") # prints: The answer is 42.
 end
 ```
 

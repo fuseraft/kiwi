@@ -14,10 +14,10 @@ import "@astral/time"
 import "@astral/time"
 
 # print todays date.
-println DateTime.format(DateTime.now().add_years(1), "%Y-%m-%d")
+println(DateTime.format(DateTime.now().add_years(1), "%Y-%m-%d"))
 
 d = DateTime.new(2024, 1, 1).add_days(-1).add_hours(-1).add_minutes(-1).add_seconds(-1)
-println DateTime.format(d, "%Y-%m-%dT%H:%M:%S") # prints: 2023-12-30T22:58:59
+println(DateTime.format(d, "%Y-%m-%dT%H:%M:%S")) # prints: 2023-12-30T22:58:59
 ```
 
 ### Methods
