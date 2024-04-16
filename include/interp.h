@@ -1446,6 +1446,45 @@ class Interpreter {
     return static_cast<k_int>(0);
   }
 
+  k_value interpretSerializerDeserialize(k_stream stream,
+                                         std::shared_ptr<CallStackFrame> frame,
+                                         std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(stream->current(),
+                                           SerializerBuiltins.Deserialize);
+    }
+
+    return interpolateString(frame, get_string(stream->current(), args.at(0)));
+  }
+
+  k_value interpretSerializerSerialize(k_stream stream,
+                                       std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(stream->current(),
+                                           SerializerBuiltins.Serialize);
+    }
+
+    return Serializer::serialize(args.at(0), true);
+  }
+
+  k_value interpretSerializerBuiltin(k_stream stream,
+                                     std::shared_ptr<CallStackFrame> frame,
+                                     const KName& builtin,
+                                     std::vector<k_value>& args) {
+    switch (builtin) {
+      case KName::Builtin_Serializer_Deserialize:
+        return interpretSerializerDeserialize(stream, frame, args);
+
+      case KName::Builtin_Serializer_Serialize:
+        return interpretSerializerSerialize(stream, args);
+
+      default:
+        break;
+    }
+
+    return static_cast<k_int>(0);
+  }
+
   void interpretModuleBuiltin(k_stream stream, const k_string& moduleName,
                               const KName& builtin,
                               std::vector<k_value>& args) {
@@ -2795,6 +2834,7 @@ class Interpreter {
     } else if (WebServerBuiltins.is_builtin(builtin)) {
       return interpretWebServerBuiltin(stream, frame, builtin, args);
     } else if (SerializerBuiltins.is_builtin(builtin)) {
+      return interpretSerializerBuiltin(stream, frame, builtin, args);
     }
 
     frame->returnValue =

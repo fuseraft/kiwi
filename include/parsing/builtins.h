@@ -631,7 +631,8 @@ struct {
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
            ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
-           LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg);
+           LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
+           SerializerBuiltins.is_builtin(arg);
   }
 
   bool is_builtin_method(const KName& arg) {
@@ -640,7 +641,8 @@ struct {
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
            ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
-           LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg);
+           LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
+           SerializerBuiltins.is_builtin(arg);
   }
 } AstralBuiltins;
 
