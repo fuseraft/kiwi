@@ -133,21 +133,6 @@ class BuiltinUnexpectedArgumentError : public AstralError {
                     "Unexpected argument count for builtin `" + name + "`.") {}
 };
 
-class DbConnectionError : public AstralError {
- public:
-  DbConnectionError(
-      const Token& token,
-      const std::string& message = "A database connection error occurred.")
-      : AstralError(token, "DbConnectionError", message) {}
-};
-
-class DbError : public AstralError {
- public:
-  DbError(const Token& token,
-          const std::string& message = "A general database error occurred.")
-      : AstralError(token, "DbError", message) {}
-};
-
 class InvalidContextError : public AstralError {
  public:
   InvalidContextError(const Token& token,
@@ -277,14 +262,6 @@ class FileSystemError : public AstralError {
       : AstralError(Token::createEmpty(), "FileSystemError", message) {}
   FileSystemError(const Token& token, const std::string& message)
       : AstralError(token, "FileSystemError", message) {}
-};
-
-class OdbcError : public AstralError {
- public:
-  OdbcError(const std::string& message)
-      : AstralError(Token::createEmpty(), "OdbcError", message) {}
-  OdbcError(const Token& token, const std::string& message)
-      : AstralError(token, "OdbcError", message) {}
 };
 
 template <typename T>

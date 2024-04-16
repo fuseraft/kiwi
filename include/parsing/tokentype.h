@@ -222,6 +222,8 @@ enum KName {
   Builtin_Time_WeekDay,
   Builtin_Time_Year,
   Builtin_Time_YearDay,
+  Builtin_Serializer_Deserialize,
+  Builtin_Serializer_Serialize,
   KW_Abstract,
   KW_As,
   KW_Async,

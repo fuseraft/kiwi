@@ -13,7 +13,7 @@ OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
 EXECUTABLE := $(BIN_DIR)/astral
 
-.PHONY: all clean test play install experimental profile
+.PHONY: all clean test play install profile
 
 all: clean $(EXECUTABLE)
 
@@ -39,10 +39,6 @@ play: $(EXECUTABLE)
 install: $(EXECUTABLE)
 	@echo "================================"
 	./$(EXECUTABLE) install
-
-experimental: CXXFLAGS += -DEXPERIMENTAL_FEATURES
-experimental: LDFLAGS := -lodbc
-experimental: clean $(EXECUTABLE)
 
 profile: CXXFLAGS += -pg
 profile: clean $(EXECUTABLE)
