@@ -62,18 +62,23 @@ Astral will configure its runtime environment before executing your program. Bel
 
 Astral runs within a *host* that is responsible for registering command-line arguments, loading libraries, and running your program.
 
-#### Hosting
+Arguments passed to the program are registered.
 
-1. Arguments passed to the program are registered.
-2. The **Standard** and **Local** libraries are loaded.
-    1. **Standard**
-        1. The *standard library* exists relative to Astral.
-        2. Astral finds its executable location, then searches the parent directory for a subdirectory called `lib`.
-            1. If Astral is located at `/usr/bin/astral`, then the Standard Library must be located at `/usr/lib/astral`.
-    2. **Local**
-        1. A *local library* exists relative to your program.
-        2. Astral searches for a subdirectory called `lib` in the same directory as your program.
-3. Your program code is passed to the *lexer*.
+The **Standard** and **Local** libraries are loaded.
+
+#### Standard Library
+
+The *standard library* exists relative to Astral.
+
+Astral finds its executable location, then searches the parent directory for a subdirectory called `lib`.
+
+If Astral is located at `/usr/bin/astral`, then the Standard Library must be located at `/usr/lib/astral`.
+
+#### Local Library
+
+A *local library* exists relative to your program.
+
+Astral searches for a subdirectory called `lib` in the same directory as your program.
 
 ### Lexer
 
@@ -81,15 +86,16 @@ Before source code is interpreted, it is sent to the lexer to be *tokenized* int
 
 #### Tokenization
 
-1. The file is registered into the *file registry*.
-    1. The file content is stored in the registry.
-    2. The registry generates a *file identifier* which links a token to the file.
-2. The file content is tokenized into a *token stream*.
-    1. Each token is assigned a *file identifier*, *row*, *column*, *type*, *name*, *text*, and *value*.
-        1. The *file identifier*, *row*, and *column* are used for tracing.
-        2. The *type* and *name* are used to categories the token.
-        3. The *text* contains the token text.
-        4. The *value* contains the parsed value for string, numeric, or boolean literals.
+The file is registered into the *file registry*.
+1. The file content is stored in the registry.
+2. The registry generates a *file identifier* which links a token to the file.
+
+The file content is tokenized into a *token stream*.
+1. Each token is assigned a *file identifier*, *row*, *column*, *type*, *name*, *text*, and *value*.
+   1. The *file identifier*, *row*, and *column* are used for tracing.
+   2. The *type* and *name* are used to categorize the token.
+   3. The *text* contains the token text.
+   4. The *value* contains the parsed value for string, numeric, or boolean literals.
 
 #### Token Stream
 
