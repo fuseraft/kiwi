@@ -5,5 +5,10 @@ matrix0 = [[0] * 3] * 3   # initialize a 3x3 matrix of 0s
 matrix1 = matrix0.clone() # deep copy matrix0
 matrix0[0][0] = 1
 
-println(matrix0) # prints: [[1, 0, 0], [0, 0, 0], [0, 0, 0]]
-println(matrix1) # prints: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+s = serialize(matrix0)
+println "${s.type()}: ${s}" # String: [[1, 0, 0], [0, 0, 0], [0, 0, 0]]
+d = deserialize(s)
+println "${d.type()}: ${d}" # List: [[1, 0, 0], [0, 0, 0], [0, 0, 0]]
+
+#println(matrix0) # prints: [[1, 0, 0], [0, 0, 0], [0, 0, 0]]
+#println(matrix1) # prints: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
