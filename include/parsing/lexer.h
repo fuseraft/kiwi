@@ -70,8 +70,7 @@ class Lexer {
     skipWhitespace();
 
     if (pos >= source.length()) {
-      return Token::create(KTokenType::ENDOFFILE, KName::Default, fileId,
-                           std::string(""), static_cast<k_int>(0), row, col);
+      return createToken(KTokenType::ENDOFFILE, KName::Default, "");
     }
 
     char currentChar = getCurrentChar();
@@ -99,38 +98,27 @@ class Lexer {
                (pos < source.length() && source[pos] == '#')) {
       return parseBlockComment();
     } else if (currentChar == '@') {
-      return Token::create(KTokenType::KEYWORD, KName::KW_This, fileId, "@",
-                           row, col);
+      return createToken(KTokenType::KEYWORD, KName::KW_This, "@");
     } else if (currentChar == '$') {
-      return Token::create(KTokenType::OPERATOR, KName::Default, fileId, "$",
-                           row, col);
+      return createToken(KTokenType::OPERATOR, KName::Default, "$");
     } else if (currentChar == '\n') {
-      return Token::create(KTokenType::NEWLINE, KName::Default, fileId, "\n",
-                           row, col);
+      return createToken(KTokenType::NEWLINE, KName::Default, "\n");
     } else if (currentChar == '(') {
-      return Token::create(KTokenType::OPEN_PAREN, KName::Default, fileId, "(",
-                           row, col);
+      return createToken(KTokenType::OPEN_PAREN, KName::Default, "(");
     } else if (currentChar == ')') {
-      return Token::create(KTokenType::CLOSE_PAREN, KName::Default, fileId, ")",
-                           row, col);
+      return createToken(KTokenType::CLOSE_PAREN, KName::Default, ")");
     } else if (currentChar == '[') {
-      return Token::create(KTokenType::OPEN_BRACKET, KName::Default, fileId,
-                           "[", row, col);
+      return createToken(KTokenType::OPEN_BRACKET, KName::Default, "[");
     } else if (currentChar == ']') {
-      return Token::create(KTokenType::CLOSE_BRACKET, KName::Default, fileId,
-                           "]", row, col);
+      return createToken(KTokenType::CLOSE_BRACKET, KName::Default, "]");
     } else if (currentChar == '{') {
-      return Token::create(KTokenType::OPEN_BRACE, KName::Default, fileId, "{",
-                           row, col);
+      return createToken(KTokenType::OPEN_BRACE, KName::Default, "{");
     } else if (currentChar == '}') {
-      return Token::create(KTokenType::CLOSE_BRACE, KName::Default, fileId, "}",
-                           row, col);
+      return createToken(KTokenType::CLOSE_BRACE, KName::Default, "}");
     } else if (currentChar == ',') {
-      return Token::create(KTokenType::COMMA, KName::Default, fileId, ",", row,
-                           col);
+      return createToken(KTokenType::COMMA, KName::Default, ",");
     } else if (currentChar == '?') {
-      return Token::create(KTokenType::QUESTION, KName::Default, fileId, "?",
-                           row, col);
+      return createToken(KTokenType::QUESTION, KName::Default, "?");
     } else if (currentChar == '.') {
       return parseDot(currentChar);
     } else if (currentChar == '\\') {
@@ -192,27 +180,23 @@ class Lexer {
       }
     }
 
-    return Token::create(KTokenType::STRING, KName::Regex, fileId, regexPattern,
-                         row, col);
+    return createToken(KTokenType::STRING, KName::Regex, regexPattern);
   }
 
   Token parseConditionalKeyword(const std::string& keyword) {
+    auto st = KName::Default;
+
     if (keyword == Keywords.If) {
-      return Token::create(KTokenType::CONDITIONAL, KName::KW_If, fileId,
-                           keyword, row, col);
+      st = KName::KW_If;
     } else if (keyword == Keywords.ElseIf) {
-      return Token::create(KTokenType::CONDITIONAL, KName::KW_ElseIf, fileId,
-                           keyword, row, col);
+      st = KName::KW_ElseIf;
     } else if (keyword == Keywords.Else) {
-      return Token::create(KTokenType::CONDITIONAL, KName::KW_Else, fileId,
-                           keyword, row, col);
+      st = KName::KW_Else;
     } else if (keyword == Keywords.End) {
-      return Token::create(KTokenType::CONDITIONAL, KName::KW_End, fileId,
-                           keyword, row, col);
+      st = KName::KW_End;
     }
 
-    return Token::create(KTokenType::CONDITIONAL, KName::Default, fileId,
-                         keyword, row, col);
+    return createToken(KTokenType::CONDITIONAL, st, keyword);
   }
 
   Token parseKeywordSpecific(const std::string& keyword) {
@@ -282,15 +266,14 @@ class Lexer {
       st = KName::KW_While;
     }
 
-    return Token::create(KTokenType::KEYWORD, st, fileId, keyword, row, col);
+    return createToken(KTokenType::KEYWORD, st, keyword);
   }
 
   Token parseKeyword(const std::string& keyword) {
     if (Keywords.is_conditional_keyword(keyword)) {
       return parseConditionalKeyword(keyword);
     } else if (keyword == Keywords.With) {
-      return Token::create(KTokenType::LAMBDA, KName::KW_Lambda, fileId,
-                           keyword, row, col);
+      return createToken(KTokenType::LAMBDA, KName::KW_Lambda, keyword);
     } else if (Keywords.is_boolean(keyword)) {
       return Token::createBoolean(fileId, keyword, row, col);
     }
@@ -375,7 +358,7 @@ class Lexer {
       st = KName::Ops_SubtractAssign;
     }
 
-    return Token::create(KTokenType::OPERATOR, st, fileId, op, row, col);
+    return createToken(KTokenType::OPERATOR, st, op);
   }
 
   Token parseUnspecified(char initialChar) {
@@ -419,13 +402,11 @@ class Lexer {
       if (nextChar == ':') {
         s += nextChar;
         getCurrentChar();
-        return Token::create(KTokenType::QUALIFIER, KName::Default, fileId, s,
-                             row, col);
+        return createToken(KTokenType::QUALIFIER, KName::Default, s);
       }
     }
 
-    return Token::create(KTokenType::COLON, KName::Default, fileId, s, row,
-                         col);
+    return createToken(KTokenType::COLON, KName::Default, s);
   }
 
   Token parseEscapeCharacter() {
@@ -434,33 +415,25 @@ class Lexer {
 
       switch (nextChar) {
         case 'n':
-          return Token::create(KTokenType::ESCAPED, KName::Default, fileId,
-                               "\n", row, col);
+          return createToken(KTokenType::ESCAPED, KName::Default, "\n");
         case 'r':
-          return Token::create(KTokenType::ESCAPED, KName::Default, fileId,
-                               "\r", row, col);
+          return createToken(KTokenType::ESCAPED, KName::Default, "\r");
         case 't':
-          return Token::create(KTokenType::ESCAPED, KName::Default, fileId,
-                               "\t", row, col);
+          return createToken(KTokenType::ESCAPED, KName::Default, "\t");
         case '"':
-          return Token::create(KTokenType::ESCAPED, KName::Default, fileId,
-                               "\"", row, col);
+          return createToken(KTokenType::ESCAPED, KName::Default, "\"");
         case 'b':
-          return Token::create(KTokenType::ESCAPED, KName::Default, fileId,
-                               "\b", row, col);
+          return createToken(KTokenType::ESCAPED, KName::Default, "\b");
         case 'f':
-          return Token::create(KTokenType::ESCAPED, KName::Default, fileId,
-                               "\f", row, col);
+          return createToken(KTokenType::ESCAPED, KName::Default, "\f");
         case '\\':
-          return Token::create(KTokenType::ESCAPED, KName::Default, fileId,
-                               "\\", row, col);
+          return createToken(KTokenType::ESCAPED, KName::Default, "\\");
       }
     }
 
     getCurrentChar();
 
-    return Token::create(KTokenType::ESCAPED, KName::Default, fileId, "\\", row,
-                         col);
+    return createToken(KTokenType::ESCAPED, KName::Default, "\\");
   }
 
   Token parseDot(char initialChar) {
@@ -471,13 +444,11 @@ class Lexer {
       if (nextChar == '.') {
         s += nextChar;
         getCurrentChar();
-        return Token::create(KTokenType::RANGE, KName::Default, fileId, s, row,
-                             col);
+        return createToken(KTokenType::RANGE, KName::Default, s);
       }
     }
 
-    return Token::create(KTokenType::DOT, KName::Default, fileId, ".", row,
-                         col);
+    return createToken(KTokenType::DOT, KName::Default, ".");
   }
 
   Token parseTypeName(const std::string& typeName) {
@@ -503,7 +474,7 @@ class Lexer {
       st = KName::Types_None;
     }
 
-    return Token::create(KTokenType::TYPENAME, st, fileId, typeName, row, col);
+    return createToken(KTokenType::TYPENAME, st, typeName);
   }
 
   Token parseArgvBuiltin(const std::string& builtin) {
@@ -515,7 +486,7 @@ class Lexer {
       st = KName::Builtin_Argv_GetXarg;
     }
 
-    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
   Token parseConsoleBuiltin(const std::string& builtin) {
@@ -527,7 +498,7 @@ class Lexer {
       st = KName::Builtin_Console_Silent;
     }
 
-    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
   Token parseEncoderBuiltin(const std::string& builtin) {
@@ -543,7 +514,7 @@ class Lexer {
       st = KName::Builtin_Encoder_UrlEncode;
     }
 
-    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
   Token parseSerializerBuiltin(const std::string& builtin) {
@@ -555,7 +526,7 @@ class Lexer {
       st = KName::Builtin_Serializer_Serialize;
     }
 
-    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
   Token parseEnvBuiltin(const std::string& builtin) {
@@ -567,7 +538,7 @@ class Lexer {
       st = KName::Builtin_Env_SetEnvironmentVariable;
     }
 
-    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
   Token parseFileIOBuiltin(const std::string& builtin) {
@@ -635,7 +606,7 @@ class Lexer {
       st = KName::Builtin_FileIO_WriteText;
     }
 
-    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
   Token parseListBuiltin(const std::string& builtin) {
@@ -655,7 +626,7 @@ class Lexer {
       st = KName::Builtin_List_ToH;
     }
 
-    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
   Token parseMathBuiltin(const std::string& builtin) {
@@ -757,7 +728,7 @@ class Lexer {
       st = KName::Builtin_Math_NthPrime;
     }
 
-    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
   Token parseModuleBuiltin(const std::string& builtin) {
@@ -767,7 +738,7 @@ class Lexer {
       st = KName::Builtin_Module_Home;
     }
 
-    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
   Token parseSysBuiltin(const std::string& builtin) {
@@ -781,7 +752,7 @@ class Lexer {
       st = KName::Builtin_Sys_ExecOut;
     }
 
-    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
   Token parseWebClientBuiltin(const std::string& builtin) {
@@ -803,7 +774,7 @@ class Lexer {
       st = KName::Builtin_WebClient_Patch;
     }
 
-    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
   Token parseWebServerBuiltin(const std::string& builtin) {
@@ -823,7 +794,7 @@ class Lexer {
       st = KName::Builtin_WebServer_Public;
     }
 
-    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
   Token parseLoggingBuiltin(const std::string& builtin) {
@@ -849,7 +820,7 @@ class Lexer {
       st = KName::Builtin_Logging_Warn;
     }
 
-    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
   Token parseTimeBuiltin(const std::string& builtin) {
@@ -889,7 +860,7 @@ class Lexer {
       st = KName::Builtin_Time_YearDay;
     }
 
-    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
   Token parseBuiltinMethod(const std::string& builtin) {
@@ -923,8 +894,7 @@ class Lexer {
       return parseSerializerBuiltin(builtin);
     }
 
-    return Token::create(KTokenType::IDENTIFIER, KName::Default, fileId,
-                         builtin, row, col);
+    return createToken(KTokenType::IDENTIFIER, KName::Default, builtin);
   }
 
   Token parseAstralBuiltin(const std::string& builtin) {
@@ -1058,13 +1028,12 @@ class Lexer {
       st = KName::Builtin_List_ToH;
     }
 
-    return Token::create(KTokenType::IDENTIFIER, st, fileId, builtin, row, col);
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
   Token parseIdentifier(const std::string& identifier) {
     auto st = KName::Default;
-    return Token::create(KTokenType::IDENTIFIER, st, fileId, identifier, row,
-                         col);
+    return createToken(KTokenType::IDENTIFIER, st, identifier);
   }
 
   Token parseIdentifier(char initialChar) {
@@ -1112,14 +1081,13 @@ class Lexer {
     }
 
     if (literal.find('.') != std::string::npos) {
-      return Token::create(KTokenType::LITERAL, KName::Default, fileId, literal,
-                           std::stod(literal), row, col);
+      return createToken(KTokenType::LITERAL, KName::Default, literal,
+                         std::stod(literal));
     } else {
       std::istringstream ss(literal);
       k_int value;
       ss >> value;
-      return Token::create(KTokenType::LITERAL, KName::Default, fileId, literal,
-                           value, row, col);
+      return createToken(KTokenType::LITERAL, KName::Default, literal, value);
     }
   }
 
@@ -1135,8 +1103,7 @@ class Lexer {
     k_int value;
     ss >> std::hex >> value;
 
-    return Token::create(KTokenType::LITERAL, KName::Default, fileId,
-                         hexLiteral, value, row, col);
+    return createToken(KTokenType::LITERAL, KName::Default, hexLiteral, value);
   }
 
   Token parseBinaryLiteral() {
@@ -1150,8 +1117,8 @@ class Lexer {
 
     k_int value = std::stoi(binaryLiteral, nullptr, 2);
 
-    return Token::create(KTokenType::LITERAL, KName::Default, fileId,
-                         binaryLiteral, value, row, col);
+    return createToken(KTokenType::LITERAL, KName::Default, binaryLiteral,
+                       value);
   }
 
   Token parseOctalLiteral() {
@@ -1164,8 +1131,8 @@ class Lexer {
 
     k_int value = std::stoi(octalLiteral, nullptr, 8);
 
-    return Token::create(KTokenType::LITERAL, KName::Default, fileId,
-                         octalLiteral, value, row, col);
+    return createToken(KTokenType::LITERAL, KName::Default, octalLiteral,
+                       value);
   }
 
   Token parseString() {
@@ -1225,8 +1192,34 @@ class Lexer {
       str += '\\';
     }
 
-    return Token::create(KTokenType::STRING, KName::Default, fileId, str, row,
-                         col);
+    return createToken(KTokenType::STRING, KName::Default, str);
+  }
+
+  Token parseBlockComment() {
+    std::string comment;
+    pos++;  // Skip the "/#"
+
+    while (pos + 1 < source.length()) {
+      char currentChar = getCurrentChar();
+      if (currentChar == '#' && source[pos] == '/') {
+        pos++;  // Skip the "#/"
+        break;
+      } else {
+        comment += currentChar;
+      }
+    }
+
+    return createToken(KTokenType::COMMENT, KName::Default, comment);
+  }
+
+  Token parseComment() {
+    std::string comment;
+
+    while (pos < source.length() && source[pos] != '\n') {
+      comment += getCurrentChar();
+    }
+
+    return createToken(KTokenType::COMMENT, KName::Default, comment);
   }
 
   std::string parseInterpolatedExpression() {
@@ -1253,33 +1246,13 @@ class Lexer {
     return "${" + expression + "}";
   }
 
-  Token parseBlockComment() {
-    std::string comment;
-    pos++;  // Skip the "/#"
-
-    while (pos + 1 < source.length()) {
-      char currentChar = getCurrentChar();
-      if (currentChar == '#' && source[pos] == '/') {
-        pos++;  // Skip the "#/"
-        break;
-      } else {
-        comment += currentChar;
-      }
-    }
-
-    return Token::create(KTokenType::COMMENT, KName::Default, fileId, comment,
-                         row, col);
+  Token createToken(KTokenType type, KName name, const std::string& text) {
+    return Token::create(type, name, fileId, text, row, col);
   }
 
-  Token parseComment() {
-    std::string comment;
-
-    while (pos < source.length() && source[pos] != '\n') {
-      comment += getCurrentChar();
-    }
-
-    return Token::create(KTokenType::COMMENT, KName::Default, fileId, comment,
-                         row, col);
+  Token createToken(KTokenType type, KName name, const std::string& text,
+                    const k_value& value) {
+    return Token::create(type, name, fileId, text, value, row, col);
   }
 };
 
