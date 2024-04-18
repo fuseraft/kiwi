@@ -1,7 +1,7 @@
 # Script Performance Analyzer
 
 import "@astral/fs" as fs
-import "@astral/time"
+import "@astral/time" as time
 
 runtimes = []
 
@@ -12,7 +12,7 @@ exclusions = ["install.🚀", "test.🚀", "test.min.🚀", "play.🚀", "/pg/",
 println("Searching for Astral scripts...")
 silent(true)
 
-for file in fs.glob(search_pattern) do
+(fs.glob(search_pattern)).each(with (file) do
   exclude = false
 
   # Check if file is not in the exclusions list
@@ -27,24 +27,23 @@ for file in fs.glob(search_pattern) do
     fs.chdir(fs.parentdir(file))
     
     # Record start and end times.    
-    start_time = time::ticks()
+    start_time = time.ticks()
     import file
-    end_time = time::ticks()
+    end_time = time.ticks()
         
     # Store runtime information
-    runtimes << {"file": file, "duration": time::ticksms(end_time - start_time)}
+    runtimes << {"file": file, "duration": time.ticksms(end_time - start_time)}
   end
-end
+end)
 
 silent(false)
 
 # Summarize and print runtimes
-total_duration = 0
-
-for runtime in runtimes do
+total_duration = runtimes.reduce(0, with (sum, runtime) do
   println("${runtime["file"]} ran for ${runtime["duration"]} ms.")
-  total_duration += runtime["duration"]
-end
+  sum += runtime["duration"]
+  return sum
+end)
 
 println("
 Ran ${runtimes.size()} scripts.
