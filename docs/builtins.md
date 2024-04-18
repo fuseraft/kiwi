@@ -62,10 +62,12 @@ In Astral, builtins are accessed using dot-notation and can be used to query or 
   - [`unshift(value)`](#unshiftvalue)
   - [`zip(list)`](#ziplist)
 - [**Conversion and Type Checking**](#conversion-and-type-checking)
+  - [`deserialize(str)`](#deserializestr)
   - [`empty()`](#empty)
   - [`clone()`](#clone)
   - [`is_a(type_name)`](#is_atype_name)
   - [`pretty()`](#pretty)
+  - [`serialize(value)`](#serializevalue)
   - [`to_double()`](#to_double)
   - [`to_hash()`](#to_hash)
   - [`to_int()`](#to_int)
@@ -740,4 +742,43 @@ end
 instance = MyClass.new()
 println(instance.type()) # prints: MyClass
 println("Kiwis are delicious!".type()) # prints: String
+```
+
+### `deserialize(str)`
+
+Deserializes a string into a value.
+
+```ruby
+string = "[1, 2, 3]"
+list = deserialize(string) # Deserialize a string into a list.
+list.push(4)               # Push a value to the list.
+
+println(list)              # Prints: [1, 2, 3, 4]
+```
+
+### `serialize(value)`
+
+Serializes a value into a string.
+
+```ruby
+list = [1, 2, 3]
+string = serialize(list) # Serialize a list into a string.
+
+# split the string into a list,
+# then print the list of strings in a pretty format.
+println(string.chars().pretty())
+
+/# Output:
+[
+  "[",
+  "1",
+  ",",
+  " ",
+  "2",
+  ",",
+  " ",
+  "3",
+  "]"
+]
+#/
 ```
