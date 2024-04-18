@@ -1,9 +1,12 @@
 #!/usr/bin/astral
 /# This 🚀 script is for experimentation. #/
 
-matrix0 = [[0] * 3] * 3   # initialize a 3x3 matrix of 0s
-matrix1 = matrix0.clone() # deep copy matrix0
-matrix0[0][0] = 1
+"hello".chars().unique().each(with (v, i) do
+  println("${i} = ${v}")
+end)
 
-println(matrix0) # prints: [[1, 0, 0], [0, 0, 0], [0, 0, 0]]
-println(matrix1) # prints: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+matrix = [[0] * 3] * 3
+
+matrix.each(with (row, row_index) do
+  println("${row_index}: ${row}")
+end)
