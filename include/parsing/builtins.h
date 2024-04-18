@@ -305,6 +305,7 @@ struct {
 } SerializerBuiltins;
 
 struct {
+  const k_string Each = "each";
   const k_string Map = "map";
   const k_string None = "none";
   const k_string Reduce = "reduce";
@@ -315,15 +316,15 @@ struct {
   const k_string Max = "max";
   const k_string ToH = "to_hash";
 
-  std::unordered_set<k_string> builtins = {Map, None, Reduce, Select, Sort,
-                                           Sum, Min,  Max,    ToH};
+  std::unordered_set<k_string> builtins = {Each, Map, None, Reduce, Select,
+                                           Sort, Sum, Min,  Max,    ToH};
 
   std::unordered_set<KName> st_builtins = {
-      KName::Builtin_List_Map,    KName::Builtin_List_None,
-      KName::Builtin_List_Reduce, KName::Builtin_List_Select,
-      KName::Builtin_List_Sort,   KName::Builtin_List_ToH,
-      KName::Builtin_List_Sum,    KName::Builtin_List_Min,
-      KName::Builtin_List_Max};
+      KName::Builtin_List_Each,   KName::Builtin_List_Map,
+      KName::Builtin_List_None,   KName::Builtin_List_Reduce,
+      KName::Builtin_List_Select, KName::Builtin_List_Sort,
+      KName::Builtin_List_ToH,    KName::Builtin_List_Sum,
+      KName::Builtin_List_Min,    KName::Builtin_List_Max};
 
   bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
@@ -631,7 +632,8 @@ struct {
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
            ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
-           LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg);
+           LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
+           SerializerBuiltins.is_builtin(arg);
   }
 
   bool is_builtin_method(const KName& arg) {
@@ -640,7 +642,8 @@ struct {
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
            ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
-           LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg);
+           LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
+           SerializerBuiltins.is_builtin(arg);
   }
 } AstralBuiltins;
 

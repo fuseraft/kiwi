@@ -34,6 +34,7 @@ In Astral, builtins are accessed using dot-notation and can be used to query or 
   - [`concat(list)`](#concatlist)
   - [`count(value)`](#countvalue)
   - [`dequeue()`](#dequeue)
+  - [`each(lambda)](#eachlambda)
   - [`enqueue(value)`](#enqueuevalue)
   - [`flatten()`](#flatten)
   - [`index(value)`](#indexvalue)
@@ -62,10 +63,12 @@ In Astral, builtins are accessed using dot-notation and can be used to query or 
   - [`unshift(value)`](#unshiftvalue)
   - [`zip(list)`](#ziplist)
 - [**Conversion and Type Checking**](#conversion-and-type-checking)
+  - [`deserialize(str)`](#deserializestr)
   - [`empty()`](#empty)
   - [`clone()`](#clone)
   - [`is_a(type_name)`](#is_atype_name)
   - [`pretty()`](#pretty)
+  - [`serialize(value)`](#serializevalue)
   - [`to_double()`](#to_double)
   - [`to_hash()`](#to_hash)
   - [`to_int()`](#to_int)
@@ -335,6 +338,45 @@ Removes and returns a value from the beginning of a list.
 list = [1, 2, 3]
 println(list.dequeue()) # prints: 1
 println(list)           # prints: [2, 3]
+```
+
+### `each(lambda)`
+
+Iterate a list, performing some action for each item in the list.
+
+```ruby
+# Convert "hello" to a list of unique values, and iterate each.
+"hello".chars().unique().each(with (v, i) do
+  println("${i} = ${v}")
+end)
+
+/# Prints:
+0 = h
+1 = e
+2 = l
+3 = o
+#/
+
+# Iterate a range.
+[1..3].each(with (v, i) do println("${i}: ${v}") end)
+
+/# Prints:
+0: 1
+1: 2
+2: 3
+#/
+
+# Iterate a list.
+matrix = [[0] * 3] * 3
+matrix.each(with (row, row_index) do
+  println("${row_index}: ${row}")
+end)
+
+/# Prints:
+0: [0, 0, 0]
+1: [0, 0, 0]
+2: [0, 0, 0]
+#/
 ```
 
 ### `enqueue(value)`
@@ -740,4 +782,43 @@ end
 instance = MyClass.new()
 println(instance.type()) # prints: MyClass
 println("Kiwis are delicious!".type()) # prints: String
+```
+
+### `deserialize(str)`
+
+Deserializes a string into a value.
+
+```ruby
+string = "[1, 2, 3]"
+list = deserialize(string) # Deserialize a string into a list.
+list.push(4)               # Push a value to the list.
+
+println(list)              # Prints: [1, 2, 3, 4]
+```
+
+### `serialize(value)`
+
+Serializes a value into a string.
+
+```ruby
+list = [1, 2, 3]
+string = serialize(list) # Serialize a list into a string.
+
+# split the string into a list,
+# then print the list of strings in a pretty format.
+println(string.chars().pretty())
+
+/# Output:
+[
+  "[",
+  "1",
+  ",",
+  " ",
+  "2",
+  ",",
+  " ",
+  "3",
+  "]"
+]
+#/
 ```

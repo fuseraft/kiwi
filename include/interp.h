@@ -300,6 +300,8 @@ class Interpreter {
   }
 
   bool handleFrameFlags(std::shared_ptr<CallStackFrame>& frame) {
+    bool handled = false;
+
     if (frame->isErrorStateSet()) {
       ++streamStack.top()->position;
     } else if (frame->isLoopControlFlagSet() ||
@@ -307,18 +309,18 @@ class Interpreter {
       if (callStack.size() > 1) {
         if (frame->isLoopControlFlagSet()) {
           handleLoopControl(frame);
-          return true;
+          handled = true;
         } else if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
           handleFrameReturn(frame);
-          return true;
+          handled = true;
         }
       } else {
         popStack();
-        return true;
+        handled = true;
       }
     }
 
-    return false;
+    return handled;
   }
 
   void handleFrameExit(std::shared_ptr<CallStackFrame>& frame) {
@@ -813,14 +815,24 @@ class Interpreter {
         interpretCatch(stream, frame);
         break;
 
+      case KName::KW_While:
+      case KName::KW_For:
+        interpretLoop(stream, frame);
+        break;
+
       default:
-        if (Keywords.is_loop_keyword(keyword)) {
-          interpretLoop(stream, frame);
-        } else {
-          throw UnrecognizedTokenError(
-              stream->current(),
-              "Unknown keyword `" + stream->current().getText() + "`.");
+        if (interpretExpression(stream, frame)) {
+          return;
         }
+
+        if (stream->current().getType() == KTokenType::STREAM_END) {
+          return;
+        }
+
+        throw AstralError(
+            stream->current(),
+            "Unhandled keyword `" + stream->current().getText() + "`, type = " +
+                get_token_type_string(stream->current().getType()) + ".");
         break;
     }
   }
@@ -886,8 +898,14 @@ class Interpreter {
           break;
 
         case KTokenType::OPEN_BRACKET: {
-          auto slice = interpretSliceIndex(stream, frame, v);
-          v = interpretSlice(stream, v, slice);
+          if (InterpHelper::isRangeExpression(stream)) {
+            v = interpretRange(stream, frame);
+          } else if (InterpHelper::isSliceAssignmentExpression(stream)) {
+            auto slice = interpretSliceIndex(stream, frame, v);
+            v = interpretSlice(stream, v, slice);
+          } else if (InterpHelper::isListExpression(stream)) {
+            v = interpretList(stream, frame);
+          }
         } break;
 
         default:
@@ -1032,6 +1050,14 @@ class Interpreter {
         break;
 
       default:
+        if (interpretExpression(stream, frame)) {
+          return;
+        }
+
+        if (stream->current().getType() == KTokenType::STREAM_END) {
+          return;
+        }
+
         throw UnrecognizedTokenError(
             stream->current(),
             "Unrecognized token `" + stream->current().getText() +
@@ -1438,6 +1464,45 @@ class Interpreter {
 
       case KName::Builtin_WebServer_Public:
         return interpretWebServerPublic(stream, args);
+
+      default:
+        break;
+    }
+
+    return static_cast<k_int>(0);
+  }
+
+  k_value interpretSerializerDeserialize(k_stream stream,
+                                         std::shared_ptr<CallStackFrame> frame,
+                                         std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(stream->current(),
+                                           SerializerBuiltins.Deserialize);
+    }
+
+    return interpolateString(frame, get_string(stream->current(), args.at(0)));
+  }
+
+  k_value interpretSerializerSerialize(k_stream stream,
+                                       std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(stream->current(),
+                                           SerializerBuiltins.Serialize);
+    }
+
+    return Serializer::serialize(args.at(0), true);
+  }
+
+  k_value interpretSerializerBuiltin(k_stream stream,
+                                     std::shared_ptr<CallStackFrame> frame,
+                                     const KName& builtin,
+                                     std::vector<k_value>& args) {
+    switch (builtin) {
+      case KName::Builtin_Serializer_Deserialize:
+        return interpretSerializerDeserialize(stream, frame, args);
+
+      case KName::Builtin_Serializer_Serialize:
+        return interpretSerializerSerialize(stream, args);
 
       default:
         break;
@@ -2795,6 +2860,7 @@ class Interpreter {
     } else if (WebServerBuiltins.is_builtin(builtin)) {
       return interpretWebServerBuiltin(stream, frame, builtin, args);
     } else if (SerializerBuiltins.is_builtin(builtin)) {
+      return interpretSerializerBuiltin(stream, frame, builtin, args);
     }
 
     frame->returnValue =
@@ -2858,7 +2924,7 @@ class Interpreter {
     return list;
   }
 
-  k_value interpretLambdaNone(k_stream stream,
+  k_value interpretLambdaEach(k_stream stream,
                               std::shared_ptr<CallStackFrame> frame,
                               const k_list& list) {
     stream->next();  // Skip "("
@@ -2877,22 +2943,15 @@ class Interpreter {
 
     k_string itemVariableName, indexVariableName;
     auto hasIndexVariable = false;
-    for (const auto& parameter : lambda.getParameters()) {
-      if (itemVariableName.empty()) {
-        itemVariableName = parameter;
-      } else if (indexVariableName.empty()) {
-        indexVariableName = parameter;
-        hasIndexVariable = true;
-      } else {
-        throw BuiltinUnexpectedArgumentError(stream->current(),
-                                             ListBuiltins.None);
-      }
-    }
+    processLambdaParameters(stream, lambda.getParameters(), itemVariableName,
+                            indexVariableName, hasIndexVariable,
+                            ListBuiltins.Each);
 
     auto& frameVariables = frame->variables;
     size_t index = 0;
     for (const auto& item : list->elements) {
       frameVariables[itemVariableName] = item;
+
       if (hasIndexVariable) {
         frameVariables[indexVariableName] = static_cast<k_int>(index++);
       }
@@ -2900,18 +2959,16 @@ class Interpreter {
       callStack.push(buildSubFrame(frame, true));
       streamStack.push(std::make_shared<TokenStream>(lambda.getCode()));
       interpretStackFrame();
-
-      if (!callStack.empty()) {
-        auto value = callStack.top()->returnValue;
-        frame->clearFlag(FrameFlags::ReturnFlag);
-
-        if (std::holds_alternative<bool>(value) && std::get<bool>(value)) {
-          return true;
-        }
-      }
     }
 
-    return false;
+    return static_cast<k_int>(0);
+  }
+
+  k_value interpretLambdaNone(k_stream stream,
+                              std::shared_ptr<CallStackFrame> frame,
+                              const k_list& list) {
+    return std::get<k_list>(interpretLambdaSelect(stream, frame, list))
+        ->elements.empty();
   }
 
   k_value interpretLambdaMap(k_stream stream,
@@ -2933,18 +2990,9 @@ class Interpreter {
 
     k_string itemVariableName, indexVariableName;
     bool hasIndexVariable = false;
-
-    for (const auto& parameter : lambda.getParameters()) {
-      if (itemVariableName.empty()) {
-        itemVariableName = parameter;
-      } else if (indexVariableName.empty()) {
-        indexVariableName = parameter;
-        hasIndexVariable = true;
-      } else {
-        throw BuiltinUnexpectedArgumentError(stream->current(),
-                                             ListBuiltins.Map);
-      }
-    }
+    processLambdaParameters(stream, lambda.getParameters(), itemVariableName,
+                            indexVariableName, hasIndexVariable,
+                            ListBuiltins.Map);
 
     auto mappedList = std::make_shared<List>();
     auto& elements = mappedList->elements;
@@ -3001,17 +3049,9 @@ class Interpreter {
 
     k_string accumulatorName, indexVariableName;
     bool hasIndexVariable = false;
-    for (const auto& parameter : lambda.getParameters()) {
-      if (accumulatorName.empty()) {
-        accumulatorName = parameter;
-      } else if (indexVariableName.empty()) {
-        indexVariableName = parameter;
-        hasIndexVariable = true;
-      } else {
-        throw BuiltinUnexpectedArgumentError(stream->current(),
-                                             ListBuiltins.Reduce);
-      }
-    }
+    processLambdaParameters(stream, lambda.getParameters(), accumulatorName,
+                            indexVariableName, hasIndexVariable,
+                            ListBuiltins.Reduce);
 
     auto& frameVariables = frame->variables;
 
@@ -3054,17 +3094,9 @@ class Interpreter {
 
     k_string itemVariableName, indexVariableName;
     auto hasIndexVariable = false;
-    for (const auto& parameter : lambda.getParameters()) {
-      if (itemVariableName.empty()) {
-        itemVariableName = parameter;
-      } else if (indexVariableName.empty()) {
-        indexVariableName = parameter;
-        hasIndexVariable = true;
-      } else {
-        throw BuiltinUnexpectedArgumentError(stream->current(),
-                                             ListBuiltins.Select);
-      }
-    }
+    processLambdaParameters(stream, lambda.getParameters(), itemVariableName,
+                            indexVariableName, hasIndexVariable,
+                            ListBuiltins.Select);
 
     auto filteredList = std::make_shared<List>();
     auto& elements = filteredList->elements;
@@ -3092,6 +3124,24 @@ class Interpreter {
     }
 
     return filteredList;
+  }
+
+  void processLambdaParameters(k_stream stream,
+                               const std::vector<k_string>& parameters,
+                               k_string& firstVariableName,
+                               k_string& secondVariableName,
+                               bool& hasSecondVariable,
+                               const k_string& builtin) {
+    for (const auto& parameter : parameters) {
+      if (firstVariableName.empty()) {
+        firstVariableName = parameter;
+      } else if (secondVariableName.empty()) {
+        secondVariableName = parameter;
+        hasSecondVariable = true;
+      } else {
+        throw BuiltinUnexpectedArgumentError(stream->current(), builtin);
+      }
+    }
   }
 
   k_value interpretStringToHash(k_stream stream,
@@ -3182,6 +3232,9 @@ class Interpreter {
     auto list = std::get<k_list>(value);
 
     switch (builtin) {
+      case KName::Builtin_List_Each:
+        return interpretLambdaEach(stream, frame, list);
+
       case KName::Builtin_List_Select:
         return interpretLambdaSelect(stream, frame, list);
 
@@ -3294,6 +3347,19 @@ class Interpreter {
     }
 
     return BuiltinDispatch::execute(term, call, value, args);
+  }
+
+  bool interpretExpression(k_stream stream,
+                           std::shared_ptr<CallStackFrame> frame) {
+    stream->rewind();
+    if (InterpHelper::hasReturnValue(stream)) {
+      stream->next();
+      parseExpression(stream, frame);
+      return true;
+    }
+
+    stream->next();
+    return false;
   }
 
   k_value parseExpression(k_stream stream,
