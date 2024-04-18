@@ -1,14 +1,10 @@
 #!/usr/bin/astral
 /# This 🚀 script is for experimentation. #/
 
-matrix0 = [[0] * 3] * 3   # initialize a 3x3 matrix of 0s
-matrix1 = matrix0.clone() # deep copy matrix0
-matrix0[0][0] = 1
+"hello".chars().each(with (c, i) do
+  println("${i} = ${c}")
+end)
 
-s = serialize(matrix0)
-println "${s.type()}: ${s}" # String: [[1, 0, 0], [0, 0, 0], [0, 0, 0]]
-d = deserialize(s)
-println "${d.type()}: ${d}" # List: [[1, 0, 0], [0, 0, 0], [0, 0, 0]]
+[1..3].each(with (i) do println(i) end)
 
-#println(matrix0) # prints: [[1, 0, 0], [0, 0, 0], [0, 0, 0]]
-#println(matrix1) # prints: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+[10, 20, 30].each(with (i) do println(i) end)

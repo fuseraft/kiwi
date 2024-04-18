@@ -1026,6 +1026,8 @@ class Lexer {
       st = KName::Builtin_List_Max;
     } else if (builtin == ListBuiltins.ToH) {
       st = KName::Builtin_List_ToH;
+    } else if (builtin == ListBuiltins.Each) {
+      st = KName::Builtin_List_Each;
     }
 
     return createToken(KTokenType::IDENTIFIER, st, builtin);
