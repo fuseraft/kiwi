@@ -148,6 +148,14 @@ class TokenStream {
     return tokens.at(position - 1);
   }
 
+  void rewind() {
+    if (static_cast<int>(position) - 1 < 0) {
+      return;  // TODO: is it okay to swallow this?
+    }
+
+    --position;
+  }
+
   bool match(KTokenType type) {
     if (current().getType() == type) {
       next();

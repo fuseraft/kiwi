@@ -124,6 +124,7 @@ enum KName {
   Builtin_Encoder_Base64Decode,
   Builtin_Encoder_UrlEncode,
   Builtin_Encoder_UrlDecode,
+  Builtin_List_Each,
   Builtin_List_Map,
   Builtin_List_Max,
   Builtin_List_Min,
