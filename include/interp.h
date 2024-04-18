@@ -831,8 +831,7 @@ class Interpreter {
 
         throw AstralError(
             stream->current(),
-            "Unhandled keyword `" + stream->current().getText() +
-                "`, type = " +
+            "Unhandled keyword `" + stream->current().getText() + "`, type = " +
                 get_token_type_string(stream->current().getType()) + ".");
         break;
     }
