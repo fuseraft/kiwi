@@ -34,6 +34,7 @@ In Astral, builtins are accessed using dot-notation and can be used to query or 
   - [`concat(list)`](#concatlist)
   - [`count(value)`](#countvalue)
   - [`dequeue()`](#dequeue)
+  - [`each(lambda)](#eachlambda)
   - [`enqueue(value)`](#enqueuevalue)
   - [`flatten()`](#flatten)
   - [`index(value)`](#indexvalue)
@@ -337,6 +338,45 @@ Removes and returns a value from the beginning of a list.
 list = [1, 2, 3]
 println(list.dequeue()) # prints: 1
 println(list)           # prints: [2, 3]
+```
+
+### `each(lambda)`
+
+Iterate a list, performing some action for each item in the list.
+
+```ruby
+# Convert "hello" to a list of unique values, and iterate each.
+"hello".chars().unique().each(with (v, i) do
+  println("${i} = ${v}")
+end)
+
+/# Prints:
+0 = h
+1 = e
+2 = l
+3 = o
+#/
+
+# Iterate a range.
+[1..3].each(with (v, i) do println("${i}: ${v}") end)
+
+/# Prints:
+0: 1
+1: 2
+2: 3
+#/
+
+# Iterate a list.
+matrix = [[0] * 3] * 3
+matrix.each(with (row, row_index) do
+  println("${row_index}: ${row}")
+end)
+
+/# Prints:
+0: [0, 0, 0]
+1: [0, 0, 0]
+2: [0, 0, 0]
+#/
 ```
 
 ### `enqueue(value)`
