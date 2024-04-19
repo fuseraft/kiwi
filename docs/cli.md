@@ -36,26 +36,26 @@ If no arguments are supplied, Astral enters an interactive Read-Evaluate-Print L
 
   Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.<br><br>
 
-- `-n`, `--new <file_path>`: Creates a new file with the `.🚀` extension. If you don't include the extension in `<file_path>`, it will be appended automatically.
+- `-n`, `--new <file_path>`: Creates a new file with the `.⭐` extension. If you don't include the extension in `<file_path>`, it will be appended automatically.
 
   ```
-  astral -n filename         # Creates ./filename.🚀
-  astral -n ../app           # Creates ../app.🚀 in the parent directory
-  astral -n ./somedir/app    # Creates ./somedir/app.🚀 in the specified subdirectory
+  astral -n filename         # Creates ./filename.⭐
+  astral -n ../app           # Creates ../app.⭐ in the parent directory
+  astral -n ./somedir/app    # Creates ./somedir/app.⭐ in the specified subdirectory
   ```
 
   Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.<br><br>
 
-- `-m`, `--minify <input_file_path>`: Creates a minified file with the `.min.🚀` extension. If you don't include the extension in `<file_path>`, it will be appended automatically.
+- `-m`, `--minify <input_file_path>`: Creates a minified file with the `.min.⭐` extension. If you don't include the extension in `<file_path>`, it will be appended automatically.
 
   ```
-  astral -m filename         # Creates ./filename.min.🚀
+  astral -m filename         # Creates ./filename.min.⭐
   ```
 
 - `-t`, `--tokenize <input_file_path>`: Tokenizes a file with the Astral lexer and prints the results to the standard output stream.
 
   ```
-  astral -t filename.🚀      # Prints tokens from the file in a minified way.
+  astral -t filename.⭐      # Prints tokens from the file in a minified way.
   ```
 
 - `-X<key>=<value>`: Sets a specific argument as a key-value pair, which can be used for various configuration purposes or to pass parameters into scripts.

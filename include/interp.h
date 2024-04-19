@@ -2628,19 +2628,16 @@ class Interpreter {
 
     auto scriptName = std::get<k_string>(scriptNameValue);
     auto scriptNameAstral = scriptName;
+
+    if (!String::endsWith(scriptName, astral_extension) &&
+        !String::endsWith(scriptName, ".star")) {
+      scriptName += ".star";
 #ifdef _WIN64
-    if (!String::endsWith(scriptName, "astral") &&
-        !String::endsWith(scriptName, ".astral")) {
-      scriptName += ".astral";
-      scriptNameAstral += ".astral";
-    }
+      scriptNameAstral += astral_extension;
 #else
-    if (!String::endsWith(scriptName, "🚀") &&
-        !String::endsWith(scriptName, ".astral")) {
-      scriptName += ".astral";
-      scriptNameAstral += ".🚀";
-    }
+      scriptNameAstral += ".⭐";
 #endif
+    }
 
     auto scriptPath = File::getLocalPath(scriptName);
     auto astralScriptPath = File::getLocalPath(scriptNameAstral);

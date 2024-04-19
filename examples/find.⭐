@@ -4,7 +4,7 @@ import "@astral/argv" as ARGV
 argv = ARGV.get()
 
 if argv.size() != 1
-  println("Usage: find.🚀 \"search string\"")
+  println("Usage: find.⭐ \"search string\"")
   exit(1)
 end
 
@@ -13,7 +13,7 @@ search = argv[0]
 files = []
 
 # search for nearby astral scripts
-for path in fs.glob("../**/*.🚀") do
+for path in fs.glob("../**/*.⭐") do
   content = fs.read(path)
   if content.contains(search)
     hash = {"path": path, "content": content}

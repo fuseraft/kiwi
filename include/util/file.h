@@ -381,7 +381,7 @@ k_string File::getParentPath(const k_string& path) {
 /// @param path The path.
 /// @return Boolean indicating success.
 bool File::isScript(const k_string& path) {
-  k_string extension = ".🚀";
+  k_string extension = ".⭐";
 #ifdef _WIN64
   extension = ".astral";
 #endif
@@ -394,8 +394,8 @@ bool File::isScript(const k_string& path) {
 /// @param path The path.
 /// @return Boolean indicating success.
 k_string File::tryGetExtensionless(const k_string& path) {
-  k_string minExtension = ".min.🚀";
-  k_string extension = ".🚀";
+  k_string minExtension = ".min.⭐";
+  k_string extension = ".⭐";
 #ifdef _WIN64
   minExtension = ".min.astral";
   extension = ".astral";
