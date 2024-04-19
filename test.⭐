@@ -6,8 +6,8 @@ import "@astral/time" as time
 runtimes = []
 
 # Search pattern for Astral scripts, excluding certain files and directories
-search_pattern = "./**/*.🚀"
-exclusions = ["install.🚀", "test.🚀", "test.min.🚀", "play.🚀", "/pg/", "lib/astral", "/examples/"]
+search_pattern = "./**/*.⭐"
+exclusions = ["install.⭐", "test.⭐", "test.min.⭐", "play.⭐", "/pg/", "lib/astral", "/examples/"]
 
 println("Searching for Astral scripts...")
 silent(true)

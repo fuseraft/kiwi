@@ -63,7 +63,7 @@ int Astral::run(std::vector<std::string>& v) {
   Interpreter interp;
   Host host(interp);
 
-  //v.push_back("/home/scs/astral/play.🚀");
+  //v.push_back("/home/scs/astral/play.⭐");
 
   size_t size = v.size();
 
@@ -130,20 +130,10 @@ bool Astral::parse(Host& host, const std::string& content) {
 }
 
 bool Astral::createMinified(Host& host, const std::string& path) {
-  const std::string DefaultExtension = ".min.🚀";
-
   auto filePath = path;
-  auto minFileExtension = DefaultExtension;
-#ifdef _WIN64
-  minFileExtension = ".min.astral";
-#endif
-
+  
   if (File::getFileExtension(filePath).empty()) {
-#ifdef _WIN64
-    filePath += ".astral";
-#else
-    filePath += ".🚀";
-#endif
+    filePath += astral_extension;
   }
 
   if (!File::fileExists(filePath)) {
@@ -154,7 +144,7 @@ bool Astral::createMinified(Host& host, const std::string& path) {
   filePath = File::getAbsolutePath(filePath);
   auto fileName =
       String::replace(File::getFileName(filePath),
-                      File::getFileExtension(filePath), minFileExtension);
+                      File::getFileExtension(filePath), astral_min_extension);
   auto minFilePath = File::joinPath(File::getParentPath(filePath), fileName);
 
   std::cout << "Creating " << minFilePath << std::endl;
@@ -179,15 +169,11 @@ bool Astral::tokenize(Host& host, const std::string& path) {
 }
 
 bool Astral::createNewFile(const std::string& path) {
-  const std::string DefaultExtension = ".🚀";
+  const std::string DefaultExtension = ".⭐";
   auto filePath = path;
 
   if (File::getFileExtension(path).empty()) {
-#ifdef _WIN64
-    filePath += ".astral";
-#else
-    filePath += DefaultExtension;
-#endif
+    filePath += astral_extension;
   }
 
   if (File::fileExists(filePath)) {
@@ -196,6 +182,9 @@ bool Astral::createNewFile(const std::string& path) {
   }
 
   filePath = File::getAbsolutePath(filePath);
+  auto parentPath = File::getParentPath(filePath);
+
+  File::makeDirectoryP(parentPath);
 
   std::cout << "Creating " << filePath << std::endl;
   return File::createFile(filePath);
@@ -238,8 +227,8 @@ int Astral::printHelp() {
       {"-h, --help", "print this message"},
       {"-v, --version", "print the current version"},
       {"-p, --parse <astral_code>", "parse astral code as an argument"},
-      {"-n, --new <file_path>", "create a `.🚀` file"},
-      {"-m, --minify <input_file_path>", "create a `.min.🚀` file"},
+      {"-n, --new <file_path>", "create a `.⭐` file"},
+      {"-m, --minify <input_file_path>", "create a `.min.⭐` file"},
       {"-t, --tokenize <input_file_path>",
        "tokenize a file with the astral lexer"},
       {"-X<key>=<value>", "specify an argument as a key-value pair"}};
@@ -249,8 +238,8 @@ int Astral::printHelp() {
       {"-h, --help", "print this message"},
       {"-v, --version", "print the current version"},
       {"-p, --parse <astral_code>", "parse code"},
-      {"-n, --new <filename>", "create a `.astral` file"},
-      {"-m, --minify <input_file_path>", "create a `.min.astral` file"},
+      {"-n, --new <filename>", "create a `.star` file"},
+      {"-m, --minify <input_file_path>", "create a `.min.star` file"},
       {"-t, --tokenize <input_file_path>", "tokenize a file as astral code"},
       {"-X<key>=<value>", "specify an argument as a key-value pair"}};
 #endif

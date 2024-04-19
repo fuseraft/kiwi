@@ -1183,8 +1183,8 @@ class CoreBuiltinHandler {
     const auto& elements1 = std::get<k_list>(value)->elements;
     const auto& elements2 = std::get<k_list>(args.at(0))->elements;
     auto zipped = std::make_shared<List>();
-
-    for (size_t i = 0; i < std::min(elements1.size(), elements2.size()); ++i) {
+    auto win_min = (elements1.size() < elements2.size()) ? elements1.size() : elements2.size();
+    for (size_t i = 0; i < win_min; ++i) {
       auto pair = std::make_shared<List>();
       pair->elements.push_back(elements1.at(i));
       pair->elements.push_back(elements2.at(i));
