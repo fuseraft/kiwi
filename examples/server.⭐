@@ -27,8 +27,7 @@ def generate_directory_listing(dir_path)
     end
   end
   
-  html += "</ul>"
-  html += "</body></html>"
+  html += "</ul></body></html>"
   return html
 end
 
