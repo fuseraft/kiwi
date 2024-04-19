@@ -66,6 +66,7 @@ enum KName {
   Builtin_FileIO_WriteBytes,
   Builtin_FileIO_WriteLine,
   Builtin_FileIO_WriteText,
+  Builtin_Astral_Base,
   Builtin_Astral_BeginsWith,
   Builtin_Astral_Chars,
   Builtin_Astral_Clear,

@@ -724,7 +724,10 @@ class CoreBuiltinHandler {
     auto typeName = get_string(term, args.at(0));
     if (!TypeNames.is_typename(typeName)) {
       if (std::holds_alternative<k_object>(value)) {
-        return same_value(std::get<k_object>(value)->className, typeName);
+        const auto& obj = std::get<k_object>(value);
+        const auto& className = obj->className;
+
+        return same_value(className, typeName) || same_value(classes.at(className).getBaseClassName(), typeName);
       }
       throw InvalidTypeNameError(term, typeName);
     }
