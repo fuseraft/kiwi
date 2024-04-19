@@ -71,9 +71,9 @@ class Host {
   void loadLibraryModules(const std::string& path) {
     std::vector<std::string> astrallib;
 #ifdef _WIN64
-    astrallib = File::expandGlob(path + "\\*.astral");
+    astrallib = File::expandGlob(path + "\\*" + astral_extension);
 #else
-    astrallib = File::expandGlob(path + "/*.🚀");
+    astrallib = File::expandGlob(path + "/*" + astral_extension);
 #endif
 
     for (const auto& script : astrallib) {
