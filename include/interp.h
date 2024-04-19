@@ -1307,14 +1307,34 @@ class Interpreter {
       requestHash->add(x.first, x.second);
     }
 
+    auto pathParamsHash = std::make_shared<Hash>();
+    for (const auto& pair : req.path_params) {
+      pathParamsHash->add(pair.first, pair.second);
+    }
+
     auto paramsHash = std::make_shared<Hash>();
     for (auto it = params.begin(); it != params.end(); ++it) {
       const auto& x = *it;
       paramsHash->add(x.first, x.second);
     }
 
-    requestHash->add("params", paramsHash);
+    auto filesHash = std::make_shared<Hash>();
+    
+    for (const auto& file : req.files) {
+      auto fileHash = std::make_shared<Hash>();
+      fileHash->add("content", file.second.content);
+      fileHash->add("content_type", file.second.content_type);
+      fileHash->add("filename", file.second.filename);
+      fileHash->add("name", file.second.name);
+      filesHash->add(file.first, fileHash);
+    }
+
     requestHash->add("body", req.body);
+    requestHash->add("files", filesHash);
+    requestHash->add("path", req.path);
+    requestHash->add("path_params", pathParamsHash);
+    requestHash->add("params", paramsHash);
+
     return requestHash;
   }
 
