@@ -29,7 +29,7 @@ class Class {
   const Method& getMethod(const k_string& name) { return methods[name]; }
 
   const k_string& getClassName() const { return className; }
-  // k_string getBaseClassName() const { return baseClassName; }
+  const k_string getBaseClassName() const { return baseClassName; }
 
   void addPrivateVariable(const Parameter& param) {
     if (hasPrivateVariable(param.getName())) {
