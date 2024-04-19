@@ -1,4 +1,4 @@
-# astral 🚀
+# astral ⭐
 
 A dynamically-typed, single-pass, recursive descent interpreter without AST generation.
 
@@ -87,7 +87,7 @@ cd path\to\astral
 build.bat
 ```
 
-*Note: The Windows build does not support `.🚀` files (use the `.astral` extension).*
+*Note: The Windows build does not support `.⭐` files (use the `.star` extension).*
 
 ### Visual Studio Code Extension
 
@@ -124,8 +124,8 @@ make test
 
 #### Cellular Automata
 
-- [Rule 30](examples/ca.🚀)
-- [Conway's Game of Life](examples/life.🚀)
+- [Rule 30](examples/ca.⭐)
+- [Conway's Game of Life](examples/life.⭐)
 
 #### Project Euler
 
@@ -133,7 +133,7 @@ make test
 
 #### Web Application
 
-Below is a simple HTTP web application. You can find the [example project here](examples/webapp/app.🚀).
+Below is a simple HTTP web application. You can find the [example project here](examples/webapp/app.⭐).
 
 ```ruby
 import "@astral/web" as web
@@ -196,9 +196,9 @@ try
   
   # Generate a random temporary file path.
   filename = math.random("0123456789ABCDEF", 10)
-  path = fs.combine(fs.tmpdir(), "${filename}.🚀")
+  path = fs.combine(fs.tmpdir(), "${filename}.⭐")
 
-  # Write a little 🚀 script.
+  # Write a little ⭐ script.
   fs.write(path, "
     /#
     This script will delete itself and let you know it was there.
@@ -208,7 +208,7 @@ try
     println(\"Astral was here running as ${fs.filename(path)}.\")
   ")
 
-  # Run the 🚀 script.
+  # Run the ⭐ script.
   sys.exec("astral ${path}")
 catch (err)
   println("An error occurred: ${err}")
