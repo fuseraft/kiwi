@@ -30,6 +30,7 @@ std::unordered_map<int, Method> astralWebServerHooks;
 httplib::Server astralWebServer;
 std::string astralWebServerHost;
 k_int astralWebServerPort;
+bool SILENCE = false;
 
 class Astral {
  public:
