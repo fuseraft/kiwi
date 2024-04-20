@@ -52,9 +52,19 @@ end
   end
 end)
 
+if o.is_a(C)
+  o.run("I am a C")
+else
+  if o.is_a(B)
+    o.run("I am a B.")
+  else
+    println("This will not happen.")
+  end
+end
+
 /# Output:
 A: I am an A
-B: I am a C, or a B.
-C: I am a C, or a B.
+B: I am a B.
+C: I am a C
 D: I am something else.
 #/
