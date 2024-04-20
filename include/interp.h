@@ -2371,26 +2371,29 @@ class Interpreter {
     Conditional conditional;
     conditional.getIfStatement().setEvaluation(shortCircuitIf);
 
-    int ifCount = 1;
+    int blocks = 1;
     bool shortCircuitElseIf = false;
     auto building = KName::KW_If;
 
-    while (stream->canRead() && ifCount > 0) {
+    while (stream->canRead() && blocks > 0) {
       auto subType = stream->current().getSubType();
       if (Keywords.is_block_keyword(subType)) {
-        ++ifCount;
-      } else if (subType == KName::KW_End && ifCount >= 1) {
-        --ifCount;
+        ++blocks;
+      } else if (subType == KName::KW_End && blocks >= 1) {
+        --blocks;
 
         // Stop here.
-        if (ifCount == 0) {
+        if (blocks == 0) {
           stream->next();
+          break;
+        }
+      } else if (blocks == 1 && subType == KName::KW_Else) {
+        if (building != KName::KW_Else) {
+          stream->next();
+          building = KName::KW_Else;
           continue;
         }
-      } else if (ifCount == 1 && subType == KName::KW_Else) {
-        stream->next();
-        building = KName::KW_Else;
-      } else if (ifCount == 1 && subType == KName::KW_ElseIf) {
+      } else if (blocks == 1 && subType == KName::KW_ElseIf) {
         stream->next();
         building = KName::KW_ElseIf;
 
@@ -2414,17 +2417,17 @@ class Interpreter {
         if (elseIfValue) {
           // Don't evaluate future ElseIf branches.
           shortCircuitElseIf = true;
-          continue;
         }
+        
+        continue;
       }
 
       // Distribute tokens to be executed.
-      if (shortCircuitIf && building == KName::KW_If) {
+      if (building == KName::KW_If) {
         conditional.getIfStatement().addToken(stream->current());
-      } else if (!shortCircuitIf && building == KName::KW_ElseIf) {
+      } else if (building == KName::KW_ElseIf) {
         conditional.getElseIfStatement().addToken(stream->current());
-      } else if (!shortCircuitIf && !shortCircuitElseIf &&
-                 building == KName::KW_Else) {
+      } else if (building == KName::KW_Else) {
         conditional.getElseStatement().addToken(stream->current());
       }
 
