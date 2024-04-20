@@ -4,7 +4,6 @@
 
 #include <string>
 
-extern bool DEBUG;
 extern bool SILENCE;
 
 extern const std::string astral_name = "The Astral Programming Language";
@@ -12,6 +11,7 @@ extern const std::string astral_version = "1.3.7";
 extern const std::string astral_arg = "astral";
 extern const std::string astral_min_extension = ".min.⭐";
 extern const std::string astral_extension = ".⭐";
+
 #ifdef _WIN64
 extern const std::string astral_min_extension = ".min.star";
 extern const std::string astral_extension = ".star";

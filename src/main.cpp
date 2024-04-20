@@ -18,9 +18,6 @@
  */
 
 #include "astral.h"
-#include "globals.h"
-
-bool SILENCE = false;
 
 int main(int argc, char** argv) {
   return Astral::run(argc, argv);
