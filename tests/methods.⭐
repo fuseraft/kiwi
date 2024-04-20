@@ -20,3 +20,47 @@ end
 
 add(1, 2)
 add(1, 4)
+
+# method return
+def get_greeting(name) return "Hello, ${name}" end
+println("Greeting: ${get_greeting("World!")}")
+
+# method invoked in conditional
+
+def is_even(n)
+  return (n % 2 == 0)
+end
+
+i = 0, stop_at = 25
+
+while i <= stop_at do
+  if is_even(i)
+    println("${i} is even")
+  else
+    println("${i} is odd")
+  end
+
+  i += 1
+end
+
+# method early return
+
+def is_old(age)
+  if age >= 70
+    return true
+  end
+
+  return false
+end
+
+i = 60
+
+while i <= 80 do
+  if is_old(i)
+    println("${i} is old.")
+  else
+    println("${i} is not old.")
+  end
+
+  i += 1
+end

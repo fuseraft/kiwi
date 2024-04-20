@@ -1,2 +1,0 @@
-def get_greeting(name) return "Hello, ${name}" end
-println("Greeting: ${get_greeting("World!")}")
