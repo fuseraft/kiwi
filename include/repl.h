@@ -1,5 +1,5 @@
-#ifndef ASTRAL_REPL_H
-#define ASTRAL_REPL_H
+#ifndef KIWI_REPL_H
+#define KIWI_REPL_H
 
 #include <iostream>
 #include <sstream>
@@ -51,7 +51,7 @@ int Repl::run() {
   std::ostringstream input;
   int result = 0;
 
-  std::cout << astral_name << " v" << astral_version << " REPL" << std::endl
+  std::cout << kiwi_name << " v" << kiwi_version << " REPL" << std::endl
             << std::endl
             << "Use `" << Keywords.Go << "` to execute, `" << Keywords.Exit
             << "` to exit the REPL." << std::endl
@@ -67,8 +67,8 @@ int Repl::run() {
       auto line = getline();
 
       if (line == Keywords.Go) {
-        auto astralCode = input.str();
-        result += interp.interpretAstral(astralCode);
+        auto kiwiCode = input.str();
+        result += interp.interpretKiwi(kiwiCode);
         input.str("");
         input.clear();
       } else if (line == Keywords.Exit) {
@@ -76,7 +76,7 @@ int Repl::run() {
       } else {
         input << line << std::endl;
       }
-    } catch (const AstralError& e) {
+    } catch (const KiwiError& e) {
       ErrorHandler::handleError(e);
     } catch (const std::exception& e) {
       ErrorHandler::printError(e);

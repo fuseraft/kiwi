@@ -1,5 +1,5 @@
-#ifndef ASTRAL_TYPING_SERIALIZER_H
-#define ASTRAL_TYPING_SERIALIZER_H
+#ifndef KIWI_TYPING_SERIALIZER_H
+#define KIWI_TYPING_SERIALIZER_H
 
 #include <memory>
 #include <stdexcept>

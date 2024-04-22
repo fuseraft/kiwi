@@ -1,0 +1,40 @@
+import "@kiwi/web" as web
+import "@kiwi/fs" as fs
+
+# HTML helpers
+html = {
+  "shared": fs.read("templates/shared.html"),
+  "index": fs.read("templates/index.html"),
+  "contact": fs.read("templates/contact.html")
+}
+
+# A simple template engine.
+def build_html(data)
+  return html.shared.replace("<%content%>", data)
+end
+
+# GET / handler
+web.get(["/", "/index"], with (req) do
+  return web.ok(build_html(html.index), "text/html")
+end)
+
+# GET /contact handler
+web.get("/contact", with (req) do
+  return web.ok(build_html(html.contact), "text/html")
+end)
+
+# POST /contact handler
+web.post("/contact", with (req) do  
+  println("Received content from client:\nbody: ${req.body}\nparams: ${req.params}")
+  return web.redirect("/")
+end)
+
+# static content
+web.public("/", "./public")
+
+# server and port configuration
+host = "0.0.0.0", port = 8080
+
+# start the web server
+println("Starting Kiwi Web Server at http://${host}:${port}")
+web.listen(host, port)

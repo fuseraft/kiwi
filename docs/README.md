@@ -1,7 +1,7 @@
-# Astral Index
+# Kiwi Index
 
 1. **Getting Started**
-   - [Using the Astral CLI](cli.md)
+   - [Using the Kiwi CLI](cli.md)
 
 2. **Language Basics**
    - [Comments](comments.md)
@@ -32,35 +32,35 @@
      - [Abstract Classes](abstract_classes.md)
 
 5. **Standard Library**
-   - [`@astral/argv`](lib/argv.md)
-   - [`@astral/conf`](lib/conf.md)
-   - [`@astral/env`](lib/env.md)
-   - [`@astral/fs`](lib/fs.md)
-   - [`@astral/log`](lib/log.md)
-   - [`@astral/math`](lib/math.md)
-   - [`@astral/string`](lib/string.md)
-   - [`@astral/sys`](lib/sys.md)
-   - [`@astral/time`](lib/time.md)
+   - [`@kiwi/argv`](lib/argv.md)
+   - [`@kiwi/conf`](lib/conf.md)
+   - [`@kiwi/env`](lib/env.md)
+   - [`@kiwi/fs`](lib/fs.md)
+   - [`@kiwi/log`](lib/log.md)
+   - [`@kiwi/math`](lib/math.md)
+   - [`@kiwi/string`](lib/string.md)
+   - [`@kiwi/sys`](lib/sys.md)
+   - [`@kiwi/time`](lib/time.md)
      - [`DateTime`](lib/datetime.md)
-   - [`@astral/web`](lib/web.md)
-   - [`@astral/http`](lib/http.md)
+   - [`@kiwi/web`](lib/web.md)
+   - [`@kiwi/http`](lib/http.md)
 
 6. **Experimental Features**
    - [Concurrency](concurrency.md)
 
 # Life of a Program
 
-When you execute Astral, a number of things happens.
+When you execute Kiwi, a number of things happens.
 
 Below is a technical overview of the architecture of the interpreter.
 
 ## Pre-Execution
 
-Astral will configure its runtime environment before executing your program. Below is a high-level overview of the components involved in this process.
+Kiwi will configure its runtime environment before executing your program. Below is a high-level overview of the components involved in this process.
 
 ### Host
 
-Astral runs within a *host* that is responsible for registering command-line arguments, loading libraries, and running your program.
+Kiwi runs within a *host* that is responsible for registering command-line arguments, loading libraries, and running your program.
 
 Arguments passed to the program are registered.
 
@@ -68,17 +68,17 @@ The **Standard** and **Local** libraries are loaded.
 
 #### Standard Library
 
-The *standard library* exists relative to Astral.
+The *standard library* exists relative to Kiwi.
 
-Astral finds its executable location, then searches the parent directory for a subdirectory called `lib`.
+Kiwi finds its executable location, then searches the parent directory for a subdirectory called `lib`.
 
-If Astral is located at `/usr/bin/astral`, then the Standard Library must be located at `/usr/lib/astral`.
+If Kiwi is located at `/usr/bin/kiwi`, then the Standard Library must be located at `/usr/lib/kiwi`.
 
 #### Local Library
 
 A *local library* exists relative to your program.
 
-Astral searches for a subdirectory called `lib` in the same directory as your program.
+Kiwi searches for a subdirectory called `lib` in the same directory as your program.
 
 ### Lexer
 

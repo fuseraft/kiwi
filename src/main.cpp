@@ -1,6 +1,6 @@
 /**
  * ===============================
- * The Astral Programming Language
+ * The Kiwi Programming Language
  * ===============================
  * 
  * A light-weight general-purpose scripting language without a syntax tree.
@@ -9,7 +9,7 @@
  * @date 2024-01-31
  * @version 1.3.7
  *
- * GitHub Repository: https://github.com/fuseraft/astral
+ * GitHub Repository: https://github.com/fuseraft/kiwi
  * For more information, issues, or to contribute, please visit the repository.
  *
  * License: MIT License
@@ -17,8 +17,8 @@
  * The full license text is available in the LICENSE file in the repository.
  */
 
-#include "astral.h"
+#include "cli.h"
 
 int main(int argc, char** argv) {
-  return Astral::run(argc, argv);
+  return KiwiCLI::run(argc, argv);
 }

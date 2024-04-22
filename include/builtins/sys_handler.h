@@ -1,5 +1,5 @@
-#ifndef ASTRAL_BUILTINS_SYSHANDLER_H
-#define ASTRAL_BUILTINS_SYSHANDLER_H
+#ifndef KIWI_BUILTINS_SYSHANDLER_H
+#define KIWI_BUILTINS_SYSHANDLER_H
 
 #include "math/functions.h"
 #include "parsing/builtins.h"

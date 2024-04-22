@@ -1,5 +1,5 @@
-#ifndef ASTRAL_PARSING_KEYWORDS_H
-#define ASTRAL_PARSING_KEYWORDS_H
+#ifndef KIWI_PARSING_KEYWORDS_H
+#define KIWI_PARSING_KEYWORDS_H
 
 #include <string>
 #include <unordered_set>

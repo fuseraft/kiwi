@@ -1,6 +1,6 @@
-# `@astral/log`
+# `@kiwi/log`
 
-The `log` module contains functionality for working with the Astral logger.
+The `log` module contains functionality for working with the Kiwi logger.
 
 ## Table of Contents
 
@@ -18,10 +18,10 @@ The `log` module contains functionality for working with the Astral logger.
 
 ## Importing the Module
 
-To use the `log` module, import it at the beginning of your Astral script.
+To use the `log` module, import it at the beginning of your Kiwi script.
 
 ```ruby
-import "@astral/log" as logger
+import "@kiwi/log" as logger
 ```
 
 ## Module Functions

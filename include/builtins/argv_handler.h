@@ -1,5 +1,5 @@
-#ifndef ASTRAL_BUILTINS_ARGV_H
-#define ASTRAL_BUILTINS_ARGV_H
+#ifndef KIWI_BUILTINS_ARGV_H
+#define KIWI_BUILTINS_ARGV_H
 
 #include <cstdlib>
 #include <string>
@@ -14,13 +14,13 @@ class ArgvBuiltinHandler {
  public:
   static k_value execute(
       const Token& term, const KName& builtin, const std::vector<k_value>& args,
-      const std::unordered_map<k_string, k_string>& astralArgs) {
+      const std::unordered_map<k_string, k_string>& kiwiArgs) {
     switch (builtin) {
       case KName::Builtin_Argv_GetArgv:
-        return executeGetArgv(term, args, astralArgs);
+        return executeGetArgv(term, args, kiwiArgs);
 
       case KName::Builtin_Argv_GetXarg:
-        return executeGetXarg(term, args, astralArgs);
+        return executeGetXarg(term, args, kiwiArgs);
 
       default:
         break;
@@ -32,7 +32,7 @@ class ArgvBuiltinHandler {
  private:
   static k_value executeGetArgv(
       const Token& term, const std::vector<k_value>& args,
-      const std::unordered_map<k_string, k_string>& astralArgs) {
+      const std::unordered_map<k_string, k_string>& kiwiArgs) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(term, ArgvBuiltins.GetArgv);
     }
@@ -40,7 +40,7 @@ class ArgvBuiltinHandler {
     auto argv = std::make_shared<List>();
     auto& elements = argv->elements;
 
-    for (const auto& pair : astralArgs) {
+    for (const auto& pair : kiwiArgs) {
       if (String::beginsWith(pair.first, "argv_")) {
         elements.emplace_back(pair.second);
       }
@@ -51,14 +51,14 @@ class ArgvBuiltinHandler {
 
   static k_value executeGetXarg(
       const Token& term, const std::vector<k_value>& args,
-      const std::unordered_map<k_string, k_string>& astralArgs) {
+      const std::unordered_map<k_string, k_string>& kiwiArgs) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, ArgvBuiltins.GetXarg);
     }
 
     k_string xargName = get_string(term, args.at(0));
 
-    for (const auto& pair : astralArgs) {
+    for (const auto& pair : kiwiArgs) {
       if (pair.first == xargName) {
         return pair.second;
       }

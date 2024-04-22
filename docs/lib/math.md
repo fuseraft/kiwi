@@ -1,4 +1,4 @@
-# `@astral/math`
+# `@kiwi/math`
 
 The `math` module contains functionality for working with common math operations.
 
@@ -53,10 +53,10 @@ The `math` module contains functionality for working with common math operations
   - [`trunc(_value)`](#trunc_value)
 
 ## Importing the Module
-To use the `math` module, import it at the beginning of your Astral script.
+To use the `math` module, import it at the beginning of your Kiwi script.
 
 ```ruby
-import "@astral/math" as math
+import "@kiwi/math" as math
 ```
 
 ## Module Functions

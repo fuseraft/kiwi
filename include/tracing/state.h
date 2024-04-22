@@ -1,21 +1,21 @@
-#ifndef ASTRAL_ERRORS_STATE_H
-#define ASTRAL_ERRORS_STATE_H
+#ifndef KIWI_ERRORS_STATE_H
+#define KIWI_ERRORS_STATE_H
 
 #include "error.h"
 
 struct ErrorState {
   bool hasError = false;
-  AstralError error = AstralError::create();
+  KiwiError error = KiwiError::create();
 
   ErrorState() {}
 
-  void setError(const AstralError& e) {
+  void setError(const KiwiError& e) {
     error = e;
     hasError = true;
   }
 
   void clearError() {
-    error = AstralError::create();
+    error = KiwiError::create();
     hasError = false;
   }
 

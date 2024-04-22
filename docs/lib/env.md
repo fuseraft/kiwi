@@ -1,4 +1,4 @@
-# `@astral/env`
+# `@kiwi/env`
 
 The `ENV` module contains functionality for working with environment variables.
 
@@ -11,10 +11,10 @@ The `ENV` module contains functionality for working with environment variables.
 
 ## Importing the Module
 
-To use the `env` module, import it at the beginning of your Astral script.
+To use the `env` module, import it at the beginning of your Kiwi script.
 
 ```ruby
-import "@astral/env" as ENV
+import "@kiwi/env" as ENV
 ```
 
 ## Module Functions

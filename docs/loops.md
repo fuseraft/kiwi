@@ -1,6 +1,6 @@
 # Loops
 
-Astral supports the following kinds of loops. You can use the `break` keyword to exit a loop. You can use the `next` keyword to skip to the next iteration.
+Kiwi supports the following kinds of loops. You can use the `break` keyword to exit a loop. You can use the `next` keyword to skip to the next iteration.
 
 ## Table of Contents
 1. [`while`](#while)
@@ -27,7 +27,7 @@ end
 To loop indefinitely, the loop condition expression must evaluate to `true`.
 
 ```ruby
-import "@astral/time" # for `delay()`
+import "@kiwi/time" # for `delay()`
 while true do
   print("\rPress Ctrl+C to exit!")
   time::delay(500) # sleep for 500 seconds
@@ -70,7 +70,7 @@ end
 
 ## `for`
 
-In Astral, `for`-loops are used to iterate collections.
+In Kiwi, `for`-loops are used to iterate collections.
 
 ##### Iterating a Hash
 

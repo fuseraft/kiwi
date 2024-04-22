@@ -1,6 +1,6 @@
 # Types
 
-Astral supports working with the following types: 
+Kiwi supports working with the following types: 
 
 | Type | Description | Documentation |
 | :--- | :--- | :--- |
@@ -69,9 +69,9 @@ println(list) # prints: [1, 2, 3, 4, 5]
 A dictionary of key-value pairs.
 
 ```ruby
-hash = { "language": "astral" }
+hash = { "language": "kiwi" }
 
-println(hash) # prints: {"language": "astral"}
+println(hash) # prints: {"language": "kiwi"}
 ```
 
 ### Object

@@ -1,4 +1,4 @@
-# `@astral/conf`
+# `@kiwi/conf`
 
 The `conf` module contains functionality for working with configuration files.
 
@@ -15,10 +15,10 @@ Common file extensions are: `.conf`, `.ini`, `.cfg`, `.env`, and `.json`
 
 ## Importing the Module
 
-To use the `conf` module, import it at the beginning of your Astral script.
+To use the `conf` module, import it at the beginning of your Kiwi script.
 
 ```ruby
-import "@astral/conf" as conf
+import "@kiwi/conf" as conf
 ```
 
 ## Module Functions

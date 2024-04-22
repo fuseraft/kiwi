@@ -1,5 +1,5 @@
-#ifndef ASTRAL_CONCURRENCY_TASK_H
-#define ASTRAL_CONCURRENCY_TASK_H
+#ifndef KIWI_CONCURRENCY_TASK_H
+#define KIWI_CONCURRENCY_TASK_H
 
 #include <functional>
 #include <future>

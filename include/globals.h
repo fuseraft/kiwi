@@ -1,21 +1,21 @@
 // globals.h
-#ifndef ASTRAL_GLOBALS_H
-#define ASTRAL_GLOBALS_H
+#ifndef KIWI_GLOBALS_H
+#define KIWI_GLOBALS_H
 
 #include <string>
 
 extern bool SILENCE;
 
-extern const std::string astral_name = "The Astral Programming Language";
-extern const std::string astral_version = "1.3.7";
-extern const std::string astral_arg = "astral";
+extern const std::string kiwi_name = "The Kiwi Programming Language";
+extern const std::string kiwi_version = "1.3.7";
+extern const std::string kiwi_arg = "kiwi";
 
 #ifdef _WIN64
-extern const std::string astral_min_extension = ".min.star";
-extern const std::string astral_extension = ".star";
+extern const std::string kiwi_min_extension = ".min.ki";
+extern const std::string kiwi_extension = ".ki";
 #else
-extern const std::string astral_min_extension = ".min.⭐";
-extern const std::string astral_extension = ".⭐";
+extern const std::string kiwi_min_extension = ".min.🥝";
+extern const std::string kiwi_extension = ".🥝";
 #endif
 
 #include <unordered_map>
@@ -37,13 +37,13 @@ extern TaskManager task;
 extern std::unordered_map<std::string, Method> methods;
 extern std::unordered_map<std::string, Module> modules;
 extern std::unordered_map<std::string, Class> classes;
-extern std::unordered_map<std::string, std::string> astralArgs;
+extern std::unordered_map<std::string, std::string> kiwiArgs;
 extern std::stack<std::shared_ptr<CallStackFrame>> callStack;
 extern std::stack<k_stream> streamStack;
 extern std::stack<std::string> moduleStack;
-extern httplib::Server astralWebServer;
-extern std::unordered_map<int, Method> astralWebServerHooks;
-extern std::string astralWebServerHost;
-extern k_int astralWebServerPort;
+extern httplib::Server kiwiWebServer;
+extern std::unordered_map<int, Method> kiwiWebServerHooks;
+extern std::string kiwiWebServerHost;
+extern k_int kiwiWebServerPort;
 
 #endif

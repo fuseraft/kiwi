@@ -1,6 +1,6 @@
 # Builtins
 
-In Astral, builtins are accessed using dot-notation and can be used to query or manipulate values and types.
+In Kiwi, builtins are accessed using dot-notation and can be used to query or manipulate values and types.
 
 # Table of Contents
 - [**`String` Builtins**](#string-builtins)
@@ -95,7 +95,7 @@ string = "Hello"
 chars = string.chars() 
 # chars = ["H", "e", "l", "l", "o"]
 
-println("astral".chars()) # prints: ["a", "s", "t", "r", "a", "l"]
+println("kiwi".chars()) # prints: ["a", "s", "t", "r", "a", "l"]
 ```
 
 ### `contains(str)`
@@ -130,7 +130,7 @@ Returns the index of a string. Returns -1 if not found.
 
 ```ruby
 println("foobar".index("bar"))     # prints: 3
-println("foobar".index("astral"))  # prints: -1
+println("foobar".index("kiwi"))  # prints: -1
 ```
 
 ### `lastindex(str)`
@@ -139,7 +139,7 @@ Returns the last index of a string. Returns -1 if not found.
 
 ```ruby
 println("foobarbar".lastindex("bar"))  # prints: 6
-println("foobar".lastindex("astral"))  # prints: -1
+println("foobar".lastindex("kiwi"))  # prints: -1
 ```
 
 ### `ltrim()`
@@ -526,7 +526,7 @@ println(["a", "b", 3, 4].remove_at(0)) # prints: ["b", 3, 4]
 Reverse a list or a string.
 
 ```ruby
-println("astral".reverse()) # prints: lartsa
+println("kiwi".reverse()) # prints: lartsa
 ```
 
 ### `rotate(n)`
@@ -546,9 +546,9 @@ println("abcd".chars().rotate(-1)) # prints: ["b", "c", "d", "a"]
 Filter a list based on a condition.
 
 ```ruby
-list = ["astral", "mango", "banana"]
+list = ["kiwi", "mango", "banana"]
 println(list.select(with (item) do return item.contains("s") end))
-# prints: ["astral"]
+# prints: ["kiwi"]
 ```
 
 ### `shift()`
@@ -588,8 +588,8 @@ println([1, 2, 3].slice(0, 2)) # prints: [1, 2]
 Sorting a list.
 
 ```ruby
-list = ["astral", "mango", "guava"]
-println(list.sort()) # prints: ["guava", "astral", "mango"]
+list = ["kiwi", "mango", "guava"]
+println(list.sort()) # prints: ["guava", "kiwi", "mango"]
 ```
 
 ### `sum()`
@@ -606,8 +606,8 @@ println(list.sum()) # prints: 6
 Converts a string or list value to a list of bytes.
 
 ```ruby
-println("astral".to_bytes())         # prints: [97, 115, 116, 114, 97, 108]
-println("astral".chars().to_bytes()) # prints: [97, 115, 116, 114, 97, 108]
+println("kiwi".to_bytes())         # prints: [97, 115, 116, 114, 97, 108]
+println("kiwi".chars().to_bytes()) # prints: [97, 115, 116, 114, 97, 108]
 ```
 
 ### `to_hex()`
@@ -616,7 +616,7 @@ Converts a list of integer values to a hexadecimal string.
 
 ```ruby
 println([97, 115, 116, 114, 97, 108].to_hex()) # prints: 61737472616c
-println("astral".chars().to_bytes().to_hex())  # prints: 61737472616c
+println("kiwi".chars().to_bytes().to_hex())  # prints: 61737472616c
 ```
 
 ### `unique()`
@@ -723,13 +723,13 @@ Converts an object instance or a JSON string into a hash.
 ```ruby
 class SerializeMe
   def initialize()
-    @name = "Astral"
+    @name = "Kiwi"
   end
 end
 
 inst = SerializeMe.new()
 
-println(inst.to_hash()) # prints: {"name": "Astral"}
+println(inst.to_hash()) # prints: {"name": "Kiwi"}
 ```
 
 ```ruby
@@ -737,9 +737,9 @@ json = "{
   \"boolean\": true, 
   \"double\": 3.14159, 
   \"integer\": 100, 
-  \"string\": \"Astral\"
+  \"string\": \"Kiwi\"
 }"
-println(json.to_hash()) # prints: {"boolean": true, "double": 3.14159, "integer": 100, "string": "Astral"}
+println(json.to_hash()) # prints: {"boolean": true, "double": 3.14159, "integer": 100, "string": "Kiwi"}
 ```
 
 ### `to_int()`

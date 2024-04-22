@@ -1,0 +1,6 @@
+import "@kiwi/math"
+
+println(math::sin(0))
+println(math::cos(0))
+println(math::tan(0))
+println(math::epsilon())

@@ -3,12 +3,12 @@
 Use the `def` keyword to define a method. Method parameters support default values.
 
 ```ruby
-def greet(name = "Astral")
+def greet(name = "Kiwi")
   println("Hello, ${name}!")
 end
 
 greet("world") # prints: Hello, world!
-greet()        # prints: Hello, Astral!
+greet()        # prints: Hello, Kiwi!
 ```
 
 ### Return Value

@@ -1,17 +1,17 @@
 # `DateTime`
 
-The `DateTime` class offers some convenient functionality for working with date and time data in Astral.
+The `DateTime` class offers some convenient functionality for working with date and time data in Kiwi.
 
 To use the `DateTime`, you must import the `time` module.
 
 ```ruby
-import "@astral/time"
+import "@kiwi/time"
 ```
 
 ### Example
 
 ```ruby
-import "@astral/time"
+import "@kiwi/time"
 
 # print todays date.
 println(DateTime.format(DateTime.now().add_years(1), "%Y-%m-%d"))

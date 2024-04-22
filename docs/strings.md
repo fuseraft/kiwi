@@ -1,8 +1,8 @@
 # Strings
 
-The `String` type in Astral is used to represent text data.
+The `String` type in Kiwi is used to represent text data.
 
-Strings in Astral are wrapped with either double-quotes or single-quotes.
+Strings in Kiwi are wrapped with either double-quotes or single-quotes.
 
 ### Defining a String
 
