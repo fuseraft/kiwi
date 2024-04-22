@@ -28,7 +28,7 @@ static k_int get_integer(const Token& term, const k_value& arg) {
   return std::get<k_int>(arg);
 }
 
-static double get_integer_or_double(const Token& term, const k_value& arg) {
+static double get_double(const Token& term, const k_value& arg) {
   if (std::holds_alternative<k_int>(arg)) {
     return static_cast<double>(std::get<k_int>(arg));
   } else if (std::holds_alternative<double>(arg)) {
@@ -643,8 +643,8 @@ struct {
 
     if (std::holds_alternative<double>(valueX) ||
         std::holds_alternative<double>(valueY)) {
-      double x = get_integer_or_double(token, valueX),
-             y = get_integer_or_double(token, valueY);
+      double x = get_double(token, valueX),
+             y = get_double(token, valueY);
       return RNG::getInstance().random(x, y);
     } else if (std::holds_alternative<k_int>(valueX) ||
                std::holds_alternative<k_int>(valueY)) {

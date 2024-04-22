@@ -900,11 +900,9 @@ class Interpreter {
         case KTokenType::OPEN_BRACKET: {
           if (InterpHelper::isRangeExpression(stream)) {
             v = interpretRange(stream, frame);
-          } else if (InterpHelper::isSliceAssignmentExpression(stream)) {
+          } else {
             auto slice = interpretSliceIndex(stream, frame, v);
             v = interpretSlice(stream, v, slice);
-          } else if (InterpHelper::isListExpression(stream)) {
-            v = interpretList(stream, frame);
           }
         } break;
 
@@ -3371,9 +3369,12 @@ class Interpreter {
 
   bool interpretExpression(k_stream stream,
                            std::shared_ptr<CallStackFrame> frame) {
+    auto beginning = stream->position == 0;
     stream->rewind();
     if (InterpHelper::hasReturnValue(stream)) {
-      stream->next();
+      if (!beginning) {
+        stream->next();
+      }
       parseExpression(stream, frame);
       return true;
     }
@@ -3656,23 +3657,7 @@ class Interpreter {
 
       switch (op) {
         case KName::Ops_Not:
-          if (std::holds_alternative<bool>(right)) {
-            return !std::get<bool>(right);
-          } else if (std::holds_alternative<k_int>(right)) {
-            return static_cast<k_int>(std::get<k_int>(right) == 0 ? 1 : 0);
-          } else if (std::holds_alternative<double>(right)) {
-            return std::get<double>(right) == 0;
-          } else if (std::holds_alternative<k_string>(right)) {
-            return std::get<k_string>(right).empty();
-          } else if (std::holds_alternative<k_list>(right)) {
-            return std::get<k_list>(right)->elements.empty();
-          } else if (std::holds_alternative<k_hash>(right)) {
-            return std::get<k_hash>(right)->keys.empty();
-          }
-
-          throw ConversionError(stream->current(),
-                                "Expected a `Boolean` expression.");
-          break;
+          return std::visit(NegateVisitor(stream->current()), right);
 
         case KName::Ops_Subtract:
           if (std::holds_alternative<k_int>(right)) {

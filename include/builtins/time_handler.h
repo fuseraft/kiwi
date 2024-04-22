@@ -76,7 +76,7 @@ class TimeBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, TimeBuiltins.Delay);
     }
 
-    int ms = static_cast<int>(get_integer_or_double(term, args.at(0)));
+    int ms = static_cast<int>(get_double(term, args.at(0)));
     return Time::delay(ms);
   }
 
@@ -170,7 +170,7 @@ class TimeBuiltinHandler {
                                            TimeBuiltins.TicksToMilliseconds);
     }
 
-    double ticks = get_integer_or_double(term, args.at(0));
+    double ticks = get_double(term, args.at(0));
 
     return Time::ticksToMilliseconds(ticks);
   }
