@@ -6,8 +6,8 @@
 
 extern bool SILENCE;
 
-extern const std::string kiwi_name = "The Kiwi Programming Language";
-extern const std::string kiwi_version = "1.3.7";
+extern const std::string kiwi_name = "Kiwi";
+extern const std::string kiwi_version = "1.4";
 extern const std::string kiwi_arg = "kiwi";
 
 #ifdef _WIN64
