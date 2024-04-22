@@ -17,7 +17,7 @@ def generate_directory_listing(dir_path)
     path_name = string::urlencode(fs::combine(dir_path.substring(2), display_name))
     
     if display_name.contains("🥝")
-      display_name = display_name.replace("🥝", "&#11088;")
+      display_name = display_name.replace("🥝", "ki")
     end
 
     if fs::isdir(entry)
