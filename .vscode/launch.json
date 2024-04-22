@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/bin/astral",
             "args": [
                 "${workspaceFolder}/play"
-            ], // Add your command-line arguments here
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
