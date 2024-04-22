@@ -178,4 +178,47 @@ struct BitwiseRightShiftVisitor {
   }
 };
 
+struct NegateSignVisitor {
+  const Token& token;
+
+  NegateSignVisitor(const Token& token) : token(token) {}
+
+  k_value operator()(const k_value& value) const {
+    if (std::holds_alternative<k_int>(value)) {
+      return -std::get<k_int>(value);
+    } else if (std::holds_alternative<double>(value)) {
+      return -std::get<double>(value);
+    } else {
+      throw ConversionError(
+          token,
+          "Unary minus applied to a non-numeric value.");
+    }
+  }
+};
+
+struct NegateVisitor {
+  const Token& token;
+
+  NegateVisitor(const Token& token) : token(token) {}
+
+  k_value operator()(const k_value& value) const {
+    if (std::holds_alternative<bool>(value)) {
+      return !std::get<bool>(value);
+    } else if (std::holds_alternative<k_int>(value)) {
+      return static_cast<k_int>(std::get<k_int>(value) == 0 ? 1 : 0);
+    } else if (std::holds_alternative<double>(value)) {
+      return std::get<double>(value) == 0;
+    } else if (std::holds_alternative<k_string>(value)) {
+      return std::get<k_string>(value).empty();
+    } else if (std::holds_alternative<k_list>(value)) {
+      return std::get<k_list>(value)->elements.empty();
+    } else if (std::holds_alternative<k_hash>(value)) {
+      return std::get<k_hash>(value)->keys.empty();
+    } else {
+      throw ConversionError(token,
+                            "Unexpected value.");
+    }
+  }
+};
+
 #endif
