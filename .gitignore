@@ -1,12 +1,12 @@
 cleanup.rb
 .vscode/settings.json
 src/main
-bin/astral
+bin/kiwi
 build
 bin
 logs
 gmon.out
-astral_profile*
+kiwi_profile*
 feature-timeline.md
 strategy.md
 NOTES.md

@@ -1,5 +1,5 @@
-#ifndef ASTRAL_OBJECTS_MODULE_H
-#define ASTRAL_OBJECTS_MODULE_H
+#ifndef KIWI_OBJECTS_MODULE_H
+#define KIWI_OBJECTS_MODULE_H
 
 #include <string>
 #include <vector>

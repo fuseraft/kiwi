@@ -11,7 +11,7 @@ SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 INCLUDE_FILES := $(wildcard $(INCLUDE_DIR)/*.h)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
-EXECUTABLE := $(BIN_DIR)/astral
+EXECUTABLE := $(BIN_DIR)/kiwi
 
 .PHONY: all clean test play install profile
 

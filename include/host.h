@@ -1,5 +1,5 @@
-#ifndef ASTRAL_INTERPSESSION_H
-#define ASTRAL_INTERPSESSION_H
+#ifndef KIWI_INTERPSESSION_H
+#define KIWI_INTERPSESSION_H
 
 #include "parsing/keywords.h"
 #include "util/file.h"
@@ -11,7 +11,7 @@ class Host {
  public:
   Host(Interpreter& interp) : interp(interp), scripts(), args() {}
 
-  void disableLibraryLoad() { astrallibEnabled = false; }
+  void disableLibraryLoad() { kiwilibEnabled = false; }
 
   void registerScript(const std::string& scriptPath) {
     if (!File::fileExists(scriptPath)) {
@@ -35,10 +35,10 @@ class Host {
   }
 
   int start() {
-    interp.setAstralArgs(args);
+    interp.setKiwiArgs(args);
 
-    // Always try to load astrallib.
-    loadAstralLibrary();
+    // Always try to load kiwilib.
+    loadKiwiLibrary();
 
     // Start REPL if no scripts are supplied.
     if (scripts.empty()) {
@@ -50,12 +50,12 @@ class Host {
   }
 
   int parse(const std::string& input) {
-    interp.setAstralArgs(args);
+    interp.setKiwiArgs(args);
 
-    // Always try to load astrallib.
-    loadAstralLibrary();
+    // Always try to load kiwilib.
+    loadKiwiLibrary();
 
-    return interp.interpretAstral(input);
+    return interp.interpretKiwi(input);
   }
 
   std::string minify(const std::string& script, bool output = false) {
@@ -66,31 +66,31 @@ class Host {
   Interpreter& interp;
   std::unordered_set<std::string> scripts;
   std::unordered_map<std::string, std::string> args;
-  bool astrallibEnabled = true;
+  bool kiwilibEnabled = true;
 
   void loadLibraryModules(const std::string& path) {
-    std::vector<std::string> astrallib;
+    std::vector<std::string> kiwilib;
 #ifdef _WIN64
-    astrallib = File::expandGlob(path + "\\*" + astral_extension);
+    kiwilib = File::expandGlob(path + "\\*" + kiwi_extension);
 #else
-    astrallib = File::expandGlob(path + "/*" + astral_extension);
+    kiwilib = File::expandGlob(path + "/*" + kiwi_extension);
 #endif
 
-    for (const auto& script : astrallib) {
+    for (const auto& script : kiwilib) {
       loadScript(script);
     }
   }
 
-  void loadAstralLibrary() {
-    if (!astrallibEnabled) {
+  void loadKiwiLibrary() {
+    if (!kiwilibEnabled) {
       return;
     }
 
     try {
-      auto astrallibPath = File::getLibraryPath();
+      auto kiwilibPath = File::getLibraryPath();
 
-      if (!astrallibPath.empty()) {
-        loadLibraryModules(astrallibPath);
+      if (!kiwilibPath.empty()) {
+        loadLibraryModules(kiwilibPath);
       }
     } catch (const std::exception& e) {
       ErrorHandler::printError(e);

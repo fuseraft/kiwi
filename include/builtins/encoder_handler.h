@@ -1,5 +1,5 @@
-#ifndef ASTRAL_BUILTINS_ENCODER_H
-#define ASTRAL_BUILTINS_ENCODER_H
+#ifndef KIWI_BUILTINS_ENCODER_H
+#define KIWI_BUILTINS_ENCODER_H
 
 #include <cstdlib>
 #include <string>

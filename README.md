@@ -1,4 +1,4 @@
-# astral ⭐
+# kiwi 🥝
 
 A dynamically-typed, single-pass, recursive descent interpreter without AST generation.
 
@@ -9,11 +9,11 @@ A dynamically-typed, single-pass, recursive descent interpreter without AST gene
    2. [Linux](#linux-builds)
       1. [Fedora / RHEL](#fedora--rhel)
       2. [Ubuntu / Debian](#ubuntu--debian)
-      3. [Installing Astral on Linux](#installing-astral-on-linux)
+      3. [Installing Kiwi on Linux](#installing-kiwi-on-linux)
    3. [Windows](#windows-builds)
    4. [Visual Studio Code Extension](#visual-studio-code-extension)
 2. [Documentation](#documentation)
-   1. [Astral Index](#astral-index)
+   1. [Kiwi Index](#kiwi-index)
    1. [Test Suite](#test-suite)
    2. [Code Examples](#code-examples)
       1. [Cellular Automata](#cellular-automata)
@@ -25,20 +25,20 @@ A dynamically-typed, single-pass, recursive descent interpreter without AST gene
 
 ## Getting Started
 
-To start using Astral, please follow the instructions below. 
+To start using Kiwi, please follow the instructions below. 
 
 ### Docker
 
-Experiment with Astral in a Docker container.
+Experiment with Kiwi in a Docker container.
 
 ```bash
-sudo docker build -t astral-lang .
-sudo docker run -it -v $(pwd):/workspace astral-lang
+sudo docker build -t kiwi-lang .
+sudo docker run -it -v $(pwd):/workspace kiwi-lang
 ```
 
 ### Linux Builds
 
-To build Astral, use your favorite C++ compiler.
+To build Kiwi, use your favorite C++ compiler.
 
 This repo uses GCC and Make.
 
@@ -64,45 +64,45 @@ Then build with Make.
 make
 ```
 
-#### Installing Astral on Linux
+#### Installing Kiwi on Linux
 
-Clone and build Astral.  Run `sudo make install` to build Astral and run the installation script.
+Clone and build Kiwi.  Run `sudo make install` to build Kiwi and run the installation script.
 
 ```bash
-git clone https://github.com/fuseraft/astral.git
-cd astral
+git clone https://github.com/fuseraft/kiwi.git
+cd kiwi
 sudo make install
 ```
 
 ### Windows Builds
 
-You can find a 64-bit build (named **`astral.exe`**) in the latest release.
+You can find a 64-bit build (named **`kiwi.exe`**) in the latest release.
 
 To build on Windows, you need to open a [64-bit hosted developer command prompt](https://learn.microsoft.com/en-us/cpp/build/how-to-enable-a-64-bit-visual-cpp-toolset-on-the-command-line?view=msvc-170).
 
 Then navigate to the source code and run [`build.bat`](build.bat).
 
 ```cmd
-cd path\to\astral
+cd path\to\kiwi
 build.bat
 ```
 
-*Note: The Windows build does not support `.⭐` files (use the `.star` extension).*
+*Note: The Windows build does not support `.🥝` files (use the `.ki` extension).*
 
 ### Visual Studio Code Extension
 
-You can install the [extension](https://marketplace.visualstudio.com/items?itemName=fuseraft.astral-lang) for syntax-highlighting in VS Code.
+You can install the [extension](https://marketplace.visualstudio.com/items?itemName=fuseraft.kiwi-lang) for syntax-highlighting in VS Code.
 
 Launch VS Code Quick Open (<kbd>Ctrl</kbd>+<kbd>P</kbd>), paste the following command, and press enter.
 ```
-ext install fuseraft.astral-lang
+ext install fuseraft.kiwi-lang
 ```
 
 ## Documentation
 
-### Astral Index
+### Kiwi Index
 
-You can find detailed information on language features in the [Astral Index](docs/README.md).
+You can find detailed information on language features in the [Kiwi Index](docs/README.md).
 
 ### Test Suite
 
@@ -111,7 +111,7 @@ Explore the [tests](tests/) directory for a collection of test scripts.
 To run the test suite, execute:
 
 ```shell
-astral test
+kiwi test
 ```
 
 To build and run the test suite, execute:
@@ -124,8 +124,8 @@ make test
 
 #### Cellular Automata
 
-- [Rule 30](examples/ca.⭐)
-- [Conway's Game of Life](examples/life.⭐)
+- [Rule 30](examples/ca.🥝)
+- [Conway's Game of Life](examples/life.🥝)
 
 #### Project Euler
 
@@ -133,11 +133,11 @@ make test
 
 #### Web Application
 
-Below is a simple HTTP web application. You can find the [example project here](examples/webapp/app.⭐).
+Below is a simple HTTP web application. You can find the [example project here](examples/webapp/app.🥝).
 
 ```ruby
-import "@astral/web" as web
-import "@astral/fs" as fs
+import "@kiwi/web" as web
+import "@kiwi/fs" as fs
 
 # HTML helpers
 html = {
@@ -174,7 +174,7 @@ web.public("/", "./public")
 host = "0.0.0.0", port = 8080
 
 # start the web server
-println("Starting Astral Web Server at http://${host}:${port}")
+println("Starting Kiwi Web Server at http://${host}:${port}")
 web.listen(host, port)
 ```
 
@@ -183,9 +183,9 @@ web.listen(host, port)
 Below is a script that generates a temporary script and executes it.
 
 ```ruby
-import "@astral/fs" as fs
-import "@astral/math" as math
-import "@astral/sys" as sys
+import "@kiwi/fs" as fs
+import "@kiwi/math" as math
+import "@kiwi/sys" as sys
 
 try
   # Look for a temporary directory. Fail fast.
@@ -196,20 +196,20 @@ try
   
   # Generate a random temporary file path.
   filename = math.random("0123456789ABCDEF", 10)
-  path = fs.combine(fs.tmpdir(), "${filename}.⭐")
+  path = fs.combine(fs.tmpdir(), "${filename}.🥝")
 
-  # Write a little ⭐ script.
+  # Write a little 🥝 script.
   fs.write(path, "
     /#
     This script will delete itself and let you know it was there.
     #/
-    import \"@astral/fs\" as fs
+    import \"@kiwi/fs\" as fs
     fs.remove(\"${path}\")
-    println(\"Astral was here running as ${fs.filename(path)}.\")
+    println(\"Kiwi was here running as ${fs.filename(path)}.\")
   ")
 
-  # Run the ⭐ script.
-  sys.exec("astral ${path}")
+  # Run the 🥝 script.
+  sys.exec("kiwi ${path}")
 catch (err)
   println("An error occurred: ${err}")
 end
@@ -217,15 +217,15 @@ end
 
 ## Contributions
 
-I welcome and appreciate any and all contributions to the Astral project! Here's how you can contribute:
+I welcome and appreciate any and all contributions to the Kiwi project! Here's how you can contribute:
 
-1. **Join the Discord**: [The Astral Programming Language](https://discord.com/channels/1221516965743431841/1221553678104920195)
+1. **Join the Discord**: [The Kiwi Programming Language](https://discord.com/channels/1221516965743431841/1221553678104920195)
 2. **Fork the Repository**: Fork the project to your GitHub account.
 3. **Clone the Forked Repository**: Clone it to your machine.
 4. **Set Up Your Environment**: Follow the "Getting Started" section.
 5. **Make Changes**: Implement your features or fixes.
 6. **Test Your Changes**: Ensure all tests pass.
-7. **Create a Pull Request**: Submit it from your fork to the main Astral repository.
+7. **Create a Pull Request**: Submit it from your fork to the main Kiwi repository.
 
 For more details, please read [CONTRIBUTING.md](CONTRIBUTING.md).
 

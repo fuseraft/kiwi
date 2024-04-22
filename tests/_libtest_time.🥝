@@ -1,0 +1,3 @@
+import "@kiwi/time"
+
+println("Current timestamp: ${time::timestamp()}")

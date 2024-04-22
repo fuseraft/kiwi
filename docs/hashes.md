@@ -1,6 +1,6 @@
 # Hashes
 
-Hashes in Astral are similar to maps and dictionaries in other languages.
+Hashes in Kiwi are similar to maps and dictionaries in other languages.
 
 A hash just contains a series of key-value pairs.
 
@@ -64,7 +64,7 @@ end
 
 ### Optional Commas
 
-Commas are optional in Astral.
+Commas are optional in Kiwi.
 
 ```ruby
 hash = {

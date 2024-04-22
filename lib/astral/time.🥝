@@ -1,0 +1,394 @@
+/#
+Summary: A module containing functionality for working with time and date information.
+#/
+module time
+  __home__("kiwi")
+
+  /#
+  Summary: Get hours since midnight (0 to 23).
+  Returns: Integer
+  #/
+  def hour()
+    return __hour__()
+  end
+
+  /#
+  Summary: Get minutes after the hour (0 to 59).
+  Returns: Integer
+  #/
+  def minute()
+    return __min__()
+  end
+
+  /#
+  Summary: Get seconds after the minute (0 to 60).
+  Returns: Integer
+  #/
+  def second()
+    return __sec__()
+  end
+
+  /#
+  Summary: Get time of day designation for 12 hour clocks as "AM" or "PM".
+  Returns: String
+  #/
+  def ampm()
+    return __ampm__()
+  end
+
+  /#
+  Summary: Get current timestamp in YYYY/mm/dd hh:mm:ss tt format.
+  Returns: String
+  #/
+  def timestamp()
+    year = __year__()
+    month = __mon__()
+    day = __mday__()
+    hour = __hour__()
+    minute = __min__()
+    second = __sec__()
+    ampm = __ampm__()
+
+    if hour > 12 hour -= 12 end
+    if minute < 10 minute = "0${minute}" end
+    if day < 10 day = "0${day}" end
+    if month < 10 month = "0${month}" end
+    if second < 10 second = "0${second}" end
+
+    return "${year}/${month}/${day} ${hour}:${minute}:${second} ${ampm}"
+  end
+
+  /#
+  Summary: Get current timestamp with a specific format.
+  Params:
+    - _format: The format string.
+  Returns: String
+  #/
+  def timestamp_formatted(_format)
+    return __timestamp__(_format)
+  end
+
+  /#
+  Summary: Format a DateTime object.
+  Params:
+    - _datetime: The DateTime object.
+    - _format: The format string.
+  Returns: String
+  #/
+  def dtformat(_datetime, _format = "%Y-%m-%d %H:%M:%S")
+    return __dtformat__(_datetime, _format)
+  end
+
+  /#
+  Summary: Get the day of the month (1 to 31).
+  Returns: Integer
+  #/
+  def day()
+    return __mday__()
+  end
+
+  /#
+  Summary: Get months since January (1 to 12).
+  Returns: Integer
+  #/
+  def month()
+    return __mon__()
+  end
+
+  /#
+  Summary: Get the current year.
+  Returns: Integer
+  #/
+  def year()
+    return __year__()
+  end
+
+  /#
+  Summary: Check if a given year is a leap year.
+  Params:
+    _year: The year to check.
+  Returns: Boolean
+  #/
+  def leapyear(_year)
+    return (_year % 4 == 0 && _year % 100 != 0) || (_year % 400 == 0)
+  end
+  
+  /#
+  Summary: Get how many days are in a given month.
+  Params:
+    _year: The year to check.
+    _month: The month to check.
+  Returns: Integer
+  #/
+  def monthdays(_year, _month)
+    if [4, 6, 9, 11].contains(_month)
+      return 30
+    elsif 2 == _month && time::leapyear(_year)
+      return 29
+    elsif 2 == _month
+      return 28
+    else
+      return 31
+    end
+  end
+
+  def valid_day(_year, _month, _day)
+    return _day > time::monthdays(_year, _month)
+  end
+
+  /#
+  Summary: Get the day of the week (1 to 7).
+  Returns: Integer
+  #/
+  def weekday()
+    return __wday__()
+  end
+
+  /#
+  Summary: Get the day of the year (0 to 365). December 31st is 364 on leap years.
+  Returns: Integer
+  #/
+  def yearday()
+    return __yday__()
+  end
+
+  /#
+  Summary: Get boolean indicating whether it is Daylight Savings Time.
+  Returns: Boolean
+  #/
+  def isdst()
+    return __isdst__()
+  end
+
+  /#
+  Summary: Get milliseconds since January 1st, 1970.
+  Returns: Double
+  #/
+  def epochms()
+    return __epochms__()
+  end
+
+  /#
+  Summary: Get nanoseconds since January 1st, 1970.
+  Returns: Double
+  #/
+  def ticks()
+    return __ticks__()
+  end
+
+  /#
+  Summary: Converts ticks to milliseconds.
+  Returns: Double
+  #/
+  def ticksms(_ticks)
+    return __ticksms__(_ticks)
+  end
+
+  /#
+  Summary: Sleep for a specified duration in milliseconds.
+  Params:
+    - _ms: The duration in milliseconds.
+  Returns: Double
+  #/
+  def delay(_ms)
+    return __delay__(_ms)
+  end
+end
+
+class DateTime private (year, month, day, hour, minute, second)
+  def initialize(year = 1970, month = 1, day = 1, hour = 0, minute = 0, second = 0)
+    @year = year.is_a(Integer) ? year : 1970
+    @month = month.is_a(Integer) ? month : 1
+    @day = day.is_a(Integer) ? day : 1
+    @hour = hour.is_a(Integer) ? hour : 0
+    @minute = minute.is_a(Integer) ? minute : 0
+    @second = second.is_a(Integer) ? second : 0
+  end
+
+  def to_string()
+    date_part = ["${@year}", string::padstart("${@month}", 2, "0"), string::padstart("${@day}", 2, "0")].join("-")
+    time_part = [string::padstart("${@hour}", 2, "0"), string::padstart("${@minute}", 2, "0"), string::padstart("${@second}", 2, "0")].join(":")
+    return [date_part, time_part].join(" ")
+  end
+
+  def to_number()
+    number_string = "${@}".replace("-", "").replace(":", "").split(" ")
+    date_part = number_string[0].to_int()
+    time_part = "1${number_string[1]}".to_int()
+
+    return [date_part, time_part]
+  end
+
+  def equal(another_date)
+    if !another_date.is_a(DateTime)
+      return false
+    else
+      number_a = (@to_number())
+      number_b = another_date.to_number()
+      if number_a[0] == number_b[0]
+        return number_a[1] == number_b[1]
+      else
+        return false
+      end
+    end
+  end
+
+  def after(another_date)
+    if !another_date.is_a(DateTime)
+      return false
+    else
+      number_a = (@to_number())
+      number_b = another_date.to_number()
+      if number_a[0] > number_b[0]
+        return true
+      elsif number_a[0] == number_b[0]
+        return number_a[1] > number_b[1]
+      else
+        return false
+      end
+    end
+  end
+
+  def before(another_date)
+    if !another_date.is_a(DateTime)
+      return false
+    else
+      number_a = (@to_number())
+      number_b = another_date.to_number()
+      if number_a[0] < number_b[0]
+        return true
+      elsif number_a[0] == number_b[0]
+        return number_a[1] < number_b[1]
+      else
+        return false
+      end
+    end
+  end
+
+  def add_days(n)
+    if n.is_a(Integer)
+      @day += n
+      month_days = time::monthdays(@year, @month)
+
+      while @day > month_days do
+        @day -= month_days
+        @month += 1
+
+        if @month > 12
+          @month = 1
+          @year += 1
+        end
+
+        month_days = time::monthdays(@year, @month)
+      end
+
+      while @day < 1 do
+        @month -= 1
+
+        if @month < 1
+          @month = 12
+          @year -= 1
+        end
+
+        @day += time::monthdays(@year, @month)
+      end
+    end
+
+    return @
+  end
+
+  def add_months(n)
+    if n.is_a(Integer)
+      @month += n
+      
+      while @month > 12 do
+        @month -= 12
+        @year += 1
+      end
+
+      while @month < 1 do
+        @month += 12
+        @year -= 1
+      end
+
+      @day = [@day, time::monthdays(@year, @month)].min()
+    end
+    return @
+  end
+
+  def add_years(n)
+    if n.is_a(Integer)
+      @year += n
+      @day = [@day, time::monthdays(@year, @month)].min()
+    end
+    return @
+  end
+
+  def add_hours(n)
+    if n.is_a(Integer)
+      @hour += n
+
+      while @hour >= 24 do
+        @hour -= 24
+        add_days(1)
+      end
+
+      while @hour < 0 do
+        @hour += 24
+        add_days(-1)
+      end
+    end
+    return @
+  end
+
+  def add_minutes(n)
+    if n.is_a(Integer)
+      @minute += n
+
+      while @minute >= 60 do
+        @minute -= 60
+        add_hours(1)
+      end
+
+      while @minute < 0 do
+        @minute += 60
+        add_hours(-1)
+      end
+    end
+    return @
+  end
+
+  def add_seconds(n)
+    if n.is_a(Integer)
+      @second += n
+
+      while @second >= 60 do
+        @second -= 60
+        add_minutes(1)
+      end
+
+      while @second < 0 do
+        @second += 60
+        add_minutes(-1)
+      end
+    end
+    return @
+  end
+
+  def get_year() return @year end
+  def get_month() return @month end
+  def get_day() return @day end
+  def get_hour() return @hour end
+  def get_minute() return @minute end
+  def get_second() return @second end
+
+  static def format(_datetime, _format = "%Y-%m-%d %H:%M:%S")
+    return time::dtformat(_datetime, _format)
+  end
+
+  static def now()
+    return DateTime.new(time::year(), time::month(), time::day(), time::hour(), time::minute(), time::second())
+  end
+end
+
+export "time"

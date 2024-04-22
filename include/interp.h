@@ -1,5 +1,5 @@
-#ifndef ASTRAL_INTERP_H
-#define ASTRAL_INTERP_H
+#ifndef KIWI_INTERP_H
+#define KIWI_INTERP_H
 
 #include <unordered_map>
 #include <stack>
@@ -32,12 +32,12 @@ class Interpreter {
   Interpreter() {}
   ~Interpreter() {}
 
-  void setAstralArgs(const std::unordered_map<k_string, k_string>& args) {
-    astralArgs = args;
+  void setKiwiArgs(const std::unordered_map<k_string, k_string>& args) {
+    kiwiArgs = args;
   }
 
-  int interpretAstral(const k_string& astralCode) {
-    Lexer lexer("", astralCode);
+  int interpretKiwi(const k_string& kiwiCode) {
+    Lexer lexer("", kiwiCode);
     return interpret(lexer);
   }
 
@@ -56,7 +56,7 @@ class Interpreter {
     File::setCurrentDirectory(cwd);
 
     // -Xdump=true
-    if (astralArgs.find("dump") != astralArgs.end()) {
+    if (kiwiArgs.find("dump") != kiwiArgs.end()) {
       dumpState();
     }
 
@@ -118,7 +118,7 @@ class Interpreter {
   bool preservingMainStackFrame = false;
 
   void dumpState() {
-    std::cout << astral_arg << " v" << astral_version << " state dump"
+    std::cout << kiwi_arg << " v" << kiwi_version << " state dump"
               << std::endl;
 
     std::cout << "streams: " << streamStack.size() << std::endl;
@@ -265,7 +265,7 @@ class Interpreter {
     while (stream->canRead()) {
       try {
         interpretToken(stream, frame);
-      } catch (const AstralError& e) {
+      } catch (const KiwiError& e) {
         if (frame->isFlagSet(FrameFlags::InTry)) {
           frame->setErrorState(e);
         } else {
@@ -287,7 +287,7 @@ class Interpreter {
     handleFrameExit(frame);
   }
 
-  void handleUncaughtException(k_stream stream, const AstralError& e) {
+  void handleUncaughtException(k_stream stream, const KiwiError& e) {
     std::cerr << "Uncaught error: ";
     ErrorHandler::handleError(e);
 
@@ -723,7 +723,7 @@ class Interpreter {
           "Expected an string expression for parse operation.");
     }
 
-    interpretAstral(std::get<k_string>(expression));
+    interpretKiwi(std::get<k_string>(expression));
   }
 
   void interpretKeyword(k_stream stream,
@@ -829,7 +829,7 @@ class Interpreter {
           return;
         }
 
-        throw AstralError(
+        throw KiwiError(
             stream->current(),
             "Unhandled keyword `" + stream->current().getText() + "`, type = " +
                 get_token_type_string(stream->current().getType()) + ".");
@@ -957,7 +957,7 @@ class Interpreter {
       }
 
       return interpretValueInvocation(stream, frame, v);
-    } else if (AstralBuiltins.is_builtin_method(op)) {
+    } else if (KiwiBuiltins.is_builtin_method(op)) {
       return interpretBuiltin(stream, frame, op);
     }
 
@@ -1205,7 +1205,7 @@ class Interpreter {
   void handleWebServerRequest(int webhookID, k_hash requestHash,
                               k_string& redirect, k_string& content,
                               k_string& contentType, int& status) {
-    auto webhook = astralWebServerHooks[webhookID];
+    auto webhook = kiwiWebServerHooks[webhookID];
     auto webhookFrame = std::make_shared<CallStackFrame>();
 
     for (const auto& param : webhook.getParameters()) {
@@ -1287,11 +1287,11 @@ class Interpreter {
     auto method = getMethod(stream, frame, lambdaName);
     int webhookID = 0;
 
-    if (!astralWebServerHooks.empty()) {
-      webhookID = static_cast<int>(astralWebServerHooks.size());
+    if (!kiwiWebServerHooks.empty()) {
+      webhookID = static_cast<int>(kiwiWebServerHooks.size());
     }
 
-    astralWebServerHooks[webhookID] = std::move(method);
+    kiwiWebServerHooks[webhookID] = std::move(method);
     return webhookID;
   }
 
@@ -1349,7 +1349,7 @@ class Interpreter {
     int webhookID = getNextWebServerHook(stream, frame, args.at(1));
 
     for (const auto& endpoint : endpointList) {
-      astralWebServer.Get(
+      kiwiWebServer.Get(
           endpoint, [this, webhookID](const httplib::Request& req,
                                       httplib::Response& res) {
             auto requestHash = getWebServerRequestHash(req);
@@ -1381,7 +1381,7 @@ class Interpreter {
     int webhookID = getNextWebServerHook(stream, frame, args.at(1));
 
     for (const auto& endpoint : endpointList) {
-      astralWebServer.Post(
+      kiwiWebServer.Post(
           endpoint, [this, webhookID](const httplib::Request& req,
                                       httplib::Response& res) {
             auto requestHash = getWebServerRequestHash(req);
@@ -1412,13 +1412,13 @@ class Interpreter {
       throw BuiltinUnexpectedArgumentError(term, WebServerBuiltins.Listen);
     }
 
-    astralWebServerHost = get_string(term, args.at(0));
-    astralWebServerPort = get_integer(term, args.at(1));
+    kiwiWebServerHost = get_string(term, args.at(0));
+    kiwiWebServerPort = get_integer(term, args.at(1));
 
-    astralWebServer.listen(astralWebServerHost,
-                           static_cast<int>(astralWebServerPort));
+    kiwiWebServer.listen(kiwiWebServerHost,
+                           static_cast<int>(kiwiWebServerPort));
 
-    return static_cast<k_int>(astralWebServerPort);
+    return static_cast<k_int>(kiwiWebServerPort);
   }
 
   k_value interpretWebServerPort(k_stream stream,
@@ -1428,7 +1428,7 @@ class Interpreter {
                                            WebServerBuiltins.Listen);
     }
 
-    return astralWebServerPort;
+    return kiwiWebServerPort;
   }
 
   k_value interpretWebServerPublic(k_stream stream,
@@ -1445,7 +1445,7 @@ class Interpreter {
       return false;
     }
 
-    astralWebServer.set_mount_point(endpoint, publicDir);
+    kiwiWebServer.set_mount_point(endpoint, publicDir);
 
     return true;
   }
@@ -1457,7 +1457,7 @@ class Interpreter {
                                            WebServerBuiltins.Listen);
     }
 
-    return astralWebServerHost;
+    return kiwiWebServerHost;
   }
 
   k_value interpretWebServerBuiltin(k_stream stream,
@@ -1695,7 +1695,7 @@ class Interpreter {
 
     auto clazz = classes[object->className];
     if (!clazz.hasMethod(methodName)) {
-      if (AstralBuiltins.is_builtin(op)) {
+      if (KiwiBuiltins.is_builtin(op)) {
         return BuiltinDispatch::execute(stream->current(), op, object,
                                         parameters);
       }
@@ -2049,7 +2049,7 @@ class Interpreter {
     bool hasValue = InterpHelper::hasReturnValue(stream);
     stream->next();  // Skip "throw"
 
-    k_string errorType = "AstralError";
+    k_string errorType = "KiwiError";
     k_string errorMessage;
 
     if (hasValue) {
@@ -2070,7 +2070,7 @@ class Interpreter {
       }
     }
 
-    throw AstralError(throwToken, errorType, errorMessage);
+    throw KiwiError(throwToken, errorType, errorMessage);
   }
 
   void interpretReturn(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
@@ -2648,26 +2648,26 @@ class Interpreter {
     }
 
     auto scriptName = std::get<k_string>(scriptNameValue);
-    auto scriptNameAstral = scriptName;
+    auto scriptNameKiwi = scriptName;
 
-    if (!String::endsWith(scriptName, astral_extension) &&
-        !String::endsWith(scriptName, ".star")) {
-      scriptName += ".star";
+    if (!String::endsWith(scriptName, kiwi_extension) &&
+        !String::endsWith(scriptName, ".ki")) {
+      scriptName += ".ki";
 #ifdef _WIN64
-      scriptNameAstral += astral_extension;
+      scriptNameKiwi += kiwi_extension;
 #else
-      scriptNameAstral += ".⭐";
+      scriptNameKiwi += ".🥝";
 #endif
     }
 
     auto scriptPath = File::getLocalPath(scriptName);
-    auto astralScriptPath = File::getLocalPath(scriptNameAstral);
-    if (!File::fileExists(scriptPath) && !File::fileExists(astralScriptPath)) {
+    auto kiwiScriptPath = File::getLocalPath(scriptNameKiwi);
+    if (!File::fileExists(scriptPath) && !File::fileExists(kiwiScriptPath)) {
       throw FileNotFoundError(scriptName);
     }
 
-    auto content = File::fileExists(astralScriptPath)
-                       ? File::readFile(astralScriptPath)
+    auto content = File::fileExists(kiwiScriptPath)
+                       ? File::readFile(kiwiScriptPath)
                        : File::readFile(scriptPath);
     if (content.empty()) {
       return "";
@@ -2882,7 +2882,7 @@ class Interpreter {
     }
 
     frame->returnValue =
-        BuiltinDispatch::execute(term, builtin, args, astralArgs);
+        BuiltinDispatch::execute(term, builtin, args, kiwiArgs);
     return frame->returnValue;
   }
 
@@ -3781,7 +3781,7 @@ class Interpreter {
     auto object = std::get<k_object>(value);
     auto clazz = classes[object->className];
 
-    if (!clazz.hasMethod(AstralBuiltins.ToS)) {
+    if (!clazz.hasMethod(KiwiBuiltins.ToS)) {
       return Serializer::basic_serialize_object(object);
     }
 
@@ -3789,7 +3789,7 @@ class Interpreter {
 
     // Should probably check that an overridden to_string() actually returns a string.
     return Serializer::serialize(interpretInstanceMethodInvocation(
-        stream, frame, object, AstralBuiltins.ToS, KName::Builtin_Astral_ToS,
+        stream, frame, object, KiwiBuiltins.ToS, KName::Builtin_Kiwi_ToS,
         parameters));
   }
 

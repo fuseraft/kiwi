@@ -1,0 +1,36 @@
+import "@kiwi/fs" as fs
+
+path = "hello.txt"
+
+println("=> creating file: ${path}, result: ${fs.touch(path)}")
+
+if fs.exists(path) println("=> created file: ${path}") end
+
+println("=> writing text to file: ${path}")
+fs.write(path, "")
+fs.writeln(path, "Hello, World!")
+fs.append(path, "This is Kiwi!")
+
+println("=> reading text from file: ${path}\n=> file text:\n${fs.read(path)}")
+
+dest = "hello-copy.txt"
+println("=> copying file: ${path}\n=> copying to: ${dest}, result: ${fs.copy(path, dest)}")
+
+println("=> reading text from file: ${dest}\n=> file text:\n${fs.read(dest)}")
+println("=> deleting file: ${dest}, result: ${fs.remove(dest)}")
+println("=> getting file size: ${path}\n=> file size in bytes: ${fs.filesize(path)} bytes")
+
+abspath = fs.abspath(path)
+println("=> absolute path: ${abspath}")
+
+println("=> parent directory: ${fs.parentdir(abspath)}")
+println("=> file name: ${fs.filename(abspath)}")
+println("=> file extension: ${fs.ext(path)}")
+
+dest = "hello-moved.txt"
+println("=> moving file: ${path}\n=> moving to: ${dest}, result: ${fs.move(path, dest)}")
+
+path = dest
+
+if fs.exists(path) println("=> deleting file: ${path}, result: ${fs.remove(path)}") end
+if !fs.exists(path) println("=> deleted file: ${path}") end

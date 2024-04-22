@@ -1,5 +1,5 @@
-#ifndef ASTRAL_BUILTINS_HTTPHANDLER_H
-#define ASTRAL_BUILTINS_HTTPHANDLER_H
+#ifndef KIWI_BUILTINS_HTTPHANDLER_H
+#define KIWI_BUILTINS_HTTPHANDLER_H
 
 #include <memory>
 #include <vector>

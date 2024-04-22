@@ -1,5 +1,5 @@
-#ifndef ASTRAL_UTIL_FILE_H
-#define ASTRAL_UTIL_FILE_H
+#ifndef KIWI_UTIL_FILE_H
+#define KIWI_UTIL_FILE_H
 
 #include <fstream>
 #include <filesystem>
@@ -377,28 +377,28 @@ k_string File::getParentPath(const k_string& path) {
   return "";
 }
 
-/// @brief Check if a path is a astral script.
+/// @brief Check if a path is a kiwi script.
 /// @param path The path.
 /// @return Boolean indicating success.
 bool File::isScript(const k_string& path) {
-  k_string extension = ".⭐";
+  k_string extension = ".🥝";
 #ifdef _WIN64
-  extension = ".star";
+  extension = ".ki";
 #endif
   return (String::endsWith(path, extension) ||
-          String::endsWith(path, ".star")) &&
+          String::endsWith(path, ".ki")) &&
          File::fileExists(path);
 }
 
-/// @brief Check if a path is a astral script.
+/// @brief Check if a path is a kiwi script.
 /// @param path The path.
 /// @return Boolean indicating success.
 k_string File::tryGetExtensionless(const k_string& path) {
-  k_string minExtension = ".min.⭐";
-  k_string extension = ".⭐";
+  k_string minExtension = ".min.🥝";
+  k_string extension = ".🥝";
 #ifdef _WIN64
-  minExtension = ".min.star";
-  extension = ".star";
+  minExtension = ".min.ki";
+  extension = ".ki";
 #endif
 
   k_string scriptPath = path + minExtension;
@@ -453,21 +453,21 @@ fs::path File::getExecutablePath() {
 }
 
 k_string File::getLibraryPath() {
-  fs::path astralPath(getExecutablePath());
-  fs::path astrallibPath;
+  fs::path kiwiPath(getExecutablePath());
+  fs::path kiwilibPath;
 #ifdef _WIN64
-  k_string binPath = getParentPath(astralPath.string());
+  k_string binPath = getParentPath(kiwiPath.string());
   k_string parentPath = getParentPath(binPath);
-  astrallibPath = (fs::path(parentPath) / "lib\\astral").lexically_normal();
+  kiwilibPath = (fs::path(parentPath) / "lib\\kiwi").lexically_normal();
 #else
-  astrallibPath = (astralPath / "../lib/astral").lexically_normal();
+  kiwilibPath = (kiwiPath / "../lib/kiwi").lexically_normal();
 #endif
 
-  if (!fs::exists(astrallibPath)) {
+  if (!fs::exists(kiwilibPath)) {
     return "";
   }
 
-  return astrallibPath.string();
+  return kiwilibPath.string();
 }
 
 #ifdef _WIN64

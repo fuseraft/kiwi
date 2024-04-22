@@ -1,6 +1,6 @@
 # Abstract Classes
 
-Abstract classes in Astral serve as a way to define classes that cannot be instantiated on their own but can be used as a base for other classes. These classes are intended to outline a set of methods and properties that derived classes must implement or inherit.
+Abstract classes in Kiwi serve as a way to define classes that cannot be instantiated on their own but can be used as a base for other classes. These classes are intended to outline a set of methods and properties that derived classes must implement or inherit.
 
 ## Defining Abstract Classes
 
@@ -52,4 +52,4 @@ println(circle.perimeter())  # Output: Perimeter of the circle.
 ## Notes
 
 - Abstract classes are a foundational concept for enforcing a contract for subclasses, ensuring that they implement specific methods.
-- While you cannot create instances of abstract classes, they are crucial for designing a clear and consistent class hierarchy in object-oriented programming in Astral.
+- While you cannot create instances of abstract classes, they are crucial for designing a clear and consistent class hierarchy in object-oriented programming in Kiwi.

@@ -8,7 +8,7 @@
             "name": "g++ - Build and debug active file",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/astral",
+            "program": "${workspaceFolder}/bin/kiwi",
             "args": [
                 "${workspaceFolder}/play"
             ],

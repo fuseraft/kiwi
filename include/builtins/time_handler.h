@@ -1,5 +1,5 @@
-#ifndef ASTRAL_BUILTINS_TIMEHANDLER_H
-#define ASTRAL_BUILTINS_TIMEHANDLER_H
+#ifndef KIWI_BUILTINS_TIMEHANDLER_H
+#define KIWI_BUILTINS_TIMEHANDLER_H
 
 #include <exception>
 #include <vector>

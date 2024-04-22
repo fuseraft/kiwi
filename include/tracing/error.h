@@ -1,13 +1,13 @@
-#ifndef ASTRAL_TRACING_ERROR_H
-#define ASTRAL_TRACING_ERROR_H
+#ifndef KIWI_TRACING_ERROR_H
+#define KIWI_TRACING_ERROR_H
 
 #include <iostream>
 #include <exception>
 #include "parsing/tokens.h"
 
-class AstralError : public std::exception {
+class KiwiError : public std::exception {
  public:
-  AstralError(const Token& token, std::string error,
+  KiwiError(const Token& token, std::string error,
               const std::string& message = "")
       : token(token), error(error), message(message) {}
 
@@ -16,8 +16,8 @@ class AstralError : public std::exception {
   const std::string getError() const { return error; }
   const std::string getMessage() const { return message; }
 
-  static AstralError create(const std::string& message = "") {
-    return AstralError(Token::createEmpty(), "AstralError", message);
+  static KiwiError create(const std::string& message = "") {
+    return KiwiError(Token::createEmpty(), "KiwiError", message);
   }
 
  private:
@@ -26,242 +26,242 @@ class AstralError : public std::exception {
   std::string message;
 };
 
-class UnknownBuiltinError : public AstralError {
+class UnknownBuiltinError : public KiwiError {
  public:
   UnknownBuiltinError(const Token& token, const std::string& name)
-      : AstralError(token, "UnknownBuiltinError",
+      : KiwiError(token, "UnknownBuiltinError",
                     "The builtin `" + name + "` is unknown.") {}
 };
 
-class UnknownIdentifierError : public AstralError {
+class UnknownIdentifierError : public KiwiError {
  public:
   UnknownIdentifierError(const Token& token, const std::string& name)
-      : AstralError(token, "UnknownIdentifierError",
+      : KiwiError(token, "UnknownIdentifierError",
                     "The identifier `" + name + "` is unknown.") {}
 };
 
-class UnrecognizedTokenError : public AstralError {
+class UnrecognizedTokenError : public KiwiError {
  public:
   UnrecognizedTokenError(const Token& token,
                          const std::string& message = "Unrecognized token.")
-      : AstralError(token, "UnrecognizedTokenError", message) {}
+      : KiwiError(token, "UnrecognizedTokenError", message) {}
 };
 
-class SyntaxError : public AstralError {
+class SyntaxError : public KiwiError {
  public:
   SyntaxError(const Token& token,
               const std::string& message = "Invalid syntax.")
-      : AstralError(token, "SyntaxError", message) {}
+      : KiwiError(token, "SyntaxError", message) {}
 };
 
-class RangeError : public AstralError {
+class RangeError : public KiwiError {
  public:
   RangeError(const Token& token, const std::string& message = "Invalid range.")
-      : AstralError(token, "RangeError", message) {}
+      : KiwiError(token, "RangeError", message) {}
 };
 
-class IndexError : public AstralError {
+class IndexError : public KiwiError {
  public:
   IndexError(const Token& token, const std::string& message = "Invalid index.")
-      : AstralError(token, "IndexError", message) {}
+      : KiwiError(token, "IndexError", message) {}
 };
 
-class EmptyListError : public AstralError {
+class EmptyListError : public KiwiError {
  public:
   EmptyListError(const Token& token,
                  const std::string& message = "This list is empty.")
-      : AstralError(token, "EmptyListError", message) {}
+      : KiwiError(token, "EmptyListError", message) {}
 };
 
-class HashKeyError : public AstralError {
+class HashKeyError : public KiwiError {
  public:
   HashKeyError(const Token& token, const std::string& key)
-      : AstralError(token, "HashKeyError",
+      : KiwiError(token, "HashKeyError",
                     "The key `" + key + "` does not exist in the hash.") {}
 };
 
-class ParameterMissingError : public AstralError {
+class ParameterMissingError : public KiwiError {
  public:
   ParameterMissingError(const Token& token, const std::string& name)
-      : AstralError(token, "ParameterMissingError",
+      : KiwiError(token, "ParameterMissingError",
                     "The parameter `" + name + "` was expected but missing.") {}
 };
 
-class ParameterCountMismatchError : public AstralError {
+class ParameterCountMismatchError : public KiwiError {
  public:
   ParameterCountMismatchError(const Token& token, const std::string& name)
-      : AstralError(token, "ParameterCountMismatchError",
+      : KiwiError(token, "ParameterCountMismatchError",
                     "The parameter count for method `" + name +
                         "` does not match parameters passed.") {}
 };
 
-class UnrecognizedBuiltinError : public AstralError {
+class UnrecognizedBuiltinError : public KiwiError {
  public:
   UnrecognizedBuiltinError(const Token& token, const std::string& name)
-      : AstralError(token, "UnrecognizedBuiltinError",
+      : KiwiError(token, "UnrecognizedBuiltinError",
                     "Unrecognized builtin `" + name + "`.") {}
 };
 
-class ClassRedefinitionError : public AstralError {
+class ClassRedefinitionError : public KiwiError {
  public:
   ClassRedefinitionError(const Token& token, const std::string& name)
-      : AstralError(token, "ClassRedefinitionError",
+      : KiwiError(token, "ClassRedefinitionError",
                     "Attempted to redefine class already defined class `" +
                         name + "`.") {}
 };
 
-class ClassUndefinedError : public AstralError {
+class ClassUndefinedError : public KiwiError {
  public:
   ClassUndefinedError(const Token& token, const std::string& name)
-      : AstralError(token, "ClassUndefinedError",
+      : KiwiError(token, "ClassUndefinedError",
                     "The class `" + name + "` is undefined.") {}
 };
 
-class UnimplementedMethodError : public AstralError {
+class UnimplementedMethodError : public KiwiError {
  public:
   UnimplementedMethodError(const Token& token, const std::string& className,
                            const std::string& methodName)
-      : AstralError(token, "UnimplementedMethodError",
+      : KiwiError(token, "UnimplementedMethodError",
                     "The class `" + className +
                         "` has an unimplemented method `" + methodName + "`") {}
 };
 
-class BuiltinUnexpectedArgumentError : public AstralError {
+class BuiltinUnexpectedArgumentError : public KiwiError {
  public:
   BuiltinUnexpectedArgumentError(const Token& token, const std::string& name)
-      : AstralError(token, "BuiltinUnexpectedArgumentError",
+      : KiwiError(token, "BuiltinUnexpectedArgumentError",
                     "Unexpected argument count for builtin `" + name + "`.") {}
 };
 
-class InvalidContextError : public AstralError {
+class InvalidContextError : public KiwiError {
  public:
   InvalidContextError(const Token& token,
                       const std::string& message = "Invalid context.")
-      : AstralError(token, "InvalidContextError", message) {}
+      : KiwiError(token, "InvalidContextError", message) {}
 };
 
-class InvalidOperationError : public AstralError {
+class InvalidOperationError : public KiwiError {
  public:
   InvalidOperationError(const Token& token,
                         const std::string& message = "Invalid operation.")
-      : AstralError(token, "InvalidOperationError", message) {}
+      : KiwiError(token, "InvalidOperationError", message) {}
 };
 
-class InvalidTypeNameError : public AstralError {
+class InvalidTypeNameError : public KiwiError {
  public:
   InvalidTypeNameError(const Token& token, const std::string& name)
-      : AstralError(token, "InvalidTypeNameError",
+      : KiwiError(token, "InvalidTypeNameError",
                     "Invalid type name `" + name + "`") {}
 };
 
-class ConversionError : public AstralError {
+class ConversionError : public KiwiError {
  public:
   ConversionError(const Token& token,
                   const std::string& message = "A conversion error occurred.")
-      : AstralError(token, "ConversionError", message) {}
+      : KiwiError(token, "ConversionError", message) {}
 };
 
-class DivideByZeroError : public AstralError {
+class DivideByZeroError : public KiwiError {
  public:
   DivideByZeroError(const Token& token)
-      : AstralError(token, "DivideByZeroError",
+      : KiwiError(token, "DivideByZeroError",
                     "Attempted to divide by zero.") {}
 };
 
-class HomeModuleUndefinedError : public AstralError {
+class HomeModuleUndefinedError : public KiwiError {
  public:
   HomeModuleUndefinedError(const Token& token, const std::string& home,
                            const std::string& name)
-      : AstralError(token, "HomeModuleUndefinedError",
+      : KiwiError(token, "HomeModuleUndefinedError",
                     "Home module `@" + home + "/" + name + "` is undefined.") {}
 };
 
-class ModuleUndefinedError : public AstralError {
+class ModuleUndefinedError : public KiwiError {
  public:
   ModuleUndefinedError(const Token& token, const std::string& name)
-      : AstralError(token, "ModuleUndefinedError",
+      : KiwiError(token, "ModuleUndefinedError",
                     "Module `" + name + "` is undefined.") {}
 };
 
-class ModuleError : public AstralError {
+class ModuleError : public KiwiError {
  public:
   ModuleError(const Token& token, const std::string& message)
-      : AstralError(token, "ModuleError", message) {}
+      : KiwiError(token, "ModuleError", message) {}
 };
 
-class SystemError : public AstralError {
+class SystemError : public KiwiError {
  public:
   SystemError(const Token& token, const std::string& message)
-      : AstralError(token, "SystemError", message) {}
+      : KiwiError(token, "SystemError", message) {}
 };
 
-class MethodUndefinedError : public AstralError {
+class MethodUndefinedError : public KiwiError {
  public:
   MethodUndefinedError(const Token& token, const std::string& name)
-      : AstralError(token, "MethodUndefinedError",
+      : KiwiError(token, "MethodUndefinedError",
                     "Method `" + name + "` is undefined.") {}
 };
 
-class VariableUndefinedError : public AstralError {
+class VariableUndefinedError : public KiwiError {
  public:
   VariableUndefinedError(const Token& token, const std::string& name)
-      : AstralError(token, "VariableUndefinedError",
+      : KiwiError(token, "VariableUndefinedError",
                     "Variable `" + name + "` is undefined.") {}
 };
 
-class ValueTypeError : public AstralError {
+class ValueTypeError : public KiwiError {
  public:
   ValueTypeError(const Token& token, const std::string& expectedType)
-      : AstralError(token, "ValueTypeError",
+      : KiwiError(token, "ValueTypeError",
                     "Value is not a `" + expectedType + "`.") {}
 };
 
-class EmptyStackError : public AstralError {
+class EmptyStackError : public KiwiError {
  public:
   EmptyStackError(const Token& token)
-      : AstralError(token, "EmptyStackError", "The stack is empty.") {}
+      : KiwiError(token, "EmptyStackError", "The stack is empty.") {}
 };
 
-class IllegalNameError : public AstralError {
+class IllegalNameError : public KiwiError {
  public:
   IllegalNameError(const Token& token, const std::string& name)
-      : AstralError(token, "IllegalNameError",
+      : KiwiError(token, "IllegalNameError",
                     "The name `" + name + "` is illegal.") {}
 };
 
-class FileNotFoundError : public AstralError {
+class FileNotFoundError : public KiwiError {
  public:
   FileNotFoundError(const std::string& path)
-      : AstralError(Token::createEmpty(), "FileNotFoundError",
+      : KiwiError(Token::createEmpty(), "FileNotFoundError",
                     "File not found: " + path) {}
   FileNotFoundError(const Token& token, const std::string& path)
-      : AstralError(token, "FileNotFoundError", "File not found: " + path) {}
+      : KiwiError(token, "FileNotFoundError", "File not found: " + path) {}
 };
 
-class FileReadError : public AstralError {
+class FileReadError : public KiwiError {
  public:
   FileReadError(const std::string& path)
-      : AstralError(Token::createEmpty(), "FileReadError",
+      : KiwiError(Token::createEmpty(), "FileReadError",
                     "Cannot read file: " + path) {}
   FileReadError(const Token& token, const std::string& path)
-      : AstralError(token, "FileReadError", "Cannot read file: " + path) {}
+      : KiwiError(token, "FileReadError", "Cannot read file: " + path) {}
 };
 
-class FileWriteError : public AstralError {
+class FileWriteError : public KiwiError {
  public:
   FileWriteError(const std::string& path)
-      : AstralError(Token::createEmpty(), "FileWriteError",
+      : KiwiError(Token::createEmpty(), "FileWriteError",
                     "Cannot write to file: " + path) {}
   FileWriteError(const Token& token, const std::string& path)
-      : AstralError(token, "FileWriteError", "Cannot write to file: " + path) {}
+      : KiwiError(token, "FileWriteError", "Cannot write to file: " + path) {}
 };
 
-class FileSystemError : public AstralError {
+class FileSystemError : public KiwiError {
  public:
   FileSystemError(const std::string& message)
-      : AstralError(Token::createEmpty(), "FileSystemError", message) {}
+      : KiwiError(Token::createEmpty(), "FileSystemError", message) {}
   FileSystemError(const Token& token, const std::string& message)
-      : AstralError(token, "FileSystemError", message) {}
+      : KiwiError(token, "FileSystemError", message) {}
 };
 
 template <typename T>
@@ -269,15 +269,15 @@ class Thrower {
  public:
   template <typename... Args>
   void throwError(const Token& token, Args&&... args) {
-    static_assert(std::is_base_of<AstralError, T>::value,
-                  "T must be a subtype of `AstralError`.");
+    static_assert(std::is_base_of<KiwiError, T>::value,
+                  "T must be a subtype of `KiwiError`.");
     throw T(token, std::forward<Args>(args)...);
   }
 
   template <typename... Args>
   void throwError(Args&&... args) {
-    static_assert(std::is_base_of<AstralError, T>::value,
-                  "T must be a subtype of `AstralError`.");
+    static_assert(std::is_base_of<KiwiError, T>::value,
+                  "T must be a subtype of `KiwiError`.");
     Token emptyToken = Token::createEmpty();
     throw T(emptyToken, std::forward<Args>(args)...);
   }

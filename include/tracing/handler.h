@@ -1,5 +1,5 @@
-#ifndef ASTRAL_ERRORS_HANDLER_H
-#define ASTRAL_ERRORS_HANDLER_H
+#ifndef KIWI_ERRORS_HANDLER_H
+#define KIWI_ERRORS_HANDLER_H
 
 #include <vector>
 #include "error.h"
@@ -8,7 +8,7 @@
 
 class ErrorHandler {
  public:
-  static int handleError(const AstralError& e) {
+  static int handleError(const KiwiError& e) {
     const Token& token = e.getToken();
     std::string message = e.getMessage();
 

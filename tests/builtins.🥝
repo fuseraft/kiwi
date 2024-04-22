@@ -1,0 +1,23 @@
+list = [1, 2, 3], string = "31337", integer = string.to_int(), double = string.to_double()
+list << [string, integer, double]
+
+println("list = ${list}, size = ${list.size()}")
+
+list = ["The", "Kiwi", "Programming", "Language"]
+println("${list.join(" ")}")
+println("${list.join("-")}")
+
+# These are functionally equivalent.
+println(list.join(""))
+println(list.join())
+
+a = "FooBar".downcase() println("downcase: ${a}, upcase: ${a.upcase()}")
+
+println(a.index("bar"))
+println(a.chars())
+println("foobar".replace("foo", "food"))
+println("\"${a}\" begins with \"food\"? ${a.begins_with("food")}")
+println("\"foobar\" ends with \"bar\"? ${"foobar".ends_with("bar")}")
+println("foobar".ends_with("bark"))
+
+a = 1 println("is ${a} an integer? ${a.is_a(Integer) ? "yes" : "no"}\nis ${a} a string? ${a.is_a(String) ? "yes" : "no"}")

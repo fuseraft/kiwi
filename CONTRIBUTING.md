@@ -1,12 +1,12 @@
-# Contributing to Astral
+# Contributing to Kiwi
 
-First off, thank you for considering contributing to Astral! Let's build something amazing!
+First off, thank you for considering contributing to Kiwi! Let's build something amazing!
 
 ## How Can I Contribute?
 
 ### Reporting Bugs
 
-This section guides you through submitting a bug report for Astral. Following these guidelines helps maintainers and the community understand your report, reproduce the behavior, and find related reports.
+This section guides you through submitting a bug report for Kiwi. Following these guidelines helps maintainers and the community understand your report, reproduce the behavior, and find related reports.
 
 - **Use a clear and descriptive title** for the issue to identify the problem.
 - **Describe the exact steps which reproduce the problem** in as many details as possible.
@@ -14,7 +14,7 @@ This section guides you through submitting a bug report for Astral. Following th
 
 ### Suggesting Enhancements
 
-This section guides you through submitting an enhancement suggestion for Astral, including completely new features and minor improvements to existing functionality.
+This section guides you through submitting an enhancement suggestion for Kiwi, including completely new features and minor improvements to existing functionality.
 
 - **Use a clear and descriptive title** for the issue to identify the suggestion.
 - **Provide a step-by-step description of the suggested enhancement** in as many details as possible.
@@ -22,7 +22,7 @@ This section guides you through submitting an enhancement suggestion for Astral,
 
 ### Your First Code Contribution
 
-Unsure where to begin contributing to Astral? You can start by looking through `beginner` and `help wanted` issues:
+Unsure where to begin contributing to Kiwi? You can start by looking through `beginner` and `help wanted` issues:
 
 - **Beginner issues** - issues which should only require a few lines of code, and a test or two.
 - **Help wanted issues** - issues which should be a bit more involved than `beginner` issues.
@@ -31,9 +31,9 @@ Unsure where to begin contributing to Astral? You can start by looking through `
 
 The process described here has several goals:
 
-- Maintain Astral's quality
+- Maintain Kiwi's quality
 - Fix problems that are important to users
-- Engage the community in working toward the best possible Astral
+- Engage the community in working toward the best possible Kiwi
 
 Here's how to submit a pull request:
 
@@ -49,7 +49,7 @@ Before you submit a pull request, please test your changes.
 
 1. Add your test script to the [test suite](tests).
 2. Run the test suite through [Valgrind](https://valgrind.org/).
-    > `valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./bin/astral test.⭐`
+    > `valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./bin/kiwi test.🥝`
 
 ## Styleguides
 

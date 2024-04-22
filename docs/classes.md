@@ -1,10 +1,10 @@
 # Classes
 
-Classes in Astral provide a way to bundle data and functionality together.
+Classes in Kiwi provide a way to bundle data and functionality together.
 
 ### Defining Classes
 
-To define a class in Astral, use the `class` keyword followed by the class name and a block of code defining its properties and methods.
+To define a class in Kiwi, use the `class` keyword followed by the class name and a block of code defining its properties and methods.
 
 Each concrete class should define a constructor method, called `initialize`.
 
@@ -26,13 +26,13 @@ end
 To create an instance of a class, use the `.new()` method followed by any arguments the constructor accepts.
 
 ```ruby
-my_object = MyClass.new("Astral")
-my_object.say_hello()  # prints: Hello, Astral!
+my_object = MyClass.new("Kiwi")
+my_object.say_hello()  # prints: Hello, Kiwi!
 ```
 
 ### Inheritance
 
-Astral supports single inheritance. Use the `<` symbol to specify the parent class.
+Kiwi supports single inheritance. Use the `<` symbol to specify the parent class.
 
 ```ruby
 class MySubclass < MyClass
@@ -63,18 +63,18 @@ end
 The `override` keyword is not required to override `to_string()`.
 
 ```ruby
-class AstralClass
+class KiwiClass
   def initialize() end
 
   def to_string()
-    return "I am a Astral class"
+    return "I am a Kiwi class"
   end
 end
 
-instance = AstralClass.new()
+instance = KiwiClass.new()
 string_repr = instance.to_string()
-println(instance)    # prints: I am a Astral class
-println(string_repr) # prints: I am a Astral class
+println(instance)    # prints: I am a Kiwi class
+println(string_repr) # prints: I am a Kiwi class
 ```
 
 ### Static Method Definition
@@ -94,7 +94,7 @@ MyClass.static_method() # prints: I can be invoked without an instance!
 
 ### Access Control
 
-Astral supports `private` methods that cannot be called outside the class definition.
+Kiwi supports `private` methods that cannot be called outside the class definition.
 
 ```ruby
 class MyClass
@@ -117,6 +117,6 @@ class MyClass
   end
 end
 
-inst = MyClass.new("astral")
+inst = MyClass.new("kiwi")
 println(inst.name) # throws InvalidContextError: Cannot access private instance variable outside of object context. 
 ```

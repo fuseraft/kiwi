@@ -1,4 +1,4 @@
-# `@astral/string`
+# `@kiwi/string`
 
 The `string` module contains specialized functions for strings.
 
@@ -28,10 +28,10 @@ The `string` module contains specialized functions for strings.
 
 ## Importing the Module
 
-To use the `string` module, import it at the beginning of your Astral script.
+To use the `string` module, import it at the beginning of your Kiwi script.
 
 ```ruby
-import "@astral/string" as string
+import "@kiwi/string" as string
 ```
 
 ## Module Functions

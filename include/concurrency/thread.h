@@ -1,5 +1,5 @@
-#ifndef ASTRAL_CONCURRENCY_THREAD_H
-#define ASTRAL_CONCURRENCY_THREAD_H
+#ifndef KIWI_CONCURRENCY_THREAD_H
+#define KIWI_CONCURRENCY_THREAD_H
 
 #include <thread>
 #include <string>

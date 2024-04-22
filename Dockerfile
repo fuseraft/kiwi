@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     nano && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /usr/src/astral
-COPY . /usr/src/astral
+WORKDIR /usr/src/kiwi
+COPY . /usr/src/kiwi
 RUN make && make install
 WORKDIR /home

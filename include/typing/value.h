@@ -1,5 +1,5 @@
-#ifndef ASTRAL_TYPING_VALUETYPE_H
-#define ASTRAL_TYPING_VALUETYPE_H
+#ifndef KIWI_TYPING_VALUETYPE_H
+#define KIWI_TYPING_VALUETYPE_H
 
 #include <algorithm>
 #include <functional>

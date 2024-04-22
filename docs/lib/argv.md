@@ -1,4 +1,4 @@
-# `@astral/argv`
+# `@kiwi/argv`
 
 The `argv` module contains functionality for working with command-line arguments.
 
@@ -11,10 +11,10 @@ The `argv` module contains functionality for working with command-line arguments
 
 ## Importing the Module
 
-To use the `argv` module, import it at the beginning of your Astral script.
+To use the `argv` module, import it at the beginning of your Kiwi script.
 
 ```ruby
-import "@astral/argv" as ARGV
+import "@kiwi/argv" as ARGV
 ```
 
 ## Module Functions
@@ -45,14 +45,14 @@ Get a KVP command-line option value by key.
 You can pass a named command-line argument in the form of a key-value pair.
 
 ```bash
-/bin/astral -key=value
-/bin/astral --key=value
-/bin/astral /key=value
+/bin/kiwi -key=value
+/bin/kiwi --key=value
+/bin/kiwi /key=value
 ```
 
 You can pull these values using this module.
 
 ```ruby
-import "@astral/argv" as ARGV
+import "@kiwi/argv" as ARGV
 println(ARGV.opt("key")) # prints: value
 ```

@@ -45,50 +45,50 @@ To include a homed module, you can prefix the module name with `homename/` to sp
 
 ### Example Homed Module `fuseraft/fun`
 
-In this example, we have two Astral scripts:
-1. **fun.⭐**: Defines the homed module `fuseraft/fun`.
-2. **app.⭐**: Imports and uses functionality defined in the homed module `fuseraft/fun`.
+In this example, we have two Kiwi scripts:
+1. **fun.🥝**: Defines the homed module `fuseraft/fun`.
+2. **app.🥝**: Imports and uses functionality defined in the homed module `fuseraft/fun`.
 
-#### `./lib/fun.⭐`
+#### `./lib/fun.🥝`
 ```ruby
 module fun
   __home__("fuseraft")
 
   def method()
-    println("Astral is fun!")
+    println("Kiwi is fun!")
   end
 end
 
 export "fun" # Exports the "fun" module to the calling script.
 ```
 
-#### `./app.⭐`
+#### `./app.🥝`
 ```ruby
 import "@fuseraft/fun"
 
-fun::method() # prints: Astral is fun!
+fun::method() # prints: Kiwi is fun!
 ```
 
 ## Aliasing
 
 You can specify an alias for an imported module. This creates a class that cannot be instantiated. The class will contain static methods matching the methods defined in the module. 
 
-#### `./lib/fun.⭐`
+#### `./lib/fun.🥝`
 ```ruby
 module fun
   __home__("fuseraft")
 
   def method()
-    println("Astral is fun!")
+    println("Kiwi is fun!")
   end
 end
 
 export "fun" # Exports the "fun" module to the calling script.
 ```
 
-#### `./app.⭐`
+#### `./app.🥝`
 ```ruby
 import "@fuseraft/fun" as Fun
 
-Fun.method() # prints: Astral is fun!
+Fun.method() # prints: Kiwi is fun!
 ```

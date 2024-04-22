@@ -1,5 +1,5 @@
-#ifndef ASTRAL_PARSING_TOKENS_H
-#define ASTRAL_PARSING_TOKENS_H
+#ifndef KIWI_PARSING_TOKENS_H
+#define KIWI_PARSING_TOKENS_H
 
 #include <memory>
 #include <string>

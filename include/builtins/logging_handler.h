@@ -1,5 +1,5 @@
-#ifndef ASTRAL_BUILTINS_LOGGING_H
-#define ASTRAL_BUILTINS_LOGGING_H
+#ifndef KIWI_BUILTINS_LOGGING_H
+#define KIWI_BUILTINS_LOGGING_H
 
 #include "math/functions.h"
 #include "logging/logger.h"

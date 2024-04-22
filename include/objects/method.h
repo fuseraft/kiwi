@@ -1,5 +1,5 @@
-#ifndef ASTRAL_OBJECTS_METHOD_H
-#define ASTRAL_OBJECTS_METHOD_H
+#ifndef KIWI_OBJECTS_METHOD_H
+#define KIWI_OBJECTS_METHOD_H
 
 #include <memory>
 #include <string>
