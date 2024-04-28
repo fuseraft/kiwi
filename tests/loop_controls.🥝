@@ -30,9 +30,7 @@ println("counter = ${counter}")
 counter = 0
 for item, index in list do
   counter += 1
-  if index == 5
-    break
-  end
+  break when index == 5
 end
 
 println("counter = ${counter}")
