@@ -262,6 +262,7 @@ enum KName {
   KW_Throw,
   KW_True,
   KW_Try,
+  KW_When,
   KW_While,
   Ops_Add,
   Ops_AddAssign,

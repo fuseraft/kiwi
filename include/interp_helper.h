@@ -120,6 +120,9 @@ struct InterpHelper {
       case KTokenType::KEYWORD:
         return nextToken.getSubType() == KName::KW_This;
 
+      case KTokenType::OPERATOR:
+        return nextToken.getSubType() == KName::Ops_Not;
+
       default:
         return false;
     }

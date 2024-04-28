@@ -161,6 +161,7 @@ struct {
   const k_string Export = "export";
   const k_string False = "false";
   const k_string For = "for";
+  const k_string Function = "fn";
   const k_string Go = "go";
   const k_string If = "if";
   const k_string Import = "import";
@@ -183,14 +184,15 @@ struct {
   const k_string True = "true";
   const k_string Try = "try";
   const k_string With = "with";
+  const k_string When = "when";
   const k_string While = "while";
 
   std::unordered_set<k_string> keywords = {
       Abstract, As,     Async,  Await,   Break,   Catch,  Class,  Delete,
-      Do,       Else,   ElseIf, End,     Exit,    Export, False,  For,
+      Do,       Else,   ElseIf, End,     Exit,    Export, False,  For, Function,
       If,       Import, In,     With,    Method,  Module, Next,   Override,
       Parse,    Pass,   Print,  PrintLn, Private, Return, Static, Then,
-      This,     Throw,  True,   Try,     While};
+      This,     Throw,  True,   Try,     When,    While};
 
   std::unordered_set<k_string> conditional_keywords = {If, Else, ElseIf, End};
 

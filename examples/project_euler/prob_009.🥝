@@ -16,9 +16,7 @@ def pythagorean_triplet(sum)
       end
     end
 
-    if found
-      break
-    end
+    break when found
   end
 
   return found ? result : -1

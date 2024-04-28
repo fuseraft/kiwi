@@ -13,14 +13,44 @@ module math
   end
 
   /#
-  Summary: Gets a random number between x and y.
-  Params:
-    - _valueX: The number x.
-    - _valueY: The number y.
-  Returns: Integer|Double
+  @summary: Gets a random number between x and y.
+  @param   Integer|Double  _valueX   : The number x. 
+  @param   Integer|Double  _valueY   : The number y. 
+  @return  Integer|Double            : A random number.
   #/
   def random(_valueX, _valueY)
     return __random__(_valueX, _valueY)
+  end
+
+  /#
+  Summary: Gets a random set of numbers of a given size.
+  @param   Integer|Double  _range_start   : The lower bound. 
+  @param   Integer|Double  _range_end     : The upper bound. 
+  @param   Integer         _size          : The size of the set.
+  @return  List                           : A set of random numbers.
+  #/
+  def random_set(_range_start, _range_end, _size)
+    _min = [_range_start, _range_end].min()
+    _max = [_range_start, _range_end].max()
+
+    # Ensure valid size and range, then generate a set of unique random numbers
+    if _size == 0 || _range_start == _range_end || (_max - _min) < _size
+      return []
+    end
+    
+    _set = []
+    _count = 0
+
+    while _count != _size do
+      _n = math::random(_min, _max)
+
+      if _set.index(_n) < 0
+        _set << _n
+        _count += 1
+      end
+    end
+
+    return _set
   end
 
   /#

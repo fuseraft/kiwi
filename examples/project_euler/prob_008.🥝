@@ -32,16 +32,11 @@ while i < size do
   digits = []
   
   for index in [i .. i + take - 1] do
-    if index >= size
-      break
-    end
-
+    break when index >= size
     digits << bignum[index]
   end
   
-  if digits.size() != take
-    break
-  end
+  break when digits.size() != take
 
   i += 1
 

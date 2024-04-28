@@ -135,7 +135,7 @@ make test
 
 Below is a simple HTTP web application. You can find the [example project here](examples/webapp/app.🥝).
 
-```ruby
+```kiwi
 import "@kiwi/web" as web
 import "@kiwi/fs" as fs
 
@@ -147,7 +147,7 @@ html = {
 }
 
 # A simple template engine.
-def build_html(data)
+fn build_html(data)
   return html.shared.replace("<%content%>", data)
 end
 
@@ -182,7 +182,7 @@ web.listen(host, port)
 
 Below is a script that generates a temporary script and executes it.
 
-```ruby
+```kiwi
 import "@kiwi/fs" as fs
 import "@kiwi/math" as math
 import "@kiwi/sys" as sys
