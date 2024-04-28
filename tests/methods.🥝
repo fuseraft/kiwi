@@ -46,10 +46,7 @@ end
 # method early return
 
 def is_old(age)
-  if age >= 70
-    return true
-  end
-
+  return true when age >= 70
   return false
 end
 

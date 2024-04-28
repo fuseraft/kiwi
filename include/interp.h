@@ -707,6 +707,60 @@ class Interpreter {
     }
   }
 
+  bool interpretWhen(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
+    if (!InterpHelper::hasReturnValue(stream)) {
+      throw InvalidOperationError(stream->current(), "Missing condition in conditional control.");
+    }
+
+    stream->next(); // Skip `when`.
+    const auto& conditionToken = stream->current();
+    auto value = parseExpression(stream, frame);
+    return std::visit(NegateVisitor(conditionToken), value);
+  }
+
+  void interpretContinue(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
+    stream->next();  // Skip "next"
+
+    if (stream->current().getSubType() == KName::KW_When) {
+      if (interpretWhen(stream, frame)) {
+        return;
+      }
+    }
+
+    frame->setFlag(FrameFlags::LoopContinue);
+  }
+
+  void interpretBreak(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
+    stream->next();  // Skip "break"
+
+    if (stream->current().getSubType() == KName::KW_When) {
+      if (interpretWhen(stream, frame)) {
+        return;
+      }
+    }
+
+    frame->setFlag(FrameFlags::LoopBreak);
+  }
+
+  void interpretReturn(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
+    bool hasValue = InterpHelper::hasReturnValue(stream);
+    stream->next();  // Skip "return"
+    auto returnValue = frame->returnValue;
+
+    if (hasValue) {
+      returnValue = parseExpression(stream, frame);
+    }
+
+    if (stream->current().getSubType() == KName::KW_When) {
+      if (interpretWhen(stream, frame)) {
+        return;
+      }
+    }
+
+    frame->returnValue = returnValue;    
+    frame->setFlag(FrameFlags::ReturnFlag);
+  }
+
   void interpretParse(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     bool hasValue = InterpHelper::hasReturnValue(stream);
     stream->next();  // Skip "parse"
@@ -2080,17 +2134,6 @@ class Interpreter {
     throw KiwiError(throwToken, errorType, errorMessage);
   }
 
-  void interpretReturn(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
-    bool hasValue = InterpHelper::hasReturnValue(stream);
-    stream->next();  // Skip "return"
-
-    if (hasValue) {
-      frame->returnValue = parseExpression(stream, frame);
-    }
-
-    frame->setFlag(FrameFlags::ReturnFlag);
-  }
-
   SliceIndex interpretSliceIndex(k_stream stream,
                                  std::shared_ptr<CallStackFrame> frame,
                                  k_value& listValue) {
@@ -2796,26 +2839,6 @@ class Interpreter {
 
     elements.erase(elements.begin() + index);
     frame->variables[name] = list;
-  }
-
-  void interpretBreak(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
-    stream->next();  // Skip "break"
-
-    if (stream->current().getSubType() == KName::KW_When) {
-      if (!InterpHelper::hasReturnValue(stream)) {
-        throw InvalidOperationError(stream->current(), "Missing condition in conditional break.");
-      }
-
-      stream->next(); // Skip `when`.
-      const auto& conditionToken = stream->current();
-      auto value = parseExpression(stream, frame);
-      
-      if (std::visit(NegateVisitor(conditionToken), value)) {
-        return;
-      }
-    }
-
-    frame->setFlag(FrameFlags::LoopBreak);
   }
 
   void interpretDelete(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
