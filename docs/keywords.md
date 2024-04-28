@@ -67,7 +67,7 @@ See [Concurrency](concurrency.md).
 ## `break`
 The `break` keyword is used to exit a loop.
 
-See [Loops](loops.md).
+See [Loops](loops.md) and [Control Structures](control_structures.md).
 
 ## `catch`
 The `catch` keyword is used to define a catch-block in a `try-catch`.
@@ -99,12 +99,12 @@ See [Lambdas](lambdas.md) and [Loops](loops.md).
 ## `else`
 The `else` keyword is used to define the `else` branch in a conditional statement.
 
-See [Conditionals](conditionals.md).
+See [Conditionals](conditionals.md) and [Control Structures](control_structures.md).
 
 ## `elsif`
 The `elsif` keyword is used to define an `elsif` branch in a conditional statement.
 
-See [Conditionals](conditionals.md).
+See [Conditionals](conditionals.md) and [Control Structures](control_structures.md).
 
 ## `end`
 The `end` keyword is used end a code-block.
@@ -113,6 +113,11 @@ The `end` keyword is used end a code-block.
 The `export` keyword is used to export a module to a calling script.
 
 See [Modules](modules.md).
+
+## `exit`
+The `exit` keyword is used to exit the program.
+
+See [Control Structures](control_structures.md)
 
 ## `false`
 The `false` keyword is inverse of `true` and is a Boolean value.
@@ -135,7 +140,7 @@ The `go` keyword is used in the Kiwi REPL to execute statements.
 ## `if`
 The `if` keyword is used to define the `if` branch in a conditional statement.
 
-See [Conditionals](conditionals.md).
+See [Conditionals](conditionals.md) and [Control Structures](control_structures.md).
 
 ## `import`
 The `import` keyword is used to import a script or a module.
@@ -165,7 +170,7 @@ See [Classes](classes.md).
 ## `next`
 The `next` keyword is used to skip to the next iteration of a loop.
 
-See [Loops](loops.md).
+See [Loops](loops.md) and [Control Structures](control_structures.md).
 
 ## `override`
 The `override` keyword is used to provide an implementation to an abstract method.
@@ -200,7 +205,7 @@ See [Classes](classes.md).
 ## `return`
 The `return` keyword is used to return a value from a method, or to exit a method early.
 
-See [Functions and Methods](functions.md).
+See [Functions and Methods](functions.md) and [Control Structures](control_structures.md).
 
 ## `static`
 The `static` keyword is used to declare a method with static access (can be accessed without instantiation).
@@ -220,7 +225,7 @@ See [Classes](classes.md).
 ## `throw`
 The `throw` keyword is used for throwing errors.
 
-See [Error Handling](error_handling.md).
+See [Error Handling](error_handling.md) and [Control Structures](control_structures.md).
 
 ## `true`
 The `true` keyword is inverse of `false` and is a Boolean value.
@@ -233,14 +238,14 @@ The `try` keyword is used to define a try-block in a `try-catch`.
 See [Error Handling](error_handling.md).
 
 ## `when`
-The `when` keyword is used to define a condition for [`break`](#break), [`next`](#next), and [`return`](#return).
+The `when` keyword is used to define a condition for [`break`](#break), [`exit`](#exit), [`next`](#next), [`return`](#return), and [`throw`](#throw).
 
-See [Conditionals](conditionals.md).
+See [Conditionals](conditionals.md) and [Control Structures](control_structures.md).
 
 ## `while`
 The `while` keyword is used to define a while-loop.
 
-See [Loops](loops.md).
+See [Loops](loops.md#while), [Conditionals](conditionals.md) and [Control Structures](control_structures.md).
 
 ## `with`
 The `with` keyword is used to define a lambda.

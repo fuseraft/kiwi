@@ -36,6 +36,7 @@ enum KName {
   Builtin_Console_Silent,
   Builtin_Env_GetEnvironmentVariable,
   Builtin_Env_SetEnvironmentVariable,
+  Builtin_Env_UnsetEnvironmentVariable,
   Builtin_FileIO_AppendText,
   Builtin_FileIO_ChangeDirectory,
   Builtin_FileIO_CopyFile,

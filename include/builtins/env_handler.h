@@ -18,6 +18,9 @@ class EnvBuiltinHandler {
 
       case KName::Builtin_Env_SetEnvironmentVariable:
         return executeSetEnvironmentVariable(term, args);
+      
+      case KName::Builtin_Env_UnsetEnvironmentVariable:
+        return executeUnsetEnvironmentVariable(term, args);
 
       default:
         break;
@@ -60,6 +63,23 @@ class EnvBuiltinHandler {
     return true;
 #else
     return setenv(varName.c_str(), varValue.c_str(), 1) == 0;
+#endif
+  }
+
+  static k_value executeUnsetEnvironmentVariable(
+    const Token& term, const std::vector<k_value>& args) {
+    
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term,
+                                           EnvBuiltins.UnsetEnvironmentVariable);
+    }
+
+    k_string var = get_string(term, args.at(0));
+
+#ifdef _WIN64
+    return _putenv_s(var.c_str(), "") == 0;
+#else
+    return unsetenv(var.c_str()) == 0;
 #endif
   }
 };

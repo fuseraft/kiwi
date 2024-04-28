@@ -15,11 +15,11 @@ print_help()
 while true do
   try
     command = input("emoji> ")
+
+    exit(0) when command == "exit"
     
     if command == "help"
       print_help()
-    elsif command == "exit"
-      exit(0)
     elsif command == "list"
       println(e.emojis().map(with (emo) do return "'${emo}'" end).join(", "))
     else
