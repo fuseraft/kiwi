@@ -742,6 +742,65 @@ class Interpreter {
     frame->setFlag(FrameFlags::LoopBreak);
   }
 
+  void interpretThrow(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
+    const auto& throwToken = stream->current();
+    bool hasValue = InterpHelper::hasReturnValue(stream);
+    stream->next();  // Skip "throw"
+
+    k_string errorType = "KiwiError";
+    k_string errorMessage;
+
+    if (hasValue) {
+      auto errorValue = parseExpression(stream, frame);
+
+      if (std::holds_alternative<k_hash>(errorValue)) {
+        auto errorHash = std::get<k_hash>(errorValue);
+        if (errorHash->hasKey("error") &&
+            std::holds_alternative<k_string>(errorHash->kvp["error"])) {
+          errorType = std::get<k_string>(errorHash->kvp["error"]);
+        }
+        if (errorHash->hasKey("message") &&
+            std::holds_alternative<k_string>(errorHash->kvp["message"])) {
+          errorMessage = std::get<k_string>(errorHash->kvp["message"]);
+        }
+      } else if (std::holds_alternative<k_string>(errorValue)) {
+        errorMessage = std::get<k_string>(errorValue);
+      }
+    }
+
+    if (stream->current().getSubType() == KName::KW_When) {
+      if (interpretWhen(stream, frame)) {
+        return;
+      }
+    }
+
+    throw KiwiError(throwToken, errorType, errorMessage);
+  }
+
+  void interpretExit(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
+    bool hasValue = InterpHelper::hasReturnValue(stream);
+    stream->next();  // Skip "exit"
+
+    k_value returnValue;
+
+    if (hasValue) {
+      returnValue = parseExpression(stream, frame);
+    }
+
+    if (stream->current().getSubType() == KName::KW_When) {
+      if (interpretWhen(stream, frame)) {
+        return;
+      }
+    }
+
+    if (std::holds_alternative<k_int>(returnValue)) {
+      int exitCode = static_cast<int>(std::get<k_int>(returnValue));
+      exit(exitCode);
+    }
+
+    exit(1);
+  }
+
   void interpretReturn(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     bool hasValue = InterpHelper::hasReturnValue(stream);
     stream->next();  // Skip "return"
@@ -2087,53 +2146,6 @@ class Interpreter {
     return method;
   }
 
-  void interpretExit(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
-    bool hasValue = InterpHelper::hasReturnValue(stream);
-    stream->next();  // Skip "exit"
-
-    k_value returnValue;
-
-    if (hasValue) {
-      returnValue = parseExpression(stream, frame);
-    }
-
-    if (std::holds_alternative<k_int>(returnValue)) {
-      int exitCode = static_cast<int>(std::get<k_int>(returnValue));
-      exit(exitCode);
-    }
-
-    exit(1);
-  }
-
-  void interpretThrow(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
-    const auto& throwToken = stream->current();
-    bool hasValue = InterpHelper::hasReturnValue(stream);
-    stream->next();  // Skip "throw"
-
-    k_string errorType = "KiwiError";
-    k_string errorMessage;
-
-    if (hasValue) {
-      auto errorValue = parseExpression(stream, frame);
-
-      if (std::holds_alternative<k_hash>(errorValue)) {
-        auto errorHash = std::get<k_hash>(errorValue);
-        if (errorHash->hasKey("error") &&
-            std::holds_alternative<k_string>(errorHash->kvp["error"])) {
-          errorType = std::get<k_string>(errorHash->kvp["error"]);
-        }
-        if (errorHash->hasKey("message") &&
-            std::holds_alternative<k_string>(errorHash->kvp["message"])) {
-          errorMessage = std::get<k_string>(errorHash->kvp["message"]);
-        }
-      } else if (std::holds_alternative<k_string>(errorValue)) {
-        errorMessage = std::get<k_string>(errorValue);
-      }
-    }
-
-    throw KiwiError(throwToken, errorType, errorMessage);
-  }
-
   SliceIndex interpretSliceIndex(k_stream stream,
                                  std::shared_ptr<CallStackFrame> frame,
                                  k_value& listValue) {
@@ -3293,10 +3305,6 @@ class Interpreter {
                                           std::shared_ptr<CallStackFrame> frame,
                                           const KName& builtin,
                                           const k_value& value) {
-    if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(stream->current(), "Expected type List.");
-    }
-
     auto list = std::get<k_list>(value);
 
     switch (builtin) {
@@ -3402,7 +3410,7 @@ class Interpreter {
         } else {
           return interpretSpecializedBuiltin(stream, frame, call, value);
         }
-      } else {
+      } else if (std::holds_alternative<k_list>(value)) {
         return interpretSpecializedListBuiltin(stream, frame, call, value);
       }
     }

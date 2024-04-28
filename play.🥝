@@ -1,32 +1,59 @@
 fn main()
   import "@kiwi/math"
-  list = math::random_set(0, 100, 50)
-  println("input: ${list}")
-  println("output: ${bubblesort(list)}")
+  list = math::random_set(0, 30, 30)
+  bubblesort = BubbleSort.new()
+  list = bubblesort.sort(list)
 end
 
-fn bubblesort(list)
-  limit = list.size() - 1
+abstract class Sort
+  abstract def sort(_list)
+end
 
-  while true do
-    swaps = 0
-    
-    for element, index in list do
-      break when index + 1 > limit
-      first = element
-      second = list[index + 1]
+class BubbleSort < Sort
+  def initialize() end
+  override def sort(_input)
+    throw "Cannot sort a non-list type." when !_input.is_a(List)
+
+    limit = _input.size() - 1
+  
+    while true do
+      swaps = 0
       
-      if first > second
-        swaps += 1
-        list[index] = second
-        list[index + 1] = first
+      for element, index in _input do
+        break when index + 1 > limit
+        first = element
+        second = _input[index + 1]
+        
+        if first > second
+          swaps += 1
+          _input[index] = second
+          _input[index + 1] = first
+          println(_input)
+        end
       end
+  
+      break when swaps == 0
     end
-
-    break when swaps == 0
+  
+    return _input
   end
-
-  return list
 end
 
 main()
+
+
+def sum(list)
+  throw "Cannot sum a non-List value." when !list.is_a(List)
+  return 0 when list.empty()
+  return list.sum()
+end
+
+println sum([1, 2])
+println sum([])
+
+def min(a, b)
+  return a < b ? a : b
+end
+
+println min(5, 2)
+println min(1, 10)
