@@ -1,14 +1,14 @@
 fn main()
   import "@kiwi/math"
-  list = math::random_set(0, 20, 10)
-  println("input: ${list}\noutput: ${bubblesort(list)}")
+  list = math::random_set(0, 100, 50)
+  println("input: ${list}")
+  println("output: ${bubblesort(list)}")
 end
 
 fn bubblesort(list)
   limit = list.size() - 1
-  sorted = false
 
-  while !sorted do
+  while true do
     swaps = 0
     
     for element, index in list do
@@ -23,7 +23,7 @@ fn bubblesort(list)
       end
     end
 
-    sorted = swaps == 0
+    break when swaps == 0
   end
 
   return list
