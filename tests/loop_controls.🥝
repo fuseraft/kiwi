@@ -3,11 +3,8 @@ def loopy(stop)
 
   while i < 100 do
     i += 1
-    if (i > 10 && stop)
-      break
-    elsif i > 10
-      next
-    end
+    break when i > 10 && stop
+    next when i > 10
   end
 
   return i
@@ -25,9 +22,7 @@ end
 counter = 0
 for item, index in list do
   counter += 1
-  if index == 5
-    next
-  end
+  next when index == 5
 end
 
 println("counter = ${counter}")
