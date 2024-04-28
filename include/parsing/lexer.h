@@ -232,7 +232,7 @@ class Lexer {
       st = KName::KW_Import;
     } else if (keyword == Keywords.In) {
       st = KName::KW_In;
-    } else if (keyword == Keywords.Method) {
+    } else if (keyword == Keywords.Method || keyword == Keywords.Function) {
       st = KName::KW_Method;
     } else if (keyword == Keywords.Module) {
       st = KName::KW_Module;
@@ -262,6 +262,8 @@ class Lexer {
       st = KName::KW_Throw;
     } else if (keyword == Keywords.Try) {
       st = KName::KW_Try;
+    } else if (keyword == Keywords.When) {
+      st = KName::KW_When;
     } else if (keyword == Keywords.While) {
       st = KName::KW_While;
     }

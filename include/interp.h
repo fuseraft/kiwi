@@ -300,27 +300,26 @@ class Interpreter {
   }
 
   bool handleFrameFlags(std::shared_ptr<CallStackFrame>& frame) {
-    bool handled = false;
+    bool hasErrorState = frame->isErrorStateSet(),
+         hasLoopControl = frame->isLoopControlFlagSet(),
+         hasReturn = frame->isFlagSet(FrameFlags::ReturnFlag);
 
-    if (frame->isErrorStateSet()) {
+    if (hasErrorState) {
       ++streamStack.top()->position;
-    } else if (frame->isLoopControlFlagSet() ||
-               frame->isFlagSet(FrameFlags::ReturnFlag)) {
+    } else if (hasLoopControl || hasReturn) {
       if (callStack.size() > 1) {
-        if (frame->isLoopControlFlagSet()) {
-          handleLoopControl(frame);
-          handled = true;
-        } else if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
-          handleFrameReturn(frame);
-          handled = true;
+        if (hasLoopControl) {
+          return handleLoopControl(frame);
+        } else if (hasReturn) {
+          return handleFrameReturn(frame);
         }
       } else {
         popStack();
-        handled = true;
+        return true;
       }
     }
 
-    return handled;
+    return false;
   }
 
   void handleFrameExit(std::shared_ptr<CallStackFrame>& frame) {
@@ -350,7 +349,7 @@ class Interpreter {
     }
   }
 
-  void handleFrameReturn(std::shared_ptr<CallStackFrame>& frame) {
+  bool handleFrameReturn(std::shared_ptr<CallStackFrame>& frame) {
     auto returnValue = std::move(frame->returnValue);
     auto topVariables = std::move(frame->variables);
     auto callerFrame = popTop();
@@ -362,9 +361,11 @@ class Interpreter {
     }
 
     InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);
+
+    return true;
   }
 
-  void handleLoopControl(std::shared_ptr<CallStackFrame>& frame) {
+  bool handleLoopControl(std::shared_ptr<CallStackFrame>& frame) {
     bool loopBreak = frame->isFlagSet(FrameFlags::LoopBreak);
     bool loopContinue = frame->isFlagSet(FrameFlags::LoopContinue);
     auto topVariables = std::move(frame->variables);
@@ -377,6 +378,8 @@ class Interpreter {
     } else if (loopContinue) {
       callerFrame->setFlag(FrameFlags::LoopContinue);
     }
+
+    return true;
   }
 
   std::shared_ptr<CallStackFrame> buildSubFrame(
@@ -527,15 +530,9 @@ class Interpreter {
     // Execute the loop
     size_t index = 0;
     for (const auto& item : elements) {
-      if (frame->isLoopControlFlagSet()) {
-        if (frame->isFlagSet(FrameFlags::LoopBreak)) {
-          break;
-        } else if (frame->isFlagSet(FrameFlags::LoopContinue)) {
-          frame->clearFlag(FrameFlags::LoopContinue);
-          continue;
-        }
-      } else if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
-        break;
+      if (frame->isFlagSet(FrameFlags::LoopContinue)) {
+        frame->clearFlag(FrameFlags::LoopContinue);
+        continue;
       }
 
       frameVariables[itemVariableName] = item;
@@ -548,6 +545,10 @@ class Interpreter {
 
       interpretStackFrame();
       frame = callStack.top();
+
+      if (frame->isFlagSet(FrameFlags::LoopBreak) || frame->isFlagSet(FrameFlags::ReturnFlag)) {
+        break;
+      }
 
       index++;
     }
@@ -598,6 +599,8 @@ class Interpreter {
       throw InvalidOperationError(stream->current(),
                                   "Term is not a List or Hash.");
     }
+
+    frame = callStack.top();
 
     for (const auto& pair : restore) {
       frame->variables[pair.first] = pair.second;
@@ -793,8 +796,7 @@ class Interpreter {
         break;
 
       case KName::KW_Break:
-        stream->next();  // Skip "break"
-        frame->setFlag(FrameFlags::LoopBreak);
+        interpretBreak(stream, frame);
         break;
 
       case KName::KW_Next:
@@ -1026,6 +1028,11 @@ class Interpreter {
           stream->current().getSubType() == KName::KW_Catch) {
         interpretCatch(stream, frame);
       }
+      return;
+    }
+
+    if (frame->isLoopControlFlagSet()) {
+      stream->next();
       return;
     }
 
@@ -2789,6 +2796,26 @@ class Interpreter {
 
     elements.erase(elements.begin() + index);
     frame->variables[name] = list;
+  }
+
+  void interpretBreak(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
+    stream->next();  // Skip "break"
+
+    if (stream->current().getSubType() == KName::KW_When) {
+      if (!InterpHelper::hasReturnValue(stream)) {
+        throw InvalidOperationError(stream->current(), "Missing condition in conditional break.");
+      }
+
+      stream->next(); // Skip `when`.
+      const auto& conditionToken = stream->current();
+      auto value = parseExpression(stream, frame);
+      
+      if (std::visit(NegateVisitor(conditionToken), value)) {
+        return;
+      }
+    }
+
+    frame->setFlag(FrameFlags::LoopBreak);
   }
 
   void interpretDelete(k_stream stream, std::shared_ptr<CallStackFrame> frame) {

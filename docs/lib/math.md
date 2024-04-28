@@ -42,6 +42,7 @@ The `math` module contains functionality for working with common math operations
   - [`pow(_valueX, _valueY)`](#pow_valuex-_valuey)
   - [`random(_base, _limit)`](#random_base-_limit)
   - [`random(_valueX, _valueY)`](#random_valuex-_valuey)
+  - [`random_set(x, y, n)`](#random_setx-y-n)
   - [`remainder(_valueX, _valueY)`](#remainder_valuex-_valuey)
   - [`round(_value)`](#round_value)
   - [`sin(_value)`](#sin_value)
@@ -95,10 +96,21 @@ Returns a random string or list from a string or list with a limited number of c
 | `String`\|`List` | `_base` | The base string or list containing the elements to build a random distribution from. |
 | `Integer` | `_limit` | The total number of characters (in a string) or elements (in a list) to produce from the base. |
 
+### `random_set(x, y, n)`
+
+Returns a list of `n` unique random numbers between `x` and `y`.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Integer`\|`Double` | `x` | The lower bound. |
+| `Integer`\|`Double` | `y` | The upper bound. |
+| `Integer` | `n` | The total number of values in the set. |
+
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `String`\|`List` | A random string or list. |
+| `List` | A list of random numbers. |
 
 ### `listprimes(_limit)`
 

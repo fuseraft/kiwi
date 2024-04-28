@@ -1,6 +1,10 @@
-# Methods
+# Functions and Methods
 
-Use the `def` keyword to define a method. Method parameters support default values.
+Use the `fn` keyword to define a function.
+
+Use the `def` keyword to define a method (a function of a [`class`](classes.md)). 
+
+The distinction between a function and a method in Kiwi is purely semantic.
 
 ```ruby
 def greet(name = "Kiwi")

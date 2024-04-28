@@ -8,7 +8,7 @@ import "@kiwi/string"
 
 def main()
   # Generate and print the matrix
-  print_matrix(get_matrix(random_set(1, 50, 20)))
+  print_matrix(get_matrix(math::random_set(1, 50, 20)))
 end
 
 def print_matrix(matrix)
@@ -75,30 +75,6 @@ def get_matrix(data = [])
   end
 
   return columns
-end
-
-def random_set(range_start, range_end, size)
-  min = [range_start, range_end].min()
-  max = [range_start, range_end].max()
-
-  # Ensure valid size and range, then generate a set of unique random numbers
-  if size == 0 || range_start == range_end || (max - min) < size
-    return []
-  end
-  
-  set = []
-  count = 0
-
-  while count != size do
-    n = math::random(min, max)
-
-    if set.index(n) < 0
-      set << n
-      count += 1
-    end
-  end
-
-  return set
 end
 
 main()  # Start the application

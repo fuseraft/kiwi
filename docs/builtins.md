@@ -34,7 +34,7 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
   - [`concat(list)`](#concatlist)
   - [`count(value)`](#countvalue)
   - [`dequeue()`](#dequeue)
-  - [`each(lambda)](#eachlambda)
+  - [`each(lambda)`](#eachlambda)
   - [`enqueue(value)`](#enqueuevalue)
   - [`flatten()`](#flatten)
   - [`index(value)`](#indexvalue)

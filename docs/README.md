@@ -9,7 +9,7 @@
    - [Operators](operators.md)
    - [Keywords](keywords.md)
    - [Variables](variables.md)
-   - [Methods](methods.md)
+   - [Functions](functions.md)
    - [Lambdas](lambdas.md)
 
 3. [**Life of a Program**](#life-of-a-program)
@@ -30,6 +30,7 @@
    - **Object-Oriented Programming**
      - [Classes](classes.md)
      - [Abstract Classes](abstract_classes.md)
+     - [Methods](functions.md)
 
 5. **Standard Library**
    - [`@kiwi/argv`](lib/argv.md)

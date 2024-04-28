@@ -328,9 +328,16 @@ struct {
 
   k_value do_bitwise_and(const Token& token, const k_value& left,
                          const k_value& right) {
-    if (std::holds_alternative<k_int>(left) &&
-        std::holds_alternative<k_int>(right)) {
-      return std::get<k_int>(left) & std::get<k_int>(right);
+    if (std::holds_alternative<k_int>(left)) {
+      auto lhs = std::get<k_int>(left);
+      if (std::holds_alternative<k_int>(right)) {
+        return lhs & std::get<k_int>(right);
+      } else if (std::holds_alternative<double>(right)) {
+        return lhs & static_cast<k_int>(std::get<double>(right));
+      } else if (std::holds_alternative<bool>(right)) {
+        k_int rhs = std::get<bool>(right) ? 1 : 0;
+        return lhs & rhs;
+      }
     }
 
     throw ConversionError(token, "Conversion error in bitwise & operation.");
@@ -338,9 +345,16 @@ struct {
 
   k_value do_bitwise_or(const Token& token, const k_value& left,
                         const k_value& right) {
-    if (std::holds_alternative<k_int>(left) &&
-        std::holds_alternative<k_int>(right)) {
-      return std::get<k_int>(left) | std::get<k_int>(right);
+    if (std::holds_alternative<k_int>(left)) {
+      auto lhs = std::get<k_int>(left);
+      if (std::holds_alternative<k_int>(right)) {
+        return lhs | std::get<k_int>(right);
+      } else if (std::holds_alternative<double>(right)) {
+        return lhs | static_cast<k_int>(std::get<double>(right));
+      } else if (std::holds_alternative<bool>(right)) {
+        k_int rhs = std::get<bool>(right) ? 1 : 0;
+        return lhs | rhs;
+      }
     }
 
     throw ConversionError(token, "Conversion error in bitwise | operation.");
@@ -348,9 +362,16 @@ struct {
 
   k_value do_bitwise_xor(const Token& token, const k_value& left,
                          const k_value& right) {
-    if (std::holds_alternative<k_int>(left) &&
-        std::holds_alternative<k_int>(right)) {
-      return std::get<k_int>(left) ^ std::get<k_int>(right);
+    if (std::holds_alternative<k_int>(left)) {
+      auto lhs = std::get<k_int>(left);
+      if (std::holds_alternative<k_int>(right)) {
+        return lhs ^ std::get<k_int>(right);
+      } else if (std::holds_alternative<double>(right)) {
+        return lhs ^ static_cast<k_int>(std::get<double>(right));
+      } else if (std::holds_alternative<bool>(right)) {
+        k_int rhs = std::get<bool>(right) ? 1 : 0;
+        return lhs ^ rhs;
+      }
     }
 
     throw ConversionError(token, "Conversion error in bitwise ^ operation.");
@@ -359,6 +380,10 @@ struct {
   k_value do_bitwise_not(const Token& token, const k_value& left) {
     if (std::holds_alternative<k_int>(left)) {
       return ~std::get<k_int>(left);
+    } else if (std::holds_alternative<double>(left)) {
+      return ~static_cast<k_int>(std::get<double>(left));
+    } else if (std::holds_alternative<bool>(left)) {
+      return ~static_cast<k_int>(std::get<bool>(left) ? 1 : 0);
     }
 
     throw ConversionError(token, "Conversion error in bitwise ~ operation.");

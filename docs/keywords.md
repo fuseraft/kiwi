@@ -40,6 +40,7 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
 - [`throw`](#throw)
 - [`true`](#true)
 - [`try`](#try)
+- [`when`](#when)
 - [`while`](#while)
 - [`with`](#with)
 
@@ -81,7 +82,7 @@ See [Classes](classes.md).
 ## `def`
 The `def` keyword is used to define a method.
 
-See [Methods](methods.md).
+See [Functions and Methods](functions.md).
 
 ## `delete`
 The `delete` keyword is used to remove elements from collections.
@@ -123,6 +124,11 @@ The `for` keyword is used to define a for-loop.
 
 See [Loops](loops.md).
 
+## `fn`
+The `fn` keyword is used to define a function.
+
+See [Functions and Methods](functions.md).
+
 ## `go`
 The `go` keyword is used in the Kiwi REPL to execute statements.
 
@@ -145,11 +151,6 @@ See [Loops](loops.md).
 The `input` keyword is used to request user input from a console.
 
 See [Console I/O](console_io.md).
-
-## `with`
-The `with` keyword is used to define a lambda.
-
-See [Lambdas](lambdas.md).
 
 ## `module`
 The `module` keyword is used to define a module.
@@ -199,7 +200,7 @@ See [Classes](classes.md).
 ## `return`
 The `return` keyword is used to return a value from a method, or to exit a method early.
 
-See [Methods](methods.md).
+See [Functions and Methods](functions.md).
 
 ## `static`
 The `static` keyword is used to declare a method with static access (can be accessed without instantiation).
@@ -231,7 +232,17 @@ The `try` keyword is used to define a try-block in a `try-catch`.
 
 See [Error Handling](error_handling.md).
 
+## `when`
+The `when` keyword is used to define a condition for [`break`](#break), [`next`](#next), and [`return`](#return).
+
+See [Conditionals](conditionals.md).
+
 ## `while`
 The `while` keyword is used to define a while-loop.
 
 See [Loops](loops.md).
+
+## `with`
+The `with` keyword is used to define a lambda.
+
+See [Lambdas](lambdas.md).

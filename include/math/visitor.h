@@ -201,7 +201,7 @@ struct NegateVisitor {
 
   NegateVisitor(const Token& token) : token(token) {}
 
-  k_value operator()(const k_value& value) const {
+  bool operator()(const k_value& value) const {
     if (std::holds_alternative<bool>(value)) {
       return !std::get<bool>(value);
     } else if (std::holds_alternative<k_int>(value)) {
