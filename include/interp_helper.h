@@ -140,7 +140,7 @@ struct InterpHelper {
     auto& frameVariables = callerFrame->variables;
     for (const auto& var : variables) {
       if (shouldUpdateFrameVariables(var.first, callerFrame)) {
-        frameVariables[var.first] = std::move(var.second);
+        frameVariables[var.first] = var.second;
       }
     }
   }
