@@ -1,0 +1,95 @@
+def main()
+  rows = 20
+  cols = 20
+  grid = [[0] * cols] * rows
+  initialize(grid, rows, cols)
+
+  while true do
+    println(display(grid, rows, cols))
+    update(grid, rows, cols)
+  end
+end
+
+/#
+Initializes cells to either 0 (off), 1 (on), or 2 (dying)
+#/
+def initialize(grid, rows, cols)
+  for x in [0 .. rows - 1] do
+    for y in [0 .. cols - 1] do
+      grid[x][y] = __random__(0, 2)
+    end
+  end
+end
+
+def display(grid, rows, cols)
+  __exec__("clear")
+  disp = []
+
+  i = 0, len = rows - 1
+
+  while i < len do
+    row = []
+    for cell in grid[i] do
+      if cell == 0
+        row << "."
+      elsif cell == 1
+        row << "O"
+      else
+        row << "*"
+      end
+    end
+    disp << row.join(" ")
+    i += 1
+  end
+
+  return disp.join("\n")
+end
+
+def update(grid, rows, cols)
+  new_grid = grid.clone()
+  
+  for x in [0 .. rows - 1] do
+    for y in [0 .. cols - 1] do
+      current_state = grid[x][y]
+      on_neighbors = count_on_neighbors(grid, rows, cols, x, y)
+
+      if current_state == 0 && on_neighbors == 2
+        new_grid[x][y] = 1  # off to on
+      elsif current_state == 1
+        new_grid[x][y] = 2  # on to dying
+      else
+        new_grid[x][y] = 0  # dying to off
+      end
+    end
+  end
+
+  grid = new_grid
+end
+
+def count_on_neighbors(grid, rows, cols, x, y)
+  directions = [
+    [x - 1, y - 1],
+    [x - 1, y],
+    [x - 1, y + 1],
+    [x, y - 1],
+    [x, y + 1],
+    [x + 1, y - 1],
+    [x + 1, y],
+    [x + 1, y + 1]
+  ]
+
+  res = 0
+
+  for direction in directions do
+    nx = direction[0], ny = direction[1]
+    if (nx >= 0 && nx < rows && ny >= 0 && ny < cols)
+      if grid[nx][ny] == 1
+        res += 1
+      end
+    end
+  end
+
+  return res
+end
+
+main()

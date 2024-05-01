@@ -122,10 +122,17 @@ make test
 
 ### Code Examples
 
+#### Algorithms
+
+- [Levenshtein Distance](examples/algo/levenshtein.🥝)
+- [MD5](examples/algo/md5_hash.🥝)
+- [Sieve of Eratosthenes](examples/algo/sieve_of_eratosthenes.🥝)
+
 #### Cellular Automata
 
-- [Rule 30](examples/ca.🥝)
-- [Conway's Game of Life](examples/life.🥝)
+- [Rule 30](examples/cellular_automata/rule30.🥝)
+- [Conway's Game of Life](examples/cellular_automata/life.🥝)
+- [Brian's Brain](examples/cellular_automata/brain.🥝)
 
 #### Project Euler
 
