@@ -34,6 +34,4 @@ def sieve_of_eratosthenes(limit)
   return primes
 end
 
-for prime, index in sieve_of_eratosthenes(20) do
-  println("${index}:\t${prime}")
-end
+println(sieve_of_eratosthenes(2000))
