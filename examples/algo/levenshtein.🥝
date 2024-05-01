@@ -1,0 +1,57 @@
+def levenshtein_distance(s1, s2)
+  rows = s1.size() + 1
+  cols = s2.size() + 1
+  dist = [[0] * cols] * rows
+
+  # Initialize the first row and column
+  for i in [0 .. rows - 1] do
+    dist[i][0] = i
+  end
+  for j in [0 .. cols - 1] do
+    dist[0][j] = j
+  end
+
+  for i in [1 .. rows - 1] do
+    for j in [1 .. cols - 1] do
+      cost = 1
+      if s1[i - 1] == s2[j - 1]
+        cost = 0
+      end
+
+      dist[i][j] = [dist[i - 1][j] + 1, dist[i][j - 1] + 1, dist[i - 1][j - 1] + cost].min()
+    end
+  end
+
+  return dist[-1][-1]
+end
+
+[["kitten", "sitting"],
+ ["flaw", "lawn"],
+ ["saturday", "sunday"],
+ ["gumbo", "gambol"],
+ ["book", "back"],
+ ["december", "september"],
+ ["algorithm", "altruistic"],
+ ["apple", "a"],
+ ["orbit", "orbital"],
+ ["123456", "654321"],
+ ["abc", "def"],
+ ["the quick brown fox", "the quick brown fox jumps over the lazy dog"]
+].each(with (pair) do
+  println("Levenshtein distance between ${pair[0]} and ${pair[1]}: ${levenshtein_distance(pair[0], pair[1])}")
+end)
+
+/# Output:
+Levenshtein distance between kitten and sitting: 3
+Levenshtein distance between flaw and lawn: 2
+Levenshtein distance between saturday and sunday: 3
+Levenshtein distance between gumbo and gambol: 2
+Levenshtein distance between book and back: 2
+Levenshtein distance between december and september: 3
+Levenshtein distance between algorithm and altruistic: 6
+Levenshtein distance between apple and a: 4
+Levenshtein distance between orbit and orbital: 2
+Levenshtein distance between 123456 and 654321: 6
+Levenshtein distance between abc and def: 3
+Levenshtein distance between the quick brown fox and the quick brown fox jumps over the lazy dog: 24
+#/
