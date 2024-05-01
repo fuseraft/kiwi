@@ -391,7 +391,7 @@ class Interpreter {
     if (!isMethodInvocation) {
       const auto& frameVariables = frame->variables;
       for (const auto& pair : frameVariables) {
-        subFrameVariables[pair.first] = clone_value(pair.second);
+        subFrameVariables[pair.first] = pair.second;
       }
       const auto& frameLambdas = frame->lambdas;
       for (const auto& pair : frameLambdas) {
