@@ -19,6 +19,7 @@
    - [Error Handling](error_handling.md)
    - **Control Flow**
      - [Conditionals](conditionals.md)
+     - [Control Structures](control_structures.md)
      - [Loops](loops.md)
    - **Collections**
      - [Lists](lists.md)
