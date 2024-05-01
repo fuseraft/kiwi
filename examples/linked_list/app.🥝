@@ -4,43 +4,43 @@ def main()
   test = Tester.new()
   ll = LinkedList.new()
   
-  test.same(ll, {"head": {}})
+  test.expect(ll, {"head": {}})
   
   ll.insert_first(3)
-  test.same(ll, {"head": {"data": 3, "next_node": {}}})
+  test.expect(ll, {"head": {"data": 3, "next_node": {}}})
   
   ll.insert_first(2)
-  test.same(ll, {"head": {"data": 2, "next_node": {"data": 3, "next_node": {}}}})
+  test.expect(ll, {"head": {"data": 2, "next_node": {"data": 3, "next_node": {}}}})
   
   ll.insert_first(1)
-  test.same(ll, {"head": {"data": 1, "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {}}}}})
+  test.expect(ll, {"head": {"data": 1, "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {}}}}})
   
   ll.insert_last(4)
-  test.same(ll, {"head": {"data": 1, "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {"data": 4, "next_node": {}}}}}})
+  test.expect(ll, {"head": {"data": 1, "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {"data": 4, "next_node": {}}}}}})
   
   ll.remove_last()
-  test.same(ll, {"head": {"data": 1, "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {}}}}})
+  test.expect(ll, {"head": {"data": 1, "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {}}}}})
   
   ll.remove_first()
-  test.same(ll, {"head": {"data": 2, "next_node": {"data": 3, "next_node": {}}}})
+  test.expect(ll, {"head": {"data": 2, "next_node": {"data": 3, "next_node": {}}}})
   
   ll.insert_at("hello", 0)
-  test.same(ll, {"head": {"data": "hello", "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {}}}}})
+  test.expect(ll, {"head": {"data": "hello", "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {}}}}})
   
   ll.insert_last("world")
-  test.same(ll, {"head": {"data": "hello", "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {"data": "world", "next_node": {}}}}}})
+  test.expect(ll, {"head": {"data": "hello", "next_node": {"data": 2, "next_node": {"data": 3, "next_node": {"data": "world", "next_node": {}}}}}})
   
   ll.remove_at(1)
-  test.same(ll, {"head": {"data": "hello", "next_node": {"data": 3, "next_node": {"data": "world", "next_node": {}}}}})
+  test.expect(ll, {"head": {"data": "hello", "next_node": {"data": 3, "next_node": {"data": "world", "next_node": {}}}}})
   
   ll.remove_at(1)
-  test.same(ll, {"head": {"data": "hello", "next_node": {"data": "world", "next_node": {}}}})
+  test.expect(ll, {"head": {"data": "hello", "next_node": {"data": "world", "next_node": {}}}})
   
   values = ll.get_values().join(" ")
-  test.same(values, "hello world")
+  test.expect(values, "hello world")
   
   ll.clear()
-  test.same(ll, {"head": {}})
+  test.expect(ll, {"head": {}})
   
   println(test.results()) # prints: {"same": {"passed": 13, "failed": 0}}
 end

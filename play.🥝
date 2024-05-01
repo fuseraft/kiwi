@@ -1,59 +1,95 @@
-fn main()
-  import "@kiwi/math"
-  list = math::random_set(0, 30, 30)
-  bubblesort = BubbleSort.new()
-  list = bubblesort.sort(list)
+fn test_result(success, desc)
+  return { "success": success, "desc": desc }
 end
 
-abstract class Sort
-  abstract def sort(_list)
-end
+/#
+Function Scope Test: 
+Verify that variables defined in a function are not accessible outside of that function.
+#/
 
-class BubbleSort < Sort
-  def initialize() end
-  override def sort(_input)
-    throw "Cannot sort a non-list type." when !_input.is_a(List)
-
-    limit = _input.size() - 1
-  
-    while true do
-      swaps = 0
-      
-      for element, index in _input do
-        break when index + 1 > limit
-        first = element
-        second = _input[index + 1]
-        
-        if first > second
-          swaps += 1
-          _input[index] = second
-          _input[index + 1] = first
-          println(_input)
-        end
-      end
-  
-      break when swaps == 0
-    end
-  
-    return _input
+fn function_scope_test()
+  fn modify(value, new_value)
+    value = new_value
+    return value
   end
+
+  try
+    modify(0, 10)
+    return test_result(false, "`value` should be undefined") when value == 10
+  catch
+  end
+
+  value = 0
+
+  return test_result(false, "outer-scope `value` was changed.") when modify(value, 10) - 0 == 10
+  return test_result(true, "All tests passed.")
 end
 
-main()
+/#
+Loop Scope Test:
+Ensure that variables defined in a loop do not retain their values 
+from one iteration to the next unless explicitly defined outside the loop.
+#/
 
+fn loop_scope_test()
+  for i in [0..10] do
+    loop_var = i
+  end
 
-def sum(list)
-  throw "Cannot sum a non-List value." when !list.is_a(List)
-  return 0 when list.empty()
-  return list.sum()
+  try
+    return test_result(false, "Loop variable `loop_var` is accessible outside the loop.") when loop_var.is_a(Integer)
+  catch
+  end
+
+  fn modify(k)
+    n = k + 1
+  end
+
+  for n in [0..10] do
+    modify(n - 0)
+  end
+
+  try
+    return test_result(false, "Loop variable `n` is accessible outside the loop.") when n.is_a(Integer)
+  catch
+  end
+
+  return test_result(true, "All tests passed.")
 end
 
-println sum([1, 2])
-println sum([])
+/#
+Block Scope Test: Test variables defined in conditional blocks to ensure they do not leak outside the block.
+#/
 
-def min(a, b)
-  return a < b ? a : b
+fn block_scope_test()
+  if true
+    block_var = "Inside block"
+
+    if false # do nothing
+    elsif true
+      if false # do nothing
+      else block_var = "Inside another block"
+      end
+    end
+  end
+
+  try
+    return test_result(false, "Block variable `block_var` is accessible outside the block.") when !block_var.empty()
+  catch
+  end
+
+  try
+    evens = [1..10].select(with (num) do return num % 2 == 0 end)
+    return test_result(false, "Block variable `num` is accessible outside the block.") when !num.empty()
+  catch
+  end
+
+  return test_result(true, "All tests passed.")
 end
 
-println min(5, 2)
-println min(1, 10)
+tests = {}
+tests.function_scope_test = function_scope_test()
+tests.loop_scope_test = loop_scope_test()
+tests.block_scope_test = block_scope_test()
+
+println(tests.pretty())

@@ -7,21 +7,21 @@ class Tester
     @_hash = {}
   end
 
-  def same(obj, str)
+  def expect(obj, str)
     if !_hash.has_key("same")
-      _hash.same = {}
-      _hash.same.passed = 0
-      _hash.same.failed = 0
+      @_hash.same = {}
+      @_hash.same.passed = 0
+      @_hash.same.failed = 0
     end
 
     if obj.to_string() == str.to_string()
-      _hash.same.passed = _hash.same.passed + 1
+      @_hash.same.passed = @_hash.same.passed + 1
     else
-      _hash.same.failed = _hash.same.failed + 1
+      @_hash.same.failed = @_hash.same.failed + 1
     end
   end
 
   def results()
-    return _hash
+    return @_hash
   end
 end
