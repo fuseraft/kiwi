@@ -175,6 +175,9 @@ class TokenStream {
   void next() {
     if (position < tokens.size()) {
       position++;
+      if (current().getType() == KTokenType::COMMENT) {
+        next();
+      }
     }
   }
 
