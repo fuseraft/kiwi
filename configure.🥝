@@ -1,10 +1,9 @@
 /#
-Usage: kiwi configure [--flags]
-
+Usage: kiwi configure [options]
 Options:
-  -h, --help                      print this message
-  -i, --install                   install interpreter & standard library
-  -u, --uninstall                 uninstall interpreter & standard library
+  h, help                      print this message
+  i, install                   install interpreter & standard library
+  u, uninstall                 uninstall interpreter & standard library
 #/
 
 ["argv", "env", "fs", "string", "sys"].each(with (lib) do
@@ -80,10 +79,14 @@ fn uninstall_kiwi(installation)
 end
 
 fn install_kiwi(source, installation)
-  ec = 0 # an error counter
+  if source.kiwi == installation.kiwi
+    println("Kiwi is installed.")
+    exit(0)
+  end
 
-  # Remove any previous installations.
   uninstall_kiwi(installation)
+  
+  ec = 0 # an error counter
 
   if fs::exists(source.kiwi)
     ec += fs::copy(source.kiwi, installation.kiwi) ? 0 : 1
