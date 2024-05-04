@@ -105,9 +105,9 @@ int KiwiCLI::run(std::vector<std::string>& v) {
       } else if (String::isOptionKVP(v.at(i))) {
         help = !KiwiCLI::processOption(v.at(i), host);
       } else {
-        auto extensionless = File::tryGetExtensionless(v.at(i));
-        if (!extensionless.empty()) {
-          host.registerScript(extensionless);
+        auto extless = host.hasScript() ? std::string("") : File::tryGetExtensionless(v.at(i));
+        if (!extless.empty()) {
+          host.registerScript(extless);
         } else {
           host.registerArg("argv_" + RNG::getInstance().random16(), v.at(i));
         }

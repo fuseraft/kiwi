@@ -38,7 +38,7 @@ play: $(EXECUTABLE)
 
 install: $(EXECUTABLE)
 	@echo "================================"
-	./$(EXECUTABLE) install
+	./$(EXECUTABLE) configure install
 
 profile: CXXFLAGS += -pg
 profile: clean $(EXECUTABLE)

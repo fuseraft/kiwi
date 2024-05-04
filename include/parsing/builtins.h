@@ -427,15 +427,21 @@ struct {
   const k_string GetEnvironmentVariable = "__getenv__";
   const k_string SetEnvironmentVariable = "__setenv__";
   const k_string UnsetEnvironmentVariable = "__unsetenv__";
+  const k_string Kiwi = "__kiwi__";
+  const k_string KiwiLib = "__kiwilib__";
 
   std::unordered_set<k_string> builtins = {GetEnvironmentVariable,
                                            SetEnvironmentVariable,
-                                           UnsetEnvironmentVariable};
+                                           UnsetEnvironmentVariable,
+                                           Kiwi,
+                                           KiwiLib };
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Env_GetEnvironmentVariable,
       KName::Builtin_Env_SetEnvironmentVariable,
-      KName::Builtin_Env_UnsetEnvironmentVariable};
+      KName::Builtin_Env_UnsetEnvironmentVariable,
+      KName::Builtin_Env_Kiwi,
+      KName::Builtin_Env_KiwiLib};
 
   bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
