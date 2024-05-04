@@ -26,7 +26,7 @@ extern const std::string kiwi_extension = ".🥝";
 #include "logging/logger.h"
 #include "concurrency/task.h"
 #include "objects/method.h"
-#include "objects/module.h"
+#include "objects/package.h"
 #include "objects/class.h"
 #include "stackframe.h"
 #include "parsing/tokens.h"
@@ -35,12 +35,12 @@ extern const std::string kiwi_extension = ".🥝";
 extern Logger logger;
 extern TaskManager task;
 extern std::unordered_map<std::string, Method> methods;
-extern std::unordered_map<std::string, Module> modules;
+extern std::unordered_map<std::string, Package> packages;
 extern std::unordered_map<std::string, Class> classes;
 extern std::unordered_map<std::string, std::string> kiwiArgs;
 extern std::stack<std::shared_ptr<CallStackFrame>> callStack;
 extern std::stack<k_stream> streamStack;
-extern std::stack<std::string> moduleStack;
+extern std::stack<std::string> packageStack;
 extern httplib::Server kiwiWebServer;
 extern std::unordered_map<int, Method> kiwiWebServerHooks;
 extern std::string kiwiWebServerHost;

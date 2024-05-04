@@ -1,13 +1,13 @@
 # `@kiwi/web`
 
-The `web` module contains functionality for building web applications in Kiwi.
+The `web` package contains functionality for building web applications in Kiwi.
 
-*Note: this module is likely to evolve over time.*
+*Note: this package is likely to evolve over time.*
 
 ## Table of Contents
 
-- [Importing the Module](#importing-the-module)
-- [Module Functions](#module-functions)
+- [Importing the Package](#importing-the-package)
+- [Package Functions](#package-functions)
   - [`ok(_content, _content_type)`](#ok_content-_content_type-_status--200)
   - [`bad(_content, _content_type)`](#bad_content-_content_type-_status--500)
   - [`redirect(_url)`](#redirect_url-_status--302)
@@ -17,15 +17,15 @@ The `web` module contains functionality for building web applications in Kiwi.
   - [`public(_public_endpoint, _public_path)`](#public_public_endpoint-_public_path)
 
 
-## Importing the Module
+## Importing the Package
 
-To use the `web` module, import it at the beginning of your Kiwi script.
+To use the `web` package, import it at the beginning of your Kiwi script.
 
 ```ruby
 import "@kiwi/web" as web
 ```
 
-## Module Functions
+## Package Functions
 
 ### `ok(_content, _content_type, _status = 200)`
 

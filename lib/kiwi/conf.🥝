@@ -1,5 +1,5 @@
 /#
-Summary: A module containing functionality for working with `conf` files.
+Summary: A package containing functionality for working with `conf` files.
 
 Common file extensions are: .conf, .ini, .cfg, and .env
 
@@ -13,7 +13,7 @@ PATH     =   /home/scs/kiwi
 CONN_STR =   server=%SERVER%;db=%DB_NAME%;user=%DB_USER%;pass=%DB_PASS%
 #/
 
-module conf
+package conf
   __home__("kiwi")
 
   /#

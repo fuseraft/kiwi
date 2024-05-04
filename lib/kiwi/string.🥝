@@ -1,8 +1,8 @@
 
 /#
-A module with interesting string operations.
+A package with interesting string operations.
 #/
-module string
+package string
   __home__("kiwi")
 
   /#

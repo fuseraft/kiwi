@@ -1,27 +1,27 @@
 # `@kiwi/conf`
 
-The `conf` module contains functionality for working with configuration files.
+The `conf` package contains functionality for working with configuration files.
 
 Common file extensions are: `.conf`, `.ini`, `.cfg`, `.env`, and `.json`
 
-*Note: this module is likely to evolve over time.* 
+*Note: this package is likely to evolve over time.* 
 
 ## Table of Contents
 
-- [Importing the Module](#importing-the-module)
-- [Module Functions](#module-functions)
+- [Importing the Package](#importing-the-package)
+- [Package Functions](#package-functions)
   - [`read(_conf_path, _delim = "=")`](#read_conf_path-_delim--)
   - [`readjson(_json_path)`](#readjson_json_path)
 
-## Importing the Module
+## Importing the Package
 
-To use the `conf` module, import it at the beginning of your Kiwi script.
+To use the `conf` package, import it at the beginning of your Kiwi script.
 
 ```ruby
 import "@kiwi/conf" as conf
 ```
 
-## Module Functions
+## Package Functions
 
 ### `read(_conf_path, _delim = "=")`
 

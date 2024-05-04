@@ -72,7 +72,7 @@ class Host {
   std::unordered_map<std::string, std::string> args;
   bool kiwilibEnabled = true;
 
-  void loadLibraryModules(const std::string& path) {
+  void loadLibraryPackages(const std::string& path) {
     std::vector<std::string> kiwilib;
 #ifdef _WIN64
     kiwilib = File::expandGlob(path + "\\*" + kiwi_extension);
@@ -94,7 +94,7 @@ class Host {
       auto kiwilibPath = File::getLibraryPath();
 
       if (!kiwilibPath.empty()) {
-        loadLibraryModules(kiwilibPath);
+        loadLibraryPackages(kiwilibPath);
       }
     } catch (const std::exception& e) {
       ErrorHandler::printError(e);
@@ -127,7 +127,7 @@ class Host {
     auto libPath = File::joinPath(parentPath, "lib");
 
     if (File::directoryExists(libPath)) {
-      loadLibraryModules(libPath);
+      loadLibraryPackages(libPath);
     }
 
     return interp.interpretScript(path);

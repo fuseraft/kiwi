@@ -168,25 +168,25 @@ class DivideByZeroError : public KiwiError {
                     "Attempted to divide by zero.") {}
 };
 
-class HomeModuleUndefinedError : public KiwiError {
+class HomePackageUndefinedError : public KiwiError {
  public:
-  HomeModuleUndefinedError(const Token& token, const std::string& home,
+  HomePackageUndefinedError(const Token& token, const std::string& home,
                            const std::string& name)
-      : KiwiError(token, "HomeModuleUndefinedError",
-                    "Home module `@" + home + "/" + name + "` is undefined.") {}
+      : KiwiError(token, "HomePackageUndefinedError",
+                    "Home package `@" + home + "/" + name + "` is undefined.") {}
 };
 
-class ModuleUndefinedError : public KiwiError {
+class PackageUndefinedError : public KiwiError {
  public:
-  ModuleUndefinedError(const Token& token, const std::string& name)
-      : KiwiError(token, "ModuleUndefinedError",
-                    "Module `" + name + "` is undefined.") {}
+  PackageUndefinedError(const Token& token, const std::string& name)
+      : KiwiError(token, "PackageUndefinedError",
+                    "Package `" + name + "` is undefined.") {}
 };
 
-class ModuleError : public KiwiError {
+class PackageError : public KiwiError {
  public:
-  ModuleError(const Token& token, const std::string& message)
-      : KiwiError(token, "ModuleError", message) {}
+  PackageError(const Token& token, const std::string& message)
+      : KiwiError(token, "PackageError", message) {}
 };
 
 class SystemError : public KiwiError {

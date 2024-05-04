@@ -117,7 +117,7 @@ struct {
   const k_string Home = "__home__";
 
   std::unordered_set<k_string> builtins = {Home};
-  std::unordered_set<KName> st_builtins = {KName::Builtin_Module_Home};
+  std::unordered_set<KName> st_builtins = {KName::Builtin_Package_Home};
 
   bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
@@ -126,7 +126,7 @@ struct {
   bool is_builtin(const KName& arg) {
     return st_builtins.find(arg) != st_builtins.end();
   }
-} ModuleBuiltins;
+} PackageBuiltins;
 
 struct {
   const k_string Hour = "__hour__";
@@ -639,7 +639,7 @@ struct {
     return ConsoleBuiltins.is_builtin(arg) || EnvBuiltins.is_builtin(arg) ||
            ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
-           ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
+           PackageBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
            LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
            SerializerBuiltins.is_builtin(arg);
@@ -649,7 +649,7 @@ struct {
     return ConsoleBuiltins.is_builtin(arg) || EnvBuiltins.is_builtin(arg) ||
            ArgvBuiltins.is_builtin(arg) || TimeBuiltins.is_builtin(arg) ||
            FileIOBuiltIns.is_builtin(arg) || MathBuiltins.is_builtin(arg) ||
-           ModuleBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
+           PackageBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
            LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
            SerializerBuiltins.is_builtin(arg);

@@ -15,7 +15,7 @@
 3. [**Life of a Program**](#life-of-a-program)
 
 4. **Advanced Language Features**
-   - [Modules](modules.md)
+   - [Packages](packages.md)
    - [Error Handling](error_handling.md)
    - **Control Flow**
      - [Conditionals](conditionals.md)

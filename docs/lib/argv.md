@@ -1,23 +1,23 @@
 # `@kiwi/argv`
 
-The `argv` module contains functionality for working with command-line arguments.
+The `argv` package contains functionality for working with command-line arguments.
 
 ## Table of Contents
 
-- [Importing the Module](#importing-the-module)
-- [Module Functions](#module-functions)
+- [Importing the Package](#importing-the-package)
+- [Package Functions](#package-functions)
   - [`get()`](#get)
   - [`opt(_key)`](#opt_key)
 
-## Importing the Module
+## Importing the Package
 
-To use the `argv` module, import it at the beginning of your Kiwi script.
+To use the `argv` package, import it at the beginning of your Kiwi script.
 
 ```ruby
 import "@kiwi/argv" as ARGV
 ```
 
-## Module Functions
+## Package Functions
 
 ### `get()`
 Get the list of command-line arguments.
@@ -50,7 +50,7 @@ You can pass a named command-line argument in the form of a key-value pair.
 /bin/kiwi /key=value
 ```
 
-You can pull these values using this module.
+You can pull these values using this package.
 
 ```ruby
 import "@kiwi/argv" as ARGV

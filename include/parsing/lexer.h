@@ -234,8 +234,8 @@ class Lexer {
       st = KName::KW_In;
     } else if (keyword == Keywords.Method || keyword == Keywords.Function) {
       st = KName::KW_Method;
-    } else if (keyword == Keywords.Module) {
-      st = KName::KW_Module;
+    } else if (keyword == Keywords.Package) {
+      st = KName::KW_Package;
     } else if (keyword == Keywords.Next) {
       st = KName::KW_Next;
     } else if (keyword == Keywords.Override) {
@@ -739,11 +739,11 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseModuleBuiltin(const std::string& builtin) {
+  Token parsePackageBuiltin(const std::string& builtin) {
     auto st = KName::Default;
 
-    if (builtin == ModuleBuiltins.Home) {
-      st = KName::Builtin_Module_Home;
+    if (builtin == PackageBuiltins.Home) {
+      st = KName::Builtin_Package_Home;
     }
 
     return createToken(KTokenType::IDENTIFIER, st, builtin);
@@ -886,8 +886,8 @@ class Lexer {
       return parseListBuiltin(builtin);
     } else if (MathBuiltins.is_builtin(builtin)) {
       return parseMathBuiltin(builtin);
-    } else if (ModuleBuiltins.is_builtin(builtin)) {
-      return parseModuleBuiltin(builtin);
+    } else if (PackageBuiltins.is_builtin(builtin)) {
+      return parsePackageBuiltin(builtin);
     } else if (SysBuiltins.is_builtin(builtin)) {
       return parseSysBuiltin(builtin);
     } else if (TimeBuiltins.is_builtin(builtin)) {

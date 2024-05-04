@@ -1,11 +1,11 @@
 # `@kiwi/log`
 
-The `log` module contains functionality for working with the Kiwi logger.
+The `log` package contains functionality for working with the Kiwi logger.
 
 ## Table of Contents
 
-- [Importing the Module](#importing-the-module)
-- [Module Functions](#module-functions)
+- [Importing the Package](#importing-the-package)
+- [Package Functions](#package-functions)
   - [`set_file(_file_path)`](#set_file_file_path)
   - [`set_mode(_mode)`](#set_mode_mode--console)
   - [`logformat(_format)`](#logformat_format)
@@ -16,15 +16,15 @@ The `log` module contains functionality for working with the Kiwi logger.
   - [`info(_message, _source)`](#info_message-_source--)
   - [`error(_message, _source)`](#error_message-_source--)
 
-## Importing the Module
+## Importing the Package
 
-To use the `log` module, import it at the beginning of your Kiwi script.
+To use the `log` package, import it at the beginning of your Kiwi script.
 
 ```ruby
 import "@kiwi/log" as logger
 ```
 
-## Module Functions
+## Package Functions
 
 ### `set_file(_file_path)`
 

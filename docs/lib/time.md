@@ -1,13 +1,13 @@
 # `@kiwi/time`
 
-The `time` module contains functionality for working with time and date information.
+The `time` package contains functionality for working with time and date information.
 
-Importing the `time` module provides access to the [`DateTime` class](datetime.md).
+Importing the `time` package provides access to the [`DateTime` class](datetime.md).
 
 ## Table of Contents
 
-- [Importing the Module](#importing-the-module)
-- [Module Functions](#module-functions)
+- [Importing the Package](#importing-the-package)
+- [Package Functions](#package-functions)
   - [`ampm()`](#ampm)
   - [`day()`](#day)
   - [`delay(_ms)`](#delay_ms)
@@ -28,14 +28,14 @@ Importing the `time` module provides access to the [`DateTime` class](datetime.m
   - [`year()`](#year)
   - [`yearday()`](#yearday)
 
-## Importing the Module
-To use the `time` module, import it at the beginning of your Kiwi script.
+## Importing the Package
+To use the `time` package, import it at the beginning of your Kiwi script.
 
 ```ruby
 import "@kiwi/time" as time
 ```
 
-## Module Functions
+## Package Functions
 
 ### `hour()`
 

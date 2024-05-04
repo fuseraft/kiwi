@@ -1,12 +1,12 @@
 # `@kiwi/http`
 
-The `http` module contains functionality for working with HTTP requests.
+The `http` package contains functionality for working with HTTP requests.
 
 ## Table of Contents
 
-- [Importing the Module](#importing-the-module)
+- [Importing the Package](#importing-the-package)
 - [Example GET Request](#example-get-request)
-- [Module Functions](#module-functions)
+- [Package Functions](#package-functions)
   - [`delete_(_url, _path, _headers)`](#delete__url-_path-_headers)
   - [`get(_url, _path, _headers)`](#get_url-_path-_headers)
   - [`head(_url, _path, _headers)`](#head_url-_path-_headers)
@@ -15,9 +15,9 @@ The `http` module contains functionality for working with HTTP requests.
   - [`post(_url, _path, _body, _content_type, _headers)`](#post_url-_path-_body-_content_type-_headers)
   - [`put(_url, _path, _body, _content_type, _headers)`](#put_url-_path-_body-_content_type-_headers)
 
-## Importing the Module
+## Importing the Package
 
-To use the `http` module, import it at the beginning of your Kiwi script.
+To use the `http` package, import it at the beginning of your Kiwi script.
 
 ```ruby
 import "@kiwi/http"
@@ -37,7 +37,7 @@ else
 end
 ```
 
-## Module Functions
+## Package Functions
 
 ### `delete_(_url, _path, _headers)`
 

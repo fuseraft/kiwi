@@ -20,12 +20,12 @@
 TaskManager task;
 
 std::unordered_map<std::string, Method> methods;
-std::unordered_map<std::string, Module> modules;
+std::unordered_map<std::string, Package> packages;
 std::unordered_map<std::string, Class> classes;
 std::unordered_map<std::string, std::string> kiwiArgs;
 std::stack<std::shared_ptr<CallStackFrame>> callStack;
 std::stack<k_stream> streamStack;
-std::stack<std::string> moduleStack;
+std::stack<std::string> packageStack;
 std::unordered_map<int, Method> kiwiWebServerHooks;
 httplib::Server kiwiWebServer;
 std::string kiwiWebServerHost;

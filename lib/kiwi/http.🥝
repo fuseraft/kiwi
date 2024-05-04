@@ -1,7 +1,7 @@
 /#
-Summary: A module for performing HTTP requests.
+Summary: A package for performing HTTP requests.
 #/
-module http
+package http
   __home__("kiwi")
 
   /#

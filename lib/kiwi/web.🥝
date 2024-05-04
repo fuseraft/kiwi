@@ -1,8 +1,8 @@
 /#
-Summary: A module for building web applications.
+Summary: A package for building web applications.
 #/
 
-module web
+package web
   __home__("kiwi")
 
   /#

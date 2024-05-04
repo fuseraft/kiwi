@@ -1,23 +1,23 @@
 # `@kiwi/env`
 
-The `ENV` module contains functionality for working with environment variables.
+The `ENV` package contains functionality for working with environment variables.
 
 ## Table of Contents
 
-- [Importing the Module](#importing-the-module)
-- [Module Functions](#module-functions)
+- [Importing the Package](#importing-the-package)
+- [Package Functions](#package-functions)
   - [`get(_varname)`](#get_varname)
   - [`set(_varname, _varvalue)`](#set_varname-_varvalue)
 
-## Importing the Module
+## Importing the Package
 
-To use the `env` module, import it at the beginning of your Kiwi script.
+To use the `env` package, import it at the beginning of your Kiwi script.
 
 ```ruby
 import "@kiwi/env" as ENV
 ```
 
-## Module Functions
+## Package Functions
 
 ### `get(_varname)`
 

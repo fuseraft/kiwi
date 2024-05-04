@@ -1,11 +1,11 @@
 # `@kiwi/math`
 
-The `math` module contains functionality for working with common math operations.
+The `math` package contains functionality for working with common math operations.
 
 ## Table of Contents
 
-- [Importing the Module](#importing-the-module)
-- [Module Functions](#module-functions)
+- [Importing the Package](#importing-the-package)
+- [Package Functions](#package-functions)
   - [`abs(_value)`](#abs_value)
   - [`acos(_value)`](#acos_value)
   - [`asin(_value)`](#asin_value)
@@ -53,14 +53,14 @@ The `math` module contains functionality for working with common math operations
   - [`tgamma(_value)`](#tgamma_value)
   - [`trunc(_value)`](#trunc_value)
 
-## Importing the Module
-To use the `math` module, import it at the beginning of your Kiwi script.
+## Importing the Package
+To use the `math` package, import it at the beginning of your Kiwi script.
 
 ```ruby
 import "@kiwi/math" as math
 ```
 
-## Module Functions
+## Package Functions
 
 ### `epsilon()`
 

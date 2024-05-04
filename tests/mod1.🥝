@@ -1,4 +1,4 @@
-module mod1
+package mod1
   def say(s) println(s) end
 end
 
