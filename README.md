@@ -1,6 +1,6 @@
 # kiwi 🥝
 
-A dynamically-typed, single-pass, recursive descent interpreter without AST generation.
+An unorthodox scripting language.
 
 ## Table of Contents
 
