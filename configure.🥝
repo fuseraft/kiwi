@@ -80,7 +80,7 @@ end
 
 fn install_kiwi(source, installation)
   if source.kiwi == installation.kiwi
-    println("Kiwi is installed.")
+    println("Kiwi is already installed.")
     exit(0)
   end
 
