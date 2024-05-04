@@ -540,6 +540,10 @@ class Lexer {
       st = KName::Builtin_Env_SetEnvironmentVariable;
     } else if (builtin == EnvBuiltins.UnsetEnvironmentVariable) {
       st = KName::Builtin_Env_UnsetEnvironmentVariable;
+    } else if (builtin == EnvBuiltins.Kiwi) {
+      st = KName::Builtin_Env_Kiwi;
+    } else if (builtin == EnvBuiltins.KiwiLib) {
+      st = KName::Builtin_Env_KiwiLib;
     }
 
     return createToken(KTokenType::IDENTIFIER, st, builtin);

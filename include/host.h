@@ -62,6 +62,10 @@ class Host {
     return interp.minify(script, output);
   }
 
+  bool hasScript() const {
+    return !scripts.empty();
+  }
+
  private:
   Interpreter& interp;
   std::unordered_set<std::string> scripts;

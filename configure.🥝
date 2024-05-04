@@ -1,0 +1,103 @@
+/#
+Usage: kiwi configure [--flags]
+
+Options:
+  -h, --help                      print this message
+  -i, --install                   install interpreter & standard library
+  -u, --uninstall                 uninstall interpreter & standard library
+#/
+
+["argv", "env", "fs", "string", "sys"].each(with (lib) do
+  parse("import '@kiwi/${lib}'")
+end)
+
+fn main(args)
+  source = {}, installation = {}
+  
+  installation.kiwi    = "/usr/bin/kiwi"       # Default path to install the Kiwi interpreter.
+  installation.kiwilib = "/usr/lib/kiwi"       # Default path to install the Kiwi standard library.
+  source.kiwi          = env::kiwi()           # Path to the local Kiwi executable.
+  source.kiwilib       = env::kiwilib()        # Path to the local Kiwi standard library.
+
+  if args.size() != 1
+    return print_help()
+  end
+
+  opt = args[0].downcase().replace('-|\/', "") # remove dashes and slashes
+
+  if ["i", "install"].contains(opt)
+    install_kiwi(source, installation)
+    println("Kiwi installed successfully.")
+  elsif ["u", "uninstall"].contains(opt)
+    uninstall_kiwi(installation)
+    println("Kiwi has been uninstalled.")
+  else
+    print_help()
+  end
+end
+
+fn print_help()
+  flags = [
+    ["h, help", "print this message"],
+    ["i, install", "install interpreter & standard library"],
+    ["u, uninstall", "uninstall interpreter & standard library"]
+  ]
+  
+  println("Usage: kiwi configure [options]\nOptions:")
+
+  flags.each(with (flag) do
+    println("  " + string::padend(flag[0], 30, " ") + flag[1])
+  end)
+end
+
+fn sudo_check()
+  euid = sys::euid()  # sys::euid() will return -1 on non-POSIX systems.
+
+  if euid != 0
+    println("Please run this script with `sudo`.")
+    exit(1)
+  end
+end
+
+fn uninstall_kiwi(installation)
+  sudo_check()
+
+  ec = 0 # an error counter
+
+  if fs::exists(installation.kiwi)
+    ec += fs::remove(installation.kiwi) ? 0 : 1
+  end
+  
+  if fs::isdir(installation.kiwilib)
+    ec += fs::rmdirf(installation.kiwilib) > 0 ? 0 : 1
+  end
+  
+  # Check for errors in removal process
+  if ec != 0
+    println("Failed to remove existing Kiwi installation.")
+    exit(1)
+  end
+end
+
+fn install_kiwi(source, installation)
+  ec = 0 # an error counter
+
+  # Remove any previous installations.
+  uninstall_kiwi(installation)
+
+  if fs::exists(source.kiwi)
+    ec += fs::copy(source.kiwi, installation.kiwi) ? 0 : 1
+  end
+  
+  if fs::isdir(source.kiwilib)
+    ec += fs::copyr(source.kiwilib, installation.kiwilib) ? 0 : 1
+  end
+
+  # Check for errors in installation process
+  if ec != 0
+    println("Failed to install kiwi. Please check permissions and try again.")
+    exit(1)
+  end
+end
+
+main(argv::get())

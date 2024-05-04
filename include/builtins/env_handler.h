@@ -7,6 +7,7 @@
 #include "parsing/builtins.h"
 #include "parsing/tokens.h"
 #include "typing/value.h"
+#include "util/file.h"
 
 class EnvBuiltinHandler {
  public:
@@ -22,6 +23,12 @@ class EnvBuiltinHandler {
       case KName::Builtin_Env_UnsetEnvironmentVariable:
         return executeUnsetEnvironmentVariable(term, args);
 
+      case KName::Builtin_Env_Kiwi:
+        return executeKiwi(term, args);
+
+      case KName::Builtin_Env_KiwiLib:
+        return executeKiwiLib(term, args);
+
       default:
         break;
     }
@@ -30,6 +37,24 @@ class EnvBuiltinHandler {
   }
 
  private:
+  static k_value executeKiwi(const Token& term, const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term,
+                                           EnvBuiltins.Kiwi);
+    }
+
+    return File::getExecutablePath();
+  }
+
+  static k_value executeKiwiLib(const Token& term, const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term,
+                                           EnvBuiltins.KiwiLib);
+    }
+
+    return File::getLibraryPath();
+  }
+
   static k_value executeGetEnvironmentVariable(
       const Token& term, const std::vector<k_value>& args) {
     if (args.size() != 1) {
