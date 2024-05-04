@@ -1,7 +1,7 @@
 /#
-Summary: A module containing functionality for working with time and date information.
+Summary: A package containing functionality for working with time and date information.
 #/
-module time
+package time
   __home__("kiwi")
 
   /#

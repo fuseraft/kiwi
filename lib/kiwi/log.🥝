@@ -1,7 +1,7 @@
 /#
-Summary: A module for working with the Kiwi logger.
+Summary: A package for working with the Kiwi logger.
 #/
-module log
+package log
   __home__("kiwi")
 
   /#

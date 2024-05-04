@@ -1,7 +1,7 @@
 /#
-Summary: A module containing functionality for working with files and directories.
+Summary: A package containing functionality for working with files and directories.
 #/
-module fs
+package fs
   __home__("kiwi")
 
   /#

@@ -1,7 +1,7 @@
 /#
-Summary: A module for working with external processes.
+Summary: A package for working with external processes.
 #/
-module sys
+package sys
   __home__("kiwi")
 
   /#

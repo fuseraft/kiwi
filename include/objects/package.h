@@ -6,7 +6,7 @@
 #include "parsing/tokens.h"
 #include "typing/value.h"
 
-class Module {
+class Package {
  public:
   void addToken(const Token& t) { code.emplace_back(t); }
   void setName(const k_string& name) { _name = name; }

@@ -546,21 +546,21 @@ struct InterpHelper {
     errorValue = error.getMessage();
   }
 
-  static k_string interpretModuleHome(k_string& modulePath, k_stream stream) {
+  static k_string interpretPackageHome(k_string& packagePath, k_stream stream) {
     if (stream->current().getType() != KTokenType::STRING ||
-        !String::beginsWith(modulePath, "@")) {
+        !String::beginsWith(packagePath, "@")) {
       return "";
     }
 
-    k_string moduleHome;
+    k_string packageHome;
 
     // Get everything between the @ and the /, that is the home.
-    Lexer lexer("", modulePath);
+    Lexer lexer("", packagePath);
     const auto& tokens = lexer.getAllTokens();
     auto lastToken = Token::createEmpty();
     size_t pos = 0;
     bool build = false;
-    k_string moduleName;
+    k_string packageName;
 
     while (pos < tokens.size()) {
       const auto& token = tokens.at(pos);
@@ -568,26 +568,26 @@ struct InterpHelper {
       // If the last token was "@"
       if (pos + 1 < tokens.size() && lastToken.getText() == "@") {
         if (tokens.at(pos + 1).getSubType() == KName::Ops_Divide) {
-          moduleHome = token.getText();
-          pos += 2;  // Skip module home and "/"
+          packageHome = token.getText();
+          pos += 2;  // Skip package home and "/"
           build = true;
           continue;
         }
       }
 
       if (build) {
-        moduleName += token.getText();
+        packageName += token.getText();
       } else {
         lastToken = token;
       }
       ++pos;
     }
 
-    if (!moduleName.empty()) {
-      modulePath = moduleName;
+    if (!packageName.empty()) {
+      packagePath = packageName;
     }
 
-    return moduleHome;
+    return packageHome;
   }
 
   static k_string interpretBaseClass(k_stream stream) {

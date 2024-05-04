@@ -8,7 +8,7 @@
 #include "objects/class.h"
 #include "objects/conditional.h"
 #include "objects/method.h"
-#include "objects/module.h"
+#include "objects/package.h"
 #include "objects/sliceindex.h"
 #include "parsing/builtins.h"
 #include "parsing/lexer.h"
@@ -152,9 +152,9 @@ class Interpreter {
       tempCallStack.pop();
     }
 
-    std::cout << "modules: " << modules.size() << std::endl;
+    std::cout << "packages: " << packages.size() << std::endl;
     counter = 0;
-    for (const auto& mod : modules) {
+    for (const auto& mod : packages) {
       std::cout << counter++ << " name: " << mod.first
                 << ", size: " << mod.second.getCode().size() << std::endl;
     }
@@ -869,8 +869,8 @@ class Interpreter {
         interpretExport(stream, frame);
         break;
 
-      case KName::KW_Module:
-        interpretModuleDefinition(stream);
+      case KName::KW_Package:
+        interpretPackageDefinition(stream);
         break;
 
       case KName::KW_Delete:
@@ -1162,9 +1162,9 @@ class Interpreter {
     }
   }
 
-  bool hasHomedModule(const k_string& homeName, const k_string& moduleName) {
-    for (auto pair : modules) {
-      if (pair.first == moduleName && pair.second.hasHome() &&
+  bool hasHomedPackage(const k_string& homeName, const k_string& packageName) {
+    for (auto pair : packages) {
+      if (pair.first == packageName && pair.second.hasHome() &&
           pair.second.getHome() == homeName) {
         return true;
       }
@@ -1173,8 +1173,8 @@ class Interpreter {
     return false;
   }
 
-  bool hasModule(const k_string& name) const {
-    return modules.find(name) != modules.end();
+  bool hasPackage(const k_string& name) const {
+    return packages.find(name) != packages.end();
   }
 
   bool hasClass(const k_string& name) const {
@@ -1196,24 +1196,24 @@ class Interpreter {
     return methods.find(name) != methods.end();
   }
 
-  Module getHomedModule(k_stream stream, const k_string& homeName,
-                        const k_string& moduleName) {
-    for (auto pair : modules) {
-      if (pair.first == moduleName && pair.second.hasHome() &&
+  Package getHomedPackage(k_stream stream, const k_string& homeName,
+                        const k_string& packageName) {
+    for (auto pair : packages) {
+      if (pair.first == packageName && pair.second.hasHome() &&
           pair.second.getHome() == homeName) {
         return pair.second;
       }
     }
 
-    throw ModuleUndefinedError(stream->current(), moduleName);
+    throw PackageUndefinedError(stream->current(), packageName);
   }
 
-  Module getModule(k_stream stream, const k_string& name) {
-    if (hasModule(name)) {
-      return modules[name];
+  Package getPackage(k_stream stream, const k_string& name) {
+    if (hasPackage(name)) {
+      return packages[name];
     }
 
-    throw ModuleUndefinedError(stream->current(), name);
+    throw PackageUndefinedError(stream->current(), name);
   }
 
   Method getMethod(k_stream stream, std::shared_ptr<CallStackFrame> frame,
@@ -1627,23 +1627,23 @@ class Interpreter {
     return static_cast<k_int>(0);
   }
 
-  void interpretModuleBuiltin(k_stream stream, const k_string& moduleName,
+  void interpretPackageBuiltin(k_stream stream, const k_string& packageName,
                               const KName& builtin,
                               std::vector<k_value>& args) {
-    if (builtin == KName::Builtin_Module_Home) {
+    if (builtin == KName::Builtin_Package_Home) {
       if (args.size() != 1) {
         throw BuiltinUnexpectedArgumentError(stream->current(),
-                                             ModuleBuiltins.Home);
+                                             PackageBuiltins.Home);
       }
 
       if (!std::holds_alternative<k_string>(args.at(0))) {
         throw SyntaxError(stream->current(), "Expected string value for `" +
-                                                 ModuleBuiltins.Home +
+                                                 PackageBuiltins.Home +
                                                  "` builtin parameter.");
       }
 
-      modules[moduleName].setHome(std::get<k_string>(args.at(0)));
-      modules[moduleName].setName(moduleName);
+      packages[packageName].setHome(std::get<k_string>(args.at(0)));
+      packages[packageName].setName(packageName);
     }
   }
 
@@ -2105,14 +2105,14 @@ class Interpreter {
                                    std::shared_ptr<CallStackFrame> frame) {
     auto method = interpretMethodDeclaration(stream, frame);
     auto name = method.getName();
-    k_string moduleName;
+    k_string packageName;
 
-    if (!moduleStack.empty()) {
-      moduleName = moduleStack.top();
+    if (!packageStack.empty()) {
+      packageName = packageStack.top();
     }
 
-    if (!moduleName.empty()) {
-      name = moduleName + Symbols.Qualifier + name;
+    if (!packageName.empty()) {
+      name = packageName + Symbols.Qualifier + name;
     }
 
     if (Keywords.is_keyword(name)) {
@@ -2630,17 +2630,17 @@ class Interpreter {
     classes[className] = std::move(clazz);
   }
 
-  void interpretModuleDefinition(k_stream stream) {
-    stream->next();  // Skip "module"
+  void interpretPackageDefinition(k_stream stream) {
+    stream->next();  // Skip "package"
 
     auto name = stream->current().getText();
-    if (hasModule(name)) {
+    if (hasPackage(name)) {
       // WIP: Mixins?
     }
 
-    stream->next();  // Skip the module name.
+    stream->next();  // Skip the package name.
 
-    Module module;
+    Package package;
     int counter = 1;
     while (stream->canRead() && counter > 0) {
       if (stream->current().getSubType() == KName::KW_End) {
@@ -2655,28 +2655,28 @@ class Interpreter {
         ++counter;
       }
 
-      module.addToken(stream->current());
+      package.addToken(stream->current());
       stream->next();
     }
 
-    modules[name] = std::move(module);
+    packages[name] = std::move(package);
   }
 
-  k_string interpretModuleImport(k_stream stream, const k_string& home,
+  k_string interpretPackageImport(k_stream stream, const k_string& home,
                                  const k_string& name) {
     stream->next();  // Skip the name.
 
-    moduleStack.push(name);
-    auto module = hasHomedModule(home, name)
-                      ? getHomedModule(stream, home, name)
-                      : getModule(stream, name);
+    packageStack.push(name);
+    auto package = hasHomedPackage(home, name)
+                      ? getHomedPackage(stream, home, name)
+                      : getPackage(stream, name);
 
-    auto codeStream = std::make_shared<TokenStream>(module.getCode());
+    auto codeStream = std::make_shared<TokenStream>(package.getCode());
     auto codeFrame = std::make_shared<CallStackFrame>();
     callStack.push(codeFrame);
     streamStack.push(codeStream);
     interpretStackFrame();
-    moduleStack.pop();
+    packageStack.pop();
     return name;
   }
 
@@ -2717,23 +2717,23 @@ class Interpreter {
     Lexer lexer(scriptPath, content);
     execute(frame, lexer.getTokenStream());
 
-    // Check if a module was imported.
+    // Check if a package was imported.
     if (std::holds_alternative<k_string>(frame->returnValue)) {
-      auto moduleName = std::get<k_string>(frame->returnValue);
+      auto packageName = std::get<k_string>(frame->returnValue);
 
-      if (!hasModule(moduleName)) {
-        moduleName.clear();
+      if (!hasPackage(packageName)) {
+        packageName.clear();
       }
 
-      return moduleName;
+      return packageName;
     }
 
     return "";
   }
 
-  void interpretModuleAlias(k_stream stream,
+  void interpretPackageAlias(k_stream stream,
                             std::shared_ptr<CallStackFrame> frame,
-                            const k_string& moduleName) {
+                            const k_string& packageName) {
     stream->next();  // Skip "as"
 
     if (stream->current().getType() != KTokenType::IDENTIFIER) {
@@ -2743,7 +2743,7 @@ class Interpreter {
     auto alias = stream->current().getText();
     stream->next();  // Skip the alias
 
-    auto search = moduleName + Symbols.Qualifier;
+    auto search = packageName + Symbols.Qualifier;
 
     Class clazz;
     clazz.setClassName(alias);
@@ -2770,16 +2770,16 @@ class Interpreter {
   void interpretExport(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     stream->next();  // skip the "export"
 
-    auto moduleName = stream->current().getText();
-    auto moduleHome = InterpHelper::interpretModuleHome(moduleName, stream);
+    auto packageName = stream->current().getText();
+    auto packageHome = InterpHelper::interpretPackageHome(packageName, stream);
 
-    if (hasModule(moduleName)) {
-      moduleName = interpretModuleImport(stream, moduleHome, moduleName);
-      frame->returnValue = moduleName;
+    if (hasPackage(packageName)) {
+      packageName = interpretPackageImport(stream, packageHome, packageName);
+      frame->returnValue = packageName;
       frame->setFlag(FrameFlags::ReturnFlag);
     } else {
       throw InvalidOperationError(stream->current(),
-                                  "Invalid export `" + moduleName + "`");
+                                  "Invalid export `" + packageName + "`");
     }
   }
 
@@ -2789,17 +2789,17 @@ class Interpreter {
     }
 
     auto tokenText = stream->current().getText();
-    auto moduleName = tokenText;
-    auto moduleHome = InterpHelper::interpretModuleHome(moduleName, stream);
+    auto packageName = tokenText;
+    auto packageHome = InterpHelper::interpretPackageHome(packageName, stream);
 
-    if (hasModule(moduleName)) {
-      moduleName = interpretModuleImport(stream, moduleHome, moduleName);
+    if (hasPackage(packageName)) {
+      packageName = interpretPackageImport(stream, packageHome, packageName);
     } else {
-      moduleName = interpretExternalImport(stream, frame);
+      packageName = interpretExternalImport(stream, frame);
     }
 
     if (stream->current().getSubType() == KName::KW_As) {
-      interpretModuleAlias(stream, frame, moduleName);
+      interpretPackageAlias(stream, frame, packageName);
     }
   }
 
@@ -2909,12 +2909,12 @@ class Interpreter {
 
     auto args = interpretArguments(stream, frame);
 
-    if (ModuleBuiltins.is_builtin(builtin)) {
-      if (moduleStack.empty()) {
-        throw InvalidContextError(term, "Expected a module context.");
+    if (PackageBuiltins.is_builtin(builtin)) {
+      if (packageStack.empty()) {
+        throw InvalidContextError(term, "Expected a package context.");
       }
-      auto moduleName = moduleStack.top();
-      interpretModuleBuiltin(stream, moduleName, builtin, args);
+      auto packageName = packageStack.top();
+      interpretPackageBuiltin(stream, packageName, builtin, args);
       return static_cast<k_int>(0);
     } else if (WebServerBuiltins.is_builtin(builtin)) {
       return interpretWebServerBuiltin(stream, frame, builtin, args);

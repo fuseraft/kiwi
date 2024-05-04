@@ -1,4 +1,4 @@
-module emoji
+package emoji
   __home__("fun")
   /#
   @summary Converts certain words in a string to their emoji representations.

@@ -167,7 +167,7 @@ struct {
   const k_string Import = "import";
   const k_string In = "in";
   const k_string Method = "def";
-  const k_string Module = "module";
+  const k_string Package = "package";
   const k_string New = "new";
   const k_string Next = "next";
   const k_string Override = "override";
@@ -190,7 +190,7 @@ struct {
   std::unordered_set<k_string> keywords = {
       Abstract, As,     Async,  Await,   Break,   Catch,  Class,  Delete,
       Do,       Else,   ElseIf, End,     Exit,    Export, False,  For, Function,
-      If,       Import, In,     With,    Method,  Module, Next,   Override,
+      If,       Import, In,     With,    Method,  Package, Next,   Override,
       Parse,    Pass,   Print,  PrintLn, Private, Return, Static, Then,
       This,     Throw,  True,   Try,     When,    While};
 
@@ -198,7 +198,7 @@ struct {
 
   std::unordered_set<KName> block_keywords = {
       KName::KW_While,  KName::KW_For, KName::KW_Method, KName::KW_If,
-      KName::KW_Module, KName::KW_Try, KName::KW_Class,  KName::KW_Lambda};
+      KName::KW_Package, KName::KW_Try, KName::KW_Class,  KName::KW_Lambda};
 
   bool is_keyword(const k_string& arg) {
     return keywords.find(arg) != keywords.end();

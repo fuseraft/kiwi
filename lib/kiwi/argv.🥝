@@ -1,7 +1,7 @@
 /#
-Summary: A module for working with command-line arguments.
+Summary: A package for working with command-line arguments.
 #/
-module argv
+package argv
   __home__("kiwi")
 
   /#

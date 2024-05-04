@@ -2,7 +2,7 @@
 
 The `DateTime` class offers some convenient functionality for working with date and time data in Kiwi.
 
-To use the `DateTime`, you must import the `time` module.
+To use the `DateTime`, you must import the `time` package.
 
 ```ruby
 import "@kiwi/time"

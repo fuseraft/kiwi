@@ -1,11 +1,11 @@
 # `@kiwi/string`
 
-The `string` module contains specialized functions for strings.
+The `string` package contains specialized functions for strings.
 
 ## Table of Contents
 
-- [Importing the Module](#importing-the-module)
-- [Module Functions](#module-functions)
+- [Importing the Package](#importing-the-package)
+- [Package Functions](#package-functions)
   - [`base64decode(_input)`](#base64decode_input)
   - [`base64encode(_input)`](#base64encode_input)
   - [`center(_input, _size, _padding = " ")`](#center_input-_size-_padding)
@@ -26,15 +26,15 @@ The `string` module contains specialized functions for strings.
   - [`urldecode(_input)`](#urldecode_input)
   - [`urlencode(_input)`](#urlencode_input)
 
-## Importing the Module
+## Importing the Package
 
-To use the `string` module, import it at the beginning of your Kiwi script.
+To use the `string` package, import it at the beginning of your Kiwi script.
 
 ```ruby
 import "@kiwi/string" as string
 ```
 
-## Module Functions
+## Package Functions
 
 ### `base64decode(_input)`
 

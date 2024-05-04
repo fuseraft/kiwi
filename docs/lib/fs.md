@@ -1,11 +1,11 @@
 # `@kiwi/fs`
 
-The `fs` module contains functionality for working with files and directories.
+The `fs` package contains functionality for working with files and directories.
 
 ## Table of Contents
 
-- [Importing the Module](#importing-the-module)
-- [Module Functions](#module-functions)
+- [Importing the Package](#importing-the-package)
+- [Package Functions](#package-functions)
   - [`abspath(_path)`](#abspath_path)
   - [`append(_path, _text)`](#append_path-_text)
   - [`chdir(_path)`](#chdir_path)
@@ -37,15 +37,15 @@ The `fs` module contains functionality for working with files and directories.
   - [`writebytes(_path, _bytes)`](#writebytes_path-_bytes)
 
 
-## Importing the Module
+## Importing the Package
 
-To use the `fs` module, import it at the beginning of your Kiwi script.
+To use the `fs` package, import it at the beginning of your Kiwi script.
 
 ```ruby
 import "@kiwi/fs" as fs
 ```
 
-## Module Functions
+## Package Functions
 
 ### `abspath(_path)`
 

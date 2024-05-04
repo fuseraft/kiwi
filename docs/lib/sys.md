@@ -1,24 +1,24 @@
 # `@kiwi/sys`
 
-The `sys` module contains functionality for working with external processes.
+The `sys` package contains functionality for working with external processes.
 
 ## Table of Contents
 
-- [Importing the Module](#importing-the-module)
-- [Module Functions](#module-functions)
+- [Importing the Package](#importing-the-package)
+- [Package Functions](#package-functions)
   - [`euid()`](#euid)
   - [`exec(_command)`](#exec_command)
   - [`execout(_command)`](#execout_command)
 
-## Importing the Module
+## Importing the Package
 
-To use the `sys` module, import it at the beginning of your Kiwi script.
+To use the `sys` package, import it at the beginning of your Kiwi script.
 
 ```ruby
 import "@kiwi/sys"
 ```
 
-## Module Functions
+## Package Functions
 
 ### `euid()`
 

@@ -24,7 +24,7 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
 - [`import`](#import)
 - [`in`](#in)
 - [`input`](#input)
-- [`module`](#module)
+- [`package`](#package)
 - [`new`](#new)
 - [`next`](#next)
 - [`override`](#override)
@@ -50,9 +50,9 @@ The `abstract` keyword is used to declare a [class](#class) as being abstract, m
 See [Abstract Classes](abstract_classes.md).
 
 ## `as`
-The `as` keyword is used to specify an alias for a module.
+The `as` keyword is used to specify an alias for a package.
 
-See [Modules](modules.md).
+See [Packages](packages.md).
 
 ## `async`
 The `async` keyword is used to define an asynchronous method.
@@ -110,9 +110,9 @@ See [Conditionals](conditionals.md) and [Control Structures](control_structures.
 The `end` keyword is used end a code-block.
 
 ## `export`
-The `export` keyword is used to export a module to a calling script.
+The `export` keyword is used to export a package to a calling script.
 
-See [Modules](modules.md).
+See [Packages](packages.md).
 
 ## `exit`
 The `exit` keyword is used to exit the program.
@@ -143,9 +143,9 @@ The `if` keyword is used to define the `if` branch in a conditional statement.
 See [Conditionals](conditionals.md) and [Control Structures](control_structures.md).
 
 ## `import`
-The `import` keyword is used to import a script or a module.
+The `import` keyword is used to import a script or a package.
 
-See [Modules](modules.md).
+See [Packages](packages.md).
 
 ## `in`
 The `in` keyword is used to specify the collection to iterate in a for-loop.
@@ -157,10 +157,10 @@ The `input` keyword is used to request user input from a console.
 
 See [Console I/O](console_io.md).
 
-## `module`
-The `module` keyword is used to define a module.
+## `package`
+The `package` keyword is used to define a package.
 
-See [Modules](modules.md).
+See [Packages](packages.md).
 
 ## `new`
 The `new` keyword is used to instantiate a class.
