@@ -62,9 +62,7 @@ class Host {
     return interp.minify(script, output);
   }
 
-  bool hasScript() const {
-    return !scripts.empty();
-  }
+  bool hasScript() const { return !scripts.empty(); }
 
  private:
   Interpreter& interp;

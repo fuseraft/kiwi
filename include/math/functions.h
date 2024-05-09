@@ -668,8 +668,7 @@ struct {
 
     if (std::holds_alternative<double>(valueX) ||
         std::holds_alternative<double>(valueY)) {
-      double x = get_double(token, valueX),
-             y = get_double(token, valueY);
+      double x = get_double(token, valueX), y = get_double(token, valueY);
       return RNG::getInstance().random(x, y);
     } else if (std::holds_alternative<k_int>(valueX) ||
                std::holds_alternative<k_int>(valueY)) {
