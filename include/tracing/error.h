@@ -8,7 +8,7 @@
 class KiwiError : public std::exception {
  public:
   KiwiError(const Token& token, std::string error,
-              const std::string& message = "")
+            const std::string& message = "")
       : token(token), error(error), message(message) {}
 
   const char* what() const noexcept override { return message.c_str(); }
@@ -30,14 +30,14 @@ class UnknownBuiltinError : public KiwiError {
  public:
   UnknownBuiltinError(const Token& token, const std::string& name)
       : KiwiError(token, "UnknownBuiltinError",
-                    "The builtin `" + name + "` is unknown.") {}
+                  "The builtin `" + name + "` is unknown.") {}
 };
 
 class UnknownIdentifierError : public KiwiError {
  public:
   UnknownIdentifierError(const Token& token, const std::string& name)
       : KiwiError(token, "UnknownIdentifierError",
-                    "The identifier `" + name + "` is unknown.") {}
+                  "The identifier `" + name + "` is unknown.") {}
 };
 
 class UnrecognizedTokenError : public KiwiError {
@@ -77,44 +77,44 @@ class HashKeyError : public KiwiError {
  public:
   HashKeyError(const Token& token, const std::string& key)
       : KiwiError(token, "HashKeyError",
-                    "The key `" + key + "` does not exist in the hash.") {}
+                  "The key `" + key + "` does not exist in the hash.") {}
 };
 
 class ParameterMissingError : public KiwiError {
  public:
   ParameterMissingError(const Token& token, const std::string& name)
       : KiwiError(token, "ParameterMissingError",
-                    "The parameter `" + name + "` was expected but missing.") {}
+                  "The parameter `" + name + "` was expected but missing.") {}
 };
 
 class ParameterCountMismatchError : public KiwiError {
  public:
   ParameterCountMismatchError(const Token& token, const std::string& name)
       : KiwiError(token, "ParameterCountMismatchError",
-                    "The parameter count for method `" + name +
-                        "` does not match parameters passed.") {}
+                  "The parameter count for method `" + name +
+                      "` does not match parameters passed.") {}
 };
 
 class UnrecognizedBuiltinError : public KiwiError {
  public:
   UnrecognizedBuiltinError(const Token& token, const std::string& name)
       : KiwiError(token, "UnrecognizedBuiltinError",
-                    "Unrecognized builtin `" + name + "`.") {}
+                  "Unrecognized builtin `" + name + "`.") {}
 };
 
 class ClassRedefinitionError : public KiwiError {
  public:
   ClassRedefinitionError(const Token& token, const std::string& name)
       : KiwiError(token, "ClassRedefinitionError",
-                    "Attempted to redefine class already defined class `" +
-                        name + "`.") {}
+                  "Attempted to redefine class already defined class `" + name +
+                      "`.") {}
 };
 
 class ClassUndefinedError : public KiwiError {
  public:
   ClassUndefinedError(const Token& token, const std::string& name)
       : KiwiError(token, "ClassUndefinedError",
-                    "The class `" + name + "` is undefined.") {}
+                  "The class `" + name + "` is undefined.") {}
 };
 
 class UnimplementedMethodError : public KiwiError {
@@ -122,15 +122,15 @@ class UnimplementedMethodError : public KiwiError {
   UnimplementedMethodError(const Token& token, const std::string& className,
                            const std::string& methodName)
       : KiwiError(token, "UnimplementedMethodError",
-                    "The class `" + className +
-                        "` has an unimplemented method `" + methodName + "`") {}
+                  "The class `" + className +
+                      "` has an unimplemented method `" + methodName + "`") {}
 };
 
 class BuiltinUnexpectedArgumentError : public KiwiError {
  public:
   BuiltinUnexpectedArgumentError(const Token& token, const std::string& name)
       : KiwiError(token, "BuiltinUnexpectedArgumentError",
-                    "Unexpected argument count for builtin `" + name + "`.") {}
+                  "Unexpected argument count for builtin `" + name + "`.") {}
 };
 
 class InvalidContextError : public KiwiError {
@@ -151,7 +151,7 @@ class InvalidTypeNameError : public KiwiError {
  public:
   InvalidTypeNameError(const Token& token, const std::string& name)
       : KiwiError(token, "InvalidTypeNameError",
-                    "Invalid type name `" + name + "`") {}
+                  "Invalid type name `" + name + "`") {}
 };
 
 class ConversionError : public KiwiError {
@@ -164,23 +164,22 @@ class ConversionError : public KiwiError {
 class DivideByZeroError : public KiwiError {
  public:
   DivideByZeroError(const Token& token)
-      : KiwiError(token, "DivideByZeroError",
-                    "Attempted to divide by zero.") {}
+      : KiwiError(token, "DivideByZeroError", "Attempted to divide by zero.") {}
 };
 
 class HomePackageUndefinedError : public KiwiError {
  public:
   HomePackageUndefinedError(const Token& token, const std::string& home,
-                           const std::string& name)
+                            const std::string& name)
       : KiwiError(token, "HomePackageUndefinedError",
-                    "Home package `@" + home + "/" + name + "` is undefined.") {}
+                  "Home package `@" + home + "/" + name + "` is undefined.") {}
 };
 
 class PackageUndefinedError : public KiwiError {
  public:
   PackageUndefinedError(const Token& token, const std::string& name)
       : KiwiError(token, "PackageUndefinedError",
-                    "Package `" + name + "` is undefined.") {}
+                  "Package `" + name + "` is undefined.") {}
 };
 
 class PackageError : public KiwiError {
@@ -199,21 +198,21 @@ class MethodUndefinedError : public KiwiError {
  public:
   MethodUndefinedError(const Token& token, const std::string& name)
       : KiwiError(token, "MethodUndefinedError",
-                    "Method `" + name + "` is undefined.") {}
+                  "Method `" + name + "` is undefined.") {}
 };
 
 class VariableUndefinedError : public KiwiError {
  public:
   VariableUndefinedError(const Token& token, const std::string& name)
       : KiwiError(token, "VariableUndefinedError",
-                    "Variable `" + name + "` is undefined.") {}
+                  "Variable `" + name + "` is undefined.") {}
 };
 
 class ValueTypeError : public KiwiError {
  public:
   ValueTypeError(const Token& token, const std::string& expectedType)
       : KiwiError(token, "ValueTypeError",
-                    "Value is not a `" + expectedType + "`.") {}
+                  "Value is not a `" + expectedType + "`.") {}
 };
 
 class EmptyStackError : public KiwiError {
@@ -226,14 +225,14 @@ class IllegalNameError : public KiwiError {
  public:
   IllegalNameError(const Token& token, const std::string& name)
       : KiwiError(token, "IllegalNameError",
-                    "The name `" + name + "` is illegal.") {}
+                  "The name `" + name + "` is illegal.") {}
 };
 
 class FileNotFoundError : public KiwiError {
  public:
   FileNotFoundError(const std::string& path)
       : KiwiError(Token::createEmpty(), "FileNotFoundError",
-                    "File not found: " + path) {}
+                  "File not found: " + path) {}
   FileNotFoundError(const Token& token, const std::string& path)
       : KiwiError(token, "FileNotFoundError", "File not found: " + path) {}
 };
@@ -242,7 +241,7 @@ class FileReadError : public KiwiError {
  public:
   FileReadError(const std::string& path)
       : KiwiError(Token::createEmpty(), "FileReadError",
-                    "Cannot read file: " + path) {}
+                  "Cannot read file: " + path) {}
   FileReadError(const Token& token, const std::string& path)
       : KiwiError(token, "FileReadError", "Cannot read file: " + path) {}
 };
@@ -251,7 +250,7 @@ class FileWriteError : public KiwiError {
  public:
   FileWriteError(const std::string& path)
       : KiwiError(Token::createEmpty(), "FileWriteError",
-                    "Cannot write to file: " + path) {}
+                  "Cannot write to file: " + path) {}
   FileWriteError(const Token& token, const std::string& path)
       : KiwiError(token, "FileWriteError", "Cannot write to file: " + path) {}
 };

@@ -133,6 +133,13 @@ class TokenStream {
   TokenStream(const std::vector<Token>& tokens) : tokens(tokens) {}
   ~TokenStream() { tokens.clear(); }
 
+  Token at(size_t pos) {
+    if (pos >= tokens.size()) {
+      return Token::createStreamEnd();
+    }
+    return tokens.at(pos);
+  }
+
   Token current() {
     if (position >= tokens.size()) {
       return Token::createStreamEnd();

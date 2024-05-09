@@ -200,6 +200,43 @@ struct InterpHelper {
     }
   }
 
+  static size_t findNextKeyword(k_stream stream) {
+    int depth = 0;
+    size_t startIndex = stream->position;
+
+    while (stream->canRead()) {
+      auto token = stream->current();
+      auto type = token.getType();
+
+      switch (type) {
+        case KTokenType::OPEN_PAREN:
+        case KTokenType::OPEN_BRACKET:
+        case KTokenType::OPEN_BRACE:
+          depth++;
+          break;
+        case KTokenType::CLOSE_PAREN:
+        case KTokenType::CLOSE_BRACKET:
+        case KTokenType::CLOSE_BRACE:
+          depth--;
+          if (depth == 0 && startIndex != stream->position) {
+            stream->next();
+            return stream->position;
+          }
+          break;
+        case KTokenType::KEYWORD:
+          if (depth == 0) {
+            return stream->position;
+          }
+          break;
+        default:
+          break;
+      }
+      stream->next();
+    }
+
+    return stream->position;
+  }
+
   static void updateListSlice(k_stream stream, bool insertOp,
                               k_list& targetList, const SliceIndex& slice,
                               const k_list& rhsValues) {

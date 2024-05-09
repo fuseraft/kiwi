@@ -4,25 +4,29 @@ An unorthodox scripting language.
 
 ## Table of Contents
 
-1. [Getting Started](#getting-started)
-   1. [Docker](#docker)
-   2. [Linux](#linux-builds)
-      1. [Fedora / RHEL](#fedora--rhel)
-      2. [Ubuntu / Debian](#ubuntu--debian)
-      3. [Installing Kiwi on Linux](#installing-kiwi-on-linux)
-   3. [Windows](#windows-builds)
-   4. [Visual Studio Code Extension](#visual-studio-code-extension)
-2. [Documentation](#documentation)
-   1. [Kiwi Index](#kiwi-index)
-   1. [Test Suite](#test-suite)
-   2. [Code Examples](#code-examples)
-      1. [Algorithms](#algorithms)
-      1. [Cellular Automata](#cellular-automata)
-      2. [Project Euler](#project-euler)
-      3. [Web Application](#web-application)
-      4. [Temporary Script](#temporary-script)
-3. [Contributions](#contributions)
-4. [License](#license)
+- [kiwi 🥝](#kiwi-)
+  - [Table of Contents](#table-of-contents)
+  - [Getting Started](#getting-started)
+    - [Docker](#docker)
+    - [Linux Builds](#linux-builds)
+      - [Fedora / RHEL](#fedora--rhel)
+      - [Ubuntu / Debian](#ubuntu--debian)
+      - [Installing Kiwi on Linux](#installing-kiwi-on-linux)
+        - [To manually install Kiwi after it is built, run:](#to-manually-install-kiwi-after-it-is-built-run)
+        - [To uninstall Kiwi, run:](#to-uninstall-kiwi-run)
+    - [Windows Builds](#windows-builds)
+    - [Visual Studio Code Extension](#visual-studio-code-extension)
+  - [Documentation](#documentation)
+    - [Kiwi Wiki](#kiwi-wiki)
+    - [Test Suite](#test-suite)
+    - [Code Examples](#code-examples)
+      - [Algorithms](#algorithms)
+      - [Cellular Automata](#cellular-automata)
+      - [Project Euler](#project-euler)
+      - [Web Application](#web-application)
+      - [Temporary Script](#temporary-script)
+  - [Contributions](#contributions)
+  - [License](#license)
 
 ## Getting Started
 
@@ -67,12 +71,24 @@ make
 
 #### Installing Kiwi on Linux
 
-Clone and build Kiwi.  Run `sudo make install` to build Kiwi and run the installation script.
+Download the repository and run `sudo make install` to build Kiwi and run the installation script.
 
 ```bash
 git clone https://github.com/fuseraft/kiwi.git
 cd kiwi
 sudo make install
+```
+
+##### To manually install Kiwi after it is built, run:
+
+```bash
+./bin/kiwi configure install
+```
+
+##### To uninstall Kiwi, run:
+
+```bash
+kiwi configure uninstall
 ```
 
 ### Windows Builds
@@ -88,7 +104,7 @@ cd path\to\kiwi
 build.bat
 ```
 
-*Note: The Windows build does not support `.🥝` files (use the `.ki` extension).*
+*Note: The Windows build does not support `.🥝` files (use the `.kiwi` extension).*
 
 ### Visual Studio Code Extension
 
@@ -101,9 +117,9 @@ ext install fuseraft.kiwi-lang
 
 ## Documentation
 
-### Kiwi Index
+### Kiwi Wiki
 
-You can find detailed information on language features in the [Kiwi Index](docs/README.md).
+You can find detailed information on language features in the [Kiwi Wiki](docs/README.md).
 
 ### Test Suite
 
@@ -125,15 +141,15 @@ make test
 
 #### Algorithms
 
-- [Levenshtein Distance](examples/algo/levenshtein.🥝)
-- [MD5](examples/algo/md5_hash.🥝)
-- [Sieve of Eratosthenes](examples/algo/sieve_of_eratosthenes.🥝)
+- [Levenshtein Distance](examples/algo/levenshtein.kiwi)
+- [MD5](examples/algo/md5_hash.kiwi)
+- [Sieve of Eratosthenes](examples/algo/sieve_of_eratosthenes.kiwi)
 
 #### Cellular Automata
 
-- [Rule 30](examples/cellular_automata/rule30.🥝)
-- [Conway's Game of Life](examples/cellular_automata/life.🥝)
-- [Brian's Brain](examples/cellular_automata/brain.🥝)
+- [Rule 30](examples/cellular_automata/rule30.kiwi)
+- [Conway's Game of Life](examples/cellular_automata/life.kiwi)
+- [Brian's Brain](examples/cellular_automata/brain.kiwi)
 
 #### Project Euler
 
@@ -141,7 +157,7 @@ make test
 
 #### Web Application
 
-Below is a simple HTTP web application. You can find the [example project here](examples/webapp/app.🥝).
+Below is a simple HTTP web application. You can find the [example project here](examples/webapp/app.kiwi).
 
 ```kiwi
 import "@kiwi/web" as web
@@ -204,7 +220,7 @@ try
   
   # Generate a random temporary file path.
   filename = math.random("0123456789ABCDEF", 10)
-  path = fs.combine(fs.tmpdir(), "${filename}.🥝")
+  path = fs.combine(fs.tmpdir(), "${filename}.kiwi")
 
   # Write a little 🥝 script.
   fs.write(path, "
