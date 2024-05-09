@@ -1,3 +1,5 @@
+import "@kiwi/time"
+
 fn sum(list)
   throw "Not a list of integers" when !list.is_a(List)
   throw "Not a list of integers" when list.size() != list.select(with (item) do return item.is_a(Integer) end).size()
