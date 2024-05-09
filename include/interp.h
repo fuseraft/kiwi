@@ -2724,8 +2724,8 @@ class Interpreter {
     auto scriptNameKiwi = scriptName;
 
     if (!String::endsWith(scriptName, kiwi_extension) &&
-        !String::endsWith(scriptName, ".ki")) {
-      scriptName += ".ki";
+        !String::endsWith(scriptName, ".kiwi")) {
+      scriptName += ".kiwi";
 #ifdef _WIN64
       scriptNameKiwi += kiwi_extension;
 #else

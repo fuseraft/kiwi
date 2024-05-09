@@ -7,12 +7,12 @@
 extern bool SILENCE;
 
 extern const std::string kiwi_name = "Kiwi";
-extern const std::string kiwi_version = "1.4.1";
+extern const std::string kiwi_version = "1.4.2";
 extern const std::string kiwi_arg = "kiwi";
 
 #ifdef _WIN64
-extern const std::string kiwi_min_extension = ".min.ki";
-extern const std::string kiwi_extension = ".ki";
+extern const std::string kiwi_min_extension = ".min.kiwi";
+extern const std::string kiwi_extension = ".kiwi";
 #else
 extern const std::string kiwi_min_extension = ".min.🥝";
 extern const std::string kiwi_extension = ".🥝";
