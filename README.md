@@ -141,15 +141,15 @@ make test
 
 #### Algorithms
 
-- [Levenshtein Distance](examples/algo/levenshtein.🥝)
-- [MD5](examples/algo/md5_hash.🥝)
-- [Sieve of Eratosthenes](examples/algo/sieve_of_eratosthenes.🥝)
+- [Levenshtein Distance](examples/algo/levenshtein.kiwi)
+- [MD5](examples/algo/md5_hash.kiwi)
+- [Sieve of Eratosthenes](examples/algo/sieve_of_eratosthenes.kiwi)
 
 #### Cellular Automata
 
-- [Rule 30](examples/cellular_automata/rule30.🥝)
-- [Conway's Game of Life](examples/cellular_automata/life.🥝)
-- [Brian's Brain](examples/cellular_automata/brain.🥝)
+- [Rule 30](examples/cellular_automata/rule30.kiwi)
+- [Conway's Game of Life](examples/cellular_automata/life.kiwi)
+- [Brian's Brain](examples/cellular_automata/brain.kiwi)
 
 #### Project Euler
 
@@ -157,7 +157,7 @@ make test
 
 #### Web Application
 
-Below is a simple HTTP web application. You can find the [example project here](examples/webapp/app.🥝).
+Below is a simple HTTP web application. You can find the [example project here](examples/webapp/app.kiwi).
 
 ```kiwi
 import "@kiwi/web" as web
@@ -220,7 +220,7 @@ try
   
   # Generate a random temporary file path.
   filename = math.random("0123456789ABCDEF", 10)
-  path = fs.combine(fs.tmpdir(), "${filename}.🥝")
+  path = fs.combine(fs.tmpdir(), "${filename}.kiwi")
 
   # Write a little 🥝 script.
   fs.write(path, "

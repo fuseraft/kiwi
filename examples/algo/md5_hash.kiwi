@@ -3,7 +3,7 @@
 /#
 MD5 hash generator.
 
-usage: ./md5_hash.🥝 <string>
+usage: kiwi md5_hash <string>
 #/
 
 import "@kiwi/argv" as ARGV
@@ -17,7 +17,7 @@ def main()
     println(MD5(args[0]))
   else
     # read the script contents
-    text = fs.read("md5_hash.🥝")
+    text = fs.read("md5_hash.kiwi")
 
     # compute the hash and record duration
     ticks_start = time.ticks()
@@ -147,7 +147,7 @@ def MD5(input)
 end
 
 def print_help()
-  println("usage: md5_hash.🥝 <input>")
+  println("usage: kiwi md5_hash <input>")
   exit(0)
 end
 
