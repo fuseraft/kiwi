@@ -188,16 +188,16 @@ struct {
   const k_string While = "while";
 
   std::unordered_set<k_string> keywords = {
-      Abstract, As,     Async,  Await,   Break,   Catch,  Class,  Delete,
-      Do,       Else,   ElseIf, End,     Exit,    Export, False,  For, Function,
-      If,       Import, In,     With,    Method,  Package, Next,   Override,
-      Parse,    Pass,   Print,  PrintLn, Private, Return, Static, Then,
-      This,     Throw,  True,   Try,     When,    While};
+      Abstract, As,    Async,  Await, Break,   Catch,   Class,   Delete,
+      Do,       Else,  ElseIf, End,   Exit,    Export,  False,   For,
+      Function, If,    Import, In,    With,    Method,  Package, Next,
+      Override, Parse, Pass,   Print, PrintLn, Private, Return,  Static,
+      Then,     This,  Throw,  True,  Try,     When,    While};
 
   std::unordered_set<k_string> conditional_keywords = {If, Else, ElseIf, End};
 
   std::unordered_set<KName> block_keywords = {
-      KName::KW_While,  KName::KW_For, KName::KW_Method, KName::KW_If,
+      KName::KW_While,   KName::KW_For, KName::KW_Method, KName::KW_If,
       KName::KW_Package, KName::KW_Try, KName::KW_Class,  KName::KW_Lambda};
 
   bool is_keyword(const k_string& arg) {

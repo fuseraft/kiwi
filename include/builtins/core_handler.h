@@ -30,8 +30,8 @@ class CoreBuiltinHandler {
 
  private:
   static k_value executeKiwiBuiltin(const Token& term, const KName& builtin,
-                                      const k_value& value,
-                                      const std::vector<k_value>& args) {
+                                    const k_value& value,
+                                    const std::vector<k_value>& args) {
     switch (builtin) {
       case KName::Builtin_Kiwi_Chars:
         return executeChars(term, value, args);
@@ -727,7 +727,8 @@ class CoreBuiltinHandler {
         const auto& obj = std::get<k_object>(value);
         const auto& className = obj->className;
 
-        return same_value(className, typeName) || same_value(classes.at(className).getBaseClassName(), typeName);
+        return same_value(className, typeName) ||
+               same_value(classes.at(className).getBaseClassName(), typeName);
       }
       throw InvalidTypeNameError(term, typeName);
     }
@@ -955,8 +956,8 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
-                                            KiwiBuiltins.Shift + "`.");
+      throw InvalidOperationError(
+          term, "Expected a `List` for builtin `" + KiwiBuiltins.Shift + "`.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;
@@ -993,8 +994,8 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
-                                            KiwiBuiltins.Concat + "`.");
+      throw InvalidOperationError(
+          term, "Expected a `List` for builtin `" + KiwiBuiltins.Concat + "`.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;
@@ -1010,8 +1011,8 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
-                                            KiwiBuiltins.Insert + "`.");
+      throw InvalidOperationError(
+          term, "Expected a `List` for builtin `" + KiwiBuiltins.Insert + "`.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;
@@ -1033,8 +1034,8 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
-                                            KiwiBuiltins.Remove + "`.");
+      throw InvalidOperationError(
+          term, "Expected a `List` for builtin `" + KiwiBuiltins.Remove + "`.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;
@@ -1077,8 +1078,8 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
-                                            KiwiBuiltins.Rotate + "`.");
+      throw InvalidOperationError(
+          term, "Expected a `List` for builtin `" + KiwiBuiltins.Rotate + "`.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;
@@ -1111,8 +1112,8 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
-                                            KiwiBuiltins.Unique + "`.");
+      throw InvalidOperationError(
+          term, "Expected a `List` for builtin `" + KiwiBuiltins.Unique + "`.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;
@@ -1131,8 +1132,8 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
-                                            KiwiBuiltins.Count + "`.");
+      throw InvalidOperationError(
+          term, "Expected a `List` for builtin `" + KiwiBuiltins.Count + "`.");
     }
 
     const auto& elements = std::get<k_list>(value)->elements;
@@ -1183,7 +1184,8 @@ class CoreBuiltinHandler {
     const auto& elements1 = std::get<k_list>(value)->elements;
     const auto& elements2 = std::get<k_list>(args.at(0))->elements;
     auto zipped = std::make_shared<List>();
-    auto win_min = (elements1.size() < elements2.size()) ? elements1.size() : elements2.size();
+    auto win_min = (elements1.size() < elements2.size()) ? elements1.size()
+                                                         : elements2.size();
     for (size_t i = 0; i < win_min; ++i) {
       auto pair = std::make_shared<List>();
       pair->elements.push_back(elements1.at(i));
@@ -1201,8 +1203,8 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
-                                            KiwiBuiltins.Slice + "`.");
+      throw InvalidOperationError(
+          term, "Expected a `List` for builtin `" + KiwiBuiltins.Slice + "`.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;

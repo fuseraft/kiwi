@@ -385,8 +385,7 @@ bool File::isScript(const k_string& path) {
 #ifdef _WIN64
   extension = ".ki";
 #endif
-  return (String::endsWith(path, extension) ||
-          String::endsWith(path, ".ki")) &&
+  return (String::endsWith(path, extension) || String::endsWith(path, ".ki")) &&
          File::fileExists(path);
 }
 

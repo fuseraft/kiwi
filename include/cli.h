@@ -105,7 +105,8 @@ int KiwiCLI::run(std::vector<std::string>& v) {
       } else if (String::isOptionKVP(v.at(i))) {
         help = !KiwiCLI::processOption(v.at(i), host);
       } else {
-        auto extless = host.hasScript() ? std::string("") : File::tryGetExtensionless(v.at(i));
+        auto extless = host.hasScript() ? std::string("")
+                                        : File::tryGetExtensionless(v.at(i));
         if (!extless.empty()) {
           host.registerScript(extless);
         } else {
@@ -130,7 +131,7 @@ bool KiwiCLI::parse(Host& host, const std::string& content) {
 
 bool KiwiCLI::createMinified(Host& host, const std::string& path) {
   auto filePath = path;
-  
+
   if (File::getFileExtension(filePath).empty()) {
     filePath += kiwi_extension;
   }
