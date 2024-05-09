@@ -383,9 +383,9 @@ k_string File::getParentPath(const k_string& path) {
 bool File::isScript(const k_string& path) {
   k_string extension = ".🥝";
 #ifdef _WIN64
-  extension = ".ki";
+  extension = ".kiwi";
 #endif
-  return (String::endsWith(path, extension) || String::endsWith(path, ".ki")) &&
+  return (String::endsWith(path, extension) || String::endsWith(path, ".kiwi")) &&
          File::fileExists(path);
 }
 
@@ -396,8 +396,8 @@ k_string File::tryGetExtensionless(const k_string& path) {
   k_string minExtension = ".min.🥝";
   k_string extension = ".🥝";
 #ifdef _WIN64
-  minExtension = ".min.ki";
-  extension = ".ki";
+  minExtension = ".min.kiwi";
+  extension = ".kiwi";
 #endif
 
   k_string scriptPath = path + minExtension;

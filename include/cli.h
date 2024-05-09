@@ -238,8 +238,8 @@ int KiwiCLI::printHelp() {
       {"-h, --help", "print this message"},
       {"-v, --version", "print the current version"},
       {"-p, --parse <kiwi_code>", "parse code"},
-      {"-n, --new <filename>", "create a `.ki` file"},
-      {"-m, --minify <input_file_path>", "create a `.min.ki` file"},
+      {"-n, --new <filename>", "create a `.kiwi` file"},
+      {"-m, --minify <input_file_path>", "create a `.min.kiwi` file"},
       {"-t, --tokenize <input_file_path>", "tokenize a file as kiwi code"},
       {"-X<key>=<value>", "specify an argument as a key-value pair"}};
 #endif
