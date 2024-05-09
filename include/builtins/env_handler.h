@@ -43,7 +43,7 @@ class EnvBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, EnvBuiltins.Kiwi);
     }
 
-    return File::getExecutablePath();
+    return File::getExecutablePath().string();
   }
 
   static k_value executeKiwiLib(const Token& term,

@@ -438,7 +438,7 @@ bool File::isSymLink(const k_string& path) {
 fs::path File::getExecutablePath() {
 #ifdef _WIN64
   wchar_t path[FILENAME_MAX] = {0};
-  GetPackageFileNameW(nullptr, path, FILENAME_MAX);
+  GetModuleFileNameW(nullptr, path, FILENAME_MAX);
   return fs::path(path);
 #else
   const k_string executablePath = "/proc/self/exe";
