@@ -207,7 +207,6 @@ struct InterpHelper {
     while (stream->canRead()) {
       auto token = stream->current();
       auto type = token.getType();
-      auto subType = token.getSubType();
 
       switch (type) {
         case KTokenType::OPEN_PAREN:

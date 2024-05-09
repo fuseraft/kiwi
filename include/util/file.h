@@ -389,27 +389,33 @@ bool File::isScript(const k_string& path) {
          File::fileExists(path);
 }
 
+k_string tryGetExtensionlessSpecifc(const k_string& path, const k_string& extension) {
+  auto scriptPath = path + extension;
+  if (File::fileExists(scriptPath)) {
+    return scriptPath;
+  }
+  return "";
+}
+
 /// @brief Check if a path is a kiwi script.
 /// @param path The path.
 /// @return Boolean indicating success.
 k_string File::tryGetExtensionless(const k_string& path) {
-  k_string minExtension = ".min.🥝";
-  k_string extension = ".🥝";
-#ifdef _WIN64
-  minExtension = ".min.kiwi";
-  extension = ".kiwi";
+  std::vector<k_string> extensions;
+  extensions.emplace_back(".min.kiwi");
+  extensions.emplace_back(".kiwi");
+#ifndef _WIN64
+  extensions.emplace_back(".min.🥝");
+  extensions.emplace_back(".🥝");
 #endif
 
-  k_string scriptPath = path + minExtension;
-  if (File::fileExists(scriptPath)) {
-    return scriptPath;
+  for (const auto& ext : extensions) {
+    auto scriptPath = tryGetExtensionlessSpecifc(path, ext);
+    if (!scriptPath.empty()) {
+      return scriptPath;
+    }
   }
-
-  scriptPath = path + extension;
-  if (File::fileExists(scriptPath)) {
-    return scriptPath;
-  }
-
+  
   return "";
 }
 

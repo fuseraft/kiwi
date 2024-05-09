@@ -76,6 +76,8 @@ class Host {
     kiwilib = File::expandGlob(path + "\\*" + kiwi_extension);
 #else
     kiwilib = File::expandGlob(path + "/*" + kiwi_extension);
+    auto extras = File::expandGlob(path + "/*.kiwi");
+    kiwilib.insert(kiwilib.end(), extras.begin(), extras.end());
 #endif
 
     for (const auto& script : kiwilib) {
