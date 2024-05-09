@@ -6,8 +6,8 @@ import "@kiwi/time" as time
 runtimes = []
 
 # Search pattern for Kiwi scripts, excluding certain files and directories
-search_pattern = "./**/*.🥝"
-exclusions = ["install.🥝", "test.🥝", "test.min.🥝", "play.🥝", "/pg/", "lib/kiwi", "/examples/"]
+search_pattern = "./**/*.kiwi"
+exclusions = ["test.", "play.", "lib/kiwi", "/examples/"]
 
 println("Searching for Kiwi scripts...")
 silent(true)

@@ -189,9 +189,8 @@ struct NegateSignVisitor {
     } else if (std::holds_alternative<double>(value)) {
       return -std::get<double>(value);
     } else {
-      throw ConversionError(
-          token,
-          "Unary minus applied to a non-numeric value.");
+      throw ConversionError(token,
+                            "Unary minus applied to a non-numeric value.");
     }
   }
 };
@@ -215,8 +214,7 @@ struct NegateVisitor {
     } else if (std::holds_alternative<k_hash>(value)) {
       return std::get<k_hash>(value)->keys.empty();
     } else {
-      throw ConversionError(token,
-                            "Unexpected value.");
+      throw ConversionError(token, "Unexpected value.");
     }
   }
 };

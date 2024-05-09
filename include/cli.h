@@ -105,7 +105,8 @@ int KiwiCLI::run(std::vector<std::string>& v) {
       } else if (String::isOptionKVP(v.at(i))) {
         help = !KiwiCLI::processOption(v.at(i), host);
       } else {
-        auto extless = host.hasScript() ? std::string("") : File::tryGetExtensionless(v.at(i));
+        auto extless = host.hasScript() ? std::string("")
+                                        : File::tryGetExtensionless(v.at(i));
         if (!extless.empty()) {
           host.registerScript(extless);
         } else {
@@ -130,7 +131,7 @@ bool KiwiCLI::parse(Host& host, const std::string& content) {
 
 bool KiwiCLI::createMinified(Host& host, const std::string& path) {
   auto filePath = path;
-  
+
   if (File::getFileExtension(filePath).empty()) {
     filePath += kiwi_extension;
   }
@@ -237,8 +238,8 @@ int KiwiCLI::printHelp() {
       {"-h, --help", "print this message"},
       {"-v, --version", "print the current version"},
       {"-p, --parse <kiwi_code>", "parse code"},
-      {"-n, --new <filename>", "create a `.ki` file"},
-      {"-m, --minify <input_file_path>", "create a `.min.ki` file"},
+      {"-n, --new <filename>", "create a `.kiwi` file"},
+      {"-m, --minify <input_file_path>", "create a `.min.kiwi` file"},
       {"-t, --tokenize <input_file_path>", "tokenize a file as kiwi code"},
       {"-X<key>=<value>", "specify an argument as a key-value pair"}};
 #endif

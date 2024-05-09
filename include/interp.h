@@ -118,8 +118,7 @@ class Interpreter {
   bool preservingMainStackFrame = false;
 
   void dumpState() {
-    std::cout << kiwi_arg << " v" << kiwi_version << " state dump"
-              << std::endl;
+    std::cout << kiwi_arg << " v" << kiwi_version << " state dump" << std::endl;
 
     std::cout << "streams: " << streamStack.size() << std::endl;
     int counter = 0;
@@ -333,7 +332,8 @@ class Interpreter {
       doUpdate = false;
     }
 
-    if (frame->isFlagSet(FrameFlags::InLoop) || frame->isFlagSet(FrameFlags::InCall)) {
+    if (frame->isFlagSet(FrameFlags::InLoop) ||
+        frame->isFlagSet(FrameFlags::InCall)) {
       doUpdate = true;
     }
 
@@ -522,7 +522,7 @@ class Interpreter {
                          const k_string& indexVariableName) {
     const auto& collection = std::get<k_list>(collectionValue);
     const auto& elements = collection->elements;
-    
+
     auto loopTokens = InterpHelper::collectBodyTokens(stream);
 
     // Execute the loop
@@ -544,7 +544,8 @@ class Interpreter {
 
       interpretStackFrame();
 
-      if (frame->isFlagSet(FrameFlags::LoopBreak) || frame->isFlagSet(FrameFlags::ReturnFlag)) {
+      if (frame->isFlagSet(FrameFlags::LoopBreak) ||
+          frame->isFlagSet(FrameFlags::ReturnFlag)) {
         break;
       }
 
@@ -687,16 +688,18 @@ class Interpreter {
 
   bool interpretWhen(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     if (!InterpHelper::hasReturnValue(stream)) {
-      throw InvalidOperationError(stream->current(), "Missing condition in conditional control.");
+      throw InvalidOperationError(stream->current(),
+                                  "Missing condition in conditional control.");
     }
 
-    stream->next(); // Skip `when`.
+    stream->next();  // Skip `when`.
     const auto& conditionToken = stream->current();
     auto value = parseExpression(stream, frame);
     return std::visit(NegateVisitor(conditionToken), value);
   }
 
-  void interpretContinue(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
+  void interpretContinue(k_stream stream,
+                         std::shared_ptr<CallStackFrame> frame) {
     stream->next();  // Skip "next"
 
     if (stream->current().getSubType() == KName::KW_When) {
@@ -728,8 +731,24 @@ class Interpreter {
     k_string errorType = "KiwiError";
     k_string errorMessage;
 
+    auto expressionPosition = stream->position;
+
     if (hasValue) {
-      auto errorValue = parseExpression(stream, frame);
+      k_value errorValue = static_cast<k_int>(0);
+      auto lookahead = stream->at(InterpHelper::findNextKeyword(stream));
+
+      if (lookahead.getSubType() == KName::KW_When &&
+          !interpretWhen(stream, frame)) {
+        auto nextPosition = stream->position;
+        stream->position = expressionPosition;
+        errorValue = parseExpression(stream, frame);
+        stream->position = nextPosition;
+      } else if (lookahead.getSubType() == KName::KW_When) {
+        return;
+      } else {
+        stream->position = expressionPosition;
+        errorValue = parseExpression(stream, frame);
+      }
 
       if (std::holds_alternative<k_hash>(errorValue)) {
         auto errorHash = std::get<k_hash>(errorValue);
@@ -744,12 +763,14 @@ class Interpreter {
       } else if (std::holds_alternative<k_string>(errorValue)) {
         errorMessage = std::get<k_string>(errorValue);
       }
+    } else if (stream->current().getSubType() == KName::KW_When &&
+               interpretWhen(stream, frame)) {
+      return;
     }
 
-    if (stream->current().getSubType() == KName::KW_When) {
-      if (interpretWhen(stream, frame)) {
-        return;
-      }
+    if (stream->current().getSubType() == KName::KW_When &&
+        !interpretWhen(stream, frame)) {
+      return;
     }
 
     throw KiwiError(throwToken, errorType, errorMessage);
@@ -783,18 +804,29 @@ class Interpreter {
     bool hasValue = InterpHelper::hasReturnValue(stream);
     stream->next();  // Skip "return"
     auto returnValue = frame->returnValue;
+    auto expressionPosition = stream->position;
 
     if (hasValue) {
-      returnValue = parseExpression(stream, frame);
-    }
+      auto lookahead = stream->at(InterpHelper::findNextKeyword(stream));
 
-    if (stream->current().getSubType() == KName::KW_When) {
-      if (interpretWhen(stream, frame)) {
+      if (lookahead.getSubType() == KName::KW_When &&
+          !interpretWhen(stream, frame)) {
+        auto nextPosition = stream->position;
+        stream->position = expressionPosition;
+        returnValue = parseExpression(stream, frame);
+        stream->position = nextPosition;
+      } else if (lookahead.getSubType() == KName::KW_When) {
         return;
+      } else {
+        stream->position = expressionPosition;
+        returnValue = parseExpression(stream, frame);
       }
+    } else if (stream->current().getSubType() == KName::KW_When &&
+               interpretWhen(stream, frame)) {
+      return;
     }
 
-    frame->returnValue = returnValue;    
+    frame->returnValue = returnValue;
     frame->setFlag(FrameFlags::ReturnFlag);
   }
 
@@ -1197,7 +1229,7 @@ class Interpreter {
   }
 
   Package getHomedPackage(k_stream stream, const k_string& homeName,
-                        const k_string& packageName) {
+                          const k_string& packageName) {
     for (auto pair : packages) {
       if (pair.first == packageName && pair.second.hasHome() &&
           pair.second.getHome() == homeName) {
@@ -1415,7 +1447,7 @@ class Interpreter {
     }
 
     auto filesHash = std::make_shared<Hash>();
-    
+
     for (const auto& file : req.files) {
       auto fileHash = std::make_shared<Hash>();
       fileHash->add("content", file.second.content);
@@ -1447,20 +1479,19 @@ class Interpreter {
     int webhookID = getNextWebServerHook(stream, frame, args.at(1));
 
     for (const auto& endpoint : endpointList) {
-      kiwiWebServer.Get(
-          endpoint, [this, webhookID](const httplib::Request& req,
-                                      httplib::Response& res) {
-            auto requestHash = getWebServerRequestHash(req);
+      kiwiWebServer.Get(endpoint, [this, webhookID](const httplib::Request& req,
+                                                    httplib::Response& res) {
+        auto requestHash = getWebServerRequestHash(req);
 
-            k_string content, redirect;
-            k_string contentType = "text/plain";
-            int status = 500;
-            handleWebServerRequest(webhookID, requestHash, redirect, content,
-                                   contentType, status);
+        k_string content, redirect;
+        k_string contentType = "text/plain";
+        int status = 500;
+        handleWebServerRequest(webhookID, requestHash, redirect, content,
+                               contentType, status);
 
-            res.status = status;
-            res.set_content(content, contentType);
-          });
+        res.status = status;
+        res.set_content(content, contentType);
+      });
     }
 
     return static_cast<k_int>(0);
@@ -1514,7 +1545,7 @@ class Interpreter {
     kiwiWebServerPort = get_integer(term, args.at(1));
 
     kiwiWebServer.listen(kiwiWebServerHost,
-                           static_cast<int>(kiwiWebServerPort));
+                         static_cast<int>(kiwiWebServerPort));
 
     return static_cast<k_int>(kiwiWebServerPort);
   }
@@ -1628,8 +1659,8 @@ class Interpreter {
   }
 
   void interpretPackageBuiltin(k_stream stream, const k_string& packageName,
-                              const KName& builtin,
-                              std::vector<k_value>& args) {
+                               const KName& builtin,
+                               std::vector<k_value>& args) {
     if (builtin == KName::Builtin_Package_Home) {
       if (args.size() != 1) {
         throw BuiltinUnexpectedArgumentError(stream->current(),
@@ -1821,7 +1852,8 @@ class Interpreter {
     // Check all parameters are passed.
     int parameterIndex = 0;
     for (const auto& parameterName : method.getParameters()) {
-      codeFrameVariables[parameterName] = clone_value(parameters.at(parameterIndex++));
+      codeFrameVariables[parameterName] =
+          clone_value(parameters.at(parameterIndex++));
     }
     codeFrame->setFlag(FrameFlags::SubFrame);
     codeFrame->setObjectContext(object);
@@ -2457,7 +2489,7 @@ class Interpreter {
           // Don't evaluate future ElseIf branches.
           shortCircuitElseIf = true;
         }
-        
+
         continue;
       }
 
@@ -2663,13 +2695,13 @@ class Interpreter {
   }
 
   k_string interpretPackageImport(k_stream stream, const k_string& home,
-                                 const k_string& name) {
+                                  const k_string& name) {
     stream->next();  // Skip the name.
 
     packageStack.push(name);
     auto package = hasHomedPackage(home, name)
-                      ? getHomedPackage(stream, home, name)
-                      : getPackage(stream, name);
+                       ? getHomedPackage(stream, home, name)
+                       : getPackage(stream, name);
 
     auto codeStream = std::make_shared<TokenStream>(package.getCode());
     auto codeFrame = std::make_shared<CallStackFrame>();
@@ -2692,8 +2724,8 @@ class Interpreter {
     auto scriptNameKiwi = scriptName;
 
     if (!String::endsWith(scriptName, kiwi_extension) &&
-        !String::endsWith(scriptName, ".ki")) {
-      scriptName += ".ki";
+        !String::endsWith(scriptName, ".kiwi")) {
+      scriptName += ".kiwi";
 #ifdef _WIN64
       scriptNameKiwi += kiwi_extension;
 #else
@@ -2732,8 +2764,8 @@ class Interpreter {
   }
 
   void interpretPackageAlias(k_stream stream,
-                            std::shared_ptr<CallStackFrame> frame,
-                            const k_string& packageName) {
+                             std::shared_ptr<CallStackFrame> frame,
+                             const k_string& packageName) {
     stream->next();  // Skip "as"
 
     if (stream->current().getType() != KTokenType::IDENTIFIER) {
@@ -3113,7 +3145,7 @@ class Interpreter {
 
     for (const auto& item : list->elements) {
       auto subframe = buildSubFrame(frame, true);
-      
+
       subframe->variables[accumulatorName] = accumulator;
       if (hasIndexVariable) {
         subframe->variables[indexVariableName] = item;

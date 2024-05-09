@@ -35,9 +35,10 @@ class Sys {
     const int MAX_BUFFER = 128;
     std::array<char, MAX_BUFFER> buffer;
     FILE* stream = _popen(command.c_str(), "r");
-    if (!stream) return "";
+    if (!stream)
+      return "";
     while (fgets(buffer.data(), buffer.size(), stream) != NULL) {
-        result.append(buffer.data());
+      result.append(buffer.data());
     }
     _pclose(stream);
 #else
