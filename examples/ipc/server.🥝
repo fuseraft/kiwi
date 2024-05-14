@@ -1,0 +1,28 @@
+import "@x/runnable"
+import "@kiwi/fs"
+
+fn action()
+  lines = fs::readlines(@path)
+  next_hash = lines.join(';')
+
+  # there's a change
+  if next_hash != @hash
+    if next_hash.empty()
+      on_queue_cleared()
+    else
+      on_change(lines)
+    end
+    
+    @hash = next_hash
+  end
+end
+
+fn on_queue_cleared()
+  println("The queue was cleared.")
+end
+
+fn on_change(lines)
+  println("A change was detected: ${lines[-1]}")
+end
+
+(Server.new()).run("./queue.ipc")
