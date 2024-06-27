@@ -428,15 +428,15 @@ class Interpreter {
         stream->next();  // Skip identifier.
         if (frame->hasAssignedLambda(lambdaName)) {
           return frame->getAssignedLambda(lambdaName);
-        } else {
-          auto tempStack(callStack);
-          while (!tempStack.empty()) {
-            auto& outerFrame = tempStack.top();
-            if (outerFrame->hasAssignedLambda(lambdaName)) {
-              return outerFrame->getAssignedLambda(lambdaName);
-            }
-            tempStack.pop();
+        } 
+        
+        auto tempStack(callStack);
+        while (!tempStack.empty()) {
+          auto& outerFrame = tempStack.top();
+          if (outerFrame->hasAssignedLambda(lambdaName)) {
+            return outerFrame->getAssignedLambda(lambdaName);
           }
+          tempStack.pop();
         }
       } break;
 
@@ -988,13 +988,11 @@ class Interpreter {
         switch (stream->peek().getType()) {
           case KTokenType::COMMA:
           case KTokenType::CLOSE_PAREN:
-            if (frame->hasAssignedLambda(identifier)) {
-              return std::make_shared<LambdaRef>(identifier);
-            } else {
+            if (!frame->hasAssignedLambda(identifier)) {
               throw SyntaxError(stream->current(),
                                 "Expected lambda reference.");
             }
-            break;
+            return std::make_shared<LambdaRef>(identifier);
 
           default:
             interpretMethodInvocation(stream, frame, identifier);
@@ -2805,14 +2803,14 @@ class Interpreter {
     auto packageName = stream->current().getText();
     auto packageHome = InterpHelper::interpretPackageHome(packageName, stream);
 
-    if (hasPackage(packageName)) {
-      packageName = interpretPackageImport(stream, packageHome, packageName);
-      frame->returnValue = packageName;
-      frame->setFlag(FrameFlags::ReturnFlag);
-    } else {
+    if (!hasPackage(packageName)) {
       throw InvalidOperationError(stream->current(),
                                   "Invalid export `" + packageName + "`");
     }
+    
+    packageName = interpretPackageImport(stream, packageHome, packageName);
+    frame->returnValue = packageName;
+    frame->setFlag(FrameFlags::ReturnFlag);
   }
 
   void interpretImport(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
@@ -3005,12 +3003,12 @@ class Interpreter {
   k_value interpretListSort(k_stream stream, const k_list& list) {
     stream->next();  // Skip "("
 
-    if (stream->current().getType() == KTokenType::CLOSE_PAREN) {
-      sort_list(*list);
-      stream->next();
-    } else {
+    if (stream->current().getType() != KTokenType::CLOSE_PAREN) {
       throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
     }
+    
+    sort_list(*list);
+    stream->next();
 
     return list;
   }
@@ -3489,14 +3487,14 @@ class Interpreter {
       stream->next();  // Skip "||"
       auto right = parseLogicalAnd(stream, frame);
 
-      if (std::holds_alternative<bool>(left) &&
-          std::holds_alternative<bool>(right)) {
-        bool lhs = std::get<bool>(left), rhs = std::get<bool>(right);
-        left = lhs || rhs;
-      } else {
+      if (!(std::holds_alternative<bool>(left) &&
+          std::holds_alternative<bool>(right))) {
         throw ConversionError(stream->current(),
                               "Expected a `Boolean` expression.");
       }
+      
+      bool lhs = std::get<bool>(left), rhs = std::get<bool>(right);
+      left = lhs || rhs;
     }
     return left;
   }
@@ -3510,14 +3508,14 @@ class Interpreter {
       stream->next();  // Skip "&&"
       auto right = parseBitwiseOr(stream, frame);
 
-      if (std::holds_alternative<bool>(left) &&
-          std::holds_alternative<bool>(right)) {
-        bool lhs = std::get<bool>(left), rhs = std::get<bool>(right);
-        left = lhs && rhs;
-      } else {
+      if (!(std::holds_alternative<bool>(left) &&
+          std::holds_alternative<bool>(right))) {
         throw ConversionError(stream->current(),
                               "Expected a `Boolean` expression.");
       }
+
+      bool lhs = std::get<bool>(left), rhs = std::get<bool>(right);
+      left = lhs && rhs;
     }
     return left;
   }
@@ -3890,18 +3888,19 @@ class Interpreter {
           }
           ++i;
         }
-        if (braceCount == 0) {
-          --i;  // Go back to the closing brace
-          auto value = interpolateString(frame, input.substr(start, i - start));
-          if (!std::holds_alternative<k_object>(value)) {
-            sv << Serializer::serialize(value);
-          } else {
-            sv << interpolateObject(stream, frame, value);
-          }
-        } else {
+
+        if (braceCount != 0) {
           throw SyntaxError(
               stream->current(),
               "Unmatched braces in string interpolation: `" + input + "`");
+        }
+        
+        --i;  // Go back to the closing brace
+        auto value = interpolateString(frame, input.substr(start, i - start));
+        if (!std::holds_alternative<k_object>(value)) {
+          sv << Serializer::serialize(value);
+        } else {
+          sv << interpolateObject(stream, frame, value);
         }
       } else if (c == '\\') {
         // Handle escape sequences
@@ -4074,13 +4073,13 @@ class Interpreter {
       case KTokenType::DOT:
         if (InterpHelper::hasVariable(frame, name)) {
           auto value = InterpHelper::getVariable(stream, frame, name);
-          if (std::holds_alternative<k_object>(value)) {
-            interpretInstanceMethodInvocation(stream, frame, name);
-            return name;
-          } else {
+          if (!std::holds_alternative<k_object>(value)) {
             throw InvalidOperationError(
                 stream->current(), "Unsupported operation on `" + name + "`");
           }
+
+          interpretInstanceMethodInvocation(stream, frame, name);
+          return name;
         }
 
         throw VariableUndefinedError(stream->current(), name);
@@ -4105,12 +4104,11 @@ class Interpreter {
         return;
 
       case KTokenType::KEYWORD:
-        if (stream->current().getSubType() == KName::KW_Await) {
-          value = interpretAwait(stream, frame);
-        } else {
+        if (stream->current().getSubType() != KName::KW_Await) {
           throw SyntaxError(stream->current(),
                             "Invalid syntax in assignment of `" + name + "`.");
         }
+        value = interpretAwait(stream, frame);
         break;
 
       default:
