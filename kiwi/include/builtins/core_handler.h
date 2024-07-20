@@ -758,6 +758,9 @@ class CoreBuiltinHandler {
       case 7:  // k_lambda
         return typeName == TypeNames.With;
 
+      case 8:  // k_null
+        return typeName == TypeNames.None;
+
       default:
         return false;
     }

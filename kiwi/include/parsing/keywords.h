@@ -170,6 +170,7 @@ struct {
   const k_string Package = "package";
   const k_string New = "new";
   const k_string Next = "next";
+  const k_string Null = "null";
   const k_string Override = "override";
   const k_string Parse = "parse";
   const k_string Pass = "pass";
@@ -190,7 +191,7 @@ struct {
   std::unordered_set<k_string> keywords = {
       Abstract, As,    Async,  Await, Break,   Catch,   Class,   Delete,
       Do,       Else,  ElseIf, End,   Exit,    Export,  False,   For,
-      Function, If,    Import, In,    With,    Method,  Package, Next,
+      Function, If,    Import, In,    With,    Method,  Package, Next, Null,
       Override, Parse, Pass,   Print, PrintLn, Private, Return,  Static,
       Then,     This,  Throw,  True,  Try,     When,    While};
 
@@ -205,6 +206,8 @@ struct {
   }
 
   bool is_boolean(const k_string& arg) { return arg == True || arg == False; }
+
+  bool is_null(const k_string& arg) { return arg == Null; }
 
   bool is_conditional_keyword(const k_string& arg) {
     return conditional_keywords.find(arg) != conditional_keywords.end();
