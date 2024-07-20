@@ -1,0 +1,4 @@
+/# a playground for testing kiwi #/
+
+# write your code below
+println "hello world!"
