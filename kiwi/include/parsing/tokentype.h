@@ -252,6 +252,7 @@ enum KName {
   KW_Method,
   KW_Package,
   KW_Next,
+  KW_Null,
   KW_Override,
   KW_Parse,
   KW_Pass,

@@ -278,6 +278,8 @@ class Lexer {
       return createToken(KTokenType::LAMBDA, KName::KW_Lambda, keyword);
     } else if (Keywords.is_boolean(keyword)) {
       return Token::createBoolean(fileId, keyword, row, col);
+    } else if (Keywords.is_null(keyword)) {
+      return Token::createNull(fileId, keyword, row, col);
     }
 
     return parseKeywordSpecific(keyword);
@@ -1043,6 +1045,7 @@ class Lexer {
 
   Token parseIdentifier(const std::string& identifier) {
     auto st = KName::Default;
+
     return createToken(KTokenType::IDENTIFIER, st, identifier);
   }
 

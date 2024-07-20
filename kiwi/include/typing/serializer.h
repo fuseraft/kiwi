@@ -17,11 +17,12 @@ struct Serializer {
       return TypeNames.Integer;
     } else if (std::holds_alternative<double>(v)) {
       return TypeNames.Double;
-
     } else if (std::holds_alternative<bool>(v)) {
       return TypeNames.Boolean;
     } else if (std::holds_alternative<k_string>(v)) {
       return TypeNames.String;
+    } else if (std::holds_alternative<k_null>(v)) {
+      return TypeNames.None;
     } else if (std::holds_alternative<k_list>(v)) {
       return TypeNames.List;
     } else if (std::holds_alternative<k_hash>(v)) {
@@ -54,6 +55,8 @@ struct Serializer {
       sv << std::get<double>(v);
     } else if (std::holds_alternative<bool>(v)) {
       sv << std::boolalpha << std::get<bool>(v);
+    } else if (std::holds_alternative<k_null>(v)) {
+      sv << Keywords.Null;
     } else if (std::holds_alternative<k_string>(v)) {
       if (wrapStrings) {
         sv << "\"" << std::get<k_string>(v) << "\"";
@@ -102,6 +105,8 @@ struct Serializer {
       sv << std::get<double>(v);
     } else if (std::holds_alternative<bool>(v)) {
       sv << std::boolalpha << std::get<bool>(v);
+    } else if (std::holds_alternative<k_null>(v)) {
+      sv << Keywords.Null;
     } else if (std::holds_alternative<k_string>(v)) {
       sv << "\"" << std::get<k_string>(v) << "\"";
     } else if (std::holds_alternative<k_list>(v)) {

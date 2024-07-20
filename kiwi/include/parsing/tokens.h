@@ -88,6 +88,13 @@ class Token {
                   linePosition);
   }
 
+  static Token createNull(const int& fileId, const k_string& text,
+                          const int& lineNumber, const int& linePosition) {
+    k_null value;
+    return create(KTokenType::LITERAL, KName::KW_Null, fileId, text, value, lineNumber,
+                  linePosition);
+  }
+
   static Token createEmpty() {
     return create(KTokenType::ENDOFFILE, KName::Default, 0, "", 0, 0);
   }

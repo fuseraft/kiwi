@@ -129,23 +129,23 @@ make test
 
 #### Algorithms
 
-- [Levenshtein Distance](examples/algo/levenshtein.kiwi)
-- [MD5](examples/algo/md5_hash.kiwi)
-- [Sieve of Eratosthenes](examples/algo/sieve_of_eratosthenes.kiwi)
+- [Levenshtein Distance](docs/examples/algo/levenshtein.kiwi)
+- [MD5](docs/examples/algo/md5_hash.kiwi)
+- [Sieve of Eratosthenes](docs/examples/algo/sieve_of_eratosthenes.kiwi)
 
 #### Cellular Automata
 
-- [Rule 30](examples/cellular_automata/rule30.kiwi)
-- [Conway's Game of Life](examples/cellular_automata/life.kiwi)
-- [Brian's Brain](examples/cellular_automata/brain.kiwi)
+- [Rule 30](docs/examples/cellular_automata/rule30.kiwi)
+- [Conway's Game of Life](docs/examples/cellular_automata/life.kiwi)
+- [Brian's Brain](docs/examples/cellular_automata/brain.kiwi)
 
 #### Project Euler
 
-- [Project Euler examples](examples/project_euler/).
+- [Project Euler examples](docs/examples/project_euler/).
 
 #### Web Application
 
-Below is a simple HTTP web application. You can find the [example project here](examples/webapp/app.kiwi).
+Below is a simple HTTP web application. You can find the [example project here](docs/examples/webapp/app.kiwi).
 
 ```kiwi
 import "@kiwi/web" as web

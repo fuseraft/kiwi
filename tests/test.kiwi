@@ -7,7 +7,7 @@ runtimes = []
 
 # Search pattern for Kiwi scripts, excluding certain files and directories
 search_pattern = "./**/*.kiwi"
-exclusions = ["test.", "play.", "lib/kiwi", "/examples/"]
+exclusions = ["test.kiwi"]
 
 println("Searching for Kiwi scripts...")
 silent(true)
