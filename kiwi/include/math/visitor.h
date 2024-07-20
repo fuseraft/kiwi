@@ -203,6 +203,8 @@ struct NegateVisitor {
   bool operator()(const k_value& value) const {
     if (std::holds_alternative<bool>(value)) {
       return !std::get<bool>(value);
+    } else if (std::holds_alternative<k_null>(value)) {
+      return true;
     } else if (std::holds_alternative<k_int>(value)) {
       return static_cast<k_int>(std::get<k_int>(value) == 0 ? 1 : 0);
     } else if (std::holds_alternative<double>(value)) {
@@ -214,7 +216,7 @@ struct NegateVisitor {
     } else if (std::holds_alternative<k_hash>(value)) {
       return std::get<k_hash>(value)->keys.empty();
     } else {
-      throw ConversionError(token, "Unexpected value.");
+      return false; // Object, Lambda, etc.
     }
   }
 };
