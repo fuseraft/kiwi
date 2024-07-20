@@ -27,6 +27,7 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
 - [`package`](#package)
 - [`new`](#new)
 - [`next`](#next)
+- [`null`](#null)
 - [`override`](#override)
 - [`parse`](#parse)
 - [`pass`](#pass)
@@ -171,6 +172,11 @@ See [Classes](classes.md).
 The `next` keyword is used to skip to the next iteration of a loop.
 
 See [Loops](loops.md) and [Control Structures](control_structures.md).
+
+## `null`
+The `null` keyword is a None value.
+
+See [Types](types.md).
 
 ## `override`
 The `override` keyword is used to provide an implementation to an abstract method.
