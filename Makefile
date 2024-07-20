@@ -1,8 +1,8 @@
 CXX := g++
 CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic
 
-SRC_DIR := src
-INCLUDE_DIR := include
+SRC_DIR := kiwi/src
+INCLUDE_DIR := kiwi/include
 BUILD_DIR := build
 BIN_DIR := bin
 TEST_DIR := tests
@@ -30,7 +30,7 @@ format:
 
 test: $(EXECUTABLE)
 	@echo "================================"
-	$(EXECUTABLE) test
+	$(EXECUTABLE) ./$(TEST_DIR)/test
 
 play: $(EXECUTABLE)
 	@echo "================================"

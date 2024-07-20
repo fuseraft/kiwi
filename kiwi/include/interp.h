@@ -2433,7 +2433,21 @@ class Interpreter {
     auto value = parseExpression(stream, frame);
 
     if (!std::holds_alternative<bool>(value)) {
-      throw ConversionError(stream->current());
+      if (std::holds_alternative<k_null>(value)) {
+        value = false;
+      } else if (std::holds_alternative<k_int>(value)) {
+        value = std::get<k_int>(value) != 0 ? true : false;
+      } else if (std::holds_alternative<double>(value)) {
+        value = std::get<double>(value) != static_cast<double>(0);
+      } else if (std::holds_alternative<k_string>(value)) {
+        value = !std::get<k_string>(value).empty();
+      } else if (std::holds_alternative<k_list>(value)) {
+        value = std::get<k_list>(value)->elements.empty();
+      } else if (std::holds_alternative<k_hash>(value)) {
+        value = std::get<k_hash>(value)->keys.empty();
+      } else {
+        value = true; // Object, Lambda, etc.
+      }
     }
 
     bool shortCircuitIf = std::get<bool>(value);
@@ -3754,7 +3768,8 @@ class Interpreter {
     auto& value = current.getValue();
     if (std::holds_alternative<k_int>(value) ||
         std::holds_alternative<double>(value) ||
-        std::holds_alternative<bool>(value)) {
+        std::holds_alternative<bool>(value) ||
+        std::holds_alternative<k_null>(value)) {
       stream->next();
       return value;
     }
