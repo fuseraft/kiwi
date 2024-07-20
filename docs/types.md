@@ -114,7 +114,7 @@ puts("Hello, World!") # prints: Hello, World!
 
 ### None
 
-A null value. A value that points to nothing.
+A `null` value. A value that points to nothing.
 
 ```ruby
 # Define a hash, `c`, with null values.
