@@ -1,4 +1,8 @@
 /# a playground for testing kiwi #/
 
-# write your code below
-println "hello world!"
+println "hello world!".chars().map(with (c) do
+  return 0 when c == "o"
+  return 1 when c == "l"
+  return 3 when c == "e"
+  return c
+end).join()
