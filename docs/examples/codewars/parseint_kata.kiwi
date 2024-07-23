@@ -7,8 +7,7 @@ def parse_int(str)
   }
 
   parts = str.replace('-', ' ').split(' ')
-  total = 0
-  temp = 0
+  total = 0, temp = 0
 
   for part in parts do
     if numbers.has_key(part)
