@@ -1,12 +1,37 @@
 # Lists
 
-Lists in Kiwi look and behave a lot like lists in other languages.
+Lists are array-like objects that expand as needed and can contain values of multiple types.
+
+# Table of Contents
+- [Builtins](#Builtins)
+- [Defining a `List`](#defining-a-list)
+- [Defining a `List` with a `Range`](#defining-a-list-with-a-range)
+- [Accessing Elements](#accessing-list-elements)
+- [Adding Elements](#adding-elements-to-a-list)
+- [Removing Elements](#removing-elements-from-a-list)
+- [Filtering a `List`](#filtering-a-list)
+- [Iterating a `List`](#iterating-a-list)
+- [An Example](#an-example)
+- [Optional Commas](#optional-commas)
+
+### Builtins
+
+For documentation on `List` builtins, take a look at the [`List` builtins](builtins.md#list-builtins).
 
 ### Defining a List
 
 ```ruby
 myList = ["Kiwi", "is", "fun!"]
 anotherList = [1, 2, 3, "four", "five", 6]
+```
+
+### Defining a List with a Range
+
+You can define a list using a range.
+
+```ruby
+# This is equivalent to: numbers = [1, 2, 3, 4, 5]
+numbers = [1..5] 
 ```
 
 ### Accessing List Elements
@@ -64,15 +89,6 @@ end
 for item, index in myList do
   println("Item ${index}: ${item}")
 end
-```
-
-### Defining a List with a Range
-
-You can define a list using a range.
-
-```ruby
-# This is equivalent to: numbers = [1, 2, 3, 4, 5]
-numbers = [1..5] 
 ```
 
 ### An Example
