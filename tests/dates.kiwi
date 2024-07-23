@@ -3,4 +3,9 @@ import "@kiwi/time"
 println(DateTime.format(DateTime.now().add_years(1), "%Y-%m-%d"))
 
 d = DateTime.new(2024, 1, 1).add_days(-1).add_hours(-1).add_minutes(-1).add_seconds(-1)
-println(DateTime.format(d, "%Y-%m-%dT%H:%M:%S"))
+
+d2 = DateTime.now()
+
+if d < d2
+  println "${d} is less than ${d2}"
+end
