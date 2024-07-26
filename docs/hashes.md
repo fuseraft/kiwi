@@ -2,7 +2,20 @@
 
 Hashes in Kiwi are similar to maps and dictionaries in other languages.
 
-A hash just contains a series of key-value pairs.
+A hash contains a series of key-value pairs and can easily be serialized into JSON and vice-versa.
+
+# Table of Contents
+- [Builtins](#hash-builtins)
+- [Defining a `Hash`](#defining-a-hash)
+- [Accessing Elements](#accessing-hash-elements)
+- [Adding Elements](#adding-elements-to-a-hash)
+- [Removing Elements](#removing-elements-from-a-hash)
+- [Iterating a `Hash`](#iterating-a-hash)
+- [Optional Commas](#optional-commas)
+
+### Builtins
+
+For documentation on `Hash` builtins, take a look at the [`Hash` builtins](builtins.md#hash-builtins).
 
 ### Defining a Hash
 
