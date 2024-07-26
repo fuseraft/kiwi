@@ -4,6 +4,17 @@ The `String` type in Kiwi is used to represent text data.
 
 Strings in Kiwi are wrapped with either double-quotes or single-quotes.
 
+# Table of Contents
+- [Builtins](#builtins)
+- [Defining a `String`](#defining-a-string)
+- [Defining a Raw `String`](#defining-raw-strings)
+- [String Interpolation](#string-interpolation)
+- [String Multiplication](#string-multiplication)
+
+### Builtins
+
+For documentation on `String` builtins, take a look at the [`String` builtins](builtins.md#string-builtins).
+
 ### Defining a String
 
 A string wrapped in double-quotes can contain string interpolation expressions.
@@ -42,7 +53,3 @@ You can multiply strings using the multiplication operator `*` followed by an in
 strmul = "hello" * 2 
 println(strmul) # prints: hellohello
 ```
-
-### Builtins
-
-For documentation on `String` builtins, take a look at the [`String` builtins](builtins.md#string-builtins).
