@@ -4,18 +4,9 @@ The `argv` package contains functionality for working with command-line argument
 
 ## Table of Contents
 
-- [Importing the Package](#importing-the-package)
 - [Package Functions](#package-functions)
   - [`get()`](#get)
   - [`opt(_key)`](#opt_key)
-
-## Importing the Package
-
-To use the `argv` package, import it at the beginning of your Kiwi script.
-
-```ruby
-import "@kiwi/argv" as ARGV
-```
 
 ## Package Functions
 
@@ -53,6 +44,5 @@ You can pass a named command-line argument in the form of a key-value pair.
 You can pull these values using this package.
 
 ```ruby
-import "@kiwi/argv" as ARGV
-println(ARGV.opt("key")) # prints: value
+println(argv::opt("key")) # prints: value
 ```
