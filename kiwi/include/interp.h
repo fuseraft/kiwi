@@ -55,11 +55,6 @@ class Interpreter {
     int result = interpret(lexer);
     File::setCurrentDirectory(cwd);
 
-    // -Xdump=true
-    if (kiwiArgs.find("dump") != kiwiArgs.end()) {
-      dumpState();
-    }
-
     return result;
   }
 
@@ -116,69 +111,6 @@ class Interpreter {
 
  private:
   bool preservingMainStackFrame = false;
-
-  void dumpState() {
-    std::cout << kiwi_arg << " v" << kiwi_version << " state dump" << std::endl;
-
-    std::cout << "streams: " << streamStack.size() << std::endl;
-    int counter = 0;
-    auto tempStreamStack(streamStack);
-    while (!tempStreamStack.empty()) {
-      std::cout << counter++
-                << " stream size: " << tempStreamStack.top()->tokens.size()
-                << std::endl;
-      tempStreamStack.pop();
-    }
-
-    std::cout << "frames: " << callStack.size() << std::endl;
-    counter = 0;
-    auto tempCallStack(callStack);
-    while (!tempCallStack.empty()) {
-      const auto& frame = tempCallStack.top();
-      const auto& frameVariables = frame->variables;
-      const auto& frameLambdas = frame->lambdas;
-      std::cout << counter << " frame variables: " << frameVariables.size()
-                << std::endl;
-      for (const auto& var : frameVariables) {
-        std::cout << "  name: " << var.first << std::endl;
-      }
-      std::cout << counter++ << " frame lambdas: " << frameLambdas.size()
-                << std::endl;
-      for (const auto& lambda : frameLambdas) {
-        std::cout << "  name: " << lambda.first
-                  << ", size: " << lambda.second.getCode().size() << std::endl;
-      }
-      tempCallStack.pop();
-    }
-
-    std::cout << "packages: " << packages.size() << std::endl;
-    counter = 0;
-    for (const auto& mod : packages) {
-      std::cout << counter++ << " name: " << mod.first
-                << ", size: " << mod.second.getCode().size() << std::endl;
-    }
-
-    std::cout << "classes: " << classes.size() << std::endl;
-    counter = 0;
-    for (const auto& clazz : classes) {
-      std::cout << counter << " name: " << clazz.first
-                << ", size: " << clazz.second.getMethods().size() << std::endl;
-      for (const auto& method : clazz.second.getMethods()) {
-        std::cout << counter << " class method name: " << method.first
-                  << ", size: " << method.second.getCode().size() << std::endl;
-      }
-      counter++;
-    }
-
-    std::cout << "methods: " << methods.size() << std::endl;
-    counter = 0;
-    for (const auto& method : methods) {
-      std::cout << counter++ << " name: " << method.first
-                << ", size: " << method.second.getCode().size() << std::endl;
-    }
-
-    std::cout << std::endl;
-  }
 
   k_int interpretAsyncMethodInvocation(
       std::shared_ptr<CallStackFrame> codeFrame, const Method& method) {

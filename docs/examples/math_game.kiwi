@@ -1,5 +1,3 @@
-import "@kiwi/math"
-
 println("This is a simple but fun math game! Enter `x` at anytime to end the game.")
 
 correct = 0

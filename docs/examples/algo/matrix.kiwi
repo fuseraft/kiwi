@@ -3,9 +3,6 @@ A simple application that generates a random set of numbers and prints them as a
 This is accomplished by transposing a matrix representation of these numbers and converting it into a string format.
 #/
 
-import "@kiwi/math"
-import "@kiwi/string"
-
 def main()
   # Generate and print the matrix
   print_matrix(get_matrix(math::random_set(1, 50, 20)))

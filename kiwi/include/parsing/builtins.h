@@ -301,8 +301,26 @@ struct {
   bool is_builtin(const KName& arg) {
     return st_builtins.find(arg) != st_builtins.end();
   }
-
 } SerializerBuiltins;
+
+struct {
+  const k_string RInspect = "__rinspect__";
+  const k_string RList = "__rlist__";
+
+  std::unordered_set<k_string> builtins = {RInspect, RList};
+
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_Reflector_RInspect,
+      KName::Builtin_Reflector_RList};
+
+  bool is_builtin(const k_string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+
+  bool is_builtin(const KName& arg) {
+    return st_builtins.find(arg) != st_builtins.end();
+  }
+} ReflectorBuiltins;
 
 struct {
   const k_string Each = "each";
@@ -639,7 +657,7 @@ struct {
            PackageBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
            LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
-           SerializerBuiltins.is_builtin(arg);
+           SerializerBuiltins.is_builtin(arg) || ReflectorBuiltins.is_builtin(arg);
   }
 
   bool is_builtin_method(const KName& arg) {
@@ -649,7 +667,7 @@ struct {
            PackageBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
            LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
-           SerializerBuiltins.is_builtin(arg);
+           SerializerBuiltins.is_builtin(arg) || ReflectorBuiltins.is_builtin(arg);
   }
 } KiwiBuiltins;
 
