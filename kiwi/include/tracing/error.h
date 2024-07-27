@@ -13,8 +13,8 @@ class KiwiError : public std::exception {
 
   const char* what() const noexcept override { return message.c_str(); }
   const Token getToken() const { return token; }
-  const std::string getError() const { return error; }
-  const std::string getMessage() const { return message; }
+  const std::string& getError() const { return error; }
+  const std::string& getMessage() const { return message; }
 
   static KiwiError create(const std::string& message = "") {
     return KiwiError(Token::createEmpty(), "KiwiError", message);

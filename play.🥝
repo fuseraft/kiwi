@@ -1,10 +1,13 @@
-/# a playground for testing kiwi #/
+fn methods(package_name="")
+  methods = __rlist__().methods
 
-println "hello world!".chars().map(with (c) do
-  return 0 when c == "o"
-  return 1 when c == "l"
-  return 3 when c == "e"
-  return c
-end).join()
+  if !package_name.empty()
+    methods = methods.select(with (m) do return m.begins_with("${package_name}::") end)
+  end
 
-println __rlist__().packages.sort()
+  return methods
+end
+
+for package_name in __rlist__().packages do
+  println "package: ${package_name}\nmethods: ${methods(package_name)}\n"
+end
