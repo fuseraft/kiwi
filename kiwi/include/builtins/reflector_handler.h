@@ -20,12 +20,6 @@ class ReflectorBuiltinHandler {
       case KName::Builtin_Reflector_RList:
         return executeRList(term, args);
 
-      case KName::Builtin_Reflector_RBin:
-        return executeRBin(term, args);
-
-      case KName::Builtin_Reflector_RLib:
-        return executeRLib(term, args);
-
       default:
         break;
     }
@@ -37,24 +31,6 @@ class ReflectorBuiltinHandler {
   static k_value executeRInspect(const Token& term,
                                  const std::vector<k_value>& args) {
     throw UnknownBuiltinError(term, ReflectorBuiltins.RInspect);
-  }
-
-  static k_value executeRBin(const Token& term,
-                             const std::vector<k_value>& args) {
-    if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, ReflectorBuiltins.RBin);
-    }
-
-    return File::getExecutablePath().string();
-  }
-
-  static k_value executeRLib(const Token& term,
-                             const std::vector<k_value>& args) {
-    if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, ReflectorBuiltins.RLib);
-    }
-
-    return File::getLibraryPath();
   }
 
   static k_value executeRList(const Token& term,
