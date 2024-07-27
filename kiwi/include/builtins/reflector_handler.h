@@ -6,6 +6,7 @@
 #include "parsing/builtins.h"
 #include "parsing/tokens.h"
 #include "typing/value.h"
+#include "util/file.h"
 #include "globals.h"
 
 class ReflectorBuiltinHandler {
@@ -19,6 +20,12 @@ class ReflectorBuiltinHandler {
       case KName::Builtin_Reflector_RList:
         return executeRList(term, args);
 
+      case KName::Builtin_Reflector_RBin:
+        return executeRBin(term, args);
+
+      case KName::Builtin_Reflector_RLib:
+        return executeRLib(term, args);
+
       default:
         break;
     }
@@ -29,17 +36,25 @@ class ReflectorBuiltinHandler {
  private:
   static k_value executeRInspect(const Token& term,
                                  const std::vector<k_value>& args) {
-    if (args.size() > 1) {
-      throw BuiltinUnexpectedArgumentError(term, ReflectorBuiltins.RInspect);
+    throw UnknownBuiltinError(term, ReflectorBuiltins.RInspect);
+  }
+
+  static k_value executeRBin(const Token& term,
+                             const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, ReflectorBuiltins.RBin);
     }
 
-    k_string userInput;
-    if (args.size() == 1) {
-      std::cout << Serializer::serialize(args.at(0));
-    }
-    std::getline(std::cin, userInput);
+    return File::getExecutablePath().string();
+  }
 
-    return userInput;
+  static k_value executeRLib(const Token& term,
+                             const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, ReflectorBuiltins.RLib);
+    }
+
+    return File::getLibraryPath();
   }
 
   static k_value executeRList(const Token& term,

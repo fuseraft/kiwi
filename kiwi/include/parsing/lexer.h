@@ -528,6 +528,10 @@ class Lexer {
       st = KName::Builtin_Reflector_RInspect;
     } else if (builtin == ReflectorBuiltins.RList) {
       st = KName::Builtin_Reflector_RList;
+    } else if (builtin == ReflectorBuiltins.RLib) {
+      st = KName::Builtin_Reflector_RLib;
+    } else if (builtin == ReflectorBuiltins.RBin) {
+      st = KName::Builtin_Reflector_RBin;
     }
 
     return createToken(KTokenType::IDENTIFIER, st, builtin);
