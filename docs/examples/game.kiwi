@@ -1,7 +1,4 @@
-import "@kiwi/math" as Math
-import "@kiwi/sys" as sys
-
-def main()
+fn main()
   g = Game.new("Cosmognorivelum", 2)
   name = input("Enter player name: ")
 
@@ -83,7 +80,7 @@ class Game private (name, players, player_count, turns)
     enemy_hp = 100
 
     for turn in [1..@turns] do
-      sys.exec("clear")
+      sys::exec("clear")
       
       print_info()
       println("\nTurn ${turn} of ${@turns} => Player HP: ${player_hp}, Enemy HP: ${enemy_hp}\n")
@@ -93,7 +90,7 @@ class Game private (name, players, player_count, turns)
           move = get_action(p)
           
           player_attack = move == "attack"
-          enemy_attack = Math.random(1, 100) >= 20
+          enemy_attack = math::random(1, 100) >= 20
 
           resolve_combat(player_attack, enemy_attack, player_hp, enemy_hp)
         end
@@ -104,7 +101,7 @@ class Game private (name, players, player_count, turns)
   end
 
   private def conclude_game(player_hp, enemy_hp)
-    sys.exec("clear")
+    sys::exec("clear")
     println("Results => Player HP: ${player_hp}, Enemy HP: ${enemy_hp}\n")
 
     if player_hp > enemy_hp
@@ -116,12 +113,12 @@ class Game private (name, players, player_count, turns)
 
   private def resolve_combat(player_attack, enemy_attack, player_hp, enemy_hp)
     if enemy_attack && player_attack
-      player_hp -= Math.random(0, 30)
-      enemy_hp -= Math.random(0, 25)
-    elsif enemy_attack && !player_attack && Math.random(1, 6) == 6
-      player_hp -= Math.random(0, 15)
+      player_hp -= math::random(0, 30)
+      enemy_hp -= math::random(0, 25)
+    elsif enemy_attack && !player_attack && math::random(1, 6) == 6
+      player_hp -= math::random(0, 15)
     elsif !enemy_attack && player_attack
-      enemy_hp -= Math.random(0, 10)
+      enemy_hp -= math::random(0, 10)
     end
   end
 

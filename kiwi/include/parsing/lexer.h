@@ -521,6 +521,18 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
+  Token parseReflectorBuiltin(const std::string& builtin) {
+    auto st = KName::Default;
+
+    if (builtin == ReflectorBuiltins.RInspect) {
+      st = KName::Builtin_Reflector_RInspect;
+    } else if (builtin == ReflectorBuiltins.RList) {
+      st = KName::Builtin_Reflector_RList;
+    }
+
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
+  }
+
   Token parseSerializerBuiltin(const std::string& builtin) {
     auto st = KName::Default;
 
@@ -902,6 +914,8 @@ class Lexer {
       return parseEncoderBuiltin(builtin);
     } else if (SerializerBuiltins.is_builtin(builtin)) {
       return parseSerializerBuiltin(builtin);
+    } else if (ReflectorBuiltins.is_builtin(builtin)) {
+      return parseReflectorBuiltin(builtin);
     }
 
     return createToken(KTokenType::IDENTIFIER, KName::Default, builtin);
