@@ -46,15 +46,15 @@ class ReflectorBuiltinHandler {
     auto rlistStack = std::make_shared<List>();
     
     for (const auto& m : methods) {
-        rlistMethods->elements.emplace_back(m.first);
+      rlistMethods->elements.emplace_back(m.first);
     }
 
     for (const auto& p : packages) {
-        rlistPackages->elements.emplace_back(p.first);
+      rlistPackages->elements.emplace_back(p.first);
     }
 
     for (const auto& c : classes) {
-        rlistClasses->elements.emplace_back(c.first);
+      rlistClasses->elements.emplace_back(c.first);
     }
 
     std::stack<std::shared_ptr<CallStackFrame>> tempStack(callStack);
@@ -84,6 +84,10 @@ class ReflectorBuiltinHandler {
       for (const auto& a : frameAliases) {
         rlistStackFrameAliases->elements.emplace_back(a);
       }
+      
+      sort_list(*rlistStackFrameAliases);
+      sort_list(*rlistStackFrameLambdas);
+      sort_list(*rlistStackFrameVariables);
 
       rlistStackFrame->add("aliases", rlistStackFrameAliases);
       rlistStackFrame->add("lambdas", rlistStackFrameLambdas);
@@ -94,9 +98,12 @@ class ReflectorBuiltinHandler {
       tempStack.pop();
     }
 
+    sort_list(*rlistPackages);
+    sort_list(*rlistClasses);
+    sort_list(*rlistMethods);
     std::reverse(rlistStack->elements.begin(), rlistStack->elements.end());
     
-    rlist->add("packages", rlistMethods);
+    rlist->add("packages", rlistPackages);
     rlist->add("classes", rlistClasses);
     rlist->add("methods", rlistMethods);
     rlist->add("callstack", rlistStack);
