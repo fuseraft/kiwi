@@ -1,8 +1,3 @@
-# Script Performance Analyzer
-
-import "@kiwi/fs" as fs
-import "@kiwi/time" as time
-
 runtimes = []
 
 # Search pattern for Kiwi scripts, excluding certain files and directories
@@ -12,7 +7,7 @@ exclusions = ["test.kiwi"]
 println("Searching for Kiwi scripts...")
 silent(true)
 
-(fs.glob(search_pattern)).each(with (file) do
+(fs::glob(search_pattern)).each(with (file) do
   exclude = false
 
   # Check if file is not in the exclusions list
@@ -24,15 +19,15 @@ silent(true)
   end
   
   if !exclude
-    fs.chdir(fs.parentdir(file))
+    fs::chdir(fs::parentdir(file))
     
     # Record start and end times.    
-    start_time = time.ticks()
+    start_time = time::ticks()
     import file
-    end_time = time.ticks()
+    end_time = time::ticks()
         
     # Store runtime information
-    runtimes << {"file": file, "duration": time.ticksms(end_time - start_time)}
+    runtimes << {"file": file, "duration": time::ticksms(end_time - start_time)}
   end
 end)
 

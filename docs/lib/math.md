@@ -4,7 +4,6 @@ The `math` package contains functionality for working with common math operation
 
 ## Table of Contents
 
-- [Importing the Package](#importing-the-package)
 - [Package Functions](#package-functions)
   - [`abs(_value)`](#abs_value)
   - [`acos(_value)`](#acos_value)
@@ -52,13 +51,6 @@ The `math` package contains functionality for working with common math operation
   - [`tanh(_value)`](#tanh_value)
   - [`tgamma(_value)`](#tgamma_value)
   - [`trunc(_value)`](#trunc_value)
-
-## Importing the Package
-To use the `math` package, import it at the beginning of your Kiwi script.
-
-```ruby
-import "@kiwi/math" as math
-```
 
 ## Package Functions
 

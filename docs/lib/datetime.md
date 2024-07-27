@@ -1,18 +1,10 @@
 # `DateTime`
 
-The `DateTime` class offers some convenient functionality for working with date and time data in Kiwi.
-
-To use the `DateTime`, you must import the `time` package.
-
-```ruby
-import "@kiwi/time"
-```
+The `DateTime` class is used to represent date and time data.
 
 ### Example
 
 ```ruby
-import "@kiwi/time"
-
 # print todays date.
 println(DateTime.format(DateTime.now().add_years(1), "%Y-%m-%d"))
 

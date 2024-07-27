@@ -4,7 +4,6 @@ The `log` package contains functionality for working with the Kiwi logger.
 
 ## Table of Contents
 
-- [Importing the Package](#importing-the-package)
 - [Package Functions](#package-functions)
   - [`set_file(_file_path)`](#set_file_file_path)
   - [`set_mode(_mode)`](#set_mode_mode--console)
@@ -15,14 +14,6 @@ The `log` package contains functionality for working with the Kiwi logger.
   - [`warn(_message, _source)`](#warn_message-_source--)
   - [`info(_message, _source)`](#info_message-_source--)
   - [`error(_message, _source)`](#error_message-_source--)
-
-## Importing the Package
-
-To use the `log` package, import it at the beginning of your Kiwi script.
-
-```ruby
-import "@kiwi/log" as logger
-```
 
 ## Package Functions
 

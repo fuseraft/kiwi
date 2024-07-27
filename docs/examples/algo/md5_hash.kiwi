@@ -6,27 +6,21 @@ MD5 hash generator.
 usage: kiwi md5_hash <string>
 #/
 
-import "@kiwi/argv" as ARGV
-import "@kiwi/fs" as fs
-import "@kiwi/time" as time
-
-def main()
-  args = ARGV.get()
-  
+def main(args)
   if args.size() == 1
     println(MD5(args[0]))
   else
     # read the script contents
-    text = fs.read("md5_hash.kiwi")
+    text = fs::read("md5_hash.kiwi")
 
     # compute the hash and record duration
-    ticks_start = time.ticks()
+    ticks_start = time::ticks()
     md5_hash = MD5(text)
-    ticks_stop = time.ticks()
+    ticks_stop = time::ticks()
 
     # print the results
     println("Computed MD5 hash of this file: ${md5_hash}")
-    println("Time to compute: ${time.ticksms(ticks_stop - ticks_start) / 1000}s")
+    println("Time to compute: ${time::ticksms(ticks_stop - ticks_start) / 1000}s")
   end
 end
 
@@ -161,4 +155,4 @@ def int_to_bytes(num)
   return [num & 0xFF, (num >> 8) & 0xFF, (num >> 16) & 0xFF, (num >> 24) & 0xFF]
 end
 
-main()
+main(argv::get())

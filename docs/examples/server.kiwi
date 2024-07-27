@@ -2,11 +2,7 @@
 Usage: kiwi server
 #/
 
-import "@kiwi/fs"
-import "@kiwi/string"
-import "@kiwi/web"
-
-def generate_directory_listing(dir_path) 
+fn generate_directory_listing(dir_path) 
   html = "<html><body><h1>Index of ${dir_path}</h1><ul>"
 
   paths = fs::listdir(dir_path)

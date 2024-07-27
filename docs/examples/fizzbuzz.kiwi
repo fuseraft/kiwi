@@ -1,6 +1,3 @@
-import "@kiwi/argv"
-import "@kiwi/string"
-
 fn main(args)
   default_n = 100, n = default_n
   
