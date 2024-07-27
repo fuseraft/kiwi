@@ -4,7 +4,6 @@ The `fs` package contains functionality for working with files and directories.
 
 ## Table of Contents
 
-- [Importing the Package](#importing-the-package)
 - [Package Functions](#package-functions)
   - [`abspath(_path)`](#abspath_path)
   - [`append(_path, _text)`](#append_path-_text)
@@ -35,15 +34,6 @@ The `fs` package contains functionality for working with files and directories.
   - [`write(_path, _text)`](#write_path-_text)
   - [`writeln(_path, _text)`](#writeln_path-_text)
   - [`writebytes(_path, _bytes)`](#writebytes_path-_bytes)
-
-
-## Importing the Package
-
-To use the `fs` package, import it at the beginning of your Kiwi script.
-
-```ruby
-import "@kiwi/fs" as fs
-```
 
 ## Package Functions
 

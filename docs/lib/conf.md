@@ -8,18 +8,9 @@ Common file extensions are: `.conf`, `.ini`, `.cfg`, `.env`, and `.json`
 
 ## Table of Contents
 
-- [Importing the Package](#importing-the-package)
 - [Package Functions](#package-functions)
   - [`read(_conf_path, _delim = "=")`](#read_conf_path-_delim--)
   - [`readjson(_json_path)`](#readjson_json_path)
-
-## Importing the Package
-
-To use the `conf` package, import it at the beginning of your Kiwi script.
-
-```ruby
-import "@kiwi/conf" as conf
-```
 
 ## Package Functions
 

@@ -6,3 +6,5 @@ println "hello world!".chars().map(with (c) do
   return 3 when c == "e"
   return c
 end).join()
+
+println __rlist__().packages.sort()

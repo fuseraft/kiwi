@@ -4,7 +4,6 @@ The `string` package contains specialized functions for strings.
 
 ## Table of Contents
 
-- [Importing the Package](#importing-the-package)
 - [Package Functions](#package-functions)
   - [`base64decode(_input)`](#base64decode_input)
   - [`base64encode(_input)`](#base64encode_input)
@@ -25,14 +24,6 @@ The `string` package contains specialized functions for strings.
   - [`toupper(_input)`](#toupper_input)
   - [`urldecode(_input)`](#urldecode_input)
   - [`urlencode(_input)`](#urlencode_input)
-
-## Importing the Package
-
-To use the `string` package, import it at the beginning of your Kiwi script.
-
-```ruby
-import "@kiwi/string" as string
-```
 
 ## Package Functions
 

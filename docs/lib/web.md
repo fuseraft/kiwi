@@ -6,7 +6,6 @@ The `web` package contains functionality for building web applications in Kiwi.
 
 ## Table of Contents
 
-- [Importing the Package](#importing-the-package)
 - [Package Functions](#package-functions)
   - [`ok(_content, _content_type)`](#ok_content-_content_type-_status--200)
   - [`bad(_content, _content_type)`](#bad_content-_content_type-_status--500)
@@ -15,15 +14,6 @@ The `web` package contains functionality for building web applications in Kiwi.
   - [`post(_endpoint, _handler)`](#post_endpoint-_handler)
   - [`listen(_ipaddr, _port)`](#listen_ipaddr--0000-_port--8080)
   - [`public(_public_endpoint, _public_path)`](#public_public_endpoint-_public_path)
-
-
-## Importing the Package
-
-To use the `web` package, import it at the beginning of your Kiwi script.
-
-```ruby
-import "@kiwi/web" as web
-```
 
 ## Package Functions
 

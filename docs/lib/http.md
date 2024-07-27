@@ -4,7 +4,6 @@ The `http` package contains functionality for working with HTTP requests.
 
 ## Table of Contents
 
-- [Importing the Package](#importing-the-package)
 - [Example GET Request](#example-get-request)
 - [Package Functions](#package-functions)
   - [`delete_(_url, _path, _headers)`](#delete__url-_path-_headers)
@@ -15,20 +14,10 @@ The `http` package contains functionality for working with HTTP requests.
   - [`post(_url, _path, _body, _content_type, _headers)`](#post_url-_path-_body-_content_type-_headers)
   - [`put(_url, _path, _body, _content_type, _headers)`](#put_url-_path-_body-_content_type-_headers)
 
-## Importing the Package
-
-To use the `http` package, import it at the beginning of your Kiwi script.
-
-```ruby
-import "@kiwi/http"
-```
-
 ## Example GET Request
 
 ```ruby
-import "@kiwi/http" as http
-
-res = http.get("http://httpbin.org", "/get")
+res = http::get("http://httpbin.org", "/get")
 
 if res.status == 200
   println("${res.headers}${res.body}")
