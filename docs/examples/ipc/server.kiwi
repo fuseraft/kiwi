@@ -1,5 +1,4 @@
 import "@x/runnable"
-import "@kiwi/fs"
 
 fn action()
   lines = fs::readlines(@path)

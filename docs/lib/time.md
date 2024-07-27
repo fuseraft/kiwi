@@ -2,11 +2,10 @@
 
 The `time` package contains functionality for working with time and date information.
 
-Importing the `time` package provides access to the [`DateTime` class](datetime.md).
-
 ## Table of Contents
 
-- [Importing the Package](#importing-the-package)
+- [Package Classes](#package-classes)
+  - [`DateTime` class](datetime.md)
 - [Package Functions](#package-functions)
   - [`ampm()`](#ampm)
   - [`day()`](#day)
@@ -28,12 +27,11 @@ Importing the `time` package provides access to the [`DateTime` class](datetime.
   - [`year()`](#year)
   - [`yearday()`](#yearday)
 
-## Importing the Package
-To use the `time` package, import it at the beginning of your Kiwi script.
+## Package Classes
 
-```ruby
-import "@kiwi/time" as time
-```
+### `DateTime`
+
+The `DateTime` class is used to represent date and time data. See [`DateTime`](datetime.md).
 
 ## Package Functions
 

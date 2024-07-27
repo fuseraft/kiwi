@@ -4,19 +4,10 @@ The `sys` package contains functionality for working with external processes.
 
 ## Table of Contents
 
-- [Importing the Package](#importing-the-package)
 - [Package Functions](#package-functions)
   - [`euid()`](#euid)
   - [`exec(_command)`](#exec_command)
   - [`execout(_command)`](#execout_command)
-
-## Importing the Package
-
-To use the `sys` package, import it at the beginning of your Kiwi script.
-
-```ruby
-import "@kiwi/sys"
-```
 
 ## Package Functions
 

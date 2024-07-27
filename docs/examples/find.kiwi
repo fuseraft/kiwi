@@ -1,20 +1,17 @@
-import "@kiwi/fs" as fs
-import "@kiwi/argv" as ARGV
-
-argv = ARGV.get()
+args = argv::get()
 
 if argv.size() != 1
   println("Usage: kiwi find \"search string\"")
   exit(1)
 end
 
-search = argv[0]
+search = args[0]
 
 files = []
 
 # search for nearby kiwi scripts
-for path in fs.glob("../**/*.kiwi") do
-  content = fs.read(path)
+for path in fs::glob("../**/*.kiwi") do
+  content = fs::read(path)
   if content.contains(search)
     hash = {"path": path, "content": content}
     files << hash
@@ -27,12 +24,12 @@ println(files)
 # write all of the scripts to a single file.
 output_path = "output.txt"
 
-if fs.exists(output_path)
-  fs.remove(output_path)
+if fs::exists(output_path)
+  fs::remove(output_path)
 end
 
 for file in files do
-  fs.writeln(output_path, "#" + file["path"])
-  fs.writeln(output_path, file["content"])
+  fs::writeln(output_path, "#" + file["path"])
+  fs::writeln(output_path, file["content"])
 end
 #/
