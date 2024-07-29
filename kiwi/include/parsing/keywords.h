@@ -162,6 +162,7 @@ struct {
   const k_string False = "false";
   const k_string For = "for";
   const k_string Function = "fn";
+  const k_string Global = "global";
   const k_string Go = "go";
   const k_string If = "if";
   const k_string Import = "import";
