@@ -159,7 +159,10 @@ class Interpreter {
       return 0;
     }
 
-    callStack.push(std::make_shared<CallStackFrame>());
+    auto mainFrame = std::make_shared<CallStackFrame>();
+    mainFrame->variables[Keywords.Global] = std::make_shared<Hash>();
+
+    callStack.push(mainFrame);
     streamStack.push(stream);
 
     interpretStackFrame();
@@ -3987,6 +3990,10 @@ class Interpreter {
       name = identifier;
     } else if (stream->current().getType() == KTokenType::IDENTIFIER) {
       name = stream->current().getText();
+    }
+
+    if (name == Keywords.Global) {
+      throw IllegalNameError(stream->current(), name);
     }
 
     if (!isInstanceVariable) {
