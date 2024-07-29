@@ -19,6 +19,7 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
 - [`export`](#export)
 - [`false`](#false)
 - [`for`](#for)
+- [`global`](#global)
 - [`go`](#go)
 - [`if`](#if)
 - [`import`](#import)
@@ -134,6 +135,9 @@ See [Loops](loops.md).
 The `fn` keyword is used to define a function.
 
 See [Functions and Methods](functions.md).
+
+## `global`
+The `global` variable is a hash used to share data between scripts.
 
 ## `go`
 The `go` keyword is used in the Kiwi REPL to execute statements.
