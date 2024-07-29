@@ -3,6 +3,7 @@
 In Kiwi, builtins are accessed using dot-notation and can be used to query or manipulate values and types.
 
 # Table of Contents
+- [**`global`**](#global)
 - [**`String` Builtins**](#string-builtins)
   - [`begins_with(str)`](#begins_withstr)
   - [`chars()`](#chars)
@@ -74,6 +75,10 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
   - [`to_int()`](#to_int)
   - [`to_string()`](#to_string)
   - [`type()`](#type)
+
+## `global`
+
+The `global` variable is a hash that can be used to store global data. This is useful for sharing data between scripts.
 
 ## String Builtins
 
