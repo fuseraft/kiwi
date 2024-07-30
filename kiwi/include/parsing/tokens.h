@@ -91,8 +91,8 @@ class Token {
   static Token createNull(const int& fileId, const k_string& text,
                           const int& lineNumber, const int& linePosition) {
     k_null value;
-    return create(KTokenType::LITERAL, KName::KW_Null, fileId, text, value, lineNumber,
-                  linePosition);
+    return create(KTokenType::LITERAL, KName::KW_Null, fileId, text, value,
+                  lineNumber, linePosition);
   }
 
   static Token createEmpty() {

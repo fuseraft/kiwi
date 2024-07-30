@@ -16,7 +16,7 @@ println(list.select(with (item) do return item["id"] % 2 == 0 end)) # Using an i
 println(list.select(odd_item_id))                                   # Using an assigned lambda.
 
 # List.map
-println(["kiwi", "mango", "banana"].map(with (item) do return { "fruit": item, "is_a_kiwi": item.downcase() == "kiwi" } end))
+println(["kiwi", "mango", "banana"].map(with (item) do return { "fruit": item, "is_a_kiwi": item.lowercase() == "kiwi" } end))
 
 # List.reduce
 numbers = [1, 2, 3, 4, 5]
