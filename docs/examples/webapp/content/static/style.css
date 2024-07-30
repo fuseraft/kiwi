@@ -1,0 +1,10 @@
+textarea {
+    height: 90vh;
+    width: 40vw;
+    margin: 1em;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+button {
+    margin: 1em;
+}
