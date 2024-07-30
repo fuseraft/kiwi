@@ -385,11 +385,13 @@ bool File::isScript(const k_string& path) {
 #ifdef _WIN64
   extension = ".kiwi";
 #endif
-  return (String::endsWith(path, extension) || String::endsWith(path, ".kiwi")) &&
+  return (String::endsWith(path, extension) ||
+          String::endsWith(path, ".kiwi")) &&
          File::fileExists(path);
 }
 
-k_string tryGetExtensionlessSpecifc(const k_string& path, const k_string& extension) {
+k_string tryGetExtensionlessSpecifc(const k_string& path,
+                                    const k_string& extension) {
   auto scriptPath = path + extension;
   if (File::fileExists(scriptPath)) {
     return scriptPath;
@@ -415,7 +417,7 @@ k_string File::tryGetExtensionless(const k_string& path) {
       return scriptPath;
     }
   }
-  
+
   return "";
 }
 

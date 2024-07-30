@@ -325,7 +325,7 @@ class String {
           char decodedChar = hexToChar(hexStr);
           decoded << decodedChar;
         } catch (const std::invalid_argument& e) {
-          std::cerr << "Error decoding: " << e.what() << std::endl;
+          std::cout << "Error decoding: " << e.what() << std::endl;
           return "";
         }
 

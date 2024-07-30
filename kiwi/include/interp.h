@@ -222,7 +222,7 @@ class Interpreter {
   }
 
   void handleUncaughtException(k_stream stream, const KiwiError& e) {
-    std::cerr << "Uncaught error: ";
+    std::cout << "Uncaught error: ";
     ErrorHandler::handleError(e);
 
     if (!preservingMainStackFrame) {
@@ -363,8 +363,8 @@ class Interpreter {
         stream->next();  // Skip identifier.
         if (frame->hasAssignedLambda(lambdaName)) {
           return frame->getAssignedLambda(lambdaName);
-        } 
-        
+        }
+
         auto tempStack(callStack);
         while (!tempStack.empty()) {
           auto& outerFrame = tempStack.top();
@@ -907,38 +907,34 @@ class Interpreter {
 
   k_value interpretIdentifierInvocation(k_stream stream,
                                         std::shared_ptr<CallStackFrame> frame,
-                                        const k_string& identifier) {
-    bool methodFound = hasMethod(frame, identifier),
-         classFound = hasClass(identifier);
-
-    if (methodFound || classFound) {
-      if (classFound) {
-        if (stream->peek().getType() != KTokenType::DOT) {
-          throw SyntaxError(stream->current(),
-                            "Invalid syntax near `" + identifier + "`");
-        }
-
-        interpretClassMethodInvocation(stream, frame, identifier);
-      } else if (methodFound) {
-        switch (stream->peek().getType()) {
-          case KTokenType::COMMA:
-          case KTokenType::CLOSE_PAREN:
-            if (!frame->hasAssignedLambda(identifier)) {
-              throw SyntaxError(stream->current(),
-                                "Expected lambda reference.");
-            }
-            return std::make_shared<LambdaRef>(identifier);
-
-          default:
-            interpretMethodInvocation(stream, frame, identifier);
-            break;
-        }
+                                        const k_string& identifier,
+                                        const bool& methodFound,
+                                        const bool& classFound) {
+    if (classFound) {
+      if (stream->peek().getType() != KTokenType::DOT) {
+        throw SyntaxError(stream->current(),
+                          "Invalid syntax near `" + identifier + "`");
       }
 
-      if (!callStack.empty()) {
-        frame->clearFlag(FrameFlags::ReturnFlag);
-        return callStack.top()->returnValue;
+      interpretClassMethodInvocation(stream, frame, identifier);
+    } else if (methodFound) {
+      switch (stream->peek().getType()) {
+        case KTokenType::COMMA:
+        case KTokenType::CLOSE_PAREN:
+          if (!frame->hasAssignedLambda(identifier)) {
+            throw SyntaxError(stream->current(), "Expected lambda reference.");
+          }
+          return std::make_shared<LambdaRef>(identifier);
+
+        default:
+          interpretMethodInvocation(stream, frame, identifier);
+          break;
       }
+    }
+
+    if (!callStack.empty()) {
+      frame->clearFlag(FrameFlags::ReturnFlag);
+      return callStack.top()->returnValue;
     }
 
     throw UnknownIdentifierError(stream->current(), identifier);
@@ -1019,7 +1015,9 @@ class Interpreter {
       return interpretBuiltin(stream, frame, op);
     }
 
-    return interpretIdentifierInvocation(stream, frame, tokenText);
+    return interpretIdentifierInvocation(stream, frame, tokenText,
+                                         hasMethod(frame, tokenText),
+                                         hasClass(tokenText));
   }
 
   void interpretCatch(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
@@ -2195,6 +2193,15 @@ class Interpreter {
     return std::get<k_int>(output);
   }
 
+  k_value interpretHashElementAccess(k_stream stream, k_hash& hash,
+                                     const k_string& key) {
+    if (!hash->hasKey(key)) {
+      throw HashKeyError(stream->current(), key);
+    }
+
+    return hash->get(key);
+  }
+
   k_value interpretHashElementAccess(k_stream stream,
                                      std::shared_ptr<CallStackFrame> frame,
                                      k_value& value) {
@@ -2213,6 +2220,14 @@ class Interpreter {
       return InterpHelper::listSlice(stream, slice, value);
     } else if (std::holds_alternative<k_string>(value)) {
       return InterpHelper::stringSlice(stream, slice, value);
+    } else if (std::holds_alternative<k_hash>(value)) {
+      if (std::holds_alternative<k_string>(slice.indexOrStart)) {
+        return interpretHashElementAccess(
+            stream, std::get<k_hash>(value),
+            std::get<k_string>(slice.indexOrStart));
+      }
+      throw HashKeyError(stream->current(),
+                         Serializer::serialize(slice.indexOrStart));
     }
 
     throw ConversionError(
@@ -2381,7 +2396,7 @@ class Interpreter {
       } else if (std::holds_alternative<k_hash>(value)) {
         value = std::get<k_hash>(value)->keys.empty();
       } else {
-        value = true; // Object, Lambda, etc.
+        value = true;  // Object, Lambda, etc.
       }
     }
 
@@ -2756,7 +2771,7 @@ class Interpreter {
       throw InvalidOperationError(stream->current(),
                                   "Invalid export `" + packageName + "`");
     }
-    
+
     packageName = interpretPackageImport(stream, packageHome, packageName);
     frame->returnValue = packageName;
     frame->setFlag(FrameFlags::ReturnFlag);
@@ -2816,6 +2831,11 @@ class Interpreter {
 
     if (stream->current().getType() == KTokenType::IDENTIFIER) {
       auto name = stream->current().getText();
+
+      if (name == Keywords.Global) {
+        throw IllegalNameError(stream->current(), name);
+      }
+
       stream->next();
 
       if (!InterpHelper::hasVariable(frame, name)) {
@@ -2955,7 +2975,7 @@ class Interpreter {
     if (stream->current().getType() != KTokenType::CLOSE_PAREN) {
       throw SyntaxError(stream->current(), "Expected a close-parenthesis.");
     }
-    
+
     sort_list(*list);
     stream->next();
 
@@ -3437,11 +3457,11 @@ class Interpreter {
       auto right = parseLogicalAnd(stream, frame);
 
       if (!(std::holds_alternative<bool>(left) &&
-          std::holds_alternative<bool>(right))) {
+            std::holds_alternative<bool>(right))) {
         throw ConversionError(stream->current(),
                               "Expected a `Boolean` expression.");
       }
-      
+
       bool lhs = std::get<bool>(left), rhs = std::get<bool>(right);
       left = lhs || rhs;
     }
@@ -3458,7 +3478,7 @@ class Interpreter {
       auto right = parseBitwiseOr(stream, frame);
 
       if (!(std::holds_alternative<bool>(left) &&
-          std::holds_alternative<bool>(right))) {
+            std::holds_alternative<bool>(right))) {
         throw ConversionError(stream->current(),
                               "Expected a `Boolean` expression.");
       }
@@ -3728,7 +3748,7 @@ class Interpreter {
         return interpretBracketExpression(stream, frame);
 
       case KTokenType::IDENTIFIER:
-        return interpretIdentifier(stream, frame, false);
+        return parseIdentifier(stream, frame);
 
       default:
         if (current.getSubType() == KName::KW_This) {
@@ -3749,6 +3769,61 @@ class Interpreter {
     }
 
     return static_cast<k_int>(0);  // Default value.
+  }
+
+  k_value parseIdentifier(k_stream stream,
+                          std::shared_ptr<CallStackFrame> frame) {
+    if (stream->peek().getType() == KTokenType::OPEN_BRACKET) {
+      auto variableName = stream->current().getText();
+      stream->next();  // Skip the identifier.
+      return interpretSlice(stream, frame, variableName);
+    }
+
+    auto tokenText = stream->current().getText();
+    const auto& op = stream->current().getSubType();
+
+    if (tokenText != PackageBuiltins.Home) {
+      std::cout << "";
+    }
+
+    interpretQualifiedIdentifier(stream, tokenText);
+
+    k_value result = static_cast<k_int>(0);
+
+    if (InterpHelper::hasVariable(frame, tokenText)) {
+      if (stream->peek().getType() == KTokenType::OPEN_BRACKET) {
+        stream->next();
+        interpretSliceAssignment(stream, frame, tokenText);
+        return static_cast<k_int>(0);
+      }
+
+      auto v = InterpHelper::getVariable(stream, frame, tokenText);
+      stream->next();
+
+      if (std::holds_alternative<k_lambda>(v)) {
+        const auto& lambdaRef = std::get<k_lambda>(v)->identifier;
+        if (frame->hasAssignedLambda(lambdaRef)) {
+          return interpretMethodInvocation(stream, frame, lambdaRef);
+        } else {
+          const auto& lambda = getAssignedLambda(stream, lambdaRef);
+          frame->assignLambda(lambdaRef, lambda);
+        }
+      }
+
+      result = interpretValueInvocation(stream, frame, v);
+    } else if (KiwiBuiltins.is_builtin_method(op)) {
+      return interpretBuiltin(stream, frame, op);
+    } else {
+      bool methodFound = hasMethod(frame, tokenText),
+           classFound = hasClass(tokenText);
+
+      if (methodFound || classFound) {
+        return interpretIdentifierInvocation(stream, frame, tokenText,
+                                             methodFound, classFound);
+      }
+    }
+
+    return result;
   }
 
   k_value interpretSelfInvocationTerm(k_stream stream,
@@ -3844,7 +3919,7 @@ class Interpreter {
               stream->current(),
               "Unmatched braces in string interpolation: `" + input + "`");
         }
-        
+
         --i;  // Go back to the closing brace
         auto value = interpolateString(frame, input.substr(start, i - start));
         if (!std::holds_alternative<k_object>(value)) {
@@ -3992,7 +4067,8 @@ class Interpreter {
       name = stream->current().getText();
     }
 
-    if (name == Keywords.Global) {
+    if (name == Keywords.Global &&
+        stream->peek().getType() == KTokenType::OPERATOR) {
       throw IllegalNameError(stream->current(), name);
     }
 

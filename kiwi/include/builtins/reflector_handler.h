@@ -30,6 +30,9 @@ class ReflectorBuiltinHandler {
  private:
   static k_value executeRInspect(const Token& term,
                                  const std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(term, ReflectorBuiltins.RInspect);
+    }
     throw UnknownBuiltinError(term, ReflectorBuiltins.RInspect);
   }
 
@@ -44,7 +47,7 @@ class ReflectorBuiltinHandler {
     auto rlistClasses = std::make_shared<List>();
     auto rlistMethods = std::make_shared<List>();
     auto rlistStack = std::make_shared<List>();
-    
+
     for (const auto& m : methods) {
       rlistMethods->elements.emplace_back(m.first);
     }
@@ -63,15 +66,16 @@ class ReflectorBuiltinHandler {
       const auto& frameVariables = outerFrame->variables;
       const auto& frameLambdas = outerFrame->lambdas;
       const auto& frameAliases = outerFrame->aliases;
-      
+
       auto rlistStackFrame = std::make_shared<Hash>();
       auto rlistStackFrameVariables = std::make_shared<List>();
       auto rlistStackFrameLambdas = std::make_shared<List>();
-      
+
       for (const auto& v : frameVariables) {
         auto rlistStackFrameVariable = std::make_shared<Hash>();
         rlistStackFrameVariable->add(v.first, v.second);
-        rlistStackFrameVariables->elements.emplace_back(rlistStackFrameVariable);
+        rlistStackFrameVariables->elements.emplace_back(
+            rlistStackFrameVariable);
       }
 
       for (const auto& l : frameLambdas) {
@@ -84,7 +88,7 @@ class ReflectorBuiltinHandler {
       for (const auto& a : frameAliases) {
         rlistStackFrameAliases->elements.emplace_back(a);
       }
-      
+
       sort_list(*rlistStackFrameAliases);
       sort_list(*rlistStackFrameLambdas);
       sort_list(*rlistStackFrameVariables);
@@ -92,7 +96,7 @@ class ReflectorBuiltinHandler {
       rlistStackFrame->add("aliases", rlistStackFrameAliases);
       rlistStackFrame->add("lambdas", rlistStackFrameLambdas);
       rlistStackFrame->add("variables", rlistStackFrameVariables);
-      
+
       rlistStack->elements.emplace_back(rlistStackFrame);
 
       tempStack.pop();
@@ -102,7 +106,7 @@ class ReflectorBuiltinHandler {
     sort_list(*rlistClasses);
     sort_list(*rlistMethods);
     std::reverse(rlistStack->elements.begin(), rlistStack->elements.end());
-    
+
     rlist->add("packages", rlistPackages);
     rlist->add("classes", rlistClasses);
     rlist->add("methods", rlistMethods);
