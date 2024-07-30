@@ -216,7 +216,7 @@ struct NegateVisitor {
     } else if (std::holds_alternative<k_hash>(value)) {
       return std::get<k_hash>(value)->keys.empty();
     } else {
-      return false; // Object, Lambda, etc.
+      return false;  // Object, Lambda, etc.
     }
   }
 };

@@ -1,37 +1,66 @@
-# HTML helpers
-html = {
-  "shared": fs::read("templates/shared.html"),
-  "index": fs::read("templates/index.html"),
-  "contact": fs::read("templates/contact.html")
-}
+import "config"
 
-# A simple template engine.
-def build_html(data)
-  return html.shared.replace("<%content%>", data)
+class Templatizer
+  def initialize() end
+  
+  def render(template_name, view_name)
+    templates = global.templates
+    views = global.views
+    html = templates[template_name].clone()
+    html = html.replace("<%title%>", global.config.content.title)
+    html = html.replace("<%favicon%>", global.config.content.favicon)
+    return html.replace("<%content%>", views[view_name])
+  end
 end
 
-# GET / handler
-web::get(["/", "/index"], with (req) do
-  return web::ok(build_html(html.index), "text/html")
-end)
+fn load_templates()
+  templatizer = Templatizer.new()
+  templates = {}
+  for t in global.config.content.templates do
+    templates[t.name] = fs::read(t.path.replace("~", global.config.content.root))
+  end
+  global.templates = templates
+  global.templatizer = templatizer
+end
 
-# GET /contact handler
-web::get("/contact", with (req) do
-  return web::ok(build_html(html.contact), "text/html")
-end)
+fn load_views()
+  root = "${global.config.content.root}/views/"
+  views = {}
+  for v in fs::glob("${root}**/*.html") do
+    view_name = v.replace(root, '').replace(".html", '')
+    views[view_name] = fs::read(v)
+  end
+  global.views = views
+end
 
-# POST /contact handler
-web::post("/contact", with (req) do  
-  println("Received content from client:\nbody: ${req.body}\nparams: ${req.params}")
-  return web::redirect("/")
-end)
+fn load_controllers()
+  root = "${global.config.content.root}/controllers/"
+  packages = __rlist__().packages.clone()
+  controllers = {}
+  for c in fs::glob("${root}**/*.kiwi") do
+    controller_name = c.replace(root, '').replace(".kiwi", '')
+    controllers[controller_name] = c
+    parse(fs::read(c))
+  end
+  global.controllers = controllers
+end
 
-# static content
-web::public("/", "./public")
+fn load_public_content()
+  public_content = global.config.content.public_content
+  path = public_content.path.replace("~", global.config.content.root)
+  web::public(public_content.endpoint, path)
+end
 
-# server and port configuration
-host = "0.0.0.0", port = 8080
+fn listen()
+  host = global.config.server.host
+  port = global.config.server.port
+  
+  println("Server running at http://${host}:${port}")
+  web::listen(host, port)
+end
 
-# start the web server
-println("Starting Kiwi Web Server at http://${host}:${port}")
-web::listen(host, port)
+load_templates()
+load_views()
+load_controllers()
+load_public_content()
+listen()
