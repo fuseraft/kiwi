@@ -309,9 +309,8 @@ struct {
 
   std::unordered_set<k_string> builtins = {RInspect, RList};
 
-  std::unordered_set<KName> st_builtins = {
-      KName::Builtin_Reflector_RInspect,
-      KName::Builtin_Reflector_RList};
+  std::unordered_set<KName> st_builtins = {KName::Builtin_Reflector_RInspect,
+                                           KName::Builtin_Reflector_RList};
 
   bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
@@ -565,8 +564,8 @@ struct {
   const k_string EndsWith = "ends_with";
   const k_string IndexOf = "index";
   const k_string LastIndexOf = "lastindex";
-  const k_string Upcase = "upcase";
-  const k_string Downcase = "downcase";
+  const k_string Uppercase = "uppercase";
+  const k_string Lowercase = "lowercase";
   const k_string Keys = "keys";
   const k_string HasKey = "has_key";
   const k_string Members = "members";
@@ -596,22 +595,27 @@ struct {
   const k_string Matches = "matches";
   const k_string MatchesAll = "matches_all";
   const k_string Scan = "scan";
+  const k_string Set = "set";
+  const k_string Get = "get";
+  const k_string First = "first";
+  const k_string Last = "last";
 
   std::unordered_set<k_string> builtins = {
-      Chars,    Empty,      IsA,       Join,     Size,        ToBytes,
-      ToHex,    ToD,        ToI,       ToS,      Replace,     Reverse,
-      Contains, BeginsWith, EndsWith,  IndexOf,  LastIndexOf, Upcase,
-      Downcase, Keys,       Split,     LeftTrim, RightTrim,   Trim,
-      Type,     HasKey,     Members,   Push,     Pop,         Enqueue,
-      Dequeue,  Clear,      Substring, Shift,    Unshift,     Remove,
-      RemoveAt, Rotate,     Insert,    Slice,    Concat,      Unique,
-      Count,    Flatten,    Zip,       Merge,    Values,      Clone,
-      Pretty,   Find,       Match,     Matches,  MatchesAll,  Scan};
+      Chars,     Empty,      IsA,       Join,     Size,        ToBytes,
+      ToHex,     ToD,        ToI,       ToS,      Replace,     Reverse,
+      Contains,  BeginsWith, EndsWith,  IndexOf,  LastIndexOf, Uppercase,
+      Lowercase, Keys,       Split,     LeftTrim, RightTrim,   Trim,
+      Type,      HasKey,     Members,   Push,     Pop,         Enqueue,
+      Dequeue,   Clear,      Substring, Shift,    Unshift,     Remove,
+      RemoveAt,  Rotate,     Insert,    Slice,    Concat,      Unique,
+      Count,     Flatten,    Zip,       Merge,    Values,      Clone,
+      Pretty,    Find,       Match,     Matches,  MatchesAll,  Scan,
+      Set,       Get,        First,     Last};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Kiwi_BeginsWith,  KName::Builtin_Kiwi_BeginsWith,
       KName::Builtin_Kiwi_Empty,       KName::Builtin_Kiwi_Chars,
-      KName::Builtin_Kiwi_Contains,    KName::Builtin_Kiwi_Downcase,
+      KName::Builtin_Kiwi_Contains,    KName::Builtin_Kiwi_Lowercase,
       KName::Builtin_Kiwi_EndsWith,    KName::Builtin_Kiwi_HasKey,
       KName::Builtin_Kiwi_IndexOf,     KName::Builtin_Kiwi_IsA,
       KName::Builtin_Kiwi_Join,        KName::Builtin_Kiwi_Keys,
@@ -622,7 +626,7 @@ struct {
       KName::Builtin_Kiwi_ToHex,       KName::Builtin_Kiwi_ToD,
       KName::Builtin_Kiwi_ToI,         KName::Builtin_Kiwi_ToS,
       KName::Builtin_Kiwi_Trim,        KName::Builtin_Kiwi_Type,
-      KName::Builtin_Kiwi_Upcase,      KName::Builtin_Kiwi_Members,
+      KName::Builtin_Kiwi_Uppercase,   KName::Builtin_Kiwi_Members,
       KName::Builtin_Kiwi_Push,        KName::Builtin_Kiwi_Pop,
       KName::Builtin_Kiwi_Enqueue,     KName::Builtin_Kiwi_Dequeue,
       KName::Builtin_Kiwi_Shift,       KName::Builtin_Kiwi_Unshift,
@@ -636,7 +640,9 @@ struct {
       KName::Builtin_Kiwi_Clone,       KName::Builtin_Kiwi_Pretty,
       KName::Builtin_Kiwi_Find,        KName::Builtin_Kiwi_Match,
       KName::Builtin_Kiwi_Matches,     KName::Builtin_Kiwi_MatchesAll,
-      KName::Builtin_Kiwi_Scan};
+      KName::Builtin_Kiwi_Scan,        KName::Builtin_Kiwi_Set,
+      KName::Builtin_Kiwi_Get,         KName::Builtin_Kiwi_First,
+      KName::Builtin_Kiwi_Last};
 
   bool is_builtin(const k_string& arg) {
     if (ListBuiltins.is_builtin(arg)) {
@@ -657,7 +663,8 @@ struct {
            PackageBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
            LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
-           SerializerBuiltins.is_builtin(arg) || ReflectorBuiltins.is_builtin(arg);
+           SerializerBuiltins.is_builtin(arg) ||
+           ReflectorBuiltins.is_builtin(arg);
   }
 
   bool is_builtin_method(const KName& arg) {
@@ -667,7 +674,8 @@ struct {
            PackageBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
            LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
-           SerializerBuiltins.is_builtin(arg) || ReflectorBuiltins.is_builtin(arg);
+           SerializerBuiltins.is_builtin(arg) ||
+           ReflectorBuiltins.is_builtin(arg);
   }
 } KiwiBuiltins;
 

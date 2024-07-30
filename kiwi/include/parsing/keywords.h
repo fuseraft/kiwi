@@ -190,11 +190,11 @@ struct {
   const k_string While = "while";
 
   std::unordered_set<k_string> keywords = {
-      Abstract, As,    Async,  Await, Break,   Catch,   Class,   Delete,
-      Do,       Else,  ElseIf, End,   Exit,    Export,  False,   For,
-      Function, If,    Import, In,    With,    Method,  Package, Next, Null,
-      Override, Parse, Pass,   Print, PrintLn, Private, Return,  Static,
-      Then,     This,  Throw,  True,  Try,     When,    While};
+      Abstract, As,       Async,  Await, Break, Catch,   Class,   Delete,
+      Do,       Else,     ElseIf, End,   Exit,  Export,  False,   For,
+      Function, If,       Import, In,    With,  Method,  Package, Next,
+      Null,     Override, Parse,  Pass,  Print, PrintLn, Private, Return,
+      Static,   Then,     This,   Throw, True,  Try,     When,    While};
 
   std::unordered_set<k_string> conditional_keywords = {If, Else, ElseIf, End};
 
