@@ -8,7 +8,7 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
   - [`begins_with(str)`](#begins_withstr)
   - [`chars()`](#chars)
   - [`contains(str)`](#containsstr)
-  - [`downcase()`](#downcase)
+  - [`lowercase()`](#lowercase)
   - [`ends_with(str)`](#ends_withstr)
   - [`index(str)`](#indexstr)
   - [`lastindex(str)`](#lastindexstr)
@@ -16,7 +16,7 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
   - [`rtrim()`](#rtrim)
   - [`substring(pos, length)`](#substringpos-length)
   - [`trim()`](#trim)
-  - [`upcase()`](#upcase)
+  - [`uppercase()`](#uppercase)
   - [**Regular Expression Builtins**](#regex-builtins)
     - [`find(regex)`](#findregex)
     - [`match(regex)`](#matchregex)
@@ -27,9 +27,11 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
     - [`split(delim)`](#splitdelim-limit---1)
 - [**`Hash` Builtins**](#hash-builtins)
   - [`keys()`](#keys)
-  - [`has_key(key)`](#has_keykey)
-  - [`merge(hash)`](#mergehash)
   - [`values()`](#values)
+  - [`has_key(key)`](#has_keykey)
+  - [`get(key)`](#getkey)
+  - [`set(key, value)`](#setkey-value)
+  - [`merge(hash)`](#mergehash)
 - [**`List` Builtins**](#list-builtins)
   - [`clear()`](#clear)
   - [`concat(list)`](#concatlist)
@@ -37,10 +39,12 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
   - [`dequeue()`](#dequeue)
   - [`each(lambda)`](#eachlambda)
   - [`enqueue(value)`](#enqueuevalue)
+  - [`first(default_value)`](#firstdefault_value)
   - [`flatten()`](#flatten)
   - [`index(value)`](#indexvalue)
   - [`insert(value, index)`](#insertvalue-index)
   - [`join(str)`](#joinstr)
+  - [`last(default_value)`](#lastdefault_value)
   - [`lastindex(value)`](#lastindexvalue)
   - [`map(lambda)`](#maplambda)
   - [`max()`](#max)
@@ -112,12 +116,12 @@ println("foobar".contains("bar"))   # prints: true
 println("foobar".contains("bark"))  # prints: false
 ```
 
-### `downcase()`
+### `lowercase()`
 
 Returns the lowercase value of a string.
 
 ```ruby
-println("FOOBAR".downcase())   # prints: foobar
+println("FOOBAR".lowercase())   # prints: foobar
 ```
 
 ### `ends_with(str)`
@@ -171,12 +175,12 @@ Trims whitespace from both sides of a string.
 println("     Hello World!    ".trim() + " Testing!") # prints: Hello World! Testing!
 ```
 
-### `upcase()`
+### `uppercase()`
 
 Returns the uppercase value of a string.
 
 ```ruby
-println("foobar".upcase())  # prints: FOOBAR
+println("foobar".uppercase())  # prints: FOOBAR
 ```
 
 ### `substring(pos, length)`
@@ -282,6 +286,35 @@ hash = {
 }
 
 println(hash.has_key("key2")) # prints: true
+```
+
+### `get(key)`
+
+Returns the value assigned to a given key.
+
+```ruby
+hash = {
+  "key1": true, 
+  "key2": 1, 
+  "key3": ["a", "b", "c"]
+}
+
+println(hash.get("key3")) # prints: ["a", "b", "c"]
+```
+
+### `set(key, value)`
+
+Sets the value assigned to a given key.
+
+```ruby
+hash = {
+  "key1": true, 
+  "key2": 1, 
+  "key3": ["a", "b", "c"]
+}
+
+hash.set("key3", 31337)
+println(hash.get("key3")) # prints: 31337
 ```
 
 ### `merge(hash)`
@@ -402,6 +435,22 @@ println([[1, 2, 3], [[4, 5], 6], [7]].flatten())
 # prints: [1, 2, 3, 4, 5, 6, 7]
 ```
 
+### `first(default_value)`
+
+Returns the first value in a list. Returns `null` if not found.
+
+```ruby
+println([1, 2, 3].first()) # prints: 1
+```
+
+### `last(default_value)`
+
+Returns the last value in a list. Returns `null` if not found.
+
+```ruby
+println([1, 2, 3].first()) # prints: 3
+```
+
 ### `index(value)`
 
 Returns the index of an item in a list. Returns -1 if not found.
@@ -442,7 +491,7 @@ Transform a list based on a condition.
 
 ```ruby
 list = ["kiwi", "mango", "banana"]
-println(list.map(with (item) do return { "fruit": item, "is_a_kiwi": item.downcase() == "kiwi" } end))
+println(list.map(with (item) do return { "fruit": item, "is_a_kiwi": item.lowercase() == "kiwi" } end))
 # prints: [{"fruit": "kiwi", "is_a_kiwi": true}, {"fruit": "mango", "is_a_kiwi": false}, {"fruit": "banana", "is_a_kiwi": false}]
 ```
 

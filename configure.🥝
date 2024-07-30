@@ -22,7 +22,7 @@ fn main(args)
     return print_help()
   end
 
-  opt = args[0].downcase().replace('-|\/', "") # remove dashes and slashes
+  opt = args[0].lowercase().replace('-|\/', "") # remove dashes and slashes
 
   if ["i", "install"].contains(opt)
     install_kiwi(source, installation)

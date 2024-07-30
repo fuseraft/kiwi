@@ -112,11 +112,27 @@ struct {
                std::holds_alternative<k_int>(right)) {
       result =
           std::get<double>(left) - static_cast<double>(std::get<k_int>(right));
-    } else if (std::holds_alternative<k_list>(left)) {
+    } else if (std::holds_alternative<k_list>(left) &&
+               !std::holds_alternative<k_list>(right)) {
       std::vector<k_value> listValues;
       bool found = false;
 
       for (const auto& item : std::get<k_list>(left)->elements) {
+        if (!found && same_value(item, right)) {
+          found = true;
+          continue;
+        }
+        listValues.emplace_back(item);
+      }
+
+      return std::make_shared<List>(listValues);
+    } else if (std::holds_alternative<k_list>(left) &&
+               std::holds_alternative<k_list>(right)) {
+      std::vector<k_value> listValues;
+      bool found = false;
+
+      for (const auto& item : std::get<k_list>(left)->elements) {
+
         if (!found && same_value(item, right)) {
           found = true;
           continue;
