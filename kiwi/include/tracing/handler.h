@@ -12,9 +12,9 @@ class ErrorHandler {
     const Token& token = e.getToken();
     std::string message = e.getMessage();
 
-    std::cerr << e.getError() << ": ";
+    std::cout << e.getError() << ": ";
     if (!message.empty()) {
-      std::cerr << e.getMessage() << std::endl;
+      std::cout << e.getMessage() << std::endl;
     }
 
     int lineNumber = token.getLineNumber();
@@ -31,27 +31,27 @@ class ErrorHandler {
     int length = line.length();
 
     if (!file.empty()) {
-      std::cerr << "File: " << file;
+      std::cout << "File: " << file;
     }
 
-    std::cerr << "  @ Line " << 1 + lineNumber << ", Column " << linePosition
+    std::cout << "  @ Line " << 1 + lineNumber << ", Column " << linePosition
               << "." << std::endl;
 
     if (!line.empty()) {
-      std::cerr << "Line: " << line << std::endl;
+      std::cout << "Line: " << line << std::endl;
 
       for (int i = 0; i < length + 6; ++i) {
-        std::cerr << (i == 6 + linePosition - 1 ? "^" : " ");
+        std::cout << (i == 6 + linePosition - 1 ? "^" : " ");
       }
 
-      std::cerr << std::endl;
+      std::cout << std::endl;
     }
 
     return 1;
   }
 
   static void printError(const std::exception& e) {
-    std::cerr << "Error: " << e.what() << std::endl;
+    std::cout << "Error: " << e.what() << std::endl;
   }
 
   static void handleFatalError(const std::exception& e) {

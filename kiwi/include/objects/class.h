@@ -25,7 +25,9 @@ class Class {
   void setBaseClassName(const k_string& name) { baseClassName = name; }
   void setClassName(const k_string& name) { className = name; }
 
-  const std::unordered_map<k_string, Method>& getMethods() const { return methods; }
+  const std::unordered_map<k_string, Method>& getMethods() const {
+    return methods;
+  }
   const Method& getMethod(const k_string& name) { return methods[name]; }
 
   const k_string& getClassName() const { return className; }

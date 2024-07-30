@@ -154,7 +154,7 @@ package string
   @return  String           : The generated slug.
   #/
   def slug(_input)
-    _lowercased = _input.downcase()
+    _lowercased = _input.lowercase()
     _hyphenated = _lowercased.replace(" ", "-")
 
     _slug = ""
@@ -246,7 +246,7 @@ package string
   @return  String           : The string converted to uppercase.
   #/
   def toupper(_input)
-    return _input.upcase()
+    return _input.uppercase()
   end
 
   /#
@@ -255,7 +255,7 @@ package string
   @return  String           : The string converted to lowercase.
   #/
   def tolower(_input)
-    return _input.downcase()
+    return _input.lowercase()
   end
 end
 

@@ -11,7 +11,7 @@ println("${list.join("-")}")
 println(list.join(""))
 println(list.join())
 
-a = "FooBar".downcase() println("downcase: ${a}, upcase: ${a.upcase()}")
+a = "FooBar".lowercase() println("lowercase: ${a}, uppercase: ${a.uppercase()}")
 
 println(a.index("bar"))
 println(a.chars())
