@@ -1,13 +1,85 @@
-fn methods(package_name="")
-  methods = __rlist__().methods
+fn main()
+  println "Begin Kiwi test suite...\n"
 
-  if !package_name.empty()
-    methods = methods.select(with (m) do return m.begins_with("${package_name}::") end)
+  tests_start = time::ticks()
+  results = run_tests()
+  duration = time::ticksms(time::ticks() - tests_start)
+
+  println "\nRan ${results.size()} test(s) in ${duration}ms\n"
+  succeeded = 0
+  failed = 0
+
+  for r in results do
+    println "${r.name}: ${(r.result ? "passed" : "failed")}"
+    if r.result
+      succeeded += 1
+    else
+      failed += 1
+    end
   end
 
-  return methods
+  println ""
+
+  if failed == 0
+    println "All tests passed!"
+  else
+    println "${succeeded} tests passed, ${failed} tests failed."
+  end
 end
 
-for package_name in __rlist__().packages do
-  println "package: ${package_name}\nmethods: ${methods(package_name)}\n"
+global.tests = {}
+global.test_results = []
+
+fn assert(condition, msg = "Assertion failed.")
+  throw msg when condition == false
 end
+
+fn register_test(name, t)
+  global.tests.set(name, t)
+end
+
+fn run_test(name, test, results = [])
+  passed = false
+  try
+    println "running ${name}"
+    test()
+    passed = true
+  catch (err)
+    println err
+  end
+  results.push({ "name": t, "result": passed })
+end
+
+fn run_tests()
+  results = []
+  for t in global.tests do
+    run_test(t, global.tests.get(t), results)
+  end
+  return results
+end
+
+register_test("addition", with () do
+  x = 1
+  x += 2
+  assert(x == 3)
+end)
+
+register_test("subtraction", with () do
+  x = 1
+  x -= 2
+  assert(x == -1)
+end)
+
+register_test("multiplication", with () do
+  x = 1
+  x *= 2
+  assert(x == 2)
+end)
+
+register_test("division", with () do
+  x = 1
+  x /= 2.
+  assert(x == 0.5)
+end)
+
+main()
