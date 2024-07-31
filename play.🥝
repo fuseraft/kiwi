@@ -82,4 +82,18 @@ register_test("division", with () do
   assert(x == 0.5)
 end)
 
+register_test("truthiness", with () do
+  assert(!null.truthy())      # null is never truthy
+  assert(!(0).truthy())       # 0 is the only non-truthy number
+  assert((1).truthy())        # non-zero numbers are always truthy
+  assert(!"".truthy())        # empty strings are not truthy
+  assert("0".truthy())        # non-empty strings are truthy
+  assert(![].truthy())        # empty lists are not truthy
+  assert([0].truthy())        # non-empty lists are truthy
+  assert(!{}.truthy())        # empty hashes are not truthy
+  assert({'a': 1}.truthy())   # non-empty hashes are truthy
+  assert(!false.truthy())     # false is never truthy
+  assert(true.truthy())       # true is always truthy
+end)
+
 main()
