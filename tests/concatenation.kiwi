@@ -1,8 +1,0 @@
-# simple concatenation
-a = "Hello", b = " World" println("'${a}' + '${b}' = '${a + b}'")
-
-# concatenation expression
-a = "Hello", b = "World"  println("'${a}' + ' ' + '${b}' = '${(a + " " + b)}'")
-
-# string multiplication
-a = "Hello", b = 5        println("'${a}' * ${b} = '${a * b}'")

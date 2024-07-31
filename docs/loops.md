@@ -10,8 +10,6 @@ Kiwi supports the following kinds of loops. You can use the `break` keyword to e
 
 The `while`-loop is used to loop based on a condition.
 
-*See the test suite for better examples with nesting.*
-
 ##### Loop Based on a Condition
 
 ```ruby
