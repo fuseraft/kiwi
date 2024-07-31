@@ -1,17 +1,5 @@
-list = [1, 2, 3], string = "31337", integer = string.to_int(), double = string.to_double()
-list << [string, integer, double]
-
-println("list = ${list}, size = ${list.size()}")
-
-list = ["The", "Kiwi", "Programming", "Language"]
-println("${list.join(" ")}")
-println("${list.join("-")}")
-
-# These are functionally equivalent.
-println(list.join(""))
-println(list.join())
-
-a = "FooBar".lowercase() println("lowercase: ${a}, uppercase: ${a.uppercase()}")
+a = "FooBar".lowercase() 
+println("lowercase: ${a}, uppercase: ${a.uppercase()}")
 
 println(a.index("bar"))
 println(a.chars())
