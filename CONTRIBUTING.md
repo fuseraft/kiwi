@@ -47,7 +47,7 @@ Here's how to submit a pull request:
 
 Before you submit a pull request, please test your changes.
 
-1. Add your test script to the [test suite](tests).
+1. Add your test script to the [test suite](test.🥝).
 2. Run the test suite through [Valgrind](https://valgrind.org/).
     > `valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./bin/kiwi test.🥝`
 

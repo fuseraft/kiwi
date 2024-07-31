@@ -111,7 +111,7 @@ You can find detailed information on language features in the [Kiwi Wiki](docs/R
 
 ### Test Suite
 
-Explore the [tests](tests/) directory for a collection of test scripts. 
+Explore the [test suite](test.🥝) for a collection of tests.
 
 To run the test suite, execute:
 
