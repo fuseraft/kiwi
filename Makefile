@@ -5,7 +5,6 @@ SRC_DIR := kiwi/src
 INCLUDE_DIR := kiwi/include
 BUILD_DIR := build
 BIN_DIR := bin
-TEST_DIR := tests
 
 SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 INCLUDE_FILES := $(wildcard $(INCLUDE_DIR)/*.h)
@@ -30,7 +29,7 @@ format:
 
 test: $(EXECUTABLE)
 	@echo "================================"
-	$(EXECUTABLE) ./$(TEST_DIR)/test
+	$(EXECUTABLE) ./test
 
 play: $(EXECUTABLE)
 	@echo "================================"

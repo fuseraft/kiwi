@@ -78,6 +78,7 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
   - [`to_hash()`](#to_hash)
   - [`to_int()`](#to_int)
   - [`to_string()`](#to_string)
+  - [`truthy()`](#truthy)
   - [`type()`](#type)
 
 ## `global`
@@ -817,6 +818,22 @@ Converts a value to a string.
 n = 100
 s = [n, n.to_string()]
 println(s)  # prints: [100, "100"]
+```
+
+### `truthy()`
+
+Returns the truthiness of a value.
+
+```ruby
+println null.truthy() # prints: false       # null is never truthy
+println (0).truthy()    # prints: false       # 0 is the only non-truthy integer
+println (1).truthy()    # prints: true        
+println "".truthy()   # prints: false
+println "0".truthy()  # prints: true        # non-empty strings are truthy
+println [].truthy()   # prints: false
+println [0].truthy()  # prints: true        # non-empty lists are truthy
+println {}.truthy()   # prints: false       # empty hashes are not truthy
+println true.truthy() # prints: true        # true is always truthy
 ```
 
 ### `type()`
