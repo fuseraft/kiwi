@@ -207,11 +207,53 @@ class CoreBuiltinHandler {
       case KName::Builtin_Kiwi_Scan:
         return executeScan(term, value, args);
 
+      case KName::Builtin_Kiwi_Truthy:
+        return executeTruthy(term, value, args);
+
       default:
         break;
     }
 
     throw UnknownBuiltinError(term, "");
+  }
+
+  static k_value executeTruthy(const Token& term, const k_value& value,
+                               const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Truthy);
+    }
+
+    switch (value.index()) {
+      case 0:  // k_int
+        return std::get<k_int>(value) != static_cast<k_int>(0);
+
+      case 1:  // double
+        return std::get<double>(value) != static_cast<double>(0);
+
+      case 2:  // bool
+        return std::get<bool>(value);
+
+      case 3:  // k_string
+        return !std::get<k_string>(value).empty();
+
+      case 4:  // k_list
+        return !std::get<k_list>(value)->elements.empty();
+
+      case 5:  // k_hash
+        return std::get<k_hash>(value)->size() > 0;
+
+      case 6:  // k_object
+        return true;
+
+      case 7:  // k_lambda
+        return true;
+
+      case 8:  // k_null
+        return false;
+
+      default:
+        return false;
+    }
   }
 
   static k_value executeGet(const Token& term, const k_value& value,

@@ -115,6 +115,7 @@ enum KName {
   Builtin_Kiwi_ToI,
   Builtin_Kiwi_ToS,
   Builtin_Kiwi_Trim,
+  Builtin_Kiwi_Truthy,
   Builtin_Kiwi_Type,
   Builtin_Kiwi_Uppercase,
   Builtin_Kiwi_Remove,

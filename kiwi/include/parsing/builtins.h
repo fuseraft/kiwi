@@ -599,6 +599,7 @@ struct {
   const k_string Get = "get";
   const k_string First = "first";
   const k_string Last = "last";
+  const k_string Truthy = "truthy";
 
   std::unordered_set<k_string> builtins = {
       Chars,     Empty,      IsA,       Join,     Size,        ToBytes,
@@ -610,7 +611,7 @@ struct {
       RemoveAt,  Rotate,     Insert,    Slice,    Concat,      Unique,
       Count,     Flatten,    Zip,       Merge,    Values,      Clone,
       Pretty,    Find,       Match,     Matches,  MatchesAll,  Scan,
-      Set,       Get,        First,     Last};
+      Set,       Get,        First,     Last,     Truthy};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Kiwi_BeginsWith,  KName::Builtin_Kiwi_BeginsWith,
@@ -642,7 +643,7 @@ struct {
       KName::Builtin_Kiwi_Matches,     KName::Builtin_Kiwi_MatchesAll,
       KName::Builtin_Kiwi_Scan,        KName::Builtin_Kiwi_Set,
       KName::Builtin_Kiwi_Get,         KName::Builtin_Kiwi_First,
-      KName::Builtin_Kiwi_Last};
+      KName::Builtin_Kiwi_Last,        KName::Builtin_Kiwi_Truthy};
 
   bool is_builtin(const k_string& arg) {
     if (ListBuiltins.is_builtin(arg)) {
