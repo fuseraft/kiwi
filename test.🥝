@@ -40,25 +40,31 @@ fn register_test(name, t)
 end
 
 fn run_test(name, test, results = [])
-  passed = false
   print string::padend("Running test: ${name} ", 35, " ")
+
   test_start = time::ticks()
+  passed = false
+
   try
     test()
     passed = true
   catch (err)
-    println err
+    println err  
   end
+  
   duration = time::ticksms(time::ticks() - test_start)
-  println (passed ? "passed" : "failed").uppercase() + " in ${duration}ms"
   results.push({ "name": t, "result": passed, "duration": duration })
+
+  println (passed ? "passed" : "failed").uppercase() + " in ${duration}ms"
 end
 
 fn run_tests()
   results = []
+  
   for t in global.tests do
     run_test(t, global.tests.get(t), results)
   end
+
   return results
 end
 
@@ -120,8 +126,7 @@ register_test("operators", with () do
   assert(~a == -6)
 
   # bitswap
-  old_a = a
-  old_b = b
+  old_a = a, old_b = b
   a = a ^ b, b = a ^ b, a = a ^ b
   assert(b == old_a)
   assert(a == old_b)
