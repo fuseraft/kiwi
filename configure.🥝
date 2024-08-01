@@ -6,17 +6,16 @@ Options:
   u, uninstall                 uninstall interpreter & standard library
 #/
 
-["argv", "env", "fs", "string", "sys"].each(with (lib) do
-  parse("import '@kiwi/${lib}'")
-end)
+global.config = {
+  "installation": { "bin": null, "lib": null },
+  "source": { "bin": null, "lib": null },
+}
 
 fn main(args)
-  source = {}, installation = {}
-  
-  installation.kiwi    = "/usr/bin/kiwi"       # Default path to install the Kiwi interpreter.
-  installation.kiwilib = "/usr/lib/kiwi"       # Default path to install the Kiwi standard library.
-  source.kiwi          = env::kiwi()           # Path to the local Kiwi executable.
-  source.kiwilib       = env::kiwilib()        # Path to the local Kiwi standard library.
+  global.config.installation.bin    = "/usr/bin/kiwi"       # Default path to install the Kiwi interpreter.
+  global.config.installation.lib    = "/usr/lib/kiwi"       # Default path to install the Kiwi standard library.
+  global.config.source.bin          = env::kiwi()           # Path to the local Kiwi executable.
+  global.config.source.lib          = env::kiwilib()        # Path to the local Kiwi standard library.
 
   if args.size() != 1
     return print_help()
@@ -25,10 +24,10 @@ fn main(args)
   opt = args[0].lowercase().replace('-|\/', "") # remove dashes and slashes
 
   if ["i", "install"].contains(opt)
-    install_kiwi(source, installation)
+    install_kiwi()
     println("Kiwi installed successfully.")
   elsif ["u", "uninstall"].contains(opt)
-    uninstall_kiwi(installation)
+    uninstall_kiwi()
     println("Kiwi has been uninstalled.")
   else
     print_help()
@@ -58,17 +57,17 @@ fn sudo_check()
   end
 end
 
-fn uninstall_kiwi(installation)
+fn uninstall_kiwi()
   sudo_check()
 
   ec = 0 # an error counter
 
-  if fs::exists(installation.kiwi)
-    ec += fs::remove(installation.kiwi) ? 0 : 1
+  if fs::exists(global.config.installation.bin)
+    ec += fs::remove(global.config.installation.bin) ? 0 : 1
   end
   
-  if fs::isdir(installation.kiwilib)
-    ec += fs::rmdirf(installation.kiwilib) > 0 ? 0 : 1
+  if fs::isdir(global.config.installation.lib)
+    ec += fs::rmdirf(global.config.installation.lib) > 0 ? 0 : 1
   end
   
   # Check for errors in removal process
@@ -78,22 +77,22 @@ fn uninstall_kiwi(installation)
   end
 end
 
-fn install_kiwi(source, installation)
-  if source.kiwi == installation.kiwi
+fn install_kiwi()
+  if global.config.source.bin == global.config.installation.bin
     println("Kiwi is already installed.")
     exit(0)
   end
 
-  uninstall_kiwi(installation)
+  uninstall_kiwi()
   
   ec = 0 # an error counter
 
-  if fs::exists(source.kiwi)
-    ec += fs::copy(source.kiwi, installation.kiwi) ? 0 : 1
+  if fs::exists(global.config.source.bin)
+    ec += fs::copy(global.config.source.bin, global.config.installation.bin) ? 0 : 1
   end
   
-  if fs::isdir(source.kiwilib)
-    ec += fs::copyr(source.kiwilib, installation.kiwilib) ? 0 : 1
+  if fs::isdir(global.config.source.lib)
+    ec += fs::copyr(global.config.source.lib, global.config.installation.lib) ? 0 : 1
   end
 
   # Check for errors in installation process
