@@ -58,55 +58,6 @@ class Interpreter {
     return result;
   }
 
-  k_string minify(const k_string& path, bool output = false) {
-    auto content = File::readFile(path);
-    if (content.empty()) {
-      return content;
-    }
-
-    std::ostringstream builder;
-    Lexer lexer(path, content);
-    auto stream = Lexer(path, content).getTokenStream();
-    bool addSpace = true;
-    while (stream->canRead()) {
-      auto token = stream->current();
-      switch (token.getType()) {
-        case KTokenType::COMMENT:
-          stream->next();
-          continue;
-        case KTokenType::KEYWORD:
-        case KTokenType::IDENTIFIER:
-        case KTokenType::CONDITIONAL:
-        case KTokenType::LITERAL:
-          if (addSpace) {
-            builder << ' ';
-          }
-          builder << token.getText();
-          addSpace = true;
-          break;
-        case KTokenType::STRING:
-          if (addSpace) {
-            builder << ' ';
-          }
-          builder << '"' << token.getText() << '"';
-          addSpace = true;
-          break;
-        default:
-          addSpace = false;
-          builder << token.getText();
-          break;
-      }
-
-      stream->next();
-    }
-
-    if (output) {
-      std::cout << String::trim(builder.str()) << std::endl;
-    }
-
-    return builder.str();
-  }
-
   void preserveMainStackFrame() { preservingMainStackFrame = true; }
 
  private:
@@ -195,10 +146,16 @@ class Interpreter {
   void interpretStackFrame() {
     auto& frame = callStack.top();
     auto& stream = streamStack.top();
+    auto lastPosition = stream->position;
 
     while (stream->canRead()) {
       try {
         interpretToken(stream, frame);
+        const auto newPosition = stream->position;
+        if (lastPosition == newPosition) {
+          throw TokenStreamError(stream->current());
+        }
+        lastPosition = newPosition;
       } catch (const KiwiError& e) {
         if (frame->isFlagSet(FrameFlags::InTry)) {
           frame->setErrorState(e);
@@ -3781,10 +3738,6 @@ class Interpreter {
 
     auto tokenText = stream->current().getText();
     const auto& op = stream->current().getSubType();
-
-    if (tokenText != PackageBuiltins.Home) {
-      std::cout << "";
-    }
 
     interpretQualifiedIdentifier(stream, tokenText);
 
