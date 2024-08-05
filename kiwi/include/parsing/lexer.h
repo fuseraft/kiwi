@@ -40,6 +40,55 @@ class Lexer {
     return tokens;
   }
 
+  static k_string minify(const k_string& path, bool output = false) {
+    auto content = File::readFile(path);
+    if (content.empty()) {
+      return content;
+    }
+
+    std::ostringstream builder;
+    Lexer lexer(path, content);
+    auto stream = Lexer(path, content).getTokenStream();
+    bool addSpace = true;
+    while (stream->canRead()) {
+      auto token = stream->current();
+      switch (token.getType()) {
+        case KTokenType::COMMENT:
+          stream->next();
+          continue;
+        case KTokenType::KEYWORD:
+        case KTokenType::IDENTIFIER:
+        case KTokenType::CONDITIONAL:
+        case KTokenType::LITERAL:
+          if (addSpace) {
+            builder << ' ';
+          }
+          builder << token.getText();
+          addSpace = true;
+          break;
+        case KTokenType::STRING:
+          if (addSpace) {
+            builder << ' ';
+          }
+          builder << '"' << token.getText() << '"';
+          addSpace = true;
+          break;
+        default:
+          addSpace = false;
+          builder << token.getText();
+          break;
+      }
+
+      stream->next();
+    }
+
+    if (output) {
+      std::cout << String::trim(builder.str()) << std::endl;
+    }
+
+    return builder.str();
+  }
+
  private:
   std::string source;
   size_t pos;

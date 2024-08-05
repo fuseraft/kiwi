@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/bin/kiwi",
             "args": [
-                "${workspaceFolder}/play"
+                "${workspaceFolder}/debug"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
