@@ -213,7 +213,7 @@ bool KiwiCLI::processOption(std::string& opt, Host& host) {
 }
 
 int KiwiCLI::printVersion() {
-  std::cout << kiwi_name << " v" << kiwi_version << std::endl << std::endl;
+  std::cout << kiwi_arg << " " << kiwi_version << std::endl;
   return 0;
 }
 
