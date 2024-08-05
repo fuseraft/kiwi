@@ -5,7 +5,7 @@
 fn testsuite()
   println "Running Kiwi Test Suite ...\n"
 
-  results = run_tests()
+  results = kunit::run_tests()
 
   succeeded = 0, failed = 0, duration = 0
 
@@ -28,179 +28,139 @@ fn testsuite()
   end
 end
 
-global.tests = {}
-global.test_results = []
-
-fn assert(condition, msg = "Assertion failed.")
-  throw msg when condition == false
-end
-
-fn register_test(name, t)
-  global.tests.set(name, t)
-end
-
-fn run_test(name, test, results = [])
-  print string::padend("Running test: ${name} ", 35, " ")
-
-  test_start = time::ticks()
-  passed = false
-
-  try
-    test()
-    passed = true
-  catch (err)
-    println err  
-  end
-  
-  duration = time::ticksms(time::ticks() - test_start)
-  results.push({ "name": t, "result": passed, "duration": duration })
-
-  println (passed ? "passed" : "failed").uppercase() + " in ${duration}ms"
-end
-
-fn run_tests()
-  results = []
-  
-  for t in global.tests do
-    run_test(t, global.tests.get(t), results)
-  end
-
-  return results
-end
-
-register_test("truthiness", with () do
-  assert(!null.truthy())      # null is never truthy
-  assert(!(0).truthy())       # 0 is the only non-truthy number
-  assert((1).truthy())        # non-zero numbers are always truthy
-  assert(!"".truthy())        # empty strings are not truthy
-  assert("0".truthy())        # non-empty strings are truthy
-  assert(![].truthy())        # empty lists are not truthy
-  assert([0].truthy())        # non-empty lists are truthy
-  assert(!{}.truthy())        # empty hashes are not truthy
-  assert({'a': 1}.truthy())   # non-empty hashes are truthy
-  assert(!false.truthy())     # false is never truthy
-  assert(true.truthy())       # true is always truthy
+kunit::register_test("truthiness", with () do
+  kunit::assert(!null.truthy())      # null is never truthy
+  kunit::assert(!(0).truthy())       # 0 is the only non-truthy number
+  kunit::assert((1).truthy())        # non-zero numbers are always truthy
+  kunit::assert(!"".truthy())        # empty strings are not truthy
+  kunit::assert("0".truthy())        # non-empty strings are truthy
+  kunit::assert(![].truthy())        # empty lists are not truthy
+  kunit::assert([0].truthy())        # non-empty lists are truthy
+  kunit::assert(!{}.truthy())        # empty hashes are not truthy
+  kunit::assert({'a': 1}.truthy())   # non-empty hashes are truthy
+  kunit::assert(!false.truthy())     # false is never truthy
+  kunit::assert(true.truthy())       # true is always truthy
 end)
 
-register_test("operators", with () do
+kunit::register_test("operators", with () do
   # arithmetic
-  assert(10 + 20 == 30)   # addition
-  assert(10 - 20 == -10)  # subtraction
-  assert(10 * 20 == 200)  # multiplication
-  assert(10 / 20. == 0.5) # division
-  assert(10 % 2 == 0)     # modulo division
-  assert(10 ** 2 == 100)  # exponentiation
+  kunit::assert(10 + 20 == 30)   # addition
+  kunit::assert(10 - 20 == -10)  # subtraction
+  kunit::assert(10 * 20 == 200)  # multiplication
+  kunit::assert(10 / 20. == 0.5) # division
+  kunit::assert(10 % 2 == 0)     # modulo division
+  kunit::assert(10 ** 2 == 100)  # exponentiation
   
   # logical or 
-  assert(!(false || false))
-  assert(false || true)
-  assert(true || false)
-  assert(true || true)
+  kunit::assert(!(false || false))
+  kunit::assert(false || true)
+  kunit::assert(true || false)
+  kunit::assert(true || true)
 
   # logical and
-  assert(!(false && false))
-  assert(!(false && true))
-  assert(!(true && false))
-  assert(true && true)
+  kunit::assert(!(false && false))
+  kunit::assert(!(false && true))
+  kunit::assert(!(true && false))
+  kunit::assert(true && true)
 
   # logical not
-  assert(!true == !true)
-  assert(!!true)
-  assert(!false)
+  kunit::assert(!true == !true)
+  kunit::assert(!!true)
+  kunit::assert(!false)
 
   # comparison
-  assert(1 < 2)
-  assert(2 > 1)
-  assert(1 <= 1)
-  assert(1 >= 1)
-  assert(1 == 1)
-  assert(1 != 0)
+  kunit::assert(1 < 2)
+  kunit::assert(2 > 1)
+  kunit::assert(1 <= 1)
+  kunit::assert(1 >= 1)
+  kunit::assert(1 == 1)
+  kunit::assert(1 != 0)
 
   # bitwise operators
   a = 5, b = 9
-  assert(a & b == 1)
-  assert(a | b == 13)
-  assert(a ^ b == 12)
-  assert(a << 1 == 10)
-  assert(a >> 1 == 2)
-  assert(~a == -6)
+  kunit::assert(a & b == 1)
+  kunit::assert(a | b == 13)
+  kunit::assert(a ^ b == 12)
+  kunit::assert(a << 1 == 10)
+  kunit::assert(a >> 1 == 2)
+  kunit::assert(~a == -6)
 
   # bitswap
   old_a = a, old_b = b
   a = a ^ b, b = a ^ b, a = a ^ b
-  assert(b == old_a)
-  assert(a == old_b)
+  kunit::assert(b == old_a)
+  kunit::assert(a == old_b)
 end)
 
-register_test("strings", with () do
+kunit::register_test("strings", with () do
   # simple concatenation
   a = "Hello", b = " World"
-  assert(a + b == "Hello World")
+  kunit::assert(a + b == "Hello World")
 
   # concatenation expression
   a = "Hello", b = "World"
-  assert((a + " " + b) == "Hello World")
+  kunit::assert((a + " " + b) == "Hello World")
 
   # string interpolation
-  assert("${a} ${b}" == "Hello World")
+  kunit::assert("${a} ${b}" == "Hello World")
 
   wrap_string = with (inputstring, openchar, closechar) do
     return "${openchar}${inputstring}${closechar}"
   end
 
-  assert("${wrap_string("div", "<", ">")}" == "<div>")
+  kunit::assert("${wrap_string("div", "<", ">")}" == "<div>")
 
   # string multiplication
   a = "Hello", b = 5
-  assert(a * b == "HelloHelloHelloHelloHello")
+  kunit::assert(a * b == "HelloHelloHelloHelloHello")
 end)
 
-register_test("lists", with () do
+kunit::register_test("lists", with () do
   list = [1, 2, 3], string = "31337", integer = string.to_int(), double = string.to_double()
   list << [string, integer, double]
-  assert(list == [1, 2, 3, ["31337", 31337, 31337.]])
-  assert(list.size() == 4)
+  kunit::assert(list == [1, 2, 3, ["31337", 31337, 31337.]])
+  kunit::assert(list.size() == 4)
 
   list = ["The", "Kiwi", "Programming", "Language"]
   list = ["The", "Kiwi", "Programming", "Language"]
-  assert("${list.join(" ")}" == "The Kiwi Programming Language")
-  assert("${list.join("-")}" == "The-Kiwi-Programming-Language")
-  assert(list.join("") == "TheKiwiProgrammingLanguage")
-  assert(list.join() == "TheKiwiProgrammingLanguage")
+  kunit::assert("${list.join(" ")}" == "The Kiwi Programming Language")
+  kunit::assert("${list.join("-")}" == "The-Kiwi-Programming-Language")
+  kunit::assert(list.join("") == "TheKiwiProgrammingLanguage")
+  kunit::assert(list.join() == "TheKiwiProgrammingLanguage")
 
   a = [1, 2, 3, 4], b = ["a", "b", "c", "d"], c = [true, false, true, false]
 
   a[0] <<= b[0]      # Insert operation.
-  assert(a == ["a", 1, 2, 3, 4])
+  kunit::assert(a == ["a", 1, 2, 3, 4])
   
   a[0] <<= b[0:2:-1] # Insert reversed range.
-  assert(a == ["d", "c", "a", 1, 2, 3, 4])
+  kunit::assert(a == ["d", "c", "a", 1, 2, 3, 4])
   
   a[0] = b[0]        # Replace operation.
-  assert(a == ["a", "c", "a", 1, 2, 3, 4]) 
+  kunit::assert(a == ["a", "c", "a", 1, 2, 3, 4]) 
   
   a[0] = b[1]        # Replace operation.
-  assert(a == ["b", "c", "a", 1, 2, 3, 4]) 
+  kunit::assert(a == ["b", "c", "a", 1, 2, 3, 4]) 
   
   a[3] = b[2]        # Replace operation.
-  assert(a == ["b", "c", "a", "c", 2, 3, 4])
+  kunit::assert(a == ["b", "c", "a", "c", 2, 3, 4])
   
   a[0:2] = c[0:2]    # Slice assignment.
-  assert(a == [true, false, "a", "c", 2, 3, 4])
+  kunit::assert(a == [true, false, "a", "c", 2, 3, 4])
   
   a[0:2] = c[0:2:-1] # Slice assignment of reversed slice.
-  assert(a == [false, true, "a", "c", 2, 3, 4])
+  kunit::assert(a == [false, true, "a", "c", 2, 3, 4])
 
   a_list = [1, 3, "hello, world!", [5, "asdf", true], [2, 4]]
   c = a_list[2]
   d = a_list[0:1000000]
 
-  assert(c == "hello, world!")
-  assert(d == [1, 3, "hello, world!", [5, "asdf", true], [2, 4]])
+  kunit::assert(c == "hello, world!")
+  kunit::assert(d == [1, 3, "hello, world!", [5, "asdf", true], [2, 4]])
 
   b = [1, 2, 3, 4]
   b = b[::-1]
-  assert(b == [4, 3, 2, 1])
+  kunit::assert(b == [4, 3, 2, 1])
 
   list = "abcdef".chars()
   new_list = []
@@ -209,14 +169,14 @@ register_test("lists", with () do
     delete list[0]
   end
 
-  assert(list.empty())
-  assert(new_list == ["a", "b", "c", "d", "e", "f"])
+  kunit::assert(list.empty())
+  kunit::assert(new_list == ["a", "b", "c", "d", "e", "f"])
 
   a = [1..5]
-  assert(a == [1, 2, 3, 4, 5])
+  kunit::assert(a == [1, 2, 3, 4, 5])
 end)
 
-register_test("hashes", with () do
+kunit::register_test("hashes", with () do
   hash = {
     "key1": true, 
     "key2": 1, 
@@ -229,58 +189,58 @@ register_test("hashes", with () do
     other_hash[key] = hash[key] 
   end
   
-  assert(other_hash == hash)
+  kunit::assert(other_hash == hash)
 
   other_hash = {}, other_hash = hash.merge(other_hash)
-  assert(other_hash == {"key1": true, "key2": 1, "key3": ["a", "b", "c"]})
+  kunit::assert(other_hash == {"key1": true, "key2": 1, "key3": ["a", "b", "c"]})
 
   other_hash.remove("key1")
-  assert(other_hash.keys() == ["key2", "key3"])
-  assert(other_hash.values() == [1, ["a", "b", "c"]])
+  kunit::assert(other_hash.keys() == ["key2", "key3"])
+  kunit::assert(other_hash.values() == [1, ["a", "b", "c"]])
 
   other_hash.clear()
-  assert(other_hash.empty())
+  kunit::assert(other_hash.empty())
 
   other_hash.hello = "world"
-  assert(other_hash.get("hello") == "world")
+  kunit::assert(other_hash.get("hello") == "world")
   
   other_hash.set("hello", "kiwi")
-  assert(other_hash.hello == "kiwi")
+  kunit::assert(other_hash.hello == "kiwi")
 end)
 
-register_test("dates", with () do
+kunit::register_test("dates", with () do
   d = DateTime.new(DateTime.now().get_year(), 1, 2).add_days(-1).add_hours(-1).add_minutes(-1).add_seconds(-1)
   d2 = DateTime.now()
   d3 = d.clone()
 
-  assert(d.before(d2))
-  assert(d2.after(d))
-  assert(d3.equal(d))
+  kunit::assert(d.before(d2))
+  kunit::assert(d2.after(d))
+  kunit::assert(d3.equal(d))
 end)
 
-register_test("nulls", with () do
+kunit::register_test("nulls", with () do
   e = {"a": null, "b": null}
-  assert(e == {"a": null, "b": null})
+  kunit::assert(e == {"a": null, "b": null})
 
   e.a = false
   e.b = 'hello'
-  assert(e == {"a": false, "b": "hello"})
+  kunit::assert(e == {"a": false, "b": "hello"})
 
   e.a = null
   e.b = null
-  assert(e == {"a": null, "b": null})
+  kunit::assert(e == {"a": null, "b": null})
 
   e = null
-  assert(e == null)
+  kunit::assert(e == null)
 
   e = 0
-  assert(e != null)
+  kunit::assert(e != null)
 
-  assert(!null)
-  assert(!!!null)
+  kunit::assert(!null)
+  kunit::assert(!!!null)
 end)
 
-register_test("type checks", with () do
+kunit::register_test("type checks", with () do
   s = "kiwi", i = 100, d = 3.14159, b = true, h = {'a': [123, 456, "789"]}
 
   class TypeCheckMe
@@ -289,18 +249,18 @@ register_test("type checks", with () do
 
   inst = TypeCheckMe.new()
 
-  assert(s.is_a(String))
-  assert(i.is_a(Integer))
-  assert(d.is_a(Double))
-  assert(b.is_a(Boolean))
-  assert(inst.is_a(TypeCheckMe))
-  assert(inst.is_a(Object))
-  assert(null.is_a(None))
-  assert(h.is_a(Hash))
-  assert(h.a.is_a(List))
+  kunit::assert(s.is_a(String))
+  kunit::assert(i.is_a(Integer))
+  kunit::assert(d.is_a(Double))
+  kunit::assert(b.is_a(Boolean))
+  kunit::assert(inst.is_a(TypeCheckMe))
+  kunit::assert(inst.is_a(Object))
+  kunit::assert(null.is_a(None))
+  kunit::assert(h.is_a(Hash))
+  kunit::assert(h.a.is_a(List))
 end)
 
-register_test("loops", with () do
+kunit::register_test("loops", with () do
   fruits = ["kiwi", "strawberry", "pineapple", "lime", "mango", "guava"]
   list = []
 
@@ -309,7 +269,7 @@ register_test("loops", with () do
     list.push(fruit)
   end
 
-  assert(list == ["kiwi", "strawberry", "pineapple", "lime", "mango", "guava"])
+  kunit::assert(list == ["kiwi", "strawberry", "pineapple", "lime", "mango", "guava"])
   list.clear()
 
   # iterate index
@@ -317,7 +277,7 @@ register_test("loops", with () do
     list.push(index)
   end
 
-  assert(list == [0, 1, 2, 3, 4, 5])
+  kunit::assert(list == [0, 1, 2, 3, 4, 5])
   list.clear()
 
   # iterate inline list
@@ -325,7 +285,7 @@ register_test("loops", with () do
     list.push(item)
   end
 
-  assert(list == ["kiwi", "is", "fun"])
+  kunit::assert(list == ["kiwi", "is", "fun"])
   list.clear()
   
   # iterate an inline list with an index
@@ -333,7 +293,7 @@ register_test("loops", with () do
     list.push(index)
   end
 
-  assert(list == [0, 1, 2])
+  kunit::assert(list == [0, 1, 2])
   list.clear()
 
   # iterate a range
@@ -341,7 +301,7 @@ register_test("loops", with () do
     list.push(i)
   end
 
-  assert(list == [0, 1, 2, 3, 4, 5])
+  kunit::assert(list == [0, 1, 2, 3, 4, 5])
   list.clear()
 
   i = 0, test_sum = 0
@@ -353,7 +313,7 @@ register_test("loops", with () do
     end
   end
 
-  assert(test_sum == 100)
+  kunit::assert(test_sum == 100)
 
   list = [], i = 1
   while i <= 10 do
@@ -367,7 +327,7 @@ register_test("loops", with () do
     next when index == 5
   end
 
-  assert(counter == 5)
+  kunit::assert(counter == 5)
 
   counter = 0
   for item, index in list do
@@ -375,10 +335,10 @@ register_test("loops", with () do
     break when index == 5
   end
 
-  assert(counter == 6)
+  kunit::assert(counter == 6)
 end)
 
-register_test("when", with () do
+kunit::register_test("when", with () do
   fn sum(list)
     throw "Not a list of integers" when !list.is_a(List)
     throw "Not a list of integers" when list.size() != list.select(with (item) do return item.is_a(Integer) end).size()
@@ -390,23 +350,23 @@ register_test("when", with () do
     try
       res = sum(item)
       if index == 0
-        assert(res == 6)
+        kunit::assert(res == 6)
       elsif index == 2
-        assert(res == 0)
+        kunit::assert(res == 0)
       end
     catch (err)
-      assert(err == "Not a list of integers")
+      kunit::assert(err == "Not a list of integers")
     end
   end)
 end)
 
-register_test("standard library", with () do
-  assert(math::sin(0) == 0.)
-  assert(math::cos(0) == 1.)
-  assert(math::tan(0) == 0.)
+kunit::register_test("standard library", with () do
+  kunit::assert(math::sin(0) == 0.)
+  kunit::assert(math::cos(0) == 1.)
+  kunit::assert(math::tan(0) == 0.)
 end)
 
-register_test("serialization", with () do
+kunit::register_test("serialization", with () do
   class SerializeMe
     def initialize(name)
       @name = name
@@ -414,34 +374,61 @@ register_test("serialization", with () do
   end
 
   inst = SerializeMe.new("kiwi")
-  assert(inst.to_hash() == {"name": "kiwi"})
+  kunit::assert(inst.to_hash() == {"name": "kiwi"})
 
   hash = inst.to_hash()
   hash.flag = true
   hash["sub_hash"] = { "key": "value" }
-  assert(hash == {"name": "kiwi", "flag": true, "sub_hash": {"key": "value"}})
+  kunit::assert(hash == {"name": "kiwi", "flag": true, "sub_hash": {"key": "value"}})
 end)
 
-register_test("lambdas", with () do
+kunit::register_test("set", with () do
+  s1 = Set.new([1, 2, 3])
+  s2 = Set.new([1, 2])
+  s3 = Set.new([4, 5])
+  s4 = Set.new([1, 2, 3, 4])
+
+  kunit::assert(s1.subset(s2) == false)
+  kunit::assert(s2.subset(s1) == true)
+  kunit::assert(s3.subset(s1) == false)
+  kunit::assert(s2.subset(s2) == true)
+  kunit::assert(s2.subset(s4) == true)
+  kunit::assert(s1.superset(s2) == true)
+  kunit::assert(s2.superset(s1) == false)
+  kunit::assert(s1.superset(s3) == false)
+  kunit::assert(s2.superset(s2) == true)
+  kunit::assert(s4.superset(s2) == true)
+  
+  a1 = Set.new([3,6,4])
+  a2 = Set.new([1,2,3,4,5,6,7,8,9])
+  
+  a3 = a2.difference(a1)
+  kunit::assert(a3.to_list() == [1,2,5,7,8,9])
+  
+  a3.clear()
+  kunit::assert(a3.to_list().empty())
+end)
+
+kunit::register_test("lambdas", with () do
   # setup
   list = [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4},
           {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}, {"id": 9}]
 
   # Assigned and inline lambdas
   odd_item_id = with (item) do return item.id % 2 != 0 end # Define an assigned lambda.
-  puts = (with (s) do return s end) # Defining a lambda and using it to wrap functionality.
-  assert(puts("Hello, World!") == "Hello, World!")
+  puts = with (s) do return s end # Defining a lambda and using it to wrap functionality.
+  kunit::assert(puts("Hello, World!") == "Hello, World!")
 
   # Lambdas as first-class citizens
   fn use_lambda(print_func, message) return print_func(message) end
-  assert(use_lambda(puts, "Hello, Kiwi!") == "Hello, Kiwi!")
+  kunit::assert(use_lambda(puts, "Hello, Kiwi!") == "Hello, Kiwi!")
 
   # List.select test
-  assert(list.select(with (item) do return item["id"] % 2 == 0 end) == [{"id": 0}, {"id": 2}, {"id": 4}, {"id": 6}, {"id": 8}])
-  assert(list.select(odd_item_id) == [{"id": 1}, {"id": 3}, {"id": 5}, {"id": 7}, {"id": 9}])
+  kunit::assert(list.select(with (item) do return item["id"] % 2 == 0 end) == [{"id": 0}, {"id": 2}, {"id": 4}, {"id": 6}, {"id": 8}])
+  kunit::assert(list.select(odd_item_id) == [{"id": 1}, {"id": 3}, {"id": 5}, {"id": 7}, {"id": 9}])
 
   # List.map
-  assert
+  kunit::assert
   (
     ["kiwi", "mango", "banana"].map(with (item) do return { "fruit": item, "is_a_kiwi": item.lowercase() == "kiwi" } end)
       == [{"fruit": "kiwi", "is_a_kiwi": true}, {"fruit": "mango", "is_a_kiwi": false}, {"fruit": "banana", "is_a_kiwi": false}]
@@ -450,19 +437,19 @@ register_test("lambdas", with () do
   # List.reduce
   numbers = [1, 2, 3, 4, 5]
 
-  assert((numbers.reduce(0, with (accumulator, number) do
+  kunit::assert((numbers.reduce(0, with (accumulator, number) do
     return accumulator + number
   end)) == 15)
 
-  assert((numbers.reduce({}, with (accumulator, number) do
+  kunit::assert((numbers.reduce({}, with (accumulator, number) do
     accumulator["key${number}"] = number
     return accumulator
   end)) == {"key1": 1, "key2": 2, "key3": 3, "key4": 4, "key5": 5})
 end)
 
-register_test("obfuscation", with () do
+kunit::register_test("obfuscation", with () do
   p=with(x)do return(x)end,a='fn;end;return;g;kiwi;s;, '.split(';')c=with(n,b=[],p=[])do ___=["${a[0]} ${n}"]if!p.empty()___=["${___.join()}(${p.join("${a[6]}")})"]end if!b.empty()b.each(with(l)do ___<<"${l}"end)end ___<<a[1]return ___.join(" ")end fn m()return p(c(a[5],["${a[2]}(${a[3]})"],[a[3]]))s("${a[4]}")end
-  assert(m() == "fn s(g) return(g) end")
+  kunit::assert(m() == "fn s(g) return(g) end")
 end)
 
 testsuite()
