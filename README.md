@@ -12,7 +12,7 @@ An unorthodox scripting language.
 - [Documentation](#documentation)
   - [Wiki](#kiwi-wiki)
   - [Tests](#test-suite)
-  - [Examples](#code-examples)
+  - [Examples](#examples)
 - [Contributions](#contributions)
 - [License](#license)
 
@@ -125,23 +125,17 @@ To build and run the test suite, execute:
 make test
 ```
 
-### Code Examples
+### Examples
 
-#### Algorithms
+You can find [many code examples](docs/examples/) in the documentation.
 
-- [Levenshtein Distance](docs/examples/algo/levenshtein.kiwi)
-- [MD5](docs/examples/algo/md5_hash.kiwi)
+Here are a handful:
+- [Levenshtein distance](docs/examples/algo/levenshtein.kiwi)
+- [MD5 hashing algorithm](docs/examples/algo/md5_hash.kiwi)
 - [Sieve of Eratosthenes](docs/examples/algo/sieve_of_eratosthenes.kiwi)
-
-#### Cellular Automata
-
-- [Rule 30](docs/examples/cellular_automata/rule30.kiwi)
 - [Conway's Game of Life](docs/examples/cellular_automata/life.kiwi)
-- [Brian's Brain](docs/examples/cellular_automata/brain.kiwi)
-
-#### Project Euler
-
-- [Project Euler examples](docs/examples/project_euler/).
+- [Project Euler stuff](docs/examples/project_euler/).
+- [Simple web app](docs/examples/webapp/)
 
 ## Contributions
 
