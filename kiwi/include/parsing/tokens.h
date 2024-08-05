@@ -107,6 +107,10 @@ class Token {
 
   const k_string& getText() const { return text; }
 
+  const k_string& getOriginalText() const { return text; }
+
+  void setText(const k_string& newText) { text = newText; }
+
   const int& getLineNumber() const { return _lineNumber; }
 
   const int& getLinePosition() const { return _linePosition; }
@@ -122,6 +126,7 @@ class Token {
   KName subType;
   int fileId;
   k_string text;
+  k_string originalText;
   k_value value;
   int _lineNumber;
   int _linePosition;
@@ -129,7 +134,7 @@ class Token {
   Token(const KTokenType& t, const KName& st, const int& fileId,
         const k_string& text, const k_value& v, const int& lineNumber,
         const int& linePosition)
-      : type(t), subType(st), fileId(fileId), text(text), value(v) {
+      : type(t), subType(st), fileId(fileId), text(text), originalText(text), value(v) {
     _lineNumber = lineNumber;
     _linePosition = linePosition;
   }

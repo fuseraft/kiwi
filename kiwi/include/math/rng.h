@@ -12,6 +12,7 @@ class RNG {
   static RNG& getInstance();
   double random(double from, double to);
   k_int random(k_int from, k_int to);
+  k_string random8();
   k_string random16();
   k_string randomString(const k_string& input, size_t length);
   k_value randomList(k_list list, size_t length);
@@ -40,6 +41,14 @@ double RNG::random(double from, double to) {
 k_int RNG::random(k_int from, k_int to) {
   std::uniform_int_distribution<k_int> distribution(from, to);
   return distribution(generator);
+}
+
+k_string RNG::random8() {
+  const size_t LENGTH = 8;
+  const k_string chars =
+      "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+  return randomString(chars, LENGTH);
 }
 
 k_string RNG::random16() {

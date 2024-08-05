@@ -1982,6 +1982,13 @@ class Interpreter {
       return method;
     }
 
+    std::unordered_map<k_string, k_string> mangledNames;
+    k_string mangler = "_" + RNG::getInstance().random8() + "_";
+    for (auto param : method.getParameters()) {
+      k_string mangledName = mangler + param;
+      mangledNames[param] = mangledName;
+    }
+
     while (stream->canRead() && counter > 0) {
       if (stream->current().getSubType() == KName::KW_End) {
         --counter;
@@ -1993,6 +2000,19 @@ class Interpreter {
         }
       } else if (Keywords.is_block_keyword(stream->current().getSubType())) {
         ++counter;
+      }
+
+      auto token = stream->current();
+      if (token.getType() == KTokenType::IDENTIFIER) {
+        auto tokenText = token.getText();
+        if (mangledNames.find(tokenText) != mangledNames.end()) {
+          token.setText(mangledNames[tokenText]);
+        }
+      } else if (token.getType() == KTokenType::STRING) {
+        // replace any string interpolations with this.
+        auto tokenText = token.getText();
+        tokenText = mangleString(stream, tokenText, mangledNames);
+        token.setText(tokenText);
       }
 
       method.addToken(stream->current());
@@ -3880,6 +3900,88 @@ class Interpreter {
         } else {
           sv << interpolateObject(stream, frame, value);
         }
+      } else if (c == '\\') {
+        // Handle escape sequences
+        if (i + 1 < input.length()) {
+          switch (input[i + 1]) {
+            case 't':
+              sv << '\t';
+              break;
+            case 'n':
+              sv << '\n';
+              break;
+            case 'r':
+              sv << '\r';
+              break;
+            case 'b':
+              sv << '\b';
+              break;
+            case 'f':
+              sv << '\f';
+              break;
+            case '\\':
+              sv << '\\';
+              break;
+
+            default:
+              sv << input[i + 1];
+              break;
+          }
+          i++;
+        }
+      } else {
+        sv << c;
+      }
+    }
+
+    return sv.str();
+  }
+
+  k_string mangleString(k_stream stream,
+                        const k_string& input,
+                        std::unordered_map<k_string, k_string>& mangledNames) {
+    std::ostringstream sv;
+
+    for (size_t i = 0; i < input.length(); ++i) {
+      char c = input[i];
+
+      if (c == '$' && i + 1 < input.length() && input[i + 1] == '{') {
+        i += 2;  // Skip "${"
+        size_t start = i;
+        int braceCount = 1;
+        while (i < input.length() && braceCount > 0) {
+          if (input[i] == '{') {
+            ++braceCount;
+          } else if (input[i] == '}') {
+            --braceCount;
+          }
+          ++i;
+        }
+
+        if (braceCount != 0) {
+          throw SyntaxError(
+              stream->current(),
+              "Unmatched braces in string interpolation: `" + input + "`");
+        }
+
+        --i;  // Go back to the closing brace
+        
+        Lexer lexer("", input.substr(start, i - start));
+        std::ostringstream mangler;
+        for (const auto& token : lexer.getAllTokens()) {
+          auto tokenText = token.getText();
+          if (token.getType() == KTokenType::IDENTIFIER) {
+            if (mangledNames.find(tokenText) != mangledNames.end()) {
+              mangler << mangledNames[tokenText];
+            } else {
+              mangler << tokenText;
+            }
+          } else {
+            mangler << tokenText;
+          }
+        }
+
+        sv << mangler.str();
       } else if (c == '\\') {
         // Handle escape sequences
         if (i + 1 < input.length()) {
