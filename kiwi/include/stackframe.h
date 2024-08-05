@@ -11,7 +11,7 @@
 #include "tracing/state.h"
 #include "typing/value.h"
 
-enum class FrameFlags : uint8_t {
+enum class FrameFlags : uint16_t {
   None = 0,
   ReturnFlag = 1 << 0,
   SubFrame = 1 << 1,
@@ -20,7 +20,8 @@ enum class FrameFlags : uint8_t {
   InTry = 1 << 4,
   InObject = 1 << 5,
   InLoop = 1 << 6,
-  InCall = 1 << 7
+  InCall = 1 << 7,
+  InConditional = 1 << 8
 };
 
 inline FrameFlags operator|(FrameFlags a, FrameFlags b) {

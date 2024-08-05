@@ -1,9 +1,31 @@
 /# a script for experimentation and debugging. #/
 
-fn add(n, m)
-  println "adding ${n} and ${m}: ${n + m}"
-  return n + m
-end
+s1 = Set.new([1, 2, 3])
+s2 = Set.new([1, 2])
+s3 = Set.new([4, 5])
+s4 = Set.new([1, 2, 3, 4])
 
-n = add(5, 10)
-println n
+println "subset tests"
+println s1.subset(s2)    # expect: false, actual: false
+println s2.subset(s1)    # expect: true,  actual: true
+println s3.subset(s1)    # expect: false, actual: false
+println s2.subset(s2)    # expect: true,  actual: true
+println s2.subset(s4)    # expect: true,  actual: true
+println "superset tests"
+println s1.superset(s2)  # expect: true,  actual: true
+println s2.superset(s1)  # expect: false, actual: false
+println s1.superset(s3)  # expect: false, actual: false
+println s2.superset(s2)  # expect: true,  actual: true
+println s4.superset(s2)  # expect: true,  actual: true
+
+a1 = Set.new([3,6,4])
+a2 = Set.new([1,2,3,4,5,6,7,8,9])
+
+println a1.to_list()
+println a2.to_list()
+
+a3 = a2.difference(a1)
+println a3.to_list()
+
+a3.clear()
+println a3.to_list()

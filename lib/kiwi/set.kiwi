@@ -1,0 +1,92 @@
+/# An implementation for working with sets. #/
+
+class Set
+  def initialize(data = [])
+    @data = data.unique()
+  end
+
+  def add(item)
+    new_data = (@data).clone()
+    new_data.push(item)
+    @data = new_data.flatten().unique()
+  end
+
+  def remove(item)
+    new_data = to_list().select(with (n) do return n != item end)
+    @data = new_data
+  end
+
+  def contains(item)
+    return to_list().contains(item)
+  end
+
+  def size()
+    return to_list().size()
+  end
+
+  def clear()
+    @data = []
+  end
+
+  def difference(data)
+    input_data = get_input_data(data)
+    new_data = to_list()
+    return Set.new(new_data.select(with (n) do return !input_data.contains(n) end))
+  end
+
+  def disjoint(data)
+    return !intersect(data)
+  end
+
+  def intersect(data)
+    input_data = get_input_data(data)
+    new_data = to_list()
+    return !new_data.select(with (n) do return input_data.contains(n) end).empty()
+  end
+
+  def merge(data)
+    input_data = get_input_data(data)
+    new_data = to_list()
+    new_data.push(input_data)
+    @data = new_data.flatten().unique()
+  end
+
+  def union(data)
+    input_data = get_input_data(data)
+    new_data = to_list()
+    new_data.push(input_data)
+    return Set.new(new_data.flatten())
+  end
+
+  def subset(data)
+    input_data = get_input_data(data)
+    new_data = to_list()
+    return input_data.select(with (n) do return new_data.contains(n) end).size() == new_data.size()
+  end
+
+  def superset(data)
+    input_data = get_input_data(data)
+    new_data = to_list()
+    return input_data.select(with (n) do return new_data.contains(n) end).size() == input_data.size()
+  end
+
+  def to_list()
+    return ((@data).clone())
+  end
+
+  def to_string()
+    return "${to_list()}"
+  end
+
+  private def get_input_data(data)
+    input_data = []
+    if data.type() == "Set"
+      input_data = data.to_list()
+    elsif data.is_a(List)
+      input_data = data
+    else
+      throw "Expected a List or a Set."
+    end
+    return input_data
+  end
+end
