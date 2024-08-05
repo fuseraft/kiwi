@@ -1,3 +1,9 @@
 /# a script for experimentation and debugging. #/
 
-println "hello"
+fn add(n, m)
+  println "adding ${n} and ${m}: ${n + m}"
+  return n + m
+end
+
+n = add(5, 10)
+println n
