@@ -59,7 +59,7 @@ class Host {
   }
 
   std::string minify(const std::string& script, bool output = false) {
-    return interp.minify(script, output);
+    return Lexer::minify(script, output);
   }
 
   bool hasScript() const { return !scripts.empty(); }
