@@ -225,7 +225,8 @@ class Interpreter {
     }
 
     if (frame->isFlagSet(FrameFlags::InLoop) ||
-        frame->isFlagSet(FrameFlags::InCall)) {
+        frame->isFlagSet(FrameFlags::InCall) ||
+        frame->isFlagSet(FrameFlags::InConditional)) {
       doUpdate = true;
     }
 
@@ -282,10 +283,10 @@ class Interpreter {
 
     if (!isMethodInvocation) {
       const auto& frameVariables = frame->variables;
+      const auto& frameLambdas = frame->lambdas;
       for (const auto& pair : frameVariables) {
         subFrameVariables[pair.first] = pair.second;
       }
-      const auto& frameLambdas = frame->lambdas;
       for (const auto& pair : frameLambdas) {
         subFrameLambdas[pair.first] = pair.second;
       }
@@ -293,12 +294,6 @@ class Interpreter {
 
     if (frame->inObjectContext()) {
       const auto& objectContext = frame->getObjectContext();
-      const auto& objectContextInstanceVariables =
-          objectContext->instanceVariables;
-      for (const auto& pair : objectContextInstanceVariables) {
-        subFrameVariables[pair.first] = clone_value(pair.second);
-      }
-
       subFrame->setObjectContext(objectContext);
     }
 
@@ -2464,7 +2459,9 @@ class Interpreter {
       return;
     }
 
-    callStack.push(buildSubFrame(frame));
+    auto subFrame = buildSubFrame(frame);
+    subFrame->setFlag(FrameFlags::InConditional);
+    callStack.push(subFrame);
     streamStack.push(std::make_shared<TokenStream>(executableTokens));
     interpretStackFrame();
   }
@@ -4189,11 +4186,14 @@ class Interpreter {
         return;
 
       case KTokenType::KEYWORD:
-        if (stream->current().getSubType() != KName::KW_Await) {
+        if (stream->current().getSubType() == KName::KW_Await) {
+          value = interpretAwait(stream, frame);
+        } else if (stream->current().getSubType() == KName::KW_This) {
+          value = parseExpression(stream, frame);
+        } else {
           throw SyntaxError(stream->current(),
                             "Invalid syntax in assignment of `" + name + "`.");
         }
-        value = interpretAwait(stream, frame);
         break;
 
       default:
