@@ -1,0 +1,52 @@
+package kunit
+  __home__("kiwi")
+
+  fn initialize()
+    if !global.has_key("kunit_tests")
+      global.kunit_tests = {}
+      global.kunit_test_results = []
+    end
+  end
+
+  fn assert(condition, msg = "Assertion failed.")
+    throw msg when condition == false
+  end
+  
+  fn register_test(name, t)
+    kunit::initialize()
+    global.kunit_tests.set(name, t)
+  end
+  
+  fn run_test(name, test, results = [])
+    kunit::initialize()
+    print string::padend("Running test: ${name} ", 35, " ")
+  
+    test_start = time::ticks()
+    passed = false
+  
+    try
+      test()
+      passed = true
+    catch (err)
+      println err  
+    end
+    
+    duration = time::ticksms(time::ticks() - test_start)
+    results.push({ "name": t, "result": passed, "duration": duration })
+  
+    println (passed ? "passed" : "failed").uppercase() + " in ${duration}ms"
+  end
+  
+  fn run_tests()
+    kunit::initialize()
+    results = []
+    
+    for t in global.kunit_tests do
+      kunit::run_test(t, global.kunit_tests.get(t), results)
+    end
+  
+    return results
+  end
+end
+
+export "kunit"
