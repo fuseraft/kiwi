@@ -19,7 +19,7 @@ package kunit
   
   fn run_test(name, test, results = [])
     kunit::initialize()
-    print string::padend("Running test: ${name} ", 35, " ")
+    print string::padend("Running test: ${name} ", 45, " ")
   
     test_start = time::ticks()
     passed = false
