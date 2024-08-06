@@ -253,6 +253,7 @@ enum KName {
   KW_Exit,
   KW_Export,
   KW_False,
+  KW_Finally,
   KW_For,
   KW_If,
   KW_Import,

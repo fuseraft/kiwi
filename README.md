@@ -12,7 +12,7 @@ An unorthodox scripting language.
 - [Documentation](#documentation)
   - [Wiki](#kiwi-wiki)
   - [Tests](#test-suite)
-  - [Examples](#code-examples)
+  - [Examples](#examples)
 - [Contributions](#contributions)
 - [License](#license)
 
@@ -125,107 +125,17 @@ To build and run the test suite, execute:
 make test
 ```
 
-### Code Examples
+### Examples
 
-#### Algorithms
+You can find [many code examples](docs/examples/) in the documentation.
 
-- [Levenshtein Distance](docs/examples/algo/levenshtein.kiwi)
-- [MD5](docs/examples/algo/md5_hash.kiwi)
+Here are a handful:
+- [Levenshtein distance](docs/examples/algo/levenshtein.kiwi)
+- [MD5 hashing algorithm](docs/examples/algo/md5_hash.kiwi)
 - [Sieve of Eratosthenes](docs/examples/algo/sieve_of_eratosthenes.kiwi)
-
-#### Cellular Automata
-
-- [Rule 30](docs/examples/cellular_automata/rule30.kiwi)
 - [Conway's Game of Life](docs/examples/cellular_automata/life.kiwi)
-- [Brian's Brain](docs/examples/cellular_automata/brain.kiwi)
-
-#### Project Euler
-
-- [Project Euler examples](docs/examples/project_euler/).
-
-#### Web Application
-
-Below is a simple HTTP web application. You can find the [example project here](docs/examples/webapp/app.kiwi).
-
-```kiwi
-import "@kiwi/web" as web
-import "@kiwi/fs" as fs
-
-# HTML helpers
-html = {
-  "shared": fs.read("templates/shared.html"),
-  "index": fs.read("templates/index.html"),
-  "contact": fs.read("templates/contact.html")
-}
-
-# A simple template engine.
-fn build_html(data)
-  return html.shared.replace("<%content%>", data)
-end
-
-# GET /
-web.get(["/", "/index"], with (req) do
-  return web.ok(build_html(html.index), "text/html")
-end)
-
-# GET /contact
-web.get("/contact", with (req) do
-  return web.ok(build_html(html.contact), "text/html")
-end)
-
-# POST /contact
-web.post("/contact", with (req) do  
-  println("Received content from client:\nbody: ${req.body}\nparams: ${req.params}")
-  return web.redirect("/")
-end)
-
-# serve static content
-web.public("/", "./public")
-
-# server and port configuration
-host = "0.0.0.0", port = 8080
-
-# start the web server
-println("Starting Kiwi Web Server at http://${host}:${port}")
-web.listen(host, port)
-```
-
-#### Temporary Script
-
-Below is a script that generates a temporary script and executes it.
-
-```kiwi
-import "@kiwi/fs" as fs
-import "@kiwi/math" as math
-import "@kiwi/sys" as sys
-
-try
-  # Look for a temporary directory. Fail fast.
-  if !fs.exists(fs.tmpdir())
-    println("Could not find temporary directory.")
-    exit(1)
-  end
-  
-  # Generate a random temporary file path.
-  filename = math.random("0123456789ABCDEF", 10)
-  path = fs.combine(fs.tmpdir(), "${filename}.kiwi")
-
-  # Write a little 🥝 script.
-  fs.write(path, "
-    /#
-    This script will delete itself and let you know it was there.
-    #/
-    import \"@kiwi/fs\" as fs
-    fs.remove(\"${path}\")
-    println(\"Kiwi was here running as ${fs.filename(path)}.\")
-  ")
-
-  # Run the 🥝 script.
-  sys.exec("kiwi ${path}")
-catch (err)
-  println("An error occurred: ${err}")
-end
-```
+- [Project Euler stuff](docs/examples/project_euler/).
+- [Simple web app](docs/examples/webapp/)
 
 ## Contributions
 

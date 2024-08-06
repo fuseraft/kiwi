@@ -275,6 +275,8 @@ class Lexer {
       st = KName::KW_Export;
     } else if (keyword == Keywords.False) {
       st = KName::KW_False;
+    } else if (keyword == Keywords.Finally) {
+      st = KName::KW_Finally;
     } else if (keyword == Keywords.For) {
       st = KName::KW_For;
     } else if (keyword == Keywords.Import) {

@@ -160,6 +160,7 @@ struct {
   const k_string Exit = "exit";
   const k_string Export = "export";
   const k_string False = "false";
+  const k_string Finally = "finally";
   const k_string For = "for";
   const k_string Function = "fn";
   const k_string Global = "global";
@@ -191,7 +192,7 @@ struct {
 
   std::unordered_set<k_string> keywords = {
       Abstract, As,       Async,  Await, Break, Catch,   Class,   Delete,
-      Do,       Else,     ElseIf, End,   Exit,  Export,  False,   For,
+      Do,       Else,     ElseIf, End,   Exit,  Export,  False,   Finally, For,
       Function, If,       Import, In,    With,  Method,  Package, Next,
       Null,     Override, Parse,  Pass,  Print, PrintLn, Private, Return,
       Static,   Then,     This,   Throw, True,  Try,     When,    While};
