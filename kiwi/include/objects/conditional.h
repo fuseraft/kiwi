@@ -4,6 +4,42 @@
 #include <vector>
 #include "parsing/tokens.h"
 
+class TryStatement {
+ public:
+    void addToken(const Token& t) { code.emplace_back(t); }
+    std::vector<Token>& getCode() { return code; }
+ private:
+  std::vector<Token> code;
+};
+
+class CatchStatement {
+ public:
+    void addToken(const Token& t) { code.emplace_back(t); }
+    std::vector<Token>& getCode() { return code; }
+ private:
+  std::vector<Token> code;
+};
+
+class FinallyStatement {
+ public:
+    void addToken(const Token& t) { code.emplace_back(t); }
+    std::vector<Token>& getCode() { return code; }
+ private:
+  std::vector<Token> code;
+};
+
+class TryCatch {
+ public:
+  TryStatement& getTryStatement() { return tryStatement; }
+  CatchStatement& getCatchStatement() { return catchStatement; }
+  FinallyStatement& getFinallyStatement() { return finallyStatement; }
+
+ private:
+  TryStatement tryStatement;
+  CatchStatement catchStatement;
+  FinallyStatement finallyStatement;
+};
+
 class IfStatement {
  public:
   void addToken(const Token& t) { code.emplace_back(t); }
