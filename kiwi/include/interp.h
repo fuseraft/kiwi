@@ -432,7 +432,8 @@ class Interpreter {
       interpretStackFrame();
 
       if (frame->isFlagSet(FrameFlags::LoopBreak) ||
-          frame->isFlagSet(FrameFlags::ReturnFlag)) {
+          frame->isFlagSet(FrameFlags::ReturnFlag) ||
+          frame->errorState.hasError) {
         break;
       }
 
@@ -819,8 +820,7 @@ class Interpreter {
         break;
 
       case KName::KW_Try:
-        stream->next();  // Skip "try"
-        frame->setFlag(FrameFlags::InTry);
+        interpretTry(stream, frame);
         break;
 
       case KName::KW_Catch:
@@ -2342,6 +2342,61 @@ class Interpreter {
     return list;
   }
 
+  void interpretTry(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
+    if (!stream->matchsub(KName::KW_Try)) {
+      throw SyntaxError(stream->current(),
+                        "Invalid conditional. Expected `" + Keywords.Try +
+                            "` keyword, instead got: `" +
+                            stream->current().getText() + "`");
+    }
+    
+    int blocks = 1;
+    auto building = KName::KW_Try;
+    TryCatch trycatch;
+
+    while (stream->canRead() && blocks > 0) {
+      auto subType = stream->current().getSubType();
+
+      if (Keywords.is_block_keyword(subType)) {
+        ++blocks;
+      } else if (subType == KName::KW_End && blocks >= 1) {
+        --blocks;
+
+        // Stop here.
+        if (blocks == 0) {
+          stream->next();
+          break;
+        }
+      } else if (blocks == 1 && subType == KName::KW_Catch) {
+        if (building != KName::KW_Catch) {
+          trycatch.getCatchStatement().addToken(stream->current());
+          stream->next();
+          building = KName::KW_Catch;
+          continue;
+        }
+      } else if (blocks == 1 && subType == KName::KW_Finally) {
+        if (building != KName::KW_Finally) {
+          stream->next();
+          building = KName::KW_Finally;
+          continue;
+        }
+      }
+
+      // Distribute tokens to be executed.
+      if (building == KName::KW_Try) {
+        trycatch.getTryStatement().addToken(stream->current());
+      } else if (building == KName::KW_Catch) {
+        trycatch.getCatchStatement().addToken(stream->current());
+      } else if (building == KName::KW_Finally) {
+        trycatch.getFinallyStatement().addToken(stream->current());
+      }
+
+      stream->next();
+    }
+
+    executeTryCatch(frame, trycatch);
+  }
+
   void interpretConditional(k_stream stream,
                             std::shared_ptr<CallStackFrame> frame) {
     if (!stream->matchsub(KName::KW_If)) {
@@ -2440,20 +2495,54 @@ class Interpreter {
     }
 
     if (conditional.getIfStatement().isExecutable()) {
-      execute(frame, conditional.getIfStatement().getCode());
+      executeConditional(frame, conditional.getIfStatement().getCode());
     } else if (conditional.canExecuteElseIf()) {
       for (auto& elseIf : conditional.getElseIfStatements()) {
         if (elseIf.isExecutable()) {
-          execute(frame, elseIf.getCode());
+          executeConditional(frame, elseIf.getCode());
           break;
         }
       }
     } else {
-      execute(frame, conditional.getElseStatement().getCode());
+      executeConditional(frame, conditional.getElseStatement().getCode());
     }
   }
 
-  void execute(std::shared_ptr<CallStackFrame> frame,
+  void executeTryCatch(std::shared_ptr<CallStackFrame> frame, TryCatch& trycatch) {
+    auto tryTokens = trycatch.getTryStatement().getCode();
+    auto catchTokens = trycatch.getCatchStatement().getCode();
+    auto finallyTokens = trycatch.getFinallyStatement().getCode();
+    if (tryTokens.empty()) {
+      return;
+    }
+
+    auto subFrame = buildSubFrame(frame);
+    subFrame->setFlag(FrameFlags::InTry);
+    callStack.push(subFrame);
+    streamStack.push(std::make_shared<TokenStream>(tryTokens));
+    interpretStackFrame();
+
+    auto top = callStack.top();
+    if (top->isErrorStateSet() && !catchTokens.empty()) {
+      subFrame = buildSubFrame(frame);
+      subFrame->setErrorState(top->getErrorState());
+      callStack.push(subFrame);
+      streamStack.push(std::make_shared<TokenStream>(catchTokens));
+      interpretStackFrame();
+    }
+
+    frame->clearErrorState();
+    frame->clearFlag(FrameFlags::InTry);
+
+    if (!finallyTokens.empty()) {
+      subFrame = buildSubFrame(frame);
+      callStack.push(subFrame);
+      streamStack.push(std::make_shared<TokenStream>(finallyTokens));
+      interpretStackFrame();
+    }
+  }
+
+  void executeConditional(std::shared_ptr<CallStackFrame> frame,
                const std::vector<Token>& executableTokens) {
     if (executableTokens.empty()) {
       return;

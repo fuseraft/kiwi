@@ -1,63 +1,35 @@
 /# a script for experimentation and debugging. #/
 
-toupper = with (s) do
-  return s.uppercase()
-end
-
-tolower = with (s) do
-  return s.lowercase()
-end
-
-test = with (name) do
-  if math::random(0., 1.) < 0.9
-    throw "uh-oh!"
-  end
-  if name == "kiwi"
-    return toupper("kiwi" * 3)
-  else
-    return tolower("F00B4R")
-  end
-end
-
-fn t1()
-  t1r = ''
+test = with () do
   try
-    for i in [1..2] do
-      choice = math::random(0., 1.)
-      if choice < 0.5
-        choice = "kiwi"
-      end
-      t1r += test(choice)
+    println "${1 / 0}"
+  finally
+    println "try-finally complete"
+  end
+
+  try
+    for i in [0 .. 1] do
+      println "${i / 0}"
     end
   catch (err)
-      println "error thrown in t1, caught outside for-loop: {err}"
+    println "an error occurred"
+  finally
+    println "try-catch-finally complete"
   end
-  return t1r
-end
 
-fn t2()
-  t2r = ''
-  for i in [1..2] do
+  for i in [0 .. 1] do
     try
-      choice = math::random(0., 1.)
-      if choice < 0.5
-        choice = "kiwi"
-      end
-      t2r += test(choice)
-    catch (err)
-      println "error thrown in t2, caught inside for-loop: {err}"
+      println "${i / 0}"
+    catch (err, msg)
+      println "An error occurred: ${err}: ${msg}"
+    finally
+      println "try-catch-finally (in-loop) complete"
     end
   end
-  return t2r
 end
 
 fn main()
-  try
-    println "t1 = ${t1()}"
-    println "t2 = ${t2()}"
-  catch (e)
-    println "should not have bubbled this far: ${e}"
-  end
+  test()
 end
 
 main()
