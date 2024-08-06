@@ -338,7 +338,7 @@ kunit::register_test("loops", with () do
   kunit::assert(counter == 6)
 end)
 
-kunit::register_test("when", with () do
+kunit::register_test("`when`", with () do
   fn sum(list)
     throw "Not a list of integers" when !list.is_a(List)
     throw "Not a list of integers" when list.size() != list.select(with (item) do return item.is_a(Integer) end).size()
@@ -407,6 +407,60 @@ kunit::register_test("set", with () do
   
   a3.clear()
   kunit::assert(a3.to_list().empty())
+end)
+
+kunit::register_test("try-finally", with () do
+  a = 0, b = 0
+
+  try
+    a += 1
+    println "${1 / 0}"
+    a += 1
+  finally
+    b += 1
+  end
+  
+  kunit::assert(a == 1)
+  kunit::assert(b == 1)
+end)
+
+kunit::register_test("try-catch-finally", with () do
+  a = 0, b = 0, c = 0
+
+  try
+    for i in [0 .. 1] do
+      a += 1
+      println "${i / 0}"
+      a += 1
+    end
+  catch (err)
+    b += 1
+  finally
+    c += 1
+  end
+
+  kunit::assert(a == 1)
+  kunit::assert(b == 1)
+  kunit::assert(c == 1)
+end)
+
+kunit::register_test("nested try-catch", with () do
+  a = 0, b = 0, c = 0
+
+  for i in [0 .. 1] do
+    try
+      a += 1
+      println "${i / 0}"
+    catch (err, msg)
+      b += 1
+    finally
+      c += 1
+    end
+  end
+
+  kunit::assert(a == 2)
+  kunit::assert(b == 2)
+  kunit::assert(c == 2)
 end)
 
 kunit::register_test("lambdas", with () do
