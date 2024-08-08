@@ -624,7 +624,7 @@ class CoreBuiltinHandler {
 
     if (format == "b" || format == "B") {
       auto toBinary = get_integer(term, value);
-      sv << std::bitset<sizeof(toBinary)>(toBinary);
+      sv << std::bitset<16>(toBinary);
       return sv.str();
     } else if (format == "x" || format == "X") {
       sv << std::hex << get_integer(term, value);
@@ -638,12 +638,12 @@ class CoreBuiltinHandler {
         return sv.str();
       }
       return String::toUppercase(sv.str());
-    } else if (String::beginsWith(String::toLowercase(format), "f")) {
+    } else if (String::beginsWith(String::toLowercase(format), "f") || String::toLowercase(format) == "f") {
       // Fixed point
-      auto precision = String::replace(String::toLowercase(format), "f", "");
       try {
+        auto precision = String::replace(String::toLowercase(format), "f", "");
         if (precision.empty()) {
-          sv << std::fixed << get_double(term, value);
+          sv << std::fixed << std::setprecision(0) << get_double(term, value);
         }
         else {
           sv << std::fixed << std::setprecision(std::stoi(precision)) << get_double(term, value);
@@ -654,6 +654,8 @@ class CoreBuiltinHandler {
         throw ArgumentError(term, "Invalid fixed-point format `" + format + "`");
       }
     }
+
+    throw ArgumentError(term, "Unknown format specifier `" + format + "`");
   }
 
   static k_value executeSubstring(const Token& term, const k_value& value,

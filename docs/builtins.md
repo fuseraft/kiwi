@@ -820,6 +820,17 @@ s = [n, n.to_string()]
 println(s)  # prints: [100, "100"]
 ```
 
+#### Formatting Options
+
+Optionally, for integral and double types, you can pass a format string.
+
+| Format Specifier | Name | Description | Example |
+| ---------------- | ---- | ----------- | ------- |
+| "B" or "b" | Binary | A 16-digit binary number, left-padded with zeros for values < 255. |  `(31337).to_string("b")`<br>-> `0111101001101001` |
+| "F" or "f" | Fixed-Point | A fixed-point precision number. | `(100).to_string("f2")`<br>-> `100.00` |
+| "O" or "o" | Octal | An octal number. | `(64).to_string("o")`<br>-> `100` |
+| "X" or "x" | Hexadecimal | A hexadecimal number. | `(43).to_string("x")`<br>-> `2b`<br>`(43).to_string("X")`<br>-> `2B` |
+
 ### `truthy()`
 
 Returns the truthiness of a value.
