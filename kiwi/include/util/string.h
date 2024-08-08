@@ -113,6 +113,9 @@ class String {
   /// @return A string.
   static k_string replace(const k_string& text, const k_string& pattern,
                           const k_string& replacement) {
+    if (text.empty()) {
+      return text;
+    }
     std::regex reg(pattern);
     return std::regex_replace(text, reg, replacement);
   }

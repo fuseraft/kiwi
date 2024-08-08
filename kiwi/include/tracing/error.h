@@ -133,6 +133,12 @@ class BuiltinUnexpectedArgumentError : public KiwiError {
                   "Unexpected argument count for builtin `" + name + "`.") {}
 };
 
+class ArgumentError : public KiwiError {
+ public:
+  ArgumentError(const Token& token, const std::string& message)
+      : KiwiError(token, "ArgumentError", message) {}
+};
+
 class InvalidContextError : public KiwiError {
  public:
   InvalidContextError(const Token& token,
