@@ -2,7 +2,9 @@
 #define KIWI_BUILTINS_COREHANDLER_H
 
 #include <algorithm>
+#include <bitset>
 #include <charconv>
+#include <stdexcept>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -278,7 +280,7 @@ class CoreBuiltinHandler {
       if (index < 0 || index >= static_cast<k_int>(str.size())) {
         throw RangeError(term, "List index out of range.");
       }
-      return str.at(index);
+      return k_string(1, str.at(index));
     }
 
     throw InvalidOperationError(
@@ -600,11 +602,58 @@ class CoreBuiltinHandler {
 
   static k_value executeToString(const Token& term, const k_value& value,
                                  const std::vector<k_value>& args) {
-    if (args.size() != 0) {
+    if (args.size() != 0 && args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.ToS);
     }
 
-    return Serializer::serialize(value);
+    if (args.empty()) {
+      return Serializer::serialize(value);
+    }
+
+    auto format = get_string(term, args.at(0));
+
+    if (String::trim(format).empty()) {
+      return Serializer::serialize(value);
+    }
+
+    if (!std::holds_alternative<double>(value) && !std::holds_alternative<k_int>(value)) {
+      throw ArgumentError(term, "Expected an `Integer` or `Double` for numeric formatting.");
+    }
+
+    std::ostringstream sv;
+
+    if (format == "b" || format == "B") {
+      auto toBinary = get_integer(term, value);
+      sv << std::bitset<sizeof(toBinary)>(toBinary);
+      return sv.str();
+    } else if (format == "x" || format == "X") {
+      sv << std::hex << get_integer(term, value);
+      if (format == "x") {
+        return sv.str();
+      }
+      return String::toUppercase(sv.str());
+    } else if (format == "o" || format == "O") {
+      sv << std::oct << get_integer(term, value);
+      if (format == "o") {
+        return sv.str();
+      }
+      return String::toUppercase(sv.str());
+    } else if (String::beginsWith(String::toLowercase(format), "f")) {
+      // Fixed point
+      auto precision = String::replace(String::toLowercase(format), "f", "");
+      try {
+        if (precision.empty()) {
+          sv << std::fixed << get_double(term, value);
+        }
+        else {
+          sv << std::fixed << std::setprecision(std::stoi(precision)) << get_double(term, value);
+        }
+        return sv.str();
+      }
+      catch (const std::exception& e) {
+        throw ArgumentError(term, "Invalid fixed-point format `" + format + "`");
+      }
+    }
   }
 
   static k_value executeSubstring(const Token& term, const k_value& value,
