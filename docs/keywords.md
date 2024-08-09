@@ -277,7 +277,7 @@ See [Types](types.md).
 ### `parse`
 The `parse` keyword is used to parse a string expression as Kiwi. 
 
-```ruby
+```kiwi
 parse('println("hello, world!")') // prints: hello, world!
 ```
 
