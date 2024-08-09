@@ -6,7 +6,7 @@ Abstract classes in Kiwi serve as a way to define classes that cannot be instant
 
 To define an abstract class, use the `abstract class` keywords followed by the class name. Abstract methods within these classes are declared using the `abstract def` keywords.
 
-```ruby
+```kiwi
 abstract class Shape
   abstract def area()
   abstract def perimeter()
@@ -19,7 +19,7 @@ When you inherit from an abstract class, you must provide implementations for al
 
 Use the `override` keyword to override the abstract method with an implementation.
 
-```ruby
+```kiwi
 class Circle < Shape
   def initialize(radius)
     @radius = radius
@@ -39,7 +39,7 @@ end
 
 Abstract classes cannot be instantiated directly. An attempt to create an instance of an abstract class will result in an error. Instead, you must instantiate a subclass that implements all abstract methods of the base class.
 
-```ruby
+```kiwi
 # This will result in an error:
 # shape = Shape.new()
 

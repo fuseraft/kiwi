@@ -6,24 +6,27 @@
 
 class TryStatement {
  public:
-    void addToken(const Token& t) { code.emplace_back(t); }
-    std::vector<Token>& getCode() { return code; }
+  void addToken(const Token& t) { code.emplace_back(t); }
+  std::vector<Token>& getCode() { return code; }
+
  private:
   std::vector<Token> code;
 };
 
 class CatchStatement {
  public:
-    void addToken(const Token& t) { code.emplace_back(t); }
-    std::vector<Token>& getCode() { return code; }
+  void addToken(const Token& t) { code.emplace_back(t); }
+  std::vector<Token>& getCode() { return code; }
+
  private:
   std::vector<Token> code;
 };
 
 class FinallyStatement {
  public:
-    void addToken(const Token& t) { code.emplace_back(t); }
-    std::vector<Token>& getCode() { return code; }
+  void addToken(const Token& t) { code.emplace_back(t); }
+  std::vector<Token>& getCode() { return code; }
+
  private:
   std::vector<Token> code;
 };

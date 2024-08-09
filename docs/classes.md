@@ -8,7 +8,7 @@ To define a class in Kiwi, use the `class` keyword followed by the class name an
 
 Each concrete class should define a constructor method, called `initialize`.
 
-```ruby
+```kiwi
 class MyClass
   def initialize(name)
     # Use the `@` symbol to declare an instance variable.
@@ -25,7 +25,7 @@ end
 
 To create an instance of a class, use the `.new()` method followed by any arguments the constructor accepts.
 
-```ruby
+```kiwi
 my_object = MyClass.new("Kiwi")
 my_object.say_hello()  # prints: Hello, Kiwi!
 ```
@@ -34,7 +34,7 @@ my_object.say_hello()  # prints: Hello, Kiwi!
 
 Kiwi supports single inheritance. Use the `<` symbol to specify the parent class.
 
-```ruby
+```kiwi
 class MySubclass < MyClass
   def initialize() end
 
@@ -48,7 +48,7 @@ end
 
 Methods are defined using the `def` keyword, followed by the method name and any parameters. Use `this` to access the current instance.
 
-```ruby
+```kiwi
 class MyClass
   def initialize() end
 
@@ -62,7 +62,7 @@ end
 
 The `override` keyword is not required to override `to_string()`.
 
-```ruby
+```kiwi
 class KiwiClass
   def initialize() end
 
@@ -81,7 +81,7 @@ println(string_repr) # prints: I am a Kiwi class
 
 Methods declared as static can be invoked directly through the class and cannot be invoked through an instance.
 
-```ruby
+```kiwi
 class MyClass
   def initialize() end
   static def static_method()
@@ -96,7 +96,7 @@ MyClass.static_method() # prints: I can be invoked without an instance!
 
 Kiwi supports `private` methods that cannot be called outside the class definition.
 
-```ruby
+```kiwi
 class MyClass
   def initialize() end
 
@@ -108,7 +108,7 @@ end
 
 You can also use `private` to declare a list of instance variable names that are to be treated as private.
 
-```ruby
+```kiwi
 class MyClass
   private(name) # declare instance variables as private
 
