@@ -129,7 +129,7 @@ Frame *flags* are bit-flags the interpreter uses to process the token stream.
 
 For example, when processing a loop, a *sub-frame* is created with a flag indicating it is being executed in a loop. 
 
-```ruby
+```kiwi
 # define a loop that runs 10 times.
 for i in [1 .. 10] do
   # The loop frame begins here.
@@ -154,7 +154,7 @@ I have ran 10 times.
 
 If within the loop frame, a `break` instruction is processed, then a flag will be set on the frame to indicate it is time to end the loop. 
 
-```ruby
+```kiwi
 # define a loop that runs 10 times.
 for i in [1 .. 10] do
   # The loop frame begins here.
@@ -177,7 +177,7 @@ I have ran 1 time.
 
 Some state is passed down the call stack. For example, when the `return` instruction is processed within a method call, if a return value is passed, then the calling frame will receive that return value.
 
-```ruby
+```kiwi
 # The program frame begins here.
 def add(n, m)
   # The sub-frame begins here.
@@ -193,7 +193,7 @@ println(number)   # Prints: 9
 
 References created within the scope of the executing frame can be passed to sub-frames (e.g. method arguments, outer-scoped variables accessed within a loop).
 
-```ruby
+```kiwi
 # The program frame begins here.
 
 # The `update` method sets the value of `variable` to the value of `value`. 

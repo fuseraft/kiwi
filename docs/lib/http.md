@@ -16,7 +16,7 @@ The `http` package contains functionality for working with HTTP requests.
 
 ## Example GET Request
 
-```ruby
+```kiwi
 res = http::get("http://httpbin.org", "/get")
 
 if res.status == 200

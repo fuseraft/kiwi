@@ -616,8 +616,10 @@ class CoreBuiltinHandler {
       return Serializer::serialize(value);
     }
 
-    if (!std::holds_alternative<double>(value) && !std::holds_alternative<k_int>(value)) {
-      throw ArgumentError(term, "Expected an `Integer` or `Double` for numeric formatting.");
+    if (!std::holds_alternative<double>(value) &&
+        !std::holds_alternative<k_int>(value)) {
+      throw ArgumentError(
+          term, "Expected an `Integer` or `Double` for numeric formatting.");
     }
 
     std::ostringstream sv;
@@ -638,20 +640,21 @@ class CoreBuiltinHandler {
         return sv.str();
       }
       return String::toUppercase(sv.str());
-    } else if (String::beginsWith(String::toLowercase(format), "f") || String::toLowercase(format) == "f") {
+    } else if (String::beginsWith(String::toLowercase(format), "f") ||
+               String::toLowercase(format) == "f") {
       // Fixed point
       try {
         auto precision = String::replace(String::toLowercase(format), "f", "");
         if (precision.empty()) {
           sv << std::fixed << std::setprecision(0) << get_double(term, value);
-        }
-        else {
-          sv << std::fixed << std::setprecision(std::stoi(precision)) << get_double(term, value);
+        } else {
+          sv << std::fixed << std::setprecision(std::stoi(precision))
+             << get_double(term, value);
         }
         return sv.str();
-      }
-      catch (const std::exception& e) {
-        throw ArgumentError(term, "Invalid fixed-point format `" + format + "`");
+      } catch (const std::exception& e) {
+        throw ArgumentError(term,
+                            "Invalid fixed-point format `" + format + "`");
       }
     }
 
