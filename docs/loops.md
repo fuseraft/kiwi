@@ -29,19 +29,23 @@ print i
 
 Sometimes you need to know how many times a loop has executed. 
 
-You can use the `with` keyword to specify an *iterator variable* which stores the number of times a loop has executed.
+You can use the `as` keyword to specify an *iterator variable* which stores the number of times a loop has executed.
 
 ```kiwi
 /#
-# repeat 10 times, with `n` as the iterator variable.
-# print the value of `n` followed by a space for each iteration.
+# repeat 10 times, using `i` as the iterator variable.
+# print the value of `i` followed by a space for each iteration.
 #/
 
-repeat 10 with (n) do
-  print "${n} "
+sum = 0
+
+repeat 10 as i do
+  sum += i
 end
 
-# output: 1 2 3 4 5 6 7 8 9 10
+print sum
+
+# output: 55
 ```
 
 ## `while`

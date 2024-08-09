@@ -206,9 +206,9 @@ See [Classes](classes.md).
 ## Packages
 
 ### `as`
-The `as` keyword is used to specify an alias for a package.
+The `as` keyword is used to specify an alias for a [`package`](#package) or to specify an iterator variable in a [`repeat`-loop](#repeat).
 
-See [Packages](packages.md).
+See [Packages](packages.md) and [Loops](loops.md).
 
 ### `export`
 The `export` keyword is used to export a package to a calling script.
