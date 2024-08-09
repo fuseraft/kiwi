@@ -497,6 +497,55 @@ class Interpreter {
     frame->clearFlag(FrameFlags::LoopContinue);
   }
 
+  void interpretRepeatLoop(k_stream stream,
+                           std::shared_ptr<CallStackFrame> frame) {
+    auto term = stream->current();
+    auto count = parseExpression(stream, frame);
+
+    if (stream->current().getType() == KTokenType::STREAM_END || !stream->matchsub(KName::KW_Do)) {
+      throw SyntaxError(term, "Expected keyword `" + Keywords.Do + "`.");
+    }
+
+    auto loopTokens = InterpHelper::collectBodyTokens(stream);
+    k_int i = 0;
+    k_int stop = get_integer(term, count, "Expected a positive non-zero integer in repeat loop count specifier.");
+
+    if (stop < i) {
+      throw SyntaxError(term, "Expected a positive non-zero integer in repeat loop count specifier.");
+    }
+
+    while (true) {
+      if (frame->isLoopControlFlagSet()) {
+        if (frame->isFlagSet(FrameFlags::LoopBreak)) {
+          break;
+        } else if (frame->isFlagSet(FrameFlags::LoopContinue)) {
+          frame->clearFlag(FrameFlags::LoopContinue);
+          continue;
+        }
+      } else if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+        break;
+      }
+
+      if (i == stop) {
+        break;
+      }
+
+      auto codeStream = std::make_shared<TokenStream>(loopTokens);
+      auto codeFrame = buildSubFrame(frame);
+      codeFrame->setFlag(FrameFlags::InLoop);
+      callStack.push(codeFrame);
+      streamStack.push(codeStream);
+
+      interpretStackFrame();
+      frame = callStack.top();
+
+      ++i;
+    }
+
+    frame->clearFlag(FrameFlags::LoopBreak);
+    frame->clearFlag(FrameFlags::LoopContinue);
+  }
+
   void interpretWhileLoop(k_stream stream,
                           std::shared_ptr<CallStackFrame> frame) {
     std::vector<Token> condition;
@@ -558,7 +607,7 @@ class Interpreter {
 
   void interpretLoop(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     const auto& loop = stream->current().getSubType();
-    stream->next();  // Skip "while"|"for"
+    stream->next();  // Skip "while"|"for"|"repeat"
 
     switch (loop) {
       case KName::KW_While:
@@ -567,6 +616,10 @@ class Interpreter {
 
       case KName::KW_For:
         interpretForLoop(stream, frame);
+        break;
+
+      case KName::KW_Repeat:
+        interpretRepeatLoop(stream, frame);
         break;
 
       default:
@@ -829,6 +882,7 @@ class Interpreter {
 
       case KName::KW_While:
       case KName::KW_For:
+      case KName::KW_Repeat:
         interpretLoop(stream, frame);
         break;
 

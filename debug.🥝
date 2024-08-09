@@ -1,2 +1,7 @@
 /# a script for experimentation and debugging. #/
 
+i = 0
+repeat 10 do
+  i += 1
+  println i
+end
