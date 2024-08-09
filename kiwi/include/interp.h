@@ -400,6 +400,12 @@ class Interpreter {
       streamStack.push(std::make_shared<TokenStream>(loopTokens));
 
       interpretStackFrame();
+
+      if (frame->isFlagSet(FrameFlags::LoopBreak) ||
+          frame->isFlagSet(FrameFlags::ReturnFlag) ||
+          frame->errorState.hasError) {
+        break;
+      }
     }
   }
 
@@ -473,7 +479,7 @@ class Interpreter {
       throw SyntaxError(stream->current(), "Expected `do` in `for` loop.");
     }
 
-    auto restore = InterpHelper::trackVariables(stream, frame, itemVariableName,
+    auto restore = InterpHelper::trackVariables(frame, itemVariableName,
                                                 indexVariableName);
 
     if (std::holds_alternative<k_list>(collectionValue)) {
@@ -502,24 +508,49 @@ class Interpreter {
     auto term = stream->current();
     auto count = parseExpression(stream, frame);
 
-    if (stream->current().getType() == KTokenType::STREAM_END ||
-        !stream->matchsub(KName::KW_Do)) {
+    if (stream->current().getType() == KTokenType::STREAM_END) {
+      throw SyntaxError(term, "Expected keyword `" + Keywords.Do + "`.");
+    }
+
+    bool hasIterator = false;
+    k_string iteratorName;
+    if (stream->current().getSubType() == KName::KW_Lambda) {
+      stream->next(); // Skip "with"
+
+      Method lambda;
+      lambda.setName(InterpHelper::getTemporaryId());
+
+      interpretMethodParameters(stream, frame, lambda);
+      if (!lambda.getParameters().empty()) {
+        iteratorName = lambda.getParameters().at(0);
+        hasIterator = true;
+      }
+    }
+
+    if (!stream->matchsub(KName::KW_Do)) {
       throw SyntaxError(term, "Expected keyword `" + Keywords.Do + "`.");
     }
 
     auto loopTokens = InterpHelper::collectBodyTokens(stream);
-    k_int i = 0;
     k_int stop = get_integer(
         term, count,
         "Expected a positive non-zero integer in repeat loop count specifier.");
-
+    
+    k_int i = 0;
     if (stop < i) {
       throw SyntaxError(term,
                         "Expected a positive non-zero integer in repeat loop "
                         "count specifier.");
     }
 
-    while (true) {
+    k_value restore = static_cast<k_int>(0);
+    bool doRestore = frame->hasVariable(iteratorName);
+    if (doRestore) {
+      restore = frame->variables.at(iteratorName);
+    }
+
+    stop += 1;
+    for (i = 1; i <= stop; ++i) {
       if (frame->isLoopControlFlagSet()) {
         if (frame->isFlagSet(FrameFlags::LoopBreak)) {
           break;
@@ -537,14 +568,21 @@ class Interpreter {
 
       auto codeStream = std::make_shared<TokenStream>(loopTokens);
       auto codeFrame = buildSubFrame(frame);
+
+      if (hasIterator) {
+        codeFrame->variables[iteratorName] = i;
+      }
+
       codeFrame->setFlag(FrameFlags::InLoop);
       callStack.push(codeFrame);
       streamStack.push(codeStream);
 
       interpretStackFrame();
       frame = callStack.top();
+    }
 
-      ++i;
+    if (doRestore) {
+      frame->variables[iteratorName] = restore;
     }
 
     frame->clearFlag(FrameFlags::LoopBreak);
