@@ -12,13 +12,36 @@ Kiwi supports the following kinds of loops. You can use the `break` keyword to e
 The `repeat`-loop is used to loop `n` number of times where `n` is a positive non-zero integer.
 
 ```kiwi
+/#
+# add 1 to `i` ten times, then print the value of `i`.
+#/
+
 i = 0
 
 repeat 10 do
   i += 1
 end
 
-println i # prints: 10
+print i
+
+# output: 10
+```
+
+Sometimes you need to know how many times a loop has executed. 
+
+You can use the `with` keyword to specify an *iterator variable* which stores the number of times a loop has executed.
+
+```kiwi
+/#
+# repeat 10 times, with `n` as the iterator variable.
+# print the value of `n` followed by a space for each iteration.
+#/
+
+repeat 10 with (n) do
+  print "${n} "
+end
+
+# output: 1 2 3 4 5 6 7 8 9 10
 ```
 
 ## `while`
