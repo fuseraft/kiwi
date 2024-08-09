@@ -5,7 +5,7 @@ sum = 0.
 flip = -1.
 
 for i in [1..n] do
-  flip *= -1.        
+  flip *= -1.
   sum += flip / (2 * i - 1)
 end
 
