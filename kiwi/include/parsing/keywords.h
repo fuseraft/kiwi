@@ -192,18 +192,19 @@ struct {
   const k_string While = "while";
 
   std::unordered_set<k_string> keywords = {
-      Abstract, As,       Async,  Await, Break, Catch,   Class,   Delete,
-      Do,       Else,     ElseIf, End,   Exit,  Export,  False,   Finally, For,
-      Function, If,       Import, In,    With,  Method,  Package, Next,
-      Null,     Override, Parse,  Pass,  Print, PrintLn, Private, Repeat, Return,
-      Static,   Then,     This,   Throw, True,  Try,     When,    While};
+      Abstract, As,      Async,   Await,    Break,  Catch,    Class,
+      Delete,   Do,      Else,    ElseIf,   End,    Exit,     Export,
+      False,    Finally, For,     Function, If,     Import,   In,
+      With,     Method,  Package, Next,     Null,   Override, Parse,
+      Pass,     Print,   PrintLn, Private,  Repeat, Return,   Static,
+      Then,     This,    Throw,   True,     Try,    When,     While};
 
   std::unordered_set<k_string> conditional_keywords = {If, Else, ElseIf, End};
 
   std::unordered_set<KName> block_keywords = {
-      KName::KW_While,   KName::KW_For, KName::KW_Method, KName::KW_If,
-      KName::KW_Package, KName::KW_Try, KName::KW_Class,  KName::KW_Lambda,
-      KName::KW_Repeat};
+      KName::KW_While, KName::KW_For,     KName::KW_Method,
+      KName::KW_If,    KName::KW_Package, KName::KW_Try,
+      KName::KW_Class, KName::KW_Lambda,  KName::KW_Repeat};
 
   bool is_keyword(const k_string& arg) {
     return keywords.find(arg) != keywords.end();

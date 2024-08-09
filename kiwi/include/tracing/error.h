@@ -273,7 +273,8 @@ class TokenStreamError : public KiwiError {
  public:
   TokenStreamError(const std::string& message)
       : KiwiError(Token::createEmpty(), "TokenStreamError", message) {}
-  TokenStreamError(const Token& token, const std::string& message = "A token stream error occurred.")
+  TokenStreamError(const Token& token, const std::string& message =
+                                           "A token stream error occurred.")
       : KiwiError(token, "TokenStreamError", message) {}
 };
 

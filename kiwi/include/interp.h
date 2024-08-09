@@ -502,16 +502,21 @@ class Interpreter {
     auto term = stream->current();
     auto count = parseExpression(stream, frame);
 
-    if (stream->current().getType() == KTokenType::STREAM_END || !stream->matchsub(KName::KW_Do)) {
+    if (stream->current().getType() == KTokenType::STREAM_END ||
+        !stream->matchsub(KName::KW_Do)) {
       throw SyntaxError(term, "Expected keyword `" + Keywords.Do + "`.");
     }
 
     auto loopTokens = InterpHelper::collectBodyTokens(stream);
     k_int i = 0;
-    k_int stop = get_integer(term, count, "Expected a positive non-zero integer in repeat loop count specifier.");
+    k_int stop = get_integer(
+        term, count,
+        "Expected a positive non-zero integer in repeat loop count specifier.");
 
     if (stop < i) {
-      throw SyntaxError(term, "Expected a positive non-zero integer in repeat loop count specifier.");
+      throw SyntaxError(term,
+                        "Expected a positive non-zero integer in repeat loop "
+                        "count specifier.");
     }
 
     while (true) {
@@ -2403,7 +2408,7 @@ class Interpreter {
                             "` keyword, instead got: `" +
                             stream->current().getText() + "`");
     }
-    
+
     int blocks = 1;
     auto building = KName::KW_Try;
     TryCatch trycatch;
@@ -2562,7 +2567,8 @@ class Interpreter {
     }
   }
 
-  void executeTryCatch(std::shared_ptr<CallStackFrame> frame, TryCatch& trycatch) {
+  void executeTryCatch(std::shared_ptr<CallStackFrame> frame,
+                       TryCatch& trycatch) {
     auto tryTokens = trycatch.getTryStatement().getCode();
     auto catchTokens = trycatch.getCatchStatement().getCode();
     auto finallyTokens = trycatch.getFinallyStatement().getCode();
@@ -2597,7 +2603,7 @@ class Interpreter {
   }
 
   void executeConditional(std::shared_ptr<CallStackFrame> frame,
-               const std::vector<Token>& executableTokens) {
+                          const std::vector<Token>& executableTokens) {
     if (executableTokens.empty()) {
       return;
     }
@@ -4077,8 +4083,7 @@ class Interpreter {
     return sv.str();
   }
 
-  k_string mangleString(k_stream stream,
-                        const k_string& input,
+  k_string mangleString(k_stream stream, const k_string& input,
                         std::unordered_map<k_string, k_string>& mangledNames) {
     std::ostringstream sv;
 
@@ -4105,7 +4110,7 @@ class Interpreter {
         }
 
         --i;  // Go back to the closing brace
-        
+
         Lexer lexer("", input.substr(start, i - start));
         std::ostringstream mangler;
         for (const auto& token : lexer.getAllTokens()) {
