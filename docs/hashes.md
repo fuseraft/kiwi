@@ -21,7 +21,7 @@ For documentation on `Hash` builtins, take a look at the [`Hash` builtins](built
 
 The keys in a hash must be unique strings.
 
-```ruby
+```kiwi
 myHash = {"key1": true, "key2": 1, "key2": [1, 2, 3, 4]}
 ```
 
@@ -29,19 +29,19 @@ myHash = {"key1": true, "key2": 1, "key2": [1, 2, 3, 4]}
 
 Bracket notation can be used to access elements by key.
 
-```ruby
+```kiwi
 println(myHash["key2"])  # Outputs: [1, 2, 3, 4]
 ```
 
 Dot notation can be used to access elements by key.
 
-```ruby
+```kiwi
 println(myHash.key2)  # Outputs: [1, 2, 3, 4]
 ```
 
 ### Adding Elements to a Hash
 
-```ruby
+```kiwi
 myHash = {}
 myHash["key1"] = [1..3]
 myHash.key2 = { "nested": "hash" }
@@ -53,7 +53,7 @@ myHash.key2 = { "nested": "hash" }
 
 You can use the `delete` keyword to remove an element of a hash by key.
 
-```ruby
+```kiwi
 hash = {"key1": 1, "key2": true, "key3": [1, 2, 3]}
 delete hash["key2"]
 println(hash) # prints: {"key1": 1, "key3": [1, 2, 3]}
@@ -63,7 +63,7 @@ println(hash) # prints: {"key1": 1, "key3": [1, 2, 3]}
 
 Use the `for` keyword and the `.keys()` Hash-builtin to iterate a hash.
 
-```ruby
+```kiwi
 # Iterate the values in the list.
 for key in myHash.keys() do
   println(myHash[key])
@@ -79,7 +79,7 @@ end
 
 Commas are optional in Kiwi.
 
-```ruby
+```kiwi
 hash = {
   "A": {
     "B": {

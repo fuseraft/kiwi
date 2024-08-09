@@ -91,7 +91,7 @@ The `global` variable is a hash that can be used to store global data. This is u
 
 Returns true if the string begins with a given string.
 
-```ruby
+```kiwi
 println("foobar".begins_with("foo"))   # prints: true
 println("foobar".begins_with("food"))  # prints: false
 ```
@@ -100,7 +100,7 @@ println("foobar".begins_with("food"))  # prints: false
 
 Converts a string into a list. Each character in the string becomes a new string in the list.
 
-```ruby
+```kiwi
 string = "Hello"
 chars = string.chars() 
 # chars = ["H", "e", "l", "l", "o"]
@@ -112,7 +112,7 @@ println("kiwi".chars()) # prints: ["a", "s", "t", "r", "a", "l"]
 
 Returns true if the string contains a given string.
 
-```ruby
+```kiwi
 println("foobar".contains("bar"))   # prints: true
 println("foobar".contains("bark"))  # prints: false
 ```
@@ -121,7 +121,7 @@ println("foobar".contains("bark"))  # prints: false
 
 Returns the lowercase value of a string.
 
-```ruby
+```kiwi
 println("FOOBAR".lowercase())   # prints: foobar
 ```
 
@@ -129,7 +129,7 @@ println("FOOBAR".lowercase())   # prints: foobar
 
 Returns true if the string ends with a given string.
 
-```ruby
+```kiwi
 println("foobar".ends_with("bar"))   # prints: true
 println("foobar".ends_with("bark"))  # prints: false
 ```
@@ -138,7 +138,7 @@ println("foobar".ends_with("bark"))  # prints: false
 
 Returns the index of a string. Returns -1 if not found.
 
-```ruby
+```kiwi
 println("foobar".index("bar"))     # prints: 3
 println("foobar".index("kiwi"))  # prints: -1
 ```
@@ -147,7 +147,7 @@ println("foobar".index("kiwi"))  # prints: -1
 
 Returns the last index of a string. Returns -1 if not found.
 
-```ruby
+```kiwi
 println("foobarbar".lastindex("bar"))  # prints: 6
 println("foobar".lastindex("kiwi"))  # prints: -1
 ```
@@ -156,7 +156,7 @@ println("foobar".lastindex("kiwi"))  # prints: -1
 
 Trims whitespace from the left-hand side of a string.
 
-```ruby
+```kiwi
 println("   Hello World!".ltrim()) # prints: Hello World!
 ```
 
@@ -164,7 +164,7 @@ println("   Hello World!".ltrim()) # prints: Hello World!
 
 Trims whitespace from the right-hand side of a string.
 
-```ruby
+```kiwi
 println("Hello World!    ".rtrim() + " Testing!") # prints: Hello World! Testing!
 ```
 
@@ -172,7 +172,7 @@ println("Hello World!    ".rtrim() + " Testing!") # prints: Hello World! Testing
 
 Trims whitespace from both sides of a string.
 
-```ruby
+```kiwi
 println("     Hello World!    ".trim() + " Testing!") # prints: Hello World! Testing!
 ```
 
@@ -180,7 +180,7 @@ println("     Hello World!    ".trim() + " Testing!") # prints: Hello World! Tes
 
 Returns the uppercase value of a string.
 
-```ruby
+```kiwi
 println("foobar".uppercase())  # prints: FOOBAR
 ```
 
@@ -188,7 +188,7 @@ println("foobar".uppercase())  # prints: FOOBAR
 
 Extract a substring from a string.
 
-```ruby
+```kiwi
 println("hello".substring(1))    # prints: ello
 println("hello".substring(1, 2)) # prints: el
 ```
@@ -199,7 +199,7 @@ println("hello".substring(1, 2)) # prints: el
 
 Searches for the first occurrence of a pattern described by a regex and returns the substring.
 
-```ruby
+```kiwi
 println("my email: example@test.com".find('\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z0-9]{2,}\b'))
 # prints: example@test.com
 ```
@@ -210,7 +210,7 @@ Returns the capture groups for the first match of the regex in the string.
 
 This function extracts parts of the string that match the given regular expression, specifically the groups defined within the pattern.
 
-```ruby
+```kiwi
 println("June 24, 2021".match('(\w+) (\d+), (\d+)')) # prints: ["June", "24", "2021"]
 ```
 
@@ -218,7 +218,7 @@ println("June 24, 2021".match('(\w+) (\d+), (\d+)')) # prints: ["June", "24", "2
 
 Tests whether the entire string conforms to a regular expression pattern.
 
-```ruby
+```kiwi
 println("hello123".matches('^([a-z]+\d{3})$'))   # prints: true
 println("hello123!".matches('^([a-z]+\d{3})$'))  # prints: false
 ```
@@ -227,7 +227,7 @@ println("hello123!".matches('^([a-z]+\d{3})$'))  # prints: false
 
 Checks if all parts of the string conform to the regex pattern.
 
-```ruby
+```kiwi
 println("123-456-7890".matches_all('\d{3}-\d{3}-\d{4}'))  # prints: true
 println("123-456-789x".matches_all('\d{3}-\d{3}-\d{4}'))  # prints: false
 ```
@@ -236,7 +236,7 @@ println("123-456-789x".matches_all('\d{3}-\d{3}-\d{4}'))  # prints: false
 
 Search for a string and replace with a given string.
 
-```ruby
+```kiwi
 println("foobar".replace("foo", "food"))      # prints: foodbar
 println("foo123bar".replace('(\d+)', '[$1]')) # prints: foo[123]bar
 println("foo123bar456".replace('\d+', "-"))   # prints: foo-bar-
@@ -246,7 +246,7 @@ println("foo123bar456".replace('\d+', "-"))   # prints: foo-bar-
 
 Finds every occurrence of the regex in the string and returns a list of matches.
 
-```ruby
+```kiwi
 println("s7s s8s s9s".scan('\d'))  # prints: ["7", "8", "9"]
 ```
 
@@ -254,7 +254,7 @@ println("s7s s8s s9s".scan('\d'))  # prints: ["7", "8", "9"]
 
 Splits a string into a list by delimiter.
 
-```ruby
+```kiwi
 println("Hello World!".split(" ")) # prints: ["Hello", "World!"]
 println("one,two,three,four".split(",", 2))  # prints: ["one", "two,three,four"]
 ```
@@ -265,7 +265,7 @@ println("one,two,three,four".split(",", 2))  # prints: ["one", "two,three,four"]
 
 Returns the list of keys from a hash.
 
-```ruby
+```kiwi
 hash = {
   "key1": true, 
   "key2": 1, 
@@ -279,7 +279,7 @@ println(hash.keys()) # prints: ["key1", "key2", "key3"]
 
 Returns true if a hash contains a given key.
 
-```ruby
+```kiwi
 hash = {
   "key1": true, 
   "key2": 1, 
@@ -293,7 +293,7 @@ println(hash.has_key("key2")) # prints: true
 
 Returns the value assigned to a given key.
 
-```ruby
+```kiwi
 hash = {
   "key1": true, 
   "key2": 1, 
@@ -307,7 +307,7 @@ println(hash.get("key3")) # prints: ["a", "b", "c"]
 
 Sets the value assigned to a given key.
 
-```ruby
+```kiwi
 hash = {
   "key1": true, 
   "key2": 1, 
@@ -322,7 +322,7 @@ println(hash.get("key3")) # prints: 31337
 
 Merge a hash with another.
 
-```ruby
+```kiwi
 hash1 = {"a": 1, "b": 2}
 hash2 = {"b": 3, "c": 4}
 println(hash1.merge(hash2)) # prints: {"a": 1, "b": 3, "c": 4}
@@ -332,7 +332,7 @@ println(hash1.merge(hash2)) # prints: {"a": 1, "b": 3, "c": 4}
 
 Returns the list of values from a hash.
 
-```ruby
+```kiwi
 hash = {
   "key1": true, 
   "key2": 1, 
@@ -348,7 +348,7 @@ println(hash.values()) # prints: [true, 1, ["a", "b", "c"]]
 
 Clears a list or a hash.
 
-```ruby
+```kiwi
 list = "Hello".chars() # ["H", "e", "l", "l", "o"]
 list.clear() # []
 ```
@@ -357,7 +357,7 @@ list.clear() # []
 
 Combine two lists into one.
 
-```ruby
+```kiwi
 println([1,2].concat([3,4])) # prints: [1, 2, 3, 4]
 ```
 
@@ -365,7 +365,7 @@ println([1,2].concat([3,4])) # prints: [1, 2, 3, 4]
 
 Count occurrences of a specific value in the list.
 
-```ruby
+```kiwi
 println("hello world".chars().count("o")) # prints: 2
 ```
 
@@ -373,7 +373,7 @@ println("hello world".chars().count("o")) # prints: 2
 
 Removes and returns a value from the beginning of a list.
 
-```ruby
+```kiwi
 list = [1, 2, 3]
 println(list.dequeue()) # prints: 1
 println(list)           # prints: [2, 3]
@@ -383,7 +383,7 @@ println(list)           # prints: [2, 3]
 
 Iterate a list, performing some action for each item in the list.
 
-```ruby
+```kiwi
 # Convert "hello" to a list of unique values, and iterate each.
 "hello".chars().unique().each(with (v, i) do
   println("${i} = ${v}")
@@ -422,7 +422,7 @@ end)
 
 Pushes a value onto a list.
 
-```ruby
+```kiwi
 list = [1, 2, 3]
 list.enqueue(4)        # prints: [1, 2, 3, 4]
 ```
@@ -431,7 +431,7 @@ list.enqueue(4)        # prints: [1, 2, 3, 4]
 
 Flatten nested lists into a single list.
 
-```ruby
+```kiwi
 println([[1, 2, 3], [[4, 5], 6], [7]].flatten())
 # prints: [1, 2, 3, 4, 5, 6, 7]
 ```
@@ -440,7 +440,7 @@ println([[1, 2, 3], [[4, 5], 6], [7]].flatten())
 
 Returns the first value in a list. Returns `null` if not found.
 
-```ruby
+```kiwi
 println([1, 2, 3].first()) # prints: 1
 ```
 
@@ -448,7 +448,7 @@ println([1, 2, 3].first()) # prints: 1
 
 Returns the last value in a list. Returns `null` if not found.
 
-```ruby
+```kiwi
 println([1, 2, 3].first()) # prints: 3
 ```
 
@@ -456,7 +456,7 @@ println([1, 2, 3].first()) # prints: 3
 
 Returns the index of an item in a list. Returns -1 if not found.
 
-```ruby
+```kiwi
 println([1, 2, 3, 4, 5].index(1))  # prints: 0
 println([1, 2, 3, 4, 5].index(6))  # prints: -1
 ```
@@ -465,7 +465,7 @@ println([1, 2, 3, 4, 5].index(6))  # prints: -1
 
 Insert a value at a specified index.
 
-```ruby
+```kiwi
 println([1, 2, 3].insert("a", 2)) # prints: [1, 2, "a", 3]
 ```
 
@@ -473,7 +473,7 @@ println([1, 2, 3].insert("a", 2)) # prints: [1, 2, "a", 3]
 
 Joins a list into a string.
 
-```ruby
+```kiwi
 println(["Hello", "World!"].join(" ")) # prints: "Hello, World!"
 ```
 
@@ -481,7 +481,7 @@ println(["Hello", "World!"].join(" ")) # prints: "Hello, World!"
 
 Returns the last index of an item in a list. Returns -1 if not found.
 
-```ruby
+```kiwi
 println([1, 0, 0, 1, 0, 1, 1].lastindex(1))  # prints 6
 println([1, 2, 3, 4, 5].lastindex(6))        # prints: -1
 ```
@@ -490,7 +490,7 @@ println([1, 2, 3, 4, 5].lastindex(6))        # prints: -1
 
 Transform a list based on a condition.
 
-```ruby
+```kiwi
 list = ["kiwi", "mango", "banana"]
 println(list.map(with (item) do return { "fruit": item, "is_a_kiwi": item.lowercase() == "kiwi" } end))
 # prints: [{"fruit": "kiwi", "is_a_kiwi": true}, {"fruit": "mango", "is_a_kiwi": false}, {"fruit": "banana", "is_a_kiwi": false}]
@@ -500,7 +500,7 @@ println(list.map(with (item) do return { "fruit": item, "is_a_kiwi": item.lowerc
 
 Get the highest value in a list.
 
-```ruby
+```kiwi
 list = [1, 2, 3]
 println(list.max()) # prints: 3
 ```
@@ -509,7 +509,7 @@ println(list.max()) # prints: 3
 
 Get the lowest value in a list.
 
-```ruby
+```kiwi
 list = [1, 2, 3]
 println(list.min()) # prints: 1
 ```
@@ -518,7 +518,7 @@ println(list.min()) # prints: 1
 
 Returns and removes a value from the end of a list.
 
-```ruby
+```kiwi
 list = [1, 2, 3]
 println(list.pop()) # prints: 3
 println(list)       # prints: [1, 2]
@@ -528,7 +528,7 @@ println(list)       # prints: [1, 2]
 
 Pushes a value onto a list.
 
-```ruby
+```kiwi
 list = [1, 2, 3]
 list.push(4)       # prints: [1, 2, 3, 4]
 ```
@@ -537,7 +537,7 @@ list.push(4)       # prints: [1, 2, 3, 4]
 
 Aggregate the items in a list.
 
-```ruby
+```kiwi
 numbers = [1, 2, 3, 4, 5]
 
 sum = numbers.reduce(0, with (accumulator, number) do
@@ -547,7 +547,7 @@ end)
 println(sum) # prints: 15
 ```
 
-```ruby
+```kiwi
 numbers = [1, 2, 3, 4, 5]
 
 hash = numbers.reduce({}, with (accumulator, number) do
@@ -563,7 +563,7 @@ println(hash)
 
 Remove the first occurrence of a specific value in a list.
 
-```ruby
+```kiwi
 println([1, 2, 3].remove(2))          # prints: [1, 3]
 println(["a", "b", 3, 4].remove("b")) # prints: ["a", 3, 4]
 ```
@@ -572,7 +572,7 @@ println(["a", "b", 3, 4].remove("b")) # prints: ["a", 3, 4]
 
 Remove a value from a list at a specified index.
 
-```ruby
+```kiwi
 println(["a", "b", 3, 4].remove_at(0)) # prints: ["b", 3, 4]
 ```
 
@@ -580,7 +580,7 @@ println(["a", "b", 3, 4].remove_at(0)) # prints: ["b", 3, 4]
 
 Reverse a list or a string.
 
-```ruby
+```kiwi
 println("kiwi".reverse()) # prints: lartsa
 ```
 
@@ -590,7 +590,7 @@ Rotate the values of the list by a specified number of positions.
 
 If `n` is negative, values are rotated left.
 
-```ruby
+```kiwi
 println("abcd".chars().rotate(1))  # prints: ["d", "a", "b", "c"]
 println("abcd".chars().rotate(0))  # prints: ["a", "b", "c", "d"]
 println("abcd".chars().rotate(-1)) # prints: ["b", "c", "d", "a"]
@@ -600,7 +600,7 @@ println("abcd".chars().rotate(-1)) # prints: ["b", "c", "d", "a"]
 
 Filter a list based on a condition.
 
-```ruby
+```kiwi
 list = ["kiwi", "mango", "banana"]
 println(list.select(with (item) do return item.contains("s") end))
 # prints: ["kiwi"]
@@ -610,7 +610,7 @@ println(list.select(with (item) do return item.contains("s") end))
 
 Returns the first value of a list.
 
-```ruby
+```kiwi
 list = [1, 2, 3]
 println(list.shift()) # prints: 1
 println(list)         # prints: [2, 3]
@@ -620,7 +620,7 @@ println(list)         # prints: [2, 3]
 
 Returns the size of a list or a string as an integer.
 
-```ruby
+```kiwi
 string = "four"
 list = [1, 2, 3, true, false]
 
@@ -632,7 +632,7 @@ println(list.size())
 
 Get a subset of the list, specifying start and end indices.
 
-```ruby
+```kiwi
 println([1, 2, 3].slice(1, 2)) # prints: [2]
 println([1, 2, 3].slice(0, 3)) # prints: [1, 2, 3]
 println([1, 2, 3].slice(0, 2)) # prints: [1, 2]
@@ -642,7 +642,7 @@ println([1, 2, 3].slice(0, 2)) # prints: [1, 2]
 
 Sorting a list.
 
-```ruby
+```kiwi
 list = ["kiwi", "mango", "guava"]
 println(list.sort()) # prints: ["guava", "kiwi", "mango"]
 ```
@@ -651,7 +651,7 @@ println(list.sort()) # prints: ["guava", "kiwi", "mango"]
 
 Sum the numeric values in a list.
 
-```ruby
+```kiwi
 list = [1, 2, 3]
 println(list.sum()) # prints: 6
 ```
@@ -660,7 +660,7 @@ println(list.sum()) # prints: 6
 
 Converts a string or list value to a list of bytes.
 
-```ruby
+```kiwi
 println("kiwi".to_bytes())         # prints: [97, 115, 116, 114, 97, 108]
 println("kiwi".chars().to_bytes()) # prints: [97, 115, 116, 114, 97, 108]
 ```
@@ -669,7 +669,7 @@ println("kiwi".chars().to_bytes()) # prints: [97, 115, 116, 114, 97, 108]
 
 Converts a list of integer values to a hexadecimal string.
 
-```ruby
+```kiwi
 println([97, 115, 116, 114, 97, 108].to_hex()) # prints: 61737472616c
 println("kiwi".chars().to_bytes().to_hex())  # prints: 61737472616c
 ```
@@ -678,7 +678,7 @@ println("kiwi".chars().to_bytes().to_hex())  # prints: 61737472616c
 
 Remove duplicate values from the list.
 
-```ruby
+```kiwi
 println("aaaabbcccc".chars().unique()) # prints: ["a", "b", "c"]
 ```
 
@@ -686,7 +686,7 @@ println("aaaabbcccc".chars().unique()) # prints: ["a", "b", "c"]
 
 Inserts a value at the beginning of a list.
 
-```ruby
+```kiwi
 list = [1, 2, 3]
 println(list.unshift(0)) # prints: [0, 1, 2, 3]
 println(list)            # prints: [0, 1, 2, 3]
@@ -696,7 +696,7 @@ println(list)            # prints: [0, 1, 2, 3]
 
 Combine values from two lists into pairs.
 
-```ruby
+```kiwi
 println([1, 2].zip([3, 4])) # prints: [[1, 3], [2, 4]]
 ```
 
@@ -706,7 +706,7 @@ println([1, 2].zip([3, 4])) # prints: [[1, 3], [2, 4]]
 
 Returns true if the value contained is a default value.
 
-```ruby
+```kiwi
 println((0).empty())    # prints: true
 println("".empty())     # prints: true
 println([].empty())     # prints: true
@@ -718,7 +718,7 @@ println(false.empty())  # prints: true
 
 Returns a deep copy of the value.
 
-```ruby
+```kiwi
 list = [1, 2, 3, true, false]
 list2 = list.clone()
 list2[0] = "hello"
@@ -731,7 +731,7 @@ println(list2) # prints: ["hello", 2, 3, true, false]
 
 Used for type-checking.
 
-```ruby
+```kiwi
 println("foobar".is_a(String)) # prints: true
 ```
 
@@ -739,7 +739,7 @@ println("foobar".is_a(String)) # prints: true
 
 Returns a pretty serialization.
 
-```ruby
+```kiwi
 hash = {
   "key1": true, 
   "key2": 1, 
@@ -765,7 +765,7 @@ prints:
 
 Converts a numeric value to a double.
 
-```ruby
+```kiwi
 pi = "3.14159".to_double()
 tau = pi * 2
 println(tau) # 6.28318
@@ -775,7 +775,7 @@ println(tau) # 6.28318
 
 Converts an object instance or a JSON string into a hash.
 
-```ruby
+```kiwi
 class SerializeMe
   def initialize()
     @name = "Kiwi"
@@ -787,7 +787,7 @@ inst = SerializeMe.new()
 println(inst.to_hash()) # prints: {"name": "Kiwi"}
 ```
 
-```ruby
+```kiwi
 json = "{
   \"boolean\": true, 
   \"double\": 3.14159, 
@@ -801,7 +801,7 @@ println(json.to_hash()) # prints: {"boolean": true, "double": 3.14159, "integer"
 
 Converts a numeric value to an integer.
 
-```ruby
+```kiwi
 n = "100".to_int()
 n += 0.5
 println(n) # 100.5
@@ -814,7 +814,7 @@ println(n) # 100
 
 Converts a value to a string.
 
-```ruby
+```kiwi
 n = 100
 s = [n, n.to_string()]
 println(s)  # prints: [100, "100"]
@@ -835,7 +835,7 @@ Optionally, for integral and double types, you can pass a format string.
 
 Returns the truthiness of a value.
 
-```ruby
+```kiwi
 println null.truthy() # prints: false       # null is never truthy
 println (0).truthy()    # prints: false       # 0 is the only non-truthy integer
 println (1).truthy()    # prints: true        
@@ -855,7 +855,7 @@ Valid types are: `Integer`, `Double`, `Boolean`, `String`, `List`, `Hash`, `Obje
 
 If the type is an object, `type()` will return the class name of the instance.
 
-```ruby
+```kiwi
 class MyClass
   def initialize()
   end
@@ -870,7 +870,7 @@ println("Kiwis are delicious!".type()) # prints: String
 
 Deserializes a string into a value.
 
-```ruby
+```kiwi
 string = "[1, 2, 3]"
 list = deserialize(string) # Deserialize a string into a list.
 list.push(4)               # Push a value to the list.
@@ -882,7 +882,7 @@ println(list)              # Prints: [1, 2, 3, 4]
 
 Serializes a value into a string.
 
-```ruby
+```kiwi
 list = [1, 2, 3]
 string = serialize(list) # Serialize a list into a string.
 

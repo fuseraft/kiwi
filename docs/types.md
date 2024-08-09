@@ -18,7 +18,7 @@ Kiwi supports the following types:
 
 An 64-bit integer.
 
-```ruby
+```kiwi
 # A whole number.
 number = 5
 number += 5
@@ -30,7 +30,7 @@ println(number) # prints: 10
 
 A floating point number.
 
-```ruby
+```kiwi
 # A real number.
 pi = 3.14159
 tau = pi * 2
@@ -42,7 +42,7 @@ println(tau) # prints: 6.28318
 
 A `true` or `false` value.
 
-```ruby
+```kiwi
 # A value indicating true or false.
 enabled = true
 
@@ -53,7 +53,7 @@ println(enabled) # prints: true
 
 A sequence of characters.  See [Strings](strings.md).
 
-```ruby
+```kiwi
 # A string of text.
 hello = "Hello, World!"
 
@@ -64,7 +64,7 @@ println(hello) # prints: Hello, World!
 
 A list of values.  See [Lists](lists.md).
 
-```ruby
+```kiwi
 # A list of values.
 list = [1, 2, 3, 4, 5]
 println(list) # prints: [1, 2, 3, 4, 5]
@@ -74,7 +74,7 @@ println(list) # prints: [1, 2, 3, 4, 5]
 
 A dictionary of key-value pairs.  See [Hashes](hashes.md).
 
-```ruby
+```kiwi
 # A simple hash with a single key `language`.
 hash = { "language": "kiwi" }
 
@@ -86,7 +86,7 @@ println(hash.language) # prints: kiwi
 
 An instance of a `class`.  See [Classes](classes.md) and [Abstract Classes](abstract_classes.md).
 
-```ruby
+```kiwi
 # Define an empty class called `MyClass`
 class MyClass
   def initialize()
@@ -103,7 +103,7 @@ println(inst)
 
 An anonymous function. Lambdas can be assigned identifiers for code reuse.  See [lambdas](lambdas.md).
 
-```ruby
+```kiwi
 # Define a reusable lambda called `puts` which accepts a parameter called `s` and prints its value.
 puts = with (s) do
   println(s)
@@ -116,7 +116,7 @@ puts("Hello, World!") # prints: Hello, World!
 
 A `null` value. A value that points to nothing.
 
-```ruby
+```kiwi
 # Define a hash, `c`, with null values.
 c = { "a": null, "b": null }
 println(c) # prints: {"a": null, "b": null}

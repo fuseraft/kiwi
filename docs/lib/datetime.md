@@ -4,7 +4,7 @@ The `DateTime` class is used to represent date and time data.
 
 ### Example
 
-```ruby
+```kiwi
 # print todays date.
 println(DateTime.format(DateTime.now().add_years(1), "%Y-%m-%d"))
 

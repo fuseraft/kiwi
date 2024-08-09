@@ -6,7 +6,7 @@ Use the `def` keyword to define a method (a function of a [`class`](classes.md))
 
 The distinction between a function and a method in Kiwi is purely semantic.
 
-```ruby
+```kiwi
 def greet(name = "Kiwi")
   println("Hello, ${name}!")
 end
@@ -19,7 +19,7 @@ greet()        # prints: Hello, Kiwi!
 
 Use the `return` keyword to return a value from a method, or to exit a method early.
 
-```ruby
+```kiwi
 def get_greeting(name)
   return "Hello, ${name}"
 end
@@ -31,7 +31,7 @@ println(greeting)
 
 ### Optional Parameters
 
-```ruby
+```kiwi
 def say(msg = "Hello, World!")
   println(msg)
 end
@@ -58,7 +58,7 @@ println(data) # prints: {"name": "Scott", "favorite_os": "Fedora"}
 
 You can access all global variables from within a method.
 
-```ruby
+```kiwi
 counter = 0
 
 def uptick()

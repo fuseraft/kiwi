@@ -6,7 +6,7 @@ You can define a lambda using the `with` keyword.
 
 For the examples below, I am using a list of hashes called `list`.
 
-```ruby
+```kiwi
 # Define a list of hashes to work with in our example.
 list = [
   {"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4},
@@ -18,7 +18,7 @@ list = [
 
 Lambdas can be used inline (without assignment).
 
-```ruby
+```kiwi
 println(list.select(with (item) do return item["id"] % 2 == 0 end))
 # prints: [{"id": 0}, {"id": 2}, {"id": 4}, {"id": 6}, {"id": 8}]
 ```
@@ -27,7 +27,7 @@ println(list.select(with (item) do return item["id"] % 2 == 0 end))
 
 You can assign a reference to a lambda for reuse.
 
-```ruby
+```kiwi
 odd_item_id = with (item) do
   return item["id"] % 2 != 0
 end
@@ -40,7 +40,7 @@ println(list.select(odd_item_id))
 
 You can pass lambdas as parameters to methods.
 
-```ruby
+```kiwi
 puts = with (s) do
   println(s)
 end

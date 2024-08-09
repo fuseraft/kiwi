@@ -4,7 +4,7 @@
 
 Single line comments begin with a `#`.
 
-```ruby
+```kiwi
 # this will print "hello"
 println("hello")
 ```
