@@ -43,6 +43,6 @@ You can pass a named command-line argument in the form of a key-value pair.
 
 You can pull these values using this package.
 
-```ruby
+```kiwi
 println(argv::opt("key")) # prints: value
 ```

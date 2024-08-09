@@ -13,6 +13,7 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
   - [`if`](#if)
   - [`in`](#in)
   - [`next`](#next)
+  - [`repeat`](#repeat)
   - [`then`](#then)
   - [`while`](#while)
   - [`when`](#when)
@@ -100,6 +101,11 @@ See [Loops](loops.md).
 The `next` keyword is used to skip to the next iteration of a loop.
 
 See [Loops](loops.md) and [Control Structures](control_structures.md).
+
+### `repeat`
+The `repeat` keyword is used to define a repeat-loop.
+
+See [Loops](loops.md).
 
 ### `then`
 The `then` keyword is used to specify code to execute after the completion of an asynchronous method invocation.
@@ -200,9 +206,9 @@ See [Classes](classes.md).
 ## Packages
 
 ### `as`
-The `as` keyword is used to specify an alias for a package.
+The `as` keyword is used to specify an alias for a [`package`](#package) or to specify an iterator variable in a [`repeat`-loop](#repeat).
 
-See [Packages](packages.md).
+See [Packages](packages.md) and [Loops](loops.md).
 
 ### `export`
 The `export` keyword is used to export a package to a calling script.
@@ -271,7 +277,7 @@ See [Types](types.md).
 ### `parse`
 The `parse` keyword is used to parse a string expression as Kiwi. 
 
-```ruby
+```kiwi
 parse('println("hello, world!")') // prints: hello, world!
 ```
 

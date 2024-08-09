@@ -304,6 +304,7 @@ kunit::register_test("loops", with () do
   kunit::assert(list == [0, 1, 2, 3, 4, 5])
   list.clear()
 
+  # nested while loops
   i = 0, test_sum = 0
   while i < 10 do
     i += 1, j = 0
@@ -336,6 +337,14 @@ kunit::register_test("loops", with () do
   end
 
   kunit::assert(counter == 6)
+
+  # repeat-loop
+  sum = 0
+  repeat 10 as i do
+    sum += i
+  end
+
+  kunit::assert(sum == 55)
 end)
 
 kunit::register_test("`when`", with () do

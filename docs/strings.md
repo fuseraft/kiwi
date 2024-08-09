@@ -19,7 +19,7 @@ For documentation on `String` builtins, take a look at the [`String` builtins](b
 
 A string wrapped in double-quotes can contain string interpolation expressions.
 
-```ruby
+```kiwi
 hello = "Hello, World!"
 println(hello) # prints: Hello, World!
 ```
@@ -28,7 +28,7 @@ println(hello) # prints: Hello, World!
 
 A string wrapped in single-quotes is treated as a raw string. This is useful to avoid double-escaping characters used in regular expressions.
 
-```ruby
+```kiwi
 some_text = "my email: example@test.com" # a regular string
 regex = '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z0-9]{2,}\b' # a raw string
 println(some_text.find(regex))  # prints: example@test.com
@@ -38,7 +38,7 @@ println(some_text.find(regex))  # prints: example@test.com
 
 You can interpolate values into a string using the `${}` syntax.
 
-```ruby
+```kiwi
 x = 50
 y = 10
 res = "${x} / ${y} = ${x / y}" # contains 3 interpolations: `x`, `y`, `x / y`
@@ -49,7 +49,7 @@ println(res) # prints: 50 / 10 = 5
 
 You can multiply strings using the multiplication operator `*` followed by an integer value. Multiplying by `0` will return an empty string.
 
-```ruby
+```kiwi
 strmul = "hello" * 2 
 println(strmul) # prints: hellohello
 ```
