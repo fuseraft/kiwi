@@ -1,5 +1,8 @@
 /# a script for experimentation and debugging. #/
 
-repeat 10 with (i) do
-  println i
+sum = 0
+repeat 10 as i do
+  sum += i
 end
+
+println sum

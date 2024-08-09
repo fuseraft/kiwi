@@ -514,17 +514,16 @@ class Interpreter {
 
     bool hasIterator = false;
     k_string iteratorName;
-    if (stream->current().getSubType() == KName::KW_Lambda) {
-      stream->next(); // Skip "with"
+    if (stream->current().getSubType() == KName::KW_As) {
+      stream->next(); // Skip "as"
 
-      Method lambda;
-      lambda.setName(InterpHelper::getTemporaryId());
-
-      interpretMethodParameters(stream, frame, lambda);
-      if (!lambda.getParameters().empty()) {
-        iteratorName = lambda.getParameters().at(0);
-        hasIterator = true;
+      if (stream->current().getType() != KTokenType::IDENTIFIER) {
+        throw SyntaxError(stream->current(), "Expected identifier for repeat-loop iterator variable.");
       }
+
+      iteratorName = stream->current().getText();
+      hasIterator = true;
+      stream->next(); // Skip identifier.
     }
 
     if (!stream->matchsub(KName::KW_Do)) {
@@ -578,7 +577,6 @@ class Interpreter {
       streamStack.push(codeStream);
 
       interpretStackFrame();
-      frame = callStack.top();
     }
 
     if (doRestore) {
