@@ -338,6 +338,7 @@ kunit::register_test("loops", with () do
 
   kunit::assert(counter == 6)
 
+  # repeat-loop
   sum = 0
   repeat 10 as i do
     sum += i
