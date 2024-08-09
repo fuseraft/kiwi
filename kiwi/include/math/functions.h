@@ -11,14 +11,18 @@
 #include "typing/value.h"
 #include "rng.h"
 
-static k_string get_string(const Token& term, const k_value& arg, const k_string& message = "Expected a string value.") {
+static k_string get_string(
+    const Token& term, const k_value& arg,
+    const k_string& message = "Expected a string value.") {
   if (!std::holds_alternative<k_string>(arg)) {
     throw ConversionError(term, message);
   }
   return std::get<k_string>(arg);
 }
 
-static k_int get_integer(const Token& term, const k_value& arg, const k_string& message = "Expected an integer value.") {
+static k_int get_integer(
+    const Token& term, const k_value& arg,
+    const k_string& message = "Expected an integer value.") {
   if (std::holds_alternative<double>(arg)) {
     return static_cast<k_int>(std::get<double>(arg));
   }
@@ -28,7 +32,9 @@ static k_int get_integer(const Token& term, const k_value& arg, const k_string& 
   return std::get<k_int>(arg);
 }
 
-static double get_double(const Token& term, const k_value& arg, const k_string& message = "Expected an integer or double value.") {
+static double get_double(
+    const Token& term, const k_value& arg,
+    const k_string& message = "Expected an integer or double value.") {
   if (std::holds_alternative<k_int>(arg)) {
     return static_cast<double>(std::get<k_int>(arg));
   } else if (std::holds_alternative<double>(arg)) {
