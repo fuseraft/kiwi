@@ -33,7 +33,7 @@ It is crafted using the following keywords:
 
 #### Syntax: `if`
 
-```ruby
+```kiwi
 if condition
     [ statements ]
 [ elsif elsif_condition
@@ -44,7 +44,7 @@ end
 ```
 
 #### Example: `if`
-```ruby
+```kiwi
 a = 0, b = 1
 
 if a < b
@@ -68,13 +68,13 @@ The `when` keyword is used to define a condition for the following control struc
 
 #### Syntax: `when`
 
-```ruby
+```kiwi
 control_structure [ expression ] when condition
 ```
 
 #### Example: `when`
 
-```ruby
+```kiwi
 def sum(list)
   throw "Cannot sum a non-List value." when !list.is_a(List)
   return 0 when list.empty()
@@ -89,13 +89,13 @@ println(sum([]))     # prints: 0
 
 #### Syntax: `?:`
 
-```ruby
+```kiwi
 condition ? true_expression : false_expression
 ```
 
 #### Example: `?:`
 
-```ruby
+```kiwi
 def min(a, b)
   return a < b ? a : b
 end

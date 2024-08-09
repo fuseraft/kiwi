@@ -3,8 +3,50 @@
 Kiwi supports the following kinds of loops. You can use the `break` keyword to exit a loop. You can use the `next` keyword to skip to the next iteration.
 
 ## Table of Contents
-1. [`while`](#while)
-2. [`for`](#for)
+1. [`repeat`](#repeat)
+2. [`while`](#while)
+3. [`for`](#for)
+
+## `repeat`
+
+The `repeat`-loop is used to loop `n` number of times where `n` is a positive non-zero integer.
+
+```kiwi
+/#
+# add 1 to `i` ten times, then print the value of `i`.
+#/
+
+i = 0
+
+repeat 10 do
+  i += 1
+end
+
+print i
+
+# output: 10
+```
+
+Sometimes you need to know how many times a loop has executed. 
+
+You can use the `as` keyword to specify an *iterator variable* which stores the number of times a loop has executed.
+
+```kiwi
+/#
+# repeat 10 times, using `i` as the iterator variable.
+# print the value of `i` followed by a space for each iteration.
+#/
+
+sum = 0
+
+repeat 10 as i do
+  sum += i
+end
+
+print sum
+
+# output: 55
+```
 
 ## `while`
 
@@ -12,7 +54,7 @@ The `while`-loop is used to loop based on a condition.
 
 ##### Loop Based on a Condition
 
-```ruby
+```kiwi
 i = 0
 while i <= 10 do
   i += 1
@@ -24,7 +66,7 @@ end
 
 To loop indefinitely, the loop condition expression must evaluate to `true`.
 
-```ruby
+```kiwi
 import "@kiwi/time" # for `delay()`
 while true do
   print("\rPress Ctrl+C to exit!")
@@ -36,7 +78,7 @@ end
 
 Exiting a loop with the `break` keyword.
 
-```ruby
+```kiwi
 i = 0
 while true do
   i += 1
@@ -49,7 +91,7 @@ end
 
 ##### Loop Continuation
 Skipping iterations with the `next` keyword.
-```ruby
+```kiwi
 i = 0
 while true do
   i += 1
@@ -74,7 +116,7 @@ In Kiwi, `for`-loops are used to iterate collections.
 
 Loop on the `.keys()` builtin to iterate the keys of a hash.
 
-```ruby
+```kiwi
 # Iterate the keys in the hash.
 for key in myHash.keys() do
   println("${key}: ${myHash[key]}")
@@ -88,7 +130,7 @@ end
 
 Loop on the `.values()` builtin to iterate the values of a hash.
 
-```ruby
+```kiwi
 # Iterate the values in the hash.
 for value in myHash.values() do
   println(value)
@@ -104,7 +146,7 @@ end
 
 Use the `for` keyword to iterate a list.
 
-```ruby
+```kiwi
 fruits = ["kiwi", "mango", "lime"]
 
 # Iterate the values in the list.
@@ -122,7 +164,7 @@ end
 
 Use the `for` keyword to iterate a range.
 
-```ruby
+```kiwi
 for i in [1..10] do
   println("${i}")
 end

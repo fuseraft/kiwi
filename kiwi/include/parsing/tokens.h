@@ -134,7 +134,12 @@ class Token {
   Token(const KTokenType& t, const KName& st, const int& fileId,
         const k_string& text, const k_value& v, const int& lineNumber,
         const int& linePosition)
-      : type(t), subType(st), fileId(fileId), text(text), originalText(text), value(v) {
+      : type(t),
+        subType(st),
+        fileId(fileId),
+        text(text),
+        originalText(text),
+        value(v) {
     _lineNumber = lineNumber;
     _linePosition = linePosition;
   }

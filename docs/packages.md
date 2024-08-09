@@ -4,7 +4,7 @@ Use the `package` keyword to define a package. Use the `import` keyword to impor
 
 Methods defined in a package can only be accessed using a fully qualified name.
 
-```ruby
+```kiwi
 # Defining packages.
 package greeter
   def greet(name)
@@ -50,7 +50,7 @@ In this example, we have two Kiwi scripts:
 2. **app.🥝**: Imports and uses functionality defined in the homed package `fuseraft/fun`.
 
 #### `./lib/fun.🥝`
-```ruby
+```kiwi
 package fun
   __home__("fuseraft")
 
@@ -63,7 +63,7 @@ export "fun" # Exports the "fun" package to the calling script.
 ```
 
 #### `./app.🥝`
-```ruby
+```kiwi
 import "@fuseraft/fun"
 
 fun::method() # prints: Kiwi is fun!
@@ -74,7 +74,7 @@ fun::method() # prints: Kiwi is fun!
 You can specify an alias for an imported package. This creates a class that cannot be instantiated. The class will contain static methods matching the methods defined in the package. 
 
 #### `./lib/fun.🥝`
-```ruby
+```kiwi
 package fun
   __home__("fuseraft")
 
@@ -87,7 +87,7 @@ export "fun" # Exports the "fun" package to the calling script.
 ```
 
 #### `./app.🥝`
-```ruby
+```kiwi
 import "@fuseraft/fun" as Fun
 
 Fun.method() # prints: Kiwi is fun!

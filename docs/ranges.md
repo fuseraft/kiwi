@@ -4,7 +4,7 @@ Ranges in Kiwi can be used to define a range of integers.
 
 ###
 
-```ruby
+```kiwi
 println([1..5])
 # [1, 2, 3, 4, 5]
 

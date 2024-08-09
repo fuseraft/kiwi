@@ -269,6 +269,7 @@ enum KName {
   KW_Print,
   KW_PrintLn,
   KW_Private,
+  KW_Repeat,
   KW_Return,
   KW_Static,
   KW_Then,

@@ -301,6 +301,8 @@ class Lexer {
       st = KName::KW_PrintLn;
     } else if (keyword == Keywords.Private) {
       st = KName::KW_Private;
+    } else if (keyword == Keywords.Repeat) {
+      st = KName::KW_Repeat;
     } else if (keyword == Keywords.Return) {
       st = KName::KW_Return;
     } else if (keyword == Keywords.Static) {

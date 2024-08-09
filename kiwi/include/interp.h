@@ -400,6 +400,12 @@ class Interpreter {
       streamStack.push(std::make_shared<TokenStream>(loopTokens));
 
       interpretStackFrame();
+
+      if (frame->isFlagSet(FrameFlags::LoopBreak) ||
+          frame->isFlagSet(FrameFlags::ReturnFlag) ||
+          frame->errorState.hasError) {
+        break;
+      }
     }
   }
 
@@ -473,7 +479,7 @@ class Interpreter {
       throw SyntaxError(stream->current(), "Expected `do` in `for` loop.");
     }
 
-    auto restore = InterpHelper::trackVariables(stream, frame, itemVariableName,
+    auto restore = InterpHelper::trackVariables(frame, itemVariableName,
                                                 indexVariableName);
 
     if (std::holds_alternative<k_list>(collectionValue)) {
@@ -491,6 +497,90 @@ class Interpreter {
 
     for (const auto& pair : restore) {
       frame->variables[pair.first] = pair.second;
+    }
+
+    frame->clearFlag(FrameFlags::LoopBreak);
+    frame->clearFlag(FrameFlags::LoopContinue);
+  }
+
+  void interpretRepeatLoop(k_stream stream,
+                           std::shared_ptr<CallStackFrame> frame) {
+    auto term = stream->current();
+    auto count = parseExpression(stream, frame);
+
+    if (stream->current().getType() == KTokenType::STREAM_END) {
+      throw SyntaxError(term, "Expected keyword `" + Keywords.Do + "`.");
+    }
+
+    bool hasIterator = false;
+    k_string iteratorName;
+    if (stream->current().getSubType() == KName::KW_As) {
+      stream->next(); // Skip "as"
+
+      if (stream->current().getType() != KTokenType::IDENTIFIER) {
+        throw SyntaxError(stream->current(), "Expected identifier for repeat-loop iterator variable.");
+      }
+
+      iteratorName = stream->current().getText();
+      hasIterator = true;
+      stream->next(); // Skip identifier.
+    }
+
+    if (!stream->matchsub(KName::KW_Do)) {
+      throw SyntaxError(term, "Expected keyword `" + Keywords.Do + "`.");
+    }
+
+    auto loopTokens = InterpHelper::collectBodyTokens(stream);
+    k_int stop = get_integer(
+        term, count,
+        "Expected a positive non-zero integer in repeat loop count specifier.");
+    
+    k_int i = 0;
+    if (stop < i) {
+      throw SyntaxError(term,
+                        "Expected a positive non-zero integer in repeat loop "
+                        "count specifier.");
+    }
+
+    k_value restore = static_cast<k_int>(0);
+    bool doRestore = frame->hasVariable(iteratorName);
+    if (doRestore) {
+      restore = frame->variables.at(iteratorName);
+    }
+
+    stop += 1;
+    for (i = 1; i <= stop; ++i) {
+      if (frame->isLoopControlFlagSet()) {
+        if (frame->isFlagSet(FrameFlags::LoopBreak)) {
+          break;
+        } else if (frame->isFlagSet(FrameFlags::LoopContinue)) {
+          frame->clearFlag(FrameFlags::LoopContinue);
+          continue;
+        }
+      } else if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+        break;
+      }
+
+      if (i == stop) {
+        break;
+      }
+
+      auto codeStream = std::make_shared<TokenStream>(loopTokens);
+      auto codeFrame = buildSubFrame(frame);
+
+      if (hasIterator) {
+        codeFrame->variables[iteratorName] = i;
+      }
+
+      codeFrame->setFlag(FrameFlags::InLoop);
+      callStack.push(codeFrame);
+      streamStack.push(codeStream);
+
+      interpretStackFrame();
+    }
+
+    if (doRestore) {
+      frame->variables[iteratorName] = restore;
     }
 
     frame->clearFlag(FrameFlags::LoopBreak);
@@ -558,7 +648,7 @@ class Interpreter {
 
   void interpretLoop(k_stream stream, std::shared_ptr<CallStackFrame> frame) {
     const auto& loop = stream->current().getSubType();
-    stream->next();  // Skip "while"|"for"
+    stream->next();  // Skip "while"|"for"|"repeat"
 
     switch (loop) {
       case KName::KW_While:
@@ -567,6 +657,10 @@ class Interpreter {
 
       case KName::KW_For:
         interpretForLoop(stream, frame);
+        break;
+
+      case KName::KW_Repeat:
+        interpretRepeatLoop(stream, frame);
         break;
 
       default:
@@ -829,6 +923,7 @@ class Interpreter {
 
       case KName::KW_While:
       case KName::KW_For:
+      case KName::KW_Repeat:
         interpretLoop(stream, frame);
         break;
 
@@ -2349,7 +2444,7 @@ class Interpreter {
                             "` keyword, instead got: `" +
                             stream->current().getText() + "`");
     }
-    
+
     int blocks = 1;
     auto building = KName::KW_Try;
     TryCatch trycatch;
@@ -2508,7 +2603,8 @@ class Interpreter {
     }
   }
 
-  void executeTryCatch(std::shared_ptr<CallStackFrame> frame, TryCatch& trycatch) {
+  void executeTryCatch(std::shared_ptr<CallStackFrame> frame,
+                       TryCatch& trycatch) {
     auto tryTokens = trycatch.getTryStatement().getCode();
     auto catchTokens = trycatch.getCatchStatement().getCode();
     auto finallyTokens = trycatch.getFinallyStatement().getCode();
@@ -2543,7 +2639,7 @@ class Interpreter {
   }
 
   void executeConditional(std::shared_ptr<CallStackFrame> frame,
-               const std::vector<Token>& executableTokens) {
+                          const std::vector<Token>& executableTokens) {
     if (executableTokens.empty()) {
       return;
     }
@@ -4023,8 +4119,7 @@ class Interpreter {
     return sv.str();
   }
 
-  k_string mangleString(k_stream stream,
-                        const k_string& input,
+  k_string mangleString(k_stream stream, const k_string& input,
                         std::unordered_map<k_string, k_string>& mangledNames) {
     std::ostringstream sv;
 
@@ -4051,7 +4146,7 @@ class Interpreter {
         }
 
         --i;  // Go back to the closing brace
-        
+
         Lexer lexer("", input.substr(start, i - start));
         std::ostringstream mangler;
         for (const auto& token : lexer.getAllTokens()) {
