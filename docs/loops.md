@@ -3,8 +3,23 @@
 Kiwi supports the following kinds of loops. You can use the `break` keyword to exit a loop. You can use the `next` keyword to skip to the next iteration.
 
 ## Table of Contents
-1. [`while`](#while)
-2. [`for`](#for)
+1. [`repeat`](#repeat)
+2. [`while`](#while)
+3. [`for`](#for)
+
+## `repeat`
+
+The `repeat`-loop is used to loop `n` number of times where `n` is a positive non-zero integer.
+
+```ruby
+i = 0
+
+repeat 10 do
+  i += 1
+end
+
+println i # prints: 10
+```
 
 ## `while`
 
