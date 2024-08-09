@@ -13,6 +13,7 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
   - [`if`](#if)
   - [`in`](#in)
   - [`next`](#next)
+  - [`repeat`](#repeat)
   - [`then`](#then)
   - [`while`](#while)
   - [`when`](#when)
@@ -100,6 +101,11 @@ See [Loops](loops.md).
 The `next` keyword is used to skip to the next iteration of a loop.
 
 See [Loops](loops.md) and [Control Structures](control_structures.md).
+
+### `repeat`
+The `repeat` keyword is used to define a repeat-loop.
+
+See [Loops](loops.md).
 
 ### `then`
 The `then` keyword is used to specify code to execute after the completion of an asynchronous method invocation.
