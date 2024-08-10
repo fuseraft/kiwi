@@ -506,8 +506,9 @@ struct InterpHelper {
     throw VariableUndefinedError(stream->current(), name);
   }
 
-  static std::unordered_map<k_string, k_value> trackVariables(std::shared_ptr<CallStackFrame> frame,
-      const std::string& firstValue, const std::string& secondValue) {
+  static std::unordered_map<k_string, k_value> trackVariables(
+      std::shared_ptr<CallStackFrame> frame, const std::string& firstValue,
+      const std::string& secondValue) {
     std::unordered_map<k_string, k_value> restore;
     if (frame->hasVariable(firstValue)) {
       restore[firstValue] = frame->variables.at(firstValue);
