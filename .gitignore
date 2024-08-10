@@ -2,6 +2,7 @@ cleanup.rb
 .vscode/settings.json
 src/main
 bin/kiwi
+analyze
 build
 bin
 logs
