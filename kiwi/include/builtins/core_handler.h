@@ -173,6 +173,9 @@ class CoreBuiltinHandler {
       case KName::Builtin_Kiwi_Slice:
         return executeSlice(term, value, args);
 
+      case KName::Builtin_Kiwi_Swap:
+        return executeSwap(term, value, args);
+
       case KName::Builtin_Kiwi_Concat:
         return executeConcat(term, value, args);
 
@@ -296,16 +299,48 @@ class CoreBuiltinHandler {
 
     if (std::holds_alternative<k_hash>(value)) {
       auto key = get_string(term, args.at(0));
-      auto hash = std::get<k_hash>(value);
+      auto& hash = std::get<k_hash>(value);
       hash->add(key, args.at(1));
       return hash;
     } else if (std::holds_alternative<k_list>(value)) {
       auto index = get_integer(term, args.at(0));
-      auto elements = std::get<k_list>(value)->elements;
+      auto& elements = std::get<k_list>(value)->elements;
       if (index < 0 || index >= static_cast<k_int>(elements.size())) {
         throw RangeError(term, "List index out of range.");
       }
       elements[index] = args.at(1);
+      return value;
+    }
+
+    throw InvalidOperationError(
+        term,
+        "Expected a `Hash` or `List` in call to `" + KiwiBuiltins.Set + "`");
+  }
+
+  static k_value executeSwap(const Token& term, const k_value& value,
+                             const std::vector<k_value>& args) {
+    if (args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Swap);
+    }
+
+    if (std::holds_alternative<k_list>(value)) {
+      auto firstIndex = get_integer(term, args.at(0));
+      auto secondIndex = get_integer(term, args.at(1));
+      auto& elements = std::get<k_list>(value)->elements;
+      if (firstIndex < 0 || firstIndex >= static_cast<k_int>(elements.size())) {
+        throw RangeError(term, "The first parameter for " + KiwiBuiltins.Swap +
+                                   " is out of range.");
+      }
+      if (secondIndex < 0 ||
+          secondIndex >= static_cast<k_int>(elements.size())) {
+        throw RangeError(term, "The second parameter for " + KiwiBuiltins.Swap +
+                                   " is out of range.");
+      }
+
+      auto firstValue = elements[firstIndex];
+      auto secondValue = elements[secondIndex];
+      elements[firstIndex] = secondValue;
+      elements[secondIndex] = firstValue;
       return value;
     }
 
