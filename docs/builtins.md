@@ -62,6 +62,7 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
   - [`slice(start, end)`](#slicestart-end)
   - [`sort()`](#sort)
   - [`sum()`](#sum)
+  - [`swap()`](#swap)
   - [`to_bytes()`](#to_bytes)
   - [`to_hex()`](#to_hex)
   - [`unique()`](#unique)
@@ -654,6 +655,16 @@ Sum the numeric values in a list.
 ```kiwi
 list = [1, 2, 3]
 println(list.sum()) # prints: 6
+```
+
+### `swap()`
+
+Swaps two values in a list by index.
+
+```kiwi
+list = [1, 2, 3]
+list.swap(0, 1)
+println(list) # prints: [2, 1, 3]
 ```
 
 ### `to_bytes()`
