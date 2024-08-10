@@ -3043,7 +3043,7 @@ class Interpreter {
       builder << std::endl;
     }
 
-    std::cout << builder.str();
+    std::cout << builder.str() << std::flush;
     builder.str("");
     builder.clear();
   }

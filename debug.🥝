@@ -1,8 +1,12 @@
 /# a script for experimentation and debugging. #/
 
-sum = 0
-repeat 10 as i do
-  sum += i
+my_face = ["^.^", ">.>", "v.v", "<.<"]
+
+repeat 10 do
+  for face in my_face do
+    print "\r${face}"
+    __delay__(500)
+  end
 end
 
-println sum
+println ""
