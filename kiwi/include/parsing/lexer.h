@@ -1089,6 +1089,8 @@ class Lexer {
       st = KName::Builtin_Kiwi_Get;
     } else if (builtin == KiwiBuiltins.Set) {
       st = KName::Builtin_Kiwi_Set;
+    } else if (builtin == KiwiBuiltins.Swap) {
+      st = KName::Builtin_Kiwi_Swap;
     } else if (builtin == KiwiBuiltins.First) {
       st = KName::Builtin_Kiwi_First;
     } else if (builtin == KiwiBuiltins.Last) {
