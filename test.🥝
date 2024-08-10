@@ -116,64 +116,135 @@ kunit::register_test("strings", with () do
 end)
 
 kunit::register_test("lists", with () do
-  list = [1, 2, 3], string = "31337", integer = string.to_int(), double = string.to_double()
-  list << [string, integer, double]
-  kunit::assert(list == [1, 2, 3, ["31337", 31337, 31337.]])
-  kunit::assert(list.size() == 4)
+  # Basic List Operations
+  basic_list = [1, 2, 3]
+  kunit::assert(basic_list.size() == 3)
+  kunit::assert(basic_list[0] == 1)
+  kunit::assert(basic_list[1] == 2)
+  kunit::assert(basic_list[2] == 3)
 
-  list = ["The", "Kiwi", "Programming", "Language"]
-  list = ["The", "Kiwi", "Programming", "Language"]
-  kunit::assert("${list.join(" ")}" == "The Kiwi Programming Language")
-  kunit::assert("${list.join("-")}" == "The-Kiwi-Programming-Language")
-  kunit::assert(list.join("") == "TheKiwiProgrammingLanguage")
-  kunit::assert(list.join() == "TheKiwiProgrammingLanguage")
+  # List Insertion
+  basic_list.push(4)
+  kunit::assert(basic_list == [1, 2, 3, 4])
 
+  # List Concatenation
+  other_list = [5, 6, 7]
+  combined_list = basic_list.concat(other_list)
+  kunit::assert(combined_list == [1, 2, 3, 4, 5, 6, 7])
+
+  # List Joining
+  words = ["The", "Kiwi", "Programming", "Language"]
+  kunit::assert(words.join(" ") == "The Kiwi Programming Language")
+  kunit::assert(words.join("-") == "The-Kiwi-Programming-Language")
+  kunit::assert(words.join("") == "TheKiwiProgrammingLanguage")
+  kunit::assert(words.join() == "TheKiwiProgrammingLanguage")
+
+  # List Slicing
+  sliced_list = combined_list[2:5]
+  kunit::assert(sliced_list == [3, 4, 5])
+
+  # List Reversal
+  reversed_list = combined_list[::-1]
+  kunit::assert(reversed_list == [7, 6, 5, 4, 3, 2, 1])
+
+  # Nested Lists and Flattening
+  nested_list = [1, 2, [3, 4], [5, [6, 7]]]
+  kunit::assert(nested_list.flatten() == [1, 2, 3, 4, 5, 6, 7])
+
+  # List Insertion and Replacement
   a = [1, 2, 3, 4], b = ["a", "b", "c", "d"], c = [true, false, true, false]
 
-  a[0] <<= b[0]      # Insert operation.
+  a[0] <<= b[0]  # Insert operation
   kunit::assert(a == ["a", 1, 2, 3, 4])
   
-  a[0] <<= b[0:2:-1] # Insert reversed range.
+  a[0] <<= b[0:2:-1]  # Insert reversed range
   kunit::assert(a == ["d", "c", "a", 1, 2, 3, 4])
   
-  a[0] = b[0]        # Replace operation.
+  a[0] = b[0]  # Replace operation
   kunit::assert(a == ["a", "c", "a", 1, 2, 3, 4]) 
   
-  a[0] = b[1]        # Replace operation.
+  a[0] = b[1]  # Replace operation
   kunit::assert(a == ["b", "c", "a", 1, 2, 3, 4]) 
   
-  a[3] = b[2]        # Replace operation.
+  a[3] = b[2]  # Replace operation
   kunit::assert(a == ["b", "c", "a", "c", 2, 3, 4])
   
-  a[0:2] = c[0:2]    # Slice assignment.
+  a[0:2] = c[0:2]  # Slice assignment
   kunit::assert(a == [true, false, "a", "c", 2, 3, 4])
   
-  a[0:2] = c[0:2:-1] # Slice assignment of reversed slice.
+  a[0:2] = c[0:2:-1]  # Slice assignment of reversed slice
   kunit::assert(a == [false, true, "a", "c", 2, 3, 4])
 
-  a_list = [1, 3, "hello, world!", [5, "asdf", true], [2, 4]]
-  c = a_list[2]
-  d = a_list[0:1000000]
+  # String to List Conversion and Manipulation
+  char_list = "abcdef".chars()
+  kunit::assert(char_list == ["a", "b", "c", "d", "e", "f"])
 
-  kunit::assert(c == "hello, world!")
-  kunit::assert(d == [1, 3, "hello, world!", [5, "asdf", true], [2, 4]])
-
-  b = [1, 2, 3, 4]
-  b = b[::-1]
-  kunit::assert(b == [4, 3, 2, 1])
-
-  list = "abcdef".chars()
+  # Empty List Verification
   new_list = []
-  while !list.empty() do
-    new_list << list.first()
-    delete list[0]
+  while !char_list.empty() do
+    new_list << char_list.first()
+    delete char_list[0]
   end
 
-  kunit::assert(list.empty())
+  kunit::assert(char_list.empty())
   kunit::assert(new_list == ["a", "b", "c", "d", "e", "f"])
 
-  a = [1..5]
-  kunit::assert(a == [1, 2, 3, 4, 5])
+  # List Initialization with a Range
+  range_list = [1..5]
+  kunit::assert(range_list == [1, 2, 3, 4, 5])
+end)
+
+
+kunit::register_test("sets", with () do
+  s1 = Set.new([1, 2, 3])
+  s2 = Set.new([1, 2])
+  s3 = Set.new([4, 5])
+  s4 = Set.new([1, 2, 3, 4])
+
+  kunit::assert(s1.subset(s2) == false)
+  kunit::assert(s2.subset(s1) == true)
+  kunit::assert(s3.subset(s1) == false)
+  kunit::assert(s2.subset(s2) == true)
+  kunit::assert(s2.subset(s4) == true)
+  kunit::assert(s1.superset(s2) == true)
+  kunit::assert(s2.superset(s1) == false)
+  kunit::assert(s1.superset(s3) == false)
+  kunit::assert(s2.superset(s2) == true)
+  kunit::assert(s4.superset(s2) == true)
+  
+  a1 = Set.new([3,6,4])
+  a2 = Set.new([1,2,3,4,5,6,7,8,9])
+  
+  a3 = a2.difference(a1)
+  kunit::assert(a3.to_list() == [1,2,5,7,8,9])
+  
+  a3.clear()
+  kunit::assert(a3.to_list().empty())
+end)
+
+kunit::register_test("heaps", with () do
+  min_heap = Heap.new("min")
+  max_heap = Heap.new("max")
+
+  # Insert elements into the min-heap
+  min_heap.insert(5)
+  min_heap.insert(3)
+  min_heap.insert(8)
+  min_heap.insert(1)
+
+  # Extract root from min-heap
+  kunit::assert(min_heap.extract_root() == 1)
+  kunit::assert(min_heap.extract_root() == 3)
+
+  # Insert elements into the max-heap
+  max_heap.insert(5)
+  max_heap.insert(3)
+  max_heap.insert(8)
+  max_heap.insert(1)
+
+  # Extract root from max-heap
+  kunit::assert(max_heap.extract_root() == 8)
+  kunit::assert(max_heap.extract_root() == 5)
 end)
 
 kunit::register_test("hashes", with () do
@@ -345,6 +416,13 @@ kunit::register_test("loops", with () do
   end
 
   kunit::assert(sum == 55)
+
+  x = 2
+  repeat 4 do
+    x *= x
+  end
+  
+  kunit::assert(x == 65536)
 end)
 
 kunit::register_test("`when`", with () do
@@ -389,33 +467,6 @@ kunit::register_test("serialization", with () do
   hash.flag = true
   hash["sub_hash"] = { "key": "value" }
   kunit::assert(hash == {"name": "kiwi", "flag": true, "sub_hash": {"key": "value"}})
-end)
-
-kunit::register_test("set", with () do
-  s1 = Set.new([1, 2, 3])
-  s2 = Set.new([1, 2])
-  s3 = Set.new([4, 5])
-  s4 = Set.new([1, 2, 3, 4])
-
-  kunit::assert(s1.subset(s2) == false)
-  kunit::assert(s2.subset(s1) == true)
-  kunit::assert(s3.subset(s1) == false)
-  kunit::assert(s2.subset(s2) == true)
-  kunit::assert(s2.subset(s4) == true)
-  kunit::assert(s1.superset(s2) == true)
-  kunit::assert(s2.superset(s1) == false)
-  kunit::assert(s1.superset(s3) == false)
-  kunit::assert(s2.superset(s2) == true)
-  kunit::assert(s4.superset(s2) == true)
-  
-  a1 = Set.new([3,6,4])
-  a2 = Set.new([1,2,3,4,5,6,7,8,9])
-  
-  a3 = a2.difference(a1)
-  kunit::assert(a3.to_list() == [1,2,5,7,8,9])
-  
-  a3.clear()
-  kunit::assert(a3.to_list().empty())
 end)
 
 kunit::register_test("try-finally", with () do
