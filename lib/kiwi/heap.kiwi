@@ -1,0 +1,101 @@
+/# An implementation for working with heaps. #/
+
+class Heap
+  def initialize(type = "min")
+    @heap = []
+    @type = ["min", "max"].contains(type) ? type : "min"
+  end
+
+  def insert(value)
+    @heap.push(value)
+    heapify_up(@heap.size() - 1)
+  end
+
+  def extract_root()
+    throw "Heap is empty" when @heap.empty()
+
+    root = @heap.get(0)
+    
+    if @heap.size() > 1
+      @heap.set(0, @heap.pop())  # Move the last element to the root
+      heapify_down(0)
+    else
+      @heap.pop()  # Remove the last element if it's the only one left
+    end
+
+    return root
+  end
+
+  def peek()
+    throw "Heap is empty" when @heap.empty()
+    return @heap.get(0)
+  end
+
+  def size()
+    return @heap.size()
+  end
+
+  def is_empty()
+    return @heap.empty()
+  end
+
+  private def heapify_up(index)
+    parent_index = (index - 1) / 2
+
+    if @type == "min"
+      while index > 0 && @heap.get(index) < @heap.get(parent_index) do
+        swap(index, parent_index)
+        index = parent_index
+        parent_index = (index - 1) / 2
+      end
+    else
+      while index > 0 && @heap.get(index) > @heap.get(parent_index) do
+        swap(index, parent_index)
+        index = parent_index
+        parent_index = (index - 1) / 2
+      end
+    end
+  end
+
+  private def heapify_down(index)
+    left_child_index = 2 * index + 1
+    right_child_index = 2 * index + 2
+    size = @heap.size()
+    
+    if @type == "min"
+      smallest = index
+
+      if left_child_index < size && @heap.get(left_child_index) < @heap.get(smallest)
+        smallest = left_child_index
+      end
+      
+      if right_child_index < size && @heap.get(right_child_index) < @heap.get(smallest)
+        smallest = right_child_index
+      end
+      
+      if smallest != index
+        swap(index, smallest)
+        heapify_down(smallest)
+      end
+    else
+      largest = index
+      
+      if left_child_index < size && @heap.get(left_child_index) > @heap.get(largest)
+        largest = left_child_index
+      end
+      
+      if right_child_index < size && @heap.get(right_child_index) > @heap.get(largest)
+        largest = right_child_index
+      end
+      
+      if largest != index
+        swap(index, largest)
+        heapify_down(largest)
+      end
+    end
+  end
+
+  private def swap(i, j)
+    @heap.swap(i, j)
+  end
+end
