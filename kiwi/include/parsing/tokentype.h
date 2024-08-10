@@ -96,6 +96,7 @@ enum KName {
   Builtin_Kiwi_Matches,
   Builtin_Kiwi_MatchesAll,
   Builtin_Kiwi_Scan,
+  Builtin_Kiwi_Swap,
   Builtin_Kiwi_Set,
   Builtin_Kiwi_Get,
   Builtin_Kiwi_First,

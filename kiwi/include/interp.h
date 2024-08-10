@@ -3048,6 +3048,11 @@ class Interpreter {
     std::cout << builder.str() << std::flush;
     builder.str("");
     builder.clear();
+
+    // If we are just printing string interpolated return values, don't propagate.
+    if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+      frame->clearFlag(FrameFlags::ReturnFlag);
+    }
   }
 
   k_value interpretBracketExpression(k_stream stream,
