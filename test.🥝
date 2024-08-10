@@ -345,6 +345,13 @@ kunit::register_test("loops", with () do
   end
 
   kunit::assert(sum == 55)
+
+  x = 2
+  repeat 4 do
+    x *= x
+  end
+  
+  kunit::assert(x == 65536)
 end)
 
 kunit::register_test("`when`", with () do

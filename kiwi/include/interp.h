@@ -515,15 +515,17 @@ class Interpreter {
     bool hasIterator = false;
     k_string iteratorName;
     if (stream->current().getSubType() == KName::KW_As) {
-      stream->next(); // Skip "as"
+      stream->next();  // Skip "as"
 
       if (stream->current().getType() != KTokenType::IDENTIFIER) {
-        throw SyntaxError(stream->current(), "Expected identifier for repeat-loop iterator variable.");
+        throw SyntaxError(
+            stream->current(),
+            "Expected identifier for repeat-loop iterator variable.");
       }
 
       iteratorName = stream->current().getText();
       hasIterator = true;
-      stream->next(); // Skip identifier.
+      stream->next();  // Skip identifier.
     }
 
     if (!stream->matchsub(KName::KW_Do)) {
@@ -534,7 +536,7 @@ class Interpreter {
     k_int stop = get_integer(
         term, count,
         "Expected a positive non-zero integer in repeat loop count specifier.");
-    
+
     k_int i = 0;
     if (stop < i) {
       throw SyntaxError(term,
@@ -3613,15 +3615,30 @@ class Interpreter {
     while (stream->canRead() &&
            stream->current().getSubType() == KName::Ops_Or) {
       stream->next();  // Skip "||"
-      auto right = parseLogicalAnd(stream, frame);
 
-      if (!(std::holds_alternative<bool>(left) &&
-            std::holds_alternative<bool>(right))) {
-        throw ConversionError(stream->current(),
-                              "Expected a `Boolean` expression.");
+      if (!std::holds_alternative<bool>(left)) {
+        throw ConversionError(
+            stream->current(),
+            "Expected a `Boolean` expression for left-hand side of ||.");
       }
 
-      bool lhs = std::get<bool>(left), rhs = std::get<bool>(right);
+      bool lhs = std::get<bool>(left);
+
+      // Don't evaluate further if the left-hand side is true.
+      if (lhs) {
+        stream->next();
+        continue;
+      }
+
+      auto right = parseLogicalAnd(stream, frame);
+
+      if (!std::holds_alternative<bool>(right)) {
+        throw ConversionError(
+            stream->current(),
+            "Expected a `Boolean` expression for right-hand side of &&.");
+      }
+
+      bool rhs = std::get<bool>(right);
       left = lhs || rhs;
     }
     return left;
@@ -3634,15 +3651,30 @@ class Interpreter {
     while (stream->canRead() &&
            stream->current().getSubType() == KName::Ops_And) {
       stream->next();  // Skip "&&"
-      auto right = parseBitwiseOr(stream, frame);
 
-      if (!(std::holds_alternative<bool>(left) &&
-            std::holds_alternative<bool>(right))) {
-        throw ConversionError(stream->current(),
-                              "Expected a `Boolean` expression.");
+      if (!std::holds_alternative<bool>(left)) {
+        throw ConversionError(
+            stream->current(),
+            "Expected a `Boolean` expression for left-hand side of &&.");
       }
 
-      bool lhs = std::get<bool>(left), rhs = std::get<bool>(right);
+      bool lhs = std::get<bool>(left);
+
+      // Don't evaluate further if the left-hand side is false.
+      if (!lhs) {
+        stream->next();
+        continue;
+      }
+
+      auto right = parseBitwiseOr(stream, frame);
+
+      if (!std::holds_alternative<bool>(right)) {
+        throw ConversionError(
+            stream->current(),
+            "Expected a `Boolean` expression for right-hand side of &&.");
+      }
+
+      bool rhs = std::get<bool>(right);
       left = lhs && rhs;
     }
     return left;
