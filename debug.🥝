@@ -30,61 +30,61 @@ end
 
 /#
 
-~/kiwi$ kiwi debug
+~/kiwi$ ./bin/kiwi debug
 string_size = 10**1              : 10
-a = ('a' * string_size).chars()  : 0.175104ms
-c = a[a.size() / 2]              : 0.133888ms
+a = ('a' * string_size).chars()  : 0.02432ms
+c = a[a.size() / 2]              : 0.014848ms
 c.size()                         : 1
-b = a[1:-1]                      : 0.132608ms
+b = a[1:-1]                      : 0.013312ms
 b.size()                         : 8
-for i in a do sum += 1 end       : 0.371456ms
+for i in a do sum += 1 end       : 0.03712ms
 
 string_size = 10**2              : 100
-a = ('a' * string_size).chars()  : 0.169728ms
-c = a[a.size() / 2]              : 0.129024ms
+a = ('a' * string_size).chars()  : 0.01792ms
+c = a[a.size() / 2]              : 0.012288ms
 c.size()                         : 1
-b = a[1:-1]                      : 0.17408ms
+b = a[1:-1]                      : 0.014592ms
 b.size()                         : 98
-for i in a do sum += 1 end       : 2.51597ms
+for i in a do sum += 1 end       : 0.223488ms
 
 string_size = 10**3              : 1000
-a = ('a' * string_size).chars()  : 0.461824ms
-c = a[a.size() / 2]              : 0.158464ms
+a = ('a' * string_size).chars()  : 0.040448ms
+c = a[a.size() / 2]              : 0.013568ms
 c.size()                         : 1
-b = a[1:-1]                      : 0.559872ms
+b = a[1:-1]                      : 0.02944ms
 b.size()                         : 998
-for i in a do sum += 1 end       : 24.2552ms
+for i in a do sum += 1 end       : 1.94637ms
 
 string_size = 10**4              : 10000
-a = ('a' * string_size).chars()  : 5.75642ms
-c = a[a.size() / 2]              : 0.148992ms
+a = ('a' * string_size).chars()  : 0.73728ms
+c = a[a.size() / 2]              : 0.0128ms
 c.size()                         : 1
-b = a[1:-1]                      : 6.13453ms
+b = a[1:-1]                      : 0.423936ms
 b.size()                         : 9998
-for i in a do sum += 1 end       : 234.306ms
+for i in a do sum += 1 end       : 18.26ms
 
 string_size = 10**5              : 100000
-a = ('a' * string_size).chars()  : 43.8799ms
-c = a[a.size() / 2]              : 0.135168ms
+a = ('a' * string_size).chars()  : 6.9504ms
+c = a[a.size() / 2]              : 0.015616ms
 c.size()                         : 1
-b = a[1:-1]                      : 51.2596ms
+b = a[1:-1]                      : 6.29094ms
 b.size()                         : 99998
-for i in a do sum += 1 end       : 2293.48ms
+for i in a do sum += 1 end       : 185.505ms
 
 string_size = 10**6              : 1000000
-a = ('a' * string_size).chars()  : 361.951ms
-c = a[a.size() / 2]              : 0.142592ms
+a = ('a' * string_size).chars()  : 65.4267ms
+c = a[a.size() / 2]              : 0.017664ms
 c.size()                         : 1
-b = a[1:-1]                      : 427.276ms
+b = a[1:-1]                      : 49.2321ms
 b.size()                         : 999998
-for i in a do sum += 1 end       : 22918.9ms
+for i in a do sum += 1 end       : 1813.46ms
 
 string_size = 10**7              : 10000000
-a = ('a' * string_size).chars()  : 5054.23ms
-c = a[a.size() / 2]              : 0.149248ms
+a = ('a' * string_size).chars()  : 809.37ms
+c = a[a.size() / 2]              : 0.017664ms
 c.size()                         : 1
-b = a[1:-1]                      : 5774.17ms
+b = a[1:-1]                      : 693.811ms
 b.size()                         : 9999998
-for i in a do sum += 1 end       : 230245ms
+for i in a do sum += 1 end       : 17921ms
 
 #/
