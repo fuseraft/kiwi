@@ -5,7 +5,7 @@ echo Building Kiwi with MSVC
 if not exist build\NUL mkdir build
 if not exist bin\NUL mkdir bin
 
-cl /std:c++17 /W4 /Ikiwi\include /c kiwi\src\main.cpp /Fo:build\main.obj
+cl /std:c++17 /W4 /O2 /GL /Ikiwi\include /c kiwi\src\main.cpp /Fo:build\main.obj
 
 if %ERRORLEVEL% neq 0 (
   echo Build failed.
@@ -14,7 +14,7 @@ if %ERRORLEVEL% neq 0 (
 
 echo Linking...
 
-link build\main.obj /OUT:bin\kiwi.exe
+link /LTCG build\main.obj /OUT:bin\kiwi.exe
 
 if %ERRORLEVEL% neq 0 (
   echo Linking failed.
