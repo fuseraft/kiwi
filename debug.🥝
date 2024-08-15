@@ -1,2 +1,90 @@
 /# a script for experimentation and debugging. #/
 
+repeat 7 as n do
+  string_size = 10**n
+  println "string_size = 10**${n}              : ${string_size}"
+  
+  start = time::ticks()
+  a = ("a" * string_size).chars()
+  println "a = ('a' * string_size).chars()  : ${time::ticksms(time::ticks() - start)}ms"
+  
+  start = time::ticks()
+  c = a[a.size() / 2]
+  println "c = a[a.size() / 2]              : ${time::ticksms(time::ticks() - start)}ms"
+  println "c.size()                         : ${c.size()}"
+
+  start = time::ticks()
+  b = a[1:-1]
+  println "b = a[1:-1]                      : ${time::ticksms(time::ticks() - start)}ms"
+  println "b.size()                         : ${b.size()}"
+
+  start = time::ticks()
+  sum = 0
+  for i in a do
+    sum += 1
+  end
+  println "for i in a do sum += 1 end       : ${time::ticksms(time::ticks() - start)}ms"
+
+  println ""
+end
+
+/#
+
+~/kiwi$ kiwi debug
+string_size = 10**1              : 10
+a = ('a' * string_size).chars()  : 0.175104ms
+c = a[a.size() / 2]              : 0.133888ms
+c.size()                         : 1
+b = a[1:-1]                      : 0.132608ms
+b.size()                         : 8
+for i in a do sum += 1 end       : 0.371456ms
+
+string_size = 10**2              : 100
+a = ('a' * string_size).chars()  : 0.169728ms
+c = a[a.size() / 2]              : 0.129024ms
+c.size()                         : 1
+b = a[1:-1]                      : 0.17408ms
+b.size()                         : 98
+for i in a do sum += 1 end       : 2.51597ms
+
+string_size = 10**3              : 1000
+a = ('a' * string_size).chars()  : 0.461824ms
+c = a[a.size() / 2]              : 0.158464ms
+c.size()                         : 1
+b = a[1:-1]                      : 0.559872ms
+b.size()                         : 998
+for i in a do sum += 1 end       : 24.2552ms
+
+string_size = 10**4              : 10000
+a = ('a' * string_size).chars()  : 5.75642ms
+c = a[a.size() / 2]              : 0.148992ms
+c.size()                         : 1
+b = a[1:-1]                      : 6.13453ms
+b.size()                         : 9998
+for i in a do sum += 1 end       : 234.306ms
+
+string_size = 10**5              : 100000
+a = ('a' * string_size).chars()  : 43.8799ms
+c = a[a.size() / 2]              : 0.135168ms
+c.size()                         : 1
+b = a[1:-1]                      : 51.2596ms
+b.size()                         : 99998
+for i in a do sum += 1 end       : 2293.48ms
+
+string_size = 10**6              : 1000000
+a = ('a' * string_size).chars()  : 361.951ms
+c = a[a.size() / 2]              : 0.142592ms
+c.size()                         : 1
+b = a[1:-1]                      : 427.276ms
+b.size()                         : 999998
+for i in a do sum += 1 end       : 22918.9ms
+
+string_size = 10**7              : 10000000
+a = ('a' * string_size).chars()  : 5054.23ms
+c = a[a.size() / 2]              : 0.149248ms
+c.size()                         : 1
+b = a[1:-1]                      : 5774.17ms
+b.size()                         : 9999998
+for i in a do sum += 1 end       : 230245ms
+
+#/
