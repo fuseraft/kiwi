@@ -1,10 +1,10 @@
-package kunit
+package guava
   __home__("kiwi")
 
   fn initialize()
-    if !global.has_key("kunit_tests")
-      global.kunit_tests = {}
-      global.kunit_test_results = []
+    if !global.has_key("guava_tests")
+      global.guava_tests = {}
+      global.guava_test_results = []
     end
   end
 
@@ -13,12 +13,12 @@ package kunit
   end
   
   fn register_test(name, t)
-    kunit::initialize()
-    global.kunit_tests.set(name, t)
+    guava::initialize()
+    global.guava_tests.set(name, t)
   end
   
   fn run_test(name, test, results = [])
-    kunit::initialize()
+    guava::initialize()
     print string::padend("Running test: ${name} ", 45, " ")
   
     test_start = time::ticks()
@@ -38,15 +38,15 @@ package kunit
   end
   
   fn run_tests()
-    kunit::initialize()
+    guava::initialize()
     results = []
     
-    for t in global.kunit_tests do
-      kunit::run_test(t, global.kunit_tests.get(t), results)
+    for t in global.guava_tests do
+      guava::run_test(t, global.guava_tests.get(t), results)
     end
   
     return results
   end
 end
 
-export "kunit"
+export "guava"

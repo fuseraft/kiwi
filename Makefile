@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic
+CXXFLAGS := -std=c++17 -O3 -Wall -Wextra -pedantic
 
 SRC_DIR := kiwi/src
 INCLUDE_DIR := kiwi/include
