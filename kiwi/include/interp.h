@@ -2299,9 +2299,8 @@ class Interpreter {
                          Serializer::serialize(slice.indexOrStart));
     }
 
-    throw ConversionError(
-        stream->current(),
-        "Expected a list or a string for slice operation.");
+    throw ConversionError(stream->current(),
+                          "Expected a list or a string for slice operation.");
   }
 
   k_value interpretSlice(k_stream stream, std::shared_ptr<CallStackFrame> frame,
@@ -2313,8 +2312,8 @@ class Interpreter {
 
     if (!std::holds_alternative<k_list>(value) &&
         !std::holds_alternative<k_string>(value)) {
-      throw InvalidOperationError(
-          stream->current(), "`" + name + "` is not a list or a string.");
+      throw InvalidOperationError(stream->current(),
+                                  "`" + name + "` is not a list or a string.");
     }
 
     auto slice = interpretSliceIndex(stream, frame, value);

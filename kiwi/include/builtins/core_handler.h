@@ -313,8 +313,7 @@ class CoreBuiltinHandler {
     }
 
     throw InvalidOperationError(
-        term,
-        "Expected a hash or list in call to `" + KiwiBuiltins.Set + "`");
+        term, "Expected a hash or list in call to `" + KiwiBuiltins.Set + "`");
   }
 
   static k_value executeSwap(const Token& term, const k_value& value,
@@ -345,8 +344,7 @@ class CoreBuiltinHandler {
     }
 
     throw InvalidOperationError(
-        term,
-        "Expected a hash or list in call to `" + KiwiBuiltins.Set + "`");
+        term, "Expected a hash or list in call to `" + KiwiBuiltins.Set + "`");
   }
 
   static k_value executeFirst(const Token& term, const k_value& value,
@@ -438,8 +436,8 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_object>(value)) {
-      throw InvalidOperationError(term, "Expected an object in call to `" +
-                                            KiwiBuiltins.Members + "`");
+      throw InvalidOperationError(
+          term, "Expected an object in call to `" + KiwiBuiltins.Members + "`");
     }
 
     auto memberHash = std::make_shared<Hash>();
@@ -1047,9 +1045,9 @@ class CoreBuiltinHandler {
       return list;
     }
 
-    throw InvalidOperationError(
-        term, "Expected a string or a list for builtin `" +
-                  KiwiBuiltins.Reverse + "`.");
+    throw InvalidOperationError(term,
+                                "Expected a string or a list for builtin `" +
+                                    KiwiBuiltins.Reverse + "`.");
   }
 
   static k_value executeIndexOf(const Token& term, const k_value& value,
@@ -1065,9 +1063,9 @@ class CoreBuiltinHandler {
       return indexof_listvalue(std::get<k_list>(value), args.at(0));
     }
 
-    throw InvalidOperationError(
-        term, "Expected a string or a list for builtin `" +
-                  KiwiBuiltins.IndexOf + "`.");
+    throw InvalidOperationError(term,
+                                "Expected a string or a list for builtin `" +
+                                    KiwiBuiltins.IndexOf + "`.");
   }
 
   static k_value executeLastIndexOf(const Token& term, const k_value& value,
@@ -1083,9 +1081,9 @@ class CoreBuiltinHandler {
       return lastindexof_listvalue(std::get<k_list>(value), args.at(0));
     }
 
-    throw InvalidOperationError(
-        term, "Expected a string or a list for builtin `" +
-                  KiwiBuiltins.LastIndexOf + "`.");
+    throw InvalidOperationError(term,
+                                "Expected a string or a list for builtin `" +
+                                    KiwiBuiltins.LastIndexOf + "`.");
   }
 
   static k_value executeUppercase(const Token& term, const k_value& value,
@@ -1174,8 +1172,8 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a list for builtin `" +
-                                            KiwiBuiltins.Enqueue + "`.");
+      throw InvalidOperationError(
+          term, "Expected a list for builtin `" + KiwiBuiltins.Enqueue + "`.");
     }
 
     std::get<k_list>(value)->elements.push_back(args.at(0));
@@ -1189,8 +1187,8 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a list for builtin `" +
-                                            KiwiBuiltins.Dequeue + "`.");
+      throw InvalidOperationError(
+          term, "Expected a list for builtin `" + KiwiBuiltins.Dequeue + "`.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;
@@ -1233,8 +1231,8 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a list for builtin `" +
-                                            KiwiBuiltins.Unshift + "`.");
+      throw InvalidOperationError(
+          term, "Expected a list for builtin `" + KiwiBuiltins.Unshift + "`.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;
@@ -1304,9 +1302,8 @@ class CoreBuiltinHandler {
       return value;
     }
 
-    throw InvalidOperationError(term,
-                                "Expected a hash or list for builtin `" +
-                                    KiwiBuiltins.Remove + "`.");
+    throw InvalidOperationError(term, "Expected a hash or list for builtin `" +
+                                          KiwiBuiltins.Remove + "`.");
   }
 
   static k_value executeRemoveAt(const Token& term, const k_value& value,
@@ -1316,8 +1313,8 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a list for builtin `" +
-                                            KiwiBuiltins.RemoveAt + "`.");
+      throw InvalidOperationError(
+          term, "Expected a list for builtin `" + KiwiBuiltins.RemoveAt + "`.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;
@@ -1401,9 +1398,9 @@ class CoreBuiltinHandler {
       return std::count(elements.begin(), elements.end(), args.at(0));
     }
 
-    throw InvalidOperationError(term,
-                                "Expected a list or string for builtin `" +
-                                    KiwiBuiltins.Count + "`.");
+    throw InvalidOperationError(
+        term,
+        "Expected a list or string for builtin `" + KiwiBuiltins.Count + "`.");
   }
 
   static k_value executeFlatten(const Token& term, const k_value& value,
@@ -1413,8 +1410,8 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a list for builtin `" +
-                                            KiwiBuiltins.Flatten + "`.");
+      throw InvalidOperationError(
+          term, "Expected a list for builtin `" + KiwiBuiltins.Flatten + "`.");
     }
 
     auto flattened = std::make_shared<List>();
