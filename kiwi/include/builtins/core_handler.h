@@ -1392,13 +1392,18 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Count);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(
-          term, "Expected a `List` for builtin `" + KiwiBuiltins.Count + "`.");
+    if (std::holds_alternative<k_string>(value)) {
+      const auto& needle = get_string(term, args.at(0));
+      const auto& haystack = std::get<k_string>(value);
+      return String::count(haystack, needle);
+    } else if (std::holds_alternative<k_list>(value)) {
+      const auto& elements = std::get<k_list>(value)->elements;
+      return std::count(elements.begin(), elements.end(), args.at(0));
     }
 
-    const auto& elements = std::get<k_list>(value)->elements;
-    return std::count(elements.begin(), elements.end(), args.at(0));
+    throw InvalidOperationError(term,
+                                "Expected a `List` or `String` for builtin `" +
+                                    KiwiBuiltins.Count + "`.");
   }
 
   static k_value executeFlatten(const Token& term, const k_value& value,
