@@ -287,7 +287,7 @@ class CoreBuiltinHandler {
     }
 
     throw InvalidOperationError(
-        term, "Expected a `Hash`, `List`, or `String` in call to `" +
+        term, "Expected a hash, list, or string in call to `" +
                   KiwiBuiltins.Get + "`");
   }
 
@@ -314,7 +314,7 @@ class CoreBuiltinHandler {
 
     throw InvalidOperationError(
         term,
-        "Expected a `Hash` or `List` in call to `" + KiwiBuiltins.Set + "`");
+        "Expected a hash or list in call to `" + KiwiBuiltins.Set + "`");
   }
 
   static k_value executeSwap(const Token& term, const k_value& value,
@@ -346,7 +346,7 @@ class CoreBuiltinHandler {
 
     throw InvalidOperationError(
         term,
-        "Expected a `Hash` or `List` in call to `" + KiwiBuiltins.Set + "`");
+        "Expected a hash or list in call to `" + KiwiBuiltins.Set + "`");
   }
 
   static k_value executeFirst(const Token& term, const k_value& value,
@@ -357,7 +357,7 @@ class CoreBuiltinHandler {
 
     if (!std::holds_alternative<k_list>(value)) {
       throw InvalidOperationError(
-          term, "Expected a `List` in call to `" + KiwiBuiltins.First + "`");
+          term, "Expected a list in call to `" + KiwiBuiltins.First + "`");
     }
 
     auto list = std::get<k_list>(value)->elements;
@@ -379,7 +379,7 @@ class CoreBuiltinHandler {
 
     if (!std::holds_alternative<k_list>(value)) {
       throw InvalidOperationError(
-          term, "Expected a `List` in call to `" + KiwiBuiltins.Last + "`");
+          term, "Expected a list in call to `" + KiwiBuiltins.Last + "`");
     }
 
     auto list = std::get<k_list>(value)->elements;
@@ -438,7 +438,7 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_object>(value)) {
-      throw InvalidOperationError(term, "Expected an `Object` in call to `" +
+      throw InvalidOperationError(term, "Expected an object in call to `" +
                                             KiwiBuiltins.Members + "`");
     }
 
@@ -515,7 +515,7 @@ class CoreBuiltinHandler {
 
     if (!std::holds_alternative<k_list>(value)) {
       throw InvalidOperationError(
-          term, "Expected a `List` value for byte to string conversion.");
+          term, "Expected a list value for byte to string conversion.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;
@@ -529,7 +529,7 @@ class CoreBuiltinHandler {
     for (const auto& item : elements) {
       if (!std::holds_alternative<k_int>(item)) {
         throw InvalidOperationError(
-            term, "Expected an `Integer` value for byte to string conversion.");
+            term, "Expected an integer value for byte to string conversion.");
       }
 
       auto byte = static_cast<unsigned int>(std::get<k_int>(item)) & 0xFF;
@@ -565,7 +565,7 @@ class CoreBuiltinHandler {
       for (const auto& item : listElements) {
         if (!std::holds_alternative<k_string>(item)) {
           throw InvalidOperationError(
-              term, "Expected a `List` to contain only `String` values.");
+              term, "Expected a list to contain only string values.");
         }
 
         auto stringValue = std::get<k_string>(item);
@@ -579,7 +579,7 @@ class CoreBuiltinHandler {
       return byteList;
     } else {
       throw InvalidOperationError(
-          term, "Expected a `String` or `List` to convert to bytes.");
+          term, "Expected a string or list to convert to bytes.");
     }
   }
 
@@ -658,7 +658,7 @@ class CoreBuiltinHandler {
     if (!std::holds_alternative<double>(value) &&
         !std::holds_alternative<k_int>(value)) {
       throw ArgumentError(
-          term, "Expected an `Integer` or `Double` for numeric formatting.");
+          term, "Expected an integer or double for numeric formatting.");
     }
 
     std::ostringstream sv;
@@ -708,7 +708,7 @@ class CoreBuiltinHandler {
 
     if (!std::holds_alternative<k_string>(value)) {
       throw InvalidOperationError(term,
-                                  "Expected a `String` value for builtin `" +
+                                  "Expected a string value for builtin `" +
                                       KiwiBuiltins.Substring + "`.");
     }
 
@@ -954,7 +954,7 @@ class CoreBuiltinHandler {
       return executeListContains(value, args.at(0));
     }
 
-    throw InvalidOperationError(term, "Expected a `String` or `List` value.");
+    throw InvalidOperationError(term, "Expected a string or list value.");
   }
 
   static k_value executeEndsWith(const Token& term, const k_value& value,
@@ -1048,7 +1048,7 @@ class CoreBuiltinHandler {
     }
 
     throw InvalidOperationError(
-        term, "Expected a `String` or a `List` for builtin `" +
+        term, "Expected a string or a list for builtin `" +
                   KiwiBuiltins.Reverse + "`.");
   }
 
@@ -1066,7 +1066,7 @@ class CoreBuiltinHandler {
     }
 
     throw InvalidOperationError(
-        term, "Expected a `String` or a `List` for builtin `" +
+        term, "Expected a string or a list for builtin `" +
                   KiwiBuiltins.IndexOf + "`.");
   }
 
@@ -1084,7 +1084,7 @@ class CoreBuiltinHandler {
     }
 
     throw InvalidOperationError(
-        term, "Expected a `String` or a `List` for builtin `" +
+        term, "Expected a string or a list for builtin `" +
                   KiwiBuiltins.LastIndexOf + "`.");
   }
 
@@ -1138,7 +1138,7 @@ class CoreBuiltinHandler {
 
     if (!std::holds_alternative<k_list>(value)) {
       throw InvalidOperationError(
-          term, "Expected a `List` for builtin `" + KiwiBuiltins.Push + "`.");
+          term, "Expected a list for builtin `" + KiwiBuiltins.Push + "`.");
     }
 
     std::get<k_list>(value)->elements.push_back(args.at(0));
@@ -1153,7 +1153,7 @@ class CoreBuiltinHandler {
 
     if (!std::holds_alternative<k_list>(value)) {
       throw InvalidOperationError(
-          term, "Expected a `List` for builtin `" + KiwiBuiltins.Pop + "`.");
+          term, "Expected a list for builtin `" + KiwiBuiltins.Pop + "`.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;
@@ -1174,7 +1174,7 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+      throw InvalidOperationError(term, "Expected a list for builtin `" +
                                             KiwiBuiltins.Enqueue + "`.");
     }
 
@@ -1189,7 +1189,7 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+      throw InvalidOperationError(term, "Expected a list for builtin `" +
                                             KiwiBuiltins.Dequeue + "`.");
     }
 
@@ -1212,7 +1212,7 @@ class CoreBuiltinHandler {
 
     if (!std::holds_alternative<k_list>(value)) {
       throw InvalidOperationError(
-          term, "Expected a `List` for builtin `" + KiwiBuiltins.Shift + "`.");
+          term, "Expected a list for builtin `" + KiwiBuiltins.Shift + "`.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;
@@ -1233,7 +1233,7 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+      throw InvalidOperationError(term, "Expected a list for builtin `" +
                                             KiwiBuiltins.Unshift + "`.");
     }
 
@@ -1250,7 +1250,7 @@ class CoreBuiltinHandler {
 
     if (!std::holds_alternative<k_list>(value)) {
       throw InvalidOperationError(
-          term, "Expected a `List` for builtin `" + KiwiBuiltins.Concat + "`.");
+          term, "Expected a list for builtin `" + KiwiBuiltins.Concat + "`.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;
@@ -1267,7 +1267,7 @@ class CoreBuiltinHandler {
 
     if (!std::holds_alternative<k_list>(value)) {
       throw InvalidOperationError(
-          term, "Expected a `List` for builtin `" + KiwiBuiltins.Insert + "`.");
+          term, "Expected a list for builtin `" + KiwiBuiltins.Insert + "`.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;
@@ -1305,7 +1305,7 @@ class CoreBuiltinHandler {
     }
 
     throw InvalidOperationError(term,
-                                "Expected a `Hash` or `List` for builtin `" +
+                                "Expected a hash or list for builtin `" +
                                     KiwiBuiltins.Remove + "`.");
   }
 
@@ -1316,7 +1316,7 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+      throw InvalidOperationError(term, "Expected a list for builtin `" +
                                             KiwiBuiltins.RemoveAt + "`.");
     }
 
@@ -1340,7 +1340,7 @@ class CoreBuiltinHandler {
 
     if (!std::holds_alternative<k_list>(value)) {
       throw InvalidOperationError(
-          term, "Expected a `List` for builtin `" + KiwiBuiltins.Rotate + "`.");
+          term, "Expected a list for builtin `" + KiwiBuiltins.Rotate + "`.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;
@@ -1374,7 +1374,7 @@ class CoreBuiltinHandler {
 
     if (!std::holds_alternative<k_list>(value)) {
       throw InvalidOperationError(
-          term, "Expected a `List` for builtin `" + KiwiBuiltins.Unique + "`.");
+          term, "Expected a list for builtin `" + KiwiBuiltins.Unique + "`.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;
@@ -1402,7 +1402,7 @@ class CoreBuiltinHandler {
     }
 
     throw InvalidOperationError(term,
-                                "Expected a `List` or `String` for builtin `" +
+                                "Expected a list or string for builtin `" +
                                     KiwiBuiltins.Count + "`.");
   }
 
@@ -1413,7 +1413,7 @@ class CoreBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_list>(value)) {
-      throw InvalidOperationError(term, "Expected a `List` for builtin `" +
+      throw InvalidOperationError(term, "Expected a list for builtin `" +
                                             KiwiBuiltins.Flatten + "`.");
     }
 
@@ -1444,7 +1444,7 @@ class CoreBuiltinHandler {
 
     if (!std::holds_alternative<k_list>(value)) {
       throw InvalidOperationError(
-          term, "Expected a `List` for builtin `" + KiwiBuiltins.Zip + "`.");
+          term, "Expected a list for builtin `" + KiwiBuiltins.Zip + "`.");
     }
 
     const auto& elements1 = std::get<k_list>(value)->elements;
@@ -1470,7 +1470,7 @@ class CoreBuiltinHandler {
 
     if (!std::holds_alternative<k_list>(value)) {
       throw InvalidOperationError(
-          term, "Expected a `List` for builtin `" + KiwiBuiltins.Slice + "`.");
+          term, "Expected a list for builtin `" + KiwiBuiltins.Slice + "`.");
     }
 
     auto& elements = std::get<k_list>(value)->elements;
