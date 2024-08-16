@@ -1,5 +1,5 @@
 /#
- The Kiwi Programming Language 1.4.7
+ The Kiwi Programming Language 1.4.8
  #/
 
 fn testsuite()
@@ -26,6 +26,8 @@ fn testsuite()
   else
     println "${succeeded} tests passed, ${failed} tests failed."
   end
+
+  #println __rlist__()
 end
 
 guava::register_test("truthiness", with () do

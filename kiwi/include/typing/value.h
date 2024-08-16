@@ -188,6 +188,7 @@ k_list clone_list(const k_list& original) {
   k_list clone = std::make_shared<List>();
   auto& cloneElements = clone->elements;
   auto& elements = original->elements;
+  cloneElements.reserve(elements.size());
   for (const auto& element : elements) {
     cloneElements.push_back(clone_value(element));
   }

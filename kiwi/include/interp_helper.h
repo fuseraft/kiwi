@@ -356,23 +356,27 @@ struct InterpHelper {
     auto list = std::make_shared<List>();
 
     auto& elements = list->elements;
+    elements.reserve(string.size());
+    k_string temp(1, '\0');
     for (const char& c : string) {
-      elements.emplace_back(k_string(1, c));
+      temp[0] = c;
+      elements.emplace_back(temp);
     }
 
     auto sliced = listSlice(stream, slice, list);
-    std::ostringstream sv;
 
     if (std::holds_alternative<k_list>(sliced)) {
       auto slicedlist = std::get<k_list>(sliced)->elements;
+      std::ostringstream sv;
+
       for (auto it = slicedlist.begin(); it != slicedlist.end(); ++it) {
         sv << Serializer::serialize(*it);
       }
-    } else {
-      sv << Serializer::serialize(sliced);
+
+      return sv.str();
     }
 
-    return sv.str();
+    return Serializer::serialize(sliced);
   }
 
   static k_value listSlice(k_stream stream, const SliceIndex& slice,
