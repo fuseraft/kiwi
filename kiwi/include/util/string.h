@@ -45,6 +45,26 @@ class String {
     return s.size() > end.size() && s.substr(s.size() - end.size()) == end;
   }
 
+  /// @brief Counts occurrences of a string within a string.
+  /// @param haystack The string to search.
+  /// @param needle The target to find in the haystack.
+  /// @return The number of occurrences of a string within a string.
+  static k_int count(const k_string& haystack, const k_string& needle) {
+    if (needle.empty()) {
+      return 0;
+    }
+
+    std::size_t count = 0;
+    std::size_t pos = haystack.find(needle);
+
+    while (pos != k_string::npos) {
+      ++count;
+      pos = haystack.find(needle, pos + needle.size());
+    }
+
+    return static_cast<k_int>(count);
+  }
+
   /// @brief Searches for the first occurrence of a pattern described by a regex and returns the substring.
   /// @param text The string to check.
   /// @param pattern The regular expression.

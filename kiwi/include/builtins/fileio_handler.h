@@ -158,8 +158,10 @@ class FileIOBuiltinHandler {
     auto path = get_string(token, args.at(0));
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
+    const auto& listing = File::listDirectory(path);
+    elements.reserve(listing.size());
 
-    for (const auto& entry : File::listDirectory(path)) {
+    for (const auto& entry : listing) {
       elements.emplace_back(entry);
     }
 
@@ -321,6 +323,7 @@ class FileIOBuiltinHandler {
     auto matchedFiles = File::expandGlob(glob);
     auto matchList = std::make_shared<List>();
     auto& elements = matchList->elements;
+    elements.reserve(matchedFiles.size());
 
     for (const auto& file : matchedFiles) {
       elements.emplace_back(file);

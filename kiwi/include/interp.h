@@ -2299,9 +2299,8 @@ class Interpreter {
                          Serializer::serialize(slice.indexOrStart));
     }
 
-    throw ConversionError(
-        stream->current(),
-        "Expected a `List` or a `String` for slice operation.");
+    throw ConversionError(stream->current(),
+                          "Expected a list or a string for slice operation.");
   }
 
   k_value interpretSlice(k_stream stream, std::shared_ptr<CallStackFrame> frame,
@@ -2313,8 +2312,8 @@ class Interpreter {
 
     if (!std::holds_alternative<k_list>(value) &&
         !std::holds_alternative<k_string>(value)) {
-      throw InvalidOperationError(
-          stream->current(), "`" + name + "` is not a `List` or a `String`.");
+      throw InvalidOperationError(stream->current(),
+                                  "`" + name + "` is not a list or a string.");
     }
 
     auto slice = interpretSliceIndex(stream, frame, value);
@@ -2349,19 +2348,22 @@ class Interpreter {
                        "A range stop value must be an integer.");
     }
 
-    auto start = std::get<k_int>(startValue), stop = std::get<k_int>(stopValue);
-    auto step = stop < start ? -1 : 1;
-    auto i = start;
+    auto start = std::get<k_int>(startValue);
+    auto stop = std::get<k_int>(stopValue);
+
+    int step = (stop < start) ? -1 : 1;
+
+    size_t numElements = static_cast<size_t>(std::abs(stop - start)) + 1;
 
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
+    elements.reserve(numElements);
 
-    for (; i != stop; i += step) {
+    for (auto i = start; i != stop; i += step) {
       elements.emplace_back(i);
     }
 
-    // TODO:
-    elements.emplace_back(i);
+    elements.emplace_back(stop);
 
     return list;
   }
@@ -3624,7 +3626,7 @@ class Interpreter {
       if (!std::holds_alternative<bool>(left)) {
         throw ConversionError(
             stream->current(),
-            "Expected a `Boolean` expression for left-hand side of ||.");
+            "Expected a boolean expression for left-hand side of ||.");
       }
 
       bool lhs = std::get<bool>(left);
@@ -3640,7 +3642,7 @@ class Interpreter {
       if (!std::holds_alternative<bool>(right)) {
         throw ConversionError(
             stream->current(),
-            "Expected a `Boolean` expression for right-hand side of &&.");
+            "Expected a boolean expression for right-hand side of &&.");
       }
 
       bool rhs = std::get<bool>(right);
@@ -3660,7 +3662,7 @@ class Interpreter {
       if (!std::holds_alternative<bool>(left)) {
         throw ConversionError(
             stream->current(),
-            "Expected a `Boolean` expression for left-hand side of &&.");
+            "Expected a boolean expression for left-hand side of &&.");
       }
 
       bool lhs = std::get<bool>(left);
@@ -3676,7 +3678,7 @@ class Interpreter {
       if (!std::holds_alternative<bool>(right)) {
         throw ConversionError(
             stream->current(),
-            "Expected a `Boolean` expression for right-hand side of &&.");
+            "Expected a boolean expression for right-hand side of &&.");
       }
 
       bool rhs = std::get<bool>(right);
