@@ -403,8 +403,11 @@ class CoreBuiltinHandler {
     auto stringValue = get_string(term, value);
     auto& elements = newList->elements;
 
-    for (char c : stringValue) {
-      elements.emplace_back(k_string(1, c));
+    elements.reserve(stringValue.size());
+    k_string temp(1, '\0');
+    for (const char& c : stringValue) {
+      temp[0] = c;
+      elements.emplace_back(temp);
     }
 
     return newList;
@@ -796,11 +799,16 @@ class CoreBuiltinHandler {
     }
 
     if (delimiter.empty()) {
+      elements.reserve(input.size());
+      k_string temp(1, '\0');
       for (char c : input) {
-        elements.emplace_back(k_string(1, c));
+        temp[0] = c;
+        elements.emplace_back(temp);
       }
     } else {
-      for (const auto& token : String::split(input, delimiter, limit)) {
+      const auto& tokens = String::split(input, delimiter, limit);
+      elements.reserve(tokens.size());
+      for (const auto& token : tokens) {
         elements.emplace_back(token);
       }
     }

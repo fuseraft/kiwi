@@ -301,6 +301,7 @@ struct {
 
     auto newList = std::make_shared<List>();
     auto& elements = newList->elements;
+    elements.reserve(list->elements.size() * multiplier);
 
     for (int i = 0; i < multiplier; ++i) {
       for (const auto& item : list->elements) {
@@ -315,13 +316,18 @@ struct {
     auto string = std::get<k_string>(left);
     auto multiplier = std::get<k_int>(right);
 
-    std::ostringstream build;
-
-    for (int i = 0; i < multiplier; ++i) {
-      build << string;
+    if (multiplier <= 0) {
+      return k_string();
     }
 
-    return build.str();
+    k_string build;
+    build.reserve(string.size() * multiplier);
+
+    for (int i = 0; i < multiplier; ++i) {
+      build.append(string);
+    }
+
+    return build;
   }
 
   k_value do_eq_comparison(const k_value& left, const k_value& right) {
