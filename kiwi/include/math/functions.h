@@ -138,7 +138,6 @@ struct {
       bool found = false;
 
       for (const auto& item : std::get<k_list>(left)->elements) {
-
         if (!found && same_value(item, right)) {
           found = true;
           continue;

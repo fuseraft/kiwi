@@ -2349,19 +2349,22 @@ class Interpreter {
                        "A range stop value must be an integer.");
     }
 
-    auto start = std::get<k_int>(startValue), stop = std::get<k_int>(stopValue);
-    auto step = stop < start ? -1 : 1;
-    auto i = start;
+    auto start = std::get<k_int>(startValue);
+    auto stop = std::get<k_int>(stopValue);
+
+    int step = (stop < start) ? -1 : 1;
+
+    size_t numElements = static_cast<size_t>(std::abs(stop - start)) + 1;
 
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
+    elements.reserve(numElements);
 
-    for (; i != stop; i += step) {
+    for (auto i = start; i != stop; i += step) {
       elements.emplace_back(i);
     }
 
-    // TODO:
-    elements.emplace_back(i);
+    elements.emplace_back(stop);
 
     return list;
   }
