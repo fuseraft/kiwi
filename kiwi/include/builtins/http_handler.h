@@ -41,7 +41,7 @@ class HttpBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_hash>(args.at(2))) {
-      throw InvalidOperationError(term, "Expected a `Hash` type for headers.");
+      throw InvalidOperationError(term, "Expected a hash type for headers.");
     }
 
     auto url = get_string(term, args.at(0));
@@ -73,7 +73,7 @@ class HttpBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_hash>(args.at(4))) {
-      throw InvalidOperationError(term, "Expected a `Hash` type for headers.");
+      throw InvalidOperationError(term, "Expected a hash type for headers.");
     }
 
     auto url = get_string(term, args.at(0));

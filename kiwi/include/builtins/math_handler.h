@@ -562,14 +562,14 @@ class MathBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_int>(args.at(0))) {
-      throw ConversionError(term,
-                            "Expected an `Integer` argument for builtin `" +
-                                MathBuiltins.ListPrimes + "`.");
+      throw ConversionError(term, "Expected an integer argument for builtin `" +
+                                      MathBuiltins.ListPrimes + "`.");
     }
 
     auto primes = PrimeGenerator::listPrimes(std::get<k_int>(args.at(0)));
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
+    elements.reserve(primes.size());
 
     for (const auto& prime : primes) {
       elements.emplace_back(static_cast<k_int>(prime));
@@ -585,9 +585,8 @@ class MathBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_int>(args.at(0))) {
-      throw ConversionError(term,
-                            "Expected an `Integer` argument for builtin `" +
-                                MathBuiltins.NthPrime + "`.");
+      throw ConversionError(term, "Expected an integer argument for builtin `" +
+                                      MathBuiltins.NthPrime + "`.");
     }
 
     auto nthPrime = PrimeGenerator::nthPrime(std::get<k_int>(args.at(0)));
@@ -611,16 +610,16 @@ class MathBuiltinHandler {
     }
 
     if (!std::holds_alternative<k_int>(args.at(0))) {
-      throw ConversionError(term,
-                            "Expected an `Integer` argument for builtin `" +
-                                MathBuiltins.Divisors + "`.");
+      throw ConversionError(term, "Expected an integer argument for builtin `" +
+                                      MathBuiltins.Divisors + "`.");
     }
 
+    const auto& divisors = MathImpl.__divisors__(std::get<k_int>(args.at(0)));
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
+    elements.reserve(divisors.size());
 
-    for (const auto& divisor :
-         MathImpl.__divisors__(std::get<k_int>(args.at(0)))) {
+    for (const auto& divisor : divisors) {
       elements.emplace_back(divisor);
     }
 

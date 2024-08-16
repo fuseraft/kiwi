@@ -48,6 +48,11 @@ class ReflectorBuiltinHandler {
     auto rlistMethods = std::make_shared<List>();
     auto rlistStack = std::make_shared<List>();
 
+    rlistPackages->elements.reserve(packages.size());
+    rlistClasses->elements.reserve(classes.size());
+    rlistMethods->elements.reserve(methods.size());
+    rlistStack->elements.reserve(callStack.size());
+
     for (const auto& m : methods) {
       rlistMethods->elements.emplace_back(m.first);
     }
@@ -61,6 +66,7 @@ class ReflectorBuiltinHandler {
     }
 
     std::stack<std::shared_ptr<CallStackFrame>> tempStack(callStack);
+
     while (!tempStack.empty()) {
       const auto& outerFrame = tempStack.top();
       const auto& frameVariables = outerFrame->variables;
@@ -70,6 +76,11 @@ class ReflectorBuiltinHandler {
       auto rlistStackFrame = std::make_shared<Hash>();
       auto rlistStackFrameVariables = std::make_shared<List>();
       auto rlistStackFrameLambdas = std::make_shared<List>();
+      auto rlistStackFrameAliases = std::make_shared<List>();
+
+      rlistStackFrameVariables->elements.reserve(frameVariables.size());
+      rlistStackFrameLambdas->elements.reserve(frameLambdas.size());
+      rlistStackFrameAliases->elements.reserve(frameAliases.size());
 
       for (const auto& v : frameVariables) {
         auto rlistStackFrameVariable = std::make_shared<Hash>();
@@ -78,13 +89,13 @@ class ReflectorBuiltinHandler {
             rlistStackFrameVariable);
       }
 
+      k_string tmp;
       for (const auto& l : frameLambdas) {
         auto rlistStackFrameLambda = std::make_shared<Hash>();
-        rlistStackFrameLambda->add(l.first, l.second.getName());
+        rlistStackFrameLambda->add(l.first, tmp);
         rlistStackFrameLambdas->elements.emplace_back(rlistStackFrameLambda);
       }
 
-      auto rlistStackFrameAliases = std::make_shared<List>();
       for (const auto& a : frameAliases) {
         rlistStackFrameAliases->elements.emplace_back(a);
       }
