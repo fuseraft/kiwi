@@ -2301,7 +2301,7 @@ class Interpreter {
 
     throw ConversionError(
         stream->current(),
-        "Expected a `List` or a `String` for slice operation.");
+        "Expected a list or a string for slice operation.");
   }
 
   k_value interpretSlice(k_stream stream, std::shared_ptr<CallStackFrame> frame,
@@ -2314,7 +2314,7 @@ class Interpreter {
     if (!std::holds_alternative<k_list>(value) &&
         !std::holds_alternative<k_string>(value)) {
       throw InvalidOperationError(
-          stream->current(), "`" + name + "` is not a `List` or a `String`.");
+          stream->current(), "`" + name + "` is not a list or a string.");
     }
 
     auto slice = interpretSliceIndex(stream, frame, value);
@@ -3627,7 +3627,7 @@ class Interpreter {
       if (!std::holds_alternative<bool>(left)) {
         throw ConversionError(
             stream->current(),
-            "Expected a `Boolean` expression for left-hand side of ||.");
+            "Expected a boolean expression for left-hand side of ||.");
       }
 
       bool lhs = std::get<bool>(left);
@@ -3643,7 +3643,7 @@ class Interpreter {
       if (!std::holds_alternative<bool>(right)) {
         throw ConversionError(
             stream->current(),
-            "Expected a `Boolean` expression for right-hand side of &&.");
+            "Expected a boolean expression for right-hand side of &&.");
       }
 
       bool rhs = std::get<bool>(right);
@@ -3663,7 +3663,7 @@ class Interpreter {
       if (!std::holds_alternative<bool>(left)) {
         throw ConversionError(
             stream->current(),
-            "Expected a `Boolean` expression for left-hand side of &&.");
+            "Expected a boolean expression for left-hand side of &&.");
       }
 
       bool lhs = std::get<bool>(left);
@@ -3679,7 +3679,7 @@ class Interpreter {
       if (!std::holds_alternative<bool>(right)) {
         throw ConversionError(
             stream->current(),
-            "Expected a `Boolean` expression for right-hand side of &&.");
+            "Expected a boolean expression for right-hand side of &&.");
       }
 
       bool rhs = std::get<bool>(right);

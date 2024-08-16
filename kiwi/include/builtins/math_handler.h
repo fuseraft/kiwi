@@ -563,7 +563,7 @@ class MathBuiltinHandler {
 
     if (!std::holds_alternative<k_int>(args.at(0))) {
       throw ConversionError(term,
-                            "Expected an `Integer` argument for builtin `" +
+                            "Expected an integer argument for builtin `" +
                                 MathBuiltins.ListPrimes + "`.");
     }
 
@@ -587,7 +587,7 @@ class MathBuiltinHandler {
 
     if (!std::holds_alternative<k_int>(args.at(0))) {
       throw ConversionError(term,
-                            "Expected an `Integer` argument for builtin `" +
+                            "Expected an integer argument for builtin `" +
                                 MathBuiltins.NthPrime + "`.");
     }
 
@@ -613,7 +613,7 @@ class MathBuiltinHandler {
 
     if (!std::holds_alternative<k_int>(args.at(0))) {
       throw ConversionError(term,
-                            "Expected an `Integer` argument for builtin `" +
+                            "Expected an integer argument for builtin `" +
                                 MathBuiltins.Divisors + "`.");
     }
 
