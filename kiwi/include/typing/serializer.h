@@ -226,6 +226,7 @@ struct Serializer {
   static k_list get_hash_keys_list(const k_hash& hash) {
     auto keys = std::make_shared<List>();
     auto& elements = keys->elements;
+    elements.reserve(hash->keys.size());
 
     for (const auto& key : hash->keys) {
       elements.emplace_back(key);
@@ -237,6 +238,7 @@ struct Serializer {
   static k_list get_hash_values_list(const k_hash& hash) {
     auto values = std::make_shared<List>();
     auto& elements = values->elements;
+    elements.reserve(hash->keys.size());
 
     for (const auto& key : hash->keys) {
       elements.emplace_back(hash->kvp[key]);
