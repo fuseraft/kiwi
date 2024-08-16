@@ -550,6 +550,7 @@ class CoreBuiltinHandler {
       std::vector<uint8_t> bytes(stringValue.begin(), stringValue.end());
       auto byteList = std::make_shared<List>();
       auto& elements = byteList->elements;
+      elements.reserve(bytes.size());
 
       for (const auto& byte : bytes) {
         elements.emplace_back(static_cast<k_int>(byte));

@@ -84,6 +84,7 @@ k_value RNG::randomList(k_list list, size_t length) {
   std::uniform_int_distribution<> distribution(0, elements.size() - 1);
   auto randomList = std::make_shared<List>();
   auto& randomElements = randomList->elements;
+  randomElements.reserve(length);
 
   for (size_t i = 0; i < length; ++i) {
     randomElements.emplace_back(elements.at(distribution(generator)));

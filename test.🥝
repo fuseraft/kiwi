@@ -26,6 +26,8 @@ fn testsuite()
   else
     println "${succeeded} tests passed, ${failed} tests failed."
   end
+
+  #println __rlist__()
 end
 
 guava::register_test("truthiness", with () do
