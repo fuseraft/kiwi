@@ -1,0 +1,150 @@
+/#
+name: dirsize
+summary: Computes the size of a directory and prints the results.
+usage: kiwi dirsize <path> [depth]
+#/
+
+fn main(args)
+  if args.empty()
+    exit print_help()
+  end
+
+  search_path = args[0]
+  max_depth = 2
+
+  if args.size() > 1
+    if !string::isnumeric(args[1])
+      exit print_help("The depth must be a non-zero positive integer.")
+    end
+
+    max_depth = args[1].to_int()
+    if max_depth < 1
+      exit print_help("The depth must be a non-zero positive integer.")
+    end
+  end
+
+  if !fs::exists(search_path) || !fs::isdir(search_path)
+    exit print_help("The path does not exist or is not a directory: ${search_path}")
+  end
+
+  global.split_sep = sys::euid() < 0 ? "\\\\" : "/"
+  global.path_sep = sys::euid() < 0 ? "\\" : "/"
+
+  try
+    println "Computing size of path at depth ${max_depth}: ${search_path}"
+    computed_paths = path_sizes(search_path, max_depth)
+  
+    total_size = 0.
+    largest_path_key_size = computed_paths.keys().reduce("", with (key, acc) do
+      if acc.size() < key.size() acc = key end
+      return acc
+    end).size() + 5
+  
+    for path, size in computed_paths do
+      println "${string::padend(path + " ", largest_path_key_size, ".")} ${format_bytes(size, 2)}"
+      total_size += size
+    end
+  
+    println "\nTotal size: ${format_bytes(total_size, 2)}"
+  catch (err)
+    println "Could not compute size of path: ${search_path}"
+    println "An error occurred: ${err}"
+  end
+end
+
+/#
+@summary Gets path at a specified depth.
+@param path The path to search.
+@param depth The specified depth (default is 1, e.g. C:\dir\).
+@return Returns path at specified depth.
+#/
+fn path_at_depth(path, depth=1)
+  parts = path.split(global.split_sep)
+  root_depth = depth + 1
+  return path when parts.size() < root_depth
+  return parts[:root_depth].join(global.path_sep)
+end
+
+/#
+@summary Gets the total disk usage at a specified depth.
+@param path The path to search.
+@param depth The specified depth (default is 1, e.g. C:\dir\).
+@return Returns path at specified depth.
+#/
+fn path_sizes(dir_search, depth = 1)
+  files = listdir_recurse(dir_search)
+  counts = {}
+  
+  for file in files do
+    dir = fs::parentdir(file)
+    dir_at_depth = path_at_depth(dir, depth)
+    filesize = 0
+
+    try
+      filesize = fs::filesize(file)
+    end
+
+    if !counts.has_key(dir_at_depth)
+      counts.set(dir_at_depth, 0)
+    end
+    
+    if !filesize.is_a(Integer)
+      println "filesize is: ${filesize}"
+    end
+
+    counts.set(dir_at_depth, counts.get(dir_at_depth) + filesize)
+  end
+  
+  return counts
+end
+
+/#
+@summary Returns a list of files in a given directory and its subdirectories.
+@param dir_path The path to search.
+@return Returns list of files.
+#/
+fn listdir_recurse(dir_path)
+  files = []
+
+  listdir = with (path) do
+    try
+      for item in fs::listdir(path) do
+        if fs::isdir(item)
+          listdir(item)
+        else
+          files.push(item)
+        end
+      end
+    end
+  end
+
+  listdir(dir_path)
+  return files
+end
+
+/#
+@summary Formats a byte size as a suffixed string.
+@param size The number of bytes.
+@param precision The number of digits in the decimal.
+@return Returns a formatted byte size. (24.00 M -> 24 megabytes)
+#/
+fn format_bytes(size, precision = 2)
+  base = math::log(size) / math::log(1024)
+  suffix = ["B", "K", "M", "G", "T"][math::floor(base).to_int()]
+  res = math::pow(1024, base - math::floor(base))
+  res = math::isnan(res) ? 0 : res
+  return "${res.to_string("F${precision}")} ${suffix}"
+end
+
+/#
+@summary Prints help message.
+#/
+fn print_help(msg = "")
+  if !msg.empty()
+    println "${msg}\n"
+  end
+
+  println "Usage: kiwi app <path> [depth]"
+end
+
+main(argv::get())
