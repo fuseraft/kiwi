@@ -174,12 +174,14 @@ package string
   @return  Boolean        : True if the string is numeric, otherwise false.
   #/
   def isnumeric(_input)
+    _isnumeric = true
     for char in _input.chars() do
       if !(char >= "0" && char <= "9")
-        return false
+        _isnumeric = false
+        break
       end
     end
-    return true
+    return _isnumeric
   end
 
   /#
