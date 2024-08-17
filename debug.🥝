@@ -88,3 +88,5 @@ fn stress_test_1()
   for i in a do sum += 1 end       : 17921ms
   #/
 end
+
+#stress_test_1()
