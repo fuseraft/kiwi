@@ -164,13 +164,7 @@ class TokenStream {
     return tokens.at(position);
   }
 
-  Token previous() {
-    if (position - 1 > 0) {
-      return tokens.at(0);
-    }
-
-    return tokens.at(position - 1);
-  }
+  Token previous() { return tokens.at(position - 1); }
 
   void rewind() {
     if (static_cast<int>(position) - 1 < 0) {
