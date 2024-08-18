@@ -2758,6 +2758,8 @@ class Interpreter {
 
         if (method.getName() == Keywords.Ctor) {
           method.setFlag(MethodFlags::Ctor);
+          method.addToken(Token::create(KTokenType::KEYWORD, KName::KW_Return, token.getFile(), Keywords.Return, 0, 0));
+          method.addToken(Token::create(KTokenType::KEYWORD, KName::KW_This, token.getFile(), Keywords.This, 0, 0));
         }
 
         if (clazz.hasMethod(method.getName())) {
