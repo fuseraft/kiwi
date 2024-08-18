@@ -980,8 +980,7 @@ class Interpreter {
           interpretMethodInvocation(stream, frame, identifier);
           break;
       }
-    }
-    else {
+    } else {
       throw UnknownIdentifierError(stream->current(), identifier);
     }
 
@@ -2069,7 +2068,8 @@ class Interpreter {
     stream->next();  // Skip "def"|"fn"
 
     if (stream->current().getType() != KTokenType::IDENTIFIER) {
-      throw SyntaxError(stream->current(), "Expected identifier in function declaration.");
+      throw SyntaxError(stream->current(),
+                        "Expected identifier in function declaration.");
     }
 
     auto identifierToken = stream->current();
@@ -2758,8 +2758,11 @@ class Interpreter {
 
         if (method.getName() == Keywords.Ctor) {
           method.setFlag(MethodFlags::Ctor);
-          method.addToken(Token::create(KTokenType::KEYWORD, KName::KW_Return, token.getFile(), Keywords.Return, 0, 0));
-          method.addToken(Token::create(KTokenType::KEYWORD, KName::KW_This, token.getFile(), Keywords.This, 0, 0));
+          method.addToken(Token::create(KTokenType::KEYWORD, KName::KW_Return,
+                                        token.getFile(), Keywords.Return, 0,
+                                        0));
+          method.addToken(Token::create(KTokenType::KEYWORD, KName::KW_This,
+                                        token.getFile(), Keywords.This, 0, 0));
         }
 
         if (clazz.hasMethod(method.getName())) {
