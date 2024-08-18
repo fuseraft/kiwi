@@ -1034,10 +1034,6 @@ class Interpreter {
     auto tokenText = stream->current().getText();
     const auto& op = stream->current().getSubType();
 
-    if (tokenText == "f") {
-      std::cout << "";
-    }
-
     interpretQualifiedIdentifier(stream, tokenText);
 
     if (doAssignment && stream->peek().getType() == KTokenType::OPERATOR &&
