@@ -165,10 +165,6 @@ class TokenStream {
   }
 
   Token previous() {
-    if (position - 1 > 0) {
-      return tokens.at(0);
-    }
-
     return tokens.at(position - 1);
   }
 
