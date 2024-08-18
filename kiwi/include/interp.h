@@ -967,6 +967,7 @@ class Interpreter {
 
       interpretClassMethodInvocation(stream, frame, identifier);
     } else if (methodFound) {
+      // TODO: cleanup
       switch (stream->peek().getType()) {
         case KTokenType::COMMA:
         case KTokenType::CLOSE_PAREN:
@@ -979,6 +980,8 @@ class Interpreter {
           interpretMethodInvocation(stream, frame, identifier);
           break;
       }
+    } else {
+      throw UnknownIdentifierError(stream->current(), identifier);
     }
 
     if (!callStack.empty()) {
@@ -986,7 +989,7 @@ class Interpreter {
       return callStack.top()->returnValue;
     }
 
-    throw UnknownIdentifierError(stream->current(), identifier);
+    return static_cast<k_int>(0);
   }
 
   k_value interpretValueInvocation(k_stream stream,
@@ -1662,8 +1665,8 @@ class Interpreter {
       k_stream stream, std::shared_ptr<CallStackFrame> frame, Method& method) {
     if (!stream->match(KTokenType::OPEN_PAREN)) {
       throw SyntaxError(
-          stream->current(),
-          "Expected open-parenthesis, `(`, in method parameter set.");
+          stream->previous(),
+          "Expected open-parenthesis, `(`, in function parameter set.");
     }
 
     // Interpret parameters.
@@ -2062,9 +2065,15 @@ class Interpreter {
       }
       stream->next();
     }
-    stream->next();  // Skip "def"
+    stream->next();  // Skip "def"|"fn"
 
-    auto name = stream->current().getText();
+    if (stream->current().getType() != KTokenType::IDENTIFIER) {
+      throw SyntaxError(stream->current(),
+                        "Expected identifier in function declaration.");
+    }
+
+    auto identifierToken = stream->current();
+    auto name = identifierToken.getText();
     method.setName(name);
     stream->next();  // Skip the name.
     interpretMethodParameters(stream, frame, method);
@@ -2111,8 +2120,8 @@ class Interpreter {
       stream->next();
 
       if (stream->current().getType() == KTokenType::STREAM_END) {
-        throw SyntaxError(stream->current(),
-                          "Invalid method declaration `" + name + "`");
+        throw SyntaxError(identifierToken,
+                          "Invalid function declaration `" + name + "`");
       }
     }
 
@@ -2125,7 +2134,7 @@ class Interpreter {
 
     if (stream->current().getSubType() != KName::KW_Method) {
       throw SyntaxError(stream->current(),
-                        "Expected method definition after `async`.");
+                        "Expected function definition after `async`.");
     }
 
     auto method = interpretMethodDefinition(stream, frame);
@@ -2749,6 +2758,11 @@ class Interpreter {
 
         if (method.getName() == Keywords.Ctor) {
           method.setFlag(MethodFlags::Ctor);
+          method.addToken(Token::create(KTokenType::KEYWORD, KName::KW_Return,
+                                        token.getFile(), Keywords.Return, 0,
+                                        0));
+          method.addToken(Token::create(KTokenType::KEYWORD, KName::KW_This,
+                                        token.getFile(), Keywords.This, 0, 0));
         }
 
         if (clazz.hasMethod(method.getName())) {
@@ -4015,6 +4029,8 @@ class Interpreter {
         return interpretIdentifierInvocation(stream, frame, tokenText,
                                              methodFound, classFound);
       }
+
+      throw UnknownIdentifierError(stream->current(), tokenText);
     }
 
     return result;
