@@ -48,7 +48,6 @@ class ProgramNode : public ASTNode {
   void print() const override {
     std::cout << "ProgramNode: " << std::endl;
     for (const auto& statement : statements) {
-      std::cout << "    ";
       statement->print();
     }
   }
@@ -140,25 +139,23 @@ class PrintNode : public ASTNode {
 class FunctionDeclarationNode : public ASTNode {
  public:
   std::string name;
-  std::vector<std::string> parameters;
+  std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> parameters;
   std::vector<std::unique_ptr<ASTNode>> body;
 
   FunctionDeclarationNode() : ASTNode(ASTNodeType::FUNCTION_DECLARATION) {}
-  FunctionDeclarationNode(const std::string& name,
-                          const std::vector<std::string>& parameters,
-                          std::vector<std::unique_ptr<ASTNode>> body)
-      : ASTNode(ASTNodeType::FUNCTION_DECLARATION),
-        name(name),
-        parameters(parameters),
-        body(std::move(body)) {}
 
   void print() const override {
     std::cout << "FunctionDeclaration: " << name << std::endl;
-    std::cout << "Parameters: ";
+    std::cout << "Parameters: " << std::endl;
     for (const auto& param : parameters) {
-      std::cout << param << " ";
+      std::cout << "  " << param.first;
+      if (param.second) {
+        std::cout << " (default: ";
+        param.second->print();
+        std::cout << ")";
+      }
+      std::cout << std::endl;
     }
-    std::cout << std::endl;
     for (const auto& stmt : body) {
       stmt->print();
     }
