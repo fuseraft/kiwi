@@ -12,6 +12,7 @@
 #include "objects/sliceindex.h"
 #include "parsing/builtins.h"
 #include "parsing/lexer.h"
+#include "parsing/parser.h"
 #include "parsing/tokens.h"
 #include "parsing/tokentype.h"
 #include "parsing/keywords.h"
@@ -47,11 +48,19 @@ class Interpreter {
       return -1;
     }
 
+    Lexer lexer(path, content);
+    
+    if (String::contains(path, "debug")) {
+      Parser parser;
+      auto tokenStream = lexer.getTokenStream();
+      auto ast = parser.parseTokenStream(tokenStream);
+      ast->print();
+      return 0;
+    }
+
     auto cwd = File::getCurrentDirectory();
     auto scriptDir = File::getParentPath(path);
     File::setCurrentDirectory(scriptDir);
-
-    Lexer lexer(path, content);
     int result = interpret(lexer);
     File::setCurrentDirectory(cwd);
 
