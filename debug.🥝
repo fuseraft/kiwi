@@ -1,34 +1,7 @@
 /# a script for experimentation and debugging. #/
 
-class Array
-  private (@array)
-
-  def initialize(init = 0, n = 0)
-    @array = []
-
-    if n > 0
-      @array = [init] * n
-    end
-  end
-
-  def d()
-    return @array
-  end
-
-  def digits()
-    return @array.select(with (e) do return string::isnumeric(e) end)
-  end
-
-  def letters()
-    return @array.select(with (e) do return !string::isnumeric(e) end)
-  end
+fn greet(name)
+  println name
 end
 
-a = Array.new('a', 2) # ["a", "a"]
-a.d().set(0, 'b')     # ["b", "a"]
-a.d().push('c')       # ["b", "a", "c"]
-a.d().swap(0, 1)      # ["a", "b", "c"]
-a.d().concat([1, 2, 3])
-
-println a.digits()
-println a.letters()
+greet("Hello, World!")
