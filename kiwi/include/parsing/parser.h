@@ -40,7 +40,7 @@ Token Parser::next() {
 }
 
 bool Parser::match(KTokenType expectedType) {
-  if (kStream->current().getType() == expectedType) {
+  if (kToken.getType() == expectedType) {
     next();
     return true;
   }
@@ -105,40 +105,59 @@ std::unique_ptr<ASTNode> Parser::parseComment() {
 std::unique_ptr<ASTNode> Parser::parseFunction() {
   match(KTokenType::KEYWORD);  // Consume "fn"
 
-  auto functionNode = std::make_unique<FunctionDeclarationNode>();
-
-  if (kToken.getType() == KTokenType::IDENTIFIER) {
-    functionNode->name = kToken.getText();
-    match(KTokenType::IDENTIFIER);  // Consume function name
-  } else {
+  // Get function name
+  if (kToken.getType() != KTokenType::IDENTIFIER) {
     throw SyntaxError(kToken, "Expected identifier after 'fn'.");
   }
 
-  match(KTokenType::OPEN_PAREN);  // Consume '('
+  std::string functionName = kToken.getText();
+  next();  // Move past function name
 
-  // WIP: May refactor this into its own method. Need to handle optional parameters.
-  //      Currently the parameters vector only holds strings.
-  //      It should hold Parameter (see objects/method.h).
-  while (kToken.getType() != KTokenType::CLOSE_PAREN) {
-    if (kToken.getType() == KTokenType::IDENTIFIER) {
-      functionNode->parameters.push_back(kToken.getText());
-      match(KTokenType::IDENTIFIER);
+  // Parse parameters
+  std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> parameters;
+  if (kToken.getType() == KTokenType::OPEN_PAREN) {
+    next();  // Consume '('
+
+    while (kToken.getType() != KTokenType::CLOSE_PAREN) {
+      if (kToken.getType() != KTokenType::IDENTIFIER) {
+        throw SyntaxError(kToken, "Expected parameter name");
+      }
+
+      std::string paramName = kToken.getText();
+      std::unique_ptr<ASTNode> defaultValue = nullptr;
+      next();
+
+      // Check for default value
+      if (kToken.getType() == KTokenType::OPERATOR && kToken.getText() == "=") {
+        next();  // Consume '='
+        defaultValue = parseExpression();
+      }
+
+      parameters.emplace_back(paramName, std::move(defaultValue));
+
+      if (kToken.getType() == KTokenType::COMMA) {
+        next();
+      } else if (kToken.getType() != KTokenType::CLOSE_PAREN) {
+        throw SyntaxError(kToken, "Expected ',' or ')' in parameter list");
+      }
     }
 
-    if (kToken.getType() == KTokenType::COMMA) {
-      match(KTokenType::COMMA);  // Consume ','
-    }
+    next();  // Consume ')'
   }
 
-  match(KTokenType::CLOSE_PAREN);  // Consume ')'
-
+  // Parse the function body
+  std::vector<std::unique_ptr<ASTNode>> body;
   while (kToken.getSubType() != KName::KW_End) {
-    functionNode->body.push_back(parseStatement());
+    body.push_back(parseStatement());
   }
 
-  matchSubType(KName::KW_End);  // Consume 'end'
+  next();  // Consume 'end'
 
-  return functionNode;
+  auto functionDeclaration = std::make_unique<FunctionDeclarationNode>();
+  functionDeclaration->name = functionName;
+  functionDeclaration->parameters = std::move(parameters);
+  functionDeclaration->body = std::move(body);
+  return functionDeclaration;
 }
 
 std::unique_ptr<ASTNode> Parser::parsePrint() {
@@ -152,7 +171,8 @@ std::unique_ptr<ASTNode> Parser::parsePrint() {
 std::unique_ptr<ASTNode> Parser::parseExpression() {
   if (kToken.getType() == KTokenType::IDENTIFIER) {
     return parseIdentifier();
-  } else if (kToken.getType() == KTokenType::LITERAL || kToken.getType() == KTokenType::STRING) {
+  } else if (kToken.getType() == KTokenType::LITERAL ||
+             kToken.getType() == KTokenType::STRING) {
     return parseLiteral();
   }
   // WIP: this is going to be fun.

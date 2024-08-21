@@ -49,7 +49,7 @@ class Interpreter {
     }
 
     Lexer lexer(path, content);
-    
+
     if (String::contains(path, "debug")) {
       Parser parser;
       auto tokenStream = lexer.getTokenStream();
