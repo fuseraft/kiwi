@@ -15,6 +15,7 @@ enum class ASTNodeType {
   BINARY_OPERATION,
   UNARY_OPERATION,
   LITERAL,
+  HASH_LITERAL,
   LIST_LITERAL,
   IDENTIFIER,
   INDEX_EXPRESSION,
@@ -64,6 +65,25 @@ class LiteralNode : public ASTNode {
 
   void print() const override {
     std::cout << "Literal: " << Serializer::serialize(value) << std::endl;
+  }
+};
+
+class HashLiteralNode : public ASTNode {
+ public:
+  std::map<std::unique_ptr<ASTNode>, std::unique_ptr<ASTNode>> elements;
+
+  HashLiteralNode(
+      std::map<std::unique_ptr<ASTNode>, std::unique_ptr<ASTNode>> elements)
+      : ASTNode(ASTNodeType::HASH_LITERAL), elements(std::move(elements)) {}
+
+  void print() const override {
+    std::cout << "HashLiteral: " << std::endl;
+    for (const auto& element : elements) {
+      std::cout << "Key: ";
+      element.first->print();
+      std::cout << "Value: ";
+      element.second->print();
+    }
   }
 };
 
