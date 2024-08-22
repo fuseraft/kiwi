@@ -12,6 +12,8 @@ enum class ASTNodeType {
   PROGRAM,
   FUNCTION_DECLARATION,
   FUNCTION_CALL,
+  METHOD_CALL,
+  MEMBER_ACCESS,
   BINARY_OPERATION,
   UNARY_OPERATION,
   LITERAL,
@@ -239,6 +241,46 @@ class FunctionCallNode : public ASTNode {
   }
 };
 
+class MethodCallNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> object;
+  std::string methodName;
+  std::vector<std::unique_ptr<ASTNode>> arguments;
+
+  MethodCallNode(std::unique_ptr<ASTNode> object, const std::string& methodName,
+                 std::vector<std::unique_ptr<ASTNode>> arguments)
+      : ASTNode(ASTNodeType::METHOD_CALL),
+        object(std::move(object)),
+        methodName(methodName),
+        arguments(std::move(arguments)) {}
+
+  void print() const override {
+    std::cout << "MethodCall: " << methodName << " on object: " << std::endl;
+    object->print();
+    std::cout << "Arguments: " << std::endl;
+    for (const auto& arg : arguments) {
+      arg->print();
+    }
+  }
+};
+
+class MemberAccessNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> object;
+  std::string memberName;
+
+  MemberAccessNode(std::unique_ptr<ASTNode> object,
+                   const std::string& memberName)
+      : ASTNode(ASTNodeType::MEMBER_ACCESS),
+        object(std::move(object)),
+        memberName(memberName) {}
+
+  void print() const override {
+    std::cout << "MemberAccess: " << memberName << " on object: " << std::endl;
+    object->print();
+  }
+};
+
 class AssignmentNode : public ASTNode {
  public:
   std::string name;
@@ -259,6 +301,30 @@ class AssignmentNode : public ASTNode {
     initializer->print();
   }
 };
+
+class MemberAssignmentNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> object;
+  std::string memberName;
+  KName type;
+  std::unique_ptr<ASTNode> initializer;
+
+  MemberAssignmentNode(std::unique_ptr<ASTNode> object, const std::string& memberName, KName type,
+                       std::unique_ptr<ASTNode> initializer)
+      : ASTNode(ASTNodeType::ASSIGNMENT),
+        object(std::move(object)),
+        memberName(memberName),
+        type(type),
+        initializer(std::move(initializer)) {}
+
+  void print() const override {
+    std::cout << "MemberAssignment: " << memberName << " on object: " << std::endl;
+    object->print();
+    std::cout << "Initializer: ";
+    initializer->print();
+  }
+};
+
 
 class BlockStatementNode : public ASTNode {
  public:
