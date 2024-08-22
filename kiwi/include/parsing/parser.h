@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "ast.h"
+#include "keywords.h"
 #include "tokens.h"
 #include "tracing/error.h"
 #include "typing/value.h"
@@ -15,11 +16,15 @@ class Parser {
   std::unique_ptr<ASTNode> parseTokenStream(k_stream& stream);
 
  private:
+  std::unique_ptr<ASTNode> parseAssignment(const k_string& identifierName);
   std::unique_ptr<ASTNode> parseComment();
   std::unique_ptr<ASTNode> parseFunction();
+  std::unique_ptr<ASTNode> parseFunctionCall(const k_string& identifierName);
   std::unique_ptr<ASTNode> parseStatement();
   std::unique_ptr<ASTNode> parseExpression();
   std::unique_ptr<ASTNode> parseLiteral();
+  std::unique_ptr<ASTNode> parseListLiteral();
+  std::unique_ptr<ASTNode> parseIndexing(const k_string& identifierName);
   std::unique_ptr<ASTNode> parseIdentifier();
   std::unique_ptr<ASTNode> parsePrint();
 
@@ -160,6 +165,29 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
   return functionDeclaration;
 }
 
+std::unique_ptr<ASTNode> Parser::parseFunctionCall(
+    const k_string& identifierName) {
+  // This is a function call
+  next();  // Consume the '('
+
+  // Parse function arguments
+  std::vector<std::unique_ptr<ASTNode>> arguments;
+  while (kToken.getType() != KTokenType::CLOSE_PAREN) {
+    arguments.push_back(parseExpression());
+
+    if (kToken.getType() == KTokenType::COMMA) {
+      next();
+    } else if (kToken.getType() != KTokenType::CLOSE_PAREN) {
+      throw SyntaxError(kToken, "Expected ')' or ',' in function call");
+    }
+  }
+
+  next();  // Consume the closing parenthesis ')'
+
+  return std::make_unique<FunctionCallNode>(identifierName,
+                                            std::move(arguments));
+}
+
 std::unique_ptr<ASTNode> Parser::parsePrint() {
   auto printNode = std::make_unique<PrintNode>();
   printNode->printNewline = kToken.getSubType() == KName::KW_PrintLn;
@@ -174,6 +202,8 @@ std::unique_ptr<ASTNode> Parser::parseExpression() {
   } else if (kToken.getType() == KTokenType::LITERAL ||
              kToken.getType() == KTokenType::STRING) {
     return parseLiteral();
+  } else if (kToken.getType() == KTokenType::OPEN_BRACKET) {
+    return parseListLiteral();
   }
   // WIP: this is going to be fun.
   return nullptr;
@@ -186,6 +216,49 @@ std::unique_ptr<ASTNode> Parser::parseLiteral() {
   return literalNode;
 }
 
+std::unique_ptr<ASTNode> Parser::parseListLiteral() {
+  std::vector<std::unique_ptr<ASTNode>> elements;
+
+  match(KTokenType::OPEN_BRACKET);  // Consume '['
+
+  while (kToken.getType() != KTokenType::CLOSE_BRACKET) {
+    elements.push_back(parseExpression());
+
+    if (kToken.getType() == KTokenType::COMMA) {
+      next();  // Consume ','
+    } else if (kToken.getType() != KTokenType::CLOSE_BRACKET) {
+      throw SyntaxError(kToken, "Expected ']' or ',' in list literal");
+    }
+  }
+
+  match(KTokenType::CLOSE_BRACKET);  // Consume ']'
+
+  return std::make_unique<ListLiteralNode>(std::move(elements));
+}
+
+std::unique_ptr<ASTNode> Parser::parseIndexing(const k_string& identifierName) {
+  next();                                    // Consume '['
+  auto indexExpression = parseExpression();  // Parse the index expression
+  match(KTokenType::CLOSE_BRACKET);          // Consume ']'
+
+  return std::make_unique<IndexingNode>(identifierName,
+                                        std::move(indexExpression));
+}
+
+std::unique_ptr<ASTNode> Parser::parseAssignment(
+    const k_string& identifierName) {
+  if (!Operators.is_assignment_operator(kToken.getSubType())) {
+    throw SyntaxError(kToken, "Expected an assignment operator in assignment.");
+  }
+
+  auto type = kToken.getSubType();
+  next();
+
+  auto initializer = parseExpression();
+  return std::make_unique<AssignmentNode>(identifierName, type,
+                                          std::move(initializer));
+}
+
 std::unique_ptr<ASTNode> Parser::parseIdentifier() {
   if (kToken.getType() != KTokenType::IDENTIFIER) {
     throw SyntaxError(kToken, "Expected an identifier");
@@ -195,25 +268,11 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier() {
   next();
 
   if (kToken.getType() == KTokenType::OPEN_PAREN) {
-    // This is a function call
-    next();  // Consume the '('
-
-    // Parse function arguments
-    std::vector<std::unique_ptr<ASTNode>> arguments;
-    while (kToken.getType() != KTokenType::CLOSE_PAREN) {
-      arguments.push_back(parseExpression());
-
-      if (kToken.getType() == KTokenType::COMMA) {
-        next();
-      } else if (kToken.getType() != KTokenType::CLOSE_PAREN) {
-        throw SyntaxError(kToken, "Expected ')' or ',' in function call");
-      }
-    }
-
-    next();  // Consume the closing parenthesis ')'
-
-    return std::make_unique<FunctionCallNode>(identifierName,
-                                              std::move(arguments));
+    return parseFunctionCall(identifierName);
+  } else if (kToken.getType() == KTokenType::OPEN_BRACKET) {
+    return parseIndexing(identifierName);
+  } else if (kToken.getType() == KTokenType::OPERATOR) {
+    return parseAssignment(identifierName);
   } else {
     return std::make_unique<IdentifierNode>(identifierName);
   }

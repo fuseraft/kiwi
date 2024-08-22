@@ -12,11 +12,12 @@ enum class ASTNodeType {
   PROGRAM,
   FUNCTION_DECLARATION,
   FUNCTION_CALL,
-  VARIABLE_DECLARATION,
   BINARY_OPERATION,
   UNARY_OPERATION,
   LITERAL,
+  LIST_LITERAL,
   IDENTIFIER,
+  INDEX_EXPRESSION,
   EXPRESSION_STATEMENT,
   RETURN_STATEMENT,
   ASSIGNMENT,
@@ -63,6 +64,41 @@ class LiteralNode : public ASTNode {
 
   void print() const override {
     std::cout << "Literal: " << Serializer::serialize(value) << std::endl;
+  }
+};
+
+class ListLiteralNode : public ASTNode {
+ public:
+  std::vector<std::unique_ptr<ASTNode>> elements;
+
+  ListLiteralNode() : ASTNode(ASTNodeType::LIST_LITERAL) {}
+  ListLiteralNode(std::vector<std::unique_ptr<ASTNode>> elements)
+      : ASTNode(ASTNodeType::LIST_LITERAL), elements(std::move(elements)) {}
+
+  void print() const override {
+    std::cout << "ListLiteral: " << std::endl;
+    for (const auto& element : elements) {
+      element->print();
+    }
+  }
+};
+
+class IndexingNode : public ASTNode {
+ public:
+  std::string name;
+  std::unique_ptr<ASTNode> indexExpression;
+
+  IndexingNode() : ASTNode(ASTNodeType::INDEX_EXPRESSION) {}
+  IndexingNode(const std::string& name,
+               std::unique_ptr<ASTNode> indexExpression)
+      : ASTNode(ASTNodeType::INDEX_EXPRESSION),
+        name(name),
+        indexExpression(std::move(indexExpression)) {}
+
+  void print() const override {
+    std::cout << "Index: " << name << std::endl;
+    std::cout << "Expression: ";
+    indexExpression->print();
   }
 };
 
@@ -183,24 +219,24 @@ class FunctionCallNode : public ASTNode {
   }
 };
 
-class VariableDeclarationNode : public ASTNode {
+class AssignmentNode : public ASTNode {
  public:
   std::string name;
+  KName type;
   std::unique_ptr<ASTNode> initializer;
 
-  VariableDeclarationNode() : ASTNode(ASTNodeType::VARIABLE_DECLARATION) {}
-  VariableDeclarationNode(const std::string& name,
-                          std::unique_ptr<ASTNode> initializer)
-      : ASTNode(ASTNodeType::VARIABLE_DECLARATION),
+  AssignmentNode() : ASTNode(ASTNodeType::ASSIGNMENT) {}
+  AssignmentNode(const std::string& name, const KName& type,
+                 std::unique_ptr<ASTNode> initializer)
+      : ASTNode(ASTNodeType::ASSIGNMENT),
         name(name),
+        type(type),
         initializer(std::move(initializer)) {}
 
   void print() const override {
-    std::cout << "VariableDeclaration: " << name << std::endl;
-    if (initializer) {
-      std::cout << "Initializer: " << std::endl;
-      initializer->print();
-    }
+    std::cout << "Assignment: " << name << std::endl;
+    std::cout << "Initializer: ";
+    initializer->print();
   }
 };
 
