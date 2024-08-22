@@ -1,6 +1,6 @@
 /# a script for experimentation and debugging. #/
 
-fn greet(name)
+/#fn greet(name)
   println name
 end
 
@@ -9,4 +9,17 @@ b = [1, 2, 3, ["a", "b"]]
 c = b[0]
 c += 1
 
-greet(a)
+greet(a)#/
+
+/#
+a = {
+  "a": true, 
+  "b": {
+    "c": [1, 2, {"key": 3}]
+  }
+}#/
+
+#a.x.set(0, a.x.get(2))
+
+a = {}
+a.x = 5

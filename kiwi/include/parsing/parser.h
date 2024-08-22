@@ -27,6 +27,9 @@ class Parser {
   std::unique_ptr<ASTNode> parseHashLiteral();
   std::unique_ptr<ASTNode> parseListLiteral();
   std::unique_ptr<ASTNode> parseIndexing(const k_string& identifierName);
+  std::unique_ptr<ASTNode> parseMemberAccess(std::unique_ptr<ASTNode> left);
+  std::unique_ptr<ASTNode> parseFunctionCallOnMember(
+      std::unique_ptr<ASTNode> object, const k_string& methodName);
   std::unique_ptr<ASTNode> parseIdentifier();
   std::unique_ptr<ASTNode> parsePrint();
 
@@ -204,18 +207,25 @@ std::unique_ptr<ASTNode> Parser::parsePrint() {
 }
 
 std::unique_ptr<ASTNode> Parser::parseExpression() {
+  std::unique_ptr<ASTNode> node;
+
   if (kToken.getType() == KTokenType::IDENTIFIER) {
-    return parseIdentifier();
+    node = parseIdentifier();
   } else if (kToken.getType() == KTokenType::LITERAL ||
              kToken.getType() == KTokenType::STRING) {
-    return parseLiteral();
+    node = parseLiteral();
   } else if (kToken.getType() == KTokenType::OPEN_BRACKET) {
-    return parseListLiteral();
+    node = parseListLiteral();
   } else if (kToken.getType() == KTokenType::OPEN_BRACE) {
-    return parseHashLiteral();
+    node = parseHashLiteral();
   }
-  // WIP: this is going to be fun.
-  return nullptr;
+
+  // Check for member access or method calls
+  if (kToken.getType() == KTokenType::DOT) {
+    node = parseMemberAccess(std::move(node));
+  }
+
+  return node;
 }
 
 std::unique_ptr<ASTNode> Parser::parseLiteral() {
@@ -276,7 +286,7 @@ std::unique_ptr<ASTNode> Parser::parseListLiteral() {
 }
 
 std::unique_ptr<ASTNode> Parser::parseIndexing(const k_string& identifierName) {
-  next();                                    // Consume '['
+  next();  // Consume '['
   Token indexValueToken = kToken;
   auto indexExpression = parseExpression();  // Parse the index expression
   if (!match(KTokenType::CLOSE_BRACKET)) {
@@ -291,6 +301,51 @@ std::unique_ptr<ASTNode> Parser::parseIndexing(const k_string& identifierName) {
 
   return std::make_unique<IndexingNode>(identifierName,
                                         std::move(indexExpression));
+}
+
+std::unique_ptr<ASTNode> Parser::parseMemberAccess(
+    std::unique_ptr<ASTNode> left) {
+  while (kToken.getType() == KTokenType::DOT) {
+    next();  // Consume '.'
+
+    if (kToken.getType() != KTokenType::IDENTIFIER) {
+      throw SyntaxError(kToken,
+                        "Expected identifier after '.' in member access.");
+    }
+
+    auto memberName = kToken.getText();
+    next();  // Consume the member name (identifier)
+
+    if (kToken.getType() == KTokenType::OPEN_PAREN) {
+      left = parseFunctionCallOnMember(std::move(left), memberName);
+    } else {
+      left = std::make_unique<MemberAccessNode>(std::move(left), memberName);
+    }
+  }
+
+  return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseFunctionCallOnMember(
+    std::unique_ptr<ASTNode> object, const k_string& methodName) {
+  next();  // Consume '('
+
+  // Parse function arguments
+  std::vector<std::unique_ptr<ASTNode>> arguments;
+  while (kToken.getType() != KTokenType::CLOSE_PAREN) {
+    arguments.push_back(parseExpression());
+
+    if (kToken.getType() == KTokenType::COMMA) {
+      next();  // Consume ','
+    } else if (kToken.getType() != KTokenType::CLOSE_PAREN) {
+      throw SyntaxError(kToken, "Expected ')' or ',' in function call.");
+    }
+  }
+
+  next();  // Consume the closing parenthesis ')'
+
+  return std::make_unique<MethodCallNode>(std::move(object), methodName,
+                                          std::move(arguments));
 }
 
 std::unique_ptr<ASTNode> Parser::parseAssignment(
@@ -315,15 +370,22 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier() {
   auto identifierName = kToken.getText();
   next();
 
-  if (kToken.getType() == KTokenType::OPEN_PAREN) {
-    return parseFunctionCall(identifierName);
+  std::unique_ptr<ASTNode> node =
+      std::make_unique<IdentifierNode>(identifierName);
+
+  if (kToken.getType() == KTokenType::DOT) {
+    node = parseMemberAccess(std::move(node));
+  } else if (kToken.getType() == KTokenType::OPEN_PAREN) {
+    node = parseFunctionCall(identifierName);
   } else if (kToken.getType() == KTokenType::OPEN_BRACKET) {
-    return parseIndexing(identifierName);
+    node = parseIndexing(identifierName);
   } else if (kToken.getType() == KTokenType::OPERATOR) {
-    return parseAssignment(identifierName);
+    node = parseAssignment(identifierName);
   } else {
-    return std::make_unique<IdentifierNode>(identifierName);
+    node = std::make_unique<IdentifierNode>(identifierName);
   }
+
+  return node;
 }
 
 #endif
