@@ -22,6 +22,7 @@ enum class ASTNodeType {
   RANGE_LITERAL,
   IDENTIFIER,
   INDEX_EXPRESSION,
+  SLICE_EXPRESSION,
   EXPRESSION_STATEMENT,
   RETURN_STATEMENT,
   ASSIGNMENT,
@@ -58,7 +59,7 @@ class ProgramNode : public ASTNode {
 
   void print(int depth = 0) const override {
     print_depth(depth);
-    std::cout << "Program: " << std::endl;
+    std::cout << "Program:" << std::endl;
     for (const auto& statement : statements) {
       statement->print(1 + depth);
     }
@@ -89,7 +90,7 @@ class HashLiteralNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "HashLiteral: " << std::endl;
+    std::cout << "HashLiteral:" << std::endl;
     for (const auto& element : elements) {
       element.first->print(1 + depth);
       element.second->print(1 + depth);
@@ -107,7 +108,7 @@ class ListLiteralNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "ListLiteral: " << std::endl;
+    std::cout << "ListLiteral:" << std::endl;
     for (const auto& element : elements) {
       element->print(1 + depth);
     }
@@ -128,7 +129,7 @@ class RangeLiteralNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "RangeLiteral: " << std::endl;
+    std::cout << "RangeLiteral:" << std::endl;
     rangeStart->print(1 + depth);
     rangeEnd->print(1 + depth);
   }
@@ -136,20 +137,93 @@ class RangeLiteralNode : public ASTNode {
 
 class IndexingNode : public ASTNode {
  public:
+  std::unique_ptr<ASTNode> indexedObject;
   std::string name;
   std::unique_ptr<ASTNode> indexExpression;
 
   IndexingNode() : ASTNode(ASTNodeType::INDEX_EXPRESSION) {}
+
   IndexingNode(const std::string& name,
                std::unique_ptr<ASTNode> indexExpression)
       : ASTNode(ASTNodeType::INDEX_EXPRESSION),
         name(name),
         indexExpression(std::move(indexExpression)) {}
 
+  IndexingNode(std::unique_ptr<ASTNode> indexedObject,
+               std::unique_ptr<ASTNode> indexExpression)
+      : ASTNode(ASTNodeType::INDEX_EXPRESSION),
+        indexedObject(std::move(indexedObject)),
+        indexExpression(std::move(indexExpression)) {}
+
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "Index: " << name << std::endl;
+    if (indexedObject) {
+      std::cout << "Index on object:" << std::endl;
+      indexedObject->print(1 + depth);
+    } else {
+      std::cout << "Index: `" << name << "`" << std::endl;
+    }
     indexExpression->print(1 + depth);
+  }
+};
+
+class SliceNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> slicedObject;
+  std::string name;
+  std::unique_ptr<ASTNode> startExpression;
+  std::unique_ptr<ASTNode> stopExpression;
+  std::unique_ptr<ASTNode> stepExpression;
+
+  SliceNode() : ASTNode(ASTNodeType::SLICE_EXPRESSION) {}
+
+  SliceNode(const std::string& name,
+            std::unique_ptr<ASTNode> startExpression = nullptr,
+            std::unique_ptr<ASTNode> stopExpression = nullptr,
+            std::unique_ptr<ASTNode> stepExpression = nullptr)
+      : ASTNode(ASTNodeType::SLICE_EXPRESSION),
+        name(name),
+        startExpression(std::move(startExpression)),
+        stopExpression(std::move(stopExpression)),
+        stepExpression(std::move(stepExpression)) {}
+
+  SliceNode(std::unique_ptr<ASTNode> slicedObject,
+            std::unique_ptr<ASTNode> startExpression = nullptr,
+            std::unique_ptr<ASTNode> stopExpression = nullptr,
+            std::unique_ptr<ASTNode> stepExpression = nullptr)
+      : ASTNode(ASTNodeType::SLICE_EXPRESSION),
+        slicedObject(std::move(slicedObject)),
+        startExpression(std::move(startExpression)),
+        stopExpression(std::move(stopExpression)),
+        stepExpression(std::move(stepExpression)) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+
+    if (slicedObject) {
+      std::cout << "Slice on object:" << std::endl;
+      slicedObject->print(1 + depth);
+    } else {
+      std::cout << "Slice: `" << name << "`" << std::endl;
+    }
+
+    if (startExpression) {
+      print_depth(depth);
+      std::cout << "Slice start:" << std::endl;
+      startExpression->print(1 + depth);
+    }
+
+    if (stopExpression) {
+      print_depth(depth);
+      std::cout << "Slice stop:" << std::endl;
+      stopExpression->print(1 + depth);
+    }
+
+    if (stepExpression) {
+      print_depth(depth);
+      std::cout << "Slice step:" << std::endl;
+      stepExpression->print(1 + depth);
+    }
   }
 };
 
@@ -163,7 +237,7 @@ class IdentifierNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "Identifier: " << name << std::endl;
+    std::cout << "Identifier: `" << name << "`" << std::endl;
   }
 };
 
@@ -191,11 +265,11 @@ class BinaryOperationNode : public ASTNode {
 
 class UnaryOperationNode : public ASTNode {
  public:
-  std::string op;
+  KName op;
   std::unique_ptr<ASTNode> operand;
 
   UnaryOperationNode() : ASTNode(ASTNodeType::UNARY_OPERATION) {}
-  UnaryOperationNode(const std::string& op, std::unique_ptr<ASTNode> operand)
+  UnaryOperationNode(const KName& op, std::unique_ptr<ASTNode> operand)
       : ASTNode(ASTNodeType::UNARY_OPERATION),
         op(op),
         operand(std::move(operand)) {}
@@ -237,7 +311,7 @@ class FunctionDeclarationNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "FunctionDeclaration: " << name << std::endl;
+    std::cout << "FunctionDeclaration: `" << name << "`" << std::endl;
     print_depth(depth);
     std::cout << "Parameters: " << std::endl;
     for (const auto& param : parameters) {
@@ -245,7 +319,7 @@ class FunctionDeclarationNode : public ASTNode {
       std::cout << param.first;
       if (param.second) {
         print_depth(1 + depth);
-        std::cout << " Default: ";
+        std::cout << "Default: ";
         param.second->print(1 + depth);
       } else {
         std::cout << std::endl;
@@ -253,7 +327,7 @@ class FunctionDeclarationNode : public ASTNode {
     }
 
     print_depth(depth);
-    std::cout << "Statements: " << std::endl;
+    std::cout << "Statements:" << std::endl;
     for (const auto& stmt : body) {
       stmt->print(1 + depth);
     }
@@ -274,7 +348,7 @@ class FunctionCallNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "FunctionCall: " << functionName << std::endl;
+    std::cout << "FunctionCall: `" << functionName << "`" << std::endl;
     print_depth(depth);
     std::cout << "Arguments: " << std::endl;
     for (const auto& arg : arguments) {
@@ -298,10 +372,10 @@ class MethodCallNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "MethodCall: " << methodName << " on object: " << std::endl;
+    std::cout << "MethodCall: `" << methodName << "` on object: " << std::endl;
     object->print(1 + depth);
     print_depth(depth);
-    std::cout << "Arguments: " << std::endl;
+    std::cout << "Arguments:" << std::endl;
     for (const auto& arg : arguments) {
       arg->print(1 + depth);
     }
@@ -321,7 +395,8 @@ class MemberAccessNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "MemberAccess: " << memberName << " on object: " << std::endl;
+    std::cout << "MemberAccess: `" << memberName
+              << "` on object: " << std::endl;
     object->print(1 + depth);
   }
 };
@@ -342,9 +417,9 @@ class AssignmentNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "Assignment: " << name << std::endl;
+    std::cout << "Assignment: `" << name << "`" << std::endl;
     print_depth(depth);
-    std::cout << "Initializer: ";
+    std::cout << "Initializer:" << std::endl;
     initializer->print(1 + depth);
   }
 };
@@ -367,12 +442,12 @@ class MemberAssignmentNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "MemberAssignment: " << memberName
-              << " on object: " << std::endl;
+    std::cout << "MemberAssignment: `" << memberName
+              << "` on object: " << std::endl;
     print_depth(depth);
     object->print(1 + depth);
     print_depth(depth);
-    std::cout << "Initializer: ";
+    std::cout << "Initializer:" << std::endl;
     initializer->print(1 + depth);
   }
 };

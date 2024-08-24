@@ -2,6 +2,7 @@
 #define KIWI_PARSING_PARSER_H
 
 #include <memory>
+#include <optional>
 
 #include "ast.h"
 #include "keywords.h"
@@ -26,7 +27,10 @@ class Parser {
   std::unique_ptr<ASTNode> parseLiteral();
   std::unique_ptr<ASTNode> parseHashLiteral();
   std::unique_ptr<ASTNode> parseListLiteral();
+  std::unique_ptr<ASTNode> parseRangeLiteral();
   std::unique_ptr<ASTNode> parseIndexing(const k_string& identifierName);
+  std::unique_ptr<ASTNode> parseIndexing(
+      std::unique_ptr<ASTNode> indexedObject);
   std::unique_ptr<ASTNode> parseMemberAccess(std::unique_ptr<ASTNode> left);
   std::unique_ptr<ASTNode> parseMemberAssignment(
       std::unique_ptr<ASTNode> object, const k_string& memberName);
@@ -211,7 +215,16 @@ std::unique_ptr<ASTNode> Parser::parsePrint() {
 std::unique_ptr<ASTNode> Parser::parseExpression() {
   std::unique_ptr<ASTNode> node;
 
-  if (kToken.getType() == KTokenType::IDENTIFIER) {
+  if (kToken.getType() == KTokenType::OPERATOR) {
+    if (!Operators.is_unary_op(kToken.getSubType())) {
+      throw SyntaxError(kToken, "Invalid operator placement in expression.");
+    }
+
+    auto op = kToken.getSubType();
+    next();
+    auto operand = parseExpression();
+    node = std::make_unique<UnaryOperationNode>(op, std::move(operand));
+  } else if (kToken.getType() == KTokenType::IDENTIFIER) {
     node = parseIdentifier();
   } else if (kToken.getType() == KTokenType::LITERAL ||
              kToken.getType() == KTokenType::STRING) {
@@ -222,9 +235,10 @@ std::unique_ptr<ASTNode> Parser::parseExpression() {
     node = parseHashLiteral();
   }
 
-  // Check for member access or method calls
   if (kToken.getType() == KTokenType::DOT) {
     node = parseMemberAccess(std::move(node));
+  } else if (kToken.getType() == KTokenType::OPEN_BRACKET) {
+    node = parseIndexing(std::move(node));
   }
 
   return node;
@@ -271,38 +285,158 @@ std::unique_ptr<ASTNode> Parser::parseListLiteral() {
   std::vector<std::unique_ptr<ASTNode>> elements;
 
   match(KTokenType::OPEN_BRACKET);  // Consume '['
+  auto isRange = false;
 
   while (kToken.getType() != KTokenType::CLOSE_BRACKET) {
     elements.push_back(parseExpression());
 
-    if (kToken.getType() == KTokenType::COMMA) {
+    if (!isRange && kToken.getType() == KTokenType::COMMA) {
       next();  // Consume ','
+    } else if (!isRange && kToken.getType() == KTokenType::RANGE) {
+      isRange = true;
+      next();  // Consume '..'
     } else if (kToken.getType() != KTokenType::CLOSE_BRACKET) {
-      throw SyntaxError(kToken, "Expected ']' or ',' in list literal.");
+      if (!isRange) {
+        throw SyntaxError(kToken, "Expected ']' or ',' in list literal.");
+      } else {
+        throw SyntaxError(kToken, "Expected ']' or '..' in range literal.");
+      }
     }
   }
 
-  match(KTokenType::CLOSE_BRACKET);  // Consume ']'
+  if (!match(KTokenType::CLOSE_BRACKET)) {
+    throw SyntaxError(kToken, "Expected ']' in list or range literal.");
+  }
+
+  if (isRange) {
+    if (elements.size() != 2) {
+      throw SyntaxError(kToken,
+                        "Expected start and end values in range literal.");
+    }
+
+    return std::make_unique<RangeLiteralNode>(std::move(elements.at(0)),
+                                              std::move(elements.at(1)));
+  }
 
   return std::make_unique<ListLiteralNode>(std::move(elements));
 }
 
+std::unique_ptr<ASTNode> Parser::parseIndexing(
+    std::unique_ptr<ASTNode> indexedObject) {
+  if (match(KTokenType::OPEN_BRACKET)) {
+    if (match(KTokenType::CLOSE_BRACKET)) {
+      return indexedObject;
+    }
+
+    auto isSlice = false;
+    Token indexValueToken = kToken;
+
+    // Attempt to parse a slice expression
+    std::optional<std::unique_ptr<ASTNode>> start = std::nullopt;
+    std::optional<std::unique_ptr<ASTNode>> stop = std::nullopt;
+    std::optional<std::unique_ptr<ASTNode>> step = std::nullopt;
+
+    if (kToken.getType() != KTokenType::COLON &&
+        kToken.getType() != KTokenType::QUALIFIER) {
+      start = parseExpression();
+    }
+    if (match(KTokenType::COLON) || kToken.getType() == KTokenType::QUALIFIER) {
+      isSlice = true;
+      if (kToken.getType() != KTokenType::COLON &&
+          kToken.getType() != KTokenType::QUALIFIER &&
+          kToken.getType() != KTokenType::CLOSE_BRACKET) {
+        stop = parseExpression();
+      }
+      if (match(KTokenType::COLON) || match(KTokenType::QUALIFIER)) {
+        if (kToken.getType() != KTokenType::CLOSE_BRACKET) {
+          step = parseExpression();
+        }
+      }
+    }
+
+    match(KTokenType::CLOSE_BRACKET);
+
+    if (isSlice) {
+      // If any of start, count, or step is present, it's a slice operation
+      return std::make_unique<SliceNode>(
+          std::move(indexedObject), start ? std::move(start.value()) : nullptr,
+          stop ? std::move(stop.value()) : nullptr,
+          step ? std::move(step.value()) : nullptr);
+    }
+
+    auto indexExpression = std::move(start.value());
+    if (indexExpression->type != ASTNodeType::LITERAL &&
+        indexExpression->type != ASTNodeType::IDENTIFIER &&
+        indexExpression->type != ASTNodeType::FUNCTION_CALL) {
+      throw SyntaxError(indexValueToken, "Invalid index value in indexer.");
+    }
+
+    // If not a slice, treat it as a standard index
+    return std::make_unique<IndexingNode>(std::move(indexedObject),
+                                          std::move(indexExpression));
+  }
+
+  return indexedObject;
+}
+
 std::unique_ptr<ASTNode> Parser::parseIndexing(const k_string& identifierName) {
-  next();  // Consume '['
-  Token indexValueToken = kToken;
-  auto indexExpression = parseExpression();  // Parse the index expression
-  if (!match(KTokenType::CLOSE_BRACKET)) {
-    throw SyntaxError(kToken, "Expected a `]` in indexer.");
+  std::unique_ptr<ASTNode> base =
+      std::make_unique<IdentifierNode>(identifierName);
+
+  if (match(KTokenType::OPEN_BRACKET)) {  // Check if it's an indexing operation
+    if (match(KTokenType::CLOSE_BRACKET)) {  // Empty brackets, return base
+      return base;
+    }
+
+    auto isSlice = false;
+    Token indexValueToken = kToken;
+
+    // Attempt to parse a slice expression
+    std::optional<std::unique_ptr<ASTNode>> start = std::nullopt;
+    std::optional<std::unique_ptr<ASTNode>> stop = std::nullopt;
+    std::optional<std::unique_ptr<ASTNode>> step = std::nullopt;
+
+    if (kToken.getType() != KTokenType::COLON &&
+        kToken.getType() != KTokenType::QUALIFIER) {
+      start = parseExpression();
+    }
+    if (match(KTokenType::COLON) || kToken.getType() == KTokenType::QUALIFIER) {
+      isSlice = true;
+      if (kToken.getType() != KTokenType::COLON &&
+          kToken.getType() != KTokenType::QUALIFIER &&
+          kToken.getType() != KTokenType::CLOSE_BRACKET) {
+        stop = parseExpression();
+      }
+      if (match(KTokenType::COLON) || match(KTokenType::QUALIFIER)) {
+        if (kToken.getType() != KTokenType::CLOSE_BRACKET) {
+          step = parseExpression();
+        }
+      }
+    }
+
+    match(KTokenType::CLOSE_BRACKET);  // Consume the closing bracket
+
+    if (isSlice) {
+      // If any of start, stop, or step is present, it's a slice operation
+      return std::make_unique<SliceNode>(
+          std::move(base), start ? std::move(start.value()) : nullptr,
+          stop ? std::move(stop.value()) : nullptr,
+          step ? std::move(step.value()) : nullptr);
+    }
+
+    auto indexExpression = std::move(start.value());
+    if (indexExpression->type != ASTNodeType::LITERAL &&
+        indexExpression->type != ASTNodeType::IDENTIFIER &&
+        indexExpression->type != ASTNodeType::FUNCTION_CALL) {
+      throw SyntaxError(indexValueToken, "Invalid index value in indexer.");
+    }
+
+    // If not a slice, treat it as a standard index
+    return std::make_unique<IndexingNode>(std::move(base),
+                                          std::move(indexExpression));
   }
 
-  if (indexExpression->type != ASTNodeType::LITERAL &&
-      indexExpression->type != ASTNodeType::IDENTIFIER &&
-      indexExpression->type != ASTNodeType::FUNCTION_CALL) {
-    throw SyntaxError(indexValueToken, "Invalid index value in indexer.");
-  }
-
-  return std::make_unique<IndexingNode>(identifierName,
-                                        std::move(indexExpression));
+  return base;  // Just return the base if no indexing or slicing
 }
 
 std::unique_ptr<ASTNode> Parser::parseMemberAccess(
