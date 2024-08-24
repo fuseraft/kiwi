@@ -24,6 +24,9 @@ class Parser {
   std::unique_ptr<ASTNode> parseFunctionCall(const k_string& identifierName);
   std::unique_ptr<ASTNode> parseLambda();
   std::unique_ptr<ASTNode> parseStatement();
+  std::unique_ptr<ASTNode> parseForLoop();
+  std::unique_ptr<ASTNode> parseRepeatLoop();
+  std::unique_ptr<ASTNode> parseWhileLoop();
   std::unique_ptr<ASTNode> parseExpression();
   std::unique_ptr<ASTNode> parseLogicalOr();
   std::unique_ptr<ASTNode> parseLogicalAnd();
@@ -118,6 +121,12 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
       } else if (kToken.getSubType() == KName::KW_PrintLn ||
                  kToken.getSubType() == KName::KW_Print) {
         return parsePrint();
+      } else if (kToken.getSubType() == KName::KW_For) {
+        return parseForLoop();
+      } else if (kToken.getSubType() == KName::KW_While) {
+        return parseWhileLoop();
+      } else if (kToken.getSubType() == KName::KW_Repeat) {
+        return parseRepeatLoop();
       }
       // WIP: need to add more...
       break;
@@ -194,6 +203,97 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
   functionDeclaration->parameters = std::move(parameters);
   functionDeclaration->body = std::move(body);
   return functionDeclaration;
+}
+
+std::unique_ptr<ASTNode> Parser::parseForLoop() {
+  matchSubType(KName::KW_For);  // Consume 'for'
+
+  auto valueIterator = parseIdentifier();
+  std::optional<std::unique_ptr<ASTNode>> indexIterator = std::nullopt;
+
+  if (match(KTokenType::COMMA)) {
+    indexIterator = parseIdentifier();
+  }
+
+  if (!matchSubType(KName::KW_In)) {
+    throw SyntaxError(kToken, "Expected 'in' in for-loop.");
+  }
+
+  auto dataSet = parseExpression();
+
+  if (!matchSubType(KName::KW_Do)) {
+    throw SyntaxError(kToken, "Expected 'do' in for-loop.");
+  }
+
+  std::vector<std::unique_ptr<ASTNode>> body;
+  while (kToken.getSubType() != KName::KW_End) {
+    body.push_back(parseStatement());
+  }
+
+  next();  // Consume 'end'
+
+  auto forLoop = std::make_unique<ForLoopNode>();
+  forLoop->valueIterator = std::move(valueIterator);
+  forLoop->indexIterator =
+      indexIterator ? std::move(indexIterator.value()) : nullptr;
+  forLoop->dataSet = std::move(dataSet);
+  forLoop->body = std::move(body);
+  return forLoop;
+}
+
+std::unique_ptr<ASTNode> Parser::parseWhileLoop() {
+  matchSubType(KName::KW_While);  // Consume 'while'
+
+  auto condition = parseExpression();
+
+  if (!matchSubType(KName::KW_Do)) {
+    throw SyntaxError(kToken, "Expected 'do' in for-loop.");
+  }
+
+  std::vector<std::unique_ptr<ASTNode>> body;
+  while (kToken.getSubType() != KName::KW_End) {
+    body.push_back(parseStatement());
+  }
+
+  next();  // Consume 'end'
+
+  auto whileLoop = std::make_unique<WhileLoopNode>();
+  whileLoop->condition = std::move(condition);
+  whileLoop->body = std::move(body);
+  return whileLoop;
+}
+
+std::unique_ptr<ASTNode> Parser::parseRepeatLoop() {
+  matchSubType(KName::KW_Repeat);  // Consume 'repeat'
+
+  auto count = parseExpression();
+  std::optional<std::unique_ptr<ASTNode>> alias = std::nullopt;
+
+  if (matchSubType(KName::KW_As)) {
+    if (!kToken.getType() == KTokenType::IDENTIFIER) {
+      throw SyntaxError(kToken,
+                        "Expected identifier in repeat-loop value alias.");
+    }
+
+    alias = parseIdentifier();
+  }
+
+  if (!matchSubType(KName::KW_Do)) {
+    throw SyntaxError(kToken, "Expected 'do' in for-loop.");
+  }
+
+  std::vector<std::unique_ptr<ASTNode>> body;
+  while (kToken.getSubType() != KName::KW_End) {
+    body.push_back(parseStatement());
+  }
+
+  next();  // Consume 'end'
+
+  auto repeatLoop = std::make_unique<RepeatLoopNode>();
+  repeatLoop->count = std::move(count);
+  repeatLoop->alias = alias ? std::move(alias.value()) : nullptr;
+  repeatLoop->body = std::move(body);
+  return repeatLoop;
 }
 
 std::unique_ptr<ASTNode> Parser::parseFunctionCall(
@@ -515,7 +615,8 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier() {
     node = parseFunctionCall(identifierName);
   } else if (kToken.getType() == KTokenType::OPEN_BRACKET) {
     node = parseIndexing(identifierName);
-  } else if (kToken.getType() == KTokenType::OPERATOR) {
+  } else if (kToken.getType() == KTokenType::OPERATOR &&
+             Operators.is_assignment_operator(kToken.getSubType())) {
     node = parseAssignment(identifierName);
   } else {
     node = std::make_unique<IdentifierNode>(identifierName);

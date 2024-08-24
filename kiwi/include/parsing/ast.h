@@ -31,6 +31,7 @@ enum class ASTNodeType {
   IF_STATEMENT,
   WHILE_LOOP,
   FOR_LOOP,
+  REPEAT_LOOP,
   BLOCK_STATEMENT,
   PRINT_STATEMENT,
 };
@@ -327,8 +328,7 @@ class PrintNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << (printNewline ? "Print line:" : "Print:")
-              << std::endl;
+    std::cout << (printNewline ? "Print line:" : "Print:") << std::endl;
     expression->print(1 + depth);
   }
 };
@@ -368,7 +368,6 @@ class FunctionDeclarationNode : public ASTNode {
 
 class LambdaNode : public ASTNode {
  public:
-  std::string name;
   std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> parameters;
   std::vector<std::unique_ptr<ASTNode>> body;
 
@@ -389,6 +388,94 @@ class LambdaNode : public ASTNode {
       } else {
         std::cout << std::endl;
       }
+    }
+
+    print_depth(depth);
+    std::cout << "Statements:" << std::endl;
+    for (const auto& stmt : body) {
+      stmt->print(1 + depth);
+    }
+  }
+};
+
+class ForLoopNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> dataSet;
+  std::unique_ptr<ASTNode> valueIterator;
+  std::unique_ptr<ASTNode> indexIterator;
+  std::vector<std::unique_ptr<ASTNode>> body;
+
+  ForLoopNode() : ASTNode(ASTNodeType::FOR_LOOP) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "For loop: " << std::endl;
+
+    print_depth(depth);
+    std::cout << "Data set: " << std::endl;
+    dataSet->print(1 + depth);
+
+    print_depth(depth);
+    std::cout << "Value iterator: " << std::endl;
+    valueIterator->print(1 + depth);
+
+    if (indexIterator) {
+      print_depth(depth);
+      std::cout << "Index iterator: " << std::endl;
+      indexIterator->print(1 + depth);
+    }
+
+    print_depth(depth);
+    std::cout << "Statements:" << std::endl;
+    for (const auto& stmt : body) {
+      stmt->print(1 + depth);
+    }
+  }
+};
+
+class WhileLoopNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> condition;
+  std::vector<std::unique_ptr<ASTNode>> body;
+
+  WhileLoopNode() : ASTNode(ASTNodeType::WHILE_LOOP) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "While loop: " << std::endl;
+
+    print_depth(depth);
+    std::cout << "Condition: " << std::endl;
+    condition->print(1 + depth);
+
+    print_depth(depth);
+    std::cout << "Statements:" << std::endl;
+    for (const auto& stmt : body) {
+      stmt->print(1 + depth);
+    }
+  }
+};
+
+class RepeatLoopNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> count;
+  std::unique_ptr<ASTNode> alias;
+  std::vector<std::unique_ptr<ASTNode>> body;
+
+  RepeatLoopNode() : ASTNode(ASTNodeType::REPEAT_LOOP) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Repeat loop: " << std::endl;
+
+    print_depth(depth);
+    std::cout << "Count: " << std::endl;
+    count->print(1 + depth);
+
+    if (alias) {
+      print_depth(depth);
+      std::cout << "Alias: " << std::endl;
+      alias->print(1 + depth);
     }
 
     print_depth(depth);
