@@ -28,6 +28,8 @@ class Parser {
   std::unique_ptr<ASTNode> parseListLiteral();
   std::unique_ptr<ASTNode> parseIndexing(const k_string& identifierName);
   std::unique_ptr<ASTNode> parseMemberAccess(std::unique_ptr<ASTNode> left);
+  std::unique_ptr<ASTNode> parseMemberAssignment(
+      std::unique_ptr<ASTNode> object, const k_string& memberName);
   std::unique_ptr<ASTNode> parseFunctionCallOnMember(
       std::unique_ptr<ASTNode> object, const k_string& methodName);
   std::unique_ptr<ASTNode> parseIdentifier();
@@ -314,10 +316,12 @@ std::unique_ptr<ASTNode> Parser::parseMemberAccess(
     }
 
     auto memberName = kToken.getText();
-    next();  // Consume the member name (identifier)
+    next();
 
     if (kToken.getType() == KTokenType::OPEN_PAREN) {
       left = parseFunctionCallOnMember(std::move(left), memberName);
+    } else if (Operators.is_assignment_operator(kToken.getSubType())) {
+      left = parseMemberAssignment(std::move(left), memberName);
     } else {
       left = std::make_unique<MemberAccessNode>(std::move(left), memberName);
     }
@@ -346,6 +350,16 @@ std::unique_ptr<ASTNode> Parser::parseFunctionCallOnMember(
 
   return std::make_unique<MethodCallNode>(std::move(object), methodName,
                                           std::move(arguments));
+}
+
+std::unique_ptr<ASTNode> Parser::parseMemberAssignment(
+    std::unique_ptr<ASTNode> object, const k_string& memberName) {
+  auto type = kToken.getSubType();
+  next();
+
+  auto initializer = parseExpression();
+  return std::make_unique<MemberAssignmentNode>(std::move(object), memberName,
+                                                type, std::move(initializer));
 }
 
 std::unique_ptr<ASTNode> Parser::parseAssignment(

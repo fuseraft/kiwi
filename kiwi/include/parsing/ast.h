@@ -19,6 +19,7 @@ enum class ASTNodeType {
   LITERAL,
   HASH_LITERAL,
   LIST_LITERAL,
+  RANGE_LITERAL,
   IDENTIFIER,
   INDEX_EXPRESSION,
   EXPRESSION_STATEMENT,
@@ -38,8 +39,14 @@ class ASTNode {
   ASTNode(ASTNodeType type) : type(type) {}
   virtual ~ASTNode() = default;
 
-  virtual void print() const = 0;
+  virtual void print(int depth = 0) const = 0;
 };
+
+void print_depth(int depth) {
+  for (int i = 0; i < depth; ++i) {
+    std::cout << " ";
+  }
+}
 
 class ProgramNode : public ASTNode {
  public:
@@ -49,10 +56,11 @@ class ProgramNode : public ASTNode {
   ProgramNode(std::vector<std::unique_ptr<ASTNode>> statements)
       : ASTNode(ASTNodeType::PROGRAM), statements(std::move(statements)) {}
 
-  void print() const override {
-    std::cout << "ProgramNode: " << std::endl;
+  void print(int depth = 0) const override {
+    print_depth(depth);
+    std::cout << "Program: " << std::endl;
     for (const auto& statement : statements) {
-      statement->print();
+      statement->print(1 + depth);
     }
   }
 };
@@ -65,7 +73,8 @@ class LiteralNode : public ASTNode {
   LiteralNode(const k_value& value)
       : ASTNode(ASTNodeType::LITERAL), value(value) {}
 
-  void print() const override {
+  void print(int depth) const override {
+    print_depth(depth);
     std::cout << "Literal: " << Serializer::serialize(value) << std::endl;
   }
 };
@@ -78,13 +87,12 @@ class HashLiteralNode : public ASTNode {
       std::map<std::unique_ptr<ASTNode>, std::unique_ptr<ASTNode>> elements)
       : ASTNode(ASTNodeType::HASH_LITERAL), elements(std::move(elements)) {}
 
-  void print() const override {
+  void print(int depth) const override {
+    print_depth(depth);
     std::cout << "HashLiteral: " << std::endl;
     for (const auto& element : elements) {
-      std::cout << "Key: ";
-      element.first->print();
-      std::cout << "Value: ";
-      element.second->print();
+      element.first->print(1 + depth);
+      element.second->print(1 + depth);
     }
   }
 };
@@ -97,11 +105,32 @@ class ListLiteralNode : public ASTNode {
   ListLiteralNode(std::vector<std::unique_ptr<ASTNode>> elements)
       : ASTNode(ASTNodeType::LIST_LITERAL), elements(std::move(elements)) {}
 
-  void print() const override {
+  void print(int depth) const override {
+    print_depth(depth);
     std::cout << "ListLiteral: " << std::endl;
     for (const auto& element : elements) {
-      element->print();
+      element->print(1 + depth);
     }
+  }
+};
+
+class RangeLiteralNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> rangeStart;
+  std::unique_ptr<ASTNode> rangeEnd;
+
+  RangeLiteralNode() : ASTNode(ASTNodeType::RANGE_LITERAL) {}
+  RangeLiteralNode(std::unique_ptr<ASTNode> rangeStart,
+                   std::unique_ptr<ASTNode> rangeEnd)
+      : ASTNode(ASTNodeType::RANGE_LITERAL),
+        rangeStart(std::move(rangeStart)),
+        rangeEnd(std::move(rangeEnd)) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "RangeLiteral: " << std::endl;
+    rangeStart->print(1 + depth);
+    rangeEnd->print(1 + depth);
   }
 };
 
@@ -117,10 +146,10 @@ class IndexingNode : public ASTNode {
         name(name),
         indexExpression(std::move(indexExpression)) {}
 
-  void print() const override {
+  void print(int depth) const override {
+    print_depth(depth);
     std::cout << "Index: " << name << std::endl;
-    std::cout << "Expression: ";
-    indexExpression->print();
+    indexExpression->print(1 + depth);
   }
 };
 
@@ -132,7 +161,8 @@ class IdentifierNode : public ASTNode {
   IdentifierNode(const std::string& name)
       : ASTNode(ASTNodeType::IDENTIFIER), name(name) {}
 
-  void print() const override {
+  void print(int depth) const override {
+    print_depth(depth);
     std::cout << "Identifier: " << name << std::endl;
   }
 };
@@ -151,10 +181,11 @@ class BinaryOperationNode : public ASTNode {
         op(op),
         right(std::move(right)) {}
 
-  void print() const override {
+  void print(int depth) const override {
+    print_depth(depth);
     std::cout << "BinaryOperation: " << op << std::endl;
-    left->print();
-    right->print();
+    left->print(1 + depth);
+    right->print(1 + depth);
   }
 };
 
@@ -169,9 +200,10 @@ class UnaryOperationNode : public ASTNode {
         op(op),
         operand(std::move(operand)) {}
 
-  void print() const override {
+  void print(int depth) const override {
+    print_depth(depth);
     std::cout << "UnaryOperation: " << op << std::endl;
-    operand->print();
+    operand->print(1 + depth);
   }
 };
 
@@ -186,11 +218,12 @@ class PrintNode : public ASTNode {
         expression(std::move(expression)),
         printNewline(printNewline) {}
 
-  void print() const override {
+  void print(int depth) const override {
+    print_depth(depth);
     std::cout << "PrintNode: "
               << (printNewline ? "with newline" : "without newline")
               << std::endl;
-    expression->print();
+    expression->print(1 + depth);
   }
 };
 
@@ -202,20 +235,27 @@ class FunctionDeclarationNode : public ASTNode {
 
   FunctionDeclarationNode() : ASTNode(ASTNodeType::FUNCTION_DECLARATION) {}
 
-  void print() const override {
+  void print(int depth) const override {
+    print_depth(depth);
     std::cout << "FunctionDeclaration: " << name << std::endl;
+    print_depth(depth);
     std::cout << "Parameters: " << std::endl;
     for (const auto& param : parameters) {
-      std::cout << "  " << param.first;
+      print_depth(1 + depth);
+      std::cout << param.first;
       if (param.second) {
-        std::cout << " (default: ";
-        param.second->print();
-        std::cout << ")";
+        print_depth(1 + depth);
+        std::cout << " Default: ";
+        param.second->print(1 + depth);
+      } else {
+        std::cout << std::endl;
       }
-      std::cout << std::endl;
     }
+
+    print_depth(depth);
+    std::cout << "Statements: " << std::endl;
     for (const auto& stmt : body) {
-      stmt->print();
+      stmt->print(1 + depth);
     }
   }
 };
@@ -232,11 +272,13 @@ class FunctionCallNode : public ASTNode {
         functionName(functionName),
         arguments(std::move(arguments)) {}
 
-  void print() const override {
+  void print(int depth) const override {
+    print_depth(depth);
     std::cout << "FunctionCall: " << functionName << std::endl;
+    print_depth(depth);
     std::cout << "Arguments: " << std::endl;
     for (const auto& arg : arguments) {
-      arg->print();
+      arg->print(1 + depth);
     }
   }
 };
@@ -254,12 +296,14 @@ class MethodCallNode : public ASTNode {
         methodName(methodName),
         arguments(std::move(arguments)) {}
 
-  void print() const override {
+  void print(int depth) const override {
+    print_depth(depth);
     std::cout << "MethodCall: " << methodName << " on object: " << std::endl;
-    object->print();
+    object->print(1 + depth);
+    print_depth(depth);
     std::cout << "Arguments: " << std::endl;
     for (const auto& arg : arguments) {
-      arg->print();
+      arg->print(1 + depth);
     }
   }
 };
@@ -275,9 +319,10 @@ class MemberAccessNode : public ASTNode {
         object(std::move(object)),
         memberName(memberName) {}
 
-  void print() const override {
+  void print(int depth) const override {
+    print_depth(depth);
     std::cout << "MemberAccess: " << memberName << " on object: " << std::endl;
-    object->print();
+    object->print(1 + depth);
   }
 };
 
@@ -295,10 +340,12 @@ class AssignmentNode : public ASTNode {
         type(type),
         initializer(std::move(initializer)) {}
 
-  void print() const override {
+  void print(int depth) const override {
+    print_depth(depth);
     std::cout << "Assignment: " << name << std::endl;
+    print_depth(depth);
     std::cout << "Initializer: ";
-    initializer->print();
+    initializer->print(1 + depth);
   }
 };
 
@@ -309,7 +356,8 @@ class MemberAssignmentNode : public ASTNode {
   KName type;
   std::unique_ptr<ASTNode> initializer;
 
-  MemberAssignmentNode(std::unique_ptr<ASTNode> object, const std::string& memberName, KName type,
+  MemberAssignmentNode(std::unique_ptr<ASTNode> object,
+                       const std::string& memberName, KName type,
                        std::unique_ptr<ASTNode> initializer)
       : ASTNode(ASTNodeType::ASSIGNMENT),
         object(std::move(object)),
@@ -317,14 +365,17 @@ class MemberAssignmentNode : public ASTNode {
         type(type),
         initializer(std::move(initializer)) {}
 
-  void print() const override {
-    std::cout << "MemberAssignment: " << memberName << " on object: " << std::endl;
-    object->print();
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "MemberAssignment: " << memberName
+              << " on object: " << std::endl;
+    print_depth(depth);
+    object->print(1 + depth);
+    print_depth(depth);
     std::cout << "Initializer: ";
-    initializer->print();
+    initializer->print(1 + depth);
   }
 };
-
 
 class BlockStatementNode : public ASTNode {
  public:
@@ -335,10 +386,11 @@ class BlockStatementNode : public ASTNode {
       : ASTNode(ASTNodeType::BLOCK_STATEMENT),
         statements(std::move(statements)) {}
 
-  void print() const override {
+  void print(int depth) const override {
+    print_depth(depth);
     std::cout << "BlockStatement: " << std::endl;
     for (const auto& statement : statements) {
-      statement->print();
+      statement->print(1 + depth);
     }
   }
 };
