@@ -59,4 +59,50 @@ end
 repeat 5 as i do
   println i
 end
+
+try
+  println "First try"
+catch (err)
+  println "an error occurred: ${err}"
+finally
+  println "the end of first try!"
+end
+
+try
+  println "Second try"
+catch (err, msg)
+  println "an error occurred: ${err} with message: ${msg}"
+finally
+  println "the end of second try!"
+end
+
+try
+  println "Third try"
+catch
+  println "an error occurred"
+finally
+  println "the end of third try!"
+end
+
+try
+  println "Fourth try"
+catch
+  println "an error occurred"
+end
+
+try
+  println "Fifth try"
+finally
+  println "the end of fifth try!"
+end
+
+try
+  println "Sixth try"
+end
+
+while n < 5 do
+  try 
+    println n
+  end
+end
 #/

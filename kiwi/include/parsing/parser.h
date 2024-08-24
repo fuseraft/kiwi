@@ -27,6 +27,7 @@ class Parser {
   std::unique_ptr<ASTNode> parseForLoop();
   std::unique_ptr<ASTNode> parseRepeatLoop();
   std::unique_ptr<ASTNode> parseWhileLoop();
+  std::unique_ptr<ASTNode> parseTry();
   std::unique_ptr<ASTNode> parseExpression();
   std::unique_ptr<ASTNode> parseLogicalOr();
   std::unique_ptr<ASTNode> parseLogicalAnd();
@@ -127,6 +128,8 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         return parseWhileLoop();
       } else if (kToken.getSubType() == KName::KW_Repeat) {
         return parseRepeatLoop();
+      } else if (kToken.getSubType() == KName::KW_Try) {
+        return parseTry();
       }
       // WIP: need to add more...
       break;
@@ -294,6 +297,89 @@ std::unique_ptr<ASTNode> Parser::parseRepeatLoop() {
   repeatLoop->alias = alias ? std::move(alias.value()) : nullptr;
   repeatLoop->body = std::move(body);
   return repeatLoop;
+}
+
+std::unique_ptr<ASTNode> Parser::parseTry() {
+  matchSubType(KName::KW_Try);  // Consume 'try'
+
+  std::vector<std::unique_ptr<ASTNode>> tryBody;
+  std::vector<std::unique_ptr<ASTNode>> catchBody;
+  std::vector<std::unique_ptr<ASTNode>> finallyBody;
+  std::optional<std::unique_ptr<ASTNode>> errorType = std::nullopt;
+  std::optional<std::unique_ptr<ASTNode>> errorMessage = std::nullopt;
+
+  int blocks = 1;
+  auto building = KName::KW_Try;
+
+  while (kStream->canRead() && blocks > 0) {
+    auto subType = kToken.getSubType();
+
+    if (Keywords.is_block_keyword(subType)) {
+      ++blocks;
+    } else if (subType == KName::KW_End && blocks >= 1) {
+      --blocks;
+
+      // Stop here.
+      if (blocks == 0) {
+        next();
+        break;
+      }
+    } else if (blocks == 1 && subType == KName::KW_Catch) {
+      if (building != KName::KW_Catch) {
+        next();  // Consume 'catch'
+        if (match(KTokenType::OPEN_PAREN)) {
+          if (!kToken.getType() == KTokenType::IDENTIFIER) {
+            throw SyntaxError(kToken,
+                              "Expected identifier in catch parameters.");
+          }
+          auto firstParameter = parseIdentifier();
+          if (match(KTokenType::COMMA)) {
+            if (!kToken.getType() == KTokenType::IDENTIFIER) {
+              throw SyntaxError(kToken,
+                                "Expected identifier in catch parameters.");
+            }
+
+            errorType = std::move(firstParameter);
+            errorMessage = std::move(parseIdentifier());
+          } else {
+            errorMessage = std::move(firstParameter);
+          }
+
+          if (!match(KTokenType::CLOSE_PAREN)) {
+            throw SyntaxError(kToken,
+                              "Expected ')' in catch parameter expression.");
+          }
+        }
+        building = KName::KW_Catch;
+        continue;
+      }
+    } else if (blocks == 1 && subType == KName::KW_Finally) {
+      if (building != KName::KW_Finally) {
+        next();  // Consume 'finally'
+        building = KName::KW_Finally;
+        continue;
+      }
+    }
+
+    // Distribute tokens to be executed.
+    if (building == KName::KW_Try) {
+      tryBody.push_back(parseStatement());
+    } else if (building == KName::KW_Catch) {
+      catchBody.push_back(parseStatement());
+    } else if (building == KName::KW_Finally) {
+      finallyBody.push_back(parseStatement());
+    }
+  }
+
+  auto tryCatchFinally = std::make_unique<TryNode>();
+  tryCatchFinally->tryBody = std::move(tryBody);
+  tryCatchFinally->catchBody = std::move(catchBody);
+  tryCatchFinally->finallyBody = std::move(finallyBody);
+  tryCatchFinally->errorMessage =
+      errorMessage ? std::move(errorMessage.value()) : nullptr;
+  tryCatchFinally->errorType =
+      errorType ? std::move(errorType.value()) : nullptr;
+  return tryCatchFinally;
 }
 
 std::unique_ptr<ASTNode> Parser::parseFunctionCall(
