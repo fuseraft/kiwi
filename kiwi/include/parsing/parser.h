@@ -22,6 +22,7 @@ class Parser {
   std::unique_ptr<ASTNode> parseComment();
   std::unique_ptr<ASTNode> parseFunction();
   std::unique_ptr<ASTNode> parseFunctionCall(const k_string& identifierName);
+  std::unique_ptr<ASTNode> parseLambda();
   std::unique_ptr<ASTNode> parseStatement();
   std::unique_ptr<ASTNode> parseExpression();
   std::unique_ptr<ASTNode> parseLogicalOr();
@@ -216,6 +217,60 @@ std::unique_ptr<ASTNode> Parser::parseFunctionCall(
 
   return std::make_unique<FunctionCallNode>(identifierName,
                                             std::move(arguments));
+}
+
+std::unique_ptr<ASTNode> Parser::parseLambda() {
+  match(KTokenType::LAMBDA);  // Consume "with"
+
+  // Parse parameters
+  std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> parameters;
+  if (kToken.getType() == KTokenType::OPEN_PAREN) {
+    next();  // Consume '('
+
+    while (kToken.getType() != KTokenType::CLOSE_PAREN) {
+      if (kToken.getType() != KTokenType::IDENTIFIER) {
+        throw SyntaxError(kToken, "Expected parameter name.");
+      }
+
+      std::string paramName = kToken.getText();
+      std::unique_ptr<ASTNode> defaultValue = nullptr;
+      next();
+
+      // Check for default value
+      if (kToken.getType() == KTokenType::OPERATOR &&
+          kToken.getSubType() == KName::Ops_Assign) {
+        next();  // Consume '='
+        defaultValue = parseExpression();
+      }
+
+      parameters.emplace_back(paramName, std::move(defaultValue));
+
+      if (kToken.getType() == KTokenType::COMMA) {
+        next();
+      } else if (kToken.getType() != KTokenType::CLOSE_PAREN) {
+        throw SyntaxError(kToken, "Expected ',' or ')' in parameter list.");
+      }
+    }
+
+    next();  // Consume ')'
+  }
+
+  if (!matchSubType(KName::KW_Do)) {
+    throw SyntaxError(kToken, "Expected 'do' in lambda expression.");
+  }
+
+  // Parse the lambda body
+  std::vector<std::unique_ptr<ASTNode>> body;
+  while (kToken.getSubType() != KName::KW_End) {
+    body.push_back(parseStatement());
+  }
+
+  next();  // Consume 'end'
+
+  auto lambda = std::make_unique<LambdaNode>();
+  lambda->parameters = std::move(parameters);
+  lambda->body = std::move(body);
+  return lambda;
 }
 
 std::unique_ptr<ASTNode> Parser::parsePrint() {
@@ -644,9 +699,10 @@ std::unique_ptr<ASTNode> Parser::parsePrimary() {
     default:
       /*if (kToken.getSubType() == KName::KW_This) {
         node = parseSelfInvocationTerm();
-      } else if (kToken.getSubType() == KName::KW_Lambda) {
-        node = parseLambdaExpression();
       }*/
+      if (kToken.getSubType() == KName::KW_Lambda) {
+        node = parseLambda();
+      }
       break;
   }
 

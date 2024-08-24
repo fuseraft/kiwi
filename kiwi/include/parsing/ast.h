@@ -11,6 +11,7 @@
 enum class ASTNodeType {
   PROGRAM,
   FUNCTION_DECLARATION,
+  LAMBDA,
   FUNCTION_CALL,
   METHOD_CALL,
   MEMBER_ACCESS,
@@ -326,8 +327,7 @@ class PrintNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "PrintNode: "
-              << (printNewline ? "with newline" : "without newline")
+    std::cout << (printNewline ? "Print line:" : "Print:")
               << std::endl;
     expression->print(1 + depth);
   }
@@ -344,6 +344,39 @@ class FunctionDeclarationNode : public ASTNode {
   void print(int depth) const override {
     print_depth(depth);
     std::cout << "FunctionDeclaration: `" << name << "`" << std::endl;
+    print_depth(depth);
+    std::cout << "Parameters: " << std::endl;
+    for (const auto& param : parameters) {
+      print_depth(1 + depth);
+      std::cout << param.first;
+      if (param.second) {
+        print_depth(1 + depth);
+        std::cout << "Default: ";
+        param.second->print(1 + depth);
+      } else {
+        std::cout << std::endl;
+      }
+    }
+
+    print_depth(depth);
+    std::cout << "Statements:" << std::endl;
+    for (const auto& stmt : body) {
+      stmt->print(1 + depth);
+    }
+  }
+};
+
+class LambdaNode : public ASTNode {
+ public:
+  std::string name;
+  std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> parameters;
+  std::vector<std::unique_ptr<ASTNode>> body;
+
+  LambdaNode() : ASTNode(ASTNodeType::LAMBDA) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Lambda: " << std::endl;
     print_depth(depth);
     std::cout << "Parameters: " << std::endl;
     for (const auto& param : parameters) {
@@ -449,8 +482,8 @@ class AssignmentNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "Assignment: `" << name << "` " << Operators.get_op_string(type)
-              << std::endl;
+    std::cout << "Assignment: `" << name << "` "
+              << Operators.get_op_string(type) << std::endl;
     print_depth(depth);
     std::cout << "Initializer:" << std::endl;
     initializer->print(1 + depth);
