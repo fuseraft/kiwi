@@ -331,7 +331,6 @@ std::unique_ptr<ASTNode> Parser::parseIndexing(
     auto isSlice = false;
     Token indexValueToken = kToken;
 
-    // Attempt to parse a slice expression
     std::optional<std::unique_ptr<ASTNode>> start = std::nullopt;
     std::optional<std::unique_ptr<ASTNode>> stop = std::nullopt;
     std::optional<std::unique_ptr<ASTNode>> step = std::nullopt;
@@ -357,7 +356,6 @@ std::unique_ptr<ASTNode> Parser::parseIndexing(
     match(KTokenType::CLOSE_BRACKET);
 
     if (isSlice) {
-      // If any of start, count, or step is present, it's a slice operation
       return std::make_unique<SliceNode>(
           std::move(indexedObject), start ? std::move(start.value()) : nullptr,
           stop ? std::move(stop.value()) : nullptr,
@@ -371,7 +369,6 @@ std::unique_ptr<ASTNode> Parser::parseIndexing(
       throw SyntaxError(indexValueToken, "Invalid index value in indexer.");
     }
 
-    // If not a slice, treat it as a standard index
     return std::make_unique<IndexingNode>(std::move(indexedObject),
                                           std::move(indexExpression));
   }
@@ -383,15 +380,14 @@ std::unique_ptr<ASTNode> Parser::parseIndexing(const k_string& identifierName) {
   std::unique_ptr<ASTNode> base =
       std::make_unique<IdentifierNode>(identifierName);
 
-  if (match(KTokenType::OPEN_BRACKET)) {  // Check if it's an indexing operation
-    if (match(KTokenType::CLOSE_BRACKET)) {  // Empty brackets, return base
+  if (match(KTokenType::OPEN_BRACKET)) {
+    if (match(KTokenType::CLOSE_BRACKET)) {
       return base;
     }
 
     auto isSlice = false;
     Token indexValueToken = kToken;
 
-    // Attempt to parse a slice expression
     std::optional<std::unique_ptr<ASTNode>> start = std::nullopt;
     std::optional<std::unique_ptr<ASTNode>> stop = std::nullopt;
     std::optional<std::unique_ptr<ASTNode>> step = std::nullopt;
@@ -414,10 +410,9 @@ std::unique_ptr<ASTNode> Parser::parseIndexing(const k_string& identifierName) {
       }
     }
 
-    match(KTokenType::CLOSE_BRACKET);  // Consume the closing bracket
+    match(KTokenType::CLOSE_BRACKET);
 
     if (isSlice) {
-      // If any of start, stop, or step is present, it's a slice operation
       return std::make_unique<SliceNode>(
           std::move(base), start ? std::move(start.value()) : nullptr,
           stop ? std::move(stop.value()) : nullptr,
@@ -431,12 +426,11 @@ std::unique_ptr<ASTNode> Parser::parseIndexing(const k_string& identifierName) {
       throw SyntaxError(indexValueToken, "Invalid index value in indexer.");
     }
 
-    // If not a slice, treat it as a standard index
     return std::make_unique<IndexingNode>(std::move(base),
                                           std::move(indexExpression));
   }
 
-  return base;  // Just return the base if no indexing or slicing
+  return base;
 }
 
 std::unique_ptr<ASTNode> Parser::parseMemberAccess(
