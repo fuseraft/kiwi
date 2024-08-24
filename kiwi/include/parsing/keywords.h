@@ -96,6 +96,88 @@ struct {
   std::unordered_set<KName> unary_operators = {
       KName::Ops_Not, KName::Ops_Subtract, KName::Ops_BitwiseNot};
 
+  k_string get_op_string(const KName& op) {
+    switch (op) {
+      case KName::Ops_Add:
+        return Add;
+      case KName::Ops_AddAssign:
+        return AddAssign;
+      case KName::Ops_And:
+        return And;
+      case KName::Ops_AndAssign:
+        return AndAssign;
+      case KName::Ops_Assign:
+        return Assign;
+      case KName::Ops_BitwiseAnd:
+        return BitwiseAnd;
+      case KName::Ops_BitwiseAndAssign:
+        return BitwiseAndAssign;
+      case KName::Ops_BitwiseLeftShift:
+        return BitwiseLeftShift;
+      case KName::Ops_BitwiseLeftShiftAssign:
+        return BitwiseLeftShiftAssign;
+      case KName::Ops_BitwiseNot:
+        return BitwiseNot;
+      case KName::Ops_BitwiseNotAssign:
+        return BitwiseNotAssign;
+      case KName::Ops_BitwiseOr:
+        return BitwiseOr;
+      case KName::Ops_BitwiseOrAssign:
+        return BitwiseOrAssign;
+      case KName::Ops_BitwiseRightShift:
+        return BitwiseRightShift;
+      case KName::Ops_BitwiseRightShiftAssign:
+        return BitwiseRightShiftAssign;
+      case KName::Ops_BitwiseXor:
+        return BitwiseXor;
+      case KName::Ops_BitwiseXorAssign:
+        return BitwiseXorAssign;
+      case KName::Ops_Divide:
+        return Divide;
+      case KName::Ops_DivideAssign:
+        return DivideAssign;
+      case KName::Ops_Equal:
+        return Equal;
+      case KName::Ops_Exponent:
+        return Exponent;
+      case KName::Ops_ExponentAssign:
+        return ExponentAssign;
+      case KName::Ops_GreaterThan:
+        return GreaterThan;
+      case KName::Ops_GreaterThanOrEqual:
+        return GreaterThanOrEqual;
+      case KName::Ops_LessThan:
+        return LessThan;
+      case KName::Ops_LessThanOrEqual:
+        return LessThanOrEqual;
+      case KName::Ops_ModuloAssign:
+        return ModuloAssign;
+      case KName::Ops_Modulus:
+        return Modulus;
+      case KName::Ops_Multiply:
+        return Multiply;
+      case KName::Ops_MultiplyAssign:
+        return MultiplyAssign;
+      case KName::Ops_Not:
+        return Not;
+      case KName::Ops_NotEqual:
+        return NotEqual;
+      case KName::Ops_Or:
+        return Or;
+      case KName::Ops_OrAssign:
+        return OrAssign;
+      case KName::Ops_Subtract:
+        return Subtract;
+      case KName::Ops_SubtractAssign:
+        return SubtractAssign;
+
+      default:
+        break;
+    }
+
+    return "unknown operator";
+  }
+
   bool is_equality_op(const KName& arg) {
     return equality_operators.find(arg) != equality_operators.end();
   }
