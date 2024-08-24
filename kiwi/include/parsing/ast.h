@@ -14,6 +14,7 @@ enum class ASTNodeType {
   FUNCTION_CALL,
   METHOD_CALL,
   MEMBER_ACCESS,
+  TERNARY_OPERATION,
   BINARY_OPERATION,
   UNARY_OPERATION,
   LITERAL,
@@ -241,14 +242,44 @@ class IdentifierNode : public ASTNode {
   }
 };
 
+class TernaryOperationNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> evalExpression;
+  std::unique_ptr<ASTNode> trueExpression;
+  std::unique_ptr<ASTNode> falseExpression;
+
+  TernaryOperationNode() : ASTNode(ASTNodeType::TERNARY_OPERATION) {}
+  TernaryOperationNode(std::unique_ptr<ASTNode> evalExpression,
+                       std::unique_ptr<ASTNode> trueExpression,
+                       std::unique_ptr<ASTNode> falseExpression)
+      : ASTNode(ASTNodeType::TERNARY_OPERATION),
+        evalExpression(std::move(evalExpression)),
+        trueExpression(std::move(trueExpression)),
+        falseExpression(std::move(falseExpression)) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "TernaryOperation:" << std::endl;
+    print_depth(depth);
+    std::cout << "Evaluate expression:" << std::endl;
+    evalExpression->print(1 + depth);
+    print_depth(depth);
+    std::cout << "True expression:" << std::endl;
+    trueExpression->print(1 + depth);
+    print_depth(depth);
+    std::cout << "False expression:" << std::endl;
+    falseExpression->print(1 + depth);
+  }
+};
+
 class BinaryOperationNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> left;
-  std::string op;
+  KName op;
   std::unique_ptr<ASTNode> right;
 
   BinaryOperationNode() : ASTNode(ASTNodeType::BINARY_OPERATION) {}
-  BinaryOperationNode(std::unique_ptr<ASTNode> left, const std::string& op,
+  BinaryOperationNode(std::unique_ptr<ASTNode> left, const KName& op,
                       std::unique_ptr<ASTNode> right)
       : ASTNode(ASTNodeType::BINARY_OPERATION),
         left(std::move(left)),
@@ -257,7 +288,8 @@ class BinaryOperationNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "BinaryOperation: " << op << std::endl;
+    std::cout << "BinaryOperation: " << Operators.get_op_string(op)
+              << std::endl;
     left->print(1 + depth);
     right->print(1 + depth);
   }
@@ -276,7 +308,7 @@ class UnaryOperationNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "UnaryOperation: " << op << std::endl;
+    std::cout << "UnaryOperation: " << Operators.get_op_string(op) << std::endl;
     operand->print(1 + depth);
   }
 };
@@ -417,7 +449,8 @@ class AssignmentNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "Assignment: `" << name << "`" << std::endl;
+    std::cout << "Assignment: `" << name << "` " << Operators.get_op_string(type)
+              << std::endl;
     print_depth(depth);
     std::cout << "Initializer:" << std::endl;
     initializer->print(1 + depth);
@@ -442,8 +475,8 @@ class MemberAssignmentNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "MemberAssignment: `" << memberName
-              << "` on object: " << std::endl;
+    std::cout << "MemberAssignment: `" << memberName << "` "
+              << Operators.get_op_string(type) << " on object: " << std::endl;
     print_depth(depth);
     object->print(1 + depth);
     print_depth(depth);

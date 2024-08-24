@@ -24,12 +24,24 @@ class Parser {
   std::unique_ptr<ASTNode> parseFunctionCall(const k_string& identifierName);
   std::unique_ptr<ASTNode> parseStatement();
   std::unique_ptr<ASTNode> parseExpression();
+  std::unique_ptr<ASTNode> parseLogicalOr();
+  std::unique_ptr<ASTNode> parseLogicalAnd();
+  std::unique_ptr<ASTNode> parseBitwiseOr();
+  std::unique_ptr<ASTNode> parseBitwiseXor();
+  std::unique_ptr<ASTNode> parseBitwiseAnd();
+  std::unique_ptr<ASTNode> parseEquality();
+  std::unique_ptr<ASTNode> parseComparison();
+  std::unique_ptr<ASTNode> parseBitshift();
+  std::unique_ptr<ASTNode> parseAdditive();
+  std::unique_ptr<ASTNode> parseMultiplicative();
+  std::unique_ptr<ASTNode> parseUnary();
+  std::unique_ptr<ASTNode> parsePrimary();
   std::unique_ptr<ASTNode> parseLiteral();
   std::unique_ptr<ASTNode> parseHashLiteral();
   std::unique_ptr<ASTNode> parseListLiteral();
   std::unique_ptr<ASTNode> parseRangeLiteral();
   std::unique_ptr<ASTNode> parseIndexingInternal(
-    std::unique_ptr<ASTNode> baseNode);
+      std::unique_ptr<ASTNode> baseNode);
   std::unique_ptr<ASTNode> parseIndexing(const k_string& identifierName);
   std::unique_ptr<ASTNode> parseIndexing(
       std::unique_ptr<ASTNode> indexedObject);
@@ -212,38 +224,6 @@ std::unique_ptr<ASTNode> Parser::parsePrint() {
   match(KTokenType::KEYWORD);  // Consume "print"|"println"
   printNode->expression = parseExpression();
   return printNode;
-}
-
-std::unique_ptr<ASTNode> Parser::parseExpression() {
-  std::unique_ptr<ASTNode> node;
-
-  if (kToken.getType() == KTokenType::OPERATOR) {
-    if (!Operators.is_unary_op(kToken.getSubType())) {
-      throw SyntaxError(kToken, "Invalid operator placement in expression.");
-    }
-
-    auto op = kToken.getSubType();
-    next();
-    auto operand = parseExpression();
-    node = std::make_unique<UnaryOperationNode>(op, std::move(operand));
-  } else if (kToken.getType() == KTokenType::IDENTIFIER) {
-    node = parseIdentifier();
-  } else if (kToken.getType() == KTokenType::LITERAL ||
-             kToken.getType() == KTokenType::STRING) {
-    node = parseLiteral();
-  } else if (kToken.getType() == KTokenType::OPEN_BRACKET) {
-    node = parseListLiteral();
-  } else if (kToken.getType() == KTokenType::OPEN_BRACE) {
-    node = parseHashLiteral();
-  }
-
-  if (kToken.getType() == KTokenType::DOT) {
-    node = parseMemberAccess(std::move(node));
-  } else if (kToken.getType() == KTokenType::OPEN_BRACKET) {
-    node = parseIndexing(std::move(node));
-  }
-
-  return node;
 }
 
 std::unique_ptr<ASTNode> Parser::parseLiteral() {
@@ -484,6 +464,196 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier() {
     node = parseAssignment(identifierName);
   } else {
     node = std::make_unique<IdentifierNode>(identifierName);
+  }
+
+  return node;
+}
+
+std::unique_ptr<ASTNode> Parser::parseExpression() {
+  auto node = parseLogicalOr();
+  if (kToken.getType() == KTokenType::QUESTION) {
+    next();  // Consume '?'
+    auto trueBranch = parseExpression();
+    if (!match(KTokenType::COLON)) {
+      throw SyntaxError(kToken, "Expected ':' in ternary operation.");
+    }
+    auto falseBranch = parseExpression();  // Parse the false branch
+
+    return std::make_unique<TernaryOperationNode>(
+        std::move(node), std::move(trueBranch), std::move(falseBranch));
+  }
+  return node;
+}
+
+std::unique_ptr<ASTNode> Parser::parseLogicalOr() {
+  auto left = parseLogicalAnd();
+  while (kStream->canRead() && kToken.getSubType() == KName::Ops_Or) {
+    next();  // Consume '||'
+    auto right = parseLogicalAnd();
+    left = std::make_unique<BinaryOperationNode>(std::move(left), KName::Ops_Or,
+                                                 std::move(right));
+  }
+  return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseLogicalAnd() {
+  auto left = parseBitwiseOr();
+  while (kStream->canRead() && kToken.getSubType() == KName::Ops_And) {
+    next();  // Consume '&&'
+    auto right = parseBitwiseOr();
+    left = std::make_unique<BinaryOperationNode>(
+        std::move(left), KName::Ops_And, std::move(right));
+  }
+  return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseBitwiseOr() {
+  auto left = parseBitwiseXor();
+  while (kStream->canRead() && kToken.getSubType() == KName::Ops_BitwiseOr) {
+    next();  // Consume '|'
+    auto right = parseBitwiseXor();
+    left = std::make_unique<BinaryOperationNode>(
+        std::move(left), KName::Ops_BitwiseOr, std::move(right));
+  }
+  return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseBitwiseXor() {
+  auto left = parseBitwiseAnd();
+  while (kStream->canRead() && kToken.getSubType() == KName::Ops_BitwiseXor) {
+    next();  // Consume '^'
+    auto right = parseBitwiseAnd();
+    left = std::make_unique<BinaryOperationNode>(
+        std::move(left), KName::Ops_BitwiseXor, std::move(right));
+  }
+  return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseBitwiseAnd() {
+  auto left = parseEquality();
+  while (kStream->canRead() && kToken.getSubType() == KName::Ops_BitwiseAnd) {
+    next();  // Consume '&'
+    auto right = parseEquality();
+    left = std::make_unique<BinaryOperationNode>(
+        std::move(left), KName::Ops_BitwiseAnd, std::move(right));
+  }
+  return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseEquality() {
+  auto left = parseComparison();
+  while (kStream->canRead() && Operators.is_equality_op(kToken.getSubType())) {
+    auto op = kToken.getSubType();
+    next();  // Skip operator
+    auto right = parseComparison();
+    left = std::make_unique<BinaryOperationNode>(std::move(left), op,
+                                                 std::move(right));
+  }
+  return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseComparison() {
+  auto left = parseBitshift();
+  while (kStream->canRead() &&
+         Operators.is_comparison_op(kToken.getSubType())) {
+    auto op = kToken.getSubType();
+    next();  // Skip operator
+    auto right = parseBitshift();
+    left = std::make_unique<BinaryOperationNode>(std::move(left), op,
+                                                 std::move(right));
+  }
+  return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseBitshift() {
+  auto left = parseAdditive();
+  while (kStream->canRead() && Operators.is_bitwise_op(kToken.getSubType())) {
+    auto op = kToken.getSubType();
+    next();  // Skip operator
+    auto right = parseAdditive();
+    left = std::make_unique<BinaryOperationNode>(std::move(left), op,
+                                                 std::move(right));
+  }
+  return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseAdditive() {
+  auto left = parseMultiplicative();
+  while (kStream->canRead() && Operators.is_additive_op(kToken.getSubType())) {
+    auto op = kToken.getSubType();
+    next();  // Skip operator
+    auto right = parseMultiplicative();
+    left = std::make_unique<BinaryOperationNode>(std::move(left), op,
+                                                 std::move(right));
+  }
+  return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseMultiplicative() {
+  auto left = parseUnary();
+  while (kStream->canRead() &&
+         Operators.is_multiplicative_op(kToken.getSubType())) {
+    auto op = kToken.getSubType();
+    next();  // Skip operator
+    auto right = parseUnary();
+    left = std::make_unique<BinaryOperationNode>(std::move(left), op,
+                                                 std::move(right));
+  }
+  return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parseUnary() {
+  while (kStream->canRead() && Operators.is_unary_op(kToken.getSubType())) {
+    auto op = kToken.getSubType();
+    next();  // Skip operator
+    auto right = parseUnary();
+    return std::make_unique<UnaryOperationNode>(op, std::move(right));
+  }
+  auto primary = parsePrimary();
+  return primary;  //return interpretValueInvocation(stream, frame, primary);
+}
+
+std::unique_ptr<ASTNode> Parser::parsePrimary() {
+  std::unique_ptr<ASTNode> node;
+
+  switch (kToken.getType()) {
+    case KTokenType::IDENTIFIER:
+      node = parseIdentifier();
+      break;
+
+    case KTokenType::LITERAL:
+    case KTokenType::STRING:
+      node = parseLiteral();
+      break;
+
+    case KTokenType::OPEN_PAREN: {
+      next();  // Skip "("
+      auto result = parseExpression();
+      match(KTokenType::CLOSE_PAREN);
+      node = std::move(result);
+    } break;
+
+    case KTokenType::OPEN_BRACKET:
+      node = parseListLiteral();
+      break;
+
+    case KTokenType::OPEN_BRACE:
+      node = parseHashLiteral();
+      break;
+
+    default:
+      /*if (kToken.getSubType() == KName::KW_This) {
+        node = parseSelfInvocationTerm();
+      } else if (kToken.getSubType() == KName::KW_Lambda) {
+        node = parseLambdaExpression();
+      }*/
+      break;
+  }
+
+  if (kToken.getType() == KTokenType::DOT) {
+    node = parseMemberAccess(std::move(node));
+  } else if (kToken.getType() == KTokenType::OPEN_BRACKET) {
+    node = parseIndexing(std::move(node));
   }
 
   return node;
