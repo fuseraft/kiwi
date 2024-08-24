@@ -32,6 +32,7 @@ enum class ASTNodeType {
   WHILE_LOOP,
   FOR_LOOP,
   REPEAT_LOOP,
+  TRY,
   BLOCK_STATEMENT,
   PRINT_STATEMENT,
 };
@@ -482,6 +483,59 @@ class RepeatLoopNode : public ASTNode {
     std::cout << "Statements:" << std::endl;
     for (const auto& stmt : body) {
       stmt->print(1 + depth);
+    }
+  }
+};
+
+class TryNode : public ASTNode {
+ public:
+  std::vector<std::unique_ptr<ASTNode>> tryBody;
+  std::vector<std::unique_ptr<ASTNode>> catchBody;
+  std::vector<std::unique_ptr<ASTNode>> finallyBody;
+  std::unique_ptr<ASTNode> errorType;
+  std::unique_ptr<ASTNode> errorMessage;
+
+  TryNode() : ASTNode(ASTNodeType::TRY) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Try: " << std::endl;
+
+    print_depth(depth);
+    std::cout << "Try statements:" << std::endl;
+    for (const auto& stmt : tryBody) {
+      stmt->print(1 + depth);
+    }
+
+    if (!catchBody.empty()) {
+      print_depth(depth);
+      std::cout << "Catch:" << std::endl;
+
+      if (errorType) {
+        print_depth(1 + depth);
+        std::cout << "Error type:" << std::endl;
+        errorType->print(2 + depth);
+      }
+
+      if (errorMessage) {
+        print_depth(1 + depth);
+        std::cout << "Error message:" << std::endl;
+        errorMessage->print(2 + depth);
+      }
+
+      print_depth(depth);
+      std::cout << "Catch statements:" << std::endl;
+      for (const auto& stmt : catchBody) {
+        stmt->print(1 + depth);
+      }
+    }
+
+    if (!finallyBody.empty()) {
+      print_depth(depth);
+      std::cout << "Finally statements:" << std::endl;
+      for (const auto& stmt : finallyBody) {
+        stmt->print(1 + depth);
+      }
     }
   }
 };
