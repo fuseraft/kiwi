@@ -18,16 +18,30 @@ class Parser {
   std::unique_ptr<ASTNode> parseTokenStream(k_stream& stream);
 
  private:
+  bool hasValue();
   std::unique_ptr<ASTNode> parseAssignment(const k_string& identifierName);
   std::unique_ptr<ASTNode> parseComment();
   std::unique_ptr<ASTNode> parseFunction();
   std::unique_ptr<ASTNode> parseFunctionCall(const k_string& identifierName);
+  std::unique_ptr<ASTNode> parseKeyword();
   std::unique_ptr<ASTNode> parseLambda();
   std::unique_ptr<ASTNode> parseStatement();
   std::unique_ptr<ASTNode> parseForLoop();
   std::unique_ptr<ASTNode> parseRepeatLoop();
   std::unique_ptr<ASTNode> parseWhileLoop();
   std::unique_ptr<ASTNode> parseTry();
+  std::unique_ptr<ASTNode> parseConditional();
+  std::unique_ptr<ASTNode> parseIf();
+  std::unique_ptr<ASTNode> parseCase();
+  std::unique_ptr<ASTNode> parseReturn();
+  std::unique_ptr<ASTNode> parseThrow();
+  std::unique_ptr<ASTNode> parseExit();
+  std::unique_ptr<ASTNode> parseParse();
+  std::unique_ptr<ASTNode> parseNext();
+  std::unique_ptr<ASTNode> parseBreak();
+  std::unique_ptr<ASTNode> parseImport();
+  std::unique_ptr<ASTNode> parseExport();
+  std::unique_ptr<ASTNode> parsePackage();
   std::unique_ptr<ASTNode> parseExpression();
   std::unique_ptr<ASTNode> parseLogicalOr();
   std::unique_ptr<ASTNode> parseLogicalAnd();
@@ -111,28 +125,65 @@ std::unique_ptr<ASTNode> Parser::parseTokenStream(k_stream& stream) {
   return root;
 }
 
+std::unique_ptr<ASTNode> Parser::parseConditional() {
+  if (kToken.getSubType() == KName::KW_If) {
+    return parseIf();
+  } else if (kToken.getSubType() == KName::KW_Case) {
+    return parseCase();
+  }
+
+  throw SyntaxError(kToken, "Expected if-statement or case-statement.");
+}
+
+std::unique_ptr<ASTNode> Parser::parseKeyword() {
+  if (kToken.getSubType() == KName::KW_Method) {
+    return parseFunction();
+  } else if (kToken.getSubType() == KName::KW_PrintLn ||
+             kToken.getSubType() == KName::KW_Print) {
+    return parsePrint();
+  } else if (kToken.getSubType() == KName::KW_For) {
+    return parseForLoop();
+  } else if (kToken.getSubType() == KName::KW_While) {
+    return parseWhileLoop();
+  } else if (kToken.getSubType() == KName::KW_Repeat) {
+    return parseRepeatLoop();
+  } else if (kToken.getSubType() == KName::KW_Try) {
+    return parseTry();
+  } else if (kToken.getSubType() == KName::KW_Return) {
+    return parseReturn();
+  } else if (kToken.getSubType() == KName::KW_Throw) {
+    return parseThrow();
+  } else if (kToken.getSubType() == KName::KW_Exit) {
+    return parseExit();
+  } else if (kToken.getSubType() == KName::KW_Parse) {
+    return parseParse();
+  } else if (kToken.getSubType() == KName::KW_Next) {
+    return parseNext();
+  } else if (kToken.getSubType() == KName::KW_Break) {
+    return parseBreak();
+  } else if (kToken.getSubType() == KName::KW_Pass) {
+    return std::make_unique<NoOpNode>();
+  } else if (kToken.getSubType() == KName::KW_Package) {
+    return parsePackage();
+  } else if (kToken.getSubType() == KName::KW_Import) {
+    return parseImport();
+  } else if (kToken.getSubType() == KName::KW_Export) {
+    return parseExport();
+  }
+
+  return nullptr;
+}
+
 std::unique_ptr<ASTNode> Parser::parseStatement() {
   switch (kToken.getType()) {
     case KTokenType::COMMENT:
       return parseComment();
 
     case KTokenType::KEYWORD:
-      if (kToken.getSubType() == KName::KW_Method) {
-        return parseFunction();
-      } else if (kToken.getSubType() == KName::KW_PrintLn ||
-                 kToken.getSubType() == KName::KW_Print) {
-        return parsePrint();
-      } else if (kToken.getSubType() == KName::KW_For) {
-        return parseForLoop();
-      } else if (kToken.getSubType() == KName::KW_While) {
-        return parseWhileLoop();
-      } else if (kToken.getSubType() == KName::KW_Repeat) {
-        return parseRepeatLoop();
-      } else if (kToken.getSubType() == KName::KW_Try) {
-        return parseTry();
-      }
-      // WIP: need to add more...
-      break;
+      return parseKeyword();
+
+    case KTokenType::CONDITIONAL:
+      return parseConditional();
 
     case KTokenType::IDENTIFIER:
       return parseExpression();
@@ -150,7 +201,7 @@ std::unique_ptr<ASTNode> Parser::parseComment() {
 }
 
 std::unique_ptr<ASTNode> Parser::parseFunction() {
-  match(KTokenType::KEYWORD);  // Consume "fn"
+  match(KTokenType::KEYWORD);  // Consume 'fn'
 
   // Get function name
   if (kToken.getType() != KTokenType::IDENTIFIER) {
@@ -299,6 +350,264 @@ std::unique_ptr<ASTNode> Parser::parseRepeatLoop() {
   return repeatLoop;
 }
 
+bool Parser::hasValue() {
+  switch (kToken.getType()) {
+    case KTokenType::LITERAL:
+    case KTokenType::STRING:
+    case KTokenType::TYPENAME:
+    case KTokenType::IDENTIFIER:
+    case KTokenType::OPEN_PAREN:
+    case KTokenType::OPEN_BRACE:
+    case KTokenType::OPEN_BRACKET:
+      return true;
+
+    case KTokenType::KEYWORD:
+      return kToken.getSubType() == KName::KW_This;
+
+    case KTokenType::OPERATOR:
+      return Operators.is_unary_op(kToken.getSubType());
+
+    default:
+      return false;
+  }
+}
+
+std::unique_ptr<ASTNode> Parser::parseReturn() {
+  matchSubType(KName::KW_Return);
+  auto node = std::make_unique<ReturnNode>();
+
+  if (hasValue()) {
+    node->returnValue = parseExpression();
+  }
+
+  if (matchSubType(KName::KW_When)) {
+    if (!hasValue()) {
+      throw SyntaxError(kToken, "Expected condition after 'when'.");
+    }
+
+    node->condition = parseExpression();
+  }
+
+  return node;
+}
+
+std::unique_ptr<ASTNode> Parser::parseThrow() {
+  matchSubType(KName::KW_Throw);
+  auto node = std::make_unique<ThrowNode>();
+
+  if (hasValue()) {
+    node->errorValue = parseExpression();
+  }
+
+  if (matchSubType(KName::KW_When)) {
+    if (!hasValue()) {
+      throw SyntaxError(kToken, "Expected condition after 'when'.");
+    }
+
+    node->condition = parseExpression();
+  }
+
+  return node;
+}
+
+std::unique_ptr<ASTNode> Parser::parseExit() {
+  matchSubType(KName::KW_Exit);
+  auto node = std::make_unique<ExitNode>();
+
+  if (hasValue()) {
+    node->exitValue = parseExpression();
+  }
+
+  if (matchSubType(KName::KW_When)) {
+    if (!hasValue()) {
+      throw SyntaxError(kToken, "Expected condition after 'when'.");
+    }
+
+    node->condition = parseExpression();
+  }
+
+  return node;
+}
+
+std::unique_ptr<ASTNode> Parser::parseBreak() {
+  matchSubType(KName::KW_Break);
+  auto node = std::make_unique<BreakNode>();
+
+  if (matchSubType(KName::KW_When)) {
+    if (!hasValue()) {
+      throw SyntaxError(kToken, "Expected condition after 'when'.");
+    }
+
+    node->condition = parseExpression();
+  }
+
+  return node;
+}
+
+std::unique_ptr<ASTNode> Parser::parseNext() {
+  matchSubType(KName::KW_Next);
+  auto node = std::make_unique<NextNode>();
+
+  if (matchSubType(KName::KW_When)) {
+    if (!hasValue()) {
+      throw SyntaxError(kToken, "Expected condition after 'when'.");
+    }
+
+    node->condition = parseExpression();
+  }
+
+  return node;
+}
+
+std::unique_ptr<ASTNode> Parser::parseParse() {
+  matchSubType(KName::KW_Parse);
+
+  if (!hasValue()) {
+    throw SyntaxError(kToken, "Expected value after 'parse'.");
+  }
+
+  return std::make_unique<ParseNode>(parseExpression());
+}
+
+std::unique_ptr<ASTNode> Parser::parseExport() {
+  matchSubType(KName::KW_Export);
+
+  if (!hasValue()) {
+    throw SyntaxError(kToken, "Expected value after 'export'.");
+  }
+
+  return std::make_unique<ExportNode>(parseExpression());
+}
+
+std::unique_ptr<ASTNode> Parser::parseImport() {
+  matchSubType(KName::KW_Import);
+
+  if (!hasValue()) {
+    throw SyntaxError(kToken, "Expected value after 'import'.");
+  }
+
+  return std::make_unique<ImportNode>(parseExpression());
+}
+
+std::unique_ptr<ASTNode> Parser::parsePackage() {
+  matchSubType(KName::KW_Package);
+
+  if (kToken.getType() != KTokenType::IDENTIFIER) {
+    throw SyntaxError(kToken, "Expected identifier for package name.");
+  }
+
+  auto packageName = parseIdentifier();
+
+  std::vector<std::unique_ptr<ASTNode>> body;
+  while (kToken.getSubType() != KName::KW_End) {
+    body.push_back(parseStatement());
+  }
+
+  next();  // Consume 'end'
+
+  auto package = std::make_unique<PackageNode>(std::move(packageName));
+  package->body = std::move(body);
+
+  return package;
+}
+
+std::unique_ptr<ASTNode> Parser::parseCase() {
+  if (!matchSubType(KName::KW_Case)) {
+    throw SyntaxError(kToken, "Expected case-statement.");
+  }
+
+  auto node = std::make_unique<CaseNode>();
+
+  if (hasValue()) {
+    node->testValue = parseExpression();
+  }
+
+  while (kToken.getSubType() != KName::KW_End) {
+    if (matchSubType(KName::KW_When)) {
+      auto caseWhen = std::make_unique<CaseWhenNode>();
+      if (!hasValue()) {
+        throw SyntaxError(kToken, "Expected condition or value for case-when.");
+      }
+
+      caseWhen->condition = parseExpression();
+
+      while (kToken.getSubType() != KName::KW_When &&
+             kToken.getSubType() != KName::KW_Else &&
+             kToken.getSubType() != KName::KW_End) {
+        caseWhen->body.push_back(parseStatement());
+      }
+
+      node->whenNodes.push_back(std::move(caseWhen));
+    } else if (matchSubType(KName::KW_Else)) {
+      while (kToken.getSubType() != KName::KW_End) {
+        node->elseBody.push_back(parseStatement());
+      }
+    }
+  }
+
+  next();  // Consume 'end'
+
+  return node;
+}
+
+std::unique_ptr<ASTNode> Parser::parseIf() {
+  if (!matchSubType(KName::KW_If)) {
+    throw SyntaxError(kToken, "Expected if-statement.");
+  }
+
+  if (!hasValue()) {
+    throw SyntaxError(kToken, "Expected condition after 'if'.");
+  }
+
+  auto node = std::make_unique<IfNode>();
+
+  node->condition = parseExpression();
+
+  int blocks = 1;
+  auto building = KName::KW_If;
+
+  while (kStream->canRead() && blocks > 0) {
+    auto subType = kToken.getSubType();
+    if (subType == KName::KW_End && blocks >= 1) {
+      --blocks;
+
+      // Stop here.
+      if (blocks == 0) {
+        next();
+        break;
+      }
+    } else if (blocks == 1 && subType == KName::KW_Else) {
+      if (building != KName::KW_Else) {
+        next();
+        building = KName::KW_Else;
+      }
+    } else if (blocks == 1 && subType == KName::KW_ElseIf) {
+      next();
+      building = KName::KW_ElseIf;
+
+      auto elsif = std::make_unique<IfNode>();
+
+      if (!hasValue()) {
+        throw SyntaxError(kToken, "Expected condition after 'elsif'.");
+      }
+
+      elsif->condition = parseExpression();
+      node->elseifNodes.push_back(std::move(elsif));
+    }
+
+    // Distribute tokens to be executed.
+    if (building == KName::KW_If) {
+      node->body.push_back(parseStatement());
+    } else if (building == KName::KW_ElseIf) {
+      node->elseifNodes.back()->body.push_back(parseStatement());
+    } else if (building == KName::KW_Else) {
+      node->elseBody.push_back(std::move(parseStatement()));
+    }
+  }
+
+  return node;
+}
+
 std::unique_ptr<ASTNode> Parser::parseTry() {
   matchSubType(KName::KW_Try);  // Consume 'try'
 
@@ -314,9 +623,7 @@ std::unique_ptr<ASTNode> Parser::parseTry() {
   while (kStream->canRead() && blocks > 0) {
     auto subType = kToken.getSubType();
 
-    if (Keywords.is_block_keyword(subType)) {
-      ++blocks;
-    } else if (subType == KName::KW_End && blocks >= 1) {
+    if (subType == KName::KW_End && blocks >= 1) {
       --blocks;
 
       // Stop here.
@@ -406,7 +713,7 @@ std::unique_ptr<ASTNode> Parser::parseFunctionCall(
 }
 
 std::unique_ptr<ASTNode> Parser::parseLambda() {
-  match(KTokenType::LAMBDA);  // Consume "with"
+  match(KTokenType::LAMBDA);  // Consume 'with'
 
   // Parse parameters
   std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> parameters;
@@ -462,7 +769,7 @@ std::unique_ptr<ASTNode> Parser::parseLambda() {
 std::unique_ptr<ASTNode> Parser::parsePrint() {
   auto printNode = std::make_unique<PrintNode>();
   printNode->printNewline = kToken.getSubType() == KName::KW_PrintLn;
-  match(KTokenType::KEYWORD);  // Consume "print"|"println"
+  match(KTokenType::KEYWORD);  // Consume 'print'/'println'
   printNode->expression = parseExpression();
   return printNode;
 }
@@ -865,6 +1172,7 @@ std::unique_ptr<ASTNode> Parser::parsePrimary() {
 
     case KTokenType::LITERAL:
     case KTokenType::STRING:
+    case KTokenType::TYPENAME:
       node = parseLiteral();
       break;
 

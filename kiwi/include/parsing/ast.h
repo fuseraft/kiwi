@@ -9,32 +9,43 @@
 #include <vector>
 
 enum class ASTNodeType {
-  PROGRAM,
-  FUNCTION_DECLARATION,
-  LAMBDA,
-  FUNCTION_CALL,
-  METHOD_CALL,
-  MEMBER_ACCESS,
-  TERNARY_OPERATION,
-  BINARY_OPERATION,
-  UNARY_OPERATION,
-  LITERAL,
-  HASH_LITERAL,
-  LIST_LITERAL,
-  RANGE_LITERAL,
-  IDENTIFIER,
-  INDEX_EXPRESSION,
-  SLICE_EXPRESSION,
-  EXPRESSION_STATEMENT,
-  RETURN_STATEMENT,
   ASSIGNMENT,
-  IF_STATEMENT,
-  WHILE_LOOP,
-  FOR_LOOP,
-  REPEAT_LOOP,
-  TRY,
+  BINARY_OPERATION,
   BLOCK_STATEMENT,
+  BREAK_STATEMENT,
+  CASE_STATEMENT,
+  CASE_WHEN,
+  EXIT_STATEMENT,
+  EXPORT_STATEMENT,
+  EXPRESSION_STATEMENT,
+  FOR_LOOP,
+  FUNCTION_CALL,
+  FUNCTION_DECLARATION,
+  HASH_LITERAL,
+  IDENTIFIER,
+  IF_STATEMENT,
+  IMPORT_STATEMENT,
+  INDEX_EXPRESSION,
+  LAMBDA,
+  LIST_LITERAL,
+  LITERAL,
+  MEMBER_ACCESS,
+  METHOD_CALL,
+  NEXT_STATEMENT,
+  NO_OP,
+  PACKAGE,
+  PARSE_STATEMENT,
   PRINT_STATEMENT,
+  PROGRAM,
+  RANGE_LITERAL,
+  REPEAT_LOOP,
+  RETURN_STATEMENT,
+  SLICE_EXPRESSION,
+  TERNARY_OPERATION,
+  THROW_STATEMENT,
+  TRY,
+  UNARY_OPERATION,
+  WHILE_LOOP,
 };
 
 class ASTNode {
@@ -168,6 +179,210 @@ class IndexingNode : public ASTNode {
       std::cout << "Index: `" << name << "`" << std::endl;
     }
     indexExpression->print(1 + depth);
+  }
+};
+
+class ReturnNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> returnValue;
+  std::unique_ptr<ASTNode> condition;
+
+  ReturnNode() : ASTNode(ASTNodeType::RETURN_STATEMENT) {}
+  ReturnNode(std::unique_ptr<ASTNode> returnValue,
+             std::unique_ptr<ASTNode> condition)
+      : ASTNode(ASTNodeType::RETURN_STATEMENT),
+        returnValue(std::move(returnValue)),
+        condition(std::move(condition)) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Return:" << std::endl;
+    if (returnValue) {
+      returnValue->print(1 + depth);
+    }
+
+    if (condition) {
+      print_depth(1 + depth);
+      std::cout << "When:" << std::endl;
+      condition->print(1 + depth);
+    }
+  }
+};
+
+class ThrowNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> errorValue;
+  std::unique_ptr<ASTNode> condition;
+
+  ThrowNode() : ASTNode(ASTNodeType::THROW_STATEMENT) {}
+  ThrowNode(std::unique_ptr<ASTNode> errorValue,
+            std::unique_ptr<ASTNode> condition)
+      : ASTNode(ASTNodeType::THROW_STATEMENT),
+        errorValue(std::move(errorValue)),
+        condition(std::move(condition)) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Throw:" << std::endl;
+    if (errorValue) {
+      errorValue->print(1 + depth);
+    }
+
+    if (condition) {
+      print_depth(1 + depth);
+      std::cout << "When:" << std::endl;
+      condition->print(1 + depth);
+    }
+  }
+};
+
+class ExitNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> exitValue;
+  std::unique_ptr<ASTNode> condition;
+
+  ExitNode() : ASTNode(ASTNodeType::EXIT_STATEMENT) {}
+  ExitNode(std::unique_ptr<ASTNode> exitValue,
+           std::unique_ptr<ASTNode> condition)
+      : ASTNode(ASTNodeType::EXIT_STATEMENT),
+        exitValue(std::move(exitValue)),
+        condition(std::move(condition)) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Exit:" << std::endl;
+    if (exitValue) {
+      exitValue->print(1 + depth);
+    }
+
+    if (condition) {
+      print_depth(1 + depth);
+      std::cout << "When:" << std::endl;
+      condition->print(1 + depth);
+    }
+  }
+};
+
+class ParseNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> parseValue;
+
+  ParseNode() : ASTNode(ASTNodeType::PARSE_STATEMENT) {}
+  ParseNode(std::unique_ptr<ASTNode> parseValue)
+      : ASTNode(ASTNodeType::PARSE_STATEMENT),
+        parseValue(std::move(parseValue)) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Parse:" << std::endl;
+    if (parseValue) {
+      parseValue->print(1 + depth);
+    }
+  }
+};
+
+class NextNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> condition;
+
+  NextNode() : ASTNode(ASTNodeType::NEXT_STATEMENT) {}
+  NextNode(std::unique_ptr<ASTNode> condition)
+      : ASTNode(ASTNodeType::NEXT_STATEMENT), condition(std::move(condition)) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Next:" << std::endl;
+
+    if (condition) {
+      print_depth(1 + depth);
+      std::cout << "When:" << std::endl;
+      condition->print(1 + depth);
+    }
+  }
+};
+
+class BreakNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> condition;
+
+  BreakNode() : ASTNode(ASTNodeType::BREAK_STATEMENT) {}
+  BreakNode(std::unique_ptr<ASTNode> condition)
+      : ASTNode(ASTNodeType::BREAK_STATEMENT),
+        condition(std::move(condition)) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Break:" << std::endl;
+
+    if (condition) {
+      print_depth(1 + depth);
+      std::cout << "When:" << std::endl;
+      condition->print(1 + depth);
+    }
+  }
+};
+
+class NoOpNode : public ASTNode {
+ public:
+  NoOpNode() : ASTNode(ASTNodeType::NO_OP) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "No operation:" << std::endl;
+  }
+};
+
+class ImportNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> packageName;
+
+  ImportNode() : ASTNode(ASTNodeType::IMPORT_STATEMENT) {}
+  ImportNode(std::unique_ptr<ASTNode> packageName)
+      : ASTNode(ASTNodeType::IMPORT_STATEMENT),
+        packageName(std::move(packageName)) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Import:" << std::endl;
+    packageName->print(1 + depth);
+  }
+};
+
+class ExportNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> packageName;
+
+  ExportNode() : ASTNode(ASTNodeType::EXPORT_STATEMENT) {}
+  ExportNode(std::unique_ptr<ASTNode> packageName)
+      : ASTNode(ASTNodeType::EXPORT_STATEMENT),
+        packageName(std::move(packageName)) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Export:" << std::endl;
+    packageName->print(1 + depth);
+  }
+};
+
+class PackageNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> packageName;
+  std::vector<std::unique_ptr<ASTNode>> body;
+
+  PackageNode() : ASTNode(ASTNodeType::PACKAGE) {}
+  PackageNode(std::unique_ptr<ASTNode> packageName)
+      : ASTNode(ASTNodeType::PACKAGE), packageName(std::move(packageName)) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Package:" << std::endl;
+    packageName->print(1 + depth);
+
+    print_depth(depth);
+    std::cout << "Content:" << std::endl;
+    for (const auto& stmt : body) {
+      stmt->print(1 + depth);
+    }
   }
 };
 
@@ -483,6 +698,97 @@ class RepeatLoopNode : public ASTNode {
     std::cout << "Statements:" << std::endl;
     for (const auto& stmt : body) {
       stmt->print(1 + depth);
+    }
+  }
+};
+
+class CaseWhenNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> condition;
+  std::vector<std::unique_ptr<ASTNode>> body;
+
+  CaseWhenNode() : ASTNode(ASTNodeType::CASE_WHEN) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Case when:" << std::endl;
+    condition->print(1 + depth);
+
+    print_depth(depth);
+    std::cout << "Statements:" << std::endl;
+    for (const auto& stmt : body) {
+      stmt->print(1 + depth);
+    }
+  }
+};
+
+class CaseNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> testValue;
+  std::vector<std::unique_ptr<ASTNode>> elseBody;
+  std::vector<std::unique_ptr<CaseWhenNode>> whenNodes;
+
+  CaseNode() : ASTNode(ASTNodeType::CASE_STATEMENT) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Case:" << std::endl;
+
+    if (testValue) {
+      print_depth(depth);
+      std::cout << "Test:" << std::endl;
+      testValue->print(1 + depth);
+    }
+
+    if (!whenNodes.empty()) {
+      for (const auto& when : whenNodes) {
+        when->print(1 + depth);
+      }
+    }
+
+    if (!elseBody.empty()) {
+      print_depth(1 + depth);
+      std::cout << "Case else:" << std::endl;
+      for (const auto& stmt : elseBody) {
+        stmt->print(2 + depth);
+      }
+    }
+  }
+};
+
+class IfNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> condition;
+  std::vector<std::unique_ptr<ASTNode>> body;
+  std::vector<std::unique_ptr<ASTNode>> elseBody;
+  std::vector<std::unique_ptr<IfNode>> elseifNodes;
+
+  IfNode() : ASTNode(ASTNodeType::IF_STATEMENT) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "If:" << std::endl;
+    condition->print(1 + depth);
+    print_depth(depth);
+    std::cout << "Statements:" << std::endl;
+    for (const auto& stmt : body) {
+      stmt->print(1 + depth);
+    }
+
+    if (!elseifNodes.empty()) {
+      for (const auto& elsif : elseifNodes) {
+        print_depth(depth);
+        std::cout << "Else-If:" << std::endl;
+        elsif->print(1 + depth);
+      }
+    }
+
+    if (!elseBody.empty()) {
+      print_depth(depth);
+      std::cout << "Else:" << std::endl;
+      for (const auto& stmt : elseBody) {
+        stmt->print(1 + depth);
+      }
     }
   }
 };

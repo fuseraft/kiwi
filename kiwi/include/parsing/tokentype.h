@@ -244,6 +244,7 @@ enum KName {
   KW_Async,
   KW_Await,
   KW_Break,
+  KW_Case,
   KW_Catch,
   KW_Class,
   KW_Delete,
