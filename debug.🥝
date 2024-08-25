@@ -1,6 +1,11 @@
 /# a script for experimentation and debugging. #/
 
-/#
+/# 
+
+##################
+# parser testing #
+##################
+
 fn greet(name)
   println name
 end
@@ -168,4 +173,20 @@ case
   else
     println "n and m are less than 1"
 end
+#/
+
+/#
+
+#######################
+# interpreter testing #
+#######################
+
+m = 5
+n = [{"a": m}] * m
+println n
+
+a = 11
+a /= 3.
+println a
+
 #/

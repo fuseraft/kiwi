@@ -28,6 +28,8 @@
 #include "interp_helper.h"
 #include "stackframe.h"
 
+#include "interpreter.h"
+
 class Interpreter {
  public:
   Interpreter() {}
@@ -54,7 +56,9 @@ class Interpreter {
       Parser parser;
       auto tokenStream = lexer.getTokenStream();
       auto ast = parser.parseTokenStream(tokenStream);
-      ast->print();
+      //ast->print();
+      KInterpreter interp;
+      interp.interpret(ast.get());
       return 0;
     }
 

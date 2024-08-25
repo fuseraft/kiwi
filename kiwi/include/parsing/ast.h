@@ -1,6 +1,7 @@
 #ifndef KIWI_PARSING_AST_H
 #define KIWI_PARSING_AST_H
 
+#include "tokens.h"
 #include "typing/serializer.h"
 #include "typing/value.h"
 #include <iostream>
@@ -51,6 +52,7 @@ enum class ASTNodeType {
 class ASTNode {
  public:
   ASTNodeType type;
+  Token token = Token::createEmpty();
 
   ASTNode(ASTNodeType type) : type(type) {}
   virtual ~ASTNode() = default;
