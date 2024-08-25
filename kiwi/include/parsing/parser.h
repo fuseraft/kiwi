@@ -104,6 +104,28 @@ bool Parser::matchSubType(KName expectedSubType) {
   return false;
 }
 
+bool Parser::hasValue() {
+  switch (kToken.getType()) {
+    case KTokenType::LITERAL:
+    case KTokenType::STRING:
+    case KTokenType::TYPENAME:
+    case KTokenType::IDENTIFIER:
+    case KTokenType::OPEN_PAREN:
+    case KTokenType::OPEN_BRACE:
+    case KTokenType::OPEN_BRACKET:
+      return true;
+
+    case KTokenType::KEYWORD:
+      return kToken.getSubType() == KName::KW_This;
+
+    case KTokenType::OPERATOR:
+      return Operators.is_unary_op(kToken.getSubType());
+
+    default:
+      return false;
+  }
+}
+
 std::unique_ptr<ASTNode> Parser::parseTokenStream(k_stream& stream) {
   kStream = std::move(stream);
   kToken = kStream->current();  // Set to beginning.
@@ -175,21 +197,32 @@ std::unique_ptr<ASTNode> Parser::parseKeyword() {
 }
 
 std::unique_ptr<ASTNode> Parser::parseStatement() {
-  switch (kToken.getType()) {
+  auto nodeToken = kToken;
+  std::unique_ptr<ASTNode> node;
+
+  switch (nodeToken.getType()) {
     case KTokenType::COMMENT:
-      return parseComment();
+      node = parseComment();
+      break;
 
     case KTokenType::KEYWORD:
-      return parseKeyword();
+      node = parseKeyword();
+      break;
 
     case KTokenType::CONDITIONAL:
-      return parseConditional();
+      node = parseConditional();
+      break;
 
     case KTokenType::IDENTIFIER:
       return parseExpression();
 
     default:
       throw TokenStreamError(kToken, "Unexpected token in statement.");
+  }
+
+  if (node) {
+    node->token = nodeToken;
+    return node;
   }
 
   return nullptr;
@@ -348,28 +381,6 @@ std::unique_ptr<ASTNode> Parser::parseRepeatLoop() {
   repeatLoop->alias = alias ? std::move(alias.value()) : nullptr;
   repeatLoop->body = std::move(body);
   return repeatLoop;
-}
-
-bool Parser::hasValue() {
-  switch (kToken.getType()) {
-    case KTokenType::LITERAL:
-    case KTokenType::STRING:
-    case KTokenType::TYPENAME:
-    case KTokenType::IDENTIFIER:
-    case KTokenType::OPEN_PAREN:
-    case KTokenType::OPEN_BRACE:
-    case KTokenType::OPEN_BRACKET:
-      return true;
-
-    case KTokenType::KEYWORD:
-      return kToken.getSubType() == KName::KW_This;
-
-    case KTokenType::OPERATOR:
-      return Operators.is_unary_op(kToken.getSubType());
-
-    default:
-      return false;
-  }
 }
 
 std::unique_ptr<ASTNode> Parser::parseReturn() {
@@ -1164,6 +1175,7 @@ std::unique_ptr<ASTNode> Parser::parseUnary() {
 
 std::unique_ptr<ASTNode> Parser::parsePrimary() {
   std::unique_ptr<ASTNode> node;
+  auto nodeToken = kToken;
 
   switch (kToken.getType()) {
     case KTokenType::IDENTIFIER:
@@ -1206,6 +1218,8 @@ std::unique_ptr<ASTNode> Parser::parsePrimary() {
   } else if (kToken.getType() == KTokenType::OPEN_BRACKET) {
     node = parseIndexing(std::move(node));
   }
+
+  node->token = nodeToken;
 
   return node;
 }
