@@ -230,6 +230,7 @@ struct {
   const k_string Async = "async";
   const k_string Await = "await";
   const k_string Break = "break";
+  const k_string Case = "case";
   const k_string Catch = "catch";
   const k_string Class = "class";
   const k_string Ctor = "initialize";
@@ -274,14 +275,15 @@ struct {
   const k_string While = "while";
 
   std::unordered_set<k_string> keywords = {
-      Abstract, As,      Async,   Await,    Break,  Catch,    Class,
-      Delete,   Do,      Else,    ElseIf,   End,    Exit,     Export,
-      False,    Finally, For,     Function, If,     Import,   In,
-      With,     Method,  Package, Next,     Null,   Override, Parse,
-      Pass,     Print,   PrintLn, Private,  Repeat, Return,   Static,
-      Then,     This,    Throw,   True,     Try,    When,     While};
+      Abstract, As,     Async,    Await,    Break,  Case, Catch,  Class,
+      Delete,   Do,     Else,     ElseIf,   End,    Exit, Export, False,
+      Finally,  For,    Function, If,       Import, In,   With,   Method,
+      Package,  Next,   Null,     Override, Parse,  Pass, Print,  PrintLn,
+      Private,  Repeat, Return,   Static,   Then,   This, Throw,  True,
+      Try,      When,   While};
 
-  std::unordered_set<k_string> conditional_keywords = {If, Else, ElseIf, End};
+  std::unordered_set<k_string> conditional_keywords = {If, Else, ElseIf, End,
+                                                       Case};
 
   std::unordered_set<KName> block_keywords = {
       KName::KW_While, KName::KW_For,     KName::KW_Method,

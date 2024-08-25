@@ -243,6 +243,8 @@ class Lexer {
       st = KName::KW_Else;
     } else if (keyword == Keywords.End) {
       st = KName::KW_End;
+    } else if (keyword == Keywords.Case) {
+      st = KName::KW_Case;
     }
 
     return createToken(KTokenType::CONDITIONAL, st, keyword);

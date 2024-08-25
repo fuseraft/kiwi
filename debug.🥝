@@ -105,4 +105,67 @@ while n < 5 do
     println n
   end
 end
+
+if 1 < 5
+  println "1 is < 5"
+elsif 5 > 1
+  println "5 is > 1"
+elsif 4 > 1
+  if 2 < 4
+    println "woot"
+  end
+else
+  if 'a' < 'b'
+    println "foobar"
+  else
+    println "blah"
+  end
+end
+
+if 1 < 5
+  if 2 < 3
+    if 4 < 6 
+      println "blah"
+    end 
+  end 
+end
+
+import "hello"
+
+package pkg_name 
+  home("kiwi")
+
+  fn method_1()
+    println "method 1"
+  end
+
+  fn method_2(a)
+    println "method 2: ${a}"
+  end
+
+  fn method_3(a)
+    throw "not a number" when !a.is_a(Integer) && !a.is_a(Double)
+    return a * 3
+  end
+end
+
+export "pkg_name"
+
+case number
+  when 0 
+    println "zero"
+  when 1
+    println "one"
+  else
+    println "none"
+end
+
+case 
+  when 1 < n
+    println "1 is less than n"
+  when 1 < m
+    println "1 is less than m"
+  else
+    println "n and m are less than 1"
+end
 #/
