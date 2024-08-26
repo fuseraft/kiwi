@@ -22,7 +22,8 @@ class Parser {
   std::unique_ptr<ASTNode> parseAssignment(const k_string& identifierName);
   std::unique_ptr<ASTNode> parseComment();
   std::unique_ptr<ASTNode> parseFunction();
-  std::unique_ptr<ASTNode> parseFunctionCall(const k_string& identifierName);
+  std::unique_ptr<ASTNode> parseFunctionCall(const k_string& identifierName,
+                                             const KName& type);
   std::unique_ptr<ASTNode> parseKeyword();
   std::unique_ptr<ASTNode> parseLambda();
   std::unique_ptr<ASTNode> parseStatement();
@@ -68,7 +69,8 @@ class Parser {
   std::unique_ptr<ASTNode> parseMemberAssignment(
       std::unique_ptr<ASTNode> object, const k_string& memberName);
   std::unique_ptr<ASTNode> parseFunctionCallOnMember(
-      std::unique_ptr<ASTNode> object, const k_string& methodName);
+      std::unique_ptr<ASTNode> object, const k_string& methodName,
+      const KName& type);
   std::unique_ptr<ASTNode> parseIdentifier();
   std::unique_ptr<ASTNode> parsePrint();
 
@@ -236,13 +238,12 @@ std::unique_ptr<ASTNode> Parser::parseComment() {
 std::unique_ptr<ASTNode> Parser::parseFunction() {
   match(KTokenType::KEYWORD);  // Consume 'fn'
 
-  // Get function name
   if (kToken.getType() != KTokenType::IDENTIFIER) {
     throw SyntaxError(kToken, "Expected identifier after 'fn'.");
   }
 
   std::string functionName = kToken.getText();
-  next();  // Move past function name
+  next();
 
   // Parse parameters
   std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> parameters;
@@ -701,7 +702,7 @@ std::unique_ptr<ASTNode> Parser::parseTry() {
 }
 
 std::unique_ptr<ASTNode> Parser::parseFunctionCall(
-    const k_string& identifierName) {
+    const k_string& identifierName, const KName& type) {
   // This is a function call
   next();  // Consume the '('
 
@@ -719,7 +720,7 @@ std::unique_ptr<ASTNode> Parser::parseFunctionCall(
 
   next();  // Consume the closing parenthesis ')'
 
-  return std::make_unique<FunctionCallNode>(identifierName,
+  return std::make_unique<FunctionCallNode>(identifierName, type,
                                             std::move(arguments));
 }
 
@@ -941,11 +942,12 @@ std::unique_ptr<ASTNode> Parser::parseMemberAccess(
                         "Expected identifier after '.' in member access.");
     }
 
+    auto op = kToken.getSubType();
     auto memberName = kToken.getText();
     next();
 
     if (kToken.getType() == KTokenType::OPEN_PAREN) {
-      left = parseFunctionCallOnMember(std::move(left), memberName);
+      left = parseFunctionCallOnMember(std::move(left), memberName, op);
     } else if (Operators.is_assignment_operator(kToken.getSubType())) {
       left = parseMemberAssignment(std::move(left), memberName);
     } else {
@@ -957,7 +959,8 @@ std::unique_ptr<ASTNode> Parser::parseMemberAccess(
 }
 
 std::unique_ptr<ASTNode> Parser::parseFunctionCallOnMember(
-    std::unique_ptr<ASTNode> object, const k_string& methodName) {
+    std::unique_ptr<ASTNode> object, const k_string& methodName,
+    const KName& type) {
   next();  // Consume '('
 
   // Parse function arguments
@@ -974,7 +977,7 @@ std::unique_ptr<ASTNode> Parser::parseFunctionCallOnMember(
 
   next();  // Consume the closing parenthesis ')'
 
-  return std::make_unique<MethodCallNode>(std::move(object), methodName,
+  return std::make_unique<MethodCallNode>(std::move(object), methodName, type,
                                           std::move(arguments));
 }
 
@@ -1007,6 +1010,7 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier() {
     throw SyntaxError(kToken, "Expected an identifier.");
   }
 
+  auto type = kToken.getSubType();
   auto identifierName = kToken.getText();
   next();
 
@@ -1016,7 +1020,7 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier() {
   if (kToken.getType() == KTokenType::DOT) {
     node = parseMemberAccess(std::move(node));
   } else if (kToken.getType() == KTokenType::OPEN_PAREN) {
-    node = parseFunctionCall(identifierName);
+    node = parseFunctionCall(identifierName, type);
   } else if (kToken.getType() == KTokenType::OPEN_BRACKET) {
     node = parseIndexing(identifierName);
   } else if (kToken.getType() == KTokenType::OPERATOR &&
