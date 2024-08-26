@@ -227,5 +227,37 @@ for i in [1..6] do
     else println "merp"
   end
 end
-#/
 
+n = 0
+while n < 5 do
+  println n
+  n += 1
+end
+
+try
+  repeat 5 as i do
+    println i / 0
+  end
+  
+  println i
+catch (err, msg)
+  println err
+  println msg
+finally
+  println "yay"
+end
+
+println "foobar"
+println i
+
+fn add(n, m = 0)
+  println "n is " + n
+  println "m is " + m
+  println n + m
+end
+
+add(5, 4)
+
+println "hello".chars()
+println __random__(1, 100)
+#/

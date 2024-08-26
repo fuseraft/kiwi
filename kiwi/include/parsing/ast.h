@@ -10,43 +10,41 @@
 #include <vector>
 
 enum class ASTNodeType {
-  ASSIGNMENT,
-  BINARY_OPERATION,
-  BLOCK_STATEMENT,
-  BREAK_STATEMENT,
-  CASE_STATEMENT,
-  CASE_WHEN,
+  ASSIGNMENT,        // done
+  BINARY_OPERATION,  // done
+  BREAK_STATEMENT,   // done
+  CASE_STATEMENT,    // done
+  CASE_WHEN,         // done
   EXIT_STATEMENT,
   EXPORT_STATEMENT,
-  EXPRESSION_STATEMENT,
-  FOR_LOOP,
+  FOR_LOOP,  // done
   FUNCTION_CALL,
   FUNCTION_DECLARATION,
-  HASH_LITERAL,
-  IDENTIFIER,
-  IF_STATEMENT,
+  HASH_LITERAL,  // done
+  IDENTIFIER,    // done
+  IF_STATEMENT,  // done
   IMPORT_STATEMENT,
   INDEX_EXPRESSION,
   LAMBDA,
-  LIST_LITERAL,
-  LITERAL,
+  LIST_LITERAL,  // done
+  LITERAL,       // done
   MEMBER_ACCESS,
   METHOD_CALL,
-  NEXT_STATEMENT,
-  NO_OP,
+  NEXT_STATEMENT,  // done
+  NO_OP,           // done
   PACKAGE,
   PARSE_STATEMENT,
-  PRINT_STATEMENT,
-  PROGRAM,
-  RANGE_LITERAL,
-  REPEAT_LOOP,
+  PRINT_STATEMENT,  // done
+  PROGRAM,          // done
+  RANGE_LITERAL,    // done
+  REPEAT_LOOP,      // done
   RETURN_STATEMENT,
   SLICE_EXPRESSION,
   TERNARY_OPERATION,
   THROW_STATEMENT,
-  TRY,
-  UNARY_OPERATION,
-  WHILE_LOOP,
+  TRY,              // done
+  UNARY_OPERATION,  // done
+  WHILE_LOOP,       // done
 };
 
 class ASTNode {
@@ -851,13 +849,15 @@ class TryNode : public ASTNode {
 class FunctionCallNode : public ASTNode {
  public:
   std::string functionName;
+  KName op;
   std::vector<std::unique_ptr<ASTNode>> arguments;
 
   FunctionCallNode() : ASTNode(ASTNodeType::FUNCTION_CALL) {}
-  FunctionCallNode(const std::string& functionName,
+  FunctionCallNode(const std::string& functionName, const KName& op,
                    std::vector<std::unique_ptr<ASTNode>> arguments)
       : ASTNode(ASTNodeType::FUNCTION_CALL),
         functionName(functionName),
+        op(op),
         arguments(std::move(arguments)) {}
 
   void print(int depth) const override {
@@ -875,13 +875,16 @@ class MethodCallNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> object;
   std::string methodName;
+  KName op;
   std::vector<std::unique_ptr<ASTNode>> arguments;
 
   MethodCallNode(std::unique_ptr<ASTNode> object, const std::string& methodName,
+                 const KName& op,
                  std::vector<std::unique_ptr<ASTNode>> arguments)
       : ASTNode(ASTNodeType::METHOD_CALL),
         object(std::move(object)),
         methodName(methodName),
+        op(op),
         arguments(std::move(arguments)) {}
 
   void print(int depth) const override {
@@ -918,21 +921,21 @@ class MemberAccessNode : public ASTNode {
 class AssignmentNode : public ASTNode {
  public:
   std::string name;
-  KName type;
+  KName op;
   std::unique_ptr<ASTNode> initializer;
 
   AssignmentNode() : ASTNode(ASTNodeType::ASSIGNMENT) {}
-  AssignmentNode(const std::string& name, const KName& type,
+  AssignmentNode(const std::string& name, const KName& op,
                  std::unique_ptr<ASTNode> initializer)
       : ASTNode(ASTNodeType::ASSIGNMENT),
         name(name),
-        type(type),
+        op(op),
         initializer(std::move(initializer)) {}
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "Assignment: `" << name << "` "
-              << Operators.get_op_string(type) << std::endl;
+    std::cout << "Assignment: `" << name << "` " << Operators.get_op_string(op)
+              << std::endl;
     print_depth(depth);
     std::cout << "Initializer:" << std::endl;
     initializer->print(1 + depth);
@@ -943,45 +946,27 @@ class MemberAssignmentNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> object;
   std::string memberName;
-  KName type;
+  KName op;
   std::unique_ptr<ASTNode> initializer;
 
   MemberAssignmentNode(std::unique_ptr<ASTNode> object,
-                       const std::string& memberName, KName type,
+                       const std::string& memberName, KName op,
                        std::unique_ptr<ASTNode> initializer)
       : ASTNode(ASTNodeType::ASSIGNMENT),
         object(std::move(object)),
         memberName(memberName),
-        type(type),
+        op(op),
         initializer(std::move(initializer)) {}
 
   void print(int depth) const override {
     print_depth(depth);
     std::cout << "MemberAssignment: `" << memberName << "` "
-              << Operators.get_op_string(type) << " on object: " << std::endl;
+              << Operators.get_op_string(op) << " on object: " << std::endl;
     print_depth(depth);
     object->print(1 + depth);
     print_depth(depth);
     std::cout << "Initializer:" << std::endl;
     initializer->print(1 + depth);
-  }
-};
-
-class BlockStatementNode : public ASTNode {
- public:
-  std::vector<std::unique_ptr<ASTNode>> statements;
-
-  BlockStatementNode() : ASTNode(ASTNodeType::BLOCK_STATEMENT) {}
-  BlockStatementNode(std::vector<std::unique_ptr<ASTNode>> statements)
-      : ASTNode(ASTNodeType::BLOCK_STATEMENT),
-        statements(std::move(statements)) {}
-
-  void print(int depth) const override {
-    print_depth(depth);
-    std::cout << "BlockStatement: " << std::endl;
-    for (const auto& statement : statements) {
-      statement->print(1 + depth);
-    }
   }
 };
 

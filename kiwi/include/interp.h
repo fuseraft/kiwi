@@ -1279,7 +1279,7 @@ class Interpreter {
       tempStack.pop();
     }
 
-    throw MethodUndefinedError(stream->current(), name);
+    throw FunctionUndefinedError(stream->current(), name);
   }
 
   std::vector<k_value> interpretArguments(
