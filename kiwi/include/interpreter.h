@@ -28,6 +28,7 @@ class KInterpreter {
 
   std::shared_ptr<CallStackFrame> createFrame(bool isMethodInvocation);
   k_value dropFrame();
+  k_string id(const ASTNode* node);
   k_value interpret(const ASTNode* node);
   k_value visit(const ProgramNode* node);
   k_value visit(const AssignmentNode* node);
@@ -48,6 +49,7 @@ class KInterpreter {
   k_value visit(const FunctionDeclarationNode* node);
   k_value visit(const FunctionCallNode* node);
   k_value visit(const MethodCallNode* node);
+  k_value visit(const PackageNode* node);
 
  private:
   std::unordered_map<std::string, std::shared_ptr<Function>> functions;
@@ -57,6 +59,9 @@ k_value KInterpreter::interpret(const ASTNode* node) {
   switch (node->type) {
     case ASTNodeType::PROGRAM:
       return visit(static_cast<const ProgramNode*>(node));
+
+    case ASTNodeType::PACKAGE:
+      return visit(static_cast<const PackageNode*>(node));
 
     case ASTNodeType::ASSIGNMENT:
       return visit(static_cast<const AssignmentNode*>(node));
@@ -174,6 +179,10 @@ k_value KInterpreter::dropFrame() {
   return static_cast<k_int>(0);
 }
 
+k_string KInterpreter::id(const ASTNode* node) {
+  return static_cast<const IdentifierNode*>(node)->name;
+}
+
 k_value KInterpreter::visit(const ProgramNode* node) {
   auto programFrame = std::make_shared<CallStackFrame>();
   callStack.push(programFrame);
@@ -181,6 +190,19 @@ k_value KInterpreter::visit(const ProgramNode* node) {
   for (const auto& stmt : node->statements) {
     interpret(stmt.get());
   }
+
+  return static_cast<k_int>(0);
+}
+
+k_value KInterpreter::visit(const PackageNode* node) {
+  auto packageName = id(node->packageName.get());
+  packageStack.push(packageName);
+
+  for (const auto& stmt : node->body) {
+    interpret(stmt.get());
+  }
+  
+  packageStack.pop();
 
   return static_cast<k_int>(0);
 }
@@ -383,12 +405,10 @@ k_value KInterpreter::visit(const ForLoopNode* node) {
   k_string indexIteratorName;
   bool hasIndexIterator = false;
 
-  valueIteratorName =
-      static_cast<const IdentifierNode*>(node->valueIterator.get())->name;
+  valueIteratorName = id(node->valueIterator.get());
 
   if (node->indexIterator) {
-    indexIteratorName =
-        static_cast<const IdentifierNode*>(node->indexIterator.get())->name;
+    indexIteratorName = id(node->indexIterator.get());
     hasIndexIterator = true;
   }
 
@@ -464,7 +484,7 @@ k_value KInterpreter::visit(const RepeatLoopNode* node) {
   bool hasAlias = false;
 
   if (node->alias) {
-    aliasName = static_cast<const IdentifierNode*>(node->alias.get())->name;
+    aliasName = id(node->alias.get());
     hasAlias = true;
   }
 
@@ -514,14 +534,12 @@ k_value KInterpreter::visit(const TryNode* node) {
       auto catchFrame = createFrame();
 
       if (node->errorType) {
-        auto errorTypeName =
-            static_cast<const IdentifierNode*>(node->errorType.get())->name;
+        auto errorTypeName = id(node->errorType.get());
         catchFrame->variables[errorTypeName] = e.getError();
       }
 
       if (node->errorMessage) {
-        auto errorMessageName =
-            static_cast<const IdentifierNode*>(node->errorMessage.get())->name;
+        auto errorMessageName = id(node->errorMessage.get());
         catchFrame->variables[errorMessageName] = e.getMessage();
       }
 
@@ -551,6 +569,11 @@ k_value KInterpreter::visit(const TryNode* node) {
 
 k_value KInterpreter::visit(const FunctionDeclarationNode* node) {
   auto name = node->name;
+
+  if (!packageStack.empty()) {
+    name = packageStack.top() + "::" + name;
+  }
+
   std::vector<std::pair<std::string, k_value>> parameters;
   std::unordered_set<std::string> defaultParameters;
 
@@ -573,7 +596,7 @@ k_value KInterpreter::visit(const FunctionDeclarationNode* node) {
   function->name = name;
   function->parameters = parameters;
   function->defaultParameters = defaultParameters;
-  functions[node->name] = std::move(function);
+  functions[name] = std::move(function);
 
   return static_cast<k_int>(0);
 }

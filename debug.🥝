@@ -260,4 +260,16 @@ add(5, 4)
 
 println "hello".chars()
 println __random__(1, 100)
+
+package kiwi::testing
+  fn add(a, b)
+    println a + b
+  end
+end
+
+kiwi::testing::add(5, 2)
 #/
+
+say = with () do
+  println "hola"
+end
