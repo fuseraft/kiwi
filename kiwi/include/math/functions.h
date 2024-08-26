@@ -772,7 +772,8 @@ struct {
                           "Expected a numeric value in random number range");
   }
 
-  k_value do_unary_op(const Token& token, const KName& op, const k_value& right) {
+  k_value do_unary_op(const Token& token, const KName& op,
+                      const k_value& right) {
     switch (op) {
       case KName::Ops_Not:
         return do_logical_not(right);
@@ -789,7 +790,8 @@ struct {
     }
   }
 
-  k_value do_binary_op(const Token& token, const KName& op, const k_value& left, const k_value& right) {
+  k_value do_binary_op(const Token& token, const KName& op, const k_value& left,
+                       const k_value& right) {
     switch (op) {
       case KName::Ops_Add:
       case KName::Ops_AddAssign:
