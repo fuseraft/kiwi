@@ -15,33 +15,33 @@ enum class ASTNodeType {
   BREAK_STATEMENT,   // done
   CASE_STATEMENT,    // done
   CASE_WHEN,         // done
-  EXIT_STATEMENT,
-  EXPORT_STATEMENT,
-  FOR_LOOP,  // done
-  FUNCTION_CALL,
-  FUNCTION_DECLARATION,
-  HASH_LITERAL,  // done
-  IDENTIFIER,    // done
-  IF_STATEMENT,  // done
-  IMPORT_STATEMENT,
+  EXIT_STATEMENT,    // done
+  EXPORT_STATEMENT,  // obsolete
+  FOR_LOOP,          // done
+  FUNCTION_CALL,     // done
+  FUNCTION_DECLARATION, // done
+  HASH_LITERAL,      // done
+  IDENTIFIER,        // done
+  IF_STATEMENT,      // done
+  IMPORT_STATEMENT,  // done
   INDEX_EXPRESSION,
-  LAMBDA,
-  LIST_LITERAL,  // done
-  LITERAL,       // done
+  LAMBDA,            // done
+  LIST_LITERAL,      // done
+  LITERAL,           // done
   MEMBER_ACCESS,
-  METHOD_CALL,
-  NEXT_STATEMENT,  // done
-  NO_OP,           // done
-  PACKAGE,
+  METHOD_CALL,      // wip
+  NEXT_STATEMENT,   // done
+  NO_OP,            // done
+  PACKAGE,          // done
   PARSE_STATEMENT,
   PRINT_STATEMENT,  // done
   PROGRAM,          // done
   RANGE_LITERAL,    // done
   REPEAT_LOOP,      // done
-  RETURN_STATEMENT,
+  RETURN_STATEMENT, // done
   SLICE_EXPRESSION,
   TERNARY_OPERATION,
-  THROW_STATEMENT,
+  THROW_STATEMENT,  // done
   TRY,              // done
   UNARY_OPERATION,  // done
   WHILE_LOOP,       // done

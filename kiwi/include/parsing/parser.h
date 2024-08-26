@@ -6,6 +6,7 @@
 
 #include "ast.h"
 #include "keywords.h"
+#include "math/rng.h"
 #include "tokens.h"
 #include "tracing/error.h"
 #include "tracing/handler.h"
@@ -83,6 +84,7 @@ class Parser {
 
   Token kToken = Token::createEmpty();
   k_stream kStream;
+  std::unordered_map<k_string, k_string> mangledNames;
 };
 
 Token Parser::next() {
@@ -246,6 +248,8 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
   std::string functionName = kToken.getText();
   next();
 
+  k_string mangler = "_" + RNG::getInstance().random8() + "_";
+
   // Parse parameters
   std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> parameters;
   if (kToken.getType() == KTokenType::OPEN_PAREN) {
@@ -256,7 +260,9 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
         throw SyntaxError(kToken, "Expected parameter name.");
       }
 
-      std::string paramName = kToken.getText();
+      auto paramName = kToken.getText();
+      auto mangledName = mangler + paramName;
+      mangledNames[paramName] = mangledName;
       std::unique_ptr<ASTNode> defaultValue = nullptr;
       next();
 
@@ -267,7 +273,7 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
         defaultValue = parseExpression();
       }
 
-      parameters.emplace_back(paramName, std::move(defaultValue));
+      parameters.emplace_back(mangledName, std::move(defaultValue));
 
       if (kToken.getType() == KTokenType::COMMA) {
         next();
@@ -287,6 +293,8 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
 
   next();  // Consume 'end'
 
+  mangledNames.clear();
+
   auto functionDeclaration = std::make_unique<FunctionDeclarationNode>();
   functionDeclaration->name = functionName;
   functionDeclaration->parameters = std::move(parameters);
@@ -297,10 +305,22 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
 std::unique_ptr<ASTNode> Parser::parseForLoop() {
   matchSubType(KName::KW_For);  // Consume 'for'
 
+  k_string mangler = "_" + RNG::getInstance().random8() + "_";
+  std::unordered_set<k_string> subMangled;
+
+  if (kToken.getType() == KTokenType::IDENTIFIER) {
+    mangledNames[kToken.getText()] = mangler + kToken.getText();
+    subMangled.emplace(mangler + kToken.getText());
+  }
+
   auto valueIterator = parseIdentifier();
   std::optional<std::unique_ptr<ASTNode>> indexIterator = std::nullopt;
 
   if (match(KTokenType::COMMA)) {
+    if (kToken.getType() == KTokenType::IDENTIFIER) {
+      mangledNames[kToken.getText()] = mangler + kToken.getText();
+      subMangled.emplace(mangler + kToken.getText());
+    }
     indexIterator = parseIdentifier();
   }
 
@@ -320,6 +340,10 @@ std::unique_ptr<ASTNode> Parser::parseForLoop() {
   }
 
   next();  // Consume 'end'
+
+  for (const auto& mangledName : subMangled) {
+    mangledNames.erase(mangledName);
+  }
 
   auto forLoop = std::make_unique<ForLoopNode>();
   forLoop->valueIterator = std::move(valueIterator);
@@ -1044,6 +1068,11 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier() {
 
   auto type = kToken.getSubType();
   auto identifierName = kToken.getText();
+
+  if (mangledNames.find(identifierName) != mangledNames.end()) {
+    identifierName = mangledNames[identifierName];
+  }
+
   next();
 
   std::unique_ptr<ASTNode> node =

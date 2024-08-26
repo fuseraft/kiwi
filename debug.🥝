@@ -247,8 +247,13 @@ finally
   println "yay"
 end
 
-println "foobar"
-println i
+try
+  throw "Uh-oh!" when 1 == 1
+catch (err)
+  println err
+finally
+  println "eh"
+end
 
 fn add(n, m = 0)
   println "n is " + n
@@ -262,14 +267,82 @@ println "hello".chars()
 println __random__(1, 100)
 
 package kiwi::testing
+  println "loading package kiwi::testing"
   fn add(a, b)
     println a + b
   end
 end
 
+import "kiwi::testing"
 kiwi::testing::add(5, 2)
+
+say = with (msg = "hello") do
+  println msg
+end
+
+say("hello, world!")
+
+fn test(name, t)
+  t()
+end
+
+for i in [1..100000] do
+  test("hello", with() do 
+    println "hello, world!" + i
+  end)
+end
+
+fn add(n, m)
+  n + m
+end
+
+a = add(5, 10)
+println a
+
+fn get_something()
+  return "one" when __random__(0., 1.) < 0.5
+
+  sum = 0
+  repeat 5 do
+    sum += __random__(0, 100)
+  end
+
+  if sum % 2 == 0
+    return "two"
+  end
+
+  return "three"
+end
+
+i = 0
+while i < 5 do
+  println get_something()
+  i += 1
+end
 #/
 
-say = with () do
-  println "hola"
+fn test(a)
+  if a % 2 == 0
+    if a % 3 == 0
+      return [a, 3]
+    elsif a % 4 == 0
+      return [a, 4]
+    end
+
+    return [a, 2]
+  else
+    if a % 5 == 0
+      return [a, 5]
+    elsif a % 8 == 0
+      return [a, 7]
+    elsif a % 9 == 0
+      return [a, 9]
+    end
+  end
+
+  return [a, 1]
+end
+
+for a in [1..500] do
+  println test(a)
 end
