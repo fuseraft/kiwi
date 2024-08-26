@@ -449,6 +449,7 @@ class SliceNode : public ASTNode {
 class IdentifierNode : public ASTNode {
  public:
   std::string name;
+  std::string package;
 
   IdentifierNode() : ASTNode(ASTNodeType::IDENTIFIER) {}
   IdentifierNode(const std::string& name)

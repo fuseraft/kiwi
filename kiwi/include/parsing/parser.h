@@ -72,6 +72,7 @@ class Parser {
       std::unique_ptr<ASTNode> object, const k_string& methodName,
       const KName& type);
   std::unique_ptr<ASTNode> parseIdentifier();
+  std::unique_ptr<ASTNode> parseQualifiedIdentifier(const k_string& prefix);
   std::unique_ptr<ASTNode> parsePrint();
 
   // Utility methods to help with token matching and advancing the stream
@@ -1005,6 +1006,37 @@ std::unique_ptr<ASTNode> Parser::parseAssignment(
                                           std::move(initializer));
 }
 
+std::unique_ptr<ASTNode> Parser::parseQualifiedIdentifier(
+    const k_string& prefix) {
+  if (!match(KTokenType::QUALIFIER)) {
+    throw SyntaxError(kToken, "Expected a qualifier.");
+  }
+
+  if (kToken.getType() != KTokenType::IDENTIFIER) {
+    throw SyntaxError(kToken, "Expected an identifier after qualifier.");
+  }
+
+  auto rightIdentifierName = kToken.getText();
+  next();
+
+  auto qualifiedName = prefix + "::" + rightIdentifierName;
+
+  std::unique_ptr<ASTNode> qualifiedNode =
+      std::make_unique<IdentifierNode>(qualifiedName);
+
+  if (kToken.getType() == KTokenType::DOT) {
+    qualifiedNode = parseMemberAccess(std::move(qualifiedNode));
+  } else if (kToken.getType() == KTokenType::OPEN_PAREN) {
+    qualifiedNode = parseFunctionCall(qualifiedName, kToken.getSubType());
+  } else if (kToken.getType() == KTokenType::OPEN_BRACKET) {
+    qualifiedNode = parseIndexing(qualifiedName);
+  } else if (kToken.getType() == KTokenType::QUALIFIER) {
+    qualifiedNode = parseQualifiedIdentifier(qualifiedName);
+  }
+
+  return qualifiedNode;
+}
+
 std::unique_ptr<ASTNode> Parser::parseIdentifier() {
   if (kToken.getType() != KTokenType::IDENTIFIER) {
     throw SyntaxError(kToken, "Expected an identifier.");
@@ -1026,6 +1058,8 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier() {
   } else if (kToken.getType() == KTokenType::OPERATOR &&
              Operators.is_assignment_operator(kToken.getSubType())) {
     node = parseAssignment(identifierName);
+  } else if (kToken.getType() == KTokenType::QUALIFIER) {
+    node = parseQualifiedIdentifier(identifierName);
   } else {
     node = std::make_unique<IdentifierNode>(identifierName);
   }
