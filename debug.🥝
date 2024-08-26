@@ -189,4 +189,43 @@ a = 11
 a /= 3.
 println a
 
+n = 1
+m = 1
+
+if n < m
+  println "n is less than m"
+  if n < 1
+    println "n is less than 1"
+  elsif n < 2
+    println "n is less than 2"
+  else
+    println "n is greater than or equal to 2"
+  end
+elsif n == m
+  println "n is equal to m"
+  n -= 1
+  if n < 1
+    println "n is less than 1"
+  elsif n < 2
+    println "n is less than 2"
+  else
+    println "n is greater than or equal to 2"
+  end
+else
+  println "n is greater than m"
+end
+
+println n
+
+for i in [1..6] do
+  case i
+    when 1 println "one"
+    when 2 println "two"
+    when 3 println "three"
+    when 4 println "four"
+    when 5 println "five"
+    else println "merp"
+  end
+end
 #/
+
