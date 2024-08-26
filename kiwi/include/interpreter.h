@@ -10,16 +10,32 @@
 #include "math/functions.h"
 #include "parsing/ast.h"
 #include "parsing/builtins.h"
+#include "tracing/error.h"
 #include "typing/value.h"
 
-class Function {
+class KFunction {
  public:
   std::string name;
   std::vector<std::pair<std::string, k_value>> parameters;
   const FunctionDeclarationNode* decl;
   std::unordered_set<std::string> defaultParameters;
 
-  Function(const FunctionDeclarationNode* decl) : decl(decl) {}
+  KFunction(const FunctionDeclarationNode* decl) : decl(decl) {}
+};
+
+class KPackage {
+ public:
+  const PackageNode* decl;
+  KPackage(const PackageNode* decl) : decl(decl) {}
+};
+
+class KLambda {
+ public:
+  std::vector<std::pair<std::string, k_value>> parameters;
+  const LambdaNode* decl;
+  std::unordered_set<std::string> defaultParameters;
+
+  KLambda(const LambdaNode* decl) : decl(decl) {}
 };
 
 class KInterpreter {
@@ -46,13 +62,20 @@ class KInterpreter {
   k_value visit(const WhileLoopNode* node);
   k_value visit(const RepeatLoopNode* node);
   k_value visit(const TryNode* node);
+  k_value visit(const LambdaNode* node);
   k_value visit(const FunctionDeclarationNode* node);
   k_value visit(const FunctionCallNode* node);
   k_value visit(const MethodCallNode* node);
   k_value visit(const PackageNode* node);
+  k_value visit(const ImportNode* node);
+  k_value visit(const ExitNode* node);
+  k_value visit(const ThrowNode* node);
+  k_value visit(const ReturnNode* node);
 
  private:
-  std::unordered_map<std::string, std::shared_ptr<Function>> functions;
+  std::unordered_map<k_string, std::shared_ptr<KPackage>> packages;
+  std::unordered_map<k_string, std::shared_ptr<KFunction>> functions;
+  std::unordered_map<k_string, std::shared_ptr<KLambda>> lambdas;
 };
 
 k_value KInterpreter::interpret(const ASTNode* node) {
@@ -62,6 +85,15 @@ k_value KInterpreter::interpret(const ASTNode* node) {
 
     case ASTNodeType::PACKAGE:
       return visit(static_cast<const PackageNode*>(node));
+
+    case ASTNodeType::IMPORT_STATEMENT:
+      return visit(static_cast<const ImportNode*>(node));
+
+    case ASTNodeType::EXIT_STATEMENT:
+      return visit(static_cast<const ExitNode*>(node));
+
+    case ASTNodeType::THROW_STATEMENT:
+      return visit(static_cast<const ThrowNode*>(node));
 
     case ASTNodeType::ASSIGNMENT:
       return visit(static_cast<const AssignmentNode*>(node));
@@ -108,6 +140,9 @@ k_value KInterpreter::interpret(const ASTNode* node) {
     case ASTNodeType::TRY:
       return visit(static_cast<const TryNode*>(node));
 
+    case ASTNodeType::LAMBDA:
+      return visit(static_cast<const LambdaNode*>(node));
+
     case ASTNodeType::FUNCTION_DECLARATION:
       return visit(static_cast<const FunctionDeclarationNode*>(node));
 
@@ -116,6 +151,9 @@ k_value KInterpreter::interpret(const ASTNode* node) {
 
     case ASTNodeType::METHOD_CALL:
       return visit(static_cast<const MethodCallNode*>(node));
+
+    case ASTNodeType::RETURN_STATEMENT:
+      return visit(static_cast<const ReturnNode*>(node));
 
     case ASTNodeType::NO_OP:
       break;
@@ -194,14 +232,101 @@ k_value KInterpreter::visit(const ProgramNode* node) {
   return static_cast<k_int>(0);
 }
 
+k_value KInterpreter::visit(const ExitNode* node) {
+  auto exitValue = interpret(node->exitValue.get());
+  auto exitCode = static_cast<k_int>(0);
+
+  if (std::holds_alternative<k_int>(exitValue)) {
+    exitCode = std::get<k_int>(exitValue);
+  } else {
+    exitCode = static_cast<k_int>(1);
+  }
+
+  if (!node->condition ||
+      MathImpl.is_truthy(interpret(node->condition.get()))) {
+    exit(static_cast<int>(exitCode));
+  }
+
+  return static_cast<k_int>(0);
+}
+
+k_value KInterpreter::visit(const ReturnNode* node) {
+  auto frame = callStack.top();
+  k_value returnValue = static_cast<k_int>(0);
+
+  if (node->returnValue) {
+    returnValue = interpret(node->returnValue.get());
+  }
+
+  if (!node->condition ||
+      MathImpl.is_truthy(interpret(node->condition.get()))) {
+    frame->setFlag(FrameFlags::ReturnFlag);
+    frame->returnValue = returnValue;
+    return returnValue;
+  }
+
+  return returnValue;
+}
+
+k_value KInterpreter::visit(const ThrowNode* node) {
+  k_string errorType = "KiwiError";
+  k_string errorMessage;
+  
+  if (node->errorValue) {
+    auto errorValue = interpret(node->errorValue.get());
+
+    if (std::holds_alternative<k_hash>(errorValue)) {
+      auto errorHash = std::get<k_hash>(errorValue);
+      if (errorHash->hasKey("error") &&
+          std::holds_alternative<k_string>(errorHash->kvp["error"])) {
+        errorType = std::get<k_string>(errorHash->kvp["error"]);
+      }
+      if (errorHash->hasKey("message") &&
+          std::holds_alternative<k_string>(errorHash->kvp["message"])) {
+        errorMessage = std::get<k_string>(errorHash->kvp["message"]);
+      }
+    } else if (std::holds_alternative<k_string>(errorValue)) {
+      errorMessage = std::get<k_string>(errorValue);
+    }
+  }
+
+  if (!node->condition ||
+      MathImpl.is_truthy(interpret(node->condition.get()))) {
+    throw KiwiError(node->token, errorType, errorMessage);
+  }
+
+  return static_cast<k_int>(0);
+}
+
 k_value KInterpreter::visit(const PackageNode* node) {
   auto packageName = id(node->packageName.get());
-  packageStack.push(packageName);
+  packages[packageName] = std::make_shared<KPackage>(node);
 
-  for (const auto& stmt : node->body) {
+  return static_cast<k_int>(0);
+}
+
+k_value KInterpreter::visit(const ImportNode* node) {
+  auto packageName = interpret(node->packageName.get());
+
+  if (!std::holds_alternative<k_string>(packageName)) {
+    throw InvalidOperationError(node->token,
+                                "Expected the name of a package to import.");
+  }
+
+  auto packageNameValue = std::get<k_string>(packageName);
+
+  if (packages.find(packageNameValue) == packages.end()) {
+    throw PackageUndefinedError(node->token, packageNameValue);
+  }
+
+  packageStack.push(packageNameValue);
+  auto package = packages[packageNameValue];
+  const auto& decl = *package->decl;
+
+  for (const auto& stmt : decl.body) {
     interpret(stmt.get());
   }
-  
+
   packageStack.pop();
 
   return static_cast<k_int>(0);
@@ -217,7 +342,14 @@ k_value KInterpreter::visit(const AssignmentNode* node) {
     if (name == Keywords.Global) {
       throw IllegalNameError(node->token, name);
     }
-    frame->variables[name] = value;
+
+    if (std::holds_alternative<k_lambda>(value)) {
+      // WIP: need to work on this.
+      const auto& lambdaId = std::get<k_lambda>(value)->identifier;
+      lambdas[name] = lambdas[lambdaId];
+    } else {
+      frame->variables[name] = value;
+    }
   } else {
     if (!frame->hasVariable(name)) {
       throw VariableUndefinedError(node->token, name);
@@ -326,37 +458,38 @@ k_value KInterpreter::visit(const BinaryOperationNode* node) {
 
 k_value KInterpreter::visit(const IfNode* node) {
   auto conditionValue = interpret(node->condition.get());
+  auto frame = callStack.top();
 
   if (MathImpl.is_truthy(conditionValue)) {
-    auto ifFrame = createFrame();
-    callStack.push(ifFrame);
     for (const auto& stmt : node->body) {
       interpret(stmt.get());
+      if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+        break;
+      }
     }
-    dropFrame();
   } else {
     bool executed = false;
     for (const auto& elseifNode : node->elseifNodes) {
       auto elseifConditionValue = interpret(elseifNode->condition.get());
       if (MathImpl.is_truthy(elseifConditionValue)) {
-        auto elseifFrame = createFrame();
-        callStack.push(elseifFrame);
         for (const auto& stmt : elseifNode->body) {
           interpret(stmt.get());
+          if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+            break;
+          }
         }
-        dropFrame();
         executed = true;
         break;
       }
     }
 
     if (!executed && !node->elseBody.empty()) {
-      auto elseFrame = createFrame();
-      callStack.push(elseFrame);
       for (const auto& stmt : node->elseBody) {
         interpret(stmt.get());
+        if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+          break;
+        }
       }
-      dropFrame();
     }
   }
 
@@ -370,23 +503,18 @@ k_value KInterpreter::visit(const CaseNode* node) {
     k_value whenCondition = interpret(whenNode->condition.get());
 
     if (std::get<bool>(MathImpl.do_eq_comparison(testValue, whenCondition))) {
-      auto caseFrame = createFrame();
-      callStack.push(caseFrame);
-
       for (const auto& stmt : whenNode->body) {
         interpret(stmt.get());
       }
 
-      return dropFrame();
+      return static_cast<k_int>(0);
     }
   }
 
   if (!node->elseBody.empty()) {
-    auto elseFrame = createFrame();
     for (const auto& stmt : node->elseBody) {
       interpret(stmt.get());
     }
-    dropFrame();
   }
 
   return static_cast<k_int>(0);
@@ -400,6 +528,7 @@ k_value KInterpreter::visit(const ForLoopNode* node) {
                                 "Expected a list value in for-loop.");
   }
 
+  auto frame = callStack.top();
   auto list = std::get<std::shared_ptr<List>>(dataSetValue);
   k_string valueIteratorName;
   k_string indexIteratorName;
@@ -413,18 +542,25 @@ k_value KInterpreter::visit(const ForLoopNode* node) {
   }
 
   const auto& elements = list->elements;
+  bool fallOut = false;
 
   for (size_t i = 0; i < elements.size(); ++i) {
-    auto frame = createFrame();
+    if (fallOut) {
+      break;
+    }
+
     frame->variables[valueIteratorName] = elements.at(i);
 
     if (hasIndexIterator) {
       frame->variables[indexIteratorName] = static_cast<k_int>(i);
     }
-    callStack.push(frame);
-
+    
     for (const auto& stmt : node->body) {
       k_value result = interpret(stmt.get());
+
+      if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+        break;
+      }
 
       if (stmt->type == ASTNodeType::NEXT_STATEMENT) {
         const auto* nextNode = static_cast<const NextNode*>(stmt.get());
@@ -436,20 +572,22 @@ k_value KInterpreter::visit(const ForLoopNode* node) {
         const auto* breakNode = static_cast<const BreakNode*>(stmt.get());
         if (!breakNode->condition ||
             MathImpl.is_truthy(interpret(breakNode->condition.get()))) {
-          return dropFrame();
+          fallOut = true;
+          break;
         }
       }
     }
+  }
 
-    dropFrame();
+  frame->variables.erase(valueIteratorName);
+  if (hasIndexIterator) {
+    frame->variables.erase(indexIteratorName);
   }
 
   return static_cast<k_int>(0);
 }
 
 k_value KInterpreter::visit(const WhileLoopNode* node) {
-  createFrame();
-
   while (MathImpl.is_truthy(interpret(node->condition.get()))) {
     for (const auto& stmt : node->body) {
       k_value result = interpret(stmt.get());
@@ -464,13 +602,13 @@ k_value KInterpreter::visit(const WhileLoopNode* node) {
         const auto* breakNode = static_cast<const BreakNode*>(stmt.get());
         if (!breakNode->condition ||
             MathImpl.is_truthy(interpret(breakNode->condition.get()))) {
-          return dropFrame();
+          return static_cast<k_int>(0);
         }
       }
     }
   }
 
-  return dropFrame();
+  return static_cast<k_int>(0);
 }
 
 k_value KInterpreter::visit(const RepeatLoopNode* node) {
@@ -488,14 +626,16 @@ k_value KInterpreter::visit(const RepeatLoopNode* node) {
     hasAlias = true;
   }
 
-  auto frame = createFrame();
+  auto frame = callStack.top();
+  auto fallOut = false;
   for (k_int i = 1; i <= count; ++i) {
+    if (fallOut) {
+      break;
+    }
 
     if (hasAlias) {
       frame->variables[aliasName] = i;
     }
-
-    callStack.push(frame);
 
     for (const auto& stmt : node->body) {
       k_value result = interpret(stmt.get());
@@ -510,20 +650,22 @@ k_value KInterpreter::visit(const RepeatLoopNode* node) {
         const auto* breakNode = static_cast<const BreakNode*>(stmt.get());
         if (!breakNode->condition ||
             MathImpl.is_truthy(interpret(breakNode->condition.get()))) {
-          return dropFrame();
+          fallOut = true;
+          break;
         }
       }
     }
   }
 
-  dropFrame();
+  if (hasAlias && frame->hasVariable(aliasName)) {
+    frame->variables.erase(aliasName);
+  }
 
   return static_cast<k_int>(0);
 }
 
 k_value KInterpreter::visit(const TryNode* node) {
-  auto tryFrame = createFrame();
-  callStack.push(tryFrame);
+  auto frame = callStack.top();
 
   try {
     for (const auto& stmt : node->tryBody) {
@@ -531,40 +673,65 @@ k_value KInterpreter::visit(const TryNode* node) {
     }
   } catch (const KiwiError& e) {
     if (!node->catchBody.empty()) {
-      auto catchFrame = createFrame();
-
+      k_string errorTypeName;
+      k_string errorMessageName;
       if (node->errorType) {
-        auto errorTypeName = id(node->errorType.get());
-        catchFrame->variables[errorTypeName] = e.getError();
+        errorTypeName = id(node->errorType.get());
+        frame->variables[errorTypeName] = e.getError();
       }
 
       if (node->errorMessage) {
-        auto errorMessageName = id(node->errorMessage.get());
-        catchFrame->variables[errorMessageName] = e.getMessage();
+        errorMessageName = id(node->errorMessage.get());
+        frame->variables[errorMessageName] = e.getMessage();
       }
-
-      callStack.push(catchFrame);
 
       for (const auto& stmt : node->catchBody) {
         interpret(stmt.get());
       }
 
-      dropFrame();
+      if (node->errorType) {
+        frame->variables.erase(errorTypeName);
+      }
+
+      if (node->errorMessage) {
+        frame->variables.erase(errorMessageName);
+      }
     }
   }
 
-  dropFrame();
-
   if (!node->finallyBody.empty()) {
-    auto finallyFrame = createFrame();
-    callStack.push(finallyFrame);
     for (const auto& stmt : node->finallyBody) {
       interpret(stmt.get());
     }
-    dropFrame();
   }
 
   return static_cast<k_int>(0);
+}
+
+k_value KInterpreter::visit(const LambdaNode* node) {
+  std::vector<std::pair<std::string, k_value>> parameters;
+  std::unordered_set<std::string> defaultParameters;
+  auto tmpId = InterpHelper::getTemporaryId();
+
+  parameters.reserve(node->parameters.size());
+  for (const auto& pair : node->parameters) {
+    auto paramName = pair.first;
+    k_value paramValue = static_cast<k_int>(0);
+    if (pair.second) {
+      paramValue = interpret(pair.second.get());
+      defaultParameters.emplace(paramName);
+    }
+
+    std::pair<std::string, k_value> param(paramName, paramValue);
+    parameters.emplace_back(param);
+  }
+
+  auto lambda = std::make_shared<KLambda>(node);
+  lambda->parameters = parameters;
+  lambda->defaultParameters = defaultParameters;
+  lambdas[tmpId] = lambda;
+
+  return std::make_shared<LambdaRef>(tmpId);
 }
 
 k_value KInterpreter::visit(const FunctionDeclarationNode* node) {
@@ -591,8 +758,7 @@ k_value KInterpreter::visit(const FunctionDeclarationNode* node) {
     parameters.emplace_back(param);
   }
 
-  auto function = std::make_shared<Function>(node);
-
+  auto function = std::make_shared<KFunction>(node);
   function->name = name;
   function->parameters = parameters;
   function->defaultParameters = defaultParameters;
@@ -608,6 +774,7 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
   if (function) {
     auto defaultParameters = function->defaultParameters;
     auto functionFrame = createFrame();
+    std::vector<k_string> lambdaNames;
 
     for (size_t i = 0; i < function->parameters.size(); ++i) {
       const auto& param = function->parameters[i];
@@ -623,7 +790,13 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
         throw ParameterCountMismatchError(node->token, node->functionName);
       }
 
-      functionFrame->variables[param.first] = argValue;
+      if (std::holds_alternative<k_lambda>(argValue)) {
+        auto lambdaId = std::get<k_lambda>(argValue)->identifier;
+        lambdas[param.first] = lambdas[lambdaId];
+        lambdaNames.push_back(lambdaId);
+      } else {
+        functionFrame->variables[param.first] = argValue;
+      }
     }
 
     callStack.push(functionFrame);
@@ -632,9 +805,17 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
     const auto& decl = *function->decl;
     for (const auto& stmt : decl.body) {
       result = interpret(stmt.get());
+      if (functionFrame->isFlagSet(FrameFlags::ReturnFlag)) {
+        result = functionFrame->returnValue;
+        break;
+      }
     }
 
     dropFrame();
+
+    for (const auto& lambdaName : lambdaNames) {
+      lambdas.erase(lambdaName);
+    }
 
     return result;
   } else if (KiwiBuiltins.is_builtin_method(node->op)) {
@@ -645,6 +826,39 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
     }
 
     return BuiltinDispatch::execute(node->token, node->op, args, kiwiArgs);
+  } else if (lambdas.find(node->functionName) != lambdas.end()) {
+    auto lambda = lambdas[node->functionName];
+    auto defaultParameters = lambda->defaultParameters;
+    auto lambdaFrame = createFrame();
+
+    for (size_t i = 0; i < lambda->parameters.size(); ++i) {
+      const auto& param = lambda->parameters[i];
+      k_value argValue = static_cast<k_int>(0);
+      if (i < node->arguments.size()) {
+        const auto& arg = node->arguments[i];
+        argValue = interpret(arg.get());
+      } else if (defaultParameters.find(param.first) !=
+                 defaultParameters.end()) {
+        // Use the default value.
+        argValue = param.second;
+      } else {
+        throw ParameterCountMismatchError(node->token, node->functionName);
+      }
+
+      lambdaFrame->variables[param.first] = argValue;
+    }
+
+    callStack.push(lambdaFrame);
+
+    k_value result;
+    const auto& decl = *lambda->decl;
+    for (const auto& stmt : decl.body) {
+      result = interpret(stmt.get());
+    }
+
+    dropFrame();
+
+    return result;
   }
 
   throw FunctionUndefinedError(node->token, node->functionName);
