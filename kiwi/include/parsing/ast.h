@@ -10,41 +10,41 @@
 #include <vector>
 
 enum class ASTNodeType {
-  ASSIGNMENT,        // done
-  BINARY_OPERATION,  // done
-  BREAK_STATEMENT,   // done
-  CASE_STATEMENT,    // done
-  CASE_WHEN,         // done
-  EXIT_STATEMENT,    // done
-  EXPORT_STATEMENT,  // obsolete
-  FOR_LOOP,          // done
-  FUNCTION_CALL,     // done
-  FUNCTION_DECLARATION, // done
-  HASH_LITERAL,      // done
-  IDENTIFIER,        // done
-  IF_STATEMENT,      // done
-  IMPORT_STATEMENT,  // done
-  INDEX_EXPRESSION,
-  LAMBDA,            // done
-  LIST_LITERAL,      // done
-  LITERAL,           // done
+  ASSIGNMENT,            // done
+  BINARY_OPERATION,      // done
+  BREAK_STATEMENT,       // done
+  CASE_STATEMENT,        // done
+  CASE_WHEN,             // done
+  EXIT_STATEMENT,        // done
+  EXPORT_STATEMENT,      // obsolete
+  FOR_LOOP,              // done
+  FUNCTION_CALL,         // done
+  FUNCTION_DECLARATION,  // done
+  HASH_LITERAL,          // done
+  IDENTIFIER,            // done
+  IF_STATEMENT,          // done
+  IMPORT_STATEMENT,      // done
+  INDEX_EXPRESSION,      // done
+  LAMBDA,                // done
+  LIST_LITERAL,          // done
+  LITERAL,               // done
   MEMBER_ACCESS,
-  METHOD_CALL,      // wip
-  NEXT_STATEMENT,   // done
-  NO_OP,            // done
-  PACKAGE,          // done
+  METHOD_CALL,     // wip
+  NEXT_STATEMENT,  // done
+  NO_OP,           // done
+  PACKAGE,         // done
   PARSE_STATEMENT,
-  PRINT_STATEMENT,  // done
-  PROGRAM,          // done
-  RANGE_LITERAL,    // done
-  REPEAT_LOOP,      // done
-  RETURN_STATEMENT, // done
-  SLICE_EXPRESSION,
-  TERNARY_OPERATION,
-  THROW_STATEMENT,  // done
-  TRY,              // done
-  UNARY_OPERATION,  // done
-  WHILE_LOOP,       // done
+  PRINT_STATEMENT,    // done
+  PROGRAM,            // done
+  RANGE_LITERAL,      // done
+  REPEAT_LOOP,        // done
+  RETURN_STATEMENT,   // done
+  SLICE_EXPRESSION,   // done
+  TERNARY_OPERATION,  // done
+  THROW_STATEMENT,    // done
+  TRY,                // done
+  UNARY_OPERATION,    // done
+  WHILE_LOOP,         // done
 };
 
 class ASTNode {
@@ -389,23 +389,11 @@ class PackageNode : public ASTNode {
 class SliceNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> slicedObject;
-  std::string name;
   std::unique_ptr<ASTNode> startExpression;
   std::unique_ptr<ASTNode> stopExpression;
   std::unique_ptr<ASTNode> stepExpression;
 
   SliceNode() : ASTNode(ASTNodeType::SLICE_EXPRESSION) {}
-
-  SliceNode(const std::string& name,
-            std::unique_ptr<ASTNode> startExpression = nullptr,
-            std::unique_ptr<ASTNode> stopExpression = nullptr,
-            std::unique_ptr<ASTNode> stepExpression = nullptr)
-      : ASTNode(ASTNodeType::SLICE_EXPRESSION),
-        name(name),
-        startExpression(std::move(startExpression)),
-        stopExpression(std::move(stopExpression)),
-        stepExpression(std::move(stepExpression)) {}
-
   SliceNode(std::unique_ptr<ASTNode> slicedObject,
             std::unique_ptr<ASTNode> startExpression = nullptr,
             std::unique_ptr<ASTNode> stopExpression = nullptr,
@@ -422,8 +410,6 @@ class SliceNode : public ASTNode {
     if (slicedObject) {
       std::cout << "Slice on object:" << std::endl;
       slicedObject->print(1 + depth);
-    } else {
-      std::cout << "Slice: `" << name << "`" << std::endl;
     }
 
     if (startExpression) {

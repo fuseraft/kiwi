@@ -16,6 +16,7 @@ class Lexer {
   Lexer(const std::string& file, const std::string& source, bool skipWS = true)
       : source(source), pos(0), skipWS(skipWS), row(0), col(0) {
     fileId = FileRegistry::getInstance().registerFile(file);
+    preprocessSource();
   }
 
   k_stream getTokenStream() {
@@ -96,6 +97,17 @@ class Lexer {
   int fileId;
   int row;
   int col;
+
+  void preprocessSource() {
+    std::regex re(R"(\$\{([^}]+)\})");
+    std::string output;
+
+    std::regex_replace(std::back_inserter(output), 
+                       source.begin(), source.end(), 
+                       re, 
+                       R"(" + $1 + ")");
+    source = output;
+  }
 
   char getCurrentChar() {
     char c = source[pos++];

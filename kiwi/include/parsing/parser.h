@@ -938,23 +938,27 @@ std::unique_ptr<ASTNode> Parser::parseIndexingInternal(
   }
 
   match(KTokenType::CLOSE_BRACKET);
+  std::unique_ptr<ASTNode> node;
 
   if (isSlice) {
-    return std::make_unique<SliceNode>(
+    node = std::make_unique<SliceNode>(
         std::move(baseNode), start ? std::move(start.value()) : nullptr,
         stop ? std::move(stop.value()) : nullptr,
         step ? std::move(step.value()) : nullptr);
+  } else {
+    auto indexExpression = std::move(start.value());
+    if (indexExpression->type != ASTNodeType::LITERAL &&
+        indexExpression->type != ASTNodeType::IDENTIFIER &&
+        indexExpression->type != ASTNodeType::FUNCTION_CALL &&
+        indexExpression->type != ASTNodeType::BINARY_OPERATION) {
+      throw SyntaxError(indexValueToken, "Invalid index value in indexer.");
+    }
+
+    node = std::make_unique<IndexingNode>(std::move(baseNode),
+                                          std::move(indexExpression));
   }
 
-  auto indexExpression = std::move(start.value());
-  if (indexExpression->type != ASTNodeType::LITERAL &&
-      indexExpression->type != ASTNodeType::IDENTIFIER &&
-      indexExpression->type != ASTNodeType::FUNCTION_CALL) {
-    throw SyntaxError(indexValueToken, "Invalid index value in indexer.");
-  }
-
-  return std::make_unique<IndexingNode>(std::move(baseNode),
-                                        std::move(indexExpression));
+  return node;
 }
 
 std::unique_ptr<ASTNode> Parser::parseMemberAccess(

@@ -319,7 +319,6 @@ while i < 5 do
   println get_something()
   i += 1
 end
-#/
 
 fn test(a)
   if a % 2 == 0
@@ -346,3 +345,50 @@ end
 for a in [1..500] do
   println test(a)
 end
+
+a = [1..50]
+b = a[a.size() / 2]
+println b
+b = a[a.size() / 3]
+println b
+println [1..50][::-2]
+println [1..50][::-1]
+println [1..50][1:-1]
+println "abcdef"[2:-2]
+
+data = [1..100]
+odds = data.select(with (i) do i % 2 != 0 end)
+evens = data.select(with (i) do i % 2 == 0 end)
+odds_plus_1 = odds.map(with (i) do i + 1 end)
+evens_minus_1 = evens.map(with (i) do i - 1 end)
+sum_odds = odds.sum()
+sum_evens = evens.sum()
+sum_odds_reduce = odds.reduce(0, with (acc, i) do acc += i end)
+sum_evens_reduce = evens.reduce(0, with (acc, i) do acc += i end)
+sum_odds_plus_1 = odds_plus_1.sum()
+sum_evens_plus_1 = evens_minus_1.sum()
+println sum_odds == sum_odds_reduce 
+  && sum_evens == sum_evens_reduce
+  && sum_odds_plus_1 == sum_evens
+  && sum_evens_plus_1 == sum_odds
+  && odds.none(with (i) do i == 2 end)
+  && evens.none(with (i) do i == 1 end)
+  && [3, 2, 4].min() == 2 && [5, 1, 3].max() == 5
+
+evens.each(with (i, index) do
+  println "i = " + i + ", index = " + index
+end)
+
+println ((1 == 0) && 5 == 5) || true
+println -1 + 5
+println 5 - 1
+
+name = "kiwi"
+println "hello, ${name * 5}!"
+
+fn test()
+  return "asdfasdf"
+end
+
+println "[${test()}]"
+#/
