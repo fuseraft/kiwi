@@ -350,6 +350,35 @@ struct InterpHelper {
     throw InvalidOperationError(stream->current(), "Invalid operator.");
   }
 
+  static k_value stringSlice(const Token& token, SliceIndex& slice,
+                             const k_value& value) {
+    auto string = std::get<k_string>(value);
+    auto list = std::make_shared<List>();
+
+    auto& elements = list->elements;
+    elements.reserve(string.size());
+    k_string temp(1, '\0');
+    for (const char& c : string) {
+      temp[0] = c;
+      elements.emplace_back(temp);
+    }
+
+    auto sliced = listSlice(token, slice, list);
+
+    if (std::holds_alternative<k_list>(sliced)) {
+      auto slicedlist = std::get<k_list>(sliced)->elements;
+      std::ostringstream sv;
+
+      for (auto it = slicedlist.begin(); it != slicedlist.end(); ++it) {
+        sv << Serializer::serialize(*it);
+      }
+
+      return sv.str();
+    }
+
+    return Serializer::serialize(sliced);
+  }
+
   static k_value stringSlice(k_stream stream, SliceIndex& slice,
                              const k_value& value) {
     auto string = std::get<k_string>(value);
@@ -377,6 +406,65 @@ struct InterpHelper {
     }
 
     return Serializer::serialize(sliced);
+  }
+
+  static k_value listSlice(const Token& token, const SliceIndex& slice,
+                           const k_value& value) {
+    auto list = std::get<k_list>(value);
+    auto& elements = list->elements;
+
+    if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
+      throw IndexError(token, "Start index must be an integer.");
+    } else if (!std::holds_alternative<k_int>(slice.stopIndex)) {
+      throw IndexError(token, "Stop index must be an integer.");
+    } else if (!std::holds_alternative<k_int>(slice.stepValue)) {
+      throw IndexError(token, "Step value must be an integer.");
+    }
+
+    int start = static_cast<int>(std::get<k_int>(slice.indexOrStart)),
+        stop = static_cast<int>(std::get<k_int>(slice.stopIndex)),
+        step = static_cast<int>(std::get<k_int>(slice.stepValue));
+
+    // Adjust negative indices
+    int listSize = static_cast<int>(elements.size());
+    if (start < 0) {
+      start = start + listSize > 0 ? start + listSize : 0;
+    }
+
+    if (stop < 0) {
+      stop += listSize;
+    } else {
+      stop = stop < listSize ? stop : listSize;
+    }
+
+    // Adjust stop for reverse slicing
+    if (step < 0 && stop == listSize) {
+      stop = -1;
+    }
+
+    auto slicedList = std::make_shared<List>();
+    auto& slicedElements = slicedList->elements;
+
+    if (step < 0) {
+      for (int i = (start == 0 ? listSize - 1 : start); i >= stop; i += step) {
+        // Prevent out-of-bounds access
+        if (i < 0 || i >= listSize) {
+          break;
+        }
+
+        slicedElements.emplace_back(elements.at(i));
+      }
+    } else {
+      for (int i = start; i < stop; i += step) {
+        // Prevent out-of-bounds access
+        if (i >= listSize) {
+          break;
+        }
+
+        slicedElements.emplace_back(elements.at(i));
+      }
+    }
+    return slicedList;
   }
 
   static k_value listSlice(k_stream stream, const SliceIndex& slice,

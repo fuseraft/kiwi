@@ -42,10 +42,17 @@ class KInterpreter {
  public:
   KInterpreter() {}
 
+  k_value interpret(const ASTNode* node);
+
+ private:
+  std::unordered_map<k_string, std::shared_ptr<KPackage>> packages;
+  std::unordered_map<k_string, std::shared_ptr<KFunction>> functions;
+  std::unordered_map<k_string, std::shared_ptr<KLambda>> lambdas;
+
   std::shared_ptr<CallStackFrame> createFrame(bool isMethodInvocation);
   k_value dropFrame();
+  void importPackage(const k_value& packageName, const Token& token);
   k_string id(const ASTNode* node);
-  k_value interpret(const ASTNode* node);
   k_value visit(const ProgramNode* node);
   k_value visit(const AssignmentNode* node);
   k_value visit(const IdentifierNode* node);
@@ -56,6 +63,7 @@ class KInterpreter {
   k_value visit(const PrintNode* node);
   k_value visit(const UnaryOperationNode* node);
   k_value visit(const BinaryOperationNode* node);
+  k_value visit(const TernaryOperationNode* node);
   k_value visit(const IfNode* node);
   k_value visit(const CaseNode* node);
   k_value visit(const ForLoopNode* node);
@@ -68,14 +76,26 @@ class KInterpreter {
   k_value visit(const MethodCallNode* node);
   k_value visit(const PackageNode* node);
   k_value visit(const ImportNode* node);
+  k_value visit(const ExportNode* node);
   k_value visit(const ExitNode* node);
   k_value visit(const ThrowNode* node);
   k_value visit(const ReturnNode* node);
+  k_value visit(const IndexingNode* node);
+  k_value visit(const SliceNode* node);
+  SliceIndex getSlice(const SliceNode* node, k_value object);
 
- private:
-  std::unordered_map<k_string, std::shared_ptr<KPackage>> packages;
-  std::unordered_map<k_string, std::shared_ptr<KFunction>> functions;
-  std::unordered_map<k_string, std::shared_ptr<KLambda>> lambdas;
+  k_value listSum(const k_list& list);
+  k_value listMin(const Token& token, const k_list& list);
+  k_value listMax(const Token& token, const k_list& list);
+  k_value listSort(const k_list& list);
+  k_value lambdaEach(std::shared_ptr<KLambda> lambda, const k_list& list);
+  k_value lambdaNone(std::shared_ptr<KLambda> lambda, const k_list& list);
+  k_value lambdaMap(std::shared_ptr<KLambda> lambda, const k_list& list);
+  k_value lambdaReduce(std::shared_ptr<KLambda> lambda, k_value accumulator,
+                       const k_list& list);
+  k_value lambdaSelect(std::shared_ptr<KLambda> lambda, const k_list& list);
+  k_value interpretListBuiltin(const Token& token, k_value& object,
+                               const KName& op, std::vector<k_value> arguments);
 };
 
 k_value KInterpreter::interpret(const ASTNode* node) {
@@ -88,6 +108,9 @@ k_value KInterpreter::interpret(const ASTNode* node) {
 
     case ASTNodeType::IMPORT_STATEMENT:
       return visit(static_cast<const ImportNode*>(node));
+
+    case ASTNodeType::EXPORT_STATEMENT:
+      return visit(static_cast<const ExportNode*>(node));
 
     case ASTNodeType::EXIT_STATEMENT:
       return visit(static_cast<const ExitNode*>(node));
@@ -115,6 +138,9 @@ k_value KInterpreter::interpret(const ASTNode* node) {
 
     case ASTNodeType::PRINT_STATEMENT:
       return visit(static_cast<const PrintNode*>(node));
+
+    case ASTNodeType::TERNARY_OPERATION:
+      return visit(static_cast<const TernaryOperationNode*>(node));
 
     case ASTNodeType::BINARY_OPERATION:
       return visit(static_cast<const BinaryOperationNode*>(node));
@@ -154,6 +180,12 @@ k_value KInterpreter::interpret(const ASTNode* node) {
 
     case ASTNodeType::RETURN_STATEMENT:
       return visit(static_cast<const ReturnNode*>(node));
+
+    case ASTNodeType::INDEX_EXPRESSION:
+      return visit(static_cast<const IndexingNode*>(node));
+
+    case ASTNodeType::SLICE_EXPRESSION:
+      return visit(static_cast<const SliceNode*>(node));
 
     case ASTNodeType::NO_OP:
       break;
@@ -271,7 +303,7 @@ k_value KInterpreter::visit(const ReturnNode* node) {
 k_value KInterpreter::visit(const ThrowNode* node) {
   k_string errorType = "KiwiError";
   k_string errorMessage;
-  
+
   if (node->errorValue) {
     auto errorValue = interpret(node->errorValue.get());
 
@@ -305,18 +337,17 @@ k_value KInterpreter::visit(const PackageNode* node) {
   return static_cast<k_int>(0);
 }
 
-k_value KInterpreter::visit(const ImportNode* node) {
-  auto packageName = interpret(node->packageName.get());
-
+void KInterpreter::importPackage(const k_value& packageName,
+                                 const Token& token) {
   if (!std::holds_alternative<k_string>(packageName)) {
-    throw InvalidOperationError(node->token,
+    throw InvalidOperationError(token,
                                 "Expected the name of a package to import.");
   }
 
   auto packageNameValue = std::get<k_string>(packageName);
 
   if (packages.find(packageNameValue) == packages.end()) {
-    throw PackageUndefinedError(node->token, packageNameValue);
+    throw PackageUndefinedError(token, packageNameValue);
   }
 
   packageStack.push(packageNameValue);
@@ -328,7 +359,18 @@ k_value KInterpreter::visit(const ImportNode* node) {
   }
 
   packageStack.pop();
+}
 
+k_value KInterpreter::visit(const ExportNode* node) {
+  auto packageName = interpret(node->packageName.get());
+  importPackage(packageName, node->token);
+
+  return static_cast<k_int>(0);
+}
+
+k_value KInterpreter::visit(const ImportNode* node) {
+  auto packageName = interpret(node->packageName.get());
+  importPackage(packageName, node->token);
   return static_cast<k_int>(0);
 }
 
@@ -365,7 +407,37 @@ k_value KInterpreter::visit(const AssignmentNode* node) {
     }
   }
 
-  return static_cast<k_int>(0);
+  return frame->variables[name];
+}
+
+SliceIndex KInterpreter::getSlice(const SliceNode* node, k_value object) {
+  SliceIndex slice;
+  slice.isSlice = true;
+
+  slice.indexOrStart = static_cast<k_int>(0);
+
+  if (std::holds_alternative<k_list>(object)) {
+    slice.stopIndex =
+        static_cast<k_int>(std::get<k_list>(object)->elements.size());
+  } else if (std::holds_alternative<k_string>(object)) {
+    slice.stopIndex = static_cast<k_int>(std::get<k_string>(object).size());
+  }
+
+  slice.stepValue = static_cast<k_int>(1);
+
+  if (node->startExpression) {
+    slice.indexOrStart = interpret(node->startExpression.get());
+  }
+
+  if (node->stopExpression) {
+    slice.stopIndex = interpret(node->stopExpression.get());
+  }
+
+  if (node->stepExpression) {
+    slice.stepValue = interpret(node->stepExpression.get());
+  }
+
+  return slice;
 }
 
 k_value KInterpreter::visit(const IdentifierNode* node) {
@@ -454,6 +526,77 @@ k_value KInterpreter::visit(const BinaryOperationNode* node) {
   auto left = interpret(node->left.get());
   auto right = interpret(node->right.get());
   return MathImpl.do_binary_op(node->token, node->op, left, right);
+}
+
+k_value KInterpreter::visit(const TernaryOperationNode* node) {
+  auto eval = interpret(node->evalExpression.get());
+
+  if (MathImpl.is_truthy(eval)) {
+    return interpret(node->trueExpression.get());
+  }
+
+  return interpret(node->falseExpression.get());
+}
+
+k_value KInterpreter::visit(const SliceNode* node) {
+  if (!node->slicedObject) {
+    throw InvalidOperationError(node->token, "Nothing to slice.");
+  }
+
+  auto object = interpret(node->slicedObject.get());
+  auto slice = getSlice(node, object);
+
+  if (std::holds_alternative<k_string>(object)) {
+    return InterpHelper::stringSlice(node->token, slice, object);
+  } else if (std::holds_alternative<k_list>(object)) {
+    return InterpHelper::listSlice(node->token, slice, object);
+  }
+
+  throw InvalidOperationError(node->token,
+                              "You can only slice lists and strings.");
+}
+
+k_value KInterpreter::visit(const IndexingNode* node) {
+  if (!node->indexedObject) {
+    throw InvalidOperationError(node->token, "Nothing to index.");
+  }
+
+  auto object = interpret(node->indexedObject.get());
+  auto indexValue = interpret(node->indexExpression.get());
+
+  if (std::holds_alternative<k_list>(object)) {
+    auto index = get_integer(node->token, indexValue);
+    auto list = std::get<k_list>(object);
+
+    if (index < 0 || static_cast<size_t>(index) > list->elements.size()) {
+      throw RangeError(node->token,
+                       "The index was outside the bounds of the list.");
+    }
+
+    return list->elements.at(index);
+  } else if (std::holds_alternative<k_hash>(object)) {
+    auto key = get_string(node->token, indexValue);
+    auto hash = std::get<k_hash>(object);
+
+    if (!hash->hasKey(key)) {
+      throw HashKeyError(node->token,
+                         "The key '" + key + "' was not found in the hash.");
+    }
+
+    return hash->get(key);
+  } else if (std::holds_alternative<k_string>(object)) {
+    auto string = std::get<k_string>(object);
+    auto index = get_integer(node->token, indexValue);
+
+    if (index < 0 || static_cast<size_t>(index) > string.size()) {
+      throw RangeError(node->token,
+                       "The index was outside the bounds of the string.");
+    }
+
+    return k_string(1, string.at(index));
+  }
+
+  throw IndexError(node->token, "Invalid indexing operation.");
 }
 
 k_value KInterpreter::visit(const IfNode* node) {
@@ -554,7 +697,7 @@ k_value KInterpreter::visit(const ForLoopNode* node) {
     if (hasIndexIterator) {
       frame->variables[indexIteratorName] = static_cast<k_int>(i);
     }
-    
+
     for (const auto& stmt : node->body) {
       k_value result = interpret(stmt.get());
 
@@ -874,11 +1017,306 @@ k_value KInterpreter::visit(const MethodCallNode* node) {
     arguments.emplace_back(interpret(arg.get()));
   }
 
-  if (KiwiBuiltins.is_builtin(op)) {
+  if (ListBuiltins.is_builtin(op)) {
+    return interpretListBuiltin(node->token, object, op, arguments);
+  } else if (KiwiBuiltins.is_builtin(op)) {
     return BuiltinDispatch::execute(node->token, op, object, arguments);
   }
 
   throw UnknownBuiltinError(node->token, node->methodName);
+}
+
+k_value KInterpreter::interpretListBuiltin(const Token& token, k_value& object,
+                                           const KName& op,
+                                           std::vector<k_value> arguments) {
+  if (!std::holds_alternative<k_list>(object)) {
+    throw InvalidOperationError(
+        token, "Expected a list for specialized list builtin.");
+  }
+
+  auto list = std::get<k_list>(object);
+
+  switch (op) {
+    case KName::Builtin_List_Max:
+      return listMax(token, list);
+
+    case KName::Builtin_List_Min:
+      return listMin(token, list);
+
+    case KName::Builtin_List_Sort:
+      return listSort(list);
+
+    case KName::Builtin_List_Sum:
+      return listSum(list);
+
+    default:
+      break;
+  }
+
+  if (arguments.size() == 1) {
+    auto arg = arguments.at(0);
+    if (!std::holds_alternative<k_lambda>(arg)) {
+      throw InvalidOperationError(
+          token, "Expected a lambda in specialized list builtin.");
+    }
+    auto lambdaRef = std::get<k_lambda>(arg);
+
+    if (lambdas.find(lambdaRef->identifier) == lambdas.end()) {
+      throw InvalidOperationError(
+          token, "Unrecognized lambda '" + lambdaRef->identifier + "'.");
+    }
+
+    auto lambda = lambdas[lambdaRef->identifier];
+
+    switch (op) {
+      case KName::Builtin_List_Each:
+        return lambdaEach(lambda, list);
+
+      case KName::Builtin_List_Map:
+        return lambdaMap(lambda, list);
+
+      case KName::Builtin_List_None:
+        return lambdaNone(lambda, list);
+
+      case KName::Builtin_List_Select:
+        return lambdaSelect(lambda, list);
+
+      default:
+        break;
+    }
+  } else if (arguments.size() == 2 && op == KName::Builtin_List_Reduce) {
+    auto arg = arguments.at(1);
+
+    if (!std::holds_alternative<k_lambda>(arg)) {
+      throw InvalidOperationError(
+          token, "Expected a lambda in specialized list builtin.");
+    }
+    auto lambdaRef = std::get<k_lambda>(arg);
+
+    if (lambdas.find(lambdaRef->identifier) == lambdas.end()) {
+      throw InvalidOperationError(
+          token, "Unrecognized lambda '" + lambdaRef->identifier + "'.");
+    }
+
+    auto lambda = lambdas[lambdaRef->identifier];
+
+    return lambdaReduce(lambda, arguments.at(0), list);
+  }
+
+  throw InvalidOperationError(token,
+                              "Invalid specialized list builtin invocation.");
+}
+
+k_value KInterpreter::listSum(const k_list& list) {
+  return sum_listvalue(list);
+}
+
+k_value KInterpreter::listMin(const Token& token, const k_list& list) {
+  if (list->elements.empty()) {
+    throw EmptyListError(token);
+  }
+
+  return min_listvalue(list);
+}
+
+k_value KInterpreter::listMax(const Token& token, const k_list& list) {
+  if (list->elements.empty()) {
+    throw EmptyListError(token);
+  }
+
+  return max_listvalue(list);
+}
+
+k_value KInterpreter::listSort(const k_list& list) {
+  sort_list(*list);
+  return list;
+}
+
+k_value KInterpreter::lambdaEach(std::shared_ptr<KLambda> lambda,
+                                 const k_list& list) {
+  auto defaultParameters = lambda->defaultParameters;
+  auto frame = callStack.top();
+
+  k_string valueVariable;
+  k_string indexVariable;
+  bool hasIndexVariable = false;
+
+  if (lambda->parameters.empty()) {
+    return static_cast<k_int>(0);
+  }
+
+  for (size_t i = 0; i < lambda->parameters.size(); ++i) {
+    const auto& param = lambda->parameters[i];
+    if (i == 0) {
+      valueVariable = param.first;
+      frame->variables[valueVariable] = static_cast<k_int>(0);
+    } else if (i == 1) {
+      indexVariable = param.first;
+      hasIndexVariable = true;
+      frame->variables[indexVariable] = static_cast<k_int>(0);
+    }
+  }
+
+  k_value result;
+  const auto& decl = *lambda->decl;
+  const auto& elements = list->elements;
+
+  for (size_t i = 0; i < elements.size(); ++i) {
+    frame->variables[valueVariable] = elements.at(i);
+
+    if (hasIndexVariable) {
+      frame->variables[indexVariable] = static_cast<k_int>(i);
+    }
+
+    for (const auto& stmt : decl.body) {
+      result = interpret(stmt.get());
+    }
+  }
+
+  frame->variables.erase(valueVariable);
+  if (hasIndexVariable) {
+    frame->variables.erase(indexVariable);
+  }
+
+  return result;
+}
+
+k_value KInterpreter::lambdaNone(std::shared_ptr<KLambda> lambda,
+                                 const k_list& list) {
+  auto selected = lambdaSelect(lambda, list);
+  if (std::holds_alternative<k_list>(selected)) {
+    return std::get<k_list>(selected)->elements.empty();
+  }
+  return false;
+}
+
+k_value KInterpreter::lambdaMap(std::shared_ptr<KLambda> lambda,
+                                const k_list& list) {
+  auto defaultParameters = lambda->defaultParameters;
+  auto frame = callStack.top();
+
+  k_string mapVariable;
+
+  if (lambda->parameters.empty()) {
+    return list;
+  }
+
+  for (size_t i = 0; i < lambda->parameters.size(); ++i) {
+    const auto& param = lambda->parameters[i];
+    if (i == 0) {
+      mapVariable = param.first;
+      frame->variables[mapVariable] = static_cast<k_int>(0);
+    }
+  }
+
+  const auto& decl = *lambda->decl;
+  const auto& elements = list->elements;
+  std::vector<k_value> resultList;
+
+  for (size_t i = 0; i < elements.size(); ++i) {
+    frame->variables[mapVariable] = elements.at(i);
+
+    for (const auto& stmt : decl.body) {
+      resultList.emplace_back(interpret(stmt.get()));
+    }
+  }
+
+  frame->variables.erase(mapVariable);
+
+  return std::make_shared<List>(resultList);
+}
+
+k_value KInterpreter::lambdaReduce(std::shared_ptr<KLambda> lambda,
+                                   k_value accumulator, const k_list& list) {
+  auto defaultParameters = lambda->defaultParameters;
+  auto frame = callStack.top();
+
+  k_string accumVariable;
+  k_string valueVariable;
+
+  if (lambda->parameters.size() != 2) {
+    return accumulator;
+  }
+
+  for (size_t i = 0; i < lambda->parameters.size(); ++i) {
+    const auto& param = lambda->parameters[i];
+    if (i == 0) {
+      accumVariable = param.first;
+      frame->variables[accumVariable] = accumulator;
+    } else if (i == 1) {
+      valueVariable = param.first;
+      frame->variables[valueVariable] = static_cast<k_int>(0);
+    }
+  }
+
+  const auto& elements = list->elements;
+  const auto& decl = *lambda->decl;
+  k_value result;
+
+  for (size_t i = 0; i < elements.size(); ++i) {
+    frame->variables[valueVariable] = elements.at(i);
+
+    for (const auto& stmt : decl.body) {
+      result = interpret(stmt.get());
+    }
+  }
+
+  result = frame->variables[accumVariable];
+
+  frame->variables.erase(accumVariable);
+  frame->variables.erase(valueVariable);
+
+  return result;
+}
+
+k_value KInterpreter::lambdaSelect(std::shared_ptr<KLambda> lambda,
+                                   const k_list& list) {
+  auto defaultParameters = lambda->defaultParameters;
+  auto frame = callStack.top();
+
+  k_string valueVariable;
+  k_string indexVariable;
+  bool hasIndexVariable = false;
+
+  for (size_t i = 0; i < lambda->parameters.size(); ++i) {
+    const auto& param = lambda->parameters[i];
+    if (i == 0) {
+      valueVariable = param.first;
+      frame->variables[valueVariable] = static_cast<k_int>(0);
+    } else if (i == 1) {
+      indexVariable = param.first;
+      hasIndexVariable = true;
+      frame->variables[indexVariable] = static_cast<k_int>(0);
+    }
+  }
+
+  k_value result;
+  const auto& decl = *lambda->decl;
+  const auto& elements = list->elements;
+  std::vector<k_value> resultList;
+
+  for (size_t i = 0; i < elements.size(); ++i) {
+    frame->variables[valueVariable] = elements.at(i);
+
+    if (hasIndexVariable) {
+      frame->variables[indexVariable] = static_cast<k_int>(i);
+    }
+
+    for (const auto& stmt : decl.body) {
+      result = interpret(stmt.get());
+
+      if (MathImpl.is_truthy(result)) {
+        resultList.emplace_back(elements.at(i));
+      }
+    }
+  }
+
+  frame->variables.erase(valueVariable);
+  if (hasIndexVariable) {
+    frame->variables.erase(indexVariable);
+  }
+
+  return std::make_shared<List>(resultList);
 }
 
 #endif
