@@ -29,10 +29,11 @@ enum class ASTNodeType {
   LIST_LITERAL,          // done
   LITERAL,               // done
   MEMBER_ACCESS,
-  METHOD_CALL,     // wip
-  NEXT_STATEMENT,  // done
-  NO_OP,           // done
-  PACKAGE,         // done
+  MEMBER_ASSIGNMENT,  // done
+  METHOD_CALL,        // wip
+  NEXT_STATEMENT,     // done
+  NO_OP,              // done
+  PACKAGE,            // done
   PARSE_STATEMENT,
   PRINT_STATEMENT,    // done
   PROGRAM,            // done
@@ -939,7 +940,7 @@ class MemberAssignmentNode : public ASTNode {
   MemberAssignmentNode(std::unique_ptr<ASTNode> object,
                        const std::string& memberName, KName op,
                        std::unique_ptr<ASTNode> initializer)
-      : ASTNode(ASTNodeType::ASSIGNMENT),
+      : ASTNode(ASTNodeType::MEMBER_ASSIGNMENT),
         object(std::move(object)),
         memberName(memberName),
         op(op),
