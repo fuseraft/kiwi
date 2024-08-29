@@ -15,12 +15,22 @@
 
 class KFunction {
  public:
-  std::string name;
-  std::vector<std::pair<std::string, k_value>> parameters;
+  k_string name;
+  std::vector<std::pair<k_string, k_value>> parameters;
   const FunctionDeclarationNode* decl;
-  std::unordered_set<std::string> defaultParameters;
+  std::unordered_set<k_string> defaultParameters;
+  bool isStatic = false;
+  bool isPrivate = false;
+  bool isCtor = false;
 
   KFunction(const FunctionDeclarationNode* decl) : decl(decl) {}
+};
+
+class KClass {
+ public:
+  k_string name;
+  k_string baseClass;
+  std::unordered_map<k_string, std::shared_ptr<KFunction>> methods;
 };
 
 class KPackage {
@@ -31,9 +41,9 @@ class KPackage {
 
 class KLambda {
  public:
-  std::vector<std::pair<std::string, k_value>> parameters;
+  std::vector<std::pair<k_string, k_value>> parameters;
   const LambdaNode* decl;
-  std::unordered_set<std::string> defaultParameters;
+  std::unordered_set<k_string> defaultParameters;
 
   KLambda(const LambdaNode* decl) : decl(decl) {}
 };
@@ -45,9 +55,12 @@ class KInterpreter {
   k_value interpret(const ASTNode* node);
 
  private:
+  bool inClass = false;
   std::unordered_map<k_string, std::shared_ptr<KPackage>> packages;
   std::unordered_map<k_string, std::shared_ptr<KFunction>> functions;
+  std::unordered_map<k_string, std::shared_ptr<KFunction>> methods;
   std::unordered_map<k_string, std::shared_ptr<KLambda>> lambdas;
+  std::unordered_map<k_string, std::shared_ptr<KClass>> classes;
 
   std::shared_ptr<CallStackFrame> createFrame(bool isMethodInvocation);
   k_value dropFrame();
@@ -73,6 +86,7 @@ class KInterpreter {
   k_value visit(const RepeatLoopNode* node);
   k_value visit(const TryNode* node);
   k_value visit(const LambdaNode* node);
+  k_value visit(const ClassNode* node);
   k_value visit(const FunctionDeclarationNode* node);
   k_value visit(const FunctionCallNode* node);
   k_value visit(const MethodCallNode* node);
@@ -107,6 +121,9 @@ k_value KInterpreter::interpret(const ASTNode* node) {
 
     case ASTNodeType::PACKAGE:
       return visit(static_cast<const PackageNode*>(node));
+
+    case ASTNodeType::CLASS:
+      return visit(static_cast<const ClassNode*>(node));
 
     case ASTNodeType::IMPORT_STATEMENT:
       return visit(static_cast<const ImportNode*>(node));
@@ -338,6 +355,32 @@ k_value KInterpreter::visit(const ThrowNode* node) {
   return static_cast<k_int>(0);
 }
 
+k_value KInterpreter::visit(const ClassNode* node) {
+  auto className = node->name;
+  auto clazz = std::make_shared<KClass>();
+
+  inClass = true;
+
+  for (const auto& method : node->methods) {
+    auto funcDecl = static_cast<const FunctionDeclarationNode*>(method.get());
+    auto methodName = funcDecl->name;
+    visit(funcDecl);
+    if (methodName == Keywords.Ctor) {
+      clazz->methods[Keywords.New] = std::move(methods[methodName]);
+    } else {
+      clazz->methods[methodName] = std::move(methods[methodName]);
+    }
+  }
+
+  methods.clear();
+
+  inClass = false;
+
+  classes[className] = clazz;
+
+  return static_cast<k_int>(0);
+}
+
 k_value KInterpreter::visit(const PackageNode* node) {
   auto packageName = id(node->packageName.get());
   packages[packageName] = std::make_shared<KPackage>(node);
@@ -493,6 +536,8 @@ k_value KInterpreter::visit(const IdentifierNode* node) {
 
   if (frame->hasVariable(node->name)) {
     return frame->variables[node->name];
+  } else if (classes.find(node->name) != classes.end()) {
+    return std::make_shared<ClassRef>(node->name);
   }
 
   return static_cast<k_int>(0);
@@ -953,7 +998,14 @@ k_value KInterpreter::visit(const FunctionDeclarationNode* node) {
   function->name = name;
   function->parameters = parameters;
   function->defaultParameters = defaultParameters;
-  functions[name] = std::move(function);
+  function->isPrivate = node->isPrivate;
+  function->isStatic = node->isStatic;
+
+  if (inClass) {
+    methods[name] = std::move(function);
+  } else {
+    functions[name] = std::move(function);
+  }
 
   return static_cast<k_int>(0);
 }
@@ -1065,7 +1117,137 @@ k_value KInterpreter::visit(const MethodCallNode* node) {
     arguments.emplace_back(interpret(arg.get()));
   }
 
-  if (ListBuiltins.is_builtin(op)) {
+  if (std::holds_alternative<k_object>(object)) {
+    auto obj = std::get<k_object>(object);
+    auto clazz = classes[obj->className];
+    auto methodName = node->methodName;
+    auto function = clazz->methods[methodName];
+    bool isCtor = methodName == Keywords.New;
+
+    if (!function) {
+      // WIP: check for builtin
+      throw UnimplementedMethodError(node->token, obj->className, methodName);
+    }
+
+    if (function->isPrivate) {
+      throw InvalidContextError(node->token, "Cannot invoke private method outside of class.");
+    }
+
+    auto defaultParameters = function->defaultParameters;
+    auto functionFrame = createFrame();
+    functionFrame->setObjectContext(obj);
+    std::vector<k_string> lambdaNames;
+
+    for (size_t i = 0; i < function->parameters.size(); ++i) {
+      const auto& param = function->parameters[i];
+      k_value argValue = static_cast<k_int>(0);
+      if (i < node->arguments.size()) {
+        const auto& arg = node->arguments[i];
+        argValue = interpret(arg.get());
+      } else if (defaultParameters.find(param.first) !=
+                 defaultParameters.end()) {
+        // Use the default value.
+        argValue = param.second;
+      } else {
+        throw ParameterCountMismatchError(node->token, methodName);
+      }
+
+      if (std::holds_alternative<k_lambda>(argValue)) {
+        auto lambdaId = std::get<k_lambda>(argValue)->identifier;
+        lambdas[param.first] = lambdas[lambdaId];
+        lambdaNames.push_back(lambdaId);
+      } else {
+        functionFrame->variables[param.first] = argValue;
+      }
+    }
+
+    callStack.push(functionFrame);
+
+    k_value result;
+    const auto& decl = *function->decl;
+    for (const auto& stmt : decl.body) {
+      result = interpret(stmt.get());
+      if (functionFrame->isFlagSet(FrameFlags::ReturnFlag)) {
+        result = functionFrame->returnValue;
+        break;
+      }
+    }
+
+    dropFrame();
+
+    for (const auto& lambdaName : lambdaNames) {
+      lambdas.erase(lambdaName);
+    }
+
+    return result;
+  } else if (std::holds_alternative<k_class>(object)) {
+    auto clazz = classes[std::get<k_class>(object)->identifier];
+    auto methodName = node->methodName;
+    auto function = clazz->methods[methodName];
+    k_object obj = std::make_shared<Object>();
+    bool isCtor = methodName == Keywords.New;
+
+    if (!function && isCtor) {
+      // default ctor
+      return obj;
+    }
+
+    if (!function->isStatic && !isCtor) {
+      throw InvalidContextError(node->token, "Cannot invoke non-static method on class.");
+    }
+
+    auto defaultParameters = function->defaultParameters;
+    auto functionFrame = createFrame();
+    functionFrame->setObjectContext(obj);
+    std::vector<k_string> lambdaNames;
+
+    for (size_t i = 0; i < function->parameters.size(); ++i) {
+      const auto& param = function->parameters[i];
+      k_value argValue = static_cast<k_int>(0);
+      if (i < node->arguments.size()) {
+        const auto& arg = node->arguments[i];
+        argValue = interpret(arg.get());
+      } else if (defaultParameters.find(param.first) !=
+                 defaultParameters.end()) {
+        // Use the default value.
+        argValue = param.second;
+      } else {
+        throw ParameterCountMismatchError(node->token, methodName);
+      }
+
+      if (std::holds_alternative<k_lambda>(argValue)) {
+        auto lambdaId = std::get<k_lambda>(argValue)->identifier;
+        lambdas[param.first] = lambdas[lambdaId];
+        lambdaNames.push_back(lambdaId);
+      } else {
+        functionFrame->variables[param.first] = argValue;
+      }
+    }
+
+    callStack.push(functionFrame);
+
+    k_value result;
+    const auto& decl = *function->decl;
+    for (const auto& stmt : decl.body) {
+      result = interpret(stmt.get());
+      if (functionFrame->isFlagSet(FrameFlags::ReturnFlag)) {
+        result = functionFrame->returnValue;
+        break;
+      }
+    }
+
+    dropFrame();
+
+    for (const auto& lambdaName : lambdaNames) {
+      lambdas.erase(lambdaName);
+    }
+
+    if (isCtor) {
+      return obj;
+    }
+
+    return result;
+  } else if (ListBuiltins.is_builtin(op)) {
     return interpretListBuiltin(node->token, object, op, arguments);
   } else if (KiwiBuiltins.is_builtin(op)) {
     return BuiltinDispatch::execute(node->token, op, object, arguments);

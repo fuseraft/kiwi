@@ -262,6 +262,7 @@ enum KName {
   KW_If,
   KW_Import,
   KW_In,
+  KW_Interface,
   KW_Lambda,
   KW_Method,
   KW_Package,

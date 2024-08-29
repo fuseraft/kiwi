@@ -295,6 +295,8 @@ class Lexer {
       st = KName::KW_Import;
     } else if (keyword == Keywords.In) {
       st = KName::KW_In;
+    } else if (keyword == Keywords.Interface) {
+      st = KName::KW_Interface;
     } else if (keyword == Keywords.Method || keyword == Keywords.Function) {
       st = KName::KW_Method;
     } else if (keyword == Keywords.Package) {

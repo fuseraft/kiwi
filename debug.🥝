@@ -400,3 +400,15 @@ h.x.y.z.n = 0
 h.x.y.z.n += 50
 println h
 #/
+
+class B
+end
+
+class A < B
+  def initialize()
+    println "Hello"
+  end
+
+  static def test()
+  end
+end
