@@ -26,6 +26,8 @@ class Parser {
   std::unique_ptr<ASTNode> parseFunctionCall(const k_string& identifierName,
                                              const KName& type);
   std::unique_ptr<ASTNode> parseKeyword();
+  std::unique_ptr<ASTNode> parseClass();
+  std::unique_ptr<ASTNode> parseInterface();
   std::unique_ptr<ASTNode> parseLambda();
   std::unique_ptr<ASTNode> parseStatement();
   std::unique_ptr<ASTNode> parseForLoop();
@@ -163,39 +165,64 @@ std::unique_ptr<ASTNode> Parser::parseConditional() {
 }
 
 std::unique_ptr<ASTNode> Parser::parseKeyword() {
-  if (kToken.getSubType() == KName::KW_Method) {
-    return parseFunction();
-  } else if (kToken.getSubType() == KName::KW_PrintLn ||
-             kToken.getSubType() == KName::KW_Print) {
-    return parsePrint();
-  } else if (kToken.getSubType() == KName::KW_For) {
-    return parseForLoop();
-  } else if (kToken.getSubType() == KName::KW_While) {
-    return parseWhileLoop();
-  } else if (kToken.getSubType() == KName::KW_Repeat) {
-    return parseRepeatLoop();
-  } else if (kToken.getSubType() == KName::KW_Try) {
-    return parseTry();
-  } else if (kToken.getSubType() == KName::KW_Return) {
-    return parseReturn();
-  } else if (kToken.getSubType() == KName::KW_Throw) {
-    return parseThrow();
-  } else if (kToken.getSubType() == KName::KW_Exit) {
-    return parseExit();
-  } else if (kToken.getSubType() == KName::KW_Parse) {
-    return parseParse();
-  } else if (kToken.getSubType() == KName::KW_Next) {
-    return parseNext();
-  } else if (kToken.getSubType() == KName::KW_Break) {
-    return parseBreak();
-  } else if (kToken.getSubType() == KName::KW_Pass) {
-    return std::make_unique<NoOpNode>();
-  } else if (kToken.getSubType() == KName::KW_Package) {
-    return parsePackage();
-  } else if (kToken.getSubType() == KName::KW_Import) {
-    return parseImport();
-  } else if (kToken.getSubType() == KName::KW_Export) {
-    return parseExport();
+  switch (kToken.getSubType()) {
+    case KName::KW_PrintLn:
+    case KName::KW_Print:
+      return parsePrint();
+
+    case KName::KW_For:
+      return parseForLoop();
+
+    case KName::KW_While:
+      return parseWhileLoop();
+
+    case KName::KW_Repeat:
+      return parseRepeatLoop();
+
+    case KName::KW_Try:
+      return parseTry();
+
+    case KName::KW_Return:
+      return parseReturn();
+
+    case KName::KW_Throw:
+      return parseThrow();
+
+    case KName::KW_Exit:
+      return parseExit();
+
+    case KName::KW_Parse:
+      return parseParse();
+
+    case KName::KW_Next:
+      return parseNext();
+
+    case KName::KW_Break:
+      return parseBreak();
+
+    case KName::KW_Pass:
+      return std::make_unique<NoOpNode>();
+
+    case KName::KW_Package:
+      return parsePackage();
+
+    case KName::KW_Import:
+      return parseImport();
+
+    case KName::KW_Export:
+      return parseExport();
+
+    case KName::KW_Class:
+      return parseClass();
+
+    case KName::KW_Interface:
+      return parseInterface();
+
+    case KName::KW_Method:
+      return parseFunction();
+
+    default:
+      break;
   }
 
   return nullptr;
@@ -235,6 +262,79 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
 
 std::unique_ptr<ASTNode> Parser::parseComment() {
   match(KTokenType::COMMENT);
+  return nullptr;
+}
+
+std::unique_ptr<ASTNode> Parser::parseClass() {
+  matchSubType(KName::KW_Class);
+
+  if (kToken.getType() != KTokenType::IDENTIFIER) {
+    throw SyntaxError(kToken, "Expected identifier for class name.");
+  }
+
+  auto className = kToken.getText();
+  next();
+
+  k_string baseClass;
+
+  // Extends
+  if (matchSubType(KName::Ops_LessThan)) {
+    if (kToken.getType() != KTokenType::IDENTIFIER) {
+      throw SyntaxError(kToken, "Expected identifier for base class name.");
+    }
+
+    baseClass = kToken.getText();
+    next();
+  }
+
+  std::vector<k_string> interfaces;
+  if (match(KTokenType::COLON)) {
+    while (kToken.getType() != KTokenType::KEYWORD) {
+      if (kToken.getType() == KTokenType::IDENTIFIER) {
+        interfaces.push_back(kToken.getText());
+      }
+      next();
+    }
+  }
+
+  std::vector<std::unique_ptr<ASTNode>> methods;
+  bool isStatic = false, isPrivate = false;
+
+  while (kToken.getSubType() != KName::KW_End) {
+    if (matchSubType(KName::KW_Static)) {
+      isStatic = true;
+      continue;
+    } else if (matchSubType(KName::KW_Private)) {
+      isPrivate = true;
+      continue;
+    }
+
+    auto statement = parseStatement();
+
+    if (statement->type == ASTNodeType::FUNCTION_DECLARATION) {
+      auto func = static_cast<FunctionDeclarationNode*>(statement.get());
+      func->isPrivate = isPrivate;
+      func->isStatic = isStatic;
+
+      methods.push_back(std::move(statement));
+    }
+
+    isStatic = false;
+    isPrivate = false;
+  }
+
+  next();  // Consume 'end'
+
+  return std::make_unique<ClassNode>(className, baseClass,
+                                     std::move(interfaces), std::move(methods));
+}
+
+std::unique_ptr<ASTNode> Parser::parseInterface() {
+  // WIP:
+  // std::vector<std::unique_ptr<ASTNode>> methods;
+  // while (kToken.getSubType() != KName::KW_End) {
+  //   if (kToken.getSubType() == KName::KW_Method) {}
+  // }
   return nullptr;
 }
 

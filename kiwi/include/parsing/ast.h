@@ -17,7 +17,7 @@ enum class ASTNodeType {
   CASE_WHEN,
   CLASS,
   EXIT_STATEMENT,
-  EXPORT_STATEMENT,      // obsolete
+  EXPORT_STATEMENT,  // obsolete
   FOR_LOOP,
   FUNCTION_CALL,
   FUNCTION_DECLARATION,
@@ -26,16 +26,17 @@ enum class ASTNodeType {
   IF_STATEMENT,
   IMPORT_STATEMENT,
   INDEX_EXPRESSION,
+  INTERFACE,
   LAMBDA,
   LIST_LITERAL,
   LITERAL,
   MEMBER_ACCESS,
   MEMBER_ASSIGNMENT,
-  METHOD_CALL,        // WIP
+  METHOD_CALL,  // WIP
   NEXT_STATEMENT,
   NO_OP,
   PACKAGE,
-  PARSE_STATEMENT, // WIP
+  PARSE_STATEMENT,  // WIP
   PRINT_STATEMENT,
   PROGRAM,
   RANGE_LITERAL,
@@ -83,18 +84,66 @@ class ProgramNode : public ASTNode {
   }
 };
 
+class InterfaceNode : public ASTNode {
+ public:
+  k_string name;
+  std::vector<k_string> interfaces;
+
+  InterfaceNode() : ASTNode(ASTNodeType::INTERFACE) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Interface: " << name << std::endl;
+    if (!interfaces.empty()) {
+      print_depth(1 + depth);
+      std::cout << "Interfaces:" << std::endl;
+      for (const auto& iface : interfaces) {
+        print_depth(2 + depth);
+        std::cout << iface << std::endl;
+      }
+    }
+  }
+};
+
 class ClassNode : public ASTNode {
  public:
   k_string name;
   k_string baseClass;
+  std::vector<k_string> interfaces;
+  std::vector<std::unique_ptr<ASTNode>> methods;
 
   ClassNode() : ASTNode(ASTNodeType::CLASS) {}
+  ClassNode(const k_string& name, const k_string& baseClass,
+            std::vector<k_string> interfaces,
+            std::vector<std::unique_ptr<ASTNode>> methods)
+      : ASTNode(ASTNodeType::CLASS),
+        name(name),
+        baseClass(baseClass),
+        interfaces(std::move(interfaces)),
+        methods(std::move(methods)) {}
 
   void print(int depth) const override {
-    print_depth(depth); 
+    print_depth(depth);
     std::cout << "Class: " << name << std::endl;
-    print_depth(1 + depth); 
-    std::cout << "Base: " << baseClass << std::endl;
+    if (!baseClass.empty()) {
+      print_depth(1 + depth);
+      std::cout << "Base: " << baseClass << std::endl;
+    }
+    if (!interfaces.empty()) {
+      print_depth(1 + depth);
+      std::cout << "Interfaces:" << std::endl;
+      for (const auto& iface : interfaces) {
+        print_depth(2 + depth);
+        std::cout << iface << std::endl;
+      }
+    }
+    if (!methods.empty()) {
+      print_depth(1 + depth);
+      std::cout << "Methods:" << std::endl;
+      for (const auto& def : methods) {
+        def->print(2 + depth);
+      }
+    }
   }
 };
 
@@ -558,19 +607,30 @@ class FunctionDeclarationNode : public ASTNode {
   std::string name;
   std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> parameters;
   std::vector<std::unique_ptr<ASTNode>> body;
+  bool isStatic = false;
+  bool isPrivate = false;
 
   FunctionDeclarationNode() : ASTNode(ASTNodeType::FUNCTION_DECLARATION) {}
 
   void print(int depth) const override {
     print_depth(depth);
     std::cout << "FunctionDeclaration: `" << name << "`" << std::endl;
-    print_depth(depth);
+
+    if (isStatic || isPrivate) {
+      print_depth(1 + depth);
+      std::cout << "Modifiers:" << std::endl;
+      print_depth(2 + depth);
+      std::cout << "Private:" << std::boolalpha << isPrivate;
+      std::cout << ", Static:" << std::boolalpha << isStatic << std::endl;
+    }
+
+    print_depth(1 + depth);
     std::cout << "Parameters: " << std::endl;
     for (const auto& param : parameters) {
-      print_depth(1 + depth);
+      print_depth(2 + depth);
       std::cout << param.first;
       if (param.second) {
-        print_depth(1 + depth);
+        print_depth(2 + depth);
         std::cout << "Default: ";
         param.second->print(1 + depth);
       } else {
