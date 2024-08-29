@@ -355,32 +355,6 @@ k_value KInterpreter::visit(const ThrowNode* node) {
   return static_cast<k_int>(0);
 }
 
-k_value KInterpreter::visit(const ClassNode* node) {
-  auto className = node->name;
-  auto clazz = std::make_shared<KClass>();
-
-  inClass = true;
-
-  for (const auto& method : node->methods) {
-    auto funcDecl = static_cast<const FunctionDeclarationNode*>(method.get());
-    auto methodName = funcDecl->name;
-    visit(funcDecl);
-    if (methodName == Keywords.Ctor) {
-      clazz->methods[Keywords.New] = std::move(methods[methodName]);
-    } else {
-      clazz->methods[methodName] = std::move(methods[methodName]);
-    }
-  }
-
-  methods.clear();
-
-  inClass = false;
-
-  classes[className] = clazz;
-
-  return static_cast<k_int>(0);
-}
-
 k_value KInterpreter::visit(const PackageNode* node) {
   auto packageName = id(node->packageName.get());
   packages[packageName] = std::make_shared<KPackage>(node);
@@ -968,6 +942,32 @@ k_value KInterpreter::visit(const LambdaNode* node) {
   lambdas[tmpId] = lambda;
 
   return std::make_shared<LambdaRef>(tmpId);
+}
+
+k_value KInterpreter::visit(const ClassNode* node) {
+  auto className = node->name;
+  auto clazz = std::make_shared<KClass>();
+
+  inClass = true;
+
+  for (const auto& method : node->methods) {
+    auto funcDecl = static_cast<const FunctionDeclarationNode*>(method.get());
+    auto methodName = funcDecl->name;
+    visit(funcDecl);
+    if (methodName == Keywords.Ctor) {
+      clazz->methods[Keywords.New] = std::move(methods[methodName]);
+    } else {
+      clazz->methods[methodName] = std::move(methods[methodName]);
+    }
+  }
+
+  methods.clear();
+
+  inClass = false;
+
+  classes[className] = clazz;
+
+  return static_cast<k_int>(0);
 }
 
 k_value KInterpreter::visit(const FunctionDeclarationNode* node) {
