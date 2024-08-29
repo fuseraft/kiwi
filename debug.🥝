@@ -391,9 +391,12 @@ fn test()
 end
 
 println "[${test()}]"
+
+h = {}
+h.x = {}
+h.x.y = {}
+h.x.y.z = {}
+h.x.y.z.n = 0
+h.x.y.z.n += 50
+println h
 #/
-
-
-println "hello {0}".replace("{0}", "world")
-
-println "\"hello\",\"world\"".split(",")
