@@ -392,3 +392,8 @@ end
 
 println "[${test()}]"
 #/
+
+
+println "hello {0}".replace("{0}", "world")
+
+println "\"hello\",\"world\"".split(",")

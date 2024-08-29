@@ -55,6 +55,7 @@ class KInterpreter {
   k_string id(const ASTNode* node);
   k_value visit(const ProgramNode* node);
   k_value visit(const AssignmentNode* node);
+  k_value visit(const MemberAssignmentNode* node);
   k_value visit(const IdentifierNode* node);
   k_value visit(const LiteralNode* node);
   k_value visit(const ListLiteralNode* node);
@@ -120,6 +121,9 @@ k_value KInterpreter::interpret(const ASTNode* node) {
 
     case ASTNodeType::ASSIGNMENT:
       return visit(static_cast<const AssignmentNode*>(node));
+
+    case ASTNodeType::MEMBER_ASSIGNMENT:
+      return visit(static_cast<const MemberAssignmentNode*>(node));
 
     case ASTNodeType::LITERAL:
       return visit(static_cast<const LiteralNode*>(node));
@@ -371,6 +375,31 @@ k_value KInterpreter::visit(const ExportNode* node) {
 k_value KInterpreter::visit(const ImportNode* node) {
   auto packageName = interpret(node->packageName.get());
   importPackage(packageName, node->token);
+  return static_cast<k_int>(0);
+}
+
+k_value KInterpreter::visit(const MemberAssignmentNode* node) {
+  auto frame = callStack.top();
+  auto object = interpret(node->object.get());
+  auto memberName = node->memberName;
+  auto op = node->op;
+  auto initializer = interpret(node->initializer.get());
+
+  if (std::holds_alternative<k_hash>(object)) {
+    auto hash = std::get<k_hash>(object);
+
+    if (op == KName::Ops_Assign) {
+      hash->add(memberName, initializer);
+    } else if (hash->hasKey(memberName)) {
+      auto value = hash->get(memberName);
+      auto newValue =
+          MathImpl.do_binary_op(node->token, op, value, initializer);
+      hash->add(memberName, newValue);
+    } else {
+      throw HashKeyError(node->token, memberName);
+    }
+  }
+
   return static_cast<k_int>(0);
 }
 

@@ -102,10 +102,8 @@ class Lexer {
     std::regex re(R"(\$\{([^}]+)\})");
     std::string output;
 
-    std::regex_replace(std::back_inserter(output), 
-                       source.begin(), source.end(), 
-                       re, 
-                       R"(" + $1 + ")");
+    std::regex_replace(std::back_inserter(output), source.begin(), source.end(),
+                       re, R"(" + $1 + ")");
     source = output;
   }
 
@@ -1025,12 +1023,16 @@ class Lexer {
       st = KName::Builtin_Kiwi_Members;
     } else if (builtin == KiwiBuiltins.Replace) {
       st = KName::Builtin_Kiwi_Replace;
+    } else if (builtin == KiwiBuiltins.RReplace) {
+      st = KName::Builtin_Kiwi_RReplace;
     } else if (builtin == KiwiBuiltins.Reverse) {
       st = KName::Builtin_Kiwi_Reverse;
     } else if (builtin == KiwiBuiltins.RightTrim) {
       st = KName::Builtin_Kiwi_RightTrim;
     } else if (builtin == KiwiBuiltins.Size) {
       st = KName::Builtin_Kiwi_Size;
+    } else if (builtin == KiwiBuiltins.RSplit) {
+      st = KName::Builtin_Kiwi_RSplit;
     } else if (builtin == KiwiBuiltins.Split) {
       st = KName::Builtin_Kiwi_Split;
     } else if (builtin == KiwiBuiltins.Substring) {

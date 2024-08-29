@@ -545,6 +545,7 @@ struct {
   const k_string IsA = "is_a";
   const k_string Join = "join";
   const k_string Split = "split";
+  const k_string RSplit = "rsplit";
   const k_string Substring = "substring";
   const k_string LeftTrim = "ltrim";
   const k_string RightTrim = "rtrim";
@@ -558,6 +559,7 @@ struct {
   const k_string Type = "type";
   const k_string Empty = "empty";
   const k_string Replace = "replace";
+  const k_string RReplace = "rreplace";
   const k_string Reverse = "reverse";
   const k_string Contains = "contains";
   const k_string BeginsWith = "begins_with";
@@ -603,16 +605,17 @@ struct {
   const k_string Truthy = "truthy";
 
   std::unordered_set<k_string> builtins = {
-      Chars,     Empty,      IsA,       Join,     Size,        ToBytes,
-      ToHex,     ToD,        ToI,       ToS,      Replace,     Reverse,
-      Contains,  BeginsWith, EndsWith,  IndexOf,  LastIndexOf, Uppercase,
-      Lowercase, Keys,       Split,     LeftTrim, RightTrim,   Trim,
-      Type,      HasKey,     Members,   Push,     Pop,         Enqueue,
-      Dequeue,   Clear,      Substring, Shift,    Unshift,     Remove,
-      RemoveAt,  Rotate,     Insert,    Slice,    Concat,      Unique,
-      Count,     Flatten,    Zip,       Merge,    Values,      Clone,
-      Pretty,    Find,       Match,     Matches,  MatchesAll,  Scan,
-      Set,       Get,        Swap,      First,    Last,        Truthy};
+      Chars,      Empty,     IsA,        Join,     Size,      ToBytes,
+      ToHex,      ToD,       ToI,        ToS,      Replace,   RReplace,
+      Reverse,    Contains,  BeginsWith, EndsWith, IndexOf,   LastIndexOf,
+      Uppercase,  Lowercase, Keys,       Split,    RSplit,    LeftTrim,
+      RightTrim,  Trim,      Type,       HasKey,   Members,   Push,
+      Pop,        Enqueue,   Dequeue,    Clear,    Substring, Shift,
+      Unshift,    Remove,    RemoveAt,   Rotate,   Insert,    Slice,
+      Concat,     Unique,    Count,      Flatten,  Zip,       Merge,
+      Values,     Clone,     Pretty,     Find,     Match,     Matches,
+      MatchesAll, Scan,      Set,        Get,      Swap,      First,
+      Last,       Truthy};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Kiwi_BeginsWith,  KName::Builtin_Kiwi_BeginsWith,
@@ -622,9 +625,10 @@ struct {
       KName::Builtin_Kiwi_IndexOf,     KName::Builtin_Kiwi_IsA,
       KName::Builtin_Kiwi_Join,        KName::Builtin_Kiwi_Keys,
       KName::Builtin_Kiwi_LastIndexOf, KName::Builtin_Kiwi_LeftTrim,
-      KName::Builtin_Kiwi_Replace,     KName::Builtin_Kiwi_Reverse,
-      KName::Builtin_Kiwi_RightTrim,   KName::Builtin_Kiwi_Size,
-      KName::Builtin_Kiwi_Split,       KName::Builtin_Kiwi_ToBytes,
+      KName::Builtin_Kiwi_Replace,     KName::Builtin_Kiwi_RReplace,
+      KName::Builtin_Kiwi_Reverse,     KName::Builtin_Kiwi_RightTrim,
+      KName::Builtin_Kiwi_Size,        KName::Builtin_Kiwi_Split,
+      KName::Builtin_Kiwi_RSplit,      KName::Builtin_Kiwi_ToBytes,
       KName::Builtin_Kiwi_ToHex,       KName::Builtin_Kiwi_ToD,
       KName::Builtin_Kiwi_ToI,         KName::Builtin_Kiwi_ToS,
       KName::Builtin_Kiwi_Trim,        KName::Builtin_Kiwi_Type,
