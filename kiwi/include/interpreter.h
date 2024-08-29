@@ -56,6 +56,7 @@ class KInterpreter {
   k_value visit(const ProgramNode* node);
   k_value visit(const AssignmentNode* node);
   k_value visit(const MemberAssignmentNode* node);
+  k_value visit(const MemberAccessNode* node);
   k_value visit(const IdentifierNode* node);
   k_value visit(const LiteralNode* node);
   k_value visit(const ListLiteralNode* node);
@@ -124,6 +125,9 @@ k_value KInterpreter::interpret(const ASTNode* node) {
 
     case ASTNodeType::MEMBER_ASSIGNMENT:
       return visit(static_cast<const MemberAssignmentNode*>(node));
+
+    case ASTNodeType::MEMBER_ACCESS:
+      return visit(static_cast<const MemberAccessNode*>(node));
 
     case ASTNodeType::LITERAL:
       return visit(static_cast<const LiteralNode*>(node));
@@ -378,8 +382,23 @@ k_value KInterpreter::visit(const ImportNode* node) {
   return static_cast<k_int>(0);
 }
 
+k_value KInterpreter::visit(const MemberAccessNode* node) {
+  auto object = interpret(node->object.get());
+  auto memberName = node->memberName;
+
+  if (std::holds_alternative<k_hash>(object)) {
+    auto hash = std::get<k_hash>(object);
+    if (!hash->hasKey(memberName)) {
+      throw HashKeyError(node->token, memberName);
+    }
+
+    return hash->get(memberName);
+  }
+
+  return static_cast<k_int>(0);
+}
+
 k_value KInterpreter::visit(const MemberAssignmentNode* node) {
-  auto frame = callStack.top();
   auto object = interpret(node->object.get());
   auto memberName = node->memberName;
   auto op = node->op;

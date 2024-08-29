@@ -10,42 +10,43 @@
 #include <vector>
 
 enum class ASTNodeType {
-  ASSIGNMENT,            // done
-  BINARY_OPERATION,      // done
-  BREAK_STATEMENT,       // done
-  CASE_STATEMENT,        // done
-  CASE_WHEN,             // done
-  EXIT_STATEMENT,        // done
+  ASSIGNMENT,
+  BINARY_OPERATION,
+  BREAK_STATEMENT,
+  CASE_STATEMENT,
+  CASE_WHEN,
+  CLASS,
+  EXIT_STATEMENT,
   EXPORT_STATEMENT,      // obsolete
-  FOR_LOOP,              // done
-  FUNCTION_CALL,         // done
-  FUNCTION_DECLARATION,  // done
-  HASH_LITERAL,          // done
-  IDENTIFIER,            // done
-  IF_STATEMENT,          // done
-  IMPORT_STATEMENT,      // done
-  INDEX_EXPRESSION,      // done
-  LAMBDA,                // done
-  LIST_LITERAL,          // done
-  LITERAL,               // done
+  FOR_LOOP,
+  FUNCTION_CALL,
+  FUNCTION_DECLARATION,
+  HASH_LITERAL,
+  IDENTIFIER,
+  IF_STATEMENT,
+  IMPORT_STATEMENT,
+  INDEX_EXPRESSION,
+  LAMBDA,
+  LIST_LITERAL,
+  LITERAL,
   MEMBER_ACCESS,
-  MEMBER_ASSIGNMENT,  // done
-  METHOD_CALL,        // wip
-  NEXT_STATEMENT,     // done
-  NO_OP,              // done
-  PACKAGE,            // done
-  PARSE_STATEMENT,
-  PRINT_STATEMENT,    // done
-  PROGRAM,            // done
-  RANGE_LITERAL,      // done
-  REPEAT_LOOP,        // done
-  RETURN_STATEMENT,   // done
-  SLICE_EXPRESSION,   // done
-  TERNARY_OPERATION,  // done
-  THROW_STATEMENT,    // done
-  TRY,                // done
-  UNARY_OPERATION,    // done
-  WHILE_LOOP,         // done
+  MEMBER_ASSIGNMENT,
+  METHOD_CALL,        // WIP
+  NEXT_STATEMENT,
+  NO_OP,
+  PACKAGE,
+  PARSE_STATEMENT, // WIP
+  PRINT_STATEMENT,
+  PROGRAM,
+  RANGE_LITERAL,
+  REPEAT_LOOP,
+  RETURN_STATEMENT,
+  SLICE_EXPRESSION,
+  TERNARY_OPERATION,
+  THROW_STATEMENT,
+  TRY,
+  UNARY_OPERATION,
+  WHILE_LOOP,
 };
 
 class ASTNode {
@@ -79,6 +80,21 @@ class ProgramNode : public ASTNode {
     for (const auto& statement : statements) {
       statement->print(1 + depth);
     }
+  }
+};
+
+class ClassNode : public ASTNode {
+ public:
+  k_string name;
+  k_string baseClass;
+
+  ClassNode() : ASTNode(ASTNodeType::CLASS) {}
+
+  void print(int depth) const override {
+    print_depth(depth); 
+    std::cout << "Class: " << name << std::endl;
+    print_depth(1 + depth); 
+    std::cout << "Base: " << baseClass << std::endl;
   }
 };
 
