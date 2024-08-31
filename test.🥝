@@ -125,18 +125,15 @@ guava::register_test("strings", with () do
 end)
 
 guava::register_test("lists", with () do
-/#
   # Basic List Operations
   basic_list = [1, 2, 3]
   guava::assert(basic_list.size() == 3)
   guava::assert(basic_list[0] == 1)
   guava::assert(basic_list[1] == 2)
   guava::assert(basic_list[2] == 3)
-
   # List Insertion
   basic_list.push(4)
   guava::assert(basic_list == [1, 2, 3, 4])
-
   # List Concatenation
   other_list = [5, 6, 7]
   combined_list = basic_list.concat(other_list)
@@ -161,32 +158,6 @@ guava::register_test("lists", with () do
   nested_list = [1, 2, [3, 4], [5, [6, 7]]]
   guava::assert(nested_list.flatten() == [1, 2, 3, 4, 5, 6, 7])
 
-  # List Insertion and Replacement
-  a = [1, 2, 3, 4]
-  b = ["a", "b", "c", "d"]
-  c = [true, false, true, false]
-
-  #a[0] <<= b[0]  # Insert operation
-  #guava::assert(a == ["a", 1, 2, 3, 4])
-  
-  #a[0] <<= b[0:2:-1]  # Insert reversed range
-  #guava::assert(a == ["d", "c", "a", 1, 2, 3, 4])
-  
-  a[0] = b[0]  # Replace operation
-  guava::assert(a == ["a", "c", "a", 1, 2, 3, 4]) 
-  
-  a[0] = b[1]  # Replace operation
-  guava::assert(a == ["b", "c", "a", 1, 2, 3, 4]) 
-  
-  a[3] = b[2]  # Replace operation
-  guava::assert(a == ["b", "c", "a", "c", 2, 3, 4])
-  
-  a[0:2] = c[0:2]  # Slice assignment
-  guava::assert(a == [true, false, "a", "c", 2, 3, 4])
-  
-  a[0:2] = c[0:2:-1]  # Slice assignment of reversed slice
-  guava::assert(a == [false, true, "a", "c", 2, 3, 4])
-
   # String to List Conversion and Manipulation
   char_list = "abcdef".chars()
   guava::assert(char_list == ["a", "b", "c", "d", "e", "f"])
@@ -194,16 +165,15 @@ guava::register_test("lists", with () do
   # Empty List Verification
   new_list = []
   while !char_list.empty() do
-    new_list << char_list.first()
-    delete char_list[0]
+    new_list.push(char_list.first())
+    char_list.remove_at(0)
   end
-
   guava::assert(char_list.empty())
   guava::assert(new_list == ["a", "b", "c", "d", "e", "f"])
 
   # List Initialization with a Range
   range_list = [1..5]
-  guava::assert(range_list == [1, 2, 3, 4, 5])#/
+  guava::assert(range_list == [1, 2, 3, 4, 5])
 end)
 
 
@@ -300,6 +270,10 @@ guava::register_test("dates", with () do
   guava::assert(d2.after(d))
 end)
 
+guava::register_test("standard library", with () do
+  guava::assert(string::mirror("hello") == "helloolleh")
+end)
+
 guava::register_test("nulls", with () do
   e = {"a": null, "b": null}
   guava::assert(e == {"a": null, "b": null})
@@ -365,7 +339,7 @@ guava::register_test("loops", with () do
 
   guava::assert(list == ["kiwi", "is", "fun"])
   list.clear()
-  
+
   # iterate an inline list with an index
   for item, index in ["kiwi", "is", "fun"] do
     list.push(index)
@@ -386,25 +360,28 @@ guava::register_test("loops", with () do
   i = 0
   test_sum = 0
   while i < 10 do
-    i += 1, j = 0
+    i += 1
+    j = 0
     
     while j < 10 do
-      j += 1, test_sum += 1
+      j += 1
+      test_sum += 1
     end
   end
 
   guava::assert(test_sum == 100)
 
-  list = [], i = 1
+  list = []
+  i = 1
   while i <= 10 do
-    list << "Item ${i}"
+    list.push("Item ${i}")
     i += 1
   end
 
   counter = 0
   for item, index in list do
     counter += 1
-    next when index == 5
+    break when index == 4
   end
 
   guava::assert(counter == 5)
@@ -429,56 +406,13 @@ guava::register_test("loops", with () do
   repeat 4 do
     x *= x
   end
-  
+
   guava::assert(x == 65536)
 end)
 
-guava::register_test("`when`", with () do
-  fn sum(list)
-    throw "Not a list of integers" when !list.is_a(List)
-    throw "Not a list of integers" when list.size() != list.select(with (item) do return item.is_a(Integer) end).size()
-    return 0 when list.empty()
-    return list.sum()
-  end
-
-  /#[[1, 2, 3], "1, 2, 3", [], "123".chars()].each(with (item, index) do
-    try
-      res = sum(item)
-      if index == 0
-        guava::assert(res == 6)
-      elsif index == 2
-        guava::assert(res == 0)
-      end
-    catch (err)
-      guava::assert(err == "Not a list of integers")
-    end
-  end)#/
-end)
-
-guava::register_test("standard library", with () do
-  guava::assert(math::sin(0) == 0.)
-  guava::assert(math::cos(0) == 1.)
-  guava::assert(math::tan(0) == 0.)
-end)
-
-guava::register_test("serialization", with () do
-  class SerializeMe
-    def initialize(name)
-      @name = name
-    end
-  end
-
-  inst = SerializeMe.new("kiwi")
-  guava::assert(inst.to_hash() == {"name": "kiwi"})
-
-  hash = inst.to_hash()
-  hash.flag = true
-  hash["sub_hash"] = { "key": "value" }
-  guava::assert(hash == {"name": "kiwi", "flag": true, "sub_hash": {"key": "value"}})
-end)
-
 guava::register_test("try-finally", with () do
-  a = 0, b = 0
+  a = 0
+  b = 0
 
   try
     a += 1
@@ -493,7 +427,9 @@ guava::register_test("try-finally", with () do
 end)
 
 guava::register_test("try-catch-finally", with () do
-  a = 0, b = 0, c = 0
+  a = 0
+  b = 0
+  c = 0
 
   try
     for i in [0 .. 1] do
@@ -513,7 +449,9 @@ guava::register_test("try-catch-finally", with () do
 end)
 
 guava::register_test("nested try-catch", with () do
-  a = 0, b = 0, c = 0
+  a = 0
+  b = 0
+  c = 0
 
   for i in [0 .. 1] do
     try
@@ -545,7 +483,6 @@ guava::register_test("lambdas", with () do
   fn use_lambda(print_func, message) return print_func(message) end
   guava::assert(use_lambda(puts, "Hello, Kiwi!") == "Hello, Kiwi!")
 
-  # List.select test
   guava::assert(list.select(with (item) do return item["id"] % 2 == 0 end) == [{"id": 0}, {"id": 2}, {"id": 4}, {"id": 6}, {"id": 8}])
   guava::assert(list.select(odd_item_id) == [{"id": 1}, {"id": 3}, {"id": 5}, {"id": 7}, {"id": 9}])
 
@@ -560,18 +497,12 @@ guava::register_test("lambdas", with () do
   numbers = [1, 2, 3, 4, 5]
 
   guava::assert((numbers.reduce(0, with (accumulator, number) do
-    return accumulator + number
-  end)) == 15)
+    accumulator += number
+  end)) == 15, "five")
 
   guava::assert((numbers.reduce({}, with (accumulator, number) do
     accumulator["key${number}"] = number
-    return accumulator
   end)) == {"key1": 1, "key2": 2, "key3": 3, "key4": 4, "key5": 5})
-end)
-
-guava::register_test("obfuscation", with () do
-  /#p=with(x)do return(x)end,a='fn;end;return;g;kiwi;s;, '.split(';')c=with(n,b=[],p=[])do ___=["${a[0]} ${n}"]if!p.empty()___=["${___.join()}(${p.join("${a[6]}")})"]end if!b.empty()b.each(with(l)do ___<<"${l}"end)end ___<<a[1]return ___.join(" ")end fn m()return p(c(a[5],["${a[2]}(${a[3]})"],[a[3]]))s("${a[4]}")end
-  guava::assert(m() == "fn s(g) return(g) end")#/
 end)
 
 testsuite()

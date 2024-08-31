@@ -15,13 +15,8 @@ enum class FrameFlags : uint16_t {
   None = 0,
   ReturnFlag = 1 << 0,
   SubFrame = 1 << 1,
-  LoopBreak = 1 << 2,
-  LoopContinue = 1 << 3,
   InTry = 1 << 4,
   InObject = 1 << 5,
-  InLoop = 1 << 6,
-  InCall = 1 << 7,
-  InConditional = 1 << 8
 };
 
 inline FrameFlags operator|(FrameFlags a, FrameFlags b) {
@@ -41,38 +36,18 @@ inline FrameFlags operator~(FrameFlags a) {
 
 struct CallStackFrame {
   std::unordered_map<k_string, k_value> variables;
-  std::unordered_map<k_string, Method> lambdas;
-  std::vector<k_string> aliases;
   k_value returnValue;
-  ErrorState errorState;
   k_object objectContext;
   FrameFlags flags = FrameFlags::None;
 
   CallStackFrame() {}
   ~CallStackFrame() {
     variables.clear();
-    lambdas.clear();
-    aliases.clear();
   }
-
-  void assignLambda(const k_string& name, const Method& method) {
-    lambdas[name] = std::move(method);
-  }
-  bool hasAssignedLambda(const k_string& name) const {
-    return lambdas.find(name) != lambdas.end();
-  }
-  Method& getAssignedLambda(const k_string& name) { return lambdas[name]; }
 
   bool hasVariable(const k_string& name) const {
     return variables.find(name) != variables.end();
   }
-
-  void setErrorState(const ErrorState& e) { errorState = e; }
-  void setErrorState(const KiwiError& e) { errorState.setError(e); }
-  bool isErrorStateSet() const { return errorState.isErrorSet(); }
-  k_string getErrorMessage() const { return errorState.error.getMessage(); }
-  ErrorState getErrorState() const { return errorState; }
-  void clearErrorState() { errorState.clearError(); }
 
   void setObjectContext(const k_object& object) {
     objectContext = object;
@@ -84,10 +59,6 @@ struct CallStackFrame {
   void setFlag(FrameFlags flag) { flags = flags | flag; }
   void clearFlag(FrameFlags flag) { flags = flags & ~flag; }
   bool isFlagSet(FrameFlags flag) const { return (flags & flag) == flag; }
-  bool isLoopControlFlagSet() const {
-    return isFlagSet(FrameFlags::LoopBreak) ||
-           isFlagSet(FrameFlags::LoopContinue);
-  }
 };
 
 #endif

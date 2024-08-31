@@ -222,16 +222,11 @@ std::shared_ptr<CallStackFrame> KInterpreter::createFrame(
   std::shared_ptr<CallStackFrame> frame = callStack.top();
   auto subFrame = std::make_shared<CallStackFrame>();
   auto& subFrameVariables = subFrame->variables;
-  auto& subFrameLambdas = subFrame->lambdas;
 
   if (!isMethodInvocation) {
     const auto& frameVariables = frame->variables;
-    const auto& frameLambdas = frame->lambdas;
     for (const auto& pair : frameVariables) {
       subFrameVariables[pair.first] = pair.second;
-    }
-    for (const auto& pair : frameLambdas) {
-      subFrameLambdas[pair.first] = pair.second;
     }
   }
 
@@ -535,6 +530,7 @@ k_value KInterpreter::visit(const AssignmentNode* node) {
       // WIP: need to work on this.
       const auto& lambdaId = std::get<k_lambda>(value)->identifier;
       lambdas[name] = std::move(lambdas[lambdaId]);
+      return value;
     } else {
       if (frame->inObjectContext() &&
           (node->left->type == ASTNodeType::SELF || name.at(0) == '@')) {
@@ -560,6 +556,8 @@ k_value KInterpreter::visit(const AssignmentNode* node) {
         frame->variables[name] =
             MathImpl.do_binary_op(node->token, type, oldValue, value);
       }
+
+      return frame->variables[name];
     } else if (frame->inObjectContext()) {
       auto& obj = frame->getObjectContext();
 
@@ -570,7 +568,8 @@ k_value KInterpreter::visit(const AssignmentNode* node) {
       auto oldValue = obj->instanceVariables[name];
 
       if (type == KName::Ops_BitwiseNotAssign) {
-        obj->instanceVariables[name] = MathImpl.do_bitwise_not(node->token, oldValue);
+        obj->instanceVariables[name] =
+            MathImpl.do_bitwise_not(node->token, oldValue);
       } else {
         obj->instanceVariables[name] =
             MathImpl.do_binary_op(node->token, type, oldValue, value);
@@ -909,7 +908,10 @@ k_value KInterpreter::listLoop(const ForLoopNode* node, const k_list& list) {
     }
 
     for (const auto& stmt : node->body) {
-      k_value result = interpret(stmt.get());
+      if (stmt->type != ASTNodeType::NEXT_STATEMENT &&
+          stmt->type != ASTNodeType::BREAK_STATEMENT) {
+        result = interpret(stmt.get());
+      }
 
       if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
         break;
@@ -971,8 +973,11 @@ k_value KInterpreter::hashLoop(const ForLoopNode* node, const k_hash& hash) {
     }
 
     for (const auto& stmt : node->body) {
-      k_value result = interpret(stmt.get());
-
+      if (stmt->type != ASTNodeType::NEXT_STATEMENT &&
+          stmt->type != ASTNodeType::BREAK_STATEMENT) {
+        result = interpret(stmt.get());
+      }
+      
       if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
         break;
       }
@@ -1018,9 +1023,13 @@ k_value KInterpreter::visit(const ForLoopNode* node) {
 }
 
 k_value KInterpreter::visit(const WhileLoopNode* node) {
+  k_value result;
   while (MathImpl.is_truthy(interpret(node->condition.get()))) {
     for (const auto& stmt : node->body) {
-      k_value result = interpret(stmt.get());
+      if (stmt->type != ASTNodeType::NEXT_STATEMENT &&
+          stmt->type != ASTNodeType::BREAK_STATEMENT) {
+        result = interpret(stmt.get());
+      }
 
       if (stmt->type == ASTNodeType::NEXT_STATEMENT) {
         const auto* nextNode = static_cast<const NextNode*>(stmt.get());
@@ -1032,13 +1041,13 @@ k_value KInterpreter::visit(const WhileLoopNode* node) {
         const auto* breakNode = static_cast<const BreakNode*>(stmt.get());
         if (!breakNode->condition ||
             MathImpl.is_truthy(interpret(breakNode->condition.get()))) {
-          return static_cast<k_int>(0);
+          return result;
         }
       }
     }
   }
 
-  return static_cast<k_int>(0);
+  return result;
 }
 
 k_value KInterpreter::visit(const RepeatLoopNode* node) {
@@ -1049,6 +1058,7 @@ k_value KInterpreter::visit(const RepeatLoopNode* node) {
   }
   k_int count = std::get<k_int>(countValue);
   k_string aliasName;
+  k_value result;
   bool hasAlias = false;
 
   if (node->alias) {
@@ -1068,7 +1078,10 @@ k_value KInterpreter::visit(const RepeatLoopNode* node) {
     }
 
     for (const auto& stmt : node->body) {
-      k_value result = interpret(stmt.get());
+      if (stmt->type != ASTNodeType::NEXT_STATEMENT &&
+          stmt->type != ASTNodeType::BREAK_STATEMENT) {
+        result = interpret(stmt.get());
+      }
 
       if (stmt->type == ASTNodeType::NEXT_STATEMENT) {
         const auto* nextNode = static_cast<const NextNode*>(stmt.get());
@@ -1091,7 +1104,7 @@ k_value KInterpreter::visit(const RepeatLoopNode* node) {
     frame->variables.erase(aliasName);
   }
 
-  return static_cast<k_int>(0);
+  return result;
 }
 
 k_value KInterpreter::visit(const TryNode* node) {
@@ -1452,10 +1465,6 @@ k_value KInterpreter::callFunction(
 
   dropFrame();
 
-  // for (const auto& pair : lambdaNames) {
-  //   lambdaTable.erase(pair.first);
-  // }
-
   return result;
 }
 
@@ -1532,7 +1541,7 @@ k_value KInterpreter::callObjectMethod(const MethodCallNode* node,
 
   auto result =
       callFunction(function, node->arguments, node->token, methodName);
-  
+
   if (contextSwitch) {
     frame->setObjectContext(objContext);
   }
