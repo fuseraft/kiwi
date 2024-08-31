@@ -1,115 +1,60 @@
-/# a script for experimentation and debugging. #/
-
-#println math::random(0, 100)
-/#
-start = time::ticks()
-n = 0
-sum = 0
-while n < math::random(1000, 5000) do
-  repeat math::random(5, 10) do
-    sum += 1
+package guava
+  fn initialize()
+    if !global.has_key("guava_tests")
+      global.guava_tests = {}
+      global.guava_test_results = []
+    end
   end
-  n += 1
-end
-stop = time::ticks()
-duration = time::ticksms(stop - start)
 
-println "duration: ${duration}ms"
-println "sum: ${sum}"
-println "n: ${n}"
-#/
-
-fruits = ["kiwi", "strawberry", "pineapple", "lime", "mango", "guava"]
-list = []
-
-# iterate list
-for fruit in fruits do
-  list.push(fruit)
-end
-
-guava::assert(list == ["kiwi", "strawberry", "pineapple", "lime", "mango", "guava"])
-list.clear()
-
-# iterate index
-for fruit, index in fruits do 
-  list.push(index)
-end
-
-guava::assert(list == [0, 1, 2, 3, 4, 5])
-list.clear()
-
-# iterate inline list
-for item in ["kiwi", "is", "fun"] do
-  list.push(item)
-end
-
-guava::assert(list == ["kiwi", "is", "fun"])
-list.clear()
-
-# iterate an inline list with an index
-for item, index in ["kiwi", "is", "fun"] do
-  list.push(index)
-end
-
-guava::assert(list == [0, 1, 2])
-list.clear()
-
-# iterate a range
-for i in [0..5] do
-  list.push(i)
-end
-
-guava::assert(list == [0, 1, 2, 3, 4, 5])
-list.clear()
-
-# nested while loops
-ii = 0
-test_sum = 0
-while ii < 10 do
-  ii += 1
-  j = 0
+  fn assert(condition, msg = "Assertion failed.")
+    throw msg when condition == false
+  end
   
-  while j < 10 do
-    j += 1
-    test_sum += 1
+  fn register_test(name, t)
+    guava::initialize()
+    global.guava_tests.set(name, t)
+  end
+  
+  fn run_test(name, test, results = [])
+    print string::padend("Running test: ${name} ", 45, " ")
+    guava::initialize()
+  
+    test_start = time::ticks()
+    passed = false
+  
+    try
+      test()
+      passed = true
+    catch (err)
+      print err
+    end
+    
+    test_stop = time::ticks()
+    duration = time::ticksms(test_stop - test_start)
+    results.push({ "name": t, "result": passed, "duration": duration })
+  
+    println (passed ? "passed" : "failed").uppercase() + " in ${duration}ms"
+  end
+  
+  fn run_tests()
+    guava::initialize()
+    results = []
+
+    for name, t in global.guava_tests do
+      guava::run_test(name, t, results)
+    end
+  
+    return results
   end
 end
 
-guava::assert(test_sum == 100)
+export "guava"
 
-list = [], i = 1
-while i <= 10 do
-  list << "Item ${i}"
-  i += 1
-end
+guava::register_test("test", with () do
+  guava::assert(1 == 0)
+end)
+guava::register_test("test2", with () do
+  guava::assert(1 == 0)
+end)
 
-counter = 0
-for item, index in list do
-  counter += 1
-  next when index == 5
-end
-
-guava::assert(counter == 5)
-
-counter = 0
-for item, index in list do
-  counter += 1
-  break when index == 5
-end
-
-guava::assert(counter == 6)
-
-# repeat-loop
-sum = 0
-repeat 10 as i do
-  sum += i
-end
-
-guava::assert(sum == 55)
-
-x = 2
-repeat 4 do
-  x *= x
-end
-
-guava::assert(x == 65536)
+guava::run_tests()
