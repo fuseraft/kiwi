@@ -75,7 +75,11 @@ class Set
   end
 
   def to_string()
-    return "${to_list()}"
+    return to_list().to_string()
+  end
+
+  def type()
+    return "Set"
   end
 
   private def get_input_data(data)

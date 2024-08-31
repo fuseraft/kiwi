@@ -2,8 +2,6 @@
 Summary: A package containing functionality for working with time and date information.
 #/
 package time
-  __home__("kiwi")
-
   /#
   Summary: Get hours since midnight (0 to 23).
   Returns: Integer
@@ -195,7 +193,7 @@ package time
   end
 end
 
-class DateTime private (year, month, day, hour, minute, second)
+class DateTime #private (year, month, day, hour, minute, second)
   def initialize(year = 1970, month = 1, day = 1, hour = 0, minute = 0, second = 0)
     @year = year.is_a(Integer) ? year : 1970
     @month = month.is_a(Integer) ? month : 1
@@ -206,62 +204,61 @@ class DateTime private (year, month, day, hour, minute, second)
   end
 
   def to_string()
-    date_part = ["${@year}", string::padstart("${@month}", 2, "0"), string::padstart("${@day}", 2, "0")].join("-")
-    time_part = [string::padstart("${@hour}", 2, "0"), string::padstart("${@minute}", 2, "0"), string::padstart("${@second}", 2, "0")].join(":")
+    date_part = [("${@year}"), string::padstart(@month, 2, "0"), string::padstart(@day, 2, "0")].join("-")
+    time_part = [string::padstart(@hour, 2, "0"), string::padstart(@minute, 2, "0"), string::padstart(@second, 2, "0")].join(":")
     return [date_part, time_part].join(" ")
   end
 
+  def type()
+    return "DateTime"
+  end
+
   def to_number()
-    number_string = "${@}".replace("-", "").replace(":", "").split(" ")
+    number_string = to_string().replace("-", "").replace(":", "").split(" ")
     date_part = number_string[0].to_int()
-    time_part = "1${number_string[1]}".to_int()
+    time_part = ("1" + number_string[1]).to_int()
 
     return [date_part, time_part]
   end
 
   def equal(another_date)
-    if !another_date.is_a(DateTime)
-      return false
+    return false when another_date.type() != "DateTime"
+    number_a = to_number()
+    number_b = another_date.to_number()
+    if number_a[0] == number_b[0]
+      return number_a[1] == number_b[1]
     else
-      number_a = (@to_number())
-      number_b = another_date.to_number()
-      if number_a[0] == number_b[0]
-        return number_a[1] == number_b[1]
-      else
-        return false
-      end
+      return false
     end
   end
 
   def after(another_date)
-    if !another_date.is_a(DateTime)
-      return false
+    return false when another_date.type() != "DateTime"
+      
+    number_a = to_number()
+    number_b = (another_date).to_number()
+
+    if number_a[0] > number_b[0]
+      return true
+    elsif number_a[0] == number_b[0]
+      return number_a[1] > number_b[1]
     else
-      number_a = (@to_number())
-      number_b = another_date.to_number()
-      if number_a[0] > number_b[0]
-        return true
-      elsif number_a[0] == number_b[0]
-        return number_a[1] > number_b[1]
-      else
-        return false
-      end
+      return false
     end
   end
 
   def before(another_date)
-    if !another_date.is_a(DateTime)
-      return false
+    return false when another_date.type() != "DateTime"
+
+    number_b = another_date.to_number()
+    number_a = @.to_number()
+
+    if number_a[0] < number_b[0]
+      return true
+    elsif number_a[0] == number_b[0]
+      return number_a[1] < number_b[1]
     else
-      number_a = (@to_number())
-      number_b = another_date.to_number()
-      if number_a[0] < number_b[0]
-        return true
-      elsif number_a[0] == number_b[0]
-        return number_a[1] < number_b[1]
-      else
-        return false
-      end
+      return false
     end
   end
 

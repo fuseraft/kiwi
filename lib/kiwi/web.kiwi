@@ -3,8 +3,6 @@ Summary: A package for building web applications.
 #/
 
 package web
-  __home__("kiwi")
-
   /#
   Summary: Returns an OK response.
   Params:

@@ -4,12 +4,12 @@
 #include "parsing/keywords.h"
 #include "util/file.h"
 #include "tracing/error.h"
-#include "interp.h"
+#include "engine.h"
 #include "repl.h"
 
 class Host {
  public:
-  Host(Interpreter& interp) : interp(interp), scripts(), args() {}
+  Host(Engine& engine) : engine(engine), scripts(), args() {}
 
   void disableLibraryLoad() { kiwilibEnabled = false; }
 
@@ -35,14 +35,14 @@ class Host {
   }
 
   int start() {
-    interp.setKiwiArgs(args);
+    engine.setKiwiArgs(args);
 
     // Always try to load kiwilib.
     loadKiwiLibrary();
 
     // Start REPL if no scripts are supplied.
     if (scripts.empty()) {
-      Repl repl(interp);
+      Repl repl(engine);
       return repl.run();
     }
 
@@ -50,12 +50,12 @@ class Host {
   }
 
   int parse(const std::string& input) {
-    interp.setKiwiArgs(args);
+    engine.setKiwiArgs(args);
 
     // Always try to load kiwilib.
     loadKiwiLibrary();
 
-    return interp.interpretKiwi(input);
+    return engine.interpretKiwi(input);
   }
 
   std::string minify(const std::string& script, bool output = false) {
@@ -65,7 +65,7 @@ class Host {
   bool hasScript() const { return !scripts.empty(); }
 
  private:
-  Interpreter& interp;
+  Engine& engine;
   std::unordered_set<std::string> scripts;
   std::unordered_map<std::string, std::string> args;
   bool kiwilibEnabled = true;
@@ -118,6 +118,8 @@ class Host {
       return 1;
     }
 
+    returnCode = engine.runStreamCollection();
+
     return returnCode;
   }
 
@@ -130,7 +132,7 @@ class Host {
       loadLibraryPackages(libPath);
     }
 
-    return interp.interpretScript(path);
+    return engine.interpretScript(path);
   }
 };
 

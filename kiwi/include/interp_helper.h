@@ -237,6 +237,63 @@ struct InterpHelper {
     return stream->position;
   }
 
+  static void updateListSlice(const Token& token, bool insertOp,
+                              k_list& targetList, const SliceIndex& slice,
+                              const k_list& rhsValues) {
+    if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
+      throw IndexError(token, "Start index must be an integer.");
+    } else if (!std::holds_alternative<k_int>(slice.stopIndex)) {
+      throw IndexError(token, "Stop index must be an integer.");
+    } else if (!std::holds_alternative<k_int>(slice.stepValue)) {
+      throw IndexError(token, "Step value must be an integer.");
+    }
+
+    int start = std::get<k_int>(slice.indexOrStart);
+    int stop = std::get<k_int>(slice.stopIndex);
+    int step = std::get<k_int>(slice.stepValue);
+
+    // This is a single element assignment.
+    if (!slice.isSlice && insertOp) {
+      stop = start;
+    }
+
+    auto& elements = targetList->elements;
+    auto& rhsElements = rhsValues->elements;
+
+    // Convert negative indices and adjust ranges
+    int listSize = static_cast<int>(elements.size());
+    int rhsSize = static_cast<int>(rhsElements.size());
+
+    start += start < 0 ? listSize : 0;
+    stop += stop < 0 ? listSize : 0;
+    start = start < 0 ? 0 : start;
+    stop = stop > listSize ? listSize : stop;
+    // Special case for reverse slicing
+    stop = step < 0 && stop == listSize ? -1 : stop;
+
+    if (step == 1) {
+      // Simple case: step is 1
+      if (start >= stop) {
+        elements.erase(elements.begin() + start, elements.begin() + stop);
+        elements.insert(elements.begin() + start, rhsElements.begin(),
+                        rhsElements.end());
+      } else {
+        std::copy(rhsElements.begin(), rhsElements.end(),
+                  elements.begin() + start);
+      }
+    } else {
+      // Complex case: step != 1
+      int rhsIndex = 0;
+      for (int i = start; i != stop && rhsIndex < rhsSize; i += step) {
+        if ((step > 0 && i < listSize) || (step < 0 && i >= 0)) {
+          elements[i] = rhsElements.at(rhsIndex++);
+        } else {
+          break;  // Avoid going out of bounds
+        }
+      }
+    }
+  }
+
   static void updateListSlice(k_stream stream, bool insertOp,
                               k_list& targetList, const SliceIndex& slice,
                               const k_list& rhsValues) {

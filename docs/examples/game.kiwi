@@ -67,8 +67,8 @@ class Game private (name, players, player_count, turns)
   end
 
   def print_info()  
-    lines = "=====================" + ("=" * "${@}".size())
-    println("\n${lines}\nYou are now playing ${@}!\n${lines}")
+    lines = "=====================" + ("=" * "${@name}".size())
+    println("\n${lines}\nYou are now playing ${@name}!\n${lines}")
 
     for p, i in get_players() do
       print("${p.get_type()}: ${p}" + ((i + 1 < get_players().size()) ? ", " : "\n"))

@@ -7,7 +7,7 @@
 #include "parsing/keywords.h"
 #include "tracing/error.h"
 #include "tracing/handler.h"
-#include "interp.h"
+#include "engine.h"
 
 #ifdef _WIN64
 #include <conio.h>
@@ -18,7 +18,7 @@
 
 class Repl {
  public:
-  Repl(Interpreter& interp);
+  Repl(Engine& engine);
   ~Repl();
 
   int run();
@@ -30,7 +30,7 @@ class Repl {
   size_t activeReplLine = 0;
 
   /// @brief The interpreter.
-  Interpreter& interp;
+  Engine& engine;
 
   void beginREPLInput();
   void endREPLInput();
@@ -40,7 +40,7 @@ class Repl {
 
 /// @brief Instantiate a REPL.
 /// @param args REPL arguments.
-Repl::Repl(Interpreter& interp) : interp(interp) {}
+Repl::Repl(Engine& engine) : engine(engine) {}
 
 /// @brief Destroy the REPL.
 Repl::~Repl() {}
@@ -57,7 +57,7 @@ int Repl::run() {
             << "` to exit the REPL." << std::endl
             << std::endl;
 
-  interp.preserveMainStackFrame();
+  engine.preserveMainStackFrame();
 
   lines.emplace_back("");
   activeReplLine = 1;
@@ -68,7 +68,7 @@ int Repl::run() {
 
       if (line == Keywords.Go) {
         auto kiwiCode = input.str();
-        result += interp.interpretKiwi(kiwiCode);
+        result += engine.interpretKiwi(kiwiCode);
         input.str("");
         input.clear();
       } else if (line == Keywords.Exit) {
