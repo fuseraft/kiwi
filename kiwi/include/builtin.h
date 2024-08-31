@@ -16,7 +16,7 @@
 #include "builtins/sys_handler.h"
 #include "builtins/time_handler.h"
 #include "builtins/http_handler.h"
-#include "builtins/reflector_handler.h"
+//#include "builtins/reflector_handler.h"
 #include "tracing/error.h"
 #include "parsing/builtins.h"
 #include "typing/value.h"
@@ -46,8 +46,8 @@ class BuiltinDispatch {
       return HttpBuiltinHandler::execute(term, builtin, args);
     } else if (LoggingBuiltins.is_builtin(builtin)) {
       return LoggingBuiltinHandler::execute(term, builtin, args);
-    } else if (ReflectorBuiltins.is_builtin(builtin)) {
-      return ReflectorBuiltinHandler::execute(term, builtin, args);
+      // } else if (ReflectorBuiltins.is_builtin(builtin)) {
+      //   return ReflectorBuiltinHandler::execute(term, builtin, args);
     }
 
     throw UnknownBuiltinError(term, term.getText());

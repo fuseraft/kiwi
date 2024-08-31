@@ -2,8 +2,6 @@
 Summary: A package containing functionality for working with files and directories.
 #/
 package fs
-  __home__("kiwi")
-
   /#
   Summary: Get the absolute path of a file.
   Params:

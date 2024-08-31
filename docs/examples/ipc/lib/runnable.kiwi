@@ -1,6 +1,4 @@
 package runnable
-  __home__("x")
-
   class Client < Runnable
     def initialize() 
       @hash = ""

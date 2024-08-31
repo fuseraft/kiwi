@@ -13,18 +13,15 @@
 #include "util/file.h"
 #include "util/string.h"
 #include "web/httplib.h"
+#include "typing/value.h"
 #include "globals.h"
 #include "host.h"
 #include "stackframe.h"
 
-TaskManager task;
+//TaskManager task;
 
-std::unordered_map<std::string, Method> methods;
-std::unordered_map<std::string, Package> packages;
-std::unordered_map<std::string, Class> classes;
 std::unordered_map<std::string, std::string> kiwiArgs;
 std::stack<std::shared_ptr<CallStackFrame>> callStack;
-std::stack<k_stream> streamStack;
 std::stack<std::string> packageStack;
 std::unordered_map<int, Method> kiwiWebServerHooks;
 httplib::Server kiwiWebServer;
@@ -61,8 +58,8 @@ int KiwiCLI::run(int argc, char** argv) {
 int KiwiCLI::run(std::vector<std::string>& v) {
   RNG::getInstance();
 
-  Interpreter interp;
-  Host host(interp);
+  Engine engine;
+  Host host(engine);
 
   size_t size = v.size();
 

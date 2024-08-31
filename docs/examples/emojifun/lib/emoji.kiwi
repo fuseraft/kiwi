@@ -1,5 +1,4 @@
 package emoji
-  __home__("fun")
   /#
   @summary Converts certain words in a string to their emoji representations.
   @param   String  _input       : The input string.

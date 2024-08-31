@@ -14,8 +14,6 @@ CONN_STR =   server=%SERVER%;db=%DB_NAME%;user=%DB_USER%;pass=%DB_PASS%
 #/
 
 package conf
-  __home__("kiwi")
-
   /#
   Summary: Reads settings from a `conf` file into a hash.
   Params:

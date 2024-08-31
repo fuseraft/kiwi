@@ -38,8 +38,8 @@ class CoreBuiltinHandler {
       case KName::Builtin_Kiwi_Chars:
         return executeChars(term, value, args);
 
-      case KName::Builtin_Kiwi_Members:
-        return executeMembers(term, value, args);
+        // case KName::Builtin_Kiwi_Members:
+        //   return executeMembers(term, value, args);
 
       case KName::Builtin_Kiwi_IsA:
         return executeIsA(term, value, args);
@@ -435,32 +435,32 @@ class CoreBuiltinHandler {
     return Serializer::pretty_serialize(value);
   }
 
-  static k_value executeMembers(const Token& term, const k_value& value,
-                                const std::vector<k_value>& args) {
-    if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Members);
-    }
+  // static k_value executeMembers(const Token& term, const k_value& value,
+  //                               const std::vector<k_value>& args) {
+  //   if (args.size() != 0) {
+  //     throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Members);
+  //   }
 
-    if (!std::holds_alternative<k_object>(value)) {
-      throw InvalidOperationError(
-          term, "Expected an object in call to `" + KiwiBuiltins.Members + "`");
-    }
+  //   if (!std::holds_alternative<k_object>(value)) {
+  //     throw InvalidOperationError(
+  //         term, "Expected an object in call to `" + KiwiBuiltins.Members + "`");
+  //   }
 
-    auto memberHash = std::make_shared<Hash>();
-    auto obj = std::get<k_object>(value);
-    auto& instanceVariables = obj->instanceVariables;
-    auto clazz = classes[obj->className];
+  //   auto memberHash = std::make_shared<Hash>();
+  //   auto obj = std::get<k_object>(value);
+  //   auto& instanceVariables = obj->instanceVariables;
+  //   auto clazz = classes[obj->className];
 
-    for (const auto& method : clazz.getMethods()) {
-      memberHash->add(method.first, {});
-    }
+  //   for (const auto& method : clazz.getMethods()) {
+  //     memberHash->add(method.first, {});
+  //   }
 
-    for (const auto& instanceVar : instanceVariables) {
-      memberHash->add(instanceVar.first, instanceVar.second);
-    }
+  //   for (const auto& instanceVar : instanceVariables) {
+  //     memberHash->add(instanceVar.first, instanceVar.second);
+  //   }
 
-    return memberHash;
-  }
+  //   return memberHash;
+  // }
 
   static k_value executeJoin(const Token& term, const k_value& value,
                              const std::vector<k_value>& args) {
@@ -1007,16 +1007,16 @@ class CoreBuiltinHandler {
     }
 
     auto typeName = get_string(term, args.at(0));
-    if (!TypeNames.is_typename(typeName)) {
-      if (std::holds_alternative<k_object>(value)) {
-        const auto& obj = std::get<k_object>(value);
-        const auto& className = obj->className;
+    // if (!TypeNames.is_typename(typeName)) {
+    //   if (std::holds_alternative<k_object>(value)) {
+    //     const auto& obj = std::get<k_object>(value);
+    //     const auto& className = obj->className;
 
-        return same_value(className, typeName) ||
-               same_value(classes.at(className).getBaseClassName(), typeName);
-      }
-      throw InvalidTypeNameError(term, typeName);
-    }
+    //     return same_value(className, typeName) ||
+    //            same_value(classes.at(className).getBaseClassName(), typeName);
+    //   }
+    //   throw InvalidTypeNameError(term, typeName);
+    // }
 
     switch (value.index()) {
       case 0:  // k_int

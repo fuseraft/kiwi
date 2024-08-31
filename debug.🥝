@@ -1,414 +1,115 @@
 /# a script for experimentation and debugging. #/
 
-/# 
-
-##################
-# parser testing #
-##################
-
-fn greet(name)
-  println name
-end
-
-a = "Hello, World!"
-b = [1, 2, 3, ["a", "b"]]
-c = b[0]
-c += 1
-
-greet(a)
-
-a = {
-  "a": true, 
-  "b": {
-    "c": [1, 2, {"key": 3}]
-  }
-}
-
-a.x.set(0, a.x.get(2))
-a = {}
-a.x = 5
-a.b.c = [1]
-a.x = [1..5].size()
-a = [1,2][0]
-
-m = (1 + 2) ** 5
-n = [1..m]
-a = n[0:1:2]
-b = n[0::2]
-c = n[::-1]
-d = n[1::]
-e = n[48]
-f = [1, 2, 3, [4, 5]][::-1]
-g = [1..20][::2]
-a = n < 5 ? 100 : 101
-a += 1
-
-say = with (text) do
-  println text
-end
-
-say("hello")
-
-for i, index in [1..50] do
-  println i
-end
-
-for n in b do
-  println n
-end
-
-while n < 5 do
-  println "hello"
-end
-
-repeat 5 as i do
-  println i
-end
-
-try
-  println "First try"
-catch (err)
-  println "an error occurred: ${err}"
-finally
-  println "the end of first try!"
-end
-
-try
-  println "Second try"
-catch (err, msg)
-  println "an error occurred: ${err} with message: ${msg}"
-finally
-  println "the end of second try!"
-end
-
-try
-  println "Third try"
-catch
-  println "an error occurred"
-finally
-  println "the end of third try!"
-end
-
-try
-  println "Fourth try"
-catch
-  println "an error occurred"
-end
-
-try
-  println "Fifth try"
-finally
-  println "the end of fifth try!"
-end
-
-try
-  println "Sixth try"
-end
-
-while n < 5 do
-  try 
-    println n
-  end
-end
-
-if 1 < 5
-  println "1 is < 5"
-elsif 5 > 1
-  println "5 is > 1"
-elsif 4 > 1
-  if 2 < 4
-    println "woot"
-  end
-else
-  if 'a' < 'b'
-    println "foobar"
-  else
-    println "blah"
-  end
-end
-
-if 1 < 5
-  if 2 < 3
-    if 4 < 6 
-      println "blah"
-    end 
-  end 
-end
-
-import "hello"
-
-package pkg_name 
-  home("kiwi")
-
-  fn method_1()
-    println "method 1"
-  end
-
-  fn method_2(a)
-    println "method 2: ${a}"
-  end
-
-  fn method_3(a)
-    throw "not a number" when !a.is_a(Integer) && !a.is_a(Double)
-    return a * 3
-  end
-end
-
-export "pkg_name"
-
-case number
-  when 0 
-    println "zero"
-  when 1
-    println "one"
-  else
-    println "none"
-end
-
-case 
-  when 1 < n
-    println "1 is less than n"
-  when 1 < m
-    println "1 is less than m"
-  else
-    println "n and m are less than 1"
-end
-#/
-
+#println math::random(0, 100)
 /#
-
-#######################
-# interpreter testing #
-#######################
-
-m = 5
-n = [{"a": m}] * m
-println n
-
-a = 11
-a /= 3.
-println a
-
-n = 1
-m = 1
-
-if n < m
-  println "n is less than m"
-  if n < 1
-    println "n is less than 1"
-  elsif n < 2
-    println "n is less than 2"
-  else
-    println "n is greater than or equal to 2"
-  end
-elsif n == m
-  println "n is equal to m"
-  n -= 1
-  if n < 1
-    println "n is less than 1"
-  elsif n < 2
-    println "n is less than 2"
-  else
-    println "n is greater than or equal to 2"
-  end
-else
-  println "n is greater than m"
-end
-
-println n
-
-for i in [1..6] do
-  case i
-    when 1 println "one"
-    when 2 println "two"
-    when 3 println "three"
-    when 4 println "four"
-    when 5 println "five"
-    else println "merp"
-  end
-end
-
+start = time::ticks()
 n = 0
-while n < 5 do
-  println n
+sum = 0
+while n < math::random(1000, 5000) do
+  repeat math::random(5, 10) do
+    sum += 1
+  end
   n += 1
 end
+stop = time::ticks()
+duration = time::ticksms(stop - start)
 
-try
-  repeat 5 as i do
-    println i / 0
-  end
+println "duration: ${duration}ms"
+println "sum: ${sum}"
+println "n: ${n}"
+#/
+
+fruits = ["kiwi", "strawberry", "pineapple", "lime", "mango", "guava"]
+list = []
+
+# iterate list
+for fruit in fruits do
+  list.push(fruit)
+end
+
+guava::assert(list == ["kiwi", "strawberry", "pineapple", "lime", "mango", "guava"])
+list.clear()
+
+# iterate index
+for fruit, index in fruits do 
+  list.push(index)
+end
+
+guava::assert(list == [0, 1, 2, 3, 4, 5])
+list.clear()
+
+# iterate inline list
+for item in ["kiwi", "is", "fun"] do
+  list.push(item)
+end
+
+guava::assert(list == ["kiwi", "is", "fun"])
+list.clear()
+
+# iterate an inline list with an index
+for item, index in ["kiwi", "is", "fun"] do
+  list.push(index)
+end
+
+guava::assert(list == [0, 1, 2])
+list.clear()
+
+# iterate a range
+for i in [0..5] do
+  list.push(i)
+end
+
+guava::assert(list == [0, 1, 2, 3, 4, 5])
+list.clear()
+
+# nested while loops
+ii = 0
+test_sum = 0
+while ii < 10 do
+  ii += 1
+  j = 0
   
-  println i
-catch (err, msg)
-  println err
-  println msg
-finally
-  println "yay"
-end
-
-try
-  throw "Uh-oh!" when 1 == 1
-catch (err)
-  println err
-finally
-  println "eh"
-end
-
-fn add(n, m = 0)
-  println "n is " + n
-  println "m is " + m
-  println n + m
-end
-
-add(5, 4)
-
-println "hello".chars()
-println __random__(1, 100)
-
-package kiwi::testing
-  println "loading package kiwi::testing"
-  fn add(a, b)
-    println a + b
+  while j < 10 do
+    j += 1
+    test_sum += 1
   end
 end
 
-import "kiwi::testing"
-kiwi::testing::add(5, 2)
+guava::assert(test_sum == 100)
 
-say = with (msg = "hello") do
-  println msg
-end
-
-say("hello, world!")
-
-fn test(name, t)
-  t()
-end
-
-for i in [1..100000] do
-  test("hello", with() do 
-    println "hello, world!" + i
-  end)
-end
-
-fn add(n, m)
-  n + m
-end
-
-a = add(5, 10)
-println a
-
-fn get_something()
-  return "one" when __random__(0., 1.) < 0.5
-
-  sum = 0
-  repeat 5 do
-    sum += __random__(0, 100)
-  end
-
-  if sum % 2 == 0
-    return "two"
-  end
-
-  return "three"
-end
-
-i = 0
-while i < 5 do
-  println get_something()
+list = [], i = 1
+while i <= 10 do
+  list << "Item ${i}"
   i += 1
 end
 
-fn test(a)
-  if a % 2 == 0
-    if a % 3 == 0
-      return [a, 3]
-    elsif a % 4 == 0
-      return [a, 4]
-    end
-
-    return [a, 2]
-  else
-    if a % 5 == 0
-      return [a, 5]
-    elsif a % 8 == 0
-      return [a, 7]
-    elsif a % 9 == 0
-      return [a, 9]
-    end
-  end
-
-  return [a, 1]
+counter = 0
+for item, index in list do
+  counter += 1
+  next when index == 5
 end
 
-for a in [1..500] do
-  println test(a)
+guava::assert(counter == 5)
+
+counter = 0
+for item, index in list do
+  counter += 1
+  break when index == 5
 end
 
-a = [1..50]
-b = a[a.size() / 2]
-println b
-b = a[a.size() / 3]
-println b
-println [1..50][::-2]
-println [1..50][::-1]
-println [1..50][1:-1]
-println "abcdef"[2:-2]
+guava::assert(counter == 6)
 
-data = [1..100]
-odds = data.select(with (i) do i % 2 != 0 end)
-evens = data.select(with (i) do i % 2 == 0 end)
-odds_plus_1 = odds.map(with (i) do i + 1 end)
-evens_minus_1 = evens.map(with (i) do i - 1 end)
-sum_odds = odds.sum()
-sum_evens = evens.sum()
-sum_odds_reduce = odds.reduce(0, with (acc, i) do acc += i end)
-sum_evens_reduce = evens.reduce(0, with (acc, i) do acc += i end)
-sum_odds_plus_1 = odds_plus_1.sum()
-sum_evens_plus_1 = evens_minus_1.sum()
-println sum_odds == sum_odds_reduce 
-  && sum_evens == sum_evens_reduce
-  && sum_odds_plus_1 == sum_evens
-  && sum_evens_plus_1 == sum_odds
-  && odds.none(with (i) do i == 2 end)
-  && evens.none(with (i) do i == 1 end)
-  && [3, 2, 4].min() == 2 && [5, 1, 3].max() == 5
-
-evens.each(with (i, index) do
-  println "i = " + i + ", index = " + index
-end)
-
-println ((1 == 0) && 5 == 5) || true
-println -1 + 5
-println 5 - 1
-
-name = "kiwi"
-println "hello, ${name * 5}!"
-
-fn test()
-  return "asdfasdf"
+# repeat-loop
+sum = 0
+repeat 10 as i do
+  sum += i
 end
 
-println "[${test()}]"
+guava::assert(sum == 55)
 
-h = {}
-h.x = {}
-h.x.y = {}
-h.x.y.z = {}
-h.x.y.z.n = 0
-h.x.y.z.n += 50
-println h
-#/
-
-class B
+x = 2
+repeat 4 do
+  x *= x
 end
 
-class A < B
-  def initialize()
-    println "Hello"
-  end
-
-  static def test()
-  end
-end
+guava::assert(x == 65536)

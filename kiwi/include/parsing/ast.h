@@ -25,6 +25,7 @@ enum class ASTNodeType {
   IDENTIFIER,
   IF_STATEMENT,
   IMPORT_STATEMENT,
+  INDEX_ASSIGNMENT,
   INDEX_EXPRESSION,
   INTERFACE,
   LAMBDA,
@@ -42,6 +43,7 @@ enum class ASTNodeType {
   RANGE_LITERAL,
   REPEAT_LOOP,
   RETURN_STATEMENT,
+  SELF,
   SLICE_EXPRESSION,
   TERNARY_OPERATION,
   THROW_STATEMENT,
@@ -70,6 +72,7 @@ void print_depth(int depth) {
 class ProgramNode : public ASTNode {
  public:
   std::vector<std::unique_ptr<ASTNode>> statements;
+  bool isScript = false;
 
   ProgramNode() : ASTNode(ASTNodeType::PROGRAM) {}
   ProgramNode(std::vector<std::unique_ptr<ASTNode>> statements)
@@ -982,16 +985,61 @@ class MemberAccessNode : public ASTNode {
   }
 };
 
+class SelfNode : public ASTNode {
+ public:
+  std::string name;
+  SelfNode() : ASTNode(ASTNodeType::SELF) {}
+  SelfNode(const std::string& name) : ASTNode(ASTNodeType::SELF), name(name) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Self:" << std::endl;
+
+    if (!name.empty()) {
+      print_depth(1 + depth);
+      std::cout << "Name: " << name << std::endl;
+    }
+  }
+};
+
+class IndexAssignmentNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> object;
+  KName op;
+  std::unique_ptr<ASTNode> initializer;
+
+  IndexAssignmentNode() : ASTNode(ASTNodeType::INDEX_ASSIGNMENT) {}
+  IndexAssignmentNode(std::unique_ptr<ASTNode> object, const KName& op,
+                      std::unique_ptr<ASTNode> initializer)
+      : ASTNode(ASTNodeType::INDEX_ASSIGNMENT),
+        object(std::move(object)),
+        op(op),
+        initializer(std::move(initializer)) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "IndexAssignment:" << std::endl;
+    object->print(1 + depth);
+    print_depth(1 + depth);
+    std::cout << Operators.get_op_string(op) << std::endl;
+    print_depth(1 + depth);
+    std::cout << "Initializer:" << std::endl;
+    initializer->print(2 + depth);
+  }
+};
+
 class AssignmentNode : public ASTNode {
  public:
+  std::unique_ptr<ASTNode> left;
   std::string name;
   KName op;
   std::unique_ptr<ASTNode> initializer;
 
   AssignmentNode() : ASTNode(ASTNodeType::ASSIGNMENT) {}
-  AssignmentNode(const std::string& name, const KName& op,
-                 std::unique_ptr<ASTNode> initializer)
+  AssignmentNode(std::unique_ptr<ASTNode> left, const std::string& name,
+                 const KName& op, std::unique_ptr<ASTNode> initializer)
       : ASTNode(ASTNodeType::ASSIGNMENT),
+        left(std::move(left)),
         name(name),
         op(op),
         initializer(std::move(initializer)) {}
@@ -1032,6 +1080,77 @@ class MemberAssignmentNode : public ASTNode {
     std::cout << "Initializer:" << std::endl;
     initializer->print(1 + depth);
   }
+};
+
+enum class KCallableType {
+  Builtin,
+  Function,
+  Method,
+  Lambda,
+};
+
+class KCallable {
+ public:
+  KCallableType type;
+  std::vector<std::pair<k_string, k_value>> parameters;
+  std::unordered_set<k_string> defaultParameters;
+  KCallable(KCallableType type) : type(type) {}
+  virtual ~KCallable() = default;
+  virtual const std::vector<std::unique_ptr<ASTNode>>& getBody() const = 0;
+};
+
+class KBuiltin : public KCallable {
+ public:
+  k_string name;
+  Token token;
+
+  KBuiltin(const Token& token, const k_string& name)
+      : KCallable(KCallableType::Builtin), name(name), token(token) {}
+
+  const std::vector<std::unique_ptr<ASTNode>>& getBody() const override {
+    return {};
+  }
+};
+
+class KFunction : public KCallable {
+ public:
+  k_string name;
+  const FunctionDeclarationNode* decl;
+  bool isStatic = false;
+  bool isPrivate = false;
+  bool isCtor = false;
+
+  KFunction(const FunctionDeclarationNode* decl)
+      : KCallable(KCallableType::Function), decl(std::move(decl)) {}
+
+  const std::vector<std::unique_ptr<ASTNode>>& getBody() const override {
+    return decl->body;
+  }
+};
+
+class KLambda : public KCallable {
+ public:
+  const LambdaNode* decl;
+
+  KLambda(const LambdaNode* decl)
+      : KCallable(KCallableType::Lambda), decl(std::move(decl)) {}
+
+  const std::vector<std::unique_ptr<ASTNode>>& getBody() const override {
+    return decl->body;
+  }
+};
+
+class KClass {
+ public:
+  k_string name;
+  k_string baseClass;
+  std::unordered_map<k_string, std::unique_ptr<KFunction>> methods;
+};
+
+class KPackage {
+ public:
+  const PackageNode* decl;
+  KPackage(const PackageNode* decl) : decl(decl) {}
 };
 
 #endif

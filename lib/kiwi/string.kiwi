@@ -3,8 +3,6 @@
 A package with interesting string operations.
 #/
 package string
-  __home__("kiwi")
-
   /#
   @summary Encodes a string as a base64 string.
   @param   String  _input   : The input string. 
@@ -49,9 +47,9 @@ package string
   @return  String           : The padded string.
   #/
   def padstart(_input, _size, _padding = " ")
-    if "${_input}".size() >= _size return "${_input}" end
+    return "${_input}" when ("${_input}").size() >= _size
     if _padding.size() != 1 _padding = " " end
-    _padding_size = _size - "${_input}".size()
+    _padding_size = _size - ("${_input}").size()
     _pad = _padding * _padding_size
     return _pad + "${_input}"
   end
@@ -64,9 +62,9 @@ package string
   @return  String           : The padded string.
   #/
   def padend(_input, _size, _padding = " ")
-    if "${_input}".size() >= _size return "${_input}" end
+    return "${_input}" when ("${_input}").size() >= _size
     if _padding.size() != 1 _padding = " " end
-    _padding_size = _size - "${_input}".size()
+    _padding_size = _size - ("${_input}").size()
     _pad = _padding * _padding_size
     return "${_input}" + _pad
   end
@@ -79,14 +77,14 @@ package string
   @return  String           : The centered string.
   #/
   def center(_input, _width, _padding = " ")
-    if "${_input}".size() >= _width return "${_input}" end
+    return "${_input}" when ("${_input}").size() >= _width
     if _padding.size() != 1 _padding = " " end
-    _total_padding = _width - "${_input}".size()
+    _total_padding = _width - ("${_input}").size()
     _left_padding_size = _total_padding / 2
     _right_padding_size = _total_padding - _left_padding_size
     _left_pad = _padding * _left_padding_size
     _right_pad = _padding * _right_padding_size
-    return _left_pad + "${_input}" + _right_pad
+    return _left_pad + ("${_input}") + _right_pad
   end
 
   /#
@@ -97,7 +95,7 @@ package string
   #/
   def echo(_input, _count)
     _output = ""
-    for char in "${_input}".chars() do
+    for char in ("${_input}").chars() do
       _output = _output + (char * _count)
     end
     return _output
@@ -111,10 +109,10 @@ package string
   #/
   def interweave(_input1, _input2)
     _output = ""
-    _length = ["${_input1}".size(), "${_input2}".size()].max()
+    _length = [("${_input1}").size(), ("${_input2}").size()].max()
     for i in [0 .. _length - 1] do
-      if i < "${_input1}".size() _output = _output + "${_input1}"[i] end
-      if i < "${_input2}".size() _output = _output + "${_input2}"[i] end
+      if i < ("${_input1}").size() _output = _output + ("${_input1}")[i] end
+      if i < ("${_input2}").size() _output = _output + ("${_input2}")[i] end
     end
     return _output
   end
@@ -126,8 +124,8 @@ package string
   @return  String            : The mirrored string.
   #/
   def mirror(_input, _delimiter = "")
-    _reversed = "${_input}".reverse()
-    return _input + _delimiter + _reversed
+    _reversed = ("${_input}").reverse()
+    return ("${_input}") + _delimiter + _reversed
   end
 
   /#
@@ -136,7 +134,7 @@ package string
   @return  String         : The shuffled string.
   #/
   def shuffle(_input)
-    _array = "${_input}".chars()
+    _array = ("${_input}").chars()
     _n = _array.size()
     
     while _n > 1 do
@@ -156,7 +154,7 @@ package string
   @return  String           : The generated slug.
   #/
   def slug(_input)
-    _lowercased = "${_input}".lowercase()
+    _lowercased = ("${_input}").lowercase()
     _hyphenated = _lowercased.replace(" ", "-")
 
     _slug = ""
@@ -178,7 +176,7 @@ package string
   def isnumeric(_input)
     _isnumeric = true
     
-    for char in "${_input}".chars() do
+    for char in ("${_input}").chars() do
       if !(char >= "0" && char <= "9")
         _isnumeric = false
         break
@@ -194,7 +192,7 @@ package string
   @return  Boolean        : True if the string is alphabetic, otherwise false.
   #/
   def isalpha(_input)
-    for char in "${_input}".chars() do
+    for char in ("${_input}").chars() do
       if !((char >= "a" && char <= "z") || (char >= "A" && char <= "Z"))
         return false
       end
@@ -209,7 +207,7 @@ package string
   @return  Boolean        : True if the string is alphanumeric, otherwise false.
   #/
   def isalphanumeric(_input)
-    for char in "${_input}".chars() do
+    for char in ("${_input}").chars() do
       if !(char >= "0" && char <= "9" || (char >= "a" && char <= "z") || (char >= "A" && char <= "Z"))
         return false
       end
@@ -224,7 +222,7 @@ package string
   @return  Boolean          : True if the string is all uppercase, false otherwise.
   #/
   def isupper(_input)
-    for char in "${_input}".chars() do
+    for char in ("${_input}").chars() do
       # If any character is lowercase, return false
       if char >= "a" && char <= "z"
         return false
@@ -239,7 +237,7 @@ package string
   @return  Boolean          : True if the string is all lowercase, false otherwise.
   #/
   def islower(_input)
-    for char in "${_input}".chars() do
+    for char in ("${_input}").chars() do
       # If any character is uppercase, return false
       if char >= "A" && char <= "Z"
         return false
@@ -254,7 +252,7 @@ package string
   @return  String           : The string converted to uppercase.
   #/
   def toupper(_input)
-    return "${_input}".uppercase()
+    return ("${_input}").uppercase()
   end
 
   /#
@@ -263,7 +261,7 @@ package string
   @return  String           : The string converted to lowercase.
   #/
   def tolower(_input)
-    return "${_input}".lowercase()
+    return ("${_input}").lowercase()
   end
 end
 
