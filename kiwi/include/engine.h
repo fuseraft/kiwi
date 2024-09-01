@@ -46,10 +46,26 @@ class Engine {
     return 0;
   }
 
+  void printAST(const k_string& path) {
+    auto content = File::readFile(path);
+    if (content.empty()) {
+      return;
+    }
+
+    Lexer lexer(path, content);
+
+    auto tokenStream = lexer.getTokenStream();
+    auto ast = parser.parseTokenStream(tokenStream);
+    auto node = ast.get();
+    node->print(0);
+
+    return;
+  }
+
   int interpretScript(const k_string& path) {
     auto content = File::readFile(path);
     if (content.empty()) {
-      return -1;
+      return 1;
     }
 
     Lexer lexer(path, content);

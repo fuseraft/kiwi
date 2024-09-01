@@ -62,6 +62,10 @@ class Host {
     return Lexer::minify(script, output);
   }
 
+  void printAST(const std::string& script) {
+    engine.printAST(script);
+  }
+
   bool hasScript() const { return !scripts.empty(); }
 
  private:

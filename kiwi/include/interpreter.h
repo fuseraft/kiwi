@@ -529,6 +529,8 @@ k_value KInterpreter::visit(const IndexAssignmentNode* node) {
               key, MathImpl.do_binary_op(node->token, op, oldValue, newValue));
         }
       }
+    } else if (indexExpr->indexedObject->type == ASTNodeType::INDEX_EXPRESSION) {
+      // WIP: will refactor to handle nesting...
     }
   }
 
