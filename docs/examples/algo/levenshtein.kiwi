@@ -22,7 +22,7 @@ def levenshtein_distance(s1, s2)
     end
   end
 
-  return dist[-1][-1]
+  return dist.last().last()
 end
 
 [["kitten", "sitting"],

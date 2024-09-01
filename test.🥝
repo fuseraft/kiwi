@@ -283,6 +283,44 @@ guava::register_test("serialization", with () do
   guava::assert(b.to_string() == a.to_string())
 end)
 
+guava::register_test("classes", with () do
+  class Shape
+    def area() end
+    def perimeter() end
+  end
+
+  class Circle < Shape
+    def initialize(radius)
+      @radius = radius
+    end
+
+    def area()
+      return 3.14159 * @radius * @radius
+    end
+
+    def perimeter()
+      return 2 * 3.14159 * @radius
+    end
+  end
+
+  circle = Circle.new(5)
+
+  # magic numbers everywhere
+  guava::assert(math::floor(circle.area()).to_int() == 78)
+  guava::assert(math::floor(circle.perimeter()).to_int() == 31)
+end)
+
+guava::register_test("builtins", with () do
+  a = "FooBar".lowercase() 
+  guava::assert("${a}${a.uppercase()}" == "foobarFOOBAR")
+  guava::assert(a.index("bar") == 3)
+  guava::assert(a.chars().size() == 6)
+  guava::assert("foobar".replace("foo", "food") == "foodbar")
+  guava::assert(!a.begins_with("food"))
+  guava::assert("foobar".ends_with("bar"))
+  guava::assert(!"foobar".ends_with("bark"))
+end)
+
 guava::register_test("standard library", with () do
   guava::assert(string::mirror("hello") == "helloolleh")
 end)
