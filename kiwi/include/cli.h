@@ -23,10 +23,10 @@
 std::unordered_map<std::string, std::string> kiwiArgs;
 std::stack<std::shared_ptr<CallStackFrame>> callStack;
 std::stack<std::string> packageStack;
-std::unordered_map<int, Method> kiwiWebServerHooks;
-httplib::Server kiwiWebServer;
-std::string kiwiWebServerHost;
-k_int kiwiWebServerPort;
+// std::unordered_map<int, Method> kiwiWebServerHooks;
+// httplib::Server kiwiWebServer;
+// std::string kiwiWebServerHost;
+// k_int kiwiWebServerPort;
 bool SILENCE = false;
 
 class KiwiCLI {

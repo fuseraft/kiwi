@@ -21,12 +21,13 @@ package guava
   
     test_start = time::ticks()
     passed = false
+    error_message = ''
   
     try
       test()
       passed = true
     catch (err)
-      print err
+      error_message = err
     end
     
     test_stop = time::ticks()
@@ -34,6 +35,9 @@ package guava
     results.push({ "name": t, "result": passed, "duration": duration })
   
     println (passed ? "passed" : "failed").uppercase() + " in ${duration}ms"
+    if !error_message.empty()
+      println "  " + error_message
+    end
   end
   
   fn run_tests()

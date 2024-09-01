@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "globals.h"
+#include "builtin.h"
 #include "interp_helper.h"
 #include "math/functions.h"
 #include "parsing/ast.h"
@@ -100,9 +101,21 @@ class KInterpreter {
   k_value lambdaSelect(std::unique_ptr<KLambda>& lambda, const k_list& list);
   k_value interpretListBuiltin(const Token& token, k_value& object,
                                const KName& op, std::vector<k_value> arguments);
+
+  k_value interpolateString(const k_string& input);
+  k_value interpretSerializerDeserialize(const Token& token,
+                                         std::vector<k_value>& args);
+  k_value interpretSerializerSerialize(const Token& token,
+                                       std::vector<k_value>& args);
+  k_value interpretSerializerBuiltin(const Token& token, const KName& builtin,
+                                     std::vector<k_value>& args);
 };
 
 k_value KInterpreter::interpret(const ASTNode* node) {
+  if (!node) {
+    return static_cast<k_int>(0);
+  }
+
   switch (node->type) {
     case ASTNodeType::PROGRAM:
       return visit(static_cast<const ProgramNode*>(node));
@@ -275,11 +288,13 @@ k_value KInterpreter::visit(const ProgramNode* node) {
     callStack.push(programFrame);
   }
 
+  k_value result;
+
   for (const auto& stmt : node->statements) {
-    interpret(stmt.get());
+    result = interpret(stmt.get());
   }
 
-  return static_cast<k_int>(0);
+  return result;
 }
 
 k_value KInterpreter::visit(const ExitNode* node) {
@@ -420,7 +435,7 @@ k_value KInterpreter::doSliceAssignment(const Token& token, k_value& slicedObj,
     return targetList;
   }
 
-  return static_cast<k_int>(0);
+  return slicedObj;
 }
 
 k_value KInterpreter::visit(const IndexAssignmentNode* node) {
@@ -699,6 +714,8 @@ k_value KInterpreter::visit(const RangeLiteralNode* node) {
 
 k_value KInterpreter::visit(const HashLiteralNode* node) {
   auto hash = std::make_shared<Hash>();
+  std::unordered_map<k_string, k_value> kvps;
+
   for (const auto& pair : node->elements) {
     auto key = interpret(pair.first.get());
     auto value = interpret(pair.second.get());
@@ -707,8 +724,13 @@ k_value KInterpreter::visit(const HashLiteralNode* node) {
       throw SyntaxError(node->token, "Hash key must be a string value.");
     }
 
-    hash->add(std::get<k_string>(key), value);
+    kvps[std::get<k_string>(key)] = value;
   }
+
+  for (const auto& key : node->keys) {
+    hash->add(key, kvps[key]);
+  }
+
   return hash;
 }
 
@@ -977,7 +999,7 @@ k_value KInterpreter::hashLoop(const ForLoopNode* node, const k_hash& hash) {
           stmt->type != ASTNodeType::BREAK_STATEMENT) {
         result = interpret(stmt.get());
       }
-      
+
       if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
         break;
       }
@@ -1215,6 +1237,10 @@ k_value KInterpreter::visit(const ClassNode* node) {
 k_value KInterpreter::visit(const FunctionDeclarationNode* node) {
   auto name = node->name;
 
+  if (name == "hello") {
+    node->print(0);
+  }
+
   if (!packageStack.empty()) {
     name = packageStack.top() + "::" + name;
   }
@@ -1287,7 +1313,7 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
           const auto& arg = node->arguments[i];
           argValue = interpret(arg.get());
         } else if (defaultParameters.find(param.first) !=
-                  defaultParameters.end()) {
+                   defaultParameters.end()) {
           argValue = param.second;
         } else {
           throw ParameterCountMismatchError(node->token, node->functionName);
@@ -1323,7 +1349,7 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
           const auto& arg = node->arguments[i];
           argValue = interpret(arg.get());
         } else if (defaultParameters.find(param.first) !=
-                  defaultParameters.end()) {
+                   defaultParameters.end()) {
           argValue = param.second;
         } else {
           throw ParameterCountMismatchError(node->token, node->functionName);
@@ -1367,7 +1393,7 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
           const auto& arg = node->arguments[i];
           argValue = interpret(arg.get());
         } else if (defaultParameters.find(param.first) !=
-                  defaultParameters.end()) {
+                   defaultParameters.end()) {
           argValue = param.second;
         } else {
           throw ParameterCountMismatchError(node->token, targetLambda);
@@ -1462,9 +1488,15 @@ k_value KInterpreter::callFunction(
 
   callStack.push(functionFrame);
 
-  k_value result = executeFunctionBody(function);
+  k_value result;
 
-  dropFrame();
+  try {
+    result = executeFunctionBody(function);
+    dropFrame();
+  } catch (const KiwiError& e) {
+    dropFrame();
+    throw;
+  }
 
   return result;
 }
@@ -1589,8 +1621,56 @@ k_value KInterpreter::callClassMethod(const MethodCallNode* node,
 }
 
 k_value KInterpreter::callBuiltinMethod(const FunctionCallNode* node) {
-  return BuiltinDispatch::execute(
-      node->token, node->op, getMethodCallArguments(node->arguments), kiwiArgs);
+  auto args = getMethodCallArguments(node->arguments);
+  if (SerializerBuiltins.is_builtin(node->op)) {
+    return interpretSerializerBuiltin(node->token, node->op, args);
+  }
+
+  return BuiltinDispatch::execute(node->token, node->op, args, kiwiArgs);
+}
+
+k_value KInterpreter::interpolateString(const k_string& input) {
+  Parser parser;
+  Lexer lexer("", input);
+  auto tempStream = lexer.getTokenStream();
+  auto ast = parser.parseTokenStream(tempStream, true);
+
+  return interpret(ast.get());
+}
+
+k_value KInterpreter::interpretSerializerDeserialize(
+    const Token& token, std::vector<k_value>& args) {
+  if (args.size() != 1) {
+    throw BuiltinUnexpectedArgumentError(token, SerializerBuiltins.Deserialize);
+  }
+
+  return interpolateString(get_string(token, args.at(0)));
+}
+
+k_value KInterpreter::interpretSerializerSerialize(const Token& token,
+                                                   std::vector<k_value>& args) {
+  if (args.size() != 1) {
+    throw BuiltinUnexpectedArgumentError(token, SerializerBuiltins.Serialize);
+  }
+
+  return Serializer::serialize(args.at(0), true);
+}
+
+k_value KInterpreter::interpretSerializerBuiltin(const Token& token,
+                                                 const KName& builtin,
+                                                 std::vector<k_value>& args) {
+  switch (builtin) {
+    case KName::Builtin_Serializer_Deserialize:
+      return interpretSerializerDeserialize(token, args);
+
+    case KName::Builtin_Serializer_Serialize:
+      return interpretSerializerSerialize(token, args);
+
+    default:
+      break;
+  }
+
+  return static_cast<k_int>(0);
 }
 
 k_value KInterpreter::interpretListBuiltin(const Token& token, k_value& object,
