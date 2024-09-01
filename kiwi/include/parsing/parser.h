@@ -424,10 +424,6 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
     next();  // Consume ')'
   }
 
-  if (functionName == "hello") {
-    std::cout << "";
-  }
-
   // Parse the function body
   std::vector<std::unique_ptr<ASTNode>> body;
   while (kToken.getSubType() != KName::KW_End) {

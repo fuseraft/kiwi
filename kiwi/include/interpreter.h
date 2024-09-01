@@ -1237,10 +1237,6 @@ k_value KInterpreter::visit(const ClassNode* node) {
 k_value KInterpreter::visit(const FunctionDeclarationNode* node) {
   auto name = node->name;
 
-  if (name == "hello") {
-    node->print(0);
-  }
-
   if (!packageStack.empty()) {
     name = packageStack.top() + "::" + name;
   }
