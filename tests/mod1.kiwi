@@ -1,5 +1,0 @@
-package mod1
-  def say(s) println(s) end
-end
-
-export "mod1"

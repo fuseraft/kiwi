@@ -38,8 +38,8 @@ for i in [0..19] do
     vertical *= grid[j+2][i]
     vertical *= grid[j+3][i]
 
-    products << horizontal
-    products << vertical
+    products.push(horizontal)
+    products.push(vertical)
   end
 end
 
@@ -55,8 +55,8 @@ for i in [0..16] do
     diagonal2 *= grid[i+1][j+2]
     diagonal2 *= grid[i][j+3]
 
-    products << diagonal1
-    products << diagonal2
+    products.push(diagonal1)
+    products.push(diagonal2)
   end
 end
 

@@ -3,7 +3,7 @@
 class Heap
   def initialize(type = "min")
     @heap = []
-    @type = ["min", "max"].contains(type) ? type : "min"
+    @heap_type = ["min", "max"].contains(type) ? type : "min"
   end
 
   def insert(value)
@@ -42,7 +42,7 @@ class Heap
   private def heapify_up(index)
     parent_index = (index - 1) / 2
 
-    if @type == "min"
+    if @heap_type == "min"
       while index > 0 && @heap.get(index) < @heap.get(parent_index) do
         swap(index, parent_index)
         index = parent_index
@@ -61,8 +61,8 @@ class Heap
     left_child_index = 2 * index + 1
     right_child_index = 2 * index + 2
     size = @heap.size()
-    
-    if @type == "min"
+
+    if @heap_type == "min"
       smallest = index
 
       if left_child_index < size && @heap.get(left_child_index) < @heap.get(smallest)

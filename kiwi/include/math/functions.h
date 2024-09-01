@@ -329,6 +329,40 @@ struct {
     return build;
   }
 
+  bool is_truthy(const k_value& value) {
+    switch (value.index()) {
+      case 0:  // k_int
+        return std::get<k_int>(value) != static_cast<k_int>(0);
+
+      case 1:  // double
+        return std::get<double>(value) != static_cast<double>(0);
+
+      case 2:  // bool
+        return std::get<bool>(value);
+
+      case 3:  // k_string
+        return !std::get<k_string>(value).empty();
+
+      case 4:  // k_list
+        return !std::get<k_list>(value)->elements.empty();
+
+      case 5:  // k_hash
+        return std::get<k_hash>(value)->size() > 0;
+
+      case 6:  // k_object
+        return true;
+
+      case 7:  // k_lambda
+        return true;
+
+      case 8:  // k_null
+        return false;
+
+      default:
+        return false;
+    }
+  }
+
   k_value do_eq_comparison(const k_value& left, const k_value& right) {
     return same_value(left, right);
   }
@@ -434,6 +468,37 @@ struct {
     }
 
     throw ConversionError(token, "Conversion error in bitwise >> operation.");
+  }
+
+  k_value do_negation(const Token& token, const k_value& right) {
+    if (std::holds_alternative<k_int>(right)) {
+      return -std::get<k_int>(right);
+    } else if (std::holds_alternative<double>(right)) {
+      return -std::get<double>(right);
+    } else {
+      throw ConversionError(token,
+                            "Unary minus applied to a non-numeric value.");
+    }
+  }
+
+  k_value do_logical_not(const k_value& right) {
+    if (std::holds_alternative<bool>(right)) {
+      return !std::get<bool>(right);
+    } else if (std::holds_alternative<k_null>(right)) {
+      return true;
+    } else if (std::holds_alternative<k_int>(right)) {
+      return static_cast<k_int>(std::get<k_int>(right) == 0 ? 1 : 0);
+    } else if (std::holds_alternative<double>(right)) {
+      return std::get<double>(right) == 0;
+    } else if (std::holds_alternative<k_string>(right)) {
+      return std::get<k_string>(right).empty();
+    } else if (std::holds_alternative<k_list>(right)) {
+      return std::get<k_list>(right)->elements.empty();
+    } else if (std::holds_alternative<k_hash>(right)) {
+      return std::get<k_hash>(right)->keys.empty();
+    } else {
+      return false;  // Object, Lambda, etc.
+    }
   }
 
   double get_double(const Token& token, const k_value& value) {
@@ -705,6 +770,83 @@ struct {
 
     throw ConversionError(token,
                           "Expected a numeric value in random number range");
+  }
+
+  k_value do_unary_op(const Token& token, const KName& op,
+                      const k_value& right) {
+    switch (op) {
+      case KName::Ops_Not:
+        return do_logical_not(right);
+
+      case KName::Ops_BitwiseNot:
+      case KName::Ops_BitwiseNotAssign:
+        return do_bitwise_not(token, right);
+
+      case KName::Ops_Subtract:
+        return do_negation(token, right);
+
+      default:
+        throw InvalidOperationError(token, "Unknown unary operation.");
+    }
+  }
+
+  k_value do_binary_op(const Token& token, const KName& op, const k_value& left,
+                       const k_value& right) {
+    switch (op) {
+      case KName::Ops_Add:
+      case KName::Ops_AddAssign:
+        return do_addition(token, left, right);
+      case KName::Ops_Subtract:
+      case KName::Ops_SubtractAssign:
+        return do_subtraction(token, left, right);
+      case KName::Ops_Multiply:
+      case KName::Ops_MultiplyAssign:
+        return do_multiplication(token, left, right);
+      case KName::Ops_Divide:
+      case KName::Ops_DivideAssign:
+        return do_division(token, left, right);
+      case KName::Ops_Modulus:
+      case KName::Ops_ModuloAssign:
+        return do_modulus(token, left, right);
+      case KName::Ops_Exponent:
+      case KName::Ops_ExponentAssign:
+        return do_exponentiation(token, left, right);
+      case KName::Ops_BitwiseAnd:
+      case KName::Ops_BitwiseAndAssign:
+        return do_bitwise_and(token, left, right);
+      case KName::Ops_BitwiseOr:
+      case KName::Ops_BitwiseOrAssign:
+        return do_bitwise_or(token, left, right);
+      case KName::Ops_BitwiseXor:
+      case KName::Ops_BitwiseXorAssign:
+        return do_bitwise_xor(token, left, right);
+      case KName::Ops_BitwiseLeftShift:
+      case KName::Ops_BitwiseLeftShiftAssign:
+        return do_bitwise_lshift(token, left, right);
+      case KName::Ops_BitwiseRightShift:
+      case KName::Ops_BitwiseRightShiftAssign:
+        return do_bitwise_rshift(token, left, right);
+      case KName::Ops_And:
+      case KName::Ops_AndAssign:
+        return is_truthy(left) && is_truthy(right);
+      case KName::Ops_Or:
+      case KName::Ops_OrAssign:
+        return is_truthy(left) || is_truthy(right);
+      case KName::Ops_LessThan:
+        return do_lt_comparison(left, right);
+      case KName::Ops_LessThanOrEqual:
+        return do_lte_comparison(left, right);
+      case KName::Ops_GreaterThan:
+        return do_gt_comparison(left, right);
+      case KName::Ops_GreaterThanOrEqual:
+        return do_gte_comparison(left, right);
+      case KName::Ops_Equal:
+        return do_eq_comparison(left, right);
+      case KName::Ops_NotEqual:
+        return do_neq_comparison(left, right);
+      default:
+        throw InvalidOperationError(token, "Unknown binary operation.");
+    }
   }
 } MathImpl;
 
