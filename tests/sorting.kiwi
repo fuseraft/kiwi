@@ -1,8 +1,0 @@
-c = "abcdefg".chars()[::-1].join()
-println(c)
-
-c = c.split("").sort()[::-1][::-1].join("")
-println(c)
-
-l = ["c", 1, false, "b", 5, "a", 3, 2, true, 9]
-println("unsorted: ${l}\nsorted: ${l.sort()}")

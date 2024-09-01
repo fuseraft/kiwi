@@ -18,7 +18,7 @@ def stringify_matrix(input_matrix)
   
   for row in input_matrix do
     # Convert each row to a string, replacing 1s with "=" and 0s with "."
-    stringified << row.map(with (x) do return x > 0 ? "=" : "." end).join(" ")
+    stringified.push(row.map(with (x) do return x > 0 ? "=" : "." end).join(" "))
   end
 
   return stringified.join("\n") # Join all rows with newline characters
@@ -34,10 +34,10 @@ def transpose_left(input_matrix)
     line = []
 
     for y in [0 .. count_y - 1] do
-      line << input_matrix[y][x]
+      line.push(input_matrix[y][x])
     end
     
-    transposed << line
+    transposed.push(line)
   end
 
   return transposed
@@ -53,10 +53,10 @@ def transpose_right(input_matrix)
     line = []
 
     for y in [count_y - 1 .. 0] do
-      line << input_matrix[y][x]
+      line.push(input_matrix[y][x])
     end
     
-    transposed << line
+    transposed.push(line)
   end
 
   return transposed
@@ -68,7 +68,7 @@ def get_matrix(data = [])
   
   # Create columns of 1s up to the value and fill the rest with 0s
   for d in data do
-    columns << string::padend(("1" * d), max_len, "0").chars().map(with (c) do return c.to_int() end)
+    columns.push(string::padend(("1" * d), max_len, "0").chars().map(with (c) do return c.to_int() end))
   end
 
   return columns
