@@ -1011,7 +1011,8 @@ std::unique_ptr<ASTNode> Parser::parseHashLiteral() {
 
   match(KTokenType::CLOSE_BRACE);  // Consume '}'
 
-  return std::make_unique<HashLiteralNode>(std::move(elements), std::move(keys));
+  return std::make_unique<HashLiteralNode>(std::move(elements),
+                                           std::move(keys));
 }
 
 std::unique_ptr<ASTNode> Parser::parseListLiteral() {

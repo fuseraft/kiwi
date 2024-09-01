@@ -14,7 +14,7 @@ for path in fs::glob("../**/*.kiwi") do
   content = fs::read(path)
   if content.contains(search)
     hash = {"path": path, "content": content}
-    files << hash
+    files.push(hash)
   end
 end
 

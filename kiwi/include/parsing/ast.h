@@ -170,8 +170,11 @@ class HashLiteralNode : public ASTNode {
   std::vector<k_string> keys;
 
   HashLiteralNode(
-      std::map<std::unique_ptr<ASTNode>, std::unique_ptr<ASTNode>> elements, std::vector<k_string> keys)
-      : ASTNode(ASTNodeType::HASH_LITERAL), elements(std::move(elements)), keys(std::move(keys)) {}
+      std::map<std::unique_ptr<ASTNode>, std::unique_ptr<ASTNode>> elements,
+      std::vector<k_string> keys)
+      : ASTNode(ASTNodeType::HASH_LITERAL),
+        elements(std::move(elements)),
+        keys(std::move(keys)) {}
 
   void print(int depth) const override {
     print_depth(depth);
@@ -228,8 +231,7 @@ class IndexingNode : public ASTNode {
 
   IndexingNode() : ASTNode(ASTNodeType::INDEX_EXPRESSION) {}
 
-  IndexingNode(const k_string& name,
-               std::unique_ptr<ASTNode> indexExpression)
+  IndexingNode(const k_string& name, std::unique_ptr<ASTNode> indexExpression)
       : ASTNode(ASTNodeType::INDEX_EXPRESSION),
         name(name),
         indexExpression(std::move(indexExpression)) {}
@@ -972,8 +974,7 @@ class MemberAccessNode : public ASTNode {
   std::unique_ptr<ASTNode> object;
   k_string memberName;
 
-  MemberAccessNode(std::unique_ptr<ASTNode> object,
-                   const k_string& memberName)
+  MemberAccessNode(std::unique_ptr<ASTNode> object, const k_string& memberName)
       : ASTNode(ASTNodeType::MEMBER_ACCESS),
         object(std::move(object)),
         memberName(memberName) {}
@@ -1109,8 +1110,11 @@ class KBuiltin : public KCallable {
       : KCallable(KCallableType::Builtin), name(name), token(token) {}
 
   const std::vector<std::unique_ptr<ASTNode>>& getBody() const override {
-    return {};
+    return body;
   }
+
+ private:
+  std::vector<std::unique_ptr<ASTNode>> body;
 };
 
 class KFunction : public KCallable {

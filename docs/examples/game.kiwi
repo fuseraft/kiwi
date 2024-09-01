@@ -55,7 +55,7 @@ class Game private (name, players, player_count, turns)
       return 0
     end
 
-    players << player
+    players.push(player)
   end
 
   def get_players()

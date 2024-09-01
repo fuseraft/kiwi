@@ -13,6 +13,7 @@
 #include "parsing/builtins.h"
 #include "tracing/error.h"
 #include "typing/value.h"
+#include "util/file.h"
 
 std::unordered_map<k_string, std::unique_ptr<KPackage>> packages;
 std::unordered_map<k_string, std::unique_ptr<KFunction>> functions;
@@ -34,6 +35,8 @@ class KInterpreter {
   std::shared_ptr<CallStackFrame> createFrame(bool isMethodInvocation);
   k_value dropFrame();
   void importPackage(const k_value& packageName, const Token& token);
+  void importExternal(const k_string& packageName);
+
   k_string id(const ASTNode* node);
   k_value visit(const ProgramNode* node);
   k_value visit(const SelfNode* node);
@@ -72,6 +75,10 @@ class KInterpreter {
 
   k_value callBuiltinMethod(const FunctionCallNode* node);
   k_value callClassMethod(const MethodCallNode* node, const k_class& clazz);
+  k_value callObjectBaseMethod(const MethodCallNode* node,
+                               const std::shared_ptr<Object>& obj,
+                               const k_string& baseClass,
+                               const k_string& methodName);
   k_value callObjectMethod(const MethodCallNode* node,
                            const std::shared_ptr<Object>& obj);
   k_value executeFunctionBody(const std::unique_ptr<KFunction>& function);
@@ -109,6 +116,8 @@ class KInterpreter {
                                        std::vector<k_value>& args);
   k_value interpretSerializerBuiltin(const Token& token, const KName& builtin,
                                      std::vector<k_value>& args);
+  k_value interpretReflectorBuiltin(const Token& token, const KName& builtin,
+                                    std::vector<k_value>& args);
 };
 
 k_value KInterpreter::interpret(const ASTNode* node) {
@@ -370,6 +379,23 @@ k_value KInterpreter::visit(const PackageNode* node) {
   return static_cast<k_int>(0);
 }
 
+void KInterpreter::importExternal(const k_string& packageName) {
+  auto content = File::readFile(packageName);
+  if (content.empty()) {
+    return;
+  }
+
+  Lexer lexer(packageName, content);
+
+  Parser p;
+  auto tokenStream = lexer.getTokenStream();
+  auto ast = p.parseTokenStream(tokenStream, true);
+
+  interpret(ast.get());
+
+  return;
+}
+
 void KInterpreter::importPackage(const k_value& packageName,
                                  const Token& token) {
   if (!std::holds_alternative<k_string>(packageName)) {
@@ -380,6 +406,10 @@ void KInterpreter::importPackage(const k_value& packageName,
   auto packageNameValue = std::get<k_string>(packageName);
 
   if (packages.find(packageNameValue) == packages.end()) {
+    // Check if external package.
+    if (File::isScript(packageNameValue)) {
+      return importExternal(packageNameValue);
+    }
     throw PackageUndefinedError(token, packageNameValue);
   }
 
@@ -1207,9 +1237,8 @@ k_value KInterpreter::visit(const ClassNode* node) {
 
   if (!node->baseClass.empty()) {
     clazz->baseClass = node->baseClass;
-    auto& baseClass = classes[clazz->baseClass];
-    for (const auto& method : baseClass->methods) {
-      //clazz->methods[method.first] = method.second;
+    if (classes.find(clazz->baseClass) == classes.end()) {
+      throw ClassUndefinedError(node->token, clazz->baseClass);
     }
   }
 
@@ -1541,10 +1570,67 @@ std::vector<k_value> KInterpreter::getMethodCallArguments(
   return arguments;
 }
 
+k_value KInterpreter::callObjectBaseMethod(const MethodCallNode* node,
+                                           const std::shared_ptr<Object>& obj,
+                                           const k_string& baseClass,
+                                           const k_string& methodName) {
+  const auto& clazz = classes[baseClass];
+  auto& function = clazz->methods[methodName];
+  bool isCtor = methodName == Keywords.New;
+
+  auto& frame = callStack.top();
+  auto objContext = obj;
+  bool contextSwitch = false;
+
+  if (frame->inObjectContext()) {
+    objContext = frame->getObjectContext();
+    contextSwitch = true;
+  }
+
+  frame->setObjectContext(obj);
+
+  if (!function) {
+    throw UnimplementedMethodError(node->token, obj->className, methodName);
+  }
+
+  if (function->isPrivate) {
+    throw InvalidContextError(node->token,
+                              "Cannot invoke private method outside of class.");
+  }
+
+  auto result =
+      callFunction(function, node->arguments, node->token, methodName);
+
+  if (contextSwitch) {
+    frame->setObjectContext(objContext);
+  }
+
+  if (isCtor) {
+    return obj;
+  }
+
+  return result;
+}
+
 k_value KInterpreter::callObjectMethod(const MethodCallNode* node,
                                        const std::shared_ptr<Object>& obj) {
   const auto& clazz = classes[obj->className];
   auto methodName = node->methodName;
+
+  if (clazz->methods.find(methodName) == clazz->methods.end()) {
+    auto baseClass = clazz->baseClass;
+
+    if (baseClass.empty()) {
+      throw UnimplementedMethodError(node->token, obj->className, methodName);
+    }
+
+    if (classes.find(baseClass) == classes.end()) {
+      throw ClassUndefinedError(node->token, baseClass);
+    }
+
+    return callObjectBaseMethod(node, obj, baseClass, methodName);
+  }
+
   auto& function = clazz->methods[methodName];
   bool isCtor = methodName == Keywords.New;
 
@@ -1620,9 +1706,84 @@ k_value KInterpreter::callBuiltinMethod(const FunctionCallNode* node) {
   auto args = getMethodCallArguments(node->arguments);
   if (SerializerBuiltins.is_builtin(node->op)) {
     return interpretSerializerBuiltin(node->token, node->op, args);
+  } else if (ReflectorBuiltins.is_builtin(node->op)) {
+    return interpretReflectorBuiltin(node->token, node->op, args);
   }
 
   return BuiltinDispatch::execute(node->token, node->op, args, kiwiArgs);
+}
+
+k_value KInterpreter::interpretReflectorBuiltin(const Token& token,
+                                                const KName& builtin,
+                                                std::vector<k_value>& args) {
+  if (builtin != KName::Builtin_Reflector_RList) {
+    throw InvalidOperationError(token, "Come back later.");
+  }
+
+  if (args.size() != 0) {
+    throw BuiltinUnexpectedArgumentError(token, ReflectorBuiltins.RList);
+  }
+
+  auto rlist = std::make_shared<Hash>();
+  auto rlistPackages = std::make_shared<List>();
+  auto rlistClasses = std::make_shared<List>();
+  auto rlistFunctions = std::make_shared<List>();
+  auto rlistStack = std::make_shared<List>();
+
+  rlistPackages->elements.reserve(packages.size());
+  rlistClasses->elements.reserve(classes.size());
+  rlistFunctions->elements.reserve(functions.size());
+  rlistStack->elements.reserve(callStack.size());
+
+  for (const auto& m : methods) {
+    rlistFunctions->elements.emplace_back(m.first);
+  }
+
+  for (const auto& p : packages) {
+    rlistPackages->elements.emplace_back(p.first);
+  }
+
+  for (const auto& c : classes) {
+    rlistClasses->elements.emplace_back(c.first);
+  }
+
+  std::stack<std::shared_ptr<CallStackFrame>> tempStack(callStack);
+
+  while (!tempStack.empty()) {
+    const auto& outerFrame = tempStack.top();
+    const auto& frameVariables = outerFrame->variables;
+
+    auto rlistStackFrame = std::make_shared<Hash>();
+    auto rlistStackFrameVariables = std::make_shared<List>();
+
+    rlistStackFrameVariables->elements.reserve(frameVariables.size());
+
+    for (const auto& v : frameVariables) {
+      auto rlistStackFrameVariable = std::make_shared<Hash>();
+      rlistStackFrameVariable->add(v.first, v.second);
+      rlistStackFrameVariables->elements.emplace_back(rlistStackFrameVariable);
+    }
+
+    k_string tmp;
+    sort_list(*rlistStackFrameVariables);
+
+    rlistStackFrame->add("variables", rlistStackFrameVariables);
+    rlistStack->elements.emplace_back(rlistStackFrame);
+
+    tempStack.pop();
+  }
+
+  sort_list(*rlistPackages);
+  sort_list(*rlistClasses);
+  sort_list(*rlistFunctions);
+  std::reverse(rlistStack->elements.begin(), rlistStack->elements.end());
+
+  rlist->add("packages", rlistPackages);
+  rlist->add("classes", rlistClasses);
+  rlist->add("functions", rlistFunctions);
+  rlist->add("stack", rlistStack);
+
+  return rlist;
 }
 
 k_value KInterpreter::interpolateString(const k_string& input) {

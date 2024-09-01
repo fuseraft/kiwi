@@ -100,7 +100,7 @@ package conf
           end
         end
 
-        _builder << _c
+        _builder.push(_c)
       end
 
       if !_is_string

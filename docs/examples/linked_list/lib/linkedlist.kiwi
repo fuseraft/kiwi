@@ -65,7 +65,7 @@ class LinkedList
     _node = _ll.head
     
     while !_node.empty() do
-      _values << _node.data
+      _values.push(_node.data)
       _node = _node.next_node
     end
 
