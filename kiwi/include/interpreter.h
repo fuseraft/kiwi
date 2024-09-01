@@ -911,7 +911,7 @@ k_value KInterpreter::visit(const PrintNode* node) {
   if (node->printNewline) {
     std::cout << Serializer::serialize(value) << std::endl;
   } else {
-    std::cout << Serializer::serialize(value);
+    std::cout << Serializer::serialize(value) << std::flush;
   }
 
   return static_cast<k_int>(0);

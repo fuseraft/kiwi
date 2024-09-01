@@ -35,17 +35,22 @@ fn main(args)
     computed_paths = path_sizes(search_path, max_depth)
   
     total_size = 0.
-    largest_path_key_size = computed_paths.keys().reduce("", with (key, acc) do
-      if acc.size() < key.size() acc = key end
-      return acc
-    end).size() + 5
+    largest_path_key_size = computed_paths.keys().reduce("", with (acc, key) do
+      if acc.size() < key.size() 
+        acc = key 
+      end
+    end).size() + 10
   
+    all_results = []
     for path, size in computed_paths do
-      println "${string::padend(path + " ", largest_path_key_size, ".")} ${format_bytes(size, 2)}"
+      all_results.push(string::padend(path + " ", largest_path_key_size, ".") + " " + format_bytes(size, 2))
       total_size += size
     end
+
+    all_results.sort()
+    println all_results.join("\n")
   
-    println "\nTotal size: ${format_bytes(total_size, 2)}"
+    println "\nTotal size: " + format_bytes(total_size, 2)
   catch (err)
     println "Could not compute size of path: ${search_path}"
     println "An error occurred: ${err}"
@@ -130,10 +135,10 @@ end
 #/
 fn format_bytes(size, precision = 2)
   base = math::log(size) / math::log(1024)
-  suffix = ["B", "K", "M", "G", "T"][math::floor(base).to_int()]
+  suffix = ["B", "K", "M", "G", "T"][[math::floor(base).to_int(), 0].max()]
   res = math::pow(1024, base - math::floor(base))
   res = math::isnan(res) ? 0 : res
-  return "${res.to_string("F${precision}")} ${suffix}"
+  return res.to_string("F${precision}") + " ${suffix}"
 end
 
 /#
