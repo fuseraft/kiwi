@@ -29,6 +29,10 @@ class Sys {
 #endif
   }
 
+#ifdef __linux__
+  static int closeFile(FILE* file) { return pclose(file); }
+#endif
+
   static k_string execOut(const k_string& command) {
     k_string result;
 #ifdef _WIN64
@@ -43,8 +47,8 @@ class Sys {
     _pclose(stream);
 #else
     std::array<char, 128> buffer;
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"),
-                                                  pclose);
+    std::unique_ptr<FILE, decltype(&closeFile)> pipe(
+        popen(command.c_str(), "r"), closeFile);
     if (!pipe) {
       return "";
     }

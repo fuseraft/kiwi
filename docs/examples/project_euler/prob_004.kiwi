@@ -9,7 +9,7 @@ for i in [100..999].reverse() do
     product_str = product.to_string()
     reversed = product_str.reverse()
     if product_str == reversed
-      products << product
+      products.push(product)
     end
   end
 end

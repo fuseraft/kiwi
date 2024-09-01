@@ -27,7 +27,7 @@ silent(true)
     end_time = time::ticks()
         
     # Store runtime information
-    runtimes << {"file": file, "duration": time::ticksms(end_time - start_time)}
+    runtimes.push({"file": file, "duration": time::ticksms(end_time - start_time)})
   end
 end)
 

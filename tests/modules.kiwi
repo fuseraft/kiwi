@@ -24,11 +24,11 @@ fn print_dir()
   files = []
   
   for entry in __listdir__(".").select(with (x) do return __isdir__(x) end) do
-    directories << __filename__(entry) + "/"
+    directories.push(__filename__(entry) + "/")
   end
   
   for entry in __listdir__(".").select(with (x) do return __isfile__(x) end) do
-    files << __filename__(entry)
+    files.push(__filename__(entry))
   end
   
   return "Current directory: ${__cwd__()}

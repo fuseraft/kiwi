@@ -43,7 +43,7 @@ package math
       _n = math::random(_min, _max)
 
       if _set.index(_n) < 0
-        _set << _n
+        _set.push(_n)
         _count += 1
       end
     end
