@@ -1,6 +1,4 @@
 package guava
-  __home__("kiwi")
-
   fn initialize()
     if !global.has_key("guava_tests")
       global.guava_tests = {}
@@ -18,31 +16,36 @@ package guava
   end
   
   fn run_test(name, test, results = [])
-    guava::initialize()
     print string::padend("Running test: ${name} ", 45, " ")
+    guava::initialize()
   
     test_start = time::ticks()
     passed = false
+    error_message = ''
   
     try
       test()
       passed = true
     catch (err)
-      println err  
+      error_message = err
     end
     
-    duration = time::ticksms(time::ticks() - test_start)
+    test_stop = time::ticks()
+    duration = time::ticksms(test_stop - test_start)
     results.push({ "name": t, "result": passed, "duration": duration })
   
     println (passed ? "passed" : "failed").uppercase() + " in ${duration}ms"
+    if !error_message.empty()
+      println "  " + error_message
+    end
   end
   
   fn run_tests()
     guava::initialize()
     results = []
-    
-    for t in global.guava_tests do
-      guava::run_test(t, global.guava_tests.get(t), results)
+
+    for name, t in global.guava_tests do
+      guava::run_test(name, t, results)
     end
   
     return results

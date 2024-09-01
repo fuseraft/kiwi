@@ -2,8 +2,6 @@
 Summary: A package for working with external processes.
 #/
 package sys
-  __home__("kiwi")
-
   /#
   Summary: Get the effective user ID.
   Returns: Integer containing effective user ID.

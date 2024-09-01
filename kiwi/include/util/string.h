@@ -126,13 +126,30 @@ class String {
     return matches_length == text.length();
   }
 
+  static k_string replace(const k_string& str, const k_string& target,
+                          const k_string& replacement) {
+    if (target.empty()) {
+      return str;
+    }
+
+    k_string result = str;
+    size_t pos = 0;
+
+    while ((pos = result.find(target, pos)) != k_string::npos) {
+      result.replace(pos, target.length(), replacement);
+      pos += replacement.length();
+    }
+
+    return result;
+  }
+
   /// @brief Replaces every part of the string that matches the regex with the replacement string.
   /// @param text The string to check.
   /// @param pattern The regular expression.
   /// @param replacement The replacement text.
   /// @return A string.
-  static k_string replace(const k_string& text, const k_string& pattern,
-                          const k_string& replacement) {
+  static k_string rreplace(const k_string& text, const k_string& pattern,
+                           const k_string& replacement) {
     if (text.empty()) {
       return text;
     }
@@ -158,14 +175,30 @@ class String {
     return std::make_shared<List>(matches);
   }
 
+  static std::vector<k_string> split(const k_string& str,
+                                     const k_string& delimiter) {
+    std::vector<k_string> tokens;
+    size_t start = 0;
+    size_t end = 0;
+
+    while ((end = str.find(delimiter, start)) != k_string::npos) {
+      tokens.push_back(str.substr(start, end - start));
+      start = end + delimiter.length();
+    }
+
+    tokens.push_back(str.substr(start));
+
+    return tokens;
+  }
+
   /// @brief Splits the string around matches of the given regex. An optional limit can be set for the number of splits.
   /// @param text The string to check.
   /// @param pattern The regular expression.
   /// @param limit The number of splits.
   /// @return A list.
-  static std::vector<k_string> split(const k_string& text,
-                                     const k_string& pattern,
-                                     k_int limit = -1) {
+  static std::vector<k_string> rsplit(const k_string& text,
+                                      const k_string& pattern,
+                                      k_int limit = -1) {
     std::regex reg(pattern);
     std::sregex_token_iterator iter(text.begin(), text.end(), reg, -1);
     std::sregex_token_iterator end;

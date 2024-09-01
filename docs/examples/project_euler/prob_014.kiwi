@@ -16,7 +16,7 @@ for i in [2 .. limit - 1] do
     end
   end
   
-  lengths << length + lengths[n]
+  lengths.push(length + lengths[n])
 end
 
 maxvalue = lengths.max(), number = lengths.index(maxvalue)

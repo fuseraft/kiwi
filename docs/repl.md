@@ -8,7 +8,7 @@ Kiwi will print its current version (at the time of writing this, the current ve
 
 ```
 $ kiwi
-Kiwi v1.4.8 REPL
+Kiwi v2.0.0 REPL
 
 Use `go` to execute, `exit` to exit the REPL.
 

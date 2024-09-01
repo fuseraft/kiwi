@@ -2,8 +2,6 @@
 Summary: A package for performing HTTP requests.
 #/
 package http
-  __home__("kiwi")
-
   /#
   Summary: Performs an HTTP DELETE request to the specified URL.
   Params:

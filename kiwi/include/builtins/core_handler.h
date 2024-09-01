@@ -38,8 +38,8 @@ class CoreBuiltinHandler {
       case KName::Builtin_Kiwi_Chars:
         return executeChars(term, value, args);
 
-      case KName::Builtin_Kiwi_Members:
-        return executeMembers(term, value, args);
+        // case KName::Builtin_Kiwi_Members:
+        //   return executeMembers(term, value, args);
 
       case KName::Builtin_Kiwi_IsA:
         return executeIsA(term, value, args);
@@ -49,6 +49,9 @@ class CoreBuiltinHandler {
 
       case KName::Builtin_Kiwi_Split:
         return executeSplit(term, value, args);
+
+      case KName::Builtin_Kiwi_RSplit:
+        return executeRSplit(term, value, args);
 
       case KName::Builtin_Kiwi_Get:
         return executeGet(term, value, args);
@@ -103,6 +106,9 @@ class CoreBuiltinHandler {
 
       case KName::Builtin_Kiwi_Replace:
         return executeReplace(term, value, args);
+
+      case KName::Builtin_Kiwi_RReplace:
+        return executeRReplace(term, value, args);
 
       case KName::Builtin_Kiwi_Reverse:
         return executeReverse(term, value, args);
@@ -429,32 +435,32 @@ class CoreBuiltinHandler {
     return Serializer::pretty_serialize(value);
   }
 
-  static k_value executeMembers(const Token& term, const k_value& value,
-                                const std::vector<k_value>& args) {
-    if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Members);
-    }
+  // static k_value executeMembers(const Token& term, const k_value& value,
+  //                               const std::vector<k_value>& args) {
+  //   if (args.size() != 0) {
+  //     throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Members);
+  //   }
 
-    if (!std::holds_alternative<k_object>(value)) {
-      throw InvalidOperationError(
-          term, "Expected an object in call to `" + KiwiBuiltins.Members + "`");
-    }
+  //   if (!std::holds_alternative<k_object>(value)) {
+  //     throw InvalidOperationError(
+  //         term, "Expected an object in call to `" + KiwiBuiltins.Members + "`");
+  //   }
 
-    auto memberHash = std::make_shared<Hash>();
-    auto obj = std::get<k_object>(value);
-    auto& instanceVariables = obj->instanceVariables;
-    auto clazz = classes[obj->className];
+  //   auto memberHash = std::make_shared<Hash>();
+  //   auto obj = std::get<k_object>(value);
+  //   auto& instanceVariables = obj->instanceVariables;
+  //   auto clazz = classes[obj->className];
 
-    for (const auto& method : clazz.getMethods()) {
-      memberHash->add(method.first, {});
-    }
+  //   for (const auto& method : clazz.getMethods()) {
+  //     memberHash->add(method.first, {});
+  //   }
 
-    for (const auto& instanceVar : instanceVariables) {
-      memberHash->add(instanceVar.first, instanceVar.second);
-    }
+  //   for (const auto& instanceVar : instanceVariables) {
+  //     memberHash->add(instanceVar.first, instanceVar.second);
+  //   }
 
-    return memberHash;
-  }
+  //   return memberHash;
+  // }
 
   static k_value executeJoin(const Token& term, const k_value& value,
                              const std::vector<k_value>& args) {
@@ -783,8 +789,37 @@ class CoreBuiltinHandler {
 
   static k_value executeSplit(const Token& term, const k_value& value,
                               const std::vector<k_value>& args) {
-    if (args.size() != 1 && args.size() != 2) {
+    if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Split);
+    }
+
+    k_string input = get_string(term, value);
+    auto delimiter = get_string(term, args.at(0));
+    auto newList = std::make_shared<List>();
+    auto& elements = newList->elements;
+
+    if (delimiter.empty()) {
+      elements.reserve(input.size());
+      k_string temp(1, '\0');
+      for (char c : input) {
+        temp[0] = c;
+        elements.emplace_back(temp);
+      }
+    } else {
+      const auto& tokens = String::split(input, delimiter);
+      elements.reserve(tokens.size());
+      for (const auto& token : tokens) {
+        elements.emplace_back(token);
+      }
+    }
+
+    return newList;
+  }
+
+  static k_value executeRSplit(const Token& term, const k_value& value,
+                               const std::vector<k_value>& args) {
+    if (args.size() != 1 && args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.RSplit);
     }
 
     k_string input = get_string(term, value);
@@ -805,7 +840,7 @@ class CoreBuiltinHandler {
         elements.emplace_back(temp);
       }
     } else {
-      const auto& tokens = String::split(input, delimiter, limit);
+      const auto& tokens = String::rsplit(input, delimiter, limit);
       elements.reserve(tokens.size());
       for (const auto& token : tokens) {
         elements.emplace_back(token);
@@ -972,16 +1007,16 @@ class CoreBuiltinHandler {
     }
 
     auto typeName = get_string(term, args.at(0));
-    if (!TypeNames.is_typename(typeName)) {
-      if (std::holds_alternative<k_object>(value)) {
-        const auto& obj = std::get<k_object>(value);
-        const auto& className = obj->className;
+    // if (!TypeNames.is_typename(typeName)) {
+    //   if (std::holds_alternative<k_object>(value)) {
+    //     const auto& obj = std::get<k_object>(value);
+    //     const auto& className = obj->className;
 
-        return same_value(className, typeName) ||
-               same_value(classes.at(className).getBaseClassName(), typeName);
-      }
-      throw InvalidTypeNameError(term, typeName);
-    }
+    //     return same_value(className, typeName) ||
+    //            same_value(classes.at(className).getBaseClassName(), typeName);
+    //   }
+    //   throw InvalidTypeNameError(term, typeName);
+    // }
 
     switch (value.index()) {
       case 0:  // k_int
@@ -1025,6 +1060,17 @@ class CoreBuiltinHandler {
     return String::replace(get_string(term, value),
                            get_string(term, args.at(0)),
                            get_string(term, args.at(1)));
+  }
+
+  static k_value executeRReplace(const Token& term, const k_value& value,
+                                 const std::vector<k_value>& args) {
+    if (args.size() != 2) {
+      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.RReplace);
+    }
+
+    return String::rreplace(get_string(term, value),
+                            get_string(term, args.at(0)),
+                            get_string(term, args.at(1)));
   }
 
   static k_value executeReverse(const Token& term, const k_value& value,

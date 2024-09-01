@@ -1,6 +1,4 @@
 package crypto
-  __home__("kiwi")
-
   fn md5_hash(input)
     # All variables wrap modulo 2^32 when calculating:
     s = [0] * 64
@@ -41,16 +39,16 @@ package crypto
     original_bitlength = input.size() * 8
   
     # Append 0x80 (128 in decimal, 10000000 in binary) to the message
-    message << 0x80
+    message.push(0x80)
     
     # Pad with zeros until the message length in bytes is 56 mod 64
     while message.size() % 64 != 56 do
-      message << 0x00
+      message.push(0x00)
     end
     
     # Append the length in bits at the end of the buffer.
     for i in [0..7] do
-      message << original_bitlength >> (i * 8)
+      message.push(original_bitlength >> (i * 8))
     end
     
     chunk_size = 64  # 64 bytes = 512 bits
@@ -73,11 +71,15 @@ package crypto
       end
     
       # Initialize hash value for this chunk:
-      A = a0, B = b0, C = c0, D = d0
+      A = a0
+      B = b0
+      C = c0
+      D = d0
     
       # Main loop:
       for i in [0..63] do
-        F = 0, g = 0
+        F = 0
+        g = 0
         
         if 0 <= i && i <= 15
           F = (B & C) | (~B & D)

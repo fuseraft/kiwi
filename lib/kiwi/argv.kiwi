@@ -2,8 +2,6 @@
 Summary: A package for working with command-line arguments.
 #/
 package argv
-  __home__("kiwi")
-
   /#
   Summary: Get the list of command-line arguments.
   Returns: List of command-line arguments.

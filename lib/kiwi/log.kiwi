@@ -2,8 +2,6 @@
 Summary: A package for working with the Kiwi logger.
 #/
 package log
-  __home__("kiwi")
-
   /#
   Summary: Set the log file path.
   Params:
