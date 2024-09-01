@@ -1,6 +1,6 @@
 global.config = {
   "content": {
-    "title": "kiwi v1.4.8",
+    "title": "kiwi v2.0.0",
     "favicon": "favicon.ico",
     "root": "/home/scs/web/content",
     "public_content": {
