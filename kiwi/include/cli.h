@@ -39,6 +39,7 @@ class KiwiCLI {
   static bool processOption(std::string& opt, Host& host);
   static bool parse(Host& host, const std::string& content);
   static bool tokenize(Host& host, const std::string& path);
+  static bool printAST(Host& host, const std::string& path);
 
   static int printVersion();
   static int printHelp();
@@ -88,6 +89,12 @@ int KiwiCLI::run(std::vector<std::string>& v) {
       } else if (String::isCLIFlag(v.at(i), "p", "parse")) {
         if (i + 1 < size) {
           return KiwiCLI::parse(host, v.at(++i));
+        }
+
+        help = true;
+      } else if (String::isCLIFlag(v.at(i), "a", "ast")) {
+        if (i + 1 < size) {
+          return KiwiCLI::printAST(host, v.at(++i));
         }
 
         help = true;
@@ -152,6 +159,17 @@ bool KiwiCLI::createMinified(Host& host, const std::string& path) {
   }
 
   return false;
+}
+
+bool KiwiCLI::printAST(Host& host, const std::string& path) {
+  if (!File::fileExists(path)) {
+    std::cout << "The input file does not exists." << std::endl;
+    return false;
+  }
+
+  auto filePath = File::getAbsolutePath(path);
+  host.printAST(filePath);
+  return true;
 }
 
 bool KiwiCLI::tokenize(Host& host, const std::string& path) {
@@ -223,6 +241,7 @@ int KiwiCLI::printHelp() {
   std::vector<CommandInfo> commands = {
       {"-h, --help", "print this message"},
       {"-v, --version", "print the current version"},
+      {"-a, --ast <kiwi_code>", "print abstract syntax tree of `.🥝` file"},
       {"-p, --parse <kiwi_code>", "parse kiwi code as an argument"},
       {"-n, --new <file_path>", "create a `.🥝` file"},
       {"-m, --minify <input_file_path>", "create a `.min.🥝` file"},
@@ -234,6 +253,7 @@ int KiwiCLI::printHelp() {
   commands = {
       {"-h, --help", "print this message"},
       {"-v, --version", "print the current version"},
+      {"-a, --ast <kiwi_code>", "print abstract syntax tree of `.kiwi` file"},
       {"-p, --parse <kiwi_code>", "parse code"},
       {"-n, --new <filename>", "create a `.kiwi` file"},
       {"-m, --minify <input_file_path>", "create a `.min.kiwi` file"},
