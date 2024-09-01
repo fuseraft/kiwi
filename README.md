@@ -135,7 +135,6 @@ Here are a handful:
 - [Sieve of Eratosthenes](docs/examples/algo/sieve_of_eratosthenes.kiwi)
 - [Conway's Game of Life](docs/examples/cellular_automata/life.kiwi)
 - [Project Euler stuff](docs/examples/project_euler/).
-- [Simple web app](docs/examples/webapp/)
 
 ## Contributions
 
