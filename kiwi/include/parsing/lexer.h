@@ -16,6 +16,7 @@ class Lexer {
   Lexer(const std::string& file, const std::string& source, bool skipWS = true)
       : source(source), pos(0), skipWS(skipWS), row(0), col(0) {
     fileId = FileRegistry::getInstance().registerFile(file);
+    preprocessSource();
   }
 
   k_stream getTokenStream() {
@@ -96,6 +97,15 @@ class Lexer {
   int fileId;
   int row;
   int col;
+
+  void preprocessSource() {
+    std::regex re(R"(\$\{([^}]+)\})");
+    std::string output;
+
+    std::regex_replace(std::back_inserter(output), source.begin(), source.end(),
+                       re, R"(" + $1 + ")");
+    source = output;
+  }
 
   char getCurrentChar() {
     char c = source[pos++];
@@ -243,6 +253,8 @@ class Lexer {
       st = KName::KW_Else;
     } else if (keyword == Keywords.End) {
       st = KName::KW_End;
+    } else if (keyword == Keywords.Case) {
+      st = KName::KW_Case;
     }
 
     return createToken(KTokenType::CONDITIONAL, st, keyword);
@@ -283,6 +295,8 @@ class Lexer {
       st = KName::KW_Import;
     } else if (keyword == Keywords.In) {
       st = KName::KW_In;
+    } else if (keyword == Keywords.Interface) {
+      st = KName::KW_Interface;
     } else if (keyword == Keywords.Method || keyword == Keywords.Function) {
       st = KName::KW_Method;
     } else if (keyword == Keywords.Package) {
@@ -1011,12 +1025,16 @@ class Lexer {
       st = KName::Builtin_Kiwi_Members;
     } else if (builtin == KiwiBuiltins.Replace) {
       st = KName::Builtin_Kiwi_Replace;
+    } else if (builtin == KiwiBuiltins.RReplace) {
+      st = KName::Builtin_Kiwi_RReplace;
     } else if (builtin == KiwiBuiltins.Reverse) {
       st = KName::Builtin_Kiwi_Reverse;
     } else if (builtin == KiwiBuiltins.RightTrim) {
       st = KName::Builtin_Kiwi_RightTrim;
     } else if (builtin == KiwiBuiltins.Size) {
       st = KName::Builtin_Kiwi_Size;
+    } else if (builtin == KiwiBuiltins.RSplit) {
+      st = KName::Builtin_Kiwi_RSplit;
     } else if (builtin == KiwiBuiltins.Split) {
       st = KName::Builtin_Kiwi_Split;
     } else if (builtin == KiwiBuiltins.Substring) {

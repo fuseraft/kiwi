@@ -2,8 +2,6 @@
 Summary: A package containing functionality for working with common math operations.
 #/
 package math
-  __home__("kiwi")
-  
   /#
   Summary: Gets the smallest difference from 1.0 that a FP type can accurately represent.
   Returns: Double
@@ -45,7 +43,7 @@ package math
       _n = math::random(_min, _max)
 
       if _set.index(_n) < 0
-        _set << _n
+        _set.push(_n)
         _count += 1
       end
     end
@@ -484,4 +482,4 @@ package math
   end
 end
 
-export "math"
+import "math"

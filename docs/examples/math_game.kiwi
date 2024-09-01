@@ -8,9 +8,9 @@ while true do
   number2 = math::random(1, 10)
   real_answer = number1 + number2
   user_answer = input("${number1} + ${number2} = ")
+  break when user_answer == "x"
   
   try
-    break when user_answer == "x"
     total += 1
     
     if user_answer.to_int() == real_answer

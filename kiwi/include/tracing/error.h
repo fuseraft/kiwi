@@ -91,7 +91,7 @@ class ParameterCountMismatchError : public KiwiError {
  public:
   ParameterCountMismatchError(const Token& token, const std::string& name)
       : KiwiError(token, "ParameterCountMismatchError",
-                  "The parameter count for method `" + name +
+                  "The parameter count for function `" + name +
                       "` does not match parameters passed.") {}
 };
 
@@ -200,11 +200,11 @@ class SystemError : public KiwiError {
       : KiwiError(token, "SystemError", message) {}
 };
 
-class MethodUndefinedError : public KiwiError {
+class FunctionUndefinedError : public KiwiError {
  public:
-  MethodUndefinedError(const Token& token, const std::string& name)
-      : KiwiError(token, "MethodUndefinedError",
-                  "Method `" + name + "` is undefined.") {}
+  FunctionUndefinedError(const Token& token, const std::string& name)
+      : KiwiError(token, "FunctionUndefinedError",
+                  "Function `" + name + "` is undefined.") {}
 };
 
 class VariableUndefinedError : public KiwiError {

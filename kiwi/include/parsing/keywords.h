@@ -96,6 +96,88 @@ struct {
   std::unordered_set<KName> unary_operators = {
       KName::Ops_Not, KName::Ops_Subtract, KName::Ops_BitwiseNot};
 
+  k_string get_op_string(const KName& op) {
+    switch (op) {
+      case KName::Ops_Add:
+        return Add;
+      case KName::Ops_AddAssign:
+        return AddAssign;
+      case KName::Ops_And:
+        return And;
+      case KName::Ops_AndAssign:
+        return AndAssign;
+      case KName::Ops_Assign:
+        return Assign;
+      case KName::Ops_BitwiseAnd:
+        return BitwiseAnd;
+      case KName::Ops_BitwiseAndAssign:
+        return BitwiseAndAssign;
+      case KName::Ops_BitwiseLeftShift:
+        return BitwiseLeftShift;
+      case KName::Ops_BitwiseLeftShiftAssign:
+        return BitwiseLeftShiftAssign;
+      case KName::Ops_BitwiseNot:
+        return BitwiseNot;
+      case KName::Ops_BitwiseNotAssign:
+        return BitwiseNotAssign;
+      case KName::Ops_BitwiseOr:
+        return BitwiseOr;
+      case KName::Ops_BitwiseOrAssign:
+        return BitwiseOrAssign;
+      case KName::Ops_BitwiseRightShift:
+        return BitwiseRightShift;
+      case KName::Ops_BitwiseRightShiftAssign:
+        return BitwiseRightShiftAssign;
+      case KName::Ops_BitwiseXor:
+        return BitwiseXor;
+      case KName::Ops_BitwiseXorAssign:
+        return BitwiseXorAssign;
+      case KName::Ops_Divide:
+        return Divide;
+      case KName::Ops_DivideAssign:
+        return DivideAssign;
+      case KName::Ops_Equal:
+        return Equal;
+      case KName::Ops_Exponent:
+        return Exponent;
+      case KName::Ops_ExponentAssign:
+        return ExponentAssign;
+      case KName::Ops_GreaterThan:
+        return GreaterThan;
+      case KName::Ops_GreaterThanOrEqual:
+        return GreaterThanOrEqual;
+      case KName::Ops_LessThan:
+        return LessThan;
+      case KName::Ops_LessThanOrEqual:
+        return LessThanOrEqual;
+      case KName::Ops_ModuloAssign:
+        return ModuloAssign;
+      case KName::Ops_Modulus:
+        return Modulus;
+      case KName::Ops_Multiply:
+        return Multiply;
+      case KName::Ops_MultiplyAssign:
+        return MultiplyAssign;
+      case KName::Ops_Not:
+        return Not;
+      case KName::Ops_NotEqual:
+        return NotEqual;
+      case KName::Ops_Or:
+        return Or;
+      case KName::Ops_OrAssign:
+        return OrAssign;
+      case KName::Ops_Subtract:
+        return Subtract;
+      case KName::Ops_SubtractAssign:
+        return SubtractAssign;
+
+      default:
+        break;
+    }
+
+    return "unknown operator";
+  }
+
   bool is_equality_op(const KName& arg) {
     return equality_operators.find(arg) != equality_operators.end();
   }
@@ -148,6 +230,7 @@ struct {
   const k_string Async = "async";
   const k_string Await = "await";
   const k_string Break = "break";
+  const k_string Case = "case";
   const k_string Catch = "catch";
   const k_string Class = "class";
   const k_string Ctor = "initialize";
@@ -168,6 +251,7 @@ struct {
   const k_string If = "if";
   const k_string Import = "import";
   const k_string In = "in";
+  const k_string Interface = "interface";
   const k_string Method = "def";
   const k_string Package = "package";
   const k_string New = "new";
@@ -192,14 +276,15 @@ struct {
   const k_string While = "while";
 
   std::unordered_set<k_string> keywords = {
-      Abstract, As,      Async,   Await,    Break,  Catch,    Class,
-      Delete,   Do,      Else,    ElseIf,   End,    Exit,     Export,
-      False,    Finally, For,     Function, If,     Import,   In,
-      With,     Method,  Package, Next,     Null,   Override, Parse,
-      Pass,     Print,   PrintLn, Private,  Repeat, Return,   Static,
-      Then,     This,    Throw,   True,     Try,    When,     While};
+      Abstract, As,      Async,    Await,  Break,    Case,  Catch,     Class,
+      Delete,   Do,      Else,     ElseIf, End,      Exit,  Export,    False,
+      Finally,  For,     Function, If,     Import,   In,    Interface, With,
+      Method,   Package, Next,     Null,   Override, Parse, Pass,      Print,
+      PrintLn,  Private, Repeat,   Return, Static,   Then,  This,      Throw,
+      True,     Try,     When,     While};
 
-  std::unordered_set<k_string> conditional_keywords = {If, Else, ElseIf, End};
+  std::unordered_set<k_string> conditional_keywords = {If, Else, ElseIf, End,
+                                                       Case};
 
   std::unordered_set<KName> block_keywords = {
       KName::KW_While, KName::KW_For,     KName::KW_Method,

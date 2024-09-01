@@ -3,7 +3,10 @@ fn fibonacci(n)
   nextTerm = t1 + t2
 
   while nextTerm <= n do
-    fib << nextTerm, t1 = t2, t2 = nextTerm, nextTerm = t1 + t2
+    fib.push(nextTerm)
+    t1 = t2
+    t2 = nextTerm
+    nextTerm = t1 + t2
   end
 
   return fib

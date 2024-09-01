@@ -33,7 +33,7 @@ while i < size do
   
   for index in [i .. i + take - 1] do
     break when index >= size
-    digits << bignum[index]
+    digits.push(bignum[index])
   end
   
   break when digits.size() != take
