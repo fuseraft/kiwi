@@ -90,6 +90,8 @@ class KInterpreter {
                                             const std::string& name);
   k_value doSliceAssignment(const Token& token, k_value& slicedObj,
                             const SliceIndex& slice, k_value& newValue);
+  k_value handleNestedIndexing(const IndexingNode* indexExpr, k_value baseObj,
+                               const KName& op, const k_value& newValue);
   SliceIndex getSlice(const SliceNode* node, k_value object);
   std::vector<k_value> getMethodCallArguments(
       const std::vector<std::unique_ptr<ASTNode>>& args);
@@ -468,6 +470,124 @@ k_value KInterpreter::doSliceAssignment(const Token& token, k_value& slicedObj,
   return slicedObj;
 }
 
+k_value KInterpreter::handleNestedIndexing(const IndexingNode* indexExpr,
+                                           k_value baseObj, const KName& op,
+                                           const k_value& newValue) {
+  if (indexExpr->indexExpression->type == ASTNodeType::INDEX_EXPRESSION) {
+    auto nestedIndexExpr =
+        static_cast<const IndexingNode*>(indexExpr->indexExpression.get());
+    auto nestedIndex = interpret(nestedIndexExpr->indexExpression.get());
+
+    if (std::holds_alternative<k_list>(baseObj) &&
+        std::holds_alternative<k_int>(nestedIndex)) {
+      auto listObj = std::get<k_list>(baseObj);
+      auto indexValue =
+          static_cast<int>(get_integer(indexExpr->token, nestedIndex));
+
+      if (indexValue < 0 ||
+          static_cast<size_t>(indexValue) >= listObj->elements.size()) {
+        throw IndexError(indexExpr->token,
+                         "The index was outside the bounds of the list.");
+      }
+
+      if (nestedIndexExpr->indexExpression->type ==
+          ASTNodeType::INDEX_EXPRESSION) {
+        k_value nestedValue = handleNestedIndexing(
+            nestedIndexExpr, listObj->elements[indexValue], op, newValue);
+        listObj->elements[indexValue] = nestedValue;
+      } else {
+        if (op == KName::Ops_Assign) {
+          listObj->elements[indexValue] = newValue;
+        } else {
+          auto oldValue = listObj->elements[indexValue];
+          listObj->elements[indexValue] =
+              MathImpl.do_binary_op(indexExpr->token, op, oldValue, newValue);
+        }
+      }
+
+      return listObj;
+    } else {
+      throw IndexError(indexExpr->token,
+                       "Nested index does not target a list.");
+    }
+  } else if (indexExpr->indexExpression->type == ASTNodeType::IDENTIFIER &&
+             std::holds_alternative<k_hash>(baseObj)) {
+    auto key = id(indexExpr->indexExpression.get());
+    auto hashObj = std::get<k_hash>(baseObj);
+
+    if (hashObj->hasKey(key)) {
+      auto nestedValue = hashObj->get(key);
+      if (op == KName::Ops_Assign) {
+        hashObj->add(key, newValue);
+      } else {
+        auto oldValue = hashObj->get(key);
+        hashObj->add(key, MathImpl.do_binary_op(indexExpr->token, op, oldValue,
+                                                newValue));
+      }
+      return hashObj;
+    } else {
+      throw HashKeyError(indexExpr->token, key);
+    }
+  } else if (indexExpr->indexExpression->type == ASTNodeType::IDENTIFIER &&
+             std::holds_alternative<k_list>(baseObj)) {
+    auto identifier = interpret(indexExpr->indexExpression.get());
+    auto list = std::get<k_list>(baseObj);
+    auto listIndex = get_integer(indexExpr->token, identifier);
+    if (listIndex < 0 ||
+        listIndex >= static_cast<k_int>(list->elements.size())) {
+      throw IndexError(indexExpr->token,
+                       "The index was outside the bounds of the list.");
+    }
+
+    if (op == KName::Ops_Assign) {
+      list->elements[listIndex] = newValue;
+    } else {
+      auto oldValue = list->elements.at(listIndex);
+      list->elements[listIndex] =
+          MathImpl.do_binary_op(indexExpr->token, op, oldValue, newValue);
+    }
+    return list;
+
+  } else if (indexExpr->indexExpression->type == ASTNodeType::LITERAL) {
+    auto literal = interpret(indexExpr->indexExpression.get());
+
+    if (std::holds_alternative<k_list>(baseObj) &&
+        std::holds_alternative<k_int>(literal)) {
+      auto list = std::get<k_list>(baseObj);
+      auto listIndex = get_integer(indexExpr->token, literal);
+      if (listIndex < 0 ||
+          listIndex >= static_cast<k_int>(list->elements.size())) {
+        throw IndexError(indexExpr->token,
+                         "The index was outside the bounds of the list.");
+      }
+
+      if (op == KName::Ops_Assign) {
+        list->elements[listIndex] = newValue;
+      } else {
+        auto oldValue = list->elements.at(listIndex);
+        list->elements[listIndex] =
+            MathImpl.do_binary_op(indexExpr->token, op, oldValue, newValue);
+      }
+      return list;
+    } else if (std::holds_alternative<k_hash>(baseObj) &&
+               std::holds_alternative<k_string>(literal)) {
+      auto hash = std::get<k_hash>(baseObj);
+      auto key = get_string(indexExpr->token, literal);
+
+      if (op == KName::Ops_Assign) {
+        hash->add(key, newValue);
+      } else {
+        auto oldValue = hash->get(key);
+        hash->add(key, MathImpl.do_binary_op(indexExpr->token, op, oldValue,
+                                             newValue));
+      }
+      return hash;
+    }
+  }
+
+  throw IndexError(indexExpr->token, "Invalid index expression.");
+}
+
 k_value KInterpreter::visit(const IndexAssignmentNode* node) {
   auto frame = callStack.top();
   auto op = node->op;
@@ -504,12 +624,19 @@ k_value KInterpreter::visit(const IndexAssignmentNode* node) {
                            "The index was outside the bounds of the list.");
         }
 
-        if (op == KName::Ops_Assign) {
-          listObj->elements[static_cast<int>(indexValue)] = newValue;
+        // Handle nested indexing
+        if (indexExpr->indexExpression->type == ASTNodeType::INDEX_EXPRESSION) {
+          k_value nestedValue = handleNestedIndexing(
+              indexExpr, listObj->elements[indexValue], op, newValue);
+          listObj->elements[indexValue] = nestedValue;
         } else {
-          auto oldValue = listObj->elements[indexValue];
-          listObj->elements[indexValue] =
-              MathImpl.do_binary_op(node->token, op, oldValue, newValue);
+          if (op == KName::Ops_Assign) {
+            listObj->elements[indexValue] = newValue;
+          } else {
+            auto oldValue = listObj->elements[indexValue];
+            listObj->elements[indexValue] =
+                MathImpl.do_binary_op(node->token, op, oldValue, newValue);
+          }
         }
 
         frame->variables[identifierName] = listObj;
@@ -529,8 +656,21 @@ k_value KInterpreter::visit(const IndexAssignmentNode* node) {
               key, MathImpl.do_binary_op(node->token, op, oldValue, newValue));
         }
       }
-    } else if (indexExpr->indexedObject->type == ASTNodeType::INDEX_EXPRESSION) {
-      // WIP: will refactor to handle nesting...
+    } else if (indexExpr->indexedObject->type ==
+               ASTNodeType::INDEX_EXPRESSION) {
+      auto indexedObj =
+          static_cast<const IndexingNode*>(indexExpr->indexedObject.get());
+      k_string indexedObjId;
+
+      if (indexedObj->indexedObject->type == ASTNodeType::IDENTIFIER) {
+        indexedObjId = id(indexedObj->indexedObject.get());
+      } else {
+        throw IndexError(indexExpr->token,
+                         "Invalid nested indexing expression.");
+      }
+
+      k_value baseObj = interpret(indexExpr->indexedObject.get());
+      handleNestedIndexing(indexExpr, baseObj, op, newValue);
     }
   }
 
@@ -834,38 +974,45 @@ k_value KInterpreter::visit(const IndexingNode* node) {
   auto object = interpret(node->indexedObject.get());
   auto indexValue = interpret(node->indexExpression.get());
 
-  if (std::holds_alternative<k_list>(object)) {
-    auto index = get_integer(node->token, indexValue);
-    auto list = std::get<k_list>(object);
+  if (node->indexExpression->type == ASTNodeType::INDEX_EXPRESSION) {
+    auto indexExpr =
+        static_cast<const IndexingNode*>(node->indexExpression.get());
+    return handleNestedIndexing(indexExpr, object, KName::Ops_Assign,
+                                k_value{});
+  } else {
+    if (std::holds_alternative<k_list>(object)) {
+      auto index = get_integer(node->token, indexValue);
+      auto list = std::get<k_list>(object);
 
-    if (index < 0 || static_cast<size_t>(index) > list->elements.size()) {
-      throw RangeError(node->token,
-                       "The index was outside the bounds of the list.");
+      if (index < 0 || static_cast<size_t>(index) >= list->elements.size()) {
+        throw RangeError(node->token,
+                         "The index was outside the bounds of the list.");
+      }
+
+      return list->elements.at(index);
+    } else if (std::holds_alternative<k_hash>(object)) {
+      auto key = get_string(node->token, indexValue);
+      auto hash = std::get<k_hash>(object);
+
+      if (!hash->hasKey(key)) {
+        throw HashKeyError(node->token, key);
+      }
+
+      return hash->get(key);
+    } else if (std::holds_alternative<k_string>(object)) {
+      auto string = std::get<k_string>(object);
+      auto index = get_integer(node->token, indexValue);
+
+      if (index < 0 || static_cast<size_t>(index) >= string.size()) {
+        throw RangeError(node->token,
+                         "The index was outside the bounds of the string.");
+      }
+
+      return k_string(1, string.at(index));
     }
 
-    return list->elements.at(index);
-  } else if (std::holds_alternative<k_hash>(object)) {
-    auto key = get_string(node->token, indexValue);
-    auto hash = std::get<k_hash>(object);
-
-    if (!hash->hasKey(key)) {
-      throw HashKeyError(node->token, key);
-    }
-
-    return hash->get(key);
-  } else if (std::holds_alternative<k_string>(object)) {
-    auto string = std::get<k_string>(object);
-    auto index = get_integer(node->token, indexValue);
-
-    if (index < 0 || static_cast<size_t>(index) > string.size()) {
-      throw RangeError(node->token,
-                       "The index was outside the bounds of the string.");
-    }
-
-    return k_string(1, string.at(index));
+    throw IndexError(node->token, "Invalid indexing operation.");
   }
-
-  throw IndexError(node->token, "Invalid indexing operation.");
 }
 
 k_value KInterpreter::visit(const IfNode* node) {
