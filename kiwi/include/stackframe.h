@@ -5,7 +5,6 @@
 #include <string>
 #include <type_traits>
 #include <unordered_map>
-#include "objects/method.h"
 #include "parsing/tokens.h"
 #include "tracing/error.h"
 #include "tracing/state.h"
@@ -41,9 +40,7 @@ struct CallStackFrame {
   FrameFlags flags = FrameFlags::None;
 
   CallStackFrame() {}
-  ~CallStackFrame() {
-    variables.clear();
-  }
+  ~CallStackFrame() { variables.clear(); }
 
   bool hasVariable(const k_string& name) const {
     return variables.find(name) != variables.end();

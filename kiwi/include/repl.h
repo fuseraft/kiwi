@@ -57,8 +57,6 @@ int Repl::run() {
             << "` to exit the REPL." << std::endl
             << std::endl;
 
-  engine.preserveMainStackFrame();
-
   lines.emplace_back("");
   activeReplLine = 1;
 

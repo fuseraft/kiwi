@@ -267,8 +267,8 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
       break;
 
     case KTokenType::COMMA:
-      next();  // Skip the commas
-      break;
+      match(KTokenType::COMMA);
+      return nullptr;
 
     case KTokenType::KEYWORD:
       node = parseKeyword();
@@ -278,7 +278,13 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
       node = parseConditional();
       break;
 
+    case KTokenType::OPEN_BRACE:
+    case KTokenType::OPEN_BRACKET:
+    case KTokenType::OPEN_PAREN:
+    case KTokenType::LITERAL:
+    case KTokenType::OPERATOR:
     case KTokenType::IDENTIFIER:
+    case KTokenType::STRING:
       return parseExpression();
 
     default:
@@ -418,10 +424,17 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
     next();  // Consume ')'
   }
 
+  if (functionName == "hello") {
+    std::cout << "";
+  }
+
   // Parse the function body
   std::vector<std::unique_ptr<ASTNode>> body;
   while (kToken.getSubType() != KName::KW_End) {
-    body.push_back(parseStatement());
+    auto stmt = parseStatement();
+    if (stmt) {
+      body.push_back(std::move(stmt));
+    }
   }
 
   next();  // Consume 'end'
@@ -469,7 +482,10 @@ std::unique_ptr<ASTNode> Parser::parseForLoop() {
 
   std::vector<std::unique_ptr<ASTNode>> body;
   while (kToken.getSubType() != KName::KW_End) {
-    body.push_back(parseStatement());
+    auto stmt = parseStatement();
+    if (stmt) {
+      body.push_back(std::move(stmt));
+    }
   }
 
   next();  // Consume 'end'
@@ -498,7 +514,10 @@ std::unique_ptr<ASTNode> Parser::parseWhileLoop() {
 
   std::vector<std::unique_ptr<ASTNode>> body;
   while (kToken.getSubType() != KName::KW_End) {
-    body.push_back(parseStatement());
+    auto stmt = parseStatement();
+    if (stmt) {
+      body.push_back(std::move(stmt));
+    }
   }
 
   next();  // Consume 'end'
@@ -530,7 +549,10 @@ std::unique_ptr<ASTNode> Parser::parseRepeatLoop() {
 
   std::vector<std::unique_ptr<ASTNode>> body;
   while (kToken.getSubType() != KName::KW_End) {
-    body.push_back(parseStatement());
+    auto stmt = parseStatement();
+    if (stmt) {
+      body.push_back(std::move(stmt));
+    }
   }
 
   next();  // Consume 'end'
@@ -670,7 +692,10 @@ std::unique_ptr<ASTNode> Parser::parsePackage() {
 
   std::vector<std::unique_ptr<ASTNode>> body;
   while (kToken.getSubType() != KName::KW_End) {
-    body.push_back(parseStatement());
+    auto stmt = parseStatement();
+    if (stmt) {
+      body.push_back(std::move(stmt));
+    }
   }
 
   next();  // Consume 'end'
@@ -704,13 +729,19 @@ std::unique_ptr<ASTNode> Parser::parseCase() {
       while (kToken.getSubType() != KName::KW_When &&
              kToken.getSubType() != KName::KW_Else &&
              kToken.getSubType() != KName::KW_End) {
-        caseWhen->body.push_back(parseStatement());
+        auto stmt = parseStatement();
+        if (stmt) {
+          caseWhen->body.push_back(std::move(stmt));
+        }
       }
 
       node->whenNodes.push_back(std::move(caseWhen));
     } else if (matchSubType(KName::KW_Else)) {
       while (kToken.getSubType() != KName::KW_End) {
-        node->elseBody.push_back(parseStatement());
+        auto stmt = parseStatement();
+        if (stmt) {
+          node->elseBody.push_back(std::move(stmt));
+        }
       }
     }
   }
@@ -765,13 +796,13 @@ std::unique_ptr<ASTNode> Parser::parseIf() {
       node->elseifNodes.push_back(std::move(elsif));
     }
 
-    // Distribute tokens to be executed.
-    if (building == KName::KW_If) {
-      node->body.push_back(parseStatement());
-    } else if (building == KName::KW_ElseIf) {
-      node->elseifNodes.back()->body.push_back(parseStatement());
-    } else if (building == KName::KW_Else) {
-      node->elseBody.push_back(std::move(parseStatement()));
+    auto stmt = parseStatement();
+    if (building == KName::KW_If && stmt) {
+      node->body.push_back(std::move(stmt));
+    } else if (building == KName::KW_ElseIf && stmt) {
+      node->elseifNodes.back()->body.push_back(std::move(stmt));
+    } else if (building == KName::KW_Else && stmt) {
+      node->elseBody.push_back(std::move(stmt));
     }
   }
 
@@ -838,13 +869,13 @@ std::unique_ptr<ASTNode> Parser::parseTry() {
       }
     }
 
-    // Distribute tokens to be executed.
-    if (building == KName::KW_Try) {
-      tryBody.push_back(parseStatement());
-    } else if (building == KName::KW_Catch) {
-      catchBody.push_back(parseStatement());
-    } else if (building == KName::KW_Finally) {
-      finallyBody.push_back(parseStatement());
+    auto stmt = parseStatement();
+    if (building == KName::KW_Try && stmt) {
+      tryBody.push_back(std::move(stmt));
+    } else if (building == KName::KW_Catch && stmt) {
+      catchBody.push_back(std::move(stmt));
+    } else if (building == KName::KW_Finally && stmt) {
+      finallyBody.push_back(std::move(stmt));
     }
   }
 
@@ -925,7 +956,10 @@ std::unique_ptr<ASTNode> Parser::parseLambda() {
   // Parse the lambda body
   std::vector<std::unique_ptr<ASTNode>> body;
   while (kToken.getSubType() != KName::KW_End) {
-    body.push_back(parseStatement());
+    auto stmt = parseStatement();
+    if (stmt) {
+      body.push_back(std::move(stmt));
+    }
   }
 
   next();  // Consume 'end'
@@ -953,20 +987,23 @@ std::unique_ptr<ASTNode> Parser::parseLiteral() {
 
 std::unique_ptr<ASTNode> Parser::parseHashLiteral() {
   std::map<std::unique_ptr<ASTNode>, std::unique_ptr<ASTNode>> elements;
+  std::vector<k_string> keys;
 
   match(KTokenType::OPEN_BRACE);  // Consume '{'
 
   while (kToken.getType() != KTokenType::CLOSE_BRACE) {
     // Parse the key (should be a literal or identifier)
+    auto keyString = kToken.getText();
     auto key = parseExpression();
 
     if (!match(KTokenType::COLON)) {
       throw SyntaxError(kToken, "Expected ':' in hash literal");
     }
 
+    keys.push_back(keyString);
+
     // Parse the value
     auto value = parseExpression();
-
     elements.emplace(std::move(key), std::move(value));
 
     if (kToken.getType() == KTokenType::COMMA) {
@@ -978,7 +1015,7 @@ std::unique_ptr<ASTNode> Parser::parseHashLiteral() {
 
   match(KTokenType::CLOSE_BRACE);  // Consume '}'
 
-  return std::make_unique<HashLiteralNode>(std::move(elements));
+  return std::make_unique<HashLiteralNode>(std::move(elements), std::move(keys));
 }
 
 std::unique_ptr<ASTNode> Parser::parseListLiteral() {

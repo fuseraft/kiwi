@@ -167,10 +167,11 @@ class LiteralNode : public ASTNode {
 class HashLiteralNode : public ASTNode {
  public:
   std::map<std::unique_ptr<ASTNode>, std::unique_ptr<ASTNode>> elements;
+  std::vector<k_string> keys;
 
   HashLiteralNode(
-      std::map<std::unique_ptr<ASTNode>, std::unique_ptr<ASTNode>> elements)
-      : ASTNode(ASTNodeType::HASH_LITERAL), elements(std::move(elements)) {}
+      std::map<std::unique_ptr<ASTNode>, std::unique_ptr<ASTNode>> elements, std::vector<k_string> keys)
+      : ASTNode(ASTNodeType::HASH_LITERAL), elements(std::move(elements)), keys(std::move(keys)) {}
 
   void print(int depth) const override {
     print_depth(depth);
@@ -222,12 +223,12 @@ class RangeLiteralNode : public ASTNode {
 class IndexingNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> indexedObject;
-  std::string name;
+  k_string name;
   std::unique_ptr<ASTNode> indexExpression;
 
   IndexingNode() : ASTNode(ASTNodeType::INDEX_EXPRESSION) {}
 
-  IndexingNode(const std::string& name,
+  IndexingNode(const k_string& name,
                std::unique_ptr<ASTNode> indexExpression)
       : ASTNode(ASTNodeType::INDEX_EXPRESSION),
         name(name),
@@ -503,11 +504,11 @@ class SliceNode : public ASTNode {
 
 class IdentifierNode : public ASTNode {
  public:
-  std::string name;
-  std::string package;
+  k_string name;
+  k_string package;
 
   IdentifierNode() : ASTNode(ASTNodeType::IDENTIFIER) {}
-  IdentifierNode(const std::string& name)
+  IdentifierNode(const k_string& name)
       : ASTNode(ASTNodeType::IDENTIFIER), name(name) {}
 
   void print(int depth) const override {
@@ -607,8 +608,8 @@ class PrintNode : public ASTNode {
 
 class FunctionDeclarationNode : public ASTNode {
  public:
-  std::string name;
-  std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> parameters;
+  k_string name;
+  std::vector<std::pair<k_string, std::unique_ptr<ASTNode>>> parameters;
   std::vector<std::unique_ptr<ASTNode>> body;
   bool isStatic = false;
   bool isPrivate = false;
@@ -651,7 +652,7 @@ class FunctionDeclarationNode : public ASTNode {
 
 class LambdaNode : public ASTNode {
  public:
-  std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> parameters;
+  std::vector<std::pair<k_string, std::unique_ptr<ASTNode>>> parameters;
   std::vector<std::unique_ptr<ASTNode>> body;
 
   LambdaNode() : ASTNode(ASTNodeType::LAMBDA) {}
@@ -915,12 +916,12 @@ class TryNode : public ASTNode {
 
 class FunctionCallNode : public ASTNode {
  public:
-  std::string functionName;
+  k_string functionName;
   KName op;
   std::vector<std::unique_ptr<ASTNode>> arguments;
 
   FunctionCallNode() : ASTNode(ASTNodeType::FUNCTION_CALL) {}
-  FunctionCallNode(const std::string& functionName, const KName& op,
+  FunctionCallNode(const k_string& functionName, const KName& op,
                    std::vector<std::unique_ptr<ASTNode>> arguments)
       : ASTNode(ASTNodeType::FUNCTION_CALL),
         functionName(functionName),
@@ -941,11 +942,11 @@ class FunctionCallNode : public ASTNode {
 class MethodCallNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> object;
-  std::string methodName;
+  k_string methodName;
   KName op;
   std::vector<std::unique_ptr<ASTNode>> arguments;
 
-  MethodCallNode(std::unique_ptr<ASTNode> object, const std::string& methodName,
+  MethodCallNode(std::unique_ptr<ASTNode> object, const k_string& methodName,
                  const KName& op,
                  std::vector<std::unique_ptr<ASTNode>> arguments)
       : ASTNode(ASTNodeType::METHOD_CALL),
@@ -969,10 +970,10 @@ class MethodCallNode : public ASTNode {
 class MemberAccessNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> object;
-  std::string memberName;
+  k_string memberName;
 
   MemberAccessNode(std::unique_ptr<ASTNode> object,
-                   const std::string& memberName)
+                   const k_string& memberName)
       : ASTNode(ASTNodeType::MEMBER_ACCESS),
         object(std::move(object)),
         memberName(memberName) {}
@@ -987,9 +988,9 @@ class MemberAccessNode : public ASTNode {
 
 class SelfNode : public ASTNode {
  public:
-  std::string name;
+  k_string name;
   SelfNode() : ASTNode(ASTNodeType::SELF) {}
-  SelfNode(const std::string& name) : ASTNode(ASTNodeType::SELF), name(name) {}
+  SelfNode(const k_string& name) : ASTNode(ASTNodeType::SELF), name(name) {}
 
   void print(int depth) const override {
     print_depth(depth);
@@ -1031,12 +1032,12 @@ class IndexAssignmentNode : public ASTNode {
 class AssignmentNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> left;
-  std::string name;
+  k_string name;
   KName op;
   std::unique_ptr<ASTNode> initializer;
 
   AssignmentNode() : ASTNode(ASTNodeType::ASSIGNMENT) {}
-  AssignmentNode(std::unique_ptr<ASTNode> left, const std::string& name,
+  AssignmentNode(std::unique_ptr<ASTNode> left, const k_string& name,
                  const KName& op, std::unique_ptr<ASTNode> initializer)
       : ASTNode(ASTNodeType::ASSIGNMENT),
         left(std::move(left)),
@@ -1057,12 +1058,12 @@ class AssignmentNode : public ASTNode {
 class MemberAssignmentNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> object;
-  std::string memberName;
+  k_string memberName;
   KName op;
   std::unique_ptr<ASTNode> initializer;
 
   MemberAssignmentNode(std::unique_ptr<ASTNode> object,
-                       const std::string& memberName, KName op,
+                       const k_string& memberName, KName op,
                        std::unique_ptr<ASTNode> initializer)
       : ASTNode(ASTNodeType::MEMBER_ASSIGNMENT),
         object(std::move(object)),

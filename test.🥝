@@ -270,6 +270,19 @@ guava::register_test("dates", with () do
   guava::assert(d2.after(d))
 end)
 
+guava::register_test("serialization", with () do
+  a = {}
+  a.x = "hello"
+  a.y = {}
+  a.y.msg = "hello, world!"
+
+  str = serialize(a)
+  b = deserialize(str)
+
+  guava::assert(str == a.to_string())
+  guava::assert(b.to_string() == a.to_string())
+end)
+
 guava::register_test("standard library", with () do
   guava::assert(string::mirror("hello") == "helloolleh")
 end)
