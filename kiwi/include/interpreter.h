@@ -1108,14 +1108,14 @@ k_value KInterpreter::visit(const RepeatLoopNode* node) {
 }
 
 k_value KInterpreter::visit(const TryNode* node) {
-  auto frame = callStack.top();
-
   try {
     for (const auto& stmt : node->tryBody) {
       interpret(stmt.get());
     }
   } catch (const KiwiError& e) {
     if (!node->catchBody.empty()) {
+      auto frame = callStack.top();
+
       k_string errorTypeName;
       k_string errorMessageName;
       if (node->errorType) {
@@ -1264,140 +1264,141 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
   }
 
   std::unordered_map<k_string, k_string> lambdaNames;
-  auto frame = callStack.top();
   auto functionFrame = createFrame();
 
-  if (callableType == KCallableType::Method) {
-    if (!frame->inObjectContext()) {
-      throw InvalidContextError(node->token);
+  try {
+    if (callableType == KCallableType::Method) {
+      auto frame = callStack.top();
+      if (!frame->inObjectContext()) {
+        throw InvalidContextError(node->token);
+      }
+
+      auto& obj = frame->getObjectContext();
+      auto& clazz = classes[obj->className];
+      auto& clazzMethods = clazz->methods;
+
+      const auto& func = clazzMethods[node->functionName];
+      auto defaultParameters = func->defaultParameters;
+
+      for (size_t i = 0; i < func->parameters.size(); ++i) {
+        const auto& param = func->parameters[i];
+        k_value argValue = static_cast<k_int>(0);
+        if (i < node->arguments.size()) {
+          const auto& arg = node->arguments[i];
+          argValue = interpret(arg.get());
+        } else if (defaultParameters.find(param.first) !=
+                  defaultParameters.end()) {
+          argValue = param.second;
+        } else {
+          throw ParameterCountMismatchError(node->token, node->functionName);
+        }
+
+        if (std::holds_alternative<k_lambda>(argValue)) {
+          auto lambdaId = std::get<k_lambda>(argValue)->identifier;
+          lambdaTable[param.first] = lambdaId;
+          lambdaNames[param.first] = lambdaId;
+        } else {
+          functionFrame->variables[param.first] = argValue;
+        }
+      }
+
+      callStack.push(functionFrame);
+
+      const auto& decl = func->getBody();
+      for (const auto& stmt : decl) {
+        result = interpret(stmt.get());
+        if (functionFrame->isFlagSet(FrameFlags::ReturnFlag)) {
+          result = functionFrame->returnValue;
+          break;
+        }
+      }
+    } else if (callableType == KCallableType::Function) {
+      const auto& func = functions[node->functionName];
+      auto defaultParameters = func->defaultParameters;
+
+      for (size_t i = 0; i < func->parameters.size(); ++i) {
+        const auto& param = func->parameters[i];
+        k_value argValue = static_cast<k_int>(0);
+        if (i < node->arguments.size()) {
+          const auto& arg = node->arguments[i];
+          argValue = interpret(arg.get());
+        } else if (defaultParameters.find(param.first) !=
+                  defaultParameters.end()) {
+          argValue = param.second;
+        } else {
+          throw ParameterCountMismatchError(node->token, node->functionName);
+        }
+
+        if (std::holds_alternative<k_lambda>(argValue)) {
+          auto lambdaId = std::get<k_lambda>(argValue)->identifier;
+          lambdaTable[param.first] = lambdaId;
+          lambdaNames[param.first] = lambdaId;
+        } else {
+          functionFrame->variables[param.first] = argValue;
+        }
+      }
+
+      callStack.push(functionFrame);
+
+      const auto& decl = func->getBody();
+      for (const auto& stmt : decl) {
+        result = interpret(stmt.get());
+        if (functionFrame->isFlagSet(FrameFlags::ReturnFlag)) {
+          result = functionFrame->returnValue;
+          break;
+        }
+      }
+    } else if (callableType == KCallableType::Lambda) {
+      k_string targetLambda = node->functionName;
+
+      if (lambdas.find(targetLambda) == lambdas.end()) {
+        if (lambdaTable.find(targetLambda) != lambdaTable.end()) {
+          targetLambda = lambdaTable[targetLambda];
+        }
+      }
+
+      const auto& func = lambdas[targetLambda];
+      auto defaultParameters = func->defaultParameters;
+
+      for (size_t i = 0; i < func->parameters.size(); ++i) {
+        const auto& param = func->parameters[i];
+        k_value argValue = static_cast<k_int>(0);
+        if (i < node->arguments.size()) {
+          const auto& arg = node->arguments[i];
+          argValue = interpret(arg.get());
+        } else if (defaultParameters.find(param.first) !=
+                  defaultParameters.end()) {
+          argValue = param.second;
+        } else {
+          throw ParameterCountMismatchError(node->token, targetLambda);
+        }
+
+        if (std::holds_alternative<k_lambda>(argValue)) {
+          auto lambdaId = std::get<k_lambda>(argValue)->identifier;
+          lambdaTable[param.first] = lambdaId;
+          lambdaNames[param.first] = lambdaId;
+        } else {
+          functionFrame->variables[param.first] = argValue;
+        }
+      }
+
+      callStack.push(functionFrame);
+
+      const auto& decl = func->getBody();
+      for (const auto& stmt : decl) {
+        result = interpret(stmt.get());
+        if (functionFrame->isFlagSet(FrameFlags::ReturnFlag)) {
+          result = functionFrame->returnValue;
+          break;
+        }
+      }
     }
 
-    auto& obj = frame->getObjectContext();
-    auto& clazz = classes[obj->className];
-    auto& clazzMethods = clazz->methods;
-
-    const auto& func = clazzMethods[node->functionName];
-    auto defaultParameters = func->defaultParameters;
-
-    for (size_t i = 0; i < func->parameters.size(); ++i) {
-      const auto& param = func->parameters[i];
-      k_value argValue = static_cast<k_int>(0);
-      if (i < node->arguments.size()) {
-        const auto& arg = node->arguments[i];
-        argValue = interpret(arg.get());
-      } else if (defaultParameters.find(param.first) !=
-                 defaultParameters.end()) {
-        argValue = param.second;
-      } else {
-        throw ParameterCountMismatchError(node->token, node->functionName);
-      }
-
-      if (std::holds_alternative<k_lambda>(argValue)) {
-        auto lambdaId = std::get<k_lambda>(argValue)->identifier;
-        lambdaTable[param.first] = lambdaId;
-        lambdaNames[param.first] = lambdaId;
-      } else {
-        functionFrame->variables[param.first] = argValue;
-      }
-    }
-
-    callStack.push(functionFrame);
-
-    const auto& decl = func->getBody();
-    for (const auto& stmt : decl) {
-      result = interpret(stmt.get());
-      if (functionFrame->isFlagSet(FrameFlags::ReturnFlag)) {
-        result = functionFrame->returnValue;
-        break;
-      }
-    }
-  } else if (callableType == KCallableType::Function) {
-    const auto& func = functions[node->functionName];
-    auto defaultParameters = func->defaultParameters;
-
-    for (size_t i = 0; i < func->parameters.size(); ++i) {
-      const auto& param = func->parameters[i];
-      k_value argValue = static_cast<k_int>(0);
-      if (i < node->arguments.size()) {
-        const auto& arg = node->arguments[i];
-        argValue = interpret(arg.get());
-      } else if (defaultParameters.find(param.first) !=
-                 defaultParameters.end()) {
-        argValue = param.second;
-      } else {
-        throw ParameterCountMismatchError(node->token, node->functionName);
-      }
-
-      if (std::holds_alternative<k_lambda>(argValue)) {
-        auto lambdaId = std::get<k_lambda>(argValue)->identifier;
-        lambdaTable[param.first] = lambdaId;
-        lambdaNames[param.first] = lambdaId;
-      } else {
-        functionFrame->variables[param.first] = argValue;
-      }
-    }
-
-    callStack.push(functionFrame);
-
-    const auto& decl = func->getBody();
-    for (const auto& stmt : decl) {
-      result = interpret(stmt.get());
-      if (functionFrame->isFlagSet(FrameFlags::ReturnFlag)) {
-        result = functionFrame->returnValue;
-        break;
-      }
-    }
-  } else if (callableType == KCallableType::Lambda) {
-    k_string targetLambda = node->functionName;
-
-    if (lambdas.find(targetLambda) == lambdas.end()) {
-      if (lambdaTable.find(targetLambda) != lambdaTable.end()) {
-        targetLambda = lambdaTable[targetLambda];
-      }
-    }
-
-    const auto& func = lambdas[targetLambda];
-    auto defaultParameters = func->defaultParameters;
-
-    for (size_t i = 0; i < func->parameters.size(); ++i) {
-      const auto& param = func->parameters[i];
-      k_value argValue = static_cast<k_int>(0);
-      if (i < node->arguments.size()) {
-        const auto& arg = node->arguments[i];
-        argValue = interpret(arg.get());
-      } else if (defaultParameters.find(param.first) !=
-                 defaultParameters.end()) {
-        argValue = param.second;
-      } else {
-        throw ParameterCountMismatchError(node->token, targetLambda);
-      }
-
-      if (std::holds_alternative<k_lambda>(argValue)) {
-        auto lambdaId = std::get<k_lambda>(argValue)->identifier;
-        lambdaTable[param.first] = lambdaId;
-        lambdaNames[param.first] = lambdaId;
-      } else {
-        functionFrame->variables[param.first] = argValue;
-      }
-    }
-
-    callStack.push(functionFrame);
-
-    const auto& decl = func->getBody();
-    for (const auto& stmt : decl) {
-      result = interpret(stmt.get());
-      if (functionFrame->isFlagSet(FrameFlags::ReturnFlag)) {
-        result = functionFrame->returnValue;
-        break;
-      }
-    }
+    dropFrame();
+  } catch (const KiwiError& e) {
+    dropFrame();
+    throw;
   }
-
-  dropFrame();
-
-  // for (const auto& pair : lambdaNames) {
-  //   lambdaTable.erase(pair.first);
-  // }
 
   return result;
 }
