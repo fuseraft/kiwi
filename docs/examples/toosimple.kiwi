@@ -1,6 +1,6 @@
 # https://benchmarksgame-team.pages.debian.net/benchmarksgame/performance/toosimple.html
 
-n = argv::get()[0].to_int()
+n = argv::get().first().to_int()
 sum = 0.
 flip = -1.
 
