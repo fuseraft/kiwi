@@ -20,6 +20,8 @@ std::unordered_map<k_string, std::unique_ptr<KFunction>> functions;
 std::unordered_map<k_string, std::unique_ptr<KFunction>> methods;
 std::unordered_map<k_string, std::unique_ptr<KLambda>> lambdas;
 std::unordered_map<k_string, std::unique_ptr<KClass>> classes;
+httplib::Server server;
+std::unordered_map<int, k_string> serverHooks;
 
 std::unordered_map<k_string, k_string> lambdaTable;
 
@@ -120,11 +122,24 @@ class KInterpreter {
                                      std::vector<k_value>& args);
   k_value interpretReflectorBuiltin(const Token& token, const KName& builtin,
                                     std::vector<k_value>& args);
+  k_value interpretWebServerBuiltin(const Token& token, const KName& builtin,
+                                    std::vector<k_value>& args);
+  k_value interpretWebServerGet(const Token& token, std::vector<k_value>& args);
+  k_value interpretWebServerPost(const Token& token,
+                                 std::vector<k_value>& args);
+  k_value interpretWebServerListen(const Token& token,
+                                   std::vector<k_value>& args);
+  k_value interpretWebServerPublic(const Token& token,
+                                   std::vector<k_value>& args);
+  int getNextWebServerHook(const Token& token, k_value& arg);
+  void handleWebServerRequest(int webhookID, k_hash requestHash,
+                              k_string& redirect, k_string& content,
+                              k_string& contentType, int& status);
 };
 
 k_value KInterpreter::interpret(const ASTNode* node) {
   if (!node) {
-    return static_cast<k_int>(0);
+    return {};
   }
 
   switch (node->type) {
@@ -238,7 +253,7 @@ k_value KInterpreter::interpret(const ASTNode* node) {
       break;
   }
 
-  return static_cast<k_int>(0);
+  return {};
 }
 
 std::shared_ptr<CallStackFrame> KInterpreter::createFrame(
@@ -284,7 +299,7 @@ k_value KInterpreter::dropFrame() {
   }
 
   InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);
-  return static_cast<k_int>(0);
+  return {};
 }
 
 k_string KInterpreter::id(const ASTNode* node) {
@@ -309,33 +324,33 @@ k_value KInterpreter::visit(const ProgramNode* node) {
 }
 
 k_value KInterpreter::visit(const ExitNode* node) {
-  auto exitValue = interpret(node->exitValue.get());
-  auto exitCode = static_cast<k_int>(0);
-
-  if (std::holds_alternative<k_int>(exitValue)) {
-    exitCode = std::get<k_int>(exitValue);
-  } else {
-    exitCode = static_cast<k_int>(1);
-  }
-
   if (!node->condition ||
       MathImpl.is_truthy(interpret(node->condition.get()))) {
+    auto exitValue = interpret(node->exitValue.get());
+    auto exitCode = static_cast<k_int>(0);
+
+    if (std::holds_alternative<k_int>(exitValue)) {
+      exitCode = std::get<k_int>(exitValue);
+    } else {
+      exitCode = static_cast<k_int>(1);
+    }
+
     exit(static_cast<int>(exitCode));
   }
 
-  return static_cast<k_int>(0);
+  return {};
 }
 
 k_value KInterpreter::visit(const ReturnNode* node) {
-  auto frame = callStack.top();
-  k_value returnValue = static_cast<k_int>(0);
-
-  if (node->returnValue) {
-    returnValue = interpret(node->returnValue.get());
-  }
+  k_value returnValue = {};
 
   if (!node->condition ||
       MathImpl.is_truthy(interpret(node->condition.get()))) {
+    if (node->returnValue) {
+      returnValue = interpret(node->returnValue.get());
+    }
+
+    auto frame = callStack.top();
     frame->setFlag(FrameFlags::ReturnFlag);
     frame->returnValue = returnValue;
     return returnValue;
@@ -345,40 +360,39 @@ k_value KInterpreter::visit(const ReturnNode* node) {
 }
 
 k_value KInterpreter::visit(const ThrowNode* node) {
-  k_string errorType = "KiwiError";
-  k_string errorMessage;
-
-  if (node->errorValue) {
-    auto errorValue = interpret(node->errorValue.get());
-
-    if (std::holds_alternative<k_hash>(errorValue)) {
-      auto errorHash = std::get<k_hash>(errorValue);
-      if (errorHash->hasKey("error") &&
-          std::holds_alternative<k_string>(errorHash->kvp["error"])) {
-        errorType = std::get<k_string>(errorHash->kvp["error"]);
-      }
-      if (errorHash->hasKey("message") &&
-          std::holds_alternative<k_string>(errorHash->kvp["message"])) {
-        errorMessage = std::get<k_string>(errorHash->kvp["message"]);
-      }
-    } else if (std::holds_alternative<k_string>(errorValue)) {
-      errorMessage = std::get<k_string>(errorValue);
-    }
-  }
-
   if (!node->condition ||
       MathImpl.is_truthy(interpret(node->condition.get()))) {
+    k_string errorType = "KiwiError";
+    k_string errorMessage;
+    if (node->errorValue) {
+      auto errorValue = interpret(node->errorValue.get());
+
+      if (std::holds_alternative<k_hash>(errorValue)) {
+        auto errorHash = std::get<k_hash>(errorValue);
+        if (errorHash->hasKey("error") &&
+            std::holds_alternative<k_string>(errorHash->kvp["error"])) {
+          errorType = std::get<k_string>(errorHash->kvp["error"]);
+        }
+        if (errorHash->hasKey("message") &&
+            std::holds_alternative<k_string>(errorHash->kvp["message"])) {
+          errorMessage = std::get<k_string>(errorHash->kvp["message"]);
+        }
+      } else if (std::holds_alternative<k_string>(errorValue)) {
+        errorMessage = std::get<k_string>(errorValue);
+      }
+    }
+
     throw KiwiError(node->token, errorType, errorMessage);
   }
 
-  return static_cast<k_int>(0);
+  return {};
 }
 
 k_value KInterpreter::visit(const PackageNode* node) {
   auto packageName = id(node->packageName.get());
   packages[packageName] = std::make_unique<KPackage>(node);
 
-  return static_cast<k_int>(0);
+  return {};
 }
 
 void KInterpreter::importExternal(const k_string& packageName) {
@@ -430,13 +444,13 @@ k_value KInterpreter::visit(const ExportNode* node) {
   auto packageName = interpret(node->packageName.get());
   importPackage(packageName, node->token);
 
-  return static_cast<k_int>(0);
+  return {};
 }
 
 k_value KInterpreter::visit(const ImportNode* node) {
   auto packageName = interpret(node->packageName.get());
   importPackage(packageName, node->token);
-  return static_cast<k_int>(0);
+  return {};
 }
 
 k_value KInterpreter::visit(const MemberAccessNode* node) {
@@ -452,7 +466,7 @@ k_value KInterpreter::visit(const MemberAccessNode* node) {
     return hash->get(memberName);
   }
 
-  return static_cast<k_int>(0);
+  return {};
 }
 
 k_value KInterpreter::doSliceAssignment(const Token& token, k_value& slicedObj,
@@ -674,7 +688,7 @@ k_value KInterpreter::visit(const IndexAssignmentNode* node) {
     }
   }
 
-  return static_cast<k_int>(0);
+  return {};
 }
 
 k_value KInterpreter::visit(const MemberAssignmentNode* node) {
@@ -698,7 +712,7 @@ k_value KInterpreter::visit(const MemberAssignmentNode* node) {
     }
   }
 
-  return static_cast<k_int>(0);
+  return {};
 }
 
 k_value KInterpreter::visit(const AssignmentNode* node) {
@@ -812,7 +826,7 @@ k_value KInterpreter::visit(const SelfNode* node) {
     auto name = node->name;
     auto obj = frame->getObjectContext();
     if (!obj->hasVariable(name)) {
-      obj->instanceVariables[name] = static_cast<k_int>(0);
+      obj->instanceVariables[name] = {};
     }
     return obj->instanceVariables[name];
   }
@@ -840,7 +854,7 @@ k_value KInterpreter::visit(const IdentifierNode* node) {
     }
   }
 
-  return static_cast<k_int>(0);
+  return {};
 }
 
 k_value KInterpreter::visit(const LiteralNode* node) {
@@ -907,6 +921,9 @@ k_value KInterpreter::visit(const HashLiteralNode* node) {
 }
 
 k_value KInterpreter::visit(const PrintNode* node) {
+  if (SILENCE) {
+    return {};
+  }
   auto value = interpret(node->expression.get());
   if (node->printNewline) {
     std::cout << Serializer::serialize(value) << std::endl;
@@ -914,7 +931,7 @@ k_value KInterpreter::visit(const PrintNode* node) {
     std::cout << Serializer::serialize(value) << std::flush;
   }
 
-  return static_cast<k_int>(0);
+  return {};
 }
 
 k_value KInterpreter::visit(const UnaryOperationNode* node) {
@@ -1052,7 +1069,7 @@ k_value KInterpreter::visit(const IfNode* node) {
     }
   }
 
-  return static_cast<k_int>(0);
+  return {};
 }
 
 k_value KInterpreter::visit(const CaseNode* node) {
@@ -1066,7 +1083,7 @@ k_value KInterpreter::visit(const CaseNode* node) {
         interpret(stmt.get());
       }
 
-      return static_cast<k_int>(0);
+      return {};
     }
   }
 
@@ -1076,7 +1093,7 @@ k_value KInterpreter::visit(const CaseNode* node) {
     }
   }
 
-  return static_cast<k_int>(0);
+  return {};
 }
 
 k_value KInterpreter::listLoop(const ForLoopNode* node, const k_list& list) {
@@ -1225,11 +1242,16 @@ k_value KInterpreter::visit(const ForLoopNode* node) {
 
 k_value KInterpreter::visit(const WhileLoopNode* node) {
   k_value result;
+  auto frame = callStack.top();
   while (MathImpl.is_truthy(interpret(node->condition.get()))) {
     for (const auto& stmt : node->body) {
       if (stmt->type != ASTNodeType::NEXT_STATEMENT &&
           stmt->type != ASTNodeType::BREAK_STATEMENT) {
         result = interpret(stmt.get());
+      }
+
+      if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+        break;
       }
 
       if (stmt->type == ASTNodeType::NEXT_STATEMENT) {
@@ -1282,6 +1304,10 @@ k_value KInterpreter::visit(const RepeatLoopNode* node) {
       if (stmt->type != ASTNodeType::NEXT_STATEMENT &&
           stmt->type != ASTNodeType::BREAK_STATEMENT) {
         result = interpret(stmt.get());
+      }
+
+      if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+        break;
       }
 
       if (stmt->type == ASTNodeType::NEXT_STATEMENT) {
@@ -1349,7 +1375,7 @@ k_value KInterpreter::visit(const TryNode* node) {
     }
   }
 
-  return static_cast<k_int>(0);
+  return {};
 }
 
 k_value KInterpreter::visit(const LambdaNode* node) {
@@ -1360,7 +1386,7 @@ k_value KInterpreter::visit(const LambdaNode* node) {
   parameters.reserve(node->parameters.size());
   for (const auto& pair : node->parameters) {
     auto paramName = pair.first;
-    k_value paramValue = static_cast<k_int>(0);
+    k_value paramValue = {};
     if (pair.second) {
       paramValue = interpret(pair.second.get());
       defaultParameters.emplace(paramName);
@@ -1409,7 +1435,7 @@ k_value KInterpreter::visit(const ClassNode* node) {
   classStack.pop();
   methods.clear();
 
-  return static_cast<k_int>(0);
+  return {};
 }
 
 k_value KInterpreter::visit(const FunctionDeclarationNode* node) {
@@ -1425,7 +1451,7 @@ k_value KInterpreter::visit(const FunctionDeclarationNode* node) {
     functions[name] = createFunction(node, name);
   }
 
-  return static_cast<k_int>(0);
+  return {};
 }
 
 std::unique_ptr<KFunction> KInterpreter::createFunction(
@@ -1437,7 +1463,7 @@ std::unique_ptr<KFunction> KInterpreter::createFunction(
 
   for (const auto& pair : node->parameters) {
     auto paramName = pair.first;
-    k_value paramValue = static_cast<k_int>(0);
+    k_value paramValue = {};
     if (pair.second) {
       paramValue = interpret(pair.second.get());
       defaultParameters.emplace(paramName);
@@ -1482,7 +1508,7 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
 
       for (size_t i = 0; i < func->parameters.size(); ++i) {
         const auto& param = func->parameters[i];
-        k_value argValue = static_cast<k_int>(0);
+        k_value argValue = {};
         if (i < node->arguments.size()) {
           const auto& arg = node->arguments[i];
           argValue = interpret(arg.get());
@@ -1518,7 +1544,7 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
 
       for (size_t i = 0; i < func->parameters.size(); ++i) {
         const auto& param = func->parameters[i];
-        k_value argValue = static_cast<k_int>(0);
+        k_value argValue = {};
         if (i < node->arguments.size()) {
           const auto& arg = node->arguments[i];
           argValue = interpret(arg.get());
@@ -1562,7 +1588,7 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
 
       for (size_t i = 0; i < func->parameters.size(); ++i) {
         const auto& param = func->parameters[i];
-        k_value argValue = static_cast<k_int>(0);
+        k_value argValue = {};
         if (i < node->arguments.size()) {
           const auto& arg = node->arguments[i];
           argValue = interpret(arg.get());
@@ -1641,7 +1667,7 @@ k_value KInterpreter::callFunction(
 
   for (size_t i = 0; i < function->parameters.size(); ++i) {
     const auto& param = function->parameters[i];
-    k_value argValue = static_cast<k_int>(0);
+    k_value argValue = {};
     if (i < arguments.size()) {
       const auto& arg = arguments[i];
       argValue = interpret(arg.get());
@@ -1853,13 +1879,219 @@ k_value KInterpreter::callClassMethod(const MethodCallNode* node,
 
 k_value KInterpreter::callBuiltinMethod(const FunctionCallNode* node) {
   auto args = getMethodCallArguments(node->arguments);
-  if (SerializerBuiltins.is_builtin(node->op)) {
-    return interpretSerializerBuiltin(node->token, node->op, args);
-  } else if (ReflectorBuiltins.is_builtin(node->op)) {
-    return interpretReflectorBuiltin(node->token, node->op, args);
+  auto op = node->op;
+  if (SerializerBuiltins.is_builtin(op)) {
+    return interpretSerializerBuiltin(node->token, op, args);
+  } else if (ReflectorBuiltins.is_builtin(op)) {
+    return interpretReflectorBuiltin(node->token, op, args);
+  } else if (WebServerBuiltins.is_builtin(op)) {
+    return interpretWebServerBuiltin(node->token, op, args);
   }
 
-  return BuiltinDispatch::execute(node->token, node->op, args, kiwiArgs);
+  return BuiltinDispatch::execute(node->token, op, args, kiwiArgs);
+}
+
+k_value KInterpreter::interpretWebServerBuiltin(const Token& token,
+                                                const KName& builtin,
+                                                std::vector<k_value>& args) {
+  switch (builtin) {
+    case KName::Builtin_WebServer_Get:
+      return interpretWebServerGet(token, args);
+
+    case KName::Builtin_WebServer_Post:
+      return interpretWebServerPost(token, args);
+
+    case KName::Builtin_WebServer_Listen:
+      return interpretWebServerListen(token, args);
+
+    case KName::Builtin_WebServer_Public:
+      return interpretWebServerPublic(token, args);
+
+    default:
+      break;
+  }
+
+  return {};
+}
+
+void KInterpreter::handleWebServerRequest(int webhookID, k_hash requestHash,
+                                          k_string& redirect, k_string& content,
+                                          k_string& contentType, int& status) {
+  auto webhook = serverHooks[webhookID];
+  auto webhookFrame = createFrame();
+
+  auto& lambda = lambdas[webhook];
+
+  for (const auto& param : lambda->parameters) {
+    webhookFrame->variables[param.first] = requestHash;
+    break;
+  }
+
+  k_value result;
+
+  try {
+    const auto& decl = lambda->getBody();
+    for (const auto& stmt : decl) {
+      result = interpret(stmt.get());
+      if (webhookFrame->isFlagSet(FrameFlags::ReturnFlag)) {
+        result = webhookFrame->returnValue;
+        break;
+      }
+    }
+
+    if (std::holds_alternative<k_hash>(result)) {
+      auto responseHash = std::get<k_hash>(result);
+      if (responseHash->hasKey("content")) {
+        auto responseHashContent = responseHash->get("content");
+        content = Serializer::serialize(responseHashContent);
+      }
+
+      if (responseHash->hasKey("content-type")) {
+        auto responseHashContent = responseHash->get("content-type");
+        if (std::holds_alternative<k_string>(responseHashContent)) {
+          contentType = std::get<k_string>(responseHashContent);
+        }
+      }
+
+      if (responseHash->hasKey("status")) {
+        auto responseHashContent = responseHash->get("status");
+        if (std::holds_alternative<k_int>(responseHashContent)) {
+          status = static_cast<int>(std::get<k_int>(responseHashContent));
+        }
+      }
+
+      if (responseHash->hasKey("redirect")) {
+        auto responseHashContent = responseHash->get("redirect");
+        if (std::holds_alternative<k_string>(responseHashContent)) {
+          redirect = std::get<k_string>(responseHashContent);
+        }
+      }
+    }
+
+    dropFrame();
+  } catch (const KiwiError& e) {
+    dropFrame();
+    throw;
+  }
+}
+
+int KInterpreter::getNextWebServerHook(const Token& token, k_value& arg) {
+  if (!std::holds_alternative<k_lambda>(arg)) {
+    throw InvalidOperationError(token,
+                                "Expected lambda for second parameter of `" +
+                                    WebServerBuiltins.Get + "`.");
+  }
+
+  auto lambdaName = std::get<k_lambda>(arg)->identifier;
+  if (lambdas.find(lambdaName) == lambdas.end()) {
+    if (lambdaTable.find(lambdaName) != lambdaTable.end()) {
+      lambdaName = lambdaTable[lambdaName];
+    }
+  }
+  int webhookID = 0;
+
+  if (!serverHooks.empty()) {
+    webhookID = static_cast<int>(serverHooks.size());
+  }
+
+  serverHooks[webhookID] = lambdaName;
+  return webhookID;
+}
+
+k_value KInterpreter::interpretWebServerGet(const Token& token,
+                                            std::vector<k_value>& args) {
+  if (args.size() != 2) {
+    throw BuiltinUnexpectedArgumentError(token, WebServerBuiltins.Get);
+  }
+
+  auto endpointList = InterpHelper::getWebServerEndpointList(token, args.at(0));
+  int webhookID = getNextWebServerHook(token, args.at(1));
+
+  for (const auto& endpoint : endpointList) {
+    server.Get(endpoint, [this, webhookID](const httplib::Request& req,
+                                           httplib::Response& res) {
+      auto requestHash = InterpHelper::getWebServerRequestHash(req);
+
+      k_string content, redirect;
+      k_string contentType = "text/plain";
+      int status = 500;
+      handleWebServerRequest(webhookID, requestHash, redirect, content,
+                             contentType, status);
+
+      res.status = status;
+      res.set_content(content, contentType);
+    });
+  }
+
+  return {};
+}
+
+k_value KInterpreter::interpretWebServerPost(const Token& token,
+                                             std::vector<k_value>& args) {
+  if (args.size() != 2) {
+    throw BuiltinUnexpectedArgumentError(token, WebServerBuiltins.Get);
+  }
+
+  auto endpointList = InterpHelper::getWebServerEndpointList(token, args.at(0));
+  int webhookID = getNextWebServerHook(token, args.at(1));
+
+  for (const auto& endpoint : endpointList) {
+    server.Post(endpoint, [this, webhookID](const httplib::Request& req,
+                                            httplib::Response& res) {
+      auto requestHash = InterpHelper::getWebServerRequestHash(req);
+
+      k_string content, redirect;
+      k_string contentType = "text/plain";
+      int status = 500;
+      handleWebServerRequest(webhookID, requestHash, redirect, content,
+                             contentType, status);
+
+      if (!redirect.empty()) {
+        res.set_redirect(redirect);
+      } else {
+        res.status = status;
+        res.set_content(content, contentType);
+      }
+    });
+  }
+
+  return {};
+}
+
+k_value KInterpreter::interpretWebServerListen(const Token& token,
+                                               std::vector<k_value>& args) {
+  if (args.size() != 2) {
+    throw BuiltinUnexpectedArgumentError(token, WebServerBuiltins.Listen);
+  }
+
+  auto host = get_string(token, args.at(0));
+  auto port = get_integer(token, args.at(1));
+
+  server.listen(host, static_cast<int>(port));
+
+  auto hash = std::make_shared<Hash>();
+  hash->add("host", host);
+  hash->add("port", port);
+
+  return hash;
+}
+
+k_value KInterpreter::interpretWebServerPublic(const Token& token,
+                                               std::vector<k_value>& args) {
+  if (args.size() != 2) {
+    throw BuiltinUnexpectedArgumentError(token, WebServerBuiltins.Public);
+  }
+
+  auto endpoint = get_string(token, args.at(0));
+  auto publicDir = get_string(token, args.at(1));
+
+  if (!File::directoryExists(publicDir)) {
+    return false;
+  }
+
+  server.set_mount_point(endpoint, publicDir);
+
+  return true;
 }
 
 k_value KInterpreter::interpretReflectorBuiltin(const Token& token,
@@ -1976,7 +2208,7 @@ k_value KInterpreter::interpretSerializerBuiltin(const Token& token,
       break;
   }
 
-  return static_cast<k_int>(0);
+  return {};
 }
 
 k_value KInterpreter::interpretListBuiltin(const Token& token, k_value& object,
@@ -2095,18 +2327,18 @@ k_value KInterpreter::lambdaEach(std::unique_ptr<KLambda>& lambda,
   bool hasIndexVariable = false;
 
   if (lambda->parameters.empty()) {
-    return static_cast<k_int>(0);
+    return {};
   }
 
   for (size_t i = 0; i < lambda->parameters.size(); ++i) {
     const auto& param = lambda->parameters[i];
     if (i == 0) {
       valueVariable = param.first;
-      frame->variables[valueVariable] = static_cast<k_int>(0);
+      frame->variables[valueVariable] = {};
     } else if (i == 1) {
       indexVariable = param.first;
       hasIndexVariable = true;
-      frame->variables[indexVariable] = static_cast<k_int>(0);
+      frame->variables[indexVariable] = {};
     }
   }
 
@@ -2158,7 +2390,7 @@ k_value KInterpreter::lambdaMap(std::unique_ptr<KLambda>& lambda,
     const auto& param = lambda->parameters[i];
     if (i == 0) {
       mapVariable = param.first;
-      frame->variables[mapVariable] = static_cast<k_int>(0);
+      frame->variables[mapVariable] = {};
     }
   }
 
@@ -2198,7 +2430,7 @@ k_value KInterpreter::lambdaReduce(std::unique_ptr<KLambda>& lambda,
       frame->variables[accumVariable] = accumulator;
     } else if (i == 1) {
       valueVariable = param.first;
-      frame->variables[valueVariable] = static_cast<k_int>(0);
+      frame->variables[valueVariable] = {};
     }
   }
 
@@ -2235,11 +2467,11 @@ k_value KInterpreter::lambdaSelect(std::unique_ptr<KLambda>& lambda,
     const auto& param = lambda->parameters[i];
     if (i == 0) {
       valueVariable = param.first;
-      frame->variables[valueVariable] = static_cast<k_int>(0);
+      frame->variables[valueVariable] = {};
     } else if (i == 1) {
       indexVariable = param.first;
       hasIndexVariable = true;
-      frame->variables[indexVariable] = static_cast<k_int>(0);
+      frame->variables[indexVariable] = {};
     }
   }
 

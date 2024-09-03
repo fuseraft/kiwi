@@ -6,6 +6,7 @@
 #include "parsing/tokens.h"
 #include "tracing/error.h"
 #include "stackframe.h"
+#include "web/httplib.h"
 
 struct InterpHelper {
   static bool shouldUpdateFrameVariables(
@@ -172,6 +173,68 @@ struct InterpHelper {
       }
     }
     return slicedList;
+  }
+
+  static std::vector<k_string> getWebServerEndpointList(const Token& term,
+                                                        k_value& arg) {
+    std::vector<k_string> endpointList;
+
+    if (std::holds_alternative<k_string>(arg)) {
+      endpointList.emplace_back(get_string(term, arg));
+    } else if (std::holds_alternative<k_list>(arg)) {
+      for (const auto& el : std::get<k_list>(arg)->elements) {
+        if (std::holds_alternative<k_string>(el)) {
+          auto endpoint = get_string(term, el);
+          if (std::find(endpointList.begin(), endpointList.end(), endpoint) ==
+              endpointList.end()) {
+            endpointList.emplace_back(endpoint);
+          }
+        }
+      }
+    }
+
+    return endpointList;
+  }
+
+  static k_hash getWebServerRequestHash(const httplib::Request& req) {
+    auto requestHash = std::make_shared<Hash>();
+    auto headers = req.headers;
+    auto params = req.params;
+
+    for (auto it = headers.begin(); it != headers.end(); ++it) {
+      const auto& x = *it;
+      requestHash->add(x.first, x.second);
+    }
+
+    auto pathParamsHash = std::make_shared<Hash>();
+    for (const auto& pair : req.path_params) {
+      pathParamsHash->add(pair.first, pair.second);
+    }
+
+    auto paramsHash = std::make_shared<Hash>();
+    for (auto it = params.begin(); it != params.end(); ++it) {
+      const auto& x = *it;
+      paramsHash->add(x.first, x.second);
+    }
+
+    auto filesHash = std::make_shared<Hash>();
+
+    for (const auto& file : req.files) {
+      auto fileHash = std::make_shared<Hash>();
+      fileHash->add("content", file.second.content);
+      fileHash->add("content_type", file.second.content_type);
+      fileHash->add("filename", file.second.filename);
+      fileHash->add("name", file.second.name);
+      filesHash->add(file.first, fileHash);
+    }
+
+    requestHash->add("body", req.body);
+    requestHash->add("files", filesHash);
+    requestHash->add("path", req.path);
+    requestHash->add("path_params", pathParamsHash);
+    requestHash->add("params", paramsHash);
+
+    return requestHash;
   }
 };
 
