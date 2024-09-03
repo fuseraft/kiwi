@@ -7,7 +7,7 @@
 extern bool SILENCE;
 
 extern const std::string kiwi_name = "Kiwi";
-extern const std::string kiwi_version = "2.0.0";
+extern const std::string kiwi_version = "2.0.1";
 extern const std::string kiwi_arg = "kiwi";
 
 #ifdef _WIN64
@@ -35,9 +35,5 @@ extern Logger logger;
 extern std::unordered_map<std::string, std::string> kiwiArgs;
 extern std::stack<std::shared_ptr<CallStackFrame>> callStack;
 extern std::stack<std::string> packageStack;
-/*extern httplib::Server kiwiWebServer;
-extern std::unordered_map<int, Method> kiwiWebServerHooks;
-extern std::string kiwiWebServerHost;
-extern k_int kiwiWebServerPort;*/
 
 #endif
