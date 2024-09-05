@@ -221,11 +221,48 @@ class CoreBuiltinHandler {
       case KName::Builtin_Kiwi_Truthy:
         return executeTruthy(term, value, args);
 
+      case KName::Builtin_Kiwi_Lines:
+        return executeLines(term, value, args);
+
+      case KName::Builtin_Kiwi_Tokens:
+        return executeTokens(term, value, args);
+
       default:
         break;
     }
 
     throw UnknownBuiltinError(term, "");
+  }
+
+  static k_value executeLines(const Token& term, const k_value& value,
+                              const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Lines);
+    }
+
+    auto s = get_string(term, value);
+    return String::lines(s);
+  }
+
+  static k_value executeTokens(const Token& term, const k_value& value,
+                               const std::vector<k_value>& args) {
+    if (args.size() != 0) {
+      throw BuiltinUnexpectedArgumentError(term, KiwiBuiltins.Tokens);
+    }
+
+    auto s = get_string(term, value);
+    std::vector<k_value> tokens;
+
+    Lexer lex("", s);
+
+    auto ts = lex.getAllTokens();
+    tokens.reserve(ts.size());
+
+    for (const auto& token : ts) {
+      tokens.emplace_back(token.getText());
+    }
+
+    return std::make_shared<List>(tokens);
   }
 
   static k_value executeTruthy(const Token& term, const k_value& value,

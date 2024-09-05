@@ -1,7 +1,1 @@
 # a script for experimentation
-
-web::get("/", with (req) do
-  return web::ok("hello, world!", "text/plain")
-end)
-
-web::listen("localhost", 8080)

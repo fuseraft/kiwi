@@ -1,0 +1,19 @@
+package console
+  fn clear()
+    if sys::euid() < 0
+      sys::exec("cls")
+    else
+      sys::exec("clear")
+    end
+  end
+
+  fn read(msg = "")
+    return input(msg)
+  end
+
+  fn write(msg)
+    println msg
+  end
+end
+
+export "console"
