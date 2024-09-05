@@ -3,13 +3,14 @@
 number = 0
 i = 1
 limit = 500
+found = false
 
-while true do
+while !found do
   number += i
   i += 1
 
   if __divisors__(number).size() > limit
     println(number)
-    break
+    found = true
   end
 end
