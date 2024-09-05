@@ -12,8 +12,9 @@ def pythagorean_triplet(sum)
       if product == c ** 2
         found = true
         result = a * b * c
-        break
       end
+      
+      break when found
     end
 
     break when found
