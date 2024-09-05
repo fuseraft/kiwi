@@ -81,6 +81,33 @@ class String {
     return "";
   }
 
+  /// @brief Returns a list of lines from a string.
+  /// @param input The string to split.
+  /// @return A list.
+  static k_list lines(const k_string& input) {
+    auto lineCount = std::count(input.begin(), input.end(), '\n') + 1;
+
+    std::vector<k_value> results;
+    results.reserve(lineCount);
+
+    size_t start = 0;
+    size_t end = 0;
+
+    while ((end = input.find('\n', start)) != k_string::npos) {
+      size_t length = (end > start && input[end - 1] == '\r') ? end - start - 1
+                                                              : end - start;
+      results.emplace_back(input.substr(start, length));
+
+      start = end + 1;
+    }
+
+    if (start < input.size()) {
+      results.emplace_back(input.substr(start));
+    }
+
+    return std::make_shared<List>(results);
+  }
+
   /// @brief Returns a list of capture groups.
   /// @param text The string to check.
   /// @param pattern The regular expression.

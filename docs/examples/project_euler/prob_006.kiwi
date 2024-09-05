@@ -3,14 +3,12 @@
 def sum_of_squares(n)
   return [1 .. n].reduce(0, with (sum, i) do 
     sum += i**2
-    return sum
   end)
 end
 
 def square_of_sum(n)
   sum = [1 .. n].reduce(0, with (sum, i) do 
     sum += i
-    return sum
   end)
   return sum ** 2
 end

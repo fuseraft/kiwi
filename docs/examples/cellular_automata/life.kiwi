@@ -56,7 +56,7 @@ fn randomize(grid, rows, cols)
 end
 
 fn display(grid, rows, cols)
-  sys::exec("clear")
+  console::clear()
   len = rows - 1
   disp = [0] * len
 
