@@ -1,7 +1,1 @@
 # a script for experimentation
-
-println serialize(env::getvars())
-
-for arg, i in argv::get() do
-  println [i, arg]
-end
