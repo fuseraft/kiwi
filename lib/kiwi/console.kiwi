@@ -11,7 +11,7 @@ package console
     return input(msg)
   end
 
-  fn write(msg)
+  fn write(msg = "")
     println msg
   end
 end
