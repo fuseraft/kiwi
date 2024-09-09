@@ -29,6 +29,7 @@ enum class ASTNodeType {
   INDEX_EXPRESSION,
   INTERFACE,
   LAMBDA,
+  LAMBDA_CALL,
   LIST_LITERAL,
   LITERAL,
   MEMBER_ACCESS,
@@ -935,6 +936,29 @@ class FunctionCallNode : public ASTNode {
     std::cout << "FunctionCall: `" << functionName << "`" << std::endl;
     print_depth(depth);
     std::cout << "Arguments: " << std::endl;
+    for (const auto& arg : arguments) {
+      arg->print(1 + depth);
+    }
+  }
+};
+
+class LambdaCallNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> lambdaNode;
+  std::vector<std::unique_ptr<ASTNode>> arguments;
+
+  LambdaCallNode() : ASTNode(ASTNodeType::LAMBDA_CALL) {}
+  LambdaCallNode(std::unique_ptr<ASTNode> lambdaNode,
+                 std::vector<std::unique_ptr<ASTNode>> arguments)
+      : ASTNode(ASTNodeType::LAMBDA_CALL),
+        lambdaNode(std::move(lambdaNode)),
+        arguments(std::move(arguments)) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "LambdaCall:" << std::endl;
+    print_depth(depth);
+    std::cout << "Arguments:" << std::endl;
     for (const auto& arg : arguments) {
       arg->print(1 + depth);
     }
