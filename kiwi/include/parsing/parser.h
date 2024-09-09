@@ -28,6 +28,7 @@ class Parser {
   std::unique_ptr<ASTNode> parseFunction();
   std::unique_ptr<ASTNode> parseFunctionCall(const k_string& identifierName,
                                              const KName& type);
+  std::unique_ptr<ASTNode> parseLambdaCall(std::unique_ptr<ASTNode> lambdaNode);
   std::unique_ptr<ASTNode> parseKeyword();
   std::unique_ptr<ASTNode> parseClass();
   std::unique_ptr<ASTNode> parseInterface();
@@ -888,10 +889,8 @@ std::unique_ptr<ASTNode> Parser::parseTry() {
 
 std::unique_ptr<ASTNode> Parser::parseFunctionCall(
     const k_string& identifierName, const KName& type) {
-  // This is a function call
-  next();  // Consume the '('
+  next();
 
-  // Parse function arguments
   std::vector<std::unique_ptr<ASTNode>> arguments;
   while (kToken.getType() != KTokenType::CLOSE_PAREN) {
     arguments.push_back(parseExpression());
@@ -903,10 +902,31 @@ std::unique_ptr<ASTNode> Parser::parseFunctionCall(
     }
   }
 
-  next();  // Consume the closing parenthesis ')'
+  next();
 
   return std::make_unique<FunctionCallNode>(identifierName, type,
                                             std::move(arguments));
+}
+
+std::unique_ptr<ASTNode> Parser::parseLambdaCall(
+    std::unique_ptr<ASTNode> lambdaNode) {
+  next();  // Consume the '('
+
+  std::vector<std::unique_ptr<ASTNode>> arguments;
+  while (kToken.getType() != KTokenType::CLOSE_PAREN) {
+    arguments.push_back(parseExpression());
+
+    if (kToken.getType() == KTokenType::COMMA) {
+      next();
+    } else if (kToken.getType() != KTokenType::CLOSE_PAREN) {
+      throw SyntaxError(kToken, "Expected ')' or ',' in lambda call.");
+    }
+  }
+
+  next();
+
+  return std::make_unique<LambdaCallNode>(std::move(lambdaNode),
+                                          std::move(arguments));
 }
 
 std::unique_ptr<ASTNode> Parser::parseLambda() {
@@ -1206,6 +1226,12 @@ std::unique_ptr<ASTNode> Parser::parseAssignment(
   next();
 
   auto initializer = parseExpression();
+
+  if (initializer->type == ASTNodeType::LAMBDA &&
+      kToken.getType() == KTokenType::OPEN_PAREN) {
+    initializer = parseLambdaCall(std::move(initializer));
+  }
+
   return std::make_unique<AssignmentNode>(std::move(baseNode), identifierName,
                                           type, std::move(initializer));
 }

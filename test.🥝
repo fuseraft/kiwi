@@ -1,5 +1,5 @@
 /#
- The Kiwi Programming Language 2.0.1
+ The Kiwi Programming Language 2.0.2
  #/
 
 fn testsuite()
@@ -563,6 +563,9 @@ guava::register_test("lambdas", with () do
   guava::assert((numbers.reduce({}, with (accumulator, number) do
     accumulator["key${number}"] = number
   end)) == {"key1": 1, "key2": 2, "key3": 3, "key4": 4, "key5": 5})
+
+  x = (with (n) do n ** 2 end)(5)
+  guava::assert(x == 25)
 end)
 
 testsuite()

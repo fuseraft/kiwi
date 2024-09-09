@@ -7,7 +7,7 @@
 extern bool SILENCE;
 
 extern const std::string kiwi_name = "Kiwi";
-extern const std::string kiwi_version = "2.0.1";
+extern const std::string kiwi_version = "2.0.2";
 extern const std::string kiwi_arg = "kiwi";
 
 #ifdef _WIN64

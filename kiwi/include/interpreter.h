@@ -64,6 +64,7 @@ class KInterpreter {
   k_value visit(const NextNode* node);
   k_value visit(const TryNode* node);
   k_value visit(const LambdaNode* node);
+  k_value visit(const LambdaCallNode* node);
   k_value visit(const ClassNode* node);
   k_value visit(const FunctionDeclarationNode* node);
   k_value visit(const FunctionCallNode* node);
@@ -86,6 +87,9 @@ class KInterpreter {
   k_value callObjectMethod(const MethodCallNode* node,
                            const std::shared_ptr<Object>& obj);
   k_value executeFunctionBody(const std::unique_ptr<KFunction>& function);
+  k_value callLambda(std::shared_ptr<CallStackFrame>& lambdaFrame,
+                     const Token& token, const k_string& lambdaName,
+                     const std::vector<std::unique_ptr<ASTNode>>& arguments);
   k_value callFunction(const std::unique_ptr<KFunction>& function,
                        const std::vector<std::unique_ptr<ASTNode>>& arguments,
                        const Token& token, const std::string& functionName);
@@ -180,6 +184,9 @@ k_value KInterpreter::interpret(const ASTNode* node) {
 
     case ASTNodeType::MEMBER_ACCESS:
       return visit(static_cast<const MemberAccessNode*>(node));
+
+    case ASTNodeType::LAMBDA_CALL:
+      return visit(static_cast<const LambdaCallNode*>(node));
 
     case ASTNodeType::LITERAL:
       return visit(static_cast<const LiteralNode*>(node));
@@ -1470,6 +1477,24 @@ k_value KInterpreter::visit(const TryNode* node) {
   return {};
 }
 
+k_value KInterpreter::visit(const LambdaCallNode* node) {
+  auto lambdaName =
+      std::get<k_lambda>(interpret(node->lambdaNode.get()))->identifier;
+  auto lambdaFrame = createFrame();
+  k_value result;
+
+  try {
+    std::vector<std::unique_ptr<ASTNode>> args;
+    result = callLambda(lambdaFrame, node->token, lambdaName, node->arguments);
+    dropFrame();
+  } catch (const KiwiError& e) {
+    dropFrame();
+    throw;
+  }
+
+  return result;
+}
+
 k_value KInterpreter::visit(const LambdaNode* node) {
   std::vector<std::pair<std::string, k_value>> parameters;
   std::unordered_set<std::string> defaultParameters;
@@ -1581,7 +1606,6 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
     return callBuiltinMethod(node);
   }
 
-  std::unordered_map<k_string, k_string> lambdaNames;
   auto functionFrame = createFrame();
 
   try {
@@ -1614,7 +1638,6 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
         if (std::holds_alternative<k_lambda>(argValue)) {
           auto lambdaId = std::get<k_lambda>(argValue)->identifier;
           lambdaTable[param.first] = lambdaId;
-          lambdaNames[param.first] = lambdaId;
         } else {
           functionFrame->variables[param.first] = argValue;
         }
@@ -1650,7 +1673,6 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
         if (std::holds_alternative<k_lambda>(argValue)) {
           auto lambdaId = std::get<k_lambda>(argValue)->identifier;
           lambdaTable[param.first] = lambdaId;
-          lambdaNames[param.first] = lambdaId;
         } else {
           functionFrame->variables[param.first] = argValue;
         }
@@ -1667,55 +1689,64 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
         }
       }
     } else if (callableType == KCallableType::Lambda) {
-      k_string targetLambda = node->functionName;
-
-      if (lambdas.find(targetLambda) == lambdas.end()) {
-        if (lambdaTable.find(targetLambda) != lambdaTable.end()) {
-          targetLambda = lambdaTable[targetLambda];
-        }
-      }
-
-      const auto& func = lambdas[targetLambda];
-      auto defaultParameters = func->defaultParameters;
-
-      for (size_t i = 0; i < func->parameters.size(); ++i) {
-        const auto& param = func->parameters[i];
-        k_value argValue = {};
-        if (i < node->arguments.size()) {
-          const auto& arg = node->arguments[i];
-          argValue = interpret(arg.get());
-        } else if (defaultParameters.find(param.first) !=
-                   defaultParameters.end()) {
-          argValue = param.second;
-        } else {
-          throw ParameterCountMismatchError(node->token, targetLambda);
-        }
-
-        if (std::holds_alternative<k_lambda>(argValue)) {
-          auto lambdaId = std::get<k_lambda>(argValue)->identifier;
-          lambdaTable[param.first] = lambdaId;
-          lambdaNames[param.first] = lambdaId;
-        } else {
-          functionFrame->variables[param.first] = argValue;
-        }
-      }
-
-      callStack.push(functionFrame);
-
-      const auto& decl = func->getBody();
-      for (const auto& stmt : decl) {
-        result = interpret(stmt.get());
-        if (functionFrame->isFlagSet(FrameFlags::Return)) {
-          result = functionFrame->returnValue;
-          break;
-        }
-      }
+      result = callLambda(functionFrame, node->token, node->functionName,
+                          node->arguments);
     }
 
     dropFrame();
   } catch (const KiwiError& e) {
     dropFrame();
     throw;
+  }
+
+  return result;
+}
+
+k_value KInterpreter::callLambda(
+    std::shared_ptr<CallStackFrame>& lambdaFrame, const Token& token,
+    const k_string& lambdaName,
+    const std::vector<std::unique_ptr<ASTNode>>& arguments) {
+  k_string targetLambda = lambdaName;
+  k_value result;
+
+  if (lambdas.find(targetLambda) == lambdas.end()) {
+    if (lambdaTable.find(targetLambda) != lambdaTable.end()) {
+      targetLambda = lambdaTable[targetLambda];
+    }
+  }
+
+  const auto& func = lambdas[targetLambda];
+  auto defaultParameters = func->defaultParameters;
+
+  for (size_t i = 0; i < func->parameters.size(); ++i) {
+    const auto& param = func->parameters[i];
+    k_value argValue = {};
+    if (i < arguments.size()) {
+      const auto& arg = arguments[i];
+      argValue = interpret(arg.get());
+    } else if (defaultParameters.find(param.first) != defaultParameters.end()) {
+      argValue = param.second;
+    } else {
+      throw ParameterCountMismatchError(token, targetLambda);
+    }
+
+    if (std::holds_alternative<k_lambda>(argValue)) {
+      auto lambdaId = std::get<k_lambda>(argValue)->identifier;
+      lambdaTable[param.first] = lambdaId;
+    } else {
+      lambdaFrame->variables[param.first] = argValue;
+    }
+  }
+
+  callStack.push(lambdaFrame);
+
+  const auto& decl = func->getBody();
+  for (const auto& stmt : decl) {
+    result = interpret(stmt.get());
+    if (lambdaFrame->isFlagSet(FrameFlags::Return)) {
+      result = lambdaFrame->returnValue;
+      break;
+    }
   }
 
   return result;
@@ -1755,7 +1786,6 @@ k_value KInterpreter::callFunction(
     const std::string& functionName) {
   auto defaultParameters = function->defaultParameters;
   auto functionFrame = createFrame();
-  std::unordered_map<k_string, k_string> lambdaNames;
 
   for (size_t i = 0; i < function->parameters.size(); ++i) {
     const auto& param = function->parameters[i];
@@ -1772,7 +1802,6 @@ k_value KInterpreter::callFunction(
     if (std::holds_alternative<k_lambda>(argValue)) {
       auto lambdaId = std::get<k_lambda>(argValue)->identifier;
       lambdaTable[param.first] = lambdaId;
-      lambdaNames[param.first] = lambdaId;
     } else {
       functionFrame->variables[param.first] = argValue;
     }
