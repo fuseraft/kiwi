@@ -1269,7 +1269,6 @@ class Lexer {
             break;
           case '\\':
             str += '\\';
-            str += '\\';
             break;
           case 'b':
             str += '\b';
@@ -1281,6 +1280,7 @@ class Lexer {
             str += '"';
             break;
           default:
+            str += '\\';  // Retain the escape character
             str += currentChar;
         }
         escape = false;

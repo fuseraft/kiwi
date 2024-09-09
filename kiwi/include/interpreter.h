@@ -60,6 +60,8 @@ class KInterpreter {
   k_value visit(const ForLoopNode* node);
   k_value visit(const WhileLoopNode* node);
   k_value visit(const RepeatLoopNode* node);
+  k_value visit(const BreakNode* node);
+  k_value visit(const NextNode* node);
   k_value visit(const TryNode* node);
   k_value visit(const LambdaNode* node);
   k_value visit(const ClassNode* node);
@@ -221,6 +223,12 @@ k_value KInterpreter::interpret(const ASTNode* node) {
     case ASTNodeType::REPEAT_LOOP:
       return visit(static_cast<const RepeatLoopNode*>(node));
 
+    case ASTNodeType::BREAK_STATEMENT:
+      return visit(static_cast<const BreakNode*>(node));
+
+    case ASTNodeType::NEXT_STATEMENT:
+      return visit(static_cast<const NextNode*>(node));
+
     case ASTNodeType::TRY:
       return visit(static_cast<const TryNode*>(node));
 
@@ -295,7 +303,7 @@ k_value KInterpreter::dropFrame() {
   callerFrame->returnValue = returnValue;
 
   if (callerFrame->isFlagSet(FrameFlags::SubFrame)) {
-    callerFrame->setFlag(FrameFlags::ReturnFlag);
+    callerFrame->setFlag(FrameFlags::Return);
   }
 
   InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);
@@ -351,7 +359,7 @@ k_value KInterpreter::visit(const ReturnNode* node) {
     }
 
     auto frame = callStack.top();
-    frame->setFlag(FrameFlags::ReturnFlag);
+    frame->setFlag(FrameFlags::Return);
     frame->returnValue = returnValue;
     return returnValue;
   }
@@ -1039,7 +1047,7 @@ k_value KInterpreter::visit(const IfNode* node) {
   if (MathImpl.is_truthy(conditionValue)) {
     for (const auto& stmt : node->body) {
       interpret(stmt.get());
-      if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+      if (frame->isFlagSet(FrameFlags::Return)) {
         break;
       }
     }
@@ -1050,7 +1058,7 @@ k_value KInterpreter::visit(const IfNode* node) {
       if (MathImpl.is_truthy(elseifConditionValue)) {
         for (const auto& stmt : elseifNode->body) {
           interpret(stmt.get());
-          if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+          if (frame->isFlagSet(FrameFlags::Return)) {
             break;
           }
         }
@@ -1062,7 +1070,7 @@ k_value KInterpreter::visit(const IfNode* node) {
     if (!executed && !node->elseBody.empty()) {
       for (const auto& stmt : node->elseBody) {
         interpret(stmt.get());
-        if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+        if (frame->isFlagSet(FrameFlags::Return)) {
           break;
         }
       }
@@ -1098,6 +1106,7 @@ k_value KInterpreter::visit(const CaseNode* node) {
 
 k_value KInterpreter::listLoop(const ForLoopNode* node, const k_list& list) {
   auto frame = callStack.top();
+  frame->setFlag(FrameFlags::InLoop);
   const auto& elements = list->elements;
 
   k_string valueIteratorName;
@@ -1129,9 +1138,20 @@ k_value KInterpreter::listLoop(const ForLoopNode* node, const k_list& list) {
       if (stmt->type != ASTNodeType::NEXT_STATEMENT &&
           stmt->type != ASTNodeType::BREAK_STATEMENT) {
         result = interpret(stmt.get());
+
+        if (frame->isFlagSet(FrameFlags::Break)) {
+          frame->clearFlag(FrameFlags::Break);
+          fallOut = true;
+          break;
+        }
+
+        if (frame->isFlagSet(FrameFlags::Next)) {
+          frame->clearFlag(FrameFlags::Next);
+          break;
+        }
       }
 
-      if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+      if (frame->isFlagSet(FrameFlags::Return)) {
         break;
       }
 
@@ -1157,11 +1177,14 @@ k_value KInterpreter::listLoop(const ForLoopNode* node, const k_list& list) {
     frame->variables.erase(indexIteratorName);
   }
 
+  frame->clearFlag(FrameFlags::InLoop);
+
   return result;
 }
 
 k_value KInterpreter::hashLoop(const ForLoopNode* node, const k_hash& hash) {
   auto frame = callStack.top();
+  frame->setFlag(FrameFlags::InLoop);
   const auto& keys = hash->keys;
   const auto& kvp = hash->kvp;
 
@@ -1194,9 +1217,20 @@ k_value KInterpreter::hashLoop(const ForLoopNode* node, const k_hash& hash) {
       if (stmt->type != ASTNodeType::NEXT_STATEMENT &&
           stmt->type != ASTNodeType::BREAK_STATEMENT) {
         result = interpret(stmt.get());
+
+        if (frame->isFlagSet(FrameFlags::Break)) {
+          frame->clearFlag(FrameFlags::Break);
+          fallOut = true;
+          break;
+        }
+
+        if (frame->isFlagSet(FrameFlags::Next)) {
+          frame->clearFlag(FrameFlags::Next);
+          break;
+        }
       }
 
-      if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+      if (frame->isFlagSet(FrameFlags::Return)) {
         break;
       }
 
@@ -1222,6 +1256,8 @@ k_value KInterpreter::hashLoop(const ForLoopNode* node, const k_hash& hash) {
     frame->variables.erase(indexIteratorName);
   }
 
+  frame->clearFlag(FrameFlags::InLoop);
+
   return result;
 }
 
@@ -1243,14 +1279,28 @@ k_value KInterpreter::visit(const ForLoopNode* node) {
 k_value KInterpreter::visit(const WhileLoopNode* node) {
   k_value result;
   auto frame = callStack.top();
+  frame->setFlag(FrameFlags::InLoop);
+  auto fallOut = false;
+
   while (MathImpl.is_truthy(interpret(node->condition.get()))) {
     for (const auto& stmt : node->body) {
       if (stmt->type != ASTNodeType::NEXT_STATEMENT &&
           stmt->type != ASTNodeType::BREAK_STATEMENT) {
         result = interpret(stmt.get());
+
+        if (frame->isFlagSet(FrameFlags::Break)) {
+          frame->clearFlag(FrameFlags::Break);
+          fallOut = true;
+          break;
+        }
+
+        if (frame->isFlagSet(FrameFlags::Next)) {
+          frame->clearFlag(FrameFlags::Next);
+          break;
+        }
       }
 
-      if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+      if (frame->isFlagSet(FrameFlags::Return)) {
         break;
       }
 
@@ -1264,13 +1314,40 @@ k_value KInterpreter::visit(const WhileLoopNode* node) {
         const auto* breakNode = static_cast<const BreakNode*>(stmt.get());
         if (!breakNode->condition ||
             MathImpl.is_truthy(interpret(breakNode->condition.get()))) {
-          return result;
+          fallOut = true;
+          break;
         }
       }
     }
+
+    if (fallOut) {
+      break;
+    }
   }
 
+  frame->clearFlag(FrameFlags::InLoop);
+
   return result;
+}
+
+k_value KInterpreter::visit(const BreakNode* node) {
+  if (!node->condition ||
+      MathImpl.is_truthy(interpret(node->condition.get()))) {
+    auto& frame = callStack.top();
+    frame->setFlag(FrameFlags::Break);
+  }
+
+  return {};
+}
+
+k_value KInterpreter::visit(const NextNode* node) {
+  if (!node->condition ||
+      MathImpl.is_truthy(interpret(node->condition.get()))) {
+    auto& frame = callStack.top();
+    frame->setFlag(FrameFlags::Next);
+  }
+
+  return {};
 }
 
 k_value KInterpreter::visit(const RepeatLoopNode* node) {
@@ -1290,6 +1367,8 @@ k_value KInterpreter::visit(const RepeatLoopNode* node) {
   }
 
   auto frame = callStack.top();
+  frame->setFlag(FrameFlags::InLoop);
+
   auto fallOut = false;
   for (k_int i = 1; i <= count; ++i) {
     if (fallOut) {
@@ -1304,9 +1383,20 @@ k_value KInterpreter::visit(const RepeatLoopNode* node) {
       if (stmt->type != ASTNodeType::NEXT_STATEMENT &&
           stmt->type != ASTNodeType::BREAK_STATEMENT) {
         result = interpret(stmt.get());
+
+        if (frame->isFlagSet(FrameFlags::Break)) {
+          frame->clearFlag(FrameFlags::Break);
+          fallOut = true;
+          break;
+        }
+
+        if (frame->isFlagSet(FrameFlags::Next)) {
+          frame->clearFlag(FrameFlags::Next);
+          break;
+        }
       }
 
-      if (frame->isFlagSet(FrameFlags::ReturnFlag)) {
+      if (frame->isFlagSet(FrameFlags::Return)) {
         break;
       }
 
@@ -1330,6 +1420,8 @@ k_value KInterpreter::visit(const RepeatLoopNode* node) {
   if (hasAlias && frame->hasVariable(aliasName)) {
     frame->variables.erase(aliasName);
   }
+
+  frame->clearFlag(FrameFlags::InLoop);
 
   return result;
 }
@@ -1533,7 +1625,7 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
       const auto& decl = func->getBody();
       for (const auto& stmt : decl) {
         result = interpret(stmt.get());
-        if (functionFrame->isFlagSet(FrameFlags::ReturnFlag)) {
+        if (functionFrame->isFlagSet(FrameFlags::Return)) {
           result = functionFrame->returnValue;
           break;
         }
@@ -1569,7 +1661,7 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
       const auto& decl = func->getBody();
       for (const auto& stmt : decl) {
         result = interpret(stmt.get());
-        if (functionFrame->isFlagSet(FrameFlags::ReturnFlag)) {
+        if (functionFrame->isFlagSet(FrameFlags::Return)) {
           result = functionFrame->returnValue;
           break;
         }
@@ -1613,7 +1705,7 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
       const auto& decl = func->getBody();
       for (const auto& stmt : decl) {
         result = interpret(stmt.get());
-        if (functionFrame->isFlagSet(FrameFlags::ReturnFlag)) {
+        if (functionFrame->isFlagSet(FrameFlags::Return)) {
           result = functionFrame->returnValue;
           break;
         }
@@ -1707,7 +1799,7 @@ k_value KInterpreter::executeFunctionBody(
   const auto& decl = *function->decl;
   for (const auto& stmt : decl.body) {
     result = interpret(stmt.get());
-    if (callStack.top()->isFlagSet(FrameFlags::ReturnFlag)) {
+    if (callStack.top()->isFlagSet(FrameFlags::Return)) {
       result = callStack.top()->returnValue;
       break;
     }
@@ -1933,7 +2025,7 @@ void KInterpreter::handleWebServerRequest(int webhookID, k_hash requestHash,
     const auto& decl = lambda->getBody();
     for (const auto& stmt : decl) {
       result = interpret(stmt.get());
-      if (webhookFrame->isFlagSet(FrameFlags::ReturnFlag)) {
+      if (webhookFrame->isFlagSet(FrameFlags::Return)) {
         result = webhookFrame->returnValue;
         break;
       }
