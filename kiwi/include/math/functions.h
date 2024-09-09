@@ -74,6 +74,21 @@ struct {
                std::holds_alternative<k_int>(right)) {
       result =
           std::get<double>(left) + static_cast<double>(std::get<k_int>(right));
+    } else if (std::holds_alternative<k_string>(right)) {
+      std::ostringstream build;
+      if (std::holds_alternative<k_int>(left)) {
+        build << std::get<k_int>(left);
+      } else if (std::holds_alternative<double>(left)) {
+        build << std::get<double>(left);
+      } else if (std::holds_alternative<bool>(left)) {
+        build << std::boolalpha << std::get<bool>(left);
+      } else if (std::holds_alternative<k_string>(left)) {
+        build << std::get<k_string>(left);
+      }
+
+      build << std::get<k_string>(right);
+
+      result = build.str();
     } else if (std::holds_alternative<k_string>(left)) {
       std::ostringstream build;
       build << std::get<k_string>(left);
@@ -91,7 +106,14 @@ struct {
       result = build.str();
     } else if (std::holds_alternative<k_list>(left)) {
       auto list = std::get<k_list>(left);
-      list->elements.emplace_back(right);
+      if (std::holds_alternative<k_list>(right)) {
+        const auto& rightList = std::get<k_list>(right)->elements;
+        for (const auto& item : rightList) {
+          list->elements.emplace_back(item);
+        }
+      } else {
+        list->elements.emplace_back(right);
+      }
       return list;
     } else {
       throw ConversionError(token, "Conversion error in addition.");
@@ -121,9 +143,10 @@ struct {
     } else if (std::holds_alternative<k_list>(left) &&
                !std::holds_alternative<k_list>(right)) {
       std::vector<k_value> listValues;
+      const auto& leftList = std::get<k_list>(left)->elements;
       bool found = false;
 
-      for (const auto& item : std::get<k_list>(left)->elements) {
+      for (const auto& item : leftList) {
         if (!found && same_value(item, right)) {
           found = true;
           continue;
@@ -135,16 +158,23 @@ struct {
     } else if (std::holds_alternative<k_list>(left) &&
                std::holds_alternative<k_list>(right)) {
       std::vector<k_value> listValues;
-      bool found = false;
+      const auto& leftList = std::get<k_list>(left)->elements;
+      const auto& rightList = std::get<k_list>(right)->elements;
 
-      for (const auto& item : std::get<k_list>(left)->elements) {
-        if (!found && same_value(item, right)) {
-          found = true;
-          continue;
+      for (const auto& item : leftList) {
+        bool found = false;
+
+        for (const auto& ritem : rightList) {
+          if (same_value(item, ritem)) {
+            found = true;
+            break;
+          }
         }
-        listValues.emplace_back(item);
-      }
 
+        if (!found) {
+          listValues.emplace_back(item);
+        }
+      }
       return std::make_shared<List>(listValues);
     } else {
       throw ConversionError(token, "Conversion error in subtraction.");
