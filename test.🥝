@@ -174,6 +174,15 @@ guava::register_test("lists", with () do
   # List Initialization with a Range
   range_list = [1..5]
   guava::assert(range_list == [1, 2, 3, 4, 5])
+
+  a = [1..10]
+  b = a.select(with (i) do i % 2 == 0 end)
+  c = a - b
+  d = []
+  d += b
+  d += c
+
+  guava::assert(d == [2, 4, 6, 8, 10, 1, 3, 5, 7, 9])
 end)
 
 
