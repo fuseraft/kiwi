@@ -215,6 +215,10 @@ class Lexer {
             regexPattern += '\t';
             break;
           case 'r':
+            // Handle both '\r' and '\r\n' for Windows line endings
+            if (pos + 1 < source.length() && source[pos + 1] == '\n') {
+              pos++;  // Skip the '\n' after '\r'
+            }
             regexPattern += '\r';
             break;
           case '\\':
@@ -234,6 +238,12 @@ class Lexer {
           break;
         }
         regexPattern += currentChar;
+      } else if (currentChar == '\r') {
+        // Handle stray '\r' for Windows line endings
+        if (pos + 1 < source.length() && source[pos + 1] == '\n') {
+          pos++;  // Skip the '\n' after '\r'
+        }
+        regexPattern += '\n';
       } else {
         regexPattern += currentChar;
       }
