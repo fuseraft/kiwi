@@ -12,10 +12,13 @@
 
 enum class FrameFlags : uint16_t {
   None = 0,
-  ReturnFlag = 1 << 0,
+  Return = 1 << 0,
   SubFrame = 1 << 1,
-  InTry = 1 << 4,
-  InObject = 1 << 5,
+  InLoop = 1 << 2,
+  Break = 1 << 3,
+  Next = 1 << 4,
+  InTry = 1 << 5,
+  InObject = 1 << 6,
 };
 
 inline FrameFlags operator|(FrameFlags a, FrameFlags b) {
