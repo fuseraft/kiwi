@@ -1,2 +1,34 @@
 # a script for experimentation
 
+/#
+@brief A function to process a list in chunks.
+@param input_list The input list.
+@param chunk_size The size of the chunk to process.
+@param callback A callback to process each chunk with.
+@return List of results from each callback.
+#/
+fn process_chunkwise(input_list, chunk_size, callback)
+  results = []
+  chunk_count = math::ceil(input_list.size() / chunk_size.to_double()).to_int()
+  
+  repeat chunk_count as chunk do
+    chunk_index = (chunk - 1) * chunk_size
+    chunk_data = input_list[chunk_index:chunk_index + chunk_size]
+    results.push(callback(chunk_data))
+  end
+
+  return results
+end
+
+# An example execution of 100000 objects.
+process_chunkwise
+(
+  # A list of strings from "Item 1" to "Item 100000".
+  [1..100000].map(with (n) do { "id": n, "text": "Item ${n}" } end),
+  # Do this in chunks of 200.
+  200,
+  # The callback will just print the item.
+  with (item) do
+    println item
+  end
+)
