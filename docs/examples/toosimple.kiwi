@@ -1,12 +1,19 @@
 # https://benchmarksgame-team.pages.debian.net/benchmarksgame/performance/toosimple.html
 
+fn help()
+  println "usage: kiwi toosimple <number of iterations>"
+end
+
+exit help() when argv::get().empty()
+
+start = time::ticks()
 n = argv::get().first().to_int()
 sum = 0.
 flip = -1.
 
-for i in [1..n] do
+repeat n as i do
   flip *= -1.
   sum += flip / (2 * i - 1)
 end
 
-println (sum * 4).to_string('f9')
+println (sum * 4).to_string('f9') + " computed in ${time::ticksms(time::ticks() - start) / 1000} seconds"
