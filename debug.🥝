@@ -1,4 +1,4 @@
-# a script for experimentation
+# For experimentation and fun.
 
 /#
 @brief A function to process a list in chunks.
@@ -20,15 +20,24 @@ fn process_chunkwise(input_list, chunk_size, callback)
   return results
 end
 
-# An example execution of 100000 objects.
+start = time::ticks()
+
+# Just stress testing the language a little.
 process_chunkwise
 (
-  # A list of strings from "Item 1" to "Item 100000".
-  [1..100000].map(with (n) do { "id": n, "text": "Item ${n}" } end),
+  /# Generate a bunch of random hashes with two keys: 
+     - id (an integer),
+     - text (a random hex value). #/
+  [1..1000000].map(with (n) do 
+    { "id": n, 
+      "text": math::random("abcdef0123456789", 5) } 
+  end),
   # Do this in chunks of 200.
   200,
-  # The callback will just print the item.
+  # The callback in this case will just print the item.
   with (item) do
     println item
   end
 )
+
+println "finished in ${time::ticksms(time::ticks() - start) / 1000} seconds"
