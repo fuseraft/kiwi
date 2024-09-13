@@ -10,12 +10,19 @@
 #include "parsing/tokens.h"
 #include "parsing/tokentype.h"
 #include "system/fileregistry.h"
+#include "tracing/error.h"
 
 class Lexer {
  public:
   Lexer(const std::string& file, const std::string& source, bool skipWS = true)
       : source(source), pos(0), skipWS(skipWS), row(0), col(0) {
     fileId = FileRegistry::getInstance().registerFile(file);
+    preprocessSource();
+  }
+
+  Lexer(const int& file, const std::string& source, bool skipWS = true)
+      : source(source), pos(0), skipWS(skipWS), row(0), col(0) {
+    fileId = file;
     preprocessSource();
   }
 
@@ -1239,6 +1246,12 @@ class Lexer {
       binaryLiteral += getCurrentChar();
     }
 
+    if (binaryLiteral.empty()) {
+      throw SyntaxError(
+          createToken(KTokenType::LITERAL, KName::Default, binaryLiteral, 0),
+          "Invalid binary literal.");
+    }
+
     k_int value = std::stoi(binaryLiteral, nullptr, 2);
 
     return createToken(KTokenType::LITERAL, KName::Default, binaryLiteral,
@@ -1251,6 +1264,12 @@ class Lexer {
 
     while (pos < source.length() && source[pos] >= '0' && source[pos] <= '7') {
       octalLiteral += getCurrentChar();
+    }
+
+    if (octalLiteral.empty()) {
+      throw SyntaxError(
+          createToken(KTokenType::LITERAL, KName::Default, octalLiteral, 0),
+          "Invalid octal literal.");
     }
 
     k_int value = std::stoi(octalLiteral, nullptr, 8);
