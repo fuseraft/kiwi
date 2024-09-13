@@ -983,6 +983,7 @@ std::unique_ptr<ASTNode> Parser::parseLambda() {
   auto lambda = std::make_unique<LambdaNode>();
   lambda->parameters = std::move(parameters);
   lambda->body = std::move(body);
+
   return lambda;
 }
 
@@ -1227,11 +1228,6 @@ std::unique_ptr<ASTNode> Parser::parseAssignment(
 
   auto initializer = parseExpression();
 
-  if (initializer->type == ASTNodeType::LAMBDA &&
-      kToken.getType() == KTokenType::OPEN_PAREN) {
-    initializer = parseLambdaCall(std::move(initializer));
-  }
-
   return std::make_unique<AssignmentNode>(std::move(baseNode), identifierName,
                                           type, std::move(initializer));
 }
@@ -1326,6 +1322,12 @@ std::unique_ptr<ASTNode> Parser::parseExpression() {
     return std::make_unique<TernaryOperationNode>(
         std::move(node), std::move(trueBranch), std::move(falseBranch));
   }
+
+  if (node->type == ASTNodeType::LAMBDA &&
+      kToken.getType() == KTokenType::OPEN_PAREN) {
+    node = parseLambdaCall(std::move(node));
+  }
+
   return node;
 }
 
@@ -1489,9 +1491,6 @@ std::unique_ptr<ASTNode> Parser::parsePrimary() {
       break;
 
     default:
-      /*if (kToken.getSubType() == KName::KW_This) {
-        node = parseSelfInvocationTerm();
-      }*/
       if (kToken.getSubType() == KName::KW_Lambda) {
         node = parseLambda();
       }

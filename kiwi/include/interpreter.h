@@ -2,8 +2,10 @@
 #define KIWI_INTERPRETER_H
 
 #include <algorithm>
-#include <memory>
 #include <iostream>
+#include <memory>
+#include <mutex>
+#include <thread>
 
 #include "globals.h"
 #include "builtin.h"
@@ -24,6 +26,8 @@ httplib::Server server;
 std::unordered_map<int, k_string> serverHooks;
 
 std::unordered_map<k_string, k_string> lambdaTable;
+
+std::mutex interpreterMutex;
 
 class KInterpreter {
  public:
@@ -185,9 +189,6 @@ k_value KInterpreter::interpret(const ASTNode* node) {
     case ASTNodeType::MEMBER_ACCESS:
       return visit(static_cast<const MemberAccessNode*>(node));
 
-    case ASTNodeType::LAMBDA_CALL:
-      return visit(static_cast<const LambdaCallNode*>(node));
-
     case ASTNodeType::LITERAL:
       return visit(static_cast<const LiteralNode*>(node));
 
@@ -241,6 +242,9 @@ k_value KInterpreter::interpret(const ASTNode* node) {
 
     case ASTNodeType::LAMBDA:
       return visit(static_cast<const LambdaNode*>(node));
+
+    case ASTNodeType::LAMBDA_CALL:
+      return visit(static_cast<const LambdaCallNode*>(node));
 
     case ASTNodeType::FUNCTION_DECLARATION:
       return visit(static_cast<const FunctionDeclarationNode*>(node));
