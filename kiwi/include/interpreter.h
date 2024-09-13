@@ -123,7 +123,7 @@ class KInterpreter {
   k_value interpretListBuiltin(const Token& token, k_value& object,
                                const KName& op, std::vector<k_value> arguments);
 
-  k_value interpolateString(const k_string& input);
+  k_value interpolateString(const Token& token, const k_string& input);
   k_value interpretSerializerDeserialize(const Token& token,
                                          std::vector<k_value>& args);
   k_value interpretSerializerSerialize(const Token& token,
@@ -2297,9 +2297,10 @@ k_value KInterpreter::interpretReflectorBuiltin(const Token& token,
   return rlist;
 }
 
-k_value KInterpreter::interpolateString(const k_string& input) {
+k_value KInterpreter::interpolateString(const Token& token,
+                                        const k_string& input) {
   Parser parser;
-  Lexer lexer("", input);
+  Lexer lexer(token.getFile(), input);
   auto tempStream = lexer.getTokenStream();
   auto ast = parser.parseTokenStream(tempStream, true);
 
@@ -2312,7 +2313,7 @@ k_value KInterpreter::interpretSerializerDeserialize(
     throw BuiltinUnexpectedArgumentError(token, SerializerBuiltins.Deserialize);
   }
 
-  return interpolateString(get_string(token, args.at(0)));
+  return interpolateString(token, get_string(token, args.at(0)));
 }
 
 k_value KInterpreter::interpretSerializerSerialize(const Token& token,

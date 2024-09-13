@@ -263,7 +263,8 @@ std::unique_ptr<ASTNode> Parser::parseKeyword() {
       return parseFunction();
 
     default:
-      break;
+      throw SyntaxError(getErrorToken(),
+                        "Unexpected keyword '" + kToken.getText() + "'.");
   }
 
   return nullptr;
