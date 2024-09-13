@@ -14,4 +14,4 @@ repeat n as i do
   sum += flip / (2 * i - 1)
 end
 
-println (sum * 4).to_string('f9') + " computed in ${time::ticksms(time::ticks() - start) / 1000} seconds"
+println "${(sum * 4).to_string('f9')} computed in ${time::ticksms(time::ticks() - start) / 1000} seconds"
