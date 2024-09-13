@@ -1,10 +1,8 @@
 # https://benchmarksgame-team.pages.debian.net/benchmarksgame/performance/toosimple.html
 
-fn help()
+exit (with () do
   println "usage: kiwi toosimple <number of iterations>"
-end
-
-exit help() when argv::get().empty()
+end)() when argv::get().empty()
 
 start = time::ticks()
 n = argv::get().first().to_int()
