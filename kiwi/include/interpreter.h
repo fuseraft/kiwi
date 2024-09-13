@@ -308,16 +308,21 @@ k_value KInterpreter::dropFrame() {
   auto frame = callStack.top();
   auto returnValue = std::move(frame->returnValue);
   auto topVariables = std::move(frame->variables);
+  
   callStack.pop();
-  auto callerFrame = callStack.top();
+  
+  if (!callStack.empty()) {
+    auto callerFrame = callStack.top();
 
-  callerFrame->returnValue = returnValue;
+    callerFrame->returnValue = returnValue;
 
-  if (callerFrame->isFlagSet(FrameFlags::SubFrame)) {
-    callerFrame->setFlag(FrameFlags::Return);
+    if (callerFrame->isFlagSet(FrameFlags::SubFrame)) {
+      callerFrame->setFlag(FrameFlags::Return);
+    }
+
+    InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);    
   }
 
-  InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);
   return {};
 }
 
