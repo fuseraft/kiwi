@@ -2,8 +2,10 @@
 #define KIWI_INTERPRETER_H
 
 #include <algorithm>
-#include <memory>
 #include <iostream>
+#include <memory>
+#include <mutex>
+#include <thread>
 
 #include "globals.h"
 #include "builtin.h"
@@ -24,6 +26,8 @@ httplib::Server server;
 std::unordered_map<int, k_string> serverHooks;
 
 std::unordered_map<k_string, k_string> lambdaTable;
+
+std::mutex interpreterMutex;
 
 class KInterpreter {
  public:
@@ -119,7 +123,7 @@ class KInterpreter {
   k_value interpretListBuiltin(const Token& token, k_value& object,
                                const KName& op, std::vector<k_value> arguments);
 
-  k_value interpolateString(const k_string& input);
+  k_value interpolateString(const Token& token, const k_string& input);
   k_value interpretSerializerDeserialize(const Token& token,
                                          std::vector<k_value>& args);
   k_value interpretSerializerSerialize(const Token& token,
@@ -185,9 +189,6 @@ k_value KInterpreter::interpret(const ASTNode* node) {
     case ASTNodeType::MEMBER_ACCESS:
       return visit(static_cast<const MemberAccessNode*>(node));
 
-    case ASTNodeType::LAMBDA_CALL:
-      return visit(static_cast<const LambdaCallNode*>(node));
-
     case ASTNodeType::LITERAL:
       return visit(static_cast<const LiteralNode*>(node));
 
@@ -241,6 +242,9 @@ k_value KInterpreter::interpret(const ASTNode* node) {
 
     case ASTNodeType::LAMBDA:
       return visit(static_cast<const LambdaNode*>(node));
+
+    case ASTNodeType::LAMBDA_CALL:
+      return visit(static_cast<const LambdaCallNode*>(node));
 
     case ASTNodeType::FUNCTION_DECLARATION:
       return visit(static_cast<const FunctionDeclarationNode*>(node));
@@ -304,16 +308,21 @@ k_value KInterpreter::dropFrame() {
   auto frame = callStack.top();
   auto returnValue = std::move(frame->returnValue);
   auto topVariables = std::move(frame->variables);
+
   callStack.pop();
-  auto callerFrame = callStack.top();
 
-  callerFrame->returnValue = returnValue;
+  if (!callStack.empty()) {
+    auto callerFrame = callStack.top();
 
-  if (callerFrame->isFlagSet(FrameFlags::SubFrame)) {
-    callerFrame->setFlag(FrameFlags::Return);
+    callerFrame->returnValue = returnValue;
+
+    if (callerFrame->isFlagSet(FrameFlags::SubFrame)) {
+      callerFrame->setFlag(FrameFlags::Return);
+    }
+
+    InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);
   }
 
-  InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);
   return {};
 }
 
@@ -2288,9 +2297,10 @@ k_value KInterpreter::interpretReflectorBuiltin(const Token& token,
   return rlist;
 }
 
-k_value KInterpreter::interpolateString(const k_string& input) {
+k_value KInterpreter::interpolateString(const Token& token,
+                                        const k_string& input) {
   Parser parser;
-  Lexer lexer("", input);
+  Lexer lexer(token.getFile(), input);
   auto tempStream = lexer.getTokenStream();
   auto ast = parser.parseTokenStream(tempStream, true);
 
@@ -2303,7 +2313,7 @@ k_value KInterpreter::interpretSerializerDeserialize(
     throw BuiltinUnexpectedArgumentError(token, SerializerBuiltins.Deserialize);
   }
 
-  return interpolateString(get_string(token, args.at(0)));
+  return interpolateString(token, get_string(token, args.at(0)));
 }
 
 k_value KInterpreter::interpretSerializerSerialize(const Token& token,

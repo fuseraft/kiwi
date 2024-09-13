@@ -34,7 +34,7 @@ class Engine {
   }
 
   int interpretKiwi(const k_string& kiwiCode) {
-    Lexer lexer("", kiwiCode);
+    Lexer lexer(kiwi_arg, kiwiCode);
     auto tokenStream = lexer.getTokenStream();
     auto ast = parser.parseTokenStream(tokenStream);
     auto result = interp.interpret(ast.get());
