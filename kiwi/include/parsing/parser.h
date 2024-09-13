@@ -198,7 +198,8 @@ std::unique_ptr<ASTNode> Parser::parseConditional() {
     return parseCase();
   }
 
-  throw SyntaxError(getErrorToken(), "Expected if-statement or case-statement.");
+  throw SyntaxError(getErrorToken(),
+                    "Expected if-statement or case-statement.");
 }
 
 std::unique_ptr<ASTNode> Parser::parseKeyword() {
@@ -330,7 +331,8 @@ std::unique_ptr<ASTNode> Parser::parseClass() {
   // Extends
   if (matchSubType(KName::Ops_LessThan)) {
     if (kToken.getType() != KTokenType::IDENTIFIER) {
-      throw SyntaxError(getErrorToken(), "Expected identifier for base class name.");
+      throw SyntaxError(getErrorToken(),
+                        "Expected identifier for base class name.");
     }
 
     baseClass = kToken.getText();
@@ -428,7 +430,8 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
       if (kToken.getType() == KTokenType::COMMA) {
         next();
       } else if (kToken.getType() != KTokenType::CLOSE_PAREN) {
-        throw SyntaxError(getErrorToken(), "Expected ',' or ')' in parameter list.");
+        throw SyntaxError(getErrorToken(),
+                          "Expected ',' or ')' in parameter list.");
       }
     }
 
@@ -728,7 +731,8 @@ std::unique_ptr<ASTNode> Parser::parseCase() {
     if (matchSubType(KName::KW_When)) {
       auto caseWhen = std::make_unique<CaseWhenNode>();
       if (!hasValue()) {
-        throw SyntaxError(getErrorToken(), "Expected condition or value for case-when.");
+        throw SyntaxError(getErrorToken(),
+                          "Expected condition or value for case-when.");
       }
 
       caseWhen->condition = parseExpression();
@@ -908,7 +912,8 @@ std::unique_ptr<ASTNode> Parser::parseFunctionCall(
     if (kToken.getType() == KTokenType::COMMA) {
       next();
     } else if (kToken.getType() != KTokenType::CLOSE_PAREN) {
-      throw SyntaxError(getErrorToken(), "Expected ')' or ',' in function call.");
+      throw SyntaxError(getErrorToken(),
+                        "Expected ')' or ',' in function call.");
     }
   }
 
@@ -968,7 +973,8 @@ std::unique_ptr<ASTNode> Parser::parseLambda() {
       if (kToken.getType() == KTokenType::COMMA) {
         next();
       } else if (kToken.getType() != KTokenType::CLOSE_PAREN) {
-        throw SyntaxError(getErrorToken(), "Expected ',' or ')' in parameter list.");
+        throw SyntaxError(getErrorToken(),
+                          "Expected ',' or ')' in parameter list.");
       }
     }
 
@@ -1019,8 +1025,10 @@ std::unique_ptr<ASTNode> Parser::parseHashLiteral() {
   match(KTokenType::OPEN_BRACE);  // Consume '{'
 
   while (kToken.getType() != KTokenType::CLOSE_BRACE) {
-    if (kToken.getType() != KTokenType::STRING && kToken.getType() != KTokenType::IDENTIFIER) {
-      throw SyntaxError(getErrorToken(), "Expected a string or an identifier for hash key.");
+    if (kToken.getType() != KTokenType::STRING &&
+        kToken.getType() != KTokenType::IDENTIFIER) {
+      throw SyntaxError(getErrorToken(),
+                        "Expected a string or an identifier for hash key.");
     }
 
     auto keyString = kToken.getText();
@@ -1064,15 +1072,18 @@ std::unique_ptr<ASTNode> Parser::parseListLiteral() {
       next();  // Consume '..'
     } else if (kToken.getType() != KTokenType::CLOSE_BRACKET) {
       if (!isRange) {
-        throw SyntaxError(getErrorToken(), "Expected ']' or ',' in list literal.");
+        throw SyntaxError(getErrorToken(),
+                          "Expected ']' or ',' in list literal.");
       } else {
-        throw SyntaxError(getErrorToken(), "Expected ']' or '..' in range literal.");
+        throw SyntaxError(getErrorToken(),
+                          "Expected ']' or '..' in range literal.");
       }
     }
   }
 
   if (!match(KTokenType::CLOSE_BRACKET)) {
-    throw SyntaxError(getErrorToken(), "Expected ']' in list or range literal.");
+    throw SyntaxError(getErrorToken(),
+                      "Expected ']' in list or range literal.");
   }
 
   if (isRange) {
@@ -1209,7 +1220,8 @@ std::unique_ptr<ASTNode> Parser::parseFunctionCallOnMember(
     if (kToken.getType() == KTokenType::COMMA) {
       next();  // Consume ','
     } else if (kToken.getType() != KTokenType::CLOSE_PAREN) {
-      throw SyntaxError(getErrorToken(), "Expected ')' or ',' in function call.");
+      throw SyntaxError(getErrorToken(),
+                        "Expected ')' or ',' in function call.");
     }
   }
 
@@ -1232,7 +1244,8 @@ std::unique_ptr<ASTNode> Parser::parseMemberAssignment(
 std::unique_ptr<ASTNode> Parser::parseAssignment(
     std::unique_ptr<ASTNode> baseNode, const k_string& identifierName) {
   if (!Operators.is_assignment_operator(kToken.getSubType())) {
-    throw SyntaxError(getErrorToken(), "Expected an assignment operator in assignment.");
+    throw SyntaxError(getErrorToken(),
+                      "Expected an assignment operator in assignment.");
   }
 
   auto type = kToken.getSubType();
@@ -1251,7 +1264,8 @@ std::unique_ptr<ASTNode> Parser::parseQualifiedIdentifier(
   }
 
   if (kToken.getType() != KTokenType::IDENTIFIER) {
-    throw SyntaxError(getErrorToken(), "Expected an identifier after qualifier.");
+    throw SyntaxError(getErrorToken(),
+                      "Expected an identifier after qualifier.");
   }
 
   auto rightIdentifierName = kToken.getText();
@@ -1490,7 +1504,8 @@ std::unique_ptr<ASTNode> Parser::parsePrimary() {
     case KTokenType::OPEN_PAREN: {
       next();  // Skip "("
       if (kToken.getType() == KTokenType::CLOSE_PAREN) {
-        throw SyntaxError(getErrorToken(), "Expected a value between '(' and ')'.");
+        throw SyntaxError(getErrorToken(),
+                          "Expected a value between '(' and ')'.");
       }
       auto result = parseExpression();
       match(KTokenType::CLOSE_PAREN);
@@ -1509,7 +1524,8 @@ std::unique_ptr<ASTNode> Parser::parsePrimary() {
       if (kToken.getSubType() == KName::KW_Lambda) {
         node = parseLambda();
       } else {
-        throw SyntaxError(getErrorToken(), "Unexpected token '" + kToken.getText() + "'.");
+        throw SyntaxError(getErrorToken(),
+                          "Unexpected token '" + kToken.getText() + "'.");
       }
       break;
   }

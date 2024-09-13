@@ -308,9 +308,9 @@ k_value KInterpreter::dropFrame() {
   auto frame = callStack.top();
   auto returnValue = std::move(frame->returnValue);
   auto topVariables = std::move(frame->variables);
-  
+
   callStack.pop();
-  
+
   if (!callStack.empty()) {
     auto callerFrame = callStack.top();
 
@@ -320,7 +320,7 @@ k_value KInterpreter::dropFrame() {
       callerFrame->setFlag(FrameFlags::Return);
     }
 
-    InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);    
+    InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);
   }
 
   return {};
