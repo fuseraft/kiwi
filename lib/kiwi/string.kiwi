@@ -3,6 +3,22 @@
 A package with interesting string operations.
 #/
 package string
+  def contains_any(str, matches = [])
+    if matches.type() == "String"
+      matches = matches.chars()
+    end
+
+    throw "matches must be a list" when matches.type() != "List"
+
+    for m in matches do
+      if str.contains(m)
+        return true
+      end
+    end
+
+    return false
+  end
+
   /#
   @summary Encodes a string as a base64 string.
   @param   String  _input   : The input string. 
