@@ -279,6 +279,7 @@ enum KName {
   KW_Repeat,
   KW_Return,
   KW_Static,
+  KW_Struct,
   KW_Then,
   KW_This,
   KW_Throw,

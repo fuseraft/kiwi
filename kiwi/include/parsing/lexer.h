@@ -338,6 +338,8 @@ class Lexer {
       st = KName::KW_Return;
     } else if (keyword == Keywords.Static) {
       st = KName::KW_Static;
+    } else if (keyword == Keywords.Struct) {
+      st = KName::KW_Struct;
     } else if (keyword == Keywords.Then) {
       st = KName::KW_Then;
     } else if (keyword == Keywords.This) {

@@ -266,6 +266,7 @@ struct {
   const k_string Repeat = "repeat";
   const k_string Return = "return";
   const k_string Static = "static";
+  const k_string Struct = "struct";
   const k_string Then = "then";
   const k_string This = "@";
   const k_string Throw = "throw";
@@ -276,12 +277,12 @@ struct {
   const k_string While = "while";
 
   std::unordered_set<k_string> keywords = {
-      Abstract, As,      Async,    Await,  Break,    Case,  Catch,     Class,
-      Delete,   Do,      Else,     ElseIf, End,      Exit,  Export,    False,
-      Finally,  For,     Function, If,     Import,   In,    Interface, With,
-      Method,   Package, Next,     Null,   Override, Parse, Pass,      Print,
-      PrintLn,  Private, Repeat,   Return, Static,   Then,  This,      Throw,
-      True,     Try,     When,     While};
+      Abstract, As,      Async,    Await,  Break,    Case,   Catch,     Class,
+      Delete,   Do,      Else,     ElseIf, End,      Exit,   Export,    False,
+      Finally,  For,     Function, If,     Import,   In,     Interface, With,
+      Method,   Package, Next,     Null,   Override, Parse,  Pass,      Print,
+      PrintLn,  Private, Repeat,   Return, Static,   Struct, Then,      This,
+      Throw,    True,    Try,      When,   While};
 
   std::unordered_set<k_string> conditional_keywords = {If, Else, ElseIf, End,
                                                        Case};
