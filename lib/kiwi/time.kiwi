@@ -193,7 +193,29 @@ package time
   end
 end
 
-class DateTime #private (year, month, day, hour, minute, second)
+class TimeSpan
+  def initialize(year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0)
+    @year = year.is_a(Integer) ? year : 0
+    @month = month.is_a(Integer) ? month : 0
+    @day = day.is_a(Integer) ? day : 0
+    @hour = hour.is_a(Integer) ? hour : 0
+    @minute = minute.is_a(Integer) ? minute : 0
+    @second = second.is_a(Integer) ? second : 0
+  end
+
+  def get_year() return @year end
+  def get_month() return @month end
+  def get_day() return @day end
+  def get_hour() return @hour end
+  def get_minute() return @minute end
+  def get_second() return @second end
+
+  def to_string()
+    return "TimeSpan: ${@year} years, ${@month} months, ${@day} days, ${@hour} hours, ${@minute} minutes, ${@second} seconds"
+  end
+end
+
+class DateTime
   def initialize(year = 1970, month = 1, day = 1, hour = 0, minute = 0, second = 0)
     @year = year.is_a(Integer) ? year : 1970
     @month = month.is_a(Integer) ? month : 1
@@ -211,6 +233,48 @@ class DateTime #private (year, month, day, hour, minute, second)
 
   def type()
     return "DateTime"
+  end
+
+  def diff(dt)
+    throw "dt is not a DateTime" when dt.type() != "DateTime"
+    
+    # Calculate the differences
+    year_diff = @year - dt.get_year()
+    month_diff = @month - dt.get_month()
+    day_diff = @day - dt.get_day()
+    hour_diff = @hour - dt.get_hour()
+    minute_diff = @minute - dt.get_minute()
+    second_diff = @second - dt.get_second()
+
+    # Normalize negative values by borrowing from the next higher unit
+    if second_diff < 0
+      second_diff += 60
+      minute_diff -= 1
+    end
+
+    if minute_diff < 0
+      minute_diff += 60
+      hour_diff -= 1
+    end
+
+    if hour_diff < 0
+      hour_diff += 24
+      day_diff -= 1
+    end
+
+    if day_diff < 0
+      month_days = time::monthdays(dt.get_year(), dt.get_month())
+      day_diff += month_days
+      month_diff -= 1
+    end
+
+    if month_diff < 0
+      month_diff += 12
+      year_diff -= 1
+    end
+
+    # Create and return a TimeSpan object
+    return TimeSpan.new(year_diff, month_diff, day_diff, hour_diff, minute_diff, second_diff)
   end
 
   def to_number()

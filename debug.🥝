@@ -1,2 +1,36 @@
 # For experimentation and fun.
 
+println "Running Debug Tests ...\n"
+
+guava::register_test("debug", with () do
+  # write your code here!
+  guava::assert(1 == 1, "One should equal one.")
+end)
+
+fn run_tests()
+  results = guava::run_tests()
+  
+  succeeded = 0
+  failed = 0
+  duration = 0
+  
+  for r in results do
+    duration += r.duration
+    
+    if r.result
+      succeeded += 1
+    else
+      failed += 1
+    end
+  end
+  
+  println "\nRan ${results.size()} test(s) in ${duration}ms\n"
+  
+  if failed == 0
+    println "All tests passed!"
+  else
+    println "${succeeded} tests passed, ${failed} tests failed."
+  end
+end
+
+run_tests()
