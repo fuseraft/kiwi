@@ -94,7 +94,7 @@ Retrieves the current timestamp formatted as "YYYY/mm/dd hh:mm:ss tt".
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `String` | The current timestamp formatted as "YYYY/mmdd hh:mm:ss tt". |
+| `String` | The current timestamp formatted as "YYYY/mm/dd hh:mm:ss tt". |
 
 ### `timestamp_formatted(_format)`
 
