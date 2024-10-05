@@ -281,4 +281,115 @@ package string
   end
 end
 
+class StringIterator
+  def initialize(s)
+    @chars = s.chars()
+    @len = @chars.size()
+    @pos = 0
+  end
+
+  def consume()
+    @pos += 1
+  end
+
+  def skip(n)
+    if @pos + n < @len
+      @pos = @len
+    else
+      @pos += n
+    end
+  end
+
+  def can_read()
+    return @pos + 1 < @len
+  end
+
+  def current()
+    if @pos < @len
+      return @chars.get(@pos)
+    end
+    return ""
+  end
+
+  def peek()
+    if @pos + 1 < @len
+      return @chars.get(@pos + 1)
+    end
+
+    return ""
+  end
+
+  def position()
+    return @pos
+  end
+
+  def length()
+    return @len
+  end
+
+  def rewind(n)
+    @pos -= n
+  end
+
+  def grab(n)
+    if n < @len && n >= 0
+      return @chars.get(n)
+    end
+
+    return ""
+  end
+
+  def reach(n)
+    if @len + n < @len && @len + n >= 0
+      return @chars.get(@len + n)
+    end
+
+    return ""
+  end
+
+  def look_ahead()
+    return "" when !can_read()
+    tmp_chars = []
+
+    try
+      tmp_chars = (@chars)[@pos: :]
+    end
+
+    c = tmp_chars.get(i)
+    i = 0
+
+    while c == " " && i + 1 < tmp_chars.size() do
+      c = tmp_chars.get(i)
+      i += 1
+    end
+
+    return c
+  end
+
+  def count_ahead()
+    return 0 when !can_read()
+    tmp_chars = []
+
+    try
+      tmp_chars = (@chars)[@pos: :]
+    end
+
+    c = tmp_chars.get(i)
+    i = 0
+
+    while c == " " && i + 1 < tmp_chars.size() do
+      c = tmp_chars.get(i)
+      i += 1
+    end
+
+    return i - 1
+  end
+
+  def skip_whitespace()
+    while can_read() && current() == " " do
+      consume()
+    end
+  end
+end
+
 export "string"
