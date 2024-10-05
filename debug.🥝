@@ -317,6 +317,20 @@ release_history:
       - Official release
       - Added machine learning library
       - Added YAML parser"
+
+/#
+  yml = "
+fruits:
+  - - apple
+    - banana
+    - cherry
+  - - orange
+    - grape
+    - watermelon
+  - - mango
+    - pineapple
+    - peach
+"#/
   
   res = parse_yaml(yml)
   println res.pretty()
