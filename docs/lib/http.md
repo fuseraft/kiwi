@@ -1,4 +1,4 @@
-# `@kiwi/http`
+# `http`
 
 The `http` package contains functionality for working with HTTP requests.
 

@@ -1,4 +1,4 @@
-# `@kiwi/math`
+# `math`
 
 The `math` package contains functionality for working with common math operations.
 
