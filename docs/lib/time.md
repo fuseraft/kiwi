@@ -5,7 +5,8 @@ The `time` package contains functionality for working with time and date informa
 ## Table of Contents
 
 - [Package Classes](#package-classes)
-  - [`DateTime` class](datetime.md)
+  - [`DateTime` class](datetime.md#datetime)
+  - [`TimeSpan` class](datetime.md#timespan)
 - [Package Functions](#package-functions)
   - [`ampm()`](#ampm)
   - [`day()`](#day)

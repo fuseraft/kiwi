@@ -8,6 +8,7 @@ The `string` package contains specialized functions for strings.
   - [`base64decode(_input)`](#base64decode_input)
   - [`base64encode(_input)`](#base64encode_input)
   - [`center(_input, _size, _padding = " ")`](#center_input-_size-_padding)
+  - [`contains_any(str, matches = [])`](#contains_anystr-matches--)
   - [`echo(_input, _count)`](#echo_input-_count)
   - [`interweave(_input1, _input2)`](#interweave_input1-_input2)
   - [`isalpha(_input)`](#isalpha_input)
@@ -70,6 +71,21 @@ Pads both sides of a string, centering it.
 | Type | Description |
 | :--- | :---|
 | `String` | The centered string. |
+
+### contains_any(str, matches = [])
+
+Returns `true` if `str` contains any values in `matches`.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `str` | The input string. |
+| `List` | `matches` | The strings to match against. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Boolean` | True if found. |
 
 ### `echo(_input, _count)`
 
