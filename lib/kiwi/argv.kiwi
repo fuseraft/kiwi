@@ -6,7 +6,7 @@ package argv
   Summary: Get the list of command-line arguments.
   Returns: List of command-line arguments.
   #/
-  def get()
+  fn get()
     return __argv__()
   end
 
@@ -16,7 +16,7 @@ package argv
     - _key: The option key.
   Returns: String containing the option value.
   #/
-  def opt(_key)
+  fn opt(_key)
     return __xarg__(_key)
   end
 end
