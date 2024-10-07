@@ -6,7 +6,7 @@ package sys
   Summary: Get the effective user ID.
   Returns: Integer containing effective user ID.
   #/
-  def euid()
+  fn euid()
     return __euid__()
   end
 
@@ -16,7 +16,7 @@ package sys
     - _command: String containing the command text.
   Returns: Integer containing exit code of external process.
   #/
-  def exec(_command)
+  fn exec(_command)
     return __exec__(_command)
   end
 
@@ -26,7 +26,7 @@ package sys
     - _command: String containing the command text.
   Returns: String containing standard output from external process.
   #/
-  def execout(_command)
+  fn execout(_command)
     return __execout__(_command)
   end
 end

@@ -21,7 +21,7 @@ package conf
     - _delim: The delimiter for splitting key-value pairs.
   Returns: Hash containing settings read from a `conf` file. 
   #/
-  def read(_conf_path, _delim = "=")
+  fn read(_conf_path, _delim = "=")
     _conf_hash = conf::read_confhash(_conf_path, _delim)
 
     for _key in _conf_hash.keys() do
@@ -38,7 +38,7 @@ package conf
     - _json_path: The path to a `json` file.
   Returns: Hash containing settings read from a `json` file. 
   #/
-  def readjson(_json_path)
+  fn readjson(_json_path)
     try
       if !__isfile__(_json_path)
         return {}
@@ -50,7 +50,7 @@ package conf
     end
   end
 
-  def read_confhash(_conf_path, _delim)
+  fn read_confhash(_conf_path, _delim)
     try
       if !__isfile__(_conf_path)
         return {}
@@ -72,7 +72,7 @@ package conf
     end
   end
 
-  def convert(_value)
+  fn convert(_value)
     _ret_val = _value
 
     if _value == "true"

@@ -10,7 +10,7 @@ package http
     - _headers: The headers. Defaults to {}.
   Returns: A hash with the response status code, headers, and body.
   #/
-  def delete_(_url, _path, _headers = {})
+  fn delete_(_url, _path, _headers = {})
     return __webc_delete__(_url, _path, _headers)
   end
 
@@ -22,7 +22,7 @@ package http
     - _headers: The headers. Defaults to {}.
   Returns: A hash with the response status code, headers, and body.
   #/
-  def get(_url, _path, _headers = {})
+  fn get(_url, _path, _headers = {})
     return __webc_get__(_url, _path, _headers)
   end
 
@@ -34,7 +34,7 @@ package http
     - _headers: The headers. Defaults to {}.
   Returns: A hash with the response status code, headers, and body.
   #/
-  def head(_url, _path, _headers = {})
+  fn head(_url, _path, _headers = {})
     return __webc_head__(_url, _path, _headers)
   end
 
@@ -46,7 +46,7 @@ package http
     - _headers: The headers. Defaults to {}.
   Returns: A hash with the response status code, headers, and body.
   #/
-  def options(_url, _path, _headers = {})
+  fn options(_url, _path, _headers = {})
     return __webc_options__(_url, _path, _headers)
   end
 
@@ -60,7 +60,7 @@ package http
     - _content_type: The content-type. Defaults to "text/plain".
   Returns: A hash with the response status code, headers, and body.
   #/
-  def patch(_url, _path, _body, _content_type = "text/plain", _headers = {})
+  fn patch(_url, _path, _body, _content_type = "text/plain", _headers = {})
     return __webc_patch__(_url, _path, _body, _content_type, _headers)
   end
 
@@ -74,7 +74,7 @@ package http
     - _content_type: The content-type. Defaults to "text/plain".
   Returns: A hash with the response status code, headers, and body.
   #/
-  def post(_url, _path, _body, _content_type = "text/plain", _headers = {})
+  fn post(_url, _path, _body, _content_type = "text/plain", _headers = {})
     return __webc_post__(_url, _path, _body, _content_type, _headers)
   end
 
@@ -88,7 +88,7 @@ package http
     - _content_type: The content-type. Defaults to "text/plain". 
   Returns: A hash with the response status code, headers, and body.
   #/
-  def put(_url, _path, _body, _content_type = "text/plain", _headers = {})
+  fn put(_url, _path, _body, _content_type = "text/plain", _headers = {})
     return __webc_put__(_url, _path, _body, _content_type, _headers)
   end
 end

@@ -6,8 +6,19 @@ package math
   Summary: Gets the smallest difference from 1.0 that a FP type can accurately represent.
   Returns: Double
   #/
-  def epsilon()
+  fn epsilon()
     return __eps__()
+  end
+
+  fn eps(n = 9)
+    n = n.type() == "Integer" && n > 0 && n < 16 ? n : 9
+    epsilon = 1.0
+
+    repeat n do
+      epsilon *= 0.1
+    end
+
+    return epsilon
   end
 
   /#
@@ -16,7 +27,7 @@ package math
   @param   Integer|Double  _valueY   : The number y. 
   @return  Integer|Double            : A random number.
   #/
-  def random(_valueX, _valueY)
+  fn random(_valueX, _valueY)
     return __random__(_valueX, _valueY)
   end
 
@@ -27,7 +38,7 @@ package math
   @param   Integer         _size          : The size of the set.
   @return  List                           : A set of random numbers.
   #/
-  def random_set(_range_start, _range_end, _size)
+  fn random_set(_range_start, _range_end, _size)
     _min = [_range_start, _range_end].min()
     _max = [_range_start, _range_end].max()
 
@@ -57,7 +68,7 @@ package math
     - _limit: The limit.
   Returns: List
   #/
-  def listprimes(_limit)
+  fn listprimes(_limit)
     return __listprimes__(_limit)
   end
 
@@ -67,7 +78,7 @@ package math
     - _n: The n-th prime number.
   Returns: Integer
   #/
-  def nthprime(_n)
+  fn nthprime(_n)
     return __nthprime__(_n)
   end
 
@@ -77,7 +88,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def sin(_value)
+  fn sin(_value)
     return __sin__(_value)
   end
 
@@ -87,7 +98,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def cos(_value)
+  fn cos(_value)
     return __cos__(_value)
   end
 
@@ -97,7 +108,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def tan(_value)
+  fn tan(_value)
     return __tan__(_value)
   end
 
@@ -107,7 +118,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def asin(_value)
+  fn asin(_value)
     return __asin__(_value)
   end
 
@@ -117,7 +128,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def acos(_value)
+  fn acos(_value)
     return __acos__(_value)
   end
 
@@ -127,7 +138,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def atan(_value)
+  fn atan(_value)
     return __atan__(_value)
   end
 
@@ -138,7 +149,7 @@ package math
     - _valueY: The number y.
   Returns: Double
   #/
-  def atan2(_valueY, _valueX)
+  fn atan2(_valueY, _valueX)
     return __atan2__(_valueY, _valueX)
   end
 
@@ -148,7 +159,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def sinh(_value)
+  fn sinh(_value)
     return __sinh__(_value)
   end
 
@@ -158,7 +169,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def cosh(_value)
+  fn cosh(_value)
     return __cosh__(_value)
   end
 
@@ -168,7 +179,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def tanh(_value)
+  fn tanh(_value)
     return __tanh__(_value)
   end
 
@@ -178,7 +189,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def log(_value)
+  fn log(_value)
     return __log__(_value)
   end
 
@@ -188,7 +199,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def log2(_value)
+  fn log2(_value)
     return __log2__(_value)
   end
 
@@ -198,7 +209,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def log10(_value)
+  fn log10(_value)
     return __log10__(_value)
   end
 
@@ -208,7 +219,7 @@ package math
     - _value: The number x.
   Returns: Double
   #/
-  def log1p(_value)
+  fn log1p(_value)
     return __log1p__(_value)
   end
 
@@ -218,7 +229,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def sqrt(_value)
+  fn sqrt(_value)
     return __sqrt__(_value)
   end
 
@@ -228,7 +239,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def cbrt(_value)
+  fn cbrt(_value)
     return __cbrt__(_value)
   end
 
@@ -239,7 +250,7 @@ package math
     - _valueY: The number y.
   Returns: Double
   #/
-  def fmod(_valueX, _valueY)
+  fn fmod(_valueX, _valueY)
     return __fmod__(_valueX, _valueY)
   end
 
@@ -250,7 +261,7 @@ package math
     - _valueY: The number y.
   Returns: Double
   #/
-  def hypot(_valueX, _valueY)
+  fn hypot(_valueX, _valueY)
     return __hypot__(_valueX, _valueY)
   end
 
@@ -260,7 +271,7 @@ package math
     - _value: The number x.
   Returns: Double
   #/
-  def isfinite(_value)
+  fn isfinite(_value)
     return __isfinite__(_value)
   end
 
@@ -270,7 +281,7 @@ package math
     - _value: The number x.
   Returns: Double
   #/
-  def isinf(_value)
+  fn isinf(_value)
     return __isinf__(_value)
   end
 
@@ -280,7 +291,7 @@ package math
     - _value: The number x.
   Returns: Double
   #/
-  def isnan(_value)
+  fn isnan(_value)
     return __isnan__(_value)
   end
 
@@ -290,7 +301,7 @@ package math
     - _value: The number x.
   Returns: Double
   #/
-  def isnormal(_value)
+  fn isnormal(_value)
     return __isnormal__(_value)
   end
 
@@ -300,7 +311,7 @@ package math
     - _value: The number x.
   Returns: Double
   #/
-  def floor(_value)
+  fn floor(_value)
     return __floor__(_value)
   end
 
@@ -310,7 +321,7 @@ package math
     - _value: The number x.
   Returns: Double
   #/
-  def ceil(_value)
+  fn ceil(_value)
     return __ceil__(_value)
   end
 
@@ -320,7 +331,7 @@ package math
     - _value: The number x.
   Returns: Double
   #/
-  def round(_value)
+  fn round(_value)
     return __round__(_value)
   end
 
@@ -330,7 +341,7 @@ package math
     - _value: The number x.
   Returns: Double
   #/
-  def trunc(_value)
+  fn trunc(_value)
     return __trunc__(_value)
   end
 
@@ -341,7 +352,7 @@ package math
     - _valueY: The number y.
   Returns: Double
   #/
-  def remainder(_valueX, _valueY)
+  fn remainder(_valueX, _valueY)
     return __remainder__(_valueX, _valueY)
   end
 
@@ -351,7 +362,7 @@ package math
     - _value: The number x.
   Returns: Double
   #/
-  def exp(_value)
+  fn exp(_value)
     return __exp__(_value)
   end
 
@@ -361,7 +372,7 @@ package math
     - _value: The number x.
   Returns: Double
   #/
-  def expm1(_value)
+  fn expm1(_value)
     return __expm1__(_value)
   end
 
@@ -371,7 +382,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def erf(_value)
+  fn erf(_value)
     return __erf__(_value)
   end
 
@@ -381,7 +392,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def erfc(_value)
+  fn erfc(_value)
     return __erfc__(_value)
   end
 
@@ -391,7 +402,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def lgamma(_value)
+  fn lgamma(_value)
     return __lgamma__(_value)
   end
 
@@ -401,7 +412,7 @@ package math
     - _value: The number.
   Returns: Double
   #/
-  def tgamma(_value)
+  fn tgamma(_value)
     return __tgamma__(_value)
   end
 
@@ -412,7 +423,7 @@ package math
     - _valueY: The number y.
   Returns: Double
   #/
-  def copysign(_valueX, _valueY)
+  fn copysign(_valueX, _valueY)
     return __copysign__(_valueX, _valueY)
   end
 
@@ -423,7 +434,7 @@ package math
     - _valueY: The number y.
   Returns: Double
   #/
-  def nextafter(_valueX, _valueY)
+  fn nextafter(_valueX, _valueY)
     return __nextafter__(_valueX, _valueY)
   end
 
@@ -434,7 +445,7 @@ package math
     - _valueY: The number y.
   Returns: Double
   #/
-  def fmax(_valueX, _valueY)
+  fn fmax(_valueX, _valueY)
     return __fmax__(_valueX, _valueY)
   end
 
@@ -445,7 +456,7 @@ package math
     - _valueY: The number y.
   Returns: Double
   #/
-  def fmin(_valueX, _valueY)
+  fn fmin(_valueX, _valueY)
     return __fmin__(_valueX, _valueY)
   end
 
@@ -456,7 +467,7 @@ package math
     - _valueY: The number y.
   Returns: Double
   #/
-  def fdim(_valueX, _valueY)
+  fn fdim(_valueX, _valueY)
     return __fdim__(_valueX, _valueY)
   end
 
@@ -467,7 +478,7 @@ package math
     - _valueY: The number y.
   Returns: Double
   #/
-  def pow(_valueX, _valueY)
+  fn pow(_valueX, _valueY)
     return __pow__(_valueX, _valueY)
   end
 
@@ -477,7 +488,7 @@ package math
     - _value: The number.
   Returns: Integer|Double
   #/
-  def abs(_value)
+  fn abs(_value)
     return __abs__(_value)
   end
 end

@@ -6,7 +6,7 @@ package time
   Summary: Get hours since midnight (0 to 23).
   Returns: Integer
   #/
-  def hour()
+  fn hour()
     return __hour__()
   end
 
@@ -14,7 +14,7 @@ package time
   Summary: Get minutes after the hour (0 to 59).
   Returns: Integer
   #/
-  def minute()
+  fn minute()
     return __min__()
   end
 
@@ -22,7 +22,7 @@ package time
   Summary: Get seconds after the minute (0 to 60).
   Returns: Integer
   #/
-  def second()
+  fn second()
     return __sec__()
   end
 
@@ -30,7 +30,7 @@ package time
   Summary: Get time of day designation for 12 hour clocks as "AM" or "PM".
   Returns: String
   #/
-  def ampm()
+  fn ampm()
     return __ampm__()
   end
 
@@ -38,7 +38,7 @@ package time
   Summary: Get current timestamp in YYYY/mm/dd hh:mm:ss tt format.
   Returns: String
   #/
-  def timestamp()
+  fn timestamp()
     year = __year__()
     month = __mon__()
     day = __mday__()
@@ -62,7 +62,7 @@ package time
     - _format: The format string.
   Returns: String
   #/
-  def timestamp_formatted(_format)
+  fn timestamp_formatted(_format)
     return __timestamp__(_format)
   end
 
@@ -73,7 +73,7 @@ package time
     - _format: The format string.
   Returns: String
   #/
-  def dtformat(_datetime, _format = "%Y-%m-%d %H:%M:%S")
+  fn dtformat(_datetime, _format = "%Y-%m-%d %H:%M:%S")
     return __dtformat__(_datetime, _format)
   end
 
@@ -81,7 +81,7 @@ package time
   Summary: Get the day of the month (1 to 31).
   Returns: Integer
   #/
-  def day()
+  fn day()
     return __mday__()
   end
 
@@ -89,7 +89,7 @@ package time
   Summary: Get months since January (1 to 12).
   Returns: Integer
   #/
-  def month()
+  fn month()
     return __mon__()
   end
 
@@ -97,7 +97,7 @@ package time
   Summary: Get the current year.
   Returns: Integer
   #/
-  def year()
+  fn year()
     return __year__()
   end
 
@@ -107,7 +107,7 @@ package time
     _year: The year to check.
   Returns: Boolean
   #/
-  def leapyear(_year)
+  fn leapyear(_year)
     return (_year % 4 == 0 && _year % 100 != 0) || (_year % 400 == 0)
   end
   
@@ -118,7 +118,7 @@ package time
     _month: The month to check.
   Returns: Integer
   #/
-  def monthdays(_year, _month)
+  fn monthdays(_year, _month)
     if [4, 6, 9, 11].contains(_month)
       return 30
     elsif 2 == _month && time::leapyear(_year)
@@ -130,7 +130,7 @@ package time
     end
   end
 
-  def valid_day(_year, _month, _day)
+  fn valid_day(_year, _month, _day)
     return _day > time::monthdays(_year, _month)
   end
 
@@ -138,7 +138,7 @@ package time
   Summary: Get the day of the week (1 to 7).
   Returns: Integer
   #/
-  def weekday()
+  fn weekday()
     return __wday__()
   end
 
@@ -146,7 +146,7 @@ package time
   Summary: Get the day of the year (0 to 365). December 31st is 364 on leap years.
   Returns: Integer
   #/
-  def yearday()
+  fn yearday()
     return __yday__()
   end
 
@@ -154,7 +154,7 @@ package time
   Summary: Get boolean indicating whether it is Daylight Savings Time.
   Returns: Boolean
   #/
-  def isdst()
+  fn isdst()
     return __isdst__()
   end
 
@@ -162,7 +162,7 @@ package time
   Summary: Get milliseconds since January 1st, 1970.
   Returns: Double
   #/
-  def epochms()
+  fn epochms()
     return __epochms__()
   end
 
@@ -170,7 +170,7 @@ package time
   Summary: Get nanoseconds since January 1st, 1970.
   Returns: Double
   #/
-  def ticks()
+  fn ticks()
     return __ticks__()
   end
 
@@ -178,7 +178,7 @@ package time
   Summary: Converts ticks to milliseconds.
   Returns: Double
   #/
-  def ticksms(_ticks)
+  fn ticksms(_ticks)
     return __ticksms__(_ticks)
   end
 
@@ -188,7 +188,7 @@ package time
     - _ms: The duration in milliseconds.
   Returns: Double
   #/
-  def delay(_ms)
+  fn delay(_ms)
     return __delay__(_ms)
   end
 end

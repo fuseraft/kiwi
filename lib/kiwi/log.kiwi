@@ -7,7 +7,7 @@ package log
   Params:
     - _file_path: The log file path.
   #/
-  def set_file(_file_path)
+  fn set_file(_file_path)
     __log_filepath__(_file_path)
   end
 
@@ -20,7 +20,7 @@ package log
   Params:
     - _mode: The log mode. Defaults to `CONSOLE`.
   #/
-  def set_mode(_mode = "CONSOLE")
+  fn set_mode(_mode = "CONSOLE")
     __log_mode__(_mode)
   end
 
@@ -35,7 +35,7 @@ package log
   Params:
     - _format: The log entry format.
   #/
-  def logformat(_format)
+  fn logformat(_format)
     __log_format__(_format)
   end
 
@@ -69,7 +69,7 @@ package log
   Params:
     - _format: The timestamp format.
   #/
-  def tsformat(_format)
+  fn tsformat(_format)
     __log_tsformat__(_format)
   end
 
@@ -85,7 +85,7 @@ package log
   Params:
     - _level: The log level. Defaults to `INFO`.
   #/
-  def minlevel(_level = "INFO")
+  fn minlevel(_level = "INFO")
     __log_level__(_level)
   end
 
@@ -95,7 +95,7 @@ package log
     - _message: The message.
     - _source: The source. Optional.
   #/
-  def debug(_message, _source = "")
+  fn debug(_message, _source = "")
     __log_debug__(_message, _source)
   end
 
@@ -105,7 +105,7 @@ package log
     - _message: The message.
     - _source: The source. Optional.
   #/
-  def warn(_message, _source = "")
+  fn warn(_message, _source = "")
     __log_warn__(_message, _source)
   end
 
@@ -115,7 +115,7 @@ package log
     - _message: The message.
     - _source: The source. Optional.
   #/
-  def info(_message, _source = "")
+  fn info(_message, _source = "")
     __log_info__(_message, _source)
   end
 
@@ -125,7 +125,7 @@ package log
     - _message: The message.
     - _source: The source. Optional.
   #/
-  def error(_message, _source = "")
+  fn error(_message, _source = "")
     __log_error__(_message, _source)
   end
 end
