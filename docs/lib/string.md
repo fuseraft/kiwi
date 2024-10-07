@@ -1,4 +1,4 @@
-# `@kiwi/string`
+# `string`
 
 The `string` package contains specialized functions for strings.
 

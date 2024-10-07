@@ -67,7 +67,7 @@ end
 To loop indefinitely, the loop condition expression must evaluate to `true`.
 
 ```kiwi
-import "@kiwi/time" # for `delay()`
+import "time" # for `delay()`
 while true do
   print("\rPress Ctrl+C to exit!")
   time::delay(500) # sleep for 500 seconds

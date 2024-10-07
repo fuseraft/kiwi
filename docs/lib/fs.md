@@ -1,4 +1,4 @@
-# `@kiwi/fs`
+# `fs`
 
 The `fs` package contains functionality for working with files and directories.
 
