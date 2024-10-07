@@ -3,6 +3,12 @@
 A package with interesting string operations.
 #/
 package string
+  /#
+  @summary Returns `true` if `str` contains any values in `matches`.
+  @param   String  str      : The input string. 
+  @param   List    matches  : The strings to match against. 
+  @return  Boolean          : True if found.
+  #/
   fn contains_any(str, matches = [])
     if matches.type() == "String"
       matches = matches.chars()

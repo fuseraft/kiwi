@@ -15,6 +15,7 @@ The `math` package contains functionality for working with common math operation
   - [`copysign(_valueX, _valueY)`](#copysign_valuex-_valuey)
   - [`cos(_value)`](#cos_value)
   - [`cosh(_value)`](#cosh_value)
+  - [`eps(n = 9)`](#epsn--9)
   - [`epsilon()`](#epsilon)
   - [`erf(_value)`](#erf_value)
   - [`erfc(_value)`](#erfc_value)
@@ -53,6 +54,20 @@ The `math` package contains functionality for working with common math operation
   - [`trunc(_value)`](#trunc_value)
 
 ## Package Functions
+
+### `eps(n = 9)`
+
+Computes an epsilon value. The value of `n` must be between 1 and 15 (inclusive).
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `Integer` | `n` | The number of decimal places to compute. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Double` | An epsilon value. |
 
 ### `epsilon()`
 
