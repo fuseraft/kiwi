@@ -36,14 +36,8 @@ class Engine {
   int interpretKiwi(const k_string& kiwiCode) {
     Lexer lexer(kiwi_arg, kiwiCode);
     auto tokenStream = lexer.getTokenStream();
-    auto ast = parser.parseTokenStream(tokenStream);
-    auto result = interp.interpret(ast.get());
-
-    if (std::holds_alternative<k_int>(result)) {
-      return static_cast<int>(std::get<k_int>(result));
-    }
-
-    return 0;
+    streamCollection.push_back(tokenStream);
+    return runStreamCollection();
   }
 
   void printAST(const k_string& path) {
