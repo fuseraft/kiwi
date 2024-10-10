@@ -37,6 +37,7 @@ enum class ASTNodeType {
   METHOD_CALL,  // WIP
   NEXT_STATEMENT,
   NO_OP,
+  PACK_ASSIGNMENT,
   PACKAGE,
   PARSE_STATEMENT,  // WIP
   PRINT_STATEMENT,
@@ -1051,6 +1052,37 @@ class IndexAssignmentNode : public ASTNode {
     print_depth(1 + depth);
     std::cout << "Initializer:" << std::endl;
     initializer->print(2 + depth);
+  }
+};
+
+class PackAssignmentNode : public ASTNode {
+ public:
+  std::vector<std::unique_ptr<ASTNode>> left;
+  std::vector<std::unique_ptr<ASTNode>> right;
+  KName op;
+
+  PackAssignmentNode() : ASTNode(ASTNodeType::PACK_ASSIGNMENT) {}
+  PackAssignmentNode(std::vector<std::unique_ptr<ASTNode>> left,
+                     std::vector<std::unique_ptr<ASTNode>> right,
+                     const KName& op)
+      : ASTNode(ASTNodeType::PACK_ASSIGNMENT),
+        left(std::move(left)),
+        right(std::move(right)),
+        op(op) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "PackAssignment: " << Operators.get_op_string(op) << std::endl;
+    print_depth(depth);
+    std::cout << "Left-hand side:" << std::endl;
+    for (const auto& lhs : left) {
+      lhs->print(1 + depth);
+    }
+    print_depth(depth);
+    std::cout << "Right-hand side:" << std::endl;
+    for (const auto& rhs : right) {
+      rhs->print(1 + depth);
+    }
   }
 };
 

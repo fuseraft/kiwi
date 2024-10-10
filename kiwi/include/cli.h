@@ -157,6 +157,27 @@ bool KiwiCLI::createMinified(Host& host, const std::string& path) {
   return false;
 }
 
+bool KiwiCLI::createNewFile(const std::string& path) {
+  auto filePath = path;
+
+  if (File::getFileExtension(path).empty()) {
+    filePath += kiwi_extension;
+  }
+
+  if (File::fileExists(filePath)) {
+    std::cout << "The file already exists." << std::endl;
+    return false;
+  }
+
+  filePath = File::getAbsolutePath(filePath);
+  auto parentPath = File::getParentPath(filePath);
+
+  File::makeDirectoryP(parentPath);
+
+  std::cout << "Creating " << filePath << std::endl;
+  return File::createFile(filePath);
+}
+
 bool KiwiCLI::printAST(Host& host, const std::string& path) {
   if (!File::fileExists(path)) {
     std::cout << "The input file does not exists." << std::endl;
@@ -177,28 +198,6 @@ bool KiwiCLI::tokenize(Host& host, const std::string& path) {
   auto filePath = File::getAbsolutePath(path);
   auto minified = host.minify(filePath, true);
   return true;
-}
-
-bool KiwiCLI::createNewFile(const std::string& path) {
-  const std::string DefaultExtension = ".🥝";
-  auto filePath = path;
-
-  if (File::getFileExtension(path).empty()) {
-    filePath += kiwi_extension;
-  }
-
-  if (File::fileExists(filePath)) {
-    std::cout << "The file already exists." << std::endl;
-    return false;
-  }
-
-  filePath = File::getAbsolutePath(filePath);
-  auto parentPath = File::getParentPath(filePath);
-
-  File::makeDirectoryP(parentPath);
-
-  std::cout << "Creating " << filePath << std::endl;
-  return File::createFile(filePath);
 }
 
 bool KiwiCLI::processOption(std::string& opt, Host& host) {

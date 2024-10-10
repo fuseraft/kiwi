@@ -1,5 +1,5 @@
 /#
- The Kiwi Programming Language 2.0.3
+ The Kiwi Programming Language 2.0.4
  #/
 
 fn testsuite()
@@ -42,6 +42,28 @@ guava::register_test("truthiness", with () do
   guava::assert({'a': 1}.truthy())   # non-empty hashes are truthy
   guava::assert(!false.truthy())     # false is never truthy
   guava::assert(true.truthy())       # true is always truthy
+end)
+
+guava::register_test("unpacking", with () do
+  a, b, c =< true, {"a": false}, [1, 2, 3]
+
+  guava::assert(a == true)
+  guava::assert(b == {"a": false})
+  guava::assert(c == [1, 2, 3])
+
+  fn get_zero_and_one()
+    return [0, 1]
+  end
+
+  zero, one =< get_zero_and_one()
+
+  guava::assert(zero == 0)
+  guava::assert(one == 1)
+
+  a, b =< [[1, 2], ["a", "b"]]
+
+  guava::assert(a == [1, 2])
+  guava::assert(b == ["a", "b"])
 end)
 
 guava::register_test("operators", with () do
@@ -279,6 +301,56 @@ guava::register_test("dates", with () do
   guava::assert(d2.after(d))
 end)
 
+guava::register_test("timespans", with () do
+  # Test case 1: Same date
+  d1 = DateTime.new(2024, 10, 1)
+  d2 = DateTime.new(2024, 10, 1)
+  res = d1.diff(d2)
+  guava::assert(res.to_string() == "TimeSpan: 0 years, 0 months, 0 days, 0 hours, 0 minutes, 0 seconds")
+
+  # Test case 2: One day difference
+  d1 = DateTime.new(2024, 10, 2)
+  d2 = DateTime.new(2024, 10, 1)
+  res = d1.diff(d2)
+  guava::assert(res.to_string() == "TimeSpan: 0 years, 0 months, 1 days, 0 hours, 0 minutes, 0 seconds")
+
+  # Test case 3: One month difference
+  d1 = DateTime.new(2024, 11, 1)
+  d2 = DateTime.new(2024, 10, 1)
+  res = d1.diff(d2)
+  guava::assert(res.to_string() == "TimeSpan: 0 years, 1 months, 0 days, 0 hours, 0 minutes, 0 seconds")
+
+  # Test case 4: One year difference
+  d1 = DateTime.new(2025, 10, 1)
+  d2 = DateTime.new(2024, 10, 1)
+  res = d1.diff(d2)
+  guava::assert(res.to_string() == "TimeSpan: 1 years, 0 months, 0 days, 0 hours, 0 minutes, 0 seconds")
+
+  # Test case 5: Leap year handling (Feb 29)
+  d1 = DateTime.new(2024, 3, 1)
+  d2 = DateTime.new(2024, 2, 29)
+  res = d1.diff(d2)
+  guava::assert(res.to_string() == "TimeSpan: 0 years, 0 months, 1 days, 0 hours, 0 minutes, 0 seconds")
+
+  # Test case 6: Multiple years and months difference
+  d1 = DateTime.new(2026, 12, 15)
+  d2 = DateTime.new(2023, 7, 5)
+  res = d1.diff(d2)
+  guava::assert(res.to_string() == "TimeSpan: 3 years, 5 months, 10 days, 0 hours, 0 minutes, 0 seconds")
+
+  # Test case 7: Time difference within the same day
+  d1 = DateTime.new(2024, 10, 1, 12, 30, 15)
+  d2 = DateTime.new(2024, 10, 1, 10, 15, 10)
+  res = d1.diff(d2)
+  guava::assert(res.to_string() == "TimeSpan: 0 years, 0 months, 0 days, 2 hours, 15 minutes, 5 seconds")
+
+  # Test case 8: Time difference over midnight
+  d1 = DateTime.new(2024, 10, 2, 1, 30, 45)
+  d2 = DateTime.new(2024, 10, 1, 23, 45, 30)
+  res = d1.diff(d2)
+  guava::assert(res.to_string() == "TimeSpan: 0 years, 0 months, 0 days, 1 hours, 45 minutes, 15 seconds")
+end)
+
 guava::register_test("serialization", with () do
   a = {}
   a.x = "hello"
@@ -365,7 +437,7 @@ guava::register_test("type checks", with () do
 
   guava::assert(s.is_a(String))
   guava::assert(i.is_a(Integer))
-  guava::assert(d.is_a(Double))
+  guava::assert(d.is_a(Float))
   guava::assert(b.is_a(Boolean))
   guava::assert(null.is_a(None))
   guava::assert(h.is_a(Hash))

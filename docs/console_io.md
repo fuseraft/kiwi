@@ -5,7 +5,7 @@ Kiwi offers the following constructs to work with console I/O:
 - `print`: Print text to the console.
 - `println`: Print a line of text to the console.
 
-For file I/O, please see [@kiwi/fs](lib/fs.md).
+For file I/O, please see [fs](lib/fs.md).
 
 ### `input()`
 

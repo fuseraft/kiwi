@@ -8,7 +8,7 @@ package fs
     - _path: The path to a file or a filename.
   Returns: String
   #/
-  def abspath(_path)
+  fn abspath(_path)
     return __fileabspath__(_path)
   end
 
@@ -19,7 +19,7 @@ package fs
     - _text: The text to append.
   Returns: Boolean
   #/
-  def append(_path, _text)
+  fn append(_path, _text)
     return __appendtext__(_path, _text)
   end
 
@@ -29,7 +29,7 @@ package fs
     - _path: The path to a directory.
   Returns: Boolean
   #/
-  def chdir(_path)
+  fn chdir(_path)
     return __chdir__(_path)
   end
 
@@ -40,7 +40,7 @@ package fs
     - _dest: The second path.
   Returns: String
   #/
-  def combine(_first, _second)
+  fn combine(_first, _second)
     return __combine__(_first, _second)
   end
 
@@ -51,7 +51,7 @@ package fs
     - _dest: The destination path.
   Returns: Boolean
   #/
-  def copy(_source, _dest)
+  fn copy(_source, _dest)
     return __copyfile__(_source, _dest)
   end
 
@@ -62,7 +62,7 @@ package fs
     - _dest: The destination path.
   Returns: Boolean
   #/
-  def copyr(_source, _dest)
+  fn copyr(_source, _dest)
     return __copyr__(_source, _dest)
   end
 
@@ -70,7 +70,7 @@ package fs
   Summary: Get the current working directory.
   Returns: Boolean
   #/
-  def cwd()
+  fn cwd()
     return __cwd__()
   end
 
@@ -80,7 +80,7 @@ package fs
     - _path: The path to a file or directory.
   Returns: Boolean
   #/
-  def exists(_path)
+  fn exists(_path)
     return __isfile__(_path)
   end
 
@@ -90,7 +90,7 @@ package fs
     - _path: The path to a file or a filename.
   Returns: String
   #/
-  def ext(_path)
+  fn ext(_path)
     return __fileext__(_path)
   end
 
@@ -100,7 +100,7 @@ package fs
     - _path: The path to a file or a filename.
   Returns: String
   #/
-  def filename(_path)
+  fn filename(_path)
     return __filename__(_path)
   end
 
@@ -108,9 +108,9 @@ package fs
   Summary: Get size of a file in bytes.
   Params:
     - _path: The path to a file or a filename.
-  Returns: Double
+  Returns: Float
   #/
-  def filesize(_path)
+  fn filesize(_path)
     return __filesize__(_path)
   end
 
@@ -120,7 +120,7 @@ package fs
     - _glob: The glob pattern.
   Returns: String
   #/
-  def glob(_glob)
+  fn glob(_glob)
     return __glob__(_glob)
   end
 
@@ -130,7 +130,7 @@ package fs
     - _path: The path to a directory.
   Returns: Boolean
   #/
-  def isdir(_path)
+  fn isdir(_path)
     return __isdir__(_path)
   end
 
@@ -140,7 +140,7 @@ package fs
     - _path: The directory path.
   Returns: List
   #/
-  def listdir(_path)
+  fn listdir(_path)
     return __listdir__(_path)
   end
 
@@ -150,7 +150,7 @@ package fs
     - _path: The directory path.
   Returns: Boolean
   #/
-  def mkdir(_path)
+  fn mkdir(_path)
     return __mkdir__(_path)
   end
 
@@ -160,7 +160,7 @@ package fs
     - _path: The directory path.
   Returns: Boolean
   #/
-  def mkdirp(_path)
+  fn mkdirp(_path)
     return __mkdirp__(_path)
   end
 
@@ -171,7 +171,7 @@ package fs
     - _dest: The destination path.
   Returns: Boolean
   #/
-  def move(_source, _dest)
+  fn move(_source, _dest)
     return __movefile__(_source, _dest)
   end
 
@@ -181,7 +181,7 @@ package fs
     - _path: The path to a file.
   Returns: String
   #/
-  def parentdir(_path)
+  fn parentdir(_path)
     return __filepath__(_path)
   end
 
@@ -191,7 +191,7 @@ package fs
     - _path: The path to a file.
   Returns: String
   #/
-  def read(_path)
+  fn read(_path)
     return __readfile__(_path)
   end
 
@@ -201,7 +201,7 @@ package fs
     - _path: The path to a file.
   Returns: List
   #/
-  def readlines(_path)
+  fn readlines(_path)
     return __readlines__(_path)
   end
 
@@ -213,7 +213,7 @@ package fs
     - _size: The number of bytes to read from the file.
   Returns: List
   #/
-  def readbytes(_path, _offset, _size)
+  fn readbytes(_path, _offset, _size)
     return __readbytes__(_path, _offset, _size)
   end
 
@@ -223,7 +223,7 @@ package fs
     - _path: The path to a file or a filename.
   Returns: Boolean
   #/
-  def remove(_path)
+  fn remove(_path)
     return __deletefile__(_path)
   end
 
@@ -233,7 +233,7 @@ package fs
     - _path: The path to a directory.
   Returns: Boolean
   #/
-  def rmdir(_path)
+  fn rmdir(_path)
     return __rmdir__(_path)
   end
 
@@ -243,7 +243,7 @@ package fs
     - _path: The path to a directory.
   Returns: Boolean
   #/
-  def rmdirf(_path)
+  fn rmdirf(_path)
     return __rmdirf__(_path)
   end
 
@@ -253,7 +253,7 @@ package fs
     - _path: The path to a file or a filename.
   Returns: Boolean
   #/
-  def touch(_path)
+  fn touch(_path)
     return __createfile__(_path)
   end
   
@@ -261,7 +261,7 @@ package fs
   Summary: Gets the path to the temporary directory.
   Returns: String
   #/
-  def tmpdir()
+  fn tmpdir()
     return __tmpdir__()
   end
 
@@ -272,7 +272,7 @@ package fs
     - _text: The text to write.
   Returns: Boolean
   #/
-  def write(_path, _text = "")
+  fn write(_path, _text = "")
     return __writetext__(_path, _text)
   end
 
@@ -283,7 +283,7 @@ package fs
     - _text: The text to append.
   Returns: Boolean
   #/
-  def writeln(_path, _text)
+  fn writeln(_path, _text)
     return __writeline__(_path, _text)
   end
 
@@ -293,7 +293,7 @@ package fs
     - _path: The path to a file or a filename.
     - _bytes: The list of bytes to write.
   #/
-  def writebytes(_path, _text)
+  fn writebytes(_path, _text)
     __writebytes__(_path, _text)
   end
 end

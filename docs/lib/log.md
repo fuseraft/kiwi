@@ -1,4 +1,4 @@
-# `@kiwi/log`
+# `log`
 
 The `log` package contains functionality for working with the Kiwi logger.
 

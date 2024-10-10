@@ -16,7 +16,7 @@ struct Serializer {
     if (std::holds_alternative<k_int>(v)) {
       return TypeNames.Integer;
     } else if (std::holds_alternative<double>(v)) {
-      return TypeNames.Double;
+      return TypeNames.Float;
     } else if (std::holds_alternative<bool>(v)) {
       return TypeNames.Boolean;
     } else if (std::holds_alternative<k_string>(v)) {

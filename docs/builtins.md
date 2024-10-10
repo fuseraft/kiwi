@@ -75,7 +75,7 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
   - [`is_a(type_name)`](#is_atype_name)
   - [`pretty()`](#pretty)
   - [`serialize(value)`](#serializevalue)
-  - [`to_double()`](#to_double)
+  - [`to_float()`](#to_float)
   - [`to_hash()`](#to_hash)
   - [`to_int()`](#to_int)
   - [`to_string()`](#to_string)
@@ -772,12 +772,12 @@ prints:
 #/
 ```
 
-### `to_double()`
+### `to_float()`
 
 Converts a numeric value to a double.
 
 ```kiwi
-pi = "3.14159".to_double()
+pi = "3.14159".to_float()
 tau = pi * 2
 println(tau) # 6.28318
 ```
@@ -801,11 +801,11 @@ println(inst.to_hash()) # prints: {"name": "Kiwi"}
 ```kiwi
 json = "{
   \"boolean\": true, 
-  \"double\": 3.14159, 
+  \"float\": 3.14159, 
   \"integer\": 100, 
   \"string\": \"Kiwi\"
 }"
-println(json.to_hash()) # prints: {"boolean": true, "double": 3.14159, "integer": 100, "string": "Kiwi"}
+println(json.to_hash()) # prints: {"boolean": true, "float": 3.14159, "integer": 100, "string": "Kiwi"}
 ```
 
 ### `to_int()`
@@ -862,7 +862,7 @@ println true.truthy() # prints: true        # true is always truthy
 
 Returns the type of the value as a string.
 
-Valid types are: `Integer`, `Double`, `Boolean`, `String`, `List`, `Hash`, `Object`, `Lambda`.
+Valid types are: `Integer`, `Float`, `Boolean`, `String`, `List`, `Hash`, `Object`, `Lambda`.
 
 If the type is an object, `type()` will return the class name of the instance.
 
