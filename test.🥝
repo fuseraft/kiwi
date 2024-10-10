@@ -437,7 +437,7 @@ guava::register_test("type checks", with () do
 
   guava::assert(s.is_a(String))
   guava::assert(i.is_a(Integer))
-  guava::assert(d.is_a(Double))
+  guava::assert(d.is_a(Float))
   guava::assert(b.is_a(Boolean))
   guava::assert(null.is_a(None))
   guava::assert(h.is_a(Hash))

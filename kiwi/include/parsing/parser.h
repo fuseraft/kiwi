@@ -117,7 +117,7 @@ bool Parser::lookAhead(std::vector<KName> names) {
   size_t nameLength = names.size();
   for (; pos + 1 < kStream->size(); ++pos) {
     size_t matches = 0;
-    
+
     for (size_t i = 0; i < nameLength; ++i) {
       if (kStream->at(pos + i).getSubType() == names.at(i)) {
         ++matches;
@@ -1304,7 +1304,8 @@ std::unique_ptr<ASTNode> Parser::parsePackAssignment(
     }
     next();
 
-    assignment->left.push_back(std::make_unique<IdentifierNode>(identifierName));
+    assignment->left.push_back(
+        std::make_unique<IdentifierNode>(identifierName));
   }
 
   if (!matchSubType(KName::Ops_Assign)) {
@@ -1313,9 +1314,8 @@ std::unique_ptr<ASTNode> Parser::parsePackAssignment(
   }
 
   if (!matchSubType(KName::Ops_LessThan)) {
-    throw SyntaxError(
-        getErrorToken(),
-        "Expected an unpack operator, '=<', in pack assignment.");
+    throw SyntaxError(getErrorToken(),
+                      "Expected an unpack operator, '=<', in pack assignment.");
   }
 
   const size_t lhsLength = assignment->left.size();
@@ -1428,7 +1428,8 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier(bool packed) {
   } else if (tokenType() == KTokenType::QUALIFIER &&
              peek().getType() == KTokenType::IDENTIFIER) {
     node = parseQualifiedIdentifier(identifierName);
-  } else if (tokenType() == KTokenType::COMMA && !packed && lookAhead({ KName::Ops_Assign, KName::Ops_LessThan })) {
+  } else if (tokenType() == KTokenType::COMMA && !packed &&
+             lookAhead({KName::Ops_Assign, KName::Ops_LessThan})) {
     node = parsePackAssignment(std::move(node));
   } else {
     node = std::make_unique<IdentifierNode>(identifierName);

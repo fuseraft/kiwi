@@ -926,7 +926,7 @@ k_value KInterpreter::visit(const IdentifierNode* node) {
     }
   }
 
-  return {};
+  return std::make_shared<Null>();
 }
 
 k_value KInterpreter::visit(const LiteralNode* node) {

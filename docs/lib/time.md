@@ -228,7 +228,7 @@ Retrieves the number of milliseconds since January 1st, 1970.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Double` | The milliseconds since the epoch. |
+| `Float` | The milliseconds since the epoch. |
 
 ### `ticks()`
 
@@ -237,7 +237,7 @@ Retrieves the number of nanoseconds since January 1st, 1970.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Double` | The nanoseconds since the epoch. |
+| `Float` | The nanoseconds since the epoch. |
 
 ### `ticksms(_ticks)`
 
@@ -246,7 +246,7 @@ Converts ticks to milliseconds.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Double` | The ticks in milliseconds. |
+| `Float` | The ticks in milliseconds. |
 
 ### `delay(_ms)`
 
@@ -260,4 +260,4 @@ Pauses execution for a specified duration in milliseconds.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Double` | The duration slept in milliseconds. |
+| `Float` | The duration slept in milliseconds. |

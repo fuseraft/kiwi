@@ -314,7 +314,7 @@ struct {
 
 struct {
   const k_string Integer = "Integer";
-  const k_string Double = "Double";
+  const k_string Float = "Float";
   const k_string Boolean = "Boolean";
   const k_string String = "String";
   const k_string List = "List";
@@ -324,7 +324,7 @@ struct {
   const k_string None = "None";
 
   std::unordered_set<k_string> typenames = {
-      Integer, Double, Boolean, String, List, Hash, Object, With, None};
+      Integer, Float, Boolean, String, List, Hash, Object, With, None};
 
   bool is_typename(const k_string& arg) {
     return typenames.find(arg) != typenames.end();

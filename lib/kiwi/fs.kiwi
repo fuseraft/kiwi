@@ -108,7 +108,7 @@ package fs
   Summary: Get size of a file in bytes.
   Params:
     - _path: The path to a file or a filename.
-  Returns: Double
+  Returns: Float
   #/
   fn filesize(_path)
     return __filesize__(_path)

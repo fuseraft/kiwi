@@ -160,7 +160,7 @@ package time
 
   /#
   Summary: Get milliseconds since January 1st, 1970.
-  Returns: Double
+  Returns: Float
   #/
   fn epochms()
     return __epochms__()
@@ -168,7 +168,7 @@ package time
 
   /#
   Summary: Get nanoseconds since January 1st, 1970.
-  Returns: Double
+  Returns: Float
   #/
   fn ticks()
     return __ticks__()
@@ -176,7 +176,7 @@ package time
 
   /#
   Summary: Converts ticks to milliseconds.
-  Returns: Double
+  Returns: Float
   #/
   fn ticksms(_ticks)
     return __ticksms__(_ticks)
@@ -186,7 +186,7 @@ package time
   Summary: Sleep for a specified duration in milliseconds.
   Params:
     - _ms: The duration in milliseconds.
-  Returns: Double
+  Returns: Float
   #/
   fn delay(_ms)
     return __delay__(_ms)
