@@ -1,4 +1,4 @@
-# `@kiwi/fs`
+# `fs`
 
 The `fs` package contains functionality for working with files and directories.
 
@@ -188,7 +188,7 @@ Get size of a file in bytes.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Double` | The file size in number of bytes. |
+| `Float` | The file size in number of bytes. |
 
 ### `glob(_path)`
 

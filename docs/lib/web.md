@@ -1,4 +1,4 @@
-# `@kiwi/web`
+# `web`
 
 The `web` package contains functionality for building web applications in Kiwi.
 

@@ -1,11 +1,12 @@
-# `@kiwi/time`
+# `time`
 
 The `time` package contains functionality for working with time and date information.
 
 ## Table of Contents
 
 - [Package Classes](#package-classes)
-  - [`DateTime` class](datetime.md)
+  - [`DateTime` class](datetime.md#datetime)
+  - [`TimeSpan` class](datetime.md#timespan)
 - [Package Functions](#package-functions)
   - [`ampm()`](#ampm)
   - [`day()`](#day)
@@ -94,7 +95,7 @@ Retrieves the current timestamp formatted as "YYYY/mm/dd hh:mm:ss tt".
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `String` | The current timestamp formatted as "YYYY/mmdd hh:mm:ss tt". |
+| `String` | The current timestamp formatted as "YYYY/mm/dd hh:mm:ss tt". |
 
 ### `timestamp_formatted(_format)`
 
@@ -227,7 +228,7 @@ Retrieves the number of milliseconds since January 1st, 1970.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Double` | The milliseconds since the epoch. |
+| `Float` | The milliseconds since the epoch. |
 
 ### `ticks()`
 
@@ -236,7 +237,7 @@ Retrieves the number of nanoseconds since January 1st, 1970.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Double` | The nanoseconds since the epoch. |
+| `Float` | The nanoseconds since the epoch. |
 
 ### `ticksms(_ticks)`
 
@@ -245,7 +246,7 @@ Converts ticks to milliseconds.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Double` | The ticks in milliseconds. |
+| `Float` | The ticks in milliseconds. |
 
 ### `delay(_ms)`
 
@@ -259,4 +260,4 @@ Pauses execution for a specified duration in milliseconds.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Double` | The duration slept in milliseconds. |
+| `Float` | The duration slept in milliseconds. |

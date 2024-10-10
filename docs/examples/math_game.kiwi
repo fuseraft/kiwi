@@ -24,7 +24,7 @@ while true do
   end
 end
 
-score = ((correct.to_double() / [total, 1].max()) * 100).to_int()
+score = ((correct.to_float() / [total, 1].max()) * 100).to_int()
 print("Your score is ${score}%...")
 
 if score >= 100   println("A+")

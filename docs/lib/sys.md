@@ -1,4 +1,4 @@
-# `@kiwi/sys`
+# `sys`
 
 The `sys` package contains functionality for working with external processes.
 

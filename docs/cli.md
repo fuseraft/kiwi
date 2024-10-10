@@ -30,7 +30,7 @@ If no arguments are supplied, Kiwi enters an interactive Read-Evaluate-Print Loo
   kiwi -p 'println("hello")' 
   # prints: hello
   
-  kiwi -p 'import "@kiwi/math" as math println(math.random(0, 100))' 
+  kiwi -p 'import "math" as math println(math.random(0, 100))' 
   # prints a random number between 0 and 100
   ```
 
