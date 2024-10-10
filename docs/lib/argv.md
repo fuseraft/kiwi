@@ -1,4 +1,4 @@
-# `@kiwi/argv`
+# `argv`
 
 The `argv` package contains functionality for working with command-line arguments.
 

@@ -1,4 +1,6 @@
-# `DateTime`
+# Dates and Times
+
+## `DateTime`
 
 The `DateTime` class is used to represent date and time data.
 
@@ -35,3 +37,28 @@ println(DateTime.format(d, "%Y-%m-%dT%H:%M:%S")) # prints: 2023-12-30T22:58:59
 | instance | `Integer` | `get_hour()` | Gets the hour. |
 | instance | `Integer` | `get_minute()` | Gets the minute. |
 | instance | `Integer` | `get_second()` | Gets the second. |
+
+## `TimeSpan`
+
+The `TimeSpan` class is used to represent a duration of time between two `DateTime` objects or a period defined by the user.
+
+### Example
+
+```kiwi
+start = DateTime.new(2023, 1, 1)
+end = DateTime.new(2024, 1, 1)
+duration = end.diff(start)
+println(duration.to_string()) # prints: TimeSpan: 1 years, 0 months, 0 days, 0 hours, 0 minutes, 0 seconds
+```
+
+### Methods
+| Type | Returns | Method | Description |
+| :--- | :--- | :--- | :--- |
+| Constructor | `TimeSpan` | `initialize(year, month, day, hour, minute, second)` | Initialize a new `TimeSpan` with the given values. <br> All parameters default to `0`. |
+| Instance | `Integer` | `get_year()` | Returns the number of years in the `TimeSpan`. |
+| Instance | `Integer` | `get_month()` | Returns the number of months in the `TimeSpan`. |
+| Instance | `Integer` | `get_day()` | Returns the number of days in the `TimeSpan`. |
+| Instance | `Integer` | `get_hour()` | Returns the number of hours in the `TimeSpan`. |
+| Instance | `Integer` | `get_minute()` | Returns the number of minutes in the `TimeSpan`. |
+| Instance | `Integer` | `get_second()` | Returns the number of seconds in the `TimeSpan`. |
+| Instance | `String` | `to_string()` | Returns a string representation of the `TimeSpan` object. |

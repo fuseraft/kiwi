@@ -34,8 +34,7 @@ class ErrorHandler {
       std::cout << "File: " << file;
     }
 
-    std::cout << "  @ Line " << 1 + lineNumber << ", Column " << linePosition
-              << "." << std::endl;
+    std::cout << ":" << 1 + lineNumber << ":" << linePosition << std::endl;
 
     if (!line.empty()) {
       std::cout << "Line: " << line << std::endl;

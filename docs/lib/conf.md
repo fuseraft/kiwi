@@ -1,4 +1,4 @@
-# `@kiwi/conf`
+# `conf`
 
 The `conf` package contains functionality for working with configuration files.
 
