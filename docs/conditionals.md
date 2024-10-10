@@ -19,7 +19,7 @@ The following table will illustrate this.
 | Type | Truthy Value | Falsey Value | Explanation |
 | :--- | :--- | :--- | :--- |
 | `Integer` | `1` | `0` | A non-zero value is considered truthy. |
-| `Double` | `1.0` | `0.0` | A non-zero value is considered truthy. |
+| `Float` | `1.0` | `0.0` | A non-zero value is considered truthy. |
 | `Boolean` | `true` | `false` | These are the boolean values. |
 | `String` | `"hello"` | `""` | A non-empty string is considered truthy. |
 | `List` | `[1, 2, 3]` | `[]` | A non-empty list is considered truthy. |

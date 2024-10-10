@@ -546,8 +546,8 @@ class Lexer {
       st = KName::Types_Integer;
     } else if (typeName == TypeNames.Boolean) {
       st = KName::Types_Boolean;
-    } else if (typeName == TypeNames.Double) {
-      st = KName::Types_Double;
+    } else if (typeName == TypeNames.Float) {
+      st = KName::Types_Float;
     } else if (typeName == TypeNames.Hash) {
       st = KName::Types_Hash;
     } else if (typeName == TypeNames.With) {

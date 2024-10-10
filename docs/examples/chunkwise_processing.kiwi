@@ -9,7 +9,7 @@ fn process_chunkwise(input_list, chunk_size, callback)
   results = []
 
   # Compute how many chunks to process
-  chunk_count = math::ceil(input_list.size() / chunk_size.to_double()).to_int()
+  chunk_count = math::ceil(input_list.size() / chunk_size.to_float()).to_int()
   
   # Process each chunk
   repeat chunk_count as chunk do

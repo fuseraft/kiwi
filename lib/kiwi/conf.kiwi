@@ -105,7 +105,7 @@ package conf
 
       if !_is_string
         if _dot_count == 1
-          _ret_val = _builder.join().to_double()
+          _ret_val = _builder.join().to_float()
         else
           _ret_val = _builder.join().to_int()
         end
