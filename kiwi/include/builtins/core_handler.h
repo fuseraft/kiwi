@@ -1060,7 +1060,7 @@ class CoreBuiltinHandler {
         return typeName == TypeNames.Integer;
 
       case 1:  // double
-        return typeName == TypeNames.Double;
+        return typeName == TypeNames.Float;
 
       case 2:  // bool
         return typeName == TypeNames.Boolean;

@@ -551,7 +551,7 @@ struct {
   const k_string RightTrim = "rtrim";
   const k_string Trim = "trim";
   const k_string Size = "size";
-  const k_string ToD = "to_double";
+  const k_string ToD = "to_float";
   const k_string ToI = "to_int";
   const k_string ToS = "to_string";
   const k_string ToBytes = "to_bytes";

@@ -3,7 +3,13 @@
 A package with interesting string operations.
 #/
 package string
-  def contains_any(str, matches = [])
+  /#
+  @summary Returns `true` if `str` contains any values in `matches`.
+  @param   String  str      : The input string. 
+  @param   List    matches  : The strings to match against. 
+  @return  Boolean          : True if found.
+  #/
+  fn contains_any(str, matches = [])
     if matches.type() == "String"
       matches = matches.chars()
     end
@@ -24,7 +30,7 @@ package string
   @param   String  _input   : The input string. 
   @return  String           : The base64 encoded string.
   #/
-  def base64encode(_input)
+  fn base64encode(_input)
     return __base64encode__("${_input}")
   end
 
@@ -33,7 +39,7 @@ package string
   @param   String  _input   : The input string. 
   @return  String           : The plaintext string.
   #/
-  def base64decode(_input)
+  fn base64decode(_input)
     return __base64decode__("${_input}")
   end
 
@@ -42,7 +48,7 @@ package string
   @param   String  _input   : The input string.
   @return  String           : The URL encoded string.
   #/
-  def urlencode(_input)
+  fn urlencode(_input)
     return __urlencode__("${_input}")
   end
 
@@ -51,7 +57,7 @@ package string
   @param   String  _input   : The input string. 
   @return  String           : The plaintext string.
   #/
-  def urldecode(_input)
+  fn urldecode(_input)
     return __urldecode__("${_input}")
   end
 
@@ -62,7 +68,7 @@ package string
   @param   String  _padding : The padding content.
   @return  String           : The padded string.
   #/
-  def padstart(_input, _size, _padding = " ")
+  fn padstart(_input, _size, _padding = " ")
     return "${_input}" when ("${_input}").size() >= _size
     if _padding.size() != 1 _padding = " " end
     _padding_size = _size - ("${_input}").size()
@@ -77,7 +83,7 @@ package string
   @param   String  _padding : The padding content.
   @return  String           : The padded string.
   #/
-  def padend(_input, _size, _padding = " ")
+  fn padend(_input, _size, _padding = " ")
     return "${_input}" when ("${_input}").size() >= _size
     if _padding.size() != 1 _padding = " " end
     _padding_size = _size - ("${_input}").size()
@@ -92,7 +98,7 @@ package string
   @param   String  _padding : The padding character (default is space).
   @return  String           : The centered string.
   #/
-  def center(_input, _width, _padding = " ")
+  fn center(_input, _width, _padding = " ")
     return "${_input}" when ("${_input}").size() >= _width
     if _padding.size() != 1 _padding = " " end
     _total_padding = _width - ("${_input}").size()
@@ -109,7 +115,7 @@ package string
   @param   Integer _count : The number of times each character is repeated.
   @return  String         : The string with characters echoed.
   #/
-  def echo(_input, _count)
+  fn echo(_input, _count)
     _output = ""
     for char in ("${_input}").chars() do
       _output = _output + (char * _count)
@@ -123,7 +129,7 @@ package string
   @param   String  _input2 : The second input string.
   @return  String          : The interwoven string.
   #/
-  def interweave(_input1, _input2)
+  fn interweave(_input1, _input2)
     _output = ""
     _length = [("${_input1}").size(), ("${_input2}").size()].max()
     for i in [0 .. _length - 1] do
@@ -139,7 +145,7 @@ package string
   @param   String  _delimiter: The delimiter to separate the original string from its mirror.
   @return  String            : The mirrored string.
   #/
-  def mirror(_input, _delimiter = "")
+  fn mirror(_input, _delimiter = "")
     _reversed = ("${_input}").reverse()
     return ("${_input}") + _delimiter + _reversed
   end
@@ -149,7 +155,7 @@ package string
   @param   String  _input : The input string.
   @return  String         : The shuffled string.
   #/
-  def shuffle(_input)
+  fn shuffle(_input)
     _array = ("${_input}").chars()
     _n = _array.size()
     
@@ -169,7 +175,7 @@ package string
   @param   String  _input   : The input string.
   @return  String           : The generated slug.
   #/
-  def slug(_input)
+  fn slug(_input)
     _lowercased = ("${_input}").lowercase()
     _hyphenated = _lowercased.replace(" ", "-")
 
@@ -189,7 +195,7 @@ package string
   @param   String  _input : The input string.
   @return  Boolean        : True if the string is numeric, otherwise false.
   #/
-  def isnumeric(_input)
+  fn isnumeric(_input)
     _isnumeric = true
     
     for char in ("${_input}").chars() do
@@ -207,7 +213,7 @@ package string
   @param   String  _input : The input string.
   @return  Boolean        : True if the string is alphabetic, otherwise false.
   #/
-  def isalpha(_input)
+  fn isalpha(_input)
     for char in ("${_input}").chars() do
       if !((char >= "a" && char <= "z") || (char >= "A" && char <= "Z"))
         return false
@@ -222,7 +228,7 @@ package string
   @param   String  _input : The input string.
   @return  Boolean        : True if the string is alphanumeric, otherwise false.
   #/
-  def isalphanumeric(_input)
+  fn isalphanumeric(_input)
     for char in ("${_input}").chars() do
       if !(char >= "0" && char <= "9" || (char >= "a" && char <= "z") || (char >= "A" && char <= "Z"))
         return false
@@ -237,7 +243,7 @@ package string
   @param   String  _input   : The input string.
   @return  Boolean          : True if the string is all uppercase, false otherwise.
   #/
-  def isupper(_input)
+  fn isupper(_input)
     for char in ("${_input}").chars() do
       # If any character is lowercase, return false
       if char >= "a" && char <= "z"
@@ -252,7 +258,7 @@ package string
   @param   String  _input   : The input string.
   @return  Boolean          : True if the string is all lowercase, false otherwise.
   #/
-  def islower(_input)
+  fn islower(_input)
     for char in ("${_input}").chars() do
       # If any character is uppercase, return false
       if char >= "A" && char <= "Z"
@@ -267,7 +273,7 @@ package string
   @param   String  _input   : The input string.
   @return  String           : The string converted to uppercase.
   #/
-  def toupper(_input)
+  fn toupper(_input)
     return ("${_input}").uppercase()
   end
 
@@ -276,8 +282,119 @@ package string
   @param   String  _input   : The input string.
   @return  String           : The string converted to lowercase.
   #/
-  def tolower(_input)
+  fn tolower(_input)
     return ("${_input}").lowercase()
+  end
+end
+
+class StringIterator
+  def initialize(s)
+    @chars = s.chars()
+    @len = @chars.size()
+    @pos = 0
+  end
+
+  def consume()
+    @pos += 1
+  end
+
+  def skip(n)
+    if @pos + n < @len
+      @pos = @len
+    else
+      @pos += n
+    end
+  end
+
+  def can_read()
+    return @pos + 1 < @len
+  end
+
+  def current()
+    if @pos < @len
+      return @chars.get(@pos)
+    end
+    return ""
+  end
+
+  def peek()
+    if @pos + 1 < @len
+      return @chars.get(@pos + 1)
+    end
+
+    return ""
+  end
+
+  def position()
+    return @pos
+  end
+
+  def length()
+    return @len
+  end
+
+  def rewind(n)
+    @pos -= n
+  end
+
+  def grab(n)
+    if n < @len && n >= 0
+      return @chars.get(n)
+    end
+
+    return ""
+  end
+
+  def reach(n)
+    if @len + n < @len && @len + n >= 0
+      return @chars.get(@len + n)
+    end
+
+    return ""
+  end
+
+  def look_ahead()
+    return "" when !can_read()
+    tmp_chars = []
+
+    try
+      tmp_chars = (@chars)[@pos: :]
+    end
+
+    c = tmp_chars.get(i)
+    i = 0
+
+    while c == " " && i + 1 < tmp_chars.size() do
+      c = tmp_chars.get(i)
+      i += 1
+    end
+
+    return c
+  end
+
+  def count_ahead()
+    return 0 when !can_read()
+    tmp_chars = []
+
+    try
+      tmp_chars = (@chars)[@pos: :]
+    end
+
+    c = tmp_chars.get(i)
+    i = 0
+
+    while c == " " && i + 1 < tmp_chars.size() do
+      c = tmp_chars.get(i)
+      i += 1
+    end
+
+    return i - 1
+  end
+
+  def skip_whitespace()
+    while can_read() && current() == " " do
+      consume()
+    end
   end
 end
 

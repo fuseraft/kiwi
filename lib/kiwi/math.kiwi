@@ -4,30 +4,41 @@ Summary: A package containing functionality for working with common math operati
 package math
   /#
   Summary: Gets the smallest difference from 1.0 that a FP type can accurately represent.
-  Returns: Double
+  Returns: Float
   #/
-  def epsilon()
+  fn epsilon()
     return __eps__()
+  end
+
+  fn eps(n = 9)
+    n = n.type() == "Integer" && n > 0 && n < 16 ? n : 9
+    epsilon = 1.0
+
+    repeat n do
+      epsilon *= 0.1
+    end
+
+    return epsilon
   end
 
   /#
   @summary: Gets a random number between x and y.
-  @param   Integer|Double  _valueX   : The number x. 
-  @param   Integer|Double  _valueY   : The number y. 
-  @return  Integer|Double            : A random number.
+  @param   Integer|Float  _valueX   : The number x. 
+  @param   Integer|Float  _valueY   : The number y. 
+  @return  Integer|Float            : A random number.
   #/
-  def random(_valueX, _valueY)
+  fn random(_valueX, _valueY)
     return __random__(_valueX, _valueY)
   end
 
   /#
   Summary: Gets a random set of numbers of a given size.
-  @param   Integer|Double  _range_start   : The lower bound. 
-  @param   Integer|Double  _range_end     : The upper bound. 
+  @param   Integer|Float  _range_start   : The lower bound. 
+  @param   Integer|Float  _range_end     : The upper bound. 
   @param   Integer         _size          : The size of the set.
   @return  List                           : A set of random numbers.
   #/
-  def random_set(_range_start, _range_end, _size)
+  fn random_set(_range_start, _range_end, _size)
     _min = [_range_start, _range_end].min()
     _max = [_range_start, _range_end].max()
 
@@ -57,7 +68,7 @@ package math
     - _limit: The limit.
   Returns: List
   #/
-  def listprimes(_limit)
+  fn listprimes(_limit)
     return __listprimes__(_limit)
   end
 
@@ -67,7 +78,7 @@ package math
     - _n: The n-th prime number.
   Returns: Integer
   #/
-  def nthprime(_n)
+  fn nthprime(_n)
     return __nthprime__(_n)
   end
 
@@ -75,9 +86,9 @@ package math
   Summary: Computes the sine of a number.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def sin(_value)
+  fn sin(_value)
     return __sin__(_value)
   end
 
@@ -85,9 +96,9 @@ package math
   Summary: Computes the cosine of a number.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def cos(_value)
+  fn cos(_value)
     return __cos__(_value)
   end
 
@@ -95,9 +106,9 @@ package math
   Summary: Computes the tangent of a number.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def tan(_value)
+  fn tan(_value)
     return __tan__(_value)
   end
 
@@ -105,9 +116,9 @@ package math
   Summary: Computes the arc sine of a number.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def asin(_value)
+  fn asin(_value)
     return __asin__(_value)
   end
 
@@ -115,9 +126,9 @@ package math
   Summary: Computes the arc cosine of a number.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def acos(_value)
+  fn acos(_value)
     return __acos__(_value)
   end
 
@@ -125,9 +136,9 @@ package math
   Summary: Computes the arc tangent of a number.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def atan(_value)
+  fn atan(_value)
     return __atan__(_value)
   end
 
@@ -136,9 +147,9 @@ package math
   Params:
     - _valueX: The number x.
     - _valueY: The number y.
-  Returns: Double
+  Returns: Float
   #/
-  def atan2(_valueY, _valueX)
+  fn atan2(_valueY, _valueX)
     return __atan2__(_valueY, _valueX)
   end
 
@@ -146,9 +157,9 @@ package math
   Summary: Computes the hyperbolic sine of a number.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def sinh(_value)
+  fn sinh(_value)
     return __sinh__(_value)
   end
 
@@ -156,9 +167,9 @@ package math
   Summary: Computes the hyperbolic cosine of a number.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def cosh(_value)
+  fn cosh(_value)
     return __cosh__(_value)
   end
 
@@ -166,9 +177,9 @@ package math
   Summary: Computes the hyperbolic tangent of a number.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def tanh(_value)
+  fn tanh(_value)
     return __tanh__(_value)
   end
 
@@ -176,9 +187,9 @@ package math
   Summary: Computes the natural logarithm (base e) of a number.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def log(_value)
+  fn log(_value)
     return __log__(_value)
   end
 
@@ -186,9 +197,9 @@ package math
   Summary: Computes the logarithm to base 2 of a number.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def log2(_value)
+  fn log2(_value)
     return __log2__(_value)
   end
 
@@ -196,9 +207,9 @@ package math
   Summary: Computes the logarithm to base 10 of a number.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def log10(_value)
+  fn log10(_value)
     return __log10__(_value)
   end
 
@@ -206,9 +217,9 @@ package math
   Summary: Computes log(1 + x).
   Params:
     - _value: The number x.
-  Returns: Double
+  Returns: Float
   #/
-  def log1p(_value)
+  fn log1p(_value)
     return __log1p__(_value)
   end
 
@@ -216,9 +227,9 @@ package math
   Summary: Computes the square root of a number.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def sqrt(_value)
+  fn sqrt(_value)
     return __sqrt__(_value)
   end
 
@@ -226,9 +237,9 @@ package math
   Summary: Computes the cube root of a number.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def cbrt(_value)
+  fn cbrt(_value)
     return __cbrt__(_value)
   end
 
@@ -237,9 +248,9 @@ package math
   Params:
     - _valueX: The number x.
     - _valueY: The number y.
-  Returns: Double
+  Returns: Float
   #/
-  def fmod(_valueX, _valueY)
+  fn fmod(_valueX, _valueY)
     return __fmod__(_valueX, _valueY)
   end
 
@@ -248,9 +259,9 @@ package math
   Params:
     - _valueX: The number x.
     - _valueY: The number y.
-  Returns: Double
+  Returns: Float
   #/
-  def hypot(_valueX, _valueY)
+  fn hypot(_valueX, _valueY)
     return __hypot__(_valueX, _valueY)
   end
 
@@ -258,9 +269,9 @@ package math
   Summary: Checks if x is a finite value.
   Params:
     - _value: The number x.
-  Returns: Double
+  Returns: Float
   #/
-  def isfinite(_value)
+  fn isfinite(_value)
     return __isfinite__(_value)
   end
 
@@ -268,9 +279,9 @@ package math
   Summary: Checks if x is a finite value.
   Params:
     - _value: The number x.
-  Returns: Double
+  Returns: Float
   #/
-  def isinf(_value)
+  fn isinf(_value)
     return __isinf__(_value)
   end
 
@@ -278,9 +289,9 @@ package math
   Summary: Checks if x is NaN.
   Params:
     - _value: The number x.
-  Returns: Double
+  Returns: Float
   #/
-  def isnan(_value)
+  fn isnan(_value)
     return __isnan__(_value)
   end
 
@@ -288,9 +299,9 @@ package math
   Summary: Checks if x is a normal FP number.
   Params:
     - _value: The number x.
-  Returns: Double
+  Returns: Float
   #/
-  def isnormal(_value)
+  fn isnormal(_value)
     return __isnormal__(_value)
   end
 
@@ -298,9 +309,9 @@ package math
   Summary: Rounds x to the nearest integer, away from zero in halfway cases.
   Params:
     - _value: The number x.
-  Returns: Double
+  Returns: Float
   #/
-  def floor(_value)
+  fn floor(_value)
     return __floor__(_value)
   end
 
@@ -308,9 +319,9 @@ package math
   Summary: Rounds x to the largest integer not greater than x.
   Params:
     - _value: The number x.
-  Returns: Double
+  Returns: Float
   #/
-  def ceil(_value)
+  fn ceil(_value)
     return __ceil__(_value)
   end
 
@@ -318,9 +329,9 @@ package math
   Summary: Rounds x to the nearest integer, away from zero in halfway cases.
   Params:
     - _value: The number x.
-  Returns: Double
+  Returns: Float
   #/
-  def round(_value)
+  fn round(_value)
     return __round__(_value)
   end
 
@@ -328,9 +339,9 @@ package math
   Summary: Truncates x to the integer part, towards zero.
   Params:
     - _value: The number x.
-  Returns: Double
+  Returns: Float
   #/
-  def trunc(_value)
+  fn trunc(_value)
     return __trunc__(_value)
   end
 
@@ -339,9 +350,9 @@ package math
   Params:
     - _valueX: The number x.
     - _valueY: The number y.
-  Returns: Double
+  Returns: Float
   #/
-  def remainder(_valueX, _valueY)
+  fn remainder(_valueX, _valueY)
     return __remainder__(_valueX, _valueY)
   end
 
@@ -349,9 +360,9 @@ package math
   Summary: Computes e**x.
   Params:
     - _value: The number x.
-  Returns: Double
+  Returns: Float
   #/
-  def exp(_value)
+  fn exp(_value)
     return __exp__(_value)
   end
 
@@ -359,9 +370,9 @@ package math
   Summary: Computes e**x - 1.
   Params:
     - _value: The number x.
-  Returns: Double
+  Returns: Float
   #/
-  def expm1(_value)
+  fn expm1(_value)
     return __expm1__(_value)
   end
 
@@ -369,9 +380,9 @@ package math
   Summary: Error function.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def erf(_value)
+  fn erf(_value)
     return __erf__(_value)
   end
 
@@ -379,9 +390,9 @@ package math
   Summary: Complementary error function.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def erfc(_value)
+  fn erfc(_value)
     return __erfc__(_value)
   end
 
@@ -389,9 +400,9 @@ package math
   Summary: The natural logarithm of the absolute value of the gamma function.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def lgamma(_value)
+  fn lgamma(_value)
     return __lgamma__(_value)
   end
 
@@ -399,9 +410,9 @@ package math
   Summary: The gamma function.
   Params:
     - _value: The number.
-  Returns: Double
+  Returns: Float
   #/
-  def tgamma(_value)
+  fn tgamma(_value)
     return __tgamma__(_value)
   end
 
@@ -410,9 +421,9 @@ package math
   Params:
     - _valueX: The number x.
     - _valueY: The number y.
-  Returns: Double
+  Returns: Float
   #/
-  def copysign(_valueX, _valueY)
+  fn copysign(_valueX, _valueY)
     return __copysign__(_valueX, _valueY)
   end
 
@@ -421,9 +432,9 @@ package math
   Params:
     - _valueX: The number x.
     - _valueY: The number y.
-  Returns: Double
+  Returns: Float
   #/
-  def nextafter(_valueX, _valueY)
+  fn nextafter(_valueX, _valueY)
     return __nextafter__(_valueX, _valueY)
   end
 
@@ -432,9 +443,9 @@ package math
   Params:
     - _valueX: The number x.
     - _valueY: The number y.
-  Returns: Double
+  Returns: Float
   #/
-  def fmax(_valueX, _valueY)
+  fn fmax(_valueX, _valueY)
     return __fmax__(_valueX, _valueY)
   end
 
@@ -443,9 +454,9 @@ package math
   Params:
     - _valueX: The number x.
     - _valueY: The number y.
-  Returns: Double
+  Returns: Float
   #/
-  def fmin(_valueX, _valueY)
+  fn fmin(_valueX, _valueY)
     return __fmin__(_valueX, _valueY)
   end
 
@@ -454,9 +465,9 @@ package math
   Params:
     - _valueX: The number x.
     - _valueY: The number y.
-  Returns: Double
+  Returns: Float
   #/
-  def fdim(_valueX, _valueY)
+  fn fdim(_valueX, _valueY)
     return __fdim__(_valueX, _valueY)
   end
 
@@ -465,9 +476,9 @@ package math
   Params:
     - _valueX: The number x.
     - _valueY: The number y.
-  Returns: Double
+  Returns: Float
   #/
-  def pow(_valueX, _valueY)
+  fn pow(_valueX, _valueY)
     return __pow__(_valueX, _valueY)
   end
 
@@ -475,9 +486,9 @@ package math
   Summary: Get the absolute value of a number.
   Params:
     - _value: The number.
-  Returns: Integer|Double
+  Returns: Integer|Float
   #/
-  def abs(_value)
+  fn abs(_value)
     return __abs__(_value)
   end
 end

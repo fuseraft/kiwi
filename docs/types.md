@@ -5,7 +5,7 @@ Kiwi supports the following types:
 | Type | Description | Documentation |
 | :--- | :--- | :--- |
 | [`Integer`](#integer) | A 64-bit integer. | See below for an example. |
-| [`Double`](#double) | A floating point number. | See below for an example. |
+| [`Float`](#Float) | A floating point number. | See below for an example. |
 | [`Boolean`](#boolean) | A `true` or `false` value. | See below for an example. |
 | [`String`](#string) | A sequence of characters. | See [Strings](strings.md). |
 | [`List`](#list) | A list of values. | See [Lists](lists.md). |
@@ -14,7 +14,7 @@ Kiwi supports the following types:
 | [`Lambda`](#lambda) | An anonymous function. | See [lambdas](lambdas.md). |
 | [`None`](#none) | A null value. | See below for an example. |
 
-### Integer
+### `Integer`
 
 An 64-bit integer.
 
@@ -26,7 +26,7 @@ number += 5
 println(number) # prints: 10
 ```
 
-### Double
+### `Float`
 
 A floating point number.
 
@@ -38,7 +38,7 @@ tau = pi * 2
 println(tau) # prints: 6.28318
 ```
 
-### Boolean
+### `Boolean`
 
 A `true` or `false` value.
 
@@ -49,9 +49,9 @@ enabled = true
 println(enabled) # prints: true
 ```
 
-### String
+### `String`
 
-A sequence of characters.  See [Strings](strings.md).
+Represents text data.  See [Strings](strings.md).
 
 ```kiwi
 # A string of text.
@@ -60,7 +60,7 @@ hello = "Hello, World!"
 println(hello) # prints: Hello, World!
 ```
 
-### List
+### `List`
 
 A list of values.  See [Lists](lists.md).
 
@@ -70,7 +70,7 @@ list = [1, 2, 3, 4, 5]
 println(list) # prints: [1, 2, 3, 4, 5]
 ```
 
-### Hash
+### `Hash`
 
 A dictionary of key-value pairs.  See [Hashes](hashes.md).
 

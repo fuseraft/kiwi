@@ -11,7 +11,7 @@ package web
     - _status: The status code. Defaults to 200.
   Returns: A hash with content, content-type, and status.
   #/
-  def ok(_content, _content_type, _status = 200)
+  fn ok(_content, _content_type, _status = 200)
     return { "content": _content, "content-type": _content_type, "status": _status }
   end
 
@@ -23,7 +23,7 @@ package web
     - _status: The status code. Defaults to 500.
   Returns: A hash with content, content-type, and status.
   #/
-  def bad(_content, _content_type, _status = 500)
+  fn bad(_content, _content_type, _status = 500)
     return { "content": _content, "content-type": _content_type, "status": _status }
   end
 
@@ -33,7 +33,7 @@ package web
     - _url: The URL to redirect to.
   Returns: A hash with content, content-type, and status.
   #/
-  def redirect(_url, _status = 302)
+  fn redirect(_url, _status = 302)
     return { "redirect": _url, "status": _status }
   end
 
@@ -43,7 +43,7 @@ package web
     - _endpoint: The endpoint to register.
     - _handler: A request handler lambda.
   #/
-  def get(_endpoint, _handler)
+  fn get(_endpoint, _handler)
     __webs_get__(_endpoint, _handler)
   end
 
@@ -53,7 +53,7 @@ package web
     - _endpoint: The endpoint to register.
     - _handler: A request handler lambda.
   #/
-  def post(_endpoint, _handler)
+  fn post(_endpoint, _handler)
     __webs_post__(_endpoint, _handler)
   end
 
@@ -63,7 +63,7 @@ package web
     - _ipaddr: The host. Defaults to 0.0.0.0.
     - _port: The port. Defaults to 8080.
   #/
-  def listen(_ipaddr = "0.0.0.0", _port = 8080)
+  fn listen(_ipaddr = "0.0.0.0", _port = 8080)
     __webs_listen__(_ipaddr, _port)
   end
 
@@ -73,16 +73,16 @@ package web
     - _public_endpoint: The endpoint at which static content is served.
     - _public_path: The server-side path containing static content to be served.
   #/
-  def public(_public_endpoint, _public_path)
+  fn public(_public_endpoint, _public_path)
     __webs_public__(_public_endpoint, _public_path)
   end
 
   /#
-  def port()
+  fn port()
     return __webs_port__()
   end
 
-  def host()
+  fn host()
     return __webs_host__()
   end
   #/

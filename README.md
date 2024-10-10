@@ -1,6 +1,6 @@
 # kiwi 🥝
 
-An unorthodox scripting language.
+Kiwi is a high-level, dynamically-typed language with an expressive syntax and versatile standard library, designed for efficiency across diverse tasks.
 
 ## Table of Contents
 

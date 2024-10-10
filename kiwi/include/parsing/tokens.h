@@ -212,6 +212,7 @@ class TokenStream {
 
   std::vector<Token> tokens;
   size_t position = 0;
+  size_t size() const { return tokens.size(); }
 };
 
 using k_stream = std::shared_ptr<TokenStream>;
