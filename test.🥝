@@ -44,6 +44,28 @@ guava::register_test("truthiness", with () do
   guava::assert(true.truthy())       # true is always truthy
 end)
 
+guava::register_test("unpacking", with () do
+  a, b, c =< true, {"a": false}, [1, 2, 3]
+
+  guava::assert(a == true)
+  guava::assert(b == {"a": false})
+  guava::assert(c == [1, 2, 3])
+
+  fn get_zero_and_one()
+    return [0, 1]
+  end
+
+  zero, one =< get_zero_and_one()
+
+  guava::assert(zero == 0)
+  guava::assert(one == 1)
+
+  a, b =< [[1, 2], ["a", "b"]]
+
+  guava::assert(a == [1, 2])
+  guava::assert(b == ["a", "b"])
+end)
+
 guava::register_test("operators", with () do
   # arithmetic
   guava::assert(10 + 20 == 30)   # addition

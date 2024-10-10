@@ -22,6 +22,8 @@ class Parser {
 
  private:
   bool hasValue();
+  std::unique_ptr<ASTNode> parsePackAssignment(
+      std::unique_ptr<ASTNode> baseNode);
   std::unique_ptr<ASTNode> parseAssignment(std::unique_ptr<ASTNode> baseNode,
                                            const k_string& identifierName);
   std::unique_ptr<ASTNode> parseComment();
@@ -78,7 +80,7 @@ class Parser {
   std::unique_ptr<ASTNode> parseFunctionCallOnMember(
       std::unique_ptr<ASTNode> object, const k_string& methodName,
       const KName& type);
-  std::unique_ptr<ASTNode> parseIdentifier();
+  std::unique_ptr<ASTNode> parseIdentifier(bool packed);
   std::unique_ptr<ASTNode> parseQualifiedIdentifier(const k_string& prefix);
   std::unique_ptr<ASTNode> parsePrint();
 
@@ -87,8 +89,10 @@ class Parser {
   Token next();
   bool match(KTokenType expectedType);
   bool matchSubType(KName expectedSubType);
+  bool lookAhead(std::vector<KName> names);
   KTokenType tokenType();
   KName tokenName();
+  Token peek();
 
   Token kToken = Token::createEmpty();
   k_stream kStream;
@@ -102,6 +106,32 @@ KTokenType Parser::tokenType() {
 
 KName Parser::tokenName() {
   return kToken.getSubType();
+}
+
+Token Parser::peek() {
+  return kStream->peek();
+}
+
+bool Parser::lookAhead(std::vector<KName> names) {
+  size_t pos = kStream->position;
+  size_t nameLength = names.size();
+  for (; pos + 1 < kStream->size(); ++pos) {
+    size_t matches = 0;
+    
+    for (size_t i = 0; i < nameLength; ++i) {
+      if (kStream->at(pos + i).getSubType() == names.at(i)) {
+        ++matches;
+      } else {
+        --matches;
+      }
+    }
+
+    if (matches == nameLength) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 Token Parser::next() {
@@ -225,7 +255,7 @@ std::unique_ptr<ASTNode> Parser::parseKeyword() {
       return parseWhileLoop();
 
     case KName::KW_This:
-      return parseIdentifier();
+      return parseIdentifier(false);
 
     case KName::KW_Repeat:
       return parseRepeatLoop();
@@ -480,7 +510,7 @@ std::unique_ptr<ASTNode> Parser::parseForLoop() {
     subMangled.emplace(mangler + kToken.getText());
   }
 
-  auto valueIterator = parseIdentifier();
+  auto valueIterator = parseIdentifier(false);
   std::optional<std::unique_ptr<ASTNode>> indexIterator = std::nullopt;
 
   if (match(KTokenType::COMMA)) {
@@ -488,7 +518,7 @@ std::unique_ptr<ASTNode> Parser::parseForLoop() {
       mangledNames[kToken.getText()] = mangler + kToken.getText();
       subMangled.emplace(mangler + kToken.getText());
     }
-    indexIterator = parseIdentifier();
+    indexIterator = parseIdentifier(false);
   }
 
   if (!matchSubType(KName::KW_In)) {
@@ -561,7 +591,7 @@ std::unique_ptr<ASTNode> Parser::parseRepeatLoop() {
                         "Expected identifier in repeat-loop value alias.");
     }
 
-    alias = parseIdentifier();
+    alias = parseIdentifier(false);
   }
 
   if (!matchSubType(KName::KW_Do)) {
@@ -709,7 +739,7 @@ std::unique_ptr<ASTNode> Parser::parsePackage() {
     throw SyntaxError(getErrorToken(), "Expected identifier for package name.");
   }
 
-  auto packageName = parseIdentifier();
+  auto packageName = parseIdentifier(false);
 
   std::vector<std::unique_ptr<ASTNode>> body;
   while (tokenName() != KName::KW_End) {
@@ -748,8 +778,7 @@ std::unique_ptr<ASTNode> Parser::parseCase() {
 
       caseWhen->condition = parseExpression();
 
-      while (tokenName() != KName::KW_When &&
-             tokenName() != KName::KW_Else &&
+      while (tokenName() != KName::KW_When && tokenName() != KName::KW_Else &&
              tokenName() != KName::KW_End) {
         auto stmt = parseStatement();
         if (stmt) {
@@ -862,7 +891,7 @@ std::unique_ptr<ASTNode> Parser::parseTry() {
             throw SyntaxError(getErrorToken(),
                               "Expected identifier in catch parameters.");
           }
-          auto firstParameter = parseIdentifier();
+          auto firstParameter = parseIdentifier(false);
           if (match(KTokenType::COMMA)) {
             if (!tokenType() == KTokenType::IDENTIFIER) {
               throw SyntaxError(getErrorToken(),
@@ -870,7 +899,7 @@ std::unique_ptr<ASTNode> Parser::parseTry() {
             }
 
             errorType = std::move(firstParameter);
-            errorMessage = std::move(parseIdentifier());
+            errorMessage = std::move(parseIdentifier(false));
           } else {
             errorMessage = std::move(firstParameter);
           }
@@ -1252,6 +1281,55 @@ std::unique_ptr<ASTNode> Parser::parseMemberAssignment(
                                                 type, std::move(initializer));
 }
 
+std::unique_ptr<ASTNode> Parser::parsePackAssignment(
+    std::unique_ptr<ASTNode> baseNode) {
+  /*
+  a, b, c =< 0, 1, 2             # a = 0, b = 1, c = 2
+  a, b =< get_zero_and_one()     # a = 0, b = 1
+  */
+  auto assignment = std::make_unique<PackAssignmentNode>();
+
+  assignment->left.push_back(std::move(baseNode));
+
+  while (kStream->canRead() && tokenType() == KTokenType::COMMA) {
+    match(KTokenType::COMMA);
+    if (tokenType() != KTokenType::IDENTIFIER) {
+      throw SyntaxError(getErrorToken(),
+                        "Expected identifier in pack assignment variable set.");
+    }
+
+    auto identifierName = kToken.getText();
+    if (mangledNames.find(identifierName) != mangledNames.end()) {
+      identifierName = mangledNames[identifierName];
+    }
+    next();
+
+    assignment->left.push_back(std::make_unique<IdentifierNode>(identifierName));
+  }
+
+  if (!matchSubType(KName::Ops_Assign)) {
+    throw SyntaxError(getErrorToken(),
+                      "Expected an unpack operator, '=<', in pack assignment.");
+  }
+
+  if (!matchSubType(KName::Ops_LessThan)) {
+    throw SyntaxError(
+        getErrorToken(),
+        "Expected an unpack operator, '=<', in pack assignment.");
+  }
+
+  while (kStream->canRead() && hasValue()) {
+    auto rhs = parseExpression();
+    assignment->right.push_back(std::move(rhs));
+
+    if (tokenType() == KTokenType::COMMA) {
+      next();
+    }
+  }
+
+  return assignment;
+}
+
 std::unique_ptr<ASTNode> Parser::parseAssignment(
     std::unique_ptr<ASTNode> baseNode, const k_string& identifierName) {
   if (!Operators.is_assignment_operator(tokenName())) {
@@ -1300,7 +1378,7 @@ std::unique_ptr<ASTNode> Parser::parseQualifiedIdentifier(
   return qualifiedNode;
 }
 
-std::unique_ptr<ASTNode> Parser::parseIdentifier() {
+std::unique_ptr<ASTNode> Parser::parseIdentifier(bool packed) {
   bool isInstance = matchSubType(KName::KW_This);
 
   if (tokenType() != KTokenType::IDENTIFIER) {
@@ -1337,8 +1415,11 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier() {
   } else if (tokenType() == KTokenType::OPERATOR &&
              Operators.is_assignment_operator(tokenName())) {
     node = parseAssignment(std::move(node), identifierName);
-  } else if (tokenType() == KTokenType::QUALIFIER) {
+  } else if (tokenType() == KTokenType::QUALIFIER &&
+             peek().getType() == KTokenType::IDENTIFIER) {
     node = parseQualifiedIdentifier(identifierName);
+  } else if (tokenType() == KTokenType::COMMA && !packed && lookAhead({ KName::Ops_Assign, KName::Ops_LessThan })) {
+    node = parsePackAssignment(std::move(node));
   } else {
     node = std::make_unique<IdentifierNode>(identifierName);
   }
@@ -1437,8 +1518,7 @@ std::unique_ptr<ASTNode> Parser::parseEquality() {
 
 std::unique_ptr<ASTNode> Parser::parseComparison() {
   auto left = parseBitshift();
-  while (kStream->canRead() &&
-         Operators.is_comparison_op(tokenName())) {
+  while (kStream->canRead() && Operators.is_comparison_op(tokenName())) {
     auto op = tokenName();
     next();  // Skip operator
     auto right = parseBitshift();
@@ -1474,8 +1554,7 @@ std::unique_ptr<ASTNode> Parser::parseAdditive() {
 
 std::unique_ptr<ASTNode> Parser::parseMultiplicative() {
   auto left = parseUnary();
-  while (kStream->canRead() &&
-         Operators.is_multiplicative_op(tokenName())) {
+  while (kStream->canRead() && Operators.is_multiplicative_op(tokenName())) {
     auto op = tokenName();
     next();  // Skip operator
     auto right = parseUnary();
@@ -1503,7 +1582,7 @@ std::unique_ptr<ASTNode> Parser::parsePrimary() {
   switch (tokenType()) {
     case KTokenType::IDENTIFIER:
     case KTokenType::KEYWORD:
-      node = parseIdentifier();
+      node = parseIdentifier(false);
       break;
 
     case KTokenType::LITERAL:

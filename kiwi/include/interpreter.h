@@ -46,6 +46,7 @@ class KInterpreter {
   k_string id(const ASTNode* node);
   k_value visit(const ProgramNode* node);
   k_value visit(const SelfNode* node);
+  k_value visit(const PackAssignmentNode* node);
   k_value visit(const AssignmentNode* node);
   k_value visit(const IndexAssignmentNode* node);
   k_value visit(const MemberAssignmentNode* node);
@@ -185,6 +186,9 @@ k_value KInterpreter::interpret(const ASTNode* node) {
 
     case ASTNodeType::MEMBER_ASSIGNMENT:
       return visit(static_cast<const MemberAssignmentNode*>(node));
+
+    case ASTNodeType::PACK_ASSIGNMENT:
+      return visit(static_cast<const PackAssignmentNode*>(node));
 
     case ASTNodeType::MEMBER_ACCESS:
       return visit(static_cast<const MemberAccessNode*>(node));
@@ -626,6 +630,50 @@ k_value KInterpreter::handleNestedIndexing(const IndexingNode* indexExpr,
   throw IndexError(indexExpr->token, "Invalid index expression.");
 }
 
+k_value KInterpreter::visit(const PackAssignmentNode* node) {
+  auto frame = callStack.top();
+
+  std::vector<k_value> rhsValues;
+  rhsValues.reserve(node->right.size());
+  for (const auto& rhs : node->right) {
+    rhsValues.emplace_back(interpret(rhs.get()));
+  }
+
+  size_t rhsPosition = 0;
+  const size_t lhsLength = node->left.size();
+
+  // unpack
+  if (rhsValues.size() == 1) {
+    std::vector<k_value> unpacked;
+    const auto& rhsValue = rhsValues.at(0);
+    if (!std::holds_alternative<k_list>(rhsValue)) {
+      throw InvalidOperationError(node->token, "Expected a list to unpack.");
+    }
+
+    const auto& rhsElements = std::get<k_list>(rhsValue)->elements;
+    unpacked.reserve(rhsElements.size());
+
+    for (const auto& rhs : rhsElements) {
+      unpacked.emplace_back(rhs);
+    }
+
+    rhsValues.clear();
+    rhsValues.reserve(unpacked.size());
+    rhsValues = unpacked;
+  }
+
+  for (const auto& lhs : node->left) {
+    const auto& identifierName = id(lhs.get());
+    if (rhsValues.size() == lhsLength) {
+      frame->variables[identifierName] = rhsValues[rhsPosition++];
+    } else {
+      frame->variables[identifierName] = std::make_shared<Null>();
+    }
+  }
+
+  return {};
+}
+
 k_value KInterpreter::visit(const IndexAssignmentNode* node) {
   auto frame = callStack.top();
   auto op = node->op;
@@ -931,7 +979,7 @@ k_value KInterpreter::visit(const HashLiteralNode* node) {
     auto value = interpret(pair.second.get());
 
     if (!std::holds_alternative<k_string>(key)) {
-      throw SyntaxError(node->token, "Hash key must be a string value.");
+      throw HashKeyError(node->token, "Hash key must be a string value.");
     }
 
     kvps[std::get<k_string>(key)] = value;
