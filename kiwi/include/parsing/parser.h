@@ -1318,12 +1318,22 @@ std::unique_ptr<ASTNode> Parser::parsePackAssignment(
         "Expected an unpack operator, '=<', in pack assignment.");
   }
 
+  const size_t lhsLength = assignment->left.size();
+
   while (kStream->canRead() && hasValue()) {
+    // we have everything we need.
+    if (assignment->right.size() == lhsLength) {
+      break;
+    }
+
     auto rhs = parseExpression();
     assignment->right.push_back(std::move(rhs));
 
     if (tokenType() == KTokenType::COMMA) {
       next();
+    } else {
+      // we're at the end of the statement.
+      break;
     }
   }
 
