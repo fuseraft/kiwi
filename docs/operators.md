@@ -13,6 +13,7 @@ Kiwi offers many different operators for performing every day programming operat
 | Exponent | `**` | Binary |
 | ***Assignment Operators*** | | |
 | Assign | `=` | Assignment |
+| Unpack Assign | `=<` | Assignment |
 | Subtract Assign | `-=` | Assignment |
 | Add Assign | `+=` | Assignment |
 | Modulo Assign | `%=` | Assignment |
