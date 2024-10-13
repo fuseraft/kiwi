@@ -12,7 +12,6 @@ Lists are array-like objects that expand as needed and can contain values of mul
 - [Filtering a `List`](#filtering-a-list)
 - [Iterating a `List`](#iterating-a-list)
 - [An Example](#an-example)
-- [Optional Commas](#optional-commas)
 
 ### Builtins
 
@@ -133,14 +132,4 @@ end
 for prime, index in sieve_of_eratosthenes(30) do
   println("${index}:\t${prime}")
 end
-```
-
-### Optional Commas
-
-Commas are optional in Kiwi.
-
-```kiwi
-digits = [0 1 2 3 4 5 6 7 8 9]
-
-println(digits) # prints: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 ```
