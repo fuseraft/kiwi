@@ -288,7 +288,7 @@ package string
 end
 
 class StringIterator
-  def initialize(s)
+  def new(s)
     @chars = s.chars()
     @len = @chars.size()
     @pos = 0

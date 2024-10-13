@@ -612,16 +612,14 @@ k_value KInterpreter::handleNestedIndexing(const IndexingNode* indexExpr,
             MathImpl.do_binary_op(indexExpr->token, op, oldValue, newValue);
       }
       return list;
-    } else if (std::holds_alternative<k_hash>(baseObj) &&
-               std::holds_alternative<k_string>(literal)) {
+    } else if (std::holds_alternative<k_hash>(baseObj)) {
       auto hash = std::get<k_hash>(baseObj);
-      auto key = get_string(indexExpr->token, literal);
 
       if (op == KName::Ops_Assign) {
-        hash->add(key, newValue);
+        hash->add(literal, newValue);
       } else {
-        auto oldValue = hash->get(key);
-        hash->add(key, MathImpl.do_binary_op(indexExpr->token, op, oldValue,
+        auto oldValue = hash->get(literal);
+        hash->add(literal, MathImpl.do_binary_op(indexExpr->token, op, oldValue,
                                              newValue));
       }
       return hash;
@@ -727,20 +725,18 @@ k_value KInterpreter::visit(const IndexAssignmentNode* node) {
         }
 
         frame->variables[identifierName] = listObj;
-      } else if (std::holds_alternative<k_hash>(indexedObj) &&
-                 std::holds_alternative<k_string>(index)) {
+      } else if (std::holds_alternative<k_hash>(indexedObj)) {
         auto hashObj = std::get<k_hash>(indexedObj);
-        auto key = get_string(node->token, index);
 
         if (op == KName::Ops_Assign) {
-          hashObj->add(key, newValue);
+          hashObj->add(index, newValue);
         } else {
-          if (!hashObj->hasKey(key)) {
-            throw HashKeyError(node->token, key);
+          if (!hashObj->hasKey(index)) {
+            throw HashKeyError(node->token, Serializer::serialize(index));
           }
-          auto oldValue = hashObj->get(key);
+          auto oldValue = hashObj->get(index);
           hashObj->add(
-              key, MathImpl.do_binary_op(node->token, op, oldValue, newValue));
+              index, MathImpl.do_binary_op(node->token, op, oldValue, newValue));
         }
       }
     } else if (indexExpr->indexedObject->type ==
@@ -1079,14 +1075,13 @@ k_value KInterpreter::visit(const IndexingNode* node) {
 
       return list->elements.at(index);
     } else if (std::holds_alternative<k_hash>(object)) {
-      auto key = get_string(node->token, indexValue);
       auto hash = std::get<k_hash>(object);
 
-      if (!hash->hasKey(key)) {
-        throw HashKeyError(node->token, key);
+      if (!hash->hasKey(indexValue)) {
+        throw HashKeyError(node->token, Serializer::serialize(indexValue));
       }
 
-      return hash->get(key);
+      return hash->get(indexValue);
     } else if (std::holds_alternative<k_string>(object)) {
       auto string = std::get<k_string>(object);
       auto index = get_integer(node->token, indexValue);

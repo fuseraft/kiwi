@@ -1,7 +1,7 @@
 /# An implementation for working with sets. #/
 
 class Set
-  def initialize(data = [])
+  def new(data = [])
     @data = data.unique()
   end
 
