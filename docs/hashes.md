@@ -11,7 +11,6 @@ A hash contains a series of key-value pairs and can easily be serialized into JS
 - [Adding Elements](#adding-elements-to-a-hash)
 - [Removing Elements](#removing-elements-from-a-hash)
 - [Iterating a `Hash`](#iterating-a-hash)
-- [Optional Commas](#optional-commas)
 
 ### Builtins
 
@@ -19,7 +18,7 @@ For documentation on `Hash` builtins, take a look at the [`Hash` builtins](built
 
 ### Defining a Hash
 
-The keys in a hash must be unique strings.
+The keys in a hash must be unique.
 
 ```kiwi
 myHash = {"key1": true, "key2": 1, "key2": [1, 2, 3, 4]}
@@ -73,32 +72,4 @@ end
 for key, index in myHash.keys() do
   println("Key ${index}: ${key}")
 end
-```
-
-### Optional Commas
-
-Commas are optional in Kiwi.
-
-```kiwi
-hash = {
-  "A": {
-    "B": {
-      "C": {}
-      "D": {}
-    }
-    "E": {
-      "F": {}
-      "G": [1 2 3]
-    }
-  }
-}
-
-println("
-hash = ${hash}
-")
-
-# prints: 
-#
-# hash = {"A": {"B": {"C": {}, "D": {}}, "E": {"F": {}, "G": [1, 2, 3]}}}
-#
 ```

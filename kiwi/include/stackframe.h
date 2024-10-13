@@ -19,6 +19,7 @@ enum class FrameFlags : uint16_t {
   Next = 1 << 4,
   InTry = 1 << 5,
   InObject = 1 << 6,
+  InLambda = 1 << 7,
 };
 
 inline FrameFlags operator|(FrameFlags a, FrameFlags b) {

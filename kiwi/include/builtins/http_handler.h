@@ -153,7 +153,7 @@ class HttpBuiltinHandler {
 
     for (const auto& key : headersHash->keys) {
       const auto& value = headersHash->kvp[key];
-      headers.insert({key, Serializer::serialize(value)});
+      headers.insert({Serializer::serialize(key), Serializer::serialize(value)});
     }
 
     return headers;
