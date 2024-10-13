@@ -194,7 +194,7 @@ package time
 end
 
 class TimeSpan
-  def initialize(year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0)
+  def new(year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0)
     @year = year.is_a(Integer) ? year : 0
     @month = month.is_a(Integer) ? month : 0
     @day = day.is_a(Integer) ? day : 0
@@ -216,7 +216,7 @@ class TimeSpan
 end
 
 class DateTime
-  def initialize(year = 1970, month = 1, day = 1, hour = 0, minute = 0, second = 0)
+  def new(year = 1970, month = 1, day = 1, hour = 0, minute = 0, second = 0)
     @year = year.is_a(Integer) ? year : 1970
     @month = month.is_a(Integer) ? month : 1
     @day = day.is_a(Integer) ? day : 1

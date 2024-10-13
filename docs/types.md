@@ -89,7 +89,7 @@ An instance of a `class`.  See [Classes](classes.md) and [Abstract Classes](abst
 ```kiwi
 # Define an empty class called `MyClass`
 class MyClass
-  def initialize()
+  def new()
   end
 end
 

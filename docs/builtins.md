@@ -788,7 +788,7 @@ Converts an object instance or a JSON string into a hash.
 
 ```kiwi
 class SerializeMe
-  def initialize()
+  def new()
     @name = "Kiwi"
   end
 end
@@ -868,7 +868,7 @@ If the type is an object, `type()` will return the class name of the instance.
 
 ```kiwi
 class MyClass
-  def initialize()
+  def new()
   end
 end
 

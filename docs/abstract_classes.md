@@ -21,7 +21,7 @@ Use the `override` keyword to override the abstract method with an implementatio
 
 ```kiwi
 class Circle < Shape
-  def initialize(radius)
+  def new(radius)
     @radius = radius
   end
 
