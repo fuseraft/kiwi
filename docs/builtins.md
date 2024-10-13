@@ -37,6 +37,7 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
   - [`concat(list)`](#concatlist)
   - [`count(value)`](#countvalue)
   - [`dequeue()`](#dequeue)
+  - [`all(lambda)`](#alllambda)
   - [`each(lambda)`](#eachlambda)
   - [`enqueue(value)`](#enqueuevalue)
   - [`first(default_value)`](#firstdefault_value)
@@ -378,6 +379,24 @@ Removes and returns a value from the beginning of a list.
 list = [1, 2, 3]
 println(list.dequeue()) # prints: 1
 println(list)           # prints: [2, 3]
+```
+
+### `all(lambda)`
+
+Returns true if all elements in a list match a given condition.
+
+```kiwi
+# a list of even numbers (so far)
+list = [2, 4, 6]
+
+all_evens = list.all(with (n) do n % 2 == 0 end)
+println all_evens # prints: true
+
+# add 5 to the list, it is not divisible by 2
+list.push(5)
+
+all_evens = list.all(with (n) do n % 2 == 0 end)
+println all_evens # prints: false
 ```
 
 ### `each(lambda)`
