@@ -311,8 +311,13 @@ class CoreBuiltinHandler {
     }
 
     if (std::holds_alternative<k_hash>(value)) {
-      auto key = get_string(term, args.at(0));
-      return std::get<k_hash>(value)->get(key);
+      const auto& hash = std::get<k_hash>(value);
+      const auto& key = args.at(0);
+      if (!hash->hasKey(key)) {
+        throw HashKeyError(term, Serializer::serialize(key));
+      }
+
+      return hash->get(key);
     } else if (std::holds_alternative<k_list>(value)) {
       auto index = get_integer(term, args.at(0));
       auto elements = std::get<k_list>(value)->elements;
@@ -341,12 +346,11 @@ class CoreBuiltinHandler {
     }
 
     if (std::holds_alternative<k_hash>(value)) {
-      auto key = get_string(term, args.at(0));
       auto& hash = std::get<k_hash>(value);
-      hash->add(key, args.at(1));
+      hash->add(args.at(0), args.at(1));
       return hash;
     } else if (std::holds_alternative<k_list>(value)) {
-      auto index = get_integer(term, args.at(0));
+      const auto& index = get_integer(term, args.at(0));
       auto& elements = std::get<k_list>(value)->elements;
       if (index < 0 || index >= static_cast<k_int>(elements.size())) {
         throw RangeError(term, "List index out of range.");
@@ -934,7 +938,7 @@ class CoreBuiltinHandler {
           term, "Attempted to retrieve keys from non-Hash type.");
     }
 
-    return std::get<k_hash>(value)->hasKey(get_string(term, args.at(0)));
+    return std::get<k_hash>(value)->hasKey(args.at(0));
   }
 
   static k_value executeKeys(const Token& term, const k_value& value,

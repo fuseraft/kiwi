@@ -17,7 +17,7 @@ println(DateTime.format(d, "%Y-%m-%dT%H:%M:%S")) # prints: 2023-12-30T22:58:59
 ### Methods
 | Type | Returns | Method | Description |
 | :--- | :--- | :--- | :--- |
-| Constructor | `DateTime` | `initialize(year, month, day, hour, minute, second)` | Initialize a new `DateTime`. <br>`year` defaults to `1970`. <br>`month` and `day` default to `1`. <br>`hour`, `minute`, and `second` default to `0`.|
+| Constructor | `DateTime` | `new(year, month, day, hour, minute, second)` | Initialize a new `DateTime`. <br>`year` defaults to `1970`. <br>`month` and `day` default to `1`. <br>`hour`, `minute`, and `second` default to `0`.|
 | Static | `String` | `format(_datetime, _format)` | Format the value with a given format string. <br>`_format` defaults to `"%Y-%m-%d %H:%M:%S"`. |
 | Static | `DateTime` | `now()` | Returns the current date and time as a `DateTime` object. |
 | Instance | `String` | `to_string()` | Returns a string representation of the `DateTime` object. |
@@ -54,7 +54,7 @@ println(duration.to_string()) # prints: TimeSpan: 1 years, 0 months, 0 days, 0 h
 ### Methods
 | Type | Returns | Method | Description |
 | :--- | :--- | :--- | :--- |
-| Constructor | `TimeSpan` | `initialize(year, month, day, hour, minute, second)` | Initialize a new `TimeSpan` with the given values. <br> All parameters default to `0`. |
+| Constructor | `TimeSpan` | `new(year, month, day, hour, minute, second)` | Initialize a new `TimeSpan` with the given values. <br> All parameters default to `0`. |
 | Instance | `Integer` | `get_year()` | Returns the number of years in the `TimeSpan`. |
 | Instance | `Integer` | `get_month()` | Returns the number of months in the `TimeSpan`. |
 | Instance | `Integer` | `get_day()` | Returns the number of days in the `TimeSpan`. |
