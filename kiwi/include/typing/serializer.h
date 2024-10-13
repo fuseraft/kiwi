@@ -205,7 +205,7 @@ struct Serializer {
       } else {
         first = false;
       }
-      sv << indentString << "\"" << key << "\": ";
+      sv << indentString << serialize(key, true) << ": ";
 
       auto v = hash->get(key);
       if (std::holds_alternative<k_hash>(v)) {
@@ -277,7 +277,7 @@ struct Serializer {
         first = false;
       }
 
-      sv << "\"" << key << "\": ";
+      sv << serialize(key, true) << ": ";
       auto v = hash->get(key);
 
       if (std::holds_alternative<k_hash>(v)) {

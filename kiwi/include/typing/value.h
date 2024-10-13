@@ -77,23 +77,23 @@ struct List {
 };
 
 struct Hash {
-  std::unordered_map<k_string, k_value> kvp;
-  std::vector<k_string> keys;
+  std::unordered_map<k_value, k_value> kvp;
+  std::vector<k_value> keys;
 
   int size() const { return keys.size(); }
 
-  bool hasKey(const k_string& key) const { return kvp.find(key) != kvp.end(); }
+  bool hasKey(const k_value& key) const { return kvp.find(key) != kvp.end(); }
 
-  void add(const k_string& key, k_value value) {
+  void add(const k_value& key, k_value value) {
     if (!hasKey(key)) {
       keys.emplace_back(key);
     }
     kvp[key] = value;
   }
 
-  k_value get(const k_string& key) { return kvp[key]; }
+  k_value get(const k_value& key) { return kvp[key]; }
 
-  void remove(const k_string& key) {
+  void remove(const k_value& key) {
     kvp.erase(key);
     auto newEnd = std::remove(keys.begin(), keys.end(), key);
     keys.erase(newEnd, keys.end());
@@ -143,7 +143,7 @@ std::size_t hash_list(const k_list& list) {
 std::size_t hash_hash(const k_hash& hash) {
   std::size_t seed = 0;
   for (const auto& pair : hash->kvp) {
-    hash_combine(seed, std::hash<k_string>()(pair.first));
+    hash_combine(seed, std::hash<k_value>()(pair.first));
     hash_combine(seed, std::hash<k_value>()(pair.second));
   }
   return seed;

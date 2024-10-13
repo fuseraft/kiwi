@@ -1,2 +1,26 @@
 # For experimentation and fun.
 
+# https://leetcode.com/problems/two-sum/description/
+fn twoSum(nums, target)
+  h = {}
+  
+  for num, i in nums do
+    h[num] = i
+  end
+
+  for num, i in nums do
+    desired = target - num
+    if h.has_key(desired) && h[desired] != i
+      return [i, h[desired]]
+    end
+  end
+  
+  return null
+end
+
+
+println twoSum([2, 7, 11, 15], 9) # [0, 1]
+println twoSum([11, 2, 15, 7], 9) # [1, 3]
+println twoSum([2, 11, 15, 7], 9) # [0, 3]
+println twoSum([2, 11, 7, 15], 9) # [0, 2]
+println twoSum([2, 11, 6, 15], 9) # null

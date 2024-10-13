@@ -233,7 +233,7 @@ struct {
   const k_string Case = "case";
   const k_string Catch = "catch";
   const k_string Class = "class";
-  const k_string Ctor = "initialize";
+  const k_string Ctor = "new";
   const k_string Delete = "delete";
   const k_string Do = "do";
   const k_string Each = "each";

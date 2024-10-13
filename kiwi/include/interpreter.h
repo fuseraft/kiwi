@@ -121,6 +121,7 @@ class KInterpreter {
   k_value lambdaReduce(std::unique_ptr<KLambda>& lambda, k_value accumulator,
                        const k_list& list);
   k_value lambdaSelect(std::unique_ptr<KLambda>& lambda, const k_list& list);
+  k_value lambdaAll(std::unique_ptr<KLambda>& lambda, const k_list& list);
   k_value interpretListBuiltin(const Token& token, k_value& object,
                                const KName& op, std::vector<k_value> arguments);
 
@@ -611,16 +612,14 @@ k_value KInterpreter::handleNestedIndexing(const IndexingNode* indexExpr,
             MathImpl.do_binary_op(indexExpr->token, op, oldValue, newValue);
       }
       return list;
-    } else if (std::holds_alternative<k_hash>(baseObj) &&
-               std::holds_alternative<k_string>(literal)) {
+    } else if (std::holds_alternative<k_hash>(baseObj)) {
       auto hash = std::get<k_hash>(baseObj);
-      auto key = get_string(indexExpr->token, literal);
 
       if (op == KName::Ops_Assign) {
-        hash->add(key, newValue);
+        hash->add(literal, newValue);
       } else {
-        auto oldValue = hash->get(key);
-        hash->add(key, MathImpl.do_binary_op(indexExpr->token, op, oldValue,
+        auto oldValue = hash->get(literal);
+        hash->add(literal, MathImpl.do_binary_op(indexExpr->token, op, oldValue,
                                              newValue));
       }
       return hash;
@@ -726,20 +725,18 @@ k_value KInterpreter::visit(const IndexAssignmentNode* node) {
         }
 
         frame->variables[identifierName] = listObj;
-      } else if (std::holds_alternative<k_hash>(indexedObj) &&
-                 std::holds_alternative<k_string>(index)) {
+      } else if (std::holds_alternative<k_hash>(indexedObj)) {
         auto hashObj = std::get<k_hash>(indexedObj);
-        auto key = get_string(node->token, index);
 
         if (op == KName::Ops_Assign) {
-          hashObj->add(key, newValue);
+          hashObj->add(index, newValue);
         } else {
-          if (!hashObj->hasKey(key)) {
-            throw HashKeyError(node->token, key);
+          if (!hashObj->hasKey(index)) {
+            throw HashKeyError(node->token, Serializer::serialize(index));
           }
-          auto oldValue = hashObj->get(key);
+          auto oldValue = hashObj->get(index);
           hashObj->add(
-              key, MathImpl.do_binary_op(node->token, op, oldValue, newValue));
+              index, MathImpl.do_binary_op(node->token, op, oldValue, newValue));
         }
       }
     } else if (indexExpr->indexedObject->type ==
@@ -972,20 +969,18 @@ k_value KInterpreter::visit(const RangeLiteralNode* node) {
 
 k_value KInterpreter::visit(const HashLiteralNode* node) {
   auto hash = std::make_shared<Hash>();
-  std::unordered_map<k_string, k_value> kvps;
+  std::unordered_map<k_value, k_value> kvps;
+  std::vector<k_value> keys;
+  keys.reserve(node->elements.size());
 
   for (const auto& pair : node->elements) {
     auto key = interpret(pair.first.get());
     auto value = interpret(pair.second.get());
-
-    if (!std::holds_alternative<k_string>(key)) {
-      throw HashKeyError(node->token, "Hash key must be a string value.");
-    }
-
-    kvps[std::get<k_string>(key)] = value;
+    kvps[key] = value;
+    keys.emplace_back(key);
   }
 
-  for (const auto& key : node->keys) {
+  for (const auto& key : keys) {
     hash->add(key, kvps[key]);
   }
 
@@ -1080,14 +1075,13 @@ k_value KInterpreter::visit(const IndexingNode* node) {
 
       return list->elements.at(index);
     } else if (std::holds_alternative<k_hash>(object)) {
-      auto key = get_string(node->token, indexValue);
       auto hash = std::get<k_hash>(object);
 
-      if (!hash->hasKey(key)) {
-        throw HashKeyError(node->token, key);
+      if (!hash->hasKey(indexValue)) {
+        throw HashKeyError(node->token, Serializer::serialize(indexValue));
       }
 
-      return hash->get(key);
+      return hash->get(indexValue);
     } else if (std::holds_alternative<k_string>(object)) {
       auto string = std::get<k_string>(object);
       auto index = get_integer(node->token, indexValue);
@@ -1541,7 +1535,6 @@ k_value KInterpreter::visit(const LambdaCallNode* node) {
   k_value result;
 
   try {
-    std::vector<std::unique_ptr<ASTNode>> args;
     result = callLambda(lambdaFrame, node->token, lambdaName, node->arguments);
     dropFrame();
   } catch (const KiwiError& e) {
@@ -1795,6 +1788,7 @@ k_value KInterpreter::callLambda(
     }
   }
 
+  lambdaFrame->setFlag(FrameFlags::InLambda);
   callStack.push(lambdaFrame);
 
   const auto& decl = func->getBody();
@@ -2431,23 +2425,42 @@ k_value KInterpreter::interpretListBuiltin(const Token& token, k_value& object,
     }
 
     auto& lambda = lambdas[lambdaRef->identifier];
+    const auto isReturnSet = callStack.top()->isFlagSet(FrameFlags::Return);
+    k_value result;
 
     switch (op) {
       case KName::Builtin_List_Each:
-        return lambdaEach(lambda, list);
+        result = lambdaEach(lambda, list);
+        break;
 
       case KName::Builtin_List_Map:
-        return lambdaMap(lambda, list);
+        result = lambdaMap(lambda, list);
+        break;
 
       case KName::Builtin_List_None:
-        return lambdaNone(lambda, list);
+        result = lambdaNone(lambda, list);
+        break;
 
       case KName::Builtin_List_Select:
-        return lambdaSelect(lambda, list);
+        result = lambdaSelect(lambda, list);
+        break;
+
+      case KName::Builtin_List_All:
+        result = lambdaAll(lambda, list);
+        break;
 
       default:
         break;
     }
+
+    auto frame = callStack.top();
+    if (!isReturnSet && frame->isFlagSet(FrameFlags::Return)) {
+      if (frame->returnValue != result) {
+        frame->returnValue = result;
+      }
+    }
+
+    return result;
   } else if (arguments.size() == 2 && op == KName::Builtin_List_Reduce) {
     auto arg = arguments.at(1);
 
@@ -2631,6 +2644,58 @@ k_value KInterpreter::lambdaReduce(std::unique_ptr<KLambda>& lambda,
   frame->variables.erase(valueVariable);
 
   return result;
+}
+
+k_value KInterpreter::lambdaAll(std::unique_ptr<KLambda>& lambda,
+                                const k_list& list) {
+  auto defaultParameters = lambda->defaultParameters;
+  auto frame = callStack.top();
+
+  k_string valueVariable;
+  k_string indexVariable;
+  bool hasIndexVariable = false;
+
+  const auto& listSize = list->elements.size();
+  size_t newListSize = 0;
+
+  for (size_t i = 0; i < lambda->parameters.size(); ++i) {
+    const auto& param = lambda->parameters[i];
+    if (i == 0) {
+      valueVariable = param.first;
+      frame->variables[valueVariable] = {};
+    } else if (i == 1) {
+      indexVariable = param.first;
+      hasIndexVariable = true;
+      frame->variables[indexVariable] = {};
+    }
+  }
+
+  k_value result;
+  const auto& decl = *lambda->decl;
+  const auto& elements = list->elements;
+
+  for (size_t i = 0; i < elements.size(); ++i) {
+    frame->variables[valueVariable] = elements.at(i);
+
+    if (hasIndexVariable) {
+      frame->variables[indexVariable] = static_cast<k_int>(i);
+    }
+
+    for (const auto& stmt : decl.body) {
+      result = interpret(stmt.get());
+
+      if (MathImpl.is_truthy(result)) {
+        ++newListSize;
+      }
+    }
+  }
+
+  frame->variables.erase(valueVariable);
+  if (hasIndexVariable) {
+    frame->variables.erase(indexVariable);
+  }
+
+  return newListSize == listSize;
 }
 
 k_value KInterpreter::lambdaSelect(std::unique_ptr<KLambda>& lambda,

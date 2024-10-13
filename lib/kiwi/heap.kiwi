@@ -1,7 +1,7 @@
 /# An implementation for working with heaps. #/
 
 class Heap
-  def initialize(type = "min")
+  def new(type = "min")
     @heap = []
     @heap_type = ["min", "max"].contains(type) ? type : "min"
   end
