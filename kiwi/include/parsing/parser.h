@@ -1066,9 +1066,10 @@ std::unique_ptr<ASTNode> Parser::parseHashLiteral() {
 
   while (tokenType() != KTokenType::CLOSE_BRACE) {
     if (tokenType() != KTokenType::STRING &&
-        tokenType() != KTokenType::IDENTIFIER) {
+        tokenType() != KTokenType::IDENTIFIER &&
+        tokenType() != KTokenType::LITERAL) {
       throw SyntaxError(getErrorToken(),
-                        "Expected a string or an identifier for hash key.");
+                        "Expected a string, literal, or identifier for hash key.");
     }
 
     auto keyString = kToken.getText();
