@@ -1,2 +1,5 @@
 # For experimentation and fun.
 
+for i in std::range(1, 30) do
+  println i
+end

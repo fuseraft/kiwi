@@ -730,6 +730,8 @@ class Lexer {
       st = KName::Builtin_List_Sort;
     } else if (builtin == ListBuiltins.ToH) {
       st = KName::Builtin_List_ToH;
+    } else if (builtin == ListBuiltins.All) {
+      st = KName::Builtin_List_All;
     }
 
     return createToken(KTokenType::IDENTIFIER, st, builtin);
@@ -1156,6 +1158,8 @@ class Lexer {
       st = KName::Builtin_List_ToH;
     } else if (builtin == ListBuiltins.Each) {
       st = KName::Builtin_List_Each;
+    } else if (builtin == ListBuiltins.All) {
+      st = KName::Builtin_List_All;
     }
 
     return createToken(KTokenType::IDENTIFIER, st, builtin);
