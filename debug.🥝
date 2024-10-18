@@ -9,9 +9,9 @@ fn twoSum(nums, target)
   end
 
   for num, i in nums do
-    desired = target - num
-    if h.has_key(desired) && h[desired] != i
-      return [i, h[desired]]
+    complement = target - num
+    if h.has_key(complement) && h[complement] != i
+      return [i, h[complement]]
     end
   end
   
