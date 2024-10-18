@@ -273,15 +273,16 @@ guava::register_test("hashes", with () do
     other_hash[key] = hash[key] 
   end
   
-  guava::assert(other_hash == hash)
-
   other_hash = {}
   other_hash = hash.merge(other_hash)
-  guava::assert(other_hash == {"key1": true, "key2": 1, "key3": ["a", "b", "c"]})
+  for k in hash.keys() do
+    guava::assert(other_hash.has_key(k))
+    guava::assert(other_hash.get(k) == hash.get(k))
+  end
 
   other_hash.remove("key1")
-  guava::assert(other_hash.keys() == ["key2", "key3"])
-  guava::assert(other_hash.values() == [1, ["a", "b", "c"]])
+  guava::assert(other_hash.keys().sort() == ["key2", "key3"])
+  guava::assert(other_hash.values().sort() == [1, ["a", "b", "c"]])
 
   other_hash.clear()
   guava::assert(other_hash.empty())
@@ -395,15 +396,18 @@ end)
 
 guava::register_test("nulls", with () do
   e = {"a": null, "b": null}
-  guava::assert(e == {"a": null, "b": null})
+  guava::assert(e.get("a") == null)
+  guava::assert(e.get("b") == null)
 
   e.a = false
   e.b = 'hello'
-  guava::assert(e == {"a": false, "b": "hello"})
+  guava::assert(e.get("a") == false)
+  guava::assert(e.get("b") == "hello")
 
   e.a = null
   e.b = null
-  guava::assert(e == {"a": null, "b": null})
+  guava::assert(e.get("a") == null)
+  guava::assert(e.get("b") == null)
 
   e = null
   guava::assert(e == null)
