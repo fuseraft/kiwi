@@ -2,7 +2,7 @@
 
 ## `DateTime`
 
-The `DateTime` class is used to represent date and time data.
+The `DateTime` struct is used to represent date and time data.
 
 ### Example
 
@@ -40,7 +40,7 @@ println(DateTime.format(d, "%Y-%m-%dT%H:%M:%S")) # prints: 2023-12-30T22:58:59
 
 ## `TimeSpan`
 
-The `TimeSpan` class is used to represent a duration of time between two `DateTime` objects or a period defined by the user.
+The `TimeSpan` struct is used to represent a duration of time between two `DateTime` objects or a period defined by the user.
 
 ### Example
 

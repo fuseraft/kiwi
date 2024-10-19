@@ -75,7 +75,7 @@ control_structure [ expression ] when condition
 #### Example: `when`
 
 ```kiwi
-def sum(list)
+fn sum(list)
   throw "Cannot sum a non-List value." when !list.is_a(List)
   return 0 when list.empty()
   return list.sum()
@@ -96,7 +96,7 @@ condition ? true_expression : false_expression
 #### Example: `?:`
 
 ```kiwi
-def min(a, b)
+fn min(a, b)
   return a < b ? a : b
 end
 

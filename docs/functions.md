@@ -2,12 +2,12 @@
 
 Use the `fn` keyword to define a function.
 
-Use the `def` keyword to define a method (a function of a [`class`](classes.md)). 
+Use the `def` keyword to define a method (a function of a [`struct`](structs.md)). 
 
 The distinction between a function and a method in Kiwi is purely semantic.
 
 ```kiwi
-def greet(name = "Kiwi")
+fn greet(name = "Kiwi")
   println("Hello, ${name}!")
 end
 
@@ -20,7 +20,7 @@ greet()        # prints: Hello, Kiwi!
 Use the `return` keyword to return a value from a method, or to exit a method early.
 
 ```kiwi
-def get_greeting(name)
+fn get_greeting(name)
   return "Hello, ${name}"
 end
 
@@ -32,14 +32,14 @@ println(greeting)
 ### Optional Parameters
 
 ```kiwi
-def say(msg = "Hello, World!")
+fn say(msg = "Hello, World!")
   println(msg)
 end
 
 say()       # prints: Hello, World!
 say("Hey!") # prints: Hey!
 
-def configure(data, config = {})
+fn configure(data, config = {})
   for key in config.keys() do
     data[key] = config[key]
   end
@@ -61,7 +61,7 @@ You can access all global variables from within a method.
 ```kiwi
 counter = 0
 
-def uptick()
+fn uptick()
   counter += 1
 end
 

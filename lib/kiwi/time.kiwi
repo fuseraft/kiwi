@@ -193,8 +193,8 @@ package time
   end
 end
 
-class TimeSpan
-  def new(year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0)
+struct TimeSpan
+  fn new(year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0)
     @year = year.is_a(Integer) ? year : 0
     @month = month.is_a(Integer) ? month : 0
     @day = day.is_a(Integer) ? day : 0
@@ -203,20 +203,20 @@ class TimeSpan
     @second = second.is_a(Integer) ? second : 0
   end
 
-  def get_year() return @year end
-  def get_month() return @month end
-  def get_day() return @day end
-  def get_hour() return @hour end
-  def get_minute() return @minute end
-  def get_second() return @second end
+  fn get_year() return @year end
+  fn get_month() return @month end
+  fn get_day() return @day end
+  fn get_hour() return @hour end
+  fn get_minute() return @minute end
+  fn get_second() return @second end
 
-  def to_string()
+  fn to_string()
     return "TimeSpan: ${@year} years, ${@month} months, ${@day} days, ${@hour} hours, ${@minute} minutes, ${@second} seconds"
   end
 end
 
-class DateTime
-  def new(year = 1970, month = 1, day = 1, hour = 0, minute = 0, second = 0)
+struct DateTime
+  fn new(year = 1970, month = 1, day = 1, hour = 0, minute = 0, second = 0)
     @year = year.is_a(Integer) ? year : 1970
     @month = month.is_a(Integer) ? month : 1
     @day = day.is_a(Integer) ? day : 1
@@ -225,17 +225,17 @@ class DateTime
     @second = second.is_a(Integer) ? second : 0
   end
 
-  def to_string()
+  fn to_string()
     date_part = [("${@year}"), string::padstart(@month, 2, "0"), string::padstart(@day, 2, "0")].join("-")
     time_part = [string::padstart(@hour, 2, "0"), string::padstart(@minute, 2, "0"), string::padstart(@second, 2, "0")].join(":")
     return [date_part, time_part].join(" ")
   end
 
-  def type()
+  fn type()
     return "DateTime"
   end
 
-  def diff(dt)
+  fn diff(dt)
     throw "dt is not a DateTime" when dt.type() != "DateTime"
     
     # Calculate the differences
@@ -277,7 +277,7 @@ class DateTime
     return TimeSpan.new(year_diff, month_diff, day_diff, hour_diff, minute_diff, second_diff)
   end
 
-  def to_number()
+  fn to_number()
     number_string = to_string().replace("-", "").replace(":", "").split(" ")
     date_part = number_string[0].to_int()
     time_part = ("1" + number_string[1]).to_int()
@@ -285,7 +285,7 @@ class DateTime
     return [date_part, time_part]
   end
 
-  def equal(another_date)
+  fn equal(another_date)
     return false when another_date.type() != "DateTime"
     number_a = to_number()
     number_b = another_date.to_number()
@@ -296,7 +296,7 @@ class DateTime
     end
   end
 
-  def after(another_date)
+  fn after(another_date)
     return false when another_date.type() != "DateTime"
       
     number_a = to_number()
@@ -311,7 +311,7 @@ class DateTime
     end
   end
 
-  def before(another_date)
+  fn before(another_date)
     return false when another_date.type() != "DateTime"
 
     number_b = another_date.to_number()
@@ -326,7 +326,7 @@ class DateTime
     end
   end
 
-  def add_days(n)
+  fn add_days(n)
     if n.is_a(Integer)
       @day += n
       month_days = time::monthdays(@year, @month)
@@ -358,7 +358,7 @@ class DateTime
     return @
   end
 
-  def add_months(n)
+  fn add_months(n)
     if n.is_a(Integer)
       @month += n
       
@@ -377,7 +377,7 @@ class DateTime
     return @
   end
 
-  def add_years(n)
+  fn add_years(n)
     if n.is_a(Integer)
       @year += n
       @day = [@day, time::monthdays(@year, @month)].min()
@@ -385,7 +385,7 @@ class DateTime
     return @
   end
 
-  def add_hours(n)
+  fn add_hours(n)
     if n.is_a(Integer)
       @hour += n
 
@@ -402,7 +402,7 @@ class DateTime
     return @
   end
 
-  def add_minutes(n)
+  fn add_minutes(n)
     if n.is_a(Integer)
       @minute += n
 
@@ -419,7 +419,7 @@ class DateTime
     return @
   end
 
-  def add_seconds(n)
+  fn add_seconds(n)
     if n.is_a(Integer)
       @second += n
 
@@ -436,18 +436,18 @@ class DateTime
     return @
   end
 
-  def get_year() return @year end
-  def get_month() return @month end
-  def get_day() return @day end
-  def get_hour() return @hour end
-  def get_minute() return @minute end
-  def get_second() return @second end
+  fn get_year() return @year end
+  fn get_month() return @month end
+  fn get_day() return @day end
+  fn get_hour() return @hour end
+  fn get_minute() return @minute end
+  fn get_second() return @second end
 
-  static def format(_datetime, _format = "%Y-%m-%d %H:%M:%S")
+  static fn format(_datetime, _format = "%Y-%m-%d %H:%M:%S")
     return time::dtformat(_datetime, _format)
   end
 
-  static def now()
+  static fn now()
     return DateTime.new(time::year(), time::month(), time::day(), time::hour(), time::minute(), time::second())
   end
 end

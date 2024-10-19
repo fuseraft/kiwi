@@ -1,6 +1,6 @@
 # Lambdas
 
-Lambdas are used to treat functions as first-class citizens. You can pass lambdas as method parameters.
+Lambdas are used to treat functions as first-struct citizens. You can pass lambdas as method parameters.
 
 You can define a lambda using the `with` keyword.
 
@@ -47,7 +47,7 @@ end
 
 puts("Hello, World!") # prints: Hello, World!
 
-def use_lambda(print_func, message)
+fn use_lambda(print_func, message)
   print_func(message)
 end
 

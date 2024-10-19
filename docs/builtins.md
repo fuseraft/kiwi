@@ -806,8 +806,8 @@ println(tau) # 6.28318
 Converts an object instance or a JSON string into a hash.
 
 ```kiwi
-class SerializeMe
-  def new()
+struct SerializeMe
+  fn new()
     @name = "Kiwi"
   end
 end
@@ -883,11 +883,11 @@ Returns the type of the value as a string.
 
 Valid types are: `Integer`, `Float`, `Boolean`, `String`, `List`, `Hash`, `Object`, `Lambda`.
 
-If the type is an object, `type()` will return the class name of the instance.
+If the type is an object, `type()` will return the struct name of the instance.
 
 ```kiwi
-class MyClass
-  def new()
+struct MyClass
+  fn new()
   end
 end
 

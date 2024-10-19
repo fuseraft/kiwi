@@ -93,7 +93,7 @@ end
 ### An Example
 
 ```kiwi
-def sieve_of_eratosthenes(limit)
+fn sieve_of_eratosthenes(limit)
   isPrime = []
   for i in [0..limit] do
      isPrime << true

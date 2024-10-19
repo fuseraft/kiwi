@@ -490,6 +490,25 @@ struct {
     throw ConversionError(token, "Conversion error in bitwise << operation.");
   }
 
+  k_value do_bitwise_urshift(const Token& token, k_value left, k_value right) {
+    if (!std::holds_alternative<k_int>(left) ||
+        !std::holds_alternative<k_int>(right)) {
+      throw ConversionError(token,
+                            "Conversion error in bitwise >>> operation.");
+    }
+
+    auto a = std::get<k_int>(left);
+    auto b = std::get<k_int>(right);
+
+    if (b >= static_cast<k_int>(32)) {
+      return 0;
+    }
+
+    unsigned int a_int = static_cast<unsigned int>(a);
+
+    return static_cast<k_int>(a_int >> b);
+  }
+
   k_value do_bitwise_rshift(const Token& token, const k_value& left,
                             const k_value& right) {
     if (std::holds_alternative<k_int>(left) &&
@@ -856,6 +875,9 @@ struct {
       case KName::Ops_BitwiseRightShift:
       case KName::Ops_BitwiseRightShiftAssign:
         return do_bitwise_rshift(token, left, right);
+      case KName::Ops_BitwiseUnsignedRightShift:
+      case KName::Ops_BitwiseUnsignedRightShiftAssign:
+        return do_bitwise_urshift(token, left, right);
       case KName::Ops_And:
       case KName::Ops_AndAssign:
         return is_truthy(left) && is_truthy(right);

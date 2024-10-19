@@ -132,6 +132,13 @@ inline void hash_combine(std::size_t& seed, std::size_t hash) {
   seed ^= hash + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 
+struct SliceIndex {
+  k_value indexOrStart = static_cast<k_int>(0);
+  k_value stopIndex = static_cast<k_int>(0);
+  k_value stepValue = static_cast<k_int>(0);
+  bool isSlice = false;
+};
+
 std::size_t hash_list(const k_list& list) {
   std::size_t seed = 0;
   for (const auto& elem : list->elements) {
