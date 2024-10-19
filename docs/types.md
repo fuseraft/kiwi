@@ -10,7 +10,7 @@ Kiwi supports the following types:
 | [`String`](#string) | A sequence of characters. | See [Strings](strings.md). |
 | [`List`](#list) | A list of values. | See [Lists](lists.md). |
 | [`Hash`](#hash) | A dictionary of key-value pairs. | See [Hashes](hashes.md). |
-| [`Object`](#object) | An instance of a `class`. | See [Classes](classes.md) and [Abstract Classes](abstract_classes.md). |
+| [`Object`](#object) | An instance of a `struct`. | See [Structs](structs.md) and [Abstract Structs](abstract_classes.md). |
 | [`Lambda`](#lambda) | An anonymous function. | See [lambdas](lambdas.md). |
 | [`None`](#none) | A null value. | See below for an example. |
 
@@ -84,19 +84,19 @@ println(hash.language) # prints: kiwi
 
 ### Object
 
-An instance of a `class`.  See [Classes](classes.md) and [Abstract Classes](abstract_classes.md).
+An instance of a `struct`.  See [Structs](structs.md) and [Abstract Structs](abstract_classes.md).
 
 ```kiwi
-# Define an empty class called `MyClass`
-class MyClass
-  def new()
+# Define an empty struct called `MyClass`
+struct MyClass
+  fn new()
   end
 end
 
 # Create an instance of `MyClass`
 inst = MyClass.new()
 println(inst)
-# prints: [Object(class=MyClass, identifier=inst)]
+# prints: [Object(struct=MyClass, identifier=inst)]
 ```
 
 ### Lambda

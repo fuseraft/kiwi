@@ -27,7 +27,7 @@
      - [Builtins](builtins.md)
      - [Console I/O](console_io.md)
    - **Object-Oriented Programming**
-     - [Classes](classes.md)
+     - [Structs](structs.md)
      - [Methods](functions.md)
 
 4. **Standard Library**

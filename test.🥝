@@ -353,21 +353,21 @@ guava::register_test("timespans", with () do
 end)
 
 guava::register_test("classes", with () do
-  class Shape
-    def area() end
-    def perimeter() end
+  struct Shape
+    fn area() end
+    fn perimeter() end
   end
 
-  class Circle < Shape
-    def new(radius)
+  struct Circle < Shape
+    fn new(radius)
       @radius = radius
     end
 
-    def area()
+    fn area()
       return 3.14159 * @radius * @radius
     end
 
-    def perimeter()
+    fn perimeter()
       return 2 * 3.14159 * @radius
     end
   end

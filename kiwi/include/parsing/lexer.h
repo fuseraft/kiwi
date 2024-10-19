@@ -402,6 +402,10 @@ class Lexer {
       st = KName::Ops_BitwiseRightShift;
     } else if (op == Operators.BitwiseRightShiftAssign) {
       st = KName::Ops_BitwiseRightShiftAssign;
+    } else if (op == Operators.BitwiseUnsignedRightShift) {
+      st = KName::Ops_BitwiseUnsignedRightShift;
+    } else if (op == Operators.BitwiseUnsignedRightShiftAssign) {
+      st = KName::Ops_BitwiseUnsignedRightShiftAssign;
     } else if (op == Operators.BitwiseXor) {
       st = KName::Ops_BitwiseXor;
     } else if (op == Operators.BitwiseXorAssign) {
@@ -472,9 +476,16 @@ class Lexer {
         getCurrentChar();
 
         nextChar = source[pos];
-        if (nextChar == '=' && Operators.is_large_operator(s)) {
+        if ((nextChar == '=' && Operators.is_large_operator(s)) ||
+            (nextChar == '>' && s == Operators.BitwiseRightShift)) {
           s += nextChar;
           getCurrentChar();
+
+          nextChar = source[pos];
+          if (nextChar == '=' && s == Operators.BitwiseUnsignedRightShift) {
+            s += nextChar;
+            getCurrentChar();
+          }
         }
       }
     }
@@ -612,6 +623,8 @@ class Lexer {
       st = KName::Builtin_Reflector_RInspect;
     } else if (builtin == ReflectorBuiltins.RList) {
       st = KName::Builtin_Reflector_RList;
+    } else if (builtin == ReflectorBuiltins.RObject) {
+      st = KName::Builtin_Reflector_RObject;
     }
 
     return createToken(KTokenType::IDENTIFIER, st, builtin);
@@ -1251,9 +1264,10 @@ class Lexer {
     }
 
     if (binaryLiteral.empty()) {
-      throw SyntaxError(
-          createToken(KTokenType::LITERAL, KName::Default, binaryLiteral, 0),
-          "Invalid binary literal.");
+      const auto& errorToken =
+          createToken(KTokenType::LITERAL, KName::Default, binaryLiteral,
+                      static_cast<k_int>(0));
+      throw SyntaxError(errorToken, "Invalid binary literal.");
     }
 
     k_int value = std::stoi(binaryLiteral, nullptr, 2);
@@ -1271,9 +1285,9 @@ class Lexer {
     }
 
     if (octalLiteral.empty()) {
-      throw SyntaxError(
-          createToken(KTokenType::LITERAL, KName::Default, octalLiteral, 0),
-          "Invalid octal literal.");
+      const auto& errorToken = createToken(KTokenType::LITERAL, KName::Default,
+                                           octalLiteral, static_cast<k_int>(0));
+      throw SyntaxError(errorToken, "Invalid octal literal.");
     }
 
     k_int value = std::stoi(octalLiteral, nullptr, 8);
