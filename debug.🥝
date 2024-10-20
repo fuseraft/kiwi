@@ -71,6 +71,8 @@ struct SHA256
   static fn toString(digest)
     s = ""
 
+    #println "toString(${digest})"
+
     for i in std::range(0, 31) do
       s += [digest[i]].to_hex()
     end
@@ -171,7 +173,7 @@ struct SHA256
       newE = (state[3] + sum) % (1 << 32)
 
       # Update state variables
-      state[7] = state[6]
+      state[7] = state[6] 
       state[6] = state[5]
       state[5] = state[4]
       state[4] = newE
@@ -192,7 +194,7 @@ struct SHA256
   This function appends a '1' bit followed by the necessary number of '0' bits
   and appends the length of the original message.
   #/
-  private def pad(is_empty = false)
+  private def pad()
     i = 0 + @m_blocklen
     _end = @m_blocklen < 56 ? 56 : 64
 
@@ -213,15 +215,14 @@ struct SHA256
       end
     end
 
-    if !is_empty
-      # Append the total message length in bits and transform.
-      for i in std::range(0, 7) do
-        @m_data.set(56 + i, (@m_bitlen >>> (56 - (i * 8))) & 0xFF)  # Store each byte
-      end
+    # Append 64 bits (8 bytes) representing the bit length.
+    for i in std::range(0, 7) do
+      @m_data.set(56 + i, (@m_bitlen >>> (56 - (i * 8))) & 0xFF)
     end
-    
+
     transform()
   end
+
 
   /#
   Reverts the state and prepares the final hash in big-endian byte order.
@@ -231,10 +232,11 @@ struct SHA256
   private def revert(hash)
     # SHA uses big-endian byte ordering
     # Revert all bytes
-    for i in std::range(0, 3) do
-      for j in std::range(0, 7) do
-        hash[i + (j * 4)] = (@m_state[j] >>> (24 - i * 8)) & 0x000000ff
-      end
+    for i in std::range(0, 7) do
+      hash[i * 4 + 0] = (@m_state[i] >>> 24) & 0x000000ff
+      hash[i * 4 + 1] = (@m_state[i] >>> 16) & 0x000000ff
+      hash[i * 4 + 2] = (@m_state[i] >>> 8)  & 0x000000ff
+      hash[i * 4 + 3] = (@m_state[i])        & 0x000000ff
     end
   end
 
@@ -246,7 +248,7 @@ struct SHA256
   #/
   private def update_data(data, length)
     if length == 0
-      pad(true)
+      pad()
       return
     end
 
@@ -265,28 +267,25 @@ struct SHA256
   end
 end
 
-/#fn main(args)
-  for arg in args do
-    sha = SHA256.new()
-    sha.update(arg)
-    digest = sha.digest()
-
-    println "input:  '${arg}'"
-    println "sha256: ${SHA256.toString(digest)}"
-  end
-end
-
-main(argv::get())#/
-
 fn run_tests()
-  /# Test Cases: Input strings and their expected SHA256 hashes. #/
+  build_test_case = with (_input, _expected) do
+    return {
+      "input": _input,
+      "expected": _expected
+    }
+  end
+  
+  # Input strings and their expected SHA256 hashes.
   test_cases = [
-    {"input": "Hello, World!", "expected": "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f"},
-    {"input": "Kiwi Programming Language", "expected": "0fa511438c351693a3181371cc0f98fd42dc26f5e605aedab8de84956784784f"},
-    {"input": "", "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
-    {"input": "a", "expected": "ca978112ca1bbdcafac231b39a23dc4d9b66a24e5e0e0e1f6d5d1bcb4413c20e"},
-    {"input": "string2", "expected": "b993212a26658c9077096b804cdfb92ad21cf1e199e272c44eb028e45d07b6e0"},
-    {"input": "string", "expected": "473287f8298dba7163a897908958f7c0eae733e25d2e027992ea2edc9bed2fa8"}
+    build_test_case("Hello, World!", "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f"),
+    build_test_case("Kiwi Programming Language", "0fa511438c351693a3181371cc0f98fd42dc26f5e605aedab8de84956784784f"),
+    build_test_case("", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"),
+    build_test_case(" ", "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068"),
+    build_test_case("a", "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb"),
+    build_test_case("abc", "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"),
+    build_test_case("string2", "b993212a26658c9077096b804cdfb92ad21cf1e199e272c44eb028e45d07b6e0"),
+    build_test_case("string", "473287f8298dba7163a897908958f7c0eae733e25d2e027992ea2edc9bed2fa8"),
+    build_test_case("The quick brown fox jumps over the lazy dog.", "ef537f25c895bfa782526529a9b63d97aa631564d5d789c2b765448c8635fb6c")
   ]
 
   for test_case in test_cases do
@@ -298,13 +297,24 @@ fn run_tests()
     if actual == test_case.expected
       println "Test passed for input: '${test_case.input}'"
     else
-      println "Test failed for input: '${test_case.input}'. Expected: ${test_case.expected}, Actual: ${actual}"
+      println "Test failed for input: '${test_case.input}'.\n  Expected: ${test_case.expected},\n  Actual: ${actual}"
     end
   end
 end
 
-fn main()
-  run_tests()
+fn main(args)
+  if args.empty()
+    return run_tests()
+  end
+
+  for arg in args do
+    sha = SHA256.new()
+    sha.update(arg)
+    digest = sha.digest()
+
+    println "input:  '${arg}'"
+    println "sha256: ${SHA256.toString(digest)}"
+  end
 end
 
-main()
+main(argv::get())
