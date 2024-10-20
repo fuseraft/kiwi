@@ -1,8 +1,13 @@
 /#
 A Kiwi SHA256 implementation inspired by System-Glitch/SHA256: https://github.com/System-Glitch/SHA256
+
+This implementation provides a way to compute the SHA-256 hash of a given input string. It follows the SHA-256 specification outlined in FIPS 180-4.
 #/
 
 struct SHA256
+  /#
+  Initializes a new SHA256 instance, setting up the internal state, constants, and buffers.
+  #/
   fn new()
     @K = [
       0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
@@ -33,14 +38,20 @@ struct SHA256
   end
 
   /#
-  @param data String
+  Updates the SHA-256 digest with the provided input data.
+
+  @param data String - The input data to be processed.
   #/
   def update(data)
-	  update_data(data.to_bytes(), data.size())
+    length = data.size()
+    @m_bitlen += length * 8  # Update the total bit length
+    update_data(data.to_bytes(), length)
   end
 
   /#
-  @return List of 32 integers
+  Computes and returns the SHA-256 digest.
+
+  @return List of 32 integers - The computed SHA-256 hash as a list of bytes.
   #/
   fn digest()
     hash = [0] * 32
@@ -52,8 +63,10 @@ struct SHA256
   end
 
   /#
-  @param digest List of 32 integers.
-  @return String
+  Converts the given digest to a hexadecimal string representation.
+
+  @param digest List of 32 integers - The SHA-256 digest.
+  @return String - The hexadecimal string representation of the digest.
   #/
   static fn toString(digest)
     s = ""
@@ -66,65 +79,81 @@ struct SHA256
   end
 
   /#
-  @param x Integer
-  @param n Integer
-  @return Integer
+  Performs a right rotation on the given integer value.
+
+  @param x Integer - The value to be rotated.
+  @param n Integer - The number of bits to rotate.
+  @return Integer - The result of the right rotation.
   #/
   private fn rotr(x, n) 
     return (x >>> n) | (x << (32 - n))
   end
   
   /#
-  @param e Integer
-  @param f Integer
-  @param g Integer
-  @return Integer
+  Chooses between the given integers based on the SHA-256 choose function.
+
+  @param x Integer - The first value.
+  @param y Integer - The second value.
+  @param z Integer - The third value.
+  @return Integer - The result of the choose function.
   #/
-  private fn choose(e, f, g)
-    return (e & f) ^ (~e & g)
+  private fn choose(x, y, z)
+    return (x & y) ^ (~x & z)
   end
 
   /#
-  @param a Integer
-  @param b Integer
-  @param c Integer
-  @return Integer
+  Computes the majority of the given integers based on the SHA-256 majority function.
+
+  @param x Integer - The first value.
+  @param y Integer - The second value.
+  @param z Integer - The third value.
+  @return Integer - The result of the majority function.
   #/
-  private fn majority(a, b, c)
-    return (a & (b | c)) | (b & c)
+  private fn majority(x, y, z)
+    return (x & (y | z)) | (y & z) # (x & y) ^ (x & z) ^ (y & z)
   end
   
   /#
-  @param x Integer
-  @return Integer
+  Computes the first round function for the given integer value.
+
+  @param x Integer - The value to be processed.
+  @return Integer - The result of the first round function.
   #/
-  private fn sig0(x)
+  private fn sigma0(x)
     return rotr(x, 7) ^ rotr(x, 18) ^ (x >>> 3)
   end
 
   /#
-  @param x Integer
-  @return Integer
+  Computes the second round function for the given integer value.
+
+  @param x Integer - The value to be processed.
+  @return Integer - The result of the second round function.
   #/
-  private fn sig1(x)
+  private fn sigma1(x)
     return rotr(x, 17) ^ rotr(x, 19) ^ (x >>> 10)
   end
 
+  /#
+  Processes the current block of data and updates the state.
+
+  This method is responsible for the main SHA-256 algorithm, applying the necessary transformations
+  and updating the state variables.
+  #/
   private def transform()
     maj = 0, xorA = 0, ch = 0, xorE = 0, sum = 0, newA = 0, newE = 0, m = [0] * 64
     state = [0] * 8
 
-    # Split data in 32 bit blocks for the 16 first words
+    # Split data in 32 bit blocks for the first 16 words
     i = 0, j = 0
     while i < 16 do
       m[i] = (@m_data[j] << 24) | (@m_data[j + 1] << 16) | (@m_data[j + 2] << 8) | (@m_data[j + 3])
       i += 1, j += 4
     end
 
-    # Remaining 48 blocks
+    # Fill remaining 48 blocks
     k = 16
     while k < 64 do
-      m[k] = (sig1(m[k - 2]) + m[k - 7] + sig0(m[k - 15]) + m[k - 16]) % (1 << 32)
+      m[k] = (sigma1(m[k - 2]) + m[k - 7] + sigma0(m[k - 15]) + m[k - 16]) % (1 << 32)
       k += 1
     end
 
@@ -141,6 +170,7 @@ struct SHA256
       newA = (xorA + maj + sum) % (1 << 32)
       newE = (state[3] + sum) % (1 << 32)
 
+      # Update state variables
       state[7] = state[6]
       state[6] = state[5]
       state[5] = state[4]
@@ -156,11 +186,17 @@ struct SHA256
     end
   end
 
-  private def pad()
+  /#
+  Pads the input data to ensure it meets the requirements for SHA-256 processing.
+
+  This function appends a '1' bit followed by the necessary number of '0' bits
+  and appends the length of the original message.
+  #/
+  private def pad(is_empty = false)
     i = 0 + @m_blocklen
     _end = @m_blocklen < 56 ? 56 : 64
 
-    # Append a bit 1
+    # Append a bit '1'
     @m_data.set(i, 0x80)
     i += 1
 
@@ -177,26 +213,23 @@ struct SHA256
       end
     end
 
-    # Append to the padding the total message's length in bits and transform.
-    @m_bitlen += @m_blocklen * 8
+    if !is_empty
+      # Append the total message length in bits and transform.
+      for i in std::range(0, 7) do
+        @m_data.set(56 + i, (@m_bitlen >>> (56 - (i * 8))) & 0xFF)  # Store each byte
+      end
+    end
     
-    @m_data.set(63, @m_bitlen)
-    @m_data.set(62, @m_bitlen >>> 8)
-    @m_data.set(61, @m_bitlen >>> 16)
-    @m_data.set(60, @m_bitlen >>> 24)
-    @m_data.set(59, @m_bitlen >>> 32)
-    @m_data.set(58, @m_bitlen >>> 40)
-    @m_data.set(57, @m_bitlen >>> 48)
-    @m_data.set(56, @m_bitlen >>> 56)
-
     transform()
   end
 
   /#
-  @param hash List of 32 integers.
+  Reverts the state and prepares the final hash in big-endian byte order.
+
+  @param hash List of 32 integers - The output array to hold the final hash.
   #/
   private def revert(hash)
-    # SHA uses big endian byte ordering
+    # SHA uses big-endian byte ordering
     # Revert all bytes
     for i in std::range(0, 3) do
       for j in std::range(0, 7) do
@@ -206,11 +239,18 @@ struct SHA256
   end
 
   /#
-  @param data List of integers
-  @param length Integer
+  Updates the internal data buffer with the provided input data.
+
+  @param data List of integers - The input data to be processed.
+  @param length Integer - The length of the input data.
   #/
   private def update_data(data, length)
-    for i in std::range(0, length -1) do
+    if length == 0
+      pad(true)
+      return
+    end
+
+    for i in std::range(0, length - 1) do
       @m_data.set(@m_blocklen, data[i])
       @m_blocklen += 1
 
@@ -225,7 +265,7 @@ struct SHA256
   end
 end
 
-fn main(args)
+/#fn main(args)
   for arg in args do
     sha = SHA256.new()
     sha.update(arg)
@@ -236,4 +276,35 @@ fn main(args)
   end
 end
 
-main(argv::get())
+main(argv::get())#/
+
+fn run_tests()
+  /# Test Cases: Input strings and their expected SHA256 hashes. #/
+  test_cases = [
+    {"input": "Hello, World!", "expected": "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f"},
+    {"input": "Kiwi Programming Language", "expected": "0fa511438c351693a3181371cc0f98fd42dc26f5e605aedab8de84956784784f"},
+    {"input": "", "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+    {"input": "a", "expected": "ca978112ca1bbdcafac231b39a23dc4d9b66a24e5e0e0e1f6d5d1bcb4413c20e"},
+    {"input": "string2", "expected": "b993212a26658c9077096b804cdfb92ad21cf1e199e272c44eb028e45d07b6e0"},
+    {"input": "string", "expected": "473287f8298dba7163a897908958f7c0eae733e25d2e027992ea2edc9bed2fa8"}
+  ]
+
+  for test_case in test_cases do
+    sha = SHA256.new()
+    sha.update(test_case.input)
+    digest = sha.digest()
+    actual = SHA256.toString(digest)
+
+    if actual == test_case.expected
+      println "Test passed for input: '${test_case.input}'"
+    else
+      println "Test failed for input: '${test_case.input}'. Expected: ${test_case.expected}, Actual: ${actual}"
+    end
+  end
+end
+
+fn main()
+  run_tests()
+end
+
+main()
