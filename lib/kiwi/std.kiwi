@@ -21,7 +21,7 @@ package std
 
   fn range(x, y)
     throw Error.InvalidRange() when ![x, y].all(with (n) do std::is_int(n) end)
-    return [x..y]
+    return [x..y - 1]
   end
 end
 

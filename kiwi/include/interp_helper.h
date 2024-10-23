@@ -2,7 +2,6 @@
 #define KIWI_INTERPHELPER_H
 
 #include <vector>
-#include "objects/sliceindex.h"
 #include "parsing/tokens.h"
 #include "tracing/error.h"
 #include "stackframe.h"

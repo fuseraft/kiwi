@@ -1,6 +1,6 @@
 # https://projecteuler.net/problem=5
 
-def gcd(a, b)
+fn gcd(a, b)
   while b != 0 do
     mod = a % b
     a = b
@@ -10,11 +10,11 @@ def gcd(a, b)
   return a
 end
 
-def lcm(a, b)
+fn lcm(a, b)
   return __abs__(a * b) / gcd(a, b)
 end
 
-def smallest_multiple(n)
+fn smallest_multiple(n)
   result = 1
   for i in [1 .. n + 1] do
     result = lcm(result, i)

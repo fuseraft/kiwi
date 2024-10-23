@@ -47,9 +47,15 @@ struct {
   const k_string BitwiseLeftShiftAssign = "<<=";
   const k_string BitwiseRightShift = ">>";
   const k_string BitwiseRightShiftAssign = ">>=";
+  const k_string BitwiseUnsignedRightShift = ">>>";
+  const k_string BitwiseUnsignedRightShiftAssign = ">>>=";
 
-  std::unordered_set<k_string> large_operators = {
-      Exponent, Or, And, BitwiseLeftShift, BitwiseRightShift};
+  std::unordered_set<k_string> large_operators = {Exponent,
+                                                  Or,
+                                                  And,
+                                                  BitwiseLeftShift,
+                                                  BitwiseRightShift,
+                                                  BitwiseUnsignedRightShift};
 
   std::unordered_set<char> arithmetic_operator_chars = {'+', '-', '/', '*',
                                                         '%'};
@@ -74,7 +80,8 @@ struct {
       KName::Ops_BitwiseXorAssign,
       KName::Ops_BitwiseNotAssign,
       KName::Ops_BitwiseLeftShiftAssign,
-      KName::Ops_BitwiseRightShiftAssign};
+      KName::Ops_BitwiseRightShiftAssign,
+      KName::Ops_BitwiseUnsignedRightShiftAssign};
 
   std::unordered_set<KName> equality_operators = {KName::Ops_Equal,
                                                   KName::Ops_NotEqual};
@@ -90,8 +97,9 @@ struct {
       KName::Ops_GreaterThan, KName::Ops_GreaterThanOrEqual,
       KName::Ops_LessThan, KName::Ops_LessThanOrEqual};
 
-  std::unordered_set<KName> bitwise_operators = {KName::Ops_BitwiseLeftShift,
-                                                 KName::Ops_BitwiseRightShift};
+  std::unordered_set<KName> bitwise_operators = {
+      KName::Ops_BitwiseLeftShift, KName::Ops_BitwiseRightShift,
+      KName::Ops_BitwiseUnsignedRightShift};
 
   std::unordered_set<KName> unary_operators = {
       KName::Ops_Not, KName::Ops_Subtract, KName::Ops_BitwiseNot};
@@ -128,6 +136,10 @@ struct {
         return BitwiseRightShift;
       case KName::Ops_BitwiseRightShiftAssign:
         return BitwiseRightShiftAssign;
+      case KName::Ops_BitwiseUnsignedRightShift:
+        return BitwiseUnsignedRightShift;
+      case KName::Ops_BitwiseUnsignedRightShiftAssign:
+        return BitwiseUnsignedRightShiftAssign;
       case KName::Ops_BitwiseXor:
         return BitwiseXor;
       case KName::Ops_BitwiseXorAssign:
@@ -232,7 +244,7 @@ struct {
   const k_string Break = "break";
   const k_string Case = "case";
   const k_string Catch = "catch";
-  const k_string Class = "class";
+  const k_string Class = "struct";
   const k_string Ctor = "new";
   const k_string Delete = "delete";
   const k_string Do = "do";
