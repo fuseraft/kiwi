@@ -29,9 +29,9 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
   - [`return`](#return)
   - [`static`](#static)
   - [`with`](#with)
-- [Classes](#classes)
+- [Structs](#structs)
   - [`abstract`](#abstract)
-  - [`class`](#class)
+  - [`struct`](#struct)
   - [`new`](#new)
   - [`override`](#override)
   - [`this`](#this)
@@ -157,9 +157,9 @@ The `fn` keyword is used to define a function.
 See [Functions and Methods](functions.md).
 
 ### `private`
-The `private` keyword is used to declare a method with private access (can only be accessed within the class).
+The `private` keyword is used to declare a method with private access (can only be accessed within the struct).
 
-See [Classes](classes.md).
+See [Structs](structs.md).
 
 ### `return`
 The `return` keyword is used to return a value from a method, or to exit a method early.
@@ -169,39 +169,39 @@ See [Functions and Methods](functions.md) and [Control Structures](control_struc
 ### `static`
 The `static` keyword is used to declare a method with static access (can be accessed without instantiation).
 
-See [Classes](classes.md).
+See [Structs](structs.md).
 
 ### `with`
 The `with` keyword is used to define a lambda.
 
 See [Lambdas](lambdas.md).
 
-## Classes
+## Structs
 
 ### `abstract`
-The `abstract` keyword is used to declare a [class](#class) as being abstract, meaning it cannot be instantiated directly, but is intended to be used as a base class.
+The `abstract` keyword is used to declare a [struct](#struct) as being abstract, meaning it cannot be instantiated directly, but is intended to be used as a base struct.
 
-See [Abstract Classes](abstract_classes.md).
+See [Abstract Structs](abstract_classes.md).
 
-### `class`
-The `class` keyword is used to define a class.
+### `struct`
+The `struct` keyword is used to define a struct.
 
-See [Classes](classes.md).
+See [Structs](structs.md).
 
 ### `new`
-The `new` keyword is used to instantiate a class.
+The `new` keyword is used to instantiate a struct.
 
-See [Classes](classes.md).
+See [Structs](structs.md).
 
 ### `override`
 The `override` keyword is used to provide an implementation to an abstract method.
 
-See [Abstract Classes](abstract_classes.md).
+See [Abstract Structs](abstract_classes.md).
 
 ### `this`
-The `this` keyword is used for class member-access.
+The `this` keyword is used for struct member-access.
 
-See [Classes](classes.md).
+See [Structs](structs.md).
 
 ## Packages
 

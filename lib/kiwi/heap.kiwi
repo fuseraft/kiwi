@@ -1,17 +1,17 @@
 /# An implementation for working with heaps. #/
 
-class Heap
-  def new(type = "min")
+struct Heap
+  fn new(type = "min")
     @heap = []
     @heap_type = ["min", "max"].contains(type) ? type : "min"
   end
 
-  def insert(value)
+  fn insert(value)
     @heap.push(value)
     heapify_up(@heap.size() - 1)
   end
 
-  def extract_root()
+  fn extract_root()
     throw "Heap is empty" when @heap.empty()
 
     root = @heap.get(0)
@@ -26,20 +26,20 @@ class Heap
     return root
   end
 
-  def peek()
+  fn peek()
     throw "Heap is empty" when @heap.empty()
     return @heap.get(0)
   end
 
-  def size()
+  fn size()
     return @heap.size()
   end
 
-  def is_empty()
+  fn is_empty()
     return @heap.empty()
   end
 
-  private def heapify_up(index)
+  private fn heapify_up(index)
     parent_index = (index - 1) / 2
 
     if @heap_type == "min"
@@ -57,7 +57,7 @@ class Heap
     end
   end
 
-  private def heapify_down(index)
+  private fn heapify_down(index)
     left_child_index = 2 * index + 1
     right_child_index = 2 * index + 2
     size = @heap.size()
@@ -95,7 +95,7 @@ class Heap
     end
   end
 
-  private def swap(i, j)
+  private fn swap(i, j)
     @heap.swap(i, j)
   end
 end

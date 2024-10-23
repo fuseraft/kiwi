@@ -1,6 +1,6 @@
 # https://projecteuler.net/problem=9
 
-def pythagorean_triplet(sum)
+fn pythagorean_triplet(sum)
   found = false
   result = 0
 

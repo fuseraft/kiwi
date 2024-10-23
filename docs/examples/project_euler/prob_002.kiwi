@@ -1,6 +1,6 @@
 # https://projecteuler.net/problem=2
 
-def fibonacci(n)
+fn fibonacci(n)
   fib = []
   t1 = 0, t2 = 1, nextTerm = 0
   nextTerm = t1 + t2

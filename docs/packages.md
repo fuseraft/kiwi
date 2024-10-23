@@ -7,13 +7,13 @@ Methods defined in a package can only be accessed using a fully qualified name.
 ```kiwi
 # Defining packages.
 package greeter
-  def greet(name)
+  fn greet(name)
     println("Hello, ${name}.")
   end
 end
 
 package excited_greeter
-  def greet(name)
+  fn greet(name)
     println("Hello, ${name}!")
   end
 end
