@@ -5,7 +5,7 @@
 You can define an asynchronous method with the `async` keyword.
 
 ```kiwi
-async def long_runner(sleep_ms)
+async fn long_runner(sleep_ms)
   __delay__(sleep_ms) # simulate work
   return 42 # some work result
 end
