@@ -627,4 +627,32 @@ guava::register_test("lambdas", with () do
   guava::assert(x == 25)
 end)
 
+guava::register_test("md5", with () do
+  a_str = "just a test string"
+  
+  guava::assert("d41d8cd98f00b204e9800998ecf8427e" == crypto::md5_hash(""))
+  guava::assert("c105456108ab41026a95d4f0cc66fe78" == crypto::md5_hash(a_str))
+  guava::assert("e8754b080e52f959766d9d40f5e406ee" == crypto::md5_hash(a_str * 7))
+end)
+
+guava::register_test("sha224", with () do
+  a_str = "just a test string"
+
+  guava::assert("d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f" == SHA224.new().hexdigest())
+  guava::assert("bba476fc42a4327019c6239a15d662f327c646ad3d8b4c0ca32e33e5" == SHA224.new(a_str).hexdigest())
+  guava::assert("7d70521535e7b865c1572daff05a3fd022df567f4b6d74d556477f0a" == SHA224.new(a_str*7).hexdigest())
+end)
+
+guava::register_test("sha256", with () do
+  a_str = "just a test string"
+
+  guava::assert("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" == SHA256.new().hexdigest())
+  guava::assert("d7b553c6f09ac85d142415f857c5310f3bbbe7cdd787cce4b985acedd585266f" == SHA256.new(a_str).hexdigest())
+  guava::assert("8113ebf33c97daa9998762aacafe750c7cefc2b2f173c90c59663a57fe626f21" == SHA256.new(a_str*7).hexdigest())
+  
+  s = SHA256.new(a_str)
+  s.update(a_str)
+  guava::assert("03d9963e05a094593190b6fc794cb1a3e1ac7d7883f0b5855268afeccc70d461" == s.hexdigest())
+end)
+
 testsuite()

@@ -115,6 +115,9 @@ Token Parser::peek() {
 bool Parser::lookAhead(std::vector<KName> names) {
   size_t pos = kStream->position;
   size_t nameLength = names.size();
+  size_t jumps = pos;
+  const size_t jump_threshold = 10;
+
   for (; pos + 1 < kStream->size(); ++pos) {
     size_t matches = 0;
 
@@ -127,6 +130,10 @@ bool Parser::lookAhead(std::vector<KName> names) {
     }
 
     if (matches == nameLength) {
+      jumps = pos - jumps;
+      if (jumps > jump_threshold) {
+        return false;
+      }
       return true;
     }
   }
