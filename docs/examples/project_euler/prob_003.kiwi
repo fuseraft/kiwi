@@ -1,6 +1,6 @@
 # https://projecteuler.net/problem=3
 
-def largest_prime_factor(n)
+fn largest_prime_factor(n)
   factor = 2
   max_prime = 1
   while factor * factor <= n do

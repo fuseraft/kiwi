@@ -287,18 +287,18 @@ package string
   end
 end
 
-class StringIterator
-  def new(s)
+struct StringIterator
+  fn new(s)
     @chars = s.chars()
     @len = @chars.size()
     @pos = 0
   end
 
-  def consume()
+  fn consume()
     @pos += 1
   end
 
-  def skip(n)
+  fn skip(n)
     if @pos + n < @len
       @pos = @len
     else
@@ -306,18 +306,18 @@ class StringIterator
     end
   end
 
-  def can_read()
+  fn can_read()
     return @pos + 1 < @len
   end
 
-  def current()
+  fn current()
     if @pos < @len
       return @chars.get(@pos)
     end
     return ""
   end
 
-  def peek()
+  fn peek()
     if @pos + 1 < @len
       return @chars.get(@pos + 1)
     end
@@ -325,19 +325,19 @@ class StringIterator
     return ""
   end
 
-  def position()
+  fn position()
     return @pos
   end
 
-  def length()
+  fn length()
     return @len
   end
 
-  def rewind(n)
+  fn rewind(n)
     @pos -= n
   end
 
-  def grab(n)
+  fn grab(n)
     if n < @len && n >= 0
       return @chars.get(n)
     end
@@ -345,7 +345,7 @@ class StringIterator
     return ""
   end
 
-  def reach(n)
+  fn reach(n)
     if @len + n < @len && @len + n >= 0
       return @chars.get(@len + n)
     end
@@ -353,7 +353,7 @@ class StringIterator
     return ""
   end
 
-  def look_ahead()
+  fn look_ahead()
     return "" when !can_read()
     tmp_chars = []
 
@@ -372,7 +372,7 @@ class StringIterator
     return c
   end
 
-  def count_ahead()
+  fn count_ahead()
     return 0 when !can_read()
     tmp_chars = []
 
@@ -391,7 +391,7 @@ class StringIterator
     return i - 1
   end
 
-  def skip_whitespace()
+  fn skip_whitespace()
     while can_read() && current() == " " do
       consume()
     end

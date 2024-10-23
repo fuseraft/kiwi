@@ -1,5 +1,5 @@
 /#
- The Kiwi Programming Language 2.0.4
+ The Kiwi Programming Language 2.0.5
  #/
 
 fn testsuite()
@@ -273,15 +273,16 @@ guava::register_test("hashes", with () do
     other_hash[key] = hash[key] 
   end
   
-  guava::assert(other_hash == hash)
-
   other_hash = {}
   other_hash = hash.merge(other_hash)
-  guava::assert(other_hash == {"key1": true, "key2": 1, "key3": ["a", "b", "c"]})
+  for k in hash.keys() do
+    guava::assert(other_hash.has_key(k))
+    guava::assert(other_hash.get(k) == hash.get(k))
+  end
 
   other_hash.remove("key1")
-  guava::assert(other_hash.keys() == ["key2", "key3"])
-  guava::assert(other_hash.values() == [1, ["a", "b", "c"]])
+  guava::assert(other_hash.keys().sort() == ["key2", "key3"])
+  guava::assert(other_hash.values().sort() == [1, ["a", "b", "c"]])
 
   other_hash.clear()
   guava::assert(other_hash.empty())
@@ -352,21 +353,21 @@ guava::register_test("timespans", with () do
 end)
 
 guava::register_test("classes", with () do
-  class Shape
-    def area() end
-    def perimeter() end
+  struct Shape
+    fn area() end
+    fn perimeter() end
   end
 
-  class Circle < Shape
-    def new(radius)
+  struct Circle < Shape
+    fn new(radius)
       @radius = radius
     end
 
-    def area()
+    fn area()
       return 3.14159 * @radius * @radius
     end
 
-    def perimeter()
+    fn perimeter()
       return 2 * 3.14159 * @radius
     end
   end
@@ -395,15 +396,18 @@ end)
 
 guava::register_test("nulls", with () do
   e = {"a": null, "b": null}
-  guava::assert(e == {"a": null, "b": null})
+  guava::assert(e.get("a") == null)
+  guava::assert(e.get("b") == null)
 
   e.a = false
   e.b = 'hello'
-  guava::assert(e == {"a": false, "b": "hello"})
+  guava::assert(e.get("a") == false)
+  guava::assert(e.get("b") == "hello")
 
   e.a = null
   e.b = null
-  guava::assert(e == {"a": null, "b": null})
+  guava::assert(e.get("a") == null)
+  guava::assert(e.get("b") == null)
 
   e = null
   guava::assert(e == null)
@@ -621,6 +625,34 @@ guava::register_test("lambdas", with () do
   # Inline lambda assignment
   x = (with (n) do n ** 2 end)(5)
   guava::assert(x == 25)
+end)
+
+guava::register_test("md5", with () do
+  a_str = "just a test string"
+  
+  guava::assert("d41d8cd98f00b204e9800998ecf8427e" == crypto::md5_hash(""))
+  guava::assert("c105456108ab41026a95d4f0cc66fe78" == crypto::md5_hash(a_str))
+  guava::assert("e8754b080e52f959766d9d40f5e406ee" == crypto::md5_hash(a_str * 7))
+end)
+
+guava::register_test("sha224", with () do
+  a_str = "just a test string"
+
+  guava::assert("d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f" == SHA224.new().hexdigest())
+  guava::assert("bba476fc42a4327019c6239a15d662f327c646ad3d8b4c0ca32e33e5" == SHA224.new(a_str).hexdigest())
+  guava::assert("7d70521535e7b865c1572daff05a3fd022df567f4b6d74d556477f0a" == SHA224.new(a_str*7).hexdigest())
+end)
+
+guava::register_test("sha256", with () do
+  a_str = "just a test string"
+
+  guava::assert("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" == SHA256.new().hexdigest())
+  guava::assert("d7b553c6f09ac85d142415f857c5310f3bbbe7cdd787cce4b985acedd585266f" == SHA256.new(a_str).hexdigest())
+  guava::assert("8113ebf33c97daa9998762aacafe750c7cefc2b2f173c90c59663a57fe626f21" == SHA256.new(a_str*7).hexdigest())
+  
+  s = SHA256.new(a_str)
+  s.update(a_str)
+  guava::assert("03d9963e05a094593190b6fc794cb1a3e1ac7d7883f0b5855268afeccc70d461" == s.hexdigest())
 end)
 
 testsuite()

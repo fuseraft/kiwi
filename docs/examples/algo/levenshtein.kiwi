@@ -1,4 +1,4 @@
-def levenshtein_distance(s1, s2)
+fn levenshtein_distance(s1, s2)
   rows = s1.size() + 1
   cols = s2.size() + 1
   dist = [[0] * cols] * rows

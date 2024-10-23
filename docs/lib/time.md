@@ -4,9 +4,9 @@ The `time` package contains functionality for working with time and date informa
 
 ## Table of Contents
 
-- [Package Classes](#package-classes)
-  - [`DateTime` class](datetime.md#datetime)
-  - [`TimeSpan` class](datetime.md#timespan)
+- [Package Structs](#package-structs)
+  - [`DateTime` struct](datetime.md#datetime)
+  - [`TimeSpan` struct](datetime.md#timespan)
 - [Package Functions](#package-functions)
   - [`ampm()`](#ampm)
   - [`day()`](#day)
@@ -28,11 +28,11 @@ The `time` package contains functionality for working with time and date informa
   - [`year()`](#year)
   - [`yearday()`](#yearday)
 
-## Package Classes
+## Package Structs
 
 ### `DateTime`
 
-The `DateTime` class is used to represent date and time data. See [`DateTime`](datetime.md).
+The `DateTime` struct is used to represent date and time data. See [`DateTime`](datetime.md).
 
 ## Package Functions
 

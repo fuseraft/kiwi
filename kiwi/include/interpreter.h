@@ -126,14 +126,21 @@ class KInterpreter {
                                const KName& op, std::vector<k_value> arguments);
 
   k_value interpolateString(const Token& token, const k_string& input);
+
   k_value interpretSerializerDeserialize(const Token& token,
                                          std::vector<k_value>& args);
   k_value interpretSerializerSerialize(const Token& token,
                                        std::vector<k_value>& args);
   k_value interpretSerializerBuiltin(const Token& token, const KName& builtin,
                                      std::vector<k_value>& args);
+
   k_value interpretReflectorBuiltin(const Token& token, const KName& builtin,
                                     std::vector<k_value>& args);
+  k_value interpretReflectorRList(const Token& token,
+                                  std::vector<k_value>& args);
+  k_value interpretReflectorRObject(const Token& token,
+                                    std::vector<k_value>& args);
+
   k_value interpretWebServerBuiltin(const Token& token, const KName& builtin,
                                     std::vector<k_value>& args);
   k_value interpretWebServerGet(const Token& token, std::vector<k_value>& args);
@@ -620,7 +627,7 @@ k_value KInterpreter::handleNestedIndexing(const IndexingNode* indexExpr,
       } else {
         auto oldValue = hash->get(literal);
         hash->add(literal, MathImpl.do_binary_op(indexExpr->token, op, oldValue,
-                                             newValue));
+                                                 newValue));
       }
       return hash;
     }
@@ -735,8 +742,8 @@ k_value KInterpreter::visit(const IndexAssignmentNode* node) {
             throw HashKeyError(node->token, Serializer::serialize(index));
           }
           auto oldValue = hashObj->get(index);
-          hashObj->add(
-              index, MathImpl.do_binary_op(node->token, op, oldValue, newValue));
+          hashObj->add(index, MathImpl.do_binary_op(node->token, op, oldValue,
+                                                    newValue));
         }
       }
     } else if (indexExpr->indexedObject->type ==
@@ -1982,11 +1989,11 @@ k_value KInterpreter::callObjectMethod(const MethodCallNode* node,
   bool isCtor = methodName == Keywords.New;
 
   auto& frame = callStack.top();
+  auto oldObjContext = frame->getObjectContext();
   auto objContext = obj;
   bool contextSwitch = false;
 
   if (frame->inObjectContext()) {
-    objContext = frame->getObjectContext();
     contextSwitch = true;
   }
 
@@ -2005,7 +2012,7 @@ k_value KInterpreter::callObjectMethod(const MethodCallNode* node,
       callFunction(function, node->arguments, node->token, methodName);
 
   if (contextSwitch) {
-    frame->setObjectContext(objContext);
+    frame->setObjectContext(oldObjContext);
   }
 
   if (isCtor) {
@@ -2024,6 +2031,9 @@ k_value KInterpreter::callClassMethod(const MethodCallNode* node,
   k_object obj = std::make_shared<Object>();
   bool isCtor = methodName == Keywords.New;
 
+  auto oldObjectContext = frame->getObjectContext();
+  bool contextSwitch = false;
+
   if (!function && isCtor) {
     return obj;  // default constructor
   }
@@ -2034,6 +2044,10 @@ k_value KInterpreter::callClassMethod(const MethodCallNode* node,
   }
 
   if (isCtor) {
+    if (frame->inObjectContext()) {
+      contextSwitch = true;
+    }
+
     obj->className = clazz->identifier;
     frame->setObjectContext(obj);
   }
@@ -2042,7 +2056,11 @@ k_value KInterpreter::callClassMethod(const MethodCallNode* node,
       callFunction(function, node->arguments, node->token, methodName);
 
   if (isCtor) {
-    frame->clearFlag(FrameFlags::InObject);
+    if (contextSwitch) {
+      frame->setObjectContext(oldObjectContext);
+    } else {
+      frame->clearFlag(FrameFlags::InObject);
+    }
     return obj;
   }
 
@@ -2266,13 +2284,30 @@ k_value KInterpreter::interpretWebServerPublic(const Token& token,
   return true;
 }
 
+k_value KInterpreter::interpolateString(const Token& token,
+                                        const k_string& input) {
+  Parser parser;
+  Lexer lexer(token.getFile(), input);
+  auto tempStream = lexer.getTokenStream();
+  auto ast = parser.parseTokenStream(tempStream, true);
+
+  return interpret(ast.get());
+}
+
 k_value KInterpreter::interpretReflectorBuiltin(const Token& token,
                                                 const KName& builtin,
                                                 std::vector<k_value>& args) {
-  if (builtin != KName::Builtin_Reflector_RList) {
-    throw InvalidOperationError(token, "Come back later.");
+  if (builtin == KName::Builtin_Reflector_RList) {
+    return interpretReflectorRList(token, args);
+  } else if (builtin == KName::Builtin_Reflector_RObject) {
+    return interpretReflectorRObject(token, args);
   }
 
+  throw InvalidOperationError(token, "Come back later.");
+}
+
+k_value KInterpreter::interpretReflectorRList(const Token& token,
+                                              std::vector<k_value>& args) {
   if (args.size() != 0) {
     throw BuiltinUnexpectedArgumentError(token, ReflectorBuiltins.RList);
   }
@@ -2339,14 +2374,18 @@ k_value KInterpreter::interpretReflectorBuiltin(const Token& token,
   return rlist;
 }
 
-k_value KInterpreter::interpolateString(const Token& token,
-                                        const k_string& input) {
-  Parser parser;
-  Lexer lexer(token.getFile(), input);
-  auto tempStream = lexer.getTokenStream();
-  auto ast = parser.parseTokenStream(tempStream, true);
+k_value KInterpreter::interpretReflectorRObject(const Token& token,
+                                                std::vector<k_value>& args) {
+  if (args.size() != 0) {
+    throw BuiltinUnexpectedArgumentError(token, ReflectorBuiltins.RObject);
+  }
 
-  return interpret(ast.get());
+  auto frame = callStack.top();
+  if (frame->inObjectContext()) {
+    return Serializer::serialize(frame->getObjectContext());
+  }
+
+  return {};
 }
 
 k_value KInterpreter::interpretSerializerDeserialize(

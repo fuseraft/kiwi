@@ -1,19 +1,19 @@
 # https://projecteuler.net/problem=6
 
-def sum_of_squares(n)
+fn sum_of_squares(n)
   return [1 .. n].reduce(0, with (sum, i) do 
     sum += i**2
   end)
 end
 
-def square_of_sum(n)
+fn square_of_sum(n)
   sum = [1 .. n].reduce(0, with (sum, i) do 
     sum += i
   end)
   return sum ** 2
 end
 
-def difference(n)
+fn difference(n)
   return square_of_sum(n) - sum_of_squares(n)
 end
 

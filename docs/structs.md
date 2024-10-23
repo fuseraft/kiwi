@@ -1,21 +1,21 @@
-# Classes
+# Structs
 
-Classes in Kiwi provide a way to bundle data and functionality together.
+Structs in Kiwi provide a way to bundle data and functionality together.
 
-### Defining Classes
+### Defining Structs
 
-To define a class in Kiwi, use the `class` keyword followed by the class name and a block of code defining its properties and methods.
+To define a struct in Kiwi, use the `struct` keyword followed by the struct name and a block of code defining its properties and methods.
 
-Each concrete class should define a constructor method, called `new`.
+Each concrete struct should define a constructor method, called `new`.
 
 ```kiwi
-class MyClass
-  def new(name)
+struct MyClass
+  fn new(name)
     # Use the `@` symbol to declare an instance variable.
     @name = name 
   end
 
-  def say_hello()
+  fn say_hello()
     println("Hello, ${name}!")
   end
 end
@@ -23,7 +23,7 @@ end
 
 ### Creating Instances
 
-To create an instance of a class, use the `.new()` method followed by any arguments the constructor accepts.
+To create an instance of a struct, use the `.new()` method followed by any arguments the constructor accepts.
 
 ```kiwi
 my_object = MyClass.new("Kiwi")
@@ -32,13 +32,13 @@ my_object.say_hello()  # prints: Hello, Kiwi!
 
 ### Inheritance
 
-Kiwi supports single inheritance. Use the `<` symbol to specify the parent class.
+Kiwi supports single inheritance. Use the `<` symbol to specify the parent struct.
 
 ```kiwi
-class MySubclass < MyClass
-  def new() end
+struct MySubclass < MyClass
+  fn new() end
 
-  def say_goodbye()
+  fn say_goodbye()
     println("Goodbye, ${name}!")
   end
 end
@@ -49,10 +49,10 @@ end
 Methods are defined using the `def` keyword, followed by the method name and any parameters. Use `this` to access the current instance.
 
 ```kiwi
-class MyClass
-  def new() end
+struct MyClass
+  fn new() end
 
-  def my_method(param)
+  fn my_method(param)
     # Method code here
   end
 end
@@ -63,28 +63,28 @@ end
 The `override` keyword is not required to override `to_string()`.
 
 ```kiwi
-class KiwiClass
-  def new() end
+struct KiwiClass
+  fn new() end
 
-  def to_string()
-    return "I am a Kiwi class"
+  fn to_string()
+    return "I am a Kiwi struct"
   end
 end
 
 instance = KiwiClass.new()
 string_repr = instance.to_string()
-println(instance)    # prints: I am a Kiwi class
-println(string_repr) # prints: I am a Kiwi class
+println(instance)    # prints: I am a Kiwi struct
+println(string_repr) # prints: I am a Kiwi struct
 ```
 
 ### Static Method Definition
 
-Methods declared as static can be invoked directly through the class and cannot be invoked through an instance.
+Methods declared as static can be invoked directly through the struct and cannot be invoked through an instance.
 
 ```kiwi
-class MyClass
-  def new() end
-  static def static_method()
+struct MyClass
+  fn new() end
+  static fn static_method()
     println("I can be invoked without an instance!")
   end
 end
@@ -94,13 +94,13 @@ MyClass.static_method() # prints: I can be invoked without an instance!
 
 ### Access Control
 
-Kiwi supports `private` methods that cannot be called outside the class definition.
+Kiwi supports `private` methods that cannot be called outside the struct definition.
 
 ```kiwi
-class MyClass
-  def new() end
+struct MyClass
+  fn new() end
 
-  private def my_private_method()
+  private fn my_private_method()
     # Private method code here
   end
 end
@@ -109,10 +109,10 @@ end
 You can also use `private` to declare a list of instance variable names that are to be treated as private.
 
 ```kiwi
-class MyClass
+struct MyClass
   private(name) # declare instance variables as private
 
-  def new(name)
+  fn new(name)
     @name = name
   end
 end
