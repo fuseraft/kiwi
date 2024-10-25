@@ -1,1 +1,74 @@
 # A script for debugging and experimentation (and fun).
+
+struct _
+  static fn get_hash()
+    return {
+      "name": "",
+      "count": 0
+    }
+  end
+
+  static fn update_count(hash)
+    hash.count = hash.count + 1
+    return hash
+  end
+end
+
+struct A
+  fn new(n = null)
+    @hash = _.get_hash()
+    if n
+      @hash.name = n
+    end
+  end
+
+  fn access()
+    # auto trigger update
+    try
+      update()
+    catch (err)
+      println __robject__()
+      println "error caught: ${err}"
+    end
+  end
+
+  fn update()
+    @hash = _.update_count(@hash)
+  end
+  
+  fn hello()
+    println "hello from ${@hash.name}, counts: ${@hash.count}"
+    try
+      hello2()
+    catch (err)
+      println __robject__()
+      println "error caught: ${err}"
+    end
+  end
+end
+
+struct B < A
+  /#fn new(n = null)
+    @hash = _.get_hash()
+    if n
+      @hash.name = n
+    end
+  end#/
+
+  private fn hello2()
+    println "foobar"
+  end
+end
+
+struct C < A
+end
+
+b = B.new("b")
+b.access()
+b.access()
+b.hello()
+
+c = C.new("c")
+c.access()
+c.access()
+c.hello()
