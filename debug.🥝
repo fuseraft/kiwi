@@ -1,6 +1,8 @@
 # A script for debugging and experimentation (and fun).
 
+# a utility struct with static methods.
 struct _
+  # creates a hash
   static fn get_hash()
     return {
       "name": "",
@@ -8,67 +10,106 @@ struct _
     }
   end
 
-  static fn update_count(hash)
-    hash.count = hash.count + 1
+  # prints an error
+  static fn log_error(err)
+    println "error caught: ${err}, object context: ${__robject__()}"
+  end
+
+  # updates the `count` property in a hash by a specified amount (default is 1).
+  static fn update_count(hash, amount = 1)
+    return hash when !hash.has_key("count")
+    hash.count += amount
     return hash
   end
 end
 
-struct A
-  fn new(n = null)
-    @hash = _.get_hash()
-    if n
-      @hash.name = n
-    end
+/#
+A base struct for Item. 
+
+It stores a hash called @hash.
+#/
+struct Base
+  fn new(name = null, count = 0)
+    @data = _.get_hash()
+    @data.name = name
+    @data.count = count
   end
 
-  fn access()
-    # auto trigger update
-    try
-      update()
-    catch (err)
-      println __robject__()
-      println "error caught: ${err}"
-    end
+  fn get_data()
+    return @data
   end
 
-  fn update()
-    @hash = _.update_count(@hash)
+  fn update(amount = 1)
+    @data = _.update_count(@data, amount)
   end
   
-  fn hello()
-    println "hello from ${@hash.name}, counts: ${@hash.count}"
-    try
-      hello2()
-    catch (err)
-      println __robject__()
-      println "error caught: ${err}"
+  fn print_details()
+    println "item: ${@data.name}, counts: ${@data.count}"
+  end
+end
+
+# An item with a default constructor. Inherits `Base` methods.
+struct Item < Base
+end
+
+# A basket of items.
+struct Basket
+  fn new(items = [])
+    @map = {}
+
+    for item in items do
+      item_data = item.get_data()
+      @map.set(item_data.name, item)
+    end
+  end
+
+  fn add_item(item)
+    item_data = item.get_data()
+    if @map.has_key(item_data.name)
+      @map.get(item_data.name).update([item_data.count, 1].max())
+    else
+      @map.set(item_data.name, item)
+    end
+  end
+
+  fn update(name = null, amount = 1)
+    return when name != null && !@map.has_key(name)
+    
+    if name != null
+      mapped_obj = @map.get(name)
+      mapped_obj.update(amount)
+    else
+      for k, v in @map do
+        v.update(amount)
+      end
+    end
+  end
+
+  fn print_details(name = null)
+    return when name != null && !@map.has_key(name)
+    if name != null
+      mapped_obj = @map.get(name)
+      mapped_obj.print_details()
+    else
+      for k, v in @map do
+        v.print_details()
+      end
     end
   end
 end
 
-struct B < A
-  /#fn new(n = null)
-    @hash = _.get_hash()
-    if n
-      @hash.name = n
-    end
-  end#/
+b = Basket.new([
+  Item.new("kiwi", 6),   # Start with 6 kiwis, 1 mango, and 1 guava.
+  Item.new("mango", 1),
+  Item.new("guava", 1)
+])
 
-  private fn hello2()
-    println "foobar"
-  end
-end
+b.update(null, 5)        # Add 5 of everything.
+b.update("mango", -2)    # Remove 2 mangos.
+b.add_item(              # Add 4 strawberries.
+  Item.new(
+    "strawberry", 4
+  )
+)
 
-struct C < A
-end
-
-b = B.new("b")
-b.access()
-b.access()
-b.hello()
-
-c = C.new("c")
-c.access()
-c.access()
-c.hello()
+b.print_details()        # Print the basket details.
