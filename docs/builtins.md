@@ -886,13 +886,13 @@ Valid types are: `Integer`, `Float`, `Boolean`, `String`, `List`, `Hash`, `Objec
 If the type is an object, `type()` will return the struct name of the instance.
 
 ```kiwi
-struct MyClass
+struct MyStruct
   fn new()
   end
 end
 
-instance = MyClass.new()
-println(instance.type()) # prints: MyClass
+instance = MyStruct.new()
+println(instance.type()) # prints: MyStruct
 println("Kiwis are delicious!".type()) # prints: String
 ```
 

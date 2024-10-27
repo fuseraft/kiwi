@@ -699,10 +699,13 @@ k_value KInterpreter::visit(const IndexAssignmentNode* node) {
     if (sliceExpr->slicedObject->type == ASTNodeType::IDENTIFIER) {
       identifierName = id(sliceExpr->slicedObject.get());
       k_value slicedObj = {};
-      
+
       // This is an instance variable.
-      if (frame->inObjectContext() && identifierName.size() > 0 && identifierName.at(0) == '@' && frame->getObjectContext()->hasVariable(identifierName)) {
-        slicedObj = frame->getObjectContext()->instanceVariables[identifierName];
+      if (frame->inObjectContext() && identifierName.size() > 0 &&
+          identifierName.at(0) == '@' &&
+          frame->getObjectContext()->hasVariable(identifierName)) {
+        slicedObj =
+            frame->getObjectContext()->instanceVariables[identifierName];
       } else if (frame->hasVariable(identifierName)) {
         slicedObj = frame->variables[identifierName];
       } else {
@@ -721,8 +724,11 @@ k_value KInterpreter::visit(const IndexAssignmentNode* node) {
       identifierName = id(indexExpr->indexedObject.get());
       k_value indexedObj = {};
       // This is an instance variable.
-      if (frame->inObjectContext() && identifierName.size() > 0 && identifierName.at(0) == '@' && frame->getObjectContext()->hasVariable(identifierName)) {
-        indexedObj = frame->getObjectContext()->instanceVariables[identifierName];
+      if (frame->inObjectContext() && identifierName.size() > 0 &&
+          identifierName.at(0) == '@' &&
+          frame->getObjectContext()->hasVariable(identifierName)) {
+        indexedObj =
+            frame->getObjectContext()->instanceVariables[identifierName];
       } else if (frame->hasVariable(identifierName)) {
         indexedObj = frame->variables[identifierName];
       } else {
