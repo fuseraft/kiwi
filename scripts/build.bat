@@ -2,6 +2,8 @@
 
 echo Building Kiwi with MSVC
 
+cd ..
+
 if not exist build\NUL mkdir build
 if not exist bin\NUL mkdir bin
 
