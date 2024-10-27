@@ -37,7 +37,7 @@ end
 
 ## Instantiation
 
-Abstract structs cannot be instantiated directly. An attempt to create an instance of an abstract struct will result in an error. Instead, you must instantiate a subclass that implements all abstract methods of the base struct.
+Abstract structs cannot be instantiated directly. An attempt to create an instance of an abstract struct will result in an error. Instead, you must instantiate a child struct that implements all abstract methods of the base struct.
 
 ```kiwi
 # This will result in an error:
@@ -51,5 +51,5 @@ println(circle.perimeter())  # Output: Perimeter of the circle.
 
 ## Notes
 
-- Abstract structs are a foundational concept for enforcing a contract for subclasses, ensuring that they implement specific methods.
+- Abstract structs are a foundational concept for enforcing a contract for child structs, ensuring that they implement specific methods.
 - While you cannot create instances of abstract structs, they are crucial for designing a clear and consistent struct hierarchy in object-oriented programming in Kiwi.

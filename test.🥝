@@ -352,7 +352,7 @@ guava::register_test("timespans", with () do
   guava::assert(res.to_string() == "TimeSpan: 0 years, 0 months, 0 days, 1 hours, 45 minutes, 15 seconds")
 end)
 
-guava::register_test("classes", with () do
+guava::register_test("structs", with () do
   struct Shape
     fn area() end
     fn perimeter() end
