@@ -181,7 +181,7 @@ See [Lambdas](lambdas.md).
 ### `abstract`
 The `abstract` keyword is used to declare a [struct](#struct) as being abstract, meaning it cannot be instantiated directly, but is intended to be used as a base struct.
 
-See [Abstract Structs](abstract_classes.md).
+See [Abstract Structs](abstract_structs.md).
 
 ### `struct`
 The `struct` keyword is used to define a struct.
@@ -196,7 +196,7 @@ See [Structs](structs.md).
 ### `override`
 The `override` keyword is used to provide an implementation to an abstract method.
 
-See [Abstract Structs](abstract_classes.md).
+See [Abstract Structs](abstract_structs.md).
 
 ### `this`
 The `this` keyword is used for struct member-access.

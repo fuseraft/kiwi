@@ -129,7 +129,7 @@ class ClassNode : public ASTNode {
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "Class: " << name << std::endl;
+    std::cout << "Struct: " << name << std::endl;
     if (!baseClass.empty()) {
       print_depth(1 + depth);
       std::cout << "Base: " << baseClass << std::endl;

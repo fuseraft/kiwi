@@ -32,18 +32,22 @@
 
 4. **Standard Library**
    - [`argv`](lib/argv.md)
+   - [`collections`](lib/collections.md)
    - [`conf`](lib/conf.md)
+   - [`console`](lib/console.md)
+   - [`crypto`](lib/crypto.md)
    - [`env`](lib/env.md)
    - [`fs`](lib/fs.md)
+   - [`guava`](lib/guava.md)
+   - [`http`](lib/http.md)
    - [`log`](lib/log.md)
    - [`math`](lib/math.md)
    - [`string`](lib/string.md)
    - [`sys`](lib/sys.md)
    - [`time`](lib/time.md)
-     - [`DateTime`](lib/datetime.md)
-   - [`http`](lib/http.md)
+     - [`DateTime`](lib/datetime.md#datetime)
+     - [`TimeSpan`](lib/datetime.md#timespan)
+  - [`web`](lib/web.md)
 
 5. **Experimental Features**
    - [Concurrency](concurrency.md)
-   **Standard Library**
-      - [`web`](lib/web.md)
