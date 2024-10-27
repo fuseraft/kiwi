@@ -1,5 +1,19 @@
 package crypto
-  fn md5_hash(input)
+  fn md5_hash(input = "")
+    return MD5.hexdigest(input)
+  end
+
+  fn sha224_hash(input = "")
+    return SHA224.new(input).hexdigest()
+  end
+
+  fn sha256_hash(input = "")
+    return SHA256.new(input).hexdigest()
+  end
+end
+
+struct MD5
+  static fn hexdigest(input)
     # All variables wrap modulo 2^32 when calculating:
     s = [0] * 64
     K = [0] * 64
@@ -99,7 +113,7 @@ package crypto
         temp = D
         D = C
         C = B
-        B = B + crypto::left_rotate(A + F + K[i] + M[g], s[i])
+        B = B + MD5.left_rotate(A + F + K[i] + M[g], s[i])
         A = temp
       end
   
@@ -111,20 +125,20 @@ package crypto
     end
   
     digest        = [0] * 16
-    digest[ 0: 3] = crypto::int_to_bytes(a0)
-    digest[ 4: 7] = crypto::int_to_bytes(b0)
-    digest[ 8:11] = crypto::int_to_bytes(c0)
-    digest[12:15] = crypto::int_to_bytes(d0)
+    digest[ 0: 3] = MD5.int_to_bytes(a0)
+    digest[ 4: 7] = MD5.int_to_bytes(b0)
+    digest[ 8:11] = MD5.int_to_bytes(c0)
+    digest[12:15] = MD5.int_to_bytes(d0)
   
     return digest.to_hex()
   end
   
-  fn left_rotate(value, count)
+  static fn left_rotate(value, count)
     adjusted_value = value & 0xFFFFFFFF
     return (adjusted_value << count | adjusted_value >> (32 - count)) & 0xFFFFFFFF
   end
   
-  fn int_to_bytes(num)
+  static fn int_to_bytes(num)
     num &= 0xFFFFFFFF
     return [num & 0xFF, (num >> 8) & 0xFF, (num >> 16) & 0xFF, (num >> 24) & 0xFF]
   end
