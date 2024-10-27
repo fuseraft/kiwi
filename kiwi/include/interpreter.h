@@ -85,15 +85,22 @@ class KInterpreter {
 
   k_value callBuiltinMethod(const FunctionCallNode* node);
   k_value callClassMethod(const MethodCallNode* node, const k_class& clazz);
+  k_value executeClassMethod(
+      std::unordered_map<k_string, std::unique_ptr<KFunction>>& methods,
+      k_string& methodName, std::shared_ptr<CallStackFrame>& frame,
+      const MethodCallNode* node, const k_class& clazz);
   k_value callObjectBaseMethod(const MethodCallNode* node,
                                const std::shared_ptr<Object>& obj,
                                const k_string& baseClass,
                                const k_string& methodName);
   k_value callObjectMethod(const MethodCallNode* node,
                            const std::shared_ptr<Object>& obj);
+  k_value executeInstanceMethod(const FunctionCallNode* node);
+  k_value executeInstanceMethodFunction(
+      std::unordered_map<k_string, std::unique_ptr<KFunction>>& clazzMethods,
+      const FunctionCallNode* node);
   k_value executeFunctionBody(const std::unique_ptr<KFunction>& function);
-  k_value callLambda(std::shared_ptr<CallStackFrame>& lambdaFrame,
-                     const Token& token, const k_string& lambdaName,
+  k_value callLambda(const Token& token, const k_string& lambdaName,
                      const std::vector<std::unique_ptr<ASTNode>>& arguments);
   k_value callFunction(const std::unique_ptr<KFunction>& function,
                        const std::vector<std::unique_ptr<ASTNode>>& arguments,
@@ -1538,11 +1545,10 @@ k_value KInterpreter::visit(const TryNode* node) {
 k_value KInterpreter::visit(const LambdaCallNode* node) {
   auto lambdaName =
       std::get<k_lambda>(interpret(node->lambdaNode.get()))->identifier;
-  auto lambdaFrame = createFrame();
   k_value result;
 
   try {
-    result = callLambda(lambdaFrame, node->token, lambdaName, node->arguments);
+    result = callLambda(node->token, lambdaName, node->arguments);
     dropFrame();
   } catch (const KiwiError& e) {
     dropFrame();
@@ -1583,6 +1589,10 @@ k_value KInterpreter::visit(const ClassNode* node) {
   auto className = node->name;
   auto clazz = std::make_unique<KClass>();
   clazz->name = className;
+
+  if (className == "B") {
+    std::cout << "";
+  }
 
   if (!node->baseClass.empty()) {
     clazz->baseClass = node->baseClass;
@@ -1655,6 +1665,77 @@ std::unique_ptr<KFunction> KInterpreter::createFunction(
   return function;
 }
 
+k_value KInterpreter::executeInstanceMethod(const FunctionCallNode* node) {
+  auto frame = callStack.top();
+  if (!frame->inObjectContext()) {
+    throw InvalidContextError(node->token);
+  }
+
+  auto& obj = frame->getObjectContext();
+  auto& clazz = classes[obj->className];
+  auto& clazzMethods = clazz->methods;
+  const auto functionName = node->functionName;
+
+  if (clazzMethods.find(functionName) == clazzMethods.end()) {
+    // check the base
+    if (clazz->baseClass.empty()) {
+      throw UnimplementedMethodError(node->token, clazz->name, functionName);
+    }
+
+    auto& baseClass = classes[clazz->baseClass];
+    auto& baseClassMethods = baseClass->methods;
+
+    if (baseClassMethods.find(functionName) == baseClassMethods.end()) {
+      throw UnimplementedMethodError(node->token, clazz->name, functionName);
+    }
+
+    return executeInstanceMethodFunction(baseClassMethods, node);
+  }
+
+  return executeInstanceMethodFunction(clazzMethods, node);
+}
+
+k_value KInterpreter::executeInstanceMethodFunction(
+    std::unordered_map<k_string, std::unique_ptr<KFunction>>& clazzMethods,
+    const FunctionCallNode* node) {
+  const auto& func = clazzMethods[node->functionName];
+  auto defaultParameters = func->defaultParameters;
+  auto functionFrame = createFrame();
+  k_value result = {};
+
+  for (size_t i = 0; i < func->parameters.size(); ++i) {
+    const auto& param = func->parameters[i];
+    k_value argValue = {};
+    if (i < node->arguments.size()) {
+      const auto& arg = node->arguments[i];
+      argValue = interpret(arg.get());
+    } else if (defaultParameters.find(param.first) != defaultParameters.end()) {
+      argValue = param.second;
+    } else {
+      throw ParameterCountMismatchError(node->token, node->functionName);
+    }
+
+    if (std::holds_alternative<k_lambda>(argValue)) {
+      auto lambdaId = std::get<k_lambda>(argValue)->identifier;
+      lambdaTable[param.first] = lambdaId;
+    } else {
+      functionFrame->variables[param.first] = argValue;
+    }
+  }
+
+  callStack.push(functionFrame);
+
+  const auto& decl = func->getBody();
+  for (const auto& stmt : decl) {
+    result = interpret(stmt.get());
+    if (functionFrame->isFlagSet(FrameFlags::Return)) {
+      return functionFrame->returnValue;
+    }
+  }
+
+  return result;
+}
+
 k_value KInterpreter::visit(const FunctionCallNode* node) {
   auto callableType = getCallable(node->token, node->functionName);
   k_value result;
@@ -1663,56 +1744,13 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
     return callBuiltinMethod(node);
   }
 
-  auto functionFrame = createFrame();
-
   try {
     if (callableType == KCallableType::Method) {
-      auto frame = callStack.top();
-      if (!frame->inObjectContext()) {
-        throw InvalidContextError(node->token);
-      }
-
-      auto& obj = frame->getObjectContext();
-      auto& clazz = classes[obj->className];
-      auto& clazzMethods = clazz->methods;
-
-      const auto& func = clazzMethods[node->functionName];
-      auto defaultParameters = func->defaultParameters;
-
-      for (size_t i = 0; i < func->parameters.size(); ++i) {
-        const auto& param = func->parameters[i];
-        k_value argValue = {};
-        if (i < node->arguments.size()) {
-          const auto& arg = node->arguments[i];
-          argValue = interpret(arg.get());
-        } else if (defaultParameters.find(param.first) !=
-                   defaultParameters.end()) {
-          argValue = param.second;
-        } else {
-          throw ParameterCountMismatchError(node->token, node->functionName);
-        }
-
-        if (std::holds_alternative<k_lambda>(argValue)) {
-          auto lambdaId = std::get<k_lambda>(argValue)->identifier;
-          lambdaTable[param.first] = lambdaId;
-        } else {
-          functionFrame->variables[param.first] = argValue;
-        }
-      }
-
-      callStack.push(functionFrame);
-
-      const auto& decl = func->getBody();
-      for (const auto& stmt : decl) {
-        result = interpret(stmt.get());
-        if (functionFrame->isFlagSet(FrameFlags::Return)) {
-          result = functionFrame->returnValue;
-          break;
-        }
-      }
+      result = executeInstanceMethod(node);
     } else if (callableType == KCallableType::Function) {
       const auto& func = functions[node->functionName];
       auto defaultParameters = func->defaultParameters;
+      auto functionFrame = createFrame();
 
       for (size_t i = 0; i < func->parameters.size(); ++i) {
         const auto& param = func->parameters[i];
@@ -1746,8 +1784,7 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
         }
       }
     } else if (callableType == KCallableType::Lambda) {
-      result = callLambda(functionFrame, node->token, node->functionName,
-                          node->arguments);
+      result = callLambda(node->token, node->functionName, node->arguments);
     }
 
     dropFrame();
@@ -1760,9 +1797,9 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
 }
 
 k_value KInterpreter::callLambda(
-    std::shared_ptr<CallStackFrame>& lambdaFrame, const Token& token,
-    const k_string& lambdaName,
+    const Token& token, const k_string& lambdaName,
     const std::vector<std::unique_ptr<ASTNode>>& arguments) {
+  auto lambdaFrame = createFrame();
   k_string targetLambda = lambdaName;
   k_value result;
 
@@ -1830,9 +1867,22 @@ KCallableType KInterpreter::getCallable(const Token& token,
     auto& obj = frame->getObjectContext();
     auto& clazz = classes[obj->className];
     auto& clazzMethods = clazz->methods;
+
     if (clazzMethods.find(name) != clazzMethods.end()) {
       return KCallableType::Method;
     }
+
+    // check the base
+    if (!clazz->baseClass.empty()) {
+      auto& baseClass = classes[clazz->baseClass];
+      auto& baseClassMethods = baseClass->methods;
+
+      if (baseClassMethods.find(name) != baseClassMethods.end()) {
+        return KCallableType::Method;
+      }
+    }
+
+    throw UnimplementedMethodError(token, clazz->name, name);
   }
 
   throw FunctionUndefinedError(token, name);
@@ -2008,6 +2058,10 @@ k_value KInterpreter::callObjectMethod(const MethodCallNode* node,
                               "Cannot invoke private method outside of class.");
   }
 
+  if (isCtor) {
+    std::cout << "";
+  }
+
   auto result =
       callFunction(function, node->arguments, node->token, methodName);
 
@@ -2027,7 +2081,34 @@ k_value KInterpreter::callClassMethod(const MethodCallNode* node,
   auto methodName = node->methodName;
   auto& frame = callStack.top();
   const auto& kclass = classes[clazz->identifier];
-  auto& function = kclass->methods[methodName];
+  auto& methods = kclass->methods;
+
+  // check base
+  if (methods.find(methodName) == methods.end()) {
+    if (kclass->baseClass.empty()) {
+      throw UnimplementedMethodError(node->token, clazz->identifier,
+                                     methodName);
+    }
+
+    const auto& baseClass = classes[kclass->baseClass];
+    auto& baseClassMethods = baseClass->methods;
+
+    if (baseClassMethods.find(methodName) == baseClassMethods.end()) {
+      throw UnimplementedMethodError(node->token, clazz->identifier,
+                                     methodName);
+    }
+
+    return executeClassMethod(baseClassMethods, methodName, frame, node, clazz);
+  }
+
+  return executeClassMethod(methods, methodName, frame, node, clazz);
+}
+
+k_value KInterpreter::executeClassMethod(
+    std::unordered_map<k_string, std::unique_ptr<KFunction>>& methods,
+    k_string& methodName, std::shared_ptr<CallStackFrame>& frame,
+    const MethodCallNode* node, const k_class& clazz) {
+  auto& function = methods[methodName];
   k_object obj = std::make_shared<Object>();
   bool isCtor = methodName == Keywords.New;
 

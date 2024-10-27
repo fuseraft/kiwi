@@ -1,1 +1,174 @@
-# A script for debugging and experimentation (and fun).
+# A simple library system using Kiwi.
+
+# Define a Book struct with properties like title and author, and availability status.
+struct Book
+  fn new(title, author)
+    @title = title            # Set the book title.
+    @author = author          # Set the book author.
+    @available = true         # All books start as available by default.
+  end
+
+  fn get_title()
+    return @title
+  end
+
+  fn get_author()
+    return @author
+  end
+
+  # Method to check if the book is available.
+  fn is_available()
+    return @available
+  end
+
+  # Method to borrow the book. It marks the book as unavailable if it's available.
+  fn borrow()
+    if @available
+      println "Borrowing '${@title}' by ${@author}."
+      @available = false
+    else
+      println "Sorry, '${@title}' is currently unavailable."
+    end
+  end
+
+  # Method to return the book. It marks the book as available.
+  fn return_book()
+    if !@available
+      println "Returning '${@title}'."
+      @available = true
+    else
+      println "'${@title}' is already in the library."
+    end
+  end
+
+  # Method to print the book details.
+  fn print_details()
+    availability = @available ? "Available" : "Unavailable"
+    println "Title: '${@title}', Author: ${@author}, Status: ${availability}"
+  end
+end
+
+# Define a Library struct that holds a collection of books.
+struct Library
+  fn new()
+    @book_collection = {}   # Initialize an empty collection (map) to store books by title.
+  end
+
+  # Method to add a book to the library.
+  fn add_book(book)
+    title = book.get_title()
+    if !@book_collection.has_key(title)
+      @book_collection.set(title, book)
+      println "Added '${title}' to the library."
+    else
+      println "'${title}' is already in the library."
+    end
+  end
+
+  # Method to borrow a book by title.
+  fn borrow_book(title)
+    if @book_collection.has_key(title)
+      book = @book_collection.get(title)
+      book.borrow()
+    else
+      println "The book '${title}' does not exist in the library."
+    end
+  end
+
+  # Method to return a book by title.
+  fn return_book(title)
+    if @book_collection.has_key(title)
+      book = @book_collection.get(title)
+      book.return_book()
+    else
+      println "The book '${title}' does not exist in the library."
+    end
+  end
+
+  # Method to print details of all the books in the library.
+  fn print_all_books()
+    if @book_collection.size() == 0
+      println "The library is currently empty."
+    else
+      for _, book in @book_collection do
+        book.print_details()
+      end
+    end
+  end
+end
+
+fn main()
+  # Example usage:
+  # Create a library instance.
+  lib = Library.new()
+  
+  # Create some books.
+  books = [
+    Book.new("The Ruby Programming Language", "Yukihiro Matsumoto"),
+    Book.new("The Pragmatic Programmer", "Andrew Hunt, David Thomas"),
+    Book.new("The Art of Computer Programming", "Donald Knuth")
+  ]
+  
+  # Add books to the library.
+  for book in books do
+    lib.add_book(book)
+  end
+  
+  println ""  # Empty line for clarity in output.
+  
+  # Print all the books in the library.
+  lib.print_all_books()
+  
+  println ""  # Empty line for clarity in output.
+  
+  # Borrow some books.
+  lib.borrow_book("The Ruby Programming Language")
+  lib.borrow_book("The Pragmatic Programmer")
+  
+  println ""  # Empty line for clarity in output.
+  
+  # Try borrowing a book that doesn't exist.
+  lib.borrow_book("Imminent: Inside the Pentagon's Hunt for UFOs")
+  
+  println ""  # Empty line for clarity in output.
+  
+  # Return a book.
+  lib.return_book("The Ruby Programming Language")
+  
+  println ""  # Empty line for clarity in output.
+  
+  # Print all books again to see updated status.
+  lib.print_all_books()
+  
+  println ""  # Empty line for clarity in output.
+  
+  # Try returning a book that's already returned.
+  lib.return_book("The Ruby Programming Language")
+end
+
+main()
+
+/# Expected output:
+
+Added 'The Ruby Programming Language' to the library.
+Added 'The Pragmatic Programmer' to the library.
+Added 'The Art of Computer Programming' to the library.
+
+Title: 'The Ruby Programming Language', Author: Yukihiro Matsumoto, Status: Available
+Title: 'The Pragmatic Programmer', Author: Andrew Hunt, David Thomas, Status: Available
+Title: 'The Art of Computer Programming', Author: Donald Knuth, Status: Available
+
+Borrowing 'The Ruby Programming Language' by Yukihiro Matsumoto.
+Borrowing 'The Pragmatic Programmer' by Andrew Hunt, David Thomas.
+
+The book 'Imminent: Inside the Pentagon's Hunt for UFOs' does not exist in the library.
+
+Returning 'The Ruby Programming Language'.
+
+Title: 'The Ruby Programming Language', Author: Yukihiro Matsumoto, Status: Available
+Title: 'The Pragmatic Programmer', Author: Andrew Hunt, David Thomas, Status: Unavailable
+Title: 'The Art of Computer Programming', Author: Donald Knuth, Status: Available
+
+'The Ruby Programming Language' is already in the library.
+
+#/

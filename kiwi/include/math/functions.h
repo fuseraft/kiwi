@@ -501,7 +501,7 @@ struct {
     auto b = std::get<k_int>(right);
 
     if (b >= static_cast<k_int>(32)) {
-      return 0;
+      return static_cast<k_int>(0);
     }
 
     unsigned int a_int = static_cast<unsigned int>(a);

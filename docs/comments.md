@@ -14,11 +14,11 @@ println("hello")
 Block comments begin with `/#` and end with `#/`.
 
 ```
-/#
-Using a double-# will give you a multiline/block comment.
+/# remove the first forward slash to uncomment this block. :)
 
-Use this to document more complicated logic.
+fn hello()
+  println "Hello, World!"
+end
 
-We all love documentation. :)
-#/
+hello() #/
 ```
