@@ -1,1 +1,30 @@
 # A script for experimentation.
+
+struct C
+  fn new(a = [])
+    @a = a
+  end
+
+  fn add(i, n)
+    @a[i] += n
+  end
+
+  fn subtract(i, n)
+    @a[i] -= n
+  end
+
+  fn value()
+    return @a
+  end
+
+  fn size()
+    return @a.size()
+  end
+end
+
+c = C.new([1..15])
+for i in std::range(0, c.size()) do
+  c.add(i, i)
+end
+
+println c.value()
