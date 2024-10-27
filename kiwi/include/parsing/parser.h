@@ -1211,7 +1211,8 @@ std::unique_ptr<ASTNode> Parser::parseIndexingInternal(
         indexExpression->type != ASTNodeType::IDENTIFIER &&
         indexExpression->type != ASTNodeType::FUNCTION_CALL &&
         indexExpression->type != ASTNodeType::BINARY_OPERATION &&
-        indexExpression->type != ASTNodeType::METHOD_CALL) {
+        indexExpression->type != ASTNodeType::METHOD_CALL &&
+        indexExpression->type != ASTNodeType::MEMBER_ACCESS) {
       throw SyntaxError(indexValueToken, "Invalid index value in indexer.");
     }
 
