@@ -638,9 +638,9 @@ end)
 guava::register_test("sha224", with () do
   a_str = "just a test string"
 
-  guava::assert("d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f" == SHA224.new().hexdigest())
-  guava::assert("bba476fc42a4327019c6239a15d662f327c646ad3d8b4c0ca32e33e5" == SHA224.new(a_str).hexdigest())
-  guava::assert("7d70521535e7b865c1572daff05a3fd022df567f4b6d74d556477f0a" == SHA224.new(a_str*7).hexdigest())
+  guava::assert("d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f" == crypto::sha224_hash())
+  guava::assert("bba476fc42a4327019c6239a15d662f327c646ad3d8b4c0ca32e33e5" == crypto::sha224_hash(a_str))
+  guava::assert("7d70521535e7b865c1572daff05a3fd022df567f4b6d74d556477f0a" == crypto::sha224_hash(a_str*7))
 end)
 
 guava::register_test("sha256", with () do
