@@ -9,7 +9,7 @@ To define a struct in Kiwi, use the `struct` keyword followed by the struct name
 Each concrete struct should define a constructor method, called `new`.
 
 ```kiwi
-struct MyClass
+struct MyStruct
   fn new(name)
     # Use the `@` symbol to declare an instance variable.
     @name = name 
@@ -26,7 +26,7 @@ end
 To create an instance of a struct, use the `.new()` method followed by any arguments the constructor accepts.
 
 ```kiwi
-my_object = MyClass.new("Kiwi")
+my_object = MyStruct.new("Kiwi")
 my_object.say_hello()  # prints: Hello, Kiwi!
 ```
 
@@ -35,7 +35,7 @@ my_object.say_hello()  # prints: Hello, Kiwi!
 Kiwi supports single inheritance. Use the `<` symbol to specify the parent struct.
 
 ```kiwi
-struct MySubclass < MyClass
+struct MySubStruct < MyStruct
   fn new() end
 
   fn say_goodbye()
@@ -46,10 +46,10 @@ end
 
 ### Method Definition
 
-Methods are defined using the `def` keyword, followed by the method name and any parameters. Use `this` to access the current instance.
+Methods are defined using the `fn` keyword, followed by the method name and any parameters. Use `@` to access the current instance.
 
 ```kiwi
-struct MyClass
+struct MyStruct
   fn new() end
 
   fn my_method(param)
@@ -63,7 +63,7 @@ end
 The `override` keyword is not required to override `to_string()`.
 
 ```kiwi
-struct KiwiClass
+struct KiwiStruct
   fn new() end
 
   fn to_string()
@@ -71,7 +71,7 @@ struct KiwiClass
   end
 end
 
-instance = KiwiClass.new()
+instance = KiwiStruct.new()
 string_repr = instance.to_string()
 println(instance)    # prints: I am a Kiwi struct
 println(string_repr) # prints: I am a Kiwi struct
@@ -82,14 +82,14 @@ println(string_repr) # prints: I am a Kiwi struct
 Methods declared as static can be invoked directly through the struct and cannot be invoked through an instance.
 
 ```kiwi
-struct MyClass
+struct MyStruct
   fn new() end
   static fn static_method()
     println("I can be invoked without an instance!")
   end
 end
 
-MyClass.static_method() # prints: I can be invoked without an instance!
+MyStruct.static_method() # prints: I can be invoked without an instance!
 ```
 
 ### Access Control
@@ -97,7 +97,7 @@ MyClass.static_method() # prints: I can be invoked without an instance!
 Kiwi supports `private` methods that cannot be called outside the struct definition.
 
 ```kiwi
-struct MyClass
+struct MyStruct
   fn new() end
 
   private fn my_private_method()
@@ -106,17 +106,14 @@ struct MyClass
 end
 ```
 
-You can also use `private` to declare a list of instance variable names that are to be treated as private.
+All instance variables are private by default. You must explicitly implement accessors and modifiers to access them outside of the struct.
 
 ```kiwi
-struct MyClass
-  private(name) # declare instance variables as private
-
+struct MyStruct
   fn new(name)
     @name = name
   end
 end
 
-inst = MyClass.new("kiwi")
-println(inst.name) # throws InvalidContextError: Cannot access private instance variable outside of object context. 
+inst = MyStruct.new("kiwi")
 ```
