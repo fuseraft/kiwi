@@ -698,7 +698,20 @@ k_value KInterpreter::visit(const IndexAssignmentNode* node) {
 
     if (sliceExpr->slicedObject->type == ASTNodeType::IDENTIFIER) {
       identifierName = id(sliceExpr->slicedObject.get());
-      auto slicedObj = frame->variables[identifierName];
+      k_value slicedObj = {};
+
+      // This is an instance variable.
+      if (frame->inObjectContext() && identifierName.size() > 0 &&
+          identifierName.at(0) == '@' &&
+          frame->getObjectContext()->hasVariable(identifierName)) {
+        slicedObj =
+            frame->getObjectContext()->instanceVariables[identifierName];
+      } else if (frame->hasVariable(identifierName)) {
+        slicedObj = frame->variables[identifierName];
+      } else {
+        throw VariableUndefinedError(node->token, identifierName);
+      }
+
       auto slice = getSlice(sliceExpr, slicedObj);
 
       doSliceAssignment(node->token, slicedObj, slice, newValue);
@@ -709,7 +722,19 @@ k_value KInterpreter::visit(const IndexAssignmentNode* node) {
 
     if (indexExpr->indexedObject->type == ASTNodeType::IDENTIFIER) {
       identifierName = id(indexExpr->indexedObject.get());
-      auto indexedObj = frame->variables[identifierName];
+      k_value indexedObj = {};
+      // This is an instance variable.
+      if (frame->inObjectContext() && identifierName.size() > 0 &&
+          identifierName.at(0) == '@' &&
+          frame->getObjectContext()->hasVariable(identifierName)) {
+        indexedObj =
+            frame->getObjectContext()->instanceVariables[identifierName];
+      } else if (frame->hasVariable(identifierName)) {
+        indexedObj = frame->variables[identifierName];
+      } else {
+        throw VariableUndefinedError(node->token, identifierName);
+      }
+
       auto index = interpret(indexExpr->indexExpression.get());
 
       if (std::holds_alternative<k_list>(indexedObj) &&
@@ -1115,10 +1140,11 @@ k_value KInterpreter::visit(const IndexingNode* node) {
 k_value KInterpreter::visit(const IfNode* node) {
   auto conditionValue = interpret(node->condition.get());
   auto frame = callStack.top();
+  k_value result = {};
 
   if (MathImpl.is_truthy(conditionValue)) {
     for (const auto& stmt : node->body) {
-      interpret(stmt.get());
+      result = interpret(stmt.get());
       if (frame->isFlagSet(FrameFlags::Return)) {
         break;
       }
@@ -1129,7 +1155,7 @@ k_value KInterpreter::visit(const IfNode* node) {
       auto elseifConditionValue = interpret(elseifNode->condition.get());
       if (MathImpl.is_truthy(elseifConditionValue)) {
         for (const auto& stmt : elseifNode->body) {
-          interpret(stmt.get());
+          result = interpret(stmt.get());
           if (frame->isFlagSet(FrameFlags::Return)) {
             break;
           }
@@ -1141,7 +1167,7 @@ k_value KInterpreter::visit(const IfNode* node) {
 
     if (!executed && !node->elseBody.empty()) {
       for (const auto& stmt : node->elseBody) {
-        interpret(stmt.get());
+        result = interpret(stmt.get());
         if (frame->isFlagSet(FrameFlags::Return)) {
           break;
         }
@@ -1149,7 +1175,7 @@ k_value KInterpreter::visit(const IfNode* node) {
     }
   }
 
-  return {};
+  return result;
 }
 
 k_value KInterpreter::visit(const CaseNode* node) {
@@ -1589,10 +1615,6 @@ k_value KInterpreter::visit(const ClassNode* node) {
   auto className = node->name;
   auto clazz = std::make_unique<KClass>();
   clazz->name = className;
-
-  if (className == "B") {
-    std::cout << "";
-  }
 
   if (!node->baseClass.empty()) {
     clazz->baseClass = node->baseClass;
@@ -2056,10 +2078,6 @@ k_value KInterpreter::callObjectMethod(const MethodCallNode* node,
   if (function->isPrivate) {
     throw InvalidContextError(node->token,
                               "Cannot invoke private method outside of class.");
-  }
-
-  if (isCtor) {
-    std::cout << "";
   }
 
   auto result =
@@ -2709,12 +2727,17 @@ k_value KInterpreter::lambdaMap(std::unique_ptr<KLambda>& lambda,
   const auto& decl = *lambda->decl;
   const auto& elements = list->elements;
   std::vector<k_value> resultList;
+  k_value result = {};
 
   for (size_t i = 0; i < elements.size(); ++i) {
     frame->variables[mapVariable] = elements.at(i);
 
     for (const auto& stmt : decl.body) {
-      resultList.emplace_back(interpret(stmt.get()));
+      result = interpret(stmt.get());
+      if (frame->isFlagSet(FrameFlags::Return)) {
+        frame->clearFlag(FrameFlags::Return);
+      }
+      resultList.emplace_back(result);
     }
   }
 

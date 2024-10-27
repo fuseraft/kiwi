@@ -6,8 +6,8 @@
  * A light-weight general-purpose scripting language without a syntax tree.
  *
  * @author Scott Stauffer
- * @date 2024-10-22
- * @version 2.0.5
+ * @date 2024-10-27
+ * @version 2.0.6
  *
  * GitHub Repository: https://github.com/fuseraft/kiwi
  * For more information, issues, or to contribute, please visit the repository.
