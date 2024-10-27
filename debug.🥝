@@ -1,115 +1,150 @@
 # A script for debugging and experimentation (and fun).
 
-# a utility struct with static methods.
+# A utility struct with static methods to handle common operations.
 struct _
-  # creates a hash
+  # Static method to create and return a basic hash with default fields.
   static fn get_hash()
     return {
-      "name": "",
-      "count": 0
+      "name": "",   # The name of the item, default is an empty string.
+      "count": 0    # The count of the item, default is 0.
     }
   end
 
-  # prints an error
+  # Static method to print an error message along with the object context.
   static fn log_error(err)
     println "error caught: ${err}, object context: ${__robject__()}"
   end
 
-  # updates the `count` property in a hash by a specified amount (default is 1).
+  # Static method to update the 'count' field of a hash by a specified amount (default is 1).
+  # If the hash doesn't contain the 'count' field, it returns the hash unchanged.
   static fn update_count(hash, amount = 1)
-    return hash when !hash.has_key("count")
-    hash.count += amount
-    return hash
+    return hash when !hash.has_key("count")  # Guard clause if hash has no 'count'.
+    hash.count += amount                     # Increment the count by the amount.
+    return hash                              # Return the updated hash.
   end
 end
 
 /#
 A base struct for Item. 
 
-It stores a hash called @hash.
+It stores a hash called @data with fields 'name' and 'count'.
 #/
 struct Base
+  # Constructor method for initializing the Base struct with default or provided values.
   fn new(name = null, count = 0)
-    @data = _.get_hash()
-    @data.name = name
-    @data.count = count
+    @data = _.get_hash()      # Initialize @data with a default hash.
+    @data.name = name         # Set the name of the item.
+    @data.count = count       # Set the count of the item.
   end
 
+  # Method to retrieve the current @data hash of the item.
   fn get_data()
-    return @data
+    return @data              # Return the hash containing the item's name and count.
   end
 
+  # Method to update the count of the item by a given amount (default is 1).
   fn update(amount = 1)
-    @data = _.update_count(@data, amount)
+    @data = _.update_count(@data, amount)  # Use the utility method to update the count.
   end
   
+  # Method to print the item's details in the format "item: {name}, counts: {count}".
   fn print_details()
     println "item: ${@data.name}, counts: ${@data.count}"
   end
 end
 
-# An item with a default constructor. Inherits `Base` methods.
+# A derived struct for Item that inherits from Base.
+# It can use all methods from Base (new, get_data, update, print_details).
 struct Item < Base
 end
 
-# A basket of items.
+# A struct representing a collection of items, i.e., a basket.
 struct Basket
+  # Constructor method for initializing the basket with an optional list of items.
   fn new(items = [])
-    @map = {}
+    @item_map = {}            # Initialize an empty map to store items by name.
 
+    # Loop through each item in the provided list and add it to @item_map.
     for item in items do
-      item_data = item.get_data()
-      @map.set(item_data.name, item)
+      item_data = item.get_data()                  # Get the item's data (name and count).
+      @item_map.set(item_data.name, item)          # Map the item's name to the item object.
     end
   end
 
+  # Method to add a new item to the basket. If the item exists, it updates the count.
   fn add_item(item)
-    item_data = item.get_data()
-    if @map.has_key(item_data.name)
-      @map.get(item_data.name).update([item_data.count, 1].max())
+    item_data = item.get_data()                    # Get the data for the item being added.
+
+    # Check if the item already exists in the basket (by name).
+    if @item_map.has_key(item_data.name)
+      # If it exists, update its count by adding the new count to the current one.
+      @item_map.get(item_data.name).update([item_data.count, 1].max())
     else
-      @map.set(item_data.name, item)
+      # If it doesn't exist, add the item to the map.
+      @item_map.set(item_data.name, item)
     end
   end
 
+  # Method to update the count of an item by its name or update all items if no name is provided.
   fn update(name = null, amount = 1)
-    return when name != null && !@map.has_key(name)
+    # If a name is provided and the item doesn't exist, do nothing (guard clause).
+    return when name != null && !@item_map.has_key(name)
     
+    # If a name is provided, update the specific item by the given amount.
     if name != null
-      mapped_obj = @map.get(name)
-      mapped_obj.update(amount)
-    else
-      for k, v in @map do
-        v.update(amount)
-      end
+      mapped_obj = @item_map.get(name)             # Retrieve the item object.
+      mapped_obj.update(amount)                    # Update its count by the specified amount.
+      return
+    end
+
+    # If no name is provided, update the count for all items in the basket.
+    for k, v in @item_map do
+      v.update(amount)                             # Update each item's count by the amount.
     end
   end
 
+  # Method to print the details of a specific item or all items in the basket.
   fn print_details(name = null)
-    return when name != null && !@map.has_key(name)
+    # If a name is provided and the item doesn't exist, do nothing (guard clause).
+    return when name != null && !@item_map.has_key(name)
+
+    # If a name is provided, print the details of the specific item.
     if name != null
-      mapped_obj = @map.get(name)
-      mapped_obj.print_details()
-    else
-      for k, v in @map do
-        v.print_details()
-      end
+      mapped_obj = @item_map.get(name)             # Retrieve the item object.
+      mapped_obj.print_details()                   # Print its details.
+      return
+    end
+
+    # If no name is provided, print the details of all items in the basket.
+    for k, v in @item_map do
+      v.print_details()                            # Print the details for each item.
     end
   end
 end
 
+# Example usage:
+
+# Initialize a basket with 6 kiwis, 1 mango, and 1 guava.
 b = Basket.new([
-  Item.new("kiwi", 6),   # Start with 6 kiwis, 1 mango, and 1 guava.
+  Item.new("kiwi", 6),
   Item.new("mango", 1),
   Item.new("guava", 1)
 ])
 
-b.update(null, 5)        # Add 5 of everything.
-b.update("mango", -2)    # Remove 2 mangos.
-b.add_item(              # Add 4 strawberries.
+b.update(null, 5)        # Add 5 to the count of all items.
+b.update("mango", -2)    # Subtract 2 from the count of mangoes.
+b.add_item(              # Add 4 strawberries to the basket.
   Item.new(
     "strawberry", 4
   )
 )
 
-b.print_details()        # Print the basket details.
+b.print_details()        # Print the details of all items in the basket.
+
+/#
+Expected Output:
+item: kiwi, counts: 11
+item: mango, counts: 4
+item: guava, counts: 6
+item: strawberry, counts: 4
+#/
