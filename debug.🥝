@@ -1,150 +1,174 @@
-# A script for debugging and experimentation (and fun).
+# A simple library system using Kiwi.
 
-# A utility struct with static methods to handle common operations.
-struct _
-  # Static method to create and return a basic hash with default fields.
-  static fn get_hash()
-    return {
-      "name": "",   # The name of the item, default is an empty string.
-      "count": 0    # The count of the item, default is 0.
-    }
+# Define a Book struct with properties like title and author, and availability status.
+struct Book
+  fn new(title, author)
+    @title = title            # Set the book title.
+    @author = author          # Set the book author.
+    @available = true         # All books start as available by default.
   end
 
-  # Static method to print an error message along with the object context.
-  static fn log_error(err)
-    println "error caught: ${err}, object context: ${__robject__()}"
+  fn get_title()
+    return @title
   end
 
-  # Static method to update the 'count' field of a hash by a specified amount (default is 1).
-  # If the hash doesn't contain the 'count' field, it returns the hash unchanged.
-  static fn update_count(hash, amount = 1)
-    return hash when !hash.has_key("count")  # Guard clause if hash has no 'count'.
-    hash.count += amount                     # Increment the count by the amount.
-    return hash                              # Return the updated hash.
+  fn get_author()
+    return @author
+  end
+
+  # Method to check if the book is available.
+  fn is_available()
+    return @available
+  end
+
+  # Method to borrow the book. It marks the book as unavailable if it's available.
+  fn borrow()
+    if @available
+      println "Borrowing '${@title}' by ${@author}."
+      @available = false
+    else
+      println "Sorry, '${@title}' is currently unavailable."
+    end
+  end
+
+  # Method to return the book. It marks the book as available.
+  fn return_book()
+    if !@available
+      println "Returning '${@title}'."
+      @available = true
+    else
+      println "'${@title}' is already in the library."
+    end
+  end
+
+  # Method to print the book details.
+  fn print_details()
+    availability = @available ? "Available" : "Unavailable"
+    println "Title: '${@title}', Author: ${@author}, Status: ${availability}"
   end
 end
 
-/#
-A base struct for Item. 
-
-It stores a hash called @data with fields 'name' and 'count'.
-#/
-struct Base
-  # Constructor method for initializing the Base struct with default or provided values.
-  fn new(name = null, count = 0)
-    @data = _.get_hash()      # Initialize @data with a default hash.
-    @data.name = name         # Set the name of the item.
-    @data.count = count       # Set the count of the item.
+# Define a Library struct that holds a collection of books.
+struct Library
+  fn new()
+    @book_collection = {}   # Initialize an empty collection (map) to store books by title.
   end
 
-  # Method to retrieve the current @data hash of the item.
-  fn get_data()
-    return @data              # Return the hash containing the item's name and count.
+  # Method to add a book to the library.
+  fn add_book(book)
+    title = book.get_title()
+    if !@book_collection.has_key(title)
+      @book_collection.set(title, book)
+      println "Added '${title}' to the library."
+    else
+      println "'${title}' is already in the library."
+    end
   end
 
-  # Method to update the count of the item by a given amount (default is 1).
-  fn update(amount = 1)
-    @data = _.update_count(@data, amount)  # Use the utility method to update the count.
+  # Method to borrow a book by title.
+  fn borrow_book(title)
+    if @book_collection.has_key(title)
+      book = @book_collection.get(title)
+      book.borrow()
+    else
+      println "The book '${title}' does not exist in the library."
+    end
+  end
+
+  # Method to return a book by title.
+  fn return_book(title)
+    if @book_collection.has_key(title)
+      book = @book_collection.get(title)
+      book.return_book()
+    else
+      println "The book '${title}' does not exist in the library."
+    end
+  end
+
+  # Method to print details of all the books in the library.
+  fn print_all_books()
+    if @book_collection.size() == 0
+      println "The library is currently empty."
+    else
+      for _, book in @book_collection do
+        book.print_details()
+      end
+    end
+  end
+end
+
+fn main()
+  # Example usage:
+  # Create a library instance.
+  lib = Library.new()
+  
+  # Create some books.
+  books = [
+    Book.new("The Ruby Programming Language", "Yukihiro Matsumoto"),
+    Book.new("The Pragmatic Programmer", "Andrew Hunt, David Thomas"),
+    Book.new("The Art of Computer Programming", "Donald Knuth")
+  ]
+  
+  # Add books to the library.
+  for book in books do
+    lib.add_book(book)
   end
   
-  # Method to print the item's details in the format "item: {name}, counts: {count}".
-  fn print_details()
-    println "item: ${@data.name}, counts: ${@data.count}"
-  end
+  println ""  # Empty line for clarity in output.
+  
+  # Print all the books in the library.
+  lib.print_all_books()
+  
+  println ""  # Empty line for clarity in output.
+  
+  # Borrow some books.
+  lib.borrow_book("The Ruby Programming Language")
+  lib.borrow_book("The Pragmatic Programmer")
+  
+  println ""  # Empty line for clarity in output.
+  
+  # Try borrowing a book that doesn't exist.
+  lib.borrow_book("Imminent: Inside the Pentagon's Hunt for UFOs")
+  
+  println ""  # Empty line for clarity in output.
+  
+  # Return a book.
+  lib.return_book("The Ruby Programming Language")
+  
+  println ""  # Empty line for clarity in output.
+  
+  # Print all books again to see updated status.
+  lib.print_all_books()
+  
+  println ""  # Empty line for clarity in output.
+  
+  # Try returning a book that's already returned.
+  lib.return_book("The Ruby Programming Language")
 end
 
-# A derived struct for Item that inherits from Base.
-# It can use all methods from Base (new, get_data, update, print_details).
-struct Item < Base
-end
+main()
 
-# A struct representing a collection of items, i.e., a basket.
-struct Basket
-  # Constructor method for initializing the basket with an optional list of items.
-  fn new(items = [])
-    @item_map = {}            # Initialize an empty map to store items by name.
+/# Expected output:
 
-    # Loop through each item in the provided list and add it to @item_map.
-    for item in items do
-      item_data = item.get_data()                  # Get the item's data (name and count).
-      @item_map.set(item_data.name, item)          # Map the item's name to the item object.
-    end
-  end
+Added 'The Ruby Programming Language' to the library.
+Added 'The Pragmatic Programmer' to the library.
+Added 'The Art of Computer Programming' to the library.
 
-  # Method to add a new item to the basket. If the item exists, it updates the count.
-  fn add_item(item)
-    item_data = item.get_data()                    # Get the data for the item being added.
+Title: 'The Ruby Programming Language', Author: Yukihiro Matsumoto, Status: Available
+Title: 'The Pragmatic Programmer', Author: Andrew Hunt, David Thomas, Status: Available
+Title: 'The Art of Computer Programming', Author: Donald Knuth, Status: Available
 
-    # Check if the item already exists in the basket (by name).
-    if @item_map.has_key(item_data.name)
-      # If it exists, update its count by adding the new count to the current one.
-      @item_map.get(item_data.name).update([item_data.count, 1].max())
-    else
-      # If it doesn't exist, add the item to the map.
-      @item_map.set(item_data.name, item)
-    end
-  end
+Borrowing 'The Ruby Programming Language' by Yukihiro Matsumoto.
+Borrowing 'The Pragmatic Programmer' by Andrew Hunt, David Thomas.
 
-  # Method to update the count of an item by its name or update all items if no name is provided.
-  fn update(name = null, amount = 1)
-    # If a name is provided and the item doesn't exist, do nothing (guard clause).
-    return when name != null && !@item_map.has_key(name)
-    
-    # If a name is provided, update the specific item by the given amount.
-    if name != null
-      mapped_obj = @item_map.get(name)             # Retrieve the item object.
-      mapped_obj.update(amount)                    # Update its count by the specified amount.
-      return
-    end
+The book 'Imminent: Inside the Pentagon's Hunt for UFOs' does not exist in the library.
 
-    # If no name is provided, update the count for all items in the basket.
-    for k, v in @item_map do
-      v.update(amount)                             # Update each item's count by the amount.
-    end
-  end
+Returning 'The Ruby Programming Language'.
 
-  # Method to print the details of a specific item or all items in the basket.
-  fn print_details(name = null)
-    # If a name is provided and the item doesn't exist, do nothing (guard clause).
-    return when name != null && !@item_map.has_key(name)
+Title: 'The Ruby Programming Language', Author: Yukihiro Matsumoto, Status: Available
+Title: 'The Pragmatic Programmer', Author: Andrew Hunt, David Thomas, Status: Unavailable
+Title: 'The Art of Computer Programming', Author: Donald Knuth, Status: Available
 
-    # If a name is provided, print the details of the specific item.
-    if name != null
-      mapped_obj = @item_map.get(name)             # Retrieve the item object.
-      mapped_obj.print_details()                   # Print its details.
-      return
-    end
+'The Ruby Programming Language' is already in the library.
 
-    # If no name is provided, print the details of all items in the basket.
-    for k, v in @item_map do
-      v.print_details()                            # Print the details for each item.
-    end
-  end
-end
-
-# Example usage:
-
-# Initialize a basket with 6 kiwis, 1 mango, and 1 guava.
-b = Basket.new([
-  Item.new("kiwi", 6),
-  Item.new("mango", 1),
-  Item.new("guava", 1)
-])
-
-b.update(null, 5)        # Add 5 to the count of all items.
-b.update("mango", -2)    # Subtract 2 from the count of mangoes.
-b.add_item(              # Add 4 strawberries to the basket.
-  Item.new(
-    "strawberry", 4
-  )
-)
-
-b.print_details()        # Print the details of all items in the basket.
-
-/#
-Expected Output:
-item: kiwi, counts: 11
-item: mango, counts: 4
-item: guava, counts: 6
-item: strawberry, counts: 4
 #/
