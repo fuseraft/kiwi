@@ -105,16 +105,16 @@ class UnrecognizedBuiltinError : public KiwiError {
 class ClassRedefinitionError : public KiwiError {
  public:
   ClassRedefinitionError(const Token& token, const std::string& name)
-      : KiwiError(token, "ClassRedefinitionError",
-                  "Attempted to redefine class already defined class `" + name +
-                      "`.") {}
+      : KiwiError(
+            token, "StructRedefinitionError",
+            "Attempted to redefine already defined struct `" + name + "`.") {}
 };
 
 class ClassUndefinedError : public KiwiError {
  public:
   ClassUndefinedError(const Token& token, const std::string& name)
-      : KiwiError(token, "ClassUndefinedError",
-                  "The class `" + name + "` is undefined.") {}
+      : KiwiError(token, "StructUndefinedError",
+                  "Struct `" + name + "` is undefined.") {}
 };
 
 class UnimplementedMethodError : public KiwiError {
@@ -122,8 +122,8 @@ class UnimplementedMethodError : public KiwiError {
   UnimplementedMethodError(const Token& token, const std::string& className,
                            const std::string& methodName)
       : KiwiError(token, "UnimplementedMethodError",
-                  "The class `" + className +
-                      "` has an unimplemented method `" + methodName + "`") {}
+                  "Struct `" + className + "` has an unimplemented method `" +
+                      methodName + "`") {}
 };
 
 class BuiltinUnexpectedArgumentError : public KiwiError {
