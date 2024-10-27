@@ -249,9 +249,9 @@ struct Serializer {
 
   static k_string basic_serialize_object(const k_object& object) {
     if (object->identifier.empty()) {
-      return "@(class=" + object->className + ")";
+      return "@(struct=" + object->className + ")";
     } else {
-      return "@(class=" + object->className +
+      return "@(struct=" + object->className +
              ", identifier=" + object->identifier + ")";
     }
   }
