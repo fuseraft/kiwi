@@ -99,6 +99,10 @@ class Token {
     return create(KTokenType::ENDOFFILE, KName::Default, 0, "", 0, 0);
   }
 
+  static Token createExternal() {
+    return create(KTokenType::ENDOFFILE, KName::Default, -1, "", 0, 0);
+  }
+
   static Token createStreamEnd() {
     return create(KTokenType::STREAM_END, KName::Default, 0, "", 0, 0);
   }

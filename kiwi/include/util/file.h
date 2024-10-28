@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <regex>
 #include <string>
+#include "parsing/tokens.h"
 #include "tracing/error.h"
 #include "typing/serializer.h"
 #include "typing/value.h"
@@ -21,53 +22,60 @@ namespace fs = std::filesystem;
 class File {
  public:
   // File operations
-  static bool createFile(const k_string& filePath);
-  static k_string getFileExtension(const k_string& filePath);
-  static k_string getFileName(const k_string& filePath);
-  static bool fileExists(const k_string& filePath);
-  static bool directoryExists(const k_string& path);
-  static bool makeDirectory(const k_string& path);
-  static bool makeDirectoryP(const k_string& path);
-  static bool removePath(const k_string& path);
-  static int removePathF(const k_string& path);
-  static bool copyFile(const k_string& sourcePath,
+  static bool createFile(const Token& token, const k_string& filePath);
+  static k_string getFileExtension(const Token& token,
+                                   const k_string& filePath);
+  static k_string getFileName(const Token& token, const k_string& filePath);
+  static bool fileExists(const Token& token, const k_string& filePath);
+  static bool directoryExists(const Token& token, const k_string& path);
+  static bool makeDirectory(const Token& token, const k_string& path);
+  static bool makeDirectoryP(const Token& token, const k_string& path);
+  static bool removePath(const Token& token, const k_string& path);
+  static int removePathF(const Token& token, const k_string& path);
+  static bool copyFile(const Token& token, const k_string& sourcePath,
                        const k_string& destinationPath, bool overwrite);
-  static bool copyR(const k_string& sourcePath,
+  static bool copyR(const Token& token, const k_string& sourcePath,
                     const k_string& destinationPath);
-  static std::vector<k_string> listDirectory(const k_string& path);
-  static bool movePath(const k_string& sourcePath,
+  static std::vector<k_string> listDirectory(const Token& token,
+                                             const k_string& path);
+  static bool movePath(const Token& token, const k_string& sourcePath,
                        const k_string& destinationPath);
 
   // File content manipulation
-  static k_int getFileSize(const k_string& filePath);
-  static bool writeToFile(const k_string& filePath, const k_value& content,
-                          bool appendMode, bool addNewLine);
-  static void writeBytes(const std::string& filePath,
+  static k_int getFileSize(const Token& token, const k_string& filePath);
+  static bool writeToFile(const Token& token, const k_string& filePath,
+                          const k_value& content, bool appendMode,
+                          bool addNewLine);
+  static void writeBytes(const Token& token, const std::string& filePath,
                          const std::vector<char>& data);
-  static k_string readFile(const k_string& filePath);
-  static std::vector<k_string> readLines(const k_string& filePath);
-  static std::vector<char> readBytes(const k_string& filePath);
-  static std::vector<char> readBytes(const k_string& filePath,
+  static k_string readFile(const Token& token, const k_string& filePath);
+  static std::vector<k_string> readLines(const Token& token,
+                                         const k_string& filePath);
+  static std::vector<char> readBytes(const Token& token,
+                                     const k_string& filePath);
+  static std::vector<char> readBytes(const Token& token,
+                                     const k_string& filePath,
                                      const k_int& offset, const k_int& size);
 
   // Path manipulation
-  static k_string getAbsolutePath(const k_string& path);
+  static k_string getAbsolutePath(const Token& token, const k_string& path);
   static k_string getCurrentDirectory();
   static bool setCurrentDirectory(const k_string& path);
-  static k_string getParentPath(const k_string& path);
+  static k_string getParentPath(const Token& token, const k_string& path);
   static k_string joinPath(const k_string& directoryPath,
                            const k_string& filePath);
 
   // File type checks
   static bool isSymLink(const k_string& path);
-  static bool isScript(const k_string& path);
-  static k_string tryGetExtensionless(const k_string& path);
+  static bool isScript(const Token& token, const k_string& path);
+  static k_string tryGetExtensionless(const Token& token, const k_string& path);
 
   // Directory and path utilities
-  static k_string getTempDirectory();
+  static k_string getTempDirectory(const Token& token);
   static fs::path getExecutablePath();
   static k_string getLibraryPath();
-  static std::vector<k_string> expandGlob(const k_string& globString);
+  static std::vector<k_string> expandGlob(const Token& token,
+                                          const k_string& globString);
   static k_string getLocalPath(const k_string& path);
 
 #ifdef _WIN64
@@ -78,15 +86,14 @@ class File {
 /// @brief Create a file.
 /// @param filePath The file path.
 /// @return Boolean indicating success.
-bool File::createFile(const k_string& filePath) {
+bool File::createFile(const Token& token, const k_string& filePath) {
   bool success = false;
   try {
     std::ofstream outputFile(filePath);
     success = outputFile.is_open();
     outputFile.close();
   } catch (const std::exception& e) {
-    Thrower<FileSystemError> thrower;
-    thrower.throwError(e.what());
+    throw FileSystemError(token, "Could not create file: " + filePath);
   }
 
   return success;
@@ -95,12 +102,12 @@ bool File::createFile(const k_string& filePath) {
 /// @brief Get a file extension.
 /// @param filePath The file path.
 /// @return String containing a file extension.
-k_string File::getFileExtension(const k_string& filePath) {
+k_string File::getFileExtension(const Token& token, const k_string& filePath) {
   try {
     return fs::path(filePath).extension().string();
   } catch (const std::exception& e) {
-    Thrower<FileSystemError> thrower;
-    thrower.throwError(e.what());
+    throw FileSystemError(token,
+                          "Could not get extension for file: " + filePath);
   }
 
   return "";
@@ -109,12 +116,12 @@ k_string File::getFileExtension(const k_string& filePath) {
 /// @brief Get a file name.
 /// @param filePath The file path.
 /// @return String containing a file name.
-k_string File::getFileName(const k_string& filePath) {
+k_string File::getFileName(const Token& token, const k_string& filePath) {
   try {
     return fs::path(filePath).filename().string();
   } catch (const std::exception& e) {
-    Thrower<FileSystemError> thrower;
-    thrower.throwError(e.what());
+    throw FileSystemError(token,
+                          "Could not get filename from path: " + filePath);
   }
 
   return "";
@@ -123,12 +130,12 @@ k_string File::getFileName(const k_string& filePath) {
 /// @brief Checks if a file exists.
 /// @param filePath The file path.
 /// @return Boolean indicating existence.
-bool File::fileExists(const k_string& filePath) {
+bool File::fileExists(const Token& token, const k_string& filePath) {
   try {
     return fs::exists(filePath);
   } catch (const std::exception& e) {
-    Thrower<FileSystemError> thrower;
-    thrower.throwError(e.what());
+    throw FileSystemError(token,
+                          "Could not determine if file exists: " + filePath);
   }
 
   return false;
@@ -137,12 +144,12 @@ bool File::fileExists(const k_string& filePath) {
 /// @brief Checks if a directory exists.
 /// @param path The path.
 /// @return Boolean indicating existence.
-bool File::directoryExists(const k_string& path) {
+bool File::directoryExists(const Token& token, const k_string& path) {
   try {
     return fs::exists(path) && fs::is_directory(path);
   } catch (const fs::filesystem_error& e) {
-    Thrower<FileSystemError> thrower;
-    thrower.throwError(e.what());
+    throw FileSystemError(token,
+                          "Could not determine if directory exists: " + path);
   }
 
   return false;
@@ -151,12 +158,11 @@ bool File::directoryExists(const k_string& path) {
 /// @brief Create a directory.
 /// @param path The path.
 /// @return Boolean indicating success.
-bool File::makeDirectory(const k_string& path) {
+bool File::makeDirectory(const Token& token, const k_string& path) {
   try {
     return fs::create_directory(path);
   } catch (const fs::filesystem_error& e) {
-    Thrower<FileSystemError> thrower;
-    thrower.throwError(e.what());
+    throw FileSystemError(token, "Could not create directory: " + path);
   }
 
   return false;
@@ -165,12 +171,11 @@ bool File::makeDirectory(const k_string& path) {
 /// @brief Create a directory containing sub-directories.
 /// @param path The path.
 /// @return Boolean indicating success.
-bool File::makeDirectoryP(const k_string& path) {
+bool File::makeDirectoryP(const Token& token, const k_string& path) {
   try {
     return fs::create_directories(path);
   } catch (const fs::filesystem_error& e) {
-    Thrower<FileSystemError> thrower;
-    thrower.throwError(e.what());
+    throw FileSystemError(token, "Could not create directory: " + path);
   }
 
   return false;
@@ -179,12 +184,11 @@ bool File::makeDirectoryP(const k_string& path) {
 /// @brief Remove a path.
 /// @param path The path.
 /// @return Boolean indicating success.
-bool File::removePath(const k_string& path) {
+bool File::removePath(const Token& token, const k_string& path) {
   try {
     return fs::remove(path);
   } catch (const fs::filesystem_error& e) {
-    Thrower<FileSystemError> thrower;
-    thrower.throwError(e.what());
+    throw FileSystemError(token, "Could not remove path: " + path);
   }
 
   return false;
@@ -193,23 +197,22 @@ bool File::removePath(const k_string& path) {
 /// @brief Remove a path along with all its content.
 /// @param path The path.
 /// @return Integer containing count of items removed.
-int File::removePathF(const k_string& path) {
+int File::removePathF(const Token& token, const k_string& path) {
   try {
     return static_cast<int>(fs::remove_all(path));
   } catch (const fs::filesystem_error& e) {
-    Thrower<FileSystemError> thrower;
-    thrower.throwError(e.what());
+    throw FileSystemError(token, "Could not remove path: " + path);
   }
 
   return false;
 }
 
-k_string File::getTempDirectory() {
+k_string File::getTempDirectory(const Token& token) {
   try {
     return fs::temp_directory_path().string();
   } catch (const std::exception& e) {
-    Thrower<FileSystemError> thrower;
-    thrower.throwError(e.what());
+    throw FileSystemError(token,
+                          "Could not create a temporary directory path.");
   }
 
   return "";
@@ -220,15 +223,14 @@ k_string File::getTempDirectory() {
 /// @param destinationPath The destination path.
 /// @param overwrite A flag to toggle overwriting files.
 /// @return Boolean indicating success.
-bool File::copyFile(const k_string& sourcePath, const k_string& destinationPath,
-                    bool overwrite = true) {
+bool File::copyFile(const Token& token, const k_string& sourcePath,
+                    const k_string& destinationPath, bool overwrite = true) {
   try {
     auto options = overwrite ? fs::copy_options::overwrite_existing
                              : fs::copy_options::none;
     return fs::copy_file(sourcePath, destinationPath, options);
   } catch (const fs::filesystem_error& e) {
-    Thrower<FileSystemError> thrower;
-    thrower.throwError(e.what());
+    throw FileSystemError(token, "Could not copy file: " + sourcePath);
   }
 
   return false;
@@ -238,13 +240,13 @@ bool File::copyFile(const k_string& sourcePath, const k_string& destinationPath,
 /// @param sourcePath The source path.
 /// @param destinationPath The destination path.
 /// @return Boolean indicating success.
-bool File::copyR(const k_string& sourcePath, const k_string& destinationPath) {
+bool File::copyR(const Token& token, const k_string& sourcePath,
+                 const k_string& destinationPath) {
   try {
     fs::copy(sourcePath, destinationPath, fs::copy_options::recursive);
     return true;
   } catch (const fs::filesystem_error& e) {
-    Thrower<FileSystemError> thrower;
-    thrower.throwError(e.what());
+    throw FileSystemError(token, "Could not copy file: " + sourcePath);
   }
 
   return false;
@@ -253,7 +255,8 @@ bool File::copyR(const k_string& sourcePath, const k_string& destinationPath) {
 /// @brief Get a vector of entries within a directory.
 /// @param path The path.
 /// @return A vector of entries within a directory.
-std::vector<k_string> File::listDirectory(const k_string& path) {
+std::vector<k_string> File::listDirectory(const Token& token,
+                                          const k_string& path) {
   std::vector<k_string> paths;
 
   try {
@@ -266,8 +269,7 @@ std::vector<k_string> File::listDirectory(const k_string& path) {
 #endif
     }
   } catch (const fs::filesystem_error& e) {
-    Thrower<FileSystemError> thrower;
-    thrower.throwError(e.what());
+    throw FileSystemError(token, "Could not list directory: " + path);
   }
 
   return paths;
@@ -277,14 +279,13 @@ std::vector<k_string> File::listDirectory(const k_string& path) {
 /// @param sourcePath The source path.
 /// @param destinationPath The destination path.
 /// @return Boolean indicating success.
-bool File::movePath(const k_string& sourcePath,
+bool File::movePath(const Token& token, const k_string& sourcePath,
                     const k_string& destinationPath) {
   try {
     fs::rename(sourcePath, destinationPath);
     return true;
   } catch (const fs::filesystem_error& e) {
-    Thrower<FileSystemError> thrower;
-    thrower.throwError(e.what());
+    throw FileSystemError(token, "Could not move path: " + sourcePath);
   }
 
   return false;
@@ -293,12 +294,11 @@ bool File::movePath(const k_string& sourcePath,
 /// @brief Get file size in bytes.
 /// @param filePath The file path.
 /// @return Integer containing number of bytes in a file.
-k_int File::getFileSize(const k_string& filePath) {
+k_int File::getFileSize(const Token& token, const k_string& filePath) {
   try {
     return static_cast<k_int>(fs::file_size(filePath));
   } catch (const fs::filesystem_error& e) {
-    Thrower<FileSystemError> thrower;
-    thrower.throwError(e.what());
+    throw FileSystemError(token, "Could not get file size: " + filePath);
   }
 
   return 0;
@@ -310,14 +310,14 @@ k_int File::getFileSize(const k_string& filePath) {
 /// @param appendMode A flag to toggle append mode.
 /// @param addNewLine A flag to toggle appending a newline.
 /// @return Boolean indicating success.
-bool File::writeToFile(const k_string& filePath, const k_value& content,
-                       bool appendMode, bool addNewLine) {
+bool File::writeToFile(const Token& token, const k_string& filePath,
+                       const k_value& content, bool appendMode,
+                       bool addNewLine) {
   std::ios_base::openmode mode = appendMode ? std::ios::app : std::ios::out;
   std::ofstream file(filePath, mode);
 
   if (!file.is_open()) {
-    Thrower<FileWriteError> thrower;
-    thrower.throwError(filePath);
+    throw FileWriteError(token, filePath);
   }
 
   file << Serializer::serialize(content);
@@ -332,13 +332,12 @@ bool File::writeToFile(const k_string& filePath, const k_value& content,
 /// @brief Get absolute path of a relative path.
 /// @param path The path.
 /// @return String containing absolute path..
-k_string File::getAbsolutePath(const k_string& path) {
+k_string File::getAbsolutePath(const Token& token, const k_string& path) {
   try {
     fs::path absolutePath = fs::absolute(path);
     return absolutePath.lexically_normal().string();
   } catch (const std::exception& e) {
-    Thrower<FileSystemError> thrower;
-    thrower.throwError(e.what());
+    throw FileSystemError(token, "Could not get absolute path: " + path);
   }
 
   return "";
@@ -367,12 +366,11 @@ bool File::setCurrentDirectory(const k_string& path) {
 /// @brief Get the parent directory of a path.
 /// @param path
 /// @return
-k_string File::getParentPath(const k_string& path) {
+k_string File::getParentPath(const Token& token, const k_string& path) {
   try {
     return fs::path(path).parent_path().string();
   } catch (const std::exception& e) {
-    Thrower<FileSystemError> thrower;
-    thrower.throwError(e.what());
+    throw FileSystemError(token, "Could not get parent path: " + path);
   }
 
   return "";
@@ -381,20 +379,20 @@ k_string File::getParentPath(const k_string& path) {
 /// @brief Check if a path is a kiwi script.
 /// @param path The path.
 /// @return Boolean indicating success.
-bool File::isScript(const k_string& path) {
+bool File::isScript(const Token& token, const k_string& path) {
   k_string extension = ".🥝";
 #ifdef _WIN64
   extension = ".kiwi";
 #endif
   return (String::endsWith(path, extension) ||
           String::endsWith(path, ".kiwi")) &&
-         File::fileExists(path);
+         File::fileExists(token, path);
 }
 
-k_string tryGetExtensionlessSpecifc(const k_string& path,
+k_string tryGetExtensionlessSpecifc(const Token& token, const k_string& path,
                                     const k_string& extension) {
   auto scriptPath = path + extension;
-  if (File::fileExists(scriptPath)) {
+  if (File::fileExists(token, scriptPath)) {
     return scriptPath;
   }
   return "";
@@ -403,7 +401,7 @@ k_string tryGetExtensionlessSpecifc(const k_string& path,
 /// @brief Check if a path is a kiwi script.
 /// @param path The path.
 /// @return Boolean indicating success.
-k_string File::tryGetExtensionless(const k_string& path) {
+k_string File::tryGetExtensionless(const Token& token, const k_string& path) {
   std::vector<k_string> extensions;
   extensions.emplace_back(".min.kiwi");
   extensions.emplace_back(".kiwi");
@@ -413,7 +411,7 @@ k_string File::tryGetExtensionless(const k_string& path) {
 #endif
 
   for (const auto& ext : extensions) {
-    auto scriptPath = tryGetExtensionlessSpecifc(path, ext);
+    auto scriptPath = tryGetExtensionlessSpecifc(token, path, ext);
     if (!scriptPath.empty()) {
       return scriptPath;
     }
@@ -502,7 +500,8 @@ k_string File::wstring_tos(const std::wstring& wstring) {
 /// @brief Get a vector of paths matching a glob pattern.
 /// @param globString The glob pattern.
 /// @return A vector of strings containing paths matched by glob pattern.
-std::vector<k_string> File::expandGlob(const k_string& globString) {
+std::vector<k_string> File::expandGlob(const Token& token,
+                                       const k_string& globString) {
   Glob glob = parseGlob(globString);
   k_string basePath = glob.path;
   std::regex filenameRegex(glob.regexPattern, std::regex_constants::ECMAScript |
@@ -512,7 +511,7 @@ std::vector<k_string> File::expandGlob(const k_string& globString) {
 
   basePath = fs::absolute(basePath).string();
 
-  if (!directoryExists(basePath)) {
+  if (!directoryExists(token, basePath)) {
     return matchedFiles;
   }
 
@@ -570,12 +569,11 @@ k_string File::joinPath(const k_string& directoryPath,
 /// @brief Read a file into a string.
 /// @param filePath The file path.
 /// @return String containing file content.
-k_string File::readFile(const k_string& filePath) {
+k_string File::readFile(const Token& token, const k_string& filePath) {
   std::ifstream inputFile(filePath, std::ios::binary);
 
   if (!inputFile.is_open()) {
-    Thrower<FileReadError> thrower;
-    thrower.throwError(filePath);
+    throw FileReadError(token, filePath);
   }
 
   inputFile.seekg(0, std::ios::end);
@@ -593,11 +591,11 @@ k_string File::readFile(const k_string& filePath) {
 /// @brief Read lines from a file into a vector.
 /// @param filePath The file path.
 /// @return A vector of strings containing file content.
-std::vector<k_string> File::readLines(const k_string& filePath) {
+std::vector<k_string> File::readLines(const Token& token,
+                                      const k_string& filePath) {
   std::ifstream inputFile(filePath);
   if (!inputFile.is_open()) {
-    Thrower<FileReadError> thrower;
-    thrower.throwError(filePath);
+    throw FileReadError(token, filePath);
   }
 
   std::vector<k_string> list;
@@ -609,14 +607,14 @@ std::vector<k_string> File::readLines(const k_string& filePath) {
   return list;
 }
 
-std::vector<char> File::readBytes(const k_string& filePath) {
+std::vector<char> File::readBytes(const Token& token,
+                                  const k_string& filePath) {
   // Open the file in binary mode and at the end to get its size
   std::ifstream file(filePath, std::ios::binary | std::ios::ate);
 
   // Check if the file opened successfully
   if (!file) {
-    Thrower<FileReadError> thrower;
-    thrower.throwError(filePath);
+    throw FileReadError(token, filePath);
   }
 
   // Get the size of the file
@@ -629,8 +627,7 @@ std::vector<char> File::readBytes(const k_string& filePath) {
   // Seek back to the beginning of the file and read the content
   file.seekg(0, std::ios::beg);
   if (!file.read(buffer.data(), fileSize)) {
-    Thrower<FileReadError> thrower;
-    thrower.throwError(filePath);
+    throw FileReadError(token, filePath);
   }
 
   return buffer;
@@ -641,28 +638,25 @@ std::vector<char> File::readBytes(const k_string& filePath) {
 /// @param offset The position to read from.
 /// @param size The number of bytes to read.
 /// @return A vector of bytes containing file content.
-std::vector<char> File::readBytes(const k_string& filePath, const k_int& offset,
-                                  const k_int& size) {
+std::vector<char> File::readBytes(const Token& token, const k_string& filePath,
+                                  const k_int& offset, const k_int& size) {
   std::vector<char> buffer(static_cast<size_t>(size));
   std::ifstream file(filePath, std::ios::binary);
 
   if (!file) {
-    Thrower<FileReadError> thrower;
-    thrower.throwError(filePath);
+    throw FileReadError(token, filePath);
   }
 
   file.seekg(static_cast<std::streampos>(offset));
 
   if (!file) {
-    Thrower<FileReadError> thrower;
-    thrower.throwError(filePath);
+    throw FileReadError(token, filePath);
   }
 
   file.read(buffer.data(), static_cast<size_t>(size));
 
   if (!file && !file.eof()) {
-    Thrower<FileReadError> thrower;
-    thrower.throwError(filePath);
+    throw FileReadError(token, filePath);
   }
 
   return buffer;
@@ -671,20 +665,18 @@ std::vector<char> File::readBytes(const k_string& filePath, const k_int& offset,
 /// @brief Write bytes to a file.
 /// @param filePath The file path.
 /// @param data The data to write.
-void File::writeBytes(const std::string& filePath,
+void File::writeBytes(const Token& token, const std::string& filePath,
                       const std::vector<char>& data) {
   std::ofstream file(filePath, std::ios::binary | std::ios::trunc);
 
   if (!file) {
-    Thrower<FileReadError> thrower;
-    thrower.throwError(filePath);
+    throw FileReadError(token, filePath);
   }
 
   file.write(data.data(), data.size());
 
   if (!file) {
-    Thrower<FileReadError> thrower;
-    thrower.throwError(filePath);
+    throw FileReadError(token, filePath);
   }
 }
 

@@ -12,6 +12,8 @@
 #include "system/fileregistry.h"
 #include "tracing/error.h"
 
+const Token lexerToken = Token::createExternal();
+
 class Lexer {
  public:
   Lexer(const std::string& file, const std::string& source, bool skipWS = true)
@@ -49,7 +51,7 @@ class Lexer {
   }
 
   static k_string minify(const k_string& path, bool output = false) {
-    auto content = File::readFile(path);
+    auto content = File::readFile(lexerToken, path);
     if (content.empty()) {
       return content;
     }
