@@ -1,0 +1,154 @@
+fn triangle(height, stroke = ".", fill = " ")
+  rows = []
+
+  if height.type() != Integer || height < 0
+    height = 0
+  end
+
+  if stroke.type() != String || stroke.empty()
+    stroke = "."
+  end
+
+  if fill.type() != String || fill.empty()
+    fill = " "
+  end
+
+  stroke = stroke.chars().first()
+  fill = fill.chars().first()
+
+  # the base of the triangle will have (2 * height - 1) characters
+  max_width = 2 * height - 1
+
+  for row in std::range(0, height) do
+    if row == 0
+      # First row is just a single stroke
+      tmp_row = stroke
+    elsif row == height - 1
+      # Last row is all strokes
+      tmp_row = stroke * max_width
+    else
+      # Other rows are stroke, fill, stroke
+      tmp_row = stroke + (fill * (2 * row - 1)) + stroke
+    end
+
+    # Center the row within the max width
+    rows.push(string::center(tmp_row, max_width, fill))
+  end
+
+  return rows.join("\n")
+end
+
+fn rectangle(size, stroke = ".", fill = " ")
+  rows = []
+
+  if size.type() != Integer || size < 1
+    size = 1
+  end
+
+  if stroke.type() != String || stroke.empty()
+    stroke = "#"
+  end
+
+  if fill.type() != String || fill.empty()
+    fill = " "
+  end
+
+  stroke = stroke.chars().first()
+  fill = fill.chars().first()
+
+  for row in std::range(0, size) do
+    if row == 0 || row == size - 1
+      # First and last row are full of stroke characters
+      tmp_row = stroke * size
+    else
+      # Other rows are stroke + fill + stroke
+      tmp_row = stroke + (fill * (size - 2)) + stroke
+    end
+
+    rows.push(tmp_row)
+  end
+
+  return rows.join("\n")
+end
+
+fn diamond(size, stroke = ".", fill = " ")
+  rows = []
+
+  if size.type() != Integer || size < 1
+    size = 1
+  end
+
+  if stroke.type() != String || stroke.empty()
+    stroke = "*"
+  end
+
+  if fill.type() != String || fill.empty()
+    fill = " "
+  end
+
+  stroke = stroke.chars().first()
+  fill = fill.chars().first()
+
+  max_width = 2 * size - 1
+
+  # Top half of the diamond (including the middle row)
+  for row in std::range(0, size) do
+    if row == 0
+      # First row is just a single stroke
+      tmp_row = stroke
+    else
+      # Other rows are stroke, fill, stroke
+      tmp_row = stroke + (fill * (2 * row - 1)) + stroke
+    end
+
+    # Center the row within the max width
+    rows.push(string::center(tmp_row, max_width, fill))
+  end
+
+  # Bottom half of the diamond (excluding the middle row)
+  row = size - 2
+  while row >= 0 do
+    if row == 0
+      tmp_row = stroke
+    else
+      tmp_row = stroke + (fill * (2 * row - 1)) + stroke
+    end
+
+    rows.push(string::center(tmp_row, max_width, fill))
+    row -= 1
+  end
+
+  return rows.join("\n")
+end
+
+println diamond(5)
+/#
+    .    
+   . .   
+  .   .  
+ .     . 
+.       .
+ .     . 
+  .   .  
+   . .   
+    .    
+#/
+
+println rectangle(5)
+/#
+.....
+.   .
+.   .
+.   .
+.....
+#/
+
+println triangle(5)
+/#
+    .    
+   . .   
+  .   .  
+ .     . 
+.........
+#/
+
