@@ -5,4 +5,4 @@ start = time::ticks()
 file_bytes = fs::getbytes(path)
 stop = time::ticks()
 println file_bytes.size()                            # 20255862
-println "duration: ${time::ticksms(stop - start)}ms" # 1501.18ms
+println "duration: ${time::ticksms(stop - start)}ms" # 589.917ms
