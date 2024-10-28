@@ -57,6 +57,7 @@ class KInterpreter {
   k_value visit(const RangeLiteralNode* node);
   k_value visit(const HashLiteralNode* node);
   k_value visit(const PrintNode* node);
+  k_value visit(const PrintXyNode* node);
   k_value visit(const UnaryOperationNode* node);
   k_value visit(const BinaryOperationNode* node);
   k_value visit(const TernaryOperationNode* node);
@@ -225,6 +226,9 @@ k_value KInterpreter::interpret(const ASTNode* node) {
 
     case ASTNodeType::PRINT_STATEMENT:
       return visit(static_cast<const PrintNode*>(node));
+
+    case ASTNodeType::PRINTXY_STATEMENT:
+      return visit(static_cast<const PrintXyNode*>(node));
 
     case ASTNodeType::TERNARY_OPERATION:
       return visit(static_cast<const TernaryOperationNode*>(node));
@@ -1036,6 +1040,29 @@ k_value KInterpreter::visit(const PrintNode* node) {
   } else {
     std::cout << Serializer::serialize(value) << std::flush;
   }
+
+  return {};
+}
+
+k_value KInterpreter::visit(const PrintXyNode* node) {
+  if (SILENCE) {
+    return {};
+  }
+  auto value = interpret(node->expression.get());
+  auto x = interpret(node->x.get());
+  auto y = interpret(node->y.get());
+  auto valueString = Serializer::serialize(value);
+
+  if (valueString.empty()) {
+    valueString = " ";
+  } else {
+    valueString = String::substring(valueString, 0, 1);
+  }
+
+  auto xInt = get_integer(node->token, x);
+  auto yInt = get_integer(node->token, y);
+
+  Sys::printAt(static_cast<int>(xInt), static_cast<int>(yInt), valueString.at(0));
 
   return {};
 }

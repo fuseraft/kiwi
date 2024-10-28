@@ -277,6 +277,7 @@ enum KName {
   KW_Pass,
   KW_Print,
   KW_PrintLn,
+  KW_PrintXy,
   KW_Private,
   KW_Repeat,
   KW_Return,
