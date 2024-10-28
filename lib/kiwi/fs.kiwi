@@ -218,6 +218,16 @@ package fs
   end
 
   /#
+  Summary: Get the content of a file as a list of bytes.
+  Params:
+    - _path: The path to a file.
+  Returns: List
+  #/
+  fn getbytes(_path)
+    return __readbytes__(_path)
+  end
+
+  /#
   Summary: Delete a file.
   Params:
     - _path: The path to a file or a filename.
