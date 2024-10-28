@@ -386,22 +386,31 @@ class FileIOBuiltinHandler {
 
   static k_value executeReadBytes(const Token& token,
                                   const std::vector<k_value>& args) {
-    if (args.size() != 3) {
+    if (args.size() != 1 && args.size() != 3) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.ReadBytes);
     }
 
     auto fileName = get_string(token, args.at(0));
-    auto offset = get_integer(token, args.at(1));
-    auto size = get_integer(token, args.at(2));
-
-    auto bytes = File::readBytes(fileName, offset, size);
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
 
-    elements.reserve(bytes.size());
+    if (args.size() == 1) {
+      auto bytes = File::readBytes(fileName);
+      elements.reserve(bytes.size());
 
-    for (const auto& byte : bytes) {
-      elements.emplace_back(static_cast<k_int>(byte));
+      for (const auto& byte : bytes) {
+        elements.emplace_back(static_cast<k_int>(static_cast<unsigned char>(byte)));
+      }
+    } else {
+      auto offset = get_integer(token, args.at(1));
+      auto size = get_integer(token, args.at(2));
+
+      auto bytes = File::readBytes(fileName, offset, size);      
+      elements.reserve(bytes.size());
+
+      for (const auto& byte : bytes) {
+        elements.emplace_back(static_cast<k_int>(byte));
+      }
     }
 
     return list;
