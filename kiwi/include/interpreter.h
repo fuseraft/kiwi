@@ -41,7 +41,7 @@ class KInterpreter {
   std::shared_ptr<CallStackFrame> createFrame(bool isMethodInvocation);
   k_value dropFrame();
   void importPackage(const k_value& packageName, const Token& token);
-  void importExternal(const k_string& packageName);
+  void importExternal(const k_string& packageName, const Token& token);
 
   k_string id(const ASTNode* node);
   k_value visit(const ProgramNode* node);
@@ -442,8 +442,8 @@ k_value KInterpreter::visit(const PackageNode* node) {
   return {};
 }
 
-void KInterpreter::importExternal(const k_string& packageName) {
-  auto content = File::readFile(packageName);
+void KInterpreter::importExternal(const k_string& packageName, const Token& token) {
+  auto content = File::readFile(token, packageName);
   if (content.empty()) {
     return;
   }
@@ -470,8 +470,8 @@ void KInterpreter::importPackage(const k_value& packageName,
 
   if (packages.find(packageNameValue) == packages.end()) {
     // Check if external package.
-    if (File::isScript(packageNameValue)) {
-      return importExternal(packageNameValue);
+    if (File::isScript(token, packageNameValue)) {
+      return importExternal(packageNameValue, token);
     }
     throw PackageUndefinedError(token, packageNameValue);
   }
@@ -1062,7 +1062,8 @@ k_value KInterpreter::visit(const PrintXyNode* node) {
   auto xInt = get_integer(node->token, x);
   auto yInt = get_integer(node->token, y);
 
-  Sys::printAt(static_cast<int>(xInt), static_cast<int>(yInt), valueString.at(0));
+  Sys::printAt(static_cast<int>(xInt), static_cast<int>(yInt),
+               valueString.at(0));
 
   return {};
 }
@@ -2401,7 +2402,7 @@ k_value KInterpreter::interpretWebServerPublic(const Token& token,
   auto endpoint = get_string(token, args.at(0));
   auto publicDir = get_string(token, args.at(1));
 
-  if (!File::directoryExists(publicDir)) {
+  if (!File::directoryExists(token, publicDir)) {
     return false;
   }
 
