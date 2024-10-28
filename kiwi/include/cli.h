@@ -24,6 +24,7 @@ std::unordered_map<std::string, std::string> kiwiArgs;
 std::stack<std::shared_ptr<CallStackFrame>> callStack;
 std::stack<std::string> packageStack;
 bool SILENCE = false;
+const Token cliToken = Token::createExternal();
 
 class KiwiCLI {
  public:
@@ -100,13 +101,14 @@ int KiwiCLI::run(std::vector<std::string>& v) {
         }
 
         help = true;
-      } else if (File::isScript(v.at(i))) {
+      } else if (File::isScript(cliToken, v.at(i))) {
         host.registerScript(v.at(i));
       } else if (String::isOptionKVP(v.at(i))) {
         help = !KiwiCLI::processOption(v.at(i), host);
       } else {
-        auto extless = host.hasScript() ? std::string("")
-                                        : File::tryGetExtensionless(v.at(i));
+        auto extless = host.hasScript()
+                           ? std::string("")
+                           : File::tryGetExtensionless(cliToken, v.at(i));
         if (!extless.empty()) {
           host.registerScript(extless);
         } else {
@@ -132,25 +134,26 @@ bool KiwiCLI::parse(Host& host, const std::string& content) {
 bool KiwiCLI::createMinified(Host& host, const std::string& path) {
   auto filePath = path;
 
-  if (File::getFileExtension(filePath).empty()) {
+  if (File::getFileExtension(cliToken, filePath).empty()) {
     filePath += kiwi_extension;
   }
 
-  if (!File::fileExists(filePath)) {
+  if (!File::fileExists(cliToken, filePath)) {
     std::cout << "The input file does not exists." << std::endl;
     return false;
   }
 
-  filePath = File::getAbsolutePath(filePath);
-  auto fileName =
-      String::replace(File::getFileName(filePath),
-                      File::getFileExtension(filePath), kiwi_min_extension);
-  auto minFilePath = File::joinPath(File::getParentPath(filePath), fileName);
+  filePath = File::getAbsolutePath(cliToken, filePath);
+  auto fileName = String::replace(File::getFileName(cliToken, filePath),
+                                  File::getFileExtension(cliToken, filePath),
+                                  kiwi_min_extension);
+  auto minFilePath =
+      File::joinPath(File::getParentPath(cliToken, filePath), fileName);
 
   std::cout << "Creating " << minFilePath << std::endl;
-  if (File::createFile(minFilePath)) {
+  if (File::createFile(cliToken, minFilePath)) {
     auto minified = host.minify(filePath);
-    File::writeToFile(minFilePath, minified, false, false);
+    File::writeToFile(cliToken, minFilePath, minified, false, false);
     return true;
   }
 
@@ -160,42 +163,42 @@ bool KiwiCLI::createMinified(Host& host, const std::string& path) {
 bool KiwiCLI::createNewFile(const std::string& path) {
   auto filePath = path;
 
-  if (File::getFileExtension(path).empty()) {
+  if (File::getFileExtension(cliToken, path).empty()) {
     filePath += kiwi_extension;
   }
 
-  if (File::fileExists(filePath)) {
-    std::cout << "The file already exists." << std::endl;
+  if (File::fileExists(cliToken, filePath)) {
+    std::cout << "The file already exists: " + filePath << std::endl;
     return false;
   }
 
-  filePath = File::getAbsolutePath(filePath);
-  auto parentPath = File::getParentPath(filePath);
+  filePath = File::getAbsolutePath(cliToken, filePath);
+  auto parentPath = File::getParentPath(cliToken, filePath);
 
-  File::makeDirectoryP(parentPath);
+  File::makeDirectoryP(cliToken, parentPath);
 
   std::cout << "Creating " << filePath << std::endl;
-  return File::createFile(filePath);
+  return File::createFile(cliToken, filePath);
 }
 
 bool KiwiCLI::printAST(Host& host, const std::string& path) {
-  if (!File::fileExists(path)) {
+  if (!File::fileExists(cliToken, path)) {
     std::cout << "The input file does not exists." << std::endl;
     return false;
   }
 
-  auto filePath = File::getAbsolutePath(path);
+  auto filePath = File::getAbsolutePath(cliToken, path);
   host.printAST(filePath);
   return true;
 }
 
 bool KiwiCLI::tokenize(Host& host, const std::string& path) {
-  if (!File::fileExists(path)) {
+  if (!File::fileExists(cliToken, path)) {
     std::cout << "The input file does not exists." << std::endl;
     return false;
   }
 
-  auto filePath = File::getAbsolutePath(path);
+  auto filePath = File::getAbsolutePath(cliToken, path);
   auto minified = host.minify(filePath, true);
   return true;
 }
