@@ -278,23 +278,4 @@ class TokenStreamError : public KiwiError {
       : KiwiError(token, "TokenStreamError", message) {}
 };
 
-template <typename T>
-class Thrower {
- public:
-  template <typename... Args>
-  void throwError(const Token& token, Args&&... args) {
-    static_assert(std::is_base_of<KiwiError, T>::value,
-                  "T must be a subtype of `KiwiError`.");
-    throw T(token, std::forward<Args>(args)...);
-  }
-
-  template <typename... Args>
-  void throwError(Args&&... args) {
-    static_assert(std::is_base_of<KiwiError, T>::value,
-                  "T must be a subtype of `KiwiError`.");
-    Token emptyToken = Token::createEmpty();
-    throw T(emptyToken, std::forward<Args>(args)...);
-  }
-};
-
 #endif

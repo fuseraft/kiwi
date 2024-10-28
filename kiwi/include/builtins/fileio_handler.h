@@ -114,7 +114,7 @@ class FileIOBuiltinHandler {
 
     auto fileName = get_string(token, args.at(0));
     auto value = args.at(1);
-    return File::writeToFile(fileName, value, true, false);
+    return File::writeToFile(token, fileName, value, true, false);
   }
 
   static k_value executeCopyFile(const Token& token,
@@ -125,7 +125,7 @@ class FileIOBuiltinHandler {
 
     auto sourcePath = get_string(token, args.at(0));
     auto destinationPath = get_string(token, args.at(1));
-    return File::copyFile(sourcePath, destinationPath);
+    return File::copyFile(token, sourcePath, destinationPath);
   }
 
   static k_value executeCopyR(const Token& token,
@@ -136,7 +136,7 @@ class FileIOBuiltinHandler {
 
     auto sourcePath = get_string(token, args.at(0));
     auto destinationPath = get_string(token, args.at(1));
-    return File::copyR(sourcePath, destinationPath);
+    return File::copyR(token, sourcePath, destinationPath);
   }
 
   static k_value executeCreateFile(const Token& token,
@@ -146,7 +146,7 @@ class FileIOBuiltinHandler {
     }
 
     auto fileName = get_string(token, args.at(0));
-    return File::createFile(fileName);
+    return File::createFile(token, fileName);
   }
 
   static k_value executeListDirectory(const Token& token,
@@ -158,7 +158,7 @@ class FileIOBuiltinHandler {
     auto path = get_string(token, args.at(0));
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
-    const auto& listing = File::listDirectory(path);
+    const auto& listing = File::listDirectory(token, path);
     elements.reserve(listing.size());
 
     for (const auto& entry : listing) {
@@ -175,7 +175,7 @@ class FileIOBuiltinHandler {
     }
 
     auto path = get_string(token, args.at(0));
-    return File::makeDirectory(path);
+    return File::makeDirectory(token, path);
   }
 
   static k_value executeMakeDirectoryP(const Token& token,
@@ -186,7 +186,7 @@ class FileIOBuiltinHandler {
     }
 
     auto path = get_string(token, args.at(0));
-    return File::makeDirectoryP(path);
+    return File::makeDirectoryP(token, path);
   }
 
   static k_value executeRemovePath(const Token& token,
@@ -197,7 +197,7 @@ class FileIOBuiltinHandler {
     }
 
     auto path = get_string(token, args.at(0));
-    return File::removePath(path);
+    return File::removePath(token, path);
   }
 
   static k_value executeRemovePathF(const Token& token,
@@ -208,7 +208,7 @@ class FileIOBuiltinHandler {
     }
 
     auto path = get_string(token, args.at(0));
-    return static_cast<k_int>(File::removePathF(path));
+    return static_cast<k_int>(File::removePathF(token, path));
   }
 
   static k_value executeGetTempDirectory(const Token& token,
@@ -217,7 +217,7 @@ class FileIOBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.TempDir);
     }
 
-    return File::getTempDirectory();
+    return File::getTempDirectory(token);
   }
 
   static k_value executeGetFileSize(const Token& token,
@@ -227,7 +227,7 @@ class FileIOBuiltinHandler {
     }
 
     auto fileName = get_string(token, args.at(0));
-    return File::getFileSize(fileName);
+    return File::getFileSize(token, fileName);
   }
 
   static k_value executeFileExists(const Token& token,
@@ -237,7 +237,7 @@ class FileIOBuiltinHandler {
     }
 
     auto fileName = get_string(token, args.at(0));
-    return File::fileExists(fileName);
+    return File::fileExists(token, fileName);
   }
 
   static k_value executeIsDirectory(const Token& token,
@@ -247,7 +247,7 @@ class FileIOBuiltinHandler {
     }
 
     auto path = get_string(token, args.at(0));
-    return File::directoryExists(path);
+    return File::directoryExists(token, path);
   }
 
   static k_value executeGetFileAbsolutePath(const Token& token,
@@ -258,7 +258,7 @@ class FileIOBuiltinHandler {
     }
 
     auto fileName = get_string(token, args.at(0));
-    return File::getAbsolutePath(fileName);
+    return File::getAbsolutePath(token, fileName);
   }
 
   static k_value executeGetFileExtension(const Token& token,
@@ -269,7 +269,7 @@ class FileIOBuiltinHandler {
     }
 
     k_string fileName = get_string(token, args.at(0));
-    return File::getFileExtension(fileName);
+    return File::getFileExtension(token, fileName);
   }
 
   static k_value executeGetFileName(const Token& token,
@@ -279,7 +279,7 @@ class FileIOBuiltinHandler {
     }
 
     auto fileName = get_string(token, args.at(0));
-    return File::getFileName(fileName);
+    return File::getFileName(token, fileName);
   }
 
   static k_value executeGetCurrentDirectory(const Token& token,
@@ -310,7 +310,7 @@ class FileIOBuiltinHandler {
     }
 
     auto fileName = get_string(token, args.at(0));
-    return File::getParentPath(fileName);
+    return File::getParentPath(token, fileName);
   }
 
   static k_value executeGlob(const Token& token,
@@ -320,7 +320,7 @@ class FileIOBuiltinHandler {
     }
 
     auto glob = get_string(token, args.at(0));
-    auto matchedFiles = File::expandGlob(glob);
+    auto matchedFiles = File::expandGlob(token, glob);
     auto matchList = std::make_shared<List>();
     auto& elements = matchList->elements;
     elements.reserve(matchedFiles.size());
@@ -351,7 +351,7 @@ class FileIOBuiltinHandler {
 
     auto sourcePath = get_string(token, args.at(0));
     auto destinationPath = get_string(token, args.at(1));
-    return File::movePath(sourcePath, destinationPath);
+    return File::movePath(token, sourcePath, destinationPath);
   }
 
   static k_value executeReadFile(const Token& token,
@@ -361,7 +361,7 @@ class FileIOBuiltinHandler {
     }
 
     auto fileName = get_string(token, args.at(0));
-    return File::readFile(fileName);
+    return File::readFile(token, fileName);
   }
 
   static k_value executeReadLines(const Token& token,
@@ -371,7 +371,7 @@ class FileIOBuiltinHandler {
     }
 
     auto fileName = get_string(token, args.at(0));
-    auto lines = File::readLines(fileName);
+    auto lines = File::readLines(token, fileName);
 
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
@@ -395,17 +395,18 @@ class FileIOBuiltinHandler {
     auto& elements = list->elements;
 
     if (args.size() == 1) {
-      auto bytes = File::readBytes(fileName);
+      auto bytes = File::readBytes(token, fileName);
       elements.reserve(bytes.size());
 
       for (const auto& byte : bytes) {
-        elements.emplace_back(static_cast<k_int>(static_cast<unsigned char>(byte)));
+        elements.emplace_back(
+            static_cast<k_int>(static_cast<unsigned char>(byte)));
       }
     } else {
       auto offset = get_integer(token, args.at(1));
       auto size = get_integer(token, args.at(2));
 
-      auto bytes = File::readBytes(fileName, offset, size);      
+      auto bytes = File::readBytes(token, fileName, offset, size);
       elements.reserve(bytes.size());
 
       for (const auto& byte : bytes) {
@@ -424,7 +425,7 @@ class FileIOBuiltinHandler {
 
     auto fileName = get_string(token, args.at(0));
     auto value = args.at(1);
-    return File::writeToFile(fileName, value, true, true);
+    return File::writeToFile(token, fileName, value, true, true);
   }
 
   static k_value executeWriteText(const Token& token,
@@ -435,7 +436,7 @@ class FileIOBuiltinHandler {
 
     auto fileName = get_string(token, args.at(0));
     auto value = args.at(1);
-    return File::writeToFile(fileName, value, false, false);
+    return File::writeToFile(token, fileName, value, false, false);
   }
 
   static k_value executeWriteBytes(const Token& token,
@@ -463,7 +464,7 @@ class FileIOBuiltinHandler {
       bytes.emplace_back(static_cast<char>(std::get<k_int>(item)));
     }
 
-    File::writeBytes(fileName, bytes);
+    File::writeBytes(token, fileName, bytes);
     return true;
   }
 };

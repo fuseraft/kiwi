@@ -133,19 +133,19 @@ class LoggingBuiltinHandler {
 
     switch (builtin) {
       case KName::Builtin_Logging_Debug:
-        Logger::getInstance().debug(message, source);
+        Logger::getInstance().debug(term, message, source);
         break;
 
       case KName::Builtin_Logging_Error:
-        Logger::getInstance().error(message, source);
+        Logger::getInstance().error(term, message, source);
         break;
 
       case KName::Builtin_Logging_Info:
-        Logger::getInstance().info(message, source);
+        Logger::getInstance().info(term, message, source);
         break;
 
       case KName::Builtin_Logging_Warn:
-        Logger::getInstance().warn(message, source);
+        Logger::getInstance().warn(term, message, source);
         break;
 
       default:
