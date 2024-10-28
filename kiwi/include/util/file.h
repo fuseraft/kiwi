@@ -624,6 +624,7 @@ std::vector<char> File::readBytes(const k_string& filePath) {
 
   // Resize the buffer to the size of the file
   std::vector<char> buffer(fileSize);
+  file.rdbuf()->pubsetbuf(nullptr, 64 * 1024);
 
   // Seek back to the beginning of the file and read the content
   file.seekg(0, std::ios::beg);
