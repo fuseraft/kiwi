@@ -34,13 +34,14 @@ enum class ASTNodeType {
   LITERAL,
   MEMBER_ACCESS,
   MEMBER_ASSIGNMENT,
-  METHOD_CALL,  // WIP
+  METHOD_CALL,
   NEXT_STATEMENT,
   NO_OP,
   PACK_ASSIGNMENT,
   PACKAGE,
   PARSE_STATEMENT,  // WIP
   PRINT_STATEMENT,
+  PRINTXY_STATEMENT,
   PROGRAM,
   RANGE_LITERAL,
   REPEAT_LOOP,
@@ -607,6 +608,29 @@ class PrintNode : public ASTNode {
     print_depth(depth);
     std::cout << (printNewline ? "Print line:" : "Print:") << std::endl;
     expression->print(1 + depth);
+  }
+};
+
+class PrintXyNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> expression;  // Expression to print
+  std::unique_ptr<ASTNode> x;
+  std::unique_ptr<ASTNode> y;
+
+  PrintXyNode() : ASTNode(ASTNodeType::PRINTXY_STATEMENT) {}
+  PrintXyNode(std::unique_ptr<ASTNode> expression, std::unique_ptr<ASTNode> x,
+              std::unique_ptr<ASTNode> y)
+      : ASTNode(ASTNodeType::PRINTXY_STATEMENT),
+        expression(std::move(expression)),
+        x(std::move(x)),
+        y(std::move(y)) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "PrintXy:" << std::endl;
+    expression->print(1 + depth);
+    x->print(1 + depth);
+    y->print(1 + depth);
   }
 };
 

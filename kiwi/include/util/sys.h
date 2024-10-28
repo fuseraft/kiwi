@@ -66,6 +66,24 @@ class Sys {
     return geteuid();
 #endif
   }
+
+  static void printAt(int x, int y, char ch) {
+#ifdef _WIN32
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hConsole == INVALID_HANDLE_VALUE) {
+      std::cerr << "Error: Unable to get console handle." << std::endl;
+      return;
+    }
+
+    COORD pos;
+    pos.X = x;
+    pos.Y = y;
+    SetConsoleCursorPosition(hConsole, pos);
+    std::cout << ch;
+#else
+    std::cout << "\033[" << y + 1 << ";" << x + 1 << "H" << ch << std::flush;
+#endif
+  }
 };
 
 #endif
