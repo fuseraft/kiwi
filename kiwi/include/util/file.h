@@ -46,6 +46,7 @@ class File {
                          const std::vector<char>& data);
   static k_string readFile(const k_string& filePath);
   static std::vector<k_string> readLines(const k_string& filePath);
+  static std::vector<char> readBytes(const k_string& filePath);
   static std::vector<char> readBytes(const k_string& filePath,
                                      const k_int& offset, const k_int& size);
 
@@ -606,6 +607,32 @@ std::vector<k_string> File::readLines(const k_string& filePath) {
   }
 
   return list;
+}
+
+std::vector<char> File::readBytes(const k_string& filePath) {
+  // Open the file in binary mode and at the end to get its size
+  std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+
+  // Check if the file opened successfully
+  if (!file) {
+    Thrower<FileReadError> thrower;
+    thrower.throwError(filePath);
+  }
+
+  // Get the size of the file
+  size_t fileSize = static_cast<size_t>(file.tellg());
+
+  // Resize the buffer to the size of the file
+  std::vector<char> buffer(fileSize);
+
+  // Seek back to the beginning of the file and read the content
+  file.seekg(0, std::ios::beg);
+  if (!file.read(buffer.data(), fileSize)) {
+    Thrower<FileReadError> thrower;
+    thrower.throwError(filePath);
+  }
+
+  return buffer;
 }
 
 /// @brief Read bytes from a file.
