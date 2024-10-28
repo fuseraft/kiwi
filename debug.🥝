@@ -1,1 +1,39 @@
 # a script for debugging and experimentation (and fun!)
+
+fn triangle(height, c = ".")
+  rows = []
+
+  if c.type() != String || c.empty()
+    c = "."
+  end
+
+  # the base of the triangle will have (2 * height - 1) characters
+  max_width = 2 * height - 1
+
+  for row in std::range(0, height) do
+    # generate an odd number of chars for the row
+    num_chars = 2 * row + 1
+    tmp_row = c * num_chars
+    
+    # center
+    rows.push(string::center(tmp_row, max_width))
+  end
+
+  return rows.join("\n")
+end
+
+println triangle(9, ".")
+
+/#
+
+        .        
+       ...       
+      .....      
+     .......     
+    .........    
+   ...........   
+  .............  
+ ............... 
+.................
+
+#/
