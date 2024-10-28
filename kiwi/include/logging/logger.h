@@ -5,6 +5,7 @@
 #include <iostream>
 #include <mutex>
 #include <string>
+#include "parsing/tokens.h"
 #include "tracing/error.h"
 #include "util/file.h"
 #include "util/time.h"
@@ -42,20 +43,24 @@ class Logger {
       return LogMode::CONSOLE;
   }
 
-  void error(const std::string& message, const std::string& source = "") const {
-    log(LogLevel::ERROR_, message, source);
+  void error(const Token& token, const std::string& message,
+             const std::string& source = "") const {
+    log(token, LogLevel::ERROR_, message, source);
   }
 
-  void info(const std::string& message, const std::string& source = "") const {
-    log(LogLevel::INFO, message, source);
+  void info(const Token& token, const std::string& message,
+            const std::string& source = "") const {
+    log(token, LogLevel::INFO, message, source);
   }
 
-  void warn(const std::string& message, const std::string& source = "") const {
-    log(LogLevel::WARNING, message, source);
+  void warn(const Token& token, const std::string& message,
+            const std::string& source = "") const {
+    log(token, LogLevel::WARNING, message, source);
   }
 
-  void debug(const std::string& message, const std::string& source = "") const {
-    log(LogLevel::DEBUG, message, source);
+  void debug(const Token& token, const std::string& message,
+             const std::string& source = "") const {
+    log(token, LogLevel::DEBUG, message, source);
   }
 
   void setMinimumLogLevel(LogLevel level) {
@@ -98,8 +103,8 @@ class Logger {
 
   // TODO: it would be great to have a descriptor to describe log
   // output/formatting
-  void log(const LogLevel& level, const std::string& message,
-           const std::string& source) const {
+  void log(const Token& token, const LogLevel& level,
+           const std::string& message, const std::string& source) const {
     std::lock_guard<std::mutex> lock(logMutex);
 
     if (level < minLogLevel) {
@@ -114,7 +119,7 @@ class Logger {
         break;
       case LogMode::FILE:
         if (!logFilePath.empty()) {
-          File::writeToFile(logFilePath, logEntry, true, false);
+          File::writeToFile(token, logFilePath, logEntry, true, false);
         }
         break;
     }
