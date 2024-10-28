@@ -83,6 +83,7 @@ class Parser {
   std::unique_ptr<ASTNode> parseIdentifier(bool packed);
   std::unique_ptr<ASTNode> parseQualifiedIdentifier(const k_string& prefix);
   std::unique_ptr<ASTNode> parsePrint();
+  std::unique_ptr<ASTNode> parsePrintXy();
 
   // Utility methods to help with token matching and advancing the stream
   // Instead of passing streams everywhere, I'm going to just keep it local to the parser.
@@ -255,6 +256,9 @@ std::unique_ptr<ASTNode> Parser::parseKeyword() {
     case KName::KW_Print:
       return parsePrint();
 
+    case KName::KW_PrintXy:
+      return parsePrintXy();
+
     case KName::KW_For:
       return parseForLoop();
 
@@ -345,7 +349,8 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
     case KTokenType::OPERATOR:
     case KTokenType::IDENTIFIER:
     case KTokenType::STRING:
-      return parseExpression();
+      node = parseExpression();
+      break;
 
     default:
       throw TokenStreamError(getErrorToken(), "Unexpected token in statement.");
@@ -1055,6 +1060,53 @@ std::unique_ptr<ASTNode> Parser::parsePrint() {
   printNode->printNewline = tokenName() == KName::KW_PrintLn;
   match(KTokenType::KEYWORD);  // Consume 'print'/'println'
   printNode->expression = parseExpression();
+  return printNode;
+}
+
+std::unique_ptr<ASTNode> Parser::parsePrintXy() {
+  auto printNode = std::make_unique<PrintXyNode>();
+  match(KTokenType::KEYWORD);
+
+  if (!match(KTokenType::OPEN_PAREN)) {
+    throw SyntaxError(getErrorToken(), "Expected a value between '(' and ')'.");
+  }
+
+  while (kStream->canRead() && tokenType() != KTokenType::CLOSE_PAREN) {
+    if (tokenType() == KTokenType::COMMA) {
+      next();
+      continue;
+    }
+
+    if (!hasValue()) {
+      throw SyntaxError(getErrorToken(), "Expected an expression.");
+    }
+
+    if (!printNode->expression) {
+      printNode->expression = parseExpression();
+      continue;
+    }
+
+    if (!printNode->x) {
+      printNode->x = parseExpression();
+      continue;
+    }
+
+    if (!printNode->y) {
+      printNode->y = parseExpression();
+      continue;
+    }
+
+    if (printNode->expression && printNode->x && printNode->y) {
+      throw SyntaxError(getErrorToken(), "Wrong number of parameters for printxy.");
+    }
+  }
+
+  next(); // Consume ")"
+
+  if (!printNode->expression || !printNode->x || !printNode->y) {
+    throw SyntaxError(getErrorToken(), "Wrong number of parameters for printxy.");
+  }
+
   return printNode;
 }
 
