@@ -15,6 +15,8 @@
 
 #include "interpreter.h"
 
+const Token& engineToken = Token::createExternal();
+
 class Engine {
  public:
   Engine() {}
@@ -41,7 +43,7 @@ class Engine {
   }
 
   void printAST(const k_string& path) {
-    auto content = File::readFile(path);
+    auto content = File::readFile(engineToken, path);
     if (content.empty()) {
       return;
     }
@@ -57,7 +59,7 @@ class Engine {
   }
 
   int interpretScript(const k_string& path) {
-    auto content = File::readFile(path);
+    auto content = File::readFile(engineToken, path);
     if (content.empty()) {
       return 1;
     }

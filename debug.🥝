@@ -1,8 +1,17 @@
 # a script for debugging and experimentation (and fun!)
 
-path = "scratchpad/bigfile"
+fn benchmark_getbytes(path)
+  start = time::ticks()
+  file_bytes = fs::getbytes(path).size()
+  stop = time::ticks()
+  println "size: ${file_bytes} byte(s), duration: ${time::ticksms(stop - start)}ms"
+  return file_bytes
+end
+
 start = time::ticks()
-file_bytes = fs::getbytes(path)
-stop = time::ticks()
-println file_bytes.size()                            # 20255862
-println "duration: ${time::ticksms(stop - start)}ms" # 589.917ms
+total_bytes = 0
+for path in fs::glob("./**/*") do
+  total_bytes += benchmark_getbytes(path)
+end
+
+println "total byte(s): ${total_bytes}, total duration: ${time::ticksms(time::ticks() - start)}ms"

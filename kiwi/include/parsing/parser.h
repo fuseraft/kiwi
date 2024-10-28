@@ -1097,14 +1097,16 @@ std::unique_ptr<ASTNode> Parser::parsePrintXy() {
     }
 
     if (printNode->expression && printNode->x && printNode->y) {
-      throw SyntaxError(getErrorToken(), "Wrong number of parameters for printxy.");
+      throw SyntaxError(getErrorToken(),
+                        "Wrong number of parameters for printxy.");
     }
   }
 
-  next(); // Consume ")"
+  next();  // Consume ")"
 
   if (!printNode->expression || !printNode->x || !printNode->y) {
-    throw SyntaxError(getErrorToken(), "Wrong number of parameters for printxy.");
+    throw SyntaxError(getErrorToken(),
+                      "Wrong number of parameters for printxy.");
   }
 
   return printNode;

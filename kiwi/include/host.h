@@ -7,6 +7,8 @@
 #include "engine.h"
 #include "repl.h"
 
+const Token hostToken = Token::createExternal();
+
 class Host {
  public:
   Host(Engine& engine) : engine(engine), scripts(), args() {}
@@ -14,12 +16,12 @@ class Host {
   void disableLibraryLoad() { kiwilibEnabled = false; }
 
   void registerScript(const std::string& scriptPath) {
-    if (!File::fileExists(scriptPath)) {
+    if (!File::fileExists(hostToken, scriptPath)) {
       throw FileNotFoundError(scriptPath);
     }
 
-    std::string absolutePath = File::getAbsolutePath(scriptPath);
-    if (!File::fileExists(absolutePath)) {
+    std::string absolutePath = File::getAbsolutePath(hostToken, scriptPath);
+    if (!File::fileExists(hostToken, absolutePath)) {
       throw FileNotFoundError(absolutePath);
     }
 
@@ -75,10 +77,10 @@ class Host {
   void loadLibraryPackages(const std::string& path) {
     std::vector<std::string> kiwilib;
 #ifdef _WIN64
-    kiwilib = File::expandGlob(path + "\\*" + kiwi_extension);
+    kiwilib = File::expandGlob(hostToken, path + "\\*" + kiwi_extension);
 #else
-    kiwilib = File::expandGlob(path + "/*" + kiwi_extension);
-    auto extras = File::expandGlob(path + "/*.kiwi");
+    kiwilib = File::expandGlob(hostToken, path + "/*" + kiwi_extension);
+    auto extras = File::expandGlob(hostToken, path + "/*.kiwi");
     kiwilib.insert(kiwilib.end(), extras.begin(), extras.end());
 #endif
 
@@ -126,11 +128,11 @@ class Host {
   }
 
   int loadScript(const std::string& script) {
-    auto path = File::getAbsolutePath(script);
-    auto parentPath = File::getParentPath(path);
+    auto path = File::getAbsolutePath(hostToken, script);
+    auto parentPath = File::getParentPath(hostToken, path);
     auto libPath = File::joinPath(parentPath, "lib");
 
-    if (File::directoryExists(libPath)) {
+    if (File::directoryExists(hostToken, libPath)) {
       loadLibraryPackages(libPath);
     }
 
