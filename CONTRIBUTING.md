@@ -37,7 +37,7 @@ The process described here has several goals:
 
 Here's how to submit a pull request:
 
-1. **Fork** the repo and **create your branch** from `main`.
+1. **Fork** the repo and **create your branch** from `dev`.
 2. **If you've added code that should be tested, add tests.**
 3. **Ensure the test suite passes.**
 4. **Make sure your code lints.**
