@@ -57,7 +57,7 @@ Before you submit a pull request, please test your changes.
 
 - **Note**: I'm pretty relaxed on this.
 - Try to use the present tense ("Add feature" not "Added feature").
-- Try to use the imperative mood ("Move cursor to..." not "Moves cursor to...").
+- Try to use the imperative mood ("Move function to..." not "Moves function to...").
 - Limit the first line to 72 characters or less.
 - Reference issues and pull requests liberally after the first line.
 
