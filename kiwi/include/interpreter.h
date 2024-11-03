@@ -29,6 +29,8 @@ class KContext {
   std::unordered_map<int, k_string> serverHooks;
 
  public:
+  KContext() : server() {}
+
   bool hasPackage(const k_string& name) const {
     return packages.find(name) != packages.end();
   }
@@ -163,6 +165,7 @@ class KInterpreter {
   k_value visit(const PackageNode* node);
   k_value visit(const ImportNode* node);
   k_value visit(const ExportNode* node);
+  k_value visit(const ParseNode* node);
   k_value visit(const ExitNode* node);
   k_value visit(const ThrowNode* node);
   k_value visit(const ReturnNode* node);
@@ -403,6 +406,9 @@ k_value KInterpreter::interpret(const ASTNode* node) {
     case ASTNodeType::SLICE_EXPRESSION:
       return visit(static_cast<const SliceNode*>(node));
 
+    case ASTNodeType::PARSE_STATEMENT:
+      return visit(static_cast<const ParseNode*>(node));
+
     case ASTNodeType::NO_OP:
       break;
 
@@ -560,12 +566,13 @@ k_value KInterpreter::visit(const PackageNode* node) {
 
 void KInterpreter::importExternal(const k_string& packageName,
                                   const Token& token) {
-  auto content = File::readFile(token, packageName);
+  auto packagePath = File::tryGetExtensionless(token, packageName);
+  auto content = File::readFile(token, packagePath);
   if (content.empty()) {
     return;
   }
 
-  Lexer lexer(packageName, content);
+  Lexer lexer(packagePath, content);
 
   Parser p;
   auto tokenStream = lexer.getTokenStream();
@@ -614,6 +621,24 @@ k_value KInterpreter::visit(const ExportNode* node) {
 k_value KInterpreter::visit(const ImportNode* node) {
   auto packageName = interpret(node->packageName.get());
   importPackage(packageName, node->token);
+  return {};
+}
+
+k_value KInterpreter::visit(const ParseNode* node) {
+  auto content = interpret(node->parseValue.get());
+  
+  if (!std::holds_alternative<k_string>(content)) {
+    throw KiwiError::create(node->token, "Invalid parse expression.");
+  }
+  
+  Lexer lexer(node->token.getFile(), std::get<k_string>(content));
+
+  Parser p;
+  auto tokenStream = lexer.getTokenStream();
+  auto ast = p.parseTokenStream(tokenStream, true);
+
+  interpret(ast.get());
+
   return {};
 }
 

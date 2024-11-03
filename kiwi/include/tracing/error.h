@@ -20,6 +20,10 @@ class KiwiError : public std::exception {
     return KiwiError(Token::createEmpty(), "KiwiError", message);
   }
 
+  static KiwiError create(const Token& token, const std::string& message = "") {
+    return KiwiError(token, "KiwiError", message);
+  }
+
  private:
   Token token;
   std::string error;

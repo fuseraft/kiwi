@@ -16,13 +16,13 @@ const Token lexerToken = Token::createExternal();
 
 class Lexer {
  public:
-  Lexer(const std::string& file, const std::string& source, bool skipWS = true)
+  Lexer(const k_string& file, const k_string& source, bool skipWS = true)
       : source(source), pos(0), skipWS(skipWS), row(0), col(0) {
     fileId = FileRegistry::getInstance().registerFile(file);
     preprocessSource();
   }
 
-  Lexer(const int& file, const std::string& source, bool skipWS = true)
+  Lexer(const int& file, const k_string& source, bool skipWS = true)
       : source(source), pos(0), skipWS(skipWS), row(0), col(0) {
     fileId = file;
     preprocessSource();
@@ -100,7 +100,7 @@ class Lexer {
   }
 
  private:
-  std::string source;
+  k_string source;
   size_t pos;
   bool skipWS;
   int fileId;
@@ -109,7 +109,7 @@ class Lexer {
 
   void preprocessSource() {
     std::regex re(R"(\$\{([^}]+)\})");
-    std::string output;
+    k_string output;
 
     std::regex_replace(std::back_inserter(output), source.begin(), source.end(),
                        re, R"(" + $1.to_string() + ")");
@@ -209,7 +209,7 @@ class Lexer {
   }
 
   Token parseRegex() {
-    std::string regexPattern;
+    k_string regexPattern;
     bool escape = false;
 
     while (pos < source.length()) {
@@ -237,7 +237,7 @@ class Lexer {
             regexPattern += '/';
             break;
           default:
-            regexPattern += "\\" + std::string(1, currentChar);
+            regexPattern += "\\" + k_string(1, currentChar);
         }
         escape = false;
       } else if (currentChar == '\\') {
@@ -261,7 +261,7 @@ class Lexer {
     return createToken(KTokenType::STRING, KName::Regex, regexPattern);
   }
 
-  Token parseConditionalKeyword(const std::string& keyword) {
+  Token parseConditionalKeyword(const k_string& keyword) {
     auto st = KName::Default;
 
     if (keyword == Keywords.If) {
@@ -279,7 +279,7 @@ class Lexer {
     return createToken(KTokenType::CONDITIONAL, st, keyword);
   }
 
-  Token parseKeywordSpecific(const std::string& keyword) {
+  Token parseKeywordSpecific(const k_string& keyword) {
     auto st = KName::Default;
 
     if (keyword == Keywords.Abstract) {
@@ -359,7 +359,7 @@ class Lexer {
     return createToken(KTokenType::KEYWORD, st, keyword);
   }
 
-  Token parseKeyword(const std::string& keyword) {
+  Token parseKeyword(const k_string& keyword) {
     if (Keywords.is_conditional_keyword(keyword)) {
       return parseConditionalKeyword(keyword);
     } else if (keyword == Keywords.With) {
@@ -373,7 +373,7 @@ class Lexer {
     return parseKeywordSpecific(keyword);
   }
 
-  Token parseOperator(const std::string& op) {
+  Token parseOperator(const k_string& op) {
     auto st = KName::Default;
 
     if (op == Operators.Add) {
@@ -458,7 +458,7 @@ class Lexer {
   }
 
   Token parseUnspecified(char initialChar) {
-    std::string s(1, initialChar);
+    k_string s(1, initialChar);
 
     if (pos < source.length()) {
       char nextChar = source[pos];
@@ -498,7 +498,7 @@ class Lexer {
   }
 
   Token parseColon(char initialChar) {
-    std::string s(1, initialChar);
+    k_string s(1, initialChar);
 
     if (pos < source.length()) {
       char nextChar = source[pos];
@@ -540,7 +540,7 @@ class Lexer {
   }
 
   Token parseDot(char initialChar) {
-    std::string s(1, initialChar);
+    k_string s(1, initialChar);
 
     if (pos < source.length()) {
       char nextChar = source[pos];
@@ -554,7 +554,7 @@ class Lexer {
     return createToken(KTokenType::DOT, KName::Default, ".");
   }
 
-  Token parseTypeName(const std::string& typeName) {
+  Token parseTypeName(const k_string& typeName) {
     auto st = KName::Default;
 
     if (typeName == TypeNames.Integer) {
@@ -580,7 +580,7 @@ class Lexer {
     return createToken(KTokenType::TYPENAME, st, typeName);
   }
 
-  Token parseArgvBuiltin(const std::string& builtin) {
+  Token parseArgvBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == ArgvBuiltins.GetArgv) {
@@ -592,7 +592,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseConsoleBuiltin(const std::string& builtin) {
+  Token parseConsoleBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == ConsoleBuiltins.Input) {
@@ -604,7 +604,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseEncoderBuiltin(const std::string& builtin) {
+  Token parseEncoderBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == EncoderBuiltins.Base64Decode) {
@@ -620,7 +620,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseReflectorBuiltin(const std::string& builtin) {
+  Token parseReflectorBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == ReflectorBuiltins.RInspect) {
@@ -634,7 +634,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseSerializerBuiltin(const std::string& builtin) {
+  Token parseSerializerBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == SerializerBuiltins.Deserialize) {
@@ -646,7 +646,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseEnvBuiltin(const std::string& builtin) {
+  Token parseEnvBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == EnvBuiltins.GetEnvironmentVariable) {
@@ -664,7 +664,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseFileIOBuiltin(const std::string& builtin) {
+  Token parseFileIOBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == FileIOBuiltIns.AppendText) {
@@ -732,7 +732,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseListBuiltin(const std::string& builtin) {
+  Token parseListBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == ListBuiltins.Map) {
@@ -754,7 +754,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseMathBuiltin(const std::string& builtin) {
+  Token parseMathBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == MathBuiltins.Abs) {
@@ -856,7 +856,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parsePackageBuiltin(const std::string& builtin) {
+  Token parsePackageBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == PackageBuiltins.Home) {
@@ -866,7 +866,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseSysBuiltin(const std::string& builtin) {
+  Token parseSysBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == SysBuiltins.EffectiveUserId) {
@@ -880,7 +880,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseWebClientBuiltin(const std::string& builtin) {
+  Token parseWebClientBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == HttpBuiltins.Get) {
@@ -902,7 +902,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseWebServerBuiltin(const std::string& builtin) {
+  Token parseWebServerBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == WebServerBuiltins.Get) {
@@ -922,7 +922,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseLoggingBuiltin(const std::string& builtin) {
+  Token parseLoggingBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == LoggingBuiltins.Debug) {
@@ -948,7 +948,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseTimeBuiltin(const std::string& builtin) {
+  Token parseTimeBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == TimeBuiltins.AMPM) {
@@ -988,7 +988,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseBuiltinMethod(const std::string& builtin) {
+  Token parseBuiltinMethod(const k_string& builtin) {
     if (ArgvBuiltins.is_builtin(builtin)) {
       return parseArgvBuiltin(builtin);
     } else if (ConsoleBuiltins.is_builtin(builtin)) {
@@ -1024,7 +1024,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, KName::Default, builtin);
   }
 
-  Token parseKiwiBuiltin(const std::string& builtin) {
+  Token parseKiwiBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == KiwiBuiltins.BeginsWith) {
@@ -1182,14 +1182,14 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseIdentifier(const std::string& identifier) {
+  Token parseIdentifier(const k_string& identifier) {
     auto st = KName::Default;
 
     return createToken(KTokenType::IDENTIFIER, st, identifier);
   }
 
   Token parseIdentifier(char initialChar) {
-    std::string identifier(1, initialChar);
+    k_string identifier(1, initialChar);
     char lastChar = '\0';
 
     if (pos > 2) {
@@ -1217,7 +1217,7 @@ class Lexer {
   }
 
   Token parseLiteral(char initialChar) {
-    std::string literal(1, initialChar);
+    k_string literal(1, initialChar);
     char lastChar = initialChar;
 
     while (pos < source.length() &&
@@ -1232,7 +1232,7 @@ class Lexer {
       literal += getCurrentChar();
     }
 
-    if (literal.find('.') != std::string::npos) {
+    if (literal.find('.') != k_string::npos) {
       return createToken(KTokenType::LITERAL, KName::Default, literal,
                          std::stod(literal));
     } else {
@@ -1244,7 +1244,7 @@ class Lexer {
   }
 
   Token parseHexLiteral() {
-    std::string hexLiteral;
+    k_string hexLiteral;
     getCurrentChar();  // Move past 'x'
 
     while (pos < source.length() && isxdigit(source[pos])) {
@@ -1259,7 +1259,7 @@ class Lexer {
   }
 
   Token parseBinaryLiteral() {
-    std::string binaryLiteral;
+    k_string binaryLiteral;
     getCurrentChar();  // Move past 'b'
 
     while (pos < source.length() &&
@@ -1281,7 +1281,7 @@ class Lexer {
   }
 
   Token parseOctalLiteral() {
-    std::string octalLiteral;
+    k_string octalLiteral;
     getCurrentChar();  // Move past 'o'
 
     while (pos < source.length() && source[pos] >= '0' && source[pos] <= '7') {
@@ -1301,7 +1301,7 @@ class Lexer {
   }
 
   Token parseString() {
-    std::string str;
+    k_string str;
     bool escape = false;
 
     while (pos < source.length()) {
@@ -1343,7 +1343,7 @@ class Lexer {
       } else if (currentChar == '$' && peek() == '{') {
         getCurrentChar();  // Skip '$'
         getCurrentChar();  // Skip '{'
-        std::string interpolationExpression = parseInterpolatedExpression();
+        k_string interpolationExpression = parseInterpolatedExpression();
         str += interpolationExpression;
         continue;
       } else {
@@ -1361,7 +1361,7 @@ class Lexer {
   }
 
   Token parseBlockComment() {
-    std::string comment;
+    k_string comment;
     pos++;  // Skip the "/#"
 
     while (pos + 1 < source.length()) {
@@ -1378,7 +1378,7 @@ class Lexer {
   }
 
   Token parseComment() {
-    std::string comment;
+    k_string comment;
 
     while (pos < source.length() && source[pos] != '\n') {
       comment += getCurrentChar();
@@ -1387,8 +1387,8 @@ class Lexer {
     return createToken(KTokenType::COMMENT, KName::Default, comment);
   }
 
-  std::string parseInterpolatedExpression() {
-    std::string expression;
+  k_string parseInterpolatedExpression() {
+    k_string expression;
     int braceCount = 1;
 
     while (pos < source.length() && braceCount > 0) {
@@ -1411,11 +1411,11 @@ class Lexer {
     return "${" + expression + "}";
   }
 
-  Token createToken(KTokenType type, KName name, const std::string& text) {
+  Token createToken(KTokenType type, KName name, const k_string& text) {
     return Token::create(type, name, fileId, text, row, col);
   }
 
-  Token createToken(KTokenType type, KName name, const std::string& text,
+  Token createToken(KTokenType type, KName name, const k_string& text,
                     const k_value& value) {
     return Token::create(type, name, fileId, text, value, row, col);
   }
