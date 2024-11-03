@@ -21,8 +21,6 @@
 //TaskManager task;
 
 std::unordered_map<std::string, std::string> kiwiArgs;
-std::stack<std::shared_ptr<CallStackFrame>> callStack;
-std::stack<std::string> packageStack;
 bool SILENCE = false;
 const Token cliToken = Token::createExternal();
 

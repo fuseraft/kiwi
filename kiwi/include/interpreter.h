@@ -17,15 +17,105 @@
 #include "typing/value.h"
 #include "util/file.h"
 
-std::unordered_map<k_string, std::unique_ptr<KPackage>> packages;
-std::unordered_map<k_string, std::unique_ptr<KFunction>> functions;
-std::unordered_map<k_string, std::unique_ptr<KFunction>> methods;
-std::unordered_map<k_string, std::unique_ptr<KLambda>> lambdas;
-std::unordered_map<k_string, std::unique_ptr<KClass>> classes;
-std::stack<k_string> classStack;
-httplib::Server server;
-std::unordered_map<int, k_string> serverHooks;
-std::unordered_map<k_string, k_string> lambdaTable;
+class KContext {
+ private:
+  std::unordered_map<k_string, std::unique_ptr<KPackage>> packages;
+  std::unordered_map<k_string, std::unique_ptr<KFunction>> functions;
+  std::unordered_map<k_string, std::unique_ptr<KFunction>> methods;
+  std::unordered_map<k_string, std::unique_ptr<KLambda>> lambdas;
+  std::unordered_map<k_string, std::unique_ptr<KClass>> classes;
+  std::unordered_map<k_string, k_string> lambdaTable;
+  httplib::Server server;
+  std::unordered_map<int, k_string> serverHooks;
+
+ public:
+  bool hasPackage(const k_string& name) const {
+    return packages.find(name) != packages.end();
+  }
+
+  void addPackage(const k_string& name, std::unique_ptr<KPackage> package) {
+    packages[name] = std::move(package);
+  }
+
+  std::unordered_map<k_string, std::unique_ptr<KPackage>>& getPackages() {
+    return packages;
+  }
+
+  bool hasFunction(const k_string& name) const {
+    return functions.find(name) != functions.end();
+  }
+
+  void addFunction(const k_string& name, std::unique_ptr<KFunction> function) {
+    functions[name] = std::move(function);
+  }
+
+  std::unordered_map<k_string, std::unique_ptr<KFunction>>& getFunctions() {
+    return functions;
+  }
+
+  bool hasMethod(const k_string& name) const {
+    return methods.find(name) != methods.end();
+  }
+
+  void addMethod(const k_string& name, std::unique_ptr<KFunction> method) {
+    methods[name] = std::move(method);
+  }
+
+  std::unordered_map<k_string, std::unique_ptr<KFunction>>& getMethods() {
+    return methods;
+  }
+
+  bool hasLambda(const k_string& name) const {
+    return lambdas.find(name) != lambdas.end();
+  }
+
+  void addLambda(const k_string& name, std::unique_ptr<KLambda> lambda) {
+    lambdas[name] = std::move(lambda);
+  }
+
+  std::unordered_map<k_string, std::unique_ptr<KLambda>>& getLambdas() {
+    return lambdas;
+  }
+
+  bool hasClass(const k_string& name) const {
+    return classes.find(name) != classes.end();
+  }
+
+  void addClass(const k_string& name, std::unique_ptr<KClass> clazz) {
+    classes[name] = std::move(clazz);
+  }
+
+  const std::unordered_map<k_string, std::unique_ptr<KClass>>& getClasses()
+      const {
+    return classes;
+  }
+
+  bool hasMappedLambda(const k_string& name) const {
+    return lambdaTable.find(name) != lambdaTable.end();
+  }
+
+  void addMappedLambda(const k_string& name, const k_string& mappedName) {
+    lambdaTable[name] = mappedName;
+  }
+
+  const k_string& getMappedLambda(const k_string& name) {
+    return lambdaTable.at(name);
+  }
+
+  void addWebHook(const k_int& webhookId, const k_string& lambda) {
+    serverHooks[webhookId] = lambda;
+  }
+
+  const k_string& getWebHook(const k_int& webhookId) {
+    return serverHooks[webhookId];
+  }
+
+  std::unordered_map<int, k_string>& getWebHooks() { return serverHooks; }
+
+  httplib::Server& getServer() {
+    return server;
+  }
+};
 
 class KInterpreter {
  public:
@@ -34,11 +124,11 @@ class KInterpreter {
   k_value interpret(const ASTNode* node);
 
  private:
-  std::shared_ptr<CallStackFrame> createFrame(bool isMethodInvocation);
-  k_value dropFrame();
+  KContext ctx;
+  std::stack<std::shared_ptr<CallStackFrame>> callStack;
+  std::stack<std::string> packageStack;
+  std::stack<k_string> classStack;
 
-  k_string getTemporaryId();
-  k_string id(const ASTNode* node);
   k_value visit(const ProgramNode* node);
   k_value visit(const SelfNode* node);
   k_value visit(const PackAssignmentNode* node);
@@ -79,40 +169,50 @@ class KInterpreter {
   k_value visit(const IndexingNode* node);
   k_value visit(const SliceNode* node);
 
+  std::shared_ptr<CallStackFrame> createFrame(bool isMethodInvocation);
+  k_value dropFrame();
+
+  k_string getTemporaryId();
+  k_string id(const ASTNode* node);
+
   void importPackage(const k_value& packageName, const Token& token);
   void importExternal(const k_string& packageName, const Token& token);
+
+  KCallableType getCallable(const Token& token, const std::string& name) const;
+  std::vector<k_value> getMethodCallArguments(
+      const std::vector<std::unique_ptr<ASTNode>>& args);
   k_value callBuiltinMethod(const FunctionCallNode* node);
   k_value callClassMethod(const MethodCallNode* node, const k_class& clazz);
-  k_value executeClassMethod(
-      std::unordered_map<k_string, std::unique_ptr<KFunction>>& methods,
-      k_string& methodName, std::shared_ptr<CallStackFrame>& frame,
-      const MethodCallNode* node, const k_class& clazz);
   k_value callObjectBaseMethod(const MethodCallNode* node,
                                const std::shared_ptr<Object>& obj,
                                const k_string& baseClass,
                                const k_string& methodName);
   k_value callObjectMethod(const MethodCallNode* node,
                            const std::shared_ptr<Object>& obj);
-  k_value executeInstanceMethod(const FunctionCallNode* node);
-  k_value executeInstanceMethodFunction(
-      std::unordered_map<k_string, std::unique_ptr<KFunction>>& clazzMethods,
-      const FunctionCallNode* node);
-  k_value executeFunctionBody(const std::unique_ptr<KFunction>& function);
   k_value callLambda(const Token& token, const k_string& lambdaName,
                      const std::vector<std::unique_ptr<ASTNode>>& arguments);
   k_value callFunction(const std::unique_ptr<KFunction>& function,
                        const std::vector<std::unique_ptr<ASTNode>>& arguments,
                        const Token& token, const std::string& functionName);
-  KCallableType getCallable(const Token& token, const std::string& name) const;
+
   std::unique_ptr<KFunction> createFunction(const FunctionDeclarationNode* node,
                                             const std::string& name);
+
+  k_value executeClassMethod(
+      std::unordered_map<k_string, std::unique_ptr<KFunction>>& methods,
+      k_string& methodName, std::shared_ptr<CallStackFrame>& frame,
+      const MethodCallNode* node, const k_class& clazz);
+  k_value executeInstanceMethod(const FunctionCallNode* node);
+  k_value executeInstanceMethodFunction(
+      std::unordered_map<k_string, std::unique_ptr<KFunction>>& clazzMethods,
+      const FunctionCallNode* node);
+  k_value executeFunctionBody(const std::unique_ptr<KFunction>& function);
+
   k_value doSliceAssignment(const Token& token, k_value& slicedObj,
                             const SliceIndex& slice, k_value& newValue);
   k_value handleNestedIndexing(const IndexingNode* indexExpr, k_value baseObj,
                                const KName& op, const k_value& newValue);
   SliceIndex getSlice(const SliceNode* node, k_value object);
-  std::vector<k_value> getMethodCallArguments(
-      const std::vector<std::unique_ptr<ASTNode>>& args);
   bool shouldUpdateFrameVariables(
       const k_string& varName, const std::shared_ptr<CallStackFrame> nextFrame);
   void updateVariablesInCallerFrame(
@@ -125,12 +225,15 @@ class KInterpreter {
   k_value listSlice(const Token& token, const SliceIndex& slice,
                     const k_value& value);
 
+
   k_value listLoop(const ForLoopNode* node, const k_list& list);
   k_value hashLoop(const ForLoopNode* node, const k_hash& hash);
+
   k_value listSum(const k_list& list);
   k_value listMin(const Token& token, const k_list& list);
   k_value listMax(const Token& token, const k_list& list);
   k_value listSort(const k_list& list);
+
   k_value lambdaEach(std::unique_ptr<KLambda>& lambda, const k_list& list);
   k_value lambdaNone(std::unique_ptr<KLambda>& lambda, const k_list& list);
   k_value lambdaMap(std::unique_ptr<KLambda>& lambda, const k_list& list);
@@ -138,6 +241,7 @@ class KInterpreter {
                        const k_list& list);
   k_value lambdaSelect(std::unique_ptr<KLambda>& lambda, const k_list& list);
   k_value lambdaAll(std::unique_ptr<KLambda>& lambda, const k_list& list);
+
   k_value interpretListBuiltin(const Token& token, k_value& object,
                                const KName& op, std::vector<k_value> arguments);
 
@@ -166,11 +270,12 @@ class KInterpreter {
                                    std::vector<k_value>& args);
   k_value interpretWebServerPublic(const Token& token,
                                    std::vector<k_value>& args);
+
   int getNextWebServerHook(const Token& token, k_value& arg);
+  k_hash getWebServerRequestHash(const httplib::Request& req);
   void handleWebServerRequest(int webhookID, k_hash requestHash,
                               k_string& redirect, k_string& content,
                               k_string& contentType, int& status);
-  k_hash getWebServerRequestHash(const httplib::Request& req);
   std::vector<k_string> getWebServerEndpointList(const Token& term,
                                                  k_value& arg);
 };
@@ -448,7 +553,7 @@ k_value KInterpreter::visit(const ThrowNode* node) {
 
 k_value KInterpreter::visit(const PackageNode* node) {
   auto packageName = id(node->packageName.get());
-  packages[packageName] = std::make_unique<KPackage>(node);
+  ctx.addPackage(packageName, std::make_unique<KPackage>(node));
 
   return {};
 }
@@ -480,7 +585,7 @@ void KInterpreter::importPackage(const k_value& packageName,
 
   auto packageNameValue = std::get<k_string>(packageName);
 
-  if (packages.find(packageNameValue) == packages.end()) {
+  if (!ctx.hasPackage(packageNameValue)) {
     // Check if external package.
     if (File::isScript(token, packageNameValue)) {
       return importExternal(packageNameValue, token);
@@ -489,7 +594,7 @@ void KInterpreter::importPackage(const k_value& packageName,
   }
 
   packageStack.push(packageNameValue);
-  const auto& package = packages[packageNameValue];
+  const auto& package = ctx.getPackages().at(packageNameValue);
   const auto& decl = *package->decl;
 
   for (const auto& stmt : decl.body) {
@@ -854,7 +959,7 @@ k_value KInterpreter::visit(const AssignmentNode* node) {
     if (std::holds_alternative<k_lambda>(value)) {
       // WIP: need to work on this.
       const auto& lambdaId = std::get<k_lambda>(value)->identifier;
-      lambdas[name] = std::move(lambdas[lambdaId]);
+      ctx.addLambda(name, std::move(ctx.getLambdas().at(lambdaId)));
       return value;
     } else {
       if (frame->inObjectContext() &&
@@ -967,13 +1072,13 @@ k_value KInterpreter::visit(const IdentifierNode* node) {
 
   if (frame->hasVariable(node->name)) {
     return frame->variables[node->name];
-  } else if (classes.find(node->name) != classes.end()) {
+  } else if (ctx.hasClass(node->name)) {
     return std::make_shared<ClassRef>(node->name);
-  } else if (lambdas.find(node->name) != lambdas.end()) {
+  } else if (ctx.hasLambda(node->name)) {
     return std::make_shared<LambdaRef>(node->name);
-  } else if (lambdaTable.find(node->name) != lambdaTable.end()) {
-    const auto& mappedId = lambdaTable[node->name];
-    if (lambdas.find(mappedId) != lambdas.end()) {
+  } else if (ctx.hasMappedLambda(node->name)) {
+    const auto& mappedId = ctx.getMappedLambda(node->name);
+    if (ctx.hasLambda(mappedId)) {
       return std::make_shared<LambdaRef>(mappedId);
     }
   }
@@ -1645,8 +1750,8 @@ k_value KInterpreter::visit(const LambdaNode* node) {
   auto lambda = std::make_unique<KLambda>(node);
   lambda->parameters = parameters;
   lambda->defaultParameters = defaultParameters;
-  lambdas[tmpId] = std::move(lambda);
-  lambdaTable[tmpId] = tmpId;
+  ctx.addLambda(tmpId, std::move(lambda));
+  ctx.addMappedLambda(tmpId, tmpId);
 
   return std::make_shared<LambdaRef>(tmpId);
 }
@@ -1658,7 +1763,7 @@ k_value KInterpreter::visit(const ClassNode* node) {
 
   if (!node->baseClass.empty()) {
     clazz->baseClass = node->baseClass;
-    if (classes.find(clazz->baseClass) == classes.end()) {
+    if (!ctx.hasClass(clazz->baseClass)) {
       throw ClassUndefinedError(node->token, clazz->baseClass);
     }
   }
@@ -1671,15 +1776,15 @@ k_value KInterpreter::visit(const ClassNode* node) {
     visit(funcDecl);
 
     if (methodName == Keywords.Ctor) {
-      clazz->methods[Keywords.New] = std::move(methods[methodName]);
+      clazz->methods[Keywords.New] = std::move(ctx.getMethods().at(methodName));
     } else {
-      clazz->methods[methodName] = std::move(methods[methodName]);
+      clazz->methods[methodName] = std::move(ctx.getMethods().at(methodName));
     }
   }
 
-  classes[className] = std::move(clazz);
+  ctx.addClass(className, std::move(clazz));
   classStack.pop();
-  methods.clear();
+  ctx.getMethods().clear();
 
   return {};
 }
@@ -1692,9 +1797,9 @@ k_value KInterpreter::visit(const FunctionDeclarationNode* node) {
   }
 
   if (!classStack.empty()) {
-    methods[name] = createFunction(node, name);
+    ctx.addMethod(name, createFunction(node, name));
   } else {
-    functions[name] = createFunction(node, name);
+    ctx.addFunction(name, createFunction(node, name));
   }
 
   return {};
@@ -1734,7 +1839,7 @@ k_value KInterpreter::executeInstanceMethod(const FunctionCallNode* node) {
   }
 
   auto& obj = frame->getObjectContext();
-  auto& clazz = classes[obj->className];
+  auto& clazz = ctx.getClasses().at(obj->className);
   auto& clazzMethods = clazz->methods;
   const auto functionName = node->functionName;
 
@@ -1744,7 +1849,7 @@ k_value KInterpreter::executeInstanceMethod(const FunctionCallNode* node) {
       throw UnimplementedMethodError(node->token, clazz->name, functionName);
     }
 
-    auto& baseClass = classes[clazz->baseClass];
+    auto& baseClass = ctx.getClasses().at(clazz->baseClass);
     auto& baseClassMethods = baseClass->methods;
 
     if (baseClassMethods.find(functionName) == baseClassMethods.end()) {
@@ -1779,7 +1884,7 @@ k_value KInterpreter::executeInstanceMethodFunction(
 
     if (std::holds_alternative<k_lambda>(argValue)) {
       auto lambdaId = std::get<k_lambda>(argValue)->identifier;
-      lambdaTable[param.first] = lambdaId;
+      ctx.addMappedLambda(param.first, lambdaId);
     } else {
       functionFrame->variables[param.first] = argValue;
     }
@@ -1810,7 +1915,7 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
     if (callableType == KCallableType::Method) {
       result = executeInstanceMethod(node);
     } else if (callableType == KCallableType::Function) {
-      const auto& func = functions[node->functionName];
+      const auto& func = ctx.getFunctions().at(node->functionName);
       auto defaultParameters = func->defaultParameters;
       auto functionFrame = createFrame();
 
@@ -1829,7 +1934,7 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
 
         if (std::holds_alternative<k_lambda>(argValue)) {
           auto lambdaId = std::get<k_lambda>(argValue)->identifier;
-          lambdaTable[param.first] = lambdaId;
+          ctx.addMappedLambda(param.first, lambdaId);
         } else {
           functionFrame->variables[param.first] = argValue;
         }
@@ -1865,13 +1970,13 @@ k_value KInterpreter::callLambda(
   k_string targetLambda = lambdaName;
   k_value result;
 
-  if (lambdas.find(targetLambda) == lambdas.end()) {
-    if (lambdaTable.find(targetLambda) != lambdaTable.end()) {
-      targetLambda = lambdaTable[targetLambda];
+  if (!ctx.hasLambda(targetLambda)) {
+    if (ctx.hasMappedLambda(targetLambda)) {
+      targetLambda = ctx.getMappedLambda(targetLambda);
     }
   }
 
-  const auto& func = lambdas[targetLambda];
+  const auto& func = ctx.getLambdas().at(targetLambda);
   auto defaultParameters = func->defaultParameters;
 
   for (size_t i = 0; i < func->parameters.size(); ++i) {
@@ -1888,7 +1993,7 @@ k_value KInterpreter::callLambda(
 
     if (std::holds_alternative<k_lambda>(argValue)) {
       auto lambdaId = std::get<k_lambda>(argValue)->identifier;
-      lambdaTable[param.first] = lambdaId;
+      ctx.addMappedLambda(param.first, lambdaId);
     } else {
       lambdaFrame->variables[param.first] = argValue;
     }
@@ -1911,15 +2016,15 @@ k_value KInterpreter::callLambda(
 
 KCallableType KInterpreter::getCallable(const Token& token,
                                         const std::string& name) const {
-  if (functions.find(name) != functions.end()) {
+  if (ctx.hasFunction(name)) {
     return KCallableType::Function;
-  } else if (lambdas.find(name) != lambdas.end()) {
+  } else if (ctx.hasLambda(name)) {
     return KCallableType::Lambda;
   } else if (KiwiBuiltins.is_builtin_method(name)) {
     return KCallableType::Builtin;
   }
 
-  if (lambdaTable.find(name) != lambdaTable.end()) {
+  if (ctx.hasMappedLambda(name)) {
     return KCallableType::Lambda;
   }
 
@@ -1927,7 +2032,7 @@ KCallableType KInterpreter::getCallable(const Token& token,
 
   if (frame->inObjectContext()) {
     auto& obj = frame->getObjectContext();
-    auto& clazz = classes[obj->className];
+    auto& clazz = ctx.getClasses().at(obj->className);
     auto& clazzMethods = clazz->methods;
 
     if (clazzMethods.find(name) != clazzMethods.end()) {
@@ -1936,7 +2041,7 @@ KCallableType KInterpreter::getCallable(const Token& token,
 
     // check the base
     if (!clazz->baseClass.empty()) {
-      auto& baseClass = classes[clazz->baseClass];
+      auto& baseClass = ctx.getClasses().at(clazz->baseClass);
       auto& baseClassMethods = baseClass->methods;
 
       if (baseClassMethods.find(name) != baseClassMethods.end()) {
@@ -1971,7 +2076,7 @@ k_value KInterpreter::callFunction(
 
     if (std::holds_alternative<k_lambda>(argValue)) {
       auto lambdaId = std::get<k_lambda>(argValue)->identifier;
-      lambdaTable[param.first] = lambdaId;
+      ctx.addMappedLambda(param.first, lambdaId);
     } else {
       functionFrame->variables[param.first] = argValue;
     }
@@ -2040,7 +2145,7 @@ k_value KInterpreter::callObjectBaseMethod(const MethodCallNode* node,
                                            const std::shared_ptr<Object>& obj,
                                            const k_string& baseClass,
                                            const k_string& methodName) {
-  const auto& clazz = classes[baseClass];
+  const auto& clazz = ctx.getClasses().at(baseClass);
   auto& function = clazz->methods[methodName];
   bool isCtor = methodName == Keywords.New;
 
@@ -2080,7 +2185,7 @@ k_value KInterpreter::callObjectBaseMethod(const MethodCallNode* node,
 
 k_value KInterpreter::callObjectMethod(const MethodCallNode* node,
                                        const std::shared_ptr<Object>& obj) {
-  const auto& clazz = classes[obj->className];
+  const auto& clazz = ctx.getClasses().at(obj->className);
   auto methodName = node->methodName;
 
   if (clazz->methods.find(methodName) == clazz->methods.end()) {
@@ -2090,7 +2195,7 @@ k_value KInterpreter::callObjectMethod(const MethodCallNode* node,
       throw UnimplementedMethodError(node->token, obj->className, methodName);
     }
 
-    if (classes.find(baseClass) == classes.end()) {
+    if (!ctx.hasClass(baseClass)) {
       throw ClassUndefinedError(node->token, baseClass);
     }
 
@@ -2138,7 +2243,7 @@ k_value KInterpreter::callClassMethod(const MethodCallNode* node,
                                       const k_class& clazz) {
   auto methodName = node->methodName;
   auto& frame = callStack.top();
-  const auto& kclass = classes[clazz->identifier];
+  const auto& kclass = ctx.getClasses().at(clazz->identifier);
   auto& methods = kclass->methods;
 
   // check base
@@ -2148,7 +2253,7 @@ k_value KInterpreter::callClassMethod(const MethodCallNode* node,
                                      methodName);
     }
 
-    const auto& baseClass = classes[kclass->baseClass];
+    const auto& baseClass = ctx.getClasses().at(kclass->baseClass);
     auto& baseClassMethods = baseClass->methods;
 
     if (baseClassMethods.find(methodName) == baseClassMethods.end()) {
@@ -2246,10 +2351,10 @@ k_value KInterpreter::interpretWebServerBuiltin(const Token& token,
 void KInterpreter::handleWebServerRequest(int webhookID, k_hash requestHash,
                                           k_string& redirect, k_string& content,
                                           k_string& contentType, int& status) {
-  auto webhook = serverHooks[webhookID];
+  auto webhook = ctx.getWebHook(webhookID);
   auto webhookFrame = createFrame();
 
-  auto& lambda = lambdas[webhook];
+  auto& lambda = ctx.getLambdas().at(webhook);
 
   for (const auto& param : lambda->parameters) {
     webhookFrame->variables[param.first] = requestHash;
@@ -2312,18 +2417,18 @@ int KInterpreter::getNextWebServerHook(const Token& token, k_value& arg) {
   }
 
   auto lambdaName = std::get<k_lambda>(arg)->identifier;
-  if (lambdas.find(lambdaName) == lambdas.end()) {
-    if (lambdaTable.find(lambdaName) != lambdaTable.end()) {
-      lambdaName = lambdaTable[lambdaName];
+  if (!ctx.hasLambda(lambdaName)) {
+    if (ctx.hasMappedLambda(lambdaName)) {
+      lambdaName = ctx.getMappedLambda(lambdaName);
     }
   }
   int webhookID = 0;
 
-  if (!serverHooks.empty()) {
-    webhookID = static_cast<int>(serverHooks.size());
+  if (!ctx.getWebHooks().empty()) {
+    webhookID = static_cast<int>(ctx.getWebHooks().size());
   }
 
-  serverHooks[webhookID] = lambdaName;
+  ctx.addWebHook(webhookID, lambdaName);
   return webhookID;
 }
 
@@ -2337,7 +2442,7 @@ k_value KInterpreter::interpretWebServerGet(const Token& token,
   int webhookID = getNextWebServerHook(token, args.at(1));
 
   for (const auto& endpoint : endpointList) {
-    server.Get(endpoint, [this, webhookID](const httplib::Request& req,
+    ctx.getServer().Get(endpoint, [this, webhookID](const httplib::Request& req,
                                            httplib::Response& res) {
       auto requestHash = getWebServerRequestHash(req);
 
@@ -2365,7 +2470,7 @@ k_value KInterpreter::interpretWebServerPost(const Token& token,
   int webhookID = getNextWebServerHook(token, args.at(1));
 
   for (const auto& endpoint : endpointList) {
-    server.Post(endpoint, [this, webhookID](const httplib::Request& req,
+    ctx.getServer().Post(endpoint, [this, webhookID](const httplib::Request& req,
                                             httplib::Response& res) {
       auto requestHash = getWebServerRequestHash(req);
 
@@ -2396,7 +2501,7 @@ k_value KInterpreter::interpretWebServerListen(const Token& token,
   auto host = get_string(token, args.at(0));
   auto port = get_integer(token, args.at(1));
 
-  server.listen(host, static_cast<int>(port));
+  ctx.getServer().listen(host, static_cast<int>(port));
 
   auto hash = std::make_shared<Hash>();
   hash->add("host", host);
@@ -2418,7 +2523,7 @@ k_value KInterpreter::interpretWebServerPublic(const Token& token,
     return false;
   }
 
-  server.set_mount_point(endpoint, publicDir);
+  ctx.getServer().set_mount_point(endpoint, publicDir);
 
   return true;
 }
@@ -2519,20 +2624,20 @@ k_value KInterpreter::interpretReflectorRList(const Token& token,
   auto rlistFunctions = std::make_shared<List>();
   auto rlistStack = std::make_shared<List>();
 
-  rlistPackages->elements.reserve(packages.size());
-  rlistClasses->elements.reserve(classes.size());
-  rlistFunctions->elements.reserve(functions.size());
+  rlistPackages->elements.reserve(ctx.getPackages().size());
+  rlistClasses->elements.reserve(ctx.getClasses().size());
+  rlistFunctions->elements.reserve(ctx.getFunctions().size());
   rlistStack->elements.reserve(callStack.size());
 
-  for (const auto& m : methods) {
+  for (const auto& m : ctx.getMethods()) {
     rlistFunctions->elements.emplace_back(m.first);
   }
 
-  for (const auto& p : packages) {
+  for (const auto& p : ctx.getPackages()) {
     rlistPackages->elements.emplace_back(p.first);
   }
 
-  for (const auto& c : classes) {
+  for (const auto& c : ctx.getClasses()) {
     rlistClasses->elements.emplace_back(c.first);
   }
 
@@ -2659,12 +2764,12 @@ k_value KInterpreter::interpretListBuiltin(const Token& token, k_value& object,
     }
     auto lambdaRef = std::get<k_lambda>(arg);
 
-    if (lambdas.find(lambdaRef->identifier) == lambdas.end()) {
+    if (!ctx.hasLambda(lambdaRef->identifier)) {
       throw InvalidOperationError(
           token, "Unrecognized lambda '" + lambdaRef->identifier + "'.");
     }
 
-    auto& lambda = lambdas[lambdaRef->identifier];
+    auto& lambda = ctx.getLambdas().at(lambdaRef->identifier);
     const auto isReturnSet = callStack.top()->isFlagSet(FrameFlags::Return);
     k_value result;
 
@@ -2710,12 +2815,12 @@ k_value KInterpreter::interpretListBuiltin(const Token& token, k_value& object,
     }
     auto lambdaRef = std::get<k_lambda>(arg);
 
-    if (lambdas.find(lambdaRef->identifier) == lambdas.end()) {
+    if (!ctx.hasLambda(lambdaRef->identifier)) {
       throw InvalidOperationError(
           token, "Unrecognized lambda '" + lambdaRef->identifier + "'.");
     }
 
-    auto& lambda = lambdas[lambdaRef->identifier];
+    auto& lambda = ctx.getLambdas().at(lambdaRef->identifier);
 
     return lambdaReduce(lambda, arguments.at(0), list);
   }

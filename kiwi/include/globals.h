@@ -33,7 +33,5 @@ extern Logger logger;
 //extern TaskManager task;
 
 extern std::unordered_map<std::string, std::string> kiwiArgs;
-extern std::stack<std::shared_ptr<CallStackFrame>> callStack;
-extern std::stack<std::string> packageStack;
 
 #endif
