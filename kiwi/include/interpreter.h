@@ -29,7 +29,7 @@ class KContext {
   std::unordered_map<int, k_string> serverHooks;
 
  public:
-  KContext() : server() {}
+  KContext() : server(), serverHooks() {}
 
   bool hasPackage(const k_string& name) const {
     return packages.find(name) != packages.end();
@@ -114,9 +114,7 @@ class KContext {
 
   std::unordered_map<int, k_string>& getWebHooks() { return serverHooks; }
 
-  httplib::Server& getServer() {
-    return server;
-  }
+  httplib::Server& getServer() { return server; }
 };
 
 class KInterpreter {
@@ -130,6 +128,7 @@ class KInterpreter {
   std::stack<std::shared_ptr<CallStackFrame>> callStack;
   std::stack<std::string> packageStack;
   std::stack<k_string> classStack;
+  const int SAFEMODE_MAX_ITERATIONS = 1000000;
 
   k_value visit(const ProgramNode* node);
   k_value visit(const SelfNode* node);
@@ -227,7 +226,6 @@ class KInterpreter {
                       const k_value& value);
   k_value listSlice(const Token& token, const SliceIndex& slice,
                     const k_value& value);
-
 
   k_value listLoop(const ForLoopNode* node, const k_list& list);
   k_value hashLoop(const ForLoopNode* node, const k_hash& hash);
@@ -626,11 +624,11 @@ k_value KInterpreter::visit(const ImportNode* node) {
 
 k_value KInterpreter::visit(const ParseNode* node) {
   auto content = interpret(node->parseValue.get());
-  
+
   if (!std::holds_alternative<k_string>(content)) {
     throw KiwiError::create(node->token, "Invalid parse expression.");
   }
-  
+
   Lexer lexer(node->token.getFile(), std::get<k_string>(content));
 
   Parser p;
@@ -1173,9 +1171,6 @@ k_value KInterpreter::visit(const HashLiteralNode* node) {
 }
 
 k_value KInterpreter::visit(const PrintNode* node) {
-  if (SILENCE) {
-    return {};
-  }
   auto value = interpret(node->expression.get());
   if (node->printNewline) {
     std::cout << Serializer::serialize(value) << std::endl;
@@ -1187,9 +1182,6 @@ k_value KInterpreter::visit(const PrintNode* node) {
 }
 
 k_value KInterpreter::visit(const PrintXyNode* node) {
-  if (SILENCE) {
-    return {};
-  }
   auto value = interpret(node->expression.get());
   auto x = interpret(node->x.get());
   auto y = interpret(node->y.get());
@@ -1550,7 +1542,18 @@ k_value KInterpreter::visit(const WhileLoopNode* node) {
   frame->setFlag(FrameFlags::InLoop);
   auto fallOut = false;
 
+  auto iterations = 0;
+
   while (MathImpl.is_truthy(interpret(node->condition.get()))) {
+    if (SAFEMODE) {
+      ++iterations;
+
+      if (iterations == SAFEMODE_MAX_ITERATIONS) {
+        throw InfiniteLoopError(node->token,
+                                "Detected an infinite loop in safemode.");
+      }
+    }
+
     for (const auto& stmt : node->body) {
       if (stmt->type != ASTNodeType::NEXT_STATEMENT &&
           stmt->type != ASTNodeType::BREAK_STATEMENT) {
@@ -2190,8 +2193,8 @@ k_value KInterpreter::callObjectBaseMethod(const MethodCallNode* node,
   }
 
   if (function->isPrivate) {
-    throw InvalidContextError(node->token,
-                              "Cannot invoke private method outside of class.");
+    throw InvalidContextError(
+        node->token, "Cannot invoke private method outside of struct.");
   }
 
   auto result =
@@ -2246,8 +2249,8 @@ k_value KInterpreter::callObjectMethod(const MethodCallNode* node,
   }
 
   if (function->isPrivate) {
-    throw InvalidContextError(node->token,
-                              "Cannot invoke private method outside of class.");
+    throw InvalidContextError(
+        node->token, "Cannot invoke private method outside of struct.");
   }
 
   auto result =
@@ -2309,7 +2312,7 @@ k_value KInterpreter::executeClassMethod(
 
   if (!function->isStatic && !isCtor) {
     throw InvalidContextError(node->token,
-                              "Cannot invoke non-static method on class.");
+                              "Cannot invoke non-static method on struct.");
   }
 
   if (isCtor) {
@@ -2385,6 +2388,8 @@ void KInterpreter::handleWebServerRequest(int webhookID, k_hash requestHash,
     webhookFrame->variables[param.first] = requestHash;
     break;
   }
+
+  callStack.push(webhookFrame);
 
   k_value result;
 
@@ -2468,7 +2473,7 @@ k_value KInterpreter::interpretWebServerGet(const Token& token,
 
   for (const auto& endpoint : endpointList) {
     ctx.getServer().Get(endpoint, [this, webhookID](const httplib::Request& req,
-                                           httplib::Response& res) {
+                                                    httplib::Response& res) {
       auto requestHash = getWebServerRequestHash(req);
 
       k_string content, redirect;
@@ -2488,30 +2493,31 @@ k_value KInterpreter::interpretWebServerGet(const Token& token,
 k_value KInterpreter::interpretWebServerPost(const Token& token,
                                              std::vector<k_value>& args) {
   if (args.size() != 2) {
-    throw BuiltinUnexpectedArgumentError(token, WebServerBuiltins.Get);
+    throw BuiltinUnexpectedArgumentError(token, WebServerBuiltins.Post);
   }
 
   auto endpointList = getWebServerEndpointList(token, args.at(0));
   int webhookID = getNextWebServerHook(token, args.at(1));
 
   for (const auto& endpoint : endpointList) {
-    ctx.getServer().Post(endpoint, [this, webhookID](const httplib::Request& req,
-                                            httplib::Response& res) {
-      auto requestHash = getWebServerRequestHash(req);
+    ctx.getServer().Post(
+        endpoint,
+        [this, webhookID](const httplib::Request& req, httplib::Response& res) {
+          auto requestHash = getWebServerRequestHash(req);
 
-      k_string content, redirect;
-      k_string contentType = "text/plain";
-      int status = 500;
-      handleWebServerRequest(webhookID, requestHash, redirect, content,
-                             contentType, status);
+          k_string content, redirect;
+          k_string contentType = "text/plain";
+          int status = 500;
+          handleWebServerRequest(webhookID, requestHash, redirect, content,
+                                 contentType, status);
 
-      if (!redirect.empty()) {
-        res.set_redirect(redirect);
-      } else {
-        res.status = status;
-        res.set_content(content, contentType);
-      }
-    });
+          if (!redirect.empty()) {
+            res.set_redirect(redirect);
+          } else {
+            res.status = status;
+            res.set_content(content, contentType);
+          }
+        });
   }
 
   return {};
@@ -2698,7 +2704,7 @@ k_value KInterpreter::interpretReflectorRList(const Token& token,
   std::reverse(rlistStack->elements.begin(), rlistStack->elements.end());
 
   rlist->add("packages", rlistPackages);
-  rlist->add("classes", rlistClasses);
+  rlist->add("structs", rlistClasses);
   rlist->add("functions", rlistFunctions);
   rlist->add("stack", rlistStack);
 

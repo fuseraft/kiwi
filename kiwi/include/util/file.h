@@ -69,8 +69,9 @@ class File {
   static bool isSymLink(const k_string& path);
   static bool isScript(const Token& token, const k_string& path);
   static k_string tryGetExtensionless(const Token& token, const k_string& path);
-  static k_string tryGetExtensionlessSpecific(const Token& token, const k_string& path,
-                                    const k_string& extension);
+  static k_string tryGetExtensionlessSpecific(const Token& token,
+                                              const k_string& path,
+                                              const k_string& extension);
 
   // Directory and path utilities
   static k_string getTempDirectory(const Token& token);
@@ -387,8 +388,9 @@ bool File::isScript(const Token& token, const k_string& path) {
   return File::fileExists(token, extless);
 }
 
-k_string File::tryGetExtensionlessSpecific(const Token& token, const k_string& path,
-                                    const k_string& extension) {
+k_string File::tryGetExtensionlessSpecific(const Token& token,
+                                           const k_string& path,
+                                           const k_string& extension) {
   auto scriptPath = path + extension;
   if (File::fileExists(token, scriptPath)) {
     return scriptPath;

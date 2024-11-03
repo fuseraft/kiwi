@@ -33,7 +33,6 @@ enum KName {
   Builtin_Argv_GetArgv,
   Builtin_Argv_GetXarg,
   Builtin_Console_Input,
-  Builtin_Console_Silent,
   Builtin_Env_GetEnvironmentVariable,
   Builtin_Env_SetEnvironmentVariable,
   Builtin_Env_UnsetEnvironmentVariable,

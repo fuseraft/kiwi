@@ -373,7 +373,7 @@ std::unique_ptr<ASTNode> Parser::parseClass() {
   matchSubType(KName::KW_Class);
 
   if (tokenType() != KTokenType::IDENTIFIER) {
-    throw SyntaxError(getErrorToken(), "Expected identifier for class name.");
+    throw SyntaxError(getErrorToken(), "Expected identifier for struct name.");
   }
 
   auto className = kToken.getText();
@@ -385,7 +385,7 @@ std::unique_ptr<ASTNode> Parser::parseClass() {
   if (matchSubType(KName::Ops_LessThan)) {
     if (tokenType() != KTokenType::IDENTIFIER) {
       throw SyntaxError(getErrorToken(),
-                        "Expected identifier for base class name.");
+                        "Expected identifier for base struct name.");
     }
 
     baseClass = kToken.getText();

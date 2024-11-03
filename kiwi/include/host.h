@@ -31,7 +31,8 @@ class Host {
     }
 
     if (!scripts.empty()) {
-      throw KiwiError::create(hostToken, "The Kiwi runtime only supports single-script execution.");
+      throw KiwiError::create(
+          hostToken, "The Kiwi runtime only supports single-script execution.");
     }
 
     executionPath = File::getParentPath(hostToken, absolutePath);
@@ -131,7 +132,8 @@ class Host {
     }
 
     const auto& cwd = File::getCurrentDirectory();
-    if (!executionPath.empty() && File::directoryExists(hostToken, executionPath)) {
+    if (!executionPath.empty() &&
+        File::directoryExists(hostToken, executionPath)) {
       File::setCurrentDirectory(executionPath);
     }
 
