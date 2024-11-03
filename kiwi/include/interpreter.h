@@ -9,10 +9,10 @@
 
 #include "globals.h"
 #include "builtin.h"
-#include "interp_helper.h"
 #include "math/functions.h"
 #include "parsing/ast.h"
 #include "parsing/builtins.h"
+#include "stackframe.h"
 #include "tracing/error.h"
 #include "typing/value.h"
 #include "util/file.h"
@@ -22,12 +22,10 @@ std::unordered_map<k_string, std::unique_ptr<KFunction>> functions;
 std::unordered_map<k_string, std::unique_ptr<KFunction>> methods;
 std::unordered_map<k_string, std::unique_ptr<KLambda>> lambdas;
 std::unordered_map<k_string, std::unique_ptr<KClass>> classes;
+std::stack<k_string> classStack;
 httplib::Server server;
 std::unordered_map<int, k_string> serverHooks;
-
 std::unordered_map<k_string, k_string> lambdaTable;
-
-std::mutex interpreterMutex;
 
 class KInterpreter {
  public:
@@ -36,13 +34,10 @@ class KInterpreter {
   k_value interpret(const ASTNode* node);
 
  private:
-  std::stack<k_string> classStack;
-
   std::shared_ptr<CallStackFrame> createFrame(bool isMethodInvocation);
   k_value dropFrame();
-  void importPackage(const k_value& packageName, const Token& token);
-  void importExternal(const k_string& packageName, const Token& token);
 
+  k_string getTemporaryId();
   k_string id(const ASTNode* node);
   k_value visit(const ProgramNode* node);
   k_value visit(const SelfNode* node);
@@ -84,6 +79,8 @@ class KInterpreter {
   k_value visit(const IndexingNode* node);
   k_value visit(const SliceNode* node);
 
+  void importPackage(const k_value& packageName, const Token& token);
+  void importExternal(const k_string& packageName, const Token& token);
   k_value callBuiltinMethod(const FunctionCallNode* node);
   k_value callClassMethod(const MethodCallNode* node, const k_class& clazz);
   k_value executeClassMethod(
@@ -116,6 +113,17 @@ class KInterpreter {
   SliceIndex getSlice(const SliceNode* node, k_value object);
   std::vector<k_value> getMethodCallArguments(
       const std::vector<std::unique_ptr<ASTNode>>& args);
+  bool shouldUpdateFrameVariables(
+      const k_string& varName, const std::shared_ptr<CallStackFrame> nextFrame);
+  void updateVariablesInCallerFrame(
+      const std::unordered_map<k_string, k_value>& variables,
+      std::shared_ptr<CallStackFrame> callerFrame);
+  void updateListSlice(const Token& token, bool insertOp, k_list& targetList,
+                       const SliceIndex& slice, const k_list& rhsValues);
+  k_value stringSlice(const Token& token, SliceIndex& slice,
+                      const k_value& value);
+  k_value listSlice(const Token& token, const SliceIndex& slice,
+                    const k_value& value);
 
   k_value listLoop(const ForLoopNode* node, const k_list& list);
   k_value hashLoop(const ForLoopNode* node, const k_hash& hash);
@@ -162,6 +170,9 @@ class KInterpreter {
   void handleWebServerRequest(int webhookID, k_hash requestHash,
                               k_string& redirect, k_string& content,
                               k_string& contentType, int& status);
+  k_hash getWebServerRequestHash(const httplib::Request& req);
+  std::vector<k_string> getWebServerEndpointList(const Token& term,
+                                                 k_value& arg);
 };
 
 k_value KInterpreter::interpret(const ASTNode* node) {
@@ -343,7 +354,7 @@ k_value KInterpreter::dropFrame() {
       callerFrame->setFlag(FrameFlags::Return);
     }
 
-    InterpHelper::updateVariablesInCallerFrame(topVariables, callerFrame);
+    updateVariablesInCallerFrame(topVariables, callerFrame);
   }
 
   return {};
@@ -442,7 +453,8 @@ k_value KInterpreter::visit(const PackageNode* node) {
   return {};
 }
 
-void KInterpreter::importExternal(const k_string& packageName, const Token& token) {
+void KInterpreter::importExternal(const k_string& packageName,
+                                  const Token& token) {
   auto content = File::readFile(token, packageName);
   if (content.empty()) {
     return;
@@ -523,7 +535,7 @@ k_value KInterpreter::doSliceAssignment(const Token& token, k_value& slicedObj,
       std::holds_alternative<k_list>(newValue)) {
     auto targetList = std::get<k_list>(slicedObj);
     auto rhsValues = std::get<k_list>(newValue);
-    InterpHelper::updateListSlice(token, false, targetList, slice, rhsValues);
+    updateListSlice(token, false, targetList, slice, rhsValues);
 
     return targetList;
   }
@@ -1108,9 +1120,9 @@ k_value KInterpreter::visit(const SliceNode* node) {
   auto slice = getSlice(node, object);
 
   if (std::holds_alternative<k_string>(object)) {
-    return InterpHelper::stringSlice(node->token, slice, object);
+    return stringSlice(node->token, slice, object);
   } else if (std::holds_alternative<k_list>(object)) {
-    return InterpHelper::listSlice(node->token, slice, object);
+    return listSlice(node->token, slice, object);
   }
 
   throw InvalidOperationError(node->token,
@@ -1615,7 +1627,7 @@ k_value KInterpreter::visit(const LambdaCallNode* node) {
 k_value KInterpreter::visit(const LambdaNode* node) {
   std::vector<std::pair<std::string, k_value>> parameters;
   std::unordered_set<std::string> defaultParameters;
-  auto tmpId = InterpHelper::getTemporaryId();
+  auto tmpId = getTemporaryId();
 
   parameters.reserve(node->parameters.size());
   for (const auto& pair : node->parameters) {
@@ -2321,13 +2333,13 @@ k_value KInterpreter::interpretWebServerGet(const Token& token,
     throw BuiltinUnexpectedArgumentError(token, WebServerBuiltins.Get);
   }
 
-  auto endpointList = InterpHelper::getWebServerEndpointList(token, args.at(0));
+  auto endpointList = getWebServerEndpointList(token, args.at(0));
   int webhookID = getNextWebServerHook(token, args.at(1));
 
   for (const auto& endpoint : endpointList) {
     server.Get(endpoint, [this, webhookID](const httplib::Request& req,
                                            httplib::Response& res) {
-      auto requestHash = InterpHelper::getWebServerRequestHash(req);
+      auto requestHash = getWebServerRequestHash(req);
 
       k_string content, redirect;
       k_string contentType = "text/plain";
@@ -2349,13 +2361,13 @@ k_value KInterpreter::interpretWebServerPost(const Token& token,
     throw BuiltinUnexpectedArgumentError(token, WebServerBuiltins.Get);
   }
 
-  auto endpointList = InterpHelper::getWebServerEndpointList(token, args.at(0));
+  auto endpointList = getWebServerEndpointList(token, args.at(0));
   int webhookID = getNextWebServerHook(token, args.at(1));
 
   for (const auto& endpoint : endpointList) {
     server.Post(endpoint, [this, webhookID](const httplib::Request& req,
                                             httplib::Response& res) {
-      auto requestHash = InterpHelper::getWebServerRequestHash(req);
+      auto requestHash = getWebServerRequestHash(req);
 
       k_string content, redirect;
       k_string contentType = "text/plain";
@@ -2409,6 +2421,68 @@ k_value KInterpreter::interpretWebServerPublic(const Token& token,
   server.set_mount_point(endpoint, publicDir);
 
   return true;
+}
+
+std::vector<k_string> KInterpreter::getWebServerEndpointList(const Token& term,
+                                                             k_value& arg) {
+  std::vector<k_string> endpointList;
+
+  if (std::holds_alternative<k_string>(arg)) {
+    endpointList.emplace_back(get_string(term, arg));
+  } else if (std::holds_alternative<k_list>(arg)) {
+    for (const auto& el : std::get<k_list>(arg)->elements) {
+      if (std::holds_alternative<k_string>(el)) {
+        auto endpoint = get_string(term, el);
+        if (std::find(endpointList.begin(), endpointList.end(), endpoint) ==
+            endpointList.end()) {
+          endpointList.emplace_back(endpoint);
+        }
+      }
+    }
+  }
+
+  return endpointList;
+}
+
+k_hash KInterpreter::getWebServerRequestHash(const httplib::Request& req) {
+  auto requestHash = std::make_shared<Hash>();
+  auto headers = req.headers;
+  auto params = req.params;
+
+  for (auto it = headers.begin(); it != headers.end(); ++it) {
+    const auto& x = *it;
+    requestHash->add(x.first, x.second);
+  }
+
+  auto pathParamsHash = std::make_shared<Hash>();
+  for (const auto& pair : req.path_params) {
+    pathParamsHash->add(pair.first, pair.second);
+  }
+
+  auto paramsHash = std::make_shared<Hash>();
+  for (auto it = params.begin(); it != params.end(); ++it) {
+    const auto& x = *it;
+    paramsHash->add(x.first, x.second);
+  }
+
+  auto filesHash = std::make_shared<Hash>();
+
+  for (const auto& file : req.files) {
+    auto fileHash = std::make_shared<Hash>();
+    fileHash->add("content", file.second.content);
+    fileHash->add("content_type", file.second.content_type);
+    fileHash->add("filename", file.second.filename);
+    fileHash->add("name", file.second.name);
+    filesHash->add(file.first, fileHash);
+  }
+
+  requestHash->add("body", req.body);
+  requestHash->add("files", filesHash);
+  requestHash->add("path", req.path);
+  requestHash->add("path_params", pathParamsHash);
+  requestHash->add("params", paramsHash);
+
+  return requestHash;
 }
 
 k_value KInterpreter::interpolateString(const Token& token,
@@ -2917,6 +2991,171 @@ k_value KInterpreter::lambdaSelect(std::unique_ptr<KLambda>& lambda,
   }
 
   return std::make_shared<List>(resultList);
+}
+
+bool KInterpreter::shouldUpdateFrameVariables(
+    const k_string& varName, const std::shared_ptr<CallStackFrame> nextFrame) {
+  return nextFrame->hasVariable(varName);
+}
+
+void KInterpreter::updateVariablesInCallerFrame(
+    const std::unordered_map<k_string, k_value>& variables,
+    std::shared_ptr<CallStackFrame> callerFrame) {
+  auto& frameVariables = callerFrame->variables;
+  for (const auto& var : variables) {
+    if (shouldUpdateFrameVariables(var.first, callerFrame)) {
+      frameVariables[var.first] = var.second;
+    }
+  }
+}
+
+k_string KInterpreter::getTemporaryId() {
+  return "temporary_" + RNG::getInstance().random16();
+}
+
+void KInterpreter::updateListSlice(const Token& token, bool insertOp,
+                                   k_list& targetList, const SliceIndex& slice,
+                                   const k_list& rhsValues) {
+  if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
+    throw IndexError(token, "Start index must be an integer.");
+  } else if (!std::holds_alternative<k_int>(slice.stopIndex)) {
+    throw IndexError(token, "Stop index must be an integer.");
+  } else if (!std::holds_alternative<k_int>(slice.stepValue)) {
+    throw IndexError(token, "Step value must be an integer.");
+  }
+
+  int start = std::get<k_int>(slice.indexOrStart);
+  int stop = std::get<k_int>(slice.stopIndex);
+  int step = std::get<k_int>(slice.stepValue);
+
+  // This is a single element assignment.
+  if (!slice.isSlice && insertOp) {
+    stop = start;
+  }
+
+  auto& elements = targetList->elements;
+  auto& rhsElements = rhsValues->elements;
+
+  // Convert negative indices and adjust ranges
+  int listSize = static_cast<int>(elements.size());
+  int rhsSize = static_cast<int>(rhsElements.size());
+
+  start += start < 0 ? listSize : 0;
+  stop += stop < 0 ? listSize : 0;
+  start = start < 0 ? 0 : start;
+  stop = stop > listSize ? listSize : stop;
+  // Special case for reverse slicing
+  stop = step < 0 && stop == listSize ? -1 : stop;
+
+  if (step == 1) {
+    // Simple case: step is 1
+    if (start >= stop) {
+      elements.erase(elements.begin() + start, elements.begin() + stop);
+      elements.insert(elements.begin() + start, rhsElements.begin(),
+                      rhsElements.end());
+    } else {
+      std::copy(rhsElements.begin(), rhsElements.end(),
+                elements.begin() + start);
+    }
+  } else {
+    // Complex case: step != 1
+    int rhsIndex = 0;
+    for (int i = start; i != stop && rhsIndex < rhsSize; i += step) {
+      if ((step > 0 && i < listSize) || (step < 0 && i >= 0)) {
+        elements[i] = rhsElements.at(rhsIndex++);
+      } else {
+        break;  // Avoid going out of bounds
+      }
+    }
+  }
+}
+
+k_value KInterpreter::stringSlice(const Token& token, SliceIndex& slice,
+                                  const k_value& value) {
+  auto string = std::get<k_string>(value);
+  auto list = std::make_shared<List>();
+
+  auto& elements = list->elements;
+  elements.reserve(string.size());
+  k_string temp(1, '\0');
+  for (const char& c : string) {
+    temp[0] = c;
+    elements.emplace_back(temp);
+  }
+
+  auto sliced = listSlice(token, slice, list);
+
+  if (std::holds_alternative<k_list>(sliced)) {
+    auto slicedlist = std::get<k_list>(sliced)->elements;
+    std::ostringstream sv;
+
+    for (auto it = slicedlist.begin(); it != slicedlist.end(); ++it) {
+      sv << Serializer::serialize(*it);
+    }
+
+    return sv.str();
+  }
+
+  return Serializer::serialize(sliced);
+}
+
+k_value KInterpreter::listSlice(const Token& token, const SliceIndex& slice,
+                                const k_value& value) {
+  auto list = std::get<k_list>(value);
+  auto& elements = list->elements;
+
+  if (!std::holds_alternative<k_int>(slice.indexOrStart)) {
+    throw IndexError(token, "Start index must be an integer.");
+  } else if (!std::holds_alternative<k_int>(slice.stopIndex)) {
+    throw IndexError(token, "Stop index must be an integer.");
+  } else if (!std::holds_alternative<k_int>(slice.stepValue)) {
+    throw IndexError(token, "Step value must be an integer.");
+  }
+
+  int start = static_cast<int>(std::get<k_int>(slice.indexOrStart)),
+      stop = static_cast<int>(std::get<k_int>(slice.stopIndex)),
+      step = static_cast<int>(std::get<k_int>(slice.stepValue));
+
+  // Adjust negative indices
+  int listSize = static_cast<int>(elements.size());
+  if (start < 0) {
+    start = start + listSize > 0 ? start + listSize : 0;
+  }
+
+  if (stop < 0) {
+    stop += listSize;
+  } else {
+    stop = stop < listSize ? stop : listSize;
+  }
+
+  // Adjust stop for reverse slicing
+  if (step < 0 && stop == listSize) {
+    stop = -1;
+  }
+
+  auto slicedList = std::make_shared<List>();
+  auto& slicedElements = slicedList->elements;
+
+  if (step < 0) {
+    for (int i = (start == 0 ? listSize - 1 : start); i >= stop; i += step) {
+      // Prevent out-of-bounds access
+      if (i < 0 || i >= listSize) {
+        break;
+      }
+
+      slicedElements.emplace_back(elements.at(i));
+    }
+  } else {
+    for (int i = start; i < stop; i += step) {
+      // Prevent out-of-bounds access
+      if (i >= listSize) {
+        break;
+      }
+
+      slicedElements.emplace_back(elements.at(i));
+    }
+  }
+  return slicedList;
 }
 
 #endif
