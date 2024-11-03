@@ -1,0 +1,19 @@
+global.config = {
+  "content": {
+    "title": "kiwi v2.0.6",
+    "favicon": "favicon.ico",
+    "root": "/home/scs/kiwi/docs/examples/webapp/content",
+    "public_content": {
+      "endpoint": "/",
+      "path": "~/static"
+    },
+    "templates": [{
+      "name": "shared",
+      "path": "~/templates/index.html"
+    }]
+  },
+  "server": {
+    "host": "localhost",
+    "port": 8080
+  }
+}
