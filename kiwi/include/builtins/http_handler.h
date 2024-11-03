@@ -8,11 +8,16 @@
 #include "parsing/tokens.h"
 #include "typing/serializer.h"
 #include "typing/value.h"
+#include "globals.h"
 
 class HttpBuiltinHandler {
  public:
   static k_value execute(const Token& term, const KName& builtin,
                          const std::vector<k_value>& args) {
+    if (SAFEMODE) {
+      return static_cast<k_int>(0);
+    }
+
     switch (builtin) {
       case KName::Builtin_WebClient_Delete:
       case KName::Builtin_WebClient_Get:

@@ -4,10 +4,10 @@
 
 #include <string>
 
-extern bool SILENCE;
+extern bool SAFEMODE;
 
 extern const std::string kiwi_name = "Kiwi";
-extern const std::string kiwi_version = "2.0.6";
+extern const std::string kiwi_version = "2.0.7";
 extern const std::string kiwi_arg = "kiwi";
 
 #ifdef _WIN64
@@ -33,7 +33,5 @@ extern Logger logger;
 //extern TaskManager task;
 
 extern std::unordered_map<std::string, std::string> kiwiArgs;
-extern std::stack<std::shared_ptr<CallStackFrame>> callStack;
-extern std::stack<std::string> packageStack;
 
 #endif

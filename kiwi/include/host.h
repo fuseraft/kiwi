@@ -11,16 +11,17 @@ const Token hostToken = Token::createExternal();
 
 class Host {
  public:
-  Host(Engine& engine) : engine(engine), scripts(), args() {}
+  Host(Engine& engine) : engine(engine), scripts(), args(), executionPath("") {}
 
   void disableLibraryLoad() { kiwilibEnabled = false; }
 
-  void registerScript(const std::string& scriptPath) {
+  void registerScript(const std::string& script) {
+    auto scriptPath = File::tryGetExtensionless(hostToken, script);
     if (!File::fileExists(hostToken, scriptPath)) {
       throw FileNotFoundError(scriptPath);
     }
 
-    std::string absolutePath = File::getAbsolutePath(hostToken, scriptPath);
+    const auto& absolutePath = File::getAbsolutePath(hostToken, scriptPath);
     if (!File::fileExists(hostToken, absolutePath)) {
       throw FileNotFoundError(absolutePath);
     }
@@ -28,6 +29,13 @@ class Host {
     if (scripts.find(absolutePath) != scripts.end()) {
       return;
     }
+
+    if (!scripts.empty()) {
+      throw KiwiError::create(
+          hostToken, "The Kiwi runtime only supports single-script execution.");
+    }
+
+    executionPath = File::getParentPath(hostToken, absolutePath);
 
     scripts.insert(absolutePath);
   }
@@ -72,6 +80,7 @@ class Host {
   Engine& engine;
   std::unordered_set<std::string> scripts;
   std::unordered_map<std::string, std::string> args;
+  std::string executionPath;
   bool kiwilibEnabled = true;
 
   void loadLibraryPackages(const std::string& path) {
@@ -122,7 +131,14 @@ class Host {
       return 1;
     }
 
+    const auto& cwd = File::getCurrentDirectory();
+    if (!executionPath.empty() &&
+        File::directoryExists(hostToken, executionPath)) {
+      File::setCurrentDirectory(executionPath);
+    }
+
     returnCode = engine.runStreamCollection();
+    File::setCurrentDirectory(cwd);
 
     return returnCode;
   }
