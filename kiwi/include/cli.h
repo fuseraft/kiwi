@@ -239,9 +239,10 @@ int KiwiCLI::printHelp() {
   std::vector<CommandInfo> commands = {
       {"-h, --help", "print this message"},
       {"-v, --version", "print the current version"},
-      {"-a, --ast <kiwi_code>", "print abstract syntax tree of `.🥝` file"},
-      {"-p, --parse <kiwi_code>", "parse kiwi code as an argument"},
       {"-n, --new <file_path>", "create a `.🥝` file"},
+      {"-p, --parse <kiwi_code>", "parse kiwi code as an argument"},
+      {"-s, --safemode", "run in safemode"},
+      {"-a, --ast <input_file_path>", "print abstract syntax tree of `.🥝` file"},
       {"-m, --minify <input_file_path>", "create a `.min.🥝` file"},
       {"-t, --tokenize <input_file_path>",
        "tokenize a file with the kiwi lexer"},
@@ -251,9 +252,10 @@ int KiwiCLI::printHelp() {
   commands = {
       {"-h, --help", "print this message"},
       {"-v, --version", "print the current version"},
-      {"-a, --ast <kiwi_code>", "print abstract syntax tree of `.kiwi` file"},
-      {"-p, --parse <kiwi_code>", "parse code"},
       {"-n, --new <filename>", "create a `.kiwi` file"},
+      {"-p, --parse <kiwi_code>", "parse code"},
+      {"-s, --safemode", "run in safemode"},
+      {"-a, --ast <input_file_path>", "print abstract syntax tree of `.kiwi` file"},
       {"-m, --minify <input_file_path>", "create a `.min.kiwi` file"},
       {"-t, --tokenize <input_file_path>", "tokenize a file as kiwi code"},
       {"-X<key>=<value>", "specify an argument as a key-value pair"}};

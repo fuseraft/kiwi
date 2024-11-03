@@ -16,7 +16,7 @@ class FileIOBuiltinHandler {
     if (SAFEMODE) {
       return static_cast<k_int>(0);
     }
-    
+
     switch (builtin) {
       case KName::Builtin_FileIO_CreateFile:
         return executeCreateFile(token, args);

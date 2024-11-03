@@ -17,7 +17,7 @@ class EnvBuiltinHandler {
     if (SAFEMODE) {
       return static_cast<k_int>(0);
     }
-    
+
     switch (builtin) {
       case KName::Builtin_Env_GetEnvironmentVariable:
         return executeGetEnvironmentVariable(term, args);
