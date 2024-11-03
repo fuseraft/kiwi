@@ -12,6 +12,10 @@ class SysBuiltinHandler {
  public:
   static k_value execute(const Token& term, const KName& builtin,
                          const std::vector<k_value>& args) {
+    if (SAFEMODE) {
+      return static_cast<k_int>(0);
+    }
+
     switch (builtin) {
       case KName::Builtin_Sys_Exec:
         return executeExec(term, args);
@@ -45,10 +49,6 @@ class SysBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, SysBuiltins.Exec);
     }
 
-    if (SAFEMODE) {
-      return static_cast<k_int>(0);
-    }
-
     k_string command = get_string(term, args.at(0));
     return Sys::exec(command);
   }
@@ -57,10 +57,6 @@ class SysBuiltinHandler {
                                 const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, SysBuiltins.Exec);
-    }
-
-    if (SAFEMODE) {
-      return static_cast<k_int>(0);
     }
 
     k_string command = get_string(term, args.at(0));
