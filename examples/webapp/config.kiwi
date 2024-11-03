@@ -1,8 +1,9 @@
 global.config = {
   "content": {
-    "title": "kiwi v2.0.6",
-    "favicon": "favicon.ico",
-    "root": "/home/scs/kiwi/docs/examples/webapp/content",
+    "title": "kiwi v2.0.7",
+    "favicon": "favicon.svg",
+    # change `root` to point to your local path
+    "root": "/home/scs/kiwi/examples/webapp/content",
     "public_content": {
       "endpoint": "/",
       "path": "~/static"

@@ -528,11 +528,9 @@ struct {
 
 struct {
   const k_string Input = "input";
-  const k_string Silent = "silent";
 
-  std::unordered_set<k_string> builtins = {Input, Silent};
-  std::unordered_set<KName> st_builtins = {KName::Builtin_Console_Input,
-                                           KName::Builtin_Console_Silent};
+  std::unordered_set<k_string> builtins = {Input};
+  std::unordered_set<KName> st_builtins = {KName::Builtin_Console_Input};
 
   bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();

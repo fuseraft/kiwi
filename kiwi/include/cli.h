@@ -21,7 +21,7 @@
 //TaskManager task;
 
 std::unordered_map<std::string, std::string> kiwiArgs;
-bool SILENCE = false;
+bool SAFEMODE = false;
 const Token cliToken = Token::createExternal();
 
 class KiwiCLI {
@@ -87,6 +87,8 @@ int KiwiCLI::run(std::vector<std::string>& v) {
         }
 
         help = true;
+      } else if (String::isCLIFlag(v.at(i), "s", "safemode")) {
+        SAFEMODE = true;
       } else if (String::isCLIFlag(v.at(i), "a", "ast")) {
         if (i + 1 < size) {
           return KiwiCLI::printAST(host, v.at(++i));

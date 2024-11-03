@@ -597,8 +597,6 @@ class Lexer {
 
     if (builtin == ConsoleBuiltins.Input) {
       st = KName::Builtin_Console_Input;
-    } else if (builtin == ConsoleBuiltins.Silent) {
-      st = KName::Builtin_Console_Silent;
     }
 
     return createToken(KTokenType::IDENTIFIER, st, builtin);

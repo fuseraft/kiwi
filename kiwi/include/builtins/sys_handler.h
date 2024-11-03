@@ -6,6 +6,7 @@
 #include "parsing/tokens.h"
 #include "typing/value.h"
 #include "util/sys.h"
+#include "globals.h"
 
 class SysBuiltinHandler {
  public:
@@ -44,6 +45,10 @@ class SysBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(term, SysBuiltins.Exec);
     }
 
+    if (SAFEMODE) {
+      return static_cast<k_int>(0);
+    }
+
     k_string command = get_string(term, args.at(0));
     return Sys::exec(command);
   }
@@ -52,6 +57,10 @@ class SysBuiltinHandler {
                                 const std::vector<k_value>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(term, SysBuiltins.Exec);
+    }
+
+    if (SAFEMODE) {
+      return static_cast<k_int>(0);
     }
 
     k_string command = get_string(term, args.at(0));

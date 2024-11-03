@@ -30,6 +30,12 @@ class KiwiError : public std::exception {
   std::string message;
 };
 
+class InfiniteLoopError : public KiwiError {
+ public:
+  InfiniteLoopError(const Token& token, const std::string& message)
+      : KiwiError(token, "InfiniteLoopError", message) {}
+};
+
 class UnknownBuiltinError : public KiwiError {
  public:
   UnknownBuiltinError(const Token& token, const std::string& name)
