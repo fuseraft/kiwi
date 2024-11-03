@@ -7,11 +7,16 @@
 #include "parsing/tokens.h"
 #include "typing/value.h"
 #include "util/string.h"
+#include "globals.h"
 
 class LoggingBuiltinHandler {
  public:
   static k_value execute(const Token& term, const KName& builtin,
                          const std::vector<k_value>& args) {
+    if (SAFEMODE) {
+      return static_cast<k_int>(0);
+    }
+
     switch (builtin) {
       case KName::Builtin_Logging_Debug:
       case KName::Builtin_Logging_Error:

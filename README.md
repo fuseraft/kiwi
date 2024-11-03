@@ -127,14 +127,14 @@ make test
 
 ### Examples
 
-You can find [many code examples](docs/examples/) in the documentation.
+You can find [many code examples](examples/) in the documentation.
 
 Here are a handful:
-- [Levenshtein distance](docs/examples/algo/levenshtein.kiwi)
-- [MD5 hashing algorithm](docs/examples/algo/md5_hash.kiwi)
-- [Sieve of Eratosthenes](docs/examples/algo/sieve_of_eratosthenes.kiwi)
-- [Conway's Game of Life](docs/examples/cellular_automata/life.kiwi)
-- [Project Euler stuff](docs/examples/project_euler/).
+- [Levenshtein distance](examples/algo/levenshtein.kiwi)
+- [MD5 hashing algorithm](examples/algo/md5_hash.kiwi)
+- [Sieve of Eratosthenes](examples/algo/sieve_of_eratosthenes.kiwi)
+- [Conway's Game of Life](examples/cellular_automata/life.kiwi)
+- [Project Euler stuff](examples/project_euler/).
 
 ## Contributions
 
