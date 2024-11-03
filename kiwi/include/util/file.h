@@ -69,6 +69,9 @@ class File {
   static bool isSymLink(const k_string& path);
   static bool isScript(const Token& token, const k_string& path);
   static k_string tryGetExtensionless(const Token& token, const k_string& path);
+  static k_string tryGetExtensionlessSpecific(const Token& token,
+                                              const k_string& path,
+                                              const k_string& extension);
 
   // Directory and path utilities
   static k_string getTempDirectory(const Token& token);
@@ -380,17 +383,14 @@ k_string File::getParentPath(const Token& token, const k_string& path) {
 /// @param path The path.
 /// @return Boolean indicating success.
 bool File::isScript(const Token& token, const k_string& path) {
-  k_string extension = ".🥝";
-#ifdef _WIN64
-  extension = ".kiwi";
-#endif
-  return (String::endsWith(path, extension) ||
-          String::endsWith(path, ".kiwi")) &&
-         File::fileExists(token, path);
+  const auto& extless = tryGetExtensionless(token, path);
+
+  return File::fileExists(token, extless);
 }
 
-k_string tryGetExtensionlessSpecifc(const Token& token, const k_string& path,
-                                    const k_string& extension) {
+k_string File::tryGetExtensionlessSpecific(const Token& token,
+                                           const k_string& path,
+                                           const k_string& extension) {
   auto scriptPath = path + extension;
   if (File::fileExists(token, scriptPath)) {
     return scriptPath;
@@ -410,8 +410,12 @@ k_string File::tryGetExtensionless(const Token& token, const k_string& path) {
   extensions.emplace_back(".🥝");
 #endif
 
+  if (File::fileExists(token, path)) {
+    return path;
+  }
+
   for (const auto& ext : extensions) {
-    auto scriptPath = tryGetExtensionlessSpecifc(token, path, ext);
+    auto scriptPath = tryGetExtensionlessSpecific(token, path, ext);
     if (!scriptPath.empty()) {
       return scriptPath;
     }

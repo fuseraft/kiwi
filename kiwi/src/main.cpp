@@ -7,7 +7,7 @@
  *
  * @author Scott Stauffer
  * @date 2024-10-27
- * @version 2.0.6
+ * @version 2.0.7
  *
  * GitHub Repository: https://github.com/fuseraft/kiwi
  * For more information, issues, or to contribute, please visit the repository.

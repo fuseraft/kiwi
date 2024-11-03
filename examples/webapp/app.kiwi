@@ -1,0 +1,20 @@
+import "config"
+
+web::get(["/", "/index"], with (req) do
+  return web::ok(global.templatizer.render("shared", "main"), "text/html")
+end)
+
+web::post("/exec", with (req) do
+  file = get_tmp_file()
+  fs::write(file, req.body)
+  output = sys::execout("kiwi -s ${file}")
+  fs::remove(file)
+  return web::ok(output, "text/plaintext")
+end)
+
+fn get_tmp_file()
+  uid = string::base64encode(math::random_set(1, 10, 5).to_string())
+  return fs::combine(fs::tmpdir(), "${uid}.kiwi")
+end
+
+mango::serve()
