@@ -9,12 +9,17 @@
 #include "parsing/tokens.h"
 #include "typing/value.h"
 #include "util/string.h"
+#include "globals.h"
 
 class ArgvBuiltinHandler {
  public:
   static k_value execute(
       const Token& term, const KName& builtin, const std::vector<k_value>& args,
       const std::unordered_map<k_string, k_string>& kiwiArgs) {
+    if (SAFEMODE) {
+      return static_cast<k_int>(0);
+    }
+
     switch (builtin) {
       case KName::Builtin_Argv_GetArgv:
         return executeGetArgv(term, args, kiwiArgs);
