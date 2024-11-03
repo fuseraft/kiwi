@@ -27,16 +27,16 @@ If no arguments are supplied, Kiwi enters an interactive Read-Evaluate-Print Loo
 - `-p`, `--parse <kiwi_code>`: Parses kiwi code as an argument.
 
   ```
-  kiwi -p 'println("hello")' 
-  # prints: hello
+  kiwi -p 'println "hello".chars()' 
+  # Prints: ["h", "e", "l", "l", "o"]
   
-  kiwi -p 'import "math" as math println(math.random(0, 100))' 
-  # prints a random number between 0 and 100
+  kiwi -p 'println math::random(0, 100)' 
+  # Prints a random number between 0 and 100
   ```
 
   Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.<br><br>
 
-- `-n`, `--new <file_path>`: Creates a new file with the `.🥝` extension. If you don't include the extension in `<file_path>`, it will be appended automatically.
+- `-n`, `--new <file_path>`: Creates a new file with the `.🥝` extension (`.kiwi` on Windows). If you don't include the extension in `<file_path>`, it will be appended automatically.
 
   ```
   kiwi -n filename         # Creates ./filename.🥝
@@ -45,6 +45,12 @@ If no arguments are supplied, Kiwi enters an interactive Read-Evaluate-Print Loo
   ```
 
   Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.<br><br>
+
+- `-a`, `--ast <input_file_path>`: Prints the abstract syntax tree of the input file.
+
+  ```
+  kiwi -a filename         # Prints AST of the file.
+  ```
 
 - `-m`, `--minify <input_file_path>`: Creates a minified file with the `.min.🥝` extension. If you don't include the extension in `<file_path>`, it will be appended automatically.
 
@@ -55,7 +61,13 @@ If no arguments are supplied, Kiwi enters an interactive Read-Evaluate-Print Loo
 - `-t`, `--tokenize <input_file_path>`: Tokenizes a file with the Kiwi lexer and prints the results to the standard output stream.
 
   ```
-  kiwi -t filename.🥝      # Prints tokens from the file in a minified way.
+  kiwi -t filename         # Prints tokens from the file in a minified way.
+  ```
+
+- `-s`, `--safemode`: Runs Kiwi in safe mode. This disables access to web, filesystem, and system shell functionality.
+
+  ```
+  kiwi -t filename         # Prints tokens from the file in a minified way.
   ```
 
 - `-X<key>=<value>`: Sets a specific argument as a key-value pair, which can be used for various configuration purposes or to pass parameters into scripts.
