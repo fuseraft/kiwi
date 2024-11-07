@@ -16,6 +16,7 @@
 #include "tracing/error.h"
 #include "typing/value.h"
 #include "util/file.h"
+#include "concurrency/task.h"
 
 class KContext {
  private:
@@ -156,7 +157,7 @@ class KContext {
 
 class KInterpreter {
  public:
-  KInterpreter() {}
+  KInterpreter() : ctx(nullptr), taskmgr() {}
 
   k_value interpret(const ASTNode* node);
 
@@ -164,8 +165,11 @@ class KInterpreter {
     ctx = std::move(context);
   }
 
+  bool hasActiveTasks() { return taskmgr.hasActiveTasks(); }
+
  private:
   std::unique_ptr<KContext> ctx;
+  TaskManager taskmgr;
   std::stack<std::shared_ptr<CallStackFrame>> callStack;
   std::stack<std::string> packageStack;
   std::stack<k_string> classStack;
@@ -519,9 +523,6 @@ k_string KInterpreter::id(const ASTNode* node) {
 }
 
 k_value KInterpreter::visit(const ForkNode* node) {
-  KInterpreter interp;
-  interp.setContext(ctx->clone());
-
   auto frame = std::make_shared<CallStackFrame>();
   auto top = callStack.top();
 
@@ -529,13 +530,21 @@ k_value KInterpreter::visit(const ForkNode* node) {
     frame->variables[var.first] = clone_value(var.second);
   }
 
-  interp.callStack.push(frame);
-
   auto fork = node->expression->clone();
-  auto result = interp.interpret(fork.get());
 
-  return result;
+  auto interp = std::make_shared<KInterpreter>();
+  interp->setContext(ctx->clone());
+  interp->callStack.push(frame);
+
+  TaskManager::TaskFunction task([interp, fork = std::move(fork)]() {
+    return interp->interpret(fork.get());
+  });
+
+  auto taskId = taskmgr.addTask(std::move(task));
+
+  return k_value(taskId);
 }
+
 
 k_value KInterpreter::visit(const ProgramNode* node) {
   // This is the program root

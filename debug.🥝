@@ -14,7 +14,7 @@ fn run()
   start = time::ticks()
   total_bytes = 0
 
-  for path in fs::glob("./**/*") do
+  for path in fs::glob("./lib/**/*") do
     total_bytes += benchmark_getbytes(path)
   end
 
@@ -25,3 +25,4 @@ end
 fork run()
 
 println global.to_string()
+println "fooobar!"

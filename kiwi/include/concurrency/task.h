@@ -9,7 +9,7 @@
 
 class TaskManager {
  public:
-  using TaskFunction = std::function<k_value()>;
+  using TaskFunction = std::packaged_task<k_value()>;
 
  private:
   std::atomic<k_int> nextPromiseId;
@@ -20,7 +20,9 @@ class TaskManager {
 
   k_int addTask(TaskFunction func) {
     k_int id = nextPromiseId++;
-    tasks[id] = std::async(std::launch::async, func);
+    auto future = func.get_future();
+    tasks[id] = std::move(future);
+    std::thread(std::move(func)).detach(); // Run the task in a new thread
     return id;
   }
 

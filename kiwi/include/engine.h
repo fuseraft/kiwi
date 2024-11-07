@@ -32,6 +32,10 @@ class Engine {
     interp.setContext(std::make_unique<KContext>());
 
     auto result = interp.interpret(ast.get());
+    while (interp.hasActiveTasks()) {
+      // avoid busy-waiting
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
 
     if (std::holds_alternative<k_int>(result)) {
       return static_cast<int>(std::get<k_int>(result));
