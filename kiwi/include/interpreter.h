@@ -453,7 +453,7 @@ k_value KInterpreter::interpret(const ASTNode* node) {
       break;
 
     case ASTNodeType::FORK:
-      return visit(static_cast<const ExportNode*>(node));
+      return visit(static_cast<const ForkNode*>(node));
 
     default:
       node->print();
@@ -522,8 +522,14 @@ k_value KInterpreter::visit(const ForkNode* node) {
   KInterpreter interp;
   interp.setContext(ctx->clone());
 
+  auto frame = std::make_shared<CallStackFrame>();
+  frame->variables[Keywords.Global] = callStack.top()->variables[Keywords.Global];
+  interp.callStack.push(frame);
+
   auto fork = node->expression->clone();
-  return interp.interpret(fork.get());
+  auto result = interp.interpret(fork.get());
+
+  return result;
 }
 
 k_value KInterpreter::visit(const ProgramNode* node) {
