@@ -152,7 +152,7 @@ class Host {
       loadLibraryPackages(libPath);
     }
 
-    return engine.interpretScript(path);
+    return engine.parseScript(path);
   }
 };
 
