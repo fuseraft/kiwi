@@ -4,13 +4,16 @@ fn benchmark_getbytes(path)
   start = time::ticks()
   file_bytes = fs::getbytes(path).size()
   stop = time::ticks()
+  
   println "size: ${file_bytes} byte(s), duration: ${time::ticksms(stop - start)}ms"
+
   return file_bytes
 end
 
 fn run()
   start = time::ticks()
   total_bytes = 0
+
   for path in fs::glob("./**/*") do
     total_bytes += benchmark_getbytes(path)
   end
@@ -20,3 +23,5 @@ fn run()
 end
 
 fork run()
+
+println global.to_string()

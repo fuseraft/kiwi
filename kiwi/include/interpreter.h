@@ -523,7 +523,12 @@ k_value KInterpreter::visit(const ForkNode* node) {
   interp.setContext(ctx->clone());
 
   auto frame = std::make_shared<CallStackFrame>();
-  frame->variables[Keywords.Global] = callStack.top()->variables[Keywords.Global];
+  auto top = callStack.top();
+
+  for (const auto& var : top->variables) {
+    frame->variables[var.first] = clone_value(var.second);
+  }
+
   interp.callStack.push(frame);
 
   auto fork = node->expression->clone();
