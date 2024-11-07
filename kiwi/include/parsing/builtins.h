@@ -7,6 +7,30 @@
 #include "typing/value.h"
 
 struct {
+  const k_string TaskBusy = "__task_busy__";
+  const k_string TaskList = "__task_list__";
+  const k_string TaskResult = "__task_result__";
+  const k_string TaskSleep = "__task_sleep__";
+  const k_string TaskStatus = "__task_status__";
+
+  std::unordered_set<k_string> builtins = {TaskBusy, TaskList, TaskResult,
+                                           TaskSleep, TaskStatus};
+
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_Task_Busy, KName::Builtin_Task_List,
+      KName::Builtin_Task_Result, KName::Builtin_Task_Sleep,
+      KName::Builtin_Task_Status};
+
+  bool is_builtin(const k_string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+
+  bool is_builtin(const KName& arg) {
+    return st_builtins.find(arg) != st_builtins.end();
+  }
+} TaskBuiltins;
+
+struct {
   // File operations
   const k_string AppendText = "__appendtext__";
   const k_string CopyFile = "__copyfile__";
@@ -675,7 +699,7 @@ struct {
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
            LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
            SerializerBuiltins.is_builtin(arg) ||
-           ReflectorBuiltins.is_builtin(arg);
+           ReflectorBuiltins.is_builtin(arg) || TaskBuiltins.is_builtin(arg);
   }
 
   bool is_builtin_method(const KName& arg) {
@@ -686,7 +710,7 @@ struct {
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
            LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
            SerializerBuiltins.is_builtin(arg) ||
-           ReflectorBuiltins.is_builtin(arg);
+           ReflectorBuiltins.is_builtin(arg) || TaskBuiltins.is_builtin(arg);
   }
 } KiwiBuiltins;
 

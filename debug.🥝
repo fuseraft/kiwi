@@ -4,14 +4,32 @@ fn benchmark_getbytes(path)
   start = time::ticks()
   file_bytes = fs::getbytes(path).size()
   stop = time::ticks()
+  
   println "size: ${file_bytes} byte(s), duration: ${time::ticksms(stop - start)}ms"
+
   return file_bytes
 end
 
-start = time::ticks()
-total_bytes = 0
-for path in fs::glob("./**/*") do
-  total_bytes += benchmark_getbytes(path)
+fn run()
+  start = time::ticks()
+  total_bytes = 0
+
+  for path in fs::glob("./**/*") do
+    total_bytes += benchmark_getbytes(path)
+  end
+
+  println "total byte(s): ${total_bytes}, total duration: ${time::ticksms(time::ticks() - start)}ms"
+  return total_bytes
 end
 
-println "total byte(s): ${total_bytes}, total duration: ${time::ticksms(time::ticks() - start)}ms"
+task_id = fork run()
+
+println "This will print first!"
+println "task identifier is ${task_id}"
+
+while task::busy() do
+  println "sleeping..."
+  task::sleep(100)
+end
+
+println "task result is: ${task::result(task_id)}"

@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -std=c++17 -O3 -Wall -Wextra -pedantic
+CXXFLAGS := -std=c++17 -O3 -Wall -Wextra -pedantic -g
 
 SRC_DIR := kiwi/src
 INCLUDE_DIR := kiwi/include
@@ -12,7 +12,7 @@ OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
 EXECUTABLE := $(BIN_DIR)/kiwi
 
-.PHONY: all clean test play install profile
+.PHONY: all clean test play install profile rpm
 
 all: clean $(EXECUTABLE)
 
@@ -44,3 +44,9 @@ profile: clean $(EXECUTABLE)
 
 clean:
 	rm -rf $(BUILD_DIR) $(BIN_DIR)
+
+rpm: all
+	# Create source tarball
+	tar czf kiwi-2.0.8.tar.gz --transform 's,^,kiwi-2.0.8/,' bin/ lib/ kiwi.spec
+	# Build the RPM package
+	rpmbuild -ta kiwi-2.0.8.tar.gz

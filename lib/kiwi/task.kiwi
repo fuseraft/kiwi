@@ -1,0 +1,51 @@
+/#
+Summary: A package for working with asynchronous tasks.
+#/
+package task
+  /#
+  Summary: Returns true if there are active tasks.
+  Returns: Boolean indicating business.
+  #/
+  fn busy()
+    return __task_busy__()
+  end
+
+  /#
+  Summary: Returns a list of task identifiers.
+  Returns: List of integers.
+  #/
+  fn list()
+    return __task_list__()
+  end
+
+  /#
+  Summary: Returns a result or a status hash.
+  Params:
+    - task_identifier: An integer task identifier.
+  Returns: Result of a task, or its status in a hash.
+  #/
+  fn result(task_identifier)
+    return __task_result__(task_identifier)
+  end
+
+  /#
+  Summary: Sleeps for a number of milliseconds.
+  Params:
+    - ms: An integer representing milliseconds to sleep.
+  #/
+  fn sleep(ms)
+    __task_sleep__(ms)
+  end
+
+  /#
+  Summary: Get a status hash for a given task.
+  Params:
+    - task_identifier: An integer task identifier.
+  Returns: Hash containing status.
+  #/
+  fn status(task_identifier)
+    return __task_status__(task_identifier)
+  end
+end
+
+export "task"
