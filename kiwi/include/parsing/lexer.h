@@ -310,6 +310,8 @@ class Lexer {
       st = KName::KW_Finally;
     } else if (keyword == Keywords.For) {
       st = KName::KW_For;
+    } else if (keyword == Keywords.Fork) {
+      st = KName::KW_Fork;
     } else if (keyword == Keywords.Import) {
       st = KName::KW_Import;
     } else if (keyword == Keywords.In) {
