@@ -28,10 +28,15 @@ class Engine {
 
   int runStreamCollection() {
     auto ast = parser.parseTokenStreamCollection(streamCollection);
+
+    interp.setContext(std::make_unique<KContext>());
+
     auto result = interp.interpret(ast.get());
+
     if (std::holds_alternative<k_int>(result)) {
       return static_cast<int>(std::get<k_int>(result));
     }
+
     return 0;
   }
 

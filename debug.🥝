@@ -8,10 +8,17 @@ fn benchmark_getbytes(path)
   return file_bytes
 end
 
-start = time::ticks()
-total_bytes = 0
-for path in fs::glob("./**/*") do
-  total_bytes += benchmark_getbytes(path)
+fn run()
+  start = time::ticks()
+  total_bytes = 0
+  for path in fs::glob("./**/*") do
+    total_bytes += benchmark_getbytes(path)
+  end
+
+  println "total byte(s): ${total_bytes}, total duration: ${time::ticksms(time::ticks() - start)}ms"
 end
 
-println "total byte(s): ${total_bytes}, total duration: ${time::ticksms(time::ticks() - start)}ms"
+#fork run()
+
+list = [1..10].select(with (n) do n % 2 == 0 end)
+println list
