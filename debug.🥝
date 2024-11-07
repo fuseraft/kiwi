@@ -22,15 +22,14 @@ fn run()
   return total_bytes
 end
 
-task = fork run()
+task_id = fork run()
 
 println "This will print first!"
+println "task identifier is ${task_id}"
 
-println "task is ${task}"
-
-while __task_busy__() do
+while task::busy() do
   println "sleeping..."
-  __task_sleep__(100)
+  task::sleep(100)
 end
 
-println "task result is: ${__task_result__(task)}"
+println "task result is: ${task::result(task_id)}"
