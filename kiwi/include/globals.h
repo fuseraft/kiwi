@@ -7,7 +7,7 @@
 extern bool SAFEMODE;
 
 extern const std::string kiwi_name = "Kiwi";
-extern const std::string kiwi_version = "2.0.7";
+extern const std::string kiwi_version = "2.0.8";
 extern const std::string kiwi_arg = "kiwi";
 
 #ifdef _WIN64

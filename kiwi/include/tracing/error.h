@@ -57,6 +57,13 @@ class UnrecognizedTokenError : public KiwiError {
       : KiwiError(token, "UnrecognizedTokenError", message) {}
 };
 
+class TaskError : public KiwiError {
+ public:
+  TaskError(const Token& token,
+            const std::string& message = "A task error occurred.")
+      : KiwiError(token, "TaskError", message) {}
+};
+
 class SyntaxError : public KiwiError {
  public:
   SyntaxError(const Token& token,

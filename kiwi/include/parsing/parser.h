@@ -32,6 +32,7 @@ class Parser {
                                              const KName& type);
   std::unique_ptr<ASTNode> parseLambdaCall(std::unique_ptr<ASTNode> lambdaNode);
   std::unique_ptr<ASTNode> parseKeyword();
+  std::unique_ptr<ASTNode> parseFork();
   std::unique_ptr<ASTNode> parseClass();
   std::unique_ptr<ASTNode> parseInterface();
   std::unique_ptr<ASTNode> parseLambda();
@@ -259,6 +260,9 @@ std::unique_ptr<ASTNode> Parser::parseKeyword() {
     case KName::KW_PrintXy:
       return parsePrintXy();
 
+    case KName::KW_Fork:
+      return parseFork();
+
     case KName::KW_For:
       return parseForLoop();
 
@@ -369,6 +373,17 @@ std::unique_ptr<ASTNode> Parser::parseComment() {
   return nullptr;
 }
 
+std::unique_ptr<ASTNode> Parser::parseFork() {
+  matchSubType(KName::KW_Fork);
+
+  if (!hasValue()) {
+    throw SyntaxError(getErrorToken(), "Expected expression for fork.");
+  }
+
+  auto forked = parseExpression();
+  return std::make_unique<ForkNode>(std::move(forked));
+}
+
 std::unique_ptr<ASTNode> Parser::parseClass() {
   matchSubType(KName::KW_Class);
 
@@ -416,7 +431,7 @@ std::unique_ptr<ASTNode> Parser::parseClass() {
 
     auto statement = parseStatement();
 
-    if (statement->type == ASTNodeType::FUNCTION_DECLARATION) {
+    if (statement->type == ASTNodeType::FUNCTION) {
       auto func = static_cast<FunctionDeclarationNode*>(statement.get());
       func->isPrivate = isPrivate;
       func->isStatic = isStatic;
@@ -1412,6 +1427,12 @@ std::unique_ptr<ASTNode> Parser::parseAssignment(
   }
 
   auto type = tokenName();
+  if (type == KName::KW_Fork) {
+    auto forkNode = parseFork();
+    return std::make_unique<AssignmentNode>(std::move(baseNode), identifierName,
+                                            type, std::move(forkNode));
+  }
+
   next();
 
   auto initializer = parseExpression();
@@ -1458,6 +1479,10 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier(bool packed) {
   if (tokenType() != KTokenType::IDENTIFIER) {
     if (isInstance) {
       return std::make_unique<SelfNode>();
+    }
+
+    if (tokenName() == KName::KW_Fork) {
+      return parseFork();
     }
 
     throw SyntaxError(getErrorToken(), "Expected an identifier.");

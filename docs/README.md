@@ -31,23 +31,24 @@
      - [Methods](functions.md)
 
 4. **Standard Library**
-   - [`argv`](lib/argv.md)
-   - [`collections`](lib/collections.md)
-   - [`conf`](lib/conf.md)
-   - [`console`](lib/console.md)
-   - [`crypto`](lib/crypto.md)
-   - [`env`](lib/env.md)
-   - [`fs`](lib/fs.md)
-   - [`guava`](lib/guava.md)
-   - [`http`](lib/http.md)
-   - [`log`](lib/log.md)
-   - [`math`](lib/math.md)
-   - [`string`](lib/string.md)
-   - [`sys`](lib/sys.md)
-   - [`time`](lib/time.md)
-     - [`DateTime`](lib/datetime.md#datetime)
-     - [`TimeSpan`](lib/datetime.md#timespan)
-  - [`web`](lib/web.md)
+   - [`argv`](lib/argv.md): Functions for reading command-line arguments.
+   - [`collections`](lib/collections.md): Contains specialized collection structs like `Heap` and `Set`.
+   - [`conf`](lib/conf.md): A package for reading config files.
+   - [`console`](lib/console.md): An interface that wraps builtin STDIO.
+   - [`crypto`](lib/crypto.md): Contains some cryptographic functions (MD5, SHA-2, etc)
+   - [`env`](lib/env.md): For working with environment variables.
+   - [`fs`](lib/fs.md): For working with the file system.
+   - [`guava`](lib/guava.md): A unit testing framework.
+   - [`http`](lib/http.md): For making HTTP requests.
+   - [`log`](lib/log.md): A simple logging interface.
+   - [`math`](lib/math.md): A package of commonly used math functions.
+   - [`string`](lib/string.md): Useful string manipulation functions.
+   - [`sys`](lib/sys.md): For invoking the shell.
+   - [`task`](lib/task.md): For working with asynchronous tasks.
+   - [`time`](lib/time.md): A package of useful time functions.
+     - [`DateTime`](lib/datetime.md#datetime): Represents a date and a time.
+     - [`TimeSpan`](lib/datetime.md#timespan): Represents the difference between two `DateTime` objects.
+   - [`web`](lib/web.md): A simple web framework.
 
 5. **Experimental Features**
    - [Concurrency](concurrency.md)
