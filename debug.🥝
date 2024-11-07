@@ -14,15 +14,23 @@ fn run()
   start = time::ticks()
   total_bytes = 0
 
-  for path in fs::glob("./lib/**/*") do
+  for path in fs::glob("./**/*") do
     total_bytes += benchmark_getbytes(path)
   end
 
   println "total byte(s): ${total_bytes}, total duration: ${time::ticksms(time::ticks() - start)}ms"
-  global.fun = "hello"
+  return total_bytes
 end
 
-fork run()
+task = fork run()
 
-println global.to_string()
-println "fooobar!"
+println "This will print first!"
+
+println "task is ${task}"
+
+while __task_busy__() do
+  println "sleeping..."
+  __task_sleep__(100)
+end
+
+println "task result is: ${__task_result__(task)}"

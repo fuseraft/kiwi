@@ -325,6 +325,14 @@ class KInterpreter {
                               k_string& contentType, int& status);
   std::vector<k_string> getWebServerEndpointList(const Token& term,
                                                  k_value& arg);
+
+  k_value interpretTaskBuiltin(const Token& token, const KName& builtin,
+                               std::vector<k_value>& args);
+  k_value interpretTaskBusy(const Token& token, std::vector<k_value>& args);
+  k_value interpretTaskList(const Token& token, std::vector<k_value>& args);
+  k_value interpretTaskResult(const Token& token, std::vector<k_value>& args);
+  k_value interpretTaskSleep(const Token& token, std::vector<k_value>& args);
+  k_value interpretTaskStatus(const Token& token, std::vector<k_value>& args);
 };
 
 k_value KInterpreter::interpret(const ASTNode* node) {
@@ -536,15 +544,20 @@ k_value KInterpreter::visit(const ForkNode* node) {
   interp->setContext(ctx->clone());
   interp->callStack.push(frame);
 
-  TaskManager::TaskFunction task([interp, fork = std::move(fork)]() {
-    return interp->interpret(fork.get());
+  TaskManager::TaskFunction task([interp, frame, fork = std::move(fork)]() {
+    auto result = interp->interpret(fork.get());
+
+    if (frame->isFlagSet(FrameFlags::Return)) {
+      result = frame->returnValue;
+    }
+
+    return result;
   });
 
   auto taskId = taskmgr.addTask(std::move(task));
 
   return k_value(taskId);
 }
-
 
 k_value KInterpreter::visit(const ProgramNode* node) {
   // This is the program root
@@ -2416,9 +2429,118 @@ k_value KInterpreter::callBuiltinMethod(const FunctionCallNode* node) {
     return interpretReflectorBuiltin(node->token, op, args);
   } else if (WebServerBuiltins.is_builtin(op)) {
     return interpretWebServerBuiltin(node->token, op, args);
+  } else if (TaskBuiltins.is_builtin(op)) {
+    return interpretTaskBuiltin(node->token, op, args);
   }
 
   return BuiltinDispatch::execute(node->token, op, args, kiwiArgs);
+}
+
+k_value KInterpreter::interpretTaskBuiltin(const Token& token,
+                                           const KName& builtin,
+                                           std::vector<k_value>& args) {
+  switch (builtin) {
+    case KName::Builtin_Task_Busy:
+      return interpretTaskBusy(token, args);
+
+    case KName::Builtin_Task_List:
+      return interpretTaskList(token, args);
+
+    case KName::Builtin_Task_Result:
+      return interpretTaskResult(token, args);
+
+    case KName::Builtin_Task_Sleep:
+      return interpretTaskSleep(token, args);
+
+    case KName::Builtin_Task_Status:
+      return interpretTaskStatus(token, args);
+
+    default:
+      break;
+  }
+
+  return {};
+}
+
+k_value KInterpreter::interpretTaskBusy(const Token& token,
+                                        std::vector<k_value>& args) {
+  if (args.size() != 0) {
+    throw BuiltinUnexpectedArgumentError(token, TaskBuiltins.TaskBusy);
+  }
+
+  return k_value(taskmgr.hasActiveTasks());
+}
+
+k_value KInterpreter::interpretTaskSleep(const Token& token,
+                                         std::vector<k_value>& args) {
+  if (args.size() != 1) {
+    throw BuiltinUnexpectedArgumentError(token, TaskBuiltins.TaskSleep);
+  }
+
+  auto ms = get_integer(token, args.at(0));
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+
+  return {};
+}
+
+k_value KInterpreter::interpretTaskList(const Token& token,
+                                        std::vector<k_value>& args) {
+  if (args.size() != 0) {
+    throw BuiltinUnexpectedArgumentError(token, TaskBuiltins.TaskList);
+  }
+
+  std::vector<k_value> activeTasks;
+
+  for (const auto& task : taskmgr.getTasks()) {
+    activeTasks.push_back(task.first);
+  }
+
+  return std::make_shared<List>(activeTasks);
+}
+
+k_value KInterpreter::interpretTaskResult(const Token& token,
+                                          std::vector<k_value>& args) {
+  if (args.size() != 1) {
+    throw BuiltinUnexpectedArgumentError(token, TaskBuiltins.TaskResult);
+  }
+
+  if (!std::holds_alternative<k_int>(args.at(0))) {
+    throw TaskError(
+        token, "Invalid task identifier: " + Serializer::serialize(args.at(0)));
+  }
+
+  auto taskId = std::get<k_int>(args.at(0));
+
+  if (taskmgr.isTaskCompleted(taskId)) {
+    return taskmgr.getTaskResult(taskId);
+  }
+
+  auto taskStatus = std::make_shared<Hash>();
+  taskStatus->add("status", "running");
+  return taskStatus;
+}
+
+k_value KInterpreter::interpretTaskStatus(const Token& token,
+                                          std::vector<k_value>& args) {
+  if (args.size() != 1) {
+    throw BuiltinUnexpectedArgumentError(token, TaskBuiltins.TaskStatus);
+  }
+
+  if (!std::holds_alternative<k_int>(args.at(0))) {
+    throw TaskError(
+        token, "Invalid task identifier: " + Serializer::serialize(args.at(0)));
+  }
+
+  k_int taskId = std::get<k_int>(args.at(0));
+
+  auto taskStatus = std::make_shared<Hash>();
+  taskStatus->add("status", "Task is not yet completed.");
+  if (taskmgr.isTaskCompleted(taskId)) {
+    return k_value("completed");
+  } else {
+    return k_value("running");
+  }
 }
 
 k_value KInterpreter::interpretWebServerBuiltin(const Token& token,

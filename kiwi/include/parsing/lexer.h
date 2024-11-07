@@ -754,6 +754,24 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
+  Token parseTaskBuiltin(const k_string& builtin) {
+    auto st = KName::Default;
+
+    if (builtin == TaskBuiltins.TaskBusy) {
+      st = KName::Builtin_Task_Busy;
+    } else if (builtin == TaskBuiltins.TaskList) {
+      st = KName::Builtin_Task_List;
+    } else if (builtin == TaskBuiltins.TaskResult) {
+      st = KName::Builtin_Task_Result;
+    } else if (builtin == TaskBuiltins.TaskSleep) {
+      st = KName::Builtin_Task_Sleep;
+    } else if (builtin == TaskBuiltins.TaskStatus) {
+      st = KName::Builtin_Task_Status;
+    }
+
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
+  }
+
   Token parseMathBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
@@ -1003,6 +1021,8 @@ class Lexer {
       return parseListBuiltin(builtin);
     } else if (MathBuiltins.is_builtin(builtin)) {
       return parseMathBuiltin(builtin);
+    } else if (TaskBuiltins.is_builtin(builtin)) {
+      return parseTaskBuiltin(builtin);
     } else if (PackageBuiltins.is_builtin(builtin)) {
       return parsePackageBuiltin(builtin);
     } else if (SysBuiltins.is_builtin(builtin)) {

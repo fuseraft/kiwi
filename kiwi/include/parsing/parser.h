@@ -1427,6 +1427,12 @@ std::unique_ptr<ASTNode> Parser::parseAssignment(
   }
 
   auto type = tokenName();
+  if (type == KName::KW_Fork) {
+    auto forkNode = parseFork();
+    return std::make_unique<AssignmentNode>(std::move(baseNode), identifierName,
+                                            type, std::move(forkNode));
+  }
+
   next();
 
   auto initializer = parseExpression();
@@ -1473,6 +1479,10 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier(bool packed) {
   if (tokenType() != KTokenType::IDENTIFIER) {
     if (isInstance) {
       return std::make_unique<SelfNode>();
+    }
+
+    if (tokenName() == KName::KW_Fork) {
+      return parseFork();
     }
 
     throw SyntaxError(getErrorToken(), "Expected an identifier.");
