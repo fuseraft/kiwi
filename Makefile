@@ -47,6 +47,6 @@ clean:
 
 rpm: all
 	# Create source tarball
-	tar czf kiwi-2.0.7.tar.gz --transform 's,^,kiwi-2.0.7/,' bin/ lib/ kiwi.spec
+	tar czf kiwi-2.0.8.tar.gz --transform 's,^,kiwi-2.0.8/,' bin/ lib/ kiwi.spec
 	# Build the RPM package
-	rpmbuild -ta kiwi-2.0.7.tar.gz
+	rpmbuild -ta kiwi-2.0.8.tar.gz

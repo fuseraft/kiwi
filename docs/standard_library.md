@@ -13,6 +13,7 @@ The Kiwi Standard Library is a set of packages that enable easier systems progra
 | [`math`](lib/math.md) | A package of useful math functions. |
 | [`string`](lib/string.md) | A package of specialized string functions. |
 | [`sys`](lib/sys.md) | A package for working with the OS shell. |
+| [`task`](lib/task.md) | A package for working with asynchronous tasks. |
 | [`time`](lib/time.md) | A package with useful date and time functions. |
 | [`http`](lib/http.md) | A package for making HTTP requests. |
 | [`web`](lib/web.md) | A package for building web applications. |
