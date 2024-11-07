@@ -1,6 +1,6 @@
 global.config = {
   "content": {
-    "title": "kiwi v2.0.7",
+    "title": "kiwi v2.0.8",
     "favicon": "favicon.svg",
     # change `root` to point to your local path
     "root": "/home/scs/kiwi/examples/webapp/content",
