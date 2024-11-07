@@ -58,7 +58,7 @@ class Engine {
     return;
   }
 
-  int interpretScript(const k_string& path) {
+  int parseScript(const k_string& path) {
     auto content = File::readFile(engineToken, path);
     if (content.empty()) {
       return 1;
