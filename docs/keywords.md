@@ -43,6 +43,7 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
 - [Concurrency](#concurrency)
   - [`async`](#async)
   - [`await`](#await)
+  - [`fork`](#fork)
 - [Console I/O](#console-io)
   - [`input`](#input)
   - [`print`](#print)
@@ -236,6 +237,11 @@ See [Concurrency](concurrency.md).
 The `await` keyword is used to retrieve the result of an asynchronous method invocation.
 
 See [Concurrency](concurrency.md).
+
+### `fork`
+The `fork` keyword is used to spawn an asynchronous task.
+
+See [`task`](lib/task.md#creating-tasks-with-fork).
 
 ## Console I/O
 
