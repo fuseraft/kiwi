@@ -1545,6 +1545,25 @@ class MemberAssignmentNode : public ASTNode {
   }
 };
 
+class ForkNode : public ASTNode {
+ public:
+  std::unique_ptr<ASTNode> expression;
+
+  ForkNode() : ASTNode(ASTNodeType::FORK) {}
+  ForkNode(std::unique_ptr<ASTNode> expression)
+      : ASTNode(ASTNodeType::FORK), expression(std::move(expression)) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Fork:" << std::endl;
+    expression->print(1 + depth);
+  }
+
+  std::unique_ptr<ASTNode> clone() const override {
+    return std::make_unique<ForkNode>(expression->clone());
+  }
+};
+
 enum class KCallableType {
   Builtin,
   Function,
@@ -1574,6 +1593,13 @@ class KBuiltin : public KCallable {
     return body;
   }
 
+  std::unique_ptr<KCallable> clone() {
+    auto cloned = std::make_unique<KBuiltin>(token, name);
+    cloned->parameters = parameters;
+    cloned->defaultParameters = defaultParameters;
+    return cloned;
+  }
+
  private:
   std::vector<std::unique_ptr<ASTNode>> body;
 };
@@ -1581,28 +1607,57 @@ class KBuiltin : public KCallable {
 class KFunction : public KCallable {
  public:
   k_string name;
-  const FunctionDeclarationNode* decl;
+  std::unique_ptr<FunctionDeclarationNode> decl;
   bool isStatic = false;
   bool isPrivate = false;
   bool isCtor = false;
 
-  KFunction(const FunctionDeclarationNode* decl)
-      : KCallable(KCallableType::Function), decl(std::move(decl)) {}
+  KFunction(std::unique_ptr<ASTNode> node)
+      : KCallable(KCallableType::Function) {
+    std::unique_ptr<FunctionDeclarationNode> nodeptr(
+        dynamic_cast<FunctionDeclarationNode*>(node->clone().release()));
+    decl = std::move(nodeptr);
+  }
 
   const std::vector<std::unique_ptr<ASTNode>>& getBody() const override {
     return decl->body;
+  }
+
+  std::unique_ptr<KFunction> clone() {
+    std::unique_ptr<FunctionDeclarationNode> nodeptr(
+        dynamic_cast<FunctionDeclarationNode*>(decl->clone().release()));
+    auto cloned = std::make_unique<KFunction>(std::move(nodeptr));
+    cloned->name = name;
+    cloned->isStatic = isStatic;
+    cloned->isPrivate = isPrivate;
+    cloned->isCtor = isCtor;
+    cloned->parameters = parameters;
+    cloned->defaultParameters = defaultParameters;
+    return cloned;
   }
 };
 
 class KLambda : public KCallable {
  public:
-  const LambdaNode* decl;
+  std::unique_ptr<LambdaNode> decl;
 
-  KLambda(const LambdaNode* decl)
-      : KCallable(KCallableType::Lambda), decl(std::move(decl)) {}
+  KLambda(std::unique_ptr<ASTNode> node) : KCallable(KCallableType::Lambda) {
+    std::unique_ptr<LambdaNode> nodeptr(
+        dynamic_cast<LambdaNode*>(node->clone().release()));
+    decl = std::move(nodeptr);
+  }
 
   const std::vector<std::unique_ptr<ASTNode>>& getBody() const override {
     return decl->body;
+  }
+
+  std::unique_ptr<KLambda> clone() {
+    std::unique_ptr<LambdaNode> nodeptr(
+        dynamic_cast<LambdaNode*>(decl->clone().release()));
+    auto cloned = std::make_unique<KLambda>(std::move(nodeptr));
+    cloned->parameters = parameters;
+    cloned->defaultParameters = defaultParameters;
+    return cloned;
   }
 };
 
@@ -1611,12 +1666,36 @@ class KClass {
   k_string name;
   k_string baseClass;
   std::unordered_map<k_string, std::unique_ptr<KFunction>> methods;
+
+  std::unique_ptr<KClass> clone() const {
+    auto cloned = std::make_unique<KClass>();
+    cloned->name = name;
+    cloned->baseClass = baseClass;
+
+    for (const auto& [methodName, methodPtr] : methods) {
+      cloned->methods[methodName] = std::unique_ptr<KFunction>(
+          static_cast<KFunction*>(methodPtr->clone().release()));
+    }
+
+    return cloned;
+  }
 };
 
 class KPackage {
  public:
-  const PackageNode* decl;
-  KPackage(const PackageNode* decl) : decl(decl) {}
+  std::unique_ptr<PackageNode> decl;
+
+  KPackage(std::unique_ptr<ASTNode> node) {
+    std::unique_ptr<PackageNode> nodeptr(
+        dynamic_cast<PackageNode*>(node->clone().release()));
+    decl = std::move(nodeptr);
+  }
+
+  std::unique_ptr<KPackage> clone() const {
+    std::unique_ptr<PackageNode> nodeptr(
+        dynamic_cast<PackageNode*>(decl->clone().release()));
+    return std::make_unique<KPackage>(std::move(nodeptr));
+  }
 };
 
 #endif
