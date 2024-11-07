@@ -16,9 +16,7 @@ fn run()
   end
 
   println "total byte(s): ${total_bytes}, total duration: ${time::ticksms(time::ticks() - start)}ms"
+  global.fun = "hello"
 end
 
-#fork run()
-
-list = [1..10].select(with (n) do n % 2 == 0 end)
-println list
+fork run()
