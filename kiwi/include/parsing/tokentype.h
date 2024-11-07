@@ -262,6 +262,7 @@ enum KName {
   KW_False,
   KW_Finally,
   KW_For,
+  KW_Fork,
   KW_If,
   KW_Import,
   KW_In,

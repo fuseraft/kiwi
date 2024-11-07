@@ -12,21 +12,22 @@
 enum class ASTNodeType {
   ASSIGNMENT,
   BINARY_OPERATION,
-  BREAK_STATEMENT,
-  CASE_STATEMENT,
+  BREAK,
+  CASE,
   CASE_WHEN,
   CLASS,
-  EXIT_STATEMENT,
-  EXPORT_STATEMENT,  // obsolete
+  EXIT,
+  EXPORT,  // obsolete
   FOR_LOOP,
+  FORK,
   FUNCTION_CALL,
-  FUNCTION_DECLARATION,
+  FUNCTION,
   HASH_LITERAL,
   IDENTIFIER,
-  IF_STATEMENT,
-  IMPORT_STATEMENT,
+  IF,
+  IMPORT,
   INDEX_ASSIGNMENT,
-  INDEX_EXPRESSION,
+  INDEX,
   INTERFACE,  // obsolete
   LAMBDA,
   LAMBDA_CALL,
@@ -35,21 +36,21 @@ enum class ASTNodeType {
   MEMBER_ACCESS,
   MEMBER_ASSIGNMENT,
   METHOD_CALL,
-  NEXT_STATEMENT,
+  NEXT,
   NO_OP,
   PACK_ASSIGNMENT,
   PACKAGE,
-  PARSE_STATEMENT,  // WIP
-  PRINT_STATEMENT,
-  PRINTXY_STATEMENT,
+  PARSE,  // WIP
+  PRINT,
+  PRINTXY,
   PROGRAM,
   RANGE_LITERAL,
   REPEAT_LOOP,
-  RETURN_STATEMENT,
+  RETURN,
   SELF,
-  SLICE_EXPRESSION,
+  SLICE,
   TERNARY_OPERATION,
-  THROW_STATEMENT,
+  THROW,
   TRY,
   UNARY_OPERATION,
   WHILE_LOOP,
@@ -261,16 +262,16 @@ class IndexingNode : public ASTNode {
   k_string name;
   std::unique_ptr<ASTNode> indexExpression;
 
-  IndexingNode() : ASTNode(ASTNodeType::INDEX_EXPRESSION) {}
+  IndexingNode() : ASTNode(ASTNodeType::INDEX) {}
 
   IndexingNode(const k_string& name, std::unique_ptr<ASTNode> indexExpression)
-      : ASTNode(ASTNodeType::INDEX_EXPRESSION),
+      : ASTNode(ASTNodeType::INDEX),
         name(name),
         indexExpression(std::move(indexExpression)) {}
 
   IndexingNode(std::unique_ptr<ASTNode> indexedObject,
                std::unique_ptr<ASTNode> indexExpression)
-      : ASTNode(ASTNodeType::INDEX_EXPRESSION),
+      : ASTNode(ASTNodeType::INDEX),
         indexedObject(std::move(indexedObject)),
         indexExpression(std::move(indexExpression)) {}
 
@@ -297,10 +298,10 @@ class ReturnNode : public ASTNode {
   std::unique_ptr<ASTNode> returnValue;
   std::unique_ptr<ASTNode> condition;
 
-  ReturnNode() : ASTNode(ASTNodeType::RETURN_STATEMENT) {}
+  ReturnNode() : ASTNode(ASTNodeType::RETURN) {}
   ReturnNode(std::unique_ptr<ASTNode> returnValue,
              std::unique_ptr<ASTNode> condition)
-      : ASTNode(ASTNodeType::RETURN_STATEMENT),
+      : ASTNode(ASTNodeType::RETURN),
         returnValue(std::move(returnValue)),
         condition(std::move(condition)) {}
 
@@ -330,10 +331,10 @@ class ThrowNode : public ASTNode {
   std::unique_ptr<ASTNode> errorValue;
   std::unique_ptr<ASTNode> condition;
 
-  ThrowNode() : ASTNode(ASTNodeType::THROW_STATEMENT) {}
+  ThrowNode() : ASTNode(ASTNodeType::THROW) {}
   ThrowNode(std::unique_ptr<ASTNode> errorValue,
             std::unique_ptr<ASTNode> condition)
-      : ASTNode(ASTNodeType::THROW_STATEMENT),
+      : ASTNode(ASTNodeType::THROW),
         errorValue(std::move(errorValue)),
         condition(std::move(condition)) {}
 
@@ -363,10 +364,10 @@ class ExitNode : public ASTNode {
   std::unique_ptr<ASTNode> exitValue;
   std::unique_ptr<ASTNode> condition;
 
-  ExitNode() : ASTNode(ASTNodeType::EXIT_STATEMENT) {}
+  ExitNode() : ASTNode(ASTNodeType::EXIT) {}
   ExitNode(std::unique_ptr<ASTNode> exitValue,
            std::unique_ptr<ASTNode> condition)
-      : ASTNode(ASTNodeType::EXIT_STATEMENT),
+      : ASTNode(ASTNodeType::EXIT),
         exitValue(std::move(exitValue)),
         condition(std::move(condition)) {}
 
@@ -394,10 +395,9 @@ class ParseNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> parseValue;
 
-  ParseNode() : ASTNode(ASTNodeType::PARSE_STATEMENT) {}
+  ParseNode() : ASTNode(ASTNodeType::PARSE) {}
   ParseNode(std::unique_ptr<ASTNode> parseValue)
-      : ASTNode(ASTNodeType::PARSE_STATEMENT),
-        parseValue(std::move(parseValue)) {}
+      : ASTNode(ASTNodeType::PARSE), parseValue(std::move(parseValue)) {}
 
   void print(int depth) const override {
     print_depth(depth);
@@ -417,9 +417,9 @@ class NextNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> condition;
 
-  NextNode() : ASTNode(ASTNodeType::NEXT_STATEMENT) {}
+  NextNode() : ASTNode(ASTNodeType::NEXT) {}
   NextNode(std::unique_ptr<ASTNode> condition)
-      : ASTNode(ASTNodeType::NEXT_STATEMENT), condition(std::move(condition)) {}
+      : ASTNode(ASTNodeType::NEXT), condition(std::move(condition)) {}
 
   void print(int depth) const override {
     print_depth(depth);
@@ -441,10 +441,9 @@ class BreakNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> condition;
 
-  BreakNode() : ASTNode(ASTNodeType::BREAK_STATEMENT) {}
+  BreakNode() : ASTNode(ASTNodeType::BREAK) {}
   BreakNode(std::unique_ptr<ASTNode> condition)
-      : ASTNode(ASTNodeType::BREAK_STATEMENT),
-        condition(std::move(condition)) {}
+      : ASTNode(ASTNodeType::BREAK), condition(std::move(condition)) {}
 
   void print(int depth) const override {
     print_depth(depth);
@@ -481,10 +480,9 @@ class ImportNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> packageName;
 
-  ImportNode() : ASTNode(ASTNodeType::IMPORT_STATEMENT) {}
+  ImportNode() : ASTNode(ASTNodeType::IMPORT) {}
   ImportNode(std::unique_ptr<ASTNode> packageName)
-      : ASTNode(ASTNodeType::IMPORT_STATEMENT),
-        packageName(std::move(packageName)) {}
+      : ASTNode(ASTNodeType::IMPORT), packageName(std::move(packageName)) {}
 
   void print(int depth) const override {
     print_depth(depth);
@@ -501,10 +499,9 @@ class ExportNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> packageName;
 
-  ExportNode() : ASTNode(ASTNodeType::EXPORT_STATEMENT) {}
+  ExportNode() : ASTNode(ASTNodeType::EXPORT) {}
   ExportNode(std::unique_ptr<ASTNode> packageName)
-      : ASTNode(ASTNodeType::EXPORT_STATEMENT),
-        packageName(std::move(packageName)) {}
+      : ASTNode(ASTNodeType::EXPORT), packageName(std::move(packageName)) {}
 
   void print(int depth) const override {
     print_depth(depth);
@@ -558,12 +555,12 @@ class SliceNode : public ASTNode {
   std::unique_ptr<ASTNode> stopExpression;
   std::unique_ptr<ASTNode> stepExpression;
 
-  SliceNode() : ASTNode(ASTNodeType::SLICE_EXPRESSION) {}
+  SliceNode() : ASTNode(ASTNodeType::SLICE) {}
   SliceNode(std::unique_ptr<ASTNode> slicedObject,
             std::unique_ptr<ASTNode> startExpression = nullptr,
             std::unique_ptr<ASTNode> stopExpression = nullptr,
             std::unique_ptr<ASTNode> stepExpression = nullptr)
-      : ASTNode(ASTNodeType::SLICE_EXPRESSION),
+      : ASTNode(ASTNodeType::SLICE),
         slicedObject(std::move(slicedObject)),
         startExpression(std::move(startExpression)),
         stopExpression(std::move(stopExpression)),
@@ -717,9 +714,9 @@ class PrintNode : public ASTNode {
   std::unique_ptr<ASTNode> expression;  // Expression to print
   bool printNewline;                    // Flag for printing a newline
 
-  PrintNode() : ASTNode(ASTNodeType::PRINT_STATEMENT) {}
+  PrintNode() : ASTNode(ASTNodeType::PRINT) {}
   PrintNode(std::unique_ptr<ASTNode> expression, bool printNewline)
-      : ASTNode(ASTNodeType::PRINT_STATEMENT),
+      : ASTNode(ASTNodeType::PRINT),
         expression(std::move(expression)),
         printNewline(printNewline) {}
 
@@ -740,10 +737,10 @@ class PrintXyNode : public ASTNode {
   std::unique_ptr<ASTNode> x;
   std::unique_ptr<ASTNode> y;
 
-  PrintXyNode() : ASTNode(ASTNodeType::PRINTXY_STATEMENT) {}
+  PrintXyNode() : ASTNode(ASTNodeType::PRINTXY) {}
   PrintXyNode(std::unique_ptr<ASTNode> expression, std::unique_ptr<ASTNode> x,
               std::unique_ptr<ASTNode> y)
-      : ASTNode(ASTNodeType::PRINTXY_STATEMENT),
+      : ASTNode(ASTNodeType::PRINTXY),
         expression(std::move(expression)),
         x(std::move(x)),
         y(std::move(y)) {}
@@ -770,7 +767,7 @@ class FunctionDeclarationNode : public ASTNode {
   bool isStatic = false;
   bool isPrivate = false;
 
-  FunctionDeclarationNode() : ASTNode(ASTNodeType::FUNCTION_DECLARATION) {}
+  FunctionDeclarationNode() : ASTNode(ASTNodeType::FUNCTION) {}
 
   void print(int depth) const override {
     print_depth(depth);
@@ -1058,7 +1055,7 @@ class CaseNode : public ASTNode {
   std::vector<std::unique_ptr<ASTNode>> elseBody;
   std::vector<std::unique_ptr<CaseWhenNode>> whenNodes;
 
-  CaseNode() : ASTNode(ASTNodeType::CASE_STATEMENT) {}
+  CaseNode() : ASTNode(ASTNodeType::CASE) {}
 
   void print(int depth) const override {
     print_depth(depth);
@@ -1114,7 +1111,7 @@ class IfNode : public ASTNode {
   std::vector<std::unique_ptr<ASTNode>> elseBody;
   std::vector<std::unique_ptr<IfNode>> elseifNodes;
 
-  IfNode() : ASTNode(ASTNodeType::IF_STATEMENT) {}
+  IfNode() : ASTNode(ASTNodeType::IF) {}
 
   void print(int depth) const override {
     print_depth(depth);

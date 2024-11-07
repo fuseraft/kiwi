@@ -299,16 +299,16 @@ k_value KInterpreter::interpret(const ASTNode* node) {
     case ASTNodeType::CLASS:
       return visit(static_cast<const ClassNode*>(node));
 
-    case ASTNodeType::IMPORT_STATEMENT:
+    case ASTNodeType::IMPORT:
       return visit(static_cast<const ImportNode*>(node));
 
-    case ASTNodeType::EXPORT_STATEMENT:
+    case ASTNodeType::EXPORT:
       return visit(static_cast<const ExportNode*>(node));
 
-    case ASTNodeType::EXIT_STATEMENT:
+    case ASTNodeType::EXIT:
       return visit(static_cast<const ExitNode*>(node));
 
-    case ASTNodeType::THROW_STATEMENT:
+    case ASTNodeType::THROW:
       return visit(static_cast<const ThrowNode*>(node));
 
     case ASTNodeType::ASSIGNMENT:
@@ -341,10 +341,10 @@ k_value KInterpreter::interpret(const ASTNode* node) {
     case ASTNodeType::IDENTIFIER:
       return visit(static_cast<const IdentifierNode*>(node));
 
-    case ASTNodeType::PRINT_STATEMENT:
+    case ASTNodeType::PRINT:
       return visit(static_cast<const PrintNode*>(node));
 
-    case ASTNodeType::PRINTXY_STATEMENT:
+    case ASTNodeType::PRINTXY:
       return visit(static_cast<const PrintXyNode*>(node));
 
     case ASTNodeType::TERNARY_OPERATION:
@@ -356,10 +356,10 @@ k_value KInterpreter::interpret(const ASTNode* node) {
     case ASTNodeType::UNARY_OPERATION:
       return visit(static_cast<const UnaryOperationNode*>(node));
 
-    case ASTNodeType::IF_STATEMENT:
+    case ASTNodeType::IF:
       return visit(static_cast<const IfNode*>(node));
 
-    case ASTNodeType::CASE_STATEMENT:
+    case ASTNodeType::CASE:
       return visit(static_cast<const CaseNode*>(node));
 
     case ASTNodeType::FOR_LOOP:
@@ -371,10 +371,10 @@ k_value KInterpreter::interpret(const ASTNode* node) {
     case ASTNodeType::REPEAT_LOOP:
       return visit(static_cast<const RepeatLoopNode*>(node));
 
-    case ASTNodeType::BREAK_STATEMENT:
+    case ASTNodeType::BREAK:
       return visit(static_cast<const BreakNode*>(node));
 
-    case ASTNodeType::NEXT_STATEMENT:
+    case ASTNodeType::NEXT:
       return visit(static_cast<const NextNode*>(node));
 
     case ASTNodeType::TRY:
@@ -386,7 +386,7 @@ k_value KInterpreter::interpret(const ASTNode* node) {
     case ASTNodeType::LAMBDA_CALL:
       return visit(static_cast<const LambdaCallNode*>(node));
 
-    case ASTNodeType::FUNCTION_DECLARATION:
+    case ASTNodeType::FUNCTION:
       return visit(static_cast<const FunctionDeclarationNode*>(node));
 
     case ASTNodeType::FUNCTION_CALL:
@@ -395,16 +395,16 @@ k_value KInterpreter::interpret(const ASTNode* node) {
     case ASTNodeType::METHOD_CALL:
       return visit(static_cast<const MethodCallNode*>(node));
 
-    case ASTNodeType::RETURN_STATEMENT:
+    case ASTNodeType::RETURN:
       return visit(static_cast<const ReturnNode*>(node));
 
-    case ASTNodeType::INDEX_EXPRESSION:
+    case ASTNodeType::INDEX:
       return visit(static_cast<const IndexingNode*>(node));
 
-    case ASTNodeType::SLICE_EXPRESSION:
+    case ASTNodeType::SLICE:
       return visit(static_cast<const SliceNode*>(node));
 
-    case ASTNodeType::PARSE_STATEMENT:
+    case ASTNodeType::PARSE:
       return visit(static_cast<const ParseNode*>(node));
 
     case ASTNodeType::NO_OP:
@@ -674,7 +674,7 @@ k_value KInterpreter::doSliceAssignment(const Token& token, k_value& slicedObj,
 k_value KInterpreter::handleNestedIndexing(const IndexingNode* indexExpr,
                                            k_value baseObj, const KName& op,
                                            const k_value& newValue) {
-  if (indexExpr->indexExpression->type == ASTNodeType::INDEX_EXPRESSION) {
+  if (indexExpr->indexExpression->type == ASTNodeType::INDEX) {
     auto nestedIndexExpr =
         static_cast<const IndexingNode*>(indexExpr->indexExpression.get());
     auto nestedIndex = interpret(nestedIndexExpr->indexExpression.get());
@@ -691,8 +691,7 @@ k_value KInterpreter::handleNestedIndexing(const IndexingNode* indexExpr,
                          "The index was outside the bounds of the list.");
       }
 
-      if (nestedIndexExpr->indexExpression->type ==
-          ASTNodeType::INDEX_EXPRESSION) {
+      if (nestedIndexExpr->indexExpression->type == ASTNodeType::INDEX) {
         k_value nestedValue = handleNestedIndexing(
             nestedIndexExpr, listObj->elements[indexValue], op, newValue);
         listObj->elements[indexValue] = nestedValue;
@@ -837,7 +836,7 @@ k_value KInterpreter::visit(const IndexAssignmentNode* node) {
   k_string identifierName;
   auto newValue = interpret(node->initializer.get());
 
-  if (node->object->type == ASTNodeType::SLICE_EXPRESSION) {
+  if (node->object->type == ASTNodeType::SLICE) {
     auto sliceExpr = static_cast<const SliceNode*>(node->object.get());
 
     if (sliceExpr->slicedObject->type == ASTNodeType::IDENTIFIER) {
@@ -861,7 +860,7 @@ k_value KInterpreter::visit(const IndexAssignmentNode* node) {
       doSliceAssignment(node->token, slicedObj, slice, newValue);
       frame->variables[identifierName] = slicedObj;
     }
-  } else if (node->object->type == ASTNodeType::INDEX_EXPRESSION) {
+  } else if (node->object->type == ASTNodeType::INDEX) {
     auto indexExpr = static_cast<const IndexingNode*>(node->object.get());
 
     if (indexExpr->indexedObject->type == ASTNodeType::IDENTIFIER) {
@@ -893,7 +892,7 @@ k_value KInterpreter::visit(const IndexAssignmentNode* node) {
         }
 
         // Handle nested indexing
-        if (indexExpr->indexExpression->type == ASTNodeType::INDEX_EXPRESSION) {
+        if (indexExpr->indexExpression->type == ASTNodeType::INDEX) {
           k_value nestedValue = handleNestedIndexing(
               indexExpr, listObj->elements[indexValue], op, newValue);
           listObj->elements[indexValue] = nestedValue;
@@ -922,8 +921,7 @@ k_value KInterpreter::visit(const IndexAssignmentNode* node) {
                                                     newValue));
         }
       }
-    } else if (indexExpr->indexedObject->type ==
-               ASTNodeType::INDEX_EXPRESSION) {
+    } else if (indexExpr->indexedObject->type == ASTNodeType::INDEX) {
       auto indexedObj =
           static_cast<const IndexingNode*>(indexExpr->indexedObject.get());
       k_string indexedObjId;
@@ -1259,7 +1257,7 @@ k_value KInterpreter::visit(const IndexingNode* node) {
   auto object = interpret(node->indexedObject.get());
   auto indexValue = interpret(node->indexExpression.get());
 
-  if (node->indexExpression->type == ASTNodeType::INDEX_EXPRESSION) {
+  if (node->indexExpression->type == ASTNodeType::INDEX) {
     auto indexExpr =
         static_cast<const IndexingNode*>(node->indexExpression.get());
     return handleNestedIndexing(indexExpr, object, KName::Ops_Assign,
@@ -1395,8 +1393,7 @@ k_value KInterpreter::listLoop(const ForLoopNode* node, const k_list& list) {
     }
 
     for (const auto& stmt : node->body) {
-      if (stmt->type != ASTNodeType::NEXT_STATEMENT &&
-          stmt->type != ASTNodeType::BREAK_STATEMENT) {
+      if (stmt->type != ASTNodeType::NEXT && stmt->type != ASTNodeType::BREAK) {
         result = interpret(stmt.get());
 
         if (frame->isFlagSet(FrameFlags::Break)) {
@@ -1415,13 +1412,13 @@ k_value KInterpreter::listLoop(const ForLoopNode* node, const k_list& list) {
         break;
       }
 
-      if (stmt->type == ASTNodeType::NEXT_STATEMENT) {
+      if (stmt->type == ASTNodeType::NEXT) {
         const auto* nextNode = static_cast<const NextNode*>(stmt.get());
         if (!nextNode->condition ||
             MathImpl.is_truthy(interpret(nextNode->condition.get()))) {
           break;
         }
-      } else if (stmt->type == ASTNodeType::BREAK_STATEMENT) {
+      } else if (stmt->type == ASTNodeType::BREAK) {
         const auto* breakNode = static_cast<const BreakNode*>(stmt.get());
         if (!breakNode->condition ||
             MathImpl.is_truthy(interpret(breakNode->condition.get()))) {
@@ -1474,8 +1471,7 @@ k_value KInterpreter::hashLoop(const ForLoopNode* node, const k_hash& hash) {
     }
 
     for (const auto& stmt : node->body) {
-      if (stmt->type != ASTNodeType::NEXT_STATEMENT &&
-          stmt->type != ASTNodeType::BREAK_STATEMENT) {
+      if (stmt->type != ASTNodeType::NEXT && stmt->type != ASTNodeType::BREAK) {
         result = interpret(stmt.get());
 
         if (frame->isFlagSet(FrameFlags::Break)) {
@@ -1494,13 +1490,13 @@ k_value KInterpreter::hashLoop(const ForLoopNode* node, const k_hash& hash) {
         break;
       }
 
-      if (stmt->type == ASTNodeType::NEXT_STATEMENT) {
+      if (stmt->type == ASTNodeType::NEXT) {
         const auto* nextNode = static_cast<const NextNode*>(stmt.get());
         if (!nextNode->condition ||
             MathImpl.is_truthy(interpret(nextNode->condition.get()))) {
           break;
         }
-      } else if (stmt->type == ASTNodeType::BREAK_STATEMENT) {
+      } else if (stmt->type == ASTNodeType::BREAK) {
         const auto* breakNode = static_cast<const BreakNode*>(stmt.get());
         if (!breakNode->condition ||
             MathImpl.is_truthy(interpret(breakNode->condition.get()))) {
@@ -1555,8 +1551,7 @@ k_value KInterpreter::visit(const WhileLoopNode* node) {
     }
 
     for (const auto& stmt : node->body) {
-      if (stmt->type != ASTNodeType::NEXT_STATEMENT &&
-          stmt->type != ASTNodeType::BREAK_STATEMENT) {
+      if (stmt->type != ASTNodeType::NEXT && stmt->type != ASTNodeType::BREAK) {
         result = interpret(stmt.get());
 
         if (frame->isFlagSet(FrameFlags::Break)) {
@@ -1575,13 +1570,13 @@ k_value KInterpreter::visit(const WhileLoopNode* node) {
         break;
       }
 
-      if (stmt->type == ASTNodeType::NEXT_STATEMENT) {
+      if (stmt->type == ASTNodeType::NEXT) {
         const auto* nextNode = static_cast<const NextNode*>(stmt.get());
         if (!nextNode->condition ||
             MathImpl.is_truthy(interpret(nextNode->condition.get()))) {
           break;
         }
-      } else if (stmt->type == ASTNodeType::BREAK_STATEMENT) {
+      } else if (stmt->type == ASTNodeType::BREAK) {
         const auto* breakNode = static_cast<const BreakNode*>(stmt.get());
         if (!breakNode->condition ||
             MathImpl.is_truthy(interpret(breakNode->condition.get()))) {
@@ -1651,8 +1646,7 @@ k_value KInterpreter::visit(const RepeatLoopNode* node) {
     }
 
     for (const auto& stmt : node->body) {
-      if (stmt->type != ASTNodeType::NEXT_STATEMENT &&
-          stmt->type != ASTNodeType::BREAK_STATEMENT) {
+      if (stmt->type != ASTNodeType::NEXT && stmt->type != ASTNodeType::BREAK) {
         result = interpret(stmt.get());
 
         if (frame->isFlagSet(FrameFlags::Break)) {
@@ -1671,13 +1665,13 @@ k_value KInterpreter::visit(const RepeatLoopNode* node) {
         break;
       }
 
-      if (stmt->type == ASTNodeType::NEXT_STATEMENT) {
+      if (stmt->type == ASTNodeType::NEXT) {
         const auto* nextNode = static_cast<const NextNode*>(stmt.get());
         if (!nextNode->condition ||
             MathImpl.is_truthy(interpret(nextNode->condition.get()))) {
           break;
         }
-      } else if (stmt->type == ASTNodeType::BREAK_STATEMENT) {
+      } else if (stmt->type == ASTNodeType::BREAK) {
         const auto* breakNode = static_cast<const BreakNode*>(stmt.get());
         if (!breakNode->condition ||
             MathImpl.is_truthy(interpret(breakNode->condition.get()))) {
