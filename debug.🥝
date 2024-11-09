@@ -1,35 +1,27 @@
 # a script for debugging and experimentation (and fun!)
 
-fn benchmark_getbytes(path)
-  start = time::ticks()
-  file_bytes = fs::getbytes(path).size()
-  stop = time::ticks()
-  
-  println "size: ${file_bytes} byte(s), duration: ${time::ticksms(stop - start)}ms"
+tasks = []
 
-  return file_bytes
+for i in [1..10] do
+  tasks.push(fork (with () do
+    println "task with id ${i} is running..."
+
+    random_sleep_ms = math::random(500, 1000)
+    task::sleep(random_sleep_ms) # simulate work with randomized duration
+
+    println "task with id ${i} is finished!"
+
+    return { "id": i, "sleep_ms": random_sleep_ms }
+  end)())
 end
 
-fn run()
-  start = time::ticks()
-  total_bytes = 0
-
-  for path in fs::glob("./**/*") do
-    total_bytes += benchmark_getbytes(path)
-  end
-
-  println "total byte(s): ${total_bytes}, total duration: ${time::ticksms(time::ticks() - start)}ms"
-  return total_bytes
-end
-
-task_id = fork run()
-
-println "This will print first!"
-println "task identifier is ${task_id}"
+println "This will print first."
 
 while task::busy() do
-  println "sleeping..."
-  task::sleep(100)
+  task::sleep(100) # avoid busy waiting
 end
 
-println "task result is: ${task::result(task_id)}"
+for task_id in tasks do
+  task_result = task::result(task_id)
+  println "task result is: ${task_result.id}"
+end
