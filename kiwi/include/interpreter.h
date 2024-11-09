@@ -2511,13 +2511,12 @@ k_value KInterpreter::interpretTaskResult(const Token& token,
   }
 
   auto taskId = std::get<k_int>(args.at(0));
+  auto taskStatus = taskmgr.isTaskCompleted(token, taskId);
 
-  if (taskmgr.isTaskCompleted(taskId)) {
-    return taskmgr.getTaskResult(taskId);
+  if (std::holds_alternative<bool>(taskStatus) && std::get<bool>(taskStatus)) {
+    return taskmgr.getTaskResult(token, taskId);
   }
 
-  auto taskStatus = std::make_shared<Hash>();
-  taskStatus->add("status", "running");
   return taskStatus;
 }
 
@@ -2534,13 +2533,7 @@ k_value KInterpreter::interpretTaskStatus(const Token& token,
 
   k_int taskId = std::get<k_int>(args.at(0));
 
-  auto taskStatus = std::make_shared<Hash>();
-  taskStatus->add("status", "Task is not yet completed.");
-  if (taskmgr.isTaskCompleted(taskId)) {
-    return k_value("completed");
-  } else {
-    return k_value("running");
-  }
+  return taskmgr.getTaskStatus(token, taskId);
 }
 
 k_value KInterpreter::interpretWebServerBuiltin(const Token& token,
