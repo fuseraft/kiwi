@@ -7,7 +7,7 @@ Kiwi is a high-level, dynamically-typed language with an expressive syntax and v
 - [Getting Started](#getting-started)
   - [Docker](#docker)
   - [Linux](#linux-builds)
-  - [Windows](#windows-builds)
+  - [Windows (WSL2)](#windows-wsl2)
   - [VS Code](#visual-studio-code-extension)
 - [Documentation](#documentation)
   - [Wiki](#kiwi-wiki)
@@ -79,20 +79,37 @@ sudo make install
 kiwi configure uninstall
 ```
 
-### Windows Builds
+### Windows (WSL2)
 
-You can find a 64-bit build (named **`kiwi.exe`**) in the latest release.
+To run Kiwi on Windows, you can use [WSL2 (Windows Subsystem for Linux 2)](https://learn.microsoft.com/en-us/windows/wsl/). This provides a full Linux environment on Windows, allowing you to build and run Kiwi as if on a native Linux system.
 
-To build on Windows, you need to open a [64-bit hosted developer command prompt](https://learn.microsoft.com/en-us/cpp/build/how-to-enable-a-64-bit-visual-cpp-toolset-on-the-command-line?view=msvc-170).
+#### Setting Up WSL2
 
-Then navigate to the source code and run [`build.bat`](build.bat).
+1. **Install WSL2**: Open PowerShell as Administrator and run:
+   ```powershell
+   wsl --install
+   ```
+   This command installs WSL2 with the default Linux distribution (usually Ubuntu). Restart your computer if prompted.
 
-```cmd
-cd path\to\kiwi
-build.bat
-```
+2. **Install Development Tools**: Open WSL and install the necessary tools:
+   ```bash
+   sudo apt update
+   sudo apt install g++ make
+   ```
 
-*Note: The Windows build does not support `.🥝` files (use the `.kiwi` extension).*
+3. **Clone and Build Kiwi**: Clone the Kiwi repository and build it using `make`:
+   ```bash
+   git clone https://github.com/fuseraft/kiwi.git
+   cd kiwi
+   make
+   ```
+
+4. **Run Kiwi**: After building, you can run Kiwi directly in WSL:
+   ```bash
+   ./bin/kiwi
+   ```
+
+*Note: WSL2 provides a fully-featured Linux environment, so Kiwi runs natively in this environment without the need for Windows-specific adjustments.*
 
 ### Visual Studio Code Extension
 
