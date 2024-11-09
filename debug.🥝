@@ -1,24 +1,39 @@
 # a script for debugging and experimentation (and fun!)
 
-tasks = []
-
-for i in [1..10] do
-  tasks.push(fork (with () do
+# spin up 5 tasks that run for random durations.
+for i in std::range(0, 5) do
+  fork (with () do
+    # simulate work with randomized duration
     random_sleep_ms = math::random(500, 1000)
-    task::sleep(random_sleep_ms) # simulate work with randomized duration
-    println "task with id ${i} is running..."
+    task::sleep(random_sleep_ms)
+    println "Task with id ${i} ran successfully after ${random_sleep_ms} milliseconds."
 
     return { "id": i, "sleep_ms": random_sleep_ms }
-  end)())
+  end)()
 end
 
+# this will print first.
 println "This will print first."
 
-while task::busy() do
-  task::sleep(100) # avoid busy waiting
+# wait for tasks to complete.
+task::wait()
+
+# queue up some tasks to run after 1 and 2 seconds.
+repeat 2 as i do
+  task::timer(i * 1000, (with () do
+    println "Saying hello after ${i} second(s)!"
+  end))
 end
 
-for task_id in tasks do
-  task_result = task::result(task_id)
-  println "task result is: ${task_result}"
-end
+# run a task on an interval until a condition is met.
+counter = 0
+task::interval(500, (with () do
+  counter += 1
+  println "Running task every half-second: ${counter}"
+  return counter < 5
+end))
+
+# run a task indefinitely.
+task::interval(1000, (with () do
+  println "Running task indefinitely, every second. press CTRL+C or CTRL+X to end."
+end))
