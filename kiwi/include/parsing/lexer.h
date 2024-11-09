@@ -9,8 +9,8 @@
 #include "parsing/keywords.h"
 #include "parsing/tokens.h"
 #include "parsing/tokentype.h"
-#include "system/fileregistry.h"
 #include "tracing/error.h"
+#include "tracing/fileregistry.h"
 
 const Token lexerToken = Token::createExternal();
 
@@ -112,7 +112,7 @@ class Lexer {
     k_string output;
 
     std::regex_replace(std::back_inserter(output), source.begin(), source.end(),
-                       re, R"(" + $1.to_string() + ")");
+                       re, R"(" + ($1).to_string() + ")");
     source = output;
   }
 

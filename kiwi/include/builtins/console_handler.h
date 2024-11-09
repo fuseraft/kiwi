@@ -1,5 +1,5 @@
-#ifndef KIWI_BUILTINS_CONCURRENCY_H
-#define KIWI_BUILTINS_CONCURRENCY_H
+#ifndef KIWI_BUILTINS_CONSOLE_H
+#define KIWI_BUILTINS_CONSOLE_H
 
 #include <cstdlib>
 #include <string>
@@ -10,24 +10,24 @@
 
 class ConsoleBuiltinHandler {
  public:
-  static k_value execute(const Token& term, const KName& builtin,
+  static k_value execute(const Token& token, const KName& builtin,
                          const std::vector<k_value>& args) {
     switch (builtin) {
       case KName::Builtin_Console_Input:
-        return executeInput(term, args);
+        return executeInput(token, args);
 
       default:
         break;
     }
 
-    throw UnknownBuiltinError(term, "");
+    throw UnknownBuiltinError(token, "");
   }
 
  private:
-  static k_value executeInput(const Token& term,
+  static k_value executeInput(const Token& token,
                               const std::vector<k_value>& args) {
     if (args.size() > 1) {
-      throw BuiltinUnexpectedArgumentError(term, ConsoleBuiltins.Input);
+      throw BuiltinUnexpectedArgumentError(token, ConsoleBuiltins.Input);
     }
 
     k_string userInput;

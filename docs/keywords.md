@@ -14,7 +14,6 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
   - [`in`](#in)
   - [`next`](#next)
   - [`repeat`](#repeat)
-  - [`then`](#then)
   - [`while`](#while)
   - [`when`](#when)
 - [Error Handling](#error-handling)
@@ -41,9 +40,8 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
   - [`import`](#import)
   - [`package`](#package)
 - [Concurrency](#concurrency)
-  - [`async`](#async)
-  - [`await`](#await)
   - [`fork`](#fork)
+  - [`then`](#then)
 - [Console I/O](#console-io)
   - [`input`](#input)
   - [`print`](#print)
@@ -107,11 +105,6 @@ See [Loops](loops.md) and [Control Structures](control_structures.md).
 The `repeat` keyword is used to define a repeat-loop.
 
 See [Loops](loops.md).
-
-### `then`
-The `then` keyword is used to specify code to execute after the completion of an asynchronous method invocation.
-
-See [Concurrency](concurrency.md).
 
 ### `while`
 The `while` keyword is used to define a while-loop.
@@ -228,20 +221,15 @@ See [Packages](packages.md).
 
 ## Concurrency
 
-### `async`
-The `async` keyword is used to define an asynchronous method.
-
-See [Concurrency](concurrency.md).
-
-### `await`
-The `await` keyword is used to retrieve the result of an asynchronous method invocation.
-
-See [Concurrency](concurrency.md).
-
 ### `fork`
 The `fork` keyword is used to spawn an asynchronous task.
 
 See [`task`](lib/task.md#creating-tasks-with-fork).
+
+### `then`
+The `then` keyword is used to specify code to execute after the completion of an asynchronous task.
+
+See [`task`](lib/task.md).
 
 ## Console I/O
 

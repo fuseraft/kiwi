@@ -12,7 +12,7 @@
 
 class HttpBuiltinHandler {
  public:
-  static k_value execute(const Token& term, const KName& builtin,
+  static k_value execute(const Token& token, const KName& builtin,
                          const std::vector<k_value>& args) {
     if (SAFEMODE) {
       return static_cast<k_int>(0);
@@ -23,34 +23,34 @@ class HttpBuiltinHandler {
       case KName::Builtin_WebClient_Get:
       case KName::Builtin_WebClient_Head:
       case KName::Builtin_WebClient_Options:
-        return executeDeleteGetHeadOptions(term, args, builtin);
+        return executeDeleteGetHeadOptions(token, args, builtin);
 
       case KName::Builtin_WebClient_Patch:
       case KName::Builtin_WebClient_Post:
       case KName::Builtin_WebClient_Put:
-        return executePatchPostPut(term, args, builtin);
+        return executePatchPostPut(token, args, builtin);
 
       default:
         break;
     }
 
-    throw UnknownBuiltinError(term, term.getText());
+    throw UnknownBuiltinError(token, token.getText());
   }
 
  private:
-  static k_value executeDeleteGetHeadOptions(const Token& term,
+  static k_value executeDeleteGetHeadOptions(const Token& token,
                                              const std::vector<k_value>& args,
                                              const KName& builtin) {
     if (args.size() != 3) {
-      throw BuiltinUnexpectedArgumentError(term, term.getText());
+      throw BuiltinUnexpectedArgumentError(token, token.getText());
     }
 
     if (!std::holds_alternative<k_hash>(args.at(2))) {
-      throw InvalidOperationError(term, "Expected a hash type for headers.");
+      throw InvalidOperationError(token, "Expected a hash type for headers.");
     }
 
-    auto url = get_string(term, args.at(0));
-    auto path = get_string(term, args.at(1));
+    auto url = get_string(token, args.at(0));
+    auto path = get_string(token, args.at(1));
     auto headers = std::get<k_hash>(args.at(2));
 
     switch (builtin) {
@@ -67,24 +67,24 @@ class HttpBuiltinHandler {
         break;
     }
 
-    throw UnknownBuiltinError(term, term.getText());
+    throw UnknownBuiltinError(token, token.getText());
   }
 
-  static k_value executePatchPostPut(const Token& term,
+  static k_value executePatchPostPut(const Token& token,
                                      const std::vector<k_value>& args,
                                      const KName& builtin) {
     if (args.size() != 5) {
-      throw BuiltinUnexpectedArgumentError(term, term.getText());
+      throw BuiltinUnexpectedArgumentError(token, token.getText());
     }
 
     if (!std::holds_alternative<k_hash>(args.at(4))) {
-      throw InvalidOperationError(term, "Expected a hash type for headers.");
+      throw InvalidOperationError(token, "Expected a hash type for headers.");
     }
 
-    auto url = get_string(term, args.at(0));
-    auto path = get_string(term, args.at(1));
+    auto url = get_string(token, args.at(0));
+    auto path = get_string(token, args.at(1));
     auto body = Serializer::serialize(args.at(2));
-    auto contentType = get_string(term, args.at(3));
+    auto contentType = get_string(token, args.at(3));
     auto headers = std::get<k_hash>(args.at(4));
 
     switch (builtin) {
@@ -98,7 +98,7 @@ class HttpBuiltinHandler {
         break;
     }
 
-    throw UnknownBuiltinError(term, term.getText());
+    throw UnknownBuiltinError(token, token.getText());
   }
 
   static k_value executeGet(const k_string& url, const k_string& path,
