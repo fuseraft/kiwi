@@ -10,560 +10,561 @@
 
 class MathBuiltinHandler {
  public:
-  static k_value execute(const Token& term, const KName& builtin,
+  static k_value execute(const Token& token, const KName& builtin,
                          const std::vector<k_value>& args) {
     switch (builtin) {
       case KName::Builtin_Math_Sin:
-        return executeSin(term, args);
+        return executeSin(token, args);
 
       case KName::Builtin_Math_Tan:
-        return executeTan(term, args);
+        return executeTan(token, args);
 
       case KName::Builtin_Math_Cos:
-        return executeCos(term, args);
+        return executeCos(token, args);
 
       case KName::Builtin_Math_Asin:
-        return executeAsin(term, args);
+        return executeAsin(token, args);
 
       case KName::Builtin_Math_Acos:
-        return executeAcos(term, args);
+        return executeAcos(token, args);
 
       case KName::Builtin_Math_Atan:
-        return executeAtan(term, args);
+        return executeAtan(token, args);
 
       case KName::Builtin_Math_Atan2:
-        return executeAtan2(term, args);
+        return executeAtan2(token, args);
 
       case KName::Builtin_Math_Sinh:
-        return executeSinh(term, args);
+        return executeSinh(token, args);
 
       case KName::Builtin_Math_Cosh:
-        return executeCosh(term, args);
+        return executeCosh(token, args);
 
       case KName::Builtin_Math_Tanh:
-        return executeTanh(term, args);
+        return executeTanh(token, args);
 
       case KName::Builtin_Math_Log:
-        return executeLog(term, args);
+        return executeLog(token, args);
 
       case KName::Builtin_Math_Log2:
-        return executeLog2(term, args);
+        return executeLog2(token, args);
 
       case KName::Builtin_Math_Log10:
-        return executeLog10(term, args);
+        return executeLog10(token, args);
 
       case KName::Builtin_Math_Log1P:
-        return executeLog1P(term, args);
+        return executeLog1P(token, args);
 
       case KName::Builtin_Math_Fmod:
-        return executeFmod(term, args);
+        return executeFmod(token, args);
 
       case KName::Builtin_Math_Hypot:
-        return executeHypot(term, args);
+        return executeHypot(token, args);
 
       case KName::Builtin_Math_IsFinite:
-        return executeIsFinite(term, args);
+        return executeIsFinite(token, args);
 
       case KName::Builtin_Math_IsInf:
-        return executeIsInf(term, args);
+        return executeIsInf(token, args);
 
       case KName::Builtin_Math_IsNaN:
-        return executeIsNaN(term, args);
+        return executeIsNaN(token, args);
 
       case KName::Builtin_Math_IsNormal:
-        return executeIsNormal(term, args);
+        return executeIsNormal(token, args);
 
       case KName::Builtin_Math_Sqrt:
-        return executeSqrt(term, args);
+        return executeSqrt(token, args);
 
       case KName::Builtin_Math_Cbrt:
-        return executeCbrt(term, args);
+        return executeCbrt(token, args);
 
       case KName::Builtin_Math_Abs:
-        return executeAbs(term, args);
+        return executeAbs(token, args);
 
       case KName::Builtin_Math_Floor:
-        return executeFloor(term, args);
+        return executeFloor(token, args);
 
       case KName::Builtin_Math_Ceil:
-        return executeCeil(term, args);
+        return executeCeil(token, args);
 
       case KName::Builtin_Math_Round:
-        return executeRound(term, args);
+        return executeRound(token, args);
 
       case KName::Builtin_Math_Trunc:
-        return executeTrunc(term, args);
+        return executeTrunc(token, args);
 
       case KName::Builtin_Math_Remainder:
-        return executeRemainder(term, args);
+        return executeRemainder(token, args);
 
       case KName::Builtin_Math_RotateLeft:
-        return executeRotateLeft(term, args);
+        return executeRotateLeft(token, args);
 
       case KName::Builtin_Math_RotateRight:
-        return executeRotateRight(term, args);
+        return executeRotateRight(token, args);
 
       case KName::Builtin_Math_Exp:
-        return executeExp(term, args);
+        return executeExp(token, args);
 
       case KName::Builtin_Math_ExpM1:
-        return executeExpM1(term, args);
+        return executeExpM1(token, args);
 
       case KName::Builtin_Math_Erf:
-        return executeErf(term, args);
+        return executeErf(token, args);
 
       case KName::Builtin_Math_ErfC:
-        return executeErfC(term, args);
+        return executeErfC(token, args);
 
       case KName::Builtin_Math_LGamma:
-        return executeLGamma(term, args);
+        return executeLGamma(token, args);
 
       case KName::Builtin_Math_TGamma:
-        return executeTGamma(term, args);
+        return executeTGamma(token, args);
 
       case KName::Builtin_Math_FMax:
-        return executeFMax(term, args);
+        return executeFMax(token, args);
 
       case KName::Builtin_Math_FMin:
-        return executeFMin(term, args);
+        return executeFMin(token, args);
 
       case KName::Builtin_Math_FDim:
-        return executeFDim(term, args);
+        return executeFDim(token, args);
 
       case KName::Builtin_Math_CopySign:
-        return executeCopySign(term, args);
+        return executeCopySign(token, args);
 
       case KName::Builtin_Math_NextAfter:
-        return executeNextAfter(term, args);
+        return executeNextAfter(token, args);
 
       case KName::Builtin_Math_Pow:
-        return executePow(term, args);
+        return executePow(token, args);
 
       case KName::Builtin_Math_Epsilon:
-        return executeEpsilon(term, args);
+        return executeEpsilon(token, args);
 
       case KName::Builtin_Math_Random:
-        return executeRandom(term, args);
+        return executeRandom(token, args);
 
       case KName::Builtin_Math_ListPrimes:
-        return executeListPrimes(term, args);
+        return executeListPrimes(token, args);
 
       case KName::Builtin_Math_NthPrime:
-        return executeNthPrime(term, args);
+        return executeNthPrime(token, args);
 
       case KName::Builtin_Math_Divisors:
-        return executeDivisors(term, args);
+        return executeDivisors(token, args);
 
       default:
         break;
     }
 
-    throw UnknownBuiltinError(term, "");
+    throw UnknownBuiltinError(token, "");
   }
 
  private:
-  static k_value executeSin(const Token& term,
+  static k_value executeSin(const Token& token,
                             const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Sin);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Sin);
     }
 
-    return MathImpl.__sin__(term, args.at(0));
+    return MathImpl.__sin__(token, args.at(0));
   }
 
-  static k_value executeCos(const Token& term,
+  static k_value executeCos(const Token& token,
                             const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Cos);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Cos);
     }
 
-    return MathImpl.__cos__(term, args.at(0));
+    return MathImpl.__cos__(token, args.at(0));
   }
 
-  static k_value executeTan(const Token& term,
+  static k_value executeTan(const Token& token,
                             const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Tan);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Tan);
     }
 
-    return MathImpl.__tan__(term, args.at(0));
+    return MathImpl.__tan__(token, args.at(0));
   }
 
-  static k_value executeAsin(const Token& term,
+  static k_value executeAsin(const Token& token,
                              const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Asin);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Asin);
     }
 
-    return MathImpl.__asin__(term, args.at(0));
+    return MathImpl.__asin__(token, args.at(0));
   }
 
-  static k_value executeAcos(const Token& term,
+  static k_value executeAcos(const Token& token,
                              const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Acos);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Acos);
     }
 
-    return MathImpl.__acos__(term, args.at(0));
+    return MathImpl.__acos__(token, args.at(0));
   }
 
-  static k_value executeAtan(const Token& term,
+  static k_value executeAtan(const Token& token,
                              const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Atan);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Atan);
     }
 
-    return MathImpl.__atan__(term, args.at(0));
+    return MathImpl.__atan__(token, args.at(0));
   }
 
-  static k_value executeAtan2(const Token& term,
+  static k_value executeAtan2(const Token& token,
                               const std::vector<k_value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Atan2);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Atan2);
     }
 
-    return MathImpl.__atan2__(term, args.at(0), args.at(1));
+    return MathImpl.__atan2__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeSinh(const Token& term,
+  static k_value executeSinh(const Token& token,
                              const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Sinh);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Sinh);
     }
 
-    return MathImpl.__sinh__(term, args.at(0));
+    return MathImpl.__sinh__(token, args.at(0));
   }
 
-  static k_value executeCosh(const Token& term,
+  static k_value executeCosh(const Token& token,
                              const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Cosh);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Cosh);
     }
 
-    return MathImpl.__cosh__(term, args.at(0));
+    return MathImpl.__cosh__(token, args.at(0));
   }
 
-  static k_value executeTanh(const Token& term,
+  static k_value executeTanh(const Token& token,
                              const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Tanh);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Tanh);
     }
 
-    return MathImpl.__tanh__(term, args.at(0));
+    return MathImpl.__tanh__(token, args.at(0));
   }
 
-  static k_value executeLog(const Token& term,
+  static k_value executeLog(const Token& token,
                             const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Log);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Log);
     }
 
-    return MathImpl.__log__(term, args.at(0));
+    return MathImpl.__log__(token, args.at(0));
   }
 
-  static k_value executeLog2(const Token& term,
+  static k_value executeLog2(const Token& token,
                              const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Log2);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Log2);
     }
 
-    return MathImpl.__log2__(term, args.at(0));
+    return MathImpl.__log2__(token, args.at(0));
   }
 
-  static k_value executeLog10(const Token& term,
+  static k_value executeLog10(const Token& token,
                               const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Log10);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Log10);
     }
 
-    return MathImpl.__log10__(term, args.at(0));
+    return MathImpl.__log10__(token, args.at(0));
   }
 
-  static k_value executeLog1P(const Token& term,
+  static k_value executeLog1P(const Token& token,
                               const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Log1P);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Log1P);
     }
 
-    return MathImpl.__log1p__(term, args.at(0));
+    return MathImpl.__log1p__(token, args.at(0));
   }
 
-  static k_value executeFmod(const Token& term,
+  static k_value executeFmod(const Token& token,
                              const std::vector<k_value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Fmod);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Fmod);
     }
 
-    return MathImpl.__fmod__(term, args.at(0), args.at(1));
+    return MathImpl.__fmod__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeHypot(const Token& term,
+  static k_value executeHypot(const Token& token,
                               const std::vector<k_value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Hypot);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Hypot);
     }
 
-    return MathImpl.__hypot__(term, args.at(0), args.at(1));
+    return MathImpl.__hypot__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeIsFinite(const Token& term,
+  static k_value executeIsFinite(const Token& token,
                                  const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.IsFinite);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.IsFinite);
     }
 
-    return MathImpl.__isfinite__(term, args.at(0));
+    return MathImpl.__isfinite__(token, args.at(0));
   }
 
-  static k_value executeIsInf(const Token& term,
+  static k_value executeIsInf(const Token& token,
                               const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.IsInf);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.IsInf);
     }
 
-    return MathImpl.__isinf__(term, args.at(0));
+    return MathImpl.__isinf__(token, args.at(0));
   }
 
-  static k_value executeIsNaN(const Token& term,
+  static k_value executeIsNaN(const Token& token,
                               const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.IsNaN);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.IsNaN);
     }
 
-    return MathImpl.__isnan__(term, args.at(0));
+    return MathImpl.__isnan__(token, args.at(0));
   }
 
-  static k_value executeIsNormal(const Token& term,
+  static k_value executeIsNormal(const Token& token,
                                  const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.IsNormal);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.IsNormal);
     }
 
-    return MathImpl.__isnormal__(term, args.at(0));
+    return MathImpl.__isnormal__(token, args.at(0));
   }
 
-  static k_value executeSqrt(const Token& term,
+  static k_value executeSqrt(const Token& token,
                              const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Sqrt);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Sqrt);
     }
 
-    return MathImpl.__sqrt__(term, args.at(0));
+    return MathImpl.__sqrt__(token, args.at(0));
   }
 
-  static k_value executeCbrt(const Token& term,
+  static k_value executeCbrt(const Token& token,
                              const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Cbrt);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Cbrt);
     }
 
-    return MathImpl.__cbrt__(term, args.at(0));
+    return MathImpl.__cbrt__(token, args.at(0));
   }
 
-  static k_value executeAbs(const Token& term,
+  static k_value executeAbs(const Token& token,
                             const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Abs);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Abs);
     }
 
-    return MathImpl.__abs__(term, args.at(0));
+    return MathImpl.__abs__(token, args.at(0));
   }
 
-  static k_value executeFloor(const Token& term,
+  static k_value executeFloor(const Token& token,
                               const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Floor);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Floor);
     }
 
-    return MathImpl.__floor__(term, args.at(0));
+    return MathImpl.__floor__(token, args.at(0));
   }
 
-  static k_value executeCeil(const Token& term,
+  static k_value executeCeil(const Token& token,
                              const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Ceil);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Ceil);
     }
 
-    return MathImpl.__ceil__(term, args.at(0));
+    return MathImpl.__ceil__(token, args.at(0));
   }
 
-  static k_value executeTrunc(const Token& term,
+  static k_value executeTrunc(const Token& token,
                               const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Trunc);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Trunc);
     }
 
-    return MathImpl.__trunc__(term, args.at(0));
+    return MathImpl.__trunc__(token, args.at(0));
   }
 
-  static k_value executeRound(const Token& term,
+  static k_value executeRound(const Token& token,
                               const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Round);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Round);
     }
 
-    return MathImpl.__round__(term, args.at(0));
+    return MathImpl.__round__(token, args.at(0));
   }
 
-  static k_value executeRotateLeft(const Token& term,
+  static k_value executeRotateLeft(const Token& token,
                                    const std::vector<k_value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.RotateLeft);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.RotateLeft);
     }
 
-    auto number = get_integer(term, args.at(0));
-    auto shift = get_integer(term, args.at(1));
+    auto number = get_integer(token, args.at(0));
+    auto shift = get_integer(token, args.at(1));
 
     return MathImpl.__rotl__(number, shift);
   }
 
-  static k_value executeRotateRight(const Token& term,
+  static k_value executeRotateRight(const Token& token,
                                     const std::vector<k_value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.RotateRight);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.RotateRight);
     }
 
-    auto number = get_integer(term, args.at(0));
-    auto shift = get_integer(term, args.at(1));
+    auto number = get_integer(token, args.at(0));
+    auto shift = get_integer(token, args.at(1));
 
     return MathImpl.__rotr__(number, shift);
   }
 
-  static k_value executeRemainder(const Token& term,
+  static k_value executeRemainder(const Token& token,
                                   const std::vector<k_value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Remainder);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Remainder);
     }
 
-    return MathImpl.__remainder__(term, args.at(0), args.at(1));
+    return MathImpl.__remainder__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeExp(const Token& term,
+  static k_value executeExp(const Token& token,
                             const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Remainder);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Remainder);
     }
 
-    return MathImpl.__exp__(term, args.at(0));
+    return MathImpl.__exp__(token, args.at(0));
   }
 
-  static k_value executeExpM1(const Token& term,
+  static k_value executeExpM1(const Token& token,
                               const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.ExpM1);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.ExpM1);
     }
 
-    return MathImpl.__expm1__(term, args.at(0));
+    return MathImpl.__expm1__(token, args.at(0));
   }
 
-  static k_value executeErf(const Token& term,
+  static k_value executeErf(const Token& token,
                             const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Erf);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Erf);
     }
 
-    return MathImpl.__erf__(term, args.at(0));
+    return MathImpl.__erf__(token, args.at(0));
   }
 
-  static k_value executeErfC(const Token& term,
+  static k_value executeErfC(const Token& token,
                              const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.ErfC);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.ErfC);
     }
 
-    return MathImpl.__erfc__(term, args.at(0));
+    return MathImpl.__erfc__(token, args.at(0));
   }
 
-  static k_value executeLGamma(const Token& term,
+  static k_value executeLGamma(const Token& token,
                                const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.LGamma);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.LGamma);
     }
 
-    return MathImpl.__lgamma__(term, args.at(0));
+    return MathImpl.__lgamma__(token, args.at(0));
   }
 
-  static k_value executeTGamma(const Token& term,
+  static k_value executeTGamma(const Token& token,
                                const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.TGamma);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.TGamma);
     }
 
-    return MathImpl.__tgamma__(term, args.at(0));
+    return MathImpl.__tgamma__(token, args.at(0));
   }
 
-  static k_value executeFMax(const Token& term,
+  static k_value executeFMax(const Token& token,
                              const std::vector<k_value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.FMax);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.FMax);
     }
 
-    return MathImpl.__max__(term, args.at(0), args.at(1));
+    return MathImpl.__max__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeFMin(const Token& term,
+  static k_value executeFMin(const Token& token,
                              const std::vector<k_value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.FMin);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.FMin);
     }
 
-    return MathImpl.__min__(term, args.at(0), args.at(1));
+    return MathImpl.__min__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeFDim(const Token& term,
+  static k_value executeFDim(const Token& token,
                              const std::vector<k_value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.FDim);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.FDim);
     }
 
-    return MathImpl.__fdim__(term, args.at(0), args.at(1));
+    return MathImpl.__fdim__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeCopySign(const Token& term,
+  static k_value executeCopySign(const Token& token,
                                  const std::vector<k_value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.CopySign);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.CopySign);
     }
 
-    return MathImpl.__copysign__(term, args.at(0), args.at(1));
+    return MathImpl.__copysign__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeNextAfter(const Token& term,
+  static k_value executeNextAfter(const Token& token,
                                   const std::vector<k_value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.NextAfter);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.NextAfter);
     }
 
-    return MathImpl.__nextafter__(term, args.at(0), args.at(1));
+    return MathImpl.__nextafter__(token, args.at(0), args.at(1));
   }
 
-  static k_value executePow(const Token& term,
+  static k_value executePow(const Token& token,
                             const std::vector<k_value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Pow);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Pow);
     }
 
-    return MathImpl.__pow__(term, args.at(0), args.at(1));
+    return MathImpl.__pow__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeEpsilon(const Token& term,
+  static k_value executeEpsilon(const Token& token,
                                 const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Epsilon);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Epsilon);
     }
 
     return MathImpl.__epsilon__();
   }
 
-  static k_value executeListPrimes(const Token& term,
+  static k_value executeListPrimes(const Token& token,
                                    const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.ListPrimes);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.ListPrimes);
     }
 
     if (!std::holds_alternative<k_int>(args.at(0))) {
-      throw ConversionError(term, "Expected an integer argument for builtin `" +
-                                      MathBuiltins.ListPrimes + "`.");
+      throw ConversionError(token,
+                            "Expected an integer argument for builtin `" +
+                                MathBuiltins.ListPrimes + "`.");
     }
 
     auto primes = PrimeGenerator::listPrimes(std::get<k_int>(args.at(0)));
@@ -578,15 +579,16 @@ class MathBuiltinHandler {
     return list;
   }
 
-  static k_value executeNthPrime(const Token& term,
+  static k_value executeNthPrime(const Token& token,
                                  const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.NthPrime);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.NthPrime);
     }
 
     if (!std::holds_alternative<k_int>(args.at(0))) {
-      throw ConversionError(term, "Expected an integer argument for builtin `" +
-                                      MathBuiltins.NthPrime + "`.");
+      throw ConversionError(token,
+                            "Expected an integer argument for builtin `" +
+                                MathBuiltins.NthPrime + "`.");
     }
 
     auto nthPrime = PrimeGenerator::nthPrime(std::get<k_int>(args.at(0)));
@@ -594,24 +596,25 @@ class MathBuiltinHandler {
     return static_cast<k_int>(nthPrime);
   }
 
-  static k_value executeRandom(const Token& term,
+  static k_value executeRandom(const Token& token,
                                const std::vector<k_value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Random);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Random);
     }
 
-    return MathImpl.__random__(term, args.at(0), args.at(1));
+    return MathImpl.__random__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeDivisors(const Token& term,
+  static k_value executeDivisors(const Token& token,
                                  const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, MathBuiltins.Divisors);
+      throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Divisors);
     }
 
     if (!std::holds_alternative<k_int>(args.at(0))) {
-      throw ConversionError(term, "Expected an integer argument for builtin `" +
-                                      MathBuiltins.Divisors + "`.");
+      throw ConversionError(token,
+                            "Expected an integer argument for builtin `" +
+                                MathBuiltins.Divisors + "`.");
     }
 
     const auto& divisors = MathImpl.__divisors__(std::get<k_int>(args.at(0)));

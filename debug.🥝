@@ -1,35 +1,39 @@
 # a script for debugging and experimentation (and fun!)
 
-fn benchmark_getbytes(path)
-  start = time::ticks()
-  file_bytes = fs::getbytes(path).size()
-  stop = time::ticks()
-  
-  println "size: ${file_bytes} byte(s), duration: ${time::ticksms(stop - start)}ms"
+# spin up 5 tasks that run for random durations.
+for i in std::range(0, 5) do
+  fork (with () do
+    # simulate work with randomized duration
+    random_sleep_ms = math::random(500, 1000)
+    task::sleep(random_sleep_ms)
+    println "Task with id ${i} ran successfully after ${random_sleep_ms} milliseconds."
 
-  return file_bytes
+    return { "id": i, "sleep_ms": random_sleep_ms }
+  end)()
 end
 
-fn run()
-  start = time::ticks()
-  total_bytes = 0
+# this will print first.
+println "This will print first."
 
-  for path in fs::glob("./**/*") do
-    total_bytes += benchmark_getbytes(path)
-  end
+# wait for tasks to complete.
+task::wait()
 
-  println "total byte(s): ${total_bytes}, total duration: ${time::ticksms(time::ticks() - start)}ms"
-  return total_bytes
+# queue up some tasks to run after 1 and 2 seconds.
+repeat 2 as i do
+  task::timer(i * 1000, (with () do
+    println "Saying hello after ${i} second(s)!"
+  end))
 end
 
-task_id = fork run()
+# run a task on an interval until a condition is met.
+counter = 0
+task::interval(500, (with () do
+  counter += 1
+  println "Running task every half-second: ${counter}"
+  return counter < 5
+end))
 
-println "This will print first!"
-println "task identifier is ${task_id}"
-
-while task::busy() do
-  println "sleeping..."
-  task::sleep(100)
-end
-
-println "task result is: ${task::result(task_id)}"
+# run a task indefinitely.
+task::interval(1000, (with () do
+  println "Running task indefinitely, every second. press CTRL+C or CTRL+X to end."
+end))

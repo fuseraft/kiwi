@@ -1,6 +1,6 @@
 # `task`
 
-The `task` package provides functionality for managing and querying asynchronous tasks in Kiwi.
+The `task` package provides functionality for managing and querying asynchronous tasks in Kiwi, including delayed and interval-based task execution.
 
 ## Table of Contents
 
@@ -10,6 +10,9 @@ The `task` package provides functionality for managing and querying asynchronous
   - [`result(task_identifier)`](#resulttask_identifier)
   - [`sleep(ms)`](#sleepms)
   - [`status(task_identifier)`](#statustask_identifier)
+  - [`timer(ms, callback)`](#timerms-callback)
+  - [`interval(ms, callback)`](#intervalms-callback)
+  - [`wait()`](#wait)
 - [Creating Tasks with `fork`](#creating-tasks-with-fork)
 - [Usage Examples](#usage-examples)
 
@@ -22,7 +25,7 @@ Checks if there are any active tasks.
 **Returns**
 | Type    | Description                       |
 | :------ | :-------------------------------- |
-| `Bool`  | `true` if there are active tasks, `false` otherwise. |
+| `Boolean`  | `true` if there are active tasks, `false` otherwise. |
 
 ### `list()`
 
@@ -69,6 +72,45 @@ Gets the current status of a specified task.
 | Type   | Description               |
 | :----- | :------------------------ |
 | `Hash` | A hash containing the task's current status. |
+
+### `timer(ms, callback)`
+
+Schedules a one-time task to run after a specified delay.
+
+**Parameters**
+| Type      | Name      | Description                           |
+| :-------- | :-------- | :------------------------------------ |
+| `Integer` | `ms`      | Number of milliseconds to delay.      |
+| `Lambda`  | `callback`| A lambda to invoke after the delay.   |
+
+**Returns**
+| Type     | Description                     |
+| :------- | :------------------------------ |
+| `Integer` | Task identifier of the scheduled task. |
+
+### `interval(ms, callback)`
+
+Schedules a task to run repeatedly at a specified interval until a condition is met.
+
+**Parameters**
+| Type      | Name      | Description                                                                 |
+| :-------- | :-------- | :-------------------------------------------------------------------------- |
+| `Integer` | `ms`      | Number of milliseconds between each execution.                              |
+| `Lambda`  | `callback`| A lambda to invoke repeatedly. The task stops if `callback` returns `false`.|
+
+**Returns**
+| Type     | Description                     |
+| :------- | :------------------------------ |
+| `Integer` | Task identifier of the scheduled task. |
+
+### `wait()`
+
+Waits for all active tasks to complete before continuing execution.
+
+**Returns**
+| Type | Description |
+| :--- | :---------- |
+| `Void` | Blocks until all active tasks are completed. |
 
 ## Creating Tasks with `fork`
 
@@ -138,4 +180,37 @@ Retrieve a status hash for a task:
 ```kiwi
 status = task::status(1)
 println "Task status: ${status["status"]}"
+```
+
+### Scheduling a Delayed Task with `timer`
+
+Use `timer` to run a function after a specified delay:
+
+```kiwi
+task::timer(2000, (with () do
+  println "This runs after 2 seconds!"
+end))
+```
+
+### Running a Task at Regular Intervals with `interval`
+
+Use `interval` to run a function repeatedly with a specified delay between each execution. It stops when the callback returns `false`.
+
+```kiwi
+counter = 0
+task::interval(500, (with () do
+  counter += 1
+  println "Running task every half-second: ${counter}"
+  return counter < 5  # Stops after 5 executions
+end))
+```
+
+### Waiting for All Tasks to Complete with `wait`
+
+To ensure all tasks finish before moving forward, use `wait`:
+
+```kiwi
+# Wait for all tasks to complete
+task::wait()
+println "All tasks completed."
 ```
