@@ -46,6 +46,53 @@ package task
   fn status(task_identifier)
     return __task_status__(task_identifier)
   end
+
+  /#
+  Summary: Schedule a task to run after a delay.
+  Params:
+    - ms: An integer representing milliseconds to sleep.
+    - callback: A lambda to invoke after the timer delay.
+  Returns: Integer containing the task identifier.
+  #/
+  fn timer(ms, callback)
+    task_id = fork (with() do
+      task::sleep(ms)
+      callback()
+    end)()
+
+    return task_id
+  end
+
+  /#
+  Summary: Schedule a task to run on an interval.
+  Params:
+    - ms: An integer representing milliseconds between execution.
+    - callback: A lambda to invoke after the timer delay. It will continue to run so long as it returns true.
+  Returns: Integer containing the task identifier.
+  #/
+  fn interval(ms, callback)
+    task_id = fork (with() do
+      while true do
+        task::sleep(ms)
+        callback_result = callback()
+
+        if callback_result != null && callback_result != 0 && callback_result != true
+          break
+        end
+      end
+    end)()
+
+    return task_id
+  end
+
+  /#
+  Summary: Waits for all tasks to complete.
+  #/
+  fn wait()
+    while task::busy() do
+      task::sleep(100) # avoid busy waiting
+    end
+  end
 end
 
 export "task"
