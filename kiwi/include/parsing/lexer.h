@@ -9,8 +9,8 @@
 #include "parsing/keywords.h"
 #include "parsing/tokens.h"
 #include "parsing/tokentype.h"
-#include "system/fileregistry.h"
 #include "tracing/error.h"
+#include "tracing/fileregistry.h"
 
 const Token lexerToken = Token::createExternal();
 

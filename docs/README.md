@@ -50,5 +50,3 @@
      - [`TimeSpan`](lib/datetime.md#timespan): Represents the difference between two `DateTime` objects.
    - [`web`](lib/web.md): A simple web framework.
 
-5. **Experimental Features**
-   - [Concurrency](concurrency.md)

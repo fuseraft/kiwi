@@ -3,8 +3,8 @@
 
 #include <vector>
 #include "error.h"
+#include "fileregistry.h"
 #include "parsing/tokens.h"
-#include "system/fileregistry.h"
 
 class ErrorHandler {
  public:

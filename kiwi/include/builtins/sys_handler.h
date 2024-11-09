@@ -10,7 +10,7 @@
 
 class SysBuiltinHandler {
  public:
-  static k_value execute(const Token& term, const KName& builtin,
+  static k_value execute(const Token& token, const KName& builtin,
                          const std::vector<k_value>& args) {
     if (SAFEMODE) {
       return static_cast<k_int>(0);
@@ -18,48 +18,48 @@ class SysBuiltinHandler {
 
     switch (builtin) {
       case KName::Builtin_Sys_Exec:
-        return executeExec(term, args);
+        return executeExec(token, args);
 
       case KName::Builtin_Sys_ExecOut:
-        return executeExecOut(term, args);
+        return executeExecOut(token, args);
 
       case KName::Builtin_Sys_EffectiveUserId:
-        return executeEffectiveUserId(term, args);
+        return executeEffectiveUserId(token, args);
 
       default:
         break;
     }
 
-    throw UnknownBuiltinError(term, "");
+    throw UnknownBuiltinError(token, "");
   }
 
  private:
-  static k_value executeEffectiveUserId(const Token& term,
+  static k_value executeEffectiveUserId(const Token& token,
                                         const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, SysBuiltins.EffectiveUserId);
+      throw BuiltinUnexpectedArgumentError(token, SysBuiltins.EffectiveUserId);
     }
 
     return static_cast<k_int>(Sys::getEffectiveUserId());
   }
 
-  static k_value executeExec(const Token& term,
+  static k_value executeExec(const Token& token,
                              const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, SysBuiltins.Exec);
+      throw BuiltinUnexpectedArgumentError(token, SysBuiltins.Exec);
     }
 
-    k_string command = get_string(term, args.at(0));
+    k_string command = get_string(token, args.at(0));
     return Sys::exec(command);
   }
 
-  static k_value executeExecOut(const Token& term,
+  static k_value executeExecOut(const Token& token,
                                 const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term, SysBuiltins.Exec);
+      throw BuiltinUnexpectedArgumentError(token, SysBuiltins.Exec);
     }
 
-    k_string command = get_string(term, args.at(0));
+    k_string command = get_string(token, args.at(0));
     return Sys::execOut(command);
   }
 };
