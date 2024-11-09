@@ -3,7 +3,7 @@
  * The Kiwi Programming Language
  * ===============================
  * 
- * A light-weight general-purpose scripting language without a syntax tree.
+ * A light-weight general-purpose scripting language with an interesting flavor.
  *
  * @author Scott Stauffer
  * @date 2024-11-07
