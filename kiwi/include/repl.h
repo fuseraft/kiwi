@@ -113,7 +113,7 @@ char Repl::getch() {
   return (char)_getch();
 #else
   char ch;
-  read(0, &ch, 1);
+  auto getchres = read(0, &ch, 1);
   return ch;
 #endif
 }

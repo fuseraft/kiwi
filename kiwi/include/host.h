@@ -104,7 +104,7 @@ class Host {
     }
 
     try {
-      auto kiwilibPath = File::getLibraryPath();
+      auto kiwilibPath = File::getLibraryPath(hostToken);
 
       if (!kiwilibPath.empty()) {
         loadLibraryPackages(kiwilibPath);

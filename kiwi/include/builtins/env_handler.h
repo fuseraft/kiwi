@@ -12,7 +12,7 @@
 
 class EnvBuiltinHandler {
  public:
-  static k_value execute(const Token& term, const KName& builtin,
+  static k_value execute(const Token& token, const KName& builtin,
                          const std::vector<k_value>& args) {
     if (SAFEMODE) {
       return static_cast<k_int>(0);
@@ -20,54 +20,54 @@ class EnvBuiltinHandler {
 
     switch (builtin) {
       case KName::Builtin_Env_GetEnvironmentVariable:
-        return executeGetEnvironmentVariable(term, args);
+        return executeGetEnvironmentVariable(token, args);
 
       case KName::Builtin_Env_SetEnvironmentVariable:
-        return executeSetEnvironmentVariable(term, args);
+        return executeSetEnvironmentVariable(token, args);
 
       case KName::Builtin_Env_UnsetEnvironmentVariable:
-        return executeUnsetEnvironmentVariable(term, args);
+        return executeUnsetEnvironmentVariable(token, args);
 
       case KName::Builtin_Env_Kiwi:
-        return executeKiwi(term, args);
+        return executeKiwi(token, args);
 
       case KName::Builtin_Env_KiwiLib:
-        return executeKiwiLib(term, args);
+        return executeKiwiLib(token, args);
 
       default:
         break;
     }
 
-    throw UnknownBuiltinError(term, "");
+    throw UnknownBuiltinError(token, "");
   }
 
  private:
-  static k_value executeKiwi(const Token& term,
+  static k_value executeKiwi(const Token& token,
                              const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, EnvBuiltins.Kiwi);
+      throw BuiltinUnexpectedArgumentError(token, EnvBuiltins.Kiwi);
     }
 
     return File::getExecutablePath().string();
   }
 
-  static k_value executeKiwiLib(const Token& term,
+  static k_value executeKiwiLib(const Token& token,
                                 const std::vector<k_value>& args) {
     if (args.size() != 0) {
-      throw BuiltinUnexpectedArgumentError(term, EnvBuiltins.KiwiLib);
+      throw BuiltinUnexpectedArgumentError(token, EnvBuiltins.KiwiLib);
     }
 
-    return File::getLibraryPath();
+    return File::getLibraryPath(token);
   }
 
   static k_value executeGetEnvironmentVariable(
-      const Token& term, const std::vector<k_value>& args) {
+      const Token& token, const std::vector<k_value>& args) {
     if (args.size() != 1) {
-      throw BuiltinUnexpectedArgumentError(term,
+      throw BuiltinUnexpectedArgumentError(token,
                                            EnvBuiltins.GetEnvironmentVariable);
     }
 
-    k_string varName = get_string(term, args.at(0));
+    k_string varName = get_string(token, args.at(0));
     const char* varValue = std::getenv(varName.c_str());
 
     if (varValue != nullptr) {
@@ -79,14 +79,14 @@ class EnvBuiltinHandler {
   }
 
   static k_value executeSetEnvironmentVariable(
-      const Token& term, const std::vector<k_value>& args) {
+      const Token& token, const std::vector<k_value>& args) {
     if (args.size() != 2) {
-      throw BuiltinUnexpectedArgumentError(term,
+      throw BuiltinUnexpectedArgumentError(token,
                                            EnvBuiltins.SetEnvironmentVariable);
     }
 
-    k_string varName = get_string(term, args.at(0));
-    k_string varValue = get_string(term, args.at(1));
+    k_string varName = get_string(token, args.at(0));
+    k_string varValue = get_string(token, args.at(1));
 
 #ifdef _WIN64
     _putenv_s(varName.c_str(), varValue.c_str());
@@ -97,14 +97,14 @@ class EnvBuiltinHandler {
   }
 
   static k_value executeUnsetEnvironmentVariable(
-      const Token& term, const std::vector<k_value>& args) {
+      const Token& token, const std::vector<k_value>& args) {
 
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(
-          term, EnvBuiltins.UnsetEnvironmentVariable);
+          token, EnvBuiltins.UnsetEnvironmentVariable);
     }
 
-    k_string var = get_string(term, args.at(0));
+    k_string var = get_string(token, args.at(0));
 
 #ifdef _WIN64
     return _putenv_s(var.c_str(), "") == 0;

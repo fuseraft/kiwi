@@ -323,7 +323,7 @@ class KInterpreter {
   void handleWebServerRequest(int webhookID, k_hash requestHash,
                               k_string& redirect, k_string& content,
                               k_string& contentType, int& status);
-  std::vector<k_string> getWebServerEndpointList(const Token& term,
+  std::vector<k_string> getWebServerEndpointList(const Token& token,
                                                  k_value& arg);
 
   k_value interpretTaskBuiltin(const Token& token, const KName& builtin,
@@ -2750,16 +2750,16 @@ k_value KInterpreter::interpretWebServerPublic(const Token& token,
   return true;
 }
 
-std::vector<k_string> KInterpreter::getWebServerEndpointList(const Token& term,
+std::vector<k_string> KInterpreter::getWebServerEndpointList(const Token& token,
                                                              k_value& arg) {
   std::vector<k_string> endpointList;
 
   if (std::holds_alternative<k_string>(arg)) {
-    endpointList.emplace_back(get_string(term, arg));
+    endpointList.emplace_back(get_string(token, arg));
   } else if (std::holds_alternative<k_list>(arg)) {
     for (const auto& el : std::get<k_list>(arg)->elements) {
       if (std::holds_alternative<k_string>(el)) {
-        auto endpoint = get_string(term, el);
+        auto endpoint = get_string(token, el);
         if (std::find(endpointList.begin(), endpointList.end(), endpoint) ==
             endpointList.end()) {
           endpointList.emplace_back(endpoint);
