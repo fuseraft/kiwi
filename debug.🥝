@@ -4,12 +4,9 @@ tasks = []
 
 for i in [1..10] do
   tasks.push(fork (with () do
-    println "task with id ${i} is running..."
-
     random_sleep_ms = math::random(500, 1000)
     task::sleep(random_sleep_ms) # simulate work with randomized duration
-
-    println "task with id ${i} is finished!"
+    println "task with id ${i} is running..."
 
     return { "id": i, "sleep_ms": random_sleep_ms }
   end)())
@@ -23,5 +20,5 @@ end
 
 for task_id in tasks do
   task_result = task::result(task_id)
-  println "task result is: ${task_result.id}"
+  println "task result is: ${task_result}"
 end

@@ -114,6 +114,9 @@ char Repl::getch() {
 #else
   char ch;
   auto getchres = read(0, &ch, 1);
+  if (getchres < 0) {
+    // this is an error. 0 is EOF.
+  }
   return ch;
 #endif
 }
