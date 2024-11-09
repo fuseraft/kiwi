@@ -76,7 +76,7 @@ class File {
   // Directory and path utilities
   static k_string getTempDirectory(const Token& token);
   static fs::path getExecutablePath();
-  static k_string getLibraryPath();
+  static k_string getLibraryPath(const Token& token);
   static std::vector<k_string> expandGlob(const Token& token,
                                           const k_string& globString);
   static k_string getLocalPath(const k_string& path);
@@ -462,19 +462,19 @@ fs::path File::getExecutablePath() {
 #endif
 }
 
-k_string File::getLibraryPath() {
+k_string File::getLibraryPath(const Token& token) {
   fs::path kiwiPath(getExecutablePath());
   fs::path kiwilibPath;
 #ifdef _WIN64
-  k_string binPath = getParentPath(kiwiPath.string());
-  k_string parentPath = getParentPath(binPath);
+  k_string binPath = getParentPath(token, kiwiPath.string());
+  k_string parentPath = getParentPath(token, binPath);
   kiwilibPath = (fs::path(parentPath) / "lib\\kiwi").lexically_normal();
 #else
   kiwilibPath = (kiwiPath / "../lib/kiwi").lexically_normal();
 #endif
 
   if (!fs::exists(kiwilibPath)) {
-    return "";
+    return token.getText();
   }
 
   return kiwilibPath.string();
