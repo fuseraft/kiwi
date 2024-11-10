@@ -49,6 +49,8 @@ package json
   Returns: String of JSON data.
   #/
   fn stringify(data)
+    json = null
+    
     try
       json = serialize(data)
     end

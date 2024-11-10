@@ -11,5 +11,5 @@ repeat 3 as n do
 end
 
 for res in api_results do
-  println res
+  println json::stringify(res)
 end
