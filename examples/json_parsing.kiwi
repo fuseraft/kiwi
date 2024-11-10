@@ -5,15 +5,11 @@ api_results = []
 repeat 3 as n do
   resp = http::get(base_url, "${api_endpoint}/${n}")
   
-  if resp.status == 200
-    json = resp.body
-
-    if json::can_parse(json)
-      api_results.push(json::parse(json))
-    end
+  if resp.status == 200 && json::can_parse(resp.body)
+    api_results.push(json::parse(resp.body))
   end
 end
 
 for res in api_results do
-  println json::stringify(res)
+  println res
 end
