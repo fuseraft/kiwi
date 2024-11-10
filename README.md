@@ -1,28 +1,26 @@
 # kiwi 🥝
 
-Kiwi is a high-level, dynamically-typed language with an expressive syntax and versatile standard library, designed for efficiency across diverse tasks.
+Kiwi is a high-level, dynamically-typed language designed for efficiency and expressiveness across a variety of tasks.
 
 ## Table of Contents
 
 - [Getting Started](#getting-started)
   - [Docker](#docker)
   - [Linux](#linux-builds)
-  - [Windows](#windows-builds)
-  - [VS Code](#visual-studio-code-extension)
+  - [Windows (WSL2)](#windows-wsl2)
+  - [VS Code Integration](#visual-studio-code-integration)
 - [Documentation](#documentation)
   - [Wiki](#kiwi-wiki)
-  - [Tests](#test-suite)
+  - [Test Suite](#test-suite)
   - [Examples](#examples)
-- [Contributions](#contributions)
+- [Contributing](#contributing)
 - [License](#license)
 
 ## Getting Started
 
-To start using Kiwi, please follow the instructions below. 
-
 ### Docker
 
-Experiment with Kiwi in a Docker container.
+Quickly experiment with Kiwi in a Docker container.
 
 ```bash
 sudo docker build -t kiwi-lang .
@@ -31,74 +29,84 @@ sudo docker run -it -v $(pwd):/workspace kiwi-lang
 
 ### Linux Builds
 
-To build Kiwi, use your favorite C++ compiler.
-
-This repo uses GCC and Make.
+Kiwi builds on Linux with GCC and Make. Use the commands below to install dependencies and build Kiwi.
 
 #### Fedora / RHEL
 
 ```bash
 sudo dnf update
-sudo dnf install gcc-c++
-sudo dnf install make
+sudo dnf install gcc-c++ make
 ```
 
 #### Ubuntu / Debian
 
 ```bash
 sudo apt update
-sudo apt-get install g++
-sudo apt-get install make
+sudo apt-get install g++ make
 ```
 
-Then build with Make.
+#### Build with Make
+
+After installing the dependencies, clone the repository and build Kiwi:
 
 ```bash
+git clone https://github.com/fuseraft/kiwi.git
+cd kiwi
 make
 ```
 
 #### Installing Kiwi on Linux
 
-Download the repository and run `sudo make install` to build Kiwi and run the installation script.
+To install Kiwi after building, run:
 
 ```bash
-git clone https://github.com/fuseraft/kiwi.git
-cd kiwi
 sudo make install
 ```
 
-##### To manually install Kiwi after it is built, run:
-
-```bash
-./bin/kiwi configure install
-```
-
-##### To uninstall Kiwi, run:
+To uninstall Kiwi, use:
 
 ```bash
 kiwi configure uninstall
 ```
 
-### Windows Builds
+### Windows (WSL2)
 
-You can find a 64-bit build (named **`kiwi.exe`**) in the latest release.
+To run Kiwi on Windows, use [Windows Subsystem for Linux (WSL2)](https://learn.microsoft.com/en-us/windows/wsl/), which provides a full Linux environment on Windows.
 
-To build on Windows, you need to open a [64-bit hosted developer command prompt](https://learn.microsoft.com/en-us/cpp/build/how-to-enable-a-64-bit-visual-cpp-toolset-on-the-command-line?view=msvc-170).
+#### Setting Up WSL2
 
-Then navigate to the source code and run [`build.bat`](build.bat).
+1. **Install WSL2**: Open PowerShell as Administrator and run:
+   ```powershell
+   wsl --install
+   ```
+   This command installs WSL2 with a default Linux distribution (usually Ubuntu). Restart if prompted.
 
-```cmd
-cd path\to\kiwi
-build.bat
-```
+2. **Install Development Tools**: Open WSL and run:
+   ```bash
+   sudo apt update
+   sudo apt install g++ make
+   ```
 
-*Note: The Windows build does not support `.🥝` files (use the `.kiwi` extension).*
+3. **Clone and Build Kiwi**: Inside WSL, clone the Kiwi repository and build it with `make`:
+   ```bash
+   git clone https://github.com/fuseraft/kiwi.git
+   cd kiwi
+   make
+   ```
 
-### Visual Studio Code Extension
+4. **Run Kiwi**: After building, you can run Kiwi directly in WSL:
+   ```bash
+   ./bin/kiwi
+   ```
 
-You can install the [extension](https://marketplace.visualstudio.com/items?itemName=fuseraft.kiwi-lang) for syntax-highlighting in VS Code.
+*Note: WSL2 enables Kiwi to run natively without Windows-specific modifications.*
 
-Launch VS Code Quick Open (<kbd>Ctrl</kbd>+<kbd>P</kbd>), paste the following command, and press enter.
+### Visual Studio Code Integration
+
+For syntax highlighting and code snippets in Visual Studio Code, install the [Kiwi language extension](https://marketplace.visualstudio.com/items?itemName=fuseraft.kiwi-lang).
+
+Open VS Code, launch Quick Open (<kbd>Ctrl</kbd>+<kbd>P</kbd>), paste the following command, and press Enter:
+
 ```
 ext install fuseraft.kiwi-lang
 ```
@@ -107,48 +115,45 @@ ext install fuseraft.kiwi-lang
 
 ### Kiwi Wiki
 
-You can find detailed information on language features in the [Kiwi Wiki](docs/README.md).
+The [Kiwi Wiki](docs/README.md) provides comprehensive information on language features, usage, and standard library functions.
 
 ### Test Suite
 
-Explore the [test suite](test.🥝) for a collection of tests.
-
-To run the test suite, execute:
+Explore Kiwi’s [test suite](test.🥝) for a variety of test cases. To run the test suite:
 
 ```shell
 kiwi test
 ```
 
-To build and run the test suite, execute:
+To build and run the test suite using Make:
 
-```shell
+```bash
 make test
 ```
 
 ### Examples
 
-You can find [many code examples](examples/) in the documentation.
+Find [examples](examples/) demonstrating Kiwi’s capabilities, including:
 
-Here are a handful:
 - [Levenshtein distance](examples/algo/levenshtein.kiwi)
 - [MD5 hashing algorithm](examples/algo/md5_hash.kiwi)
 - [Sieve of Eratosthenes](examples/algo/sieve_of_eratosthenes.kiwi)
 - [Conway's Game of Life](examples/cellular_automata/life.kiwi)
-- [Project Euler stuff](examples/project_euler/).
+- [Project Euler examples](examples/project_euler/)
 
-## Contributions
+## Contributing
 
-I welcome and appreciate any and all contributions to the Kiwi project! Here's how you can contribute:
+Contributions are highly appreciated! Here’s how to get involved:
 
-1. **Join the Discord**: [The Kiwi Programming Language](https://discord.com/channels/1221516965743431841/1221553678104920195)
-2. **Fork the Repository**: Fork the project to your GitHub account.
-3. **Clone the Forked Repository**: Clone it to your machine.
-4. **Set Up Your Environment**: Follow the "Getting Started" section.
-5. **Make Changes**: Implement your features or fixes.
-6. **Test Your Changes**: Ensure all tests pass.
-7. **Create a Pull Request**: Submit it from your fork to the main Kiwi repository.
+1. **Join the Discussion**: Join the Kiwi community on [Discord](https://discord.com/channels/1221516965743431841/1221553678104920195).
+2. **Fork the Repository**: Fork Kiwi on GitHub.
+3. **Clone the Repository**: Clone your forked copy to your machine.
+4. **Set Up Your Environment**: Follow the steps in "Getting Started."
+5. **Make Changes**: Implement new features or fix issues.
+6. **Test Your Changes**: Run all tests to ensure stability.
+7. **Submit a Pull Request**: Submit your changes for review.
 
-For more details, please read [CONTRIBUTING.md](CONTRIBUTING.md).
+For more details, please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
