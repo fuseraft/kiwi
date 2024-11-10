@@ -1,5 +1,3 @@
-# a script for debugging and experimentation (and fun!)
-
 # spin up 5 tasks that run for random durations.
 for i in std::range(0, 5) do
   fork (with () do

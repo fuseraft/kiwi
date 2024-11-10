@@ -1,0 +1,19 @@
+base_url = "http://jsonplaceholder.typicode.com"
+api_endpoint = "/posts"
+api_results = []
+
+repeat 3 as n do
+  resp = http::get(base_url, "${api_endpoint}/${n}")
+  
+  if resp.status == 200
+    json = resp.body
+
+    if json::can_parse(json)
+      api_results.push(json::parse(json))
+    end
+  end
+end
+
+for res in api_results do
+  println json::stringify(res)
+end

@@ -658,7 +658,7 @@ void KInterpreter::importExternal(const k_string& packageName,
 
   Lexer lexer(packagePath, content);
 
-  Parser p;
+  Parser p(true);
   auto tokenStream = lexer.getTokenStream();
   auto ast = p.parseTokenStream(tokenStream, true);
 
@@ -717,7 +717,7 @@ k_value KInterpreter::visit(const ParseNode* node) {
 
   Lexer lexer(node->token.getFile(), std::get<k_string>(content));
 
-  Parser p;
+  Parser p(true);
   auto tokenStream = lexer.getTokenStream();
   auto ast = p.parseTokenStream(tokenStream, true);
 
@@ -1778,36 +1778,54 @@ k_value KInterpreter::visit(const RepeatLoopNode* node) {
 }
 
 k_value KInterpreter::visit(const TryNode* node) {
+  auto tryFrame = createFrame();
+  tryFrame->setFlag(FrameFlags::InTry);
+  callStack.push(tryFrame);
+
   try {
     for (const auto& stmt : node->tryBody) {
       interpret(stmt.get());
     }
+
+    dropFrame();
   } catch (const KiwiError& e) {
+    dropFrame();
+
     if (!node->catchBody.empty()) {
-      auto frame = callStack.top();
+      auto catchFrame = createFrame();
 
       k_string errorTypeName;
       k_string errorMessageName;
-      if (node->errorType) {
-        errorTypeName = id(node->errorType.get());
-        frame->variables[errorTypeName] = e.getError();
-      }
 
-      if (node->errorMessage) {
-        errorMessageName = id(node->errorMessage.get());
-        frame->variables[errorMessageName] = e.getMessage();
-      }
+      try {
+        if (node->errorType) {
+          errorTypeName = id(node->errorType.get());
+          catchFrame->variables[errorTypeName] = e.getError();
+        }
 
-      for (const auto& stmt : node->catchBody) {
-        interpret(stmt.get());
-      }
+        if (node->errorMessage) {
+          errorMessageName = id(node->errorMessage.get());
+          catchFrame->variables[errorMessageName] = e.getMessage();
+        }
 
-      if (node->errorType) {
-        frame->variables.erase(errorTypeName);
-      }
+        callStack.push(catchFrame);
 
-      if (node->errorMessage) {
-        frame->variables.erase(errorMessageName);
+        for (const auto& stmt : node->catchBody) {
+          interpret(stmt.get());
+        }
+
+        if (node->errorType) {
+          catchFrame->variables.erase(errorTypeName);
+        }
+
+        if (node->errorMessage) {
+          catchFrame->variables.erase(errorMessageName);
+        }
+
+        dropFrame();
+      } catch (const KiwiError&) {
+        dropFrame();
+        throw;
       }
     }
   }
@@ -2013,8 +2031,9 @@ k_value KInterpreter::executeInstanceMethodFunction(
 }
 
 k_value KInterpreter::visit(const FunctionCallNode* node) {
-  auto callableType = getCallable(node->token, node->functionName);
   k_value result;
+
+  auto callableType = getCallable(node->token, node->functionName);
 
   if (callableType == KCallableType::Builtin) {
     return callBuiltinMethod(node);
@@ -2423,6 +2442,7 @@ k_value KInterpreter::executeClassMethod(
 k_value KInterpreter::callBuiltinMethod(const FunctionCallNode* node) {
   auto args = getMethodCallArguments(node->arguments);
   auto op = node->op;
+
   if (SerializerBuiltins.is_builtin(op)) {
     return interpretSerializerBuiltin(node->token, op, args);
   } else if (ReflectorBuiltins.is_builtin(op)) {
@@ -2807,7 +2827,7 @@ k_hash KInterpreter::getWebServerRequestHash(const httplib::Request& req) {
 
 k_value KInterpreter::interpolateString(const Token& token,
                                         const k_string& input) {
-  Parser parser;
+  Parser parser(true);
   Lexer lexer(token.getFile(), input);
   auto tempStream = lexer.getTokenStream();
   auto ast = parser.parseTokenStream(tempStream, true);

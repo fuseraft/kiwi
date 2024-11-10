@@ -15,12 +15,14 @@
 class Parser {
  public:
   Parser() {}
+  Parser(bool rethrowErrors) : rethrow(rethrowErrors) {}
 
   std::unique_ptr<ASTNode> parseTokenStreamCollection(
       std::vector<k_stream> streams);
   std::unique_ptr<ASTNode> parseTokenStream(k_stream& stream, bool isScript);
 
  private:
+  bool rethrow = false;
   bool hasValue();
   std::unique_ptr<ASTNode> parsePackAssignment(
       std::unique_ptr<ASTNode> baseNode);
@@ -92,6 +94,7 @@ class Parser {
   bool match(KTokenType expectedType);
   bool matchSubType(KName expectedSubType);
   bool lookAhead(std::vector<KName> names);
+  void rewind();
   KTokenType tokenType();
   KName tokenName();
   Token peek();
@@ -112,6 +115,11 @@ KName Parser::tokenName() {
 
 Token Parser::peek() {
   return kStream->peek();
+}
+
+void Parser::rewind() {
+  kStream->rewind();
+  kToken = kStream->current();
 }
 
 bool Parser::lookAhead(std::vector<KName> names) {
@@ -154,8 +162,9 @@ Token Parser::getErrorToken() {
     return kToken;
   }
 
-  kStream->rewind();
-  return kStream->current();
+  rewind();
+
+  return getErrorToken();
 }
 
 bool Parser::match(KTokenType expectedType) {
@@ -199,9 +208,16 @@ bool Parser::hasValue() {
 std::unique_ptr<ASTNode> Parser::parseTokenStreamCollection(
     std::vector<k_stream> streams) {
   auto root = std::make_unique<ProgramNode>();
+  bool isRootTokenSet = false;
+
   for (const auto& stream : streams) {
     kStream = std::move(stream);
     kToken = kStream->current();
+
+    if (!isRootTokenSet) {
+      root->token = kToken;
+      isRootTokenSet = true;
+    }
 
     try {
       while (tokenType() != KTokenType::STREAM_END) {
@@ -211,6 +227,10 @@ std::unique_ptr<ASTNode> Parser::parseTokenStreamCollection(
         }
       }
     } catch (const KiwiError& e) {
+      if (rethrow) {
+        throw;
+      }
+
       ErrorHandler::handleError(e);
     }
   }
@@ -234,6 +254,10 @@ std::unique_ptr<ASTNode> Parser::parseTokenStream(k_stream& stream,
       }
     }
   } catch (const KiwiError& e) {
+    if (rethrow) {
+      throw;
+    }
+
     ErrorHandler::handleError(e);
   }
 
@@ -326,7 +350,7 @@ std::unique_ptr<ASTNode> Parser::parseKeyword() {
 }
 
 std::unique_ptr<ASTNode> Parser::parseStatement() {
-  auto nodeToken = kToken;
+  const auto nodeToken = kToken;
   std::unique_ptr<ASTNode> node;
 
   switch (nodeToken.getType()) {
@@ -1474,6 +1498,7 @@ std::unique_ptr<ASTNode> Parser::parseQualifiedIdentifier(
 }
 
 std::unique_ptr<ASTNode> Parser::parseIdentifier(bool packed) {
+  const auto idToken = kToken;
   bool isInstance = matchSubType(KName::KW_This);
 
   if (tokenType() != KTokenType::IDENTIFIER) {
@@ -1523,6 +1548,8 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier(bool packed) {
   } else {
     node = std::make_unique<IdentifierNode>(identifierName);
   }
+
+  node->token = idToken;
 
   return node;
 }
