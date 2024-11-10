@@ -19,6 +19,14 @@ package std
     return std::type(n) == Float
   end
 
+  fn is_string(s)
+    return std::type(s) == String
+  end
+
+  fn is_hash(s)
+    return std::type(s) == Hash
+  end
+
   fn range(x, y)
     throw Error.InvalidRange() when ![x, y].all(with (n) do std::is_int(n) end)
     return [x..y - 1]
