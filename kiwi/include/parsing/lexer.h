@@ -286,18 +286,12 @@ class Lexer {
       st = KName::KW_Abstract;
     } else if (keyword == Keywords.As) {
       st = KName::KW_As;
-    } else if (keyword == Keywords.Async) {
-      st = KName::KW_Async;
-    } else if (keyword == Keywords.Await) {
-      st = KName::KW_Await;
     } else if (keyword == Keywords.Break) {
       st = KName::KW_Break;
     } else if (keyword == Keywords.Catch) {
       st = KName::KW_Catch;
     } else if (keyword == Keywords.Class) {
       st = KName::KW_Class;
-    } else if (keyword == Keywords.Delete) {
-      st = KName::KW_Delete;
     } else if (keyword == Keywords.Do) {
       st = KName::KW_Do;
     } else if (keyword == Keywords.Exit) {
@@ -344,8 +338,6 @@ class Lexer {
       st = KName::KW_Return;
     } else if (keyword == Keywords.Static) {
       st = KName::KW_Static;
-    } else if (keyword == Keywords.Then) {
-      st = KName::KW_Then;
     } else if (keyword == Keywords.This) {
       st = KName::KW_This;
     } else if (keyword == Keywords.Throw) {
