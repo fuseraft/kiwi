@@ -5,6 +5,8 @@
 #include <exception>
 #include "parsing/tokens.h"
 
+const Token kiwiErrorToken = Token::createExternal();
+
 class KiwiError : public std::exception {
  public:
   KiwiError(const Token& token, std::string error,
@@ -17,7 +19,7 @@ class KiwiError : public std::exception {
   const std::string& getMessage() const { return message; }
 
   static KiwiError create(const std::string& message = "") {
-    return KiwiError(Token::createEmpty(), "KiwiError", message);
+    return KiwiError(kiwiErrorToken, "KiwiError", message);
   }
 
   static KiwiError create(const Token& token, const std::string& message = "") {
@@ -254,7 +256,7 @@ class IllegalNameError : public KiwiError {
 class FileNotFoundError : public KiwiError {
  public:
   FileNotFoundError(const std::string& path)
-      : KiwiError(Token::createEmpty(), "FileNotFoundError",
+      : KiwiError(kiwiErrorToken, "FileNotFoundError",
                   "File not found: " + path) {}
   FileNotFoundError(const Token& token, const std::string& path)
       : KiwiError(token, "FileNotFoundError", "File not found: " + path) {}
@@ -263,7 +265,7 @@ class FileNotFoundError : public KiwiError {
 class FileReadError : public KiwiError {
  public:
   FileReadError(const std::string& path)
-      : KiwiError(Token::createEmpty(), "FileReadError",
+      : KiwiError(kiwiErrorToken, "FileReadError",
                   "Cannot read file: " + path) {}
   FileReadError(const Token& token, const std::string& path)
       : KiwiError(token, "FileReadError", "Cannot read file: " + path) {}
@@ -272,7 +274,7 @@ class FileReadError : public KiwiError {
 class FileWriteError : public KiwiError {
  public:
   FileWriteError(const std::string& path)
-      : KiwiError(Token::createEmpty(), "FileWriteError",
+      : KiwiError(kiwiErrorToken, "FileWriteError",
                   "Cannot write to file: " + path) {}
   FileWriteError(const Token& token, const std::string& path)
       : KiwiError(token, "FileWriteError", "Cannot write to file: " + path) {}
@@ -281,7 +283,7 @@ class FileWriteError : public KiwiError {
 class FileSystemError : public KiwiError {
  public:
   FileSystemError(const std::string& message)
-      : KiwiError(Token::createEmpty(), "FileSystemError", message) {}
+      : KiwiError(kiwiErrorToken, "FileSystemError", message) {}
   FileSystemError(const Token& token, const std::string& message)
       : KiwiError(token, "FileSystemError", message) {}
 };
@@ -289,7 +291,7 @@ class FileSystemError : public KiwiError {
 class TokenStreamError : public KiwiError {
  public:
   TokenStreamError(const std::string& message)
-      : KiwiError(Token::createEmpty(), "TokenStreamError", message) {}
+      : KiwiError(kiwiErrorToken, "TokenStreamError", message) {}
   TokenStreamError(const Token& token, const std::string& message =
                                            "A token stream error occurred.")
       : KiwiError(token, "TokenStreamError", message) {}

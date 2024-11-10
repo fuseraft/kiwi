@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+const Token astToken = Token::createExternal();
+
 enum class ASTNodeType {
   ASSIGNMENT,
   BINARY_OPERATION,
@@ -59,7 +61,7 @@ enum class ASTNodeType {
 class ASTNode {
  public:
   ASTNodeType type;
-  Token token = Token::createEmpty();
+  Token token = astToken;
 
   ASTNode(ASTNodeType type) : type(type) {}
   virtual ~ASTNode() = default;
@@ -94,6 +96,7 @@ class ProgramNode : public ASTNode {
   std::unique_ptr<ASTNode> clone() const override {
     std::vector<std::unique_ptr<ASTNode>> clonedStatements;
     clonedStatements.reserve(statements.size());
+
     for (const auto& statement : statements) {
       clonedStatements.push_back(statement->clone());
     }
