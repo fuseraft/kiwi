@@ -2,6 +2,7 @@
 #define KIWI_PARSING_AST_H
 
 #include "tokens.h"
+#include "tokentype.h"
 #include "typing/serializer.h"
 #include "typing/value.h"
 #include <iostream>
@@ -767,6 +768,8 @@ class FunctionDeclarationNode : public ASTNode {
   k_string name;
   std::vector<std::pair<k_string, std::unique_ptr<ASTNode>>> parameters;
   std::vector<std::unique_ptr<ASTNode>> body;
+  std::unordered_map<k_string, KName> typeHints;
+  KName returnTypeHint = KName::Types_Any;
   bool isStatic = false;
   bool isPrivate = false;
 
@@ -785,11 +788,23 @@ class FunctionDeclarationNode : public ASTNode {
     }
 
     print_depth(1 + depth);
+    std::cout << "Return Type: " << Serializer::get_typename_string(returnTypeHint) << std::endl;
+
+    print_depth(1 + depth);
     std::cout << "Parameters: " << std::endl;
     for (const auto& param : parameters) {
       print_depth(2 + depth);
       std::cout << param.first;
+      
+      if (typeHints.find(param.first) != typeHints.end()) {
+        std::cout << std::endl;
+        print_depth(2 + depth);
+        auto typeHint = typeHints.at(param.first);
+        std::cout << "Parameter Type: " << Serializer::get_typename_string(typeHint);
+      }
+
       if (param.second) {
+        std::cout << std::endl;
         print_depth(2 + depth);
         std::cout << "Default: ";
         param.second->print(1 + depth);

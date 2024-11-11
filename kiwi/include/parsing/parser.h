@@ -496,6 +496,9 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
 
   // Parse parameters
   std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> parameters;
+  std::unordered_map<std::string, KName> typeHints;
+  KName returnTypeHint = KName::Types_Any;
+
   if (tokenType() == KTokenType::OPEN_PAREN) {
     next();  // Consume '('
 
@@ -505,10 +508,26 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
       }
 
       auto paramName = kToken.getText();
+
+      if (mangledNames.find(paramName) != mangledNames.end()) {
+        throw SyntaxError(getErrorToken(), "The parameter name '" + paramName + "' is already used.");
+      }
+
       auto mangledName = mangler + paramName;
       mangledNames[paramName] = mangledName;
       std::unique_ptr<ASTNode> defaultValue = nullptr;
       next();
+
+      if (match(KTokenType::COLON)) {
+        if (tokenType() != KTokenType::TYPENAME) {
+          throw SyntaxError(getErrorToken(), "Expected a type name in parameter type hint.");
+        }
+
+        auto typeName = tokenName();
+        next();
+
+        typeHints[mangledName] = typeName;
+      }
 
       // Check for default value
       if (tokenType() == KTokenType::OPERATOR &&
@@ -528,6 +547,17 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
     }
 
     next();  // Consume ')'
+
+    if (match(KTokenType::COLON)) {
+      if (tokenType() != KTokenType::TYPENAME) {
+        throw SyntaxError(getErrorToken(), "Expected a type name in return type hint.");
+      }
+
+      auto typeName = tokenName();
+      next();
+
+      returnTypeHint = typeName;
+    }
   }
 
   // Parse the function body
@@ -547,6 +577,8 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
   functionDeclaration->name = functionName;
   functionDeclaration->parameters = std::move(parameters);
   functionDeclaration->body = std::move(body);
+  functionDeclaration->typeHints = typeHints;
+  functionDeclaration->returnTypeHint = returnTypeHint;
   return functionDeclaration;
 }
 
