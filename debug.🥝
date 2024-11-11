@@ -1,2 +1,4 @@
 # a script for debugging and experimentation (and fun!)
 
+res = curl::get("http://jsonplaceholder.typicode.com/posts/1")
+println json::parse(res)
