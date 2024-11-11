@@ -566,6 +566,7 @@ struct {
 } ConsoleBuiltins;
 
 struct {
+  const k_string Append = "append";
   const k_string Chars = "chars";
   const k_string IsA = "is_a";
   const k_string Join = "join";
