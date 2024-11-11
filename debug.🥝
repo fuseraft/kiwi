@@ -1,4 +1,4 @@
 # a script for debugging and experimentation (and fun!)
 
-res = sys::command("ping", ["-c", "1", "www.fuseraft.com"], true)
-println res
+res = curl::get("http://jsonplaceholder.typicode.com/posts/1")
+println json::parse(res)
