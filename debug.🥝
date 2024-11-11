@@ -1,4 +1,26 @@
 # a script for debugging and experimentation (and fun!)
 
-res = curl::get("http://jsonplaceholder.typicode.com/posts/1")
-println json::parse(res)
+/#
+fn test(value: Integer, count: Integer, keys: List[String], map: Hash[String] = {}): Integer
+  repeat count do
+    for key in keys do
+      if map.has_key(key)
+        value += map[key]
+      end
+    end
+  end
+
+  return value
+end
+
+res = test(0, 5, ["a", "b"], {"a": 1, "b": 2})
+
+println res
+#/
+
+fn is_even(n: Integer): Boolean
+  return n % 2 == 0
+end
+
+println is_even(5) # false
+println is_even(2) # true
