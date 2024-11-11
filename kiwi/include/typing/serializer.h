@@ -12,6 +12,45 @@
 #include "value.h"
 
 struct Serializer {
+  static k_string get_typename_string(KName typeName) {
+    switch (typeName) {
+      case KName::Types_Any:
+        return TypeNames.Any;
+
+      case KName::Types_Boolean:
+        return TypeNames.Boolean;
+
+      case KName::Types_Float:
+        return TypeNames.Float;
+
+      case KName::Types_Hash:
+        return TypeNames.Hash;
+
+      case KName::Types_Integer:
+        return TypeNames.Integer;
+
+      case KName::Types_Lambda:
+        return TypeNames.With;
+
+      case KName::Types_List:
+        return TypeNames.List;
+
+      case KName::Types_None:
+        return TypeNames.None;
+
+      case KName::Types_Object:
+        return TypeNames.Object;
+
+      case KName::Types_String:
+        return TypeNames.String;
+
+      default:
+        break;
+    }
+
+    return "";
+  }
+
   static k_string get_value_type_string(k_value v) {
     if (std::holds_alternative<k_int>(v)) {
       return TypeNames.Integer;

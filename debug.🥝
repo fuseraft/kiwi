@@ -18,9 +18,15 @@ res = test(0, 5, ["a", "b"], {"a": 1, "b": 2})
 println res
 #/
 
+/#
+fn is_even(n: Integer): Boolean
+  return n % 2 == 0
+end
+#/
+
 fn is_even(n: Integer): Boolean
   return n % 2 == 0
 end
 
 println is_even(5) # false
-println is_even(2) # true
+println is_even(4) # true
