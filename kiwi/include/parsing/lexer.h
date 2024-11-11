@@ -1103,7 +1103,7 @@ class Lexer {
       st = KName::Builtin_Kiwi_Type;
     } else if (builtin == KiwiBuiltins.Uppercase) {
       st = KName::Builtin_Kiwi_Uppercase;
-    } else if (builtin == KiwiBuiltins.Push) {
+    } else if (builtin == KiwiBuiltins.Append || builtin == KiwiBuiltins.Push) {
       st = KName::Builtin_Kiwi_Push;
     } else if (builtin == KiwiBuiltins.Pop) {
       st = KName::Builtin_Kiwi_Pop;
