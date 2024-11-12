@@ -5,12 +5,9 @@ package json
     - s: A string containing JSON data.
   Returns: Any type of data deserialized 
   #/
-  fn parse(s)
+  fn parse(s: String)
     parse_res = { "KIWI_JSON_PARSE_ERROR": true }
     
-    # Expect only string input.
-    return parse_res when !std::is_string(s)
-
     try
       # If it is an empty string, return an empty list.
       return [] when s.trim().empty()
@@ -27,10 +24,7 @@ package json
     - s: A string to check.
   Returns: Returns `true` if a given string value can be parsed as JSON. 
   #/
-  fn can_parse(s)
-    # Expect only string input.
-    return false when !std::is_string(s)
-
+  fn can_parse(s: String)
     parse_res = json::parse(s)
 
     if std::is_hash(parse_res) && parse_res.has_key("KIWI_JSON_PARSE_ERROR")

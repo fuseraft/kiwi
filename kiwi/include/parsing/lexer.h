@@ -569,6 +569,8 @@ class Lexer {
       st = KName::Types_String;
     } else if (typeName == TypeNames.None) {
       st = KName::Types_None;
+    } else if (typeName == TypeNames.Any) {
+      st = KName::Types_Any;
     }
 
     return createToken(KTokenType::TYPENAME, st, typeName);

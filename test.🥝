@@ -30,7 +30,7 @@ fn testsuite()
   end
 end
 
-guava::register_test("truthiness", with () do
+guava::register_test("truthiness", with do
   guava::assert(!null.truthy())      # null is never truthy
   guava::assert(!(0).truthy())       # 0 is the only non-truthy number
   guava::assert((1).truthy())        # non-zero numbers are always truthy
@@ -44,7 +44,7 @@ guava::register_test("truthiness", with () do
   guava::assert(true.truthy())       # true is always truthy
 end)
 
-guava::register_test("unpacking", with () do
+guava::register_test("unpacking", with do
   a, b, c =< true, {"a": false}, [1, 2, 3]
 
   guava::assert(a == true)
@@ -66,7 +66,7 @@ guava::register_test("unpacking", with () do
   guava::assert(b == ["a", "b"])
 end)
 
-guava::register_test("operators", with () do
+guava::register_test("operators", with do
   # arithmetic
   guava::assert(10 + 20 == 30)   # addition
   guava::assert(10 - 20 == -10)  # subtraction
@@ -120,7 +120,7 @@ guava::register_test("operators", with () do
   guava::assert(a == old_b)
 end)
 
-guava::register_test("strings", with () do
+guava::register_test("strings", with do
   # simple concatenation
   a = "Hello"
   b = " World"
@@ -146,7 +146,7 @@ guava::register_test("strings", with () do
   guava::assert(a * b == "HelloHelloHelloHelloHello")
 end)
 
-guava::register_test("lists", with () do
+guava::register_test("lists", with do
   # Basic List Operations
   basic_list = [1, 2, 3]
   guava::assert(basic_list.size() == 3)
@@ -208,7 +208,7 @@ guava::register_test("lists", with () do
 end)
 
 
-guava::register_test("sets", with () do
+guava::register_test("sets", with do
   s1 = Set.new([1, 2, 3])
   s2 = Set.new([1, 2])
   s3 = Set.new([4, 5])
@@ -235,7 +235,7 @@ guava::register_test("sets", with () do
   guava::assert(a3.to_list().empty())
 end)
 
-guava::register_test("heaps", with () do
+guava::register_test("heaps", with do
   min_heap = Heap.new("min")
   max_heap = Heap.new("max")
 
@@ -260,7 +260,7 @@ guava::register_test("heaps", with () do
   guava::assert(max_heap.extract_root() == 5)
 end)
 
-guava::register_test("hashes", with () do
+guava::register_test("hashes", with do
   hash = {
     "key1": true, 
     "key2": 1, 
@@ -294,7 +294,7 @@ guava::register_test("hashes", with () do
   guava::assert(other_hash.hello == "kiwi")
 end)
 
-guava::register_test("dates", with () do
+guava::register_test("dates", with do
   d = DateTime.new(DateTime.now().get_year(), 1, 2).add_days(-1).add_hours(-1).add_minutes(-1).add_seconds(-1)
   d2 = DateTime.now()
 
@@ -302,7 +302,7 @@ guava::register_test("dates", with () do
   guava::assert(d2.after(d))
 end)
 
-guava::register_test("timespans", with () do
+guava::register_test("timespans", with do
   # Test case 1: Same date
   d1 = DateTime.new(2024, 10, 1)
   d2 = DateTime.new(2024, 10, 1)
@@ -352,7 +352,7 @@ guava::register_test("timespans", with () do
   guava::assert(res.to_string() == "TimeSpan: 0 years, 0 months, 0 days, 1 hours, 45 minutes, 15 seconds")
 end)
 
-guava::register_test("structs", with () do
+guava::register_test("structs", with do
   struct Shape
     fn area() end
     fn perimeter() end
@@ -379,7 +379,7 @@ guava::register_test("structs", with () do
   guava::assert(math::floor(circle.perimeter()).to_int() == 31)
 end)
 
-guava::register_test("builtins", with () do
+guava::register_test("builtins", with do
   a = "FooBar".lowercase() 
   guava::assert("${a}${a.uppercase()}" == "foobarFOOBAR")
   guava::assert(a.index("bar") == 3)
@@ -390,11 +390,11 @@ guava::register_test("builtins", with () do
   guava::assert(!"foobar".ends_with("bark"))
 end)
 
-guava::register_test("standard library", with () do
+guava::register_test("standard library", with do
   guava::assert(string::mirror("hello") == "helloolleh")
 end)
 
-guava::register_test("nulls", with () do
+guava::register_test("nulls", with do
   e = {"a": null, "b": null}
   guava::assert(e.get("a") == null)
   guava::assert(e.get("b") == null)
@@ -419,7 +419,7 @@ guava::register_test("nulls", with () do
   guava::assert(!!!null)
 end)
 
-guava::register_test("type checks", with () do
+guava::register_test("type checks", with do
   s = "kiwi"
   i = 100
   d = 3.14159
@@ -435,7 +435,7 @@ guava::register_test("type checks", with () do
   guava::assert(h.a.is_a(List))
 end)
 
-guava::register_test("loops", with () do
+guava::register_test("loops", with do
   fruits = ["kiwi", "strawberry", "pineapple", "lime", "mango", "guava"]
   list = []
 
@@ -533,7 +533,7 @@ guava::register_test("loops", with () do
   guava::assert(x == 65536)
 end)
 
-guava::register_test("try-finally", with () do
+guava::register_test("try-finally", with do
   a = 0, b = 0
 
   try
@@ -548,7 +548,7 @@ guava::register_test("try-finally", with () do
   guava::assert(b == 1)
 end)
 
-guava::register_test("try-catch-finally", with () do
+guava::register_test("try-catch-finally", with do
   a = 0, b = 0, c = 0
 
   try
@@ -568,7 +568,7 @@ guava::register_test("try-catch-finally", with () do
   guava::assert(c == 1)
 end)
 
-guava::register_test("nested try-catch", with () do
+guava::register_test("nested try-catch", with do
   a = 0, b = 0, c = 0
 
   for i in [0 .. 1] do
@@ -587,7 +587,7 @@ guava::register_test("nested try-catch", with () do
   guava::assert(c == 2)
 end)
 
-guava::register_test("lambdas", with () do
+guava::register_test("lambdas", with do
   # setup
   list = [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4},
           {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}, {"id": 9}]
@@ -627,7 +627,7 @@ guava::register_test("lambdas", with () do
   guava::assert(x == 25)
 end)
 
-guava::register_test("md5", with () do
+guava::register_test("md5", with do
   a_str = "just a test string"
   
   guava::assert("d41d8cd98f00b204e9800998ecf8427e" == crypto::md5_hash(""))
@@ -635,7 +635,7 @@ guava::register_test("md5", with () do
   guava::assert("e8754b080e52f959766d9d40f5e406ee" == crypto::md5_hash(a_str * 7))
 end)
 
-guava::register_test("sha224", with () do
+guava::register_test("sha224", with do
   a_str = "just a test string"
 
   guava::assert("d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f" == crypto::sha224_hash())
@@ -643,7 +643,7 @@ guava::register_test("sha224", with () do
   guava::assert("7d70521535e7b865c1572daff05a3fd022df567f4b6d74d556477f0a" == crypto::sha224_hash(a_str*7))
 end)
 
-guava::register_test("sha256", with () do
+guava::register_test("sha256", with do
   a_str = "just a test string"
 
   guava::assert("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" == SHA256.new().hexdigest())

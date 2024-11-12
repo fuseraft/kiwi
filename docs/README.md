@@ -6,6 +6,7 @@
 2. **Language Basics**
    - [Comments](comments.md)
    - [Types](types.md)
+   - [Type Hints](type_hints.md)
    - [Operators](operators.md)
    - [Keywords](keywords.md)
    - [Variables](variables.md)
@@ -44,7 +45,7 @@
    - [`math`](lib/math.md): Common mathematical functions and utilities.
    - [`string`](lib/string.md): String manipulation and transformation utilities.
    - [`sys`](lib/sys.md): For executing shell commands.
-   - [`task`](lib/task.md): Asynchronous task management with support for delays and intervals.
+   - [`task`](lib/task.md): Asynchronous task management with support for timers and intervals.
    - [`time`](lib/time.md): Time and date utilities, including:
      - [`DateTime`](lib/datetime.md#datetime): Represents a date and time.
      - [`TimeSpan`](lib/datetime.md#timespan): Represents the time difference between two `DateTime` objects.
