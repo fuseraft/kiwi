@@ -1878,7 +1878,7 @@ k_value KInterpreter::visit(const LambdaNode* node) {
   lambda->defaultParameters = defaultParameters;
   lambda->typeHints = node->typeHints;
   lambda->returnTypeHint = node->returnTypeHint;
-  
+
   ctx->addLambda(tmpId, std::move(lambda));
   ctx->addMappedLambda(tmpId, tmpId);
 
@@ -2018,7 +2018,8 @@ k_value KInterpreter::executeInstanceMethodFunction(
   auto functionFrame = createFrame();
   k_value result = {};
 
-  auto typeHints = func->typeHints;
+  const auto& typeHints = func->typeHints;
+  const auto& returnTypeHint = func->returnTypeHint;
 
   for (size_t i = 0; i < func->parameters.size(); ++i) {
     const auto& param = func->parameters[i];
@@ -2062,6 +2063,13 @@ k_value KInterpreter::executeInstanceMethodFunction(
     }
   }
 
+  if (!Serializer::assert_typematch(result, returnTypeHint)) {
+    throw TypeError(node->token,
+                    "Expected type " +
+                        Serializer::get_typename_string(returnTypeHint) +
+                        " for return type of '" + node->functionName + "'.");
+  }
+
   return result;
 }
 
@@ -2081,7 +2089,8 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
       const auto& func = ctx->getFunctions().at(node->functionName);
       auto defaultParameters = func->defaultParameters;
       auto functionFrame = createFrame();
-      auto typeHints = func->typeHints;
+      const auto& typeHints = func->typeHints;
+      const auto& returnTypeHint = func->returnTypeHint;
 
       for (size_t i = 0; i < func->parameters.size(); ++i) {
         const auto& param = func->parameters[i];
@@ -2125,6 +2134,13 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
           break;
         }
       }
+
+      if (!Serializer::assert_typematch(result, returnTypeHint)) {
+        throw TypeError(
+            node->token,
+            "Expected type " + Serializer::get_typename_string(returnTypeHint) +
+                " for return type of '" + node->functionName + "'.");
+      }
     } else if (callableType == KCallableType::Lambda) {
       result = callLambda(node->token, node->functionName, node->arguments);
     }
@@ -2153,7 +2169,8 @@ k_value KInterpreter::callLambda(
 
   const auto& func = ctx->getLambdas().at(targetLambda);
   auto defaultParameters = func->defaultParameters;
-  auto typeHints = func->typeHints;
+  const auto& typeHints = func->typeHints;
+  const auto& returnTypeHint = func->returnTypeHint;
 
   for (size_t i = 0; i < func->parameters.size(); ++i) {
     const auto& param = func->parameters[i];
@@ -2196,6 +2213,12 @@ k_value KInterpreter::callLambda(
       result = lambdaFrame->returnValue;
       break;
     }
+  }
+
+  if (!Serializer::assert_typematch(result, returnTypeHint)) {
+    throw TypeError(token, "Expected type " +
+                               Serializer::get_typename_string(returnTypeHint) +
+                               " for return type of '" + lambdaName + "'.");
   }
 
   return result;

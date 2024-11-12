@@ -1,7 +1,6 @@
 # a script for debugging and experimentation (and fun!)
 
-/#
-fn test(value: Integer, count: Integer, keys: List[String], map: Hash[String] = {}): Integer
+fn test(value: Integer, count: Integer, keys: List = [], map: Hash = {}): Integer
   repeat count do
     for key in keys do
       if map.has_key(key)
@@ -16,17 +15,10 @@ end
 res = test(0, 5, ["a", "b"], {"a": 1, "b": 2})
 
 println res
-#/
 
-/#
 fn is_even(n: Integer): Boolean
   return n % 2 == 0
 end
-#/
 
-fn debug_is_even(n: Integer): Boolean
-  return n % 2 == 0
-end
-
-println debug_is_even(5) # false
-println debug_is_even(4) # true
+println is_even(5) # false
+println is_even(4) # true
