@@ -51,6 +51,45 @@ struct Serializer {
     return "";
   }
 
+  static bool assert_typematch(k_value v, KName typeName) {
+    switch (typeName) {
+      case KName::Types_Any:
+        return true;
+
+      case KName::Types_Boolean:
+        return std::holds_alternative<bool>(v);
+
+      case KName::Types_Float:
+        return std::holds_alternative<double>(v);
+
+      case KName::Types_Hash:
+        return std::holds_alternative<k_hash>(v);
+
+      case KName::Types_Integer:
+        return std::holds_alternative<k_int>(v);
+
+      case KName::Types_Lambda:
+        return std::holds_alternative<k_lambda>(v);
+
+      case KName::Types_List:
+        return std::holds_alternative<k_list>(v);
+
+      case KName::Types_None:
+        return std::holds_alternative<k_null>(v);
+
+      case KName::Types_Object:
+        return std::holds_alternative<k_object>(v);
+
+      case KName::Types_String:
+        return std::holds_alternative<k_string>(v);
+
+      default:
+        break;
+    }
+
+    return false;
+  }
+
   static k_string get_value_type_string(k_value v) {
     if (std::holds_alternative<k_int>(v)) {
       return TypeNames.Integer;

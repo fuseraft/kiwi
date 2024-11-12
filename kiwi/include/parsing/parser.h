@@ -113,7 +113,8 @@ class Parser {
   }
 
   bool hasName(const k_string& name) {
-    std::stack<std::unordered_map<k_string, k_string>> nameStack(mangledNameStack);
+    std::stack<std::unordered_map<k_string, k_string>> nameStack(
+        mangledNameStack);
     while (!nameStack.empty()) {
       const auto& names = nameStack.top();
       if (names.find(name) != names.end()) {
@@ -126,7 +127,8 @@ class Parser {
   }
 
   const k_string getName(const k_string& name) {
-    std::stack<std::unordered_map<k_string, k_string>> nameStack(mangledNameStack);
+    std::stack<std::unordered_map<k_string, k_string>> nameStack(
+        mangledNameStack);
     while (!nameStack.empty()) {
       const auto& names = nameStack.top();
       if (names.find(name) != names.end()) {
@@ -560,7 +562,8 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
       auto paramName = kToken.getText();
 
       if (mangledNames.find(paramName) != mangledNames.end()) {
-        throw SyntaxError(getErrorToken(), "The parameter name '" + paramName + "' is already used.");
+        throw SyntaxError(getErrorToken(), "The parameter name '" + paramName +
+                                               "' is already used.");
       }
 
       auto mangledName = mangler + paramName;
@@ -570,7 +573,8 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
 
       if (match(KTokenType::COLON)) {
         if (tokenType() != KTokenType::TYPENAME) {
-          throw SyntaxError(getErrorToken(), "Expected a type name in parameter type hint.");
+          throw SyntaxError(getErrorToken(),
+                            "Expected a type name in parameter type hint.");
         }
 
         auto typeName = tokenName();
@@ -600,7 +604,8 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
 
     if (match(KTokenType::COLON)) {
       if (tokenType() != KTokenType::TYPENAME) {
-        throw SyntaxError(getErrorToken(), "Expected a type name in return type hint.");
+        throw SyntaxError(getErrorToken(),
+                          "Expected a type name in return type hint.");
       }
 
       auto typeName = tokenName();
@@ -1140,7 +1145,8 @@ std::unique_ptr<ASTNode> Parser::parseLambda() {
       auto paramName = kToken.getText();
 
       if (mangledNames.find(paramName) != mangledNames.end()) {
-        throw SyntaxError(getErrorToken(), "The parameter name '" + paramName + "' is already used.");
+        throw SyntaxError(getErrorToken(), "The parameter name '" + paramName +
+                                               "' is already used.");
       }
 
       auto mangledName = mangler + paramName;
@@ -1151,7 +1157,8 @@ std::unique_ptr<ASTNode> Parser::parseLambda() {
       // Check for type hint.
       if (match(KTokenType::COLON)) {
         if (tokenType() != KTokenType::TYPENAME) {
-          throw SyntaxError(getErrorToken(), "Expected a type name in parameter type hint.");
+          throw SyntaxError(getErrorToken(),
+                            "Expected a type name in parameter type hint.");
         }
 
         auto typeName = tokenName();
@@ -1181,7 +1188,8 @@ std::unique_ptr<ASTNode> Parser::parseLambda() {
 
     if (match(KTokenType::COLON)) {
       if (tokenType() != KTokenType::TYPENAME) {
-        throw SyntaxError(getErrorToken(), "Expected a type name in return type hint.");
+        throw SyntaxError(getErrorToken(),
+                          "Expected a type name in return type hint.");
       }
 
       auto typeName = tokenName();
