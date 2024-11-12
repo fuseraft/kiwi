@@ -112,6 +112,32 @@ class Parser {
     return mangledNameStack.top();
   }
 
+  bool hasName(const k_string& name) {
+    std::stack<std::unordered_map<k_string, k_string>> nameStack(mangledNameStack);
+    while (!nameStack.empty()) {
+      const auto& names = nameStack.top();
+      if (names.find(name) != names.end()) {
+        return true;
+      }
+      nameStack.pop();
+    }
+
+    return false;
+  }
+
+  const k_string getName(const k_string& name) {
+    std::stack<std::unordered_map<k_string, k_string>> nameStack(mangledNameStack);
+    while (!nameStack.empty()) {
+      const auto& names = nameStack.top();
+      if (names.find(name) != names.end()) {
+        return names.at(name);
+      }
+      nameStack.pop();
+    }
+
+    return {};
+  }
+
   std::unordered_map<k_string, k_string>& pushNameStack() {
     std::unordered_map<k_string, k_string> emptyMap;
     mangledNameStack.push(emptyMap);
@@ -1488,8 +1514,6 @@ std::unique_ptr<ASTNode> Parser::parsePackAssignment(
   a, b =< get_zero_and_one()     # a = 0, b = 1
   */
   auto assignment = std::make_unique<PackAssignmentNode>();
-  auto& mangledNames = getNameMap();
-
   assignment->left.push_back(std::move(baseNode));
 
   while (kStream->canRead() && tokenType() == KTokenType::COMMA) {
@@ -1500,8 +1524,8 @@ std::unique_ptr<ASTNode> Parser::parsePackAssignment(
     }
 
     auto identifierName = kToken.getText();
-    if (mangledNames.find(identifierName) != mangledNames.end()) {
-      identifierName = mangledNames[identifierName];
+    if (hasName(identifierName)) {
+      identifierName = getName(identifierName);
     }
     next();
 
@@ -1613,10 +1637,9 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier(bool packed) {
 
   auto type = tokenName();
   auto identifierName = (isInstance ? "@" : "") + kToken.getText();
-  auto& mangledNames = getNameMap();
 
-  if (mangledNames.find(identifierName) != mangledNames.end()) {
-    identifierName = mangledNames[identifierName];
+  if (hasName(identifierName)) {
+    identifierName = getName(identifierName);
   }
 
   next();
