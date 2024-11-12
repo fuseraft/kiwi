@@ -1,6 +1,6 @@
 # https://benchmarksgame-team.pages.debian.net/benchmarksgame/performance/toosimple.html
 
-exit (with () do
+exit (with do
   println "usage: kiwi toosimple <number of iterations>"
 end)() when argv::get().empty()
 
