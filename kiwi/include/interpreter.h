@@ -1956,10 +1956,12 @@ std::unique_ptr<KFunction> KInterpreter::createFunction(
         auto expectedType = typeHints.at(paramName);
         if (!Serializer::assert_typematch(paramValue, expectedType)) {
           throw TypeError(node->token,
-                          "Expected type " +
+                          "Expected type `" +
                               Serializer::get_typename_string(expectedType) +
-                              " for parameter " + std::to_string(paramCount) +
-                              " of '" + name + "'.");
+                              "` for parameter " + std::to_string(paramCount) +
+                              " of `" + name + "` but received `" +
+                              Serializer::get_value_type_string(paramValue) +
+                              "`.");
         }
       }
 
@@ -2037,10 +2039,11 @@ k_value KInterpreter::executeInstanceMethodFunction(
       auto expectedType = typeHints.at(param.first);
       if (!Serializer::assert_typematch(argValue, expectedType)) {
         throw TypeError(node->token,
-                        "Expected type " +
+                        "Expected type `" +
                             Serializer::get_typename_string(expectedType) +
-                            " for parameter " + std::to_string(1 + i) +
-                            " of '" + node->functionName + "'.");
+                            "` for parameter " + std::to_string(1 + i) +
+                            " of `" + node->functionName + "` but received `" +
+                            Serializer::get_value_type_string(argValue) + "`.");
       }
     }
 
@@ -2064,10 +2067,11 @@ k_value KInterpreter::executeInstanceMethodFunction(
   }
 
   if (!Serializer::assert_typematch(result, returnTypeHint)) {
-    throw TypeError(node->token,
-                    "Expected type " +
-                        Serializer::get_typename_string(returnTypeHint) +
-                        " for return type of '" + node->functionName + "'.");
+    throw TypeError(
+        node->token,
+        "Expected type `" + Serializer::get_typename_string(returnTypeHint) +
+            "` for return type of `" + node->functionName + "` but received `" +
+            Serializer::get_value_type_string(result) + ".");
   }
 
   return result;
@@ -2108,11 +2112,13 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
         if (typeHints.find(param.first) != typeHints.end()) {
           auto expectedType = typeHints.at(param.first);
           if (!Serializer::assert_typematch(argValue, expectedType)) {
-            throw TypeError(node->token,
-                            "Expected type " +
-                                Serializer::get_typename_string(expectedType) +
-                                " for parameter " + std::to_string(1 + i) +
-                                " of '" + node->functionName + "'.");
+            throw TypeError(
+                node->token,
+                "Expected type `" +
+                    Serializer::get_typename_string(expectedType) +
+                    "` for parameter " + std::to_string(1 + i) + " of `" +
+                    node->functionName + "` but received `" +
+                    Serializer::get_value_type_string(argValue) + "`.");
           }
         }
 
@@ -2136,10 +2142,12 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
       }
 
       if (!Serializer::assert_typematch(result, returnTypeHint)) {
-        throw TypeError(
-            node->token,
-            "Expected type " + Serializer::get_typename_string(returnTypeHint) +
-                " for return type of '" + node->functionName + "'.");
+        throw TypeError(node->token,
+                        "Expected type `" +
+                            Serializer::get_typename_string(returnTypeHint) +
+                            "` for return type of `" + node->functionName +
+                            "` but received `" +
+                            Serializer::get_value_type_string(result) + "`.");
       }
     } else if (callableType == KCallableType::Lambda) {
       result = callLambda(node->token, node->functionName, node->arguments);
@@ -2188,10 +2196,11 @@ k_value KInterpreter::callLambda(
       auto expectedType = typeHints.at(param.first);
       if (!Serializer::assert_typematch(argValue, expectedType)) {
         throw TypeError(
-            token, "Expected type " +
+            token, "Expected type `" +
                        Serializer::get_typename_string(expectedType) +
-                       " for parameter " + std::to_string(1 + i) + " of '" +
-                       lambdaName + "'.");
+                       "` for parameter " + std::to_string(1 + i) + " of `" +
+                       lambdaName + "` but received `" +
+                       Serializer::get_value_type_string(argValue) + "`.");
       }
     }
 
@@ -2216,9 +2225,11 @@ k_value KInterpreter::callLambda(
   }
 
   if (!Serializer::assert_typematch(result, returnTypeHint)) {
-    throw TypeError(token, "Expected type " +
-                               Serializer::get_typename_string(returnTypeHint) +
-                               " for return type of '" + lambdaName + "'.");
+    throw TypeError(
+        token, "Expected type `" +
+                   Serializer::get_typename_string(returnTypeHint) +
+                   "` for return type of `" + lambdaName + "` but received `" +
+                   Serializer::get_value_type_string(result) + "`.");
   }
 
   return result;
