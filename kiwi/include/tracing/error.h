@@ -186,6 +186,13 @@ class ConversionError : public KiwiError {
       : KiwiError(token, "ConversionError", message) {}
 };
 
+class TypeError : public KiwiError {
+ public:
+  TypeError(const Token& token,
+            const std::string& message = "A type error occurred.")
+      : KiwiError(token, "TypeError", message) {}
+};
+
 class DivideByZeroError : public KiwiError {
  public:
   DivideByZeroError(const Token& token)
