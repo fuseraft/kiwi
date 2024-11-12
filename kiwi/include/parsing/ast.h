@@ -2,6 +2,7 @@
 #define KIWI_PARSING_AST_H
 
 #include "tokens.h"
+#include "tokentype.h"
 #include "typing/serializer.h"
 #include "typing/value.h"
 #include <iostream>
@@ -767,6 +768,8 @@ class FunctionDeclarationNode : public ASTNode {
   k_string name;
   std::vector<std::pair<k_string, std::unique_ptr<ASTNode>>> parameters;
   std::vector<std::unique_ptr<ASTNode>> body;
+  std::unordered_map<k_string, KName> typeHints;
+  KName returnTypeHint = KName::Types_Any;
   bool isStatic = false;
   bool isPrivate = false;
 
@@ -785,11 +788,25 @@ class FunctionDeclarationNode : public ASTNode {
     }
 
     print_depth(1 + depth);
+    std::cout << "Return Type: "
+              << Serializer::get_typename_string(returnTypeHint) << std::endl;
+
+    print_depth(1 + depth);
     std::cout << "Parameters: " << std::endl;
     for (const auto& param : parameters) {
       print_depth(2 + depth);
       std::cout << param.first;
+
+      if (typeHints.find(param.first) != typeHints.end()) {
+        std::cout << std::endl;
+        print_depth(2 + depth);
+        auto typeHint = typeHints.at(param.first);
+        std::cout << "Parameter Type: "
+                  << Serializer::get_typename_string(typeHint);
+      }
+
       if (param.second) {
+        std::cout << std::endl;
         print_depth(2 + depth);
         std::cout << "Default: ";
         param.second->print(1 + depth);
@@ -827,6 +844,8 @@ class FunctionDeclarationNode : public ASTNode {
     node->body = std::move(clonedBody);
     node->isStatic = isStatic;
     node->isPrivate = isPrivate;
+    node->typeHints = typeHints;
+    node->returnTypeHint = returnTypeHint;
     return node;
   }
 };
@@ -835,17 +854,33 @@ class LambdaNode : public ASTNode {
  public:
   std::vector<std::pair<k_string, std::unique_ptr<ASTNode>>> parameters;
   std::vector<std::unique_ptr<ASTNode>> body;
+  std::unordered_map<k_string, KName> typeHints;
+  KName returnTypeHint = KName::Types_Any;
 
   LambdaNode() : ASTNode(ASTNodeType::LAMBDA) {}
 
   void print(int depth) const override {
     print_depth(depth);
     std::cout << "Lambda: " << std::endl;
+
+    print_depth(1 + depth);
+    std::cout << "Return Type: "
+              << Serializer::get_typename_string(returnTypeHint) << std::endl;
+
     print_depth(depth);
     std::cout << "Parameters: " << std::endl;
     for (const auto& param : parameters) {
       print_depth(1 + depth);
       std::cout << param.first;
+
+      if (typeHints.find(param.first) != typeHints.end()) {
+        std::cout << std::endl;
+        print_depth(1 + depth);
+        auto typeHint = typeHints.at(param.first);
+        std::cout << "Parameter Type: "
+                  << Serializer::get_typename_string(typeHint);
+      }
+
       if (param.second) {
         print_depth(1 + depth);
         std::cout << "Default: ";
@@ -881,6 +916,8 @@ class LambdaNode : public ASTNode {
     auto node = std::make_unique<LambdaNode>();
     node->parameters = std::move(clonedParameters);
     node->body = std::move(clonedBody);
+    node->typeHints = typeHints;
+    node->returnTypeHint = returnTypeHint;
     return node;
   }
 };
@@ -1614,6 +1651,8 @@ class KFunction : public KCallable {
   bool isStatic = false;
   bool isPrivate = false;
   bool isCtor = false;
+  std::unordered_map<k_string, KName> typeHints;
+  KName returnTypeHint = KName::Types_Any;
 
   KFunction(std::unique_ptr<ASTNode> node)
       : KCallable(KCallableType::Function) {
@@ -1636,6 +1675,8 @@ class KFunction : public KCallable {
     cloned->isCtor = isCtor;
     cloned->parameters = parameters;
     cloned->defaultParameters = defaultParameters;
+    cloned->typeHints = typeHints;
+    cloned->returnTypeHint = returnTypeHint;
     return cloned;
   }
 };
@@ -1643,6 +1684,8 @@ class KFunction : public KCallable {
 class KLambda : public KCallable {
  public:
   std::unique_ptr<LambdaNode> decl;
+  std::unordered_map<k_string, KName> typeHints;
+  KName returnTypeHint = KName::Types_Any;
 
   KLambda(std::unique_ptr<ASTNode> node) : KCallable(KCallableType::Lambda) {
     std::unique_ptr<LambdaNode> nodeptr(
@@ -1660,6 +1703,8 @@ class KLambda : public KCallable {
     auto cloned = std::make_unique<KLambda>(std::move(nodeptr));
     cloned->parameters = parameters;
     cloned->defaultParameters = defaultParameters;
+    cloned->typeHints = typeHints;
+    cloned->returnTypeHint = returnTypeHint;
     return cloned;
   }
 };

@@ -332,9 +332,10 @@ struct {
   const k_string Object = "Object";
   const k_string With = "Lambda";
   const k_string None = "None";
+  const k_string Any = "Any";
 
   std::unordered_set<k_string> typenames = {
-      Integer, Float, Boolean, String, List, Hash, Object, With, None};
+      Integer, Float, Boolean, String, List, Hash, Object, With, None, Any};
 
   bool is_typename(const k_string& arg) {
     return typenames.find(arg) != typenames.end();

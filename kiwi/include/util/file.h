@@ -46,7 +46,7 @@ class File {
   static bool writeToFile(const Token& token, const k_string& filePath,
                           const k_value& content, bool appendMode,
                           bool addNewLine);
-  static void writeBytes(const Token& token, const std::string& filePath,
+  static void writeBytes(const Token& token, const k_string& filePath,
                          const std::vector<char>& data);
   static k_string readFile(const Token& token, const k_string& filePath);
   static std::vector<k_string> readLines(const Token& token,
@@ -669,7 +669,7 @@ std::vector<char> File::readBytes(const Token& token, const k_string& filePath,
 /// @brief Write bytes to a file.
 /// @param filePath The file path.
 /// @param data The data to write.
-void File::writeBytes(const Token& token, const std::string& filePath,
+void File::writeBytes(const Token& token, const k_string& filePath,
                       const std::vector<char>& data) {
   std::ofstream file(filePath, std::ios::binary | std::ios::trunc);
 

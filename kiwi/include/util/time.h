@@ -29,7 +29,7 @@ class Time {
 
   static k_string formatDateTime(
       k_int year, k_int month, k_int day, k_int hour, k_int minute,
-      k_int second, const std::string& timestampFormat = "%Y-%m-%d %H:%M:%S") {
+      k_int second, const k_string& timestampFormat = "%Y-%m-%d %H:%M:%S") {
     std::tm timeInfo = {};
     timeInfo.tm_year = year - 1900;
     timeInfo.tm_mon = month - 1;
@@ -53,7 +53,7 @@ class Time {
   }
 
   static k_string getTimestamp(
-      const std::string& timestampFormat = "%Y-%m-%d %H:%M:%S") {
+      const k_string& timestampFormat = "%Y-%m-%d %H:%M:%S") {
     std::time_t now = std::time(nullptr);
     std::tm localTime;
 
