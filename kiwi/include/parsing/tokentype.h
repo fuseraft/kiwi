@@ -330,6 +330,7 @@ enum KName {
   Ops_OrAssign,
   Ops_Subtract,
   Ops_SubtractAssign,
+  Types_Any,
   Types_Boolean,
   Types_Float,
   Types_Hash,

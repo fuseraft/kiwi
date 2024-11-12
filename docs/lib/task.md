@@ -187,7 +187,7 @@ println "Task status: ${status["status"]}"
 Use `timer` to run a function after a specified delay:
 
 ```kiwi
-task::timer(2000, (with () do
+task::timer(2000, (with do
   println "This runs after 2 seconds!"
 end))
 ```
@@ -198,7 +198,7 @@ Use `interval` to run a function repeatedly with a specified delay between each 
 
 ```kiwi
 counter = 0
-task::interval(500, (with () do
+task::interval(500, (with do
   counter += 1
   println "Running task every half-second: ${counter}"
   return counter < 5  # Stops after 5 executions

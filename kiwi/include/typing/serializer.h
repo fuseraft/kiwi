@@ -12,6 +12,84 @@
 #include "value.h"
 
 struct Serializer {
+  static k_string get_typename_string(KName typeName) {
+    switch (typeName) {
+      case KName::Types_Any:
+        return TypeNames.Any;
+
+      case KName::Types_Boolean:
+        return TypeNames.Boolean;
+
+      case KName::Types_Float:
+        return TypeNames.Float;
+
+      case KName::Types_Hash:
+        return TypeNames.Hash;
+
+      case KName::Types_Integer:
+        return TypeNames.Integer;
+
+      case KName::Types_Lambda:
+        return TypeNames.With;
+
+      case KName::Types_List:
+        return TypeNames.List;
+
+      case KName::Types_None:
+        return TypeNames.None;
+
+      case KName::Types_Object:
+        return TypeNames.Object;
+
+      case KName::Types_String:
+        return TypeNames.String;
+
+      default:
+        break;
+    }
+
+    return "";
+  }
+
+  static bool assert_typematch(k_value v, KName typeName) {
+    switch (typeName) {
+      case KName::Types_Any:
+        return true;
+
+      case KName::Types_Boolean:
+        return std::holds_alternative<bool>(v);
+
+      case KName::Types_Float:
+        return std::holds_alternative<double>(v);
+
+      case KName::Types_Hash:
+        return std::holds_alternative<k_hash>(v);
+
+      case KName::Types_Integer:
+        return std::holds_alternative<k_int>(v);
+
+      case KName::Types_Lambda:
+        return std::holds_alternative<k_lambda>(v);
+
+      case KName::Types_List:
+        return std::holds_alternative<k_list>(v);
+
+      case KName::Types_None:
+        return std::holds_alternative<k_null>(v);
+
+      case KName::Types_Object:
+        return std::holds_alternative<k_object>(v);
+
+      case KName::Types_String:
+        return std::holds_alternative<k_string>(v);
+
+      default:
+        break;
+    }
+
+    return false;
+  }
+
   static k_string get_value_type_string(k_value v) {
     if (std::holds_alternative<k_int>(v)) {
       return TypeNames.Integer;
@@ -132,7 +210,7 @@ struct Serializer {
       sv << "[";
     }
 
-    std::string indentString(indent + 2, ' ');
+    k_string indentString(indent + 2, ' ');
     bool first = true;
 
     for (const auto& item : list->elements) {
@@ -158,7 +236,7 @@ struct Serializer {
     }
 
     if (!isNested) {
-      sv << std::endl << std::string(indent, ' ') << "]";
+      sv << std::endl << k_string(indent, ' ') << "]";
     } else {
       sv << "]";
     }
@@ -168,7 +246,7 @@ struct Serializer {
   static k_string pretty_serialize_list(const k_list& list, int indent = 0) {
     std::ostringstream sv;
     sv << "[" << std::endl;
-    std::string indentString(indent + 2, ' ');
+    k_string indentString(indent + 2, ' ');
 
     for (auto it = list->elements.begin(); it != list->elements.end(); ++it) {
       if (it != list->elements.begin()) {
@@ -188,14 +266,14 @@ struct Serializer {
       }
     }
 
-    sv << std::endl << std::string(indent, ' ') << "]";
+    sv << std::endl << k_string(indent, ' ') << "]";
     return sv.str();
   }
 
   static k_string pretty_serialize_hash(const k_hash& hash, int indent = 0) {
     std::ostringstream sv;
     sv << "{" << std::endl;
-    std::string indentString(indent + 2, ' ');
+    k_string indentString(indent + 2, ' ');
 
     bool first = true;
     auto& keys = hash->keys;
@@ -219,7 +297,7 @@ struct Serializer {
       }
     }
 
-    sv << std::endl << std::string(indent, ' ') << "}";
+    sv << std::endl << k_string(indent, ' ') << "}";
     return sv.str();
   }
 

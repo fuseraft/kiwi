@@ -102,7 +102,57 @@ class Parser {
   Token kToken = Token::createEmpty();
   k_stream kStream;
   Token getErrorToken();
-  std::unordered_map<k_string, k_string> mangledNames;
+  std::stack<std::unordered_map<k_string, k_string>> mangledNameStack;
+
+  std::unordered_map<k_string, k_string>& getNameMap() {
+    if (mangledNameStack.empty()) {
+      return pushNameStack();
+    }
+
+    return mangledNameStack.top();
+  }
+
+  bool hasName(const k_string& name) {
+    std::stack<std::unordered_map<k_string, k_string>> nameStack(
+        mangledNameStack);
+    while (!nameStack.empty()) {
+      const auto& names = nameStack.top();
+      if (names.find(name) != names.end()) {
+        return true;
+      }
+      nameStack.pop();
+    }
+
+    return false;
+  }
+
+  const k_string getName(const k_string& name) {
+    std::stack<std::unordered_map<k_string, k_string>> nameStack(
+        mangledNameStack);
+    while (!nameStack.empty()) {
+      const auto& names = nameStack.top();
+      if (names.find(name) != names.end()) {
+        return names.at(name);
+      }
+      nameStack.pop();
+    }
+
+    return {};
+  }
+
+  std::unordered_map<k_string, k_string>& pushNameStack() {
+    std::unordered_map<k_string, k_string> emptyMap;
+    mangledNameStack.push(emptyMap);
+    return mangledNameStack.top();
+  }
+
+  void popNameStack() {
+    if (mangledNameStack.empty()) {
+      return;
+    }
+
+    mangledNameStack.pop();
+  }
 };
 
 KTokenType Parser::tokenType() {
@@ -489,15 +539,20 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
     throw SyntaxError(getErrorToken(), "Expected identifier after 'fn'.");
   }
 
-  std::string functionName = kToken.getText();
+  k_string functionName = kToken.getText();
   next();
 
   k_string mangler = "_" + RNG::getInstance().random8() + "_";
 
   // Parse parameters
-  std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> parameters;
+  std::vector<std::pair<k_string, std::unique_ptr<ASTNode>>> parameters;
+  std::unordered_map<k_string, KName> typeHints;
+  KName returnTypeHint = KName::Types_Any;
+
   if (tokenType() == KTokenType::OPEN_PAREN) {
     next();  // Consume '('
+
+    auto& mangledNames = getNameMap();
 
     while (tokenType() != KTokenType::CLOSE_PAREN) {
       if (tokenType() != KTokenType::IDENTIFIER) {
@@ -505,10 +560,28 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
       }
 
       auto paramName = kToken.getText();
+
+      if (mangledNames.find(paramName) != mangledNames.end()) {
+        throw SyntaxError(getErrorToken(), "The parameter name '" + paramName +
+                                               "' is already used.");
+      }
+
       auto mangledName = mangler + paramName;
       mangledNames[paramName] = mangledName;
       std::unique_ptr<ASTNode> defaultValue = nullptr;
       next();
+
+      if (match(KTokenType::COLON)) {
+        if (tokenType() != KTokenType::TYPENAME) {
+          throw SyntaxError(getErrorToken(),
+                            "Expected a type name in parameter type hint.");
+        }
+
+        auto typeName = tokenName();
+        next();
+
+        typeHints[mangledName] = typeName;
+      }
 
       // Check for default value
       if (tokenType() == KTokenType::OPERATOR &&
@@ -528,6 +601,18 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
     }
 
     next();  // Consume ')'
+
+    if (match(KTokenType::COLON)) {
+      if (tokenType() != KTokenType::TYPENAME) {
+        throw SyntaxError(getErrorToken(),
+                          "Expected a type name in return type hint.");
+      }
+
+      auto typeName = tokenName();
+      next();
+
+      returnTypeHint = typeName;
+    }
   }
 
   // Parse the function body
@@ -541,18 +626,21 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
 
   next();  // Consume 'end'
 
-  mangledNames.clear();
+  popNameStack();
 
   auto functionDeclaration = std::make_unique<FunctionDeclarationNode>();
   functionDeclaration->name = functionName;
   functionDeclaration->parameters = std::move(parameters);
   functionDeclaration->body = std::move(body);
+  functionDeclaration->typeHints = typeHints;
+  functionDeclaration->returnTypeHint = returnTypeHint;
   return functionDeclaration;
 }
 
 std::unique_ptr<ASTNode> Parser::parseForLoop() {
   matchSubType(KName::KW_For);  // Consume 'for'
 
+  auto& mangledNames = getNameMap();
   k_string mangler = "_" + RNG::getInstance().random8() + "_";
   std::unordered_set<k_string> subMangled;
 
@@ -1038,8 +1126,14 @@ std::unique_ptr<ASTNode> Parser::parseLambdaCall(
 std::unique_ptr<ASTNode> Parser::parseLambda() {
   match(KTokenType::LAMBDA);  // Consume 'with'
 
+  k_string mangler = "_" + RNG::getInstance().random8() + "_";
+  std::unordered_map<k_string, k_string> localNames;
+  std::unordered_map<k_string, KName> typeHints;
+  KName returnTypeHint = KName::Types_Any;
+  auto& mangledNames = pushNameStack();
+
   // Parse parameters
-  std::vector<std::pair<std::string, std::unique_ptr<ASTNode>>> parameters;
+  std::vector<std::pair<k_string, std::unique_ptr<ASTNode>>> parameters;
   if (tokenType() == KTokenType::OPEN_PAREN) {
     next();  // Consume '('
 
@@ -1048,9 +1142,30 @@ std::unique_ptr<ASTNode> Parser::parseLambda() {
         throw SyntaxError(getErrorToken(), "Expected parameter name.");
       }
 
-      std::string paramName = kToken.getText();
+      auto paramName = kToken.getText();
+
+      if (mangledNames.find(paramName) != mangledNames.end()) {
+        throw SyntaxError(getErrorToken(), "The parameter name '" + paramName +
+                                               "' is already used.");
+      }
+
+      auto mangledName = mangler + paramName;
+      mangledNames[paramName] = mangledName;
       std::unique_ptr<ASTNode> defaultValue = nullptr;
       next();
+
+      // Check for type hint.
+      if (match(KTokenType::COLON)) {
+        if (tokenType() != KTokenType::TYPENAME) {
+          throw SyntaxError(getErrorToken(),
+                            "Expected a type name in parameter type hint.");
+        }
+
+        auto typeName = tokenName();
+        next();
+
+        typeHints[mangledName] = typeName;
+      }
 
       // Check for default value
       if (tokenType() == KTokenType::OPERATOR &&
@@ -1059,7 +1174,7 @@ std::unique_ptr<ASTNode> Parser::parseLambda() {
         defaultValue = parseExpression();
       }
 
-      parameters.emplace_back(paramName, std::move(defaultValue));
+      parameters.emplace_back(mangledName, std::move(defaultValue));
 
       if (tokenType() == KTokenType::COMMA) {
         next();
@@ -1070,6 +1185,18 @@ std::unique_ptr<ASTNode> Parser::parseLambda() {
     }
 
     next();  // Consume ')'
+
+    if (match(KTokenType::COLON)) {
+      if (tokenType() != KTokenType::TYPENAME) {
+        throw SyntaxError(getErrorToken(),
+                          "Expected a type name in return type hint.");
+      }
+
+      auto typeName = tokenName();
+      next();
+
+      returnTypeHint = typeName;
+    }
   }
 
   if (!matchSubType(KName::KW_Do)) {
@@ -1087,9 +1214,13 @@ std::unique_ptr<ASTNode> Parser::parseLambda() {
 
   next();  // Consume 'end'
 
+  popNameStack();
+
   auto lambda = std::make_unique<LambdaNode>();
   lambda->parameters = std::move(parameters);
   lambda->body = std::move(body);
+  lambda->typeHints = typeHints;
+  lambda->returnTypeHint = returnTypeHint;
 
   return lambda;
 }
@@ -1391,7 +1522,6 @@ std::unique_ptr<ASTNode> Parser::parsePackAssignment(
   a, b =< get_zero_and_one()     # a = 0, b = 1
   */
   auto assignment = std::make_unique<PackAssignmentNode>();
-
   assignment->left.push_back(std::move(baseNode));
 
   while (kStream->canRead() && tokenType() == KTokenType::COMMA) {
@@ -1402,8 +1532,8 @@ std::unique_ptr<ASTNode> Parser::parsePackAssignment(
     }
 
     auto identifierName = kToken.getText();
-    if (mangledNames.find(identifierName) != mangledNames.end()) {
-      identifierName = mangledNames[identifierName];
+    if (hasName(identifierName)) {
+      identifierName = getName(identifierName);
     }
     next();
 
@@ -1516,8 +1646,8 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier(bool packed) {
   auto type = tokenName();
   auto identifierName = (isInstance ? "@" : "") + kToken.getText();
 
-  if (mangledNames.find(identifierName) != mangledNames.end()) {
-    identifierName = mangledNames[identifierName];
+  if (hasName(identifierName)) {
+    identifierName = getName(identifierName);
   }
 
   next();

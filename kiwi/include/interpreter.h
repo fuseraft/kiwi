@@ -171,7 +171,7 @@ class KInterpreter {
   std::unique_ptr<KContext> ctx;
   TaskManager taskmgr;
   std::stack<std::shared_ptr<CallStackFrame>> callStack;
-  std::stack<std::string> packageStack;
+  std::stack<k_string> packageStack;
   std::stack<k_string> classStack;
   const int SAFEMODE_MAX_ITERATIONS = 1000000;
 
@@ -226,7 +226,7 @@ class KInterpreter {
   void importPackage(const k_value& packageName, const Token& token);
   void importExternal(const k_string& packageName, const Token& token);
 
-  KCallableType getCallable(const Token& token, const std::string& name) const;
+  KCallableType getCallable(const Token& token, const k_string& name) const;
   std::vector<k_value> getMethodCallArguments(
       const std::vector<std::unique_ptr<ASTNode>>& args);
   k_value callBuiltinMethod(const FunctionCallNode* node);
@@ -241,10 +241,10 @@ class KInterpreter {
                      const std::vector<std::unique_ptr<ASTNode>>& arguments);
   k_value callFunction(const std::unique_ptr<KFunction>& function,
                        const std::vector<std::unique_ptr<ASTNode>>& arguments,
-                       const Token& token, const std::string& functionName);
+                       const Token& token, const k_string& functionName);
 
   std::unique_ptr<KFunction> createFunction(const FunctionDeclarationNode* node,
-                                            const std::string& name);
+                                            const k_string& name);
 
   k_value executeClassMethod(
       std::unordered_map<k_string, std::unique_ptr<KFunction>>& methods,
@@ -1856,8 +1856,8 @@ k_value KInterpreter::visit(const LambdaCallNode* node) {
 }
 
 k_value KInterpreter::visit(const LambdaNode* node) {
-  std::vector<std::pair<std::string, k_value>> parameters;
-  std::unordered_set<std::string> defaultParameters;
+  std::vector<std::pair<k_string, k_value>> parameters;
+  std::unordered_set<k_string> defaultParameters;
   auto tmpId = getTemporaryId();
 
   parameters.reserve(node->parameters.size());
@@ -1869,13 +1869,16 @@ k_value KInterpreter::visit(const LambdaNode* node) {
       defaultParameters.emplace(paramName);
     }
 
-    std::pair<std::string, k_value> param(paramName, paramValue);
+    std::pair<k_string, k_value> param(paramName, paramValue);
     parameters.emplace_back(param);
   }
 
   auto lambda = std::make_unique<KLambda>(node->clone());
   lambda->parameters = parameters;
   lambda->defaultParameters = defaultParameters;
+  lambda->typeHints = node->typeHints;
+  lambda->returnTypeHint = node->returnTypeHint;
+
   ctx->addLambda(tmpId, std::move(lambda));
   ctx->addMappedLambda(tmpId, tmpId);
 
@@ -1933,17 +1936,35 @@ k_value KInterpreter::visit(const FunctionDeclarationNode* node) {
 }
 
 std::unique_ptr<KFunction> KInterpreter::createFunction(
-    const FunctionDeclarationNode* node, const std::string& name) {
-  std::vector<std::pair<std::string, k_value>> parameters;
-  std::unordered_set<std::string> defaultParameters;
+    const FunctionDeclarationNode* node, const k_string& name) {
+  std::vector<std::pair<k_string, k_value>> parameters;
+  std::unordered_set<k_string> defaultParameters;
+  auto typeHints = node->typeHints;
 
   parameters.reserve(node->parameters.size());
+  auto paramCount = 0;
 
   for (const auto& pair : node->parameters) {
-    auto paramName = pair.first;
     k_value paramValue = {};
+    auto paramName = pair.first;
+    ++paramCount;
+
     if (pair.second) {
       paramValue = interpret(pair.second.get());
+
+      if (typeHints.find(paramName) != typeHints.end()) {
+        auto expectedType = typeHints.at(paramName);
+        if (!Serializer::assert_typematch(paramValue, expectedType)) {
+          throw TypeError(node->token,
+                          "Expected type `" +
+                              Serializer::get_typename_string(expectedType) +
+                              "` for parameter " + std::to_string(paramCount) +
+                              " of `" + name + "` but received `" +
+                              Serializer::get_value_type_string(paramValue) +
+                              "`.");
+        }
+      }
+
       defaultParameters.emplace(paramName);
     }
     parameters.emplace_back(paramName, paramValue);
@@ -1955,6 +1976,8 @@ std::unique_ptr<KFunction> KInterpreter::createFunction(
   function->defaultParameters = defaultParameters;
   function->isPrivate = node->isPrivate;
   function->isStatic = node->isStatic;
+  function->typeHints = node->typeHints;
+  function->returnTypeHint = node->returnTypeHint;
 
   return function;
 }
@@ -1997,6 +2020,9 @@ k_value KInterpreter::executeInstanceMethodFunction(
   auto functionFrame = createFrame();
   k_value result = {};
 
+  const auto& typeHints = func->typeHints;
+  const auto& returnTypeHint = func->returnTypeHint;
+
   for (size_t i = 0; i < func->parameters.size(); ++i) {
     const auto& param = func->parameters[i];
     k_value argValue = {};
@@ -2007,6 +2033,18 @@ k_value KInterpreter::executeInstanceMethodFunction(
       argValue = param.second;
     } else {
       throw ParameterCountMismatchError(node->token, node->functionName);
+    }
+
+    if (typeHints.find(param.first) != typeHints.end()) {
+      auto expectedType = typeHints.at(param.first);
+      if (!Serializer::assert_typematch(argValue, expectedType)) {
+        throw TypeError(node->token,
+                        "Expected type `" +
+                            Serializer::get_typename_string(expectedType) +
+                            "` for parameter " + std::to_string(1 + i) +
+                            " of `" + node->functionName + "` but received `" +
+                            Serializer::get_value_type_string(argValue) + "`.");
+      }
     }
 
     if (std::holds_alternative<k_lambda>(argValue)) {
@@ -2023,8 +2061,17 @@ k_value KInterpreter::executeInstanceMethodFunction(
   for (const auto& stmt : decl) {
     result = interpret(stmt.get());
     if (functionFrame->isFlagSet(FrameFlags::Return)) {
-      return functionFrame->returnValue;
+      result = functionFrame->returnValue;
+      break;
     }
+  }
+
+  if (!Serializer::assert_typematch(result, returnTypeHint)) {
+    throw TypeError(
+        node->token,
+        "Expected type `" + Serializer::get_typename_string(returnTypeHint) +
+            "` for return type of `" + node->functionName + "` but received `" +
+            Serializer::get_value_type_string(result) + ".");
   }
 
   return result;
@@ -2046,6 +2093,8 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
       const auto& func = ctx->getFunctions().at(node->functionName);
       auto defaultParameters = func->defaultParameters;
       auto functionFrame = createFrame();
+      const auto& typeHints = func->typeHints;
+      const auto& returnTypeHint = func->returnTypeHint;
 
       for (size_t i = 0; i < func->parameters.size(); ++i) {
         const auto& param = func->parameters[i];
@@ -2058,6 +2107,19 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
           argValue = param.second;
         } else {
           throw ParameterCountMismatchError(node->token, node->functionName);
+        }
+
+        if (typeHints.find(param.first) != typeHints.end()) {
+          auto expectedType = typeHints.at(param.first);
+          if (!Serializer::assert_typematch(argValue, expectedType)) {
+            throw TypeError(
+                node->token,
+                "Expected type `" +
+                    Serializer::get_typename_string(expectedType) +
+                    "` for parameter " + std::to_string(1 + i) + " of `" +
+                    node->functionName + "` but received `" +
+                    Serializer::get_value_type_string(argValue) + "`.");
+          }
         }
 
         if (std::holds_alternative<k_lambda>(argValue)) {
@@ -2077,6 +2139,15 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
           result = functionFrame->returnValue;
           break;
         }
+      }
+
+      if (!Serializer::assert_typematch(result, returnTypeHint)) {
+        throw TypeError(node->token,
+                        "Expected type `" +
+                            Serializer::get_typename_string(returnTypeHint) +
+                            "` for return type of `" + node->functionName +
+                            "` but received `" +
+                            Serializer::get_value_type_string(result) + "`.");
       }
     } else if (callableType == KCallableType::Lambda) {
       result = callLambda(node->token, node->functionName, node->arguments);
@@ -2106,6 +2177,8 @@ k_value KInterpreter::callLambda(
 
   const auto& func = ctx->getLambdas().at(targetLambda);
   auto defaultParameters = func->defaultParameters;
+  const auto& typeHints = func->typeHints;
+  const auto& returnTypeHint = func->returnTypeHint;
 
   for (size_t i = 0; i < func->parameters.size(); ++i) {
     const auto& param = func->parameters[i];
@@ -2117,6 +2190,18 @@ k_value KInterpreter::callLambda(
       argValue = param.second;
     } else {
       throw ParameterCountMismatchError(token, targetLambda);
+    }
+
+    if (typeHints.find(param.first) != typeHints.end()) {
+      auto expectedType = typeHints.at(param.first);
+      if (!Serializer::assert_typematch(argValue, expectedType)) {
+        throw TypeError(
+            token, "Expected type `" +
+                       Serializer::get_typename_string(expectedType) +
+                       "` for parameter " + std::to_string(1 + i) + " of `" +
+                       lambdaName + "` but received `" +
+                       Serializer::get_value_type_string(argValue) + "`.");
+      }
     }
 
     if (std::holds_alternative<k_lambda>(argValue)) {
@@ -2139,11 +2224,19 @@ k_value KInterpreter::callLambda(
     }
   }
 
+  if (!Serializer::assert_typematch(result, returnTypeHint)) {
+    throw TypeError(
+        token, "Expected type `" +
+                   Serializer::get_typename_string(returnTypeHint) +
+                   "` for return type of `" + lambdaName + "` but received `" +
+                   Serializer::get_value_type_string(result) + "`.");
+  }
+
   return result;
 }
 
 KCallableType KInterpreter::getCallable(const Token& token,
-                                        const std::string& name) const {
+                                        const k_string& name) const {
   if (ctx->hasFunction(name)) {
     return KCallableType::Function;
   } else if (ctx->hasLambda(name)) {
@@ -2186,7 +2279,7 @@ KCallableType KInterpreter::getCallable(const Token& token,
 k_value KInterpreter::callFunction(
     const std::unique_ptr<KFunction>& function,
     const std::vector<std::unique_ptr<ASTNode>>& arguments, const Token& token,
-    const std::string& functionName) {
+    const k_string& functionName) {
   auto defaultParameters = function->defaultParameters;
   auto functionFrame = createFrame();
 
