@@ -20,7 +20,7 @@
 
 //TaskManager task;
 
-std::unordered_map<std::string, std::string> kiwiArgs;
+std::unordered_map<k_string, k_string> kiwiArgs;
 bool SAFEMODE = false;
 const Token cliToken = Token::createExternal();
 
@@ -29,20 +29,20 @@ class KiwiCLI {
   static int run(int argc, char** argv);
 
  private:
-  static bool createNewFile(const std::string& path);
-  static bool createMinified(Host& host, const std::string& path);
-  static bool processOption(std::string& opt, Host& host);
-  static bool parse(Host& host, const std::string& content);
-  static bool tokenize(Host& host, const std::string& path);
-  static bool printAST(Host& host, const std::string& path);
+  static bool createNewFile(const k_string& path);
+  static bool createMinified(Host& host, const k_string& path);
+  static bool processOption(k_string& opt, Host& host);
+  static bool parse(Host& host, const k_string& content);
+  static bool tokenize(Host& host, const k_string& path);
+  static bool printAST(Host& host, const k_string& path);
 
   static int printVersion();
   static int printHelp();
-  static int run(std::vector<std::string>& v);
+  static int run(std::vector<k_string>& v);
 };
 
 int KiwiCLI::run(int argc, char** argv) {
-  std::vector<std::string> args;
+  std::vector<k_string> args;
 
   for (int i = 0; i < argc; ++i) {
     args.emplace_back(argv[i]);
@@ -51,7 +51,7 @@ int KiwiCLI::run(int argc, char** argv) {
   return KiwiCLI::run(args);
 }
 
-int KiwiCLI::run(std::vector<std::string>& v) {
+int KiwiCLI::run(std::vector<k_string>& v) {
   RNG::getInstance();
 
   Engine engine;
@@ -107,7 +107,7 @@ int KiwiCLI::run(std::vector<std::string>& v) {
         help = !KiwiCLI::processOption(v.at(i), host);
       } else {
         auto extless = host.hasScript()
-                           ? std::string("")
+                           ? k_string("")
                            : File::tryGetExtensionless(cliToken, v.at(i));
         if (!extless.empty()) {
           host.registerScript(extless);
@@ -127,11 +127,11 @@ int KiwiCLI::run(std::vector<std::string>& v) {
   }
 }
 
-bool KiwiCLI::parse(Host& host, const std::string& content) {
+bool KiwiCLI::parse(Host& host, const k_string& content) {
   return host.parse(content);
 }
 
-bool KiwiCLI::createMinified(Host& host, const std::string& path) {
+bool KiwiCLI::createMinified(Host& host, const k_string& path) {
   auto filePath = path;
 
   if (File::getFileExtension(cliToken, filePath).empty()) {
@@ -160,7 +160,7 @@ bool KiwiCLI::createMinified(Host& host, const std::string& path) {
   return false;
 }
 
-bool KiwiCLI::createNewFile(const std::string& path) {
+bool KiwiCLI::createNewFile(const k_string& path) {
   auto filePath = path;
 
   if (File::getFileExtension(cliToken, path).empty()) {
@@ -181,7 +181,7 @@ bool KiwiCLI::createNewFile(const std::string& path) {
   return File::createFile(cliToken, filePath);
 }
 
-bool KiwiCLI::printAST(Host& host, const std::string& path) {
+bool KiwiCLI::printAST(Host& host, const k_string& path) {
   if (!File::fileExists(cliToken, path)) {
     std::cout << "The input file does not exists." << std::endl;
     return false;
@@ -192,7 +192,7 @@ bool KiwiCLI::printAST(Host& host, const std::string& path) {
   return true;
 }
 
-bool KiwiCLI::tokenize(Host& host, const std::string& path) {
+bool KiwiCLI::tokenize(Host& host, const k_string& path) {
   if (!File::fileExists(cliToken, path)) {
     std::cout << "The input file does not exists." << std::endl;
     return false;
@@ -203,9 +203,9 @@ bool KiwiCLI::tokenize(Host& host, const std::string& path) {
   return true;
 }
 
-bool KiwiCLI::processOption(std::string& opt, Host& host) {
+bool KiwiCLI::processOption(k_string& opt, Host& host) {
   std::regex xargPattern("-(.*?)=");
-  std::string name, value;
+  k_string name, value;
   std::smatch match;
 
   if (std::regex_search(opt, match, xargPattern)) {
@@ -213,7 +213,7 @@ bool KiwiCLI::processOption(std::string& opt, Host& host) {
   }
 
   size_t pos = opt.find('=');
-  if (pos != std::string::npos) {
+  if (pos != k_string::npos) {
     value = opt.substr(pos + 1);
   }
 
@@ -232,8 +232,8 @@ int KiwiCLI::printVersion() {
 
 int KiwiCLI::printHelp() {
   struct CommandInfo {
-    std::string command;
-    std::string description;
+    k_string command;
+    k_string description;
   };
 
   std::vector<CommandInfo> commands = {

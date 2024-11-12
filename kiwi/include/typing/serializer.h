@@ -171,7 +171,7 @@ struct Serializer {
       sv << "[";
     }
 
-    std::string indentString(indent + 2, ' ');
+    k_string indentString(indent + 2, ' ');
     bool first = true;
 
     for (const auto& item : list->elements) {
@@ -197,7 +197,7 @@ struct Serializer {
     }
 
     if (!isNested) {
-      sv << std::endl << std::string(indent, ' ') << "]";
+      sv << std::endl << k_string(indent, ' ') << "]";
     } else {
       sv << "]";
     }
@@ -207,7 +207,7 @@ struct Serializer {
   static k_string pretty_serialize_list(const k_list& list, int indent = 0) {
     std::ostringstream sv;
     sv << "[" << std::endl;
-    std::string indentString(indent + 2, ' ');
+    k_string indentString(indent + 2, ' ');
 
     for (auto it = list->elements.begin(); it != list->elements.end(); ++it) {
       if (it != list->elements.begin()) {
@@ -227,14 +227,14 @@ struct Serializer {
       }
     }
 
-    sv << std::endl << std::string(indent, ' ') << "]";
+    sv << std::endl << k_string(indent, ' ') << "]";
     return sv.str();
   }
 
   static k_string pretty_serialize_hash(const k_hash& hash, int indent = 0) {
     std::ostringstream sv;
     sv << "{" << std::endl;
-    std::string indentString(indent + 2, ' ');
+    k_string indentString(indent + 2, ' ');
 
     bool first = true;
     auto& keys = hash->keys;
@@ -258,7 +258,7 @@ struct Serializer {
       }
     }
 
-    sv << std::endl << std::string(indent, ' ') << "}";
+    sv << std::endl << k_string(indent, ' ') << "}";
     return sv.str();
   }
 

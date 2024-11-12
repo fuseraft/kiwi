@@ -252,7 +252,7 @@ class String {
     if (limit < 0) {
       result.erase(
           std::remove_if(result.begin(), result.end(),
-                         [](const std::string& s) { return s.empty(); }),
+                         [](const k_string& s) { return s.empty(); }),
           result.end());
     }
 

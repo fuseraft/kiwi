@@ -6,16 +6,16 @@
 
 struct Glob;
 
-Glob parseGlob(std::string input);
+Glob parseGlob(k_string input);
 
 /// @brief A glob.
 struct Glob {
   /// @brief The path to search.
-  std::string path;
+  k_string path;
   /// @brief The pattern string.
-  std::string pattern;
+  k_string pattern;
   /// @brief The regex pattern string.
-  std::string regexPattern;
+  k_string regexPattern;
   /// @brief Use recursion.
   bool recursiveTraversal = false;
 };
@@ -23,8 +23,8 @@ struct Glob {
 /// @brief Create a regex pattern from a pattern string.
 /// @param pattern The pattern string.
 /// @return String containing regex pattern.
-std::string createRegexPattern(const std::string& pattern) {
-  std::string regexPattern;
+k_string createRegexPattern(const k_string& pattern) {
+  k_string regexPattern;
   // Escape dots for regex
   for (char c : pattern) {
     if (c == '.') {
@@ -43,7 +43,7 @@ std::string createRegexPattern(const std::string& pattern) {
   return regexPattern;
 }
 
-Glob parseGlob(std::string input) {
+Glob parseGlob(k_string input) {
   Glob glob;
   char sep = '/';
 
@@ -56,7 +56,7 @@ Glob parseGlob(std::string input) {
 
   // Check if the pattern includes the recursive "**"
   size_t doubleStarPos = input.find("**");
-  if (doubleStarPos != std::string::npos) {
+  if (doubleStarPos != k_string::npos) {
     glob.recursiveTraversal = true;
     if (doubleStarPos > 0 && input[doubleStarPos - 1] == sep) {
       // Exclude the '/' before '**'
@@ -78,7 +78,7 @@ Glob parseGlob(std::string input) {
   } else {
     // Handle non-recursive patterns
     size_t lastSlashPos = input.rfind(sep);
-    if (lastSlashPos != std::string::npos) {
+    if (lastSlashPos != k_string::npos) {
       glob.path = input.substr(0, lastSlashPos);
       if (lastSlashPos + 1 < input.size()) {
         glob.pattern = input.substr(lastSlashPos + 1);
