@@ -842,6 +842,8 @@ class FunctionDeclarationNode : public ASTNode {
     node->body = std::move(clonedBody);
     node->isStatic = isStatic;
     node->isPrivate = isPrivate;
+    node->typeHints = typeHints;
+    node->returnTypeHint = returnTypeHint;
     return node;
   }
 };
@@ -850,17 +852,31 @@ class LambdaNode : public ASTNode {
  public:
   std::vector<std::pair<k_string, std::unique_ptr<ASTNode>>> parameters;
   std::vector<std::unique_ptr<ASTNode>> body;
+  std::unordered_map<k_string, KName> typeHints;
+  KName returnTypeHint = KName::Types_Any;
 
   LambdaNode() : ASTNode(ASTNodeType::LAMBDA) {}
 
   void print(int depth) const override {
     print_depth(depth);
     std::cout << "Lambda: " << std::endl;
+    
+    print_depth(1 + depth);
+    std::cout << "Return Type: " << Serializer::get_typename_string(returnTypeHint) << std::endl;
+
     print_depth(depth);
     std::cout << "Parameters: " << std::endl;
     for (const auto& param : parameters) {
       print_depth(1 + depth);
       std::cout << param.first;
+
+      if (typeHints.find(param.first) != typeHints.end()) {
+        std::cout << std::endl;
+        print_depth(1 + depth);
+        auto typeHint = typeHints.at(param.first);
+        std::cout << "Parameter Type: " << Serializer::get_typename_string(typeHint);
+      }
+
       if (param.second) {
         print_depth(1 + depth);
         std::cout << "Default: ";
@@ -896,6 +912,8 @@ class LambdaNode : public ASTNode {
     auto node = std::make_unique<LambdaNode>();
     node->parameters = std::move(clonedParameters);
     node->body = std::move(clonedBody);
+    node->typeHints = typeHints;
+    node->returnTypeHint = returnTypeHint;
     return node;
   }
 };

@@ -24,9 +24,9 @@ fn is_even(n: Integer): Boolean
 end
 #/
 
-fn is_even(n: Integer): Boolean
+fn debug_is_even(n: Integer): Boolean
   return n % 2 == 0
 end
 
-println is_even(5) # false
-println is_even(4) # true
+println debug_is_even(5) # false
+println debug_is_even(4) # true

@@ -171,7 +171,7 @@ class KInterpreter {
   std::unique_ptr<KContext> ctx;
   TaskManager taskmgr;
   std::stack<std::shared_ptr<CallStackFrame>> callStack;
-  std::stack<std::string> packageStack;
+  std::stack<k_string> packageStack;
   std::stack<k_string> classStack;
   const int SAFEMODE_MAX_ITERATIONS = 1000000;
 
@@ -226,7 +226,7 @@ class KInterpreter {
   void importPackage(const k_value& packageName, const Token& token);
   void importExternal(const k_string& packageName, const Token& token);
 
-  KCallableType getCallable(const Token& token, const std::string& name) const;
+  KCallableType getCallable(const Token& token, const k_string& name) const;
   std::vector<k_value> getMethodCallArguments(
       const std::vector<std::unique_ptr<ASTNode>>& args);
   k_value callBuiltinMethod(const FunctionCallNode* node);
@@ -241,10 +241,10 @@ class KInterpreter {
                      const std::vector<std::unique_ptr<ASTNode>>& arguments);
   k_value callFunction(const std::unique_ptr<KFunction>& function,
                        const std::vector<std::unique_ptr<ASTNode>>& arguments,
-                       const Token& token, const std::string& functionName);
+                       const Token& token, const k_string& functionName);
 
   std::unique_ptr<KFunction> createFunction(const FunctionDeclarationNode* node,
-                                            const std::string& name);
+                                            const k_string& name);
 
   k_value executeClassMethod(
       std::unordered_map<k_string, std::unique_ptr<KFunction>>& methods,
@@ -1856,8 +1856,8 @@ k_value KInterpreter::visit(const LambdaCallNode* node) {
 }
 
 k_value KInterpreter::visit(const LambdaNode* node) {
-  std::vector<std::pair<std::string, k_value>> parameters;
-  std::unordered_set<std::string> defaultParameters;
+  std::vector<std::pair<k_string, k_value>> parameters;
+  std::unordered_set<k_string> defaultParameters;
   auto tmpId = getTemporaryId();
 
   parameters.reserve(node->parameters.size());
@@ -1869,7 +1869,7 @@ k_value KInterpreter::visit(const LambdaNode* node) {
       defaultParameters.emplace(paramName);
     }
 
-    std::pair<std::string, k_value> param(paramName, paramValue);
+    std::pair<k_string, k_value> param(paramName, paramValue);
     parameters.emplace_back(param);
   }
 
@@ -1933,9 +1933,9 @@ k_value KInterpreter::visit(const FunctionDeclarationNode* node) {
 }
 
 std::unique_ptr<KFunction> KInterpreter::createFunction(
-    const FunctionDeclarationNode* node, const std::string& name) {
-  std::vector<std::pair<std::string, k_value>> parameters;
-  std::unordered_set<std::string> defaultParameters;
+    const FunctionDeclarationNode* node, const k_string& name) {
+  std::vector<std::pair<k_string, k_value>> parameters;
+  std::unordered_set<k_string> defaultParameters;
 
   parameters.reserve(node->parameters.size());
 
@@ -2143,7 +2143,7 @@ k_value KInterpreter::callLambda(
 }
 
 KCallableType KInterpreter::getCallable(const Token& token,
-                                        const std::string& name) const {
+                                        const k_string& name) const {
   if (ctx->hasFunction(name)) {
     return KCallableType::Function;
   } else if (ctx->hasLambda(name)) {
@@ -2186,7 +2186,7 @@ KCallableType KInterpreter::getCallable(const Token& token,
 k_value KInterpreter::callFunction(
     const std::unique_ptr<KFunction>& function,
     const std::vector<std::unique_ptr<ASTNode>>& arguments, const Token& token,
-    const std::string& functionName) {
+    const k_string& functionName) {
   auto defaultParameters = function->defaultParameters;
   auto functionFrame = createFrame();
 
