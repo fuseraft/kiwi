@@ -250,10 +250,9 @@ class String {
     }
 
     if (limit < 0) {
-      result.erase(
-          std::remove_if(result.begin(), result.end(),
-                         [](const k_string& s) { return s.empty(); }),
-          result.end());
+      result.erase(std::remove_if(result.begin(), result.end(),
+                                  [](const k_string& s) { return s.empty(); }),
+                   result.end());
     }
 
     return result;
