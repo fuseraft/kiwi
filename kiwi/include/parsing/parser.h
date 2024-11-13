@@ -83,7 +83,7 @@ class Parser {
   std::unique_ptr<ASTNode> parseFunctionCallOnMember(
       std::unique_ptr<ASTNode> object, const k_string& methodName,
       const KName& type);
-  std::unique_ptr<ASTNode> parseIdentifier(bool packed);
+  std::unique_ptr<ASTNode> parseIdentifier(bool packed, bool lenient);
   std::unique_ptr<ASTNode> parseQualifiedIdentifier(const k_string& prefix);
   std::unique_ptr<ASTNode> parsePrint();
   std::unique_ptr<ASTNode> parsePrintXy();
@@ -344,7 +344,7 @@ std::unique_ptr<ASTNode> Parser::parseKeyword() {
       return parseWhileLoop();
 
     case KName::KW_This:
-      return parseIdentifier(false);
+      return parseIdentifier(false, false);
 
     case KName::KW_Repeat:
       return parseRepeatLoop();
@@ -535,7 +535,9 @@ std::unique_ptr<ASTNode> Parser::parseInterface() {
 std::unique_ptr<ASTNode> Parser::parseFunction() {
   match(KTokenType::KEYWORD);  // Consume 'fn'
 
-  if (tokenType() != KTokenType::IDENTIFIER) {
+  auto isTypeName = tokenType() == KTokenType::TYPENAME;
+
+  if (tokenType() != KTokenType::IDENTIFIER && !isTypeName) {
     throw SyntaxError(getErrorToken(), "Expected identifier after 'fn'.");
   }
 
@@ -548,6 +550,10 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
   std::vector<std::pair<k_string, std::unique_ptr<ASTNode>>> parameters;
   std::unordered_map<k_string, KName> typeHints;
   KName returnTypeHint = KName::Types_Any;
+
+  if (isTypeName && tokenType() != KTokenType::OPEN_PAREN) {
+    throw SyntaxError(getErrorToken(), "Expected '(' after the identifier `" + functionName + "`.");
+  }
 
   if (tokenType() == KTokenType::OPEN_PAREN) {
     next();  // Consume '('
@@ -649,7 +655,7 @@ std::unique_ptr<ASTNode> Parser::parseForLoop() {
     subMangled.emplace(mangler + kToken.getText());
   }
 
-  auto valueIterator = parseIdentifier(false);
+  auto valueIterator = parseIdentifier(false, false);
   std::optional<std::unique_ptr<ASTNode>> indexIterator = std::nullopt;
 
   if (match(KTokenType::COMMA)) {
@@ -657,7 +663,7 @@ std::unique_ptr<ASTNode> Parser::parseForLoop() {
       mangledNames[kToken.getText()] = mangler + kToken.getText();
       subMangled.emplace(mangler + kToken.getText());
     }
-    indexIterator = parseIdentifier(false);
+    indexIterator = parseIdentifier(false, false);
   }
 
   if (!matchSubType(KName::KW_In)) {
@@ -730,7 +736,7 @@ std::unique_ptr<ASTNode> Parser::parseRepeatLoop() {
                         "Expected identifier in repeat-loop value alias.");
     }
 
-    alias = parseIdentifier(false);
+    alias = parseIdentifier(false, false);
   }
 
   if (!matchSubType(KName::KW_Do)) {
@@ -874,11 +880,11 @@ std::unique_ptr<ASTNode> Parser::parseImport() {
 std::unique_ptr<ASTNode> Parser::parsePackage() {
   matchSubType(KName::KW_Package);
 
-  if (tokenType() != KTokenType::IDENTIFIER) {
+  if (tokenType() != KTokenType::IDENTIFIER && tokenType() != KTokenType::TYPENAME) {
     throw SyntaxError(getErrorToken(), "Expected identifier for package name.");
   }
 
-  auto packageName = parseIdentifier(false);
+  auto packageName = parseIdentifier(false, true);
 
   std::vector<std::unique_ptr<ASTNode>> body;
   while (tokenName() != KName::KW_End) {
@@ -1030,7 +1036,7 @@ std::unique_ptr<ASTNode> Parser::parseTry() {
             throw SyntaxError(getErrorToken(),
                               "Expected identifier in catch parameters.");
           }
-          auto firstParameter = parseIdentifier(false);
+          auto firstParameter = parseIdentifier(false, false);
           if (match(KTokenType::COMMA)) {
             if (!tokenType() == KTokenType::IDENTIFIER) {
               throw SyntaxError(getErrorToken(),
@@ -1038,7 +1044,7 @@ std::unique_ptr<ASTNode> Parser::parseTry() {
             }
 
             errorType = std::move(firstParameter);
-            errorMessage = std::move(parseIdentifier(false));
+            errorMessage = std::move(parseIdentifier(false, false));
           } else {
             errorMessage = std::move(firstParameter);
           }
@@ -1283,6 +1289,10 @@ std::unique_ptr<ASTNode> Parser::parsePrintXy() {
 }
 
 std::unique_ptr<ASTNode> Parser::parseLiteral() {
+  if (tokenType() == KTokenType::TYPENAME && peek().getType() == KTokenType::QUALIFIER) {
+    return parseIdentifier(false, false);
+  }
+
   auto literalNode = std::make_unique<LiteralNode>();
   literalNode->value = kToken.getValue();
   next();  // Consume literal
@@ -1601,7 +1611,9 @@ std::unique_ptr<ASTNode> Parser::parseQualifiedIdentifier(
     throw SyntaxError(getErrorToken(), "Expected a qualifier.");
   }
 
-  if (tokenType() != KTokenType::IDENTIFIER) {
+  auto isTypeName = tokenType() == KTokenType::TYPENAME;
+
+  if (tokenType() != KTokenType::IDENTIFIER && !isTypeName) {
     throw SyntaxError(getErrorToken(),
                       "Expected an identifier after qualifier.");
   }
@@ -1622,16 +1634,24 @@ std::unique_ptr<ASTNode> Parser::parseQualifiedIdentifier(
     qualifiedNode = parseIndexing(qualifiedName);
   } else if (tokenType() == KTokenType::QUALIFIER) {
     qualifiedNode = parseQualifiedIdentifier(qualifiedName);
+  } else if (isTypeName) {
+    throw SyntaxError(getErrorToken(), "Expected '(' or '::' after the identifier `" + qualifiedName + "`.");
   }
 
   return qualifiedNode;
 }
 
-std::unique_ptr<ASTNode> Parser::parseIdentifier(bool packed) {
+std::unique_ptr<ASTNode> Parser::parseIdentifier(bool packed, bool lenient) {
   const auto idToken = kToken;
   bool isInstance = matchSubType(KName::KW_This);
 
-  if (tokenType() != KTokenType::IDENTIFIER) {
+  if (tokenType() == KTokenType::TYPENAME) {
+    std::cout << "";
+  }
+
+  auto isTypeName = tokenType() == KTokenType::TYPENAME;
+
+  if (tokenType() != KTokenType::IDENTIFIER && !isTypeName) {
     if (isInstance) {
       return std::make_unique<SelfNode>();
     }
@@ -1675,6 +1695,8 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier(bool packed) {
   } else if (tokenType() == KTokenType::COMMA && !packed &&
              lookAhead({KName::Ops_Assign, KName::Ops_LessThan})) {
     node = parsePackAssignment(std::move(node));
+  } else if (isTypeName && !lenient) {
+    throw SyntaxError(getErrorToken(), "Expected '(' or '::' after the identifier `" + identifierName + "`.");
   } else {
     node = std::make_unique<IdentifierNode>(identifierName);
   }
@@ -1839,7 +1861,7 @@ std::unique_ptr<ASTNode> Parser::parsePrimary() {
   switch (tokenType()) {
     case KTokenType::IDENTIFIER:
     case KTokenType::KEYWORD:
-      node = parseIdentifier(false);
+      node = parseIdentifier(false, false);
       break;
 
     case KTokenType::LITERAL:
