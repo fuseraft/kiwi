@@ -1645,10 +1645,6 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier(bool packed, bool lenient) {
   const auto idToken = kToken;
   bool isInstance = matchSubType(KName::KW_This);
 
-  if (tokenType() == KTokenType::TYPENAME) {
-    std::cout << "";
-  }
-
   auto isTypeName = tokenType() == KTokenType::TYPENAME;
 
   if (tokenType() != KTokenType::IDENTIFIER && !isTypeName) {
