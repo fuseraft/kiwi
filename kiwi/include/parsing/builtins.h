@@ -358,7 +358,7 @@ struct {
   const k_string Sum = "sum";
   const k_string Min = "min";
   const k_string Max = "max";
-  const k_string ToH = "to_hash";
+  const k_string ToH = "to_hashmap";
 
   std::unordered_set<k_string> builtins = {
       All, Each, Map, None, Reduce, Select, Sort, Sum, Min, Max, ToH};

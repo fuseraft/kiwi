@@ -19,10 +19,10 @@ package task
   end
 
   /#
-  Summary: Returns a result or a status hash.
+  Summary: Returns a result or a status hashmap.
   Params:
     - task_identifier: An integer task identifier.
-  Returns: Result of a task, or its status in a hash.
+  Returns: Result of a task, or its status in a hashmap.
   #/
   fn result(task_identifier)
     return __task_result__(task_identifier)
@@ -38,10 +38,10 @@ package task
   end
 
   /#
-  Summary: Get a status hash for a given task.
+  Summary: Get a status hashmap for a given task.
   Params:
     - task_identifier: An integer task identifier.
-  Returns: Hash containing status.
+  Returns: Hashmap containing status.
   #/
   fn status(task_identifier)
     return __task_status__(task_identifier)

@@ -37,12 +37,12 @@ Performs an HTTP DELETE request to the specified URL.
 | :--- | :--- | :--- |
 | `String` | `_url` | The base URL. |
 | `String` | `_path` | The path to request. |
-| `Hash` | `_headers` | The headers. Defaults to `{}`. |
+| `Hashmap` | `_headers` | The headers. Defaults to `{}`. |
 
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Hash` | A response hash containing status, headers, and body. |
+| `Hashmap` | A response hashmap containing status, headers, and body. |
 
 ### `get(_url, _path, _headers)`
 
@@ -53,12 +53,12 @@ Performs an HTTP GET request to the specified URL.
 | :--- | :--- | :--- |
 | `String` | `_url` | The base URL. |
 | `String` | `_path` | The path to request. |
-| `Hash` | `_headers` | The headers. Defaults to `{}`. |
+| `Hashmap` | `_headers` | The headers. Defaults to `{}`. |
 
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Hash` | A response hash containing status, headers, and body. |
+| `Hashmap` | A response hashmap containing status, headers, and body. |
 
 ### `head(_url, _path, _headers)`
 
@@ -69,12 +69,12 @@ Performs an HTTP HEAD request to the specified URL.
 | :--- | :--- | :--- |
 | `String` | `_url` | The base URL. |
 | `String` | `_path` | The path to request. |
-| `Hash` | `_headers` | The headers. Defaults to `{}`. |
+| `Hashmap` | `_headers` | The headers. Defaults to `{}`. |
 
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Hash` | A response hash containing status, headers, and body. |
+| `Hashmap` | A response hashmap containing status, headers, and body. |
 
 ### `options(_url, _path, _headers)`
 
@@ -85,12 +85,12 @@ Performs an HTTP OPTIONS request to the specified URL.
 | :--- | :--- | :--- |
 | `String` | `_url` | The base URL. |
 | `String` | `_path` | The path to request. |
-| `Hash` | `_headers` | The headers. Defaults to `{}`. |
+| `Hashmap` | `_headers` | The headers. Defaults to `{}`. |
 
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Hash` | A response hash containing status, headers, and body. |
+| `Hashmap` | A response hashmap containing status, headers, and body. |
 
 ### `patch(_url, _path, _body, _content_type, _headers)`
 
@@ -103,12 +103,12 @@ Performs an HTTP PATCH request to the specified URL.
 | `String` | `_path` | The path to request. |
 | `String` | `_body` | The request body. |
 | `String` | `_content_type` | The content-type. Defaults to `"text/plain"`. |
-| `Hash` | `_headers` | The headers. Defaults to `{}`. |
+| `Hashmap` | `_headers` | The headers. Defaults to `{}`. |
 
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Hash` | A response hash containing status, headers, and body. |
+| `Hashmap` | A response hashmap containing status, headers, and body. |
 
 ### `post(_url, _path, _body, _content_type, _headers)`
 
@@ -121,12 +121,12 @@ Performs an HTTP POST request to the specified URL.
 | `String` | `_path` | The path to request. |
 | `String` | `_body` | The request body. |
 | `String` | `_content_type` | The content-type. Defaults to `"text/plain"`. |
-| `Hash` | `_headers` | The headers. Defaults to `{}`. |
+| `Hashmap` | `_headers` | The headers. Defaults to `{}`. |
 
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Hash` | A response hash containing status, headers, and body. |
+| `Hashmap` | A response hashmap containing status, headers, and body. |
 
 ### `put(_url, _path, _body, _content_type, _headers)`
 
@@ -139,9 +139,9 @@ Performs an HTTP PUT request to the specified URL.
 | `String` | `_path` | The path to request. |
 | `String` | `_body` | The request body. |
 | `String` | `_content_type` | The content-type. Defaults to `"text/plain"`. |
-| `Hash` | `_headers` | The headers. Defaults to `{}`. |
+| `Hashmap` | `_headers` | The headers. Defaults to `{}`. |
 
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Hash` | A response hash containing status, headers, and body. |
+| `Hashmap` | A response hashmap containing status, headers, and body. |

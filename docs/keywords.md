@@ -255,10 +255,10 @@ The `delete` keyword is used to remove elements from collections.
 
 It can also be used to delete objects.
 
-See [Hashes](hashes.md) and [Lists](lists.md).
+See [Hashmaps](hashmaps.md) and [Lists](lists.md).
 
 ### `global`
-The `global` variable is a hash used to share data between scripts.
+The `global` variable is a hashmap used to share data between scripts.
 
 ### `go`
 The `go` keyword is used in the Kiwi REPL to execute statements.

@@ -96,7 +96,7 @@ class HashKeyError : public KiwiError {
  public:
   HashKeyError(const Token& token, const std::string& key)
       : KiwiError(token, "HashKeyError",
-                  "The key `" + key + "` does not exist in the hash.") {}
+                  "The key `" + key + "` does not exist in the hashmap.") {}
 };
 
 class ParameterMissingError : public KiwiError {

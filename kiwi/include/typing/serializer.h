@@ -24,13 +24,13 @@ struct Serializer {
         return TypeNames.Float;
 
       case KName::Types_Hash:
-        return TypeNames.Hash;
+        return TypeNames.Hashmap;
 
       case KName::Types_Integer:
         return TypeNames.Integer;
 
       case KName::Types_Lambda:
-        return TypeNames.With;
+        return TypeNames.Lambda;
 
       case KName::Types_List:
         return TypeNames.List;
@@ -63,7 +63,7 @@ struct Serializer {
         return std::holds_alternative<double>(v);
 
       case KName::Types_Hash:
-        return std::holds_alternative<k_hash>(v);
+        return std::holds_alternative<k_hashmap>(v);
 
       case KName::Types_Integer:
         return std::holds_alternative<k_int>(v);
@@ -103,12 +103,12 @@ struct Serializer {
       return TypeNames.None;
     } else if (std::holds_alternative<k_list>(v)) {
       return TypeNames.List;
-    } else if (std::holds_alternative<k_hash>(v)) {
-      return TypeNames.Hash;
+    } else if (std::holds_alternative<k_hashmap>(v)) {
+      return TypeNames.Hashmap;
     } else if (std::holds_alternative<k_object>(v)) {
       return std::get<k_object>(v)->className;
     } else if (std::holds_alternative<k_lambda>(v)) {
-      return TypeNames.With;
+      return TypeNames.Lambda;
     }
 
     return "";
@@ -143,8 +143,8 @@ struct Serializer {
       }
     } else if (std::holds_alternative<k_list>(v)) {
       sv << serialize_list(std::get<k_list>(v));
-    } else if (std::holds_alternative<k_hash>(v)) {
-      sv << serialize_hash(std::get<k_hash>(v));
+    } else if (std::holds_alternative<k_hashmap>(v)) {
+      sv << serialize_hash(std::get<k_hashmap>(v));
     } else if (std::holds_alternative<k_object>(v)) {
       sv << basic_serialize_object(std::get<k_object>(v));
     } else if (std::holds_alternative<k_lambda>(v)) {
@@ -189,8 +189,8 @@ struct Serializer {
       sv << "\"" << std::get<k_string>(v) << "\"";
     } else if (std::holds_alternative<k_list>(v)) {
       sv << pretty_serialize_list(std::get<k_list>(v), indent);
-    } else if (std::holds_alternative<k_hash>(v)) {
-      sv << pretty_serialize_hash(std::get<k_hash>(v), indent);
+    } else if (std::holds_alternative<k_hashmap>(v)) {
+      sv << pretty_serialize_hash(std::get<k_hashmap>(v), indent);
     } else if (std::holds_alternative<k_object>(v)) {
       sv << basic_serialize_object(std::get<k_object>(v));
     } else if (std::holds_alternative<k_lambda>(v)) {
@@ -226,8 +226,8 @@ struct Serializer {
       if (std::holds_alternative<k_list>(item)) {
         sv << pretty_serialize_list_experimental(std::get<k_list>(item),
                                                  indent + 2, true);
-      } else if (std::holds_alternative<k_hash>(item)) {
-        sv << pretty_serialize_hash(std::get<k_hash>(item), indent + 2);
+      } else if (std::holds_alternative<k_hashmap>(item)) {
+        sv << pretty_serialize_hash(std::get<k_hashmap>(item), indent + 2);
       } else if (std::holds_alternative<k_string>(item)) {
         sv << "\"" << serialize(item) << "\"";
       } else {
@@ -257,8 +257,8 @@ struct Serializer {
 
       if (std::holds_alternative<k_list>(*it)) {
         sv << pretty_serialize_list(std::get<k_list>(*it), indent + 2);
-      } else if (std::holds_alternative<k_hash>(*it)) {
-        sv << pretty_serialize_hash(std::get<k_hash>(*it), indent + 2);
+      } else if (std::holds_alternative<k_hashmap>(*it)) {
+        sv << pretty_serialize_hash(std::get<k_hashmap>(*it), indent + 2);
       } else if (std::holds_alternative<k_string>(*it)) {
         sv << "\"" << serialize(*it) << "\"";
       } else {
@@ -270,7 +270,7 @@ struct Serializer {
     return sv.str();
   }
 
-  static k_string pretty_serialize_hash(const k_hash& hash, int indent = 0) {
+  static k_string pretty_serialize_hash(const k_hashmap& hash, int indent = 0) {
     std::ostringstream sv;
     sv << "{" << std::endl;
     k_string indentString(indent + 2, ' ');
@@ -286,8 +286,8 @@ struct Serializer {
       sv << indentString << serialize(key, true) << ": ";
 
       auto v = hash->get(key);
-      if (std::holds_alternative<k_hash>(v)) {
-        sv << pretty_serialize_hash(std::get<k_hash>(v), indent + 2);
+      if (std::holds_alternative<k_hashmap>(v)) {
+        sv << pretty_serialize_hash(std::get<k_hashmap>(v), indent + 2);
       } else if (std::holds_alternative<k_list>(v)) {
         sv << pretty_serialize_list(std::get<k_list>(v), indent + 2);
       } else if (std::holds_alternative<k_string>(v)) {
@@ -301,7 +301,7 @@ struct Serializer {
     return sv.str();
   }
 
-  static k_list get_hash_keys_list(const k_hash& hash) {
+  static k_list get_hash_keys_list(const k_hashmap& hash) {
     auto keys = std::make_shared<List>();
     auto& elements = keys->elements;
     elements.reserve(hash->keys.size());
@@ -313,7 +313,7 @@ struct Serializer {
     return keys;
   }
 
-  static k_list get_hash_values_list(const k_hash& hash) {
+  static k_list get_hash_values_list(const k_hashmap& hash) {
     auto values = std::make_shared<List>();
     auto& elements = values->elements;
     elements.reserve(hash->keys.size());
@@ -336,12 +336,12 @@ struct Serializer {
 
   static k_string basic_serialize_lambda(const k_lambda& lambda) {
     if (lambda->identifier.empty()) {
-      return "[" + TypeNames.With + "]";
+      return "[" + TypeNames.Lambda + "]";
     }
-    return "[" + TypeNames.With + "(identifier=" + lambda->identifier + ")]";
+    return "[" + TypeNames.Lambda + "(identifier=" + lambda->identifier + ")]";
   }
 
-  static k_string serialize_hash(const k_hash& hash) {
+  static k_string serialize_hash(const k_hashmap& hash) {
     std::ostringstream sv;
     sv << "{";
 
@@ -358,7 +358,7 @@ struct Serializer {
       sv << serialize(key, true) << ": ";
       auto v = hash->get(key);
 
-      if (std::holds_alternative<k_hash>(v)) {
+      if (std::holds_alternative<k_hashmap>(v)) {
         sv << serialize(v);
       } else {
         sv << serialize(v, true);

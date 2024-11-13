@@ -9,7 +9,7 @@ package web
     - _content: The content to return.
     - _content_type: The MIME type.
     - _status: The status code. Defaults to 200.
-  Returns: A hash with content, content-type, and status.
+  Returns: A hashmap with content, content-type, and status.
   #/
   fn ok(_content, _content_type, _status = 200)
     return { "content": _content, "content-type": _content_type, "status": _status }
@@ -21,7 +21,7 @@ package web
     - _content: The content to return.
     - _content_type: The MIME type.
     - _status: The status code. Defaults to 500.
-  Returns: A hash with content, content-type, and status.
+  Returns: A hashmap with content, content-type, and status.
   #/
   fn bad(_content, _content_type, _status = 500)
     return { "content": _content, "content-type": _content_type, "status": _status }
@@ -31,7 +31,7 @@ package web
   Summary: Redirects a request.
   Params:
     - _url: The URL to redirect to.
-  Returns: A hash with content, content-type, and status.
+  Returns: A hashmap with content, content-type, and status.
   #/
   fn redirect(_url, _status = 302)
     return { "redirect": _url, "status": _status }
