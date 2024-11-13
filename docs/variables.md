@@ -37,7 +37,7 @@ a, b, c =< true, {"a": false}, [1, 2, 3]
 
 Here:
 - `a` is assigned the boolean value `true`.
-- `b` is assigned a hash (dictionary) with a single key-value pair.
+- `b` is assigned a hashmap with a single key-value pair.
 - `c` is assigned a list containing three integers.
 
 This can also be used with functions that return multiple values:

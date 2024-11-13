@@ -112,32 +112,32 @@ end
 
 In Kiwi, `for`-loops are used to iterate collections.
 
-##### Iterating a Hash
+##### Iterating a Hashmap
 
-Loop on the `.keys()` builtin to iterate the keys of a hash.
+Loop on the `.keys()` builtin to iterate the keys of a hashmap.
 
 ```kiwi
-# Iterate the keys in the hash.
-for key in myHash.keys() do
-  println("${key}: ${myHash[key]}")
+# Iterate the keys in the hashmap.
+for key in myHashmap.keys() do
+  println("${key}: ${myHashmap[key]}")
 end
 
-# Iterate the keys in the hash, with an index.
-for key, index in myHash.keys() do
+# Iterate the keys in the hashmap, with an index.
+for key, index in myHashmap.keys() do
   println("Key ${index}: ${key}")
 end
 ```
 
-Loop on the `.values()` builtin to iterate the values of a hash.
+Loop on the `.values()` builtin to iterate the values of a hashmap.
 
 ```kiwi
-# Iterate the values in the hash.
-for value in myHash.values() do
+# Iterate the values in the hashmap.
+for value in myHashmap.values() do
   println(value)
 end
 
-# Iterate the values in the hash, with an index.
-for value, index in myHash.values() do
+# Iterate the values in the hashmap, with an index.
+for value, index in myHashmap.values() do
   println("Value ${index}: ${value}")
 end
 ```
@@ -170,4 +170,4 @@ for i in [1..10] do
 end
 ```
 
-To learn more about collections, see [Hashes](hashes.md), [Lists](lists.md), and [Ranges](ranges.md).
+To learn more about collections, see [Hashmaps](hashmaps.md), [Lists](lists.md), and [Ranges](ranges.md).

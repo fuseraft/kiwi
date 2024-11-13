@@ -23,6 +23,6 @@ The following table will illustrate this.
 | `Boolean` | `true` | `false` | These are the boolean values. |
 | `String` | `"hello"` | `""` | A non-empty string is considered truthy. |
 | `List` | `[1, 2, 3]` | `[]` | A non-empty list is considered truthy. |
-| `Hash` | `{"a": 1}` | `{}` | A non-empty hash is considered truthy. |
+| `Hashmap` | `{"a": 1}` | `{}` | A non-empty hashmap is considered truthy. |
 
 For more documentation on types, please see [Types](types.md).

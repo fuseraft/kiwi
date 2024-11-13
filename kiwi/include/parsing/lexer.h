@@ -551,25 +551,25 @@ class Lexer {
   Token parseTypeName(const k_string& typeName) {
     auto st = KName::Default;
 
-    if (typeName == TypeNames.Integer) {
+    if (typeName == TypeNames.Integer || typeName == TypeNames.LowInteger) {
       st = KName::Types_Integer;
-    } else if (typeName == TypeNames.Boolean) {
+    } else if (typeName == TypeNames.Boolean || typeName == TypeNames.LowBoolean) {
       st = KName::Types_Boolean;
-    } else if (typeName == TypeNames.Float) {
+    } else if (typeName == TypeNames.Float || typeName == TypeNames.LowFloat) {
       st = KName::Types_Float;
-    } else if (typeName == TypeNames.Hash) {
+    } else if (typeName == TypeNames.Hashmap || typeName == TypeNames.LowHash) {
       st = KName::Types_Hash;
-    } else if (typeName == TypeNames.With) {
+    } else if (typeName == TypeNames.Lambda || typeName == TypeNames.LowLambda) {
       st = KName::Types_Lambda;
-    } else if (typeName == TypeNames.List) {
+    } else if (typeName == TypeNames.List || typeName == TypeNames.LowList) {
       st = KName::Types_List;
-    } else if (typeName == TypeNames.Object) {
+    } else if (typeName == TypeNames.Object || typeName == TypeNames.LowObject) {
       st = KName::Types_Object;
-    } else if (typeName == TypeNames.String) {
+    } else if (typeName == TypeNames.String || typeName == TypeNames.LowString) {
       st = KName::Types_String;
-    } else if (typeName == TypeNames.None) {
+    } else if (typeName == TypeNames.None || typeName == TypeNames.LowNone) {
       st = KName::Types_None;
-    } else if (typeName == TypeNames.Any) {
+    } else if (typeName == TypeNames.Any || typeName == TypeNames.LowAny) {
       st = KName::Types_Any;
     }
 
