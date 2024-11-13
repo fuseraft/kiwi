@@ -557,7 +557,7 @@ class Lexer {
       st = KName::Types_Boolean;
     } else if (typeName == TypeNames.Float || typeName == TypeNames.LowFloat) {
       st = KName::Types_Float;
-    } else if (typeName == TypeNames.Hash || typeName == TypeNames.LowHash) {
+    } else if (typeName == TypeNames.Hashmap || typeName == TypeNames.LowHash) {
       st = KName::Types_Hash;
     } else if (typeName == TypeNames.Lambda || typeName == TypeNames.LowLambda) {
       st = KName::Types_Lambda;

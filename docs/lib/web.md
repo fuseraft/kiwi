@@ -31,7 +31,7 @@ Returns an OK response.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Hash` | Contains content, content-type, and status. |
+| `Hashmap` | Contains content, content-type, and status. |
 
 
 ### `bad(_content, _content_type, _status = 500)`
@@ -48,7 +48,7 @@ Returns a BAD response.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Hash` | Contains content, content-type, and status. |
+| `Hashmap` | Contains content, content-type, and status. |
 
 ### `redirect(_url, _status = 302)`
 
@@ -63,7 +63,7 @@ Redirect a request.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Hash` | Contains redirect and status. |
+| `Hashmap` | Contains redirect and status. |
 
 ### `get(_endpoint, _handler)`
 

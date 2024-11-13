@@ -15,28 +15,28 @@ CONN_STR =   server=%SERVER%;db=%DB_NAME%;user=%DB_USER%;pass=%DB_PASS%
 
 package conf
   /#
-  Summary: Reads settings from a `conf` file into a hash.
+  Summary: Reads settings from a `conf` file into a hashmap.
   Params:
     - _conf_path: The path to a `conf` file.
     - _delim: The delimiter for splitting key-value pairs.
-  Returns: Hash containing settings read from a `conf` file. 
+  Returns: Hashmap containing settings read from a `conf` file. 
   #/
   fn read(_conf_path, _delim = "=")
-    _conf_hash = conf::read_confhash(_conf_path, _delim)
+    _conf_hashmap = conf::read_confhashmap(_conf_path, _delim)
 
-    for _key in _conf_hash.keys() do
-      _val = _conf_hash[_key]
-      _conf_hash[_key] = conf::convert(_val)
+    for _key in _conf_hashmap.keys() do
+      _val = _conf_hashmap[_key]
+      _conf_hashmap[_key] = conf::convert(_val)
     end
 
-    return _conf_hash
+    return _conf_hashmap
   end
 
   /#
-  Summary: Reads settings from a `json` file into a hash.
+  Summary: Reads settings from a `json` file into a hashmap.
   Params:
     - _json_path: The path to a `json` file.
-  Returns: Hash containing settings read from a `json` file. 
+  Returns: Hashmap containing settings read from a `json` file. 
   #/
   fn readjson(_json_path)
     try
@@ -44,13 +44,13 @@ package conf
         return {}
       end
 
-      return __readfile__(_json_path).to_hash()
+      return __readfile__(_json_path).to_hashmap()
     catch
       return {}
     end
   end
 
-  fn read_confhash(_conf_path, _delim)
+  fn read_confhashmap(_conf_path, _delim)
     try
       if !__isfile__(_conf_path)
         return {}

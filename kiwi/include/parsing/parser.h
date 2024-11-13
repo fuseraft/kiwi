@@ -1311,14 +1311,14 @@ std::unique_ptr<ASTNode> Parser::parseHashLiteral() {
         tokenType() != KTokenType::LITERAL) {
       throw SyntaxError(
           getErrorToken(),
-          "Expected a string, literal, or identifier for hash key.");
+          "Expected a string, literal, or identifier for hashmap key.");
     }
 
     auto keyString = kToken.getText();
     auto key = parseExpression();
 
     if (!match(KTokenType::COLON)) {
-      throw SyntaxError(getErrorToken(), "Expected ':' in hash literal");
+      throw SyntaxError(getErrorToken(), "Expected ':' in hashmap literal");
     }
 
     keys.push_back(keyString);
@@ -1329,7 +1329,7 @@ std::unique_ptr<ASTNode> Parser::parseHashLiteral() {
     if (tokenType() == KTokenType::COMMA) {
       next();  // Consume ','
     } else if (tokenType() != KTokenType::CLOSE_BRACE) {
-      throw SyntaxError(getErrorToken(), "Expected '}' or ',' in hash literal");
+      throw SyntaxError(getErrorToken(), "Expected '}' or ',' in hashmap literal");
     }
   }
 

@@ -38,8 +38,8 @@ guava::register_test("truthiness", with do
   guava::assert("0".truthy())        # non-empty strings are truthy
   guava::assert(![].truthy())        # empty lists are not truthy
   guava::assert([0].truthy())        # non-empty lists are truthy
-  guava::assert(!{}.truthy())        # empty hashes are not truthy
-  guava::assert({'a': 1}.truthy())   # non-empty hashes are truthy
+  guava::assert(!{}.truthy())        # empty hashmaps are not truthy
+  guava::assert({'a': 1}.truthy())   # non-empty hashmaps are truthy
   guava::assert(!false.truthy())     # false is never truthy
   guava::assert(true.truthy())       # true is always truthy
 end)
@@ -260,38 +260,38 @@ guava::register_test("heaps", with do
   guava::assert(max_heap.extract_root() == 5)
 end)
 
-guava::register_test("hashes", with do
+guava::register_test("hashmaps", with do
   hash = {
     "key1": true, 
     "key2": 1, 
     "key3": ["a", "b", "c"]
   }
 
-  other_hash = {}
+  other_hashmap = {}
 
   for key in hash.keys() do 
-    other_hash[key] = hash[key] 
+    other_hashmap[key] = hash[key] 
   end
   
-  other_hash = {}
-  other_hash = hash.merge(other_hash)
+  other_hashmap = {}
+  other_hashmap = hash.merge(other_hashmap)
   for k in hash.keys() do
-    guava::assert(other_hash.has_key(k))
-    guava::assert(other_hash.get(k) == hash.get(k))
+    guava::assert(other_hashmap.has_key(k))
+    guava::assert(other_hashmap.get(k) == hash.get(k))
   end
 
-  other_hash.remove("key1")
-  guava::assert(other_hash.keys().sort() == ["key2", "key3"])
-  guava::assert(other_hash.values().sort() == [1, ["a", "b", "c"]])
+  other_hashmap.remove("key1")
+  guava::assert(other_hashmap.keys().sort() == ["key2", "key3"])
+  guava::assert(other_hashmap.values().sort() == [1, ["a", "b", "c"]])
 
-  other_hash.clear()
-  guava::assert(other_hash.empty())
+  other_hashmap.clear()
+  guava::assert(other_hashmap.empty())
 
-  other_hash.hello = "world"
-  guava::assert(other_hash.get("hello") == "world")
+  other_hashmap.hello = "world"
+  guava::assert(other_hashmap.get("hello") == "world")
   
-  other_hash.set("hello", "kiwi")
-  guava::assert(other_hash.hello == "kiwi")
+  other_hashmap.set("hello", "kiwi")
+  guava::assert(other_hashmap.hello == "kiwi")
 end)
 
 guava::register_test("dates", with do
@@ -431,7 +431,7 @@ guava::register_test("type checks", with do
   guava::assert(d.is_a(Float))
   guava::assert(b.is_a(Boolean))
   guava::assert(null.is_a(None))
-  guava::assert(h.is_a(Hash))
+  guava::assert(h.is_a(Hashmap))
   guava::assert(h.a.is_a(List))
 end)
 
@@ -646,9 +646,9 @@ end)
 guava::register_test("sha256", with do
   a_str = "just a test string"
 
-  guava::assert("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" == SHA256.new().hexdigest())
-  guava::assert("d7b553c6f09ac85d142415f857c5310f3bbbe7cdd787cce4b985acedd585266f" == SHA256.new(a_str).hexdigest())
-  guava::assert("8113ebf33c97daa9998762aacafe750c7cefc2b2f173c90c59663a57fe626f21" == SHA256.new(a_str*7).hexdigest())
+  guava::assert("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" == crypto::sha256_hash())
+  guava::assert("d7b553c6f09ac85d142415f857c5310f3bbbe7cdd787cce4b985acedd585266f" == crypto::sha256_hash(a_str))
+  guava::assert("8113ebf33c97daa9998762aacafe750c7cefc2b2f173c90c59663a57fe626f21" == crypto::sha256_hash(a_str*7))
   
   s = SHA256.new(a_str)
   s.update(a_str)
