@@ -30,7 +30,7 @@ struct Serializer {
         return TypeNames.Integer;
 
       case KName::Types_Lambda:
-        return TypeNames.With;
+        return TypeNames.Lambda;
 
       case KName::Types_List:
         return TypeNames.List;
@@ -108,7 +108,7 @@ struct Serializer {
     } else if (std::holds_alternative<k_object>(v)) {
       return std::get<k_object>(v)->className;
     } else if (std::holds_alternative<k_lambda>(v)) {
-      return TypeNames.With;
+      return TypeNames.Lambda;
     }
 
     return "";
@@ -336,9 +336,9 @@ struct Serializer {
 
   static k_string basic_serialize_lambda(const k_lambda& lambda) {
     if (lambda->identifier.empty()) {
-      return "[" + TypeNames.With + "]";
+      return "[" + TypeNames.Lambda + "]";
     }
-    return "[" + TypeNames.With + "(identifier=" + lambda->identifier + ")]";
+    return "[" + TypeNames.Lambda + "(identifier=" + lambda->identifier + ")]";
   }
 
   static k_string serialize_hash(const k_hash& hash) {

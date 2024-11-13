@@ -1,6 +1,6 @@
 # a script for debugging and experimentation (and fun!)
 
-fn get_request(url: String): Hash
+fn get_request(url: string): hashmap
   res = curl::get(url)
   return json::parse(res)
 end

@@ -437,47 +437,47 @@ end)
 
 guava::register_test("loops", with do
   fruits = ["kiwi", "strawberry", "pineapple", "lime", "mango", "guava"]
-  list = []
+  new_list = []
 
   # iterate list
   for fruit in fruits do
-    list.push(fruit)
+    new_list.push(fruit)
   end
 
-  guava::assert(list == ["kiwi", "strawberry", "pineapple", "lime", "mango", "guava"])
-  list.clear()
+  guava::assert(new_list == ["kiwi", "strawberry", "pineapple", "lime", "mango", "guava"])
+  new_list.clear()
 
   # iterate index
   for fruit, index in fruits do 
-    list.push(index)
+    new_list.push(index)
   end
 
-  guava::assert(list == [0, 1, 2, 3, 4, 5])
-  list.clear()
+  guava::assert(new_list == [0, 1, 2, 3, 4, 5])
+  new_list.clear()
 
   # iterate inline list
   for item in ["kiwi", "is", "fun"] do
-    list.push(item)
+    new_list.push(item)
   end
 
-  guava::assert(list == ["kiwi", "is", "fun"])
-  list.clear()
+  guava::assert(new_list == ["kiwi", "is", "fun"])
+  new_list.clear()
 
   # iterate an inline list with an index
   for item, index in ["kiwi", "is", "fun"] do
-    list.push(index)
+    new_list.push(index)
   end
 
-  guava::assert(list == [0, 1, 2])
-  list.clear()
+  guava::assert(new_list == [0, 1, 2])
+  new_list.clear()
 
   # iterate a range
   for i in [0..5] do
-    list.push(i)
+    new_list.push(i)
   end
 
-  guava::assert(list == [0, 1, 2, 3, 4, 5])
-  list.clear()
+  guava::assert(new_list == [0, 1, 2, 3, 4, 5])
+  new_list.clear()
 
   # nested while loops
   i = 0
@@ -494,15 +494,15 @@ guava::register_test("loops", with do
 
   guava::assert(test_sum == 100)
 
-  list = []
+  new_list = []
   i = 1
   while i <= 10 do
-    list.push("Item ${i}")
+    new_list.push("Item ${i}")
     i += 1
   end
 
   counter = 0
-  for item, index in list do
+  for item, index in new_list do
     counter += 1
     break when index == 4
   end
@@ -510,7 +510,7 @@ guava::register_test("loops", with do
   guava::assert(counter == 5)
 
   counter = 0
-  for item, index in list do
+  for item, index in new_list do
     counter += 1
     break when index == 5
   end
@@ -589,7 +589,7 @@ end)
 
 guava::register_test("lambdas", with do
   # setup
-  list = [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4},
+  new_list = [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4},
           {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}, {"id": 9}]
 
   # Assigned and inline lambdas
@@ -601,8 +601,8 @@ guava::register_test("lambdas", with do
   fn use_lambda(print_func, message) return print_func(message) end
   guava::assert(use_lambda(puts, "Hello, Kiwi!") == "Hello, Kiwi!")
 
-  guava::assert(list.select(with (item) do return item["id"] % 2 == 0 end) == [{"id": 0}, {"id": 2}, {"id": 4}, {"id": 6}, {"id": 8}])
-  guava::assert(list.select(odd_item_id) == [{"id": 1}, {"id": 3}, {"id": 5}, {"id": 7}, {"id": 9}])
+  guava::assert(new_list.select(with (item) do return item["id"] % 2 == 0 end) == [{"id": 0}, {"id": 2}, {"id": 4}, {"id": 6}, {"id": 8}])
+  guava::assert(new_list.select(odd_item_id) == [{"id": 1}, {"id": 3}, {"id": 5}, {"id": 7}, {"id": 9}])
 
   # List.map
   guava::assert
