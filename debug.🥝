@@ -1,8 +1,57 @@
 # a script for debugging and experimentation (and fun!)
 
-fn get_request(url: string): hashmap
-  res = curl::get(url)
-  return json::parse(res)
+# A function with type hints.
+fn add_with_type_hints(x: integer, y: integer): integer
+  return x + y
 end
 
-println get_request("https://jsonplaceholder.typicode.com/posts/1")
+# A function with no type hints.
+fn add_with_no_hints(x, y)
+  return x + y
+end
+
+# Runs a lambda and computes the runtime duration.
+# Returns a hashmap.
+fn benchmark_ms(benchmark_name: string, callback: lambda): hashmap
+  println "running benchmark: ${benchmark_name}"
+
+  start = time::ticks()
+  benchmark_error = {}
+
+  try
+    callback()
+  catch (e)
+    benchmark_error = e
+  end
+
+  return { 
+    "name": benchmark_name,
+    "duration": time::ticksms(time::ticks() - start),
+    "error": benchmark_error,
+    "has_error": benchmark_error.truthy()
+  }
+end
+
+# Control how many times we iterate in the repeater.
+loop_count = 2000000
+
+# Build a list of results.
+results = [
+  benchmark_ms("type-hints", with () do
+    sum = 0
+    repeat loop_count as n do
+      sum = add_with_type_hints(n, n)
+    end
+  end),
+  benchmark_ms("no-hints", with () do
+    sum = 0
+    repeat loop_count as n do
+      sum = add_with_no_hints(n, n)
+    end
+  end),
+]
+
+# Print the results.
+for r in results do
+  println "${r.name}: ${r.duration}ms"
+end

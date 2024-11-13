@@ -334,9 +334,9 @@ struct {
   const k_string None = "None";
   const k_string Any = "Any";
 
-  const k_string LowInteger = "int";
+  const k_string LowInteger = "integer";
   const k_string LowFloat = "float";
-  const k_string LowBoolean = "bool";
+  const k_string LowBoolean = "boolean";
   const k_string LowString = "string";
   const k_string LowList = "list";
   const k_string LowHash = "hashmap";
