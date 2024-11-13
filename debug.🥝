@@ -1,8 +1,2 @@
 # a script for debugging and experimentation (and fun!)
 
-fn get_request(url: String): Hash
-  res = curl::get(url)
-  return json::parse(res)
-end
-
-println get_request("https://jsonplaceholder.typicode.com/posts/1")

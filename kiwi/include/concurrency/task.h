@@ -33,7 +33,7 @@ class TaskManager {
   bool hasTask(k_int id) { return tasks.find(id) != tasks.end(); }
 
   k_value getTaskStatus(const Token& token, const k_int& id) {
-    auto taskStatus = std::make_shared<Hash>();
+    auto taskStatus = std::make_shared<Hashmap>();
     taskStatus->add("status", "unknown");
 
     if (hasTask(id)) {
@@ -56,7 +56,7 @@ class TaskManager {
     if (future.valid()) {
       return future.get();
     } else {
-      auto status = std::make_shared<Hash>();
+      auto status = std::make_shared<Hashmap>();
       status->add("status", "running");
       return status;
     }

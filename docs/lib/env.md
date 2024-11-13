@@ -16,12 +16,12 @@ The `env` package contains functionality for working with environment variables.
 
 ### `getvars()`
 
-Returns a hash where each key-value pair is an environment variable and value.
+Returns a hashmap where each key-value pair is an environment variable and value.
 
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Hash` | A hash representing system environment variables. |
+| `Hashmap` | A hashmap representing system environment variables. |
 
 ### `get(_varname)`
 

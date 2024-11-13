@@ -9,7 +9,7 @@ Kiwi provides robust mechanisms for error handling through the use of `try`, `ca
   - [`finally` block](#finally-block)
 - [Nested `try-catch` Blocks](#nested-try-catch-blocks)
 - [Using `throw` for Custom Errors](#using-throw-for-custom-errors)
-- [Error Hashes](#error-hashes)
+- [Error Hashes](#error-hashmaps)
 
 ## Basic Error Handling
 
@@ -124,16 +124,16 @@ Caught an error: Invalid input: Must be a positive number
 Validation complete
 ```
 
-## Error Hashes
+## Error Hashmaps
 
-In Kiwi, you can also throw an error using a specialized hash containing the following keys:
+In Kiwi, you can also throw an error using a specialized hashmap containing the following keys:
 - `error`: A string containing the error type.
 - `message`: A string containing the error message.
 
 This feature enables conditionally handling specific errors when they occur.
 
 ```kiwi
-# Throwing an error hash.
+# Throwing an error hashmap.
 try
   throw { "error": "MyError", "message": "An error occurred!" }
 catch (err, msg)

@@ -23,8 +23,8 @@ package std
     return std::type(s) == String
   end
 
-  fn is_hash(s)
-    return std::type(s) == Hash
+  fn is_hashmap(s)
+    return std::type(s) == Hashmap
   end
 
   fn range(x, y)

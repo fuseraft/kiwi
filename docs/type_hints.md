@@ -31,7 +31,7 @@ Kiwi’s type hint system supports the following types:
 - **String**: Represents sequences of characters.
 - **Boolean**: Represents a truth value (`true` or `false`).
 - **List**: Represents a list of items.
-- **Hash**: Represents a key-value map.
+- **Hashmap**: Represents a key-value map.
 - **Function**: Represents a callable function.
 - **Object**: Represents an object.
 - **Lambda**: Represents a lambda.

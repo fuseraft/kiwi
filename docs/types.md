@@ -9,7 +9,7 @@ Kiwi supports the following types:
 | [`Boolean`](#boolean) | A `true` or `false` value. | See below for an example. |
 | [`String`](#string) | A sequence of characters. | See [Strings](strings.md). |
 | [`List`](#list) | A list of values. | See [Lists](lists.md). |
-| [`Hash`](#hash) | A dictionary of key-value pairs. | See [Hashes](hashes.md). |
+| [`Hashmap`](#hashmap) | A dictionary of key-value pairs. | See [Hashmaps](hashmaps.md). |
 | [`Object`](#object) | An instance of a `struct`. | See [Structs](structs.md) and [Abstract Structs](abstract_structs.md). |
 | [`Lambda`](#lambda) | An anonymous function. | See [lambdas](lambdas.md). |
 | [`None`](#none) | A null value. | See below for an example. |
@@ -70,16 +70,16 @@ list = [1, 2, 3, 4, 5]
 println(list) # prints: [1, 2, 3, 4, 5]
 ```
 
-### `Hash`
+### `Hashmap`
 
-A dictionary of key-value pairs.  See [Hashes](hashes.md).
+A dictionary of key-value pairs.  See [Hashmaps](hashmaps.md).
 
 ```kiwi
-# A simple hash with a single key `language`.
-hash = { "language": "kiwi" }
+# A simple hashmap with a single key `language`.
+hashmap = { "language": "kiwi" }
 
-println(hash) # prints: {"language": "kiwi"}
-println(hash.language) # prints: kiwi
+println(hashmap) # prints: {"language": "kiwi"}
+println(hashmap.language) # prints: kiwi
 ```
 
 ### Object
@@ -117,20 +117,20 @@ puts("Hello, World!") # prints: Hello, World!
 A `null` value. A value that points to nothing.
 
 ```kiwi
-# Define a hash, `c`, with null values.
+# Define a hashmap, `c`, with null values.
 c = { "a": null, "b": null }
 println(c) # prints: {"a": null, "b": null}
 
-# Deserializing a JSON string with "null" values into a hash.
-d = '{"a": null, "b": null}'.to_hash()
+# Deserializing a JSON string with "null" values into a hashmap.
+d = '{"a": null, "b": null}'.to_hashmap()
 println(d) # prints: {"a": null, "b": null}
 
-# Set the hash key values of `a` and `b` to non-null values.
+# Set the hashmap key values of `a` and `b` to non-null values.
 d.a = false
 d.b = 'hello'
 println(d) # prints: {"a": false, "b": "hello"}
 
-# Set the hash key values of `a` and `b` to null values.
+# Set the hashmap key values of `a` and `b` to null values.
 d.a = null
 d.b = null
 println(d) # prints: {"a": null, "b": null}
