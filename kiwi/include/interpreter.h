@@ -218,7 +218,7 @@ class KInterpreter {
   k_value visit(const ForkNode* node);
 
   std::shared_ptr<CallStackFrame> createFrame(bool isMethodInvocation);
-  k_value dropFrame();
+  void dropFrame();
 
   k_string getTemporaryId();
   k_string id(const ASTNode* node);
@@ -504,7 +504,11 @@ std::shared_ptr<CallStackFrame> KInterpreter::createFrame(
   return subFrame;
 }
 
-k_value KInterpreter::dropFrame() {
+void KInterpreter::dropFrame() {
+  if (callStack.empty()) {
+    return;
+  }
+
   auto frame = callStack.top();
   auto returnValue = std::move(frame->returnValue);
   auto topVariables = std::move(frame->variables);
@@ -522,8 +526,6 @@ k_value KInterpreter::dropFrame() {
 
     updateVariablesInCallerFrame(topVariables, callerFrame);
   }
-
-  return {};
 }
 
 k_string KInterpreter::id(const ASTNode* node) {
