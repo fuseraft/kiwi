@@ -38,7 +38,7 @@ Returns a list of active task identifiers.
 
 ### `result(task_identifier)`
 
-Fetches the result of a completed task, or returns a status hash if the task is still running.
+Fetches the result of a completed task, or returns a status hashmap if the task is still running.
 
 **Parameters**
 | Type      | Name             | Description                    |
@@ -48,7 +48,7 @@ Fetches the result of a completed task, or returns a status hash if the task is 
 **Returns**
 | Type     | Description |
 | :------- | :---------- |
-| `String` | The result of the task if completed, or a hash with the status if still running. |
+| `String` | The result of the task if completed, or a hashmap with the status if still running. |
 
 ### `sleep(ms)`
 
@@ -71,7 +71,7 @@ Gets the current status of a specified task.
 **Returns**
 | Type   | Description               |
 | :----- | :------------------------ |
-| `Hash` | A hash containing the task's current status. |
+| `Hashmap` | A hashmap containing the task's current status. |
 
 ### `timer(ms, callback)`
 
@@ -175,7 +175,7 @@ task::sleep(1000)  # Pauses for 1 second
 
 ### Getting Task Status
 
-Retrieve a status hash for a task:
+Retrieve a status hashmap for a task:
 
 ```kiwi
 status = task::status(1)

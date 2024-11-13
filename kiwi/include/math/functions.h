@@ -376,8 +376,8 @@ struct {
       case 4:  // k_list
         return !std::get<k_list>(value)->elements.empty();
 
-      case 5:  // k_hash
-        return std::get<k_hash>(value)->size() > 0;
+      case 5:  // k_hashmap
+        return std::get<k_hashmap>(value)->size() > 0;
 
       case 6:  // k_object
         return true;
@@ -543,8 +543,8 @@ struct {
       return std::get<k_string>(right).empty();
     } else if (std::holds_alternative<k_list>(right)) {
       return std::get<k_list>(right)->elements.empty();
-    } else if (std::holds_alternative<k_hash>(right)) {
-      return std::get<k_hash>(right)->keys.empty();
+    } else if (std::holds_alternative<k_hashmap>(right)) {
+      return std::get<k_hashmap>(right)->keys.empty();
     } else {
       return false;  // Object, Lambda, etc.
     }

@@ -16,7 +16,7 @@ Common file extensions are: `.conf`, `.ini`, `.cfg`, `.env`, and `.json`
 
 ### `read(_conf_path, _delim = "=")`
 
-Reads settings from a `conf` file into a hash.
+Reads settings from a `conf` file into a hashmap.
 
 **Parameters**
 | Type | Name | Description |
@@ -27,11 +27,11 @@ Reads settings from a `conf` file into a hash.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Hash` | Settings read from a file. |
+| `Hashmap` | Settings read from a file. |
 
 ### `readjson(_json_path)`
 
-Reads settings from a `json` file into a hash.
+Reads settings from a `json` file into a hashmap.
 
 **Parameters**
 | Type | Name | Description |
@@ -42,4 +42,4 @@ Reads settings from a `json` file into a hash.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Hash` | Settings read from a `json` file. |
+| `Hashmap` | Settings read from a `json` file. |

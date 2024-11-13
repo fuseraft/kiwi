@@ -1,75 +1,75 @@
-# Hashes
+# Hashmapmaps
 
-Hashes in Kiwi are similar to maps and dictionaries in other languages.
+Hashmapmaps in Kiwi are similar to hashmaps and dictionaries in other languages.
 
-A hash contains a series of key-value pairs and can easily be serialized into JSON and vice-versa.
+A hashmap contains a series of key-value pairs and can easily be serialized into JSON and vice-versa.
 
 # Table of Contents
-- [Builtins](#hash-builtins)
-- [Defining a `Hash`](#defining-a-hash)
-- [Accessing Elements](#accessing-hash-elements)
-- [Adding Elements](#adding-elements-to-a-hash)
-- [Removing Elements](#removing-elements-from-a-hash)
-- [Iterating a `Hash`](#iterating-a-hash)
+- [Builtins](#hashmap-builtins)
+- [Defining a `Hashmap`](#defining-a-hashmap)
+- [Accessing Elements](#accessing-hashmap-elements)
+- [Adding Elements](#adding-elements-to-a-hashmap)
+- [Removing Elements](#removing-elements-from-a-hashmap)
+- [Iterating a `Hashmap`](#iterating-a-hashmap)
 
 ### Builtins
 
-For documentation on `Hash` builtins, take a look at the [`Hash` builtins](builtins.md#hash-builtins).
+For documentation on `Hashmap` builtins, take a look at the [`Hashmap` builtins](builtins.md#hashmap-builtins).
 
-### Defining a Hash
+### Defining a Hashmap
 
-The keys in a hash must be unique.
+The keys in a hashmap must be unique.
 
 ```kiwi
-myHash = {"key1": true, "key2": 1, "key2": [1, 2, 3, 4]}
+myHashmap = {"key1": true, "key2": 1, "key2": [1, 2, 3, 4]}
 ```
 
-### Accessing Hash Elements
+### Accessing Hashmap Elements
 
 Bracket notation can be used to access elements by key.
 
 ```kiwi
-println(myHash["key2"])  # Outputs: [1, 2, 3, 4]
+println(myHashmap["key2"])  # Outputs: [1, 2, 3, 4]
 ```
 
 Dot notation can be used to access elements by key.
 
 ```kiwi
-println(myHash.key2)  # Outputs: [1, 2, 3, 4]
+println(myHashmap.key2)  # Outputs: [1, 2, 3, 4]
 ```
 
-### Adding Elements to a Hash
+### Adding Elements to a Hashmap
 
 ```kiwi
-myHash = {}
-myHash["key1"] = [1..3]
-myHash.key2 = { "nested": "hash" }
+myHashmap = {}
+myHashmap["key1"] = [1..3]
+myHashmap.key2 = { "nested": "hashmap" }
 
-# myHash now contains {"key1": [1, 2, 3]}
+# myHashmap now contains {"key1": [1, 2, 3]}
 ```
 
-### Removing Elements from a Hash
+### Removing Elements from a Hashmap
 
-You can use the `delete` keyword to remove an element of a hash by key.
+You can use the `delete` keyword to remove an element of a hashmap by key.
 
 ```kiwi
-hash = {"key1": 1, "key2": true, "key3": [1, 2, 3]}
-delete hash["key2"]
-println(hash) # prints: {"key1": 1, "key3": [1, 2, 3]}
+hashmap = {"key1": 1, "key2": true, "key3": [1, 2, 3]}
+delete hashmap["key2"]
+println(hashmap) # prints: {"key1": 1, "key3": [1, 2, 3]}
 ```
 
-### Iterating a Hash
+### Iterating a Hashmap
 
-Use the `for` keyword and the `.keys()` Hash-builtin to iterate a hash.
+Use the `for` keyword and the `.keys()` Hashmap-builtin to iterate a hashmap.
 
 ```kiwi
 # Iterate the values in the list.
-for key in myHash.keys() do
-  println(myHash[key])
+for key in myHashmap.keys() do
+  println(myHashmap[key])
 end
 
 # Iterate the values in the list, with an index.
-for key, index in myHash.keys() do
+for key, index in myHashmap.keys() do
   println("Key ${index}: ${key}")
 end
 ```

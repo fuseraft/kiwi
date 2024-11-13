@@ -328,7 +328,7 @@ struct {
   const k_string Boolean = "Boolean";
   const k_string String = "String";
   const k_string List = "List";
-  const k_string Hash = "Hash";
+  const k_string Hashmap = "Hashmap";
   const k_string Object = "Object";
   const k_string Lambda = "Lambda";
   const k_string None = "None";
@@ -346,7 +346,7 @@ struct {
   const k_string LowAny = "any";
 
   std::unordered_set<k_string> typenames = {
-      Integer, Float, Boolean, String, List, Hash, Object, Lambda, None, Any,
+      Integer, Float, Boolean, String, List, Hashmap, Object, Lambda, None, Any,
       LowInteger, LowFloat, LowBoolean, LowString, LowList, LowHash, LowObject, LowLambda, LowNone, LowAny };
 
   bool is_typename(const k_string& arg) {

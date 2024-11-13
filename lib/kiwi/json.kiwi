@@ -27,11 +27,11 @@ package json
   fn can_parse(s: String)
     parse_res = json::parse(s)
 
-    if std::is_hash(parse_res) && parse_res.has_key("KIWI_JSON_PARSE_ERROR")
+    if std::is_hashmap(parse_res) && parse_res.has_key("KIWI_JSON_PARSE_ERROR")
       return false
     end
     
-    valid_types = [Hash, List, String, Integer, Float, Boolean, None]
+    valid_types = [Hashmap, List, String, Integer, Float, Boolean, None]
     
     return valid_types.contains(parse_res.type())
   end
