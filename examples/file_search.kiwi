@@ -5,7 +5,7 @@
 @param String target_path: The path to search.
 @param String target_extension: The extension to filter to specific file types.
 @param List target_strings: The list of strings to search for in the filtered files.
-@return List: Returns a list of hashes containing paths and lists of lines.
+@return List: Returns a list of hashmaps containing paths and lists of lines.
 #/
 fn file_search(target_path, target_extension, target_strings = [])
   # This is the result.
@@ -31,7 +31,7 @@ fn file_search(target_path, target_extension, target_strings = [])
   files_with_matches = []
 
   # For each filtered file, search the file content for target strings.
-  # If found, create a hash with path and content and add to list of files with matches.
+  # If found, create a hashmap with path and content and add to list of files with matches.
   for file in filtered_files do
     content = fs::read(file)
     if search_content(content)

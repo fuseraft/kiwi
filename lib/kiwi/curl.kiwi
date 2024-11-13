@@ -10,7 +10,7 @@ package curl
     - `capture_output`: Boolean flag to capture the output (default true).
   Returns: The command output as a string if `capture_output` is true, or the return code otherwise.
   #/
-  fn request(url: String, method: String = "GET", headers: Hash = {}, data: String = "", capture_output: Boolean = true)
+  fn request(url: string, method: string = "GET", headers: hashmap = {}, data: string = "", capture_output: boolean = true)
     cmd_args = ["-s", "-X", method, url]
     
     # Add headers as curl arguments
@@ -32,22 +32,22 @@ package curl
   # Convenience functions for common HTTP methods
 
   # Sends a GET request to the specified URL with optional headers.
-  fn get(url: String, headers: Hash = {}, capture_output: Boolean = true)
+  fn get(url: string, headers: hashmap = {}, capture_output: boolean = true)
     return curl::request(url, "GET", headers, "", capture_output)
   end
 
   # Sends a POST request to the specified URL with optional headers and data.
-  fn post(url: String, headers: Hash = {}, data: String = "", capture_output: Boolean = true)
+  fn post(url: string, headers: hashmap = {}, data: string = "", capture_output: boolean = true)
     return curl::request(url, "POST", headers, data, capture_output)
   end
 
   # Sends a PUT request to the specified URL with optional headers and data.
-  fn put(url: String, headers: Hash = {}, data: String = "", capture_output: Boolean = true)
+  fn put(url: string, headers: hashmap = {}, data: string = "", capture_output: boolean = true)
     return curl::request(url, "PUT", headers, data, capture_output)
   end
 
   # Sends a DELETE request to the specified URL with optional headers.
-  fn delete(url: String, headers: Hash = {}, capture_output: Boolean = true)
+  fn delete(url: string, headers: hashmap = {}, capture_output: boolean = true)
     return curl::request(url, "DELETE", headers, "", capture_output)
   end
 end

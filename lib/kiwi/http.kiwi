@@ -8,7 +8,7 @@ package http
     - _url: The base URL.
     - _path: The path to request. 
     - _headers: The headers. Defaults to {}.
-  Returns: A hash with the response status code, headers, and body.
+  Returns: A hashmap with the response status code, headers, and body.
   #/
   fn delete_(_url, _path, _headers = {})
     return __webc_delete__(_url, _path, _headers)
@@ -20,7 +20,7 @@ package http
     - _url: The base URL.
     - _path: The path to request. 
     - _headers: The headers. Defaults to {}.
-  Returns: A hash with the response status code, headers, and body.
+  Returns: A hashmap with the response status code, headers, and body.
   #/
   fn get(_url, _path, _headers = {})
     return __webc_get__(_url, _path, _headers)
@@ -32,7 +32,7 @@ package http
     - _url: The base URL.
     - _path: The path to request. 
     - _headers: The headers. Defaults to {}.
-  Returns: A hash with the response status code, headers, and body.
+  Returns: A hashmap with the response status code, headers, and body.
   #/
   fn head(_url, _path, _headers = {})
     return __webc_head__(_url, _path, _headers)
@@ -44,7 +44,7 @@ package http
     - _url: The base URL.
     - _path: The path to request. 
     - _headers: The headers. Defaults to {}.
-  Returns: A hash with the response status code, headers, and body.
+  Returns: A hashmap with the response status code, headers, and body.
   #/
   fn options(_url, _path, _headers = {})
     return __webc_options__(_url, _path, _headers)
@@ -58,7 +58,7 @@ package http
     - _body: The body to send.
     - _headers: The headers. Defaults to {}.
     - _content_type: The content-type. Defaults to "text/plain".
-  Returns: A hash with the response status code, headers, and body.
+  Returns: A hashmap with the response status code, headers, and body.
   #/
   fn patch(_url, _path, _body, _content_type = "text/plain", _headers = {})
     return __webc_patch__(_url, _path, _body, _content_type, _headers)
@@ -72,7 +72,7 @@ package http
     - _body: The body to send.
     - _headers: The headers. Defaults to {}.
     - _content_type: The content-type. Defaults to "text/plain".
-  Returns: A hash with the response status code, headers, and body.
+  Returns: A hashmap with the response status code, headers, and body.
   #/
   fn post(_url, _path, _body, _content_type = "text/plain", _headers = {})
     return __webc_post__(_url, _path, _body, _content_type, _headers)
@@ -86,7 +86,7 @@ package http
     - _body: The body to send.
     - _headers: The headers. Defaults to {}.
     - _content_type: The content-type. Defaults to "text/plain". 
-  Returns: A hash with the response status code, headers, and body.
+  Returns: A hashmap with the response status code, headers, and body.
   #/
   fn put(_url, _path, _body, _content_type = "text/plain", _headers = {})
     return __webc_put__(_url, _path, _body, _content_type, _headers)

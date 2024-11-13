@@ -25,13 +25,13 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
     - [`replace(search, replacement)`](#replacesearch-replacement)
     - [`scan(regex)`](#scanregex)
     - [`split(delim)`](#splitdelim-limit---1)
-- [**`Hash` Builtins**](#hash-builtins)
+- [**`Hashmap` Builtins**](#hashmap-builtins)
   - [`keys()`](#keys)
   - [`values()`](#values)
   - [`has_key(key)`](#has_keykey)
   - [`get(key)`](#getkey)
   - [`set(key, value)`](#setkey-value)
-  - [`merge(hash)`](#mergehash)
+  - [`merge(hashmap)`](#mergehashmap)
 - [**`List` Builtins**](#list-builtins)
   - [`clear()`](#clear)
   - [`concat(list)`](#concatlist)
@@ -77,7 +77,7 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
   - [`pretty()`](#pretty)
   - [`serialize(value)`](#serializevalue)
   - [`to_float()`](#to_float)
-  - [`to_hash()`](#to_hash)
+  - [`to_hashmap()`](#to_hashmap)
   - [`to_int()`](#to_int)
   - [`to_string()`](#to_string)
   - [`truthy()`](#truthy)
@@ -85,7 +85,7 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
 
 ## `global`
 
-The `global` variable is a hash that can be used to store global data. This is useful for sharing data between scripts.
+The `global` variable is a hashmap that can be used to store global data. This is useful for sharing data between scripts.
 
 ## String Builtins
 
@@ -261,34 +261,34 @@ println("Hello World!".split(" ")) # prints: ["Hello", "World!"]
 println("one,two,three,four".split(",", 2))  # prints: ["one", "two,three,four"]
 ```
 
-## Hash Builtins
+## Hashmap Builtins
 
 ### `keys()`
 
-Returns the list of keys from a hash.
+Returns the list of keys from a hashmap.
 
 ```kiwi
-hash = {
+hashmap = {
   "key1": true, 
   "key2": 1, 
   "key3": ["a", "b", "c"]
 }
 
-println(hash.keys()) # prints: ["key1", "key2", "key3"]
+println(hashmap.keys()) # prints: ["key1", "key2", "key3"]
 ```
 
 ### `has_key(key)`
 
-Returns true if a hash contains a given key.
+Returns true if a hashmap contains a given key.
 
 ```kiwi
-hash = {
+hashmap = {
   "key1": true, 
   "key2": 1, 
   "key3": ["a", "b", "c"]
 }
 
-println(hash.has_key("key2")) # prints: true
+println(hashmap.has_key("key2")) # prints: true
 ```
 
 ### `get(key)`
@@ -296,13 +296,13 @@ println(hash.has_key("key2")) # prints: true
 Returns the value assigned to a given key.
 
 ```kiwi
-hash = {
+hashmap = {
   "key1": true, 
   "key2": 1, 
   "key3": ["a", "b", "c"]
 }
 
-println(hash.get("key3")) # prints: ["a", "b", "c"]
+println(hashmap.get("key3")) # prints: ["a", "b", "c"]
 ```
 
 ### `set(key, value)`
@@ -310,45 +310,45 @@ println(hash.get("key3")) # prints: ["a", "b", "c"]
 Sets the value assigned to a given key.
 
 ```kiwi
-hash = {
+hashmap = {
   "key1": true, 
   "key2": 1, 
   "key3": ["a", "b", "c"]
 }
 
-hash.set("key3", 31337)
-println(hash.get("key3")) # prints: 31337
+hashmap.set("key3", 31337)
+println(hashmap.get("key3")) # prints: 31337
 ```
 
-### `merge(hash)`
+### `merge(hashmap)`
 
-Merge a hash with another.
+Merge a hashmap with another.
 
 ```kiwi
-hash1 = {"a": 1, "b": 2}
-hash2 = {"b": 3, "c": 4}
-println(hash1.merge(hash2)) # prints: {"a": 1, "b": 3, "c": 4}
+hashmap1 = {"a": 1, "b": 2}
+hashmap2 = {"b": 3, "c": 4}
+println(hashmap1.merge(hashmap2)) # prints: {"a": 1, "b": 3, "c": 4}
 ```
 
 ### `values()`
 
-Returns the list of values from a hash.
+Returns the list of values from a hashmap.
 
 ```kiwi
-hash = {
+hashmap = {
   "key1": true, 
   "key2": 1, 
   "key3": ["a", "b", "c"]
 }
 
-println(hash.values()) # prints: [true, 1, ["a", "b", "c"]]
+println(hashmap.values()) # prints: [true, 1, ["a", "b", "c"]]
 ```
 
 ## List Builtins
 
 ### `clear()`
 
-Clears a list or a hash.
+Clears a list or a hashmap.
 
 ```kiwi
 list = "Hello".chars() # ["H", "e", "l", "l", "o"]
@@ -570,12 +570,12 @@ println(sum) # prints: 15
 ```kiwi
 numbers = [1, 2, 3, 4, 5]
 
-hash = numbers.reduce({}, with (accumulator, number) do
+hashmap = numbers.reduce({}, with (accumulator, number) do
     accumulator["key${number}"] = number
     return accumulator
 end)
 
-println(hash)
+println(hashmap)
 # prints: {"key1": 1, "key2": 2, "key3": 3, "key4": 4, "key5": 5}
 ```
 
@@ -770,13 +770,13 @@ println("foobar".is_a(String)) # prints: true
 Returns a pretty serialization.
 
 ```kiwi
-hash = {
+hashmap = {
   "key1": true, 
   "key2": 1, 
   "key3": ["a", "b", "c"]
 }
 
-println(hash.pretty())
+println(hashmap.pretty())
 /# 
 prints:
 {
@@ -801,9 +801,9 @@ tau = pi * 2
 println(tau) # 6.28318
 ```
 
-### `to_hash()`
+### `to_hashmap()`
 
-Converts an object instance or a JSON string into a hash.
+Converts an object instance or a JSON string into a hashmap.
 
 ```kiwi
 struct SerializeMe
@@ -814,7 +814,7 @@ end
 
 inst = SerializeMe.new()
 
-println(inst.to_hash()) # prints: {"name": "Kiwi"}
+println(inst.to_hashmap()) # prints: {"name": "Kiwi"}
 ```
 
 ```kiwi
@@ -824,7 +824,7 @@ json = "{
   \"integer\": 100, 
   \"string\": \"Kiwi\"
 }"
-println(json.to_hash()) # prints: {"boolean": true, "float": 3.14159, "integer": 100, "string": "Kiwi"}
+println(json.to_hashmap()) # prints: {"boolean": true, "float": 3.14159, "integer": 100, "string": "Kiwi"}
 ```
 
 ### `to_int()`
@@ -873,7 +873,7 @@ println "".truthy()   # prints: false
 println "0".truthy()  # prints: true        # non-empty strings are truthy
 println [].truthy()   # prints: false
 println [0].truthy()  # prints: true        # non-empty lists are truthy
-println {}.truthy()   # prints: false       # empty hashes are not truthy
+println {}.truthy()   # prints: false       # empty hashmaps are not truthy
 println true.truthy() # prints: true        # true is always truthy
 ```
 
@@ -881,7 +881,7 @@ println true.truthy() # prints: true        # true is always truthy
 
 Returns the type of the value as a string.
 
-Valid types are: `Integer`, `Float`, `Boolean`, `String`, `List`, `Hash`, `Object`, `Lambda`.
+Valid types are: `Integer`, `Float`, `Boolean`, `String`, `List`, `Hashmap`, `Object`, `Lambda`.
 
 If the type is an object, `type()` will return the struct name of the instance.
 

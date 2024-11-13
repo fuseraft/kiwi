@@ -287,8 +287,8 @@ class CoreBuiltinHandler {
       case 4:  // k_list
         return !std::get<k_list>(value)->elements.empty();
 
-      case 5:  // k_hash
-        return std::get<k_hash>(value)->size() > 0;
+      case 5:  // k_hashmap
+        return std::get<k_hashmap>(value)->size() > 0;
 
       case 6:  // k_object
         return true;
@@ -310,8 +310,8 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Get);
     }
 
-    if (std::holds_alternative<k_hash>(value)) {
-      const auto& hash = std::get<k_hash>(value);
+    if (std::holds_alternative<k_hashmap>(value)) {
+      const auto& hash = std::get<k_hashmap>(value);
       const auto& key = args.at(0);
       if (!hash->hasKey(key)) {
         throw HashKeyError(token, Serializer::serialize(key));
@@ -335,7 +335,7 @@ class CoreBuiltinHandler {
     }
 
     throw InvalidOperationError(
-        token, "Expected a hash, list, or string in call to `" +
+        token, "Expected a hashmap, list, or string in call to `" +
                    KiwiBuiltins.Get + "`");
   }
 
@@ -345,8 +345,8 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Set);
     }
 
-    if (std::holds_alternative<k_hash>(value)) {
-      auto& hash = std::get<k_hash>(value);
+    if (std::holds_alternative<k_hashmap>(value)) {
+      auto& hash = std::get<k_hashmap>(value);
       hash->add(args.at(0), args.at(1));
       return hash;
     } else if (std::holds_alternative<k_list>(value)) {
@@ -360,7 +360,7 @@ class CoreBuiltinHandler {
     }
 
     throw InvalidOperationError(
-        token, "Expected a hash or list in call to `" + KiwiBuiltins.Set + "`");
+        token, "Expected a hashmap or list in call to `" + KiwiBuiltins.Set + "`");
   }
 
   static k_value executeSwap(const Token& token, const k_value& value,
@@ -391,7 +391,7 @@ class CoreBuiltinHandler {
     }
 
     throw InvalidOperationError(
-        token, "Expected a hash or list in call to `" + KiwiBuiltins.Set + "`");
+        token, "Expected a hashmap or list in call to `" + KiwiBuiltins.Set + "`");
   }
 
   static k_value executeFirst(const Token& token, const k_value& value,
@@ -487,7 +487,7 @@ class CoreBuiltinHandler {
   //         token, "Expected an object in call to `" + KiwiBuiltins.Members + "`");
   //   }
 
-  //   auto memberHash = std::make_shared<Hash>();
+  //   auto memberHash = std::make_shared<Hashmap>();
   //   auto obj = std::get<k_object>(value);
   //   auto& instanceVariables = obj->instanceVariables;
   //   auto clazz = classes[obj->className];
@@ -544,8 +544,8 @@ class CoreBuiltinHandler {
       return static_cast<k_int>(std::get<k_string>(value).length());
     } else if (std::holds_alternative<k_list>(value)) {
       return static_cast<k_int>(std::get<k_list>(value)->elements.size());
-    } else if (std::holds_alternative<k_hash>(value)) {
-      return static_cast<k_int>(std::get<k_hash>(value)->size());
+    } else if (std::holds_alternative<k_hashmap>(value)) {
+      return static_cast<k_int>(std::get<k_hashmap>(value)->size());
     }
 
     throw InvalidOperationError(
@@ -933,12 +933,12 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.HasKey);
     }
 
-    if (!std::holds_alternative<k_hash>(value)) {
+    if (!std::holds_alternative<k_hashmap>(value)) {
       throw InvalidOperationError(
-          token, "Attempted to retrieve keys from non-Hash type.");
+          token, "Expected a hashmap for `" + KiwiBuiltins.HasKey + "`.");
     }
 
-    return std::get<k_hash>(value)->hasKey(args.at(0));
+    return std::get<k_hashmap>(value)->hasKey(args.at(0));
   }
 
   static k_value executeKeys(const Token& token, const k_value& value,
@@ -947,12 +947,12 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Keys);
     }
 
-    if (!std::holds_alternative<k_hash>(value)) {
+    if (!std::holds_alternative<k_hashmap>(value)) {
       throw InvalidOperationError(
-          token, "Attempted to retrieve keys from non-Hash type.");
+          token, "Expected a hashmap `" + KiwiBuiltins.Keys + "`.");
     }
 
-    return Serializer::get_hash_keys_list(std::get<k_hash>(value));
+    return Serializer::get_hash_keys_list(std::get<k_hashmap>(value));
   }
 
   static k_value executeValues(const Token& token, const k_value& value,
@@ -961,12 +961,12 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Values);
     }
 
-    if (!std::holds_alternative<k_hash>(value)) {
+    if (!std::holds_alternative<k_hashmap>(value)) {
       throw InvalidOperationError(
-          token, "Attempted to retrieve values from non-Hash type.");
+          token, "Expected a hashmap for `" + KiwiBuiltins.Values + "`.");
     }
 
-    return Serializer::get_hash_values_list(std::get<k_hash>(value));
+    return Serializer::get_hash_values_list(std::get<k_hashmap>(value));
   }
 
   static k_value executeMerge(const Token& token, const k_value& value,
@@ -975,13 +975,13 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Merge);
     }
 
-    if (!std::holds_alternative<k_hash>(value) ||
-        !std::holds_alternative<k_hash>(args.at(0))) {
-      throw InvalidOperationError(token, "Attempted to merge a non-Hash type.");
+    if (!std::holds_alternative<k_hashmap>(value) ||
+        !std::holds_alternative<k_hashmap>(args.at(0))) {
+      throw InvalidOperationError(token, "Expected a hashmap for `" + KiwiBuiltins.Merge + "`.");
     }
 
-    auto hashValue = std::get<k_hash>(value);
-    auto mergeHash = std::get<k_hash>(args.at(0));
+    auto hashValue = std::get<k_hashmap>(value);
+    auto mergeHash = std::get<k_hashmap>(args.at(0));
 
     hashValue->merge(mergeHash);
 
@@ -1075,14 +1075,14 @@ class CoreBuiltinHandler {
       case 4:  // k_list
         return typeName == TypeNames.List;
 
-      case 5:  // k_hash
-        return typeName == TypeNames.Hash;
+      case 5:  // k_hashmap
+        return typeName == TypeNames.Hashmap;
 
       case 6:  // k_object
         return typeName == TypeNames.Object;
 
       case 7:  // k_lambda
-        return typeName == TypeNames.With;
+        return typeName == TypeNames.Lambda;
 
       case 8:  // k_null
         return typeName == TypeNames.None;
@@ -1201,8 +1201,8 @@ class CoreBuiltinHandler {
       return std::get<k_string>(value).empty();
     } else if (std::holds_alternative<k_list>(value)) {
       return std::get<k_list>(value)->elements.empty();
-    } else if (std::holds_alternative<k_hash>(value)) {
-      return std::get<k_hash>(value)->keys.empty();
+    } else if (std::holds_alternative<k_hashmap>(value)) {
+      return std::get<k_hashmap>(value)->keys.empty();
     } else if (std::holds_alternative<k_int>(value)) {
       return std::get<k_int>(value) == 0;
     } else if (std::holds_alternative<double>(value)) {
@@ -1373,8 +1373,8 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Remove);
     }
 
-    if (std::holds_alternative<k_hash>(value)) {
-      auto hash = std::get<k_hash>(value);
+    if (std::holds_alternative<k_hashmap>(value)) {
+      auto hash = std::get<k_hashmap>(value);
       auto key = get_string(token, args.at(0));
       hash->remove(key);
       return hash;
@@ -1389,7 +1389,7 @@ class CoreBuiltinHandler {
       return value;
     }
 
-    throw InvalidOperationError(token, "Expected a hash or list for builtin `" +
+    throw InvalidOperationError(token, "Expected a hashmap or list for builtin `" +
                                            KiwiBuiltins.Remove + "`.");
   }
 
@@ -1583,8 +1583,8 @@ class CoreBuiltinHandler {
     if (std::holds_alternative<k_list>(value)) {
       std::get<k_list>(value)->elements.clear();
       return value;
-    } else if (std::holds_alternative<k_hash>(value)) {
-      auto hash = std::get<k_hash>(value);
+    } else if (std::holds_alternative<k_hashmap>(value)) {
+      auto hash = std::get<k_hashmap>(value);
       hash->keys.clear();
       hash->kvp.clear();
       return hash;

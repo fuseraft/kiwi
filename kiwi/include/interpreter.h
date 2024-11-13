@@ -218,7 +218,7 @@ class KInterpreter {
   k_value visit(const ForkNode* node);
 
   std::shared_ptr<CallStackFrame> createFrame(bool isMethodInvocation);
-  k_value dropFrame();
+  void dropFrame();
 
   k_string getTemporaryId();
   k_string id(const ASTNode* node);
@@ -274,7 +274,7 @@ class KInterpreter {
                     const k_value& value);
 
   k_value listLoop(const ForLoopNode* node, const k_list& list);
-  k_value hashLoop(const ForLoopNode* node, const k_hash& hash);
+  k_value hashLoop(const ForLoopNode* node, const k_hashmap& hash);
 
   k_value listSum(const k_list& list);
   k_value listMin(const Token& token, const k_list& list);
@@ -319,8 +319,8 @@ class KInterpreter {
                                    std::vector<k_value>& args);
 
   int getNextWebServerHook(const Token& token, k_value& arg);
-  k_hash getWebServerRequestHash(const httplib::Request& req);
-  void handleWebServerRequest(int webhookID, k_hash requestHash,
+  k_hashmap getWebServerRequestHash(const httplib::Request& req);
+  void handleWebServerRequest(int webhookID, k_hashmap requestHash,
                               k_string& redirect, k_string& content,
                               k_string& contentType, int& status);
   std::vector<k_string> getWebServerEndpointList(const Token& token,
@@ -504,7 +504,11 @@ std::shared_ptr<CallStackFrame> KInterpreter::createFrame(
   return subFrame;
 }
 
-k_value KInterpreter::dropFrame() {
+void KInterpreter::dropFrame() {
+  if (callStack.empty()) {
+    return;
+  }
+
   auto frame = callStack.top();
   auto returnValue = std::move(frame->returnValue);
   auto topVariables = std::move(frame->variables);
@@ -522,8 +526,6 @@ k_value KInterpreter::dropFrame() {
 
     updateVariablesInCallerFrame(topVariables, callerFrame);
   }
-
-  return {};
 }
 
 k_string KInterpreter::id(const ASTNode* node) {
@@ -563,7 +565,7 @@ k_value KInterpreter::visit(const ProgramNode* node) {
   // This is the program root
   if (!node->isScript) {
     auto programFrame = std::make_shared<CallStackFrame>();
-    programFrame->variables[Keywords.Global] = std::make_shared<Hash>();
+    programFrame->variables[Keywords.Global] = std::make_shared<Hashmap>();
     callStack.push(programFrame);
   }
 
@@ -620,8 +622,8 @@ k_value KInterpreter::visit(const ThrowNode* node) {
     if (node->errorValue) {
       auto errorValue = interpret(node->errorValue.get());
 
-      if (std::holds_alternative<k_hash>(errorValue)) {
-        auto errorHash = std::get<k_hash>(errorValue);
+      if (std::holds_alternative<k_hashmap>(errorValue)) {
+        auto errorHash = std::get<k_hashmap>(errorValue);
         if (errorHash->hasKey("error") &&
             std::holds_alternative<k_string>(errorHash->kvp["error"])) {
           errorType = std::get<k_string>(errorHash->kvp["error"]);
@@ -730,8 +732,8 @@ k_value KInterpreter::visit(const MemberAccessNode* node) {
   auto object = interpret(node->object.get());
   auto memberName = node->memberName;
 
-  if (std::holds_alternative<k_hash>(object)) {
-    auto hash = std::get<k_hash>(object);
+  if (std::holds_alternative<k_hashmap>(object)) {
+    auto hash = std::get<k_hashmap>(object);
     if (!hash->hasKey(memberName)) {
       throw HashKeyError(node->token, memberName);
     }
@@ -797,9 +799,9 @@ k_value KInterpreter::handleNestedIndexing(const IndexingNode* indexExpr,
                        "Nested index does not target a list.");
     }
   } else if (indexExpr->indexExpression->type == ASTNodeType::IDENTIFIER &&
-             std::holds_alternative<k_hash>(baseObj)) {
+             std::holds_alternative<k_hashmap>(baseObj)) {
     auto key = id(indexExpr->indexExpression.get());
-    auto hashObj = std::get<k_hash>(baseObj);
+    auto hashObj = std::get<k_hashmap>(baseObj);
 
     if (hashObj->hasKey(key)) {
       auto nestedValue = hashObj->get(key);
@@ -855,8 +857,8 @@ k_value KInterpreter::handleNestedIndexing(const IndexingNode* indexExpr,
             MathImpl.do_binary_op(indexExpr->token, op, oldValue, newValue);
       }
       return list;
-    } else if (std::holds_alternative<k_hash>(baseObj)) {
-      auto hash = std::get<k_hash>(baseObj);
+    } else if (std::holds_alternative<k_hashmap>(baseObj)) {
+      auto hash = std::get<k_hashmap>(baseObj);
 
       if (op == KName::Ops_Assign) {
         hash->add(literal, newValue);
@@ -993,8 +995,8 @@ k_value KInterpreter::visit(const IndexAssignmentNode* node) {
         }
 
         frame->variables[identifierName] = listObj;
-      } else if (std::holds_alternative<k_hash>(indexedObj)) {
-        auto hashObj = std::get<k_hash>(indexedObj);
+      } else if (std::holds_alternative<k_hashmap>(indexedObj)) {
+        auto hashObj = std::get<k_hashmap>(indexedObj);
 
         if (op == KName::Ops_Assign) {
           hashObj->add(index, newValue);
@@ -1033,8 +1035,8 @@ k_value KInterpreter::visit(const MemberAssignmentNode* node) {
   auto op = node->op;
   auto initializer = interpret(node->initializer.get());
 
-  if (std::holds_alternative<k_hash>(object)) {
-    auto hash = std::get<k_hash>(object);
+  if (std::holds_alternative<k_hashmap>(object)) {
+    auto hash = std::get<k_hashmap>(object);
 
     if (op == KName::Ops_Assign) {
       hash->add(memberName, initializer);
@@ -1235,7 +1237,7 @@ k_value KInterpreter::visit(const RangeLiteralNode* node) {
 }
 
 k_value KInterpreter::visit(const HashLiteralNode* node) {
-  auto hash = std::make_shared<Hash>();
+  auto hash = std::make_shared<Hashmap>();
   std::unordered_map<k_value, k_value> kvps;
   std::vector<k_value> keys;
   keys.reserve(node->elements.size());
@@ -1359,8 +1361,8 @@ k_value KInterpreter::visit(const IndexingNode* node) {
       }
 
       return list->elements.at(index);
-    } else if (std::holds_alternative<k_hash>(object)) {
-      auto hash = std::get<k_hash>(object);
+    } else if (std::holds_alternative<k_hashmap>(object)) {
+      auto hash = std::get<k_hashmap>(object);
 
       if (!hash->hasKey(indexValue)) {
         throw HashKeyError(node->token, Serializer::serialize(indexValue));
@@ -1525,7 +1527,7 @@ k_value KInterpreter::listLoop(const ForLoopNode* node, const k_list& list) {
   return result;
 }
 
-k_value KInterpreter::hashLoop(const ForLoopNode* node, const k_hash& hash) {
+k_value KInterpreter::hashLoop(const ForLoopNode* node, const k_hashmap& hash) {
   auto frame = callStack.top();
   frame->setFlag(FrameFlags::InLoop);
   const auto& keys = hash->keys;
@@ -1610,8 +1612,8 @@ k_value KInterpreter::visit(const ForLoopNode* node) {
     return listLoop(node, std::get<k_list>(dataSetValue));
   }
 
-  if (std::holds_alternative<k_hash>(dataSetValue)) {
-    return hashLoop(node, std::get<k_hash>(dataSetValue));
+  if (std::holds_alternative<k_hashmap>(dataSetValue)) {
+    return hashLoop(node, std::get<k_hashmap>(dataSetValue));
   }
 
   throw InvalidOperationError(node->token,
@@ -2672,7 +2674,7 @@ k_value KInterpreter::interpretWebServerBuiltin(const Token& token,
   return {};
 }
 
-void KInterpreter::handleWebServerRequest(int webhookID, k_hash requestHash,
+void KInterpreter::handleWebServerRequest(int webhookID, k_hashmap requestHash,
                                           k_string& redirect, k_string& content,
                                           k_string& contentType, int& status) {
   auto webhook = ctx->getWebHook(webhookID);
@@ -2699,8 +2701,8 @@ void KInterpreter::handleWebServerRequest(int webhookID, k_hash requestHash,
       }
     }
 
-    if (std::holds_alternative<k_hash>(result)) {
-      auto responseHash = std::get<k_hash>(result);
+    if (std::holds_alternative<k_hashmap>(result)) {
+      auto responseHash = std::get<k_hashmap>(result);
       if (responseHash->hasKey("content")) {
         auto responseHashContent = responseHash->get("content");
         content = Serializer::serialize(responseHashContent);
@@ -2831,7 +2833,7 @@ k_value KInterpreter::interpretWebServerListen(const Token& token,
 
   ctx->getServer().listen(host, static_cast<int>(port));
 
-  auto hash = std::make_shared<Hash>();
+  auto hash = std::make_shared<Hashmap>();
   hash->add("host", host);
   hash->add("port", port);
 
@@ -2877,8 +2879,8 @@ std::vector<k_string> KInterpreter::getWebServerEndpointList(const Token& token,
   return endpointList;
 }
 
-k_hash KInterpreter::getWebServerRequestHash(const httplib::Request& req) {
-  auto requestHash = std::make_shared<Hash>();
+k_hashmap KInterpreter::getWebServerRequestHash(const httplib::Request& req) {
+  auto requestHash = std::make_shared<Hashmap>();
   auto headers = req.headers;
   auto params = req.params;
 
@@ -2887,21 +2889,21 @@ k_hash KInterpreter::getWebServerRequestHash(const httplib::Request& req) {
     requestHash->add(x.first, x.second);
   }
 
-  auto pathParamsHash = std::make_shared<Hash>();
+  auto pathParamsHash = std::make_shared<Hashmap>();
   for (const auto& pair : req.path_params) {
     pathParamsHash->add(pair.first, pair.second);
   }
 
-  auto paramsHash = std::make_shared<Hash>();
+  auto paramsHash = std::make_shared<Hashmap>();
   for (auto it = params.begin(); it != params.end(); ++it) {
     const auto& x = *it;
     paramsHash->add(x.first, x.second);
   }
 
-  auto filesHash = std::make_shared<Hash>();
+  auto filesHash = std::make_shared<Hashmap>();
 
   for (const auto& file : req.files) {
-    auto fileHash = std::make_shared<Hash>();
+    auto fileHash = std::make_shared<Hashmap>();
     fileHash->add("content", file.second.content);
     fileHash->add("content_type", file.second.content_type);
     fileHash->add("filename", file.second.filename);
@@ -2946,7 +2948,7 @@ k_value KInterpreter::interpretReflectorRList(const Token& token,
     throw BuiltinUnexpectedArgumentError(token, ReflectorBuiltins.RList);
   }
 
-  auto rlist = std::make_shared<Hash>();
+  auto rlist = std::make_shared<Hashmap>();
   auto rlistPackages = std::make_shared<List>();
   auto rlistClasses = std::make_shared<List>();
   auto rlistFunctions = std::make_shared<List>();
@@ -2975,13 +2977,13 @@ k_value KInterpreter::interpretReflectorRList(const Token& token,
     const auto& outerFrame = tempStack.top();
     const auto& frameVariables = outerFrame->variables;
 
-    auto rlistStackFrame = std::make_shared<Hash>();
+    auto rlistStackFrame = std::make_shared<Hashmap>();
     auto rlistStackFrameVariables = std::make_shared<List>();
 
     rlistStackFrameVariables->elements.reserve(frameVariables.size());
 
     for (const auto& v : frameVariables) {
-      auto rlistStackFrameVariable = std::make_shared<Hash>();
+      auto rlistStackFrameVariable = std::make_shared<Hashmap>();
       rlistStackFrameVariable->add(v.first, v.second);
       rlistStackFrameVariables->elements.emplace_back(rlistStackFrameVariable);
     }
