@@ -34,8 +34,8 @@ class Parser {
                                              const KName& type);
   std::unique_ptr<ASTNode> parseLambdaCall(std::unique_ptr<ASTNode> lambdaNode);
   std::unique_ptr<ASTNode> parseKeyword();
-  std::unique_ptr<ASTNode> parseFork();
-  std::unique_ptr<ASTNode> parseClass();
+  std::unique_ptr<ASTNode> parseSpawn();
+  std::unique_ptr<ASTNode> parseStruct();
   std::unique_ptr<ASTNode> parseInterface();
   std::unique_ptr<ASTNode> parseLambda();
   std::unique_ptr<ASTNode> parseStatement();
@@ -329,13 +329,15 @@ std::unique_ptr<ASTNode> Parser::parseKeyword() {
   switch (tokenName()) {
     case KName::KW_PrintLn:
     case KName::KW_Print:
+    case KName::KW_EPrintLn:
+    case KName::KW_EPrint:
       return parsePrint();
 
     case KName::KW_PrintXy:
       return parsePrintXy();
 
-    case KName::KW_Fork:
-      return parseFork();
+    case KName::KW_Spawn:
+      return parseSpawn();
 
     case KName::KW_For:
       return parseForLoop();
@@ -382,8 +384,8 @@ std::unique_ptr<ASTNode> Parser::parseKeyword() {
     case KName::KW_Export:
       return parseExport();
 
-    case KName::KW_Class:
-      return parseClass();
+    case KName::KW_Struct:
+      return parseStruct();
 
     case KName::KW_Interface:
       return parseInterface();
@@ -447,28 +449,28 @@ std::unique_ptr<ASTNode> Parser::parseComment() {
   return nullptr;
 }
 
-std::unique_ptr<ASTNode> Parser::parseFork() {
-  matchSubType(KName::KW_Fork);
+std::unique_ptr<ASTNode> Parser::parseSpawn() {
+  matchSubType(KName::KW_Spawn);
 
   if (!hasValue()) {
-    throw SyntaxError(getErrorToken(), "Expected expression for fork.");
+    throw SyntaxError(getErrorToken(), "Expected expression for spawn.");
   }
 
-  auto forked = parseExpression();
-  return std::make_unique<ForkNode>(std::move(forked));
+  auto spawned = parseExpression();
+  return std::make_unique<SpawnNode>(std::move(spawned));
 }
 
-std::unique_ptr<ASTNode> Parser::parseClass() {
-  matchSubType(KName::KW_Class);
+std::unique_ptr<ASTNode> Parser::parseStruct() {
+  matchSubType(KName::KW_Struct);
 
   if (tokenType() != KTokenType::IDENTIFIER) {
     throw SyntaxError(getErrorToken(), "Expected identifier for struct name.");
   }
 
-  auto className = kToken.getText();
+  auto structName = kToken.getText();
   next();
 
-  k_string baseClass;
+  k_string baseStruct;
 
   // Extends
   if (matchSubType(KName::Ops_LessThan)) {
@@ -477,7 +479,7 @@ std::unique_ptr<ASTNode> Parser::parseClass() {
                         "Expected identifier for base struct name.");
     }
 
-    baseClass = kToken.getText();
+    baseStruct = kToken.getText();
     next();
   }
 
@@ -519,8 +521,8 @@ std::unique_ptr<ASTNode> Parser::parseClass() {
 
   next();  // Consume 'end'
 
-  return std::make_unique<ClassNode>(className, baseClass,
-                                     std::move(interfaces), std::move(methods));
+  return std::make_unique<StructNode>(
+      structName, baseStruct, std::move(interfaces), std::move(methods));
 }
 
 std::unique_ptr<ASTNode> Parser::parseInterface() {
@@ -552,7 +554,8 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
   KName returnTypeHint = KName::Types_Any;
 
   if (isTypeName && tokenType() != KTokenType::OPEN_PAREN) {
-    throw SyntaxError(getErrorToken(), "Expected '(' after the identifier `" + functionName + "`.");
+    throw SyntaxError(getErrorToken(), "Expected '(' after the identifier `" +
+                                           functionName + "`.");
   }
 
   if (tokenType() == KTokenType::OPEN_PAREN) {
@@ -880,7 +883,8 @@ std::unique_ptr<ASTNode> Parser::parseImport() {
 std::unique_ptr<ASTNode> Parser::parsePackage() {
   matchSubType(KName::KW_Package);
 
-  if (tokenType() != KTokenType::IDENTIFIER && tokenType() != KTokenType::TYPENAME) {
+  if (tokenType() != KTokenType::IDENTIFIER &&
+      tokenType() != KTokenType::TYPENAME) {
     throw SyntaxError(getErrorToken(), "Expected identifier for package name.");
   }
 
@@ -1233,8 +1237,16 @@ std::unique_ptr<ASTNode> Parser::parseLambda() {
 
 std::unique_ptr<ASTNode> Parser::parsePrint() {
   auto printNode = std::make_unique<PrintNode>();
-  printNode->printNewline = tokenName() == KName::KW_PrintLn;
-  match(KTokenType::KEYWORD);  // Consume 'print'/'println'
+  auto name = tokenName();
+
+  match(
+      KTokenType::KEYWORD);  // Consume 'print', 'println', 'eprint', 'eprintln'
+
+  printNode->printStdError =
+      (name == KName::KW_EPrint || name == KName::KW_EPrintLn);
+  printNode->printNewline =
+      (name == KName::KW_PrintLn || name == KName::KW_EPrintLn);
+
   printNode->expression = parseExpression();
   return printNode;
 }
@@ -1289,7 +1301,8 @@ std::unique_ptr<ASTNode> Parser::parsePrintXy() {
 }
 
 std::unique_ptr<ASTNode> Parser::parseLiteral() {
-  if (tokenType() == KTokenType::TYPENAME && peek().getType() == KTokenType::QUALIFIER) {
+  if (tokenType() == KTokenType::TYPENAME &&
+      peek().getType() == KTokenType::QUALIFIER) {
     return parseIdentifier(false, false);
   }
 
@@ -1329,7 +1342,8 @@ std::unique_ptr<ASTNode> Parser::parseHashLiteral() {
     if (tokenType() == KTokenType::COMMA) {
       next();  // Consume ','
     } else if (tokenType() != KTokenType::CLOSE_BRACE) {
-      throw SyntaxError(getErrorToken(), "Expected '}' or ',' in hashmap literal");
+      throw SyntaxError(getErrorToken(),
+                        "Expected '}' or ',' in hashmap literal");
     }
   }
 
@@ -1591,10 +1605,10 @@ std::unique_ptr<ASTNode> Parser::parseAssignment(
   }
 
   auto type = tokenName();
-  if (type == KName::KW_Fork) {
-    auto forkNode = parseFork();
+  if (type == KName::KW_Spawn) {
+    auto node = parseSpawn();
     return std::make_unique<AssignmentNode>(std::move(baseNode), identifierName,
-                                            type, std::move(forkNode));
+                                            type, std::move(node));
   }
 
   next();
@@ -1635,7 +1649,9 @@ std::unique_ptr<ASTNode> Parser::parseQualifiedIdentifier(
   } else if (tokenType() == KTokenType::QUALIFIER) {
     qualifiedNode = parseQualifiedIdentifier(qualifiedName);
   } else if (isTypeName) {
-    throw SyntaxError(getErrorToken(), "Expected '(' or '::' after the identifier `" + qualifiedName + "`.");
+    throw SyntaxError(
+        getErrorToken(),
+        "Expected '(' or '::' after the identifier `" + qualifiedName + "`.");
   }
 
   return qualifiedNode;
@@ -1652,8 +1668,8 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier(bool packed, bool lenient) {
       return std::make_unique<SelfNode>();
     }
 
-    if (tokenName() == KName::KW_Fork) {
-      return parseFork();
+    if (tokenName() == KName::KW_Spawn) {
+      return parseSpawn();
     }
 
     throw SyntaxError(getErrorToken(), "Expected an identifier.");
@@ -1692,7 +1708,9 @@ std::unique_ptr<ASTNode> Parser::parseIdentifier(bool packed, bool lenient) {
              lookAhead({KName::Ops_Assign, KName::Ops_LessThan})) {
     node = parsePackAssignment(std::move(node));
   } else if (isTypeName && !lenient) {
-    throw SyntaxError(getErrorToken(), "Expected '(' or '::' after the identifier `" + identifierName + "`.");
+    throw SyntaxError(
+        getErrorToken(),
+        "Expected '(' or '::' after the identifier `" + identifierName + "`.");
   } else {
     node = std::make_unique<IdentifierNode>(identifierName);
   }
@@ -1846,8 +1864,8 @@ std::unique_ptr<ASTNode> Parser::parseUnary() {
     auto right = parseUnary();
     return std::make_unique<UnaryOperationNode>(op, std::move(right));
   }
-  auto primary = parsePrimary();
-  return primary;  //return interpretValueInvocation(stream, frame, primary);
+
+  return parsePrimary();
 }
 
 std::unique_ptr<ASTNode> Parser::parsePrimary() {

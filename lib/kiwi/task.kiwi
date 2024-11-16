@@ -55,7 +55,7 @@ package task
   Returns: Integer containing the task identifier.
   #/
   fn timer(ms, callback)
-    task_id = fork (with() do
+    task_id = spawn (with() do
       task::sleep(ms)
       callback()
     end)()
@@ -71,7 +71,7 @@ package task
   Returns: Integer containing the task identifier.
   #/
   fn interval(ms, callback)
-    task_id = fork (with() do
+    task_id = spawn (with() do
       while true do
         task::sleep(ms)
         callback_result = callback()

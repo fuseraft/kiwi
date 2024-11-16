@@ -14,7 +14,7 @@ struct Hashmap;
 struct List;
 struct Object;
 struct LambdaRef;
-struct ClassRef;
+struct StructRef;
 struct Null;
 
 typedef long long k_int;
@@ -24,7 +24,7 @@ using k_hashmap = std::shared_ptr<Hashmap>;
 using k_list = std::shared_ptr<List>;
 using k_object = std::shared_ptr<Object>;
 using k_lambda = std::shared_ptr<LambdaRef>;
-using k_class = std::shared_ptr<ClassRef>;
+using k_struct = std::shared_ptr<StructRef>;
 using k_null = std::shared_ptr<Null>;
 
 inline void hash_combine(std::size_t& seed, std::size_t hash);
@@ -33,7 +33,7 @@ std::size_t hash_list(const k_list& list);
 std::size_t hash_object(const k_object& object);
 
 using k_value = std::variant<k_int, double, bool, k_string, k_list, k_hashmap,
-                             k_object, k_lambda, k_null, k_class>;
+                             k_object, k_lambda, k_null, k_struct>;
 
 // Specialize a struct for hash computation for k_value
 namespace std {
@@ -57,7 +57,7 @@ struct hash<k_value> {
         return hash_object(std::get<k_object>(v));
       case 7:  // k_lambda
       case 8:  // k_null
-      case 9:  // k_class
+      case 9:  // k_struct
         return false;
       default:
         // Fallback for unknown types
@@ -108,7 +108,7 @@ struct Hashmap {
 
 struct Object {
   k_string identifier;
-  k_string className;
+  k_string structName;
   std::unordered_map<k_string, k_value> instanceVariables;
 
   bool hasVariable(const k_string& name) const {
@@ -122,10 +122,10 @@ struct LambdaRef {
   LambdaRef(const k_string& identifier) : identifier(identifier) {}
 };
 
-struct ClassRef {
+struct StructRef {
   k_string identifier;
 
-  ClassRef(const k_string& identifier) : identifier(identifier) {}
+  StructRef(const k_string& identifier) : identifier(identifier) {}
 };
 
 inline void hash_combine(std::size_t& seed, std::size_t hash) {
@@ -157,7 +157,7 @@ std::size_t hash_hash(const k_hashmap& hash) {
 }
 
 std::size_t hash_object(const k_object& object) {
-  auto seed = std::hash<k_string>()(object->className);
+  auto seed = std::hash<k_string>()(object->structName);
   for (const auto& pair : object->instanceVariables) {
     hash_combine(seed, std::hash<k_string>()(pair.first));
     hash_combine(seed, std::hash<k_value>()(pair.second));
@@ -240,8 +240,8 @@ k_value clone_value(const k_value& original) {
       return std::make_shared<LambdaRef>(*std::get<k_lambda>(original));
     case 8:  // k_null
       return std::make_shared<Null>(*std::get<k_null>(original));
-    case 9:  // k_class
-      return std::make_shared<ClassRef>(*std::get<k_class>(original));
+    case 9:  // k_struct
+      return std::make_shared<StructRef>(*std::get<k_struct>(original));
     default:
       throw std::runtime_error("Unsupported type for cloning");
   }
