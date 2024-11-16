@@ -57,11 +57,7 @@ class Time {
     std::time_t now = std::time(nullptr);
     std::tm localTime;
 
-#ifdef _WIN64
-    localtime_s(&localTime, &now);
-#else
     localtime_r(&now, &localTime);
-#endif
 
     std::vector<char> timestamp(64);
 

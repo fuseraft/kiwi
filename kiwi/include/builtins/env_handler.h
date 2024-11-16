@@ -88,12 +88,7 @@ class EnvBuiltinHandler {
     k_string varName = get_string(token, args.at(0));
     k_string varValue = get_string(token, args.at(1));
 
-#ifdef _WIN64
-    _putenv_s(varName.c_str(), varValue.c_str());
-    return true;
-#else
     return setenv(varName.c_str(), varValue.c_str(), 1) == 0;
-#endif
   }
 
   static k_value executeUnsetEnvironmentVariable(
@@ -106,11 +101,7 @@ class EnvBuiltinHandler {
 
     k_string var = get_string(token, args.at(0));
 
-#ifdef _WIN64
-    return _putenv_s(var.c_str(), "") == 0;
-#else
     return unsetenv(var.c_str()) == 0;
-#endif
   }
 };
 
