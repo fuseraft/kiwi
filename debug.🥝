@@ -1,1 +1,7 @@
 # a script for debugging and experimentation (and fun!)
+
+if true
+  pass
+else
+  pass
+end
