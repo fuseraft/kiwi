@@ -256,7 +256,7 @@ enum KName {
   KW_Break,
   KW_Case,
   KW_Catch,
-  KW_Class,
+  KW_Struct,
   KW_Do,
   KW_Else,
   KW_ElseIf,

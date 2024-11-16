@@ -106,7 +106,7 @@ struct Serializer {
     } else if (std::holds_alternative<k_hashmap>(v)) {
       return TypeNames.Hashmap;
     } else if (std::holds_alternative<k_object>(v)) {
-      return std::get<k_object>(v)->className;
+      return std::get<k_object>(v)->structName;
     } else if (std::holds_alternative<k_lambda>(v)) {
       return TypeNames.Lambda;
     }
@@ -327,9 +327,9 @@ struct Serializer {
 
   static k_string basic_serialize_object(const k_object& object) {
     if (object->identifier.empty()) {
-      return "@(struct=" + object->className + ")";
+      return "@(struct=" + object->structName + ")";
     } else {
-      return "@(struct=" + object->className +
+      return "@(struct=" + object->structName +
              ", identifier=" + object->identifier + ")";
     }
   }

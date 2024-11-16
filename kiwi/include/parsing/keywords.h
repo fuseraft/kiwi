@@ -238,7 +238,6 @@ struct {
   const k_string Break = "break";
   const k_string Case = "case";
   const k_string Catch = "catch";
-  const k_string Class = "struct";
   const k_string Ctor = "new";
   const k_string Do = "do";
   const k_string Each = "each";
@@ -275,6 +274,7 @@ struct {
   const k_string Repeat = "repeat";
   const k_string Return = "return";
   const k_string Static = "static";
+  const k_string Struct = "struct";
   const k_string This = "@";
   const k_string Throw = "throw";
   const k_string True = "true";
@@ -284,7 +284,7 @@ struct {
   const k_string While = "while";
 
   std::unordered_set<k_string> keywords = {
-      Abstract,  As,     Break,  Case,     Catch,   Class,   Do,
+      Abstract,  As,     Break,  Case,     Catch,   Struct,  Do,
       Else,      ElseIf, End,    EPrintLn, Exit,    Export,  False,
       Finally,   For,    Spawn,  Function, If,      Import,  In,
       Interface, With,   Method, Package,  Next,    Null,    Override,
@@ -296,9 +296,9 @@ struct {
                                                        Case};
 
   std::unordered_set<KName> block_keywords = {
-      KName::KW_While, KName::KW_For,     KName::KW_Method,
-      KName::KW_If,    KName::KW_Package, KName::KW_Try,
-      KName::KW_Class, KName::KW_Lambda,  KName::KW_Repeat};
+      KName::KW_While,  KName::KW_For,     KName::KW_Method,
+      KName::KW_If,     KName::KW_Package, KName::KW_Try,
+      KName::KW_Struct, KName::KW_Lambda,  KName::KW_Repeat};
 
   bool is_keyword(const k_string& arg) {
     return keywords.find(arg) != keywords.end();

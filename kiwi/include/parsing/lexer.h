@@ -297,8 +297,8 @@ class Lexer {
       st = KName::KW_Break;
     } else if (keyword == Keywords.Catch) {
       st = KName::KW_Catch;
-    } else if (keyword == Keywords.Class) {
-      st = KName::KW_Class;
+    } else if (keyword == Keywords.Struct) {
+      st = KName::KW_Struct;
     } else if (keyword == Keywords.Do) {
       st = KName::KW_Do;
     } else if (keyword == Keywords.EPrint) {

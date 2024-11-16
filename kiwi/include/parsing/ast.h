@@ -109,26 +109,26 @@ class ProgramNode : public ASTNode {
 class StructNode : public ASTNode {
  public:
   k_string name;
-  k_string baseClass;
+  k_string baseStruct;
   std::vector<k_string> interfaces;
   std::vector<std::unique_ptr<ASTNode>> methods;
 
   StructNode() : ASTNode(ASTNodeType::STRUCT) {}
-  StructNode(const k_string& name, const k_string& baseClass,
+  StructNode(const k_string& name, const k_string& baseStruct,
              std::vector<k_string> interfaces,
              std::vector<std::unique_ptr<ASTNode>> methods)
       : ASTNode(ASTNodeType::STRUCT),
         name(name),
-        baseClass(baseClass),
+        baseStruct(baseStruct),
         interfaces(std::move(interfaces)),
         methods(std::move(methods)) {}
 
   void print(int depth) const override {
     print_depth(depth);
     std::cout << "Struct: " << name << std::endl;
-    if (!baseClass.empty()) {
+    if (!baseStruct.empty()) {
       print_depth(1 + depth);
-      std::cout << "Base: " << baseClass << std::endl;
+      std::cout << "Base: " << baseStruct << std::endl;
     }
     if (!interfaces.empty()) {
       print_depth(1 + depth);
@@ -154,7 +154,7 @@ class StructNode : public ASTNode {
       clonedMethods.push_back(method->clone());
     }
 
-    return std::make_unique<StructNode>(name, baseClass, interfaces,
+    return std::make_unique<StructNode>(name, baseStruct, interfaces,
                                         std::move(clonedMethods));
   }
 };
@@ -1718,16 +1718,16 @@ class KLambda : public KCallable {
   }
 };
 
-class KClass {
+class KStruct {
  public:
   k_string name;
-  k_string baseClass;
+  k_string baseStruct;
   std::unordered_map<k_string, std::unique_ptr<KFunction>> methods;
 
-  std::unique_ptr<KClass> clone() const {
-    auto cloned = std::make_unique<KClass>();
+  std::unique_ptr<KStruct> clone() const {
+    auto cloned = std::make_unique<KStruct>();
     cloned->name = name;
-    cloned->baseClass = baseClass;
+    cloned->baseStruct = baseStruct;
 
     for (const auto& [methodName, methodPtr] : methods) {
       cloned->methods[methodName] = std::unique_ptr<KFunction>(
