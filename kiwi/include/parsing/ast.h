@@ -18,7 +18,7 @@ enum class ASTNodeType {
   BREAK,
   CASE,
   CASE_WHEN,
-  CLASS,
+  STRUCT,
   EXIT,
   EXPORT,  // obsolete
   FOR_LOOP,
@@ -106,18 +106,18 @@ class ProgramNode : public ASTNode {
   }
 };
 
-class ClassNode : public ASTNode {
+class StructNode : public ASTNode {
  public:
   k_string name;
   k_string baseClass;
   std::vector<k_string> interfaces;
   std::vector<std::unique_ptr<ASTNode>> methods;
 
-  ClassNode() : ASTNode(ASTNodeType::CLASS) {}
-  ClassNode(const k_string& name, const k_string& baseClass,
-            std::vector<k_string> interfaces,
-            std::vector<std::unique_ptr<ASTNode>> methods)
-      : ASTNode(ASTNodeType::CLASS),
+  StructNode() : ASTNode(ASTNodeType::STRUCT) {}
+  StructNode(const k_string& name, const k_string& baseClass,
+             std::vector<k_string> interfaces,
+             std::vector<std::unique_ptr<ASTNode>> methods)
+      : ASTNode(ASTNodeType::STRUCT),
         name(name),
         baseClass(baseClass),
         interfaces(std::move(interfaces)),
@@ -154,8 +154,8 @@ class ClassNode : public ASTNode {
       clonedMethods.push_back(method->clone());
     }
 
-    return std::make_unique<ClassNode>(name, baseClass, interfaces,
-                                       std::move(clonedMethods));
+    return std::make_unique<StructNode>(name, baseClass, interfaces,
+                                        std::move(clonedMethods));
   }
 };
 

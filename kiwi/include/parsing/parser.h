@@ -521,8 +521,8 @@ std::unique_ptr<ASTNode> Parser::parseClass() {
 
   next();  // Consume 'end'
 
-  return std::make_unique<ClassNode>(className, baseClass,
-                                     std::move(interfaces), std::move(methods));
+  return std::make_unique<StructNode>(
+      className, baseClass, std::move(interfaces), std::move(methods));
 }
 
 std::unique_ptr<ASTNode> Parser::parseInterface() {

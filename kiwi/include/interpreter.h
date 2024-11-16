@@ -202,7 +202,7 @@ class KInterpreter {
   k_value visit(const TryNode* node);
   k_value visit(const LambdaNode* node);
   k_value visit(const LambdaCallNode* node);
-  k_value visit(const ClassNode* node);
+  k_value visit(const StructNode* node);
   k_value visit(const FunctionDeclarationNode* node);
   k_value visit(const FunctionCallNode* node);
   k_value visit(const MethodCallNode* node);
@@ -350,8 +350,8 @@ k_value KInterpreter::interpret(const ASTNode* node) {
     case ASTNodeType::PACKAGE:
       return visit(static_cast<const PackageNode*>(node));
 
-    case ASTNodeType::CLASS:
-      return visit(static_cast<const ClassNode*>(node));
+    case ASTNodeType::STRUCT:
+      return visit(static_cast<const StructNode*>(node));
 
     case ASTNodeType::IMPORT:
       return visit(static_cast<const ImportNode*>(node));
@@ -1899,7 +1899,7 @@ k_value KInterpreter::visit(const LambdaNode* node) {
   return std::make_shared<LambdaRef>(tmpId);
 }
 
-k_value KInterpreter::visit(const ClassNode* node) {
+k_value KInterpreter::visit(const StructNode* node) {
   auto className = node->name;
   auto clazz = std::make_unique<KClass>();
   clazz->name = className;
@@ -2093,6 +2093,10 @@ k_value KInterpreter::executeInstanceMethodFunction(
 
 k_value KInterpreter::visit(const FunctionCallNode* node) {
   k_value result;
+
+  if (node->functionName == "foo::bar") {
+    std::cout << "";
+  }
 
   auto callableType = getCallable(node->token, node->functionName);
 
@@ -2297,6 +2301,9 @@ k_value KInterpreter::callFunction(
   auto defaultParameters = function->defaultParameters;
   auto functionFrame = createFrame();
 
+  const auto& typeHints = function->typeHints;
+  const auto& returnTypeHint = function->returnTypeHint;
+
   for (size_t i = 0; i < function->parameters.size(); ++i) {
     const auto& param = function->parameters[i];
     k_value argValue = {};
@@ -2307,6 +2314,18 @@ k_value KInterpreter::callFunction(
       argValue = param.second;
     } else {
       throw ParameterCountMismatchError(token, functionName);
+    }
+
+    if (typeHints.find(param.first) != typeHints.end()) {
+      auto expectedType = typeHints.at(param.first);
+      if (!Serializer::assert_typematch(argValue, expectedType)) {
+        throw TypeError(
+            token, "Expected type `" +
+                       Serializer::get_typename_string(expectedType) +
+                       "` for parameter " + std::to_string(1 + i) + " of `" +
+                       functionName + "` but received `" +
+                       Serializer::get_value_type_string(argValue) + "`.");
+      }
     }
 
     if (std::holds_alternative<k_lambda>(argValue)) {
@@ -2327,6 +2346,14 @@ k_value KInterpreter::callFunction(
   } catch (const KiwiError& e) {
     dropFrame();
     throw;
+  }
+
+  if (!Serializer::assert_typematch(result, returnTypeHint)) {
+    throw TypeError(token, "Expected type `" +
+                               Serializer::get_typename_string(returnTypeHint) +
+                               "` for return type of `" + functionName +
+                               "` but received `" +
+                               Serializer::get_value_type_string(result) + ".");
   }
 
   return result;
@@ -2409,6 +2436,8 @@ k_value KInterpreter::callObjectBaseMethod(const MethodCallNode* node,
 
   if (contextSwitch) {
     frame->setObjectContext(objContext);
+  } else {
+    frame->clearFlag(FrameFlags::InObject);
   }
 
   if (isCtor) {
@@ -2465,6 +2494,8 @@ k_value KInterpreter::callObjectMethod(const MethodCallNode* node,
 
   if (contextSwitch) {
     frame->setObjectContext(oldObjContext);
+  } else {
+    frame->clearFlag(FrameFlags::InObject);
   }
 
   if (isCtor) {
