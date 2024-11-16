@@ -215,7 +215,7 @@ class KInterpreter {
   k_value visit(const ReturnNode* node);
   k_value visit(const IndexingNode* node);
   k_value visit(const SliceNode* node);
-  k_value visit(const ForkNode* node);
+  k_value visit(const SpawnNode* node);
 
   std::shared_ptr<CallStackFrame> createFrame(bool isMethodInvocation);
   void dropFrame();
@@ -464,8 +464,8 @@ k_value KInterpreter::interpret(const ASTNode* node) {
     case ASTNodeType::NO_OP:
       break;
 
-    case ASTNodeType::FORK:
-      return visit(static_cast<const ForkNode*>(node));
+    case ASTNodeType::SPAWN:
+      return visit(static_cast<const SpawnNode*>(node));
 
     default:
       node->print();
@@ -532,7 +532,7 @@ k_string KInterpreter::id(const ASTNode* node) {
   return static_cast<const IdentifierNode*>(node)->name;
 }
 
-k_value KInterpreter::visit(const ForkNode* node) {
+k_value KInterpreter::visit(const SpawnNode* node) {
   auto frame = std::make_shared<CallStackFrame>();
   auto top = callStack.top();
 
@@ -540,21 +540,22 @@ k_value KInterpreter::visit(const ForkNode* node) {
     frame->variables[var.first] = clone_value(var.second);
   }
 
-  auto fork = node->expression->clone();
+  auto taskExpr = node->expression->clone();
 
   auto interp = std::make_shared<KInterpreter>();
   interp->setContext(ctx->clone());
   interp->callStack.push(frame);
 
-  TaskManager::TaskFunction task([interp, frame, fork = std::move(fork)]() {
-    auto result = interp->interpret(fork.get());
+  TaskManager::TaskFunction task(
+      [interp, frame, taskExpr = std::move(taskExpr)]() {
+        auto result = interp->interpret(taskExpr.get());
 
-    if (frame->isFlagSet(FrameFlags::Return)) {
-      result = frame->returnValue;
-    }
+        if (frame->isFlagSet(FrameFlags::Return)) {
+          result = frame->returnValue;
+        }
 
-    return result;
-  });
+        return result;
+      });
 
   auto taskId = taskmgr.addTask(std::move(task));
 
@@ -1258,10 +1259,21 @@ k_value KInterpreter::visit(const HashLiteralNode* node) {
 
 k_value KInterpreter::visit(const PrintNode* node) {
   auto value = interpret(node->expression.get());
-  if (node->printNewline) {
-    std::cout << Serializer::serialize(value) << std::endl;
+  auto serializedValue = Serializer::serialize(value);
+  auto printNewLine = node->printNewline;
+
+  if (node->printStdError) {
+    if (printNewLine) {
+      std::cerr << serializedValue << std::endl;
+    } else {
+      std::cerr << serializedValue << std::flush;
+    }
   } else {
-    std::cout << Serializer::serialize(value) << std::flush;
+    if (printNewLine) {
+      std::cout << serializedValue << std::endl;
+    } else {
+      std::cout << serializedValue << std::flush;
+    }
   }
 
   return {};

@@ -1,6 +1,6 @@
 # spin up 5 tasks that run for random durations.
 for i in std::range(0, 5) do
-  fork (with do
+  spawn (with do
     # simulate work with randomized duration
     random_sleep_ms = math::random(500, 1000)
     task::sleep(random_sleep_ms)

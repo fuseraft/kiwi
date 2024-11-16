@@ -66,6 +66,7 @@ class Lexer {
         case KTokenType::COMMENT:
           stream->next();
           continue;
+
         case KTokenType::KEYWORD:
         case KTokenType::IDENTIFIER:
         case KTokenType::CONDITIONAL:
@@ -76,6 +77,7 @@ class Lexer {
           builder << token.getText() << std::endl;
           addSpace = true;
           break;
+
         case KTokenType::STRING:
           if (addSpace) {
             //builder << ' ';
@@ -83,6 +85,7 @@ class Lexer {
           builder << '"' << token.getText() << '"' << std::endl;
           addSpace = true;
           break;
+
         default:
           addSpace = false;
           builder << token.getText() << std::endl;
@@ -298,6 +301,10 @@ class Lexer {
       st = KName::KW_Class;
     } else if (keyword == Keywords.Do) {
       st = KName::KW_Do;
+    } else if (keyword == Keywords.EPrint) {
+      st = KName::KW_EPrint;
+    } else if (keyword == Keywords.EPrintLn) {
+      st = KName::KW_EPrintLn;
     } else if (keyword == Keywords.Exit) {
       st = KName::KW_Exit;
     } else if (keyword == Keywords.Export) {
@@ -308,8 +315,8 @@ class Lexer {
       st = KName::KW_Finally;
     } else if (keyword == Keywords.For) {
       st = KName::KW_For;
-    } else if (keyword == Keywords.Fork) {
-      st = KName::KW_Fork;
+    } else if (keyword == Keywords.Spawn) {
+      st = KName::KW_Spawn;
     } else if (keyword == Keywords.Import) {
       st = KName::KW_Import;
     } else if (keyword == Keywords.In) {
