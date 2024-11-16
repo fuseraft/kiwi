@@ -145,7 +145,7 @@ Find [examples](examples/) demonstrating Kiwi’s capabilities, including:
 
 Contributions are highly appreciated! Here’s how to get involved:
 
-1. **Join the Discussion**: Join the Kiwi community on [Discord](https://discord.com/channels/1221516965743431841/1221553678104920195).
+1. **Join the Discussion**: Join the Kiwi community on [Discord](https://discord.gg/9PW3857Bxs).
 2. **Fork the Repository**: Fork Kiwi on GitHub.
 3. **Clone the Repository**: Clone your forked copy to your machine.
 4. **Set Up Your Environment**: Follow the steps in "Getting Started."
