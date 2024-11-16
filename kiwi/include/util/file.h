@@ -11,10 +11,6 @@
 #include "typing/value.h"
 #include "util/glob.h"
 #include "util/string.h"
-#ifdef _WIN64
-#include <WinSock2.h>
-#include "Windows.h"
-#endif
 
 namespace fs = std::filesystem;
 
@@ -80,10 +76,6 @@ class File {
   static std::vector<k_string> expandGlob(const Token& token,
                                           const k_string& globString);
   static k_string getLocalPath(const k_string& path);
-
-#ifdef _WIN64
-  static k_string wstring_tos(const std::wstring& wstring);
-#endif
 };
 
 /// @brief Create a file.
@@ -264,12 +256,7 @@ std::vector<k_string> File::listDirectory(const Token& token,
 
   try {
     for (const auto& x : fs::directory_iterator(path)) {
-#ifdef _WIN64
-      const std::wstring entryPath = x.path().c_str();
-      paths.emplace_back(wstring_tos(entryPath));
-#else
       paths.emplace_back(x.path().string());
-#endif
     }
   } catch (const fs::filesystem_error& e) {
     throw FileSystemError(token, "Could not list directory: " + path);
@@ -405,12 +392,10 @@ k_string File::tryGetExtensionless(const Token& token, const k_string& path) {
   std::vector<k_string> extensions;
   extensions.emplace_back(".min.kiwi");
   extensions.emplace_back(".kiwi");
-#ifndef _WIN64
   extensions.emplace_back(".min.🥝");
   extensions.emplace_back(".🥝");
-#endif
 
-  if (File::fileExists(token, path)) {
+  if (File::fileExists(token, path) && !File::directoryExists(token, path)) {
     return path;
   }
 
@@ -441,11 +426,6 @@ bool File::isSymLink(const k_string& path) {
 /// @brief Get the executable path.
 /// @return String containing executable path.
 fs::path File::getExecutablePath() {
-#ifdef _WIN64
-  wchar_t path[FILENAME_MAX] = {0};
-  GetModuleFileNameW(nullptr, path, FILENAME_MAX);
-  return fs::path(path);
-#else
   const k_string executablePath = "/proc/self/exe";
 
   if (!isSymLink(executablePath)) {
@@ -459,19 +439,12 @@ fs::path File::getExecutablePath() {
   }
 
   return symLinkPath;
-#endif
 }
 
 k_string File::getLibraryPath(const Token& token) {
   fs::path kiwiPath(getExecutablePath());
   fs::path kiwilibPath;
-#ifdef _WIN64
-  k_string binPath = getParentPath(token, kiwiPath.string());
-  k_string parentPath = getParentPath(token, binPath);
-  kiwilibPath = (fs::path(parentPath) / "lib\\kiwi").lexically_normal();
-#else
   kiwilibPath = (kiwiPath / "../lib/kiwi").lexically_normal();
-#endif
 
   if (!fs::exists(kiwilibPath)) {
     return token.getText();
@@ -479,27 +452,6 @@ k_string File::getLibraryPath(const Token& token) {
 
   return kiwilibPath.string();
 }
-
-#ifdef _WIN64
-k_string File::wstring_tos(const std::wstring& wstring) {
-  if (wstring.empty()) {
-    return "";
-  }
-
-  const auto size =
-      WideCharToMultiByte(CP_UTF8, 0, &wstring.at(0), (int)wstring.size(),
-                          nullptr, 0, nullptr, nullptr);
-  if (size <= 0) {
-    throw std::runtime_error("WideCharToMultiByte() failed: " +
-                             std::to_string(size));
-  }
-
-  k_string string(size, 0);
-  WideCharToMultiByte(CP_UTF8, 0, &wstring.at(0), (int)wstring.size(),
-                      &string.at(0), size, nullptr, nullptr);
-  return string;
-}
-#endif
 
 /// @brief Get a vector of paths matching a glob pattern.
 /// @param globString The glob pattern.
@@ -521,32 +473,17 @@ std::vector<k_string> File::expandGlob(const Token& token,
 
   if (glob.recursiveTraversal) {
     for (const auto& entry : fs::recursive_directory_iterator(basePath)) {
-#ifdef _WIN64
-      const std::wstring entryPath = entry.path().c_str();
-      auto pathString = wstring_tos(entryPath);
-      if (std::regex_match(pathString, filenameRegex)) {
-        matchedFiles.emplace_back(entry.path().lexically_normal().string());
-      }
-#else
       if (entry.is_regular_file() &&
           std::regex_match(entry.path().filename().string(), filenameRegex)) {
         matchedFiles.emplace_back(entry.path().lexically_normal().string());
       }
-#endif
     }
   } else {
     for (const auto& entry : fs::directory_iterator(basePath)) {
-#ifdef _WIN64
-      const std::wstring entryPath = entry.path().c_str();
-      if (std::regex_match(wstring_tos(entryPath), filenameRegex)) {
-        matchedFiles.emplace_back(entry.path().lexically_normal().string());
-      }
-#else
       if (entry.is_regular_file() &&
           std::regex_match(entry.path().filename().string(), filenameRegex)) {
         matchedFiles.emplace_back(entry.path().lexically_normal().string());
       }
-#endif
     }
   }
 
