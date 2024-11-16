@@ -10,6 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/bin/kiwi",
             "args": [
+                "--no-stdlib",
                 "${workspaceFolder}/debug"
             ],
             "stopAtEntry": false,
