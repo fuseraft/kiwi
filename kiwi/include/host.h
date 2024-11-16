@@ -85,13 +85,9 @@ class Host {
 
   void loadLibraryPackages(const std::string& path) {
     std::vector<std::string> kiwilib;
-#ifdef _WIN64
-    kiwilib = File::expandGlob(hostToken, path + "\\*" + kiwi_extension);
-#else
     kiwilib = File::expandGlob(hostToken, path + "/*" + kiwi_extension);
     auto extras = File::expandGlob(hostToken, path + "/*.kiwi");
     kiwilib.insert(kiwilib.end(), extras.begin(), extras.end());
-#endif
 
     for (const auto& script : kiwilib) {
       loadScript(script);
