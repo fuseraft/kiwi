@@ -71,24 +71,40 @@ class Lexer {
         case KTokenType::IDENTIFIER:
         case KTokenType::CONDITIONAL:
         case KTokenType::LITERAL:
-          if (addSpace) {
-            //builder << ' ';
+          if (!output && addSpace) {
+            builder << ' ';
           }
-          builder << token.getText() << std::endl;
+
+          builder << token.getText();
+
+          if (output) {
+            builder << std::endl;
+          }
+
           addSpace = true;
           break;
 
         case KTokenType::STRING:
-          if (addSpace) {
-            //builder << ' ';
+          if (!output && addSpace) {
+            builder << ' ';
           }
-          builder << '"' << token.getText() << '"' << std::endl;
+
+          builder << '"' << token.getText() << '"';
+
+          if (output) {
+            builder << std::endl;
+          }
+
           addSpace = true;
           break;
 
         default:
           addSpace = false;
-          builder << token.getText() << std::endl;
+          builder << token.getText();
+
+          if (output) {
+            builder << std::endl;
+          }
           break;
       }
 

@@ -9,14 +9,8 @@ extern bool SAFEMODE;
 extern const std::string kiwi_name = "Kiwi";
 extern const std::string kiwi_version = "2.0.9";
 extern const std::string kiwi_arg = "kiwi";
-
-#ifdef _WIN64
-extern const std::string kiwi_min_extension = ".min.kiwi";
-extern const std::string kiwi_extension = ".kiwi";
-#else
 extern const std::string kiwi_min_extension = ".min.🥝";
 extern const std::string kiwi_extension = ".🥝";
-#endif
 
 #include <unordered_map>
 #include <stack>
