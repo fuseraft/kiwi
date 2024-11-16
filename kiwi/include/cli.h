@@ -248,7 +248,7 @@ int KiwiCLI::printHelp() {
       {"-a, --ast <input_file_path>", "print syntax tree of `.🥝` file"},
       {"-m, --minify <input_file_path>", "create a `.min.🥝` file"},
       {"-t, --tokenize <input_file_path>",
-       "tokenize a file with the kiwi lexer"},
+       "tokenize a file with the lexer"},
       {"-X<key>=<value>", "specify an argument as a key-value pair"}};
 
   printVersion();
