@@ -50,12 +50,8 @@ struct {
   const k_string BitwiseUnsignedRightShift = ">>>";
   const k_string BitwiseUnsignedRightShiftAssign = ">>>=";
 
-  std::unordered_set<k_string> large_operators = {Exponent,
-                                                  Or,
-                                                  And,
-                                                  BitwiseLeftShift,
-                                                  BitwiseRightShift,
-                                                  BitwiseUnsignedRightShift};
+  std::unordered_set<k_string> large_operators = {
+      Exponent, Or, And, BitwiseLeftShift, BitwiseRightShift};
 
   std::unordered_set<char> arithmetic_operator_chars = {'+', '-', '/', '*',
                                                         '%'};
@@ -346,8 +342,9 @@ struct {
   const k_string LowAny = "any";
 
   std::unordered_set<k_string> typenames = {
-      Integer, Float, Boolean, String, List, Hashmap, Object, Lambda, None, Any,
-      LowInteger, LowFloat, LowBoolean, LowString, LowList, LowHash, LowObject, LowLambda, LowNone, LowAny };
+      Integer, Float,   Boolean,   String,     List,     Hashmap,    Object,
+      Lambda,  None,    Any,       LowInteger, LowFloat, LowBoolean, LowString,
+      LowList, LowHash, LowObject, LowLambda,  LowNone,  LowAny};
 
   bool is_typename(const k_string& arg) {
     return typenames.find(arg) != typenames.end();

@@ -360,7 +360,8 @@ class CoreBuiltinHandler {
     }
 
     throw InvalidOperationError(
-        token, "Expected a hashmap or list in call to `" + KiwiBuiltins.Set + "`");
+        token,
+        "Expected a hashmap or list in call to `" + KiwiBuiltins.Set + "`");
   }
 
   static k_value executeSwap(const Token& token, const k_value& value,
@@ -391,7 +392,8 @@ class CoreBuiltinHandler {
     }
 
     throw InvalidOperationError(
-        token, "Expected a hashmap or list in call to `" + KiwiBuiltins.Set + "`");
+        token,
+        "Expected a hashmap or list in call to `" + KiwiBuiltins.Set + "`");
   }
 
   static k_value executeFirst(const Token& token, const k_value& value,
@@ -977,7 +979,8 @@ class CoreBuiltinHandler {
 
     if (!std::holds_alternative<k_hashmap>(value) ||
         !std::holds_alternative<k_hashmap>(args.at(0))) {
-      throw InvalidOperationError(token, "Expected a hashmap for `" + KiwiBuiltins.Merge + "`.");
+      throw InvalidOperationError(
+          token, "Expected a hashmap for `" + KiwiBuiltins.Merge + "`.");
     }
 
     auto hashValue = std::get<k_hashmap>(value);
@@ -1389,8 +1392,9 @@ class CoreBuiltinHandler {
       return value;
     }
 
-    throw InvalidOperationError(token, "Expected a hashmap or list for builtin `" +
-                                           KiwiBuiltins.Remove + "`.");
+    throw InvalidOperationError(token,
+                                "Expected a hashmap or list for builtin `" +
+                                    KiwiBuiltins.Remove + "`.");
   }
 
   static k_value executeRemoveAt(const Token& token, const k_value& value,
