@@ -71,21 +71,21 @@ class Lexer {
         case KTokenType::CONDITIONAL:
         case KTokenType::LITERAL:
           if (addSpace) {
-            builder << ' ';
+            //builder << ' ';
           }
-          builder << token.getText();
+          builder << token.getText() << std::endl;
           addSpace = true;
           break;
         case KTokenType::STRING:
           if (addSpace) {
-            builder << ' ';
+            //builder << ' ';
           }
-          builder << '"' << token.getText() << '"';
+          builder << '"' << token.getText() << '"' << std::endl;
           addSpace = true;
           break;
         default:
           addSpace = false;
-          builder << token.getText();
+          builder << token.getText() << std::endl;
           break;
       }
 
@@ -146,16 +146,7 @@ class Lexer {
     if (isalpha(currentChar) || currentChar == '_') {
       return parseIdentifier(currentChar);
     } else if (isdigit(currentChar)) {
-      if (currentChar == '0' && (pos < source.length() && source[pos] == 'x')) {
-        return parseHexLiteral();
-      } else if (currentChar == '0' &&
-                 (pos < source.length() && source[pos] == 'b')) {
-        return parseBinaryLiteral();
-      } else if (currentChar == '0' &&
-                 (pos < source.length() && source[pos] == 'o')) {
-        return parseOctalLiteral();
-      }
-      return parseLiteral(currentChar);
+      return parseNumericLiteral(currentChar);
     } else if (currentChar == '"') {
       return parseString();
     } else if (currentChar == '\'') {
@@ -196,6 +187,19 @@ class Lexer {
     } else {
       return parseUnspecified(currentChar);
     }
+  }
+
+  Token parseNumericLiteral(char currentChar) {
+    if (currentChar == '0' && (pos < source.length() && source[pos] == 'x')) {
+      return parseHexLiteral();
+    } else if (currentChar == '0' &&
+               (pos < source.length() && source[pos] == 'b')) {
+      return parseBinaryLiteral();
+    } else if (currentChar == '0' &&
+               (pos < source.length() && source[pos] == 'o')) {
+      return parseOctalLiteral();
+    }
+    return parseLiteral(currentChar);
   }
 
   void skipWhitespace() {
@@ -553,19 +557,23 @@ class Lexer {
 
     if (typeName == TypeNames.Integer || typeName == TypeNames.LowInteger) {
       st = KName::Types_Integer;
-    } else if (typeName == TypeNames.Boolean || typeName == TypeNames.LowBoolean) {
+    } else if (typeName == TypeNames.Boolean ||
+               typeName == TypeNames.LowBoolean) {
       st = KName::Types_Boolean;
     } else if (typeName == TypeNames.Float || typeName == TypeNames.LowFloat) {
       st = KName::Types_Float;
     } else if (typeName == TypeNames.Hashmap || typeName == TypeNames.LowHash) {
       st = KName::Types_Hash;
-    } else if (typeName == TypeNames.Lambda || typeName == TypeNames.LowLambda) {
+    } else if (typeName == TypeNames.Lambda ||
+               typeName == TypeNames.LowLambda) {
       st = KName::Types_Lambda;
     } else if (typeName == TypeNames.List || typeName == TypeNames.LowList) {
       st = KName::Types_List;
-    } else if (typeName == TypeNames.Object || typeName == TypeNames.LowObject) {
+    } else if (typeName == TypeNames.Object ||
+               typeName == TypeNames.LowObject) {
       st = KName::Types_Object;
-    } else if (typeName == TypeNames.String || typeName == TypeNames.LowString) {
+    } else if (typeName == TypeNames.String ||
+               typeName == TypeNames.LowString) {
       st = KName::Types_String;
     } else if (typeName == TypeNames.None || typeName == TypeNames.LowNone) {
       st = KName::Types_None;
