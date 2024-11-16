@@ -13,7 +13,7 @@ The `task` package provides functionality for managing and querying asynchronous
   - [`timer(ms, callback)`](#timerms-callback)
   - [`interval(ms, callback)`](#intervalms-callback)
   - [`wait()`](#wait)
-- [Creating Tasks with `fork`](#creating-tasks-with-fork)
+- [Creating Tasks with `spawn`](#creating-tasks-with-spawn)
 - [Usage Examples](#usage-examples)
 
 ## Package Functions
@@ -112,9 +112,9 @@ Waits for all active tasks to complete before continuing execution.
 | :--- | :---------- |
 | `Void` | Blocks until all active tasks are completed. |
 
-## Creating Tasks with `fork`
+## Creating Tasks with `spawn`
 
-You can use the `fork` keyword in Kiwi to run a function asynchronously. When you `fork` a function, it immediately returns a task identifier that can be used to monitor and retrieve the result of the task once completed.
+You can use the `spawn` keyword in Kiwi to run a function asynchronously. When you `spawn` a task, it immediately returns a task identifier that can be used to monitor and retrieve the result of the task once completed.
 
 ```kiwi
 fn long_running_task()
@@ -123,12 +123,12 @@ fn long_running_task()
   return "Task completed"
 end
 
-task_id = fork long_running_task()
+task_id = spawn long_running_task()
 
 println "Task started with ID: ${task_id}"
 ```
 
-The `fork` keyword makes it easy to parallelize tasks or perform asynchronous operations without blocking the main thread.
+The `spawn` keyword makes it easy to parallelize tasks or perform asynchronous operations without blocking the main thread.
 
 ## Usage Examples
 

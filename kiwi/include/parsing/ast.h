@@ -22,7 +22,7 @@ enum class ASTNodeType {
   EXIT,
   EXPORT,  // obsolete
   FOR_LOOP,
-  FORK,
+  SPAWN,
   FUNCTION_CALL,
   FUNCTION,
   HASH_LITERAL,
@@ -717,21 +717,30 @@ class PrintNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> expression;  // Expression to print
   bool printNewline;                    // Flag for printing a newline
+  bool printStdError;                   // Flag for printing to stderr
 
   PrintNode() : ASTNode(ASTNodeType::PRINT) {}
-  PrintNode(std::unique_ptr<ASTNode> expression, bool printNewline)
+  PrintNode(std::unique_ptr<ASTNode> expression, bool printNewline,
+            bool printStdError)
       : ASTNode(ASTNodeType::PRINT),
         expression(std::move(expression)),
-        printNewline(printNewline) {}
+        printNewline(printNewline),
+        printStdError(printStdError) {}
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << (printNewline ? "Print line:" : "Print:") << std::endl;
+    if (printStdError) {
+      std::cout << (printNewline ? "Print error line:" : "Print error:")
+                << std::endl;
+    } else {
+      std::cout << (printNewline ? "Print line:" : "Print:") << std::endl;
+    }
     expression->print(1 + depth);
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<PrintNode>(expression->clone(), printNewline);
+    return std::make_unique<PrintNode>(expression->clone(), printNewline,
+                                       printStdError);
   }
 };
 
@@ -1585,22 +1594,22 @@ class MemberAssignmentNode : public ASTNode {
   }
 };
 
-class ForkNode : public ASTNode {
+class SpawnNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> expression;
 
-  ForkNode() : ASTNode(ASTNodeType::FORK) {}
-  ForkNode(std::unique_ptr<ASTNode> expression)
-      : ASTNode(ASTNodeType::FORK), expression(std::move(expression)) {}
+  SpawnNode() : ASTNode(ASTNodeType::SPAWN) {}
+  SpawnNode(std::unique_ptr<ASTNode> expression)
+      : ASTNode(ASTNodeType::SPAWN), expression(std::move(expression)) {}
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "Fork:" << std::endl;
+    std::cout << "Spawn:" << std::endl;
     expression->print(1 + depth);
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<ForkNode>(expression->clone());
+    return std::make_unique<SpawnNode>(expression->clone());
   }
 };
 

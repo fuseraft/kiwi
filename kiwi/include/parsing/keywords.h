@@ -245,12 +245,14 @@ struct {
   const k_string Else = "else";
   const k_string ElseIf = "elsif";
   const k_string End = "end";
+  const k_string EPrint = "eprint";
+  const k_string EPrintLn = "eprintln";
   const k_string Exit = "exit";
   const k_string Export = "export";
   const k_string False = "false";
   const k_string Finally = "finally";
   const k_string For = "for";
-  const k_string Fork = "fork";
+  const k_string Spawn = "spawn";
   const k_string Function = "fn";
   const k_string Global = "global";
   const k_string Go = "go";
@@ -282,12 +284,13 @@ struct {
   const k_string While = "while";
 
   std::unordered_set<k_string> keywords = {
-      Abstract, As,     Break,    Case,    Catch,   Class,    Do,
-      Else,     ElseIf, End,      Exit,    Export,  False,    Finally,
-      For,      Fork,   Function, If,      Import,  In,       Interface,
-      With,     Method, Package,  Next,    Null,    Override, Parse,
-      Pass,     Print,  PrintLn,  PrintXy, Private, Repeat,   Return,
-      Static,   This,   Throw,    True,    Try,     When,     While};
+      Abstract,  As,     Break,  Case,     Catch,   Class,   Do,
+      Else,      ElseIf, End,    EPrintLn, Exit,    Export,  False,
+      Finally,   For,    Spawn,  Function, If,      Import,  In,
+      Interface, With,   Method, Package,  Next,    Null,    Override,
+      Parse,     Pass,   Print,  PrintLn,  PrintXy, Private, Repeat,
+      Return,    Static, This,   Throw,    True,    Try,     When,
+      While};
 
   std::unordered_set<k_string> conditional_keywords = {If, Else, ElseIf, End,
                                                        Case};
