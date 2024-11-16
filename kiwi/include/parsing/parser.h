@@ -35,7 +35,7 @@ class Parser {
   std::unique_ptr<ASTNode> parseLambdaCall(std::unique_ptr<ASTNode> lambdaNode);
   std::unique_ptr<ASTNode> parseKeyword();
   std::unique_ptr<ASTNode> parseSpawn();
-  std::unique_ptr<ASTNode> parseClass();
+  std::unique_ptr<ASTNode> parseStruct();
   std::unique_ptr<ASTNode> parseInterface();
   std::unique_ptr<ASTNode> parseLambda();
   std::unique_ptr<ASTNode> parseStatement();
@@ -384,8 +384,8 @@ std::unique_ptr<ASTNode> Parser::parseKeyword() {
     case KName::KW_Export:
       return parseExport();
 
-    case KName::KW_Class:
-      return parseClass();
+    case KName::KW_Struct:
+      return parseStruct();
 
     case KName::KW_Interface:
       return parseInterface();
@@ -460,17 +460,17 @@ std::unique_ptr<ASTNode> Parser::parseSpawn() {
   return std::make_unique<SpawnNode>(std::move(spawned));
 }
 
-std::unique_ptr<ASTNode> Parser::parseClass() {
-  matchSubType(KName::KW_Class);
+std::unique_ptr<ASTNode> Parser::parseStruct() {
+  matchSubType(KName::KW_Struct);
 
   if (tokenType() != KTokenType::IDENTIFIER) {
     throw SyntaxError(getErrorToken(), "Expected identifier for struct name.");
   }
 
-  auto className = kToken.getText();
+  auto structName = kToken.getText();
   next();
 
-  k_string baseClass;
+  k_string baseStruct;
 
   // Extends
   if (matchSubType(KName::Ops_LessThan)) {
@@ -479,7 +479,7 @@ std::unique_ptr<ASTNode> Parser::parseClass() {
                         "Expected identifier for base struct name.");
     }
 
-    baseClass = kToken.getText();
+    baseStruct = kToken.getText();
     next();
   }
 
@@ -522,7 +522,7 @@ std::unique_ptr<ASTNode> Parser::parseClass() {
   next();  // Consume 'end'
 
   return std::make_unique<StructNode>(
-      className, baseClass, std::move(interfaces), std::move(methods));
+      structName, baseStruct, std::move(interfaces), std::move(methods));
 }
 
 std::unique_ptr<ASTNode> Parser::parseInterface() {

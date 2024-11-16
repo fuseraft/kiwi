@@ -492,9 +492,9 @@ class CoreBuiltinHandler {
   //   auto memberHash = std::make_shared<Hashmap>();
   //   auto obj = std::get<k_object>(value);
   //   auto& instanceVariables = obj->instanceVariables;
-  //   auto clazz = classes[obj->className];
+  //   auto struc = structs[obj->structName];
 
-  //   for (const auto& method : clazz.getMethods()) {
+  //   for (const auto& method : struc.getMethods()) {
   //     memberHash->add(method.first, {});
   //   }
 
@@ -1054,10 +1054,10 @@ class CoreBuiltinHandler {
     // if (!TypeNames.is_typename(typeName)) {
     //   if (std::holds_alternative<k_object>(value)) {
     //     const auto& obj = std::get<k_object>(value);
-    //     const auto& className = obj->className;
+    //     const auto& structName = obj->structName;
 
-    //     return same_value(className, typeName) ||
-    //            same_value(classes.at(className).getBaseClassName(), typeName);
+    //     return same_value(structName, typeName) ||
+    //            same_value(structs.at(structName).getBaseClassName(), typeName);
     //   }
     //   throw InvalidTypeNameError(token, typeName);
     // }
