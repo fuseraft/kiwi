@@ -101,6 +101,8 @@ int KiwiCLI::run(std::vector<k_string>& v) {
         }
 
         help = true;
+      } else if (String::isCLIFlag(v.at(i), "ns", "no-stdlib")) {
+        host.disableLibraryLoad();
       } else if (File::isScript(cliToken, v.at(i))) {
         host.registerScript(v.at(i));
       } else if (String::isOptionKVP(v.at(i))) {
@@ -242,26 +244,12 @@ int KiwiCLI::printHelp() {
       {"-n, --new <file_path>", "create a `.🥝` file"},
       {"-p, --parse <kiwi_code>", "parse kiwi code as an argument"},
       {"-s, --safemode", "run in safemode"},
-      {"-a, --ast <input_file_path>",
-       "print abstract syntax tree of `.🥝` file"},
+      {"-ns, --no-stdlib", "run without standard library"},
+      {"-a, --ast <input_file_path>", "print syntax tree of `.🥝` file"},
       {"-m, --minify <input_file_path>", "create a `.min.🥝` file"},
       {"-t, --tokenize <input_file_path>",
-       "tokenize a file with the kiwi lexer"},
+       "tokenize a file with the lexer"},
       {"-X<key>=<value>", "specify an argument as a key-value pair"}};
-
-#ifdef _WIN64
-  commands = {
-      {"-h, --help", "print this message"},
-      {"-v, --version", "print the current version"},
-      {"-n, --new <filename>", "create a `.kiwi` file"},
-      {"-p, --parse <kiwi_code>", "parse code"},
-      {"-s, --safemode", "run in safemode"},
-      {"-a, --ast <input_file_path>",
-       "print abstract syntax tree of `.kiwi` file"},
-      {"-m, --minify <input_file_path>", "create a `.min.kiwi` file"},
-      {"-t, --tokenize <input_file_path>", "tokenize a file as kiwi code"},
-      {"-X<key>=<value>", "specify an argument as a key-value pair"}};
-#endif
 
   printVersion();
 
