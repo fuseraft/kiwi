@@ -373,6 +373,7 @@ std::unique_ptr<ASTNode> Parser::parseKeyword() {
       return parseBreak();
 
     case KName::KW_Pass:
+      next();
       return std::make_unique<NoOpNode>();
 
     case KName::KW_Package:
