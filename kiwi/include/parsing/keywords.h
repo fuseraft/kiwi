@@ -50,12 +50,8 @@ struct {
   const k_string BitwiseUnsignedRightShift = ">>>";
   const k_string BitwiseUnsignedRightShiftAssign = ">>>=";
 
-  std::unordered_set<k_string> large_operators = {Exponent,
-                                                  Or,
-                                                  And,
-                                                  BitwiseLeftShift,
-                                                  BitwiseRightShift,
-                                                  BitwiseUnsignedRightShift};
+  std::unordered_set<k_string> large_operators = {
+      Exponent, Or, And, BitwiseLeftShift, BitwiseRightShift};
 
   std::unordered_set<char> arithmetic_operator_chars = {'+', '-', '/', '*',
                                                         '%'};
@@ -242,19 +238,20 @@ struct {
   const k_string Break = "break";
   const k_string Case = "case";
   const k_string Catch = "catch";
-  const k_string Class = "struct";
   const k_string Ctor = "new";
   const k_string Do = "do";
   const k_string Each = "each";
   const k_string Else = "else";
   const k_string ElseIf = "elsif";
   const k_string End = "end";
+  const k_string EPrint = "eprint";
+  const k_string EPrintLn = "eprintln";
   const k_string Exit = "exit";
   const k_string Export = "export";
   const k_string False = "false";
   const k_string Finally = "finally";
   const k_string For = "for";
-  const k_string Fork = "fork";
+  const k_string Spawn = "spawn";
   const k_string Function = "fn";
   const k_string Global = "global";
   const k_string Go = "go";
@@ -277,6 +274,7 @@ struct {
   const k_string Repeat = "repeat";
   const k_string Return = "return";
   const k_string Static = "static";
+  const k_string Struct = "struct";
   const k_string This = "@";
   const k_string Throw = "throw";
   const k_string True = "true";
@@ -286,20 +284,21 @@ struct {
   const k_string While = "while";
 
   std::unordered_set<k_string> keywords = {
-      Abstract, As,     Break,    Case,    Catch,   Class,    Do,
-      Else,     ElseIf, End,      Exit,    Export,  False,    Finally,
-      For,      Fork,   Function, If,      Import,  In,       Interface,
-      With,     Method, Package,  Next,    Null,    Override, Parse,
-      Pass,     Print,  PrintLn,  PrintXy, Private, Repeat,   Return,
-      Static,   This,   Throw,    True,    Try,     When,     While};
+      Abstract,  As,     Break,  Case,     Catch,   Struct,  Do,
+      Else,      ElseIf, End,    EPrintLn, Exit,    Export,  False,
+      Finally,   For,    Spawn,  Function, If,      Import,  In,
+      Interface, With,   Method, Package,  Next,    Null,    Override,
+      Parse,     Pass,   Print,  PrintLn,  PrintXy, Private, Repeat,
+      Return,    Static, This,   Throw,    True,    Try,     When,
+      While};
 
   std::unordered_set<k_string> conditional_keywords = {If, Else, ElseIf, End,
                                                        Case};
 
   std::unordered_set<KName> block_keywords = {
-      KName::KW_While, KName::KW_For,     KName::KW_Method,
-      KName::KW_If,    KName::KW_Package, KName::KW_Try,
-      KName::KW_Class, KName::KW_Lambda,  KName::KW_Repeat};
+      KName::KW_While,  KName::KW_For,     KName::KW_Method,
+      KName::KW_If,     KName::KW_Package, KName::KW_Try,
+      KName::KW_Struct, KName::KW_Lambda,  KName::KW_Repeat};
 
   bool is_keyword(const k_string& arg) {
     return keywords.find(arg) != keywords.end();
@@ -346,8 +345,9 @@ struct {
   const k_string LowAny = "any";
 
   std::unordered_set<k_string> typenames = {
-      Integer, Float, Boolean, String, List, Hashmap, Object, Lambda, None, Any,
-      LowInteger, LowFloat, LowBoolean, LowString, LowList, LowHash, LowObject, LowLambda, LowNone, LowAny };
+      Integer, Float,   Boolean,   String,     List,     Hashmap,    Object,
+      Lambda,  None,    Any,       LowInteger, LowFloat, LowBoolean, LowString,
+      LowList, LowHash, LowObject, LowLambda,  LowNone,  LowAny};
 
   bool is_typename(const k_string& arg) {
     return typenames.find(arg) != typenames.end();

@@ -18,11 +18,11 @@ enum class ASTNodeType {
   BREAK,
   CASE,
   CASE_WHEN,
-  CLASS,
+  STRUCT,
   EXIT,
   EXPORT,  // obsolete
   FOR_LOOP,
-  FORK,
+  SPAWN,
   FUNCTION_CALL,
   FUNCTION,
   HASH_LITERAL,
@@ -106,29 +106,29 @@ class ProgramNode : public ASTNode {
   }
 };
 
-class ClassNode : public ASTNode {
+class StructNode : public ASTNode {
  public:
   k_string name;
-  k_string baseClass;
+  k_string baseStruct;
   std::vector<k_string> interfaces;
   std::vector<std::unique_ptr<ASTNode>> methods;
 
-  ClassNode() : ASTNode(ASTNodeType::CLASS) {}
-  ClassNode(const k_string& name, const k_string& baseClass,
-            std::vector<k_string> interfaces,
-            std::vector<std::unique_ptr<ASTNode>> methods)
-      : ASTNode(ASTNodeType::CLASS),
+  StructNode() : ASTNode(ASTNodeType::STRUCT) {}
+  StructNode(const k_string& name, const k_string& baseStruct,
+             std::vector<k_string> interfaces,
+             std::vector<std::unique_ptr<ASTNode>> methods)
+      : ASTNode(ASTNodeType::STRUCT),
         name(name),
-        baseClass(baseClass),
+        baseStruct(baseStruct),
         interfaces(std::move(interfaces)),
         methods(std::move(methods)) {}
 
   void print(int depth) const override {
     print_depth(depth);
     std::cout << "Struct: " << name << std::endl;
-    if (!baseClass.empty()) {
+    if (!baseStruct.empty()) {
       print_depth(1 + depth);
-      std::cout << "Base: " << baseClass << std::endl;
+      std::cout << "Base: " << baseStruct << std::endl;
     }
     if (!interfaces.empty()) {
       print_depth(1 + depth);
@@ -154,8 +154,8 @@ class ClassNode : public ASTNode {
       clonedMethods.push_back(method->clone());
     }
 
-    return std::make_unique<ClassNode>(name, baseClass, interfaces,
-                                       std::move(clonedMethods));
+    return std::make_unique<StructNode>(name, baseStruct, interfaces,
+                                        std::move(clonedMethods));
   }
 };
 
@@ -717,21 +717,30 @@ class PrintNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> expression;  // Expression to print
   bool printNewline;                    // Flag for printing a newline
+  bool printStdError;                   // Flag for printing to stderr
 
   PrintNode() : ASTNode(ASTNodeType::PRINT) {}
-  PrintNode(std::unique_ptr<ASTNode> expression, bool printNewline)
+  PrintNode(std::unique_ptr<ASTNode> expression, bool printNewline,
+            bool printStdError)
       : ASTNode(ASTNodeType::PRINT),
         expression(std::move(expression)),
-        printNewline(printNewline) {}
+        printNewline(printNewline),
+        printStdError(printStdError) {}
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << (printNewline ? "Print line:" : "Print:") << std::endl;
+    if (printStdError) {
+      std::cout << (printNewline ? "Print error line:" : "Print error:")
+                << std::endl;
+    } else {
+      std::cout << (printNewline ? "Print line:" : "Print:") << std::endl;
+    }
     expression->print(1 + depth);
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<PrintNode>(expression->clone(), printNewline);
+    return std::make_unique<PrintNode>(expression->clone(), printNewline,
+                                       printStdError);
   }
 };
 
@@ -1585,22 +1594,22 @@ class MemberAssignmentNode : public ASTNode {
   }
 };
 
-class ForkNode : public ASTNode {
+class SpawnNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> expression;
 
-  ForkNode() : ASTNode(ASTNodeType::FORK) {}
-  ForkNode(std::unique_ptr<ASTNode> expression)
-      : ASTNode(ASTNodeType::FORK), expression(std::move(expression)) {}
+  SpawnNode() : ASTNode(ASTNodeType::SPAWN) {}
+  SpawnNode(std::unique_ptr<ASTNode> expression)
+      : ASTNode(ASTNodeType::SPAWN), expression(std::move(expression)) {}
 
   void print(int depth) const override {
     print_depth(depth);
-    std::cout << "Fork:" << std::endl;
+    std::cout << "Spawn:" << std::endl;
     expression->print(1 + depth);
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<ForkNode>(expression->clone());
+    return std::make_unique<SpawnNode>(expression->clone());
   }
 };
 
@@ -1709,16 +1718,16 @@ class KLambda : public KCallable {
   }
 };
 
-class KClass {
+class KStruct {
  public:
   k_string name;
-  k_string baseClass;
+  k_string baseStruct;
   std::unordered_map<k_string, std::unique_ptr<KFunction>> methods;
 
-  std::unique_ptr<KClass> clone() const {
-    auto cloned = std::make_unique<KClass>();
+  std::unique_ptr<KStruct> clone() const {
+    auto cloned = std::make_unique<KStruct>();
     cloned->name = name;
-    cloned->baseClass = baseClass;
+    cloned->baseStruct = baseStruct;
 
     for (const auto& [methodName, methodPtr] : methods) {
       cloned->methods[methodName] = std::unique_ptr<KFunction>(

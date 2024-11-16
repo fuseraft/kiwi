@@ -145,7 +145,7 @@ class TimeBuiltinHandler {
     }
 
     auto dateValue = std::get<k_object>(date);
-    if (dateValue->className != "DateTime") {
+    if (dateValue->structName != "DateTime") {
       throw InvalidOperationError(token, "Expected a `DateTime` object.");
     }
 

@@ -24,7 +24,7 @@ class KContext {
   std::unordered_map<k_string, std::unique_ptr<KFunction>> functions;
   std::unordered_map<k_string, std::unique_ptr<KFunction>> methods;
   std::unordered_map<k_string, std::unique_ptr<KLambda>> lambdas;
-  std::unordered_map<k_string, std::unique_ptr<KClass>> classes;
+  std::unordered_map<k_string, std::unique_ptr<KStruct>> structs;
   std::unordered_map<k_string, k_string> lambdaTable;
   httplib::Server server;
   std::unordered_map<int, k_string> serverHooks;
@@ -35,7 +35,7 @@ class KContext {
         functions(),
         methods(),
         lambdas(),
-        classes(),
+        structs(),
         lambdaTable(),
         server(),
         serverHooks() {}
@@ -59,8 +59,8 @@ class KContext {
       cloned->addLambda(pair.first, pair.second->clone());
     }
 
-    for (const auto& pair : classes) {
-      cloned->addClass(pair.first, pair.second->clone());
+    for (const auto& pair : structs) {
+      cloned->addStruct(pair.first, pair.second->clone());
     }
 
     cloned->lambdaTable = lambdaTable;
@@ -117,17 +117,17 @@ class KContext {
     return lambdas;
   }
 
-  bool hasClass(const k_string& name) const {
-    return classes.find(name) != classes.end();
+  bool hasStruct(const k_string& name) const {
+    return structs.find(name) != structs.end();
   }
 
-  void addClass(const k_string& name, std::unique_ptr<KClass> clazz) {
-    classes[name] = std::move(clazz);
+  void addStruct(const k_string& name, std::unique_ptr<KStruct> struc) {
+    structs[name] = std::move(struc);
   }
 
-  const std::unordered_map<k_string, std::unique_ptr<KClass>>& getClasses()
+  const std::unordered_map<k_string, std::unique_ptr<KStruct>>& getStructs()
       const {
-    return classes;
+    return structs;
   }
 
   bool hasMappedLambda(const k_string& name) const {
@@ -172,7 +172,7 @@ class KInterpreter {
   TaskManager taskmgr;
   std::stack<std::shared_ptr<CallStackFrame>> callStack;
   std::stack<k_string> packageStack;
-  std::stack<k_string> classStack;
+  std::stack<k_string> structStack;
   const int SAFEMODE_MAX_ITERATIONS = 1000000;
 
   k_value visit(const ProgramNode* node);
@@ -202,7 +202,7 @@ class KInterpreter {
   k_value visit(const TryNode* node);
   k_value visit(const LambdaNode* node);
   k_value visit(const LambdaCallNode* node);
-  k_value visit(const ClassNode* node);
+  k_value visit(const StructNode* node);
   k_value visit(const FunctionDeclarationNode* node);
   k_value visit(const FunctionCallNode* node);
   k_value visit(const MethodCallNode* node);
@@ -215,7 +215,7 @@ class KInterpreter {
   k_value visit(const ReturnNode* node);
   k_value visit(const IndexingNode* node);
   k_value visit(const SliceNode* node);
-  k_value visit(const ForkNode* node);
+  k_value visit(const SpawnNode* node);
 
   std::shared_ptr<CallStackFrame> createFrame(bool isMethodInvocation);
   void dropFrame();
@@ -230,15 +230,22 @@ class KInterpreter {
   std::vector<k_value> getMethodCallArguments(
       const std::vector<std::unique_ptr<ASTNode>>& args);
   k_value callBuiltinMethod(const FunctionCallNode* node);
-  k_value callClassMethod(const MethodCallNode* node, const k_class& clazz);
+  k_value callStructMethod(const MethodCallNode* node, const k_struct& struc);
   k_value callObjectBaseMethod(const MethodCallNode* node,
                                const std::shared_ptr<Object>& obj,
-                               const k_string& baseClass,
+                               const k_string& baseStruct,
                                const k_string& methodName);
   k_value callObjectMethod(const MethodCallNode* node,
                            const std::shared_ptr<Object>& obj);
   k_value callLambda(const Token& token, const k_string& lambdaName,
                      const std::vector<std::unique_ptr<ASTNode>>& arguments);
+  void prepareLambdaCall(const std::unique_ptr<KLambda>& func,
+                         const std::vector<std::unique_ptr<ASTNode>>& arguments,
+                         std::unordered_set<k_string>& defaultParameters,
+                         const Token& token, k_string& targetLambda,
+                         const std::unordered_map<k_string, KName>& typeHints,
+                         const k_string& lambdaName,
+                         std::shared_ptr<CallStackFrame>& lambdaFrame);
   k_value callFunction(const std::unique_ptr<KFunction>& function,
                        const std::vector<std::unique_ptr<ASTNode>>& arguments,
                        const Token& token, const k_string& functionName);
@@ -246,14 +253,19 @@ class KInterpreter {
   std::unique_ptr<KFunction> createFunction(const FunctionDeclarationNode* node,
                                             const k_string& name);
 
-  k_value executeClassMethod(
+  k_value executeStructMethod(
       std::unordered_map<k_string, std::unique_ptr<KFunction>>& methods,
       k_string& methodName, std::shared_ptr<CallStackFrame>& frame,
-      const MethodCallNode* node, const k_class& clazz);
+      const MethodCallNode* node, const k_struct& struc);
   k_value executeInstanceMethod(const FunctionCallNode* node);
   k_value executeInstanceMethodFunction(
-      std::unordered_map<k_string, std::unique_ptr<KFunction>>& clazzMethods,
+      std::unordered_map<k_string, std::unique_ptr<KFunction>>& strucMethods,
       const FunctionCallNode* node);
+  void prepareFunctionCall(const std::unique_ptr<KFunction>& func,
+                           const FunctionCallNode* node,
+                           std::unordered_set<k_string>& defaultParameters,
+                           const std::unordered_map<k_string, KName>& typeHints,
+                           std::shared_ptr<CallStackFrame>& functionFrame);
   k_value executeFunctionBody(const std::unique_ptr<KFunction>& function);
 
   k_value doSliceAssignment(const Token& token, k_value& slicedObj,
@@ -350,8 +362,8 @@ k_value KInterpreter::interpret(const ASTNode* node) {
     case ASTNodeType::PACKAGE:
       return visit(static_cast<const PackageNode*>(node));
 
-    case ASTNodeType::CLASS:
-      return visit(static_cast<const ClassNode*>(node));
+    case ASTNodeType::STRUCT:
+      return visit(static_cast<const StructNode*>(node));
 
     case ASTNodeType::IMPORT:
       return visit(static_cast<const ImportNode*>(node));
@@ -464,8 +476,8 @@ k_value KInterpreter::interpret(const ASTNode* node) {
     case ASTNodeType::NO_OP:
       break;
 
-    case ASTNodeType::FORK:
-      return visit(static_cast<const ForkNode*>(node));
+    case ASTNodeType::SPAWN:
+      return visit(static_cast<const SpawnNode*>(node));
 
     default:
       node->print();
@@ -532,7 +544,7 @@ k_string KInterpreter::id(const ASTNode* node) {
   return static_cast<const IdentifierNode*>(node)->name;
 }
 
-k_value KInterpreter::visit(const ForkNode* node) {
+k_value KInterpreter::visit(const SpawnNode* node) {
   auto frame = std::make_shared<CallStackFrame>();
   auto top = callStack.top();
 
@@ -540,21 +552,22 @@ k_value KInterpreter::visit(const ForkNode* node) {
     frame->variables[var.first] = clone_value(var.second);
   }
 
-  auto fork = node->expression->clone();
+  auto taskExpr = node->expression->clone();
 
   auto interp = std::make_shared<KInterpreter>();
   interp->setContext(ctx->clone());
   interp->callStack.push(frame);
 
-  TaskManager::TaskFunction task([interp, frame, fork = std::move(fork)]() {
-    auto result = interp->interpret(fork.get());
+  TaskManager::TaskFunction task(
+      [interp, frame, taskExpr = std::move(taskExpr)]() {
+        auto result = interp->interpret(taskExpr.get());
 
-    if (frame->isFlagSet(FrameFlags::Return)) {
-      result = frame->returnValue;
-    }
+        if (frame->isFlagSet(FrameFlags::Return)) {
+          result = frame->returnValue;
+        }
 
-    return result;
-  });
+        return result;
+      });
 
   auto taskId = taskmgr.addTask(std::move(task));
 
@@ -1181,8 +1194,8 @@ k_value KInterpreter::visit(const IdentifierNode* node) {
 
   if (frame->hasVariable(node->name)) {
     return frame->variables[node->name];
-  } else if (ctx->hasClass(node->name)) {
-    return std::make_shared<ClassRef>(node->name);
+  } else if (ctx->hasStruct(node->name)) {
+    return std::make_shared<StructRef>(node->name);
   } else if (ctx->hasLambda(node->name)) {
     return std::make_shared<LambdaRef>(node->name);
   } else if (ctx->hasMappedLambda(node->name)) {
@@ -1258,10 +1271,21 @@ k_value KInterpreter::visit(const HashLiteralNode* node) {
 
 k_value KInterpreter::visit(const PrintNode* node) {
   auto value = interpret(node->expression.get());
-  if (node->printNewline) {
-    std::cout << Serializer::serialize(value) << std::endl;
+  auto serializedValue = Serializer::serialize(value);
+  auto printNewLine = node->printNewline;
+
+  if (node->printStdError) {
+    if (printNewLine) {
+      std::cerr << serializedValue << std::endl;
+    } else {
+      std::cerr << serializedValue << std::flush;
+    }
   } else {
-    std::cout << Serializer::serialize(value) << std::flush;
+    if (printNewLine) {
+      std::cout << serializedValue << std::endl;
+    } else {
+      std::cout << serializedValue << std::flush;
+    }
   }
 
   return {};
@@ -1887,19 +1911,19 @@ k_value KInterpreter::visit(const LambdaNode* node) {
   return std::make_shared<LambdaRef>(tmpId);
 }
 
-k_value KInterpreter::visit(const ClassNode* node) {
-  auto className = node->name;
-  auto clazz = std::make_unique<KClass>();
-  clazz->name = className;
+k_value KInterpreter::visit(const StructNode* node) {
+  auto structName = node->name;
+  auto struc = std::make_unique<KStruct>();
+  struc->name = structName;
 
-  if (!node->baseClass.empty()) {
-    clazz->baseClass = node->baseClass;
-    if (!ctx->hasClass(clazz->baseClass)) {
-      throw ClassUndefinedError(node->token, clazz->baseClass);
+  if (!node->baseStruct.empty()) {
+    struc->baseStruct = node->baseStruct;
+    if (!ctx->hasStruct(struc->baseStruct)) {
+      throw StructUndefinedError(node->token, struc->baseStruct);
     }
   }
 
-  classStack.push(className);
+  structStack.push(structName);
 
   for (const auto& method : node->methods) {
     auto funcDecl = static_cast<const FunctionDeclarationNode*>(method.get());
@@ -1907,15 +1931,15 @@ k_value KInterpreter::visit(const ClassNode* node) {
     visit(funcDecl);
 
     if (methodName == Keywords.Ctor) {
-      clazz->methods[Keywords.New] =
+      struc->methods[Keywords.New] =
           std::move(ctx->getMethods().at(methodName));
     } else {
-      clazz->methods[methodName] = std::move(ctx->getMethods().at(methodName));
+      struc->methods[methodName] = std::move(ctx->getMethods().at(methodName));
     }
   }
 
-  ctx->addClass(className, std::move(clazz));
-  classStack.pop();
+  ctx->addStruct(structName, std::move(struc));
+  structStack.pop();
   ctx->getMethods().clear();
 
   return {};
@@ -1928,7 +1952,7 @@ k_value KInterpreter::visit(const FunctionDeclarationNode* node) {
     name = packageStack.top() + "::" + name;
   }
 
-  if (!classStack.empty()) {
+  if (!structStack.empty()) {
     ctx->addMethod(name, createFunction(node, name));
   } else {
     ctx->addFunction(name, createFunction(node, name));
@@ -1991,33 +2015,33 @@ k_value KInterpreter::executeInstanceMethod(const FunctionCallNode* node) {
   }
 
   auto& obj = frame->getObjectContext();
-  auto& clazz = ctx->getClasses().at(obj->className);
-  auto& clazzMethods = clazz->methods;
+  auto& struc = ctx->getStructs().at(obj->structName);
+  auto& strucMethods = struc->methods;
   const auto functionName = node->functionName;
 
-  if (clazzMethods.find(functionName) == clazzMethods.end()) {
+  if (strucMethods.find(functionName) == strucMethods.end()) {
     // check the base
-    if (clazz->baseClass.empty()) {
-      throw UnimplementedMethodError(node->token, clazz->name, functionName);
+    if (struc->baseStruct.empty()) {
+      throw UnimplementedMethodError(node->token, struc->name, functionName);
     }
 
-    auto& baseClass = ctx->getClasses().at(clazz->baseClass);
-    auto& baseClassMethods = baseClass->methods;
+    auto& baseStruct = ctx->getStructs().at(struc->baseStruct);
+    auto& baseStructMethods = baseStruct->methods;
 
-    if (baseClassMethods.find(functionName) == baseClassMethods.end()) {
-      throw UnimplementedMethodError(node->token, clazz->name, functionName);
+    if (baseStructMethods.find(functionName) == baseStructMethods.end()) {
+      throw UnimplementedMethodError(node->token, struc->name, functionName);
     }
 
-    return executeInstanceMethodFunction(baseClassMethods, node);
+    return executeInstanceMethodFunction(baseStructMethods, node);
   }
 
-  return executeInstanceMethodFunction(clazzMethods, node);
+  return executeInstanceMethodFunction(strucMethods, node);
 }
 
 k_value KInterpreter::executeInstanceMethodFunction(
-    std::unordered_map<k_string, std::unique_ptr<KFunction>>& clazzMethods,
+    std::unordered_map<k_string, std::unique_ptr<KFunction>>& strucMethods,
     const FunctionCallNode* node) {
-  const auto& func = clazzMethods[node->functionName];
+  const auto& func = strucMethods[node->functionName];
   auto defaultParameters = func->defaultParameters;
   auto functionFrame = createFrame();
   k_value result = {};
@@ -2025,6 +2049,35 @@ k_value KInterpreter::executeInstanceMethodFunction(
   const auto& typeHints = func->typeHints;
   const auto& returnTypeHint = func->returnTypeHint;
 
+  prepareFunctionCall(func, node, defaultParameters, typeHints, functionFrame);
+
+  callStack.push(functionFrame);
+
+  const auto& decl = func->getBody();
+  for (const auto& stmt : decl) {
+    result = interpret(stmt.get());
+    if (functionFrame->isFlagSet(FrameFlags::Return)) {
+      result = functionFrame->returnValue;
+      break;
+    }
+  }
+
+  if (!Serializer::assert_typematch(result, returnTypeHint)) {
+    throw TypeError(
+        node->token,
+        "Expected type `" + Serializer::get_typename_string(returnTypeHint) +
+            "` for return type of `" + node->functionName + "` but received `" +
+            Serializer::get_value_type_string(result) + ".");
+  }
+
+  return result;
+}
+
+void KInterpreter::prepareFunctionCall(
+    const std::unique_ptr<KFunction>& func, const FunctionCallNode* node,
+    std::unordered_set<k_string>& defaultParameters,
+    const std::unordered_map<k_string, KName>& typeHints,
+    std::shared_ptr<CallStackFrame>& functionFrame) {
   for (size_t i = 0; i < func->parameters.size(); ++i) {
     const auto& param = func->parameters[i];
     k_value argValue = {};
@@ -2056,31 +2109,14 @@ k_value KInterpreter::executeInstanceMethodFunction(
       functionFrame->variables[param.first] = argValue;
     }
   }
-
-  callStack.push(functionFrame);
-
-  const auto& decl = func->getBody();
-  for (const auto& stmt : decl) {
-    result = interpret(stmt.get());
-    if (functionFrame->isFlagSet(FrameFlags::Return)) {
-      result = functionFrame->returnValue;
-      break;
-    }
-  }
-
-  if (!Serializer::assert_typematch(result, returnTypeHint)) {
-    throw TypeError(
-        node->token,
-        "Expected type `" + Serializer::get_typename_string(returnTypeHint) +
-            "` for return type of `" + node->functionName + "` but received `" +
-            Serializer::get_value_type_string(result) + ".");
-  }
-
-  return result;
 }
 
 k_value KInterpreter::visit(const FunctionCallNode* node) {
   k_value result;
+
+  if (node->functionName == "foo::bar") {
+    std::cout << "";
+  }
 
   auto callableType = getCallable(node->token, node->functionName);
 
@@ -2098,39 +2134,8 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
       const auto& typeHints = func->typeHints;
       const auto& returnTypeHint = func->returnTypeHint;
 
-      for (size_t i = 0; i < func->parameters.size(); ++i) {
-        const auto& param = func->parameters[i];
-        k_value argValue = {};
-        if (i < node->arguments.size()) {
-          const auto& arg = node->arguments[i];
-          argValue = interpret(arg.get());
-        } else if (defaultParameters.find(param.first) !=
-                   defaultParameters.end()) {
-          argValue = param.second;
-        } else {
-          throw ParameterCountMismatchError(node->token, node->functionName);
-        }
-
-        if (typeHints.find(param.first) != typeHints.end()) {
-          auto expectedType = typeHints.at(param.first);
-          if (!Serializer::assert_typematch(argValue, expectedType)) {
-            throw TypeError(
-                node->token,
-                "Expected type `" +
-                    Serializer::get_typename_string(expectedType) +
-                    "` for parameter " + std::to_string(1 + i) + " of `" +
-                    node->functionName + "` but received `" +
-                    Serializer::get_value_type_string(argValue) + "`.");
-          }
-        }
-
-        if (std::holds_alternative<k_lambda>(argValue)) {
-          auto lambdaId = std::get<k_lambda>(argValue)->identifier;
-          ctx->addMappedLambda(param.first, lambdaId);
-        } else {
-          functionFrame->variables[param.first] = argValue;
-        }
-      }
+      prepareFunctionCall(func, node, defaultParameters, typeHints,
+                          functionFrame);
 
       callStack.push(functionFrame);
 
@@ -2182,6 +2187,39 @@ k_value KInterpreter::callLambda(
   const auto& typeHints = func->typeHints;
   const auto& returnTypeHint = func->returnTypeHint;
 
+  prepareLambdaCall(func, arguments, defaultParameters, token, targetLambda,
+                    typeHints, lambdaName, lambdaFrame);
+
+  lambdaFrame->setFlag(FrameFlags::InLambda);
+  callStack.push(lambdaFrame);
+
+  const auto& decl = func->getBody();
+  for (const auto& stmt : decl) {
+    result = interpret(stmt.get());
+    if (lambdaFrame->isFlagSet(FrameFlags::Return)) {
+      result = lambdaFrame->returnValue;
+      break;
+    }
+  }
+
+  if (!Serializer::assert_typematch(result, returnTypeHint)) {
+    throw TypeError(
+        token, "Expected type `" +
+                   Serializer::get_typename_string(returnTypeHint) +
+                   "` for return type of `" + lambdaName + "` but received `" +
+                   Serializer::get_value_type_string(result) + "`.");
+  }
+
+  return result;
+}
+
+void KInterpreter::prepareLambdaCall(
+    const std::unique_ptr<KLambda>& func,
+    const std::vector<std::unique_ptr<ASTNode>>& arguments,
+    std::unordered_set<k_string>& defaultParameters, const Token& token,
+    k_string& targetLambda,
+    const std::unordered_map<k_string, KName>& typeHints,
+    const k_string& lambdaName, std::shared_ptr<CallStackFrame>& lambdaFrame) {
   for (size_t i = 0; i < func->parameters.size(); ++i) {
     const auto& param = func->parameters[i];
     k_value argValue = {};
@@ -2213,28 +2251,6 @@ k_value KInterpreter::callLambda(
       lambdaFrame->variables[param.first] = argValue;
     }
   }
-
-  lambdaFrame->setFlag(FrameFlags::InLambda);
-  callStack.push(lambdaFrame);
-
-  const auto& decl = func->getBody();
-  for (const auto& stmt : decl) {
-    result = interpret(stmt.get());
-    if (lambdaFrame->isFlagSet(FrameFlags::Return)) {
-      result = lambdaFrame->returnValue;
-      break;
-    }
-  }
-
-  if (!Serializer::assert_typematch(result, returnTypeHint)) {
-    throw TypeError(
-        token, "Expected type `" +
-                   Serializer::get_typename_string(returnTypeHint) +
-                   "` for return type of `" + lambdaName + "` but received `" +
-                   Serializer::get_value_type_string(result) + "`.");
-  }
-
-  return result;
 }
 
 KCallableType KInterpreter::getCallable(const Token& token,
@@ -2255,24 +2271,24 @@ KCallableType KInterpreter::getCallable(const Token& token,
 
   if (frame->inObjectContext()) {
     auto& obj = frame->getObjectContext();
-    auto& clazz = ctx->getClasses().at(obj->className);
-    auto& clazzMethods = clazz->methods;
+    auto& struc = ctx->getStructs().at(obj->structName);
+    auto& strucMethods = struc->methods;
 
-    if (clazzMethods.find(name) != clazzMethods.end()) {
+    if (strucMethods.find(name) != strucMethods.end()) {
       return KCallableType::Method;
     }
 
     // check the base
-    if (!clazz->baseClass.empty()) {
-      auto& baseClass = ctx->getClasses().at(clazz->baseClass);
-      auto& baseClassMethods = baseClass->methods;
+    if (!struc->baseStruct.empty()) {
+      auto& baseStruct = ctx->getStructs().at(struc->baseStruct);
+      auto& baseStructMethods = baseStruct->methods;
 
-      if (baseClassMethods.find(name) != baseClassMethods.end()) {
+      if (baseStructMethods.find(name) != baseStructMethods.end()) {
         return KCallableType::Method;
       }
     }
 
-    throw UnimplementedMethodError(token, clazz->name, name);
+    throw UnimplementedMethodError(token, struc->name, name);
   }
 
   throw FunctionUndefinedError(token, name);
@@ -2285,6 +2301,9 @@ k_value KInterpreter::callFunction(
   auto defaultParameters = function->defaultParameters;
   auto functionFrame = createFrame();
 
+  const auto& typeHints = function->typeHints;
+  const auto& returnTypeHint = function->returnTypeHint;
+
   for (size_t i = 0; i < function->parameters.size(); ++i) {
     const auto& param = function->parameters[i];
     k_value argValue = {};
@@ -2295,6 +2314,18 @@ k_value KInterpreter::callFunction(
       argValue = param.second;
     } else {
       throw ParameterCountMismatchError(token, functionName);
+    }
+
+    if (typeHints.find(param.first) != typeHints.end()) {
+      auto expectedType = typeHints.at(param.first);
+      if (!Serializer::assert_typematch(argValue, expectedType)) {
+        throw TypeError(
+            token, "Expected type `" +
+                       Serializer::get_typename_string(expectedType) +
+                       "` for parameter " + std::to_string(1 + i) + " of `" +
+                       functionName + "` but received `" +
+                       Serializer::get_value_type_string(argValue) + "`.");
+      }
     }
 
     if (std::holds_alternative<k_lambda>(argValue)) {
@@ -2315,6 +2346,14 @@ k_value KInterpreter::callFunction(
   } catch (const KiwiError& e) {
     dropFrame();
     throw;
+  }
+
+  if (!Serializer::assert_typematch(result, returnTypeHint)) {
+    throw TypeError(token, "Expected type `" +
+                               Serializer::get_typename_string(returnTypeHint) +
+                               "` for return type of `" + functionName +
+                               "` but received `" +
+                               Serializer::get_value_type_string(result) + ".");
   }
 
   return result;
@@ -2339,8 +2378,8 @@ k_value KInterpreter::visit(const MethodCallNode* node) {
 
   if (std::holds_alternative<k_object>(object)) {
     return callObjectMethod(node, std::get<k_object>(object));
-  } else if (std::holds_alternative<k_class>(object)) {
-    return callClassMethod(node, std::get<k_class>(object));
+  } else if (std::holds_alternative<k_struct>(object)) {
+    return callStructMethod(node, std::get<k_struct>(object));
   } else if (ListBuiltins.is_builtin(node->op)) {
     return interpretListBuiltin(node->token, object, node->op,
                                 getMethodCallArguments(node->arguments));
@@ -2366,10 +2405,10 @@ std::vector<k_value> KInterpreter::getMethodCallArguments(
 
 k_value KInterpreter::callObjectBaseMethod(const MethodCallNode* node,
                                            const std::shared_ptr<Object>& obj,
-                                           const k_string& baseClass,
+                                           const k_string& baseStruct,
                                            const k_string& methodName) {
-  const auto& clazz = ctx->getClasses().at(baseClass);
-  auto& function = clazz->methods[methodName];
+  const auto& struc = ctx->getStructs().at(baseStruct);
+  auto& function = struc->methods[methodName];
   bool isCtor = methodName == Keywords.New;
 
   auto& frame = callStack.top();
@@ -2384,7 +2423,7 @@ k_value KInterpreter::callObjectBaseMethod(const MethodCallNode* node,
   frame->setObjectContext(obj);
 
   if (!function) {
-    throw UnimplementedMethodError(node->token, obj->className, methodName);
+    throw UnimplementedMethodError(node->token, obj->structName, methodName);
   }
 
   if (function->isPrivate) {
@@ -2397,6 +2436,8 @@ k_value KInterpreter::callObjectBaseMethod(const MethodCallNode* node,
 
   if (contextSwitch) {
     frame->setObjectContext(objContext);
+  } else {
+    frame->clearFlag(FrameFlags::InObject);
   }
 
   if (isCtor) {
@@ -2408,24 +2449,24 @@ k_value KInterpreter::callObjectBaseMethod(const MethodCallNode* node,
 
 k_value KInterpreter::callObjectMethod(const MethodCallNode* node,
                                        const std::shared_ptr<Object>& obj) {
-  const auto& clazz = ctx->getClasses().at(obj->className);
+  const auto& struc = ctx->getStructs().at(obj->structName);
   auto methodName = node->methodName;
 
-  if (clazz->methods.find(methodName) == clazz->methods.end()) {
-    auto baseClass = clazz->baseClass;
+  if (struc->methods.find(methodName) == struc->methods.end()) {
+    auto baseStruct = struc->baseStruct;
 
-    if (baseClass.empty()) {
-      throw UnimplementedMethodError(node->token, obj->className, methodName);
+    if (baseStruct.empty()) {
+      throw UnimplementedMethodError(node->token, obj->structName, methodName);
     }
 
-    if (!ctx->hasClass(baseClass)) {
-      throw ClassUndefinedError(node->token, baseClass);
+    if (!ctx->hasStruct(baseStruct)) {
+      throw StructUndefinedError(node->token, baseStruct);
     }
 
-    return callObjectBaseMethod(node, obj, baseClass, methodName);
+    return callObjectBaseMethod(node, obj, baseStruct, methodName);
   }
 
-  auto& function = clazz->methods[methodName];
+  auto& function = struc->methods[methodName];
   bool isCtor = methodName == Keywords.New;
 
   auto& frame = callStack.top();
@@ -2440,7 +2481,7 @@ k_value KInterpreter::callObjectMethod(const MethodCallNode* node,
   frame->setObjectContext(obj);
 
   if (!function) {
-    throw UnimplementedMethodError(node->token, obj->className, methodName);
+    throw UnimplementedMethodError(node->token, obj->structName, methodName);
   }
 
   if (function->isPrivate) {
@@ -2453,6 +2494,8 @@ k_value KInterpreter::callObjectMethod(const MethodCallNode* node,
 
   if (contextSwitch) {
     frame->setObjectContext(oldObjContext);
+  } else {
+    frame->clearFlag(FrameFlags::InObject);
   }
 
   if (isCtor) {
@@ -2462,38 +2505,39 @@ k_value KInterpreter::callObjectMethod(const MethodCallNode* node,
   return result;
 }
 
-k_value KInterpreter::callClassMethod(const MethodCallNode* node,
-                                      const k_class& clazz) {
+k_value KInterpreter::callStructMethod(const MethodCallNode* node,
+                                       const k_struct& struc) {
   auto methodName = node->methodName;
   auto& frame = callStack.top();
-  const auto& kclass = ctx->getClasses().at(clazz->identifier);
-  auto& methods = kclass->methods;
+  const auto& kstruct = ctx->getStructs().at(struc->identifier);
+  auto& methods = kstruct->methods;
 
   // check base
   if (methods.find(methodName) == methods.end()) {
-    if (kclass->baseClass.empty()) {
-      throw UnimplementedMethodError(node->token, clazz->identifier,
+    if (kstruct->baseStruct.empty()) {
+      throw UnimplementedMethodError(node->token, struc->identifier,
                                      methodName);
     }
 
-    const auto& baseClass = ctx->getClasses().at(kclass->baseClass);
-    auto& baseClassMethods = baseClass->methods;
+    const auto& baseStruct = ctx->getStructs().at(kstruct->baseStruct);
+    auto& baseStructMethods = baseStruct->methods;
 
-    if (baseClassMethods.find(methodName) == baseClassMethods.end()) {
-      throw UnimplementedMethodError(node->token, clazz->identifier,
+    if (baseStructMethods.find(methodName) == baseStructMethods.end()) {
+      throw UnimplementedMethodError(node->token, struc->identifier,
                                      methodName);
     }
 
-    return executeClassMethod(baseClassMethods, methodName, frame, node, clazz);
+    return executeStructMethod(baseStructMethods, methodName, frame, node,
+                               struc);
   }
 
-  return executeClassMethod(methods, methodName, frame, node, clazz);
+  return executeStructMethod(methods, methodName, frame, node, struc);
 }
 
-k_value KInterpreter::executeClassMethod(
+k_value KInterpreter::executeStructMethod(
     std::unordered_map<k_string, std::unique_ptr<KFunction>>& methods,
     k_string& methodName, std::shared_ptr<CallStackFrame>& frame,
-    const MethodCallNode* node, const k_class& clazz) {
+    const MethodCallNode* node, const k_struct& struc) {
   auto& function = methods[methodName];
   k_object obj = std::make_shared<Object>();
   bool isCtor = methodName == Keywords.New;
@@ -2515,7 +2559,7 @@ k_value KInterpreter::executeClassMethod(
       contextSwitch = true;
     }
 
-    obj->className = clazz->identifier;
+    obj->structName = struc->identifier;
     frame->setObjectContext(obj);
   }
 
@@ -2950,12 +2994,12 @@ k_value KInterpreter::interpretReflectorRList(const Token& token,
 
   auto rlist = std::make_shared<Hashmap>();
   auto rlistPackages = std::make_shared<List>();
-  auto rlistClasses = std::make_shared<List>();
+  auto rlistStructs = std::make_shared<List>();
   auto rlistFunctions = std::make_shared<List>();
   auto rlistStack = std::make_shared<List>();
 
   rlistPackages->elements.reserve(ctx->getPackages().size());
-  rlistClasses->elements.reserve(ctx->getClasses().size());
+  rlistStructs->elements.reserve(ctx->getStructs().size());
   rlistFunctions->elements.reserve(ctx->getFunctions().size());
   rlistStack->elements.reserve(callStack.size());
 
@@ -2967,8 +3011,8 @@ k_value KInterpreter::interpretReflectorRList(const Token& token,
     rlistPackages->elements.emplace_back(p.first);
   }
 
-  for (const auto& c : ctx->getClasses()) {
-    rlistClasses->elements.emplace_back(c.first);
+  for (const auto& c : ctx->getStructs()) {
+    rlistStructs->elements.emplace_back(c.first);
   }
 
   std::stack<std::shared_ptr<CallStackFrame>> tempStack(callStack);
@@ -2998,12 +3042,12 @@ k_value KInterpreter::interpretReflectorRList(const Token& token,
   }
 
   sort_list(*rlistPackages);
-  sort_list(*rlistClasses);
+  sort_list(*rlistStructs);
   sort_list(*rlistFunctions);
   std::reverse(rlistStack->elements.begin(), rlistStack->elements.end());
 
   rlist->add("packages", rlistPackages);
-  rlist->add("structs", rlistClasses);
+  rlist->add("structs", rlistStructs);
   rlist->add("functions", rlistFunctions);
   rlist->add("stack", rlistStack);
 
