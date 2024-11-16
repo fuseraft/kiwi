@@ -40,7 +40,7 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
   - [`import`](#import)
   - [`package`](#package)
 - [Concurrency](#concurrency)
-  - [`fork`](#fork)
+  - [`spawn`](#spawn)
   - [`then`](#then)
 - [Console I/O](#console-io)
   - [`input`](#input)
@@ -221,10 +221,10 @@ See [Packages](packages.md).
 
 ## Concurrency
 
-### `fork`
-The `fork` keyword is used to spawn an asynchronous task.
+### `spawn`
+The `spawn` keyword is used to spawn an asynchronous task.
 
-See [`task`](lib/task.md#creating-tasks-with-fork).
+See [`task`](lib/task.md#creating-tasks-with-spawn).
 
 ### `then`
 The `then` keyword is used to specify code to execute after the completion of an asynchronous task.
