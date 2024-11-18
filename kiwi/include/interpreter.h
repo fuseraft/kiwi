@@ -331,15 +331,12 @@ class KInterpreter {
   k_value interpretReflectorRStack(const Token& token,
                                    std::vector<k_value>& args);
 
-  k_value interpretFFIBuiltin(const Token& token, const KName& builtin, std::vector<k_value>& args);
-  k_value interpretFFIAttach(const Token& token,
-                                 std::vector<k_value>& args);
-  k_value interpretFFIInvoke(const Token& token,
-                                 std::vector<k_value>& args);
-  k_value interpretFFILoad(const Token& token,
-                                   std::vector<k_value>& args);
-  k_value interpretFFIUnload(const Token& token,
-                                   std::vector<k_value>& args);
+  k_value interpretFFIBuiltin(const Token& token, const KName& builtin,
+                              std::vector<k_value>& args);
+  k_value interpretFFIAttach(const Token& token, std::vector<k_value>& args);
+  k_value interpretFFIInvoke(const Token& token, std::vector<k_value>& args);
+  k_value interpretFFILoad(const Token& token, std::vector<k_value>& args);
+  k_value interpretFFIUnload(const Token& token, std::vector<k_value>& args);
 
   k_value interpretWebServerBuiltin(const Token& token, const KName& builtin,
                                     std::vector<k_value>& args);
@@ -3022,7 +3019,9 @@ k_value KInterpreter::interpretReflectorBuiltin(const Token& token,
   throw InvalidOperationError(token, "Come back later.");
 }
 
-k_value KInterpreter::interpretFFIBuiltin(const Token& token, const KName& builtin, std::vector<k_value>& args) {
+k_value KInterpreter::interpretFFIBuiltin(const Token& token,
+                                          const KName& builtin,
+                                          std::vector<k_value>& args) {
   if (builtin == KName::Builtin_FFI_Attach) {
     return interpretFFIAttach(token, args);
   } else if (builtin == KName::Builtin_FFI_Invoke) {
@@ -3037,7 +3036,7 @@ k_value KInterpreter::interpretFFIBuiltin(const Token& token, const KName& built
 }
 
 k_value KInterpreter::interpretFFIAttach(const Token& token,
-                                std::vector<k_value>& args) {
+                                         std::vector<k_value>& args) {
   if (args.size() != 4) {
     throw BuiltinUnexpectedArgumentError(token, FFIBuiltins.Attach);
   }
@@ -3053,7 +3052,7 @@ k_value KInterpreter::interpretFFIAttach(const Token& token,
 }
 
 k_value KInterpreter::interpretFFIInvoke(const Token& token,
-                                std::vector<k_value>& args) {
+                                         std::vector<k_value>& args) {
   if (args.size() != 2) {
     throw BuiltinUnexpectedArgumentError(token, FFIBuiltins.Invoke);
   }
@@ -3062,18 +3061,19 @@ k_value KInterpreter::interpretFFIInvoke(const Token& token,
 
   if (!std::holds_alternative<k_list>(args.at(1))) {
     throw InvalidOperationError(
-        token, "Expected a list of parameters for argument 2 of `" + FFIBuiltins.Invoke + "`.");
+        token, "Expected a list of parameters for argument 2 of `" +
+                   FFIBuiltins.Invoke + "`.");
   }
 
   const auto& funcParams = std::get<k_list>(args.at(1))->elements;
-  
+
   ffi.callFunction(token, funcAlias, funcParams);
 
   return {};
 }
 
 k_value KInterpreter::interpretFFILoad(const Token& token,
-                                  std::vector<k_value>& args) {
+                                       std::vector<k_value>& args) {
   if (args.size() != 2) {
     throw BuiltinUnexpectedArgumentError(token, FFIBuiltins.Load);
   }
@@ -3087,7 +3087,7 @@ k_value KInterpreter::interpretFFILoad(const Token& token,
 }
 
 k_value KInterpreter::interpretFFIUnload(const Token& token,
-                                  std::vector<k_value>& args) {
+                                         std::vector<k_value>& args) {
   if (args.size() != 1) {
     throw BuiltinUnexpectedArgumentError(token, FFIBuiltins.Unload);
   }
