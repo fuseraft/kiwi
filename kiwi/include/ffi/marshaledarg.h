@@ -21,6 +21,9 @@ class MarshaledArg {
           }
         }) {}
 
+  // Constructor for raw pointers (ArgType::Pointer)
+  MarshaledArg(ArgType t, void* v) : type(t), value(v, [](void*) {}) {}
+
   // Constructor for string arrays (string[])
   static MarshaledArg createStringArray(
       const std::vector<std::string>& strings) {
