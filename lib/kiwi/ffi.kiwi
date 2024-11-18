@@ -15,10 +15,10 @@ package ffi
   @summary: Invokes an attached external function with a list of parameters.
   @params:
     - `func_alias`: The alias of the attached function to call.
-    - `func_params`: A list of parameters to pass to the function.
+    - `func_params`: A list of parameters to pass to the function. Defaults to an empty list.
   @return: Any value returned by the shared library function.
   #/
-  fn invoke(func_alias: string, func_params: list): any
+  fn invoke(func_alias: string, func_params: list = []): any
     return __ffi_invoke__(func_alias, func_params)
   end
 
