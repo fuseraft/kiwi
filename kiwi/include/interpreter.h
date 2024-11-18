@@ -331,6 +331,16 @@ class KInterpreter {
   k_value interpretReflectorRStack(const Token& token,
                                    std::vector<k_value>& args);
 
+  k_value interpretFFIBuiltin(const Token& token, const KName& builtin, std::vector<k_value>& args);
+  k_value interpretFFIAttach(const Token& token,
+                                 std::vector<k_value>& args);
+  k_value interpretFFIInvoke(const Token& token,
+                                 std::vector<k_value>& args);
+  k_value interpretFFILoad(const Token& token,
+                                   std::vector<k_value>& args);
+  k_value interpretFFIUnload(const Token& token,
+                                   std::vector<k_value>& args);
+
   k_value interpretWebServerBuiltin(const Token& token, const KName& builtin,
                                     std::vector<k_value>& args);
   k_value interpretWebServerGet(const Token& token, std::vector<k_value>& args);
@@ -340,6 +350,8 @@ class KInterpreter {
                                    std::vector<k_value>& args);
   k_value interpretWebServerPublic(const Token& token,
                                    std::vector<k_value>& args);
+  k_value interpretWebServerBuiltin(const Token& token, const KName& builtin,
+                                    std::vector<k_value>& args);
 
   int getNextWebServerHook(const Token& token, k_value& arg);
   k_hashmap getWebServerRequestHash(const httplib::Request& req);
@@ -3008,6 +3020,83 @@ k_value KInterpreter::interpretReflectorBuiltin(const Token& token,
   }
 
   throw InvalidOperationError(token, "Come back later.");
+}
+
+k_value KInterpreter::interpretFFIBuiltin(const Token& token, const KName& builtin, std::vector<k_value>& args) {
+  if (builtin == KName::Builtin_FFI_Attach) {
+    return interpretFFIAttach(token, args);
+  } else if (builtin == KName::Builtin_FFI_Invoke) {
+    return interpretFFIInvoke(token, args);
+  } else if (builtin == KName::Builtin_FFI_Load) {
+    return interpretFFILoad(token, args);
+  } else if (builtin == KName::Builtin_FFI_Unload) {
+    return interpretFFIUnload(token, args);
+  }
+
+  throw InvalidOperationError(token, "Come back later.");
+}
+
+k_value KInterpreter::interpretFFIAttach(const Token& token,
+                                std::vector<k_value>& args) {
+  if (args.size() != 4) {
+    throw BuiltinUnexpectedArgumentError(token, FFIBuiltins.Attach);
+  }
+
+  auto libAlias = get_string(token, args.at(0));
+  auto funcAlias = get_string(token, args.at(1));
+  auto ffiSignature = get_string(token, args.at(2));
+  auto ffiMethodName = get_string(token, args.at(3));
+
+  ffi.attachFunction(token, funcAlias, ffiMethodName, ffiSignature, libAlias);
+
+  return {};
+}
+
+k_value KInterpreter::interpretFFIInvoke(const Token& token,
+                                std::vector<k_value>& args) {
+  if (args.size() != 2) {
+    throw BuiltinUnexpectedArgumentError(token, FFIBuiltins.Invoke);
+  }
+
+  auto funcAlias = get_string(token, args.at(0));
+
+  if (!std::holds_alternative<k_list>(args.at(1))) {
+    throw InvalidOperationError(
+        token, "Expected a list of parameters for argument 2 of `" + FFIBuiltins.Invoke + "`.");
+  }
+
+  const auto& funcParams = std::get<k_list>(args.at(1))->elements;
+  
+  ffi.callFunction(token, funcAlias, funcParams);
+
+  return {};
+}
+
+k_value KInterpreter::interpretFFILoad(const Token& token,
+                                  std::vector<k_value>& args) {
+  if (args.size() != 2) {
+    throw BuiltinUnexpectedArgumentError(token, FFIBuiltins.Load);
+  }
+
+  auto libAlias = get_string(token, args.at(0));
+  auto libPath = get_string(token, args.at(1));
+
+  ffi.loadLibrary(token, libPath, libAlias);
+
+  return {};
+}
+
+k_value KInterpreter::interpretFFIUnload(const Token& token,
+                                  std::vector<k_value>& args) {
+  if (args.size() != 1) {
+    throw BuiltinUnexpectedArgumentError(token, FFIBuiltins.Unload);
+  }
+
+  auto libAlias = get_string(token, args.at(0));
+
+  ffi.unloadLibrary(token, libAlias);
+
+  return {};
 }
 
 k_value KInterpreter::interpretReflectorRList(const Token& token,
