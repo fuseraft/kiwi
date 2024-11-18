@@ -645,6 +645,22 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
+  Token parseFFIBuiltin(const k_string& builtin) {
+    auto st = KName::Default;
+
+    if (builtin == FFIBuiltins.Attach) {
+      st = KName::Builtin_FFI_Attach;
+    } else if (builtin == FFIBuiltins.Invoke) {
+      st = KName::Builtin_FFI_Invoke;
+    } else if (builtin == FFIBuiltins.Load) {
+      st = KName::Builtin_FFI_Load;
+    } else if (builtin == FFIBuiltins.Unload) {
+      st = KName::Builtin_FFI_Unload;
+    }
+
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
+  }
+
   Token parseReflectorBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
@@ -1066,6 +1082,8 @@ class Lexer {
       return parseSerializerBuiltin(builtin);
     } else if (ReflectorBuiltins.is_builtin(builtin)) {
       return parseReflectorBuiltin(builtin);
+    } else if (FFIBuiltins.is_builtin(builtin)) {
+      return parseFFIBuiltin(builtin);
     }
 
     return createToken(KTokenType::IDENTIFIER, KName::Default, builtin);
