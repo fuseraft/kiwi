@@ -347,8 +347,6 @@ class KInterpreter {
                                    std::vector<k_value>& args);
   k_value interpretWebServerPublic(const Token& token,
                                    std::vector<k_value>& args);
-  k_value interpretWebServerBuiltin(const Token& token, const KName& builtin,
-                                    std::vector<k_value>& args);
 
   int getNextWebServerHook(const Token& token, k_value& arg);
   k_hashmap getWebServerRequestHash(const httplib::Request& req);
