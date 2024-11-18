@@ -1,16 +1,42 @@
 package ffi
+  /#
+  @summary: Attaches an external function from a loaded library to the Kiwi runtime. This allows the function to be called by an alias in Kiwi.
+  @params:
+    - `lib_alias`: The alias of the library (set during library loading) containing the function.
+    - `func_alias`: The alias to use when calling the function in Kiwi.
+    - `ffi_name`: The actual name of the function in the shared library.
+    - `ffi_signature`: A string specifying the function's parameter and return types.
+  #/
   fn attach(lib_alias: string, func_alias: string, ffi_name: string, ffi_signature: string)
     __ffi_attach__(lib_alias, func_alias, ffi_name, ffi_signature)
   end
 
+  /#
+  @summary: Invokes an attached external function with a list of parameters.
+  @params:
+    - `func_alias`: The alias of the attached function to call.
+    - `func_params`: A list of parameters to pass to the function.
+  @return: Any value returned by the shared library function.
+  #/
   fn invoke(func_alias: string, func_params: list): any
     return __ffi_invoke__(func_alias, func_params)
   end
 
+  /#
+  @summary: Loads a shared library (.so) into the Kiwi runtime and assigns it an alias for future references.
+  @params:
+    - `lib_alias`: The alias to assign to the loaded library.
+    - `lib_path`: The path to the shared library file.
+  #/
   fn load(lib_alias: string, lib_path: string)
     __ffi_load__(lib_alias, lib_path)
   end
 
+  /#
+  @summary: Unloads a previously loaded shared library from the Kiwi runtime
+  @params:
+    - `lib_alias`: The alias of the library to unload.
+  #/
   fn unload(lib_alias: string)
     __ffi_unload__(lib_alias)
   end
