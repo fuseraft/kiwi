@@ -13,7 +13,7 @@
 #include "parsing/tokens.h"
 #include "tracing/error.h"
 #include "typing/value.h"
-#include "marshalledarg.h"
+#include "marshaledarg.h"
 
 // FFIManager class
 class FFIManager {
@@ -37,19 +37,6 @@ class FFIManager {
     }
 
     return parts;
-  }
-
-  template <typename T>
-  T convertArgument(const k_value& arg) {
-    if constexpr (std::is_same_v<T, k_int>) {
-      return std::get<k_int>(arg);
-    } else if constexpr (std::is_same_v<T, double>) {
-      return std::get<double>(arg);
-    } else if constexpr (std::is_same_v<T, k_pointer>) {
-      return std::get<k_pointer>(arg);
-    } else {
-      throw std::runtime_error("Unsupported argument type");
-    }
   }
 
  public:
@@ -90,7 +77,6 @@ class FFIManager {
     ffiRegistry[kiwiName] = {functionPtr, signature};
   }
 
-  // Call a registered FFI function dynamically
   k_value callFunction(const Token& token, const k_string& kiwiName,
                        const std::vector<k_value>& args) {
     if (!ffiRegistry.count(kiwiName)) {
@@ -101,52 +87,164 @@ class FFIManager {
     void* functionPtr = entry.functionPtr;
     std::vector<k_string> signatureParts = parseSignature(entry.signature);
 
-    if (signatureParts.size() - 1 != args.size()) {
+    if (signatureParts.size() > 1 && signatureParts.size() - 1 != args.size()) {
       throw FFIError(token,
                      "Argument count mismatch for function: " + kiwiName);
     }
 
     // Dynamically prepare arguments
-    std::vector<std::unique_ptr<MarshaledArg>> marshaledArgs;
+    std::vector<MarshaledArg>
+        marshaledValues;  // Collect raw pointers to arguments
+    std::vector<std::unique_ptr<char[]>> stringStorage;
+    marshalParameters(args, signatureParts, token, kiwiName, marshaledValues,
+                      stringStorage);
+
+    return invokeFFI(signatureParts, functionPtr, marshaledValues, token);
+  }
+
+  k_value invokeFFI(std::vector<k_string>& signatureParts, void* functionPtr,
+                    std::vector<MarshaledArg>& marshaledValues,
+                    const Token& token) {
+    auto invokeVariadic = [&](auto func,
+                              const std::vector<MarshaledArg>& values) -> auto {
+      switch (values.size()) {
+        case 0:
+          return func();
+        case 1:
+          return func(values[0].getValue());
+        case 2:
+          return func(values[0].getValue(), values[1].getValue());
+        case 3:
+          return func(values[0].getValue(), values[1].getValue(),
+                      values[2].getValue());
+        case 4:
+          return func(values[0].getValue(), values[1].getValue(),
+                      values[2].getValue(), values[3].getValue());
+        default:
+          throw FFIError(token, "Too many arguments for function call.");
+      }
+    };
+
+    // Determine return type and invoke function
+    const k_string& returnType = signatureParts.back();
+
+    if (returnType == "int") {
+      using FuncType = int (*)(...);
+      auto func = reinterpret_cast<FuncType>(functionPtr);
+      int result = invokeVariadic(func, marshaledValues);
+      return static_cast<k_int>(result);
+    } else if (returnType == "double") {
+      using FuncType = double (*)(...);
+      auto func = reinterpret_cast<FuncType>(functionPtr);
+      double result = invokeVariadic(func, marshaledValues);
+      return result;
+    } else if (returnType == "pointer") {
+      using FuncType = void* (*)(...);
+      auto func = reinterpret_cast<FuncType>(functionPtr);
+      void* result = invokeVariadic(func, marshaledValues);
+      return k_pointer(result);
+    } else if (returnType == "string") {
+      using FuncType = const char* (*)(...);
+      auto func = reinterpret_cast<FuncType>(functionPtr);
+      const char* result = invokeVariadic(func, marshaledValues);
+
+      // Convert to k_string, handle null pointers
+      return k_string(result ? result : "");
+    } else if (returnType == "void") {
+      using FuncType = void (*)(...);
+      auto func = reinterpret_cast<FuncType>(functionPtr);
+      invokeVariadic(func, marshaledValues);
+
+      // No value for void functions
+      return {};
+    }
+
+    throw FFIError(token, "Unsupported return type: " + returnType);
+  }
+
+  void marshalParameters(const std::vector<k_value>& args,
+                         std::vector<k_string>& signatureParts,
+                         const Token& token, const k_string& kiwiName,
+                         std::vector<MarshaledArg>& marshaledValues,
+                         std::vector<std::unique_ptr<char[]>>& stringStorage) {
     for (size_t i = 0; i < args.size(); ++i) {
       const k_string& type = signatureParts[i];
       if (type == "int") {
-        marshaledArgs.emplace_back(new MarshaledArg(
-            MarshaledArg::ArgType::Int, new int(std::get<k_int>(args[i]))));
+        if (!std::holds_alternative<k_int>(args[i])) {
+          throw FFIError(token, "Expected an integer in argument " +
+                                    std::to_string(1 + i) + " of `" + kiwiName +
+                                    "`.");
+        }
+
+        marshaledValues.push_back(
+            MarshaledArg(ArgType::Int, new int(std::get<k_int>(args[i]))));
       } else if (type == "double") {
-        marshaledArgs.emplace_back(
-            new MarshaledArg(MarshaledArg::ArgType::Double,
-                             new double(std::get<double>(args[i]))));
+        if (!std::holds_alternative<double>(args[i])) {
+          throw FFIError(token, "Expected a double in argument " +
+                                    std::to_string(1 + i) + " of `" + kiwiName +
+                                    "`.");
+        }
+
+        marshaledValues.push_back(MarshaledArg(
+            ArgType::Double, new double(std::get<double>(args[i]))));
       } else if (type == "pointer") {
-        marshaledArgs.emplace_back(new MarshaledArg(
-            MarshaledArg::ArgType::Pointer, std::get<k_pointer>(args[i]).ptr));
+        if (!std::holds_alternative<k_pointer>(args[i])) {
+          throw FFIError(token, "Expected a pointer in argument " +
+                                    std::to_string(1 + i) + " of `" + kiwiName +
+                                    "`.");
+        }
+
+        marshaledValues.push_back(
+            MarshaledArg(ArgType::Pointer, std::get<k_pointer>(args[i]).ptr));
+      } else if (type == "size_t") {
+        if (!std::holds_alternative<k_int>(args[i])) {
+          throw FFIError(token, "Expected an integer in argument " +
+                                    std::to_string(1 + i) + " of `" + kiwiName +
+                                    "`.");
+        }
+
+        marshaledValues.push_back(MarshaledArg(
+            ArgType::SizeT,
+            new size_t(static_cast<size_t>(std::get<k_int>(args[i])))));
+      } else if (type == "string") {
+        if (!std::holds_alternative<k_string>(args[i])) {
+          throw FFIError(token, "Expected a string in argument " +
+                                    std::to_string(1 + i) + " of `" + kiwiName +
+                                    "`.");
+        }
+
+        const auto& str = std::get<k_string>(args[i]);
+        stringStorage.emplace_back(new char[str.size() + 1]);
+        std::strcpy(stringStorage.back().get(), str.c_str());
+        marshaledValues.push_back(
+            MarshaledArg(ArgType::String, stringStorage.back().release()));
+      } else if (type == "string[]") {
+        if (!std::holds_alternative<k_list>(args[i])) {
+          throw FFIError(token, "Expected a list of strings in argument " +
+                                    std::to_string(1 + i) + " of `" + kiwiName +
+                                    "`.");
+        }
+
+        const auto& inputList = std::get<k_list>(args[i])->elements;
+        std::vector<k_string> inputStrings;
+        inputStrings.reserve(inputList.size());
+
+        for (const auto& e : inputList) {
+          if (!std::holds_alternative<k_string>(e)) {
+            throw FFIError(token, "Expected a list of strings in argument " +
+                                      std::to_string(1 + i) + " of `" +
+                                      kiwiName + "`.");
+          }
+
+          inputStrings.emplace_back(std::get<k_string>(e));
+        }
+
+        marshaledValues.push_back(
+            MarshaledArg::createStringArray(inputStrings));
       } else {
         throw FFIError(token,
                        "Unsupported argument type in signature: " + type);
       }
-    }
-
-    // Determine return type
-    const k_string& returnType = signatureParts.back();
-
-    // Invoke function
-    if (returnType == "int") {
-      using FuncType = int (*)(...);
-      int result = reinterpret_cast<FuncType>(functionPtr)(
-          *static_cast<int*>(marshaledArgs[0]->value));
-      return static_cast<k_int>(result);
-    } else if (returnType == "double") {
-      using FuncType = double (*)(...);
-      double result = reinterpret_cast<FuncType>(functionPtr)(
-          *static_cast<double*>(marshaledArgs[0]->value));
-      return result;
-    } else if (returnType == "pointer") {
-      using FuncType = void* (*)(...);
-      void* result =
-          reinterpret_cast<FuncType>(functionPtr)(marshaledArgs[0]->value);
-      return k_pointer(result);
-    } else {
-      throw FFIError(token, "Unsupported return type: " + returnType);
     }
   }
 

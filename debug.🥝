@@ -1,37 +1,67 @@
 # a script for debugging and experimentation (and fun!)
 
-fn example()
-  fn build_lambda()
-    return (with (n) do
-      return n
-    end)
+package ffi
+  /#
+  @summary: Attaches an external function from a loaded library to the Kiwi runtime. This allows the function to be called by an alias in Kiwi.
+  @params:
+    - `lib_alias`: The alias of the library (set during library loading) containing the function.
+    - `func_alias`: The alias to use when calling the function in Kiwi.
+    - `ffi_name`: The actual name of the function in the shared library.
+    - `ffi_signature`: A string specifying the function's parameter and return types.
+  #/
+  fn attach(lib_alias: string, func_alias: string, ffi_name: string, ffi_signature: string)
+    __ffi_attach__(lib_alias, func_alias, ffi_name, ffi_signature)
   end
 
-  fn invoke(l: lambda, n: any): any
-    return l(n)
+  /#
+  @summary: Invokes an attached external function with a list of parameters.
+  @params:
+    - `func_alias`: The alias of the attached function to call.
+    - `func_params`: A list of parameters to pass to the function. Defaults to an empty list.
+  @return: Any value returned by the shared library function.
+  #/
+  fn invoke(func_alias: string, func_params: list = []): any
+    return __ffi_invoke__(func_alias, func_params)
   end
 
-  arr = [
-    build_lambda(),
-    build_lambda(),
-    build_lambda(),
-    build_lambda()
-  ]
+  /#
+  @summary: Loads a shared library (.so) into the Kiwi runtime and assigns it an alias for future references.
+  @params:
+    - `lib_alias`: The alias to assign to the loaded library.
+    - `lib_path`: The path to the shared library file.
+  #/
+  fn load(lib_alias: string, lib_path: string)
+    __ffi_load__(lib_alias, lib_path)
+  end
 
-  for l, i in arr do
-    println invoke(l, 1 + i)
+  /#
+  @summary: Unloads a previously loaded shared library from the Kiwi runtime
+  @params:
+    - `lib_alias`: The alias of the library to unload.
+  #/
+  fn unload(lib_alias: string)
+    __ffi_unload__(lib_alias)
   end
 end
 
-# Load the shared library
-ffi::load("mathlib", "/usr/lib/x86_64-linux-gnu/libgsl.so")
+export "ffi"
 
-# Attach a function from the library
-ffi::attach("mathlib", "add", "c_add", "int,int,int")
+ffi::load("vlc", "/usr/lib/x86_64-linux-gnu/libvlc.so.5")
 
-# Call the function
-sum = ffi::invoke("add", [10, 20])
-println(sum)  # Output: 30
+ffi::attach("vlc", "vlc_version", "libvlc_get_version", "string")
+println ffi::invoke("vlc_version")
 
-# Unload the library when done
-ffi::unload("mathlib")
+/#
+ffi::attach("vlc", "vlc_new", "libvlc_new", "int,string[],pointer")
+ffi::attach("vlc", "vlc_media_new_path", "libvlc_media_new_path", "pointer,string,pointer")
+ffi::attach("vlc", "vlc_media_player_new_from_media", "libvlc_media_player_new_from_media", "pointer,pointer")
+ffi::attach("vlc", "vlc_play", "libvlc_media_player_play", "pointer,int")
+ffi::attach("vlc", "vlc_stop", "libvlc_media_player_stop", "pointer,int")
+ffi::attach("vlc", "vlc_pause", "libvlc_media_player_pause", "pointer,int")
+
+vlc = ffi::invoke("vlc_new", [0, ["--no-video"]])
+/#media  = ffi::invoke("vlc_media_new_path", [vlc, "/home/scs/Downloads/boc-olson.mp3"])
+player = ffi::invoke("vlc_media_player_new_from_media", [media])
+ffi::invoke("vlc_play", [player])
+#/
+ffi::unload("vlc")
