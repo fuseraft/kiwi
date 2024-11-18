@@ -223,6 +223,7 @@ enum KName {
   Builtin_Reflector_RLib,
   Builtin_Reflector_RList,
   Builtin_Reflector_RObject,
+  Builtin_Reflector_RStack,
   Builtin_Serializer_Serialize,
   Builtin_Serializer_Deserialize,
   Builtin_Sys_EffectiveUserId,

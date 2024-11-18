@@ -1,7 +1,26 @@
 # a script for debugging and experimentation (and fun!)
 
-if true
-  pass
-else
-  pass
+fn example()
+  fn build_lambda()
+    return (with (n) do
+      return n
+    end)
+  end
+
+  fn invoke(l: lambda, n: any): any
+    return l(n)
+  end
+
+  arr = [
+    build_lambda(),
+    build_lambda(),
+    build_lambda(),
+    build_lambda()
+  ]
+
+  for l, i in arr do
+    println invoke(l, 1 + i)
+  end
 end
+
+example()

@@ -331,12 +331,14 @@ struct {
   const k_string RInspect = "__rinspect__";
   const k_string RList = "__rlist__";
   const k_string RObject = "__robject__";
+  const k_string RStack = "__rstack__";
 
-  std::unordered_set<k_string> builtins = {RInspect, RList, RObject};
+  std::unordered_set<k_string> builtins = {RInspect, RList, RObject, RStack};
 
   std::unordered_set<KName> st_builtins = {KName::Builtin_Reflector_RInspect,
                                            KName::Builtin_Reflector_RList,
-                                           KName::Builtin_Reflector_RObject};
+                                           KName::Builtin_Reflector_RObject,
+                                           KName::Builtin_Reflector_RStack};
 
   bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();

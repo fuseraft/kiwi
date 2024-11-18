@@ -17,6 +17,7 @@
 #include "typing/value.h"
 #include "util/file.h"
 #include "concurrency/task.h"
+#include "ffi/fiimanager.h"
 
 class KContext {
  private:
@@ -173,6 +174,8 @@ class KInterpreter {
   std::stack<std::shared_ptr<CallStackFrame>> callStack;
   std::stack<k_string> packageStack;
   std::stack<k_string> structStack;
+  std::stack<k_string> funcStack;
+
   const int SAFEMODE_MAX_ITERATIONS = 1000000;
 
   k_value visit(const ProgramNode* node);
@@ -217,7 +220,11 @@ class KInterpreter {
   k_value visit(const SliceNode* node);
   k_value visit(const SpawnNode* node);
 
-  std::shared_ptr<CallStackFrame> createFrame(bool isMethodInvocation);
+  std::shared_ptr<CallStackFrame> createFrame(const k_string& name, bool isMethodInvocation);
+  void pushFrame(std::shared_ptr<CallStackFrame> frame) {
+    callStack.push(frame);
+    funcStack.push(frame->name);
+  }
   void dropFrame();
 
   k_string getTemporaryId();
@@ -318,6 +325,8 @@ class KInterpreter {
   k_value interpretReflectorRList(const Token& token,
                                   std::vector<k_value>& args);
   k_value interpretReflectorRObject(const Token& token,
+                                    std::vector<k_value>& args);
+  k_value interpretReflectorRStack(const Token& token,
                                     std::vector<k_value>& args);
 
   k_value interpretWebServerBuiltin(const Token& token, const KName& builtin,
@@ -488,10 +497,13 @@ k_value KInterpreter::interpret(const ASTNode* node) {
 }
 
 std::shared_ptr<CallStackFrame> KInterpreter::createFrame(
+    const k_string& name,
     bool isMethodInvocation = false) {
   std::shared_ptr<CallStackFrame> frame = callStack.top();
   auto subFrame = std::make_shared<CallStackFrame>();
   auto& subFrameVariables = subFrame->variables;
+
+  subFrame->name = name;
 
   if (!isMethodInvocation) {
     const auto& frameVariables = frame->variables;
@@ -521,6 +533,10 @@ void KInterpreter::dropFrame() {
     return;
   }
 
+  if (!funcStack.empty()) {
+    funcStack.pop();
+  }
+
   auto frame = callStack.top();
   auto returnValue = std::move(frame->returnValue);
   auto topVariables = std::move(frame->variables);
@@ -547,6 +563,8 @@ k_string KInterpreter::id(const ASTNode* node) {
 k_value KInterpreter::visit(const SpawnNode* node) {
   auto frame = std::make_shared<CallStackFrame>();
   auto top = callStack.top();
+  
+  frame->name = Keywords.Spawn;
 
   for (const auto& var : top->variables) {
     frame->variables[var.first] = clone_value(var.second);
@@ -556,7 +574,7 @@ k_value KInterpreter::visit(const SpawnNode* node) {
 
   auto interp = std::make_shared<KInterpreter>();
   interp->setContext(ctx->clone());
-  interp->callStack.push(frame);
+  interp->pushFrame(frame);
 
   TaskManager::TaskFunction task(
       [interp, frame, taskExpr = std::move(taskExpr)]() {
@@ -578,8 +596,9 @@ k_value KInterpreter::visit(const ProgramNode* node) {
   // This is the program root
   if (!node->isScript) {
     auto programFrame = std::make_shared<CallStackFrame>();
+    programFrame->name = kiwi_name;
     programFrame->variables[Keywords.Global] = std::make_shared<Hashmap>();
-    callStack.push(programFrame);
+    pushFrame(programFrame);
   }
 
   k_value result;
@@ -1804,9 +1823,9 @@ k_value KInterpreter::visit(const RepeatLoopNode* node) {
 }
 
 k_value KInterpreter::visit(const TryNode* node) {
-  auto tryFrame = createFrame();
+  auto tryFrame = createFrame(Keywords.Try);
   tryFrame->setFlag(FrameFlags::InTry);
-  callStack.push(tryFrame);
+  pushFrame(tryFrame);
 
   try {
     for (const auto& stmt : node->tryBody) {
@@ -1818,7 +1837,7 @@ k_value KInterpreter::visit(const TryNode* node) {
     dropFrame();
 
     if (!node->catchBody.empty()) {
-      auto catchFrame = createFrame();
+      auto catchFrame = createFrame(Keywords.Catch);
 
       k_string errorTypeName;
       k_string errorMessageName;
@@ -1834,7 +1853,7 @@ k_value KInterpreter::visit(const TryNode* node) {
           catchFrame->variables[errorMessageName] = e.getMessage();
         }
 
-        callStack.push(catchFrame);
+        pushFrame(catchFrame);
 
         for (const auto& stmt : node->catchBody) {
           interpret(stmt.get());
@@ -2041,9 +2060,10 @@ k_value KInterpreter::executeInstanceMethod(const FunctionCallNode* node) {
 k_value KInterpreter::executeInstanceMethodFunction(
     std::unordered_map<k_string, std::unique_ptr<KFunction>>& strucMethods,
     const FunctionCallNode* node) {
-  const auto& func = strucMethods[node->functionName];
+  const auto& functionName = node->functionName;
+  const auto& func = strucMethods[functionName];
   auto defaultParameters = func->defaultParameters;
-  auto functionFrame = createFrame();
+  auto functionFrame = createFrame(functionName);
   k_value result = {};
 
   const auto& typeHints = func->typeHints;
@@ -2051,7 +2071,7 @@ k_value KInterpreter::executeInstanceMethodFunction(
 
   prepareFunctionCall(func, node, defaultParameters, typeHints, functionFrame);
 
-  callStack.push(functionFrame);
+  pushFrame(functionFrame);
 
   const auto& decl = func->getBody();
   for (const auto& stmt : decl) {
@@ -2066,7 +2086,7 @@ k_value KInterpreter::executeInstanceMethodFunction(
     throw TypeError(
         node->token,
         "Expected type `" + Serializer::get_typename_string(returnTypeHint) +
-            "` for return type of `" + node->functionName + "` but received `" +
+            "` for return type of `" + functionName + "` but received `" +
             Serializer::get_value_type_string(result) + ".");
   }
 
@@ -2128,16 +2148,17 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
     if (callableType == KCallableType::Method) {
       result = executeInstanceMethod(node);
     } else if (callableType == KCallableType::Function) {
-      const auto& func = ctx->getFunctions().at(node->functionName);
+      const auto& functionName = node->functionName;
+      const auto& func = ctx->getFunctions().at(functionName);
       auto defaultParameters = func->defaultParameters;
-      auto functionFrame = createFrame();
+      auto functionFrame = createFrame(functionName);
       const auto& typeHints = func->typeHints;
       const auto& returnTypeHint = func->returnTypeHint;
 
       prepareFunctionCall(func, node, defaultParameters, typeHints,
                           functionFrame);
 
-      callStack.push(functionFrame);
+      pushFrame(functionFrame);
 
       const auto& decl = func->getBody();
       for (const auto& stmt : decl) {
@@ -2152,7 +2173,7 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
         throw TypeError(node->token,
                         "Expected type `" +
                             Serializer::get_typename_string(returnTypeHint) +
-                            "` for return type of `" + node->functionName +
+                            "` for return type of `" + functionName +
                             "` but received `" +
                             Serializer::get_value_type_string(result) + "`.");
       }
@@ -2172,7 +2193,7 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
 k_value KInterpreter::callLambda(
     const Token& token, const k_string& lambdaName,
     const std::vector<std::unique_ptr<ASTNode>>& arguments) {
-  auto lambdaFrame = createFrame();
+  auto lambdaFrame = createFrame(lambdaName);
   k_string targetLambda = lambdaName;
   k_value result;
 
@@ -2191,7 +2212,7 @@ k_value KInterpreter::callLambda(
                     typeHints, lambdaName, lambdaFrame);
 
   lambdaFrame->setFlag(FrameFlags::InLambda);
-  callStack.push(lambdaFrame);
+  pushFrame(lambdaFrame);
 
   const auto& decl = func->getBody();
   for (const auto& stmt : decl) {
@@ -2299,7 +2320,7 @@ k_value KInterpreter::callFunction(
     const std::vector<std::unique_ptr<ASTNode>>& arguments, const Token& token,
     const k_string& functionName) {
   auto defaultParameters = function->defaultParameters;
-  auto functionFrame = createFrame();
+  auto functionFrame = createFrame(functionName);
 
   const auto& typeHints = function->typeHints;
   const auto& returnTypeHint = function->returnTypeHint;
@@ -2336,7 +2357,7 @@ k_value KInterpreter::callFunction(
     }
   }
 
-  callStack.push(functionFrame);
+  pushFrame(functionFrame);
 
   k_value result;
 
@@ -2722,7 +2743,7 @@ void KInterpreter::handleWebServerRequest(int webhookID, k_hashmap requestHash,
                                           k_string& redirect, k_string& content,
                                           k_string& contentType, int& status) {
   auto webhook = ctx->getWebHook(webhookID);
-  auto webhookFrame = createFrame();
+  auto webhookFrame = createFrame(Keywords.Spawn);
 
   auto& lambda = ctx->getLambdas().at(webhook);
 
@@ -2731,7 +2752,7 @@ void KInterpreter::handleWebServerRequest(int webhookID, k_hashmap requestHash,
     break;
   }
 
-  callStack.push(webhookFrame);
+  pushFrame(webhookFrame);
 
   k_value result;
 
@@ -2981,6 +3002,8 @@ k_value KInterpreter::interpretReflectorBuiltin(const Token& token,
     return interpretReflectorRList(token, args);
   } else if (builtin == KName::Builtin_Reflector_RObject) {
     return interpretReflectorRObject(token, args);
+  } else if (builtin == KName::Builtin_Reflector_RStack) {
+    return interpretReflectorRStack(token, args);
   }
 
   throw InvalidOperationError(token, "Come back later.");
@@ -3066,6 +3089,24 @@ k_value KInterpreter::interpretReflectorRObject(const Token& token,
   }
 
   return {};
+}
+
+k_value KInterpreter::interpretReflectorRStack(const Token& token,
+                                                std::vector<k_value>& args) {
+  if (args.size() != 0) {
+    throw BuiltinUnexpectedArgumentError(token, ReflectorBuiltins.RStack);
+  }
+
+  std::stack<k_string> tempStack(funcStack);
+  std::vector<k_value> stackNames;
+  stackNames.reserve(tempStack.size());
+
+  while (!tempStack.empty()) {
+    stackNames.emplace_back(tempStack.top());
+    tempStack.pop();
+  }
+
+  return std::make_shared<List>(stackNames);
 }
 
 k_value KInterpreter::interpretSerializerDeserialize(

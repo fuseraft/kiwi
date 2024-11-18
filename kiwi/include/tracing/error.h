@@ -295,6 +295,13 @@ class FileSystemError : public KiwiError {
       : KiwiError(token, "FileSystemError", message) {}
 };
 
+class FFIError : public KiwiError {
+ public:
+  FFIError(const Token& token,
+           const std::string& message = "An FFI error occurred.")
+      : KiwiError(token, "FFIError", message) {}
+};
+
 class TokenStreamError : public KiwiError {
  public:
   TokenStreamError(const std::string& message)

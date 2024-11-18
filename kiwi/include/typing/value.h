@@ -27,13 +27,30 @@ using k_lambda = std::shared_ptr<LambdaRef>;
 using k_struct = std::shared_ptr<StructRef>;
 using k_null = std::shared_ptr<Null>;
 
+struct k_pointer {
+  void* ptr;
+
+  k_pointer() : ptr(nullptr) {}
+  explicit k_pointer(void* p) : ptr(p) {}
+
+  template <typename T>
+  T* as() const {
+    return static_cast<T*>(ptr);
+  }
+
+  bool isNull() const { return ptr == nullptr; }
+
+  bool operator==(const k_pointer& other) const { return ptr == other.ptr; }
+  bool operator!=(const k_pointer& other) const { return ptr != other.ptr; }
+};
+
 inline void hash_combine(std::size_t& seed, std::size_t hash);
 std::size_t hash_hash(const k_hashmap& hash);
 std::size_t hash_list(const k_list& list);
 std::size_t hash_object(const k_object& object);
 
 using k_value = std::variant<k_int, double, bool, k_string, k_list, k_hashmap,
-                             k_object, k_lambda, k_null, k_struct>;
+                             k_object, k_lambda, k_null, k_struct, k_pointer>;
 
 // Specialize a struct for hash computation for k_value
 namespace std {
@@ -59,6 +76,8 @@ struct hash<k_value> {
       case 8:  // k_null
       case 9:  // k_struct
         return false;
+      case 10:  // k_pointer
+        return std::hash<void*>()(std::get<k_pointer>(v).ptr);
       default:
         // Fallback for unknown types
         return 0;
