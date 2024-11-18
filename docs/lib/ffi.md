@@ -1,4 +1,4 @@
-# Kiwi FFI Package Documentation
+# `ffi`
 
 The `ffi` (Foreign Function Interface) package provides a bridge for calling external C/C++ functions directly from Kiwi. This enables developers to extend functionality using libraries written in other languages, leveraging native performance and interoperability.
 
