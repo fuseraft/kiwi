@@ -24,7 +24,7 @@ fn example()
 end
 
 # Load the shared library
-ffi.load("mathlib", "/usr/lib/x86_64-linux-gnu/libgsl.so")
+ffi::load("mathlib", "/usr/lib/x86_64-linux-gnu/libgsl.so")
 
 # Attach a function from the library
 ffi::attach("mathlib", "add", "c_add", "int,int,int")
