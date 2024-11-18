@@ -1,0 +1,19 @@
+package ffi
+  fn attach(lib_alias: string, func_alias: string, ffi_name: string, ffi_signature: string)
+    __ffi_attach__(lib_alias, func_alias, ffi_name, ffi_signature)
+  end
+
+  fn invoke(func_alias: string, func_params: list): any
+    return __ffi_invoke__(func_alias, func_params)
+  end
+
+  fn load(lib_alias: string, lib_path: string)
+    __ffi_load__(lib_alias, lib_path)
+  end
+
+  fn unload(lib_alias: string)
+    __ffi_unload__(lib_alias)
+  end
+end
+
+export "ffi"
