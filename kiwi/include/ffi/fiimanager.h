@@ -20,17 +20,17 @@ class FFIManager {
  private:
   struct FFIEntry {
     void* functionPtr;
-    std::string signature;
+    k_string signature;
   };
 
-  std::unordered_map<std::string, FFIEntry> ffiRegistry;
-  std::unordered_map<std::string, void*> loadedLibraries;
+  std::unordered_map<k_string, FFIEntry> ffiRegistry;
+  std::unordered_map<k_string, void*> loadedLibraries;
 
   // Helper to parse signature and convert arguments
-  std::vector<std::string> parseSignature(const std::string& signature) {
-    std::vector<std::string> parts;
+  std::vector<k_string> parseSignature(const k_string& signature) {
+    std::vector<k_string> parts;
     std::istringstream stream(signature);
-    std::string token;
+    k_string token;
 
     while (std::getline(stream, token, ',')) {
       parts.push_back(token);
@@ -54,8 +54,8 @@ class FFIManager {
 
  public:
   // Load a shared library as a package.
-  void loadLibrary(const Token& token, const std::string& libPath,
-                   const std::string& alias) {
+  void loadLibrary(const Token& token, const k_string& libPath,
+                   const k_string& alias) {
     if (loadedLibraries.count(alias)) {
       throw FFIError(token, "Library alias already exists: " + alias);
     }
@@ -63,16 +63,16 @@ class FFIManager {
     void* handle = dlopen(libPath.c_str(), RTLD_LAZY);
     if (!handle) {
       throw std::runtime_error("Failed to load library: " +
-                               std::string(dlerror()));
+                               k_string(dlerror()));
     }
 
     loadedLibraries[alias] = handle;
   }
 
   // Attach a function to an aliased package.
-  void attachFunction(const Token& token, const std::string& kiwiName,
-                      const std::string& ffiName, const std::string& signature,
-                      const std::string& libraryAlias = "") {
+  void attachFunction(const Token& token, const k_string& kiwiName,
+                      const k_string& ffiName, const k_string& signature,
+                      const k_string& libraryAlias = "") {
     void* handle = nullptr;
 
     if (!libraryAlias.empty()) {
@@ -91,7 +91,7 @@ class FFIManager {
   }
 
   // Call a registered FFI function dynamically
-  k_value callFunction(const Token& token, const std::string& kiwiName,
+  k_value callFunction(const Token& token, const k_string& kiwiName,
                        const std::vector<k_value>& args) {
     if (!ffiRegistry.count(kiwiName)) {
       throw FFIError(token, "FFI function not registered: " + kiwiName);
@@ -99,7 +99,7 @@ class FFIManager {
 
     const auto& entry = ffiRegistry[kiwiName];
     void* functionPtr = entry.functionPtr;
-    std::vector<std::string> signatureParts = parseSignature(entry.signature);
+    std::vector<k_string> signatureParts = parseSignature(entry.signature);
 
     if (signatureParts.size() - 1 != args.size()) {
       throw FFIError(token,
@@ -109,7 +109,7 @@ class FFIManager {
     // Dynamically prepare arguments
     std::vector<std::unique_ptr<MarshaledArg>> marshaledArgs;
     for (size_t i = 0; i < args.size(); ++i) {
-      const std::string& type = signatureParts[i];
+      const k_string& type = signatureParts[i];
       if (type == "int") {
         marshaledArgs.emplace_back(new MarshaledArg(
             MarshaledArg::ArgType::Int, new int(std::get<k_int>(args[i]))));
@@ -127,7 +127,7 @@ class FFIManager {
     }
 
     // Determine return type
-    const std::string& returnType = signatureParts.back();
+    const k_string& returnType = signatureParts.back();
 
     // Invoke function
     if (returnType == "int") {
@@ -148,6 +148,22 @@ class FFIManager {
     } else {
       throw FFIError(token, "Unsupported return type: " + returnType);
     }
+  }
+
+  void unloadLibrary(const Token& token, const k_string& name) {
+    if (!loadedLibraries.count(name)) {
+      throw FFIError(token, "Library alias not found: " + name);
+    }
+
+    for (auto& [alias, handle] : loadedLibraries) {
+      if (name != alias) {
+        continue;
+      }
+
+      dlclose(handle);
+    }
+
+    loadedLibraries.erase(name);
   }
 
   // Unload all libraries

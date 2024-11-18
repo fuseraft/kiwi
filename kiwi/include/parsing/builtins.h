@@ -328,6 +328,27 @@ struct {
 } SerializerBuiltins;
 
 struct {
+  const k_string Attach = "__ffi_attach__";
+  const k_string Invoke = "__ffi_invoke__";
+  const k_string Load = "__ffi_load__";
+  const k_string Unload = "__ffi_unload__";
+
+  std::unordered_set<k_string> builtins = {Attach, Invoke, Load, Unload};
+
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_FFI_Attach, KName::Builtin_FFI_Invoke,
+      KName::Builtin_FFI_Load, KName::Builtin_FFI_Unload};
+
+  bool is_builtin(const k_string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+
+  bool is_builtin(const KName& arg) {
+    return st_builtins.find(arg) != st_builtins.end();
+  }
+} FFIBuiltins;
+
+struct {
   const k_string RInspect = "__rinspect__";
   const k_string RList = "__rlist__";
   const k_string RObject = "__robject__";
@@ -335,10 +356,9 @@ struct {
 
   std::unordered_set<k_string> builtins = {RInspect, RList, RObject, RStack};
 
-  std::unordered_set<KName> st_builtins = {KName::Builtin_Reflector_RInspect,
-                                           KName::Builtin_Reflector_RList,
-                                           KName::Builtin_Reflector_RObject,
-                                           KName::Builtin_Reflector_RStack};
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_Reflector_RInspect, KName::Builtin_Reflector_RList,
+      KName::Builtin_Reflector_RObject, KName::Builtin_Reflector_RStack};
 
   bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
@@ -701,7 +721,7 @@ struct {
            PackageBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
            LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
-           SerializerBuiltins.is_builtin(arg) ||
+           SerializerBuiltins.is_builtin(arg) || FFIBuiltins.is_builtin(arg) ||
            ReflectorBuiltins.is_builtin(arg) || TaskBuiltins.is_builtin(arg);
   }
 
@@ -712,7 +732,7 @@ struct {
            PackageBuiltins.is_builtin(arg) || SysBuiltins.is_builtin(arg) ||
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
            LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
-           SerializerBuiltins.is_builtin(arg) ||
+           SerializerBuiltins.is_builtin(arg) || FFIBuiltins.is_builtin(arg) ||
            ReflectorBuiltins.is_builtin(arg) || TaskBuiltins.is_builtin(arg);
   }
 } KiwiBuiltins;

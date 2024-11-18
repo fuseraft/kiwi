@@ -171,6 +171,7 @@ class KInterpreter {
  private:
   std::unique_ptr<KContext> ctx;
   TaskManager taskmgr;
+  FFIManager ffi;
   std::stack<std::shared_ptr<CallStackFrame>> callStack;
   std::stack<k_string> packageStack;
   std::stack<k_string> structStack;
@@ -220,7 +221,8 @@ class KInterpreter {
   k_value visit(const SliceNode* node);
   k_value visit(const SpawnNode* node);
 
-  std::shared_ptr<CallStackFrame> createFrame(const k_string& name, bool isMethodInvocation);
+  std::shared_ptr<CallStackFrame> createFrame(const k_string& name,
+                                              bool isMethodInvocation);
   void pushFrame(std::shared_ptr<CallStackFrame> frame) {
     callStack.push(frame);
     funcStack.push(frame->name);
@@ -327,7 +329,7 @@ class KInterpreter {
   k_value interpretReflectorRObject(const Token& token,
                                     std::vector<k_value>& args);
   k_value interpretReflectorRStack(const Token& token,
-                                    std::vector<k_value>& args);
+                                   std::vector<k_value>& args);
 
   k_value interpretWebServerBuiltin(const Token& token, const KName& builtin,
                                     std::vector<k_value>& args);
@@ -497,8 +499,7 @@ k_value KInterpreter::interpret(const ASTNode* node) {
 }
 
 std::shared_ptr<CallStackFrame> KInterpreter::createFrame(
-    const k_string& name,
-    bool isMethodInvocation = false) {
+    const k_string& name, bool isMethodInvocation = false) {
   std::shared_ptr<CallStackFrame> frame = callStack.top();
   auto subFrame = std::make_shared<CallStackFrame>();
   auto& subFrameVariables = subFrame->variables;
@@ -563,7 +564,7 @@ k_string KInterpreter::id(const ASTNode* node) {
 k_value KInterpreter::visit(const SpawnNode* node) {
   auto frame = std::make_shared<CallStackFrame>();
   auto top = callStack.top();
-  
+
   frame->name = Keywords.Spawn;
 
   for (const auto& var : top->variables) {
@@ -3092,7 +3093,7 @@ k_value KInterpreter::interpretReflectorRObject(const Token& token,
 }
 
 k_value KInterpreter::interpretReflectorRStack(const Token& token,
-                                                std::vector<k_value>& args) {
+                                               std::vector<k_value>& args) {
   if (args.size() != 0) {
     throw BuiltinUnexpectedArgumentError(token, ReflectorBuiltins.RStack);
   }
