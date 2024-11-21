@@ -1,0 +1,31 @@
+# load the shared library
+
+ffi::load("x", "sharedlib/libexample.so")
+
+# int* create_integer(int value);
+ffi::attach("x", "create", "create_integer", "int,pointer")
+
+# void modify_integer(int* ptr, int new_value);
+ffi::attach("x", "modify", "modify_integer", "pointer,int,void")
+
+# int read_integer(const int* ptr);
+ffi::attach("x", "read", "read_integer", "pointer,int")
+
+# void free_integer(int* ptr);
+ffi::attach("x", "free", "free_integer", "pointer,void")
+
+# create a pointer
+xint = ffi::invoke("create", [500])
+
+# change the value it points to
+ffi::invoke("modify", [xint, 600])
+
+#println xint
+
+# free it
+ffi::invoke("free", [xint])
+
+# this will double free...don't do that.
+# ffi::invoke("free", [xint])
+
+#println xint
