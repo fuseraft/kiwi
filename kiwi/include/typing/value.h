@@ -38,6 +38,15 @@ struct k_pointer {
     return static_cast<T*>(ptr);
   }
 
+  static std::string serialize(const k_pointer& kp) {
+    if (kp.isNull()) {
+      return "nullptr";
+    }
+    std::stringstream ss;
+    ss << kp.ptr;
+    return ss.str();
+  }
+
   bool isNull() const { return ptr == nullptr; }
 
   bool operator==(const k_pointer& other) const { return ptr == other.ptr; }

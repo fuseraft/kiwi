@@ -106,18 +106,32 @@ ffi::unload("mathlib")
 
 ### **Complete Example**
 ```kiwi
-# Load the shared library
-ffi::load("mathlib", "/usr/lib/libmath.so")
+# load the shared library
+ffi::load("x", "sharedlib/libexample.so")
 
-# Attach a function from the library
-ffi::attach("mathlib", "add", "c_add", "int,int,int")
+# int* create_integer(int value);
+ffi::attach("x", "create", "create_integer", "int,pointer")
 
-# Call the function
-sum = ffi::invoke("add", [10, 20])
-println(sum)  # Output: 30
+# void modify_integer(int* ptr, int new_value);
+ffi::attach("x", "modify", "modify_integer", "pointer,int,void")
 
-# Unload the library when done
-ffi::unload("mathlib")
+# int read_integer(const int* ptr);
+ffi::attach("x", "read", "read_integer", "pointer,int")
+
+# void free_integer(int* ptr);
+ffi::attach("x", "free", "free_integer", "pointer,void")
+
+# create a pointer
+xint = ffi::invoke("create", [500])
+
+# change the value it points to
+ffi::invoke("modify", [xint, 600])
+
+# free it
+ffi::invoke("free", [xint])
+
+# unload the library
+ffi::unload("x")
 ```
 
 ---
