@@ -38,6 +38,7 @@
    - [`console`](lib/console.md): An interface that wraps core I/O operations.
    - [`crypto`](lib/crypto.md): Cryptographic functions like MD5 and SHA-2.
    - [`env`](lib/env.md): For interacting with environment variables.
+   - [`ffi`](lib/ffi.md): A simple Foreign Function Interface package.
    - [`fs`](lib/fs.md): Functions for file system operations.
    - [`guava`](lib/guava.md): A simple unit testing framework.
    - [`http`](lib/http.md): Functions for HTTP requests (GET, POST, etc).

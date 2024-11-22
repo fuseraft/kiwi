@@ -1,5 +1,5 @@
 /#
- The Kiwi Programming Language 2.0.9
+ The Kiwi Programming Language 2.0.10
  #/
 
 fn testsuite()
@@ -29,6 +29,12 @@ fn testsuite()
     println "${succeeded} tests passed, ${failed} tests failed."
   end
 end
+
+guava::register_test("assignments", with do
+  d = 5, e = 3, a = b = c = d
+  b -= e
+  guava::assert(a + b + c == d * e - e)
+end)
 
 guava::register_test("truthiness", with do
   guava::assert(!null.truthy())      # null is never truthy

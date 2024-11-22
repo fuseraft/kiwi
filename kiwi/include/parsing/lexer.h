@@ -602,6 +602,9 @@ class Lexer {
       st = KName::Types_None;
     } else if (typeName == TypeNames.Any || typeName == TypeNames.LowAny) {
       st = KName::Types_Any;
+    } else if (typeName == TypeNames.Pointer ||
+               typeName == TypeNames.LowPointer) {
+      st = KName::Types_Pointer;
     }
 
     return createToken(KTokenType::TYPENAME, st, typeName);
@@ -645,6 +648,22 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
+  Token parseFFIBuiltin(const k_string& builtin) {
+    auto st = KName::Default;
+
+    if (builtin == FFIBuiltins.Attach) {
+      st = KName::Builtin_FFI_Attach;
+    } else if (builtin == FFIBuiltins.Invoke) {
+      st = KName::Builtin_FFI_Invoke;
+    } else if (builtin == FFIBuiltins.Load) {
+      st = KName::Builtin_FFI_Load;
+    } else if (builtin == FFIBuiltins.Unload) {
+      st = KName::Builtin_FFI_Unload;
+    }
+
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
+  }
+
   Token parseReflectorBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
@@ -654,6 +673,8 @@ class Lexer {
       st = KName::Builtin_Reflector_RList;
     } else if (builtin == ReflectorBuiltins.RObject) {
       st = KName::Builtin_Reflector_RObject;
+    } else if (builtin == ReflectorBuiltins.RStack) {
+      st = KName::Builtin_Reflector_RStack;
     }
 
     return createToken(KTokenType::IDENTIFIER, st, builtin);
@@ -1064,6 +1085,8 @@ class Lexer {
       return parseSerializerBuiltin(builtin);
     } else if (ReflectorBuiltins.is_builtin(builtin)) {
       return parseReflectorBuiltin(builtin);
+    } else if (FFIBuiltins.is_builtin(builtin)) {
+      return parseFFIBuiltin(builtin);
     }
 
     return createToken(KTokenType::IDENTIFIER, KName::Default, builtin);
