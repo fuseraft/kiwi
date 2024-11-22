@@ -30,6 +30,12 @@ fn testsuite()
   end
 end
 
+guava::register_test("assignments", with do
+  d = 5, e = 3, a = b = c = d
+  b -= e
+  guava::assert(a + b + c == d * e - e)
+end)
+
 guava::register_test("truthiness", with do
   guava::assert(!null.truthy())      # null is never truthy
   guava::assert(!(0).truthy())       # 0 is the only non-truthy number
