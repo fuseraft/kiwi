@@ -330,6 +330,7 @@ struct {
   const k_string Hashmap = "Hashmap";
   const k_string Object = "Object";
   const k_string Lambda = "Lambda";
+  const k_string Pointer = "Pointer";
   const k_string None = "None";
   const k_string Any = "Any";
 
@@ -341,13 +342,15 @@ struct {
   const k_string LowHash = "hashmap";
   const k_string LowObject = "object";
   const k_string LowLambda = "lambda";
+  const k_string LowPointer = "pointer";
   const k_string LowNone = "none";
   const k_string LowAny = "any";
 
   std::unordered_set<k_string> typenames = {
-      Integer, Float,   Boolean,   String,     List,     Hashmap,    Object,
-      Lambda,  None,    Any,       LowInteger, LowFloat, LowBoolean, LowString,
-      LowList, LowHash, LowObject, LowLambda,  LowNone,  LowAny};
+      Integer,   Float,      Boolean,   String,  List,    Hashmap,
+      Object,    Lambda,     Pointer,   None,    Any,     LowInteger,
+      LowFloat,  LowBoolean, LowString, LowList, LowHash, LowObject,
+      LowLambda, LowPointer, LowNone,   LowAny};
 
   bool is_typename(const k_string& arg) {
     return typenames.find(arg) != typenames.end();
