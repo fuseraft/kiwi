@@ -44,6 +44,9 @@ struct Serializer {
       case KName::Types_String:
         return TypeNames.String;
 
+      case KName::Types_Pointer:
+        return TypeNames.Pointer;
+
       default:
         break;
     }
@@ -83,6 +86,9 @@ struct Serializer {
       case KName::Types_String:
         return std::holds_alternative<k_string>(v);
 
+      case KName::Types_Pointer:
+        return std::holds_alternative<k_pointer>(v);
+
       default:
         break;
     }
@@ -109,6 +115,8 @@ struct Serializer {
       return std::get<k_object>(v)->structName;
     } else if (std::holds_alternative<k_lambda>(v)) {
       return TypeNames.Lambda;
+    } else if (std::holds_alternative<k_pointer>(v)) {
+      return TypeNames.Pointer;
     }
 
     return "";
@@ -149,6 +157,8 @@ struct Serializer {
       sv << basic_serialize_object(std::get<k_object>(v));
     } else if (std::holds_alternative<k_lambda>(v)) {
       sv << basic_serialize_lambda(std::get<k_lambda>(v));
+    } else if (std::holds_alternative<k_pointer>(v)) {
+      sv << k_pointer::serialize(std::get<k_pointer>(v));
     }
 
     return sv.str();
@@ -195,6 +205,8 @@ struct Serializer {
       sv << basic_serialize_object(std::get<k_object>(v));
     } else if (std::holds_alternative<k_lambda>(v)) {
       sv << basic_serialize_lambda(std::get<k_lambda>(v));
+    } else if (std::holds_alternative<k_pointer>(v)) {
+      sv << k_pointer::serialize(std::get<k_pointer>(v));
     }
 
     return sv.str();

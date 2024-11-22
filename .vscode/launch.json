@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/bin/kiwi",
             "args": [
-                "--no-stdlib",
+                //"--no-stdlib",
                 "${workspaceFolder}/debug"
             ],
             "stopAtEntry": false,
@@ -25,7 +25,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "C/C++: g++ build active file",
+            "preLaunchTask": "Build Kiwi",
             "miDebuggerPath": "/usr/bin/gdb"
         }
     ]

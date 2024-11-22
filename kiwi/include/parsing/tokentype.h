@@ -38,6 +38,10 @@ enum KName {
   Builtin_Env_UnsetEnvironmentVariable,
   Builtin_Env_Kiwi,
   Builtin_Env_KiwiLib,
+  Builtin_FFI_Attach,
+  Builtin_FFI_Invoke,
+  Builtin_FFI_Load,
+  Builtin_FFI_Unload,
   Builtin_FileIO_AppendText,
   Builtin_FileIO_ChangeDirectory,
   Builtin_FileIO_CopyFile,
@@ -223,6 +227,7 @@ enum KName {
   Builtin_Reflector_RLib,
   Builtin_Reflector_RList,
   Builtin_Reflector_RObject,
+  Builtin_Reflector_RStack,
   Builtin_Serializer_Serialize,
   Builtin_Serializer_Deserialize,
   Builtin_Sys_EffectiveUserId,
@@ -342,6 +347,7 @@ enum KName {
   Types_None,
   Types_Object,
   Types_String,
+  Types_Pointer,
   Regex,
   Default
 };

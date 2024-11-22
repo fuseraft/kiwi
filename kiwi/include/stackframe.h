@@ -42,6 +42,7 @@ struct CallStackFrame {
   k_value returnValue;
   k_object objectContext;
   FrameFlags flags = FrameFlags::None;
+  k_string name;
 
   CallStackFrame() {}
   ~CallStackFrame() { variables.clear(); }
