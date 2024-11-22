@@ -25,10 +25,6 @@ fn main()
   
   # unload the library
   ffi::unload("x")
-
-  try
-    ffi::invoke("free", [xint])
-  end
 end
 
 main()
