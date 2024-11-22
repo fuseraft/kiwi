@@ -5,6 +5,7 @@
 #include <dlfcn.h>
 #include <ffi.h>
 #include <iostream>
+#include <memory>
 #include <mutex>
 #include <sstream>
 #include <string>
@@ -203,19 +204,22 @@ std::vector<k_string> FFIManager::parseSignature(const k_string& signature) {
 }
 
 ffi_type* FFIManager::getFFIType(const Token& token, const k_string& typeStr) {
-  if (typeStr == "int")
+  if (typeStr == "int") {
     return &ffi_type_sint;
-  if (typeStr == "size_t")
+  } else if (typeStr == "size_t") {
     return &ffi_type_uint32;
-  if (typeStr == "double")
+  } else if (typeStr == "double") {
     return &ffi_type_double;
-  if (typeStr == "pointer")
+  } else if (typeStr == "pointer") {
     return &ffi_type_pointer;
-  if (typeStr == "string")
+  } else if (typeStr == "string") {
     return &ffi_type_pointer;  // char*
-  if (typeStr == "void")
+  } else if (typeStr == "string[]") {
+    return &ffi_type_pointer;
+  } else if (typeStr == "void") {
     return &ffi_type_void;
-  // Add support for string[] and other types if needed
+  }
+
   throw FFIError(token, "Unsupported type: " + typeStr);
 }
 
@@ -268,6 +272,30 @@ void FFIManager::prepareArguments(const Token& token,
           allocations.push_back({cstr, [](void* p) {
                                    delete[] static_cast<char*>(p);
                                  }});
+        } else if (typeStr == "string[]") {
+          const std::vector<k_value>& strArray = std::get<k_list>(arg)->elements;
+
+          size_t arraySize = strArray.size();
+          char** cstrArray = new char*[arraySize + 1];  // +1 for NULL terminator if needed
+
+          for (size_t j = 0; j < arraySize; ++j) {
+            const k_string& str = std::get<k_string>(strArray[j]);
+            char* cstr = new char[str.size() + 1];
+            std::strcpy(cstr, str.c_str());
+            cstrArray[j] = cstr;
+
+            allocations.push_back({cstr, [](void* p) {
+                                     delete[] static_cast<char*>(p);
+                                   }});
+          }
+
+          cstrArray[arraySize] = nullptr;
+
+          allocations.push_back({cstrArray, [](void* p) {
+                                   delete[] static_cast<char**>(p);
+                                 }});
+
+          argValue = &cstrArray;
         } else {
           throw FFIError(token, "Unsupported parameter type: " + typeStr);
         }
@@ -342,6 +370,23 @@ k_value FFIManager::processReturnValue(const Token& token, void* retVal,
     k_string str(value);
     free(value);
     return str;
+  } else if (retTypeStr == "string[]") {
+    char** cstrArray = *static_cast<char***>(retVal);
+    std::vector<k_value> strArray;
+
+    if (!cstrArray) {
+      throw FFIError(token, "Returned string array is null");
+    }
+
+    size_t index = 0;
+    while (cstrArray[index] != nullptr) {
+      char* cstr = cstrArray[index];
+      k_string str(cstr);
+      strArray.push_back(str);
+      ++index;
+    }
+    
+    return std::make_shared<List>(strArray);
   } else {
     throw FFIError(token, "Unsupported return type: " + retTypeStr);
   }
