@@ -1,1 +1,40 @@
 # a script for debugging and experimentation (and fun!)
+
+package ffi
+  fn attach(lib_alias: string, func_alias: string, ffi_name: string, ffi_signature: string) __ffi_attach__(lib_alias, func_alias, ffi_name, ffi_signature) end
+  fn invoke(func_alias: string, func_params: list = []): any return __ffi_invoke__(func_alias, func_params) end
+  fn load(lib_alias: string, lib_path: string) __ffi_load__(lib_alias, lib_path) end
+  fn unload(lib_alias: string) __ffi_unload__(lib_alias) end
+end
+export "ffi"
+
+# load the shared library
+ffi::load("x", fs::abspath("examples/ffi/sharedlib/libexample.so"))
+
+# int* create_integer(int value);
+ffi::attach("x", "create", "create_integer", "int,pointer")
+
+# void modify_integer(int* ptr, int new_value);
+ffi::attach("x", "modify", "modify_integer", "pointer,int,void")
+
+# int read_integer(const int* ptr);
+ffi::attach("x", "read", "read_integer", "pointer,int")
+
+# void free_integer(int* ptr);
+ffi::attach("x", "free", "free_integer", "pointer,void")
+
+# create a pointer
+xint = ffi::invoke("create", [500])
+
+# change the value it points to
+ffi::invoke("modify", [xint, 600])
+
+println ffi::invoke("read", [xint])
+
+# free it
+ffi::invoke("free", [xint])
+
+# this will double free...don't do that.
+# ffi::invoke("free", [xint])
+
+println xint

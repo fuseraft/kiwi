@@ -1,11 +1,11 @@
 %global debug_package %{nil}
 
 Name: kiwi
-Version: 2.0.9
+Version: 2.0.10
 Release: 1%{?dist}
 Summary: The Kiwi Programming Language
 
-License: Your License Here
+License: MIT
 URL: https://github.com/fuseraft/kiwi
 Source0: %{name}-%{version}.tar.gz
 
@@ -29,5 +29,5 @@ cp -r lib/* %{buildroot}/usr/lib/kiwi/
 /usr/lib/kiwi/*
 
 %changelog
-* Tue Nov 5 2024 Scott Stauffer <scott@fuseraft.com> - 2.0.9-1
-- Version 2.0.9 release
+* Tue Nov 22 2024 Scott Stauffer <scott@fuseraft.com> - 2.0.10-1
+- Version 2.0.10 release

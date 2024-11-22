@@ -12,13 +12,17 @@ OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
 EXECUTABLE := $(BIN_DIR)/kiwi
 
+# Define linker flags and libraries
+LDFLAGS :=
+LDLIBS := -lffi -ldl
+
 .PHONY: all clean test play install profile rpm
 
 all: clean $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJ_FILES)
 	@mkdir -p $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+	$(CXX) $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp $(INCLUDE_FILES)
 	@mkdir -p $(BUILD_DIR)
@@ -47,6 +51,6 @@ clean:
 
 rpm: all
 	# Create source tarball
-	tar czf kiwi-2.0.9.tar.gz --transform 's,^,kiwi-2.0.9/,' bin/ lib/ kiwi.spec
+	tar czf kiwi-2.0.10.tar.gz --transform 's,^,kiwi-2.0.10/,' bin/ lib/ kiwi.spec
 	# Build the RPM package
-	rpmbuild -ta kiwi-2.0.9.tar.gz
+	rpmbuild -ta kiwi-2.0.10.tar.gz

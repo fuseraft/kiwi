@@ -602,6 +602,9 @@ class Lexer {
       st = KName::Types_None;
     } else if (typeName == TypeNames.Any || typeName == TypeNames.LowAny) {
       st = KName::Types_Any;
+    } else if (typeName == TypeNames.Pointer ||
+               typeName == TypeNames.LowPointer) {
+      st = KName::Types_Pointer;
     }
 
     return createToken(KTokenType::TYPENAME, st, typeName);

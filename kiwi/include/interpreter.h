@@ -3046,7 +3046,7 @@ k_value KInterpreter::interpretFFIAttach(const Token& token,
   auto ffiFuncName = get_string(token, args.at(2));
   auto ffiSignature = get_string(token, args.at(3));
 
-  ffi.attachFunction(token, funcAlias, ffiFuncName, ffiSignature, libAlias);
+  ffi.attachFunction(token, libAlias, funcAlias, ffiFuncName, ffiSignature);
 
   return {};
 }
@@ -3067,7 +3067,7 @@ k_value KInterpreter::interpretFFIInvoke(const Token& token,
 
   const auto& funcParams = std::get<k_list>(args.at(1))->elements;
 
-  return ffi.callFunction(token, funcAlias, funcParams);
+  return ffi.invokeFunction(token, funcAlias, funcParams);
 }
 
 k_value KInterpreter::interpretFFILoad(const Token& token,
@@ -3079,7 +3079,7 @@ k_value KInterpreter::interpretFFILoad(const Token& token,
   auto libAlias = get_string(token, args.at(0));
   auto libPath = get_string(token, args.at(1));
 
-  ffi.loadLibrary(token, libPath, libAlias);
+  ffi.loadLibrary(token, libAlias, libPath);
 
   return {};
 }

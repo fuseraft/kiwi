@@ -347,6 +347,7 @@ enum KName {
   Types_None,
   Types_Object,
   Types_String,
+  Types_Pointer,
   Regex,
   Default
 };
