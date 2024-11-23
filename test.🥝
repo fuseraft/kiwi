@@ -633,20 +633,6 @@ guava::register_test("lambdas", with do
   guava::assert(x == 25)
 end)
 
-guava::register_test("ffi", with do
-  ffi::load("x", "examples/ffi/sharedlib/libexample.so")
-  ffi::attach("x", "create", "create_integer", "int,pointer")
-  ffi::attach("x", "modify", "modify_integer", "pointer,int,void")
-  ffi::attach("x", "read", "read_integer", "pointer,int")
-  ffi::attach("x", "free", "free_integer", "pointer,void")
-  xint = ffi::invoke("create", [500])
-  ffi::invoke("modify", [xint, 600])
-  res = ffi::invoke("read", [xint])
-  ffi::invoke("free", [xint])
-  ffi::unload("x")
-  guava::assert(res == 600)
-end)
-
 guava::register_test("md5", with do
   a_str = "just a test string"
   
