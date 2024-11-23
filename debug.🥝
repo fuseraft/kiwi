@@ -1,1 +1,42 @@
 # a script for debugging and experimentation (and fun!)
+
+task::create(with do
+  libvlc_path = "/usr/lib/x86_64-linux-gnu/libvlc.so.5"
+  ffi::load("vlc", libvlc_path)
+  ffi::attach("vlc", "version", "libvlc_get_version", [], "string")
+  ffi::attach("vlc", "new", "libvlc_new", ["int", "string[]"], "pointer")
+  ffi::attach("vlc", "media", "libvlc_media_new_path", ["pointer", "string"],"pointer")
+  ffi::attach("vlc", "player_from_media", "libvlc_media_player_new_from_media", ["pointer"], "pointer")
+  ffi::attach("vlc", "play", "libvlc_media_player_play", ["pointer"], "int")
+  ffi::attach("vlc", "stop", "libvlc_media_player_stop", ["pointer"], "int")
+  ffi::attach("vlc", "pause", "libvlc_media_player_pause", ["pointer"], "int")
+
+  println "Loaded libvlc version: ${ffi::invoke("version")}"
+
+  println "Creating new VLC instance."
+  vlc = ffi::invoke("new", [0, []])
+
+  println "Creating media path."
+  media = ffi::invoke("media", [vlc, "/home/scs/Downloads/boc-olson.mp3"])
+
+  println "Creating new player from media."
+  player = ffi::invoke("player_from_media", [media])
+
+  println "Start the media player."
+  ffi::invoke("play", [player])
+
+  # ffi::unload("vlc")
+end)
+
+task::wait()
+
+/#
+Loaded libvlc version: 3.0.20 Vetinari
+Creating new VLC instance.
+Creating media path.
+Creating new player from media.
+Start the media player.
+[00007f2050008e00] filesystem stream error: cannot open file /home/scs/GitHub/kiwi/ (No such file or directory)
+[00007f20640ba290] main input error: Your input can't be opened
+[00007f20640ba290] main input error: VLC is unable to open the MRL 'file:///home/scs/GitHub/kiwi/%02'. Check the log for details.
+#/

@@ -1,10 +1,27 @@
 #include <iostream>
 #include <cstdlib>
 
+// Function that just returns a string.
+extern "C" const char* get_version() {
+  return "libexample-0.0.1";
+}
+
+extern "C" bool is_even(int* ptr) {
+  if (!ptr) {
+    std::cerr << "Pointer is null. Cannot check evenness." << std::endl;
+    return false;
+  }
+
+  return *ptr % 2 == 0;
+}
+
+extern "C" int boolean_to_int(bool b) {
+  return b ? 1 : 0;
+}
+
 // Function to create a dynamically allocated integer
 extern "C" int* create_integer(int value) {
   int* ptr = new int(value);
-  // std::cout << "Created integer with value: " << *ptr << std::endl;
   return ptr;
 }
 
@@ -12,7 +29,6 @@ extern "C" int* create_integer(int value) {
 extern "C" void modify_integer(int* ptr, int new_value) {
   if (ptr) {
     *ptr = new_value;
-    // std::cout << "Modified integer to value: " << *ptr << std::endl;
   } else {
     std::cerr << "Pointer is null. Cannot modify value." << std::endl;
   }
@@ -32,7 +48,6 @@ extern "C" int read_integer(const int* ptr) {
 extern "C" void free_integer(int* ptr) {
   if (ptr) {
     delete ptr;
-    // std::cout << "Freed allocated integer." << std::endl;
   } else {
     std::cerr << "Pointer is null. Nothing to free." << std::endl;
   }
