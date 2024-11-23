@@ -14,31 +14,51 @@ The `ffi` package includes built-in functions for:
 ## **Function Details**
 
 ### `attach`
-
-#### **Description:**
-Attaches an external function from a loaded library to the Kiwi runtime. This allows the function to be called by an alias in Kiwi.
-
-#### **Syntax:**
 ```kiwi
-ffi::attach(lib_alias: string, func_alias: string, ffi_name: string, ffi_signature: string)
+ffi::attach(lib_alias: string, func_alias: string, 
+    ffi_name: string, ffi_parameter_types: list, 
+    ffi_return_type: string): boolean
 ```
+
+Attaches an external function from a loaded library to the Kiwi runtime. This allows the function to be called by an alias in Kiwi.
 
 #### **Parameters:**
 - **`lib_alias`**: The alias of the library (set during library loading) containing the function.
 - **`func_alias`**: The alias to use when calling the function in Kiwi.
 - **`ffi_name`**: The actual name of the function in the shared library.
-- **`ffi_signature`**: A string specifying the function's parameter and return types.
+- **`ffi_parameter_types`**: A list of strings specifying the function's parameter types.
+    - **Supported types**:
+        - `int`
+        - `size_t`
+        - `double`
+        - `bool`
+        - `pointer`
+        - `string`
+        - `string[]`
+- **`ffi_return_type`**: A string specifying the function's return type.
+    - **Supported types**:
+        - `int`
+        - `size_t`
+        - `double`
+        - `bool`
+        - `pointer`
+        - `string`
+        - `void` (Use for functions that return no value)
+
+#### **Returns:**
+- The returns a boolean indicating success or failure to attach external library function.
 
 #### **Example:**
 ```kiwi
-ffi::attach("mathlib", "add", "c_add", "int,int -> int")
+/# 
+register the `c_add` function in the `mathlib` library to a function called `add` which accepts two integer parameters and returns an integer value.
+#/
+ffi::attach("mathlib", "add", "c_add", ["int", "int"], "int")
 ```
 
 ---
 
 ### `invoke`
-
-#### **Description:**
 Invokes an attached external function with a list of parameters.
 
 #### **Syntax:**
@@ -55,15 +75,14 @@ ffi::invoke(func_alias: string, func_params: list): any
 
 #### **Example:**
 ```kiwi
+# call the `add` function we attached earlier.
 result = ffi::invoke("add", [5, 7])
-println(result)  # Output: 12
+println result  # Output: 12
 ```
 
 ---
 
 ### `load`
-
-#### **Description:**
 Loads a shared library (.so) into the Kiwi runtime and assigns it an alias for future references.
 
 #### **Syntax:**
@@ -77,14 +96,15 @@ ffi::load(lib_alias: string, lib_path: string)
 
 #### **Example:**
 ```kiwi
-ffi::load("mathlib", "/usr/lib/libmath.so")
+/# 
+load an external shared library `libmath.so` and alias it as `mathlib`.
+#/
+ffi::load("mathlib", "./path/to/libmath.so")
 ```
 
 ---
 
 ### `unload`
-
-#### **Description:**
 Unloads a previously loaded shared library from the Kiwi runtime.
 
 #### **Syntax:**
@@ -97,6 +117,7 @@ ffi::unload(lib_alias: string)
 
 #### **Example:**
 ```kiwi
+# unload the library after we are done with it.
 ffi::unload("mathlib")
 ```
 
@@ -104,33 +125,50 @@ ffi::unload("mathlib")
 
 ## **Example Usage**
 
-### **Complete Example**
+[Click here](../../examples/ffi/) to view the source code.
 ```kiwi
-# load the shared library
+/# 
+Load the shared library, aliased as 'x', and attach the following functions from the library:
+
+| return type  | function name       | function parameters        |
+| ------------ | ------------------- | -------------------------- |
+| const char*  | get_version         | ()                         |
+| bool         | is_even             | (int* ptr)                 |
+| int          | boolean_to_int      | (bool b)                   |
+| int*         | create_integer      | (int value)                |
+| void         | modify_integer      | (int* ptr, int new_value)  |
+| int          | read_integer        | (const int* ptr)           |
+| void         | free_integer        | (int* ptr)                 |
+#/
+
 ffi::load("x", "sharedlib/libexample.so")
+ffi::attach("x", "version", "get_version", [], "string")
+ffi::attach("x", "is_even", "is_even", ["pointer"], "bool")
+ffi::attach("x", "bool2int", "boolean_to_int", ["bool"], "int")
+ffi::attach("x", "create", "create_integer", ["int"], "pointer")
+ffi::attach("x", "modify", "modify_integer", ["pointer", "int"], "void")  
+ffi::attach("x", "read", "read_integer", ["pointer"], "int")  
+ffi::attach("x", "free", "free_integer", ["pointer"], "void")
 
-# int* create_integer(int value);
-ffi::attach("x", "create", "create_integer", "int,pointer")
+println "Version: ${ffi::invoke("version")}"
 
-# void modify_integer(int* ptr, int new_value);
-ffi::attach("x", "modify", "modify_integer", "pointer,int,void")
-
-# int read_integer(const int* ptr);
-ffi::attach("x", "read", "read_integer", "pointer,int")
-
-# void free_integer(int* ptr);
-ffi::attach("x", "free", "free_integer", "pointer,void")
-
-# create a pointer
+# create a pointer to an integer, set the value to 500, and then print the value the pointer points to.
 xint = ffi::invoke("create", [500])
+println "Value is: ${ffi::invoke("read", [xint])}"
+println "Is even?: ${ffi::invoke("is_even", [xint])}"
 
-# change the value it points to
-ffi::invoke("modify", [xint, 600])
+# change the value it points to, then print the new value.
+ffi::invoke("modify", [xint, 601])
+println "New value is: ${ffi::invoke("read", [xint])}"
+println "Is even?: ${ffi::invoke("is_even", [xint])}"
 
-# free it
+# free the pointer since we no longer need it, and unload the library!
 ffi::invoke("free", [xint])
 
-# unload the library
+# testing boolean parameters
+println "`true` converted to an integer: ${ffi::invoke("bool2int", [true])}"
+println "`false` converted to an integer: ${ffi::invoke("bool2int", [false])}"
+
 ffi::unload("x")
 ```
 
