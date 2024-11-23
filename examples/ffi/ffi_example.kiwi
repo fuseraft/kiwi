@@ -1,36 +1,46 @@
-fn main()
-  # load the shared library
+fn main()  
+  /# 
+  Load the shared library, aliased as 'x', and attach the following functions from the library:
+
+  | return type  | function name       | function parameters        |
+  | ------------ | ------------------- | -------------------------- |
+  | const char*  | get_version         | ()                         |
+  | bool         | is_even             | (int* ptr)                 |
+  | int          | boolean_to_int      | (bool b)                   |
+  | int*         | create_integer      | (int value)                |
+  | void         | modify_integer      | (int* ptr, int new_value)  |
+  | int          | read_integer        | (const int* ptr)           |
+  | void         | free_integer        | (int* ptr)                 |
+  #/
   ffi::load("x", "sharedlib/libexample.so")
-  
-  # int* create_integer(int value);
-  ffi::attach("x", "create", "create_integer", "int,pointer")
-  
-  # void modify_integer(int* ptr, int new_value);
-  ffi::attach("x", "modify", "modify_integer", "pointer,int,void")
-  
-  # int read_integer(const int* ptr);
-  ffi::attach("x", "read", "read_integer", "pointer,int")
-  
-  # void free_integer(int* ptr);
-  ffi::attach("x", "free", "free_integer", "pointer,void")
-  
-  # create a pointer
+  ffi::attach("x", "version", "get_version", [], "string")
+  ffi::attach("x", "is_even", "is_even", ["pointer"], "bool")
+  ffi::attach("x", "bool2int", "boolean_to_int", ["bool"], "int")
+  ffi::attach("x", "create", "create_integer", ["int"], "pointer")
+  ffi::attach("x", "modify", "modify_integer", ["pointer", "int"], "void")  
+  ffi::attach("x", "read", "read_integer", ["pointer"], "int")  
+  ffi::attach("x", "free", "free_integer", ["pointer"], "void")
+
+  println "Version: ${ffi::invoke("version")}"
+
+  # create a pointer to an integer, set the value to 500, and then print the value the pointer points to.
   xint = ffi::invoke("create", [500])
-  
-  # change the value it points to
-  ffi::invoke("modify", [xint, 600])
-  
-  # free it
+  println "Value is: ${ffi::invoke("read", [xint])}"
+  println "Is even?: ${ffi::invoke("is_even", [xint])}"
+
+  # change the value it points to, then print the new value.
+  ffi::invoke("modify", [xint, 601])
+  println "New value is: ${ffi::invoke("read", [xint])}"
+  println "Is even?: ${ffi::invoke("is_even", [xint])}"
+
+  # free the pointer since we no longer need it, and unload the library!
   ffi::invoke("free", [xint])
-  
-  # unload the library
+
+  # testing boolean parameters
+  println "bool2int(true): ${ffi::invoke("bool2int", [true])}"
+  println "bool2int(false): ${ffi::invoke("bool2int", [false])}"
+
   ffi::unload("x")
 end
 
 main()
-
-/#
-Created integer with value: 500
-Modified integer to value: 600
-Freed allocated integer.
-#/
