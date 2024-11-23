@@ -27,6 +27,20 @@ Checks if there are any active tasks.
 | :------ | :-------------------------------- |
 | `Boolean`  | `true` if there are active tasks, `false` otherwise. |
 
+### `create(callback)`
+
+Spawn a new task.
+
+**Parameters**
+| Type      | Name             | Description                    |
+| :-------- | :--------------- | :----------------------------- |
+| `Lambda` | `callback` | A lambda to invoke as a task.    |
+
+**Returns**
+| Type     | Description                     |
+| :------- | :------------------------------ |
+| `Integer` | Task identifier of the new task. |
+
 ### `list()`
 
 Returns a list of active task identifiers.

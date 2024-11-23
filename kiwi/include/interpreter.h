@@ -3037,16 +3037,22 @@ k_value KInterpreter::interpretFFIBuiltin(const Token& token,
 
 k_value KInterpreter::interpretFFIAttach(const Token& token,
                                          std::vector<k_value>& args) {
-  if (args.size() != 4) {
+  if (args.size() != 5) {
     throw BuiltinUnexpectedArgumentError(token, FFIBuiltins.Attach);
   }
 
   auto libAlias = get_string(token, args.at(0));
   auto funcAlias = get_string(token, args.at(1));
   auto ffiFuncName = get_string(token, args.at(2));
-  auto ffiSignature = get_string(token, args.at(3));
-
-  ffi.attachFunction(token, libAlias, funcAlias, ffiFuncName, ffiSignature);
+  if (!std::holds_alternative<k_list>(args.at(3))) {
+    throw InvalidOperationError(
+        token, "Expected a list of parameter types for argument 4 of `" +
+                   FFIBuiltins.Attach + "`.");
+  }
+  auto ffiParameterTypes = std::get<k_list>(args.at(3));
+  auto ffiReturnType = get_string(token, args.at(4));
+  
+  ffi.attachFunction(token, libAlias, funcAlias, ffiFuncName, ffiParameterTypes, ffiReturnType);
 
   return {};
 }
