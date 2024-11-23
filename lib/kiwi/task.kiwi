@@ -11,6 +11,20 @@ package task
   end
 
   /#
+  Summary: Spawn a new task.
+  Params:
+    - callback: A lambda to invoke as a task.
+  Returns: Integer containing the task identifier.
+  #/
+  fn create(callback)
+    task_id = spawn (with() do
+      callback()
+    end)()
+
+    return task_id
+  end
+
+  /#
   Summary: Returns a list of task identifiers.
   Returns: List of integers.
   #/

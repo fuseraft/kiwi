@@ -5,10 +5,11 @@ package ffi
     - `lib_alias`: The alias of the library (set during library loading) containing the function.
     - `func_alias`: The alias to use when calling the function in Kiwi.
     - `ffi_name`: The actual name of the function in the shared library.
-    - `ffi_signature`: A string specifying the function's parameter and return types.
+    - `ffi_parameter_types`: A list specifying the function's parameter types.
+    - `ffi_return_type`: A string specifying the function's return type.
   #/
-  fn attach(lib_alias: string, func_alias: string, ffi_name: string, ffi_signature: string)
-    __ffi_attach__(lib_alias, func_alias, ffi_name, ffi_signature)
+  fn attach(lib_alias: string, func_alias: string, ffi_name: string, ffi_parameter_types: list, ffi_return_type: string)
+    __ffi_attach__(lib_alias, func_alias, ffi_name, ffi_parameter_types, ffi_return_type)
   end
 
   /#
