@@ -36,7 +36,7 @@ class FFIManager {
                    const k_string& path);
 
   // Attach a function from a library and store its signature
-  void attachFunction(const Token& token, const k_string& libAlias,
+  bool attachFunction(const Token& token, const k_string& libAlias,
                       const k_string& funcAlias, const k_string& funcName,
                       const k_list& parameters, const k_string& returnType);
 
@@ -86,10 +86,11 @@ void FFIManager::loadLibrary(const Token& token, const k_string& libAlias,
                                    ",path=" + path + "): ") +
                               dlerror());
   }
+
   libraryHandles[libAlias] = handle;
 }
 
-void FFIManager::attachFunction(const Token& token, const k_string& libAlias,
+bool FFIManager::attachFunction(const Token& token, const k_string& libAlias,
                                 const k_string& funcAlias,
                                 const k_string& funcName,
                                 const k_list& parameters, const k_string& returnType) {
@@ -117,10 +118,13 @@ void FFIManager::attachFunction(const Token& token, const k_string& libAlias,
     if (!std::holds_alternative<k_string>(funcParam)) {
       throw FFIError(token, "Invalid type string in function parameter information for `" + funcAlias + "`.");
     }
+    
     parameterTypes.push_back(std::get<k_string>(funcParam));
   }
 
   functionRegistry[funcAlias] = {funcPtr, parameterTypes, returnType, libAlias};
+
+  return true;
 }
 
 k_value FFIManager::invokeFunction(const Token& token,

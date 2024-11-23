@@ -3051,10 +3051,8 @@ k_value KInterpreter::interpretFFIAttach(const Token& token,
   }
   auto ffiParameterTypes = std::get<k_list>(args.at(3));
   auto ffiReturnType = get_string(token, args.at(4));
-  
-  ffi.attachFunction(token, libAlias, funcAlias, ffiFuncName, ffiParameterTypes, ffiReturnType);
 
-  return {};
+  return ffi.attachFunction(token, libAlias, funcAlias, ffiFuncName, ffiParameterTypes, ffiReturnType);
 }
 
 k_value KInterpreter::interpretFFIInvoke(const Token& token,
