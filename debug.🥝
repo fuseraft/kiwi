@@ -29,14 +29,3 @@ task::create(with do
 end)
 
 task::wait()
-
-/#
-Loaded libvlc version: 3.0.20 Vetinari
-Creating new VLC instance.
-Creating media path.
-Creating new player from media.
-Start the media player.
-[00007f2050008e00] filesystem stream error: cannot open file /home/scs/GitHub/kiwi/ (No such file or directory)
-[00007f20640ba290] main input error: Your input can't be opened
-[00007f20640ba290] main input error: VLC is unable to open the MRL 'file:///home/scs/GitHub/kiwi/%02'. Check the log for details.
-#/
