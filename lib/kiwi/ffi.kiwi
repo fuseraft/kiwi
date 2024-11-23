@@ -8,8 +8,8 @@ package ffi
     - `ffi_parameter_types`: A list specifying the function's parameter types.
     - `ffi_return_type`: A string specifying the function's return type.
   #/
-  fn attach(lib_alias: string, func_alias: string, ffi_name: string, ffi_parameter_types: list, ffi_return_type: string)
-    __ffi_attach__(lib_alias, func_alias, ffi_name, ffi_parameter_types, ffi_return_type)
+  fn attach(lib_alias: string, func_alias: string, ffi_name: string, ffi_parameter_types: list, ffi_return_type: string): boolean
+    return __ffi_attach__(lib_alias, func_alias, ffi_name, ffi_parameter_types, ffi_return_type)
   end
 
   /#
