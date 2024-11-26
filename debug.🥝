@@ -1,14 +1,35 @@
 # a script for debugging and experimentation (and fun!)
 
-package xxx
-  const Y = 4
-  const Z = "hello"
+# constants as default parameter values
+const XYZ = 40
+
+fn def_param(xyz: integer = XYZ)
+  return xyz
 end
 
-export "xxx"
+println "default param: ${def_param()}"
 
-const X = 5
+# constants in a package
+package PKGX
+  const Z = "hello"
 
-println X
-println xxx::Y
-println xxx::Z
+  fn package_scope()
+    return PKGX::Z
+  end
+end
+
+export "PKGX"
+
+# constants in package scopes
+println "package constant in global scope: ${PKGX::Z}"
+println "package constant in package function scope: ${PKGX::package_scope()}"
+
+# constants in global scope
+println "global scope: ${XYZ}"
+
+# constants in function scope
+fn func_scope()
+  return PKGX::Z
+end
+
+println "global function scope: ${func_scope()}"
