@@ -35,14 +35,14 @@ Kiwi builds on Linux with GCC and Make. Use the commands below to install depend
 
 ```bash
 sudo dnf update
-sudo dnf install gcc-c++ make
+sudo dnf install gcc-c++ make libffi-devel
 ```
 
 #### Ubuntu / Debian
 
 ```bash
 sudo apt update
-sudo apt-get install g++ make
+sudo apt-get install g++ make libffi-dev
 ```
 
 #### Build with Make
