@@ -84,7 +84,7 @@ To run Kiwi on Windows, use [Windows Subsystem for Linux (WSL2)](https://learn.m
 2. **Install Development Tools**: Open WSL and run:
    ```bash
    sudo apt update
-   sudo apt install g++ make
+   sudo apt install g++ make libffi-dev
    ```
 
 3. **Clone and Build Kiwi**: Inside WSL, clone the Kiwi repository and build it with `make`:
