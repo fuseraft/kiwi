@@ -18,6 +18,7 @@
 #include "util/file.h"
 #include "concurrency/task.h"
 #include "ffi/fiimanager.h"
+#include "net/socketmanager.h"
 
 class KContext {
  private:
@@ -27,6 +28,7 @@ class KContext {
   std::unordered_map<k_string, std::unique_ptr<KLambda>> lambdas;
   std::unordered_map<k_string, std::unique_ptr<KStruct>> structs;
   std::unordered_map<k_string, k_string> lambdaTable;
+  std::unordered_map<k_string, k_value> constants;
   httplib::Server server;
   std::unordered_map<int, k_string> serverHooks;
 
@@ -38,6 +40,7 @@ class KContext {
         lambdas(),
         structs(),
         lambdaTable(),
+        constants(),
         server(),
         serverHooks() {}
 
@@ -64,11 +67,22 @@ class KContext {
       cloned->addStruct(pair.first, pair.second->clone());
     }
 
+    cloned->constants = constants;
     cloned->lambdaTable = lambdaTable;
     cloned->serverHooks = serverHooks;
 
     return cloned;
   }
+
+  bool hasConstant(const k_string& name) const {
+    return constants.find(name) != constants.end();
+  }
+
+  void addConstant(const k_string& name, const k_value& value) {
+    constants[name] = clone_value(value);
+  }
+
+  std::unordered_map<k_string, k_value>& getConstants() { return constants; }
 
   bool hasPackage(const k_string& name) const {
     return packages.find(name) != packages.end();
@@ -183,6 +197,7 @@ class KInterpreter {
   k_value visit(const SelfNode* node);
   k_value visit(const PackAssignmentNode* node);
   k_value visit(const AssignmentNode* node);
+  k_value visit(const ConstAssignmentNode* node);
   k_value visit(const IndexAssignmentNode* node);
   k_value visit(const MemberAssignmentNode* node);
   k_value visit(const MemberAccessNode* node);
@@ -397,6 +412,9 @@ k_value KInterpreter::interpret(const ASTNode* node) {
 
     case ASTNodeType::ASSIGNMENT:
       return visit(static_cast<const AssignmentNode*>(node));
+
+    case ASTNodeType::CONST_ASSIGNMENT:
+      return visit(static_cast<const ConstAssignmentNode*>(node));
 
     case ASTNodeType::INDEX_ASSIGNMENT:
       return visit(static_cast<const IndexAssignmentNode*>(node));
@@ -1093,6 +1111,30 @@ k_value KInterpreter::visit(const MemberAssignmentNode* node) {
   return {};
 }
 
+k_value KInterpreter::visit(const ConstAssignmentNode* node) {
+  auto frame = callStack.top();
+  auto name = node->name;
+  auto value = interpret(node->initializer.get());
+
+  if (!packageStack.empty()) {
+    std::stack<k_string> tmpStack(packageStack);
+    k_string prefix;
+    while (!tmpStack.empty()) {
+      prefix += tmpStack.top() + "::";
+      tmpStack.pop();
+    }
+    name = prefix + name;
+  }
+
+  if (ctx->hasConstant(name)) {
+    throw IllegalNameError(node->token, name);
+  }
+
+  ctx->addConstant(name, value);
+
+  return {};
+}
+
 k_value KInterpreter::visit(const AssignmentNode* node) {
   auto frame = callStack.top();
   auto left = interpret(node->left.get());
@@ -1101,7 +1143,7 @@ k_value KInterpreter::visit(const AssignmentNode* node) {
   auto name = node->name;
 
   if (type == KName::Ops_Assign) {
-    if (name == Keywords.Global) {
+    if (name == Keywords.Global || ctx->hasConstant(name)) {
       throw IllegalNameError(node->token, name);
     }
 
@@ -1126,6 +1168,10 @@ k_value KInterpreter::visit(const AssignmentNode* node) {
       frame->variables[name] = value;
     }
   } else {
+    if (ctx->hasConstant(name)) {
+      throw IllegalNameError(node->token, name);
+    }
+
     if (frame->hasVariable(name)) {
       auto oldValue = frame->variables[name];
 
@@ -1214,22 +1260,25 @@ k_value KInterpreter::visit(const SelfNode* node) {
 
 k_value KInterpreter::visit(const IdentifierNode* node) {
   auto frame = callStack.top();
+  const auto& name = node->name;
 
-  if (frame->inObjectContext() && node->name.at(0) == '@') {
-    return frame->getObjectContext()->instanceVariables[node->name];
+  if (frame->inObjectContext() && name.at(0) == '@') {
+    return frame->getObjectContext()->instanceVariables[name];
   }
 
-  if (frame->hasVariable(node->name)) {
-    return frame->variables[node->name];
-  } else if (ctx->hasStruct(node->name)) {
-    return std::make_shared<StructRef>(node->name);
-  } else if (ctx->hasLambda(node->name)) {
-    return std::make_shared<LambdaRef>(node->name);
-  } else if (ctx->hasMappedLambda(node->name)) {
-    const auto& mappedId = ctx->getMappedLambda(node->name);
+  if (frame->hasVariable(name)) {
+    return frame->variables[name];
+  } else if (ctx->hasStruct(name)) {
+    return std::make_shared<StructRef>(name);
+  } else if (ctx->hasLambda(name)) {
+    return std::make_shared<LambdaRef>(name);
+  } else if (ctx->hasMappedLambda(name)) {
+    const auto& mappedId = ctx->getMappedLambda(name);
     if (ctx->hasLambda(mappedId)) {
       return std::make_shared<LambdaRef>(mappedId);
     }
+  } else if (ctx->hasConstant(name)) {
+    return ctx->getConstants().at(name);
   }
 
   return std::make_shared<Null>();
@@ -1976,7 +2025,13 @@ k_value KInterpreter::visit(const FunctionDeclarationNode* node) {
   auto name = node->name;
 
   if (!packageStack.empty()) {
-    name = packageStack.top() + "::" + name;
+    std::stack<k_string> tmpStack(packageStack);
+    k_string prefix;
+    while (!tmpStack.empty()) {
+      prefix += tmpStack.top() + "::";
+      tmpStack.pop();
+    }
+    name = prefix + name;
   }
 
   if (!structStack.empty()) {
@@ -3052,7 +3107,8 @@ k_value KInterpreter::interpretFFIAttach(const Token& token,
   auto ffiParameterTypes = std::get<k_list>(args.at(3));
   auto ffiReturnType = get_string(token, args.at(4));
 
-  return ffi.attachFunction(token, libAlias, funcAlias, ffiFuncName, ffiParameterTypes, ffiReturnType);
+  return ffi.attachFunction(token, libAlias, funcAlias, ffiFuncName,
+                            ffiParameterTypes, ffiReturnType);
 }
 
 k_value KInterpreter::interpretFFIInvoke(const Token& token,

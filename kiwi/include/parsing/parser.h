@@ -24,10 +24,11 @@ class Parser {
  private:
   bool rethrow = false;
   bool hasValue();
-  std::unique_ptr<ASTNode> parsePackAssignment(
-      std::unique_ptr<ASTNode> baseNode);
   std::unique_ptr<ASTNode> parseAssignment(std::unique_ptr<ASTNode> baseNode,
                                            const k_string& identifierName);
+  std::unique_ptr<ASTNode> parseConstAssignment();
+  std::unique_ptr<ASTNode> parsePackAssignment(
+      std::unique_ptr<ASTNode> baseNode);
   std::unique_ptr<ASTNode> parseComment();
   std::unique_ptr<ASTNode> parseFunction();
   std::unique_ptr<ASTNode> parseFunctionCall(const k_string& identifierName,
@@ -327,6 +328,9 @@ std::unique_ptr<ASTNode> Parser::parseConditional() {
 
 std::unique_ptr<ASTNode> Parser::parseKeyword() {
   switch (tokenName()) {
+    case KName::KW_Const:
+      return parseConstAssignment();
+
     case KName::KW_PrintLn:
     case KName::KW_Print:
     case KName::KW_EPrintLn:
@@ -1596,6 +1600,43 @@ std::unique_ptr<ASTNode> Parser::parsePackAssignment(
   }
 
   return assignment;
+}
+
+std::unique_ptr<ASTNode> Parser::parseConstAssignment() {
+  matchSubType(KName::KW_Const); // skip the const
+
+  if (tokenType() != KTokenType::IDENTIFIER) {
+    throw SyntaxError(getErrorToken(),
+                      "Expected an identifier in const assignment.");
+  }
+
+  auto identifierName = kToken.getText();
+  if (identifierName != String::toUppercase(identifierName)) {
+    throw SyntaxError(getErrorToken(),
+                      "Constant identifiers should contain only uppercase "
+                      "characters and underscores.");
+  }
+
+  next(); // skip the identifier
+  auto type = tokenName();
+
+  if (!Operators.is_assignment_operator(type)) {
+    throw SyntaxError(
+        getErrorToken(),
+        "Expected an assignment operator in constant assignment.");
+  }
+
+  if (type != KName::Ops_Assign) {
+    throw SyntaxError(
+        getErrorToken(),
+        "Expected an assignment operator in constant assignment.");
+  }
+  next(); // skip the operator
+
+  auto initializer = parseExpression();
+
+  return std::make_unique<ConstAssignmentNode>(identifierName, type,
+                                               std::move(initializer));
 }
 
 std::unique_ptr<ASTNode> Parser::parseAssignment(
