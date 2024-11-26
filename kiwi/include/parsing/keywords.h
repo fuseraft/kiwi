@@ -238,6 +238,7 @@ struct {
   const k_string Break = "break";
   const k_string Case = "case";
   const k_string Catch = "catch";
+  const k_string Const = "const";
   const k_string Ctor = "new";
   const k_string Do = "do";
   const k_string Each = "each";
@@ -284,13 +285,13 @@ struct {
   const k_string While = "while";
 
   std::unordered_set<k_string> keywords = {
-      Abstract,  As,     Break,  Case,     Catch,   Struct,  Do,
+      Abstract,  As,     Break,  Case,     Catch,   Const,   Do,
       Else,      ElseIf, End,    EPrintLn, Exit,    Export,  False,
       Finally,   For,    Spawn,  Function, If,      Import,  In,
       Interface, With,   Method, Package,  Next,    Null,    Override,
       Parse,     Pass,   Print,  PrintLn,  PrintXy, Private, Repeat,
-      Return,    Static, This,   Throw,    True,    Try,     When,
-      While};
+      Return,    Static, Struct, This,     Throw,   True,    Try,
+      When,      While};
 
   std::unordered_set<k_string> conditional_keywords = {If, Else, ElseIf, End,
                                                        Case};

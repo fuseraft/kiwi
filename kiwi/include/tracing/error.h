@@ -302,6 +302,13 @@ class FFIError : public KiwiError {
       : KiwiError(token, "FFIError", message) {}
 };
 
+class SocketError : public KiwiError {
+ public:
+  SocketError(const Token& token,
+              const std::string& message = "A socket error occurred.")
+      : KiwiError(token, "SocketError", message) {}
+};
+
 class TokenStreamError : public KiwiError {
  public:
   TokenStreamError(const std::string& message)
