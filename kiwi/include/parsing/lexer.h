@@ -313,8 +313,8 @@ class Lexer {
       st = KName::KW_Break;
     } else if (keyword == Keywords.Catch) {
       st = KName::KW_Catch;
-    } else if (keyword == Keywords.Struct) {
-      st = KName::KW_Struct;
+    } else if (keyword == Keywords.Const) {
+      st = KName::KW_Const;
     } else if (keyword == Keywords.Do) {
       st = KName::KW_Do;
     } else if (keyword == Keywords.EPrint) {
@@ -365,6 +365,8 @@ class Lexer {
       st = KName::KW_Return;
     } else if (keyword == Keywords.Static) {
       st = KName::KW_Static;
+    } else if (keyword == Keywords.Struct) {
+      st = KName::KW_Struct;
     } else if (keyword == Keywords.This) {
       st = KName::KW_This;
     } else if (keyword == Keywords.Throw) {

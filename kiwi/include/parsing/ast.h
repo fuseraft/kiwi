@@ -18,7 +18,7 @@ enum class ASTNodeType {
   BREAK,
   CASE,
   CASE_WHEN,
-  STRUCT,
+  CONST_ASSIGNMENT,
   EXIT,
   EXPORT,  // obsolete
   FOR_LOOP,
@@ -52,6 +52,7 @@ enum class ASTNodeType {
   RETURN,
   SELF,
   SLICE,
+  STRUCT,
   TERNARY_OPERATION,
   THROW,
   TRY,
@@ -1527,6 +1528,35 @@ class PackAssignmentNode : public ASTNode {
 
     return std::make_unique<PackAssignmentNode>(std::move(clonedLeft),
                                                 std::move(clonedRight), op);
+  }
+};
+
+class ConstAssignmentNode : public ASTNode {
+ public:
+  k_string name;
+  KName op;
+  std::unique_ptr<ASTNode> initializer;
+
+  ConstAssignmentNode() : ASTNode(ASTNodeType::CONST_ASSIGNMENT) {}
+  ConstAssignmentNode(const k_string& name, const KName& op,
+                      std::unique_ptr<ASTNode> initializer)
+      : ASTNode(ASTNodeType::CONST_ASSIGNMENT),
+        name(name),
+        op(op),
+        initializer(std::move(initializer)) {}
+
+  void print(int depth) const override {
+    print_depth(depth);
+    std::cout << "Constant Assignment: `" << name << "` "
+              << Operators.get_op_string(op) << std::endl;
+    print_depth(depth);
+    std::cout << "Initializer:" << std::endl;
+    initializer->print(1 + depth);
+  }
+
+  std::unique_ptr<ASTNode> clone() const override {
+    return std::make_unique<ConstAssignmentNode>(name, op,
+                                                 initializer->clone());
   }
 };
 

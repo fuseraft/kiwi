@@ -30,10 +30,44 @@ fn testsuite()
   end
 end
 
+guava::register_test("packages", with do
+  package foobar_test_pkg
+    fn hello()
+      return "hello"
+    end
+  end
+
+  export "foobar_test_pkg"
+
+  guava::assert(foobar_test_pkg::hello() == "hello")
+end)
+
 guava::register_test("assignments", with do
   d = 5, e = 3, a = b = c = d
   b -= e
   guava::assert(a + b + c == d * e - e)
+end)
+
+guava::register_test("constants", with do
+  const MSG = "hello"
+  err_c = 0
+
+  try
+    MSG = "foobar"
+  catch
+    err_c += 1
+  end
+
+  guava::assert(MSG == "hello")
+  guava::assert(err_c == 1)
+
+  package xxx
+    const Y = "hello"
+  end
+
+  export "xxx"
+
+  guava::assert(xxx::Y == MSG)
 end)
 
 guava::register_test("truthiness", with do
