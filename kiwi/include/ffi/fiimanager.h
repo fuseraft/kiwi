@@ -93,7 +93,8 @@ void FFIManager::loadLibrary(const Token& token, const k_string& libAlias,
 bool FFIManager::attachFunction(const Token& token, const k_string& libAlias,
                                 const k_string& funcAlias,
                                 const k_string& funcName,
-                                const k_list& parameters, const k_string& returnType) {
+                                const k_list& parameters,
+                                const k_string& returnType) {
   std::lock_guard<std::mutex> lock(managerMutex);
 
   if (!libraryHandles.count(libAlias)) {
@@ -116,9 +117,11 @@ bool FFIManager::attachFunction(const Token& token, const k_string& libAlias,
 
   for (const auto& funcParam : funcParameters) {
     if (!std::holds_alternative<k_string>(funcParam)) {
-      throw FFIError(token, "Invalid type string in function parameter information for `" + funcAlias + "`.");
+      throw FFIError(
+          token, "Invalid type string in function parameter information for `" +
+                     funcAlias + "`.");
     }
-    
+
     parameterTypes.push_back(std::get<k_string>(funcParam));
   }
 
@@ -140,7 +143,7 @@ k_value FFIManager::invokeFunction(const Token& token,
   std::vector<k_string> paramTypes = funcInfo.parameters;
 
   k_string retTypeStr = funcInfo.returnType;
-  
+
   if (paramTypes.size() != args.size()) {
     throw FFIError(
         token,
@@ -291,10 +294,12 @@ void FFIManager::prepareArguments(const Token& token,
                                    delete[] static_cast<char*>(p);
                                  }});
         } else if (typeStr == "string[]") {
-          const std::vector<k_value>& strArray = std::get<k_list>(arg)->elements;
+          const std::vector<k_value>& strArray =
+              std::get<k_list>(arg)->elements;
 
           size_t arraySize = strArray.size();
-          char** cstrArray = new char*[arraySize + 1];  // +1 for NULL terminator if needed
+          char** cstrArray =
+              new char*[arraySize + 1];  // +1 for NULL terminator if needed
 
           for (size_t j = 0; j < arraySize; ++j) {
             const k_string& str = std::get<k_string>(strArray[j]);
@@ -404,7 +409,7 @@ k_value FFIManager::processReturnValue(const Token& token, void* retVal,
       strArray.push_back(str);
       ++index;
     }
-    
+
     return std::make_shared<List>(strArray);
   } else {
     throw FFIError(token, "Unsupported return type: " + retTypeStr);
