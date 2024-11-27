@@ -1,0 +1,20 @@
+fn main()
+  # Create a client socket
+  client_sock = socket::create(socket::AF_INET, socket::SOCK_STREAM)
+  
+  # Connect to the server on localhost port 8080
+  socket::connect(client_sock, "127.0.0.1", 8080)
+  println("Connected to server on 127.0.0.1:8080")
+  
+  # Send data to the server
+  socket::send(client_sock, "Hello, server!")
+  
+  # Receive data from the server
+  data = socket::receive(client_sock, 1024)
+  println("Received data: ${data}")
+  
+  # Close the client socket
+  socket::close(client_sock)
+end
+
+main()

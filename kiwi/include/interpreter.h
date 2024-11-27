@@ -2656,10 +2656,12 @@ k_value KInterpreter::callBuiltinMethod(const FunctionCallNode* node) {
     return interpretSerializerBuiltin(node->token, op, args);
   } else if (ReflectorBuiltins.is_builtin(op)) {
     return interpretReflectorBuiltin(node->token, op, args);
-  } else if (FFIBuiltins.is_builtin(op)) {
-    return BuiltinDispatch::execute(ffimgr, node->token, op, args);
   } else if (WebServerBuiltins.is_builtin(op)) {
     return interpretWebServerBuiltin(node->token, op, args);
+  } else if (FFIBuiltins.is_builtin(op)) {
+    return BuiltinDispatch::execute(ffimgr, node->token, op, args);
+  } else if (SocketBuiltins.is_builtin(op)) {
+    return BuiltinDispatch::execute(sockmgr, node->token, op, args);
   } else if (TaskBuiltins.is_builtin(op)) {
     return BuiltinDispatch::execute(taskmgr, node->token, op, args);
   }
