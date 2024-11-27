@@ -44,6 +44,7 @@
    - [`http`](lib/http.md): Functions for HTTP requests (GET, POST, etc).
    - [`log`](lib/log.md): A minimal logging interface.
    - [`math`](lib/math.md): Common mathematical functions and utilities.
+   - [`socket`](lib/socket.md): Functions and constants for network communication using sockets.
    - [`string`](lib/string.md): String manipulation and transformation utilities.
    - [`sys`](lib/sys.md): For executing shell commands.
    - [`task`](lib/task.md): Asynchronous task management with support for timers and intervals.
