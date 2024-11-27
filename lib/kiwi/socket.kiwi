@@ -1,0 +1,118 @@
+package socket
+  /#
+  @summary: Constants for address families.
+  #/
+  const AF_INET = 2
+  # WIP:
+  #const AF_INET6 = 10
+
+  /#
+  @summary: Constants for socket types.
+  #/
+  const SOCK_STREAM = 1
+  const SOCK_DGRAM = 2
+
+  /#
+  @summary: Constants for shutdown modes.
+  #/
+  const SHUT_RD = 0
+  const SHUT_WR = 1
+  const SHUT_RDWR = 2
+
+  /#
+  @summary: Creates a new socket and returns its unique socket ID.
+  @params:
+    - `family`: The address family (e.g., AF_INET). Defaults to AF_INET.
+    - `type`: The socket type (e.g., SOCK_STREAM). Defaults to SOCK_STREAM.
+    - `protocol`: The protocol number. Defaults to 0.
+  @return: A unique socket ID.
+  #/
+  fn create(family: integer = socket::AF_INET, type: integer = socket::SOCK_STREAM, protocol: integer = 0): integer
+    return __socket_create__(family, type, protocol)
+  end
+
+  /#
+  @summary: Binds a socket to an address and port.
+  @params:
+    - `sock_id`: The socket ID.
+    - `address`: The IP address to bind to.
+    - `port`: The port number.
+  #/
+  fn bind(sock_id: integer, address: string, port: integer)
+    __socket_bind__(sock_id, address, port)
+  end
+
+  /#
+  @summary: Listens for incoming connections on a socket.
+  @params:
+    - `sock_id`: The socket ID.
+    - `backlog`: The maximum number of queued connections. Defaults to 5.
+  #/
+  fn listen(sock_id: integer, backlog: integer = 5)
+    __socket_listen__(sock_id, backlog)
+  end
+
+  /#
+  @summary: Accepts an incoming connection on a listening socket.
+  @params:
+    - `sock_id`: The socket ID.
+  @return: A hashmap containing `client_sock_id`, `client_address`, and `client_port`.
+  #/
+  fn accept(sock_id: integer): hashmap
+    return __socket_accept__(sock_id)
+  end
+
+  /#
+  @summary: Connects a socket to a remote address and port.
+  @params:
+    - `sock_id`: The socket ID.
+    - `address`: The remote IP address.
+    - `port`: The remote port number.
+  #/
+  fn connect(sock_id: integer, address: string, port: integer)
+    __socket_connect__(sock_id, address, port)
+  end
+
+  /#
+  @summary: Sends data over a connected socket.
+  @params:
+    - `sock_id`: The socket ID.
+    - `data`: The data to send (string or list of bytes).
+  @return: The number of bytes sent.
+  #/
+  fn send(sock_id: integer, data: any): integer
+    return __socket_send__(sock_id, data)
+  end
+
+  /#
+  @summary: Receives data from a connected socket.
+  @params:
+    - `sock_id`: The socket ID.
+    - `length`: The maximum amount of data to receive.
+  @return: The received data as a string.
+  #/
+  fn receive(sock_id: integer, length: integer): string
+    return __socket_receive__(sock_id, length)
+  end
+
+  /#
+  @summary: Closes a socket.
+  @params:
+    - `sock_id`: The socket ID.
+  #/
+  fn close(sock_id: integer)
+    __socket_close__(sock_id)
+  end
+
+  /#
+  @summary: Shuts down a socket.
+  @params:
+    - `sock_id`: The socket ID.
+    - `how`: How to shut down the socket (e.g., SHUT_RD, SHUT_WR, SHUT_RDWR). Defaults to SHUT_RDWR.
+  #/
+  fn shutdown(sock_id: integer, how: integer = socket::SHUT_RDWR)
+    __socket_shutdown__(sock_id, how)
+  end
+end
+
+export "socket"
