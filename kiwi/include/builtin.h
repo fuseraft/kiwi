@@ -10,10 +10,13 @@
 #include "builtins/core_handler.h"
 #include "builtins/encoder_handler.h"
 #include "builtins/env_handler.h"
+#include "builtins/ffi_handler.h"
 #include "builtins/fileio_handler.h"
 #include "builtins/logging_handler.h"
 #include "builtins/math_handler.h"
+#include "builtins/net_handler.h"
 #include "builtins/sys_handler.h"
+#include "builtins/task_handler.h"
 #include "builtins/time_handler.h"
 #include "builtins/http_handler.h"
 #include "tracing/error.h"
@@ -22,6 +25,24 @@
 
 class BuiltinDispatch {
  public:
+  static k_value execute(FFIManager& ffi, const Token& token,
+                         const KName& builtin,
+                         const std::vector<k_value>& args) {
+    return FFIBuiltinHandler::execute(ffi, token, builtin, args);
+  }
+
+  static k_value execute(SocketManager& sockmgr, const Token& token,
+                         const KName& builtin,
+                         const std::vector<k_value>& args) {
+    return NetBuiltinHandler::execute(sockmgr, token, builtin, args);
+  }
+
+  static k_value execute(TaskManager& taskmgr, const Token& token,
+                         const KName& builtin,
+                         const std::vector<k_value>& args) {
+    return TaskBuiltinHandler::execute(taskmgr, token, builtin, args);
+  }
+
   static k_value execute(
       const Token& token, const KName& builtin,
       const std::vector<k_value>& args,
