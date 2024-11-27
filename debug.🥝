@@ -1,35 +1,11 @@
 # a script for debugging and experimentation (and fun!)
 
-# constants as default parameter values
-const XYZ = 40
+src = fs::glob("kiwi/**/*").select(with (f) do !f.contains("httplib.h") end)
+loc = 0
 
-fn def_param(xyz: integer = XYZ)
-  return xyz
+for file in src do
+  loc += fs::readlines(file).size()
 end
 
-println "default param: ${def_param()}"
-
-# constants in a package
-package PKGX
-  const Z = "hello"
-
-  fn package_scope()
-    return PKGX::Z
-  end
-end
-
-export "PKGX"
-
-# constants in package scopes
-println "package constant in global scope: ${PKGX::Z}"
-println "package constant in package function scope: ${PKGX::package_scope()}"
-
-# constants in global scope
-println "global scope: ${XYZ}"
-
-# constants in function scope
-fn func_scope()
-  return PKGX::Z
-end
-
-println "global function scope: ${func_scope()}"
+println "number of files: ${src.size()}"
+println "lines of code:   ${loc}"
