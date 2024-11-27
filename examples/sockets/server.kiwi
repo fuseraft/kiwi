@@ -1,16 +1,3 @@
-# a script for debugging and experimentation (and fun!)
-
-/#
-src = fs::glob("kiwi/**/*").select(with (f) do !f.contains("httplib.h") end)
-loc = 0
-
-for file in src do
-  loc += fs::readlines(file).size()
-end
-
-println "number of files: ${src.size()}"
-println "lines of code:   ${loc}"
-#/
 
 fn main()
   # Create a server socket
