@@ -1603,7 +1603,7 @@ std::unique_ptr<ASTNode> Parser::parsePackAssignment(
 }
 
 std::unique_ptr<ASTNode> Parser::parseConstAssignment() {
-  matchSubType(KName::KW_Const); // skip the const
+  matchSubType(KName::KW_Const);  // skip the const
 
   if (tokenType() != KTokenType::IDENTIFIER) {
     throw SyntaxError(getErrorToken(),
@@ -1617,7 +1617,7 @@ std::unique_ptr<ASTNode> Parser::parseConstAssignment() {
                       "characters and underscores.");
   }
 
-  next(); // skip the identifier
+  next();  // skip the identifier
   auto type = tokenName();
 
   if (!Operators.is_assignment_operator(type)) {
@@ -1631,7 +1631,7 @@ std::unique_ptr<ASTNode> Parser::parseConstAssignment() {
         getErrorToken(),
         "Expected an assignment operator in constant assignment.");
   }
-  next(); // skip the operator
+  next();  // skip the operator
 
   auto initializer = parseExpression();
 
