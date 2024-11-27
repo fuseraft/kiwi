@@ -328,6 +328,36 @@ struct {
 } SerializerBuiltins;
 
 struct {
+  const k_string Create = "__socket_create__";
+  const k_string Bind = "__socket_bind__";
+  const k_string Listen = "__socket_listen__";
+  const k_string Accept = "__socket_accept__";
+  const k_string Connect = "__socket_connect__";
+  const k_string Send = "__socket_send__";
+  const k_string Receive = "__socket_receive__";
+  const k_string Close = "__socket_close__";
+  const k_string Shutdown = "__socket_shutdown__";
+
+  std::unordered_set<k_string> builtins = {
+      Create, Bind, Listen, Accept, Connect, Send, Receive, Close, Shutdown};
+
+  std::unordered_set<KName> st_builtins = {
+      KName::Builtin_Socket_Create,  KName::Builtin_Socket_Bind,
+      KName::Builtin_Socket_Listen,  KName::Builtin_Socket_Accept,
+      KName::Builtin_Socket_Connect, KName::Builtin_Socket_Send,
+      KName::Builtin_Socket_Receive, KName::Builtin_Socket_Close,
+      KName::Builtin_Socket_Shutdown};
+
+  bool is_builtin(const k_string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+
+  bool is_builtin(const KName& arg) {
+    return st_builtins.find(arg) != st_builtins.end();
+  }
+} SocketBuiltins;
+
+struct {
   const k_string Attach = "__ffi_attach__";
   const k_string Invoke = "__ffi_invoke__";
   const k_string Load = "__ffi_load__";
@@ -722,7 +752,8 @@ struct {
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
            LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
            SerializerBuiltins.is_builtin(arg) || FFIBuiltins.is_builtin(arg) ||
-           ReflectorBuiltins.is_builtin(arg) || TaskBuiltins.is_builtin(arg);
+           ReflectorBuiltins.is_builtin(arg) ||
+           SocketBuiltins.is_builtin(arg) || TaskBuiltins.is_builtin(arg);
   }
 
   bool is_builtin_method(const KName& arg) {
@@ -733,7 +764,8 @@ struct {
            HttpBuiltins.is_builtin(arg) || WebServerBuiltins.is_builtin(arg) ||
            LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
            SerializerBuiltins.is_builtin(arg) || FFIBuiltins.is_builtin(arg) ||
-           ReflectorBuiltins.is_builtin(arg) || TaskBuiltins.is_builtin(arg);
+           ReflectorBuiltins.is_builtin(arg) ||
+           SocketBuiltins.is_builtin(arg) || TaskBuiltins.is_builtin(arg);
   }
 } KiwiBuiltins;
 

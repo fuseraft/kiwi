@@ -51,7 +51,7 @@ class SocketManager {
    * @param address The IP address to bind to.
    * @param port The port number.
    */
-  void bind(const Token& token, const k_int& sock_id, const k_string& address,
+  bool bind(const Token& token, const k_int& sock_id, const k_string& address,
             const k_int& port);
 
   /**
@@ -61,7 +61,7 @@ class SocketManager {
    * @param sock_id The socket ID.
    * @param backlog The maximum number of queued connections.
    */
-  void listen(const Token& token, const k_int& sock_id,
+  bool listen(const Token& token, const k_int& sock_id,
               const k_int& backlog_value = static_cast<k_int>(5));
 
   /**
@@ -84,7 +84,7 @@ class SocketManager {
    * @param address The remote IP address.
    * @param port The remote port number.
    */
-  void connect(const Token& token, const k_int& sock_id,
+  bool connect(const Token& token, const k_int& sock_id,
                const k_string& address, const k_int& port);
 
   /**
@@ -114,7 +114,7 @@ class SocketManager {
    * @param token A tracer token.
    * @param sock_id The socket ID.
    */
-  void close(const Token& token, const k_int& sock_id);
+  bool close(const Token& token, const k_int& sock_id);
 
   /**
    * Shut down a socket.
@@ -123,7 +123,7 @@ class SocketManager {
    * @param sock_id The socket ID.
    * @param how How to shut down the socket (e.g., SHUT_RDWR).
    */
-  void shutdown(const Token& token, const k_int& sock_id,
+  bool shutdown(const Token& token, const k_int& sock_id,
                 const k_int& how = static_cast<k_int>(SHUT_RDWR));
 
  private:
@@ -183,7 +183,7 @@ k_value SocketManager::create_socket(const Token& token,
   return static_cast<k_int>(sock_id);
 }
 
-void SocketManager::bind(const Token& token, const k_int& sock_id,
+bool SocketManager::bind(const Token& token, const k_int& sock_id,
                          const k_string& address, const k_int& port) {
   if (port < 0 || port > 65535) {
     throw SocketError(token, "Invalid port number: " + std::to_string(port));
@@ -209,9 +209,11 @@ void SocketManager::bind(const Token& token, const k_int& sock_id,
     throw SocketError(
         token, "Failed to bind socket: " + k_string(std::strerror(errno)));
   }
+
+  return true;
 }
 
-void SocketManager::listen(const Token& token, const k_int& sock_id,
+bool SocketManager::listen(const Token& token, const k_int& sock_id,
                            const k_int& backlog_value) {
   int backlog = static_cast<int>(backlog_value);
 
@@ -226,6 +228,8 @@ void SocketManager::listen(const Token& token, const k_int& sock_id,
     throw SocketError(
         token, "Failed to listen on socket: " + k_string(std::strerror(errno)));
   }
+
+  return true;
 }
 
 k_value SocketManager::accept(const Token& token, const k_int& sock_id,
@@ -280,7 +284,7 @@ k_value SocketManager::accept(const Token& token, const k_int& sock_id,
   return static_cast<k_int>(client_sock_id);
 }
 
-void SocketManager::connect(const Token& token, const k_int& sock_id,
+bool SocketManager::connect(const Token& token, const k_int& sock_id,
                             const k_string& address, const k_int& port) {
   if (port < 0 || port > 65535) {
     throw SocketError(token, "Invalid port number: " + std::to_string(port));
@@ -302,6 +306,8 @@ void SocketManager::connect(const Token& token, const k_int& sock_id,
     throw SocketError(
         token, "Failed to connect socket: " + k_string(std::strerror(errno)));
   }
+
+  return true;
 }
 
 k_value SocketManager::send(const Token& token, const k_int& sock_id,
@@ -392,7 +398,7 @@ k_value SocketManager::receive(const Token& token, const k_int& sock_id,
   return data_str;
 }
 
-void SocketManager::close(const Token& token, const k_int& sock_id) {
+bool SocketManager::close(const Token& token, const k_int& sock_id) {
   int sock_id_value = static_cast<int>(sock_id);
   int sock;
   {
@@ -410,9 +416,11 @@ void SocketManager::close(const Token& token, const k_int& sock_id) {
     throw SocketError(
         token, "Failed to close socket: " + k_string(std::strerror(errno)));
   }
+
+  return true;
 }
 
-void SocketManager::shutdown(const Token& token, const k_int& sock_id,
+bool SocketManager::shutdown(const Token& token, const k_int& sock_id,
                              const k_int& how_value) {
   int how = static_cast<int>(how_value);
   if (how != SHUT_RD && how != SHUT_WR && how != SHUT_RDWR) {
@@ -425,6 +433,8 @@ void SocketManager::shutdown(const Token& token, const k_int& sock_id,
     throw SocketError(
         token, "Failed to shutdown socket: " + k_string(std::strerror(errno)));
   }
+
+  return true;
 }
 
 #endif
