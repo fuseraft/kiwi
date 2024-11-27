@@ -666,6 +666,32 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
+  Token parseSocketBuiltin(const k_string& builtin) {
+    auto st = KName::Default;
+
+    if (builtin == SocketBuiltins.Accept) {
+      st = KName::Builtin_Socket_Accept;
+    } else if (builtin == SocketBuiltins.Bind) {
+      st = KName::Builtin_Socket_Bind;
+    } else if (builtin == SocketBuiltins.Close) {
+      st = KName::Builtin_Socket_Close;
+    } else if (builtin == SocketBuiltins.Connect) {
+      st = KName::Builtin_Socket_Connect;
+    } else if (builtin == SocketBuiltins.Create) {
+      st = KName::Builtin_Socket_Create;
+    } else if (builtin == SocketBuiltins.Listen) {
+      st = KName::Builtin_Socket_Listen;
+    } else if (builtin == SocketBuiltins.Receive) {
+      st = KName::Builtin_Socket_Receive;
+    } else if (builtin == SocketBuiltins.Send) {
+      st = KName::Builtin_Socket_Send;
+    } else if (builtin == SocketBuiltins.Shutdown) {
+      st = KName::Builtin_Socket_Shutdown;
+    }
+
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
+  }
+
   Token parseReflectorBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
@@ -1089,6 +1115,8 @@ class Lexer {
       return parseReflectorBuiltin(builtin);
     } else if (FFIBuiltins.is_builtin(builtin)) {
       return parseFFIBuiltin(builtin);
+    } else if (SocketBuiltins.is_builtin(builtin)) {
+      return parseSocketBuiltin(builtin);
     }
 
     return createToken(KTokenType::IDENTIFIER, KName::Default, builtin);
