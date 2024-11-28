@@ -43,6 +43,10 @@ The `socket` package includes:
   ```kiwi
   const socket::AF_INET = 2
   ```
+- **`AF_INET6`**: Address family for IPv6 addresses.
+  ```kiwi
+  const socket::AF_INET = 10
+  ```
 
 ### Socket Types
 
