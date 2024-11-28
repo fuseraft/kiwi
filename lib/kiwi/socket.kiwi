@@ -3,8 +3,7 @@ package socket
   @summary: Constants for address families.
   #/
   const AF_INET = 2
-  # WIP:
-  #const AF_INET6 = 10
+  const AF_INET6 = 10
 
   /#
   @summary: Constants for socket types.

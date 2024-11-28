@@ -3,9 +3,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <netdb.h>
-#include <arpa/inet.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <string>
@@ -20,20 +18,16 @@
 #include "tracing/error.h"
 #include "typing/value.h"
 
-// WIP: will support AF_INET6 in the near future.
 class SocketManager {
  public:
-  // Constructor for SocketManager.
   SocketManager();
-
-  // Destructor for SocketManager. Closes all open sockets.
   ~SocketManager();
 
   /**
    * Create a new socket.
    *
    * @param token A tracer token.
-   * @param family The address family (e.g., AF_INET).
+   * @param family The address family (e.g., AF_INET or AF_INET6).
    * @param type The socket type (e.g., SOCK_STREAM).
    * @param protocol The protocol number.
    * @return A unique socket ID.
@@ -133,6 +127,7 @@ class SocketManager {
   std::mutex mutex_;
   int next_socket_id_;
   std::unordered_map<int, int> sockets_;
+  std::unordered_map<int, int> socket_families_;  // Store family per socket ID
 };
 
 SocketManager::SocketManager() : next_socket_id_(0) {}
@@ -143,6 +138,7 @@ SocketManager::~SocketManager() {
     ::close(pair.second);
   }
   sockets_.clear();
+  socket_families_.clear();
 }
 
 int SocketManager::generate_socket_id() {
@@ -179,6 +175,7 @@ k_value SocketManager::create_socket(const Token& token,
   {
     std::lock_guard<std::mutex> lock(mutex_);
     sockets_[sock_id] = sock;
+    socket_families_[sock_id] = family;
   }
   return static_cast<k_int>(sock_id);
 }
@@ -192,20 +189,29 @@ bool SocketManager::bind(const Token& token, const k_int& sock_id,
   int port_value = static_cast<int>(port);
   int sock = get_socket(token, sock_id);
 
-  struct sockaddr_in addr;
-  std::memset(&addr, 0, sizeof(addr));
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(static_cast<uint16_t>(port_value));
-
-  if (address.empty() || address == "0.0.0.0") {
-    addr.sin_addr.s_addr = INADDR_ANY;
-  } else {
-    if (inet_pton(AF_INET, address.c_str(), &addr.sin_addr) <= 0) {
-      throw SocketError(token, "Invalid address: " + address);
-    }
+  int family;
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    family = socket_families_[sock_id];
   }
 
-  if (::bind(sock, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
+  struct addrinfo hints = {}, *res;
+  hints.ai_family = family;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_flags = AI_PASSIVE;
+
+  k_string port_str = std::to_string(port_value);
+  int ret = getaddrinfo(address.empty() ? nullptr : address.c_str(),
+                        port_str.c_str(), &hints, &res);
+  if (ret != 0) {
+    throw SocketError(token,
+                      "getaddrinfo failed: " + k_string(gai_strerror(ret)));
+  }
+
+  int bind_result = ::bind(sock, res->ai_addr, res->ai_addrlen);
+  freeaddrinfo(res);
+
+  if (bind_result == -1) {
     throw SocketError(
         token, "Failed to bind socket: " + k_string(std::strerror(errno)));
   }
@@ -236,7 +242,7 @@ k_value SocketManager::accept(const Token& token, const k_int& sock_id,
                               k_string& client_address, k_int& client_port) {
   int sock = get_socket(token, sock_id);
 
-  struct sockaddr_in client_addr;
+  struct sockaddr_storage client_addr;
   socklen_t client_addr_len = sizeof(client_addr);
 
   int client_sock;
@@ -261,21 +267,37 @@ k_value SocketManager::accept(const Token& token, const k_int& sock_id,
   } client_sock_guard{client_sock};
 
   // Retrieve client address
-  char addr_buffer[INET_ADDRSTRLEN];
-  if (inet_ntop(AF_INET, &client_addr.sin_addr, addr_buffer,
+  char addr_buffer[INET6_ADDRSTRLEN];
+  void* addr_ptr;
+  uint16_t port;
+
+  if (client_addr.ss_family == AF_INET) {
+    struct sockaddr_in* s = (struct sockaddr_in*)&client_addr;
+    addr_ptr = &(s->sin_addr);
+    port = ntohs(s->sin_port);
+  } else if (client_addr.ss_family == AF_INET6) {
+    struct sockaddr_in6* s = (struct sockaddr_in6*)&client_addr;
+    addr_ptr = &(s->sin6_addr);
+    port = ntohs(s->sin6_port);
+  } else {
+    throw SocketError(token, "Unknown address family.");
+  }
+
+  if (inet_ntop(client_addr.ss_family, addr_ptr, addr_buffer,
                 sizeof(addr_buffer)) == nullptr) {
     throw SocketError(token, "Failed to get client address: " +
                                  k_string(std::strerror(errno)));
   }
 
   client_address = k_string(addr_buffer);
-  client_port = static_cast<k_int>(ntohs(client_addr.sin_port));
+  client_port = static_cast<k_int>(port);
 
   // Generate new socket ID and store client socket
   int client_sock_id = generate_socket_id();
   {
     std::lock_guard<std::mutex> lock(mutex_);
     sockets_[client_sock_id] = client_sock;
+    socket_families_[client_sock_id] = client_addr.ss_family;
   }
 
   // Release ownership of client_sock
@@ -293,16 +315,27 @@ bool SocketManager::connect(const Token& token, const k_int& sock_id,
   int port_value = static_cast<int>(port);
   int sock = get_socket(token, sock_id);
 
-  struct sockaddr_in addr;
-  std::memset(&addr, 0, sizeof(addr));
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(static_cast<uint16_t>(port_value));
-
-  if (inet_pton(AF_INET, address.c_str(), &addr.sin_addr) <= 0) {
-    throw SocketError(token, "Invalid address: " + address);
+  int family;
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    family = socket_families_[sock_id];
   }
 
-  if (::connect(sock, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
+  struct addrinfo hints = {}, *res;
+  hints.ai_family = family;
+  hints.ai_socktype = SOCK_STREAM;
+
+  k_string port_str = std::to_string(port_value);
+  int ret = getaddrinfo(address.c_str(), port_str.c_str(), &hints, &res);
+  if (ret != 0) {
+    throw SocketError(token,
+                      "getaddrinfo failed: " + k_string(gai_strerror(ret)));
+  }
+
+  int connect_result = ::connect(sock, res->ai_addr, res->ai_addrlen);
+  freeaddrinfo(res);
+
+  if (connect_result == -1) {
     throw SocketError(
         token, "Failed to connect socket: " + k_string(std::strerror(errno)));
   }
@@ -390,10 +423,10 @@ k_value SocketManager::receive(const Token& token, const k_int& sock_id,
 
   if (bytes_received == 0) {
     // Peer has performed an orderly shutdown
-    return k_string();  // Return an empty string for now. May revisit this.
+    return k_string();  // Return an empty string
   }
 
-  // Convert received data to k_string. WIP: may end up changing this to a list of bytes.
+  // Convert received data to a string
   k_string data_str(buffer.begin(), buffer.begin() + bytes_received);
   return data_str;
 }
@@ -410,6 +443,7 @@ bool SocketManager::close(const Token& token, const k_int& sock_id) {
     }
     sock = it->second;
     sockets_.erase(it);
+    socket_families_.erase(sock_id_value);
   }
 
   if (::close(sock) == -1) {

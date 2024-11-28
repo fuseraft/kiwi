@@ -226,6 +226,12 @@ class SystemError : public KiwiError {
       : KiwiError(token, "SystemError", message) {}
 };
 
+class SignalError : public KiwiError {
+ public:
+  SignalError(const Token& token, const std::string& message)
+      : KiwiError(token, "SignalError", message) {}
+};
+
 class FunctionUndefinedError : public KiwiError {
  public:
   FunctionUndefinedError(const Token& token, const std::string& name)
