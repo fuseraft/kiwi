@@ -666,6 +666,20 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
+  Token parseSignalBuiltin(const k_string& builtin) {
+    auto st = KName::Default;
+
+    if (builtin == SignalBuiltins.Raise) {
+      st = KName::Builtin_Signal_Raise;
+    } else if (builtin == SignalBuiltins.Send) {
+      st = KName::Builtin_Signal_Send;
+    } else if (builtin == SignalBuiltins.Trap) {
+      st = KName::Builtin_Signal_Trap;
+    }
+
+    return createToken(KTokenType::IDENTIFIER, st, builtin);
+  }
+
   Token parseSocketBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
@@ -1117,6 +1131,8 @@ class Lexer {
       return parseFFIBuiltin(builtin);
     } else if (SocketBuiltins.is_builtin(builtin)) {
       return parseSocketBuiltin(builtin);
+    } else if (SignalBuiltins.is_builtin(builtin)) {
+      return parseSignalBuiltin(builtin);
     }
 
     return createToken(KTokenType::IDENTIFIER, KName::Default, builtin);

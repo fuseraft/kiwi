@@ -358,6 +358,26 @@ struct {
 } SocketBuiltins;
 
 struct {
+  const k_string Raise = "__sig_raise__";
+  const k_string Send = "__sig_send__";
+  const k_string Trap = "__sig_trap__";
+
+  std::unordered_set<k_string> builtins = {Raise, Send, Trap};
+
+  std::unordered_set<KName> st_builtins = {KName::Builtin_Signal_Raise,
+                                           KName::Builtin_Signal_Send,
+                                           KName::Builtin_Signal_Trap};
+
+  bool is_builtin(const k_string& arg) {
+    return builtins.find(arg) != builtins.end();
+  }
+
+  bool is_builtin(const KName& arg) {
+    return st_builtins.find(arg) != st_builtins.end();
+  }
+} SignalBuiltins;
+
+struct {
   const k_string Attach = "__ffi_attach__";
   const k_string Invoke = "__ffi_invoke__";
   const k_string Load = "__ffi_load__";
@@ -753,7 +773,8 @@ struct {
            LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
            SerializerBuiltins.is_builtin(arg) || FFIBuiltins.is_builtin(arg) ||
            ReflectorBuiltins.is_builtin(arg) ||
-           SocketBuiltins.is_builtin(arg) || TaskBuiltins.is_builtin(arg);
+           SignalBuiltins.is_builtin(arg) || SocketBuiltins.is_builtin(arg) ||
+           TaskBuiltins.is_builtin(arg);
   }
 
   bool is_builtin_method(const KName& arg) {
@@ -765,7 +786,8 @@ struct {
            LoggingBuiltins.is_builtin(arg) || EncoderBuiltins.is_builtin(arg) ||
            SerializerBuiltins.is_builtin(arg) || FFIBuiltins.is_builtin(arg) ||
            ReflectorBuiltins.is_builtin(arg) ||
-           SocketBuiltins.is_builtin(arg) || TaskBuiltins.is_builtin(arg);
+           SignalBuiltins.is_builtin(arg) || SocketBuiltins.is_builtin(arg) ||
+           TaskBuiltins.is_builtin(arg);
   }
 } KiwiBuiltins;
 
