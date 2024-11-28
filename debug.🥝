@@ -9,3 +9,18 @@ end
 
 println "number of files: ${src.size()}"
 println "lines of code:   ${loc}"
+
+#println signal::SIGINT
+#println signal::raise(signal::SIGTERM)
+#println signal::send(6339, signal::SIGKILL)
+#println signal::send(2411, signal::SIGKILL)
+
+signal::trap(signal::SIGINT, with do
+  println "trapped SIGINT"
+end)
+
+println "Signal trap registered. Waiting for 10 seconds."
+task::create(with do
+  task::sleep(10000)
+end)
+task::wait()
