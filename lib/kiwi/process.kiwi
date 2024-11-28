@@ -1,0 +1,83 @@
+package process
+  /#
+  @summary: A helper function to get the process name from the "/proc/${pid}/comm" file.
+  @params:
+    - `proc_path`: A string containing the path to the PID in /proc.
+  @return: A string representing the name of the process.
+  #/
+  fn get_proc_name(proc_path: string): string
+    comm_file = fs::combine(proc_path, "comm")
+    proc_name = ""
+    if fs::exists(comm_file)
+      proc_name = fs::readlines(comm_file).first()
+    end
+    return proc_name
+  end
+
+  /#
+  @summary: Returns PID of the first process found with a given process name.
+  @params:
+    - `proc_name`: A PID or a process name.
+  @return: An integer representing the PID of the first process found with a given process name.
+  #/
+  fn get_pid(proc_name: string, pid: any = 0)
+    pid = process::get_procs().select(with (x) do x.name == proc_name end).first()
+    return pid.truthy() ? pid.pid : null
+  end
+
+  /#
+  @summary: Return a list of hashmaps containing `pid` and `name`.
+  @return: A list of hashmaps containing `pid` and `name`.
+  #/
+  fn get_procs(): list
+    proc_dir = "/proc"
+
+    if !fs::exists(proc_dir)
+      eprintln "/proc directory does not exist or is not a directory."
+      return []
+    end
+
+    res = []
+
+    for entry in fs::listdir(proc_dir) do
+      if fs::isdir(entry)
+        dirname = fs::filename(entry)
+
+        if string::isnumeric(dirname)
+          pid = dirname.to_int()
+          proc_name = process::get_proc_name(entry)
+
+          # Handle cases where process name couldn't be read
+          if proc_name.empty()
+            proc_name = "N/A"
+          end
+
+          res.push({ "pid": pid, "name": proc_name })
+        end
+      end
+    end
+
+    return res
+  end
+
+  /#
+  @summary: Checks if a process exists.
+  @params:
+    - `proc`: A PID or a process name.
+  @return: Boolean indicating whether the process exists.
+  #/
+  fn is_proc(proc): boolean
+    return process::get_procs().select(with (x) do x.name == proc || x.pid == proc end).first().truthy()
+  end
+
+  /#
+  @summary: Kills a process by name or PID.
+  @params:
+    - `proc`: A PID or a process name.
+  #/
+  fn kill(proc: any)
+    signal::send(std::is_int(proc) ? proc : process::get_pid(proc), signal::SIGKILL)
+  end
+end
+
+export "process"
