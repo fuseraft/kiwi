@@ -163,18 +163,18 @@ class Lexer {
     char currentChar = getCurrentChar();
 
     if (isalpha(currentChar) || currentChar == '_') {
-      return parseIdentifier(currentChar);
+      return tokenizeIdentifier(currentChar);
     } else if (isdigit(currentChar)) {
-      return parseNumericLiteral(currentChar);
+      return tokenizeNumericLiteral(currentChar);
     } else if (currentChar == '"') {
-      return parseString();
+      return tokenizeString();
     } else if (currentChar == '\'') {
-      return parseRegex();
+      return tokenizeRegex();
     } else if (currentChar == '#') {
-      return parseComment();
+      return tokenizeComment();
     } else if (currentChar == '/' &&
                (pos < source.length() && source[pos] == '#')) {
-      return parseBlockComment();
+      return tokenizeBlockComment();
     } else if (currentChar == '@') {
       return createToken(KTokenType::KEYWORD, KName::KW_This, "@");
     } else if (currentChar == '$') {
@@ -198,27 +198,27 @@ class Lexer {
     } else if (currentChar == '?') {
       return createToken(KTokenType::QUESTION, KName::Default, "?");
     } else if (currentChar == '.') {
-      return parseDot(currentChar);
+      return tokenizeDot(currentChar);
     } else if (currentChar == '\\') {
-      return parseEscapeCharacter();
+      return tokenizeEscapeCharacter();
     } else if (currentChar == ':') {
-      return parseColon(currentChar);
+      return tokenizeColon(currentChar);
     } else {
-      return parseUnspecified(currentChar);
+      return tokenizeUnspecified(currentChar);
     }
   }
 
-  Token parseNumericLiteral(char currentChar) {
+  Token tokenizeNumericLiteral(char currentChar) {
     if (currentChar == '0' && (pos < source.length() && source[pos] == 'x')) {
-      return parseHexLiteral();
+      return tokenizeHexLiteral();
     } else if (currentChar == '0' &&
                (pos < source.length() && source[pos] == 'b')) {
-      return parseBinaryLiteral();
+      return tokenizeBinaryLiteral();
     } else if (currentChar == '0' &&
                (pos < source.length() && source[pos] == 'o')) {
-      return parseOctalLiteral();
+      return tokenizeOctalLiteral();
     }
-    return parseLiteral(currentChar);
+    return tokenizeLiteral(currentChar);
   }
 
   void skipWhitespace() {
@@ -231,7 +231,7 @@ class Lexer {
     }
   }
 
-  Token parseRegex() {
+  Token tokenizeRegex() {
     k_string regexPattern;
     bool escape = false;
 
@@ -284,7 +284,7 @@ class Lexer {
     return createToken(KTokenType::STRING, KName::Regex, regexPattern);
   }
 
-  Token parseConditionalKeyword(const k_string& keyword) {
+  Token tokenizeConditionalKeyword(const k_string& keyword) {
     auto st = KName::Default;
 
     if (keyword == Keywords.If) {
@@ -302,7 +302,7 @@ class Lexer {
     return createToken(KTokenType::CONDITIONAL, st, keyword);
   }
 
-  Token parseKeywordSpecific(const k_string& keyword) {
+  Token tokenizeKeywordSpecific(const k_string& keyword) {
     auto st = KName::Default;
 
     if (keyword == Keywords.Abstract) {
@@ -382,9 +382,9 @@ class Lexer {
     return createToken(KTokenType::KEYWORD, st, keyword);
   }
 
-  Token parseKeyword(const k_string& keyword) {
+  Token tokenizeKeyword(const k_string& keyword) {
     if (Keywords.is_conditional_keyword(keyword)) {
-      return parseConditionalKeyword(keyword);
+      return tokenizeConditionalKeyword(keyword);
     } else if (keyword == Keywords.With) {
       return createToken(KTokenType::LAMBDA, KName::KW_Lambda, keyword);
     } else if (Keywords.is_boolean(keyword)) {
@@ -393,10 +393,10 @@ class Lexer {
       return Token::createNull(fileId, keyword, row, col);
     }
 
-    return parseKeywordSpecific(keyword);
+    return tokenizeKeywordSpecific(keyword);
   }
 
-  Token parseOperator(const k_string& op) {
+  Token tokenizeOperator(const k_string& op) {
     auto st = KName::Default;
 
     if (op == Operators.Add) {
@@ -480,7 +480,7 @@ class Lexer {
     return createToken(KTokenType::OPERATOR, st, op);
   }
 
-  Token parseUnspecified(char initialChar) {
+  Token tokenizeUnspecified(char initialChar) {
     k_string s(1, initialChar);
 
     if (pos < source.length()) {
@@ -517,10 +517,10 @@ class Lexer {
       }
     }
 
-    return parseOperator(s);
+    return tokenizeOperator(s);
   }
 
-  Token parseColon(char initialChar) {
+  Token tokenizeColon(char initialChar) {
     k_string s(1, initialChar);
 
     if (pos < source.length()) {
@@ -535,7 +535,7 @@ class Lexer {
     return createToken(KTokenType::COLON, KName::Default, s);
   }
 
-  Token parseEscapeCharacter() {
+  Token tokenizeEscapeCharacter() {
     if (pos < source.length()) {
       char nextChar = getCurrentChar();
 
@@ -562,7 +562,7 @@ class Lexer {
     return createToken(KTokenType::ESCAPED, KName::Default, "\\");
   }
 
-  Token parseDot(char initialChar) {
+  Token tokenizeDot(char initialChar) {
     k_string s(1, initialChar);
 
     if (pos < source.length()) {
@@ -577,7 +577,7 @@ class Lexer {
     return createToken(KTokenType::DOT, KName::Default, ".");
   }
 
-  Token parseTypeName(const k_string& typeName) {
+  Token tokenizeTypeName(const k_string& typeName) {
     auto st = KName::Default;
 
     if (typeName == TypeNames.Integer || typeName == TypeNames.LowInteger) {
@@ -612,7 +612,7 @@ class Lexer {
     return createToken(KTokenType::TYPENAME, st, typeName);
   }
 
-  Token parseArgvBuiltin(const k_string& builtin) {
+  Token tokenizeArgvBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == ArgvBuiltins.GetArgv) {
@@ -624,7 +624,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseConsoleBuiltin(const k_string& builtin) {
+  Token tokenizeConsoleBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == ConsoleBuiltins.Input) {
@@ -634,7 +634,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseEncoderBuiltin(const k_string& builtin) {
+  Token tokenizeEncoderBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == EncoderBuiltins.Base64Decode) {
@@ -650,7 +650,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseFFIBuiltin(const k_string& builtin) {
+  Token tokenizeFFIBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == FFIBuiltins.Attach) {
@@ -666,7 +666,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseSignalBuiltin(const k_string& builtin) {
+  Token tokenizeSignalBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == SignalBuiltins.Raise) {
@@ -680,7 +680,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseSocketBuiltin(const k_string& builtin) {
+  Token tokenizeSocketBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == SocketBuiltins.Accept) {
@@ -706,7 +706,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseReflectorBuiltin(const k_string& builtin) {
+  Token tokenizeReflectorBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == ReflectorBuiltins.RInspect) {
@@ -722,7 +722,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseSerializerBuiltin(const k_string& builtin) {
+  Token tokenizeSerializerBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == SerializerBuiltins.Deserialize) {
@@ -734,7 +734,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseEnvBuiltin(const k_string& builtin) {
+  Token tokenizeEnvBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == EnvBuiltins.GetEnvironmentVariable) {
@@ -752,7 +752,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseFileIOBuiltin(const k_string& builtin) {
+  Token tokenizeFileIOBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == FileIOBuiltIns.AppendText) {
@@ -820,7 +820,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseListBuiltin(const k_string& builtin) {
+  Token tokenizeListBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == ListBuiltins.Map) {
@@ -842,7 +842,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseTaskBuiltin(const k_string& builtin) {
+  Token tokenizeTaskBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == TaskBuiltins.TaskBusy) {
@@ -860,7 +860,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseMathBuiltin(const k_string& builtin) {
+  Token tokenizeMathBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == MathBuiltins.Abs) {
@@ -962,7 +962,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parsePackageBuiltin(const k_string& builtin) {
+  Token tokenizePackageBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == PackageBuiltins.Home) {
@@ -972,7 +972,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseSysBuiltin(const k_string& builtin) {
+  Token tokenizeSysBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == SysBuiltins.EffectiveUserId) {
@@ -986,7 +986,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseWebClientBuiltin(const k_string& builtin) {
+  Token tokenizeWebClientBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == HttpBuiltins.Get) {
@@ -1008,7 +1008,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseWebServerBuiltin(const k_string& builtin) {
+  Token tokenizeWebServerBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == WebServerBuiltins.Get) {
@@ -1028,7 +1028,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseLoggingBuiltin(const k_string& builtin) {
+  Token tokenizeLoggingBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == LoggingBuiltins.Debug) {
@@ -1054,7 +1054,7 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseTimeBuiltin(const k_string& builtin) {
+  Token tokenizeTimeBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == TimeBuiltins.AMPM) {
@@ -1094,51 +1094,51 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseBuiltinMethod(const k_string& builtin) {
+  Token tokenizeBuiltinMethod(const k_string& builtin) {
     if (ArgvBuiltins.is_builtin(builtin)) {
-      return parseArgvBuiltin(builtin);
+      return tokenizeArgvBuiltin(builtin);
     } else if (ConsoleBuiltins.is_builtin(builtin)) {
-      return parseConsoleBuiltin(builtin);
+      return tokenizeConsoleBuiltin(builtin);
     } else if (EnvBuiltins.is_builtin(builtin)) {
-      return parseEnvBuiltin(builtin);
+      return tokenizeEnvBuiltin(builtin);
     } else if (FileIOBuiltIns.is_builtin(builtin)) {
-      return parseFileIOBuiltin(builtin);
+      return tokenizeFileIOBuiltin(builtin);
     } else if (LoggingBuiltins.is_builtin(builtin)) {
-      return parseLoggingBuiltin(builtin);
+      return tokenizeLoggingBuiltin(builtin);
     } else if (ListBuiltins.is_builtin(builtin)) {
-      return parseListBuiltin(builtin);
+      return tokenizeListBuiltin(builtin);
     } else if (MathBuiltins.is_builtin(builtin)) {
-      return parseMathBuiltin(builtin);
+      return tokenizeMathBuiltin(builtin);
     } else if (TaskBuiltins.is_builtin(builtin)) {
-      return parseTaskBuiltin(builtin);
+      return tokenizeTaskBuiltin(builtin);
     } else if (PackageBuiltins.is_builtin(builtin)) {
-      return parsePackageBuiltin(builtin);
+      return tokenizePackageBuiltin(builtin);
     } else if (SysBuiltins.is_builtin(builtin)) {
-      return parseSysBuiltin(builtin);
+      return tokenizeSysBuiltin(builtin);
     } else if (TimeBuiltins.is_builtin(builtin)) {
-      return parseTimeBuiltin(builtin);
+      return tokenizeTimeBuiltin(builtin);
     } else if (WebServerBuiltins.is_builtin(builtin)) {
-      return parseWebServerBuiltin(builtin);
+      return tokenizeWebServerBuiltin(builtin);
     } else if (HttpBuiltins.is_builtin(builtin)) {
-      return parseWebClientBuiltin(builtin);
+      return tokenizeWebClientBuiltin(builtin);
     } else if (EncoderBuiltins.is_builtin(builtin)) {
-      return parseEncoderBuiltin(builtin);
+      return tokenizeEncoderBuiltin(builtin);
     } else if (SerializerBuiltins.is_builtin(builtin)) {
-      return parseSerializerBuiltin(builtin);
+      return tokenizeSerializerBuiltin(builtin);
     } else if (ReflectorBuiltins.is_builtin(builtin)) {
-      return parseReflectorBuiltin(builtin);
+      return tokenizeReflectorBuiltin(builtin);
     } else if (FFIBuiltins.is_builtin(builtin)) {
-      return parseFFIBuiltin(builtin);
+      return tokenizeFFIBuiltin(builtin);
     } else if (SocketBuiltins.is_builtin(builtin)) {
-      return parseSocketBuiltin(builtin);
+      return tokenizeSocketBuiltin(builtin);
     } else if (SignalBuiltins.is_builtin(builtin)) {
-      return parseSignalBuiltin(builtin);
+      return tokenizeSignalBuiltin(builtin);
     }
 
     return createToken(KTokenType::IDENTIFIER, KName::Default, builtin);
   }
 
-  Token parseKiwiBuiltin(const k_string& builtin) {
+  Token tokenizeKiwiBuiltin(const k_string& builtin) {
     auto st = KName::Default;
 
     if (builtin == KiwiBuiltins.BeginsWith) {
@@ -1296,13 +1296,13 @@ class Lexer {
     return createToken(KTokenType::IDENTIFIER, st, builtin);
   }
 
-  Token parseIdentifier(const k_string& identifier) {
+  Token tokenizeIdentifier(const k_string& identifier) {
     auto st = KName::Default;
 
     return createToken(KTokenType::IDENTIFIER, st, identifier);
   }
 
-  Token parseIdentifier(char initialChar) {
+  Token tokenizeIdentifier(char initialChar) {
     k_string identifier(1, initialChar);
     char lastChar = '\0';
 
@@ -1318,19 +1318,19 @@ class Lexer {
     }
 
     if (Keywords.is_keyword(identifier)) {
-      return parseKeyword(identifier);
+      return tokenizeKeyword(identifier);
     } else if (TypeNames.is_typename(identifier)) {
-      return parseTypeName(identifier);
+      return tokenizeTypeName(identifier);
     } else if (KiwiBuiltins.is_builtin_method(identifier)) {
-      return parseBuiltinMethod(identifier);
+      return tokenizeBuiltinMethod(identifier);
     } else if (isCall && KiwiBuiltins.is_builtin(identifier)) {
-      return parseKiwiBuiltin(identifier);
+      return tokenizeKiwiBuiltin(identifier);
     }
 
-    return parseIdentifier(identifier);
+    return tokenizeIdentifier(identifier);
   }
 
-  Token parseLiteral(char initialChar) {
+  Token tokenizeLiteral(char initialChar) {
     k_string literal(1, initialChar);
     char lastChar = initialChar;
 
@@ -1357,7 +1357,7 @@ class Lexer {
     }
   }
 
-  Token parseHexLiteral() {
+  Token tokenizeHexLiteral() {
     k_string hexLiteral;
     getCurrentChar();  // Move past 'x'
 
@@ -1372,7 +1372,7 @@ class Lexer {
     return createToken(KTokenType::LITERAL, KName::Default, hexLiteral, value);
   }
 
-  Token parseBinaryLiteral() {
+  Token tokenizeBinaryLiteral() {
     k_string binaryLiteral;
     getCurrentChar();  // Move past 'b'
 
@@ -1394,7 +1394,7 @@ class Lexer {
                        value);
   }
 
-  Token parseOctalLiteral() {
+  Token tokenizeOctalLiteral() {
     k_string octalLiteral;
     getCurrentChar();  // Move past 'o'
 
@@ -1414,7 +1414,7 @@ class Lexer {
                        value);
   }
 
-  Token parseString() {
+  Token tokenizeString() {
     k_string str;
     bool escape = false;
 
@@ -1457,7 +1457,7 @@ class Lexer {
       } else if (currentChar == '$' && peek() == '{') {
         getCurrentChar();  // Skip '$'
         getCurrentChar();  // Skip '{'
-        k_string interpolationExpression = parseInterpolatedExpression();
+        k_string interpolationExpression = tokenizeInterpolatedExpression();
         str += interpolationExpression;
         continue;
       } else {
@@ -1474,7 +1474,7 @@ class Lexer {
     return createToken(KTokenType::STRING, KName::Default, str);
   }
 
-  Token parseBlockComment() {
+  Token tokenizeBlockComment() {
     k_string comment;
     pos++;  // Skip the "/#"
 
@@ -1491,7 +1491,7 @@ class Lexer {
     return createToken(KTokenType::COMMENT, KName::Default, comment);
   }
 
-  Token parseComment() {
+  Token tokenizeComment() {
     k_string comment;
 
     while (pos < source.length() && source[pos] != '\n') {
@@ -1501,7 +1501,7 @@ class Lexer {
     return createToken(KTokenType::COMMENT, KName::Default, comment);
   }
 
-  k_string parseInterpolatedExpression() {
+  k_string tokenizeInterpolatedExpression() {
     k_string expression;
     int braceCount = 1;
 

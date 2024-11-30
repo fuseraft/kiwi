@@ -17,6 +17,7 @@ println "lines of code:   ${loc}"
 
 signal::trap(signal::SIGINT, with do
   println "trapped SIGINT"
+  exit(0)
 end)
 
 println "Signal trap registered. Waiting for 10 seconds."
