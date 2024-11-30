@@ -16,8 +16,12 @@ class FileRegistry {
 
   FileRegistry(const FileRegistry&) = delete;
   FileRegistry& operator=(const FileRegistry&) = delete;
-
   int registerFile(const std::string& filePath) {
+    auto fileId = getFileId(filePath);
+    if (fileId > -1) {
+      return fileId;
+    }
+
     std::istringstream stream(filePath);
     std::vector<std::string> lines;
     std::string line;
@@ -28,6 +32,16 @@ class FileRegistry {
     registry[id] = filePath;
     linesRegistry[id] = std::move(lines);
     return id;
+  }
+
+  int getFileId(std::string filePath) const {
+    for (const auto& pair : registry) {
+      if (pair.second == filePath) {
+        return pair.first;
+      }
+    }
+
+    return -1;
   }
 
   std::string getFilePath(int id) const {
