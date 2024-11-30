@@ -253,7 +253,7 @@ class CoreBuiltinHandler {
     auto s = get_string(token, value);
     std::vector<k_value> tokens;
 
-    Lexer lex("", s);
+    Lexer lex(token.getFile(), s);
 
     auto ts = lex.getAllTokens();
     tokens.reserve(ts.size());
