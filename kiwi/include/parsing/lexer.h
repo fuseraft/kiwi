@@ -28,95 +28,61 @@ class Lexer {
     preprocessSource();
   }
 
+  // Generate token stream from tokenized string input.
   k_stream getTokenStream() {
     return std::make_shared<TokenStream>(getAllTokens());
   }
 
+  // Tokenize string input.
   std::vector<Token> getAllTokens() {
     std::vector<Token> tokens;
     row = 0;
     col = 0;
 
+    return tokenize(tokens);
+  }
+
+  const std::vector<Token>& tokenize(std::vector<Token>& tokens) {
+    // While we have tokens to process.
     while (true) {
+      // Grab the next token.
       auto token = getNextToken();
 
+      // If we're at EOF, exit the loop.
       if (token.getType() == KTokenType::ENDOFFILE) {
         break;
       }
 
+      // Add to token vector.
       tokens.emplace_back(token);
     }
 
     return tokens;
   }
 
-  static k_string minify(const k_string& path, bool output = false) {
+  static k_string minify(const k_string& path, bool forStandardOutput = false) {
+    // Read the file, if it's empty, just return an empty string.
     auto content = File::readFile(lexerToken, path);
     if (content.empty()) {
       return content;
     }
 
+    // Tokenize and return minified output.
     std::ostringstream builder;
     Lexer lexer(path, content);
     auto stream = Lexer(path, content).getTokenStream();
-    bool addSpace = true;
-    while (stream->canRead()) {
-      auto token = stream->current();
-      switch (token.getType()) {
-        case KTokenType::COMMENT:
-          stream->next();
-          continue;
+    minifyTokenStream(stream, forStandardOutput, builder);
 
-        case KTokenType::KEYWORD:
-        case KTokenType::IDENTIFIER:
-        case KTokenType::CONDITIONAL:
-        case KTokenType::LITERAL:
-          if (!output && addSpace) {
-            builder << ' ';
-          }
-
-          builder << token.getText();
-
-          if (output) {
-            builder << std::endl;
-          }
-
-          addSpace = true;
-          break;
-
-        case KTokenType::STRING:
-          if (!output && addSpace) {
-            builder << ' ';
-          }
-
-          builder << '"' << token.getText() << '"';
-
-          if (output) {
-            builder << std::endl;
-          }
-
-          addSpace = true;
-          break;
-
-        default:
-          addSpace = false;
-          builder << token.getText();
-
-          if (output) {
-            builder << std::endl;
-          }
-          break;
-      }
-
-      stream->next();
-    }
-
-    if (output) {
+    // Optionally print to standard output stream.
+    if (forStandardOutput) {
       std::cout << String::trim(builder.str()) << std::endl;
     }
 
     return builder.str();
   }
+
+  static void minifyTokenStream(k_stream& stream, bool forStandardOutput,
+                                std::ostringstream& builder);
 
  private:
   k_string source;
@@ -184,6 +150,61 @@ class Lexer {
 
   k_string tokenizeInterpolatedExpression();
 };
+
+void Lexer::minifyTokenStream(k_stream& stream, bool forStandardOutput,
+                              std::ostringstream& builder) {
+  bool addSpace = true;
+  while (stream->canRead()) {
+    auto token = stream->current();
+    switch (token.getType()) {
+      case KTokenType::COMMENT:
+        stream->next();
+        continue;
+
+      case KTokenType::KEYWORD:
+      case KTokenType::IDENTIFIER:
+      case KTokenType::CONDITIONAL:
+      case KTokenType::LITERAL:
+        if (!forStandardOutput && addSpace) {
+          builder << ' ';
+        }
+
+        builder << token.getText();
+
+        if (forStandardOutput) {
+          builder << std::endl;
+        }
+
+        addSpace = true;
+        break;
+
+      case KTokenType::STRING:
+        if (!forStandardOutput && addSpace) {
+          builder << ' ';
+        }
+
+        builder << '"' << token.getText() << '"';
+
+        if (forStandardOutput) {
+          builder << std::endl;
+        }
+
+        addSpace = true;
+        break;
+
+      default:
+        addSpace = false;
+        builder << token.getText();
+
+        if (forStandardOutput) {
+          builder << std::endl;
+        }
+        break;
+    }
+
+    stream->next();
+  }
+}
 
 void Lexer::preprocessSource() {
   std::regex re(R"(\$\{([^}]+)\})");
