@@ -816,7 +816,7 @@ void KInterpreter::importExternal(const k_string& packageName,
     return;
   }
 
-  Lexer lexer(packagePath, content);
+  Lexer lexer(File::getAbsolutePath(token, packagePath), content);
 
   Parser p(true);
   auto tokenStream = lexer.getTokenStream();
