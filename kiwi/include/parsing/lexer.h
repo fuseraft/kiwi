@@ -92,17 +92,23 @@ class Lexer {
   int row;
   int col;
 
+  // String Processing
   void preprocessSource();
   void skipWhitespace();
   char getCurrentChar();
   char peek();
+
+  // Tokenization
   Token getNextToken();
   Token createToken(KTokenType type, KName name, const k_string& text);
   Token createToken(KTokenType type, KName name, const k_string& text,
                     const k_value& value);
 
+  // Identifiers
   Token tokenizeIdentifier(const k_string& identifier);
   Token tokenizeIdentifier(char initialChar);
+
+  // Values
   Token tokenizeTypeName(const k_string& typeName);
   Token tokenizeNumericLiteral(char currentChar);
   Token tokenizeLiteral(char initialChar);
@@ -111,20 +117,31 @@ class Lexer {
   Token tokenizeOctalLiteral();
   Token tokenizeRegex();
   Token tokenizeString();
+
+  // Comments
   Token tokenizeComment();
   Token tokenizeBlockComment();
 
+  // Keywords
   Token tokenizeKeyword(const k_string& keyword);
   Token tokenizeConditionalKeyword(const k_string& keyword);
   Token tokenizeKeywordSpecific(const k_string& keyword);
 
+  // Operators
   Token tokenizeOperator(const k_string& op);
   Token tokenizeUnspecifiedOperator(char initialChar);
 
+  // Symbols
   Token tokenizeEscapeCharacter();
   Token tokenizeColon(char initialChar);
   Token tokenizeDot(char initialChar);
 
+  // Builtins
+  Token tokenizeListBuiltin(const k_string& builtin);
+  Token tokenizeBuiltinMethod(const k_string& builtin);
+  Token tokenizeKiwiBuiltin(const k_string& builtin);
+
+  // Special Builtins
   Token tokenizeArgvBuiltin(const k_string& builtin);
   Token tokenizeConsoleBuiltin(const k_string& builtin);
   Token tokenizeEncoderBuiltin(const k_string& builtin);
@@ -144,12 +161,13 @@ class Lexer {
   Token tokenizeLoggingBuiltin(const k_string& builtin);
   Token tokenizeTimeBuiltin(const k_string& builtin);
 
-  Token tokenizeListBuiltin(const k_string& builtin);
-  Token tokenizeBuiltinMethod(const k_string& builtin);
-  Token tokenizeKiwiBuiltin(const k_string& builtin);
-
+  // String Manipulation
   k_string tokenizeInterpolatedExpression();
 };
+
+/// =========================================================== ///
+/// Lexer Implementation                                        ///
+/// =========================================================== ///
 
 void Lexer::minifyTokenStream(k_stream& stream, bool forStandardOutput,
                               std::ostringstream& builder) {
@@ -206,6 +224,10 @@ void Lexer::minifyTokenStream(k_stream& stream, bool forStandardOutput,
   }
 }
 
+/// =========================================================== ///
+/// String Processing                                           ///
+/// =========================================================== ///
+
 void Lexer::preprocessSource() {
   std::regex re(R"(\$\{([^}]+)\})");
   k_string output;
@@ -213,15 +235,6 @@ void Lexer::preprocessSource() {
   std::regex_replace(std::back_inserter(output), source.begin(), source.end(),
                      re, R"(" + ($1).to_string() + ")");
   source = output;
-}
-
-Token Lexer::createToken(KTokenType type, KName name, const k_string& text) {
-  return Token::create(type, name, fileId, text, row, col);
-}
-
-Token Lexer::createToken(KTokenType type, KName name, const k_string& text,
-                         const k_value& value) {
-  return Token::create(type, name, fileId, text, value, row, col);
 }
 
 void Lexer::skipWhitespace() {
@@ -250,6 +263,19 @@ char Lexer::peek() {
     return source[pos + 1];
   }
   return '\0';
+}
+
+/// =========================================================== ///
+/// Tokenization                                                ///
+/// =========================================================== ///
+
+Token Lexer::createToken(KTokenType type, KName name, const k_string& text) {
+  return Token::create(type, name, fileId, text, row, col);
+}
+
+Token Lexer::createToken(KTokenType type, KName name, const k_string& text,
+                         const k_value& value) {
+  return Token::create(type, name, fileId, text, value, row, col);
 }
 
 Token Lexer::getNextToken() {
