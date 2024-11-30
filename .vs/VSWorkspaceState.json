@@ -1,0 +1,13 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\.github",
+    "\\kiwi",
+    "\\kiwi\\include",
+    "\\kiwi\\include\\system",
+    "\\kiwi\\include\\util",
+    "\\kiwi\\src"
+  ],
+  "SelectedNode": "\\kiwi\\include\\system\\fileregistry.h",
+  "PreviewInSolutionExplorer": false
+}

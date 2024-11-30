@@ -37,6 +37,10 @@ class File {
   static bool movePath(const Token& token, const k_string& sourcePath,
                        const k_string& destinationPath);
 
+  // New Fuction CanRead/CanWrite
+  static bool CanRead(const k_string& path);
+  static bool CanWrite(const k_string& path);
+
   // File content manipulation
   static k_int getFileSize(const Token& token, const k_string& filePath);
   static bool writeToFile(const Token& token, const k_string& filePath,
@@ -279,6 +283,18 @@ bool File::movePath(const Token& token, const k_string& sourcePath,
   }
 
   return false;
+}
+
+// CanRead/CanWrite Funtion
+bool File::CanRead(const k_string& path) {
+    if (!fileExists(path)) {
+        return false;
+    }
+}
+bool File::CanWrite(const k_string& path) {
+    if (!fileExists(path)) {
+        return false;
+    }
 }
 
 /// @brief Get file size in bytes.
