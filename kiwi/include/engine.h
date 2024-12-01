@@ -6,13 +6,9 @@
 #include "parsing/lexer.h"
 #include "parsing/parser.h"
 #include "parsing/tokens.h"
-#include "parsing/tokentype.h"
-#include "parsing/keywords.h"
 #include "typing/value.h"
 #include "util/file.h"
 #include "globals.h"
-#include "stackframe.h"
-
 #include "interpreter.h"
 
 const Token& engineToken = Token::createExternal();
@@ -22,8 +18,8 @@ class Engine {
   Engine() {}
   ~Engine() {}
 
-  void setKiwiArgs(const std::unordered_map<k_string, k_string>& args) {
-    kiwiArgs = args;
+  void setProgramArgs(const std::unordered_map<k_string, k_string>& args) {
+    interp.setProgramArgs(args);
   }
 
   int runStreamCollection() {

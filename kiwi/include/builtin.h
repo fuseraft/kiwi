@@ -46,7 +46,7 @@ class BuiltinDispatch {
   static k_value execute(
       const Token& token, const KName& builtin,
       const std::vector<k_value>& args,
-      const std::unordered_map<k_string, k_string>& kiwiArgs) {
+      const std::unordered_map<k_string, k_string>& cliArgs) {
     if (FileIOBuiltIns.is_builtin(builtin)) {
       return FileIOBuiltinHandler::execute(token, builtin, args);
     } else if (TimeBuiltins.is_builtin(builtin)) {
@@ -58,7 +58,7 @@ class BuiltinDispatch {
     } else if (EncoderBuiltins.is_builtin(builtin)) {
       return EncoderBuiltinHandler::execute(token, builtin, args);
     } else if (ArgvBuiltins.is_builtin(builtin)) {
-      return ArgvBuiltinHandler::execute(token, builtin, args, kiwiArgs);
+      return ArgvBuiltinHandler::execute(token, builtin, args, cliArgs);
     } else if (ConsoleBuiltins.is_builtin(builtin)) {
       return ConsoleBuiltinHandler::execute(token, builtin, args);
     } else if (SysBuiltins.is_builtin(builtin)) {
