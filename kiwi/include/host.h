@@ -39,32 +39,39 @@ class Host {
     scripts.insert(absolutePath);
   }
 
+  void registerParseRequest(const std::string& code) {
+    parseRequests.push_back(code);
+  }
+
   void registerArg(const std::string& name, const std::string& value) {
     args[name] = value;
   }
 
+  bool hasWork() { return !scripts.empty() || !parseRequests.empty(); }
+
   int start() {
-    engine.setKiwiArgs(args);
+    engine.setProgramArgs(args);
 
     // Always try to load kiwilib.
     loadKiwiLibrary();
 
-    // Start REPL if no scripts are supplied.
-    if (scripts.empty()) {
+    // If nothing was supplied, just start the REPL.
+    if (!hasWork()) {
       Repl repl(engine);
       return repl.run();
     }
 
-    return loadScripts();
-  }
+    int returnCode = 0;
 
-  int parse(const std::string& input) {
-    engine.setKiwiArgs(args);
+    if (!scripts.empty()) {
+      returnCode = loadScripts();
+    }
 
-    // Always try to load kiwilib.
-    loadKiwiLibrary();
+    if (returnCode == 0 && !parseRequests.empty()) {
+      returnCode = loadParseRequests();
+    }
 
-    return engine.interpretKiwi(input);
+    return returnCode;
   }
 
   std::string minify(const std::string& script, bool output = false) {
@@ -78,6 +85,7 @@ class Host {
  private:
   Engine& engine;
   std::unordered_set<std::string> scripts;
+  std::vector<std::string> parseRequests;
   std::unordered_map<std::string, std::string> args;
   std::string executionPath;
   bool kiwilibEnabled = true;
@@ -107,6 +115,26 @@ class Host {
     } catch (const std::exception& e) {
       ErrorHandler::printError(e);
     }
+  }
+
+  int loadParseRequests() {
+    int returnCode = 0;
+
+    try {
+      for (const auto& code : parseRequests) {
+        returnCode = engine.interpretKiwi(code);
+
+        // If one parse fails, we need to stop here.
+        if (returnCode != 0) {
+          return returnCode;
+        }
+      }
+    } catch (const std::exception& e) {
+      ErrorHandler::printError(e);
+      return 1;
+    }
+
+    return returnCode;
   }
 
   int loadScripts() {

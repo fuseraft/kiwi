@@ -43,6 +43,10 @@ class KInterpreter {
     ctx = std::move(context);
   }
 
+  void setProgramArgs(const std::unordered_map<k_string, k_string> args) {
+    cliArgs = args;
+  }
+
   bool hasActiveTasks() { return taskmgr.hasActiveTasks(); }
 
  private:
@@ -54,6 +58,7 @@ class KInterpreter {
   std::stack<k_string> packageStack;
   std::stack<k_string> structStack;
   std::stack<k_string> funcStack;
+  std::unordered_map<k_string, k_string> cliArgs;
 
   const int SAFEMODE_MAX_ITERATIONS = 1000000;
 
@@ -2732,7 +2737,7 @@ k_value KInterpreter::callBuiltinMethod(const FunctionCallNode* node) {
     return BuiltinDispatch::execute(taskmgr, node->token, op, args);
   }
 
-  return BuiltinDispatch::execute(node->token, op, args, kiwiArgs);
+  return BuiltinDispatch::execute(node->token, op, args, cliArgs);
 }
 
 k_value KInterpreter::interpretWebServerBuiltin(const Token& token,
@@ -3166,6 +3171,10 @@ k_value KInterpreter::interpretSerializerBuiltin(const Token& token,
 k_value KInterpreter::interpretSignalBuiltin(const Token& token,
                                              const KName& op,
                                              std::vector<k_value> args) {
+  if (SAFEMODE) {
+    return {};
+  }
+  
   switch (op) {
     case KName::Builtin_Signal_Send:
       return interpretSignalSend(token, args);
