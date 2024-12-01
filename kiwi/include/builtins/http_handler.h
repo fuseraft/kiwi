@@ -8,7 +8,7 @@
 #include "parsing/tokens.h"
 #include "typing/serializer.h"
 #include "typing/value.h"
-#include "globals.h"
+#include "web/httplib.h"
 
 class HttpBuiltinHandler {
  public:

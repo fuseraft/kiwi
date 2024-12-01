@@ -18,8 +18,8 @@ class Engine {
   Engine() {}
   ~Engine() {}
 
-  void setKiwiArgs(const std::unordered_map<k_string, k_string>& args) {
-    kiwiArgs = args;
+  void setProgramArgs(const std::unordered_map<k_string, k_string>& args) {
+    interp.setProgramArgs(args);
   }
 
   int runStreamCollection() {

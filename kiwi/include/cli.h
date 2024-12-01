@@ -14,7 +14,6 @@
 #include "globals.h"
 #include "host.h"
 
-std::unordered_map<k_string, k_string> kiwiArgs;
 bool SAFEMODE = false;
 const Token cliToken = Token::createExternal();
 
@@ -26,7 +25,6 @@ class KiwiCLI {
   static bool createNewFile(const k_string& path);
   static bool createMinified(Host& host, const k_string& path);
   static bool processOption(k_string& opt, Host& host);
-  static bool parse(Host& host, const k_string& content);
   static bool tokenize(Host& host, const k_string& path);
   static bool printAST(Host& host, const k_string& path);
 
@@ -76,11 +74,7 @@ int KiwiCLI::run(std::vector<k_string>& v) {
 
         help = true;
       } else if (String::isCLIFlag(v.at(i), "p", "parse")) {
-        if (i + 1 < size) {
-          return KiwiCLI::parse(host, v.at(++i));
-        }
-
-        help = true;
+        host.registerParseRequest(v.at(++i));
       } else if (String::isCLIFlag(v.at(i), "s", "safemode")) {
         SAFEMODE = true;
       } else if (String::isCLIFlag(v.at(i), "a", "ast")) {
@@ -121,10 +115,6 @@ int KiwiCLI::run(std::vector<k_string>& v) {
   } catch (const KiwiError& e) {
     return ErrorHandler::handleError(e);
   }
-}
-
-bool KiwiCLI::parse(Host& host, const k_string& content) {
-  return host.parse(content);
 }
 
 bool KiwiCLI::createMinified(Host& host, const k_string& path) {
@@ -242,7 +232,7 @@ int KiwiCLI::printHelp() {
       {"-a, --ast <input_file_path>", "print syntax tree of `.🥝` file"},
       {"-m, --minify <input_file_path>", "create a `.min.🥝` file"},
       {"-t, --tokenize <input_file_path>", "tokenize a file with the lexer"},
-      {"-X<key>=<value>", "specify an argument as a key-value pair"}};
+      {"-<key>=<value>", "specify an argument as a key-value pair"}};
 
   printVersion();
 
