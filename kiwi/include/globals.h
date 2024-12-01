@@ -12,19 +12,4 @@ extern const std::string kiwi_arg = "kiwi";
 extern const std::string kiwi_min_extension = ".min.🥝";
 extern const std::string kiwi_extension = ".🥝";
 
-#include <unordered_map>
-#include <stack>
-#include <memory>
-#include <string>
-#include <mutex>
-#include "logging/logger.h"
-#include "stackframe.h"
-#include "parsing/tokens.h"
-#include "web/httplib.h"
-
-extern Logger logger;
-//extern TaskManager task;
-
-extern std::unordered_map<std::string, std::string> kiwiArgs;
-
 #endif

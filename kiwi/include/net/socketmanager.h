@@ -1,12 +1,12 @@
 #ifndef KIWI_NET_SOCKETMANAGER_H
 #define KIWI_NET_SOCKETMANAGER_H
 
+#include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <string>
 #include <unordered_map>
 #include <mutex>
 #include <stdexcept>
