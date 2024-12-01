@@ -370,9 +370,11 @@ k_string File::getParentPath(const Token& token, const k_string& path) {
 /// @param path The path.
 /// @return Boolean indicating success.
 bool File::isScript(const Token& token, const k_string& path) {
-  const auto& extless = tryGetExtensionless(token, path);
+  static const std::unordered_set<k_string> validExtensions = {
+      ".min.kiwi", ".kiwi", ".min.🥝", ".🥝", ".min.k", ".k"};
 
-  return File::fileExists(token, extless);
+  auto extension = getFileExtension(token, path);
+  return validExtensions.find(extension) != validExtensions.end();
 }
 
 k_string File::tryGetExtensionlessSpecific(const Token& token,
@@ -389,13 +391,11 @@ k_string File::tryGetExtensionlessSpecific(const Token& token,
 /// @param path The path.
 /// @return Boolean indicating success.
 k_string File::tryGetExtensionless(const Token& token, const k_string& path) {
-  std::vector<k_string> extensions;
-  extensions.emplace_back(".min.kiwi");
-  extensions.emplace_back(".kiwi");
-  extensions.emplace_back(".min.🥝");
-  extensions.emplace_back(".🥝");
+  static const std::unordered_set<k_string> extensions = {
+      ".min.kiwi", ".kiwi", ".min.🥝", ".🥝", ".min.k", ".k"};
 
-  if (File::fileExists(token, path) && !File::directoryExists(token, path)) {
+  if (File::isScript(token, path) && File::fileExists(token, path) &&
+      !File::directoryExists(token, path)) {
     return path;
   }
 

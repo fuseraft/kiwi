@@ -1,7 +1,6 @@
 #ifndef KIWI_INTERPSESSION_H
 #define KIWI_INTERPSESSION_H
 
-#include "parsing/keywords.h"
 #include "util/file.h"
 #include "tracing/error.h"
 #include "engine.h"

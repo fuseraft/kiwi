@@ -6,19 +6,13 @@
 
 #include "tracing/error.h"
 #include "tracing/handler.h"
-#include "logging/logger.h"
 #include "math/rng.h"
-#include "parsing/keywords.h"
 #include "parsing/tokens.h"
 #include "util/file.h"
 #include "util/string.h"
-#include "web/httplib.h"
 #include "typing/value.h"
 #include "globals.h"
 #include "host.h"
-#include "stackframe.h"
-
-//TaskManager task;
 
 std::unordered_map<k_string, k_string> kiwiArgs;
 bool SAFEMODE = false;
