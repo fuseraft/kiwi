@@ -6,13 +6,9 @@
 #include "parsing/lexer.h"
 #include "parsing/parser.h"
 #include "parsing/tokens.h"
-#include "parsing/tokentype.h"
-#include "parsing/keywords.h"
 #include "typing/value.h"
 #include "util/file.h"
 #include "globals.h"
-#include "stackframe.h"
-
 #include "interpreter.h"
 
 const Token& engineToken = Token::createExternal();
