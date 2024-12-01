@@ -6,7 +6,6 @@
 #include "parsing/tokens.h"
 #include "typing/value.h"
 #include "concurrency/task.h"
-#include "globals.h"
 
 class TaskBuiltinHandler {
  public:
