@@ -478,33 +478,6 @@ class CoreBuiltinHandler {
     return Serializer::pretty_serialize(value);
   }
 
-  // static k_value executeMembers(const Token& token, const k_value& value,
-  //                               const std::vector<k_value>& args) {
-  //   if (args.size() != 0) {
-  //     throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Members);
-  //   }
-
-  //   if (!std::holds_alternative<k_object>(value)) {
-  //     throw InvalidOperationError(
-  //         token, "Expected an object in call to `" + KiwiBuiltins.Members + "`");
-  //   }
-
-  //   auto memberHash = std::make_shared<Hashmap>();
-  //   auto obj = std::get<k_object>(value);
-  //   auto& instanceVariables = obj->instanceVariables;
-  //   auto struc = structs[obj->structName];
-
-  //   for (const auto& method : struc.getMethods()) {
-  //     memberHash->add(method.first, {});
-  //   }
-
-  //   for (const auto& instanceVar : instanceVariables) {
-  //     memberHash->add(instanceVar.first, instanceVar.second);
-  //   }
-
-  //   return memberHash;
-  // }
-
   static k_value executeJoin(const Token& token, const k_value& value,
                              const std::vector<k_value>& args) {
     int argSize = args.size();
@@ -556,7 +529,7 @@ class CoreBuiltinHandler {
 
   static k_value executeToHex(const Token& token, const k_value& value,
                               const std::vector<k_value>& args) {
-    if (args.size() != 0) {
+    if (args.size() > 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.ToHex);
     }
 
@@ -572,6 +545,19 @@ class CoreBuiltinHandler {
     }
 
     std::stringstream ss;
+    int width = 2;
+
+    if (!args.empty()) {
+      if (!std::holds_alternative<k_int>(args[0])) {
+        throw ConversionError(token,
+                              "Expected an integer as the width argument.");
+      }
+
+      width = std::get<k_int>(args[0]);
+      if (width < 2) {
+        throw InvalidOperationError(token, "Width must be >= 2.");
+      }
+    }
 
     for (const auto& item : elements) {
       if (!std::holds_alternative<k_int>(item)) {
@@ -579,8 +565,8 @@ class CoreBuiltinHandler {
             token, "Expected an integer value for byte to string conversion.");
       }
 
-      auto byte = static_cast<unsigned int>(std::get<k_int>(item)) & 0xFF;
-      ss << std::hex << std::setw(2) << std::setfill('0') << byte;
+      auto byte = std::get<k_int>(item);
+      ss << std::hex << std::setw(width) << std::setfill('0') << byte;
     }
 
     return ss.str();
@@ -660,16 +646,31 @@ class CoreBuiltinHandler {
 
   static k_value executeToInteger(const Token& token, const k_value& value,
                                   const std::vector<k_value>& args) {
-    if (args.size() != 0) {
+    if (args.size() > 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.ToI);
+    }
+
+    int base = 10;
+
+    if (!args.empty()) {
+      if (!std::holds_alternative<k_int>(args[0])) {
+        throw ConversionError(token,
+                              "Expected an integer as the base argument.");
+      }
+
+      base = std::get<k_int>(args[0]);
+      if (base < 2 || base > 36) {
+        throw InvalidOperationError(
+            token, "Base must be between 2 and 36, inclusive.");
+      }
     }
 
     if (std::holds_alternative<k_string>(value)) {
       k_string stringValue = std::get<k_string>(value);
       k_int intValue = 0;
-      auto [ptr, ec] =
-          std::from_chars(stringValue.data(),
-                          stringValue.data() + stringValue.size(), intValue);
+      auto [ptr, ec] = std::from_chars(stringValue.data(),
+                                       stringValue.data() + stringValue.size(),
+                                       intValue, base);
 
       if (ec == std::errc()) {
         return static_cast<k_int>(intValue);
@@ -680,6 +681,8 @@ class CoreBuiltinHandler {
       }
     } else if (std::holds_alternative<double>(value)) {
       return static_cast<k_int>(std::get<double>(value));
+    } else if (std::holds_alternative<k_int>(value)) {
+      return std::get<k_int>(value);
     } else {
       throw ConversionError(token,
                             "Cannot convert non-numeric value to an integer.");
@@ -1196,26 +1199,40 @@ class CoreBuiltinHandler {
 
   static k_value executeEmpty(const Token& token, const k_value& value,
                               const std::vector<k_value>& args) {
-    if (args.size() != 0) {
+    if (args.size() > 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Empty);
     }
 
+    bool isEmpty = false;
     if (std::holds_alternative<k_string>(value)) {
-      return std::get<k_string>(value).empty();
+      isEmpty = std::get<k_string>(value).empty();
     } else if (std::holds_alternative<k_list>(value)) {
-      return std::get<k_list>(value)->elements.empty();
+      isEmpty = std::get<k_list>(value)->elements.empty();
     } else if (std::holds_alternative<k_hashmap>(value)) {
-      return std::get<k_hashmap>(value)->keys.empty();
+      isEmpty = std::get<k_hashmap>(value)->keys.empty();
     } else if (std::holds_alternative<k_int>(value)) {
-      return std::get<k_int>(value) == 0;
+      isEmpty = std::get<k_int>(value) == 0;
     } else if (std::holds_alternative<double>(value)) {
-      return std::get<double>(value) == 0.0;
+      isEmpty = std::get<double>(value) == 0.0;
     } else if (std::holds_alternative<bool>(value)) {
-      return !std::get<bool>(value);
+      isEmpty = !std::get<bool>(value);
+    } else if (std::holds_alternative<k_null>(value)) {
+      isEmpty = true;
+    } else {
+      throw InvalidOperationError(
+          token, "Invalid type for builtin `" + KiwiBuiltins.Empty + "`.");
     }
 
-    throw InvalidOperationError(
-        token, "Invalid type for builtin `" + KiwiBuiltins.Empty + "`.");
+    // This is a workaround for null-coalescing.
+    if (!args.empty()) {
+      if (isEmpty) {
+        return args.at(0);
+      } else {
+        return value;
+      }
+    }
+
+    return isEmpty;
   }
 
   static k_value executePush(const Token& token, const k_value& value,
