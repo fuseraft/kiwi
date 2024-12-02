@@ -34,8 +34,14 @@ class NetBuiltinHandler {
         return executeReceive(sockmgr, token, args);
       case KName::Builtin_Socket_Send:
         return executeSend(sockmgr, token, args);
+      case KName::Builtin_Socket_SendRaw:
+        return executeSendRaw(sockmgr, token, args);
       case KName::Builtin_Socket_Shutdown:
         return executeShutdown(sockmgr, token, args);
+      case KName::Builtin_Net_IsIPAddr:
+        return executeIsIPAddr(sockmgr, token, args);
+      case KName::Builtin_Net_ResolveHost:
+        return executeResHost(sockmgr, token, args);
       default:
         break;
     }
@@ -44,6 +50,27 @@ class NetBuiltinHandler {
   }
 
  private:
+  static k_value executeIsIPAddr(SocketManager& sockmgr, const Token& token,
+                                 const std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(token, SocketBuiltins.IsIPAddr);
+    }
+
+    auto ipAddress = get_string(token, args.at(0));
+    auto family = 0;
+    return sockmgr.isIPAddress(ipAddress, family);
+  }
+
+  static k_value executeResHost(SocketManager& sockmgr, const Token& token,
+                                const std::vector<k_value>& args) {
+    if (args.size() != 1) {
+      throw BuiltinUnexpectedArgumentError(token, SocketBuiltins.ResolveHost);
+    }
+
+    auto hostname = get_string(token, args.at(0));
+    return sockmgr.resolveHostToIP(hostname);
+  }
+
   static k_value executeCreate(SocketManager& sockmgr, const Token& token,
                                const std::vector<k_value>& args) {
     if (args.size() != 3) {
@@ -54,7 +81,7 @@ class NetBuiltinHandler {
     auto type = get_integer(token, args.at(1));
     auto protocol = get_integer(token, args.at(2));
 
-    return sockmgr.create_socket(token, family, type, protocol);
+    return sockmgr.create(token, family, type, protocol);
   }
 
   static k_value executeBind(SocketManager& sockmgr, const Token& token,
@@ -124,6 +151,18 @@ class NetBuiltinHandler {
     auto sockId = get_integer(token, args.at(0));
 
     return sockmgr.send(token, sockId, args.at(1));
+  }
+
+  static k_value executeSendRaw(SocketManager& sockmgr, const Token& token,
+                                const std::vector<k_value>& args) {
+    if (args.size() != 3) {
+      throw BuiltinUnexpectedArgumentError(token, SocketBuiltins.SendRaw);
+    }
+
+    auto sockId = get_integer(token, args.at(0));
+    auto destination = get_string(token, args.at(1));
+
+    return sockmgr.sendRawPacket(token, sockId, destination, args.at(2));
   }
 
   static k_value executeReceive(SocketManager& sockmgr, const Token& token,
