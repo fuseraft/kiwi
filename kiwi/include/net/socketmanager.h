@@ -17,6 +17,9 @@
 #include "parsing/tokens.h"
 #include "tracing/error.h"
 #include "typing/value.h"
+#include <netinet/ip_icmp.h>
+
+int x = SOCK_RAW;
 
 class SocketManager {
  public:
@@ -32,10 +35,10 @@ class SocketManager {
    * @param protocol The protocol number.
    * @return A unique socket ID.
    */
-  k_value create_socket(const Token& token,
-                        const k_int& family = static_cast<k_int>(AF_INET),
-                        const k_int& type = static_cast<k_int>(SOCK_STREAM),
-                        const k_int& protocol = static_cast<k_int>(0));
+  k_value create(const Token& token,
+                 const k_int& family = static_cast<k_int>(AF_INET),
+                 const k_int& type = static_cast<k_int>(SOCK_STREAM),
+                 const k_int& protocol = static_cast<k_int>(0));
 
   /**
    * Bind a socket to an address and port.
@@ -92,6 +95,18 @@ class SocketManager {
   k_value send(const Token& token, const k_int& sock_id, k_value data);
 
   /**
+   * Send data over a raw socket connection.
+   *
+   * @param token A tracer token.
+   * @param sock_id The socket ID.
+   * @param destination The destination address.
+   * @param data_value Pointer to the data buffer.
+   * @return Number of bytes sent.
+   */
+  k_value sendRawPacket(const Token& token, const k_int& sock_id,
+                        const k_string& destination, k_value data_value);
+
+  /**
    * Receive data from a socket.
    *
    * @param token A tracer token.
@@ -119,6 +134,73 @@ class SocketManager {
    */
   bool shutdown(const Token& token, const k_int& sock_id,
                 const k_int& how = static_cast<k_int>(SHUT_RDWR));
+
+  /**
+   * Check if a given string represents a valid IP address.
+   *
+   * @param input The input string.
+   * @return Returns `true` if the given string represents a valid IP address.
+   */
+  bool isIPAddress(const k_string& input, int& addressFamily) {
+    char buffer[INET6_ADDRSTRLEN];
+
+    if (inet_pton(AF_INET, input.c_str(), buffer) == 1) {
+      addressFamily = AF_INET;
+      return true;
+    }
+
+    // Check if it's a valid IPv6 address
+    if (inet_pton(AF_INET6, input.c_str(), buffer) == 1) {
+      addressFamily = AF_INET6;
+      return true;
+    }
+
+    // Not a valid IP address
+    return false;
+  }
+
+  /**
+   * Resolves a hostname to a list of IP addresses.
+   *
+   * @param input The hostname.
+   * @return A list of IP addresses.
+   */
+  k_value resolveHostToIP(const k_string& hostname) {
+    std::vector<k_value> ipAddresses;
+    struct addrinfo hints, *res, *ptr;
+
+    // Zero out the hints structure
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family =
+        AF_UNSPEC;  // AF_INET for IPv4 only, AF_INET6 for IPv6 only
+    hints.ai_socktype = SOCK_STREAM;
+
+    int status = getaddrinfo(hostname.c_str(), nullptr, &hints, &res);
+    if (status != 0) {
+      return std::make_shared<List>(ipAddresses);
+    }
+
+    for (ptr = res; ptr != nullptr; ptr = ptr->ai_next) {
+      char ipStr[INET6_ADDRSTRLEN];
+
+      if (ptr->ai_family == AF_INET) {  // IPv4
+        struct sockaddr_in* ipv4 =
+            reinterpret_cast<struct sockaddr_in*>(ptr->ai_addr);
+        inet_ntop(AF_INET, &(ipv4->sin_addr), ipStr, sizeof(ipStr));
+      } else if (ptr->ai_family == AF_INET6) {  // IPv6
+        struct sockaddr_in6* ipv6 =
+            reinterpret_cast<struct sockaddr_in6*>(ptr->ai_addr);
+        inet_ntop(AF_INET6, &(ipv6->sin6_addr), ipStr, sizeof(ipStr));
+      } else {
+        continue;
+      }
+
+      ipAddresses.emplace_back(ipStr);
+    }
+
+    freeaddrinfo(res);  // Free the linked list
+    return std::make_shared<List>(ipAddresses);
+  }
 
  private:
   int generate_socket_id();
@@ -157,10 +239,9 @@ int SocketManager::get_socket(const Token& token, const k_int& sock_id) {
   return it->second;
 }
 
-k_value SocketManager::create_socket(const Token& token,
-                                     const k_int& family_value,
-                                     const k_int& type_value,
-                                     const k_int& protocol_value) {
+k_value SocketManager::create(const Token& token, const k_int& family_value,
+                              const k_int& type_value,
+                              const k_int& protocol_value) {
   int family = static_cast<int>(family_value);
   int type = static_cast<int>(type_value);
   int protocol = static_cast<int>(protocol_value);
@@ -341,6 +422,61 @@ bool SocketManager::connect(const Token& token, const k_int& sock_id,
   }
 
   return true;
+}
+
+k_value SocketManager::sendRawPacket(const Token& token, const k_int& sock_id,
+                                     const k_string& destination,
+                                     k_value data_value) {
+  int sock = get_socket(token, sock_id);
+
+  // Resolve destination address
+  struct addrinfo hints = {}, *res;
+  hints.ai_family = AF_UNSPEC;  // Support both IPv4 and IPv6
+  hints.ai_socktype = SOCK_RAW;
+
+  int ret = getaddrinfo(destination.c_str(), nullptr, &hints, &res);
+  if (ret != 0) {
+    throw SocketError(token, "Failed to resolve destination address: " +
+                                 k_string(gai_strerror(ret)));
+  }
+
+  // Convert data to a raw byte buffer
+  std::vector<char> raw_data;
+  if (std::holds_alternative<k_string>(data_value)) {
+    raw_data.assign(std::get<k_string>(data_value).begin(),
+                    std::get<k_string>(data_value).end());
+  } else if (std::holds_alternative<k_list>(data_value)) {
+    k_list data_list = std::get<k_list>(data_value);
+    for (const auto& elem : data_list->elements) {
+      if (std::holds_alternative<k_int>(elem)) {
+        raw_data.push_back(static_cast<char>(std::get<k_int>(elem)));
+      }
+    }
+  }
+
+  if (raw_data.empty()) {
+    freeaddrinfo(res);
+    return static_cast<k_int>(0);  // Nothing to send
+  }
+
+  // Iterate over all resolved addresses and send data
+  ssize_t sent_bytes = -1;
+  for (struct addrinfo* ptr = res; ptr != nullptr; ptr = ptr->ai_next) {
+    sent_bytes = ::sendto(sock, raw_data.data(), raw_data.size(), 0,
+                          ptr->ai_addr, ptr->ai_addrlen);
+    if (sent_bytes != -1) {
+      break;  // Successfully sent the packet
+    }
+  }
+
+  freeaddrinfo(res);
+
+  if (sent_bytes == -1) {
+    throw SocketError(
+        token, "Failed to send raw packet: " + k_string(std::strerror(errno)));
+  }
+
+  return static_cast<k_int>(sent_bytes);
 }
 
 k_value SocketManager::send(const Token& token, const k_int& sock_id,

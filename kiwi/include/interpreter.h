@@ -114,9 +114,10 @@ class KInterpreter {
   // Stack frame management
   std::shared_ptr<CallStackFrame> createFrame(const k_string& name,
                                               bool isMethodInvocation);
-  void pushFrame(std::shared_ptr<CallStackFrame> frame) {
+  bool pushFrame(std::shared_ptr<CallStackFrame> frame) {
     callStack.push(frame);
     funcStack.push(frame->name);
+    return true;
   }
   void dropFrame();
 
@@ -138,7 +139,8 @@ class KInterpreter {
   k_value callObjectMethod(const MethodCallNode* node,
                            const std::shared_ptr<Object>& obj);
   k_value callLambda(const Token& token, const k_string& lambdaName,
-                     const std::vector<std::unique_ptr<ASTNode>>& arguments);
+                     const std::vector<std::unique_ptr<ASTNode>>& arguments,
+                     bool& requireDrop);
   k_value callLambda(const Token& token, const k_string& lambdaName,
                      const std::vector<k_value>& arguments);
   void prepareLambdaCall(const std::unique_ptr<KLambda>& func,
@@ -177,10 +179,11 @@ class KInterpreter {
       std::unordered_map<k_string, std::unique_ptr<KFunction>>& methods,
       k_string& methodName, std::shared_ptr<CallStackFrame>& frame,
       const MethodCallNode* node, const k_struct& struc);
-  k_value executeInstanceMethod(const FunctionCallNode* node);
+  k_value executeInstanceMethod(const FunctionCallNode* node,
+                                bool& requireDrop);
   k_value executeInstanceMethodFunction(
       std::unordered_map<k_string, std::unique_ptr<KFunction>>& strucMethods,
-      const FunctionCallNode* node);
+      const FunctionCallNode* node, bool& requireDrop);
   void prepareFunctionCall(const std::unique_ptr<KFunction>& func,
                            const FunctionCallNode* node,
                            std::unordered_set<k_string>& defaultParameters,
@@ -257,6 +260,10 @@ class KInterpreter {
                                     std::vector<k_value>& args);
   k_value interpretReflectorRStack(const Token& token,
                                    std::vector<k_value>& args);
+  k_value interpretReflectorRFFlags(const Token& token,
+                                    std::vector<k_value>& args);
+  k_value interpretReflectorRRetVal(const Token& token,
+                                    std::vector<k_value>& args);
 
   // Web server
   k_value interpretWebServerBuiltin(const Token& token, const KName& builtin,
@@ -1490,21 +1497,34 @@ k_value KInterpreter::visit(const CaseNode* node) {
     k_value whenCondition = interpret(whenNode->condition.get());
 
     if (std::get<bool>(MathImpl.do_eq_comparison(testValue, whenCondition))) {
+      auto frame = callStack.top();
+      k_value result;
       for (const auto& stmt : whenNode->body) {
-        interpret(stmt.get());
+        result = interpret(stmt.get());
+        if (frame->isFlagSet(FrameFlags::Return)) {
+          return frame->returnValue;
+        }
       }
 
-      return {};
+      return result;
     }
   }
+
+  k_value result;
 
   if (!node->elseBody.empty()) {
+    auto frame = callStack.top();
+
     for (const auto& stmt : node->elseBody) {
-      interpret(stmt.get());
+      result = interpret(stmt.get());
+
+      if (frame->isFlagSet(FrameFlags::Return)) {
+        return frame->returnValue;
+      }
     }
   }
 
-  return {};
+  return result;
 }
 
 k_value KInterpreter::listLoop(const ForLoopNode* node, const k_list& list) {
@@ -1837,21 +1857,33 @@ k_value KInterpreter::visit(const RepeatLoopNode* node) {
 }
 
 k_value KInterpreter::visit(const TryNode* node) {
-  auto tryFrame = createFrame(Keywords.Try);
-  tryFrame->setFlag(FrameFlags::InTry);
-  pushFrame(tryFrame);
+  bool requireDrop = false;
+  k_value returnValue;
+  bool setReturnValue = false;
 
   try {
+    auto tryFrame = createFrame(Keywords.Try);
+    tryFrame->setFlag(FrameFlags::InTry);
+    requireDrop = pushFrame(tryFrame);
+
     for (const auto& stmt : node->tryBody) {
       interpret(stmt.get());
+      if (tryFrame->isFlagSet(FrameFlags::Return)) {
+        returnValue = tryFrame->returnValue;
+        setReturnValue = true;
+        break;
+      }
     }
 
     dropFrame();
   } catch (const KiwiError& e) {
-    dropFrame();
+    if (requireDrop) {
+      dropFrame();
+    }
 
     if (!node->catchBody.empty()) {
       auto catchFrame = createFrame(Keywords.Catch);
+      requireDrop = false;
 
       k_string errorTypeName;
       k_string errorMessageName;
@@ -1867,10 +1899,15 @@ k_value KInterpreter::visit(const TryNode* node) {
           catchFrame->variables[errorMessageName] = e.getMessage();
         }
 
-        pushFrame(catchFrame);
+        requireDrop = pushFrame(catchFrame);
 
         for (const auto& stmt : node->catchBody) {
           interpret(stmt.get());
+          if (catchFrame->isFlagSet(FrameFlags::Return)) {
+            returnValue = catchFrame->returnValue;
+            setReturnValue = true;
+            break;
+          }
         }
 
         if (node->errorType) {
@@ -1883,15 +1920,32 @@ k_value KInterpreter::visit(const TryNode* node) {
 
         dropFrame();
       } catch (const KiwiError&) {
-        dropFrame();
+        if (requireDrop) {
+          dropFrame();
+        }
         throw;
       }
     }
   }
 
   if (!node->finallyBody.empty()) {
+    auto frame = callStack.top();
     for (const auto& stmt : node->finallyBody) {
       interpret(stmt.get());
+      if (frame->isFlagSet(FrameFlags::Return)) {
+        returnValue = frame->returnValue;
+        setReturnValue = true;
+        break;
+      }
+    }
+  }
+
+  if (setReturnValue) {
+    auto& frame = callStack.top();
+
+    if (!frame->isFlagSet(FrameFlags::InLambda)) {
+      frame->setFlag(FrameFlags::Return);
+      frame->returnValue = returnValue;
     }
   }
 
@@ -1902,12 +1956,15 @@ k_value KInterpreter::visit(const LambdaCallNode* node) {
   auto lambdaName =
       std::get<k_lambda>(interpret(node->lambdaNode.get()))->identifier;
   k_value result;
+  bool requireDrop = false;
 
   try {
-    result = callLambda(node->token, lambdaName, node->arguments);
+    result = callLambda(node->token, lambdaName, node->arguments, requireDrop);
     dropFrame();
   } catch (const KiwiError& e) {
-    dropFrame();
+    if (requireDrop) {
+      dropFrame();
+    }
     throw;
   }
 
@@ -2047,7 +2104,8 @@ std::unique_ptr<KFunction> KInterpreter::createFunction(
   return function;
 }
 
-k_value KInterpreter::executeInstanceMethod(const FunctionCallNode* node) {
+k_value KInterpreter::executeInstanceMethod(const FunctionCallNode* node,
+                                            bool& requireDrop) {
   auto frame = callStack.top();
   if (!frame->inObjectContext()) {
     throw InvalidContextError(node->token);
@@ -2071,15 +2129,15 @@ k_value KInterpreter::executeInstanceMethod(const FunctionCallNode* node) {
       throw UnimplementedMethodError(node->token, struc->name, functionName);
     }
 
-    return executeInstanceMethodFunction(baseStructMethods, node);
+    return executeInstanceMethodFunction(baseStructMethods, node, requireDrop);
   }
 
-  return executeInstanceMethodFunction(strucMethods, node);
+  return executeInstanceMethodFunction(strucMethods, node, requireDrop);
 }
 
 k_value KInterpreter::executeInstanceMethodFunction(
     std::unordered_map<k_string, std::unique_ptr<KFunction>>& strucMethods,
-    const FunctionCallNode* node) {
+    const FunctionCallNode* node, bool& requireDrop) {
   const auto& functionName = node->functionName;
   const auto& func = strucMethods[functionName];
   auto defaultParameters = func->defaultParameters;
@@ -2091,7 +2149,7 @@ k_value KInterpreter::executeInstanceMethodFunction(
 
   prepareFunctionCall(func, node, defaultParameters, typeHints, functionFrame);
 
-  pushFrame(functionFrame);
+  requireDrop = pushFrame(functionFrame);
 
   const auto& decl = func->getBody();
   for (const auto& stmt : decl) {
@@ -2164,9 +2222,11 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
     return callBuiltinMethod(node);
   }
 
+  auto requireDrop = false;
+
   try {
     if (callableType == KCallableType::Method) {
-      result = executeInstanceMethod(node);
+      result = executeInstanceMethod(node, requireDrop);
     } else if (callableType == KCallableType::Function) {
       const auto& functionName = node->functionName;
       const auto& func = ctx->getFunctions().at(functionName);
@@ -2178,7 +2238,7 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
       prepareFunctionCall(func, node, defaultParameters, typeHints,
                           functionFrame);
 
-      pushFrame(functionFrame);
+      requireDrop = pushFrame(functionFrame);
 
       const auto& decl = func->getBody();
       for (const auto& stmt : decl) {
@@ -2198,12 +2258,15 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
                             Serializer::get_value_type_string(result) + "`.");
       }
     } else if (callableType == KCallableType::Lambda) {
-      result = callLambda(node->token, node->functionName, node->arguments);
+      result = callLambda(node->token, node->functionName, node->arguments,
+                          requireDrop);
     }
 
     dropFrame();
   } catch (const KiwiError& e) {
-    dropFrame();
+    if (requireDrop) {
+      dropFrame();
+    }
     throw;
   }
 
@@ -2212,7 +2275,7 @@ k_value KInterpreter::visit(const FunctionCallNode* node) {
 
 k_value KInterpreter::callLambda(
     const Token& token, const k_string& lambdaName,
-    const std::vector<std::unique_ptr<ASTNode>>& args) {
+    const std::vector<std::unique_ptr<ASTNode>>& args, bool& requireDrop) {
   auto lambdaFrame = createFrame(lambdaName);
   k_string targetLambda = lambdaName;
   k_value result;
@@ -2232,7 +2295,7 @@ k_value KInterpreter::callLambda(
                     typeHints, lambdaName, lambdaFrame);
 
   lambdaFrame->setFlag(FrameFlags::InLambda);
-  pushFrame(lambdaFrame);
+  requireDrop = pushFrame(lambdaFrame);
 
   const auto& decl = func->getBody();
   for (const auto& stmt : decl) {
@@ -2434,31 +2497,35 @@ k_value KInterpreter::callFunction(
   const auto& typeHints = function->typeHints;
   const auto& returnTypeHint = function->returnTypeHint;
 
-  for (size_t i = 0; i < function->parameters.size(); ++i) {
-    const auto& param = function->parameters[i];
-    k_value argValue = {};
-    if (i < args.size()) {
-      const auto& arg = args[i];
-      argValue = interpret(arg.get());
-    } else if (defaultParameters.find(param.first) != defaultParameters.end()) {
-      argValue = param.second;
-    } else {
-      throw ParameterCountMismatchError(token, functionName);
-    }
-
-    prepareFunctionVariables(typeHints, param, argValue, token, i, functionName,
-                             functionFrame);
-  }
-
-  pushFrame(functionFrame);
-
   k_value result;
+  bool requireDrop = false;
 
   try {
+    for (size_t i = 0; i < function->parameters.size(); ++i) {
+      const auto& param = function->parameters[i];
+      k_value argValue = {};
+      if (i < args.size()) {
+        const auto& arg = args[i];
+        argValue = interpret(arg.get());
+      } else if (defaultParameters.find(param.first) !=
+                 defaultParameters.end()) {
+        argValue = param.second;
+      } else {
+        throw ParameterCountMismatchError(token, functionName);
+      }
+
+      prepareFunctionVariables(typeHints, param, argValue, token, i,
+                               functionName, functionFrame);
+    }
+
+    requireDrop = pushFrame(functionFrame);
+
     result = executeFunctionBody(function);
     dropFrame();
   } catch (const KiwiError& e) {
-    dropFrame();
+    if (requireDrop) {
+      dropFrame();
+    }
     throw;
   }
 
@@ -2766,21 +2833,22 @@ k_value KInterpreter::interpretWebServerBuiltin(const Token& token,
 void KInterpreter::handleWebServerRequest(int webhookID, k_hashmap requestHash,
                                           k_string& redirect, k_string& content,
                                           k_string& contentType, int& status) {
-  auto webhook = ctx->getWebHook(webhookID);
-  auto webhookFrame = createFrame(Keywords.Spawn);
-
-  auto& lambda = ctx->getLambdas().at(webhook);
-
-  for (const auto& param : lambda->parameters) {
-    webhookFrame->variables[param.first] = requestHash;
-    break;
-  }
-
-  pushFrame(webhookFrame);
-
   k_value result;
+  bool requireDrop = false;
 
   try {
+    auto webhook = ctx->getWebHook(webhookID);
+    auto webhookFrame = createFrame(Keywords.Spawn);
+
+    auto& lambda = ctx->getLambdas().at(webhook);
+
+    for (const auto& param : lambda->parameters) {
+      webhookFrame->variables[param.first] = requestHash;
+      break;
+    }
+
+    requireDrop = pushFrame(webhookFrame);
+
     const auto& decl = lambda->getBody();
     for (const auto& stmt : decl) {
       result = interpret(stmt.get());
@@ -2821,7 +2889,9 @@ void KInterpreter::handleWebServerRequest(int webhookID, k_hashmap requestHash,
 
     dropFrame();
   } catch (const KiwiError& e) {
-    dropFrame();
+    if (requireDrop) {
+      dropFrame();
+    }
     throw;
   }
 }
@@ -3028,9 +3098,101 @@ k_value KInterpreter::interpretReflectorBuiltin(const Token& token,
     return interpretReflectorRObject(token, args);
   } else if (builtin == KName::Builtin_Reflector_RStack) {
     return interpretReflectorRStack(token, args);
+  } else if (builtin == KName::Builtin_Reflector_RFFlags) {
+    return interpretReflectorRFFlags(token, args);
+  } else if (builtin == KName::Builtin_Reflector_RRetVal) {
+    return interpretReflectorRRetVal(token, args);
   }
 
   throw InvalidOperationError(token, "Come back later.");
+}
+
+k_value KInterpreter::interpretReflectorRFFlags(const Token& token,
+                                                std::vector<k_value>& args) {
+  if (args.size() > 1) {
+    throw BuiltinUnexpectedArgumentError(token, ReflectorBuiltins.RFFlags);
+  }
+
+  std::vector<k_value> list;
+  int fromTop = 0;
+
+  if (args.size() == 1) {
+    fromTop = get_integer(token, args.at(0));
+    if (fromTop < 0) {
+      throw InvalidOperationError(
+          token, "Expected a positive integer for first parameter of `" +
+                     ReflectorBuiltins.RFFlags + "`.");
+    }
+  }
+
+  std::stack<std::shared_ptr<CallStackFrame>> tempStack(callStack);
+
+  if (static_cast<size_t>(fromTop) > tempStack.size()) {
+    throw InvalidOperationError(
+        token, "Too many frames. Expected < " +
+                   std::to_string(tempStack.size()) +
+                   " but instead received: " + std::to_string(fromTop));
+  }
+
+  int frameCounter = 0;
+
+  while (!tempStack.empty()) {
+    auto frame = tempStack.top();
+
+    if (frameCounter - fromTop == 0) {
+      if (frame->isFlagSet(FrameFlags::Break)) {
+        list.push_back(static_cast<k_int>(FrameFlags::Break));
+      }
+
+      if (frame->isFlagSet(FrameFlags::InLambda)) {
+        list.push_back(static_cast<k_int>(FrameFlags::InLambda));
+      }
+
+      if (frame->isFlagSet(FrameFlags::InLoop)) {
+        list.push_back(static_cast<k_int>(FrameFlags::InLoop));
+      }
+
+      if (frame->isFlagSet(FrameFlags::InObject)) {
+        list.push_back(static_cast<k_int>(FrameFlags::InObject));
+      }
+
+      if (frame->isFlagSet(FrameFlags::InTry)) {
+        list.push_back(static_cast<k_int>(FrameFlags::InTry));
+      }
+
+      if (frame->isFlagSet(FrameFlags::Next)) {
+        list.push_back(static_cast<k_int>(FrameFlags::Next));
+      }
+
+      if (frame->isFlagSet(FrameFlags::None)) {
+        list.push_back(static_cast<k_int>(FrameFlags::None));
+      }
+
+      if (frame->isFlagSet(FrameFlags::Return)) {
+        list.push_back(static_cast<k_int>(FrameFlags::Return));
+      }
+
+      if (frame->isFlagSet(FrameFlags::SubFrame)) {
+        list.push_back(static_cast<k_int>(FrameFlags::SubFrame));
+      }
+
+      break;
+    }
+
+    frameCounter++;
+    tempStack.pop();
+  }
+
+  return std::make_shared<List>(list);
+}
+
+k_value KInterpreter::interpretReflectorRRetVal(const Token& token,
+                                                std::vector<k_value>& args) {
+  if (args.size() != 0) {
+    throw BuiltinUnexpectedArgumentError(token, ReflectorBuiltins.RRetVal);
+  }
+
+  return callStack.top()->returnValue;
 }
 
 k_value KInterpreter::interpretReflectorRList(const Token& token,
@@ -3174,7 +3336,7 @@ k_value KInterpreter::interpretSignalBuiltin(const Token& token,
   if (SAFEMODE) {
     return {};
   }
-  
+
   switch (op) {
     case KName::Builtin_Signal_Send:
       return interpretSignalSend(token, args);
