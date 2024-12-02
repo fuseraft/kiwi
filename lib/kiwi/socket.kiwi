@@ -1,3 +1,15 @@
+package net
+  fn reshost(hostname: string): list
+    return __net_reshost__(hostname)
+  end
+
+  fn is_ipaddr(ip: string): boolean
+    return __net_isipaddr__(ip)
+  end
+end
+
+export "net"
+
 package socket
   /#
   @summary: Constants for address families.
@@ -6,10 +18,17 @@ package socket
   const AF_INET6 = 10
 
   /#
+  @summary: Constants for protocol types.
+  #/
+  const IPPROTO_ICMP = 1
+  const IPPROTO_ICMPV6 = 58
+
+  /#
   @summary: Constants for socket types.
   #/
   const SOCK_STREAM = 1
   const SOCK_DGRAM = 2
+  const SOCK_RAW = 3
 
   /#
   @summary: Constants for shutdown modes.
@@ -28,6 +47,20 @@ package socket
   #/
   fn create(family: integer = socket::AF_INET, type: integer = socket::SOCK_STREAM, protocol: integer = 0): integer
     return __socket_create__(family, type, protocol)
+  end
+
+  /#
+   @summary: Create a new socket.
+   @params: token A tracer token.
+    - `family`: The address family (e.g., AF_INET or AF_INET6).
+   @return A unique socket ID.
+   #/
+  fn create_raw_socket(family: integer = socket::AF_INET)
+    throw std::error::create("SocketError", "Unsupported address family for raw socket.")
+      when family != socket::AF_INET && family != socket::AF_INET6
+
+    protocol = (family == socket::AF_INET) ? socket::IPPROTO_ICMP : socket::IPPROTO_ICMPV6
+    return socket::create(family, socket::SOCK_RAW, protocol)
   end
 
   /#
@@ -81,6 +114,18 @@ package socket
   #/
   fn send(sock_id: integer, data: any): integer
     return __socket_send__(sock_id, data)
+  end
+
+  /#
+  @summary: Sends data over a raw socket.
+  @params:
+    - `sock_id`: The socket ID.
+    - `destination`: The destination address.
+    - `data`: The data to send (string or list of bytes).
+  @return: The number of bytes sent.
+  #/
+  fn sendraw(sock_id: integer, destination: string, data: any): integer
+    return __socket_sendraw__(sock_id, destination, data)
   end
 
   /#
