@@ -1299,8 +1299,14 @@ Token Lexer::tokenizeSocketBuiltin(const k_string& builtin) {
     st = KName::Builtin_Socket_Receive;
   } else if (builtin == SocketBuiltins.Send) {
     st = KName::Builtin_Socket_Send;
+  } else if (builtin == SocketBuiltins.SendRaw) {
+    st = KName::Builtin_Socket_SendRaw;
   } else if (builtin == SocketBuiltins.Shutdown) {
     st = KName::Builtin_Socket_Shutdown;
+  } else if (builtin == SocketBuiltins.IsIPAddr) {
+    st = KName::Builtin_Net_IsIPAddr;
+  } else if (builtin == SocketBuiltins.ResolveHost) {
+    st = KName::Builtin_Net_ResolveHost;
   }
 
   return createToken(KTokenType::IDENTIFIER, st, builtin);
@@ -1309,12 +1315,16 @@ Token Lexer::tokenizeSocketBuiltin(const k_string& builtin) {
 Token Lexer::tokenizeReflectorBuiltin(const k_string& builtin) {
   auto st = KName::Default;
 
-  if (builtin == ReflectorBuiltins.RInspect) {
+  if (builtin == ReflectorBuiltins.RFFlags) {
+    st = KName::Builtin_Reflector_RFFlags;
+  } else if (builtin == ReflectorBuiltins.RInspect) {
     st = KName::Builtin_Reflector_RInspect;
   } else if (builtin == ReflectorBuiltins.RList) {
     st = KName::Builtin_Reflector_RList;
   } else if (builtin == ReflectorBuiltins.RObject) {
     st = KName::Builtin_Reflector_RObject;
+  } else if (builtin == ReflectorBuiltins.RRetVal) {
+    st = KName::Builtin_Reflector_RRetVal;
   } else if (builtin == ReflectorBuiltins.RStack) {
     st = KName::Builtin_Reflector_RStack;
   }

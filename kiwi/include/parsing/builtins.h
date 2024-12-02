@@ -334,19 +334,24 @@ struct {
   const k_string Accept = "__socket_accept__";
   const k_string Connect = "__socket_connect__";
   const k_string Send = "__socket_send__";
+  const k_string SendRaw = "__socket_sendraw__";
   const k_string Receive = "__socket_receive__";
   const k_string Close = "__socket_close__";
   const k_string Shutdown = "__socket_shutdown__";
+  const k_string ResolveHost = "__net_reshost__";
+  const k_string IsIPAddr = "__net_isipaddr__";
 
   std::unordered_set<k_string> builtins = {
-      Create, Bind, Listen, Accept, Connect, Send, Receive, Close, Shutdown};
+      Create,  Bind,    Listen, Accept,   Connect,     Send,
+      SendRaw, Receive, Close,  Shutdown, ResolveHost, IsIPAddr};
 
   std::unordered_set<KName> st_builtins = {
       KName::Builtin_Socket_Create,  KName::Builtin_Socket_Bind,
       KName::Builtin_Socket_Listen,  KName::Builtin_Socket_Accept,
       KName::Builtin_Socket_Connect, KName::Builtin_Socket_Send,
-      KName::Builtin_Socket_Receive, KName::Builtin_Socket_Close,
-      KName::Builtin_Socket_Shutdown};
+      KName::Builtin_Socket_SendRaw, KName::Builtin_Socket_Receive,
+      KName::Builtin_Socket_Close,   KName::Builtin_Socket_Shutdown,
+      KName::Builtin_Net_IsIPAddr,   KName::Builtin_Net_ResolveHost};
 
   bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
@@ -399,16 +404,20 @@ struct {
 } FFIBuiltins;
 
 struct {
+  const k_string RFFlags = "__rfflags__";
   const k_string RInspect = "__rinspect__";
   const k_string RList = "__rlist__";
   const k_string RObject = "__robject__";
   const k_string RStack = "__rstack__";
+  const k_string RRetVal = "__rretval__";
 
-  std::unordered_set<k_string> builtins = {RInspect, RList, RObject, RStack};
+  std::unordered_set<k_string> builtins = {RFFlags, RInspect, RList,
+                                           RObject, RRetVal,  RStack};
 
   std::unordered_set<KName> st_builtins = {
-      KName::Builtin_Reflector_RInspect, KName::Builtin_Reflector_RList,
-      KName::Builtin_Reflector_RObject, KName::Builtin_Reflector_RStack};
+      KName::Builtin_Reflector_RFFlags, KName::Builtin_Reflector_RInspect,
+      KName::Builtin_Reflector_RList,   KName::Builtin_Reflector_RObject,
+      KName::Builtin_Reflector_RRetVal, KName::Builtin_Reflector_RStack};
 
   bool is_builtin(const k_string& arg) {
     return builtins.find(arg) != builtins.end();
