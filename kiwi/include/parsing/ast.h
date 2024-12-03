@@ -782,7 +782,7 @@ class VariableDeclarationNode : public ASTNode {
   VariableDeclarationNode() : ASTNode(ASTNodeType::VARIABLE) {}
 
   // all nodes are printable
-  void print(int depth) const override {    
+  void print(int depth) const override {
     // indent
     print_depth(depth);
     std::cout << "VariableDeclaration:" << std::endl;
@@ -795,7 +795,7 @@ class VariableDeclarationNode : public ASTNode {
     for (const auto& var : variables) {
       // indent
       print_depth(2 + depth);
-      
+
       // print the variable name
       std::cout << var.first;
 
@@ -804,8 +804,7 @@ class VariableDeclarationNode : public ASTNode {
         std::cout << std::endl;
         print_depth(2 + depth);
         auto typeHint = typeHints.at(var.first);
-        std::cout << "Type: "
-                  << Serializer::get_typename_string(typeHint);
+        std::cout << "Type: " << Serializer::get_typename_string(typeHint);
       }
 
       // if there is a default value, print it
@@ -826,14 +825,14 @@ class VariableDeclarationNode : public ASTNode {
     std::vector<std::pair<k_string, std::unique_ptr<ASTNode>>> clonedVariables;
     clonedVariables.reserve(variables.size());
     for (const auto& var : variables) {
-      clonedVariables.emplace_back(
-          var.first, var.second ? var.second->clone() : nullptr);
+      clonedVariables.emplace_back(var.first,
+                                   var.second ? var.second->clone() : nullptr);
     }
 
     // create a new unique pointer with the same data (a clone)
     auto node = std::make_unique<VariableDeclarationNode>();
     node->variables = std::move(clonedVariables);
-    node->typeHints = typeHints; // just use the copy constructor
+    node->typeHints = typeHints;  // just use the copy constructor
     return node;
   }
 };
