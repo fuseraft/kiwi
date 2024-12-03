@@ -3,6 +3,8 @@
 This document provides an overview of reserved keywords in Kiwi, along with explanations and usage examples.
 
 ## Table of Contents
+- [Variables](#variables)
+  - [`var`](#var)
 - [Control Structures](#control-structures)
   - [`break`](#break)
   - [`do`](#do)
@@ -55,6 +57,13 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
   - [`pass`](#pass)
   - [`true`](#true)
   - [`false`](#false)
+
+## Variables
+
+### `var`
+The `var` keyword is used to declare a variable.
+
+See [Variables](variables.md) and [`var`](variables.md#var-keyword).
 
 ## Control Structures
 
