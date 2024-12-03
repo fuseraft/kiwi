@@ -1,1 +1,15 @@
 # a script for debugging and experimentation (and fun!)
+
+fn foobar()
+  var (
+    f: float = 0.5,            # type-hint with initializer 
+    s = "string",              # regular variable declaration
+    n,                         # uninitialized variable defaults to null
+    b: boolean,                # type-hint without initializer (`boolean` defaults to false)
+    m: list = [[0] * 5] * 5    # a 5x5 matrix for funsies
+  )
+
+  println m
+end
+
+foobar()
