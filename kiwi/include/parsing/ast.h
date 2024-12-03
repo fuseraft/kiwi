@@ -57,6 +57,7 @@ enum class ASTNodeType {
   THROW,
   TRY,
   UNARY_OPERATION,
+  VARIABLE,
   WHILE_LOOP,
 };
 
@@ -770,6 +771,70 @@ class PrintXyNode : public ASTNode {
   std::unique_ptr<ASTNode> clone() const override {
     return std::make_unique<PrintXyNode>(expression->clone(), x->clone(),
                                          y->clone());
+  }
+};
+
+class VariableDeclarationNode : public ASTNode {
+ public:
+  std::vector<std::pair<k_string, std::unique_ptr<ASTNode>>> variables;
+  std::unordered_map<k_string, KName> typeHints;
+
+  VariableDeclarationNode() : ASTNode(ASTNodeType::VARIABLE) {}
+
+  // all nodes are printable
+  void print(int depth) const override {    
+    // indent
+    print_depth(depth);
+    std::cout << "VariableDeclaration:" << std::endl;
+
+    // indent
+    print_depth(1 + depth);
+    std::cout << "Variables: " << std::endl;
+
+    // for each variable
+    for (const auto& var : variables) {
+      // indent
+      print_depth(2 + depth);
+      
+      // print the variable name
+      std::cout << var.first;
+
+      // if there is a type-hint, print it
+      if (typeHints.find(var.first) != typeHints.end()) {
+        std::cout << std::endl;
+        print_depth(2 + depth);
+        auto typeHint = typeHints.at(var.first);
+        std::cout << "Type: "
+                  << Serializer::get_typename_string(typeHint);
+      }
+
+      // if there is a default value, print it
+      if (var.second) {
+        std::cout << std::endl;
+        print_depth(2 + depth);
+        std::cout << "Default: ";
+        var.second->print(1 + depth);
+      } else {
+        std::cout << std::endl;
+      }
+    }
+  }
+
+  // all nodes are cloneable
+  std::unique_ptr<ASTNode> clone() const override {
+    // deep copy variables
+    std::vector<std::pair<k_string, std::unique_ptr<ASTNode>>> clonedVariables;
+    clonedVariables.reserve(variables.size());
+    for (const auto& var : variables) {
+      clonedVariables.emplace_back(
+          var.first, var.second ? var.second->clone() : nullptr);
+    }
+
+    // create a new unique pointer with the same data (a clone)
+    auto node = std::make_unique<VariableDeclarationNode>();
+    node->variables = std::move(clonedVariables);
+    node->typeHints = typeHints; // just use the copy constructor
+    return node;
   }
 };
 

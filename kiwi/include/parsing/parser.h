@@ -544,16 +544,104 @@ std::unique_ptr<ASTNode> Parser::parseInterface() {
 }
 
 std::unique_ptr<ASTNode> Parser::parseVar() {
-  match(KTokenType::KEYWORD);  // Consume 'var'
+  match(KTokenType::KEYWORD);  // consume 'var'
 
   /*
-  var f: float = 0.5, # type-hint with initializer 
-    s = "string",     # regular variable declaration
-    n,                # uninitialized variable defaults to null
-    b: boolean        # type-hint without initializer (`boolean` defaults to false)
+  var (
+    f: float = 0.5,            # type-hint with initializer 
+    s = "string",              # regular variable declaration
+    n,                         # uninitialized variable defaults to null
+    b: boolean,                # type-hint without initializer (`boolean` defaults to false)
+    m: list = [[0] * 5] * 5    # a 5x5 matrix for funsies
+  )
   */
 
-  return nullptr;
+  // syntax check
+  if (tokenType() != KTokenType::OPEN_PAREN) {
+    throw SyntaxError(getErrorToken(), "Expected '(' after 'var'.");
+  }
+  next();  // next token please
+
+  // create a mangler (for preventing name collisions)
+  k_string mangler = "_" + RNG::getInstance().random8() + "_";
+
+  // get the mangled name map, we need to update this as names are mangled.
+  auto& mangledNames = getNameMap();
+
+  // a container for variables
+  std::vector<std::pair<k_string, std::unique_ptr<ASTNode>>> variables;
+
+  // a container for type-hints, mapped to variable names.
+  std::unordered_map<k_string, KName> typeHints;
+
+  // collect variable declarations
+  while (tokenType() != KTokenType::CLOSE_PAREN) {
+    // expect an identifier
+    if (tokenType() != KTokenType::IDENTIFIER) {
+      throw SyntaxError(getErrorToken(), "Expected variable name.");
+    }
+
+    // grab the variable name directly from token text
+    auto varName = kToken.getText();
+
+    // check if the name is already mangled
+    if (mangledNames.find(varName) != mangledNames.end()) {
+      throw SyntaxError(getErrorToken(), "The variable name '" + varName +
+                                             "' is already declared.");
+    }
+
+    // mangle the variable name
+    auto mangledName = mangler + varName;
+
+    // register to the mangled names map
+    mangledNames[varName] = mangledName;
+
+    std::unique_ptr<ASTNode> defaultValue = nullptr;
+    next();  // next token please
+
+    // check for a type-hint after a ':'
+    if (match(KTokenType::COLON)) {
+      // expect a type name
+      if (tokenType() != KTokenType::TYPENAME) {
+        throw SyntaxError(getErrorToken(),
+                          "Expected a type name in parameter type hint.");
+      }
+
+      // grab the type name
+      auto typeName = tokenName();
+      next();  // next token please
+
+      // register type-hint for the variable
+      typeHints[mangledName] = typeName;
+    }
+
+    // check for default value
+    if (tokenType() == KTokenType::OPERATOR &&
+        tokenName() == KName::Ops_Assign) {
+      next();  // consume '='
+      defaultValue = parseExpression();
+    }
+
+    // add to variables container
+    variables.emplace_back(mangledName, std::move(defaultValue));
+
+    // check for the next variable or the end of the variable declaration
+    if (tokenType() == KTokenType::COMMA) {
+      next();  // next token please
+    } else if (tokenType() != KTokenType::CLOSE_PAREN) {
+      // if it's not a comma and it's not a ')', let the dev know there is a syntax error.
+      throw SyntaxError(getErrorToken(),
+                        "Expected ',' or ')' in variable declaration list.");
+    }
+  }
+
+  next();  // consume ')'
+
+  // create and return the node
+  auto varDecl = std::make_unique<VariableDeclarationNode>();
+  varDecl->variables = std::move(variables);
+  varDecl->typeHints = typeHints;
+  return varDecl;
 }
 
 std::unique_ptr<ASTNode> Parser::parseFunction() {
