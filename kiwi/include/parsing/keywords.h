@@ -280,6 +280,7 @@ struct {
   const k_string Throw = "throw";
   const k_string True = "true";
   const k_string Try = "try";
+  const k_string Var = "var";
   const k_string With = "with";
   const k_string When = "when";
   const k_string While = "while";
@@ -291,7 +292,7 @@ struct {
       Interface, With,   Method, Package,  Next,    Null,    Override,
       Parse,     Pass,   Print,  PrintLn,  PrintXy, Private, Repeat,
       Return,    Static, Struct, This,     Throw,   True,    Try,
-      When,      While};
+      Var,       When,   While};
 
   std::unordered_set<k_string> conditional_keywords = {If, Else, ElseIf, End,
                                                        Case};
