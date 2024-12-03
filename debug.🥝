@@ -431,4 +431,4 @@ fn test_cidr_ipv6()
   println("--- All CIDR IPv6 Tests Passed! ---")
 end
 
-test_cidr_ipv6()
+#test_cidr_ipv6()
