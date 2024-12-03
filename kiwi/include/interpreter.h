@@ -98,6 +98,7 @@ class KInterpreter {
   k_value visit(const LambdaCallNode* node);
   k_value visit(const StructNode* node);
   k_value visit(const FunctionDeclarationNode* node);
+  k_value visit(const VariableDeclarationNode* node);
   k_value visit(const FunctionCallNode* node);
   k_value visit(const MethodCallNode* node);
   k_value visit(const PackageNode* node);
@@ -440,6 +441,10 @@ k_value KInterpreter::interpret(const ASTNode* node) {
 
     case ASTNodeType::FUNCTION:
       result = visit(static_cast<const FunctionDeclarationNode*>(node));
+      break;
+
+    case ASTNodeType::VARIABLE:
+      result = visit(static_cast<const VariableDeclarationNode*>(node));
       break;
 
     case ASTNodeType::FUNCTION_CALL:
@@ -2031,6 +2036,85 @@ k_value KInterpreter::visit(const StructNode* node) {
   ctx->addStruct(structName, std::move(struc));
   structStack.pop();
   ctx->getMethods().clear();
+
+  return {};
+}
+
+k_value KInterpreter::visit(const VariableDeclarationNode* node) {
+  // dereference typeHints for quicker access
+  const auto& typeHints = node->typeHints;
+
+  auto varCount = 0;  // a simple counter for the `TypeError` error message
+  auto hasDefaultValue =
+      false;  // a flag to determine if a variable has an initializer
+
+  // we're going to be injecting these into the stack frame
+  auto& frame = callStack.top();
+
+  // for each declared variable
+  for (const auto& pair : node->variables) {
+    k_value value = {};      // a variable value
+    auto name = pair.first;  // grab the name
+    ++varCount;              // increment the counter (starts at 1)
+    hasDefaultValue = pair.second != nullptr;
+
+    // if there is a default value, grab it
+    if (hasDefaultValue) {
+      value = interpret(pair.second.get());
+    } else {
+      // default to null
+      value = std::make_shared<Null>();
+    }
+
+    // check for a type-hint
+    if (typeHints.find(name) != typeHints.end()) {
+      auto expectedType = typeHints.at(name);
+
+      // if a default value was supplied, expect it to match the type
+      if (hasDefaultValue &&
+          !Serializer::assert_typematch(value, expectedType)) {
+        throw TypeError(node->token,
+                        "Expected type `" +
+                            Serializer::get_typename_string(expectedType) +
+                            "` for variable " + std::to_string(varCount) +
+                            " but received `" +
+                            Serializer::get_value_type_string(value) + "`.");
+      } else if (!hasDefaultValue) {
+        // give it a default value based on the type-hint
+        switch (expectedType) {
+          case KName::Types_Boolean:
+            value = false;
+            break;
+
+          case KName::Types_Integer:
+            value = static_cast<k_int>(0);
+            break;
+
+          case KName::Types_Float:
+            value = static_cast<double>(0);
+            break;
+
+          case KName::Types_String:
+            value = k_string("");
+            break;
+
+          case KName::Types_List:
+            value = std::make_shared<List>();
+            break;
+
+          case KName::Types_Hash:
+            value = std::make_shared<Hashmap>();
+            break;
+
+          default:
+            break;
+        }
+      }
+    }
+
+    // inject the variable
+    frame->variables[name] = value;
+  }
 
   return {};
 }

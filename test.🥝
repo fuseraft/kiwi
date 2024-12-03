@@ -48,6 +48,46 @@ guava::register_test("assignments", with do
   guava::assert(a + b + c == d * e - e)
 end)
 
+guava::register_test("var declaration", with do
+  fn var_decl_one()
+    var (
+      f: float = 0.5,            # type-hint with initializer 
+      s = "string",              # regular variable declaration
+      n,                         # uninitialized variable defaults to null
+      b: boolean,                # type-hint without initializer (`boolean` defaults to false)
+      m: list = [[0] * 5] * 5,   # a 5x5 matrix for funsies
+      l: list,                   # will be an empty list
+      h: hashmap,                # will be an empty hashmap
+      i: integer                 # will be 0
+    )
+
+    return [f, s, n, b, m, l, h, i]
+  end
+
+  fn var_decl_two()
+    var (f: float = 0.5)          # type-hint with initializer 
+    var (s = "string")            # regular variable declaration
+    var (n)                       # uninitialized variable defaults to null
+    var (b: boolean)              # type-hint without initializer (`boolean` defaults to false)
+    var (m: list = [[0] * 5] * 5) # a 5x5 matrix for funsies
+    var (l: list)                 # will be an empty list
+    var (h: hashmap)              # will be an empty hashmap
+    var (i: integer)              # will be 0
+
+    return [f, s, n, b, m, l, h, i]
+  end
+
+  # declare the variables one and two
+  var (one = var_decl_one())
+  var (two = var_decl_two())
+
+  guava::assert(one == two, "the results did not match")
+
+  for i in std::range(0, one.size()) do
+    guava::assert(one[i] == two[i], "the results do not match: ${one[i]} != ${two[i]}")
+  end
+end)
+
 guava::register_test("constants", with do
   const MSG = "hello"
   err_c = 0
