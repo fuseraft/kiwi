@@ -31,6 +31,7 @@ class Parser {
       std::unique_ptr<ASTNode> baseNode);
   std::unique_ptr<ASTNode> parseComment();
   std::unique_ptr<ASTNode> parseFunction();
+  std::unique_ptr<ASTNode> parseVar();
   std::unique_ptr<ASTNode> parseFunctionCall(const k_string& identifierName,
                                              const KName& type);
   std::unique_ptr<ASTNode> parseLambdaCall(std::unique_ptr<ASTNode> lambdaNode);
@@ -398,6 +399,9 @@ std::unique_ptr<ASTNode> Parser::parseKeyword() {
     case KName::KW_Method:
       return parseFunction();
 
+    case KName::KW_Var:
+      return parseVar();
+
     default:
       throw SyntaxError(getErrorToken(),
                         "Unexpected keyword '" + kToken.getText() + "'.");
@@ -536,6 +540,19 @@ std::unique_ptr<ASTNode> Parser::parseInterface() {
   // while (tokenName() != KName::KW_End) {
   //   if (tokenName() == KName::KW_Method) {}
   // }
+  return nullptr;
+}
+
+std::unique_ptr<ASTNode> Parser::parseVar() {
+  match(KTokenType::KEYWORD);  // Consume 'var'
+
+  /*
+  var f: float = 0.5, # type-hint with initializer 
+    s = "string",     # regular variable declaration
+    n,                # uninitialized variable defaults to null
+    b: boolean        # type-hint without initializer (`boolean` defaults to false)
+  */
+
   return nullptr;
 }
 
