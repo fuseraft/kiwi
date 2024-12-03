@@ -1,0 +1,434 @@
+# a script for debugging and experimentation (and fun!)
+
+package cidr
+  /#
+  @summary: Converts an IP address to its integer representation.
+  @params:
+    - `ip`: The IP address as a string.
+  @return: The IP address as an integer.
+  #/
+  fn ip_to_int(ip: string, _parts: list = []): integer
+    _parts = ip.split(".")
+    if _parts.size() != 4
+      throw "Invalid IPv4 address: " + ip
+    end
+    return (_parts[0].to_int() << 24) |
+          (_parts[1].to_int() << 16) |
+          (_parts[2].to_int() << 8) |
+          _parts[3].to_int()
+  end
+
+  /#
+  @summary: Converts an integer representation of an IP address back to a string.
+  @params:
+    - `ip_int`: The IP address as an integer.
+  @return: The IP address as a string.
+  #/
+  fn int_to_ip(ip_int: integer): string
+    return (ip_int >>> 24) + "." +
+          ((ip_int >>> 16) & 255) + "." +
+          ((ip_int >>> 8) & 255) + "." +
+          (ip_int & 255)
+  end
+
+  /#
+  @summary: Parses a CIDR block and returns the network address and prefix length.
+  @params:
+    - `cidr_block`: The CIDR block as a string (e.g., "192.168.1.0/24").
+  @return: A hashmap with `network`, `prefix_length`, `netmask`, and `broadcast`.
+  #/
+  fn parse_cidr(cidr_block: string, _parts: list = []): hashmap
+    _parts = cidr_block.split("/")
+    if _parts.size() != 2
+      throw "Invalid CIDR block: " + cidr_block
+    end
+
+    network_ip = cidr::ip_to_int(_parts.first())
+    prefix_length = _parts.last().to_int()
+
+    if prefix_length < 0 || prefix_length > 32
+      throw "Invalid prefix length: " + prefix_length
+    end
+
+    netmask = ((1 << prefix_length) - 1) << (32 - prefix_length)
+    network = network_ip & netmask
+    broadcast = network | ~netmask
+
+    return {
+      "network": cidr::int_to_ip(network),
+      "prefix_length": prefix_length,
+      "netmask": cidr::int_to_ip(netmask),
+      "broadcast": cidr::int_to_ip(broadcast)
+    }
+  end
+
+  /#
+  @summary: Checks if an IP address is within a given CIDR block.
+  @params:
+    - `ip`: The IP address as a string.
+    - `cidr_block`: The CIDR block as a string.
+  @return: `true` if the IP is within the CIDR block, otherwise `false`.
+  #/
+  fn contains(ip: string, cidr_block: string): boolean
+    ip_int = cidr::ip_to_int(ip)
+    cidr_info = cidr::parse_cidr(cidr_block)
+    network = cidr::ip_to_int(cidr_info["network"])
+    prefix_length = cidr_info["prefix_length"]
+
+    netmask = ((1 << prefix_length) - 1) << (32 - prefix_length)
+    return (ip_int & netmask) == network
+  end
+
+  /#
+  @summary: Calculates the range of valid IP addresses in a CIDR block.
+  @params:
+    - `cidr_block`: The CIDR block as a string.
+  @return: A hashmap with `first_ip` and `last_ip`.
+  #/
+  fn range(cidr_block: string): hashmap
+    cidr_info = cidr::parse_cidr(cidr_block)
+    network = cidr::ip_to_int(cidr_info["network"])
+    prefix_length = cidr_info["prefix_length"]
+
+    if prefix_length == 32
+      # For /32, there's only one valid IP
+      return {
+        "first_ip": cidr::int_to_ip(network),
+        "last_ip": cidr::int_to_ip(network)
+      }
+    end
+
+    netmask = ((1 << prefix_length) - 1) << (32 - prefix_length)
+    first_ip = network + 1
+    last_ip = (network | ~netmask) - 1
+
+    return {
+      "first_ip": cidr::int_to_ip(first_ip),
+      "last_ip": cidr::int_to_ip(last_ip)
+    }
+  end
+
+  /#
+  @summary: Calculates subnets within a given CIDR block.
+  @params:
+    - `cidr_block`: The original CIDR block as a string (e.g., "192.168.1.0/24").
+    - `new_prefix_length`: The prefix length for the subnets.
+  @return: A list of CIDR blocks for the subnets.
+  #/
+  fn subnet(cidr_block: string, new_prefix_length: integer): list
+    cidr_info = cidr::parse_cidr(cidr_block)
+    original_prefix_length = cidr_info["prefix_length"]
+
+    if new_prefix_length <= original_prefix_length || new_prefix_length > 32
+      throw "Invalid new prefix length: " + new_prefix_length
+    end
+
+    network_int = cidr::ip_to_int(cidr_info["network"])
+    num_subnets = 1 << (new_prefix_length - original_prefix_length)
+    subnet_size = 1 << (32 - new_prefix_length)
+
+    subnets = []
+    for i in std::range(0, num_subnets) do
+      subnet_network = network_int + (i * subnet_size)
+      subnets.push(cidr::int_to_ip(subnet_network) + "/" + new_prefix_length)
+    end
+
+    return subnets
+  end
+end
+
+export "cidr"
+
+package cidr_ipv6
+    /#
+  @summary: Converts an IPv6 address to its integer representation.
+  @params:
+    - `ip`: The IPv6 address as a string.
+  @return: The IPv6 address as an integer (list of two integers to represent 128 bits).
+  #/
+  fn ip_to_int(ip: string): list
+    # Split the address into parts by "::"
+    var parts = ip.split("::")
+
+    if parts.size() > 2
+      throw "Invalid IPv6 address: " + ip
+    end
+
+    # Handle the left and right parts of the address
+    left = parts.first().empty("").split(":").map(with (p) do p.empty("0").to_int(16) end)
+    right = parts.last().empty("").split(":").map(with (p) do p.empty("0").to_int(16) end)
+
+    # Insert zero groups in place of "::"
+    missing_groups = 8 - left.size() - right.size()
+    if missing_groups < 0
+      throw "Invalid IPv6 address: " + ip
+    end
+
+    expanded = left + [0] * missing_groups + right
+
+    # Combine into two 64-bit integers
+    return [
+      (expanded[0] << 48) | (expanded[1] << 32) | (expanded[2] << 16) | expanded[3],
+      (expanded[4] << 48) | (expanded[5] << 32) | (expanded[6] << 16) | expanded[7]
+    ]
+  end
+
+  /#
+  @summary: Converts an integer representation of an IPv6 address back to a string.
+  @params:
+    - `ip_int`: The IPv6 address as a list of two integers.
+  @return: The IPv6 address as a string.
+  #/
+  fn int_to_ip(ip_int: list): string
+    high, low =< ip_int
+    parts = [
+      (high >>> 48) & 0xFFFF, (high >>> 32) & 0xFFFF,
+      (high >>> 16) & 0xFFFF, high & 0xFFFF,
+      (low >>> 48) & 0xFFFF, (low >>> 32) & 0xFFFF,
+      (low >>> 16) & 0xFFFF, low & 0xFFFF
+    ]
+    return parts.map(with (p) do [p].to_hex() end).join(":").replace("0:0:0:0:0:0:0:0", "::")
+  end
+
+  /#
+  @summary: Parses an IPv6 CIDR block.
+  @params:
+    - `cidr_block`: The CIDR block (e.g., "2001:db8::/64").
+  @return: A hashmap with `network`, `prefix_length`, and `netmask`.
+  #/
+  fn parse_cidr(cidr_block: string, _parts: list = []): hashmap
+    _parts = cidr_block.split("/")
+    if _parts.size() != 2
+      throw "Invalid CIDR block: " + cidr_block
+    end
+
+    network_ip = cidr_ipv6::ip_to_int(_parts.first())
+    prefix_length = _parts.last().to_int()
+
+    if prefix_length < 0 || prefix_length > 128
+      throw "Invalid prefix length: " + prefix_length
+    end
+
+    # Calculate netmask
+    high_bits = prefix_length > 64 ? ((1 << (prefix_length - 64)) - 1) : 0xFFFFFFFFFFFFFFFF
+    low_bits = prefix_length <= 64 ? ((1 << prefix_length) - 1) << (64 - prefix_length) : 0xFFFFFFFFFFFFFFFF
+
+    netmask = [
+      prefix_length > 64 ? 0xFFFFFFFFFFFFFFFF : high_bits,
+      prefix_length > 64 ? low_bits : 0
+    ]
+
+    # Calculate network address
+    network = [
+      network_ip[0] & netmask[0],
+      network_ip[1] & netmask[1]
+    ]
+
+    return {
+      "network": cidr_ipv6::int_to_ip(network),
+      "prefix_length": prefix_length,
+      "netmask": cidr_ipv6::int_to_ip(netmask)
+    }
+  end
+
+  fn contains(ip: string, cidr_block: string): boolean
+    ip_int = cidr_ipv6::ip_to_int(ip)
+    cidr_info = cidr_ipv6::parse_cidr(cidr_block)
+    network = cidr_ipv6::ip_to_int(cidr_info["network"])
+
+    prefix_length = cidr_info["prefix_length"]
+    netmask_high = prefix_length > 64 ? (1 << (prefix_length - 64)) - 1 : 0
+    netmask_low = prefix_length <= 64 ? (1 << prefix_length) - 1 : 0
+
+    return (ip_int[0] & netmask_high == network[0]) && (ip_int[1] & netmask_low == network[1])
+  end
+
+  fn subnet(cidr_block: string, new_prefix_length: integer): list
+    cidr_info = cidr_ipv6::parse_cidr(cidr_block)
+    original_prefix_length = cidr_info["prefix_length"]
+
+    if new_prefix_length <= original_prefix_length || new_prefix_length > 128
+      throw "Invalid new prefix length: " + new_prefix_length
+    end
+
+    network_int = cidr_ipv6::ip_to_int(cidr_info["network"])
+    num_subnets = 1 << (new_prefix_length - original_prefix_length)
+    subnet_size = 1 << (128 - new_prefix_length)
+
+    subnets = []
+    for i in std::range(0, num_subnets) do
+      subnet_network = [network_int[0] + (i * subnet_size >> 64), network_int[1] + (i * subnet_size)]
+      subnets.push(cidr_ipv6::int_to_ip(subnet_network) + "/" + new_prefix_length)
+    end
+
+    return subnets
+  end
+end
+
+export "cidr_ipv6"
+
+fn assert(condition, message)
+  if !condition
+    eprintln message
+    throw message
+  end
+end
+
+# Test Cases
+fn test_cidr()
+  println("--- Running CIDR Tests ---")
+  
+  # Test 1: Basic /24 CIDR block
+  cidr_block = "192.168.1.0/24"
+  cidr_info = cidr::parse_cidr(cidr_block)
+  assert(cidr_info["network"] == "192.168.1.0", "Test 1a Failed: Network Address")
+  assert(cidr_info["netmask"] == "255.255.255.0", "Test 1b Failed: Netmask")
+  assert(cidr_info["broadcast"] == "192.168.1.255", "Test 1c Failed: Broadcast Address")
+  
+  range = cidr::range(cidr_block)
+  assert(range["first_ip"] == "192.168.1.1", "Test 1d Failed: First IP")
+  assert(range["last_ip"] == "192.168.1.254", "Test 1e Failed: Last IP")
+  
+  assert(cidr::contains("192.168.1.10", cidr_block), "Test 1f Failed: Contains 192.168.1.10")
+  assert(!cidr::contains("192.168.2.1", cidr_block), "Test 1g Failed: Does Not Contain 192.168.2.1")
+  
+  # Test 2: /32 CIDR block
+  cidr_block = "192.168.1.10/32"
+  cidr_info = cidr::parse_cidr(cidr_block)
+  assert(cidr_info["network"] == "192.168.1.10", "Test 2a Failed: Network Address")
+  assert(cidr_info["netmask"] == "255.255.255.255", "Test 2b Failed: Netmask")
+  assert(cidr_info["broadcast"] == "192.168.1.10", "Test 2c Failed: Broadcast Address")
+  
+  range = cidr::range(cidr_block)
+  assert(range["first_ip"] == "192.168.1.10", "Test 2d Failed: First IP")
+  assert(range["last_ip"] == "192.168.1.10", "Test 2e Failed: Last IP")
+  
+  assert(cidr::contains("192.168.1.10", cidr_block), "Test 2f Failed: Contains 192.168.1.10")
+  assert(!cidr::contains("192.168.1.11", cidr_block), "Test 2g Failed: Does Not Contain 192.168.1.11")
+  
+  # Test 3: /0 CIDR block (all IPs)
+  cidr_block = "0.0.0.0/0"
+  cidr_info = cidr::parse_cidr(cidr_block)
+  assert(cidr_info["network"] == "0.0.0.0", "Test 3a Failed: Network Address")
+  assert(cidr_info["netmask"] == "0.0.0.0", "Test 3b Failed: Netmask")
+  assert(cidr_info["broadcast"] == "255.255.255.255", "Test 3c Failed: Broadcast Address")
+  
+  range = cidr::range(cidr_block)
+  assert(range["first_ip"] == "0.0.0.1", "Test 3d Failed: First IP")
+  assert(range["last_ip"] == "255.255.255.254", "Test 3e Failed: Last IP")
+  
+  assert(cidr::contains("192.168.1.1", cidr_block), "Test 3f Failed: Contains Any IP")
+  assert(cidr::contains("8.8.8.8", cidr_block), "Test 3g Failed: Contains Any IP")
+  
+  # Test 4: Cross-boundary IPs
+  cidr_block = "10.0.0.0/8"
+  assert(cidr::contains("10.255.255.255", cidr_block), "Test 4a Failed: Last IP in Range")
+  assert(!cidr::contains("11.0.0.0", cidr_block), "Test 4b Failed: Outside Range")
+  
+  # Test 5: Invalid CIDR blocks
+  passed = false
+  try
+    cidr::parse_cidr("192.168.1.0/33")
+  catch
+    passed = true
+  end
+  assert(passed, "Test 5a Failed: Invalid CIDR Block /33")
+  
+  passed = false
+  try
+    cidr::parse_cidr("192.168.1")
+  catch
+    passed = true
+  end
+  assert(passed, "Test 5b Failed: Invalid CIDR Block Missing Prefix")
+
+  println("--- All Tests Passed! ---")
+end
+
+fn test_subnet()
+  println("--- Running Subnet Tests ---")
+
+  # Test 1: Subnet /24 into /26
+  subnets = cidr::subnet("192.168.1.0/24", 26)
+  assert(subnets.size() == 4, "Test 1a Failed: Number of /26 subnets")
+  assert(subnets[0] == "192.168.1.0/26", "Test 1b Failed: First /26 subnet")
+  assert(subnets[1] == "192.168.1.64/26", "Test 1c Failed: Second /26 subnet")
+
+  # Test 2: Subnet /24 into /30
+  subnets = cidr::subnet("192.168.1.0/24", 30)
+  assert(subnets.size() == 64, "Test 2a Failed: Number of /30 subnets")
+  assert(subnets[0] == "192.168.1.0/30", "Test 2b Failed: First /30 subnet")
+  assert(subnets[63] == "192.168.1.252/30", "Test 2c Failed: Last /30 subnet")
+
+  # Test 3: Invalid Subnet Splits
+  passed = false
+  try
+    cidr::subnet("192.168.1.0/24", 24)
+  catch
+    passed = true
+  end
+  assert(passed, "Test 3a Failed: Invalid prefix equal to original")
+
+  passed = false
+  try
+    cidr::subnet("192.168.1.0/24", 33)
+  catch
+    passed = true
+  end
+  assert(passed, "Test 3b Failed: Invalid prefix greater than 32")
+
+  println("--- All Subnet Tests Passed ---")
+end
+
+test_cidr()
+test_subnet()
+
+fn test_cidr_ipv6()
+  println("--- Running CIDR IPv6 Tests ---")
+  
+  # Test 1: Parsing a /64 CIDR block
+  cidr_block = "2001:db8::/64"
+  cidr_info = cidr_ipv6::parse_cidr(cidr_block)
+  println "cidr_info: ${cidr_info}"
+  assert(cidr_info["network"] == "2001:db8::", "Test 1a Failed: Network Address")
+  assert(cidr_info["netmask"] == "ffff:ffff:ffff:ffff::", "Test 1b Failed: Netmask")
+  assert(cidr_info["prefix_length"] == 64, "Test 1c Failed: Prefix Length")
+  
+  # Test 2: Checking if an IP is in the CIDR block
+  assert(cidr_ipv6::contains("2001:db8::1", cidr_block), "Test 2a Failed: Contains 2001:db8::1")
+  assert(!cidr_ipv6::contains("2001:db9::", cidr_block), "Test 2b Failed: Does Not Contain 2001:db9::")
+  
+  # Test 3: Subnetting a /64 into /66
+  subnets = cidr_ipv6::subnet(cidr_block, 66)
+  assert(subnets.size() == 4, "Test 3a Failed: Number of Subnets for /66")
+  assert(subnets[0] == "2001:db8::/66", "Test 3b Failed: First Subnet")
+  assert(subnets[1] == "2001:db8::4000/66", "Test 3c Failed: Second Subnet")
+  
+  # Test 4: Parsing and subnetting /128
+  cidr_block = "2001:db8::1/128"
+  cidr_info = cidr_ipv6::parse_cidr(cidr_block)
+  assert(cidr_info["network"] == "2001:db8::1", "Test 4a Failed: Network Address /128")
+  assert(cidr_info["netmask"] == "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", "Test 4b Failed: Netmask /128")
+  assert(cidr_info["prefix_length"] == 128, "Test 4c Failed: Prefix Length /128")
+  
+  # Test 5: Invalid CIDR blocks
+  passed = false
+  try
+    cidr_ipv6::parse_cidr("2001:db8::/129")
+  catch
+    passed = true
+  end
+  assert(passed, "Test 5a Failed: Invalid Prefix Length /129")
+  
+  passed = false
+  try
+    cidr_ipv6::parse_cidr("2001:db8::")
+  catch
+    passed = true
+  end
+  assert(passed, "Test 5b Failed: Missing Prefix Length")
+  
+  println("--- All CIDR IPv6 Tests Passed! ---")
+end
+
+#test_cidr_ipv6()
