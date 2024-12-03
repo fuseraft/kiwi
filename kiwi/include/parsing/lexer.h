@@ -967,6 +967,8 @@ Token Lexer::tokenizeKeywordSpecific(const k_string& keyword) {
     st = KName::KW_Throw;
   } else if (keyword == Keywords.Try) {
     st = KName::KW_Try;
+  } else if (keyword == Keywords.Var) {
+    st = KName::KW_Var;
   } else if (keyword == Keywords.When) {
     st = KName::KW_When;
   } else if (keyword == Keywords.While) {
