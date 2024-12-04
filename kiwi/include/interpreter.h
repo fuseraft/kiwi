@@ -2061,6 +2061,11 @@ k_value KInterpreter::visit(const VariableDeclarationNode* node) {
     // if there is a default value, grab it
     if (hasDefaultValue) {
       value = interpret(pair.second.get());
+      // if the value is a lambda, register to the lambda map
+      if (std::holds_alternative<k_lambda>(value)) {
+        const auto& lambdaName = std::get<k_lambda>(value)->identifier;
+        ctx->addMappedLambda(name, lambdaName);
+      }
     } else {
       // default to null
       value = std::make_shared<Null>();
