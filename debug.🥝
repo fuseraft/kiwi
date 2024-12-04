@@ -53,10 +53,12 @@ if err_c == 0
   println "all assertions passed!"
 end
 
-/# interesting syntax, but will require some more work (for the future!)
-var (assert: lambda = (with (cond, msg = "Assertion failed") do
-  if !cond
-    eprintln msg
+# interesting syntax!
+var (foobar: lambda = with (baz: string = "", quux: boolean = false) do
+  if quux
+    println baz
   end
-end))
-#/
+end)
+
+foobar("yay!", true)
+
