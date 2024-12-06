@@ -44,6 +44,29 @@ static double get_double(
   throw ConversionError(token, message);
 }
 
+static k_string to_string_value(const k_value& val) {
+  return std::visit(
+      [](auto&& arg) -> k_string {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, k_int>) {
+          return std::to_string(arg);
+        } else if constexpr (std::is_same_v<T, double>) {
+          // std::to_string(double) is fine, but consider formatting if precision matters
+          return std::to_string(arg);
+        } else if constexpr (std::is_same_v<T, bool>) {
+          return arg ? "true" : "false";
+        } else if constexpr (std::is_same_v<T, k_list>) {
+          // If you want a string representation of a list, implement it here.
+          // Just returning something simple:
+          return "[list]";
+        } else {
+          // Unknown type, possibly throw or return an error string
+          return "";
+        }
+      },
+      val);
+}
+
 struct {
   bool is_zero(const Token& token, const k_value& v) {
     if (std::holds_alternative<double>(v)) {
@@ -58,68 +81,62 @@ struct {
 
   k_value do_addition(const Token& token, const k_value& left,
                       const k_value& right) {
-    k_value result;
+    return std::visit(
+        [&](auto&& lhs, auto&& rhs) -> k_value {
+          using L = std::decay_t<decltype(lhs)>;
+          using R = std::decay_t<decltype(rhs)>;
 
-    if (std::holds_alternative<k_int>(left) &&
-        std::holds_alternative<k_int>(right)) {
-      result = std::get<k_int>(left) + std::get<k_int>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<double>(right)) {
-      result = std::get<double>(left) + std::get<double>(right);
-    } else if (std::holds_alternative<k_int>(left) &&
-               std::holds_alternative<double>(right)) {
-      result =
-          static_cast<double>(std::get<k_int>(left)) + std::get<double>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<k_int>(right)) {
-      result =
-          std::get<double>(left) + static_cast<double>(std::get<k_int>(right));
-    } else if (std::holds_alternative<k_string>(right)) {
-      std::ostringstream build;
-      if (std::holds_alternative<k_int>(left)) {
-        build << std::get<k_int>(left);
-      } else if (std::holds_alternative<double>(left)) {
-        build << std::get<double>(left);
-      } else if (std::holds_alternative<bool>(left)) {
-        build << std::boolalpha << std::get<bool>(left);
-      } else if (std::holds_alternative<k_string>(left)) {
-        build << std::get<k_string>(left);
-      }
-
-      build << std::get<k_string>(right);
-
-      result = build.str();
-    } else if (std::holds_alternative<k_string>(left)) {
-      std::ostringstream build;
-      build << std::get<k_string>(left);
-
-      if (std::holds_alternative<k_int>(right)) {
-        build << std::get<k_int>(right);
-      } else if (std::holds_alternative<double>(right)) {
-        build << std::get<double>(right);
-      } else if (std::holds_alternative<bool>(right)) {
-        build << std::boolalpha << std::get<bool>(right);
-      } else if (std::holds_alternative<k_string>(right)) {
-        build << std::get<k_string>(right);
-      }
-
-      result = build.str();
-    } else if (std::holds_alternative<k_list>(left)) {
-      auto list = std::get<k_list>(left);
-      if (std::holds_alternative<k_list>(right)) {
-        const auto& rightList = std::get<k_list>(right)->elements;
-        for (const auto& item : rightList) {
-          list->elements.emplace_back(item);
-        }
-      } else {
-        list->elements.emplace_back(right);
-      }
-      return list;
-    } else {
-      throw ConversionError(token, "Conversion error in addition.");
-    }
-
-    return result;
+          // int + int
+          if constexpr (std::is_same_v<L, k_int> && std::is_same_v<R, k_int>) {
+            return lhs + rhs;
+          }
+          // double + double
+          else if constexpr (std::is_same_v<L, double> &&
+                             std::is_same_v<R, double>) {
+            return lhs + rhs;
+          }
+          // int + double or double + int
+          else if constexpr ((std::is_same_v<L, k_int> &&
+                              std::is_same_v<R, double>) ||
+                             (std::is_same_v<L, double> &&
+                              std::is_same_v<R, k_int>)) {
+            double l =
+                std::is_same_v<L, k_int> ? static_cast<double>(lhs) : lhs;
+            double r =
+                std::is_same_v<R, k_int> ? static_cast<double>(rhs) : rhs;
+            return l + r;
+          }
+          // string + string
+          else if constexpr (std::is_same_v<L, k_string> &&
+                             std::is_same_v<R, k_string>) {
+            return lhs + rhs;
+          }
+          // string + anything
+          else if constexpr (std::is_same_v<L, k_string>) {
+            return lhs + to_string_value(rhs);
+          }
+          // list + list or list + any
+          else if constexpr (std::is_same_v<L, k_list>) {
+            auto listCopy = lhs;  // Copy or clone the list
+            if constexpr (std::is_same_v<R, k_list>) {
+              listCopy->elements.insert(listCopy->elements.end(),
+                                        rhs->elements.begin(),
+                                        rhs->elements.end());
+            } else {
+              listCopy->elements.emplace_back(rhs);
+            }
+            return listCopy;
+          }
+          // anything + string
+          else if constexpr (std::is_same_v<R, k_string>) {
+            return to_string_value(lhs) + rhs;
+          }
+          // If none of the above matched, it's a conversion error
+          else {
+            throw ConversionError(token, "Conversion error in addition.");
+          }
+        },
+        left, right);
   }
 
   k_value do_subtraction(const Token& token, const k_value& left,
