@@ -54,11 +54,13 @@ if err_c == 0
 end
 
 # interesting syntax!
-var (foobar: lambda = with (baz: string = "", quux: boolean = false) do
-  if quux
-    println baz
+var (print_s: lambda = with (s: string = "", newline: boolean = false) do
+  if newline
+    println s
+  else
+    print s
   end
 end)
 
-foobar("yay!", true)
-
+print_s("yay!")
+print_s("yay!", true)
