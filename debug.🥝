@@ -64,3 +64,6 @@ end)
 
 print_s("yay!")
 print_s("yay!", true)
+
+var (x: integer = 5, y: integer = 2, z: integer = x ** y)
+println z
