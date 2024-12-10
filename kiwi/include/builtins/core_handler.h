@@ -272,31 +272,31 @@ class CoreBuiltinHandler {
     }
 
     switch (value.index()) {
-      case KValueType::INTEGER:
+      case KValueType::_INTEGER:
         return std::get<k_int>(value) != static_cast<k_int>(0);
 
-      case KValueType::FLOAT:
+      case KValueType::_FLOAT:
         return std::get<double>(value) != static_cast<double>(0);
 
-      case KValueType::BOOLEAN:
+      case KValueType::_BOOLEAN:
         return std::get<bool>(value);
 
-      case KValueType::STRING:
+      case KValueType::_STRING:
         return !std::get<k_string>(value).empty();
 
-      case KValueType::LIST:
+      case KValueType::_LIST:
         return !std::get<k_list>(value)->elements.empty();
 
-      case KValueType::HASHMAP:
+      case KValueType::_HASHMAP:
         return std::get<k_hashmap>(value)->size() > 0;
 
-      case KValueType::OBJECT:
+      case KValueType::_OBJECT:
         return true;
 
-      case KValueType::LAMBDA:
+      case KValueType::_LAMBDA:
         return true;
 
-      case KValueType::NONE:
+      case KValueType::_NONE:
         return false;
 
       default:
@@ -1066,31 +1066,31 @@ class CoreBuiltinHandler {
     // }
 
     switch (value.index()) {
-      case KValueType::INTEGER:
+      case KValueType::_INTEGER:
         return typeName == TypeNames.Integer;
 
-      case KValueType::FLOAT:
+      case KValueType::_FLOAT:
         return typeName == TypeNames.Float;
 
-      case KValueType::BOOLEAN:
+      case KValueType::_BOOLEAN:
         return typeName == TypeNames.Boolean;
 
-      case KValueType::STRING:
+      case KValueType::_STRING:
         return typeName == TypeNames.String;
 
-      case KValueType::LIST:
+      case KValueType::_LIST:
         return typeName == TypeNames.List;
 
-      case KValueType::HASHMAP:
+      case KValueType::_HASHMAP:
         return typeName == TypeNames.Hashmap;
 
-      case KValueType::OBJECT:
+      case KValueType::_OBJECT:
         return typeName == TypeNames.Object;
 
-      case KValueType::LAMBDA:
+      case KValueType::_LAMBDA:
         return typeName == TypeNames.Lambda;
 
-      case KValueType::NONE:
+      case KValueType::_NONE:
         return typeName == TypeNames.None;
 
       default:

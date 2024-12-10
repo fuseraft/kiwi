@@ -378,31 +378,31 @@ struct {
 
   bool is_truthy(const k_value& value) {
     switch (value.index()) {
-      case KValueType::INTEGER:
+      case KValueType::_INTEGER:
         return std::get<k_int>(value) != static_cast<k_int>(0);
 
-      case KValueType::FLOAT:
+      case KValueType::_FLOAT:
         return std::get<double>(value) != static_cast<double>(0);
 
-      case KValueType::BOOLEAN:
+      case KValueType::_BOOLEAN:
         return std::get<bool>(value);
 
-      case KValueType::STRING:
+      case KValueType::_STRING:
         return !std::get<k_string>(value).empty();
 
-      case KValueType::LIST:
+      case KValueType::_LIST:
         return !std::get<k_list>(value)->elements.empty();
 
-      case KValueType::HASHMAP:
+      case KValueType::_HASHMAP:
         return std::get<k_hashmap>(value)->size() > 0;
 
-      case KValueType::OBJECT:
+      case KValueType::_OBJECT:
         return true;
 
-      case KValueType::LAMBDA:
+      case KValueType::_LAMBDA:
         return true;
 
-      case KValueType::NONE:
+      case KValueType::_NONE:
         return false;
 
       default:
