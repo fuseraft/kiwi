@@ -451,7 +451,7 @@ k_value lastindexof_listvalue(const k_list& list, const k_value& value) {
 }
 
 // ==========================================
-// KValue and KValueType
+// KValue
 // ==========================================
 
 struct KValue {
