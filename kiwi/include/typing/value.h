@@ -11,6 +11,22 @@
 #include <vector>
 #include "tracing/error.h"
 
+enum KValueType {
+  INTEGER = 0,
+  FLOAT = 1,
+  BOOLEAN = 2,
+  STRING = 3,
+  LIST = 4,
+  HASHMAP = 5,
+  OBJECT = 6,
+  LAMBDA = 7,
+  NONE = 8,
+  STRUCT = 9,
+  POINTER = 10,
+  UNSET = 20
+};
+
+struct KValue;
 struct Hashmap;
 struct List;
 struct Object;
@@ -68,25 +84,25 @@ template <>
 struct hash<k_value> {
   std::size_t operator()(const k_value& v) const {
     switch (v.index()) {
-      case 0:  // k_int
+      case KValueType::INTEGER:
         return std::hash<k_int>()(std::get<k_int>(v));
-      case 1:  // double
+      case KValueType::FLOAT:
         return std::hash<double>()(std::get<double>(v));
-      case 2:  // bool
+      case KValueType::BOOLEAN:
         return std::hash<bool>()(std::get<bool>(v));
-      case 3:  // k_string
+      case KValueType::STRING:
         return std::hash<k_string>()(std::get<k_string>(v));
-      case 4:  // k_list
+      case KValueType::LIST:
         return hash_list(std::get<k_list>(v));
-      case 5:  // k_hashmap
+      case KValueType::HASHMAP:
         return hash_hash(std::get<k_hashmap>(v));
-      case 6:  // k_object
+      case KValueType::OBJECT:
         return hash_object(std::get<k_object>(v));
-      case 7:  // k_lambda
-      case 8:  // k_null
-      case 9:  // k_struct
+      case KValueType::LAMBDA:
+      case KValueType::NONE:
+      case KValueType::STRUCT:
         return false;
-      case 10:  // k_pointer
+      case KValueType::POINTER:
         return std::hash<void*>()(std::get<k_pointer>(v).ptr);
       default:
         // Fallback for unknown types
@@ -201,13 +217,13 @@ struct ValueComparator {
     }
 
     switch (lhs.index()) {
-      case 0:  // k_int
+      case KValueType::INTEGER:
         return *std::get_if<k_int>(&lhs) < *std::get_if<k_int>(&rhs);
-      case 1:  // double
+      case KValueType::FLOAT:
         return *std::get_if<double>(&lhs) < *std::get_if<double>(&rhs);
-      case 2:  // bool
+      case KValueType::BOOLEAN:
         return *std::get_if<bool>(&lhs) < *std::get_if<bool>(&rhs);
-      case 3:  // k_string
+      case KValueType::STRING:
         return *std::get_if<k_string>(&lhs) < *std::get_if<k_string>(&rhs);
       default:
         auto lhs_hash = std::hash<k_value>()(lhs);
@@ -251,25 +267,25 @@ k_hashmap clone_hash(const k_hashmap& original) {
 
 k_value clone_value(const k_value& original) {
   switch (original.index()) {
-    case 0:  // k_int
+    case KValueType::INTEGER:
       return std::get<k_int>(original);
-    case 1:  // double
+    case KValueType::FLOAT:
       return std::get<double>(original);
-    case 2:  // bool
+    case KValueType::BOOLEAN:
       return std::get<bool>(original);
-    case 3:  // k_string
+    case KValueType::STRING:
       return std::get<k_string>(original);
-    case 4:  // k_list
+    case KValueType::LIST:
       return clone_list(std::get<k_list>(original));
-    case 5:  // k_hashmap
+    case KValueType::HASHMAP:
       return clone_hash(std::get<k_hashmap>(original));
-    case 6:  // k_object
+    case KValueType::OBJECT:
       return std::make_shared<Object>(*std::get<k_object>(original));
-    case 7:  // k_lambda
+    case KValueType::LAMBDA:
       return std::make_shared<LambdaRef>(*std::get<k_lambda>(original));
-    case 8:  // k_null
+    case KValueType::NONE:
       return std::make_shared<Null>(*std::get<k_null>(original));
-    case 9:  // k_struct
+    case KValueType::STRUCT:
       return std::make_shared<StructRef>(*std::get<k_struct>(original));
     default:
       throw std::runtime_error("Unsupported type for cloning");
@@ -282,13 +298,13 @@ bool same_value(const k_value& v1, const k_value& v2) {
   }
 
   switch (v1.index()) {
-    case 0:  // k_int
+    case KValueType::INTEGER:
       return *std::get_if<k_int>(&v1) == *std::get_if<k_int>(&v2);
-    case 1:  // double
+    case KValueType::FLOAT:
       return *std::get_if<double>(&v1) == *std::get_if<double>(&v2);
-    case 2:  // bool
+    case KValueType::BOOLEAN:
       return *std::get_if<bool>(&v1) == *std::get_if<bool>(&v2);
-    case 3:  // k_string
+    case KValueType::STRING:
       return *std::get_if<k_string>(&v1) == *std::get_if<k_string>(&v2);
     default:
       return std::hash<k_value>()(v1) == std::hash<k_value>()(v2);
@@ -301,21 +317,21 @@ bool lt_value(const k_value& lhs, const k_value& rhs) {
   }
 
   switch (lhs.index()) {
-    case 0:  // k_int
+    case KValueType::INTEGER:
       return std::get<k_int>(lhs) < std::get<k_int>(rhs);
-    case 1:  // double
+    case KValueType::FLOAT:
       return std::get<double>(lhs) < std::get<double>(rhs);
-    case 2:  // bool
+    case KValueType::BOOLEAN:
       return std::get<bool>(lhs) < std::get<bool>(rhs);
-    case 3:  // k_string
+    case KValueType::STRING:
       return std::get<k_string>(lhs) < std::get<k_string>(rhs);
-    case 4:  // k_list
+    case KValueType::LIST:
       return hash_list(std::get<k_list>(lhs)) <
              hash_list(std::get<k_list>(rhs));
-    case 5:  // k_hashmap
+    case KValueType::HASHMAP:
       return hash_hash(std::get<k_hashmap>(lhs)) <
              hash_hash(std::get<k_hashmap>(rhs));
-    case 6:  // k_object
+    case KValueType::OBJECT:
       return hash_object(std::get<k_object>(lhs)) <
              hash_object(std::get<k_object>(rhs));
     default:
@@ -329,21 +345,21 @@ bool gt_value(const k_value& lhs, const k_value& rhs) {
   }
 
   switch (lhs.index()) {
-    case 0:  // k_int
+    case KValueType::INTEGER:
       return std::get<k_int>(lhs) > std::get<k_int>(rhs);
-    case 1:  // double
+    case KValueType::FLOAT:
       return std::get<double>(lhs) > std::get<double>(rhs);
-    case 2:  // bool
+    case KValueType::BOOLEAN:
       return std::get<bool>(lhs) > std::get<bool>(rhs);
-    case 3:  // k_string
+    case KValueType::STRING:
       return std::get<k_string>(lhs) > std::get<k_string>(rhs);
-    case 4:  // k_list
+    case KValueType::LIST:
       return hash_list(std::get<k_list>(lhs)) >
              hash_list(std::get<k_list>(rhs));
-    case 5:  // k_hashmap
+    case KValueType::HASHMAP:
       return hash_hash(std::get<k_hashmap>(lhs)) >
              hash_hash(std::get<k_hashmap>(rhs));
-    case 6:  // k_object
+    case KValueType::OBJECT:
       return hash_object(std::get<k_object>(lhs)) >
              hash_object(std::get<k_object>(rhs));
     default:
@@ -433,5 +449,170 @@ k_value lastindexof_listvalue(const k_list& list, const k_value& value) {
 
   return static_cast<k_int>(-1);
 }
+
+// ==========================================
+// KValue and KValueType
+// ==========================================
+
+struct KValue {
+ public:
+  KValue() {}
+  KValue(const k_value& value, const KValueType& type) : _value(value), _type(type) {}
+
+  static KValue createInteger(const k_value& value) {
+    return { value, KValueType::INTEGER };
+  }
+  static KValue createFloat(const k_value& value) {
+    return { value, KValueType::FLOAT };
+  }
+  static KValue createBoolean(const k_value& value) {
+    return { value, KValueType::BOOLEAN };
+  }
+  static KValue createString(const k_value& value) {
+    return { value, KValueType::STRING };
+  }
+  static KValue createList(const k_value& value) {
+    return { value, KValueType::LIST };
+  }
+  static KValue createHashmap(const k_value& value) {
+    return { value, KValueType::HASHMAP };
+  }
+  static KValue createObject(const k_value& value) {
+    return { value, KValueType::OBJECT };
+  }
+  static KValue createLambda(const k_value& value) {
+    return { value, KValueType::LAMBDA };
+  }
+  static KValue createNull(const k_value& value) {
+    return { value, KValueType::NONE };
+  }
+  static KValue createStruct(const k_value& value) {
+    return { value, KValueType::STRUCT };
+  }
+  static KValue createPointer(const k_value& value) {
+    return { value, KValueType::POINTER };
+  }
+
+  const k_int getInteger() const {
+    return std::get<k_int>(_value);
+  }
+  const double getFloat() const {
+    return std::get<double>(_value);
+  }
+  const bool getBoolean() const {
+    return std::get<bool>(_value);
+  }
+  const k_string getString() const {
+    return std::get<k_string>(_value);
+  }
+  const k_list getList() const {
+    return std::get<k_list>(_value);
+  }
+  const k_hashmap getHashmap() const {
+    return std::get<k_hashmap>(_value);
+  }
+  const k_object getObject() const {
+    return std::get<k_object>(_value);
+  }
+  const k_lambda getLambda() const {
+    return std::get<k_lambda>(_value);
+  }
+  const k_null getNull() const {
+    return std::get<k_null>(_value);
+  }
+  const k_struct getStruct() const {
+    return std::get<k_struct>(_value);
+  }
+  const k_pointer getPointer() const {
+    return std::get<k_pointer>(_value);
+  }
+
+  const bool isInteger() const {
+    return _type == KValueType::INTEGER;
+  }
+  const bool isFloat() const {
+    return _type == KValueType::FLOAT;
+  }
+  const bool isBoolean() const {
+    return _type == KValueType::BOOLEAN;
+  }
+  const bool isString() const {
+    return _type == KValueType::STRING;
+  }
+  const bool isList() const {
+    return _type == KValueType::LIST;
+  }
+  const bool isHashmap() const {
+    return _type == KValueType::HASHMAP;
+  }
+  const bool isObject() const {
+    return _type == KValueType::OBJECT;
+  }
+  const bool isLambda() const {
+    return _type == KValueType::LAMBDA;
+  }
+  const bool isNull() const {
+    return _type == KValueType::NONE;
+  }
+  const bool isStruct() const {
+    return _type == KValueType::STRUCT;
+  }
+  const bool isPointer() const {
+    return _type == KValueType::POINTER;
+  }
+
+  void setValue(const KValue& value) {
+    _value = value._value;
+    _type = value._type;
+  }
+  void setValue(const k_int& value) {
+    _value = value;
+    _type = KValueType::INTEGER;
+  }
+  void setValue(const double& value) {
+    _value = value;
+    _type = KValueType::FLOAT;
+  }
+  void setValue(const bool& value) {
+    _value = value;
+    _type = KValueType::BOOLEAN;
+  }
+  void setValue(const k_string& value) {
+    _value = value;
+    _type = KValueType::STRING;
+  }
+  void setValue(const k_list& value) {
+    _value = value;
+    _type = KValueType::LIST;
+  }
+  void setValue(const k_hashmap& value) {
+    _value = value;
+    _type = KValueType::HASHMAP;
+  }
+  void setValue(const k_object& value) {
+    _value = value;
+    _type = KValueType::OBJECT;
+  }
+  void setValue(const k_lambda& value) {
+    _value = value;
+    _type = KValueType::LAMBDA;
+  }
+  void setValue(const k_null& value) {
+    _value = value;
+    _type = KValueType::NONE;
+  }
+  void setValue(const k_struct& value) {
+    _value = value;
+    _type = KValueType::STRUCT;
+  }
+  void setValue(const k_pointer& value) {
+    _value = value;
+    _type = KValueType::POINTER;
+  }
+  
+ private:
+  k_value _value = {};
+  KValueType _type = KValueType::UNSET;
+};
 
 #endif
