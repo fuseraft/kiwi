@@ -402,16 +402,14 @@ class FileIOBuiltinHandler {
     auto fileName = get_string(token, args.at(0));
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
-    KValue byteValue;
 
     if (args.size() == 1) {
       auto bytes = File::readBytes(token, fileName);
       elements.reserve(bytes.size());
 
       for (const auto& byte : bytes) {
-        byteValue.setValue(
-            static_cast<k_int>(static_cast<unsigned char>(byte)));
-        elements.emplace_back(byteValue);
+        elements.emplace_back(KValue::createInteger(
+            static_cast<k_int>(static_cast<unsigned char>(byte))));
       }
     } else {
       auto offset = get_integer(token, args.at(1));
@@ -421,8 +419,7 @@ class FileIOBuiltinHandler {
       elements.reserve(bytes.size());
 
       for (const auto& byte : bytes) {
-        byteValue.setValue(static_cast<k_int>(byte));
-        elements.emplace_back(byteValue);
+        elements.emplace_back(KValue::createInteger(static_cast<k_int>(byte)));
       }
     }
 

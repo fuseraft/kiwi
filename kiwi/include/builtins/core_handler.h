@@ -582,8 +582,6 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.ToBytes);
     }
 
-    KValue byteValue;
-
     if (value.isString()) {
       auto stringValue = value.getString();
       std::vector<uint8_t> bytes(stringValue.begin(), stringValue.end());
@@ -592,8 +590,7 @@ class CoreBuiltinHandler {
       elements.reserve(bytes.size());
 
       for (const auto& byte : bytes) {
-        byteValue.setValue(static_cast<k_int>(byte));
-        elements.emplace_back(byteValue);
+        elements.emplace_back(KValue::createInteger(static_cast<k_int>(byte)));
       }
 
       return KValue::createList(byteList);
@@ -612,8 +609,7 @@ class CoreBuiltinHandler {
         std::vector<uint8_t> bytes(stringValue.begin(), stringValue.end());
 
         for (const auto& byte : bytes) {
-          byteValue.setValue(static_cast<k_int>(byte));
-          elements.emplace_back(byteValue);
+          elements.emplace_back(KValue::createInteger(static_cast<k_int>(byte)));
         }
       }
 
