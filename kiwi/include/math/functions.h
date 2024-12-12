@@ -380,11 +380,11 @@ struct {
                         const KValue& right) {
     if (left.isInteger()) {
       auto lhs = left.getInteger();
+      
       if (right.isInteger()) {
         return KValue::createInteger(lhs & right.getInteger());
       } else if (right.isFloat()) {
-        return KValue::createInteger(lhs &
-                                     static_cast<k_int>(right.getFloat()));
+        return KValue::createInteger(lhs & static_cast<k_int>(right.getFloat()));
       } else if (right.isBoolean()) {
         k_int rhs = right.getBoolean() ? 1 : 0;
         return KValue::createInteger(lhs & rhs);
@@ -395,14 +395,14 @@ struct {
   }
 
   KValue do_bitwise_or(const Token& token, const KValue& left,
-                       const KValue& right) {
+                        const KValue& right) {
     if (left.isInteger()) {
       auto lhs = left.getInteger();
+
       if (right.isInteger()) {
         return KValue::createInteger(lhs | right.getInteger());
       } else if (right.isFloat()) {
-        return KValue::createInteger(lhs |
-                                     static_cast<k_int>(right.getFloat()));
+        return KValue::createInteger(lhs | static_cast<k_int>(right.getFloat()));
       } else if (right.isBoolean()) {
         k_int rhs = right.getBoolean() ? 1 : 0;
         return KValue::createInteger(lhs | rhs);
@@ -413,14 +413,14 @@ struct {
   }
 
   KValue do_bitwise_xor(const Token& token, const KValue& left,
-                        const KValue& right) {
+                         const KValue& right) {
     if (left.isInteger()) {
       auto lhs = left.getInteger();
+      
       if (right.isInteger()) {
         return KValue::createInteger(lhs ^ right.getInteger());
       } else if (right.isFloat()) {
-        return KValue::createInteger(lhs ^
-                                     static_cast<k_int>(right.getFloat()));
+        return KValue::createInteger(lhs ^ static_cast<k_int>(right.getFloat()));
       } else if (right.isBoolean()) {
         k_int rhs = right.getBoolean() ? 1 : 0;
         return KValue::createInteger(lhs ^ rhs);
@@ -432,12 +432,11 @@ struct {
 
   KValue do_bitwise_not(const Token& token, const KValue& left) {
     if (left.isInteger()) {
-      return KValue::createInteger(~left.getInteger());
+      return KValue::createInteger(~(left.getInteger()));
     } else if (left.isFloat()) {
-      return KValue::createInteger(~static_cast<k_int>(left.getFloat()));
+      return KValue::createInteger(~(static_cast<k_int>(left.getFloat())));
     } else if (left.isBoolean()) {
-      return KValue::createInteger(
-          ~static_cast<k_int>(left.getBoolean() ? 1 : 0));
+      return KValue::createInteger(~(static_cast<k_int>(left.getBoolean() ? 1 : 0)));
     }
 
     throw ConversionError(token, "Conversion error in bitwise ~ operation.");
